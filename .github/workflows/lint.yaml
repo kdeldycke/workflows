@@ -1,12 +1,10 @@
 ---
 name: Lint
+
 "on":
-  push:
-    # QA on main is too late: we shouldn't mess with the code at this point.
-    branches-ignore:
-      - 'main'
-  pull_request:
   workflow_call:
+  push:
+  pull_request:
 
 jobs:
 
@@ -22,4 +20,4 @@ jobs:
           python -m pip install yamllint
       - name: Run
         run: |
-          poetry run yamllint .
+          yamllint --strict --format github .
