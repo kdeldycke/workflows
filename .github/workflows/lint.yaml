@@ -1,0 +1,25 @@
+---
+name: Lint
+"on":
+  push:
+    # QA on main is too late: we shouldn't mess with the code at this point.
+    branches-ignore:
+      - 'main'
+  pull_request:
+  workflow_call:
+
+jobs:
+
+  lint-yaml:
+    name: Lint YAML files
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-python@v2.2.2
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install yamllint
+      - name: Run
+        run: |
+          poetry run yamllint .
