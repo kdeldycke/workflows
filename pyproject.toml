@@ -16,7 +16,7 @@ license = "GPL-2.0-or-later"
 # List of python versions and their support status:
 # https://en.wikipedia.org/wiki/History_of_Python#Support
 python = "^3.7"
-yamllint = "^1.26.3"
+yamllint = { git = "https://github.com/adrienverge/yamllint.git", rev = "d0392b34ca15fb56061a4edc594ae2dd67b0cff9" }
 
 [tool.poetry.dev-dependencies]
 
