@@ -8,6 +8,24 @@ name: Lint
 
 jobs:
 
+  lint-python:
+    name: Lint and check Python code
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-python@v2.3.1
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Run
+        # Docs: http://pylint.pycqa.org/en/latest/technical_reference/features.html
+        # --output-format=colorized : Colorize output
+        # --jobs=0 : Use all available processors
+        # --max-line-length=88 : Aligns to black's config; see https://github.com/psf/black/blob/master/docs/compatible_configs.md#pylint
+        run: |
+          pylint --output-format=colorized --jobs=0 --max-line-length=88 **/*.py
+
   lint-yaml:
 
 
