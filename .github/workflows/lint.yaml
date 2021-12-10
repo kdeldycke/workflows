@@ -20,11 +20,23 @@ jobs:
           pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run
         # Docs: http://pylint.pycqa.org/en/latest/technical_reference/features.html
-        # --output-format=colorized : Colorize output
-        # --jobs=0 : Use all available processors
-        # --max-line-length=88 : Aligns to black's config; see https://github.com/psf/black/blob/master/docs/compatible_configs.md#pylint
-        run: |
-          pylint --output-format=colorized --jobs=0 --max-line-length=88 **/*.py
+        # --output-format=colorized
+        #   Colorize output.
+        # --jobs=0
+        #   Use all available processors.
+        # --max-line-length=88
+        #   Aligns to black's config; See
+        #   https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#pylint
+        # --logging-format-style=new
+        #   The type of string formatting that logging methods do. `old` means using %
+        #   formatting, `new` is for `{}` formatting.
+        run: >
+          pylint
+          --output-format=colorized
+          --jobs=0
+          --max-line-length=88
+          --logging-format-style=new
+          **/*.py
 
   lint-yaml:
 
