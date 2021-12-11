@@ -14,8 +14,8 @@ jobs:
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.3.1
       - name: Install Python project
-        # This step is necessary to avoid import errors showing up in Pylint reports.
-        # Caveat: assume the project currently being tested is managed with Poetry.
+        # This step is necessary to avoid import errors in Pylint reports.
+        # XXX Caveat: assume the caller's project is managed with Poetry.
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade poetry
@@ -23,20 +23,22 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --no-interaction
       - name: Install Pylint
-        run: |
-          python -m pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run
-        # Docs: http://pylint.pycqa.org/en/latest/technical_reference/features.html
+        # Docs:
+        # http://pylint.pycqa.org/en/latest/technical_reference/features.html
         # --output-format=colorized
         #   Colorize output.
         # --jobs=0
         #   Use all available processors.
         # --max-line-length=88
-        #   Aligns to black's config; See
-        #   https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#pylint
+        #   Aligns to black's config; See https://black.readthedocs.io/en/
+        #   stable/guides/using_black_with_other_tools.html#pylint
         # --logging-format-style=new
-        #   The type of string formatting that logging methods do. `old` means using %
-        #   formatting, `new` is for `{}` formatting.
+        #   The type of string formatting that logging methods do. `old` means
+        #   using % formatting, `new` is for `{}` formatting.
         run: >
           pylint
           --output-format=colorized
@@ -46,9 +48,6 @@ jobs:
           **/*.py
 
   lint-yaml:
-
-
-
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
@@ -60,4 +59,3 @@ jobs:
       - name: Run
         run: |
           yamllint --strict --format github .
-
