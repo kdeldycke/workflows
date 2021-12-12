@@ -10,7 +10,6 @@ jobs:
 
   lint-python:
     runs-on: ubuntu-20.04
-    if: hashFiles('**/*.py')
     steps:
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.3.1
@@ -32,6 +31,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke\
           /workflows/main/requirements.txt
       - name: Run
+        if: hashFiles('**/*.py')
         # Docs:
         # http://pylint.pycqa.org/en/latest/technical_reference/features.html
         # --output-format=colorized
@@ -54,7 +54,6 @@ jobs:
 
   lint-yaml:
     runs-on: ubuntu-20.04
-    if: hashFiles('**/*.yaml', '**/*.yml')
     steps:
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.2.2
