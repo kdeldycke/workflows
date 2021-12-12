@@ -13,11 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.3.1
-      - name: Install Python project
-        # This step is necessary to avoid import errors in Pylint reports.
-        # XXX Caveat: assume the caller's project is managed with Poetry.
+      - name: Install pip
         run: |
           python -m pip install --upgrade pip
+      - name: Install project with Poetry
+        # If currrent project has a pyproject.toml file at its root, install it
+        # with Poetry. That way we avoid import errors in Pylint reports.
+        if: hashFiles('pyproject.toml')
+        run: |
           python -m pip install --upgrade poetry
           # Allows our Pylint version to access project's dependencies.
           poetry config virtualenvs.create false
