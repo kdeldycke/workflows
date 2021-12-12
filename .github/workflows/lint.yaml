@@ -28,7 +28,8 @@ jobs:
       - name: Install Pylint
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke\
+          /workflows/main/requirements.txt
       - name: Run
         # Docs:
         # http://pylint.pycqa.org/en/latest/technical_reference/features.html
@@ -55,10 +56,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.2.2
-      - name: Install
+      - name: Install pip
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Install yamllint
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke\
+          /workflows/main/requirements.txt
       - name: Run
         run: |
           yamllint --strict --format github .
