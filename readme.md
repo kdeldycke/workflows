@@ -37,7 +37,13 @@ $ git push --tags
 $ unset RELEASE_VERSION
 ```
 
+The next steps of the release process are automated and should be picked up
+by the [`changelog.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml).
+
 ## Version bump
+
+Versions are bumped to their next `patch` revision during the release process
+above by the [`changelog.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml).
 
 In the middle of your development, if the upcoming release is no longer bug-fix
 only, feel free to bump to the next `minor`:
