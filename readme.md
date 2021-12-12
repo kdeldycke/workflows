@@ -30,10 +30,11 @@ Then create a release commit and tag it:
 
 ``` shell-session
 $ git add ./changelog.md ./.github/workflows/*.yaml
-$ git commit -m "Release vX.Y.Z"
-$ git tag "vX.Y.Z"
+$ git commit -m "Release v${RELEASE_VERSION}"
+$ git tag "v${RELEASE_VERSION}"
 $ git push
 $ git push --tags
+$ unset RELEASE_VERSION
 ```
 
 ## Version bump

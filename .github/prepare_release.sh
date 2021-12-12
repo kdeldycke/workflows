@@ -16,5 +16,3 @@ perl -pi -e "s/\.\.\.main\)/\.\.\.v${RELEASE_VERSION}\)/" ./changelog.md
 
 # Remove the warning message.
 perl -i -ne "print if not /\`\`\`/ .. /^$/" ./changelog.md
-
-unset RELEASE_VERSION
