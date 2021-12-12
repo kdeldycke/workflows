@@ -3,5 +3,6 @@
 # Also, a project relying on this repository can point to this external requirement.txt,
 # even from its Poetry's venv. We cannot do that with Poetry, as it doesn't support sub-venvs.
 # All versions are pinned so we have ultimate control over reproducibility.
+bumpversions == 1.0.0
 pylint == 2.11.1
 yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9
