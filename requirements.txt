@@ -4,5 +4,5 @@
 # even from its Poetry's venv. We cannot do that with Poetry, as it doesn't support sub-venvs.
 # All versions are pinned so we have ultimate control over reproducibility.
 bump2version == 1.0.0
-pylint == 2.11.1
+pylint == 2.12.2
 yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9
