@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
+      # Skip early if no Python files found.
+      - if: ! hashFiles("**/*.py")
+        run: exit 0
       - uses: actions/setup-python@v2.3.1
       - name: Install pip
         run: |
@@ -55,6 +58,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
+      # Skip early if no YAML files found.
+      - if: ! hashFiles("**/*.yaml", "**/*.yml")
+        run: exit 0
       - uses: actions/setup-python@v2.2.2
       - name: Install pip
         run: |
