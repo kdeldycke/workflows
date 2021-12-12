@@ -8,7 +8,7 @@ This version is not released yet and is under active development.
 
 - Install project with Poetry before calling Pylint if `pyproject.toml` presence is detected.
 - Hard-code tagged version in requirement URL for reuseable workflows.
-- Document release process.
+- Document the release process.
 
 ## [0.0.1 (2021-12-11)](https://github.com/kdeldycke/workflows/compare/5cbdbb...v0.0.1)
 
