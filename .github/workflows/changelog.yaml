@@ -1,5 +1,5 @@
 ---
-name: Changelog
+name: Changelog and version management
 "on":
   push:
     branches:
@@ -7,7 +7,39 @@ name: Changelog
 
 jobs:
 
-  changelog:
+  minor-version-increment:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-python@v2.2.2
+      - name: Minor version bump
+        run: |
+          bumpversion --verbose minor
+      - uses: peter-evans/create-pull-request@v3.11.0
+        with:
+          author: "Kevin Deldycke <kevin@deldycke.com>"
+          commit-message: >
+            [changelog] Upcoming release no longer bug-fix only.
+            Bump minor version.
+          title: "[changelog] Minor version increment"
+          body: >
+            This is a constantly-updating draft PR, ready to be merged into
+            `main`. It let maintainers quickly bump the minor part of the
+            version number.
+
+            [Auto-generated on run #${{ github.run_id
+            }}](https://github.com/${{ github.repository }}/actions/runs/${{
+            github.run_id }}) by [workflow action](https://github.com/${{
+            github.repository }}/blob/${{ github.base_ref
+            }}/.github/workflows/changelog.yaml).
+          labels: "🔩 CI/CD, 📗 documentation"
+          assignees: kdeldycke
+          base: main
+          branch: minor-version-increment
+          delete-branch: true
+          draft: true
+
+  post-release-version-bump:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
@@ -51,3 +83,5 @@ jobs:
           assignees: kdeldycke
           base: main
           branch: version-bump
+          delete-branch: true
+          draft: true
