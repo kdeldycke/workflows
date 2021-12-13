@@ -1,5 +1,5 @@
 ---
-name: Changelog and version management
+name: Changelog & versions
 "on":
   push:
     branches:
@@ -23,13 +23,22 @@ jobs:
       - name: Minor version bump
         run: |
           bumpversion --verbose minor
+      - name: Extract new version
+        id: get_version
+        # Docs: https://docs.github.com/en/actions/learn-github-actions
+        # /workflow-commands-for-github-actions#setting-an-output-parameter
+        run: |
+          echo "::set-output name=NEW_VERSION::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
       - uses: peter-evans/create-pull-request@v3.11.0
         with:
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: >
             [changelog] Upcoming release no longer bug-fix only.
-            Bump minor version.
-          title: "[changelog] Minor version increment"
+            Bump minor version to ${{ steps.get_version.outputs.NEW_VERSION }}.
+          title: >
+            [changelog] Minor version increment to
+            ${{ steps.get_version.outputs.NEW_VERSION }}
           body: >
             This is a constantly-updating draft PR, ready to be merged into
             `main`. It let maintainers quickly bump the minor part of the
