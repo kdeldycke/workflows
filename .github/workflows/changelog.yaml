@@ -2,7 +2,8 @@
 name: Changelog
 "on":
   push:
-  pull_request:
+    branches:
+      - main
 
 jobs:
 
@@ -33,17 +34,19 @@ jobs:
         run: |
           bumpversion --verbose patch
       - uses: peter-evans/create-pull-request@v3.11.0
-        if: startsWith(github.ref, 'refs/tags/v')
         with:
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: "[changelog] Post-release version bump"
           title: "[changelog] Post-release version bump"
           body: >
-            [Auto-generated on run
-            #${{ github.run_id }}](https://github.com/${{ github.repository
-            }}/actions/runs/${{ github.run_id }}) as defined by [workflow
-            action](https://github.com/${{ github.repository
-            }}/blob/${{ github.base_ref }}/.github/workflows/changelog.yaml).
+            This is a constantly-updating open PR, ready to be merged to `main`
+            right after a new release has been tagged.
+
+            [Auto-generated on run #${{ github.run_id
+            }}](https://github.com/${{ github.repository }}/actions/runs/${{
+            github.run_id }}) by [workflow action](https://github.com/${{
+            github.repository }}/blob/${{ github.base_ref
+            }}/.github/workflows/changelog.yaml).
           labels: "🔩 CI/CD, 📗 documentation"
           assignees: kdeldycke
           base: main
