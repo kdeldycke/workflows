@@ -34,11 +34,11 @@ jobs:
         with:
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: >
-            [changelog] Upcoming release no longer bug-fix only.
-            Bump minor version to ${{ steps.get_version.outputs.NEW_VERSION }}.
+            [changelog] Next release no longer bug-fix only.
+            Bump version to v${{ steps.get_version.outputs.NEW_VERSION }}.
           title: >
             [changelog] Minor version increment to
-            ${{ steps.get_version.outputs.NEW_VERSION }}
+            v${{ steps.get_version.outputs.NEW_VERSION }}
           body: >
             This is a constantly-updating draft PR, ready to be merged into
             `main`. It let maintainers quickly bump the minor part of the
