@@ -78,7 +78,6 @@ history = (
 )
 
 print("New generated section:\n" + indent(new_entry, " " * 2))
-assert new_entry not in history
 
 # Recompose full changelog with new top entry.
 changelog_file.write_text(f"{changelog_header}{new_entry}{history}")
