@@ -18,8 +18,8 @@ jobs:
       - name: Install bumpversion
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke\
-          /workflows/main/requirements.txt
+            https://raw.githubusercontent.com/kdeldycke\
+            /workflows/main/requirements.txt
       - name: Minor version bump
         run: |
           bumpversion --verbose minor
@@ -68,8 +68,8 @@ jobs:
       - name: Install bumpversion
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke\
-          /workflows/main/requirements.txt
+            https://raw.githubusercontent.com/kdeldycke\
+            /workflows/main/requirements.txt
       - name: Major version bump
         run: |
           bumpversion --verbose major
@@ -118,8 +118,8 @@ jobs:
       - name: Install bumpversion
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke\
-          /workflows/main/requirements.txt
+            https://raw.githubusercontent.com/kdeldycke\
+            /workflows/main/requirements.txt
       - name: Extract current version
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
@@ -143,9 +143,9 @@ jobs:
       - name: Update comparison URL
         run: >
           bumpversion --verbose --no-configured-files
-          --search "...main)"
-          --replace "...v{current_version})"
-          no-bump ./changelog.md
+            --search "...main)"
+            --replace "...v{current_version})"
+            no-bump ./changelog.md
       - name: Remove warning message
         run: perl -i -ne "print if not /\`\`\`/ .. /^$/" ./changelog.md
       - uses: peter-evans/create-pull-request@v3.12.0
@@ -185,8 +185,8 @@ jobs:
       - name: Install bumpversion
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke\
-          /workflows/main/requirements.txt
+            https://raw.githubusercontent.com/kdeldycke\
+            /workflows/main/requirements.txt
       - name: Add new changelog entry
         run: |
           python ./.github/update_changelog.py

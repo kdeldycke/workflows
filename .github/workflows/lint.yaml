@@ -28,8 +28,8 @@ jobs:
       - name: Install Pylint
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke\
-          /workflows/main/requirements.txt
+            https://raw.githubusercontent.com/kdeldycke\
+            /workflows/main/requirements.txt
       - name: Run Pylint
         if: hashFiles('**/*.py')
         # Docs:
@@ -46,11 +46,11 @@ jobs:
         #   using % formatting, `new` is for `{}` formatting.
         run: >
           pylint
-          --output-format=colorized
-          --jobs=0
-          --max-line-length=88
-          --logging-format-style=new
-          **/*.py
+            --output-format=colorized
+            --jobs=0
+            --max-line-length=88
+            --logging-format-style=new
+            **/*.py
 
   lint-yaml:
     runs-on: ubuntu-20.04
@@ -63,8 +63,8 @@ jobs:
       - name: Install yamllint
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke\
-          /workflows/main/requirements.txt
+            https://raw.githubusercontent.com/kdeldycke\
+            /workflows/main/requirements.txt
       - name: Run yamllint
         run: |
           yamllint --strict --format github .
