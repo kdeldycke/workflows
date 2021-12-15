@@ -33,7 +33,7 @@ jobs:
      - name: Force default shell to Zsh
         # So we can rely on the **/*.py glob pattern in Pylint invokation below.
         run: |
-          sudo apt-get install zsh
+          sudo apt install zsh
           sudo chsh -s "/usr/bin/zsh" root
           sudo chsh -s "/usr/bin/zsh" $USERNAME
       - name: Run Pylint
