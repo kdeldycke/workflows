@@ -40,17 +40,15 @@ jobs:
             [changelog] Minor version increment to
             v${{ steps.get_version.outputs.NEW_VERSION }}
           body: >
-            This PR is ready to be merged into `main` branch, at the discretion
-            of the maintainers, to quickly bump the minor part of the version
-            number.
+            Ready to be merged into `main` branch, at the discretion of the
+            maintainers, to bump the minor part of the version number.
 
 
             [Auto-generated on run `#${{ github.run_id }}`](${{
             github.event.repository.html_url }}/actions/runs/${{ github.run_id
             }}) by `${{ github.job }}` job from [`changelog.yaml`](${{
-            github.event.repository.html_url }}/blob/${{ github.ref_name
+            github.event.repository.html_url }}/blob/${{ github.sha
             }}/.github/workflows/changelog.yaml) workflow.
-
           labels: "🔩 CI/CD, 📗 documentation"
           assignees: kdeldycke
           base: main
@@ -90,14 +88,15 @@ jobs:
           commit-message: "[changelog] Post-release version bump"
           title: "[changelog] Post-release version bump"
           body: >
-            This is a constantly-updating open PR, ready to be merged to `main`
-            right after a new release has been tagged.
+            Ready to be merged into `main` branch right after a new release has
+            been tagged.
 
-            [Auto-generated on run #${{ github.run_id
-            }}](https://github.com/${{ github.repository }}/actions/runs/${{
-            github.run_id }}) by [workflow action](https://github.com/${{
-            github.repository }}/blob/${{ github.base_ref
-            }}/.github/workflows/changelog.yaml).
+
+            [Auto-generated on run `#${{ github.run_id }}`](${{
+            github.event.repository.html_url }}/actions/runs/${{ github.run_id
+            }}) by `${{ github.job }}` job from [`changelog.yaml`](${{
+            github.event.repository.html_url }}/blob/${{ github.sha
+            }}/.github/workflows/changelog.yaml) workflow.
           labels: "🔩 CI/CD, 📗 documentation"
           assignees: kdeldycke
           base: main
