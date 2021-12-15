@@ -17,8 +17,8 @@
 
 """Adds a new empty entry at the top of the changelog.
 
-This is designed to be used just after a new release has been tagged. And before a post-release version increment is
-applied with a call to:
+This is designed to be used just after a new release has been tagged. And before a
+post-release version increment is applied with a call to:
 
 ```shell-sesssion
 $ bumpversion --verbose patch
@@ -51,13 +51,18 @@ changelog_header, last_entry, past_entries = content.split(SECTION_START, 2)
 
 # Derive the release template from the last entry.
 DATE_REGEX = r"\d{4}\-\d{2}\-\d{2}"
-VERSION_REGEX = "\d+\.\d+\.\d+"
+VERSION_REGEX = r"\d+\.\d+\.\d+"
 
 # Replace the release date with the unreleased tag.
 new_entry = re.sub(DATE_REGEX, "unreleased", last_entry, count=1)
 
 # Update GitHub's comparison URL to target the main branch.
-new_entry = re.sub(fr"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}", f"v{current_version}...main", new_entry, count=1)
+new_entry = re.sub(
+    fr"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}",
+    f"v{current_version}...main",
+    new_entry,
+    count=1,
+)
 
 # Replace the whole paragraph of changes by a notice message.
 # The paragraph is identified as surrounded by blank lines, and the regex below keeps the original formatting intact.
@@ -68,14 +73,12 @@ new_entry = re.sub(
     "This version is not released yet and is under active development.\n"
     "```\n\n",
     new_entry,
-    flags=re.MULTILINE | re.DOTALL)
+    flags=re.MULTILINE | re.DOTALL,
+)
 
 # Prefix entries with section marker.
 new_entry = f"{SECTION_START}{new_entry}"
-history = (
-    f"{SECTION_START}{last_entry}"
-    f"{SECTION_START}{past_entries}"
-)
+history = f"{SECTION_START}{last_entry}" f"{SECTION_START}{past_entries}"
 
 print("New generated section:\n" + indent(new_entry, " " * 2))
 
