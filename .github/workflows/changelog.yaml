@@ -35,7 +35,10 @@ jobs:
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: "Kevin Deldycke <kevin@deldycke.com>"
+          author: >
+            ${{ github.event.repository.owner.name }}
+            <${{ github.event.repository.owner.email }}>
+          assignees: ${{ github.event.head_commit.committer.username }}
           commit-message: >
             [changelog] Next release no longer bug-fix only; bump version to
             v${{ steps.get_version.outputs.NEW_VERSION }}.
@@ -53,7 +56,6 @@ jobs:
             github.event.repository.html_url }}/blob/${{ github.sha
             }}/.github/workflows/changelog.yaml) workflow.
           labels: "🔩 CI/CD, 📗 documentation"
-          assignees: kdeldycke
           base: main
           branch: minor-version-increment
           delete-branch: true
@@ -87,7 +89,10 @@ jobs:
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: "Kevin Deldycke <kevin@deldycke.com>"
+          author: >
+            ${{ github.event.repository.owner.name }}
+            <${{ github.event.repository.owner.email }}>
+          assignees: ${{ github.event.head_commit.committer.username }}
           commit-message: >
             [changelog] Next release is major; bump version to
             v${{ steps.get_version.outputs.NEW_VERSION }}.
@@ -105,7 +110,6 @@ jobs:
             github.event.repository.html_url }}/blob/${{ github.sha
             }}/.github/workflows/changelog.yaml) workflow.
           labels: "🔩 CI/CD, 📗 documentation"
-          assignees: kdeldycke
           base: main
           branch: major-version-increment
           delete-branch: true
@@ -163,7 +167,10 @@ jobs:
           # "Developer Settings > Personal Access Tokens" UI to allow this job
           # to update its own workflows.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}
-          author: "Kevin Deldycke <kevin@deldycke.com>"
+          author: >
+            ${{ github.event.repository.owner.name }}
+            <${{ github.event.repository.owner.email }}>
+          assignees: ${{ github.event.head_commit.committer.username }}
           commit-message: >
             [changelog] Release
             v${{ steps.get_version.outputs.CURRENT_VERSION }}
@@ -181,7 +188,6 @@ jobs:
             github.event.repository.html_url }}/blob/${{ github.sha
             }}/.github/workflows/changelog.yaml) workflow.
           labels: "🔩 CI/CD, 📗 documentation"
-          assignees: kdeldycke
           base: main
           branch: prepare-release
           delete-branch: true
@@ -228,7 +234,10 @@ jobs:
           bumpversion --verbose patch
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: "Kevin Deldycke <kevin@deldycke.com>"
+          author: >
+            ${{ github.event.repository.owner.name }}
+            <${{ github.event.repository.owner.email }}>
+          assignees: ${{ github.event.head_commit.committer.username }}
           commit-message: "[changelog] Post-release version bump"
           title: "[changelog] Post-release version bump"
           body: >
@@ -242,7 +251,6 @@ jobs:
             github.event.repository.html_url }}/blob/${{ github.sha
             }}/.github/workflows/changelog.yaml) workflow.
           labels: "🔩 CI/CD, 📗 documentation"
-          assignees: kdeldycke
           base: main
           branch: post-release-version-bump
           delete-branch: true
