@@ -107,6 +107,71 @@ jobs:
           delete-branch: true
           draft: true
 
+  prepare-release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-python@v2.2.2
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install bumpversion
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke\
+          /workflows/main/requirements.txt
+      - name: Extract current version
+        id: get_version
+        # Docs: https://docs.github.com/en/actions/learn-github-actions
+        # /workflow-commands-for-github-actions#setting-an-output-parameter
+        run: |
+          echo "::set-output name=CURRENT_VERSION::$(
+            grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "Current version:
+            ${{ steps.get_version.outputs.CURRENT_VERSION }}"
+      - name: Hard-code version in callable workflows
+        run: >
+          bumpversion --verbose --no-configured-files
+          --search "/main/requirements.txt"
+          --replace "/v{current_version}/requirements.txt"
+          no-bump ./.github/workflows/*.yaml
+      - name: Set release date to today
+        run: |
+          perl -pi -e "s/\(unreleased\)/\(`date +'%Y-%m-%d'`\)/" ./changelog.md
+      - name: Update comparison URL
+        run: >
+          bumpversion --verbose --no-configured-files
+          --search "...main)"
+          --replace "...v{current_version})"
+          no-bump ./changelog.md
+      - name: Remove warning message
+        run: perl -i -ne "print if not /\`\`\`/ .. /^$/" ./changelog.md
+      - uses: peter-evans/create-pull-request@v3.12.0
+        with:
+          author: "Kevin Deldycke <kevin@deldycke.com>"
+          commit-message: >
+            [changelog] Release
+            v${{ steps.get_version.outputs.CURRENT_VERSION }}
+          title: >
+            [changelog] Release
+            v${{ steps.get_version.outputs.CURRENT_VERSION }}
+          body: >
+            Ready to be merged into `main` branch and then tagged as a new
+            release.
+
+
+            [Auto-generated on run `#${{ github.run_id }}`](${{
+            github.event.repository.html_url }}/actions/runs/${{ github.run_id
+            }}) by `${{ github.job }}` job from [`changelog.yaml`](${{
+            github.event.repository.html_url }}/blob/${{ github.sha
+            }}/.github/workflows/changelog.yaml) workflow.
+          labels: "🔩 CI/CD, 📗 documentation"
+          assignees: kdeldycke
+          base: main
+          branch: prepare-release
+          delete-branch: true
+          draft: true
+
   post-release-version-bump:
     runs-on: ubuntu-20.04
     steps:

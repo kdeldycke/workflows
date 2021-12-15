@@ -10,50 +10,7 @@ A [detailed changelog](changelog.md) is available.
 
 ## Release process
 
-Get a clean copy of the project:
+All steps of the release process and version management are automated in the
+[`changelog.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml).
 
-``` shell-session
-$ git clone https://github.com/kdeldycke/workflows.git
-$ cd workflows
-$ git checkout main
-```
-
-Prepare the release for tagging:
-
-``` shell-session
-$ ./.github/prepare_release.sh
-```
-
-Double check the changelog is clean and the release version has been hard-coded in reuseable workflows.
-
-Then create a release commit and tag it:
-
-``` shell-session
-$ git add ./changelog.md ./.github/workflows/*.yaml
-$ git commit -m "Release v${RELEASE_VERSION}"
-$ git tag "v${RELEASE_VERSION}"
-$ git push
-$ git push --tags
-$ unset RELEASE_VERSION
-```
-
-The next steps of the release process are automated and should be picked up
-by the [`changelog.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml).
-
-## Version bump
-
-Versions are bumped to their next `patch` revision during the release process
-above by the [`changelog.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml).
-
-In the middle of your development, if the upcoming release is no longer bug-fix
-only, feel free to bump to the next `minor`:
-
-``` shell-session
-$ python -m pip install --requirement ./requirements.txt
-$ bumpversion --verbose minor
-$ git add ./.bumpversion.cfg ./changelog.md
-$ git commit -m "Next release no longer bug-fix only. Bump revision."
-$ git push
-```
-
-For really big changes, bump the `major`.
+All there's left to do is check the open `draft` PRs proposed by the workflow and merge them on a case-by-case basis.
