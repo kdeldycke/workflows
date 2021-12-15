@@ -41,6 +41,8 @@ jobs:
         # --max-line-length=88
         #   Aligns to black's config; See https://black.readthedocs.io/en/
         #   stable/guides/using_black_with_other_tools.html#pylint
+        # --fail-under=8
+        #   80% linter success is good enough.
         # --logging-format-style=new
         #   The type of string formatting that logging methods do. `old` means
         #   using % formatting, `new` is for `{}` formatting.
@@ -53,6 +55,7 @@ jobs:
           --output-format=colorized
           --jobs=0
           --max-line-length=88
+          --fail-under=8
           --logging-format-style=new
           $(git ls-files '*.py')
 
