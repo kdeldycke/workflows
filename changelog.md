@@ -9,7 +9,7 @@ This version is not released yet and is under active development.
 - Add a reuseable workflow to fix typos.
 - Add a reuseable workflow to optimize images.
 - Add a reuseable workflow to auto-format Python files with Black.
-- Add dependency on `black`.
+- Add a reuseable workflow to auto-format Markdown files with mdformat.
 - Force retargetting of workflow dependencies to `main` branch on post-release version bump.
 
 ## [0.2.0 (2021-12-15)](https://github.com/kdeldycke/workflows/compare/v0.1.0...v0.2.0)
