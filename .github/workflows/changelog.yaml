@@ -19,7 +19,7 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke\
-          /workflows/v0.2.0/requirements.txt
+          /workflows/main/requirements.txt
       - name: Minor version bump
         run: |
           bumpversion --verbose minor
@@ -71,7 +71,7 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke\
-          /workflows/v0.2.0/requirements.txt
+          /workflows/main/requirements.txt
       - name: Major version bump
         run: |
           bumpversion --verbose major
@@ -123,7 +123,7 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke\
-          /workflows/v0.2.0/requirements.txt
+          /workflows/main/requirements.txt
       - name: Extract current version
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
@@ -135,7 +135,7 @@ jobs:
         run: >
           echo "Current version:
           ${{ steps.get_version.outputs.CURRENT_VERSION }}"
-      - name: Hard-code version in callable workflows
+      - name: Hard-code version in workflows
         # Default branch is set in a vaiable as a hack to prevent bumpversion
         # to modify its own invocation.
         run: >
@@ -199,7 +199,27 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke\
-          /workflows/v0.2.0/requirements.txt
+          /workflows/main/requirements.txt
+      - name: Extract current version
+        id: get_version
+        # Docs: https://docs.github.com/en/actions/learn-github-actions
+        # /workflow-commands-for-github-actions#setting-an-output-parameter
+        run: >
+          echo "::set-output name=CURRENT_VERSION::$(
+          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+      - name: Print current version
+        run: >
+          echo "Current version:
+          ${{ steps.get_version.outputs.CURRENT_VERSION }}"
+      - name: Re-target main branch in workflows
+        run: >
+          DEFAULT_BRANCH="main" &&
+          bumpversion --verbose --no-configured-files
+          --search "/v{current_version}/requirements.txt"
+          --replace "/$DEFAULT_BRANCH/requirements.txt"
+          no-bump
+          `grep --files-with-matches "/$CURRENT_VERSION/requirements.txt"
+          ./.github/workflows/*.yaml`
       - name: Add new changelog entry
         run: |
           python ./.github/update_changelog.py
