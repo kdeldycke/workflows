@@ -27,9 +27,11 @@ jobs:
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
-        run: |
+        run: >
           echo "::set-output name=NEW_VERSION::$(
             grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+      - name: Print new version
+        run: >
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
@@ -77,9 +79,11 @@ jobs:
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
-        run: |
+        run: >
           echo "::set-output name=NEW_VERSION::$(
             grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+      - name: Print new version
+        run: >
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
@@ -124,9 +128,11 @@ jobs:
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
-        run: |
+        run: >
           echo "::set-output name=CURRENT_VERSION::$(
             grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+      - name: Print current version
+        run: >
           echo "Current version:
             ${{ steps.get_version.outputs.CURRENT_VERSION }}"
       - name: Hard-code version in callable workflows
