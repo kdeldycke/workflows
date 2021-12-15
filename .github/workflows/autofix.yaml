@@ -71,7 +71,7 @@ jobs:
           assignees: kdeldycke
           branch: format-markdown
 
-  json:
+  format-json:
     name: Format JSON
     runs-on: ubuntu-20.04
     steps:
