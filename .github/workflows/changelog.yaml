@@ -31,7 +31,7 @@ jobs:
           echo "::set-output name=NEW_VERSION::$(
             grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
-      - uses: peter-evans/create-pull-request@v3.11.0
+      - uses: peter-evans/create-pull-request@v3.12.0
         with:
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: >
@@ -81,7 +81,7 @@ jobs:
           echo "::set-output name=NEW_VERSION::$(
             grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
-      - uses: peter-evans/create-pull-request@v3.11.0
+      - uses: peter-evans/create-pull-request@v3.12.0
         with:
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: >
@@ -133,7 +133,7 @@ jobs:
       - name: Version bump
         run: |
           bumpversion --verbose patch
-      - uses: peter-evans/create-pull-request@v3.11.0
+      - uses: peter-evans/create-pull-request@v3.12.0
         with:
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: "[changelog] Post-release version bump"
