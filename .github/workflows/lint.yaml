@@ -51,7 +51,7 @@ jobs:
         #   The type of string formatting that logging methods do. `old` means
         #   using % formatting, `new` is for `{}` formatting.
         run: >
-          pylint
+          zsh -c pylint
           --output-format=colorized
           --jobs=0
           --max-line-length=88
