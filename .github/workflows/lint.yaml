@@ -30,6 +30,12 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke\
           /workflows/main/requirements.txt
+     - name: Force default shell to Zsh
+        # So we can rely on the **/*.py glob pattern in Pylint invokation below.
+        run: |
+          sudo apt-get install zsh
+          sudo chsh -s "/usr/bin/zsh" root
+          sudo chsh -s "/usr/bin/zsh" $USERNAME
       - name: Run Pylint
         if: hashFiles('**/*.py')
         # Docs:
