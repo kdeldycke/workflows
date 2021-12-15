@@ -64,8 +64,9 @@ new_entry = re.sub(
     count=1,
 )
 
-# Replace the whole paragraph of changes by a notice message.
-# The paragraph is identified as surrounded by blank lines, and the regex below keeps the original formatting intact.
+# Replace the whole paragraph of changes by a notice message. The paragraph is
+# identified as surrounded by blank lines, and the regex below keeps the original
+# formatting intact.
 new_entry = re.sub(
     r"\n\n.+\n\n",
     "\n\n"
