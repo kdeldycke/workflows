@@ -41,15 +41,16 @@ jobs:
             [changelog] Minor version increment to
             v${{ steps.get_version.outputs.NEW_VERSION }}
           body: >
-            This is a constantly-updating draft PR, ready to be merged into
-            `main`. It let maintainers quickly bump the minor part of the
-            version number.
+            This PR is ready to be merged into `main` branch, at the discretion
+            of the maintainers, to quickly bump the minor part of the version
+            number.
 
-            [Auto-generated on run #${{ github.run_id
-            }}](https://github.com/${{ github.repository }}/actions/runs/${{
-            github.run_id }}) by [workflow action](https://github.com/${{
-            github.repository }}/blob/${{ github.base_ref
-            }}/.github/workflows/changelog.yaml).
+
+            [Auto-generated on run `#${{ github.run_id }}`](${{
+            github.repository.html_url }}/actions/runs/${{ github.run_id }}) by
+            `${{ github.job }}` job from [`changelog.yaml`](${{
+            github.repository.html_url }}/blob/${{ github.ref_name
+            }}/.github/workflows/changelog.yaml) workflow.
           labels: "🔩 CI/CD, 📗 documentation"
           assignees: kdeldycke
           base: main
