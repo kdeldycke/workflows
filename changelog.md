@@ -6,8 +6,11 @@
 This version is not released yet and is under active development.
 ```
 
-- Add autolock reuseable workflow.
-- Automate post-release version bump.
+- Add autolock reuseable workflow for closed issues and PRs.
+- Automate changelog and version management.
+- Add workflow to create read-to-use PRs for post-release version bump and
+  minor & major version increments.
+- Add a debug workflow to print action context and environment variables.
 
 ## [0.1.0 (2021-12-12)](https://github.com/kdeldycke/workflows/compare/v0.0.1...v0.1.0)
 
