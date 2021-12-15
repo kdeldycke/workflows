@@ -244,6 +244,6 @@ jobs:
           labels: "🔩 CI/CD, 📗 documentation"
           assignees: kdeldycke
           base: main
-          branch: version-bump
+          branch: post-release-version-bump
           delete-branch: true
           draft: true
