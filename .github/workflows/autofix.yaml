@@ -70,3 +70,30 @@ jobs:
           labels: "🔩 CI/CD"
           assignees: kdeldycke
           branch: format-markdown
+
+  json:
+    name: Format JSON
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - name: Install linter
+        run: |
+          sudo npm install --global jsonlint
+      - name: Lint
+        run: >
+          find ./ -type f -name '*.json' -print -exec
+          jsonlint --in-place "{}" \;
+      - uses: peter-evans/create-pull-request@v3.12.0
+        with:
+          author: "Kevin Deldycke <kevin@deldycke.com>"
+          commit-message: "[autofix] Format JSON content"
+          title: "[autofix] Format JSON content"
+          body: >
+            [Auto-generated on run `#${{ github.run_id }}`](${{
+            github.event.repository.html_url }}/actions/runs/${{ github.run_id
+            }}) by `${{ github.job }}` job from [`autofix.yaml`](${{
+            github.event.repository.html_url }}/blob/${{ github.sha
+            }}/.github/workflows/autofix.yaml) workflow.
+          labels: "🔩 CI/CD"
+          assignees: kdeldycke
+          branch: format-json
