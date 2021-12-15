@@ -16,7 +16,10 @@ jobs:
       - uses: sobolevn/misspell-fixer-action@0.1.0
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: "Kevin Deldycke <kevin@deldycke.com>"
+          author: >
+            ${{ github.event.repository.owner.name }}
+            <${{ github.event.repository.owner.email }}>
+          assignees: ${{ github.event.head_commit.committer.username }}
           commit-message: "[autofix] Typo"
           title: "[autofix] Typo"
           body: >
@@ -26,7 +29,6 @@ jobs:
             github.event.repository.html_url }}/blob/${{ github.sha
             }}/.github/workflows/docs.yaml) workflow.
           labels: "🔩 CI/CD, 📗 documentation"
-          assignees: kdeldycke
           branch: autofix-typo
 
   optimize-images:
@@ -41,7 +43,10 @@ jobs:
           compressOnly: true
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: "Kevin Deldycke <kevin@deldycke.com>"
+          author: >
+            ${{ github.event.repository.owner.name }}
+            <${{ github.event.repository.owner.email }}>
+          assignees: ${{ github.event.head_commit.committer.username }}
           commit-message: "[autofix] Optimize images"
           title: "[autofix] Optimize images"
           body: >
@@ -53,6 +58,5 @@ jobs:
             %0A
             ${{ steps.image_actions.outputs.markdown }}
           labels: "🔩 CI/CD, 📗 documentation"
-          assignees: kdeldycke
           branch: optimize-images
 
