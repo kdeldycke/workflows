@@ -10,9 +10,7 @@ jobs:
   minor-version-increment:
     runs-on: ubuntu-20.04
     steps:
-      - name: debug
-        run: |
-          echo "${{ github }}"
+      - uses: hmarr/debug-action@v2.0.1
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.2.2
       - name: Install pip
