@@ -46,10 +46,11 @@ jobs:
 
 
             [Auto-generated on run `#${{ github.run_id }}`](${{
-            github.repository.html_url }}/actions/runs/${{ github.run_id }}) by
-            `${{ github.job }}` job from [`changelog.yaml`](${{
-            github.repository.html_url }}/blob/${{ github.ref_name
+            github.event.repository.html_url }}/actions/runs/${{ github.run_id
+            }}) by `${{ github.job }}` job from [`changelog.yaml`](${{
+            github.event.repository.html_url }}/blob/${{ github.ref_name
             }}/.github/workflows/changelog.yaml) workflow.
+
           labels: "🔩 CI/CD, 📗 documentation"
           assignees: kdeldycke
           base: main
