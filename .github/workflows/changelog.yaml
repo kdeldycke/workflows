@@ -28,7 +28,8 @@ jobs:
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: |
-          echo "::set-output name=NEW_VERSION::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "::set-output name=NEW_VERSION::$(
+            grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
       - uses: peter-evans/create-pull-request@v3.11.0
         with:
@@ -77,7 +78,8 @@ jobs:
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: |
-          echo "::set-output name=NEW_VERSION::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "::set-output name=NEW_VERSION::$(
+            grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
           echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
       - uses: peter-evans/create-pull-request@v3.11.0
         with:
