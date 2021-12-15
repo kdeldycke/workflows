@@ -136,11 +136,15 @@ jobs:
           echo "Current version:
           ${{ steps.get_version.outputs.CURRENT_VERSION }}"
       - name: Hard-code version in callable workflows
+        # Default branch is set in a vaiable as a hack to prevent bumpversion
+        # to modify its own invocation.
         run: >
+          DEFAULT_BRANCH="main" &&
           bumpversion --verbose --no-configured-files
-          --search "/main/requirements.txt"
+          --search "/$DEFAULT_BRANCH/requirements.txt"
           --replace "/v{current_version}/requirements.txt"
-          no-bump `grep --files-with-matches "/main/requirements.txt"
+          no-bump
+          `grep --files-with-matches "/$DEFAULT_BRANCH/requirements.txt"
           ./.github/workflows/*.yaml`
       - name: Set release date to today
         run: |
