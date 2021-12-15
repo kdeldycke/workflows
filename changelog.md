@@ -11,6 +11,7 @@ This version is not released yet and is under active development.
 - Add workflow to create ready-to-use PRs to prepare a release, post-release
   version bump and minor & major version increments.
 - Add a debug workflow to print action context and environment variables.
+- Set Pylint failure threshold at 80%.
 
 ## [0.1.0 (2021-12-12)](https://github.com/kdeldycke/workflows/compare/v0.0.1...v0.1.0)
 
