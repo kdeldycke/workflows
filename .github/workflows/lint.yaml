@@ -30,12 +30,6 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke\
           /workflows/main/requirements.txt
-      - name: Force default shell to Zsh
-        # So we can rely on the **/*.py glob pattern in Pylint invokation below.
-        run: |
-          sudo apt install zsh
-          sudo chsh -s "/usr/bin/zsh" root
-          sudo chsh -s "/usr/bin/zsh" $USERNAME
       - name: Run Pylint
         if: hashFiles('**/*.py')
         # Docs:
@@ -50,13 +44,17 @@ jobs:
         # --logging-format-style=new
         #   The type of string formatting that logging methods do. `old` means
         #   using % formatting, `new` is for `{}` formatting.
+        # $(git ls-files '*.py')
+        #   Use git to list all Python files as Pylint doesn't support globs
+        #   and non-module folders.
+        #   Source: https://stackoverflow.com/a/63044665
         run: >
-          zsh -c "pylint
+          pylint
           --output-format=colorized
           --jobs=0
           --max-line-length=88
           --logging-format-style=new
-          **/*.py"
+          $(git ls-files '*.py')
 
   lint-yaml:
     runs-on: ubuntu-20.04
