@@ -51,12 +51,12 @@ jobs:
         #   The type of string formatting that logging methods do. `old` means
         #   using % formatting, `new` is for `{}` formatting.
         run: >
-          zsh -c pylint
+          zsh -c "pylint
           --output-format=colorized
           --jobs=0
           --max-line-length=88
           --logging-format-style=new
-          **/*.py
+          **/*.py"
 
   lint-yaml:
     runs-on: ubuntu-20.04
