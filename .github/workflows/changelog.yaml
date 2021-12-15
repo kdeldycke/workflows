@@ -132,9 +132,11 @@ jobs:
       - name: Hard-code version in callable workflows
         run: >
           bumpversion --verbose --no-configured-files
-          --search "/main/requirements.txt"
-          --replace "/v{current_version}/requirements.txt"
-          no-bump ./.github/workflows/*.yaml
+            --search "/main/requirements.txt"
+            --replace "/v{current_version}/requirements.txt"
+            no-bump
+            `grep --files-with-matches "/main/requirements.txt"
+              ./.github/workflows/*.yaml`
       - name: Set release date to today
         run: |
           perl -pi -e "s/\(unreleased\)/\(`date +'%Y-%m-%d'`\)/" ./changelog.md
