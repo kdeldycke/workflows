@@ -34,10 +34,10 @@ jobs:
         with:
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: >
-            [changelog] Next release no longer bug-fix only.
-            Bump version to v${{ steps.get_version.outputs.NEW_VERSION }}.
+            [changelog] Next release no longer bug-fix only; bump version to
+            v${{ steps.get_version.outputs.NEW_VERSION }}.
           title: >
-            [changelog] Minor version increment to
+            [changelog] Bump minor version to
             v${{ steps.get_version.outputs.NEW_VERSION }}
           body: >
             Ready to be merged into `main` branch, at the discretion of the
