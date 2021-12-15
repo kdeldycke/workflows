@@ -115,11 +115,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
-        with:
-          # Token created from my user's profile via the
-          # "Developer Settings > Personal Access Tokens" UI to allow this job
-          # to update its own workflows.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}
       - uses: actions/setup-python@v2.2.2
       - name: Install pip
         run: |
@@ -160,6 +155,10 @@ jobs:
         run: perl -i -ne "print if not /\`\`\`/ .. /^$/" ./changelog.md
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
+          # Token created from my user's profile via the
+          # "Developer Settings > Personal Access Tokens" UI to allow this job
+          # to update its own workflows.
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}
           author: "Kevin Deldycke <kevin@deldycke.com>"
           commit-message: >
             [changelog] Release
