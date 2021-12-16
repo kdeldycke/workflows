@@ -224,7 +224,7 @@ jobs:
           --search "/v{current_version}/requirements.txt"
           --replace "/$DEFAULT_BRANCH/requirements.txt"
           no-bump
-          `grep --files-with-matches "/$CURRENT_VERSION/requirements.txt"
+          `grep --files-with-matches "/v$CURRENT_VERSION/requirements.txt"
           ./.github/workflows/*.yaml`
       - name: Add new changelog entry
         run: |
