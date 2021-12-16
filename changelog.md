@@ -8,7 +8,7 @@ This version is not released yet and is under active development.
 
 - Add a reuseable workflow to fix typos.
 - Add a reuseable workflow to optimize images.
-- Add a reuseable workflow to auto-format Python files with Black.
+- Add a reuseable workflow to auto-format Python files with isort and Black.
 - Add a reuseable workflow to auto-format Markdown files with mdformat.
 - Add a reuseable workflow to auto-format JSON files with jsonlint.
 - Add a reuseable workflow to auto-update .gitignore file.
