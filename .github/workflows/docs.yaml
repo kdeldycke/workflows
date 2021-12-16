@@ -60,3 +60,31 @@ jobs:
           labels: "🔩 CI/CD, 📗 documentation"
           branch: optimize-images
 
+  update-mailmap:
+    name: Update .mailmap
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+        with:
+          # Fetch all history to extract all contributors.
+          fetch-depth: 0
+      - uses: actions/setup-python@v2.2.2
+      - name: Generate .mailmap
+        run: |
+          python ./.github/update_mailmap.py
+      - uses: peter-evans/create-pull-request@v3.12.0
+        with:
+          author: >
+            ${{ github.event.repository.owner.name }}
+            <${{ github.event.repository.owner.email }}>
+          assignees: ${{ github.event.head_commit.committer.username }}
+          commit-message: "[autofix] Regenerate .mailmap"
+          title: "[autofix] Regenerate .mailmap"
+          body: >
+            [Auto-generated on run `#${{ github.run_id }}`](${{
+            github.event.repository.html_url }}/actions/runs/${{ github.run_id
+            }}) by `${{ github.job }}` job from [`docs.yaml`](${{
+            github.event.repository.html_url }}/blob/${{ github.sha
+            }}/.github/workflows/docs.yaml) workflow.
+          labels: "🔩 CI/CD, 📗 documentation"
+          branch: update-mailmap

@@ -12,6 +12,7 @@ This version is not released yet and is under active development.
 - Add a reuseable workflow to auto-format Markdown files with mdformat.
 - Add a reuseable workflow to auto-format JSON files with jsonlint.
 - Add a reuseable workflow to auto-update .gitignore file.
+- Add a reuseable workflow to auto-update .mailmap file.
 - Force retargetting of workflow dependencies to `main` branch on post-release
   version bump.
 
