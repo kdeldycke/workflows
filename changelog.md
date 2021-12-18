@@ -7,6 +7,8 @@ This version is not released yet and is under active development.
 ```
 
 - Hard-code tagged version for executed Python script.
+- Activate debugging workflow on all branches and PRs.
+- Allows debug workflow to be reused.
 
 ## [0.3.0 (2021-12-16)](https://github.com/kdeldycke/workflows/compare/v0.2.0...v0.3.0)
 
