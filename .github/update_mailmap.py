@@ -50,7 +50,7 @@ for param in ("%aN <%aE>", "%cN <%cE>"):
             contributors.add(line)
 
 # Load-up .mailmap content. Create file if it doesn't exists.
-mailmap_file = Path(__file__).parent.joinpath("../.mailmap").resolve()
+mailmap_file = Path("./.mailmap").resolve()
 mailmap_file.touch(exist_ok=True)
 content = mailmap_file.read_text()
 

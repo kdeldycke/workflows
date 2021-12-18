@@ -31,7 +31,7 @@ from pathlib import Path
 from textwrap import indent
 
 # Extract current version as per bump2version.
-config_file = Path(__file__).parent.joinpath("../.bumpversion.cfg").resolve()
+config_file = Path("./.bumpversion.cfg").resolve()
 print(f"Open {config_file}")
 config = configparser.ConfigParser()
 config.read_string(config_file.read_text())
@@ -40,7 +40,7 @@ print(f"Current version: {current_version}")
 assert current_version
 
 # Open changelog.
-changelog_file = Path(__file__).parent.joinpath("../changelog.md").resolve()
+changelog_file = Path("./changelog.md").resolve()
 print(f"Open {changelog_file}")
 content = changelog_file.read_text()
 assert current_version in content

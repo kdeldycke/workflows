@@ -145,10 +145,10 @@ jobs:
         run: >
           DEFAULT_BRANCH="main" &&
           bumpversion --verbose --no-configured-files
-          --search "/$DEFAULT_BRANCH/requirements.txt"
-          --replace "/v{current_version}/requirements.txt"
+          --search "/workflows/$DEFAULT_BRANCH/"
+          --replace "/workflows/v{current_version}/"
           no-bump
-          `grep --files-with-matches "/$DEFAULT_BRANCH/requirements.txt"
+          `grep --files-with-matches "/workflows/$DEFAULT_BRANCH/"
           ./.github/workflows/*.yaml`
       - name: Set release date to today
         run: |
@@ -221,15 +221,17 @@ jobs:
         run: >
           DEFAULT_BRANCH="main" &&
           bumpversion --verbose --no-configured-files
-          --search "/v{current_version}/requirements.txt"
-          --replace "/$DEFAULT_BRANCH/requirements.txt"
+          --search "/workflows/v{current_version}/"
+          --replace "/workflows/$DEFAULT_BRANCH/"
           no-bump
           `grep --files-with-matches
-          "/v${{ steps.get_version.outputs.CURRENT_VERSION }}/requirements.txt"
+          "/workflows/v${{ steps.get_version.outputs.CURRENT_VERSION }}/"
           ./.github/workflows/*.yaml`
       - name: Add new changelog entry
-        run: |
-          python ./.github/update_changelog.py
+        run: >
+          python -c "$(curl -fsSL
+          https://raw.githubusercontent.com/kdeldycke\
+          /workflows/main/.github/update_changelog.py)"
       - name: Version bump
         run: |
           bumpversion --verbose patch

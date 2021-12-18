@@ -70,8 +70,10 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v2.2.2
       - name: Generate .mailmap
-        run: |
-          python ./.github/update_mailmap.py
+        run: >
+          python -c "$(curl -fsSL
+          https://raw.githubusercontent.com/kdeldycke\
+          /workflows/main/.github/update_mailmap.py)"
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
           author: >
