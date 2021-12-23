@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Refresh every day the date in `prepare-release` job.
+
 ## [0.3.1 (2021-12-23)](https://github.com/kdeldycke/workflows/compare/v0.3.0...v0.3.1)
 
 - Hard-code tagged version for executed Python script.

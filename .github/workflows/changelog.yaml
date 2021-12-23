@@ -4,6 +4,9 @@ name: Changelog & versions
   push:
     branches:
       - main
+  schedule:
+    # Run daily so the changelog date in prepare-release job is kept up to date
+    - cron: "23 0 * * *"
 
 jobs:
 
