@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.3.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.3.0...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.3.1 (2021-12-23)](https://github.com/kdeldycke/workflows/compare/v0.3.0...v0.3.1)
 
 - Hard-code tagged version for executed Python script.
 - Activate debugging workflow on all branches and PRs.
