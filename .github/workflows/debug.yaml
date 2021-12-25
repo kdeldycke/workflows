@@ -4,6 +4,9 @@ name: Debug
   workflow_call:
   push:
   pull_request:
+  schedule:
+    # Run daily to gather context variables available in scheduler.
+    - cron: "26 8 * * *"
 
 jobs:
 
