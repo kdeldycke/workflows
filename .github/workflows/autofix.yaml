@@ -30,7 +30,6 @@ jobs:
           black .
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: ${{ github.actor }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python code"
           title: "[autofix] Format Python code"
@@ -61,7 +60,6 @@ jobs:
           find ./ -iname "*.md" -exec mdformat --wrap 79 "{}" \;
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: ${{ github.actor }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
           title: "[autofix] Format Markdown"
@@ -88,7 +86,6 @@ jobs:
           jsonlint --in-place "{}" \;
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: ${{ github.actor }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON content"
           title: "[autofix] Format JSON content"
@@ -115,7 +112,6 @@ jobs:
           virtualenv visualstudiocode windows
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: ${{ github.actor }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate .gitignore"
           title: "[autofix] Regenerate .gitignore"

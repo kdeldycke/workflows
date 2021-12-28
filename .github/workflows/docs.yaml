@@ -16,7 +16,6 @@ jobs:
       - uses: sobolevn/misspell-fixer-action@0.1.0
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: ${{ github.actor }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Typo"
           title: "[autofix] Typo"
@@ -41,7 +40,6 @@ jobs:
           compressOnly: true
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: ${{ github.actor }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Optimize images"
           title: "[autofix] Optimize images"
@@ -72,7 +70,6 @@ jobs:
           /workflows/main/.github/update_mailmap.py)"
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
-          author: ${{ github.actor }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate .mailmap"
           title: "[autofix] Regenerate .mailmap"
