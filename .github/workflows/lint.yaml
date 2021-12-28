@@ -4,6 +4,10 @@ name: Lint
 "on":
   workflow_call:
   push:
+    branches-ignore:
+      # Skip linting on prepare-release branch as it points to a tagged URL
+      # that does not exist yet.
+      - prepare-release
   pull_request:
 
 jobs:
