@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.3.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.3.2...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.3.3 (2021-12-30)](https://github.com/kdeldycke/workflows/compare/v0.3.2...v0.3.3)
 
 - Bump YAML linting max line length to 120.
 
