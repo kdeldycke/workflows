@@ -3,6 +3,7 @@
 ## [0.3.3 (2021-12-30)](https://github.com/kdeldycke/workflows/compare/v0.3.2...v0.3.3)
 
 - Bump YAML linting max line length to 120.
+- Auto-tag release after the `prepare-release` PR is merged back into `main`.
 
 ## [0.3.2 (2021-12-30)](https://github.com/kdeldycke/workflows/compare/v0.3.1...v0.3.2)
 
