@@ -17,6 +17,7 @@ jobs:
   lint-python:
     runs-on: ubuntu-20.04
     steps:
+      - uses: crazy-max/ghaction-dump-context@v1.2.0
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.3.1
       - name: Install pip
