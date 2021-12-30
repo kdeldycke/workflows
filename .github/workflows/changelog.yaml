@@ -16,6 +16,8 @@ name: Changelog & versions
 jobs:
 
   minor-version-increment:
+    # Only let prepare-release job being triggered by schedule event.
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
@@ -67,6 +69,8 @@ jobs:
           draft: true
 
   major-version-increment:
+    # Only let prepare-release job being triggered by schedule event.
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
@@ -193,6 +197,8 @@ jobs:
           draft: true
 
   post-release-version-bump:
+    # Only let prepare-release job being triggered by schedule event.
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
