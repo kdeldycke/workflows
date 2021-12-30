@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.3.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.3.1...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.3.2 (2021-12-30)](https://github.com/kdeldycke/workflows/compare/v0.3.1...v0.3.2)
 
 - Refresh every day the date in `prepare-release` job.
 - Skip linting on `prepare-release` job as it does not points to tagged URLs
