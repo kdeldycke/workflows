@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.3.2...main)
+## [0.3.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.3.2...main)
 
 ```{{important}}
 This version is not released yet and is under active development.
