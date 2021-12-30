@@ -7,6 +7,11 @@ This version is not released yet and is under active development.
 ```
 
 - Refresh every day the date in `prepare-release` job.
+- Skip linting on `prepare-release` job as it does not points to tagged URLs
+  yet.
+- Reduce changelog PRs refresh rate based on changed files.
+- Rely on `create-pull-request` action default to set authorship.
+- Fix `autofix` workflow reuseability.
 
 ## [0.3.1 (2021-12-23)](https://github.com/kdeldycke/workflows/compare/v0.3.0...v0.3.1)
 
