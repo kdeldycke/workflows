@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.0...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.4.0 (2021-12-31)](https://github.com/kdeldycke/workflows/compare/v0.3.5...v0.4.0)
 
 - Factorize version increment jobs.
