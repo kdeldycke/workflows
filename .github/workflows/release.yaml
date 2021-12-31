@@ -40,6 +40,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.git-tag.outputs.tagged_version }}
 
   post-release-version-bump:
     needs: git-tag

@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Provide tag version for GitHub release creation.
+
 ## [0.3.4 (2021-12-31)](https://github.com/kdeldycke/workflows/compare/v0.3.3...v0.3.4)
 
 - Chain `post-release-version-bump` job with automatic git tagging.
