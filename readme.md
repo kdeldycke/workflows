@@ -15,12 +15,15 @@ A [detailed changelog](changelog.md) is available.
 
 All steps of the release process and version management are automated in the
 [`changelog.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml)
-and [`release.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml)
+and
+[`release.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml)
 workflows.
 
 All there's left to do is to:
 
-- [check the open draft `prepare-release` PR](https://github.com/kdeldycke/workflows/pulls?q=is%3Apr+is%3Aopen+head%3Aprepare-release) and its changes,
+- [check the open draft `prepare-release` PR](https://github.com/kdeldycke/workflows/pulls?q=is%3Apr+is%3Aopen+head%3Aprepare-release)
+  and its changes,
 - click the `Ready for review` button,
 - click the `Rebase and merge` button,
-- let the workflows tag the release and set back the `main` branch into a development state.
+- let the workflows tag the release and set back the `main` branch into a
+  development state.
