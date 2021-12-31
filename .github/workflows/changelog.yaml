@@ -51,7 +51,8 @@ jobs:
           assignees: ${{ github.actor }}
           commit-message: >
             [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.NEW_VERSION }}.
-          title: [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.NEW_VERSION }}
+          title: >
+            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.NEW_VERSION }}
           body: >
             Ready to be merged into `main` branch, at the discretion of the maintainers, to bump the ${{ matrix.part }}
             part of the version number.
