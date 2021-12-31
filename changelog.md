@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.3.5...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.3.5 (2021-12-31)](https://github.com/kdeldycke/workflows/compare/v0.3.4...v0.3.5)
 
 - Provide tag version for GitHub release creation.
