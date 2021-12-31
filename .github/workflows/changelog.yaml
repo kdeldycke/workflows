@@ -178,15 +178,18 @@ jobs:
             [changelog] Release
             v${{ steps.get_version.outputs.CURRENT_VERSION }}
           body: >
-            This PR is ready to be merged into [`main`](${{ github.event.repository.html_url }}/tree/main) branch. The
-            merge event will trigger:
+            This PR is ready to be merged into [`main`](${{ github.event.repository.html_url }}/tree/main) branch.
+
+
+            The [merge event will trigger via `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
+            github.sha }}/.github/workflows/release.yaml):
 
 
             - the creation of a `v${{ steps.get_version.outputs.CURRENT_VERSION }}` tag in Git tree
 
             - the publication of a GitHub release
 
-            - the auto-push of a post-release version bump step commit
+            - the auto-push of a post-release version bump commit
 
             <details><summary>Action source:</summary>
 
