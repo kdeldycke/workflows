@@ -32,6 +32,15 @@ jobs:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           tag: v${{ steps.get_version.outputs.CURRENT_VERSION }}
 
+  github-release:
+    needs: git-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Create a release on GitHub
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   post-release-version-bump:
     needs: git-tag
     runs-on: ubuntu-20.04
