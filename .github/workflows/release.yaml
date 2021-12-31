@@ -13,24 +13,24 @@ jobs:
     # Creates a git tag on main branch, right after the prepare-release PR has been merged.
     if: ${{ github.head_ref == 'prepare-release' && github.event.pull_request.merged }}
     runs-on: ubuntu-20.04
+    outputs:
+      tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
       - uses: actions/checkout@v2.4.0
       - name: Extract current version
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
-        run: >
-          echo "::set-output name=CURRENT_VERSION::$(
-          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+        run: |
+          echo "::set-output name=tagged_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
       - name: Print current version
-        run: >
-          echo "Current version:
-          ${{ steps.get_version.outputs.CURRENT_VERSION }}"
+        run: |
+          echo "Current version: ${{ steps.get_version.outputs.tagged_version }}"
       - name: Tag commit
         uses: tvdias/github-tagger@v0.0.2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          tag: v${{ steps.get_version.outputs.CURRENT_VERSION }}
+          tag: v${{ steps.get_version.outputs.tagged_version }}
 
   github-release:
     needs: git-tag
@@ -54,26 +54,13 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Extract current version
-        id: get_version
-        # Docs: https://docs.github.com/en/actions/learn-github-actions
-        # /workflow-commands-for-github-actions#setting-an-output-parameter
-        run: >
-          echo "::set-output name=CURRENT_VERSION::$(
-          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
-      - name: Print current version
-        run: >
-          echo "Current version:
-          ${{ steps.get_version.outputs.CURRENT_VERSION }}"
       - name: Re-target main branch in workflows
         run: >
-          DEFAULT_BRANCH="main" &&
-          bumpversion --verbose --no-configured-files
+          DEFAULT_BRANCH="main" && bumpversion --verbose --no-configured-files
           --search "/workflows/v{current_version}/"
           --replace "/workflows/$DEFAULT_BRANCH/"
           no-bump
-          `grep --files-with-matches
-          "/workflows/v${{ steps.get_version.outputs.CURRENT_VERSION }}/"
+          `grep --files-with-matches "/workflows/v${{ needs.git-tag.outputs.tagged_version }}/"
           ./.github/workflows/*.yaml`
       - name: Add new changelog entry
         run: >
