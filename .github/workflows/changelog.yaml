@@ -1,6 +1,7 @@
 ---
 name: Changelog & versions
 "on":
+  workflow_call:
   push:
     branches:
       - main
