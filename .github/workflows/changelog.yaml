@@ -191,11 +191,14 @@ jobs:
 
             - the auto-push of a post-release version bump commit
 
+
             <details><summary>Action source:</summary>
+
 
             This PR has been [auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url
             }}/actions/runs/${{ github.run_id }}) by `${{ github.job }}` job from [`changelog.yaml`](${{
             github.event.repository.html_url }}/blob/${{ github.sha }}/.github/workflows/changelog.yaml) workflow.
+
 
             </details>
           labels: "🔩 CI/CD, 📗 documentation"
