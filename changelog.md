@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.4.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.2...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.4.3 (2022-01-03)](https://github.com/kdeldycke/workflows/compare/v0.4.2...v0.4.3)
 
 - Only match first occurence of triple-backticks delimited block text in `changelog.md` in `prepare-release` job. Also matches empty line within the block.
 - Make GitHub changelog URL update more forgiving.
