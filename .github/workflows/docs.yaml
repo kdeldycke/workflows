@@ -23,7 +23,7 @@ jobs:
             <details><summary>Action source:</summary>
 
 
-            [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
             github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
             }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
 
@@ -54,7 +54,7 @@ jobs:
             <details><summary>Action source:</summary>
 
 
-            [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
             github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
             }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
 
@@ -85,7 +85,7 @@ jobs:
             <details><summary>Action source:</summary>
 
 
-            [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
             github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
             }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
 
