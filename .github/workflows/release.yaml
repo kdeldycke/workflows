@@ -59,6 +59,10 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Re-target main branch in workflows
+        # This step is only used in the original repository to automate remote URL tagging.
+        if: github.repository == 'kdeldycke/workflows'
+        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
+        # Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
         run: >
           DEFAULT_BRANCH="main" && bumpversion --verbose --no-configured-files
           --search "/workflows/v{current_version}/"
