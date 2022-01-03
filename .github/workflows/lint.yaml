@@ -1,6 +1,5 @@
 ---
 name: Lint
-
 "on":
   workflow_call:
   push:
