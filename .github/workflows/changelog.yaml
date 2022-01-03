@@ -97,7 +97,7 @@ jobs:
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"
       - name: Hard-code version in workflows
-        # Default branch is set in a vaiable as a hack to prevent bumpversion
+        # Default branch is set in a variable as a hack to prevent bumpversion
         # to modify its own invocation.
         run: >
           DEFAULT_BRANCH="main" &&
