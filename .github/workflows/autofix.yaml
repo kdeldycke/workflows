@@ -33,11 +33,15 @@ jobs:
           commit-message: "[autofix] Format Python code"
           title: "[autofix] Format Python code"
           body: >
-            [Auto-generated on run `#${{ github.run_id }}`](${{
-            github.event.repository.html_url }}/actions/runs/${{ github.run_id
-            }}) by `${{ github.job }}` job from [`autofix.yaml`](${{
-            github.event.repository.html_url }}/blob/${{ github.sha
-            }}/.github/workflows/autofix.yaml) workflow.
+            <details><summary>Action source:</summary>
+
+
+            [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`autofix.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/autofix.yaml) workflow.
+
+
+            </details>
           labels: "🔩 CI/CD"
           branch: format-python
 
@@ -62,11 +66,15 @@ jobs:
           commit-message: "[autofix] Format Markdown"
           title: "[autofix] Format Markdown"
           body: >
-            [Auto-generated on run `#${{ github.run_id }}`](${{
-            github.event.repository.html_url }}/actions/runs/${{ github.run_id
-            }}) by `${{ github.job }}` job from [`autofix.yaml`](${{
-            github.event.repository.html_url }}/blob/${{ github.sha
-            }}/.github/workflows/autofix.yaml) workflow.
+            <details><summary>Action source:</summary>
+
+
+            [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`autofix.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/autofix.yaml) workflow.
+
+
+            </details>
           labels: "🔩 CI/CD"
           branch: format-markdown
 
@@ -87,11 +95,15 @@ jobs:
           commit-message: "[autofix] Format JSON content"
           title: "[autofix] Format JSON content"
           body: >
-            [Auto-generated on run `#${{ github.run_id }}`](${{
-            github.event.repository.html_url }}/actions/runs/${{ github.run_id
-            }}) by `${{ github.job }}` job from [`autofix.yaml`](${{
-            github.event.repository.html_url }}/blob/${{ github.sha
-            }}/.github/workflows/autofix.yaml) workflow.
+            <details><summary>Action source:</summary>
+
+
+            [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`autofix.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/autofix.yaml) workflow.
+
+
+            </details>
           labels: "🔩 CI/CD"
           branch: format-json
 
@@ -112,10 +124,14 @@ jobs:
           commit-message: "[autofix] Regenerate .gitignore"
           title: "[autofix] Regenerate .gitignore"
           body: >
-            [Auto-generated on run `#${{ github.run_id }}`](${{
-            github.event.repository.html_url }}/actions/runs/${{ github.run_id
-            }}) by `${{ github.job }}` job from [`autofix.yaml`](${{
-            github.event.repository.html_url }}/blob/${{ github.sha
-            }}/.github/workflows/autofix.yaml) workflow.
+            <details><summary>Action source:</summary>
+
+
+            [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`autofix.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/autofix.yaml) workflow.
+
+
+            </details>
           labels: "🔩 CI/CD"
           branch: update-gitignore
