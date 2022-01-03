@@ -122,9 +122,9 @@ jobs:
       - name: Remove first warning message
         # Matches first occurence of a multi-line block of text delimited by triple-backticks (```<anything>```).
         run: >
-          python -c 'import re; from pathlib import Path;
-          print(re.sub(r"^\`\`\`.*?\`\`\`\n\n", "", Path("./changelog.md").read_text(),
-          count=1, flags=re.MULTILINE | re.DOTALL))' > ./changelog.md
+          python -c 'import re; from pathlib import Path; file = Path("./changelog.md");
+          file.write_text(re.sub(r"^\`\`\`.*?\`\`\`\n\n", "", file.read_text(),
+          count=1, flags=re.MULTILINE | re.DOTALL))'
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
           # Token created from my user's profile via the "Developer Settings > Personal Access Tokens" UI to allow this
