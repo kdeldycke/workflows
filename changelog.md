@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Skip steps in workflows which are specific to the source repository.
+
 ## [0.4.1 (2022-01-03)](https://github.com/kdeldycke/workflows/compare/v0.4.0...v0.4.1)
 
 - Allow changelog and release workflows to be reuseable.

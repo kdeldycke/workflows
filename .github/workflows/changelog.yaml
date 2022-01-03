@@ -97,8 +97,11 @@ jobs:
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"
       - name: Hard-code version in workflows
-        # Default branch is set in a variable as a hack to prevent bumpversion
-        # to modify its own invocation.
+        # This step is only used in the original repository to automate remote URL tagging.
+        if: github.repository == 'kdeldycke/workflows'
+        # XXX Ideally, this step should have been handled by bumpversion itself but I did not find a way to encode the
+        # URL transformation into .bumpversion.cfg configuration.
+        # Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
         run: >
           DEFAULT_BRANCH="main" &&
           bumpversion --verbose --no-configured-files
