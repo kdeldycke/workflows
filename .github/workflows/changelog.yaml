@@ -113,12 +113,8 @@ jobs:
         run: |
           perl -pi -e "s/\(unreleased\)/\(`date +'%Y-%m-%d'`\)/" ./changelog.md
       - name: Update comparison URL
-        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
-        run: >
-          bumpversion --verbose --no-configured-files
-          --search "...main"
-          --replace "...v{current_version}"
-          no-bump ./changelog.md
+        run: |
+          perl -pi -e "s/\.\.\.main/\.\.\.v${{ steps.get_version.outputs.current_version }}/" ./changelog.md
       - name: Remove first warning message
         # Matches first occurence of a multi-line block of text delimited by triple-backticks (```<anything>```).
         run: >
