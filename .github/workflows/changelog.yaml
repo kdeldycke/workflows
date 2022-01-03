@@ -136,8 +136,7 @@ jobs:
             This PR is ready to be merged into [`main`](${{ github.event.repository.html_url }}/tree/main) branch.
 
 
-            The [merge event will trigger via `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
-            github.sha }}/.github/workflows/release.yaml):
+            The merge event will trigger[^1]:
 
 
             - the creation of a `v${{ steps.get_version.outputs.CURRENT_VERSION }}` tag in Git tree
@@ -145,6 +144,10 @@ jobs:
             - the publication of a GitHub release
 
             - the auto-push of a post-release version bump commit
+
+
+            [^1]: as defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
+            github.sha }}/.github/workflows/release.yaml).
 
 
             <details><summary>Action source:</summary>
