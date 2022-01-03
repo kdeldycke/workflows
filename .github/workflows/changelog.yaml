@@ -18,7 +18,7 @@ jobs:
 
   version-increments:
     # Only let prepare-release job being triggered by schedule event.
-    if: ${{ github.event_name != 'schedule' }}
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-20.04
     strategy:
       matrix:

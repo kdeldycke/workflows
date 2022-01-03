@@ -13,7 +13,7 @@ jobs:
   git-tag:
     name: Tag release
     # Creates a git tag on main branch, right after the prepare-release PR has been merged.
-    if: ${{ github.head_ref == 'prepare-release' && github.event.pull_request.merged }}
+    if: github.head_ref == 'prepare-release' && github.event.pull_request.merged
     runs-on: ubuntu-20.04
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
