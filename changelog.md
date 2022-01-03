@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.1...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.4.1 (2022-01-03)](https://github.com/kdeldycke/workflows/compare/v0.4.0...v0.4.1)
 
 - Allow changelog and release workflows to be reuseable.
