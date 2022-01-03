@@ -130,13 +130,14 @@ jobs:
           title: >
             [changelog] Release v${{ steps.get_version.outputs.current_version }}
           body: >
-            This PR is ready to be merged into [`main`](${{ github.event.repository.html_url }}/tree/main) branch.
+            This PR is ready to be merged.
 
 
             The merge event will trigger[^1]:
 
 
-            - the creation of a `v${{ steps.get_version.outputs.current_version }}` tag in Git tree
+            - the creation of a `v${{ steps.get_version.outputs.current_version }}` tag on [`main`](${{
+            github.event.repository.html_url }}/tree/main) branch
 
             - the publication of a GitHub release
 
