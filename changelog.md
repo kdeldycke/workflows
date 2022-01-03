@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.5...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.4.5 (2022-01-03)](https://github.com/kdeldycke/workflows/compare/v0.4.4...v0.4.5)
 
 - Fix use of the right token for reused changelog and release workflows.
