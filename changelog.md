@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.4.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.3...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.4.4 (2022-01-03)](https://github.com/kdeldycke/workflows/compare/v0.4.3...v0.4.4)
 
 - Do not rely on `bumpversion` for comparison URL update on release tagging.
 
