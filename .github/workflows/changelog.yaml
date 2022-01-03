@@ -99,8 +99,7 @@ jobs:
       - name: Hard-code version in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        # XXX Ideally, this step should have been handled by bumpversion itself but I did not find a way to encode the
-        # URL transformation into .bumpversion.cfg configuration.
+        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
         # Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
         run: >
           DEFAULT_BRANCH="main" &&
@@ -114,10 +113,11 @@ jobs:
         run: |
           perl -pi -e "s/\(unreleased\)/\(`date +'%Y-%m-%d'`\)/" ./changelog.md
       - name: Update comparison URL
+        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
         run: >
           bumpversion --verbose --no-configured-files
-          --search "...main)"
-          --replace "...v{current_version})"
+          --search "...main"
+          --replace "...v{current_version}"
           no-bump ./changelog.md
       - name: Remove warning message
         run: perl -i -ne "print if not /\`\`\`/ .. /^$/" ./changelog.md
