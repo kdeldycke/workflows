@@ -43,17 +43,17 @@ jobs:
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: |
-          echo "::set-output name=NEW_VERSION::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "::set-output name=new_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
       - name: Print new version
         run: |
-          echo "New version: ${{ steps.get_version.outputs.NEW_VERSION }}"
+          echo "New version: ${{ steps.get_version.outputs.new_version }}"
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
           assignees: ${{ github.actor }}
           commit-message: >
-            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.NEW_VERSION }}.
+            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}.
           title: >
-            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.NEW_VERSION }}
+            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}
           body: >
             Ready to be merged into `main` branch, at the discretion of the maintainers, to bump the ${{ matrix.part }}
             part of the version number.
@@ -91,11 +91,11 @@ jobs:
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: >
-          echo "::set-output name=CURRENT_VERSION::$(
+          echo "::set-output name=current_version::$(
           grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
       - name: Print current version
         run: |
-          echo "Current version: ${{ steps.get_version.outputs.CURRENT_VERSION }}"
+          echo "Current version: ${{ steps.get_version.outputs.current_version }}"
       - name: Hard-code version in workflows
         # Default branch is set in a vaiable as a hack to prevent bumpversion
         # to modify its own invocation.
@@ -126,9 +126,9 @@ jobs:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}
           assignees: ${{ github.actor }}
           commit-message: >
-            [changelog] Release v${{ steps.get_version.outputs.CURRENT_VERSION }}
+            [changelog] Release v${{ steps.get_version.outputs.current_version }}
           title: >
-            [changelog] Release v${{ steps.get_version.outputs.CURRENT_VERSION }}
+            [changelog] Release v${{ steps.get_version.outputs.current_version }}
           body: >
             This PR is ready to be merged into [`main`](${{ github.event.repository.html_url }}/tree/main) branch.
 
@@ -136,7 +136,7 @@ jobs:
             The merge event will trigger[^1]:
 
 
-            - the creation of a `v${{ steps.get_version.outputs.CURRENT_VERSION }}` tag in Git tree
+            - the creation of a `v${{ steps.get_version.outputs.current_version }}` tag in Git tree
 
             - the publication of a GitHub release
 
