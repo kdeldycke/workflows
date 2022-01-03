@@ -94,9 +94,8 @@ jobs:
           echo "::set-output name=CURRENT_VERSION::$(
           grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
       - name: Print current version
-        run: >
-          echo "Current version:
-          ${{ steps.get_version.outputs.CURRENT_VERSION }}"
+        run: |
+          echo "Current version: ${{ steps.get_version.outputs.CURRENT_VERSION }}"
       - name: Hard-code version in workflows
         # Default branch is set in a vaiable as a hack to prevent bumpversion
         # to modify its own invocation.
@@ -127,11 +126,9 @@ jobs:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}
           assignees: ${{ github.actor }}
           commit-message: >
-            [changelog] Release
-            v${{ steps.get_version.outputs.CURRENT_VERSION }}
+            [changelog] Release v${{ steps.get_version.outputs.CURRENT_VERSION }}
           title: >
-            [changelog] Release
-            v${{ steps.get_version.outputs.CURRENT_VERSION }}
+            [changelog] Release v${{ steps.get_version.outputs.CURRENT_VERSION }}
           body: >
             This PR is ready to be merged into [`main`](${{ github.event.repository.html_url }}/tree/main) branch.
 

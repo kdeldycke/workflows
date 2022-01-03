@@ -79,9 +79,8 @@ jobs:
         run: |
           sudo npm install --global jsonlint
       - name: Lint
-        run: >
-          find ./ -type f -name '*.json' -print -exec
-          jsonlint --in-place "{}" \;
+        run: |
+          find ./ -type f -name '*.json' -print -exec jsonlint --in-place "{}" \;
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
           assignees: ${{ github.actor }}
@@ -105,9 +104,8 @@ jobs:
         run: |
           sudo apt install -y git-extras
       - name: Generate .gitignore
-        run: >
-          git ignore-io --replace emacs git linux macos nohup python vim
-          virtualenv visualstudiocode windows
+        run: |
+          git ignore-io --replace emacs git linux macos nohup python vim virtualenv visualstudiocode windows
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
           assignees: ${{ github.actor }}
