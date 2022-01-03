@@ -143,7 +143,7 @@ jobs:
             - the auto-push of a post-release version bump commit
 
 
-            [^1]: as defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
+            [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
             github.sha }}/.github/workflows/release.yaml).
 
 
