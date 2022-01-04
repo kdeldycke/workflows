@@ -23,6 +23,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           skip_delete: true
-          from: |-
-            https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.json
-            ${{ inputs.label-files }}
+          # XXX Waiting for https://github.com/julb/action-manage-label/pull/1 to be solved so we can combine label
+          # sources.
+          from: >
+            ${{ inputs.label-files ||
+            'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.json' }}
