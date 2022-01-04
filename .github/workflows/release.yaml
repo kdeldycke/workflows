@@ -2,13 +2,6 @@
 name: Release
 "on":
   workflow_call:
-    inputs:
-      github-release-files:
-        required: false
-        type: string
-      github-release-body:
-        required: false
-        type: string
     outputs:
       tagged_version:
         description: Tagged/released version (without leading 'v')
@@ -55,8 +48,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
-          files: ${{ inputs.github-release-files }}
-          body: ${{ inputs.github-release-body }}
 
   post-release-version-bump:
     needs: git-tag
