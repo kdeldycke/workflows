@@ -59,7 +59,7 @@ jobs:
             part of the version number.
 
 
-            <details><summary>Action source:</summary>
+            <details><summary><code>Workflow metadata</code></summary>
 
 
             > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
@@ -148,7 +148,7 @@ jobs:
             github.sha }}/.github/workflows/release.yaml).
 
 
-            <details><summary>Action source:</summary>
+            <details><summary><code>Workflow metadata</code></summary>
 
 
             > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url

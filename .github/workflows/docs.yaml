@@ -20,7 +20,7 @@ jobs:
           commit-message: "[autofix] Typo"
           title: "[autofix] Typo"
           body: >
-            <details><summary>Action source:</summary>
+            <details><summary><code>Workflow metadata</code></summary>
 
 
             > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
@@ -51,7 +51,7 @@ jobs:
             ${{ steps.image_actions.outputs.markdown }}
 
 
-            <details><summary>Action source:</summary>
+            <details><summary><code>Workflow metadata</code></summary>
 
 
             > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
@@ -82,7 +82,7 @@ jobs:
           commit-message: "[autofix] Regenerate .mailmap"
           title: "[autofix] Regenerate .mailmap"
           body: >
-            <details><summary>Action source:</summary>
+            <details><summary><code>Workflow metadata</code></summary>
 
 
             > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
