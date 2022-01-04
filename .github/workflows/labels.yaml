@@ -1,0 +1,28 @@
+---
+name: Labels
+"on":
+  workflow_call:
+    inputs:
+      label-files:
+        required: false
+        type: string
+  # Restrict all project-related activities to the main branch.
+  push:
+    branches:
+      - main
+
+jobs:
+
+  labels:
+    name: Sync labels
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Sync labels
+        uses: julb/action-manage-label@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          skip_delete: true
+          from: |
+            https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.json
+            ${{ inputs.label-files }}
