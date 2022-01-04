@@ -19,16 +19,16 @@ jobs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
       - uses: actions/checkout@v2.4.0
-      - name: Extract current version
+      - name: Extract version
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: |
           echo "::set-output name=tagged_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
-      - name: Print current version
+      - name: Print version
         run: |
-          echo "Current version: ${{ steps.get_version.outputs.tagged_version }}"
-      - name: Tag commit
+          echo "Tagged version: ${{ steps.get_version.outputs.tagged_version }}"
+      - name: Push tag
         uses: tvdias/github-tagger@v0.0.2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"

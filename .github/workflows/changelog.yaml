@@ -38,13 +38,13 @@ jobs:
       - name: ${{ matrix.part }} version bump
         run: |
           bumpversion --verbose ${{ matrix.part }}
-      - name: Extract new version
+      - name: Extract version
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: |
           echo "::set-output name=new_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
-      - name: Print new version
+      - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
       - uses: peter-evans/create-pull-request@v3.12.0
@@ -86,14 +86,14 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Extract current version
+      - name: Extract version
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: >
           echo "::set-output name=current_version::$(
           grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
-      - name: Print current version
+      - name: Print version
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"
       - name: Hard-code version in workflows
