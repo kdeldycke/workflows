@@ -116,7 +116,7 @@ jobs:
         run: |
           perl -pi -e "s/\.\.\.main/\.\.\.v${{ steps.get_version.outputs.current_version }}/" ./changelog.md
       - name: Remove first warning message
-        # Matches first occurence of a multi-line block of text delimited by triple-backticks (```<anything>```).
+        # Matches first occurrence of a multi-line block of text delimited by triple-backticks (```<anything>```).
         run: >
           python -c 'import re; from pathlib import Path; file = Path("./changelog.md");
           file.write_text(re.sub(r"^\`\`\`.*?\`\`\`\n\n", "", file.read_text(),
