@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Use more recent `calibreapp/image-actions` action.
+
 ## [0.4.7 (2022-01-04)](https://github.com/kdeldycke/workflows/compare/v0.4.6...v0.4.7)
 
 - Fix use of GitHub token for workflow auto-updates on release.
