@@ -23,5 +23,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           skip_delete: true
-          from: |
+          from: |-
             https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.json
+            ${{ inputs.label-files }}
