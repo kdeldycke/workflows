@@ -63,6 +63,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
+        with:
+          # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
+          # "Developer Settings > Personal Access Tokens" UI to allow this job to update its own workflows. This is
+          # only used on the original kdeldycke/workflows repository, hence the fallback to default GitHub token.
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v2.2.2
       - name: Install pip
         run: |
@@ -92,9 +97,5 @@ jobs:
           bumpversion --verbose patch
       - uses: stefanzweifel/git-auto-commit-action@v4.12.0
         with:
-          # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
-          # "Developer Settings > Personal Access Tokens" UI to allow this job to update its own workflows. This is
-          # only used on the source repository, hence the fallback on default GitHub token.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           commit_message: "[changelog] Post-release version bump"
           branch: main
