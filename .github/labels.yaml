@@ -1,6 +1,6 @@
 ---
 - name: "✨ enhancement"
-  color: "#84b6eb"
+  color: "#1870E3"
   description: Improvement or change to an existing feature
 
 - name: "❓ question"
@@ -8,20 +8,20 @@
   description: Further information is requested
 
 - name: "🆕 feature request"
-  color: "#fbca04"
+  color: "#84b6eb"
   description: Not existing yet and need to be implemented
 
-- name: "🆘 help wanted"
-  color: "#008672"
+- name: "ℹ️ help wanted"
+  color: "#C2E0C6"
   description: Extra attention is needed
 
 - name: "🌱 good first issue"
-  color: "#7057ff"
+  color: "#B3CD7F"
   description: A place for newcomers to start contributing
 
 - name: "🎲 can't reproduce"
-  color: "#fec1c1"
-  description: Root cause unlikely to come from the project
+  color: "#cfd3d7"
+  description: Root cause not from project
 
 - name: "🐛 bug"
   color: "#d73a4a"
@@ -29,7 +29,7 @@
 
 - name: "📗 documentation"
   color: "#006b75"
-  description: Update to non-code (manual, readme, tutorial, docstrings, ...) and its generations
+  description: Update to non-code (readme, docstrings, typos, …)
 
 - name: "🔄 duplicate"
   color: "#cfd3d7"
@@ -40,5 +40,5 @@
   description: Tests, automation and management of the project
 
 - name: "🚫 wont do/fix"
-  color: "#eeeeee"
+  color: "#cfd3d7"
   description: This will not be worked on
