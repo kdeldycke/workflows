@@ -25,4 +25,3 @@ jobs:
           skip_delete: true
           from: |
             https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.json
-            ${{ inputs.label-files }}
