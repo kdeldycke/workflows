@@ -25,6 +25,6 @@ jobs:
           skip_delete: true
           # XXX Waiting for https://github.com/julb/action-manage-label/pull/1 to be solved so we can combine label
           # sources.
-          from: >
+          from: >-
             ${{ inputs.label-files ||
-            'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.json' }}
+            'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.yaml' }}
