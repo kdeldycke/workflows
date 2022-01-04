@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Fix use of GitHub token for workflow auto-updates on release.
+- Allow typo autofix job to propose changes in workflow files.
 
 ## [0.4.6 (2022-01-04)](https://github.com/kdeldycke/workflows/compare/v0.4.5...v0.4.6)
 

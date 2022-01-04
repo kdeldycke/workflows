@@ -16,6 +16,10 @@ jobs:
       - uses: sobolevn/misspell-fixer-action@0.1.0
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
+          # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
+          # "Developer Settings > Personal Access Tokens" UI to allow this job to update its own workflows. This is
+          # only used on the original kdeldycke/workflows repository, hence the fallback to default GitHub token.
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Typo"
           title: "[autofix] Typo"
