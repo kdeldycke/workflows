@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.4.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.5...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.4.6 (2022-01-04)](https://github.com/kdeldycke/workflows/compare/v0.4.5...v0.4.6)
 
 - Let GitHub release produced on tagging to be customized with user's content
   and uploaded files.
