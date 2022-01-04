@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.4.8 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.7...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.4.8 (2022-01-04)](https://github.com/kdeldycke/workflows/compare/v0.4.7...v0.4.8)
 
 - Use more recent `calibreapp/image-actions` action.
 - Remove unused custom variable for reuseable GitHub release job.
