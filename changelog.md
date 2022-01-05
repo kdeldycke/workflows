@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.5.1...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.5.1 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.5.0...v0.5.1)
 
 - Disable sponsor auto-tagging while we wait for upstream fix.
