@@ -12,11 +12,12 @@ jobs:
   label-sponsors:
     name: Tag sponsors
     runs-on: ubuntu-20.04
+    # XXX Always skip that workflow while we wait for a fix to be merged upsteam:
+    #   https://github.com/JasonEtco/is-sponsor-label-action/pull/30
+    #   https://github.com/JasonEtco/is-sponsor-label-action/issues/28
+    if: true
     steps:
-      # XXX Waiting for fix to be merged upsteam:
-      # https://github.com/JasonEtco/is-sponsor-label-action/pull/30
-      # https://github.com/JasonEtco/is-sponsor-label-action/issues/28
-      - uses: cheshire137/is-sponsor-label-action@e57c7e5adc854fdae4a39062c61e629f614160d5
+      - uses: JasonEtco/is-sponsor-label-action@v1.1.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
