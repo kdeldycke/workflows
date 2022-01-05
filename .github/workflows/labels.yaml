@@ -27,5 +27,5 @@ jobs:
         with:
           skip_delete: true
           from: |
-            https://raw.githubusercontent.com/kdeldycke/workflows/v0.5.4/.github/labels.yaml
+            https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.yaml
             ${{ inputs.extra-label-files }}
