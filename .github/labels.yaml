@@ -46,3 +46,7 @@
 - name: 💖 sponsor
   color: "#D3B3F2"
   description: A sponsor is involved
+
+- name: 📦 dependencies
+  color: "#AAA666"
+  description: Update of dependencies

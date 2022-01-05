@@ -8,7 +8,7 @@ updates:
     schedule:
       interval: "daily"
     labels:
-      - "🔩 CI/CD"
+      - "📦 dependencies"
     assignees:
       - "kdeldycke"
 
@@ -17,6 +17,6 @@ updates:
     schedule:
       interval: "daily"
     labels:
-      - "🔩 CI/CD"
+      - "📦 dependencies"
     assignees:
       - "kdeldycke"
