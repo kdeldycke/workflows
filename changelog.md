@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.5.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.4.8...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.5.0 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.4.8...v0.5.0)
 
 - Add a reuseable workflow to maintain GitHub labels.
 - Add a set of default emoji-based labels.
