@@ -1,31 +1,19 @@
 ---
-- name: ✨ enhancement
-  color: "#1870E3"
-  description: Improvement or change to an existing feature
-
-- name: ❓ question
-  color: "#d876e3"
-  description: Further information is requested
-
-- name: 🆕 feature request
-  color: "#84b6eb"
-  description: Not existing yet and need to be implemented
-
-- name: ℹ️ help wanted
-  color: "#C2E0C6"
-  description: Extra attention is needed
-
-- name: 🌱 good first issue
-  color: "#B3CD7F"
-  description: A place for newcomers to start contributing
+- name: 🐛 bug
+  color: "#d73a4a"
+  description: Something isn't working, or a fix is proposed
 
 - name: 🎲 can't reproduce
   color: "#cfd3d7"
   description: Root cause not from project
 
-- name: 🐛 bug
-  color: "#d73a4a"
-  description: Something isn't working, or a fix is proposed
+- name: 🔩 CI/CD
+  color: "#dbca13"
+  description: Tests, automation and management of the project
+
+- name: 📦 dependencies
+  color: "#AAA666"
+  description: Update of dependencies
 
 - name: 📗 documentation
   color: "#006b75"
@@ -35,18 +23,30 @@
   color: "#cfd3d7"
   description: This issue or pull request already exists
 
-- name: 🔩 CI/CD
-  color: "#dbca13"
-  description: Tests, automation and management of the project
+- name: ✨ enhancement
+  color: "#1870E3"
+  description: Improvement or change to an existing feature
 
-- name: 🚫 wont do/fix
-  color: "#cfd3d7"
-  description: This will not be worked on
+- name: 🆕 feature request
+  color: "#84b6eb"
+  description: Not existing yet and need to be implemented
+
+- name: 🌱 good first issue
+  color: "#B3CD7F"
+  description: A place for newcomers to start contributing
+
+- name: ℹ️ help wanted
+  color: "#C2E0C6"
+  description: Extra attention is needed
+
+- name: ❓ question
+  color: "#d876e3"
+  description: Further information is requested
 
 - name: 💖 sponsor
   color: "#D3B3F2"
   description: A sponsor is involved
 
-- name: 📦 dependencies
-  color: "#AAA666"
-  description: Update of dependencies
+- name: 🚫 wont do/fix
+  color: "#cfd3d7"
+  description: This will not be worked on
