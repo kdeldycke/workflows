@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix sponsor auto-tagging.
+
 ## [0.5.0 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.4.8...v0.5.0)
 
 - Add a reuseable workflow to maintain GitHub labels.
