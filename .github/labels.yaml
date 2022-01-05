@@ -42,3 +42,7 @@
 - name: 🚫 wont do/fix
   color: "#cfd3d7"
   description: This will not be worked on
+
+- name: 💖 sponsor
+  color: "#D3B3F2"
+  description: A sponsor is involved
