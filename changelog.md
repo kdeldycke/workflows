@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Use my own fork of `julb/action-manage-label` while we wait for upstream fix.
+- Rename label workflow's `label-files` input variable to `extra-label-files`.
+
 ## [0.5.1 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.5.0...v0.5.1)
 
 - Disable sponsor auto-tagging while we wait for upstream fix.

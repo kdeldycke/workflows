@@ -3,7 +3,7 @@ name: Labels
 "on":
   workflow_call:
     inputs:
-      label-files:
+      extra-label-files:
         required: false
         type: string
   # Restrict all project-related activities to the main branch.
@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Sync labels
-        uses: julb/action-manage-label@1.0.0
+        # XXX Use my own copy of the action while we wait for upstream fix to combine label sources:
+        # https://github.com/julb/action-manage-label/pull/1
+        uses: kdeldycke/action-manage-label@8d008e928b1cc04e85f411806d2a1975b05ec631
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           skip_delete: true
-          # XXX Waiting for https://github.com/julb/action-manage-label/pull/1 to be solved so we can combine label
-          # sources.
-          from: >-
-            ${{ inputs.label-files ||
-            'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.yaml' }}
+          from: |
+            https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.yaml
+            ${{ inputs.extra-label-files }}
