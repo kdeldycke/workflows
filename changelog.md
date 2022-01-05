@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.5.3...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.5.3 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.5.2...v0.5.3)
 
 - Fix download of remote file in label workflow.
