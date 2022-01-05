@@ -27,4 +27,4 @@ jobs:
           # sources.
           from: >-
             ${{ inputs.label-files ||
-            'https://raw.githubusercontent.com/kdeldycke/workflows/v0.5.0/.github/labels.yaml' }}
+            'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.yaml' }}
