@@ -20,7 +20,7 @@ jobs:
       - name: Sync labels
         # XXX Use my own copy of the action while we wait for upstream fix to combine label sources:
         # https://github.com/julb/action-manage-label/pull/1
-        uses: kdeldycke/action-manage-label@8d008e928b1cc04e85f411806d2a1975b05ec631
+        uses: kdeldycke/action-manage-label@patch-1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
