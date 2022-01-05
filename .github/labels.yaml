@@ -7,6 +7,10 @@
   color: "#cfd3d7"
   description: Root cause not from project
 
+- name: 🆙 changelog
+  color: "#C2E0C6"
+  description: Keep track of changes
+
 - name: 👷 CI/CD
   color: "#A4A837"
   description: Tests, automation and management of the project

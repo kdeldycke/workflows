@@ -10,6 +10,7 @@ This version is not released yet and is under active development.
 - Add a set of default emoji-based labels.
 - Allow for sourcing of additional labels when reusing workflow.
 - Auto-tag issues and PRs opened by sponsors.
+- Add dedicated changelog label.
 
 ## [0.4.8 (2022-01-04)](https://github.com/kdeldycke/workflows/compare/v0.4.7...v0.4.8)
 
