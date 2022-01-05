@@ -68,7 +68,7 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD, 📗 documentation"
+          labels: "👷 CI/CD, 📗 documentation"
           base: main
           branch: ${{ matrix.part }}-version-increment
           delete-branch: true
@@ -157,7 +157,7 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD, 📗 documentation"
+          labels: "👷 CI/CD, 📗 documentation"
           base: main
           branch: prepare-release
           delete-branch: true

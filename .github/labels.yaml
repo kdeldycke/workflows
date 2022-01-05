@@ -7,7 +7,7 @@
   color: "#cfd3d7"
   description: Root cause not from project
 
-- name: 🔩 CI/CD
+- name: 👷 CI/CD
   color: "#dbca13"
   description: Tests, automation and management of the project
 

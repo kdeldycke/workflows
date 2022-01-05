@@ -33,7 +33,7 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD, 📗 documentation"
+          labels: "👷 CI/CD, 📗 documentation"
           branch: autofix-typo
 
   optimize-images:
@@ -65,7 +65,7 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD, 📗 documentation"
+          labels: "👷 CI/CD, 📗 documentation"
           branch: optimize-images
 
   update-mailmap:
@@ -96,5 +96,5 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD, 📗 documentation"
+          labels: "👷 CI/CD, 📗 documentation"
           branch: update-mailmap

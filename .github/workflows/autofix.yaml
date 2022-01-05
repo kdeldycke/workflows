@@ -42,7 +42,7 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD"
+          labels: "👷 CI/CD"
           branch: format-python
 
   format-markdown:
@@ -75,7 +75,7 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD"
+          labels: "👷 CI/CD"
           branch: format-markdown
 
   format-json:
@@ -104,7 +104,7 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD"
+          labels: "👷 CI/CD"
           branch: format-json
 
   update-gitignore:
@@ -133,5 +133,5 @@ jobs:
 
 
             </details>
-          labels: "🔩 CI/CD"
+          labels: "👷 CI/CD"
           branch: update-gitignore
