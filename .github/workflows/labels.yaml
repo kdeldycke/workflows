@@ -17,6 +17,7 @@ jobs:
     name: Sync labels
     runs-on: ubuntu-20.04
     steps:
+      - uses: actions/checkout@v2.4.0
       - name: Sync labels
         # XXX Use my own copy of the action while we wait for upstream fix to combine label sources:
         # https://github.com/julb/action-manage-label/pull/1
