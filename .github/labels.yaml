@@ -8,7 +8,7 @@
   description: Root cause not from project
 
 - name: 👷 CI/CD
-  color: "#dbca13"
+  color: "#A4A837"
   description: Tests, automation and management of the project
 
 - name: 📦 dependencies
