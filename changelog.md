@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.5.5...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.5.5 (2022-01-07)](https://github.com/kdeldycke/workflows/compare/v0.5.4...v0.5.5)
 
 - Replace custom version of `julb/action-manage-label` by upstream.
