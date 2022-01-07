@@ -10,7 +10,8 @@ This version is not released yet and is under active development.
 
 ## [0.5.4 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.5.3...v0.5.4)
 
-- Checkout repository before syncing labels so local extra definitions can be used.
+- Checkout repository before syncing labels so local extra definitions can be
+  used.
 
 ## [0.5.3 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.5.2...v0.5.3)
 
