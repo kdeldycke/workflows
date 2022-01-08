@@ -2,6 +2,10 @@
 name: Labeller (file-based)
 "on":
   workflow_call:
+    inputs:
+      extra-rules:
+        required: false
+        type: string
   pull_request_target:
 
 jobs:
@@ -11,7 +15,20 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
-      - uses: actions/labeler@v3.0.2
+      - name: Download default rules
+        run: >
+          curl -fsSL --output ./.github/labeller-file-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
+      - name: Extend default rules
+        run: >
+          tee -a ./.github/labeller-file-based.yaml <<-EOF
+          ${{ inputs.extra-label-files }}
+          EOF
+      - name: Print all rules
+        run: |
+          cat ./.github/labeller-file-based.yaml
+      - name: Apply rules
+        uses: actions/labeler@v3.0.2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: ".github/labeller-file-based.yaml"
