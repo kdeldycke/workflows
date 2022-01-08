@@ -2,6 +2,7 @@
 ---
 name: Label sponsors
 "on":
+  workflow_call:
   pull_request:
     types:
       - opened

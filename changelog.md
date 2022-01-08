@@ -8,6 +8,7 @@ This version is not released yet and is under active development.
 
 - Add a reuseable workflow to automatically label issues and PRs depending on changed files.
 - Allow extra labelling rules to be specified via custom input.
+- Let sponsor labelling workflow to be reused.
 
 ## [0.5.5 (2022-01-07)](https://github.com/kdeldycke/workflows/compare/v0.5.4...v0.5.5)
 
