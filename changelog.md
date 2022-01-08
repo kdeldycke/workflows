@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.6.0...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.6.0 (2022-01-08)](https://github.com/kdeldycke/workflows/compare/v0.5.5...v0.6.0)
 
 - Add a reuseable workflow to automatically label issues and PRs depending on
