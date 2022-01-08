@@ -20,9 +20,10 @@ jobs:
           curl -fsSL --output ./.github/labeller-file-based.yaml
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
       - name: Extend default rules
+        if: ${{ inputs.extra-rules }}
         run: >
           tee -a ./.github/labeller-file-based.yaml <<-EOF
-          ${{ inputs.extra-label-files }}
+          ${{ inputs.extra-rules }}
           EOF
       - name: Print all rules
         run: |
