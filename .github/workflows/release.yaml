@@ -165,6 +165,8 @@ jobs:
       - git-tag
       - pypi-publish
       # - *-publish
+    # Make sure this job always start after its dependents, even if those were skipped.
+    if: always()
     runs-on: ubuntu-20.04
     steps:
       - name: Download build artefacts
