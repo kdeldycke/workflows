@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.3...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.4 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.3...v0.7.4)
 
 - Do not try to fetch build artefacts if the publishing step has been skipped.
 
