@@ -16,7 +16,7 @@ name: Build & release
 jobs:
 
   prepare-release-merged:
-    name: prepare-release PR has been merged
+    name: prepare-release PR merged
     # Creates a git tag when the prepare-release PR has been merged to main branch.
     if: github.head_ref == 'prepare-release' && github.event.pull_request.merged
     runs-on: ubuntu-20.04
@@ -24,7 +24,7 @@ jobs:
       - uses: crazy-max/ghaction-dump-context@v1.2.0
 
   is-poetry-based:
-    name: Is project based on Poetry?
+    name: Is project Poetry-based?
     runs-on: ubuntu-20.04
     outputs:
       is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
@@ -36,7 +36,7 @@ jobs:
           echo "::set-output name=is_poetry::$( [[ -f "pyproject.toml" && -f "poetry.lock" ]] && 1 || 0 )"
 
   poetry-build:
-    name: Build and check package via Poetry
+    name: "Poetry: build & check package"
     needs: is-poetry-based
     if: needs.is-poetry-based.outputs.is_poetry
     runs-on: ubuntu-20.04
