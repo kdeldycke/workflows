@@ -7,6 +7,8 @@ name: Build & release
         description: Tagged/released version (without leading 'v')
         value: ${{ jobs.git-tag.outputs.tagged_version }}
   push:
+  # Catch tag creation events.
+  create:
   pull_request:
     branches:
       - main

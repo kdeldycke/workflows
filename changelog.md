@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Always execute the last `github-release` job in the release workflow, even if the project is not Poetry-based.
+- Catch creation events so that auto-tags triggers a post-release version bump job.
 
 ## [0.7.2 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.1...v0.7.2)
 
