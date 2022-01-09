@@ -2,7 +2,8 @@
 
 ## [0.7.2 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.1...v0.7.2)
 
-- Untie `git-tag` and `post-release-version-bump` events. Trigger the later on Git tagging.
+- Untie `git-tag` and `post-release-version-bump` events. Trigger the later on
+  Git tagging.
 
 ## [0.7.1 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.0...v0.7.1)
 
