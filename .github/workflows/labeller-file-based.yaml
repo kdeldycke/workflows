@@ -21,7 +21,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
       - name: Extend default rules
         if: ${{ inputs.extra-rules }}
-        run: >
+        run: |
           tee -a ./.github/labeller-file-based.yaml <<-EOF
           ${{ inputs.extra-rules }}
           EOF
