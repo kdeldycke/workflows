@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.2...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.3 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.2...v0.7.3)
 
 - Always execute the last `github-release` job in the release workflow, even if the project is not Poetry-based.
 - Catch creation events so that auto-tags triggers a post-release version bump job.
