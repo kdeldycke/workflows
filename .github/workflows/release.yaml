@@ -82,7 +82,7 @@ jobs:
 
   poetry-build:
     name: Build, check and publish package via Poetry
-    if: hashFiles('pyproject.toml', 'poetry.lock')
+    if: hashFiles('pyproject.toml') && hashFiles('poetry.lock')
     needs: git-tag
     runs-on: ubuntu-20.04
     steps:
