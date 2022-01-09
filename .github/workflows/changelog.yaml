@@ -167,7 +167,7 @@ jobs:
 
   post-release-version-bump:
     name: Post-release version bump
-    need: prepare-release
+    needs: prepare-release
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
