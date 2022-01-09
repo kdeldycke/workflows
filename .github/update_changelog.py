@@ -65,10 +65,9 @@ new_entry = re.sub(
 )
 
 # Replace the whole paragraph of changes by a notice message. The paragraph is
-# identified as surrounded by blank lines, and the regex below keeps the original
-# formatting intact.
+# identified as starting by a blank line, at which point everything gets replaced.
 new_entry = re.sub(
-    r"\n\n.+\n\n",
+    r"\n\n.*",
     "\n\n"
     "```{{important}}\n"
     "This version is not released yet and is under active development.\n"
