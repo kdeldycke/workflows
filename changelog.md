@@ -8,6 +8,7 @@ This version is not released yet and is under active development.
 
 - Skip labelling on `prepare-release` branch.
 - Skip version increment updates on release commits.
+- Tighten up changelog job's trigger conditions.
 
 ## [0.6.2 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.6.1...v0.6.2)
 
