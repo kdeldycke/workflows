@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.7.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.5...main)
+
 ## [0.7.5 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.4...v0.7.5)
 
 ## [0.7.4 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.3...v0.7.4)
