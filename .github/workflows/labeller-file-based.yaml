@@ -12,6 +12,8 @@ jobs:
 
   labeller:
     name: Issue & PR labeller based on changed files
+    # Skip labelling on prepare-release branch as it points to a tagged URL that does not exist yet.
+    if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
