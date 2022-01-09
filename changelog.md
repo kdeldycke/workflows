@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.6.2...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.6.2 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.6.1...v0.6.2)
 
 - Fix generation of file-based labelling rules.
