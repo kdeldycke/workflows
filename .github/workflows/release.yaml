@@ -137,7 +137,7 @@ jobs:
           branch: main
 
   pypi-publish:
-    name: Publish package to PyPi
+    name: Publish to PyPi
     needs:
       - git-tag
       - poetry-build
@@ -161,6 +161,7 @@ jobs:
           needs.git-tag.outputs.tagged_version }})"
 
   github-release:
+    name: Publish GitHub release
     needs:
       - git-tag
       - pypi-publish
