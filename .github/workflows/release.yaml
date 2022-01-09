@@ -173,6 +173,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Download build artefacts
+        # Do not try to fetch build artefacts if the publishing step has been skipped.
+        if: needs.pypi-publish.result != 'skipped'
         uses: actions/download-artifact@v2.1.0
         id: download
         with:
