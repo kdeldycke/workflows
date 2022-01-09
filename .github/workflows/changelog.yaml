@@ -7,9 +7,10 @@ name: Changelog & versions
       - main
     paths:
       - changelog.md
-      - requirements.txt
       - .bumpversion.cfg
-      - .github/workflows/*.yaml
+      - .github/update_changelog.py
+      - .github/workflows/changelog.yaml
+      - .github/workflows/release.yaml
   schedule:
     # Run daily so the changelog date in prepare-release job is kept up to date
     - cron: "23 0 * * *"
@@ -17,7 +18,7 @@ name: Changelog & versions
 jobs:
 
   version-increments:
-    # Only let prepare-release job being triggered by schedule event.
+    # This job is not time-sensitive: do not let it to be triggered by schedule event.
     if: github.event_name != 'schedule'
     runs-on: ubuntu-20.04
     strategy:
