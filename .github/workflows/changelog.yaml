@@ -19,7 +19,8 @@ jobs:
 
   version-increments:
     # This job is not time-sensitive: do not let it to be triggered by schedule event.
-    if: github.event_name != 'schedule'
+    # Also skip release commits (during which bumpversion cannot find "unreleased" string in changelog.md).
+    if: github.event_name != 'schedule' && !startsWith(github.event.head_commit.message, '[changelog] Release v')
     runs-on: ubuntu-20.04
     strategy:
       matrix:
