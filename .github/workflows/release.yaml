@@ -1,5 +1,5 @@
 ---
-name: Release
+name: Build & release
 "on":
   workflow_call:
     outputs:
