@@ -13,7 +13,7 @@ jobs:
 
   poetry-build:
     name: Build, check and publish package via Poetry
-    if: hashFiles('pyproject.toml') && hashFiles('poetry.lock')
+    if: ${{ hashFiles('pyproject.toml') && hashFiles('poetry.lock') }}
     runs-on: ubuntu-20.04
     steps:
       - uses: crazy-max/ghaction-dump-context@v1.2.0
