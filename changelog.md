@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Create the post-release version bump job as an additional commit to the
+  `prepare-release` branch.
 - Fix a edge-case in the generation of a new entry in changelog.
 
 ## [0.7.5 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.4...v0.7.5)
