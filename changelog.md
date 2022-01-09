@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.1...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.7.1 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.0...v0.7.1)
 
 - Fix auto-tagging trigger on `prepare-release` PR merge.
