@@ -6,9 +6,14 @@ name: Build & release
       tagged_version:
         description: Tagged/released version (without leading 'v')
         value: ${{ jobs.git-tag.outputs.tagged_version }}
+  # Catch all tag creation events.
   push:
-  # Catch tag creation events.
+    tags:
+      - 'v*'
+    branches:
   create:
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
