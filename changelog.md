@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.6.3...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.0 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.6.3...v0.7.0)
 
 - Detect Poetry-based packages and auto-build and publish it on tagging.
 - Always test builds on each commit.
