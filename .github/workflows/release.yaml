@@ -99,7 +99,7 @@ jobs:
       - name: Artefacts for GitHub release
         uses: actions/upload-artifact@v2.3.1
         with:
-          name: build-artefacts
+          name: ${{ github.event.repository.name }}-builds
           path: ./dist/*
       - name: Install twine and check-wheel-contents
         run: >
@@ -135,7 +135,7 @@ jobs:
         uses: actions/download-artifact@v2.1.0
         id: download
         with:
-          name: build-artefacts
+          name: ${{ github.event.repository.name }}-builds
       - name: Create a release on GitHub
         uses: softprops/action-gh-release@v1
         env:
