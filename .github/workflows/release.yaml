@@ -38,17 +38,6 @@ jobs:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           tag: v${{ steps.get_version.outputs.tagged_version }}
 
-  github-release:
-    needs: git-tag
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Create a release on GitHub
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ needs.git-tag.outputs.tagged_version }}
-
   post-release-version-bump:
     needs: git-tag
     runs-on: ubuntu-20.04
@@ -90,3 +79,69 @@ jobs:
         with:
           commit_message: "[changelog] Post-release version bump"
           branch: main
+
+  poetry-build:
+    name: Build, check and publish package via Poetry
+    if: hashFiles('pyproject.toml', 'poetry.lock')
+    needs: git-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-python@v2.3.1
+      - name: Install pip and Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade poetry
+      - name: Build package
+        run: |
+          poetry install --no-interaction --no-ansi
+          poetry build --no-interaction --no-ansi
+      - name: Artefacts for GitHub release
+        uses: actions/upload-artifact@v2.3.1
+        with:
+          name: build-artefacts
+          path: ./dist/*
+      - name: Install twine and check-wheel-contents
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Validates package metadata
+        run: |
+          poetry check --no-interaction --no-ansi
+          poetry run twine check ./dist/*
+          poetry run check-wheel-contents ./dist/*.whl
+      - name: Test publishing
+        run: |
+          poetry publish --dry-run --no-interaction
+      - name: Push package to public PyPi repository
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
+      - name: Generate release text
+        run: >
+          echo "::set-output name=release-text::[🐍
+          Available on PyPi](https://pypi.org/project/meta-package-manager/${{
+          needs.git-tag.outputs.tagged_version }})"
+
+  github-release:
+    needs:
+      - git-tag
+      - poetry-build
+      # - other-build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Download build artefacts
+        uses: actions/download-artifact@v2.1.0
+        id: download
+        with:
+          name: build-artefacts
+      - name: Create a release on GitHub
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.git-tag.outputs.tagged_version }}
+          files: ${{ steps.download.outputs.download-path }}
+          body: |
+            ${{ needs.poetry-build.outputs.release-text }}

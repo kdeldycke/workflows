@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Detect Poetry-based packages and auto-build and publish it on tagging.
+
 ## [0.6.3 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.6.2...v0.6.3)
 
 - Skip labelling on `prepare-release` branch.
