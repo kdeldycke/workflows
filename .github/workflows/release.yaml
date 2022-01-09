@@ -8,6 +8,10 @@ name: Build & release
         value: ${{ jobs.git-tag.outputs.tagged_version }}
   push:
   pull_request:
+    branches:
+      - main
+    types:
+      - closed
 
 jobs:
 
