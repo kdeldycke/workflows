@@ -11,9 +11,21 @@ name: Build & release
 
 jobs:
 
+  is-poetry-based:
+    name: Is project based on Poetry?
+    runs-on: ubuntu-20.04
+    outputs:
+      is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - id: poetry_detection
+        run: |
+          echo "::set-output name=is_poetry::$( [[ -f "pyproject.toml" && -f "poetry.lock" ]] && 1 || 0 )"
+
   poetry-build:
-    name: Build, check and publish package via Poetry
-    if: ${{ always() && hashFiles('pyproject.toml') && hashFiles('poetry.lock') }}
+    name: Build and check package via Poetry
+    needs: is-poetry-based
+    if: needs.is-poetry-based.outputs.is_poetry
     runs-on: ubuntu-20.04
     steps:
       - uses: crazy-max/ghaction-dump-context@v1.2.0
@@ -71,6 +83,7 @@ jobs:
           tag: v${{ steps.get_version.outputs.tagged_version }}
 
   post-release-version-bump:
+    name: Post-release version bump
     needs: git-tag
     runs-on: ubuntu-20.04
     steps:
@@ -138,7 +151,6 @@ jobs:
 
   github-release:
     needs:
-      - git-tag
       - pypi-publish
       # - *-publish
     runs-on: ubuntu-20.04
