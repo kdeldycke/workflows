@@ -15,12 +15,21 @@ name: Build & release
 
 jobs:
 
+  prepare-release-merged:
+    name: prepare-release PR has been merged
+    # Creates a git tag when the prepare-release PR has been merged to main branch.
+    if: github.head_ref == 'prepare-release' && github.event.pull_request.merged
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: crazy-max/ghaction-dump-context@v1.2.0
+
   is-poetry-based:
     name: Is project based on Poetry?
     runs-on: ubuntu-20.04
     outputs:
       is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
     steps:
+      - uses: crazy-max/ghaction-dump-context@v1.2.0
       - uses: actions/checkout@v2.4.0
       - id: poetry_detection
         run: |
@@ -32,7 +41,6 @@ jobs:
     if: needs.is-poetry-based.outputs.is_poetry
     runs-on: ubuntu-20.04
     steps:
-      - uses: crazy-max/ghaction-dump-context@v1.2.0
       - uses: actions/checkout@v2.4.0
       - uses: actions/setup-python@v2.3.1
       - name: Install pip and Poetry
@@ -63,13 +71,11 @@ jobs:
 
   git-tag:
     name: Tag release
-    # Creates a git tag when the prepare-release PR has been merged to main branch.
-    if: github.head_ref == 'prepare-release' && github.event.pull_request.merged
+    needs: prepare-release-merged
     runs-on: ubuntu-20.04
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
-      - uses: crazy-max/ghaction-dump-context@v1.2.0
       - uses: actions/checkout@v2.4.0
       - name: Extract version
         id: get_version
@@ -88,7 +94,8 @@ jobs:
 
   post-release-version-bump:
     name: Post-release version bump
-    needs: git-tag
+    # Trigger only on Git tagging instead of the git-tag job above as some jitter can exist between the two events.
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
@@ -155,6 +162,7 @@ jobs:
 
   github-release:
     needs:
+      - git-tag
       - pypi-publish
       # - *-publish
     runs-on: ubuntu-20.04
