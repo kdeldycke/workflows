@@ -3,10 +3,18 @@ name: Debug
 "on":
   workflow_call:
   push:
+  pull_request:
+    branches:
+      - main
 
 jobs:
 
   print-context:
     runs-on: ubuntu-20.04
     steps:
+      - uses: actions/checkout@v2.4.0
       - uses: crazy-max/ghaction-dump-context@v1.2.0
+      - run: |
+          git log
+      - run: |
+          git log main..prepare-release --oneline
