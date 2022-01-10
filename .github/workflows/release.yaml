@@ -80,7 +80,7 @@ jobs:
       - uses: actions/checkout@v2.4.0
       - name: Checkout first commit of the branch
         run: |
-          git checkout $( git log main..origin/prepare-release --oneline | tail -1 | cut -d ' ' -f 1 )
+          git checkout $( git log main..prepare-release --oneline | tail -1 | cut -d ' ' -f 1 )
       - name: Extract version
         id: get_version
         # Docs: https://docs.github.com/en/actions/learn-github-actions
