@@ -171,6 +171,8 @@ jobs:
             1. creation of a `v${{ steps.get_version.outputs.current_version }}` tag on [`main`](${{
             github.event.repository.html_url }}/tree/main) branch
 
+            1. (optional) build of the project
+
             1. publication of a GitHub release
 
 
