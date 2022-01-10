@@ -139,9 +139,11 @@ jobs:
         run: |
           git branch prepare-release
           git checkout prepare-release
-      - name: Push commit to branch
+      - name: Create release commit
         run: |
           git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
+      - name: Push branch
+        run: |
           git push --force --set-upstream origin prepare-release
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
@@ -165,6 +167,8 @@ jobs:
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
+      - name: Push to branch
+        run: |
           git push
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
