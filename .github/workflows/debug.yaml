@@ -20,6 +20,9 @@ jobs:
           #ref: ${{ github.event.pull_request.head.sha }}
           # Get a couple of previous commits to trace back to the start of the PR.
           #fetch-depth: 10
+      - name: List all branches
+        run: |
+          git branch --all
       - name: Fetch commits in-between base and HEAD
         # While the ancestor commit between HEAD and the branch base isn't in the local tree
         # fetch 10 more parent commits of the branch base and branch head.
