@@ -83,8 +83,6 @@ jobs:
           git checkout $( git log main..prepare-release --oneline | tail -1 | cut -d ' ' -f 1 )
       - name: Extract version
         id: get_version
-        # Docs: https://docs.github.com/en/actions/learn-github-actions
-        # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: |
           echo "::set-output name=tagged_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
       - name: Print version
