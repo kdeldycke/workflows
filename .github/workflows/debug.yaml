@@ -28,9 +28,12 @@ jobs:
         # fetch 10 more parent commits of the branch base and branch head.
         # Source: https://github.com/actions/checkout/issues/520#issuecomment-996873827
         run: |
-          while [ -z $( git merge-base ${{ github.base_ref }} HEAD ) ]; do
+          while [ -z $( git merge-base origin/${{ github.base_ref }} HEAD ) ]; do
             git fetch --deepen=10 origin ${{ github.base_ref }} HEAD;
           done
+      - name: List all branches
+        run: |
+          git branch --all
       - name: List previous commits
         run: |
           git log --decorate=full --oneline
