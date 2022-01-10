@@ -137,7 +137,7 @@ jobs:
       - name: Push commit to branch
         run: |
           git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
-          git push --set-upstream origin prepare-release
+          git push --force --set-upstream origin prepare-release
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
