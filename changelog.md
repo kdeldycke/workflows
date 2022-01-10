@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.7 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.6...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.7 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.6...v0.7.7)
 
 - Fix extraction of tagged version on release.
 
