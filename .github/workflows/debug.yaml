@@ -13,7 +13,12 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 10
+
       - uses: crazy-max/ghaction-dump-context@v1.2.0
+      - run: |
+          git branch --all
       - run: |
           git log
       - run: |
