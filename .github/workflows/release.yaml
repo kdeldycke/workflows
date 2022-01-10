@@ -30,7 +30,6 @@ jobs:
     outputs:
       is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
     steps:
-      - uses: crazy-max/ghaction-dump-context@v1.2.0
       - uses: actions/checkout@v2.4.0
       - id: poetry_detection
         run: |
