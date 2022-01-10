@@ -23,6 +23,9 @@ jobs:
       - name: List previous commits
         run: |
           git log --decorate=full --oneline
+      - name: Fetch main
+        run: |
+          git fetch --deepen=10 origin main HEAD
       - name: Extract PR's first commit
         id: get_first_commit
         run: |
