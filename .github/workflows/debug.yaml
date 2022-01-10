@@ -12,16 +12,31 @@ jobs:
   print-context:
     runs-on: ubuntu-20.04
     steps:
+      - uses: crazy-max/ghaction-dump-context@v1.2.0
+
       - uses: actions/checkout@v2.4.0
         with:
           # Checkout pull request HEAD commit instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 10
-
-      - uses: crazy-max/ghaction-dump-context@v1.2.0
-      - run: |
-          git branch --all
-      - run: |
-          git log
-      - run: |
-          git log main..prepare-release --oneline
+          # Get the whole repository and metadata to trace back to the start of the PR.
+          fetch-depth: 0
+      - name: List previous commits
+        run: |
+          git log --oneline
+      - name: Extract PR's first commit
+        id: get_first_commit
+        run: |
+          echo "::set-output name=commit_sha::$( git log main..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
+      - name: Print first commit SHA
+        run: |
+          echo "${{ steps.get_first_commit.outputs.commit_sha }}"
+      - name: Checkout first commit
+        run: |
+          git checkout ${{ steps.get_first_commit.outputs.commit_sha }}
+      - name: Extract version
+        id: get_version
+        run: |
+          echo "::set-output name=tagged_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+      - name: Print version
+        run: |
+          echo "Tagged version: ${{ steps.get_version.outputs.tagged_version }}"
