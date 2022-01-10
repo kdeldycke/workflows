@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix attaching of GitHub release to the tagged commit.
+
 ## [0.7.12 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.11...v0.7.12)
 
 - Fix attaching of GitHub release to the tagged commit.
