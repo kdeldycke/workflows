@@ -23,6 +23,8 @@ jobs:
       - name: List all branches
         run: |
           git branch --all
+      - run: |
+          git fetch --deepen=10 origin main HEAD
       - name: Fetch commits in-between base and HEAD
         # While the ancestor commit between HEAD and the branch base isn't in the local tree
         # fetch 10 more parent commits of the branch base and branch head.
