@@ -75,6 +75,7 @@ jobs:
     runs-on: ubuntu-20.04
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
+      tagged_sha: ${{ steps.get_first_commit.outputs.tagged_sha }}
     steps:
       - uses: actions/checkout@v2.4.0
         with:
@@ -97,14 +98,14 @@ jobs:
       - name: Extract PR's first commit
         id: get_first_commit
         run: |
-          echo "::set-output name=commit_sha::$(
+          echo "::set-output name=tagged_sha::$(
           git log origin/${{ github.base_ref }}..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
       - name: Print first commit SHA
         run: |
-          echo "${{ steps.get_first_commit.outputs.commit_sha }}"
+          echo "${{ steps.get_first_commit.outputs.tagged_sha }}"
       - name: Checkout first commit
         run: |
-          git checkout ${{ steps.get_first_commit.outputs.commit_sha }}
+          git checkout ${{ steps.get_first_commit.outputs.tagged_sha }}
       - name: Extract version
         id: get_version
         run: |
@@ -165,6 +166,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
+          target_commitish: ${{ needs.git-tag.outputs.release_sha }}
           files: ${{ steps.download.outputs.download-path }}
           body: |
             ${{ needs.pypi-publish.outputs.release-text }}

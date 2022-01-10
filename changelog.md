@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Attach GitHub release to the tagged commit.
+
 ## [0.7.10 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.9...v0.7.10)
 
 ## [0.7.9 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.8...v0.7.9)
