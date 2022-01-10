@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
       - name: List previous commits
         run: |
-          git log --oneline
+          git log --decorate=full --oneline
       - name: Extract PR's first commit
         id: get_first_commit
         run: |
