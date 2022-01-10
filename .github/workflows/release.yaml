@@ -78,33 +78,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2.4.0
         with:
-          # Checkout pull request HEAD commit instead of merge commit.
-          # See: https://github.com/actions/checkout/issues/504
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: List all branches
-        run: |
-          git branch --all
-      - name: Fetch main branch
-        # Get a couple of previous commits to trace back to the start of the PR.
-        run: |
-          git fetch --deepen=10 origin ${{ github.base_ref }} HEAD
+          ref: main
+          # Get a couple of previous commits to trace back to the start of the PR.
+          fetch-depth: 10
       - name: List all branches
         run: |
           git branch --all
       - name: List previous commits
         run: |
           git log --decorate=full --oneline
-      - name: Extract PR's first commit
-        id: get_first_commit
+      - name: Extract release commit
+        id: get_release_commit
         run: |
           echo "::set-output name=tagged_sha::$(
-          git log origin/${{ github.base_ref }}..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
+          git log --all --grep='\[changelog\] Release v${{
+          steps.get_version.outputs.tagged_version }}' | head -1 | cut -d ' ' -f 2 )"
       - name: Print first commit SHA
         run: |
-          echo "${{ steps.get_first_commit.outputs.tagged_sha }}"
+          echo "${{ steps.get_release_commit.outputs.tagged_sha }}"
       - name: Checkout first commit
         run: |
-          git checkout ${{ steps.get_first_commit.outputs.tagged_sha }}
+          git checkout ${{ steps.get_release_commit.outputs.tagged_sha }}
       - name: Extract version
         id: get_version
         run: |
@@ -117,6 +111,7 @@ jobs:
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           tag: v${{ steps.get_version.outputs.tagged_version }}
+          commit-sha: ${{ steps.get_release_commit.outputs.tagged_sha }}
 
   pypi-publish:
     name: Publish to PyPi
