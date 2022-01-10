@@ -173,7 +173,8 @@ jobs:
 
             1. publication of a GitHub release
 
-            1. auto-push of a post-release version bump commit
+
+            **‼️ Do not `Squash and merge` this PR!** Else, the auto-tagging will not be possible.
 
 
             [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
