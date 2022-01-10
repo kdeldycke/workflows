@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.7 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.6...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.7.6 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.5...v0.7.6)
 
 - Create the post-release version bump job as an additional commit to the
