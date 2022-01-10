@@ -79,6 +79,7 @@ jobs:
       - uses: actions/checkout@v2.4.0
         with:
           # Checkout pull request HEAD commit instead of merge commit.
+          # See: https://github.com/actions/checkout/issues/504
           ref: ${{ github.event.pull_request.head.sha }}
           # Get the whole repository and metadata to trace back to the start of the PR.
           fetch-depth: 0
