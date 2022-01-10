@@ -9,9 +9,8 @@ name: Changelog & versions
       - changelog.md
       - .bumpversion.cfg
       - .github/update_changelog.py
+      # Trigger on any workflow change to make sure version gets hard-coded everywhere.
       - .github/workflows/*.yaml
-      - .github/workflows/changelog.yaml
-      - .github/workflows/release.yaml
   schedule:
     # Run daily so the changelog date in prepare-release job is kept up to date
     - cron: "23 0 * * *"
