@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.11 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.10...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.7.10 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.9...v0.7.10)
 
 ## [0.7.9 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.8...v0.7.9)
