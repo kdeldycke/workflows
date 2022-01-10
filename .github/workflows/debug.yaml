@@ -20,16 +20,16 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           # Get the whole repository and metadata to trace back to the start of the PR.
           fetch-depth: 0
-      - name: List previous commits
-        run: |
-          git log --decorate=full --oneline
       - name: Fetch main
         run: |
           git fetch --deepen=10 origin main HEAD
+      - name: List previous commits
+        run: |
+          git log --decorate=full --oneline
       - name: Extract PR's first commit
         id: get_first_commit
         run: |
-          echo "::set-output name=commit_sha::$( git log main..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
+          echo "::set-output name=commit_sha::$( git log origin/main..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
       - name: Print first commit SHA
         run: |
           echo "${{ steps.get_first_commit.outputs.commit_sha }}"
