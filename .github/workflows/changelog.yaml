@@ -123,20 +123,19 @@ jobs:
           python -c 'import re; from pathlib import Path; file = Path("./changelog.md");
           file.write_text(re.sub(r"^\`\`\`.*?\`\`\`\n\n", "", file.read_text(),
           count=1, flags=re.MULTILINE | re.DOTALL))'
-      - name: Commit prepare-release branch
+      - name: Setup Git
         run: |
-          # Remove untracked directories and files.
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      - name: Remove untracked directories and files
+        run: |
           git clean -fd
-          # Temporarily stash our modified files.
-          git stash
-          # Reset all repository.
-          git checkout --force
-          # Create branch
+      - name: Create branch
+        run: |
           git branch prepare-release
-          # Restore modified files to branch.
           git checkout prepare-release
-          git stash pop
-          # Push commit to branch.
+      - name: Push commit to branch
+        run: |
           git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
           git push
       - name: Re-target main branch in workflows
