@@ -123,6 +123,45 @@ jobs:
           python -c 'import re; from pathlib import Path; file = Path("./changelog.md");
           file.write_text(re.sub(r"^\`\`\`.*?\`\`\`\n\n", "", file.read_text(),
           count=1, flags=re.MULTILINE | re.DOTALL))'
+      - name: Commit prepare-release branch
+        run: |
+          # Remove untracked directories and files.
+          git clean -fd
+          # Temporarily stash our modified files.
+          git stash
+          # Reset all repository.
+          git checkout --force
+          # Create branch
+          git branch prepare-release
+          # Restore modified files to branch.
+          git checkout prepare-release
+          git stash pop
+          # Push commit to branch.
+          git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
+          git push
+      - name: Re-target main branch in workflows
+        # This step is only used in the original repository to automate remote URL tagging.
+        if: github.repository == 'kdeldycke/workflows'
+        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
+        # Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
+        run: >
+          DEFAULT_BRANCH="main" && bumpversion --verbose --no-configured-files
+          --search "/workflows/v{current_version}/"
+          --replace "/workflows/$DEFAULT_BRANCH/"
+          no-bump
+          `grep --files-with-matches "/workflows/v${{ steps.get_version.outputs.current_version }}/"
+          ./.github/workflows/*.yaml`
+      - name: Add new changelog entry
+        run: >
+          python -c "$(curl -fsSL
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_changelog.py)"
+      - name: Version bump
+        run: |
+          bumpversion --verbose patch
+      - name: Commit post-release version bump
+        run: |
+          git commit --all --message="[changelog] Post-release version bump"
+          git push
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
           # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
@@ -130,8 +169,6 @@ jobs:
           # only used on the original kdeldycke/workflows repository, hence the fallback to default GitHub token.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
-          commit-message: >
-            [changelog] Release v${{ steps.get_version.outputs.current_version }}
           title: >
             Release v${{ steps.get_version.outputs.current_version }}
           body: >
@@ -164,46 +201,3 @@ jobs:
           branch: prepare-release
           delete-branch: true
           draft: true
-
-  post-release-version-bump:
-    name: Post-release version bump
-    needs: prepare-release
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2.4.0
-        with:
-          ref: prepare-release
-          # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
-          # "Developer Settings > Personal Access Tokens" UI to allow this job to update its own workflows. This is
-          # only used on the original kdeldycke/workflows repository, hence the fallback to default GitHub token.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-python@v2.2.2
-      - name: Install pip
-        run: |
-          python -m pip install --upgrade pip
-      - name: Install bumpversion
-        run: >
-          python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Re-target main branch in workflows
-        # This step is only used in the original repository to automate remote URL tagging.
-        if: github.repository == 'kdeldycke/workflows'
-        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
-        # Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
-        run: >
-          DEFAULT_BRANCH="main" && bumpversion --verbose --no-configured-files
-          --search "/workflows/v{current_version}/"
-          --replace "/workflows/$DEFAULT_BRANCH/"
-          no-bump
-          `grep --files-with-matches "/workflows/v${{ needs.git-tag.outputs.tagged_version }}/"
-          ./.github/workflows/*.yaml`
-      - name: Add new changelog entry
-        run: >
-          python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_changelog.py)"
-      - name: Version bump
-        run: |
-          bumpversion --verbose patch
-      - uses: stefanzweifel/git-auto-commit-action@v4.12.0
-        with:
-          commit_message: "[changelog] Post-release version bump"
