@@ -18,11 +18,8 @@ jobs:
         with:
           # Checkout pull request HEAD commit instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
-          # Get the whole repository and metadata to trace back to the start of the PR.
-          fetch-depth: 0
-      - name: Fetch main
-        run: |
-          git fetch --deepen=10 origin main HEAD
+          # Get a coiuple of previous commits to trace back to the start of the PR.
+          fetch-depth: 10
       - name: List previous commits
         run: |
           git log --decorate=full --oneline
