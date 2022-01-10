@@ -135,10 +135,6 @@ jobs:
       - name: Remove untracked directories and files
         run: |
           git clean -fd
-      - name: Create branch
-        run: |
-          git branch prepare-release
-          git checkout prepare-release
       - name: Create release commit
         run: |
           git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
@@ -164,9 +160,6 @@ jobs:
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
-      - name: Push branch
-        run: |
-          git push --force --set-upstream origin HEAD:prepare-release
       - uses: peter-evans/create-pull-request@v3.12.0
         with:
           assignees: ${{ github.actor }}
