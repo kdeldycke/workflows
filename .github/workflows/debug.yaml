@@ -17,9 +17,9 @@ jobs:
       - uses: actions/checkout@v2.4.0
         with:
           # Checkout pull request HEAD commit instead of merge commit.
-          ref: ${{ github.event.pull_request.head.sha }}
+          #ref: ${{ github.event.pull_request.head.sha }}
           # Get a couple of previous commits to trace back to the start of the PR.
-          fetch-depth: 10
+          #fetch-depth: 10
       - name: Fetch commits in-between base and HEAD
         # While the ancestor commit between HEAD and the branch base isn't in the local tree
         # fetch 10 more parent commits of the branch base and branch head.
