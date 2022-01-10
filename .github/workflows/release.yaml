@@ -77,9 +77,24 @@ jobs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
       - uses: actions/checkout@v2.4.0
-      - name: Checkout first commit of the branch
+        with:
+          # Checkout pull request HEAD commit instead of merge commit.
+          ref: ${{ github.event.pull_request.head.sha }}
+          # Get enough commits to trace back to the start of the PR.
+          fetch-depth: 10
+      - name: List previous commits
         run: |
-          git checkout $( git log main..prepare-release --oneline | tail -1 | cut -d ' ' -f 1 )
+          git log --oneline
+      - name: Extract PR's first commit
+        id: get_first_commit
+        run: |
+          echo "::set-output name=commit_sha::$( git log main..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
+      - name: Print first commit SHA
+        run: |
+          echo "${{ steps.get_first_commit.outputs.commit_sha }}"
+      - name: Checkout first commit
+        run: |
+          git checkout ${{ steps.get_first_commit.outputs.commit_sha }}
       - name: Extract version
         id: get_version
         run: |
