@@ -174,7 +174,7 @@ jobs:
             1. publication of a GitHub release
 
 
-            **‼️ Do not `Squash and merge` this PR!** Else, the auto-tagging will not be possible.
+            **‼️ Do not `Squash and merge` this PR ‼️** The auto-tagging job needs 2 distinct commits.
 
 
             [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
