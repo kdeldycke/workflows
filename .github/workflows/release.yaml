@@ -81,15 +81,24 @@ jobs:
           # Checkout pull request HEAD commit instead of merge commit.
           # See: https://github.com/actions/checkout/issues/504
           ref: ${{ github.event.pull_request.head.sha }}
-          # Get the whole repository and metadata to trace back to the start of the PR.
-          fetch-depth: 0
+      - name: List all branches
+        run: |
+          git branch --all
+      - name: Fetch main branch
+        # Get a couple of previous commits to trace back to the start of the PR.
+        run: |
+          git fetch --deepen=10 origin ${{ github.base_ref }} HEAD
+      - name: List all branches
+        run: |
+          git branch --all
       - name: List previous commits
         run: |
           git log --decorate=full --oneline
       - name: Extract PR's first commit
         id: get_first_commit
         run: |
-          echo "::set-output name=commit_sha::$( git log main..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
+          echo "::set-output name=commit_sha::$(
+          git log origin/${{ github.base_ref }}..HEAD --oneline | tail -1 | cut -d ' ' -f 1 )"
       - name: Print first commit SHA
         run: |
           echo "${{ steps.get_first_commit.outputs.commit_sha }}"
