@@ -12,16 +12,15 @@ jobs:
 
   labeller:
     name: Issue & PR labeller based on changed files
+    # Skip labelling:
+    # 1. On prepare-release branch as it points to a tagged URL that does not exist yet.
+    # 2. If PR was created/triggered by a bot. That way we can prevent content-rich PRs (like those produced by
+    #    dependabot) to be overly tagged with extra labels.
     if: >
-      ${{
-      # Skip labelling on prepare-release branch as it points to a tagged URL that does not exist yet.
       github.head_ref != 'prepare-release'
-      # Skip this step if this workflow was created/triggered by a bot. That way we can prevent content-rich PRs
-      # (like those produced by dependabot) to be overly tagged with extra labels.
       && github.event.sender.type != 'Bot'
       && github.actor != 'dependabot[bot]'
       && github.actor != 'dependabot-preview[bot]'
-      }}
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
