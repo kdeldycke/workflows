@@ -8,6 +8,7 @@ This version is not released yet and is under active development.
 
 - Remove temporary debug steps.
 - Do not trigger debugging and linters on `pull_request`: it duplicates the `push` event.
+- Skip file-based labeller workflow for dependabot triggered PRs.
 
 ## [0.7.15 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.14...v0.7.15)
 
