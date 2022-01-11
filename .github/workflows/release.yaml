@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v2.4.0
       - id: poetry_detection
         run: |
-          echo "::set-output name=is_poetry::$( [[ -f "pyproject.toml" && -f "poetry.lock" ]] && 1 || 0 )"
+          echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
 
   poetry-build:
     name: "Poetry: build & check package"
