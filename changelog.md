@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.16 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.15...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.16 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.15...v0.7.16)
 
 - Remove temporary debug steps.
 - Do not trigger debugging and linters on `pull_request`: it duplicates the
