@@ -109,6 +109,8 @@ jobs:
       - name: Push tag
         uses: tvdias/github-tagger@v0.0.2
         with:
+          # XXX PAT token might be made optional if we tie the tagging job to a main branch push filtering on commit
+          # message.
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}
           commit-sha: ${{ steps.get_release_commit.outputs.tagged_sha }}
