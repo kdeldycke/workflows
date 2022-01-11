@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Add version in the name of built artefacts.
+
 ## [0.7.17 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.16...v0.7.17)
 
 - Fix detection of Poetry-based projects.
