@@ -127,7 +127,6 @@ jobs:
     needs:
       - git-tag
       - poetry-build
-    if: ${{ secrets.PYPI_TOKEN }}
     runs-on: ubuntu-20.04
     steps:
       - name: Download build artefacts
