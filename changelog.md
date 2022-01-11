@@ -16,12 +16,15 @@ This version is not released yet and is under active development.
 
 - Use `actions/checkout` to fetch last 10 commits of PR during release tagging.
 - Use commit message to identify release commit.
-- Hard-code fetching of `main` branch on tagging to identify the release commit.
+- Hard-code fetching of `main` branch on tagging to identify the release
+  commit.
 - Attach the release commit to the GitHub release.
 
 ## [0.7.13 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.12...v0.7.13)
 
-- Checkout tag within job to create a new GitHub release instead of relying on previous job's SHA identification. The latter being different right after it has been merged in `main`.
+- Checkout tag within job to create a new GitHub release instead of relying on
+  previous job's SHA identification. The latter being different right after it
+  has been merged in `main`.
 
 ## [0.7.12 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.11...v0.7.12)
 
@@ -33,14 +36,19 @@ This version is not released yet and is under active development.
 
 ## [0.7.10 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.9...v0.7.10)
 
-- Trigger changelog workflow on any other workflow change to make sure hard-coded versions in URLs are kept in sync.
-- Resort to explicit fetching of past commits to identify the first one of the `prepare-release` PR on tagging.
-- Use `base_ref` variable instead of hard-coding `main` branch in release workflow.
+- Trigger changelog workflow on any other workflow change to make sure
+  hard-coded versions in URLs are kept in sync.
+- Resort to explicit fetching of past commits to identify the first one of the
+  `prepare-release` PR on tagging.
+- Use `base_ref` variable instead of hard-coding `main` branch in release
+  workflow.
 
 ## [0.7.9 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.8...v0.7.9)
 
-- Force fetching of past 10 commits to identify `prepare-release` PR's first commit.
-- Do not fetch the final merge commit silently produced by `actions/checkout` for PRs. Get `HEAD` instead.
+- Force fetching of past 10 commits to identify `prepare-release` PR's first
+  commit.
+- Do not fetch the final merge commit silently produced by `actions/checkout`
+  for PRs. Get `HEAD` instead.
 
 ## [0.7.8 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.7...v0.7.8)
 
@@ -52,7 +60,8 @@ This version is not released yet and is under active development.
 
 ## [0.7.6 (2022-01-10)](https://github.com/kdeldycke/workflows/compare/v0.7.5...v0.7.6)
 
-- Merge the post-release version bump job into `prepare-release` branch creation workflow, the result being a 2 commits PR.
+- Merge the post-release version bump job into `prepare-release` branch
+  creation workflow, the result being a 2 commits PR.
 - Allow for empty release notes during the generation of a new changelog entry.
 
 ## [0.7.5 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.4...v0.7.5)
@@ -68,14 +77,14 @@ This version is not released yet and is under active development.
 
 - Always execute the last `github-release` job in the release workflow, even if
   the project is not Poetry-based.
-- Catch `create` events so tagging triggers a post-release version bump
-  job.
+- Catch `create` events so tagging triggers a post-release version bump job.
 
 ## [0.7.2 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.1...v0.7.2)
 
 - Untie `git-tag` and `post-release-version-bump` events. Trigger the later on
   Git tagging.
-- Move the detection logic of the `prepare-release` PR merge event to a dedicated job.
+- Move the detection logic of the `prepare-release` PR merge event to a
+  dedicated job.
 
 ## [0.7.1 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.0...v0.7.1)
 
@@ -83,7 +92,8 @@ This version is not released yet and is under active development.
 
 ## [0.7.0 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.6.3...v0.7.0)
 
-- Detect Poetry-based project, then auto-build and publish packages on PyPi on release.
+- Detect Poetry-based project, then auto-build and publish packages on PyPi on
+  release.
 - Always test builds on each commit.
 - Add build artefacts to GitHub releases.
 
