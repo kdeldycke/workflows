@@ -3,9 +3,6 @@ name: Debug
 "on":
   workflow_call:
   push:
-  pull_request:
-    branches:
-      - main
 
 jobs:
 
