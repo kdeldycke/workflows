@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Secret token need to be passed explicitely in reused workflow for PyPi
+  publishing.
+
 ## [0.7.18 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.17...v0.7.18)
 
 - Add version in the name of built artefacts.

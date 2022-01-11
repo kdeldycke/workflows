@@ -3,6 +3,9 @@ name: Build & release
 # Read https://github.com/actions/runner/issues/491 for insights on complex workflow execution logic.
 "on":
   workflow_call:
+    secrets:
+      PYPI_TOKEN:
+        required: false
     outputs:
       tagged_version:
         description: Tagged/released version (without leading 'v')
@@ -124,6 +127,7 @@ jobs:
     needs:
       - git-tag
       - poetry-build
+    if: secrets.PYPI_TOKEN
     runs-on: ubuntu-20.04
     steps:
       - name: Download build artefacts
