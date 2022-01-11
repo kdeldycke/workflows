@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.20 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.19...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.7.19 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.18...v0.7.19)
 
 - Secret token need to be passed explicitly in reused workflow for PyPi
