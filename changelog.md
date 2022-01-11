@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.19 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.18...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.7.18 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.17...v0.7.18)
 
 - Add version in the name of built artefacts.
