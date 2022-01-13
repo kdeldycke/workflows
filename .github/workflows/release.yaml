@@ -47,8 +47,8 @@ jobs:
       - name: Print JSON of new commits
         # Print raw string and parsed JSON.
         run: |
-          echo "${{ steps.generate_matrix.outputs.matrix }}"
-          jq -aR <<< echo "${{ steps.generate_matrix.outputs.matrix }}"
+          echo '${{ steps.generate_matrix.outputs.matrix }}'
+          jq -aR <<< echo '${{ steps.generate_matrix.outputs.matrix }}'
 
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
