@@ -159,12 +159,12 @@ jobs:
     outputs:
       release_commit: ${{ steps.release_detection.outputs.release_commit }}
     steps:
-      - name: Print commit message
-        run: |
-          git log ${{ matrix.commit }} --max-count=1 --format=%s
       - uses: actions/checkout@v2.4.0
         with:
           ref: ${{ matrix.commit }}
+      - name: Print commit message
+        run: |
+          git log ${{ matrix.commit }} --max-count=1 --format=%s
       - id: release_detection
         run: >
           echo "::set-output name=release_commit::$(
