@@ -25,9 +25,6 @@ jobs:
     outputs:
       matrix: ${{ steps.generate_matrix.outputs.matrix }}
     steps:
-      - run: |
-          sudo apt update
-          sudo apt install -y jq
       - uses: actions/checkout@v2
         with:
           # We're going to browse all new commits.
