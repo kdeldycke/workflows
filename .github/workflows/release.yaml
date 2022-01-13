@@ -44,9 +44,9 @@ jobs:
         #   https://stackoverflow.com/a/67204539
         #   https://stackoverflow.com/a/44477891
         run: |
-          NEW_COMMITS = $( git rev-list ${{ github.event.before }}..${{ github.sha }} )
+          NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
           echo "$NEW_COMMITS"
-          JSON_MATRIX = $( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length>0)) | "{\"commit\": \(.) }"' )
+          JSON_MATRIX=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length>0)) | "{\"commit\": \(.) }"' )
           echo "::set-output name=all_commits:: $( $JSON_MATRIX )"
       - name: Print new commits
         run: |
