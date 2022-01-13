@@ -48,7 +48,7 @@ jobs:
           echo "$NEW_COMMITS"
           JSON_COMMITS=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length > 0))' )
           echo "$JSON_COMMITS"
-          echo "::set-output name=all_commits::$( echo "$JSON_COMMITS" )"
+          echo "::set-output name=all_commits::$( echo "$JSON_COMMITS" | sed 's/\"/\\\"/g' )"
       - name: Print JSON of new commits
         run: |
           echo "${{ steps.generate_matrix.outputs.all_commits }}"
