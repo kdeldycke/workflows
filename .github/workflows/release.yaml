@@ -169,7 +169,8 @@ jobs:
         run: >
           echo "::set-output name=release_commit::$(
           git log ${{ matrix.commit }} --max-count=1 --format=%s
-          | grep --quiet -E "^\[changelog\] Release v\d+\.\d+\.\d+$" && echo "${{ matrix.commit }}"
+          | grep --quiet -E "^\[changelog\] Release v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$"
+          && echo "${{ matrix.commit }}"
           )"
       - name: Detection results
         run: |

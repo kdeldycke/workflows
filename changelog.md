@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix regex matching the release commit.
+
 ## [0.7.20 (2022-01-13)](https://github.com/kdeldycke/workflows/compare/v0.7.19...v0.7.20)
 
 - Refactor release workflow to rely on a new matrix-based multi-commit
