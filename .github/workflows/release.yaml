@@ -36,18 +36,18 @@ jobs:
         run: |
           git log --decorate=full --oneline
       - name: List new commits in JSON
-        #id: generate_matrix
+        id: generate_matrix
         # Sources:
         #   https://stackoverflow.com/a/67204539
         #   https://stackoverflow.com/a/44477891
         run: |
           NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
           JSON_MATRIX=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length > 0)) | {commit: .}' )
-          echo "::set-output name=matrix::$( echo "$JSON_MATRIX" | sed 's/\"/\\\"/g' )"
-      - id: generate_matrix
-        run: |
-          JSON_MATRIX="{\"commit\":[\"cd7b1156385255a1e7c6bbacb2da8f9c88f1d0ba\",\"df552984ed6066472e052c955995414d5d8370bd\"]}"
           echo "::set-output name=matrix::$JSON_MATRIX"
+      #- id: generate_matrix
+      #  run: |
+      #    JSON_MATRIX="{\"commit\":[\"cd7b1156385255a1e7c6bbacb2da8f9c88f1d0ba\",\"df552984ed6066472e052c955995414d5d8370bd\"]}"
+      #    echo "::set-output name=matrix::$JSON_MATRIX"
       #- name: Print JSON of new commits
       #  # Print raw string and parsed JSON.
       #  run: |
