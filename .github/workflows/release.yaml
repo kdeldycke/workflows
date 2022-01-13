@@ -56,7 +56,7 @@ jobs:
           echo "${{ steps.generate_matrix.outputs.matrix }}" | jq
       - id: generate_matrix
         run: |
-          echo "::set-output name=matrix::{"commit":["cd7b1156385255a1e7c6bbacb2da8f9c88f1d0ba","df552984ed6066472e052c955995414d5d8370bd"]}"
+          echo "::set-output name=matrix::{"commit":[\"cd7b1156385255a1e7c6bbacb2da8f9c88f1d0ba\",\"df552984ed6066472e052c955995414d5d8370bd\"]}"
 
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
