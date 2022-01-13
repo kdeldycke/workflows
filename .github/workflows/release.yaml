@@ -32,7 +32,7 @@ jobs:
       - name: List all branches
         run: |
           git branch --all
-      - name: List previous commits
+      - name: List all commits
         run: |
           git log --decorate=full --oneline
       - name: List new commits in JSON
