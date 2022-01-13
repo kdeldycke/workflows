@@ -10,16 +10,15 @@ name: Build & release
       tagged_version:
         description: Tagged/released version (without leading 'v')
         value: ${{ jobs.git-tag.outputs.tagged_version }}
-  # Target all push so any commit will get a chance to have their build tested.
+  # Target are chosen so that all commits get a chance to have their build tested.
   push:
-    # Only trigger on branches, not on tags.
     branches:
-      - '**'
-    #   - main
+      - main
+  pull_request:
 
 jobs:
 
-  generate-commit-matrix:
+  commit-matrix:
     name: List new commits
     runs-on: ubuntu-20.04
     outputs:
@@ -71,9 +70,9 @@ jobs:
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
     runs-on: ubuntu-20.04
-    needs: generate-commit-matrix
+    needs: commit-matrix
     strategy:
-      matrix: ${{ fromJson(needs.generate-commit-matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.commit-matrix.outputs.matrix) }}
     steps:
       - name: Print target commit
         run: |
@@ -88,14 +87,6 @@ jobs:
         run: |
           git log --decorate=full --oneline
 
-  prepare-release-merged:
-    name: prepare-release PR merged
-    # Creates a git tag when the prepare-release PR has been merged to main branch.
-    if: github.head_ref == 'prepare-release' && github.event.pull_request.merged
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: crazy-max/ghaction-dump-context@v1.2.0
-
   is-poetry-based:
     name: Is project Poetry-based?
     runs-on: ubuntu-20.04
@@ -109,11 +100,20 @@ jobs:
 
   poetry-build:
     name: "Poetry: build & check package"
-    needs: is-poetry-based
+    needs:
+      - is-poetry-based
+      - commit-matrix
     if: needs.is-poetry-based.outputs.is_poetry
+    strategy:
+      matrix: ${{ fromJson(needs.commit-matrix.outputs.matrix) }}
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.4.0
+      - name: Print target commit
+        run: |
+          echo "${{ matrix.commit }}"
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v2.3.1
       - name: Install pip and Poetry
         run: |
@@ -123,14 +123,10 @@ jobs:
         run: |
           poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
-      - name: Extract version
-        id: get_version
-        run: |
-          echo "::set-output name=tagged_version::$( poetry version --short )"
       - name: Artefacts for GitHub release
         uses: actions/upload-artifact@v2.3.1
         with:
-          name: ${{ github.event.repository.name }}-builds-v${{ steps.get_version.outputs.tagged_version }}
+          name: ${{ github.event.repository.name }}-builds-${{ matrix.commit }}
           path: ./dist/*
       - name: Install twine and check-wheel-contents
         run: >
@@ -145,36 +141,42 @@ jobs:
         run: |
           poetry publish --dry-run --no-interaction
 
+  is-release-commit:
+    name: Is commit a release?
+    needs: commit-matrix
+    # Only consider pushes to main branch as triggers for releases.
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix: ${{ fromJson(needs.commit-matrix.outputs.matrix) }}
+    runs-on: ubuntu-20.04
+    outputs:
+      release_commit: ${{ steps.release_detection.outputs.release_commit }}
+    steps:
+      - name: Print target commit
+        run: |
+          echo "${{ matrix.commit }}"
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.commit }}
+      - id: release_detection
+        run: |
+          echo "::set-output name=release_commit::$( git log ${{ matrix.commit }} --max-count=1 --format=%s | grep --quiet -E "^\[changelog\] Release v\d+\.\d+\.\d+$" && echo "${{ matrix.commit }}" )"
+
   git-tag:
     name: Tag release
-    needs: prepare-release-merged
+    needs:
+      - is-release-commit
+    if: ${{ needs.is-release-commit.release_commit }}
     runs-on: ubuntu-20.04
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
-      - uses: actions/checkout@v2.4.0
+      - name: Print release commit
+        run: |
+          echo "${{ needs.is-release-commit.release_commit }}"
+      - uses: actions/checkout@v2
         with:
-          ref: main
-          # Get a couple of previous commits to trace back to the start of the PR.
-          fetch-depth: 10
-      - name: List all branches
-        run: |
-          git branch --all
-      - name: List previous commits
-        run: |
-          git log --decorate=full --oneline
-      - name: Extract release commit
-        id: get_release_commit
-        run: |
-          echo "::set-output name=tagged_sha::$(
-          git log --all --grep='\[changelog\] Release v${{
-          steps.get_version.outputs.tagged_version }}' | head -1 | cut -d ' ' -f 2 )"
-      - name: Print first commit SHA
-        run: |
-          echo "${{ steps.get_release_commit.outputs.tagged_sha }}"
-      - name: Checkout first commit
-        run: |
-          git checkout ${{ steps.get_release_commit.outputs.tagged_sha }}
+          ref: ${{ needs.is-release-commit.release_commit }}
       - name: Extract version
         id: get_version
         run: |
@@ -185,24 +187,25 @@ jobs:
       - name: Push tag
         uses: tvdias/github-tagger@v0.0.2
         with:
-          # XXX PAT token might be made optional if we tie the tagging job to a main branch push filtering on commit
-          # message.
-          repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}
-          commit-sha: ${{ steps.get_release_commit.outputs.tagged_sha }}
+          commit-sha: ${{ needs.is-release-commit.release_commit }}
 
   pypi-publish:
     name: Publish to PyPi
     needs:
-      - git-tag
       - poetry-build
+      - is-release-commit
+      - git-tag
     runs-on: ubuntu-20.04
+    outputs:
+      release_text: ${{ steps.generate_text.outputs.release_text }}s
     steps:
       - name: Download build artefacts
         uses: actions/download-artifact@v2.1.0
         id: download
         with:
-          name: ${{ github.event.repository.name }}-builds-v${{ needs.git-tag.outputs.tagged_version }}
+          name: ${{ github.event.repository.name }}-builds-${{ needs.is-release-commit.release_commit }}
       - name: Push package to public PyPi repository
         uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
@@ -210,14 +213,16 @@ jobs:
           password: ${{ secrets.PYPI_TOKEN }}
           packages_dir: ${{ steps.download.outputs.download-path }}
       - name: Generate release text
+        id: generate_text
         run: >
-          echo "::set-output name=release-text::[🐍
+          echo "::set-output name=release_text::[🐍
           Available on PyPi](https://pypi.org/project/meta-package-manager/${{
           needs.git-tag.outputs.tagged_version }})"
 
   github-release:
     name: Publish GitHub release
     needs:
+      - is-release-commit
       - git-tag
       - pypi-publish
       # - *-publish
@@ -231,21 +236,14 @@ jobs:
         uses: actions/download-artifact@v2.1.0
         id: download
         with:
-          name: ${{ github.event.repository.name }}-builds-v${{ needs.git-tag.outputs.tagged_version }}
-      - uses: actions/checkout@v2.4.0
-        with:
-          ref: v${{ needs.git-tag.outputs.tagged_version }}
-      - name: Extract tagged commit SHA
-        id: get_tagged_sha
-        run: |
-          echo "::set-output name=tagged_sha::$( git rev-parse v${{ needs.git-tag.outputs.tagged_version }} )"
+          name: ${{ github.event.repository.name }}-builds-${{ needs.is-release-commit.release_commit }}
       - name: Create a release on GitHub
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
-          target_commitish: ${{ steps.get_tagged_sha.outputs.tagged_sha }}
+          target_commitish: ${{ needs.is-release-commit.release_commit }}
           files: ${{ steps.download.outputs.download-path }}
           body: |
-            ${{ needs.pypi-publish.outputs.release-text }}
+            ${{ needs.pypi-publish.outputs.release_text }}
