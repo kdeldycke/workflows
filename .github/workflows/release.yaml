@@ -48,7 +48,7 @@ jobs:
           echo "$NEW_COMMITS"
           JSON_COMMITS=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length > 0))' )
           echo "$JSON_COMMITS"
-          echo "::set-output name=matrix::{"commit": $( echo "$JSON_COMMITS" | sed 's/\"/\\\"/g' ) }"
+          echo "::set-output name=matrix::{"commit":$( echo "$JSON_COMMITS" | sed 's/\"/\\\"/g' )}"
       - name: Print JSON of new commits
         # Print raw string and parsed JSON.
         run: |
