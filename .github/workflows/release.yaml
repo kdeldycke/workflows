@@ -51,6 +51,7 @@ jobs:
       - name: Print new commits
         run: |
           echo "${{ steps.generate_matrix.outputs.all_commits }}"
+          echo "${{ steps.generate_matrix.outputs.all_commits }}" | jq
 
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
