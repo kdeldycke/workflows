@@ -23,7 +23,7 @@ jobs:
     name: Get all push's commits
     runs-on: ubuntu-20.04
     outputs:
-      matrix: ${{ steps.generate_matrix.outputs.matrix }}
+      matrix: ${{ steps.generate_matrix.outputs.all_commits }}
     steps:
       - run: |
           sudo apt update
@@ -46,20 +46,21 @@ jobs:
         run: |
           NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
           echo "$NEW_COMMITS"
-          JSON_MATRIX=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length>0)) | {commit: .}' )
-          echo "$JSON_MATRIX"
-          echo "::set-output name=matrix::$( echo "$JSON_MATRIX" | sed 's/\"/\\\"/g' )"
+          JSON_COMMITS=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length > 0))' )
+          echo "$JSON_COMMITS"
+          echo "::set-output name=all_commits::$( echo "$JSON_COMMITS" )"
       - name: Print JSON of new commits
         run: |
-          echo "${{ steps.generate_matrix.outputs.matrix }}"
-          echo "${{ steps.generate_matrix.outputs.matrix }}" | jq
+          echo "${{ steps.generate_matrix.outputs.all_commits }}"
+          echo "${{ steps.generate_matrix.outputs.all_commits }}" | jq
 
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
     runs-on: ubuntu-20.04
     needs: generate-commit-matrix
     strategy:
-      matrix: ${{ fromJson(needs.generate-commit-matrix.outputs.matrix) }}
+      matrix:
+        commit: ${{ fromJson(needs.generate-commit-matrix.outputs.matrix) }}
     steps:
       - name: Print target commit
         run: |
