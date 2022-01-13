@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.20 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.19...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.20 (2022-01-13)](https://github.com/kdeldycke/workflows/compare/v0.7.19...v0.7.20)
 
 - Refactor release workflow to rely on a new matrix-based multi-commit
   detection strategy.
