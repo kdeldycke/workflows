@@ -47,10 +47,10 @@ jobs:
         run: |
           if [ $GITHUB_BASE_REF ]; then
             # Pull request event, for which we need to checkout the HEAD commit instead of the artificial merge commit.
-            NEW_COMMITS=$( git rev-list ${{ github.base_ref }}..${{ github.event.pull_request.head.sha }} )
+            NEW_COMMITS=$( git rev-list ${{ github.base_ref }}..${{ github.event.pull_request.head.sha }} -- )
           else
             # Push event.
-            NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
+            NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} -- )
           fi
           NEW_COMMITS="${NEW_COMMITS//$'\n'/'%0A'}"
           echo "::set-output name=commits::$NEW_COMMITS"
