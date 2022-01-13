@@ -101,6 +101,9 @@ jobs:
       - id: poetry_detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
+      - name: Detection results
+        run: |
+          echo "${{ steps.poetry_detection.outputs.is_poetry }}"
 
   poetry-build:
     name: "Poetry: build & check package"
@@ -156,9 +159,9 @@ jobs:
     outputs:
       release_commit: ${{ steps.release_detection.outputs.release_commit }}
     steps:
-      - name: Print target commit
+      - name: Print commit message
         run: |
-          echo "${{ matrix.commit }}"
+          git log ${{ matrix.commit }} --max-count=1 --format=%s
       - uses: actions/checkout@v2.4.0
         with:
           ref: ${{ matrix.commit }}
@@ -168,6 +171,9 @@ jobs:
           git log ${{ matrix.commit }} --max-count=1 --format=%s
           | grep --quiet -E "^\[changelog\] Release v\d+\.\d+\.\d+$" && echo "${{ matrix.commit }}"
           )"
+      - name: Detection results
+        run: |
+          echo "${{ steps.release_detection.outputs.release_commit }}"
 
   git-tag:
     name: Tag release
