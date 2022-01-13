@@ -10,14 +10,62 @@ name: Build & release
       tagged_version:
         description: Tagged/released version (without leading 'v')
         value: ${{ jobs.git-tag.outputs.tagged_version }}
+  # Target all push so any commit will get a chance to have their build tested.
   push:
-  pull_request:
+    # Only trigger on branches, not on tags.
     branches:
-      - main
-    types:
-      - closed
+      - '**'
+    #   - main
 
 jobs:
+
+  generate-commit-matrix:
+    name: Get all push's commits
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: "{\"commit\": ${{ steps.generate_matrix.outputs.all_commits }} }"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # We're going to browse all new commits.
+          fetch-depth: 0
+      - name: List all branches
+        run: |
+          git branch --all
+      - name: List previous commits
+        run: |
+          git log --decorate=full --oneline
+      - name: Fetch all new commits
+        id: generate_matrix
+        # Source: https://stackoverflow.com/a/67204539
+        run: |
+          for COMMIT in $( git rev-list ${{ github.event.before }}..${{ github.sha }} ); do
+              git checkout $COMMIT
+              echo "$COMMIT"
+          done
+      - name: Print new commits
+        run: |
+          echo "${{ steps.generate_matrix.outputs.all_commits }}"
+
+  test-matrix:
+    name: Run job on ${{ matrix.commit }} commit
+    runs-on: ubuntu-20.04
+    needs: generate-commit-matrix
+    strategy:
+      matrix: ${{ fromJson(needs.generate-commit-matrix.outputs.matrix) }}
+    steps:
+      - name: Print target commit
+        run: |
+          echo "${{ matrix.commit }}"
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.commit }}
+      - name: List all branches
+        run: |
+          git branch --all
+      - name: List previous commits
+        run: |
+          git log --decorate=full --oneline
 
   prepare-release-merged:
     name: prepare-release PR merged
