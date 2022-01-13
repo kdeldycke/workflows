@@ -59,9 +59,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: generate-commit-matrix
     strategy:
-      matrix:
-        commit:
-          - "7dd7ef3e367104b9a7e1a3f1820dfcbd0b0a3c9a"
+      matrix: ${{ fromJson(needs.generate-commit-matrix.outputs.matrix) }}
     steps:
       - name: Print target commit
         run: |
