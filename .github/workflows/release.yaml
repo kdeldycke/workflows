@@ -59,7 +59,10 @@ jobs:
         id: generate_matrix
         # Source: https://stackoverflow.com/a/44477891
         run: |
-          JSON_MATRIX=$( echo '${{ steps.new_commits.outputs.commits }}' | jq -R -s -c 'split("\n") | map(select(length > 0)) | {commit: .}' )
+          JSON_MATRIX=$(
+          echo '${{ steps.new_commits.outputs.commits }}'
+          | jq -R -s -c 'split("\n") | map(select(length > 0)) | {commit: .}'
+          )
           echo "::set-output name=matrix::$JSON_MATRIX"
       - name: Print JSON of new commits
         # Print raw string and parsed JSON.
@@ -160,7 +163,10 @@ jobs:
           ref: ${{ matrix.commit }}
       - id: release_detection
         run: |
-          echo "::set-output name=release_commit::$( git log ${{ matrix.commit }} --max-count=1 --format=%s | grep --quiet -E "^\[changelog\] Release v\d+\.\d+\.\d+$" && echo "${{ matrix.commit }}" )"
+          echo "::set-output name=release_commit::$(
+          git log ${{ matrix.commit }} --max-count=1 --format=%s
+          | grep --quiet -E "^\[changelog\] Release v\d+\.\d+\.\d+$" && echo "${{ matrix.commit }}"
+          )"
 
   git-tag:
     name: Tag release
