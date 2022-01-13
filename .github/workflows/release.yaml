@@ -23,7 +23,7 @@ jobs:
     name: Get all push's commits
     runs-on: ubuntu-20.04
     outputs:
-      matrix: ${{ steps.generate_matrix.outputs.all_commits }}
+      matrix: ${{ steps.generate_matrix.outputs.matrix }}
     steps:
       - run: |
           sudo apt update
@@ -48,11 +48,11 @@ jobs:
           echo "$NEW_COMMITS"
           JSON_MATRIX=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length>0)) | {commit: .}' )
           echo "$JSON_MATRIX"
-          echo "::set-output name=all_commits::$( echo "$JSON_MATRIX" | sed 's/\"/\\\"/g' )"
+          echo "::set-output name=matrix::$( echo "$JSON_MATRIX" | sed 's/\"/\\\"/g' )"
       - name: Print JSON of new commits
         run: |
-          echo "${{ steps.generate_matrix.outputs.all_commits }}"
-          echo "${{ steps.generate_matrix.outputs.all_commits }}" | jq
+          echo "${{ steps.generate_matrix.outputs.matrix }}"
+          echo "${{ steps.generate_matrix.outputs.matrix }}" | jq
 
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
