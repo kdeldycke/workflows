@@ -45,10 +45,10 @@ jobs:
         # https://github.community/t/set-output-truncates-multiline-strings/16852/3
         run: |
           if [ $GITHUB_BASE_REF ]; then
-            # Pull Request
-            NEW_COMMITS=$( git rev-list ${{ github.base_ref }}..${{ github.head_ref }} )
+            # Pull request event, for which we need to checkout the HEAD commit instead of the artificial merge commit.
+            NEW_COMMITS=$( git rev-list ${{ github.base_ref }}..${{ github.event.pull_request.head.sha }} )
           else
-            # Push
+            # Push event.
             NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
           fi
           NEW_COMMITS="${NEW_COMMITS//$'\n'/'%0A'}"
