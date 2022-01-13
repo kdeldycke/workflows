@@ -59,11 +59,10 @@ jobs:
         id: generate_matrix
         # Source: https://stackoverflow.com/a/44477891
         run: >
-          JSON_MATRIX=$(
+          echo "::set-output name=matrix::$(
           echo '${{ steps.new_commits.outputs.commits }}'
           | jq -R -s -c 'split("\n") | map(select(length > 0)) | {commit: .}'
-          )
-          echo "::set-output name=matrix::$JSON_MATRIX"
+          )"
       - name: Print JSON of new commits
         # Print raw string and parsed JSON.
         run: |
