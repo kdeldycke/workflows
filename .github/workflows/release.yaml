@@ -35,14 +35,32 @@ jobs:
       - name: List all commits
         run: |
           git log --decorate=full --oneline
-      - name: List new commits in JSON
-        id: generate_matrix
-        # Sources:
-        #   https://stackoverflow.com/a/67204539
-        #   https://stackoverflow.com/a/44477891
+      - name: List new commits
+        id: new_commits
+        # New commits needs to be fetched differently in push and pull_requests events. Sources:
+        #   * https://stackoverflow.com/a/67204539
+        #   * https://stackoverflow.com/a/62953566
+        #   * https://stackoverflow.com/a/61861763
+        # There is also a trick here to encode "\n" before using "::set-output" directive:
+        # https://github.community/t/set-output-truncates-multiline-strings/16852/3
         run: |
-          NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
-          JSON_MATRIX=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length > 0)) | {commit: .}' )
+          if [ $GITHUB_BASE_REF ]; then
+            # Pull Request
+            NEW_COMMITS=$( git rev-list ${{ github.base_ref }}..${{ github.head_ref }} )
+          else
+            # Push
+            NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
+          fi
+          NEW_COMMITS="${NEW_COMMITS//$'\n'/'%0A'}"
+          echo "::set-output name=commits::$NEW_COMMITS"
+      - name: Print new commits
+        run: |
+          echo "New commits: ${{ steps.new_commits.outputs.commits }}"
+      - name: Create JSON matrix
+        id: generate_matrix
+        # Source: https://stackoverflow.com/a/44477891
+        run: |
+          JSON_MATRIX=$( echo '${{ steps.new_commits.outputs.commits }}' | jq -R -s -c 'split("\n") | map(select(length > 0)) | {commit: .}' )
           echo "::set-output name=matrix::$JSON_MATRIX"
       - name: Print JSON of new commits
         # Print raw string and parsed JSON.
