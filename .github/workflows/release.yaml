@@ -43,7 +43,7 @@ jobs:
         run: |
           NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
           JSON_MATRIX=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length > 0)) | {commit: .}' )
-          echo ::set-output name=matrix::\'"$JSON_MATRIX"\'
+          printf '::set-output name=matrix::%s' "$JSON_MATRIX"
       - name: Print JSON of new commits
         # Print raw string and parsed JSON.
         run: |
