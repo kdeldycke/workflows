@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.21 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.20...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.21 (2022-01-13)](https://github.com/kdeldycke/workflows/compare/v0.7.20...v0.7.21)
 
 - Fix regex matching the release commit.
 
