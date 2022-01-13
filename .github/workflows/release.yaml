@@ -20,7 +20,7 @@ name: Build & release
 jobs:
 
   generate-commit-matrix:
-    name: Get all push's commits
+    name: List new commits
     runs-on: ubuntu-20.04
     outputs:
       matrix: ${{ steps.generate_matrix.outputs.matrix }}
