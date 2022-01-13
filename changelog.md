@@ -6,6 +6,13 @@
 This version is not released yet and is under active development.
 ```
 
+- Refactor release workflow to rely on a new matrix-based multi-commit
+  detection strategy.
+- Trigger tagging by monitoring `main` branch commit messages instead of
+  `prepare-release` PR merge event.
+- Upload build artefacts for each commit.
+- Fix addition of PyPi link in GitHub release content.
+
 ## [0.7.19 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.18...v0.7.19)
 
 - Secret token need to be passed explicitly in reused workflow for PyPi
