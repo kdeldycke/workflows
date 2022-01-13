@@ -23,7 +23,7 @@ jobs:
     name: Get all push's commits
     runs-on: ubuntu-20.04
     outputs:
-      matrix: "{\"commit\": ${{ steps.generate_matrix.outputs.all_commits }} }"
+      matrix: ${{ steps.generate_matrix.outputs.all_commits }}
     steps:
       - run: |
           sudo apt update
