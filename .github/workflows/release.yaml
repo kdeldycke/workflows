@@ -36,7 +36,7 @@ jobs:
         run: |
           git log --decorate=full --oneline
       - name: List new commits in JSON
-        # id: generate_matrix
+        id: generate_matrix
         # Sources:
         #   https://stackoverflow.com/a/67204539
         #   https://stackoverflow.com/a/44477891
@@ -53,9 +53,6 @@ jobs:
         run: |
           echo "${{ steps.generate_matrix.outputs.matrix }}"
           echo "${{ steps.generate_matrix.outputs.matrix }}" | jq
-      - id: generate_matrix
-        run: |
-          echo '::set-output name=matrix::{"commit":["cd7b1156385255a1e7c6bbacb2da8f9c88f1d0ba","df552984ed6066472e052c955995414d5d8370bd"]}'
 
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
