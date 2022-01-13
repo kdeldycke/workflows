@@ -71,26 +71,6 @@ jobs:
           echo '${{ steps.generate_matrix.outputs.matrix }}'
           jq -aR <<< echo '${{ steps.generate_matrix.outputs.matrix }}'
 
-  test-matrix:
-    name: Run job on ${{ matrix.commit }} commit
-    runs-on: ubuntu-20.04
-    needs: commit-matrix
-    strategy:
-      matrix: ${{ fromJson(needs.commit-matrix.outputs.matrix) }}
-    steps:
-      - name: Print target commit
-        run: |
-          echo "${{ matrix.commit }}"
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ matrix.commit }}
-      - name: List all branches
-        run: |
-          git branch --all
-      - name: List previous commits
-        run: |
-          git log --decorate=full --oneline
-
   is-poetry-based:
     name: Is project Poetry-based?
     runs-on: ubuntu-20.04
