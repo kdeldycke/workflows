@@ -48,11 +48,11 @@ jobs:
         run: |
           JSON_MATRIX="{\"commit\":[\"cd7b1156385255a1e7c6bbacb2da8f9c88f1d0ba\",\"df552984ed6066472e052c955995414d5d8370bd\"]}"
           echo "::set-output name=matrix::$JSON_MATRIX"
-      - name: Print JSON of new commits
-        # Print raw string and parsed JSON.
-        run: |
-          echo "${{ steps.generate_matrix.outputs.matrix }}"
-          echo "${{ steps.generate_matrix.outputs.matrix }}" | jq
+      #- name: Print JSON of new commits
+      #  # Print raw string and parsed JSON.
+      #  run: |
+      #    echo "${{ steps.generate_matrix.outputs.matrix }}"
+      #    echo "${{ steps.generate_matrix.outputs.matrix }}" | jq
 
   test-matrix:
     name: Run job on ${{ matrix.commit }} commit
