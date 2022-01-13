@@ -47,7 +47,7 @@ jobs:
           NEW_COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} )
           echo "$NEW_COMMITS"
           JSON_MATRIX=$( echo "$NEW_COMMITS" | jq -R -s -c 'split("\n") | map(select(length>0)) | "{\"commit\": \(.) }"' )
-          echo "::set-output name=all_commits:: $( $JSON_MATRIX )"
+          echo "::set-output name=all_commits::$JSON_MATRIX"
       - name: Print new commits
         run: |
           echo "${{ steps.generate_matrix.outputs.all_commits }}"
