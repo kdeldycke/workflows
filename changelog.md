@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Generate list of all new and release commits in the first job of the release
+  workflow.
+
 ## [0.7.21 (2022-01-13)](https://github.com/kdeldycke/workflows/compare/v0.7.20...v0.7.21)
 
 - Fix regex matching the release commit.
