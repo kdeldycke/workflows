@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.22 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.21...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.22 (2022-01-15)](https://github.com/kdeldycke/workflows/compare/v0.7.21...v0.7.22)
 
 - Generate list of all new and release commits in the first job of the release
   workflow.
