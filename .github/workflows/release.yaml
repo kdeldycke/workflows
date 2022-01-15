@@ -71,9 +71,9 @@ jobs:
           echo "::set-output name=commits::$COMMITS"
       - name: Print commits
         run: |
-          echo "New commits: ${{ steps.new_commits.outputs.commits }}"
+          echo "New commits:\n${{ steps.new_commits.outputs.commits }}"
           echo "---"
-          echo "Release commits: ${{ steps.release_commits.outputs.commits }}"
+          echo "Release commits:\n${{ steps.release_commits.outputs.commits }}"
       - name: Create JSON new commits matrix
         id: new_commits_matrix
         if: steps.new_commits.outputs.commits
