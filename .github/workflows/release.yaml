@@ -76,6 +76,7 @@ jobs:
           echo "Release commits: ${{ steps.release_commits.outputs.commits }}"
       - name: Create JSON new commits matrix
         id: new_commits_matrix
+        if: steps.new_commits.outputs.commits
         # Source: https://stackoverflow.com/a/44477891
         run: >
           echo "::set-output name=matrix::$(
@@ -84,6 +85,7 @@ jobs:
           )"
       - name: Create JSON release commits matrix
         id: release_commits_matrix
+        if: steps.release_commits.outputs.commits
         run: >
           echo "::set-output name=matrix::$(
           echo '${{ steps.release_commits.outputs.commits }}'
