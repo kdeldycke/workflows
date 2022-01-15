@@ -186,7 +186,7 @@ jobs:
       - name: Push tag
         uses: tvdias/github-tagger@v0.0.2
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}
           commit-sha: ${{ matrix.commit }}
 
