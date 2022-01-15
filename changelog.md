@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.25 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.24...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.7.24 (2022-01-15)](https://github.com/kdeldycke/workflows/compare/v0.7.23...v0.7.24)
 
 - Fix upload of build artefacts in GitHub release.
