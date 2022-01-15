@@ -22,7 +22,7 @@ jobs:
     name: List new and releases commits
     runs-on: ubuntu-20.04
     outputs:
-        # There's a design issue with GitHub actions: matrix ouputs are not cumulative. The last job wins.
+        # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins.
         # See: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626
         # So we will use this step to list all commits by categories.
       new_commits_matrix: ${{ steps.new_commits_matrix.outputs.matrix }}
