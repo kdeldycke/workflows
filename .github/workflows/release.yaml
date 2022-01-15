@@ -246,6 +246,6 @@ jobs:
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
-          files: ${{ steps.download.outputs.download-path }}
+          files: ${{ steps.download.outputs.download-path }}/*
           body: |
             ${{ needs.pypi-publish.outputs.release_text }}

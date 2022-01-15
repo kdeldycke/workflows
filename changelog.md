@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix upload of build artefacts in GitHub release.
+
 ## [0.7.23 (2022-01-15)](https://github.com/kdeldycke/workflows/compare/v0.7.22...v0.7.23)
 
 - Fix use of token for Git tagging.
