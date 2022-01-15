@@ -163,7 +163,7 @@ jobs:
     needs:
       - commit-matrix
     # Only consider pushes to main branch as triggers for releases.
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.commit-matrix.outputs.release_commits_matrix
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-20.04
