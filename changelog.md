@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.23 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.22...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.23 (2022-01-15)](https://github.com/kdeldycke/workflows/compare/v0.7.22...v0.7.23)
 
 - Fix use of token for Git tagging.
 
