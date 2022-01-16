@@ -67,8 +67,8 @@ jobs:
         id: release_commits
         # Same as new_commits step, but with "--grep" option.
         run: |
-          COMMITS=$(
-            git rev-list -E --grep="^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$"
+          COMMITS=$( \
+            git rev-list -E --grep="^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$" \
             ${{ steps.commit_range.outputs.range }} -- )
           COMMITS="${COMMITS//$'\n'/'%0A'}"
           echo "::set-output name=commits::$COMMITS"
