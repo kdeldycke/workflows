@@ -40,33 +40,36 @@ jobs:
       - name: List all commits
         run: |
           git log --decorate=full --oneline
-      - name: List new commits
-        id: new_commits
+      - name: Get commit range
+        id: commit_range
         # New commits needs to be fetched differently in push and pull_requests events. Sources:
         #   * https://stackoverflow.com/a/67204539
         #   * https://stackoverflow.com/a/62953566
         #   * https://stackoverflow.com/a/61861763
-        # There is also a trick here to encode "\n" before using "::set-output" directive:
-        # https://github.community/t/set-output-truncates-multiline-strings/16852/3
         run: |
           if [ $GITHUB_BASE_REF ]; then
             # Pull request event, for which we need to checkout the HEAD commit instead of the artificial merge commit.
-            COMMITS=$( git rev-list ${{ github.base_ref }}..${{ github.event.pull_request.head.sha }} -- )
+            COMMIT_RANGE="${{ github.base_ref }}..${{ github.event.pull_request.head.sha }}"
           else
             # Push event.
-            COMMITS=$( git rev-list ${{ github.event.before }}..${{ github.sha }} -- )
+            COMMIT_RANGE="${{ github.event.before }}..${{ github.sha }}"
           fi
+          echo "::set-output name=range::$COMMIT_RANGE"
+      - name: List new commits
+        id: new_commits
+        # There is also a trick here to encode "\n" before using "::set-output" directive:
+        # https://github.community/t/set-output-truncates-multiline-strings/16852/3
+        run: |
+          COMMITS=$( git rev-list ${{ steps.commit_range.outputs.range }} -- )
           COMMITS="${COMMITS//$'\n'/'%0A'}"
           echo "::set-output name=commits::$COMMITS"
       - name: List release commits
         id: release_commits
         # Same as new_commits step, but with "--grep" option.
         run: |
-          if [ $GITHUB_BASE_REF ]; then
-            COMMITS=$( git rev-list -E --grep="^\[changelog\] Release v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$" ${{ github.base_ref }}..${{ github.event.pull_request.head.sha }} -- )
-          else
-            COMMITS=$( git rev-list -E --grep="^\[changelog\] Release v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$" ${{ github.event.before }}..${{ github.sha }} -- )
-          fi
+          COMMITS=$(
+            git rev-list -E --grep="^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$"
+            ${{ steps.commit_range.outputs.range }} -- )
           COMMITS="${COMMITS//$'\n'/'%0A'}"
           echo "::set-output name=commits::$COMMITS"
       - name: Print commits
