@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.7.25 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.24...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.7.25 (2022-01-16)](https://github.com/kdeldycke/workflows/compare/v0.7.24...v0.7.25)
 
 - Fix fetching of new commits in PRs.
 
