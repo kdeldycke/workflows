@@ -169,12 +169,12 @@ jobs:
             1. creation of a `v${{ steps.get_version.outputs.current_version }}` tag on [`main`](${{
             github.event.repository.html_url }}/tree/main) branch
 
-            1. (optional) build of the project
+            1. build of the project if based on Poetry, then release to PyPi
 
             1. publication of a GitHub release
 
 
-            **‼️ Do not `Squash and merge` this PR ‼️** The auto-tagging job needs 2 distinct commits.
+            **‼️ Do not `Squash and merge` ‼️**: the auto-tagging job needs the 2 distinct commits in this PR.
 
 
             [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
