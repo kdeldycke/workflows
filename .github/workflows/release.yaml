@@ -49,7 +49,7 @@ jobs:
         run: |
           if [ $GITHUB_BASE_REF ]; then
             # Pull request event, for which we need to checkout the HEAD commit instead of the artificial merge commit.
-            COMMIT_RANGE="${{ github.base_ref }}..${{ github.event.pull_request.head.sha }}"
+            COMMIT_RANGE="origin/${{ github.base_ref }}..${{ github.event.pull_request.head.sha }}"
           else
             # Push event.
             COMMIT_RANGE="${{ github.event.before }}..${{ github.sha }}"
