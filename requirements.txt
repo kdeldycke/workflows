@@ -3,7 +3,7 @@
 # Also, a project relying on this repository can point to this external requirement.txt,
 # even from its Poetry's venv. We cannot do that with Poetry, as it doesn't support sub-venvs.
 # All versions are pinned so we have ultimate control over reproducibility.
-black == 21.12b0
+black == 22.1.0
 bump2version == 1.0.1
 check-wheel-contents == 0.3.4
 isort == 5.10.1
