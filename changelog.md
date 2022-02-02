@@ -6,6 +6,11 @@
 This version is not released yet and is under active development.
 ```
 
+- Add new workflow proposing PRs to modernize Python code for Poetry-based
+  projects.
+- Add dependency on `pyupgrade`.
+- Auto-detect minimal Python version targetted by Poetry projects.
+
 ## [0.7.25 (2022-01-16)](https://github.com/kdeldycke/workflows/compare/v0.7.24...v0.7.25)
 
 - Fix fetching of new commits in PRs.

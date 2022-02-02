@@ -8,6 +8,86 @@ name: Autofix
 
 jobs:
 
+  # TODO: Deduplicate with the step from autofix.yaml
+  is-poetry-based:
+    name: Is project Poetry-based?
+    runs-on: ubuntu-20.04
+    outputs:
+      is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - id: poetry_detection
+        run: |
+          echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
+      - name: Detection results
+        run: |
+          echo "${{ steps.poetry_detection.outputs.is_poetry }}"
+
+  modernize-python:
+    name: Modernize Python
+    needs:
+      - is-poetry-based
+    if: needs.is-poetry-based.outputs.is_poetry
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-python@v2.2.2
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install pyupgrade
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Extract minimal Python version from Poetry specs
+        id: py_version
+        shell: python
+        run: |
+          from pathlib import Path
+
+          from poetry.core.pyproject.toml import PyProjectTOML
+          from poetry.core.semver import parse_constraint
+
+          pyproject = PyProjectTOML(Path("./pyproject.toml"))
+          version = parse_constraint(pyproject.poetry_config["dependencies"]["python"])
+
+          # Specific versions supported by pyupgrade:
+          #   --py3-plus
+          #   --py36-plus
+          #   --py37-plus
+          #   --py38-plus
+          #   --py39-plus
+          #   --py310-plus
+          #   --py311-plus
+          py_param = ""
+          if version.min.major == 3:
+              py_param = "--py3"
+              if 6 <= version.min.minor <= 11:
+                  py_param += version.min.minor
+              py_param == "-plus"
+
+          print(f"::set-output name=min_py_param::{py_param}")
+      - name: Run pyupgrade
+        run: |
+          find ./ -type f -name '*.py' -print -exec pyupgrade ${{ steps.py_version.outputs.min_py_param }} "{}" \;
+      - uses: peter-evans/create-pull-request@v3.12.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Modernize Python code"
+          title: "[autofix] Modernize Python code"
+          body: >
+            <details><summary><code>Workflow metadata</code></summary>
+
+
+            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`autofix.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/autofix.yaml) workflow.
+
+
+            </details>
+          labels: "👷 CI/CD"
+          branch: modernize-python
+
   format-python:
     name: Format Python
     runs-on: ubuntu-20.04
