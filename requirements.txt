@@ -13,7 +13,7 @@ mdformat-black == 0.1.1
 mdformat-config == 0.1.3
 mdformat_frontmatter == 0.4.1
 mdformat-gfm == 0.3.5
-mdformat_myst == 0.1.4
+mdformat_myst == 0.1.5
 mdformat_tables == 0.4.1
 pipdeptree[graphviz] == 2.2.1
 pylint == 2.12.2
