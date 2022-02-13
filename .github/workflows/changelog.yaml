@@ -169,12 +169,18 @@ jobs:
             1. creation of a `v${{ steps.get_version.outputs.current_version }}` tag on [`main`](${{
             github.event.repository.html_url }}/tree/main) branch
 
-            1. build of the project if based on Poetry, then release to PyPi
+            1. build if project based on [Poetry](https://python-poetry.org), then release to
+            [PyPi](https://pypi.org)
 
-            1. publication of a GitHub release
+            1. publication of a [GitHub release](${{ github.event.repository.html_url }}/releases)
 
 
-            **‼️ Do not `Squash and merge` ‼️**: the auto-tagging job needs the 2 distinct commits in this PR.
+            ## To release v${{ steps.get_version.outputs.current_version }}
+
+            1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
+
+            1. **click `Rebase and merge`** button below (‼️ do not `Squash and merge`: the auto-tagging job needs
+            the 2 distinct commits in this PR)
 
 
             [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
