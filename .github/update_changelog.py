@@ -58,7 +58,7 @@ new_entry = re.sub(DATE_REGEX, "unreleased", last_entry, count=1)
 
 # Update GitHub's comparison URL to target the main branch.
 new_entry = re.sub(
-    fr"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}",
+    rf"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}",
     f"v{current_version}...main",
     new_entry,
     count=1,
