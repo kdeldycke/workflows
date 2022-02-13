@@ -4,6 +4,7 @@ name: Labeller (file-based)
   workflow_call:
     inputs:
       extra-rules:
+        description: 'YAML describing the additional labelling rules as per actions/labeler'
         required: false
         type: string
   pull_request:
