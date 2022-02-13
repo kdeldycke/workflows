@@ -62,10 +62,8 @@ jobs:
           #   --py311-plus
           py_param = ""
           if version.min.major == 3:
-              py_param = "--py3"
-              if 6 <= version.min.minor <= 11:
-                  py_param += version.min.minor
-              py_param == "-plus"
+              minor_version = version.min.minor if (6 <= version.min.minor <= 11) else ""
+              py_param = f"--py3{minor_version}-plus"
 
           print(f"::set-output name=min_py_param::{py_param}")
       - name: Run pyupgrade
