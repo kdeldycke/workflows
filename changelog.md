@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.8.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.8.2...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.8.3 (2022-02-13)](https://github.com/kdeldycke/workflows/compare/v0.8.2...v0.8.3)
 
 - Allow the location of the dependency graph image to be set with the
   `dependency-graph-output` parameter for reused workflow.
