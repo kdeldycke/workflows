@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.8.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.8.0...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.8.1 (2022-02-13)](https://github.com/kdeldycke/workflows/compare/v0.8.0...v0.8.1)
 
 - Fix installation of `tomli` dependency for dependency graph generation.
 - Fix installation of Poetry in Python modernization workflow.
