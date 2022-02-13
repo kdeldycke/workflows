@@ -98,3 +98,81 @@ jobs:
             </details>
           labels: "📗 documentation"
           branch: update-mailmap
+
+  # TODO: Deduplicate with the step from autofix.yaml and release.yaml
+  is-poetry-based:
+    name: Is project Poetry-based?
+    runs-on: ubuntu-20.04
+    outputs:
+      is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
+      package_name: ${{ steps.package_name.outputs.package_name }}
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - id: poetry_detection
+        run: |
+          echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
+      - name: Detection results
+        run: |
+          echo "${{ steps.poetry_detection.outputs.is_poetry }}"
+      - name: Extract package name
+        if: steps.poetry_detection.outputs.is_poetry
+        id: package_name
+        shell: python
+        run: |
+          from pathlib import Path
+
+          import tomli
+
+          # Locate and loads pyproject.toml.
+          toml_path = Path("./pyproject.toml")
+          toml_config = tomli.loads(toml_path.read_text())
+
+          package_name = toml_config["tool"]["poetry"]["name"]
+
+          if package_name:
+              print(f"::set-output name=package_name::{package_name}")
+
+  update-deps-graph:
+    name: Update dependency image and create a PR
+    needs:
+      - is-poetry-based
+    if: needs.is-poetry-based.outputs.is_poetry && needs.is-poetry-based.outputs.package_name
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-python@v2.3.1
+      - name: Install pip and Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade poetry
+      - name: Install pipdeptree
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Install Graphviz
+        run: |
+          sudo apt install graphviz
+      - name: Run pipdeptree
+        run: >
+          pipdeptree
+          --packages ${{ needs.is-poetry-based.outputs.package_name }}
+          --graph-output png > ./docs/images/dependencies.png
+      - uses: peter-evans/create-pull-request@v3.12.0
+        # Only triggers on version tagging.
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Regenerate dependency graph"
+          title: "[autofix] Regenerate dependency graph"
+          body: >
+            <details><summary><code>Workflow metadata</code></summary>
+
+
+            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
+
+
+            </details>
+          labels: "📗 documentation"
+          branch: update-deps-graph

@@ -15,7 +15,9 @@ mdformat_frontmatter == 0.4.1
 mdformat-gfm == 0.3.5
 mdformat_myst == 0.1.4
 mdformat_tables == 0.4.1
+pipdeptree[graphviz] == 2.2.1
 pylint == 2.12.2
 pyupgrade == 2.31.0
+tomli == 1.2.1
 twine == 3.7.1
 yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9

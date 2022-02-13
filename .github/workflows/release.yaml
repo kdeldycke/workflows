@@ -104,7 +104,7 @@ jobs:
           echo '${{ steps.release_commits_matrix.outputs.matrix }}'
           jq -aR <<< echo '${{ steps.release_commits_matrix.outputs.matrix }}'
 
-  # TODO Deduplicate with the step from autofix.yaml
+  # TODO: Deduplicate with the step from autofix.yaml and docs.yaml
   is-poetry-based:
     name: Is project Poetry-based?
     runs-on: ubuntu-20.04

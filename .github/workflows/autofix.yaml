@@ -8,7 +8,7 @@ name: Autofix
 
 jobs:
 
-  # TODO: Deduplicate with the step from autofix.yaml
+  # TODO: Deduplicate with the step from docs.yaml and release.yaml
   is-poetry-based:
     name: Is project Poetry-based?
     runs-on: ubuntu-20.04

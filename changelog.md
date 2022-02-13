@@ -8,8 +8,9 @@ This version is not released yet and is under active development.
 
 - Add new workflow proposing PRs to modernize Python code for Poetry-based
   projects.
-- Add dependency on `pyupgrade`.
+- Add new wofklow to produce dependency graph of Poetry-based project.
 - Auto-detect minimal Python version targetted by Poetry projects.
+- Add dependency on `pipdeptree`, `pyupgrade` and `tomli`.
 
 ## [0.7.25 (2022-01-16)](https://github.com/kdeldycke/workflows/compare/v0.7.24...v0.7.25)
 
