@@ -55,8 +55,22 @@ jobs:
           title: >
             Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}
           body: >
+            ### Description
+
+
             Ready to be merged into `main` branch, at the discretion of the maintainers, to bump the ${{ matrix.part }}
             part of the version number.
+
+
+            ### To bump version to v${{ steps.get_version.outputs.new_version }}
+
+
+            1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
+
+            1. **click `Rebase and merge`** button below
+
+
+            ---
 
 
             <details><summary><code>Workflow metadata</code></summary>
