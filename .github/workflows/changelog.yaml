@@ -163,6 +163,9 @@ jobs:
           title: >
             Release v${{ steps.get_version.outputs.current_version }}
           body: >
+            ### Description
+
+
             This PR is ready to be merged. The merge event will trigger[^1] the:
 
 
@@ -175,7 +178,12 @@ jobs:
             1. publication of a [GitHub release](${{ github.event.repository.html_url }}/releases)
 
 
-            ## To release v${{ steps.get_version.outputs.current_version }}
+            [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
+            github.sha }}/.github/workflows/release.yaml).
+
+
+            ### To release v${{ steps.get_version.outputs.current_version }}
+
 
             1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
 
@@ -183,8 +191,7 @@ jobs:
             the 2 distinct commits in this PR)
 
 
-            [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
-            github.sha }}/.github/workflows/release.yaml).
+            ---
 
 
             <details><summary><code>Workflow metadata</code></summary>
