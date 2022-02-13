@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.8.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.7.25...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.8.0 (2022-02-13)](https://github.com/kdeldycke/workflows/compare/v0.7.25...v0.8.0)
 
 - Add new workflow proposing PRs to modernize Python code for Poetry-based
   projects.
