@@ -1,10 +1,6 @@
 # Changelog
 
-## [0.8.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.8.3...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [0.8.4 (2022-02-21)](https://github.com/kdeldycke/workflows/compare/v0.8.3...v0.8.4)
 
 - Replace hard-coded PyPi package link in GitHub release text with dynamic
   value from Poetry configuration.
