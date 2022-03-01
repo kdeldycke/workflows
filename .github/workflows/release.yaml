@@ -159,7 +159,7 @@ jobs:
       - uses: actions/checkout@v2.4.0
         with:
           ref: ${{ matrix.commit }}
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v3.0.0
       - name: Install pip and Poetry
         run: |
           python -m pip install --upgrade pip
