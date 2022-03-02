@@ -15,7 +15,7 @@ jobs:
     outputs:
       is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - id: poetry_detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
@@ -30,7 +30,7 @@ jobs:
     if: needs.is-poetry-based.outputs.is_poetry
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - uses: actions/setup-python@v3.0.0
       - name: Install pip and Poetry
         run: |
@@ -91,7 +91,7 @@ jobs:
     name: Format Python
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - uses: actions/setup-python@v3.0.0
       - name: Install pip
         run: |
@@ -128,7 +128,7 @@ jobs:
     name: Format Markdown
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -161,7 +161,7 @@ jobs:
     name: Format JSON
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - name: Install linter
         run: |
           sudo npm install --global jsonlint
@@ -190,7 +190,7 @@ jobs:
     name: Generate .gitignore
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - name: Install git-extras
         run: |
           sudo apt install -y git-extras

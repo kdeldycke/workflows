@@ -18,7 +18,7 @@ jobs:
     name: Fix typos
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - uses: sobolevn/misspell-fixer-action@0.1.0
       - uses: peter-evans/create-pull-request@v3.14.0
         with:
@@ -46,7 +46,7 @@ jobs:
     name: Optimize images
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       # XXX calibreapp/image-actions has not been tagged for a while... :(
       - uses: calibreapp/image-actions@a6fb564733713b0120e56887426c4f5cb8fcbe69
         id: image_actions
@@ -78,7 +78,7 @@ jobs:
     name: Update .mailmap
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
@@ -113,7 +113,7 @@ jobs:
       is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
       package_name: ${{ steps.package_name.outputs.package_name }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - id: poetry_detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
@@ -151,7 +151,7 @@ jobs:
     if: needs.is-poetry-based.outputs.is_poetry && needs.is-poetry-based.outputs.package_name
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
       - uses: actions/setup-python@v3.0.0
       - name: Install pip and Poetry
         run: |
