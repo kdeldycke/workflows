@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.7 (unreleased)](https://github.com/kdeldycke/workflows/compare/v0.8.6...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [0.8.6 (2022-03-04)](https://github.com/kdeldycke/workflows/compare/v0.8.5...v0.8.6)
 
 - Reactivate sponsor auto-tagging workflow now that it has been fixed upstream.
