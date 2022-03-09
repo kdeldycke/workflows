@@ -201,7 +201,7 @@ jobs:
 
             1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
 
-            1. **click `Rebase and merge`** button below (‼️ do not `Squash and merge`: the auto-tagging job needs
+            1. **click `Rebase and merge`** button below (‼️ do not ~`Squash and merge`~: the auto-tagging job needs
             the 2 distinct commits in this PR)
 
 
