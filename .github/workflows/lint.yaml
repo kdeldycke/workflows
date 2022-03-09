@@ -79,7 +79,6 @@ jobs:
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
-    name: Check Zsh code
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0
