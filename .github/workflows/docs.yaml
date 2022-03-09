@@ -5,9 +5,9 @@ name: Docs
     inputs:
       dependency-graph-output:
         description: 'Location in the repository of the dependency graph image'
+        default: './docs/images/dependencies.png'
         required: false
         type: string
-        default: './docs/images/dependencies.png'
   push:
     branches:
       - main
@@ -168,7 +168,7 @@ jobs:
         run: >
           pipdeptree
           --packages ${{ needs.is-poetry-based.outputs.package_name }}
-          --graph-output png > ${{ inputs.dependency-graph-output }}
+          --graph-output png > ${{ inputs.dependency-graph-output || './docs/images/dependencies.png' }}
       - uses: peter-evans/create-pull-request@v3.14.0
         # Only triggers on version tagging.
         if: startsWith(github.ref, 'refs/tags/v')
