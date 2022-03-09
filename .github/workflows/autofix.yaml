@@ -2,6 +2,16 @@
 name: Autofix
 "on":
   workflow_call:
+    inputs:
+      gitignore-location:
+        description: 'File path of the .gitignore to update, relative to the root of the repository.'
+        default: './.gitignore'
+        required: false
+        type: string
+      gitignore-extra-categories:
+        description: 'List of additional categories to add to gitignore file.'
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -196,7 +206,8 @@ jobs:
           sudo apt install -y git-extras
       - name: Generate .gitignore
         run: |
-          git ignore-io --replace emacs git linux macos nohup python vim virtualenv visualstudiocode windows
+          git ignore-io emacs git linux macos nohup python vim virtualenv visualstudiocode windows
+          ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location }}
       - uses: peter-evans/create-pull-request@v3.14.0
         with:
           assignees: ${{ github.actor }}
