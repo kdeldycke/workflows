@@ -205,7 +205,7 @@ jobs:
         run: |
           sudo apt install -y git-extras
       - name: Generate .gitignore
-        run: |
+        run: >
           git ignore-io emacs git linux macos nohup python vim virtualenv visualstudiocode windows
           ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location }}
       - uses: peter-evans/create-pull-request@v3.14.0
