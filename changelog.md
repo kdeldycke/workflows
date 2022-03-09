@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix search of Python files in `lint-python` workflow.
+
 ## [0.9.0 (2022-03-09)](https://github.com/kdeldycke/workflows/compare/v0.8.6...v0.9.0)
 
 - Add Zsh script linter.
