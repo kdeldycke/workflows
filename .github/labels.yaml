@@ -1,6 +1,6 @@
 ---
 - name: 🐛 bug
-  color: "#d73a4a"
+  color: "#FDC705"
   description: Something isn't working, or a fix is proposed
 
 - name: 🎲 can't reproduce
@@ -46,6 +46,10 @@
 - name: ❓ question
   color: "#d876e3"
   description: Further information is requested
+
+- name: 💣 security
+  color: "#F83911"
+  description: Exploit, token leaks, …
 
 - name: 💖 sponsor
   color: "#D3B3F2"
