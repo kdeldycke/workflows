@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Add Zsh script linter.
+- Search for leaked tokens and credentials in code.
 - Add new `💣 security` label.
 - Adjust `🐛 bug` label color.
 - Add new `gitignore-location` and `gitignore-extra-categories` parameters to

@@ -88,3 +88,13 @@ jobs:
       - name: Lint
         run: |
           find . -iname "*.sh" -exec zsh --no-exec "{}" \;
+
+  check-secrets:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.0
+        with:
+          fetch-depth: '0'
+      - uses: zricethezav/gitleaks-action@v1.6.0
+        with:
+          config-path: .github/gitleaks.toml
