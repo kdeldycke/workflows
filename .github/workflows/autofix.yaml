@@ -207,7 +207,7 @@ jobs:
       - name: Generate .gitignore
         run: >
           git ignore-io emacs git linux macos nohup python vim virtualenv visualstudiocode windows
-          ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location }}
+          ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location || './.gitignore' }}
       - uses: peter-evans/create-pull-request@v3.14.0
         with:
           assignees: ${{ github.actor }}
