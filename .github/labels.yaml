@@ -11,19 +11,19 @@
   color: "#C2E0C6"
   description: Keep track of changes
 
-- name: 👷 CI/CD
+- name: 🤖 ci
   color: "#A4A837"
-  description: Tests, automation and management of the project
+  description: Continuous integration, tests, automation and management of the project
 
 - name: 📦 dependencies
   color: "#AAA666"
   description: Update of dependencies
 
-- name: 📗 documentation
+- name: 📚 documentation
   color: "#006b75"
   description: Update to non-code (readme, docstrings, typos, …)
 
-- name: 🔄 duplicate
+- name: 🧑‍🤝‍🧑 duplicate
   color: "#cfd3d7"
   description: This issue or pull request already exists
 
@@ -31,7 +31,7 @@
   color: "#1870E3"
   description: Improvement or change to an existing feature
 
-- name: 🆕 feature request
+- name: 🎁 feature request
   color: "#84b6eb"
   description: Not existing yet and need to be implemented
 
@@ -43,7 +43,7 @@
   color: "#C2E0C6"
   description: Extra attention is needed
 
-- name: ❓ question
+- name: ❔ question
   color: "#d876e3"
   description: Further information is requested
 

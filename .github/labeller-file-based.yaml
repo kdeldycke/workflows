@@ -4,7 +4,7 @@
   - .github/workflows/release.yaml
   - changelog.md
 
-"👷 CI/CD":
+"🤖 ci":
   - .github/**/*
   - .github/workflows/release.yaml
   - .bumpversion.cfg
@@ -15,7 +15,7 @@
   - poetry.lock
   - pyproject.toml
 
-"📗 documentation":
+"📚 documentation":
   - .github/**/*label*
   - .github/workflows/docs.yaml
   - .github/code-of-conduct.md

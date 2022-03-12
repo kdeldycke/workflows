@@ -94,7 +94,7 @@ jobs:
 
 
             </details>
-          labels: "👷 CI/CD"
+          labels: "🤖 ci"
           branch: modernize-python
 
   format-python:
@@ -131,7 +131,7 @@ jobs:
 
 
             </details>
-          labels: "👷 CI/CD"
+          labels: "🤖 ci"
           branch: format-python
 
   format-markdown:
@@ -164,7 +164,7 @@ jobs:
 
 
             </details>
-          labels: "📗 documentation"
+          labels: "📚 documentation"
           branch: format-markdown
 
   format-json:
@@ -193,7 +193,7 @@ jobs:
 
 
             </details>
-          labels: "👷 CI/CD"
+          labels: "🤖 ci"
           branch: format-json
 
   update-gitignore:
@@ -229,5 +229,5 @@ jobs:
 
 
             </details>
-          labels: "👷 CI/CD"
+          labels: "🤖 ci"
           branch: update-gitignore
