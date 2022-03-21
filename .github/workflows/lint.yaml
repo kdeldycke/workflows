@@ -36,7 +36,7 @@ jobs:
         # https://github.com/actions/runner/issues/449
         # https://github.com/actions/cache/issues/753
         # https://github.com/actions/toolkit/pull/1015
-        uses: tj-actions/glob@v7.8
+        uses: tj-actions/glob@v7.10
         id: glob
         with:
           files: |
