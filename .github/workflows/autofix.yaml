@@ -79,7 +79,7 @@ jobs:
       - name: Run pyupgrade
         run: |
           find ./ -type f -name '*.py' -print -exec pyupgrade ${{ steps.py_version.outputs.min_py_param }} "{}" \;
-      - uses: peter-evans/create-pull-request@v4
+      - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Modernize Python code"
@@ -116,7 +116,7 @@ jobs:
       - name: Run Black
         run: |
           black .
-      - uses: peter-evans/create-pull-request@v4
+      - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python code"
@@ -149,7 +149,7 @@ jobs:
       - name: Auto-format Markdown
         run: |
           find ./ -iname "*.md" -exec mdformat --wrap 79 "{}" \;
-      - uses: peter-evans/create-pull-request@v4
+      - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
@@ -178,7 +178,7 @@ jobs:
       - name: Lint
         run: |
           find ./ -type f -name '*.json' -print -exec jsonlint --in-place "{}" \;
-      - uses: peter-evans/create-pull-request@v4
+      - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON content"
@@ -214,7 +214,7 @@ jobs:
         run: >
           git ignore-io emacs git linux macos nohup python vim virtualenv visualstudiocode windows
           ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location || './.gitignore' }}
-      - uses: peter-evans/create-pull-request@v4
+      - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate .gitignore"
