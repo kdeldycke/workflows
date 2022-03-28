@@ -11,9 +11,6 @@ name: Changelog & versions
       - .github/update_changelog.py
       # Trigger on any workflow change to make sure version gets hard-coded everywhere.
       - .github/workflows/*.yaml
-  schedule:
-    # Run daily so the changelog date in prepare-release job is kept up to date
-    - cron: "23 0 * * *"
 
 jobs:
 
@@ -89,6 +86,8 @@ jobs:
           draft: true
 
   prepare-release:
+    # TODO: add complex time-based trigger condition to only update the changelog once a day on main branch activity to
+    # keep the release date in sync.
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0
@@ -198,6 +197,10 @@ jobs:
 
             ### To release v${{ steps.get_version.outputs.current_version }}
 
+            1. **click `Re-run all jobs`** from the [workflow run](${{ github.event.repository.html_url
+            }}/actions/runs/${{ github.run_id }}), to refresh the release date to today
+
+            1. wait for the re-run to complete and check the result in diff view
 
             1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
 
