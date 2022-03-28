@@ -31,18 +31,7 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: '*.py files found?'
-        # XXX We couldn't use hashFiles() method as the later seems to be broken:
-        # https://github.com/actions/runner/issues/449
-        # https://github.com/actions/cache/issues/753
-        # https://github.com/actions/toolkit/pull/1015
-        uses: tj-actions/glob@v7.11
-        id: glob
-        with:
-          files: |
-            **.py
       - name: Run Pylint
-        if: steps.glob.outputs.paths
         # Docs:
         # http://pylint.pycqa.org/en/latest/technical_reference/features.html
         # --output-format=colorized
@@ -57,10 +46,8 @@ jobs:
         # --logging-format-style=new
         #   The type of string formatting that logging methods do. `old` means
         #   using % formatting, `new` is for `{}` formatting.
-        # $(git ls-files '*.py')
-        #   Use git to list all Python files as Pylint doesn't support globs
-        #   and non-module folders.
-        #   Source: https://stackoverflow.com/a/63044665
+        # --recursive=y
+        #   Let Pylint discovered all Python files and modules.
         run: >
           pylint
           --output-format=colorized
@@ -68,7 +55,7 @@ jobs:
           --max-line-length=88
           --fail-under=8
           --logging-format-style=new
-          $(git ls-files '*.py')
+          --recursive=y .
 
   lint-yaml:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
