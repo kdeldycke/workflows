@@ -205,8 +205,9 @@ jobs:
       - uses: actions/checkout@v3.0.0
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
-        run: |
-          echo "::set-output name=exists::$( [[ -f '${{ inputs.gitignore-location || './.gitignore' }}' ]] && echo 'true' )"
+        run: >
+          echo "::set-output name=exists::$( [[ -f
+          '${{ inputs.gitignore-location || './.gitignore' }}' ]] && echo 'true' )"
       - name: Results
         run: |
           echo "${{ steps.detection.outputs.exists }}"
