@@ -198,6 +198,8 @@ jobs:
 
   update-gitignore:
     name: Generate .gitignore
+    # Only update gitignore if a file is found at the root of repository.
+    if: hashFiles('.gitignore')
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0

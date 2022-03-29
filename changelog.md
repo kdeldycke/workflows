@@ -12,6 +12,7 @@ This version is not released yet and is under active development.
 - Update `🆕 feature request` label to `🎁 feature request`.
 - Update `❓ question` label to `❔ question`.
 - Let Pylint discover Python files and modules to lint.
+- Do not generate a `.gitignore` or `.mailmap` if none exist. Only update it.
 - Do not run the daily `prepare-release` job to reduce the number of
   notifications. Add instructions on PR on how to refresh it.
 
