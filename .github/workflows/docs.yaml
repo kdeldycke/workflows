@@ -92,8 +92,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Regenerate .mailmap"
-          title: "[autofix] Regenerate .mailmap"
+          commit-message: "[autofix] Update .mailmap"
+          title: "[autofix] Update .mailmap"
           body: >
             <details><summary><code>Workflow metadata</code></summary>
 

@@ -82,8 +82,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Modernize Python code"
-          title: "[autofix] Modernize Python code"
+          commit-message: "[autofix] Modernize Python"
+          title: "[autofix] Modernize Python"
           body: >
             <details><summary><code>Workflow metadata</code></summary>
 
@@ -119,8 +119,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Format Python code"
-          title: "[autofix] Format Python code"
+          commit-message: "[autofix] Format Python"
+          title: "[autofix] Format Python"
           body: >
             <details><summary><code>Workflow metadata</code></summary>
 
@@ -181,8 +181,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Format JSON content"
-          title: "[autofix] Format JSON content"
+          commit-message: "[autofix] Format JSON"
+          title: "[autofix] Format JSON"
           body: >
             <details><summary><code>Workflow metadata</code></summary>
 
@@ -219,8 +219,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Regenerate .gitignore"
-          title: "[autofix] Regenerate .gitignore"
+          commit-message: "[autofix] Update .gitignore"
+          title: "[autofix] Update .gitignore"
           body: >
             <details><summary><code>Workflow metadata</code></summary>
 
