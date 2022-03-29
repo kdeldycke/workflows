@@ -23,15 +23,15 @@ jobs:
     name: Is project Poetry-based?
     runs-on: ubuntu-20.04
     outputs:
-      is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
+      is_poetry: ${{ steps.detection.outputs.is_poetry }}
     steps:
       - uses: actions/checkout@v3.0.0
-      - id: poetry_detection
+      - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
-      - name: Detection results
+      - name: Results
         run: |
-          echo "${{ steps.poetry_detection.outputs.is_poetry }}"
+          echo "${{ steps.detection.outputs.is_poetry }}"
 
   modernize-python:
     name: Modernize Python
