@@ -74,10 +74,26 @@ jobs:
           labels: "📚 documentation"
           branch: optimize-images
 
+  check-mailmap:
+    name: Does .mailmap exist?
+    runs-on: ubuntu-20.04
+    outputs:
+      exists: ${{ steps.detection.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - id: detection
+        run: |
+          echo "::set-output name=exists::$( [[ -f './.mailmap' ]] && echo 'true' )"
+      - name: Results
+        run: |
+          echo "${{ steps.detection.outputs.exists }}"
+
   update-mailmap:
     name: Update .mailmap
+    needs:
+      - check-mailmap
     # Only update mailmap if a file is found at the root of repository.
-    if: hashFiles('.mailmap')
+    if: needs.check-mailmap.outputs.exists
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0

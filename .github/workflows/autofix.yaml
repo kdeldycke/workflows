@@ -196,10 +196,27 @@ jobs:
           labels: "🤖 ci"
           branch: format-json
 
+  check-gitignore:
+    name: Does .gitignore exist?
+    runs-on: ubuntu-20.04
+    outputs:
+      exists: ${{ steps.detection.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - id: detection
+        # Bare-called reused workflow are not fed with defaults, so force it here.
+        run: |
+          echo "::set-output name=exists::$( [[ -f '${{ inputs.gitignore-location || './.gitignore' }}' ]] && echo 'true' )"
+      - name: Results
+        run: |
+          echo "${{ steps.detection.outputs.exists }}"
+
   update-gitignore:
-    name: Generate .gitignore
+    name: Update .gitignore
+    needs:
+      - check-gitignore
     # Only update gitignore if a file is found at the root of repository.
-    if: hashFiles('.gitignore')
+    if: needs.check-gitignore.outputs.exists
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0
