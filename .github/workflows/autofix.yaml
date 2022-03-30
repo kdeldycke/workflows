@@ -148,7 +148,12 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Auto-format Markdown
         run: |
-          find ./ -iname "*.md" -exec mdformat --wrap 79 "{}" \;
+          find ./ -iname "*.md" -exec mdformat "{}" \;
+      - name: Remove forbidden TOC entries in awesome lists
+        if: startsWith(github.event.repository.name, 'awesome-')
+        # See: https://github.com/sindresorhus/awesome-lint/blob/v0.18.0/rules/toc.js#L15-L18
+        run: |
+          gawk -i inplace '!/^- \[(Contributing|Footnotes)\]\(#.+\)$/{print}' ./readme.md
       - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
