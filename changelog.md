@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.0.0...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [1.0.0 (2022-03-30)](https://github.com/kdeldycke/workflows/compare/v0.9.1...v1.0.0)
 
 - Lint awesome list repositories.
