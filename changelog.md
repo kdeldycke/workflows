@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Lint awesome list repositories.
 - Update `👷 CI/CD` label to `🤖 ci`.
 - Update `📗 documentation` label to` 📚 documentation`.
 - Update `🔄 duplicate` label to `🧑‍🤝‍🧑 duplicate`.

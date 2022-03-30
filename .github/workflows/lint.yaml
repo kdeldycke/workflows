@@ -86,6 +86,19 @@ jobs:
         run: |
           find . -iname "*.sh" -exec zsh --no-exec "{}" \;
 
+  lint-awesome:
+    name: Lint Awesome list
+    if: startsWith(github.event.repository.name, 'awesome-')
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.0
+        with:
+          # Fetch all history to please linter's age checks.
+          fetch-depth: 0
+      - run: |
+          npx awesome-lint --version
+          npx awesome-lint
+
   check-secrets:
     runs-on: ubuntu-20.04
     steps:
