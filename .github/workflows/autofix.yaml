@@ -152,8 +152,11 @@ jobs:
       - name: Remove forbidden TOC entries in awesome lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # See: https://github.com/sindresorhus/awesome-lint/blob/v0.18.0/rules/toc.js#L15-L18
+        # Also remove the title of the section containing the TOC (i.e. "Contents") to fix the following error:
+        #   ✖  26:1  ToC item "Contents" does not match corresponding heading "Meta"  remark-lint:awesome-toc
+        # TODO: contribute these fixes to mdformat-toc as configurable options.
         run: |
-          gawk -i inplace '!/^- \[(Contributing|Footnotes)\]\(#.+\)$/{print}' ./readme.md
+          gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' ./readme.md
       - uses: peter-evans/create-pull-request@v4.0.0
         with:
           assignees: ${{ github.actor }}
