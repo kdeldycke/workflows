@@ -16,6 +16,7 @@ This version is not released yet and is under active development.
 - Do not generate a `.gitignore` or `.mailmap` if none exist. Only update it.
 - Do not run the daily `prepare-release` job to reduce the number of
   notifications. Add instructions on PR on how to refresh it.
+- Use the `tomllib` from the standard library starting with Python 3.11.
 
 ## [0.9.1 (2022-03-09)](https://github.com/kdeldycke/workflows/compare/v0.9.0...v0.9.1)
 

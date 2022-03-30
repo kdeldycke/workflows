@@ -147,11 +147,16 @@ jobs:
         run: |
           from pathlib import Path
 
-          import tomli
+          import sys
+
+          if sys.version_info >= (3, 11):
+              import tomllib
+          else:
+              import tomli as tomllib
 
           # Locate and loads pyproject.toml.
           toml_path = Path("./pyproject.toml")
-          toml_config = tomli.loads(toml_path.read_text())
+          toml_config = tomllib.loads(toml_path.read_text())
 
           package_name = toml_config["tool"]["poetry"]["name"]
 
