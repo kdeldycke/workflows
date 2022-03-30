@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.0.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.0.0...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [1.0.1 (2022-03-30)](https://github.com/kdeldycke/workflows/compare/v1.0.0...v1.0.1)
 
 - Remove the title of the section containing the TOC in awesome lists to fix
   the linter.
