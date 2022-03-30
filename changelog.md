@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Dynamiccaly add specific labels on awesome list projects.
+
 ## [1.0.1 (2022-03-30)](https://github.com/kdeldycke/workflows/compare/v1.0.0...v1.0.1)
 
 - Remove the title of the section containing the TOC in awesome lists to fix
