@@ -79,7 +79,7 @@ jobs:
       - name: Run pyupgrade
         run: |
           find ./ -type f -name '*.py' -print -exec pyupgrade ${{ steps.py_version.outputs.min_py_param }} "{}" \;
-      - uses: peter-evans/create-pull-request@v4.0.0
+      - uses: peter-evans/create-pull-request@v4.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Modernize Python"
@@ -116,7 +116,7 @@ jobs:
       - name: Run Black
         run: |
           black .
-      - uses: peter-evans/create-pull-request@v4.0.0
+      - uses: peter-evans/create-pull-request@v4.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python"
@@ -157,7 +157,7 @@ jobs:
         # TODO: contribute these fixes to mdformat-toc as configurable options.
         run: |
           gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' ./readme.md
-      - uses: peter-evans/create-pull-request@v4.0.0
+      - uses: peter-evans/create-pull-request@v4.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
@@ -186,7 +186,7 @@ jobs:
       - name: Lint
         run: |
           find ./ -type f -name '*.json' -print -exec jsonlint --in-place "{}" \;
-      - uses: peter-evans/create-pull-request@v4.0.0
+      - uses: peter-evans/create-pull-request@v4.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON"
@@ -242,7 +242,7 @@ jobs:
         run: >
           git ignore-io emacs git linux macos nohup python vim virtualenv visualstudiocode windows
           ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location || './.gitignore' }}
-      - uses: peter-evans/create-pull-request@v4.0.0
+      - uses: peter-evans/create-pull-request@v4.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .gitignore"
