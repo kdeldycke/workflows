@@ -17,7 +17,7 @@ mdformat_myst == 0.1.5
 mdformat_tables == 0.4.1
 mdformat-toc == 0.3.0
 pipdeptree[graphviz] == 2.2.1
-pylint == 2.13.3
+pylint == 2.13.4
 pyupgrade == 2.31.1
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 3.8.0
