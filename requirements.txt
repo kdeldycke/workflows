@@ -20,5 +20,5 @@ pipdeptree[graphviz] == 2.2.1
 pylint == 2.13.4
 pyupgrade == 2.31.1
 tomli == 2.0.1 ; python_version < "3.11"
-twine == 3.8.0
+twine == 4.0.0
 yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9
