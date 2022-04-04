@@ -9,4 +9,4 @@ jobs:
   print-context:
     runs-on: ubuntu-20.04
     steps:
-      - uses: crazy-max/ghaction-dump-context@v1.2.0
+      - uses: crazy-max/ghaction-dump-context@v1.2.1
