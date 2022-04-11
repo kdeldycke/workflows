@@ -216,7 +216,16 @@ jobs:
       - name: Print version
         run: |
           echo "Tagged version: ${{ steps.get_version.outputs.tagged_version }}"
+      - id: tag_exists
+        run: |
+          echo "::set-output name=tag_exists::$( git show-ref --tags "v${{ steps.get_version.outputs.tagged_version }}" --quiet )"
+      - name: Tag search results
+        run: |
+          echo "Does tag exists? ${{ steps.tag_exists.outputs.tag_exists && true || false }}"
       - name: Push tag
+        # If for whatever reason the workflow is re-run because it failed the first time, just
+        # skip the tag creation if it already exists.
+        if: ${{ ! steps.tag_exists.outputs.tag_exists }}
         uses: tvdias/github-tagger@v0.0.2
         with:
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}

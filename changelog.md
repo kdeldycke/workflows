@@ -10,6 +10,7 @@ This version is not released yet and is under active development.
 - Auto deploy Sphinx documentation on GitHub pages if detected.
 - Update `ℹ️ help wanted` label to `🙏 help wanted`.
 - Triggers `docs` workflow on tagging to fix dependency graph generation.
+- Allows `release` workflow to be re-launched on tagging error.
 
 ## [1.1.0 (2022-03-30)](https://github.com/kdeldycke/workflows/compare/v1.0.1...v1.1.0)
 
