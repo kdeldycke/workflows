@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Detect Sphinx's `autodoc` extension to create a PR updating documentation.
+- Auto deploy Sphinx documentation on GitHub pages if detected.
 - Update `ℹ️ help wanted` label to `🙏 help wanted`.
 - Triggers `docs` workflow on tagging to fix dependency graph generation.
 

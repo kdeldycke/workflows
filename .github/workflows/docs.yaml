@@ -214,34 +214,39 @@ jobs:
           labels: "📚 documentation"
           branch: update-deps-graph
 
-  is-autodoc-active:
-    name: Is Sphinx autodoc active?
+  is-sphinx:
+    name: Is doc Sphinx-based?
     runs-on: ubuntu-20.04
     outputs:
-      active_autodoc: ${{ steps.autodoc_detection.outputs.active_autodoc }}
+      is_sphinx: ${{ steps.detection.outputs.is_sphinx }}
+      active_autodoc: ${{ steps.detection.outputs.active_autodoc }}
     steps:
       - uses: actions/checkout@v3.0.0
-      - id: autodoc_detection
+      - id: detection
         shell: python
         run: |
           try:
               import docs.conf
-              doc_conf_found = True
+              is_sphinx = True
           except ModuleNotFoundError:
-              doc_conf_found = False
+              is_sphinx = False
 
-          if doc_conf_found and 'sphinx.ext.autodoc' in getattr(docs.conf, 'extensions', []):
-              print(f"::set-output name=active_autodoc::true")
+          if is_sphinx:
+              print(f"::set-output name=is_sphinx::true")
+
+              if 'sphinx.ext.autodoc' in getattr(docs.conf, 'extensions', []):
+                  print(f"::set-output name=active_autodoc::true")
       - name: Detection results
         run: |
-          echo "Is Sphinx autodoc active? ${{ steps.autodoc_detection.outputs.active_autodoc }}"
+          echo "Is doc Sphinx-based? ${{ steps.detection.outputs.is_sphinx && true || false }}"
+          echo "Is autodoc extension active? ${{ steps.detection.outputs.active_autodoc && true || false }}"
 
   update-autodoc:
     name: Update autodoc
     needs:
       - is-poetry-based
-      - is-autodoc-active
-    if: needs.is-poetry-based.outputs.is_poetry && needs.is-autodoc-active.outputs.active_autodoc
+      - is-sphinx
+    if: needs.is-poetry-based.outputs.is_poetry && needs.is-sphinx.outputs.active_autodoc
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0
@@ -271,3 +276,30 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: update-autodoc
+
+  deploy-docs:
+    name: Deploy Sphinx doc
+    needs:
+      - is-poetry-based
+      - is_sphinx
+    if: needs.is-poetry-based.outputs.is_poetry && needs.is-sphinx.outputs.is_sphinx
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-python@v3.1.1
+      - name: Install Sphinx
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade poetry
+          # Let sphinx-click access project's code to generate CLI help.
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-ansi
+      - name: Build documentation
+        run: |
+          poetry run sphinx-build -b html ./docs ./docs/html
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html
+          force_orphan: true
