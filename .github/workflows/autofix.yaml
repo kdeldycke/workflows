@@ -29,9 +29,9 @@ jobs:
       - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
-      - name: Results
+      - name: Detection results
         run: |
-          echo "${{ steps.detection.outputs.is_poetry }}"
+          echo "Is project poetry-based? ${{ steps.detection.outputs.is_poetry && true || false }}"
 
   modernize-python:
     name: Modernize Python
@@ -216,9 +216,9 @@ jobs:
         run: >
           echo "::set-output name=exists::$( [[ -f
           '${{ inputs.gitignore-location || './.gitignore' }}' ]] && echo 'true' )"
-      - name: Results
+      - name: Detection results
         run: |
-          echo "${{ steps.detection.outputs.exists }}"
+          echo "Does .gitignore exist at root? ${{ steps.detection.outputs.exists && true || false }}"
 
   update-gitignore:
     name: Update .gitignore

@@ -86,9 +86,9 @@ jobs:
       - id: detection
         run: |
           echo "::set-output name=exists::$( [[ -f './.mailmap' ]] && echo 'true' )"
-      - name: Results
+      - name: Detection results
         run: |
-          echo "${{ steps.detection.outputs.exists }}"
+          echo "Does .mailmap exist at root? ${{ steps.detection.outputs.exists && true || false  }}"
 
   update-mailmap:
     name: Update .mailmap
@@ -126,25 +126,25 @@ jobs:
           branch: update-mailmap
 
   # TODO: Deduplicate with the step from autofix.yaml and release.yaml
-  is-poetry-based:
+  is-poetry:
     name: Is project Poetry-based?
     runs-on: ubuntu-20.04
     outputs:
-      is_poetry: ${{ steps.poetry_detection.outputs.is_poetry }}
-      package_name: ${{ steps.package_name.outputs.package_name }}
+      is_poetry: ${{ steps.detection.outputs.is_poetry }}
+      package_name: ${{ steps.extract_name.outputs.package_name }}
     steps:
       - uses: actions/checkout@v3.0.0
-      - id: poetry_detection
+      - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
       - name: Install tomli
-        if: steps.poetry_detection.outputs.is_poetry
+        if: steps.detection.outputs.is_poetry
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Extract package name
-        if: steps.poetry_detection.outputs.is_poetry
-        id: package_name
+        if: steps.detection.outputs.is_poetry
+        id: extract_name
         shell: python
         run: |
           from pathlib import Path
@@ -166,14 +166,14 @@ jobs:
               print(f"::set-output name=package_name::{package_name}")
       - name: Detection results
         run: |
-          echo "Is poetry? ${{ steps.poetry_detection.outputs.is_poetry }}"
-          echo "Package name: ${{ steps.package_name.outputs.package_name }}"
+          echo "Is project poetry-based? ${{ steps.detection.outputs.is_poetry && true || false }}"
+          echo "Package name: ${{ steps.extract_name.outputs.package_name }}"
 
   update-deps-graph:
     name: Update dependency image and create a PR
     needs:
-      - is-poetry-based
-    if: needs.is-poetry-based.outputs.is_poetry && needs.is-poetry-based.outputs.package_name
+      - is-poetry
+    if: needs.is-poetry.outputs.is_poetry && needs.is-poetry.outputs.package_name
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0
@@ -192,7 +192,7 @@ jobs:
       - name: Run pipdeptree
         run: >
           pipdeptree
-          --packages ${{ needs.is-poetry-based.outputs.package_name }}
+          --packages ${{ needs.is-poetry.outputs.package_name }}
           --graph-output png > ${{ inputs.dependency-graph-output || './docs/images/dependencies.png' }}
       - uses: peter-evans/create-pull-request@v4.0.2
         # Only triggers on version tagging.
@@ -244,9 +244,9 @@ jobs:
   update-autodoc:
     name: Update autodoc
     needs:
-      - is-poetry-based
+      - is-poetry
       - is-sphinx
-    if: needs.is-poetry-based.outputs.is_poetry && needs.is-sphinx.outputs.active_autodoc
+    if: needs.is-poetry.outputs.is_poetry && needs.is-sphinx.outputs.active_autodoc
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0
@@ -280,9 +280,9 @@ jobs:
   deploy-docs:
     name: Deploy Sphinx doc
     needs:
-      - is-poetry-based
+      - is-poetry
       - is-sphinx
-    if: needs.is-poetry-based.outputs.is_poetry && needs.is-sphinx.outputs.is_sphinx
+    if: needs.is-poetry.outputs.is_poetry && needs.is-sphinx.outputs.is_sphinx
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.0
