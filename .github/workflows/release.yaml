@@ -212,14 +212,14 @@ jobs:
       - name: Extract version
         id: get_version
         run: >
-          echo "::set-output name=tagged_version::$(
-          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "::set-output name=tagged_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
       - name: Print version
         run: |
           echo "Tagged version: ${{ steps.get_version.outputs.tagged_version }}"
       - id: tag_exists
         run: |
-          echo "::set-output name=tag_exists::$( git show-ref --tags "v${{ steps.get_version.outputs.tagged_version }}" --quiet )"
+          echo "::set-output name=tag_exists::$(
+          git show-ref --tags "v${{ steps.get_version.outputs.tagged_version }}" --quiet )"
       - name: Tag search results
         run: |
           echo "Does tag exists? ${{ steps.tag_exists.outputs.tag_exists && true || false }}"
