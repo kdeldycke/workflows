@@ -211,8 +211,9 @@ jobs:
           ref: ${{ matrix.commit }}
       - name: Extract version
         id: get_version
-        run: |
-          echo "::set-output name=tagged_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+        run: >
+          echo "::set-output name=tagged_version::$(
+          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
       - name: Print version
         run: |
           echo "Tagged version: ${{ steps.get_version.outputs.tagged_version }}"
