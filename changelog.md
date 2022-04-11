@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Triggers `docs` workflow on tagging to fix dependency graph generation.
+
 ## [1.1.0 (2022-03-30)](https://github.com/kdeldycke/workflows/compare/v1.0.1...v1.1.0)
 
 - Dynamiccaly add `⚖️ curation`, `🆕 new link` and `🩹 fix link` labels on
