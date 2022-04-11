@@ -224,9 +224,13 @@ jobs:
       - id: autodoc_detection
         shell: python
         run: |
-          import docs.conf
+          try:
+              import docs.conf
+              doc_conf_found = True
+          except ModuleNotFoundError:
+              doc_conf_found = False
 
-          if 'sphinx.ext.autodoc' in getattr(docs.conf, 'extensions', []):
+          if doc_conf_found and 'sphinx.ext.autodoc' in getattr(docs.conf, 'extensions', []):
               print(f"::set-output name=active_autodoc::true")
       - name: Detection results
         run: |
