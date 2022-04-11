@@ -281,7 +281,7 @@ jobs:
     name: Deploy Sphinx doc
     needs:
       - is-poetry-based
-      - is_sphinx
+      - is-sphinx
     if: needs.is-poetry-based.outputs.is_poetry && needs.is-sphinx.outputs.is_sphinx
     runs-on: ubuntu-20.04
     steps:
