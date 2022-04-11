@@ -8,6 +8,7 @@ introduced in
 [November 2021](https://github.blog/changelog/2021-11-24-github-actions-reusable-workflows-are-generally-available/).
 
 Reasons for a centralized workflow repository:
+
 - reuseability of course: no need to update dozens of repository where 95% of workflows are the same
 - centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories dependeing on it
 
