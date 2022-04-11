@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.2.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.1.0...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [1.2.0 (2022-04-11)](https://github.com/kdeldycke/workflows/compare/v1.1.0...v1.2.0)
 
 - Detect Sphinx's `autodoc` extension to create a PR updating documentation.
 - Auto deploy Sphinx documentation on GitHub pages if detected.
