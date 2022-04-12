@@ -225,17 +225,24 @@ jobs:
       - id: detection
         shell: python
         run: |
-          try:
-              import docs.conf
-              is_sphinx = True
-          except ModuleNotFoundError:
-              is_sphinx = False
+          import ast
+          from pathlib import Path
 
-          if is_sphinx:
+          conf_path = Path() / "docs" / "conf.py"
+
+          if conf_path.exists() and conf_path.is_file():
+              # We found the Sphinx config file, that's enought for us.
               print(f"::set-output name=is_sphinx::true")
 
-              if 'sphinx.ext.autodoc' in getattr(docs.conf, 'extensions', []):
-                  print(f"::set-output name=active_autodoc::true")
+              # Look for list of active Sphinx extensions.
+              for node in ast.parse(conf_path.read_bytes()).body:
+                  if isinstance(node, ast.Assign) and isinstance(node.value, (ast.List, ast.Tuple)):
+                      extension_found = "extensions" in (t.id for t in node.targets)
+                      if extension_found:
+                          elements = [e.value for e in node.value.elts if isinstance(e, ast.Constant)]
+                          if "sphinx.ext.autodoc" in elements:
+                              print(f"::set-output name=active_autodoc::true")
+                          break
       - name: Detection results
         run: |
           echo "Is doc Sphinx-based? ${{ steps.detection.outputs.is_sphinx && true || false }}"

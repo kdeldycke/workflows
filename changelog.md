@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix Sphinx auto-detection by relying on static syntax analyzer instead of
+  trying to import the executable configuration.
+
 ## [1.2.0 (2022-04-11)](https://github.com/kdeldycke/workflows/compare/v1.1.0...v1.2.0)
 
 - Detect Sphinx's `autodoc` extension to create a PR updating documentation.
