@@ -120,7 +120,7 @@ jobs:
         if: steps.detection.outputs.is_poetry
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/v1.2.1/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Extract package name
         if: steps.detection.outputs.is_poetry
         id: extract_name
@@ -181,7 +181,7 @@ jobs:
       - name: Install twine and check-wheel-contents
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/v1.2.1/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Validates package metadata
         run: |
           poetry check --no-interaction --no-ansi
