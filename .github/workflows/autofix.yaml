@@ -111,8 +111,9 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run isort
+        # https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#isort
         run: |
-          isort .
+          isort --profile black .
       - name: Run Black
         run: |
           black .

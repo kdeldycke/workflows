@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Use `isort` profile to aligns with `black`. Removes `.isort.cfg`.
+
 ## [1.2.1 (2022-04-12)](https://github.com/kdeldycke/workflows/compare/v1.2.0...v1.2.1)
 
 - Fix Sphinx auto-detection by relying on static syntax analyzer instead of
