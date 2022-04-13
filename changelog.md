@@ -6,8 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
-- Auto-format docstrings in Python files.
-- Auto-format `JS`, `CSS`, `HTML` and `XML` code blocks in Markdown files.
+- Auto-format docstrings in Python files. Add dependency on `docformatter`.
+- Auto-format `JS`, `CSS`, `HTML` and `XML` code blocks in Markdown files. Add
+  dependency on `mdformat-web`.
 - Use `isort` profile to aligns with `black`. Removes `.isort.cfg`.
 
 ## [1.2.1 (2022-04-12)](https://github.com/kdeldycke/workflows/compare/v1.2.0...v1.2.1)
