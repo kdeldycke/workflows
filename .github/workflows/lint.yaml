@@ -57,6 +57,25 @@ jobs:
           --logging-format-style=new
           --recursive=y .
 
+  lint-python-doc:
+    # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
+    if: github.head_ref != 'prepare-release'
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.0
+      - uses: actions/setup-python@v3.1.2
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install pydocstyle
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Run pydocstyle
+        # Do not fail job on doc style errors. Linting docstrings is informative only.
+        run: |
+          pydocstyle --source --explain || true
+
   lint-yaml:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release'
