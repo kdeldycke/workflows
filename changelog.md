@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Auto-format docstrings in Python files.
 - Auto-format `JS`, `CSS`, `HTML` and `XML` code blocks in Markdown files.
 - Use `isort` profile to aligns with `black`. Removes `.isort.cfg`.
 

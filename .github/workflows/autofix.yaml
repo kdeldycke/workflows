@@ -114,6 +114,9 @@ jobs:
         # https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#isort
         run: |
           isort --profile black .
+      - name: Run docformatter
+        run: |
+          docformatter --recursive --in-place --wrap-summaries 88 --wrap-descriptions 88 .
       - name: Run Black
         run: |
           black .
