@@ -16,6 +16,7 @@ mdformat-gfm == 0.3.5
 mdformat_myst == 0.1.5
 mdformat_tables == 0.4.1
 mdformat-toc == 0.3.0
+mdformat-web == 0.1.0
 pipdeptree[graphviz] == 2.2.1
 pylint == 2.13.5
 pyupgrade == 2.32.0
