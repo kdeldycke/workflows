@@ -73,8 +73,9 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run pydocstyle
         # Do not fail job on doc style errors. Linting docstrings is informative only.
+        # Search in all directories, including those starting with a dot.
         run: |
-          pydocstyle --source --explain || true
+          pydocstyle --match-dir='.*' --source --explain  || true
 
   lint-yaml:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
