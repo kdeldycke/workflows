@@ -11,6 +11,7 @@ This version is not released yet and is under active development.
   dependency on `mdformat-web`.
 - Lint Python docstrings. Add dependency on `pydocstyle`.
 - Use `isort` profile to aligns with `black`. Removes `.isort.cfg`.
+- Tweak `🙏 help wanted` label description.
 
 ## [1.2.1 (2022-04-12)](https://github.com/kdeldycke/workflows/compare/v1.2.0...v1.2.1)
 
