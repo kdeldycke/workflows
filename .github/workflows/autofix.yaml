@@ -117,6 +117,8 @@ jobs:
       - name: Run docformatter
         run: |
           docformatter --recursive --in-place --wrap-summaries 88 --wrap-descriptions 88 .
+      # XXX Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
+      # We need a tool to at least wrap long-line comments to reduce Pylint complaints.
       - name: Run Black
         run: |
           black .
