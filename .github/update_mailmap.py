@@ -26,7 +26,7 @@ identities, and tidying things up by hand-editing the .mailmap file.
 
 import sys
 from pathlib import Path
-from subprocess import PIPE, Popen
+from subprocess import run
 from textwrap import dedent
 
 contributors = set()
@@ -35,17 +35,16 @@ contributors = set()
 # For format output syntax, see: https://git-scm.com/docs
 #   /pretty-formats#Documentation/pretty-formats.txt-emaNem
 for param in ("%aN <%aE>", "%cN <%cE>"):
-    process = Popen(
-        ("git", "log", f"--pretty=format:{param}"), stdout=PIPE, stderr=PIPE
+    process = run(
+        ("git", "log", f"--pretty=format:{param}"),
+        capture_output=True,
+        encoding="utf-8",
     )
 
     # Parse git CLI output.
-    output, error = process.communicate()
-    git_output = output.decode("utf-8") if output else None
-    error = error.decode("utf-8") if error else None
     if process.returncode:
-        sys.exit(error)
-    for line in git_output.splitlines():
+        sys.exit(process.stderr)
+    for line in process.stdout.splitlines():
         if line.strip():
             contributors.add(line)
 
