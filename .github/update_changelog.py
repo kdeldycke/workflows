@@ -69,7 +69,7 @@ new_entry = re.sub(
 new_entry = re.sub(
     r"\n\n.*",
     "\n\n"
-    "```{{important}}\n"
+    "```{important}\n"
     "This version is not released yet and is under active development.\n"
     "```\n\n",
     new_entry,

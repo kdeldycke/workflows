@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix admonition rendering in changelog template.
+
 ## [1.4.0 (2022-04-16)](https://github.com/kdeldycke/workflows/compare/v1.3.1...v1.4.0)
 
 - Use `autopep8` to wrap Python comments at 88 characters length.
