@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Bump `actions/checkout` action to fix run in containers jobs.
+
 ## [1.3.0 (2022-04-13)](https://github.com/kdeldycke/workflows/compare/v1.2.1...v1.3.0)
 
 - Auto-format docstrings in Python files. Add dependency on `docformatter`.
