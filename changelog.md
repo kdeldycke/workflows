@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.3.1...main)
+
+```{{important}}
+This version is not released yet and is under active development.
+```
+
 ## [1.3.1 (2022-04-16)](https://github.com/kdeldycke/workflows/compare/v1.3.0...v1.3.1)
 
 - Bump `actions/checkout` action to fix run in containers jobs.
