@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.4.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.4.0...main)
-
-```{{important}}
-This version is not released yet and is under active development.
-```
+## [1.4.1 (2022-04-16)](https://github.com/kdeldycke/workflows/compare/v1.4.0...v1.4.1)
 
 - Fix admonition rendering in changelog template.
 
