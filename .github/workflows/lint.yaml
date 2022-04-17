@@ -101,7 +101,7 @@ jobs:
       - uses: actions/checkout@v3.0.1
       - name: Install Zsh
         run: |
-          sudo apt install -y zsh
+          sudo apt install --yes zsh
       - name: Lint
         run: |
           find . -iname "*.sh" -exec zsh --no-exec "{}" \;
