@@ -20,7 +20,7 @@ jobs:
     name: Fix typos
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - uses: sobolevn/misspell-fixer-action@0.1.0
       - uses: peter-evans/create-pull-request@v4.0.2
         with:
@@ -48,7 +48,7 @@ jobs:
     name: Optimize images
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       # XXX calibreapp/image-actions has not been tagged for a while... :(
       - uses: calibreapp/image-actions@a6fb564733713b0120e56887426c4f5cb8fcbe69
         id: image_actions
@@ -82,7 +82,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - id: detection
         run: |
           echo "::set-output name=exists::$( [[ -f './.mailmap' ]] && echo 'true' )"
@@ -98,7 +98,7 @@ jobs:
     if: needs.check-mailmap.outputs.exists
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
@@ -133,7 +133,7 @@ jobs:
       is_poetry: ${{ steps.detection.outputs.is_poetry }}
       package_name: ${{ steps.extract_name.outputs.package_name }}
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
@@ -176,7 +176,7 @@ jobs:
     if: needs.is-poetry.outputs.is_poetry && needs.is-poetry.outputs.package_name
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v3.1.2
       - name: Install pip and Poetry
         run: |
@@ -221,7 +221,7 @@ jobs:
       is_sphinx: ${{ steps.detection.outputs.is_sphinx }}
       active_autodoc: ${{ steps.detection.outputs.active_autodoc }}
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - id: detection
         shell: python
         run: |
@@ -256,7 +256,7 @@ jobs:
     if: needs.is-poetry.outputs.is_poetry && needs.is-sphinx.outputs.active_autodoc
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v3.1.2
       - name: Install Sphinx
         run: |
@@ -292,7 +292,7 @@ jobs:
     if: needs.is-poetry.outputs.is_poetry && needs.is-sphinx.outputs.is_sphinx
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v3.1.2
       - name: Install Sphinx
         run: |

@@ -28,7 +28,7 @@ jobs:
       new_commits_matrix: ${{ steps.new_commits_matrix.outputs.matrix }}
       release_commits_matrix: ${{ steps.release_commits_matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -112,7 +112,7 @@ jobs:
       is_poetry: ${{ steps.detection.outputs.is_poetry }}
       package_name: ${{ steps.extract_name.outputs.package_name }}
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
@@ -161,7 +161,7 @@ jobs:
       - name: Print target commit
         run: |
           echo "${{ matrix.commit }}"
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v3.1.2
@@ -206,7 +206,7 @@ jobs:
       - name: Print release commit
         run: |
           echo "${{ matrix.commit }}"
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
         with:
           ref: ${{ matrix.commit }}
       - name: Extract version
