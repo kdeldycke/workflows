@@ -25,7 +25,7 @@ jobs:
     outputs:
       is_poetry: ${{ steps.detection.outputs.is_poetry }}
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
@@ -40,7 +40,7 @@ jobs:
     if: needs.is-poetry-based.outputs.is_poetry
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v3.1.2
       - name: Install pip and Poetry
         run: |
@@ -101,7 +101,7 @@ jobs:
     name: Format Python
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v3.1.2
       - name: Install pip
         run: |
@@ -149,7 +149,7 @@ jobs:
     name: Format Markdown
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -190,7 +190,7 @@ jobs:
     name: Format JSON
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - name: Install linter
         run: |
           sudo npm install --global jsonlint
@@ -221,7 +221,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
         run: >
@@ -239,7 +239,7 @@ jobs:
     if: needs.check-gitignore.outputs.exists
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.1
+      - uses: actions/checkout@v3.0.2
       - name: Install git-extras
         run: |
           sudo apt install --yes git-extras
