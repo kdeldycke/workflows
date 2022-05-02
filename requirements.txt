@@ -21,7 +21,7 @@ mdformat-toc == 0.3.0
 mdformat-web == 0.1.0
 pipdeptree[graphviz] == 2.2.1
 pydocstyle[toml] == 6.1.1
-pylint == 2.13.7
+pylint == 2.13.8
 pyupgrade == 2.32.0
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.0
