@@ -22,7 +22,7 @@ mdformat-web == 0.1.0
 pipdeptree[graphviz] == 2.2.1
 pydocstyle[toml] == 6.1.1
 pylint == 2.13.9
-pyupgrade == 2.32.0
+pyupgrade == 2.32.1
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.0
 yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9
