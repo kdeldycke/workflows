@@ -174,7 +174,7 @@ jobs:
           poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
       - name: Artefacts for GitHub release
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.commit }}
           path: ./dist/*
