@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.4.2...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.4.2 (2022-05-22)](https://github.com/kdeldycke/workflows/compare/v1.4.1...v1.4.2)
 
 - Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.
