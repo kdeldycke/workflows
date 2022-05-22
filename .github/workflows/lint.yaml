@@ -59,7 +59,7 @@ jobs:
           --output-format=colorized
           --jobs=0
           --max-line-length=88
-          --fail-under=8
+          --fail-under=7
           --logging-format-style=new
           --recursive=y .
 
