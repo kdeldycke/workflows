@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.5.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.5.0 (2022-06-23)](https://github.com/kdeldycke/workflows/compare/v1.4.2...v1.5.0)
 
 - Auto-remove unused imports in Python code. Add dependency on `pycln`.
