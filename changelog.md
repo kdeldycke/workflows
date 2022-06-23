@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Auto-remove unused imports in Python code. Add dependency on `pycln`.
+- Freeze Python version used to run all code to the `3.10` series.
 
 ## [1.4.2 (2022-05-22)](https://github.com/kdeldycke/workflows/compare/v1.4.1...v1.4.2)
 
