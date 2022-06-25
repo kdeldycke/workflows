@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.5.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.5.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.5.1 (2022-06-25)](https://github.com/kdeldycke/workflows/compare/v1.5.0...v1.5.1)
 
 - Revert workflow concurrency logic.
 
