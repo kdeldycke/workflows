@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.6.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.6.0 (2022-07-01)](https://github.com/kdeldycke/workflows/compare/v1.5.1...v1.6.0)
 
 - Check for typing. Add dependency on `mypy`.
