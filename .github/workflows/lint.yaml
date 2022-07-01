@@ -90,7 +90,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Mypy
         run: |
-          mypy .
+          mypy ./.github ./
 
   lint-python-doc:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
