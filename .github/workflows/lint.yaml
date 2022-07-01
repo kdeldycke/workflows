@@ -65,6 +65,32 @@ jobs:
           --logging-format-style=new
           --recursive=y .
 
+  lint-python-types:
+    # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
+    if: github.head_ref != 'prepare-release'
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: actions/setup-python@v4.0.0
+        with:
+          python-version: "3.10"
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install project with Poetry
+        # If currrent project is Poetry-based, install the latter, so we can benefits from additional typing stubs for dependencies.
+        if: hashFiles('pyproject.toml') && hashFiles('poetry.lock')
+        run: |
+          python -m pip install --upgrade poetry
+          poetry install --no-interaction
+      - name: Install Mypy
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Run Mypy
+        run: |
+          mypy .
+
   lint-python-doc:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release'
