@@ -97,7 +97,7 @@ jobs:
         id: glob
         with:
           files: |
-            **.py
+            **/**.py
       - name: Run Mypy
         if: steps.glob.outputs.paths
         run: |
