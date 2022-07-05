@@ -132,13 +132,16 @@ jobs:
           no-bump
           `grep --files-with-matches "/workflows/$DEFAULT_BRANCH/"
           ./.github/workflows/*.yaml`
-      - name: Set release date to today
+      - name: Set release date for citation
+        run: |
+          perl -pi -e "s/date-released: \d+-\d+-\d+/date-released: `date +'%Y-%m-%d'`/" ./citation.cff
+      - name: Set release date in changelog
         run: |
           perl -pi -e "s/\(unreleased\)/\(`date +'%Y-%m-%d'`\)/" ./changelog.md
-      - name: Update comparison URL
+      - name: Update comparison URL in changelog
         run: |
           perl -pi -e "s/\.\.\.main/\.\.\.v${{ steps.get_version.outputs.current_version }}/" ./changelog.md
-      - name: Remove first warning message
+      - name: Remove first warning message in changelog
         # Matches first occurrence of a multi-line block of text delimited by triple-backticks (```<anything>```).
         run: >
           python -c 'import re; from pathlib import Path; file = Path("./changelog.md");
