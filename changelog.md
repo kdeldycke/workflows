@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.6.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.6.1 (2022-07-05)](https://github.com/kdeldycke/workflows/compare/v1.6.0...v1.6.1)
 
 - Keep the release date of `citation.cff` up-to-date in `changelog` job.
