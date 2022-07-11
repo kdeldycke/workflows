@@ -108,7 +108,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: actions/setup-python@v4.0.0
+      - uses: actions/setup-python@v4.1.0
         with:
           python-version: "3.10"
       - name: Generate .mailmap
@@ -185,7 +185,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-python@v4.0.0
+      - uses: actions/setup-python@v4.1.0
         with:
           python-version: "3.10"
       - name: Install pip and Poetry
@@ -267,7 +267,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-python@v4.0.0
+      - uses: actions/setup-python@v4.1.0
         with:
           python-version: "3.10"
       - name: Install Sphinx
@@ -305,7 +305,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-python@v4.0.0
+      - uses: actions/setup-python@v4.1.0
         with:
           python-version: "3.10"
       - name: Install Sphinx
