@@ -178,3 +178,5 @@ jobs:
       - uses: zricethezav/gitleaks-action@v2.0.4
         with:
           config-path: .github/gitleaks.toml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
