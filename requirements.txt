@@ -23,7 +23,7 @@ mypy == 0.961
 pipdeptree[graphviz] == 2.2.1
 pycln == 2.0.4
 pydocstyle[toml] == 6.1.1
-pylint == 2.14.4
+pylint == 2.14.5
 pyupgrade == 2.37.1
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.1
