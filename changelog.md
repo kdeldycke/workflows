@@ -1,10 +1,12 @@
 # Changelog
 
-## [1.6.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.6.1...main)
+## [1.6.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.6.2...main)
 
 ```{important}
 This version is not released yet and is under active development.
 ```
+
+## [1.6.2 (2022-07-22)](https://github.com/kdeldycke/workflows/compare/v1.6.1...v1.6.2)
 
 - Allow `gitleaks` to use GitHub token to scan PRs.
 
