@@ -24,7 +24,7 @@ jobs:
     outputs:
         # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins.
         # See: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626
-        # So we will use this step to list all commits by categories.
+        # So we will use this step to list all commits by category.
       new_commits_matrix: ${{ steps.new_commits_matrix.outputs.matrix }}
       release_commits_matrix: ${{ steps.release_commits_matrix.outputs.matrix }}
     steps:
@@ -57,7 +57,7 @@ jobs:
           echo "::set-output name=range::$COMMIT_RANGE"
       - name: List new commits
         id: new_commits
-        # There is also a trick here to encode "\n" before using "::set-output" directive:
+        # Here's a trick to encode "\n" before using the "::set-output" directive:
         # https://github.community/t/set-output-truncates-multiline-strings/16852/3
         run: |
           COMMITS=$( git rev-list ${{ steps.commit_range.outputs.range }} -- )
@@ -135,7 +135,7 @@ jobs:
           else:
               import tomli as tomllib
 
-          # Locate and loads pyproject.toml.
+          # Locate and load pyproject.toml.
           toml_path = Path("./pyproject.toml")
           toml_config = tomllib.loads(toml_path.read_text())
 
@@ -175,7 +175,7 @@ jobs:
         run: |
           poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
-      - name: Artefacts for GitHub release
+      - name: Artifacts for GitHub release
         uses: actions/upload-artifact@v3.1.0
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.commit }}
@@ -224,7 +224,7 @@ jobs:
           git show-ref --tags "v${{ steps.get_version.outputs.tagged_version }}" --quiet )"
       - name: Tag search results
         run: |
-          echo "Does tag exists? ${{ steps.tag_exists.outputs.tag_exists && true || false }}"
+          echo "Does tag exist? ${{ steps.tag_exists.outputs.tag_exists && true || false }}"
       - name: Push tag
         # If for whatever reason the workflow is re-run because it failed the first time, just
         # skip the tag creation if it already exists.
@@ -248,7 +248,7 @@ jobs:
     outputs:
       release_text: ${{ steps.generate_text.outputs.release_text }}
     steps:
-      - name: Download build artefacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v3.0.0
         id: download
         with:
@@ -272,14 +272,14 @@ jobs:
       - commit-matrix
       - git-tag
       - pypi-publish
-    # Make sure this job always start if git-tag is ran and succeed.
+    # Make sure this job always starts if git-tag ran and succeeded.
     if: always() && needs.git-tag.result == 'success'
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-20.04
     steps:
-      - name: Download build artefacts
-        # Do not try to fetch build artefacts if the publishing step has been skipped.
+      - name: Download build artifacts
+        # Do not try to fetch build artifacts if the publishing step has been skipped.
         if: needs.pypi-publish.result != 'skipped'
         uses: actions/download-artifact@v3.0.0
         id: download
