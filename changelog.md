@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Remove upper limit of `pyupgrade` automatic `--py3XX-plus` option generation.
 - Allow `gitleaks` to use GitHub token to scan PRs.
 
 ## [1.6.1 (2022-07-05)](https://github.com/kdeldycke/workflows/compare/v1.6.0...v1.6.1)

@@ -59,6 +59,7 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Extract minimal Python version from Poetry specs
+        # Proposed to be included upstream at: https://github.com/asottile/pyupgrade/issues/688
         id: py_version
         shell: python
         run: |
@@ -80,7 +81,7 @@ jobs:
           #   --py311-plus
           py_param = ""
           if version.min.major == 3:
-              minor_version = version.min.minor if (6 <= version.min.minor <= 11) else ""
+              minor_version = version.min.minor if version.min.minor => 6 else ""
               py_param = f"--py3{minor_version}-plus"
 
           print(f"::set-output name=min_py_param::{py_param}")
