@@ -99,15 +99,15 @@ jobs:
         run: |
           poetry install --no-interaction
       - name: '*.py files found?'
-         # XXX We couldn't use hashFiles() method as the later seems to be broken:
-         # https://github.com/actions/runner/issues/449
-         # https://github.com/actions/cache/issues/753
-         # https://github.com/actions/toolkit/pull/1015
-         uses: tj-actions/glob@v9.2
-         id: glob
-         with:
-           files: |
-             **/**.py
+        # XXX We couldn't use hashFiles() method as the later seems to be broken:
+        # https://github.com/actions/runner/issues/449
+        # https://github.com/actions/cache/issues/753
+        # https://github.com/actions/toolkit/pull/1015
+        uses: tj-actions/glob@v9.2
+        id: glob
+        with:
+          files: |
+            **/**.py
       - name: Run Mypy
         if: steps.glob.outputs.paths
         run: |
