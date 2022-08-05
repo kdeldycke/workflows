@@ -42,11 +42,11 @@ else:
 
 
 # Initialize output values.
-is_poetry_project = False
-package_name = ""
-black_params = []
-mypy_param = ""
-pyupgrade_param = ""
+is_poetry_project: bool = False
+package_name: str = ""
+black_params: list[str] = []
+mypy_param: str = ""
+pyupgrade_param: str = ""
 
 
 # Is the project relying on Poetry?
@@ -58,8 +58,8 @@ if toml_path.exists() and toml_path.is_file():
 
 if is_poetry_project:
 
-    from poetry.core.pyproject.toml import PyProjectTOML
-    from poetry.core.semver import Version, parse_constraint
+    from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
+    from poetry.core.semver import Version, parse_constraint  # type: ignore
 
     # Get package name.
     package_name = pyproject.poetry_config["name"]
@@ -113,19 +113,19 @@ if is_poetry_project:
 
 
 # Render some types into strings.
-is_poetry_project = str(is_poetry_project).lower()
-black_params = " ".join(black_params)
+is_poetry_project_str = str(is_poetry_project).lower()
+black_params_str = " ".join(black_params)
 
 # Output metadata with GitHub syntax.
-print(f"::set-output name=is_poetry_project::{is_poetry_project}")
+print(f"::set-output name=is_poetry_project::{is_poetry_project_str}")
 print(f"::set-output name=package_name::{package_name}")
-print(f"::set-output name=black_params::{black_params}")
+print(f"::set-output name=black_params::{black_params_str}")
 print(f"::set-output name=mypy_params::{mypy_param}")
 print(f"::set-output name=pyupgrade_params::{pyupgrade_param}")
 
 # Print summary for debug.
-print(f"Is project poetry-based? {is_poetry_project}")
+print(f"Is project poetry-based? {is_poetry_project_str}")
 print(f"Package name: {package_name}")
-print(f"Black parameters: {black_params}")
+print(f"Black parameters: {black_params_str}")
 print(f"Mypy parameters: {mypy_param}")
 print(f"Pyupgrade parameters: {pyupgrade_param}")
