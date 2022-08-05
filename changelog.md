@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Add direct dependency on `poetry`.
+
 ## [1.7.0 (2022-08-05)](https://github.com/kdeldycke/workflows/compare/v1.6.2...v1.7.0)
 
 - Auto-generate the set of python minimal version parameters for `mypy`, `black` and `pyupgrade`. Addresses [`python/mypy#13294`](https://github.com/python/mypy/issues/13294), [`psf/black#3124`](https://github.com/psf/black/issues/3124) and [`asottile/pyupgrade#688`](https://github.com/asottile/pyupgrade/issues/688).

@@ -64,7 +64,7 @@ jobs:
       - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
-      - name: Install tomli
+      - name: Install Poetry and tomli
         if: steps.detection.outputs.is_poetry
         run: >
           python -m pip install --requirement
@@ -141,10 +141,9 @@ jobs:
       - uses: actions/setup-python@v4.2.0
         with:
           python-version: "3.10"
-      - name: Install pip and Poetry
+      - name: Install pip
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade poetry
       - name: Install pyupgrade
         run: >
           python -m pip install --requirement
@@ -184,7 +183,7 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install requirements
+      - name: Install isort, pycln, docformatter, autopep8 and black
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
@@ -273,7 +272,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
-      - name: Install linter
+      - name: Install jsonlint
         run: |
           sudo npm install --global jsonlint
       - name: Lint

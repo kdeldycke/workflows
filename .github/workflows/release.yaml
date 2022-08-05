@@ -144,7 +144,7 @@ jobs:
       - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
-      - name: Install tomli
+      - name: Install Poetry and tomli
         if: steps.detection.outputs.is_poetry
         run: >
           python -m pip install --requirement
@@ -229,10 +229,13 @@ jobs:
       - uses: actions/setup-python@v4.2.0
         with:
           python-version: "3.10"
-      - name: Install pip and Poetry
+      - name: Install pip
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade poetry
+      - name: Install poetry, twine and check-wheel-contents
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Build package
         run: |
           poetry install --no-interaction --no-ansi
@@ -242,10 +245,6 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.commit }}
           path: ./dist/*
-      - name: Install twine and check-wheel-contents
-        run: >
-          python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Validates package metadata
         run: |
           poetry check --no-interaction --no-ansi

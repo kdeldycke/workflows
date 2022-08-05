@@ -27,18 +27,18 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install project with Poetry
-        # If currrent project is Poetry-based, install the latter. That way we avoid import errors in Pylint reports.
-        if: hashFiles('pyproject.toml') && hashFiles('poetry.lock')
-        run: |
-          python -m pip install --upgrade poetry
-          # Allows our Pylint version to access project's dependencies.
-          poetry config virtualenvs.create false
-          poetry install --no-interaction
-      - name: Install Pylint
+      - name: Install Poetry and Pylint
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Install project with Poetry
+        # Install project with Poetry if supported, so we can avoid importing errors in Pylint reports.
+        # TODO: replace by poetry-metadata job.
+        if: hashFiles('pyproject.toml') && hashFiles('poetry.lock')
+        run: |
+          # Allows our Pylint version to access project's dependencies.
+          poetry config virtualenvs.create false
+          poetry install --no-interaction
       - name: Run Pylint
         # Docs:
         # http://pylint.pycqa.org/en/latest/technical_reference/features.html
@@ -77,17 +77,16 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install project with Poetry
-        # If currrent project is Poetry-based, install the latter, so we can benefits from additional typing stubs for
-        # dependencies.
-        if: hashFiles('pyproject.toml') && hashFiles('poetry.lock')
-        run: |
-          python -m pip install --upgrade poetry
-          poetry install --no-interaction
-      - name: Install Mypy
+      - name: Install Poetry and Mypy
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Install project with Poetry
+        # Install project with Poetry if supported, so we can benefits from additional typing stubs for dependencies.
+        # TODO: replace by poetry-metadata job.
+        if: hashFiles('pyproject.toml') && hashFiles('poetry.lock')
+        run: |
+          poetry install --no-interaction
       - name: '*.py files found?'
         # XXX We couldn't use hashFiles() method as the later seems to be broken:
         # https://github.com/actions/runner/issues/449
