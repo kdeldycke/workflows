@@ -95,7 +95,7 @@ jobs:
           echo "Pyupgrade parameters: ${{ steps.poetry-metadata.outputs.pyupgrade_params }}"
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can benefits from additional typing stubs for dependencies.
-        if: steps.poetry-metadata.outputs.is_poetry_project
+        if: ${{ steps.poetry-metadata.outputs.is_poetry_project }}
         run: |
           poetry install --no-interaction
       - name: Run Mypy
