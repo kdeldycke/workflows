@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Auto-generate the set of python minimal version parameters for `mypy`, `black` and `pyupgrade`. Addresses [`python/mypy#13294`](https://github.com/python/mypy/issues/13294), [`psf/black#3124`](https://github.com/psf/black/issues/3124) and [`asottile/pyupgrade#688`](https://github.com/asottile/pyupgrade/issues/688).
+
 ## [1.6.2 (2022-07-31)](https://github.com/kdeldycke/workflows/compare/v1.6.1...v1.6.2)
 
 - Remove upper limit of `pyupgrade` automatic `--py3XX-plus` option generation.

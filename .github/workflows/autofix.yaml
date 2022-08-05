@@ -25,25 +25,116 @@ concurrency:
 jobs:
 
   # TODO: Deduplicate with the step from docs.yaml and release.yaml
-  is-poetry-based:
+  poetry-metadata:
     name: Is project Poetry-based?
     runs-on: ubuntu-20.04
     outputs:
       is_poetry: ${{ steps.detection.outputs.is_poetry }}
+      package_name: ${{ steps.extract_name.outputs.package_name }}
+      # Mypy needs to be fed with this parameter:
+      #   --python-version x.y
+      # Proposed upstream (but rejected) at: https://github.com/python/mypy/issues/13294
+      mypy_params: ${{ steps.py_versions.outputs.mypy_params }}
+      # Black should be fed with a subset of these parameters:
+      #   --target-version py33
+      #   --target-version py34
+      #   --target-version py35
+      #   --target-version py36
+      #   --target-version py37
+      #   --target-version py38
+      #   --target-version py39
+      #   --target-version py310
+      #   --target-version py311
+      # "You should include all Python versions that you want your code to run under.",
+      # as per: https://github.com/psf/black/issues/751
+      # Currently being discussed upstream at: https://github.com/psf/black/issues/3124
+      black_params: ${{ steps.py_versions.outputs.black_params }}
+      # Pyupgrade needs to be fed with one of these parameters:
+      #   --py3-plus
+      #   --py36-plus
+      #   --py37-plus
+      #   --py38-plus
+      #   --py39-plus
+      #   --py310-plus
+      #   --py311-plus
+      # Proposed upstream (but rejected) at: https://github.com/asottile/pyupgrade/issues/688
+      pyupgrade_params: ${{ steps.py_versions.outputs.pyupgrade_params }}
     steps:
       - uses: actions/checkout@v3.0.2
       - id: detection
         run: |
           echo "::set-output name=is_poetry::$( [[ -f 'pyproject.toml' && -f 'poetry.lock' ]] && echo 'true' )"
-      - name: Detection results
+      - name: Install tomli
+        if: steps.detection.outputs.is_poetry
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Extract package name
+        if: steps.detection.outputs.is_poetry
+        id: extract_name
+        shell: python
+        run: |
+          from pathlib import Path
+
+          import sys
+
+          if sys.version_info >= (3, 11):
+              import tomllib
+          else:
+              import tomli as tomllib
+
+          # Locate and loads pyproject.toml.
+          toml_path = Path("./pyproject.toml")
+          toml_config = tomllib.loads(toml_path.read_text())
+
+          package_name = toml_config["tool"]["poetry"]["name"]
+
+          if package_name:
+              print(f"::set-output name=package_name::{package_name}")
+      - name: Python versions for black, mypy and pyupgrade
+        if: steps.detection.outputs.is_poetry
+        id: py_versions
+        shell: python
+        run: |
+          from pathlib import Path
+
+          from poetry.core.pyproject.toml import PyProjectTOML
+          from poetry.core.semver import parse_constraint
+
+          pyproject = PyProjectTOML(Path("./pyproject.toml"))
+          min_version = parse_constraint(pyproject.poetry_config["dependencies"]["python"]).min
+
+          # Generate mypy parameter.
+          print(f"::set-output name=mypy_params::--python-version {min_version.major}.{min_version.minor}")
+
+          # Generate black parameters.
+          black_params = []
+          if min_version.major == 3 and min_version.minor >= 3:
+              for minor in range(min_version.minor, 11 + 1):
+                  black_params.append(f"--target-version py3{minor}")
+          print(f"::set-output name=black_params::{' '.join(black_params)}")
+
+          # Generate pyupgrade parameter.
+          pyupgrade_param = ""
+          if min_version.major == 3:
+              minor_version = ""
+              if min_version.minor >= 6:
+                  minor_version = min_version.minor
+              pyupgrade_param = f"--py3{minor_version}-plus"
+          print(f"::set-output name=pyupgrade_params::{pyupgrade_param}")
+      - name: Metadata results
         run: |
           echo "Is project poetry-based? ${{ steps.detection.outputs.is_poetry && true || false }}"
+          echo "Package name: ${{ steps.extract_name.outputs.package_name }}"
+          echo "Mypy parameters: ${{ steps.py_versions.outputs.mypy_params }}"
+          echo "Black parameters: ${{ steps.py_versions.outputs.black_params }}"
+          echo "Pyupgrade parameters: ${{ steps.py_versions.outputs.pyupgrade_params }}"
 
   modernize-python:
     name: Modernize Python
     needs:
-      - is-poetry-based
-    if: needs.is-poetry-based.outputs.is_poetry
+      - poetry-metadata
+    if: needs.poetry-metadata.outputs.is_poetry
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -58,38 +149,9 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Extract minimal Python version from Poetry specs
-        # Proposed to be included upstream at: https://github.com/asottile/pyupgrade/issues/688
-        id: py_version
-        shell: python
-        run: |
-          from pathlib import Path
-
-          from poetry.core.pyproject.toml import PyProjectTOML
-          from poetry.core.semver import parse_constraint
-
-          pyproject = PyProjectTOML(Path("./pyproject.toml"))
-          version = parse_constraint(pyproject.poetry_config["dependencies"]["python"])
-
-          # Specific versions supported by pyupgrade:
-          #   --py3-plus
-          #   --py36-plus
-          #   --py37-plus
-          #   --py38-plus
-          #   --py39-plus
-          #   --py310-plus
-          #   --py311-plus
-          py_param = ""
-          if version.min.major == 3:
-              minor_version = ""
-              if version.min.minor => 6:
-                  minor_version = version.min.minor
-              py_param = f"--py3{minor_version}-plus"
-
-          print(f"::set-output name=min_py_param::{py_param}")
       - name: Run pyupgrade
         run: |
-          find ./ -type f -name '*.py' -print -exec pyupgrade ${{ steps.py_version.outputs.min_py_param }} "{}" \;
+          find ./ -type f -name '*.py' -print -exec pyupgrade ${{ needs.poetry-metadata.outputs.pyupgrade_params }} "{}" \;
       - uses: peter-evans/create-pull-request@v4.0.4
         with:
           assignees: ${{ github.actor }}
@@ -110,6 +172,8 @@ jobs:
 
   format-python:
     name: Format Python
+    needs:
+      - poetry-metadata
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -143,7 +207,7 @@ jobs:
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive .
       - name: Run Black
         run: |
-          black .
+          black ${{ needs.poetry-metadata.outputs.black_params }} .
       - uses: peter-evans/create-pull-request@v4.0.4
         with:
           assignees: ${{ github.actor }}
