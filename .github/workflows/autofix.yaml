@@ -150,8 +150,9 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run pyupgrade
-        run: |
-          find ./ -type f -name '*.py' -print -exec pyupgrade ${{ needs.poetry-metadata.outputs.pyupgrade_params }} "{}" \;
+        run: >
+          find ./ -type f -name '*.py' -print -exec
+          pyupgrade ${{ needs.poetry-metadata.outputs.pyupgrade_params }} "{}" \;
       - uses: peter-evans/create-pull-request@v4.0.4
         with:
           assignees: ${{ github.actor }}
