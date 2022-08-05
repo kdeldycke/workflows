@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.7.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.7.1 (2022-08-05)](https://github.com/kdeldycke/workflows/compare/v1.7.0...v1.7.1)
 
 - Add direct dependency on `poetry`.
