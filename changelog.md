@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Use auto-generated parameter for `mypy`'s minimal Python version.
+
 ## [1.7.1 (2022-08-05)](https://github.com/kdeldycke/workflows/compare/v1.7.0...v1.7.1)
 
 - Add direct dependency on `poetry`.
