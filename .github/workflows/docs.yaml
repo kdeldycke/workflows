@@ -135,7 +135,7 @@ jobs:
 
   # TODO: Deduplicate with the step from autofix.yaml and release.yaml
   poetry-metadata:
-    name: Is project Poetry-based?
+    name: Poetry metadata
     runs-on: ubuntu-20.04
     outputs:
       is_poetry: ${{ steps.detection.outputs.is_poetry }}
