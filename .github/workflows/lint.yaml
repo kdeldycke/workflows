@@ -81,10 +81,18 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - id: poetry-metadata
+      - name: Poetry metadata
+        id: poetry-metadata
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/poetry_metadata.py)"
+      - name: Metadata results
+        run: |
+          echo "Is project poetry-based? ${{ steps.poetry-metadata.outputs.is_poetry_project }}"
+          echo "Package name: ${{ steps.poetry-metadata.outputs.package_name }}"
+          echo "Mypy parameters: ${{ steps.poetry-metadata.outputs.mypy_params }}"
+          echo "Black parameters: ${{ steps.poetry-metadata.outputs.black_params }}"
+          echo "Pyupgrade parameters: ${{ steps.poetry-metadata.outputs.pyupgrade_params }}"
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can benefits from additional typing stubs for dependencies.
         if: steps.poetry-metadata.outputs.is_poetry_project
