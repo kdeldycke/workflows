@@ -26,20 +26,16 @@ Prints:
 ::set-output name=pyupgrade_params::--py37-plus
 ```
 
-Automatic detection and feeding of minimal Python version is being discussed upstream for:
+Automatic detection of minimal Python version is being discussed upstream for:
 - `black` at https://github.com/psf/black/issues/3124
 - `mypy` [rejected] at https://github.com/python/mypy/issues/13294
 - `pyupgrade` [rejected] at https://github.com/asottile/pyupgrade/issues/688
 """
 
-import sys
 from pathlib import Path
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
+from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
+from poetry.core.semver import Version, parse_constraint  # type: ignore
 
 # Initialize output values.
 is_poetry_project: bool = False
@@ -57,9 +53,6 @@ if toml_path.exists() and toml_path.is_file():
 
 
 if is_poetry_project:
-
-    from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
-    from poetry.core.semver import Version, parse_constraint  # type: ignore
 
     # Get package name.
     package_name = pyproject.poetry_config["name"]
