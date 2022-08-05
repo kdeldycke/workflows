@@ -81,7 +81,9 @@ jobs:
           #   --py311-plus
           py_param = ""
           if version.min.major == 3:
-              minor_version = version.min.minor if version.min.minor => 6 else ""
+              minor_version = ""
+              if version.min.minor => 6:
+                  minor_version = version.min.minor
               py_param = f"--py3{minor_version}-plus"
 
           print(f"::set-output name=min_py_param::{py_param}")
