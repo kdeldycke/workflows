@@ -6,8 +6,10 @@
 This version is not released yet and is under active development.
 ```
 
+- Allow execution of `pyupgrade` on non-Poetry-based projects.
+- Default `pyupgrade` parameter to `--py3-plus`.
 - Use auto-generated parameter for `mypy`'s minimal Python version.
-- Use external script to fetch poetry metadata as we cannot have reuseable workflows use reuseable workflows.
+- Deduplicate poetry metadata fetching by relying on external Python script, as we cannot have reuseable workflows use reuseable workflows.
 
 ## [1.7.1 (2022-08-05)](https://github.com/kdeldycke/workflows/compare/v1.7.0...v1.7.1)
 

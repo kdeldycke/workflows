@@ -84,27 +84,28 @@ if is_poetry_project:
     #   --python-version x.y
     mypy_param = f"--python-version {project_range.min.major}.{project_range.min.minor}"
 
-    # Generate pyupgrade parameter.
-    # Pyupgrade needs to be fed with one of these parameters:
-    #   --py3-plus
-    #   --py36-plus
-    #   --py37-plus
-    #   --py38-plus
-    #   --py39-plus
-    #   --py310-plus
-    #   --py311-plus
-    pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
-    min_version = Version(3)
-    # Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
-    # https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
-    if project_range.min.major < 3:
-        min_version = None
-    for version in pyupgrade_range:
-        if project_range.allows(version):
-            min_version = version
-            break
-    if min_version:
-        pyupgrade_param = f"--py{min_version.text.replace('.', '')}-plus"
+
+# Generate pyupgrade parameter.
+# Pyupgrade needs to be fed with one of these parameters:
+#   --py3-plus
+#   --py36-plus
+#   --py37-plus
+#   --py38-plus
+#   --py39-plus
+#   --py310-plus
+#   --py311-plus
+pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
+min_version = Version(3)
+# Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
+# https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
+if project_range.min.major < 3:
+    min_version = None
+for version in pyupgrade_range:
+    if project_range.allows(version):
+        min_version = version
+        break
+if min_version:
+    pyupgrade_param = f"--py{min_version.text.replace('.', '')}-plus"
 
 
 # Render some types into strings.
