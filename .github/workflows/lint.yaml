@@ -116,7 +116,7 @@ jobs:
           poetry install --no-interaction
       - name: Run Mypy
         run: |
-          mypy ${{ steps.python-metadata.outputs.mypy_params }} ${{ needs.python-metadata.outputs.python_files }}
+          mypy ${{ needs.python-metadata.outputs.mypy_params }} ${{ needs.python-metadata.outputs.python_files }}
 
   lint-python-doc:
     needs:
