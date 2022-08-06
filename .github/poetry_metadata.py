@@ -94,9 +94,11 @@ if is_poetry_project:
     #   --py310-plus
     #   --py311-plus
     pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
-    min_version = None
-    if project_range.min.major == 3:
-        min_version = Version(3)
+    min_version = Version(3)
+    # Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
+    # https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
+    if project_range.min.major < 3:
+        min_version = None
     for version in pyupgrade_range:
         if project_range.allows(version):
             min_version = version
