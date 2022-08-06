@@ -119,6 +119,8 @@ jobs:
           mypy ${{ steps.python-metadata.outputs.mypy_params }} ${{ needs.python-metadata.outputs.python_files }}
 
   lint-python-doc:
+    needs:
+      - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
     runs-on: ubuntu-20.04
