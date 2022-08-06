@@ -32,6 +32,7 @@ Automatic detection of minimal Python version is being discussed upstream for:
 - `pyupgrade` [rejected] at https://github.com/asottile/pyupgrade/issues/688
 """
 
+import ast
 import sys
 from pathlib import Path
 from typing import Any, Generator, Iterable, Optional
@@ -48,16 +49,17 @@ from poetry.core.semver import Version, VersionRange, parse_constraint  # type: 
 
 class PythonMetadata:
 
-    toml_path = Path("./pyproject.toml")
+    pyproject_path = Path() / "pyproject.toml"
+    sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
-        return PyProjectTOML(self.toml_path)
+        return PyProjectTOML(self.pyproject_path)
 
     @cached_property
     def is_poetry_project(self) -> bool:
         """Is the project relying on Poetry?"""
-        if self.toml_path.exists() and self.toml_path.is_file():
+        if self.pyproject_path.exists() and self.pyproject_path.is_file():
             return self.pyproject.is_poetry_project()
         return False
 
@@ -140,6 +142,30 @@ class PythonMetadata:
                     break
         return f"--py{min_version.text.replace('.', '')}-plus"
 
+    @cached_property
+    def is_sphinx(self) -> bool:
+        # The Sphinx config file is present, that's enought for us.
+        return self.sphinx_conf_path.exists() and self.sphinx_conf_path.is_file()
+
+    @cached_property
+    def active_autodoc(self) -> bool:
+        if self.is_sphinx:
+            # Look for list of active Sphinx extensions.
+            for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
+                if isinstance(node, ast.Assign) and isinstance(
+                    node.value, (ast.List, ast.Tuple)
+                ):
+                    extension_found = "extensions" in (t.id for t in node.targets)
+                    if extension_found:
+                        elements = (
+                            e.value
+                            for e in node.value.elts
+                            if isinstance(e, ast.Constant)
+                        )
+                        if "sphinx.ext.autodoc" in elements:
+                            return True
+        return False
+
     @staticmethod
     def format_github_value(value: Any) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
@@ -170,6 +196,8 @@ class PythonMetadata:
             "black_params": self.black_params,
             "mypy_params": self.mypy_param,
             "pyupgrade_params": self.pyupgrade_param,
+            "is_sphinx": self.is_sphinx,
+            "active_autodoc:": self.active_autodoc,
         }
         for name, value in metadata.items():
             value_string = self.format_github_value(value)

@@ -139,6 +139,8 @@ jobs:
     outputs:
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.python-metadata.outputs.package_name }}
+      is_sphinx: ${{ steps.python-metadata.outputs.is_sphinx }}
+      active_autodoc: ${{ steps.python-metadata.outputs.active_autodoc }}
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -203,46 +205,11 @@ jobs:
           labels: "📚 documentation"
           branch: update-deps-graph
 
-  is-sphinx:
-    name: Is doc Sphinx-based?
-    runs-on: ubuntu-20.04
-    outputs:
-      is_sphinx: ${{ steps.detection.outputs.is_sphinx }}
-      active_autodoc: ${{ steps.detection.outputs.active_autodoc }}
-    steps:
-      - uses: actions/checkout@v3.0.2
-      - id: detection
-        shell: python
-        run: |
-          import ast
-          from pathlib import Path
-
-          conf_path = Path() / "docs" / "conf.py"
-
-          if conf_path.exists() and conf_path.is_file():
-              # We found the Sphinx config file, that's enought for us.
-              print(f"::set-output name=is_sphinx::true")
-
-              # Look for list of active Sphinx extensions.
-              for node in ast.parse(conf_path.read_bytes()).body:
-                  if isinstance(node, ast.Assign) and isinstance(node.value, (ast.List, ast.Tuple)):
-                      extension_found = "extensions" in (t.id for t in node.targets)
-                      if extension_found:
-                          elements = [e.value for e in node.value.elts if isinstance(e, ast.Constant)]
-                          if "sphinx.ext.autodoc" in elements:
-                              print(f"::set-output name=active_autodoc::true")
-                          break
-      - name: Detection results
-        run: |
-          echo "Is doc Sphinx-based? ${{ steps.detection.outputs.is_sphinx && true || false }}"
-          echo "Is autodoc extension active? ${{ steps.detection.outputs.active_autodoc && true || false }}"
-
   update-autodoc:
     name: Update autodoc
     needs:
       - python-metadata
-      - is-sphinx
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && needs.is-sphinx.outputs.active_autodoc
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && fromJSON(needs.python-metadata.outputs.active_autodoc)
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -284,8 +251,7 @@ jobs:
     name: Deploy Sphinx doc
     needs:
       - python-metadata
-      - is-sphinx
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && needs.is-sphinx.outputs.is_sphinx
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && fromJSON(needs.python-metadata.outputs.is_sphinx)
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
