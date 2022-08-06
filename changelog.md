@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.7.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.7.2...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.7.3 (2022-08-06)](https://github.com/kdeldycke/workflows/compare/v1.7.2...v1.7.3)
 
 - Fix `mypy` parameters passing.
 
