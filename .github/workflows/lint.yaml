@@ -17,7 +17,7 @@ jobs:
 
   python-metadata:
     name: Python metadata
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       python_files: ${{ steps.python-metadata.outputs.python_files }}
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
@@ -46,7 +46,7 @@ jobs:
       - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -97,7 +97,7 @@ jobs:
       - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -124,7 +124,7 @@ jobs:
       - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -146,7 +146,7 @@ jobs:
   lint-yaml:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -164,7 +164,7 @@ jobs:
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - name: Install Zsh
@@ -177,7 +177,7 @@ jobs:
   lint-awesome:
     name: Lint Awesome list
     if: startsWith(github.event.repository.name, 'awesome-')
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
         with:
@@ -188,7 +188,7 @@ jobs:
           npx awesome-lint
 
   check-secrets:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
         with:

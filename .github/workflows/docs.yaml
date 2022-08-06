@@ -24,7 +24,7 @@ jobs:
 
   autofix-typo:
     name: Fix typos
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: sobolevn/misspell-fixer-action@0.1.0
@@ -52,7 +52,7 @@ jobs:
 
   optimize-images:
     name: Optimize images
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       # XXX calibreapp/image-actions has not been tagged for a while... :(
@@ -84,7 +84,7 @@ jobs:
 
   check-mailmap:
     name: Does .mailmap exist?
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
@@ -102,7 +102,7 @@ jobs:
       - check-mailmap
     # Only update mailmap if a file is found at the root of repository.
     if: needs.check-mailmap.outputs.exists
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
         with:
@@ -135,7 +135,7 @@ jobs:
 
   python-metadata:
     name: Python metadata
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.python-metadata.outputs.package_name }}
@@ -164,7 +164,7 @@ jobs:
     needs:
       - python-metadata
     if: needs.python-metadata.outputs.package_name
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -212,7 +212,7 @@ jobs:
     if: >
       fromJSON(needs.python-metadata.outputs.is_poetry_project)
       && fromJSON(needs.python-metadata.outputs.active_autodoc)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -254,7 +254,7 @@ jobs:
     needs:
       - python-metadata
     if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && fromJSON(needs.python-metadata.outputs.is_sphinx)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0

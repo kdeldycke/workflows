@@ -24,7 +24,7 @@ jobs:
     # This job is not time-sensitive: do not let it to be triggered by schedule event.
     # Also skip release commits (during which bumpversion cannot find "unreleased" string in changelog.md).
     if: github.event_name != 'schedule' && !startsWith(github.event.head_commit.message, '[changelog] Release v')
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         part:
@@ -96,7 +96,7 @@ jobs:
   prepare-release:
     # TODO: add complex time-based trigger condition to only update the changelog once a day on main branch activity to
     # keep the release date in sync.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0

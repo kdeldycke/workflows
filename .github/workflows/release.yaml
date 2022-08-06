@@ -20,7 +20,7 @@ jobs:
 
   commit-matrix:
     name: List new and releases commits
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
         # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins.
         # See: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626
@@ -106,7 +106,7 @@ jobs:
 
   python-metadata:
     name: Python metadata
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.python-metadata.outputs.package_name }}
@@ -136,7 +136,7 @@ jobs:
     if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix) }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Print target commit
         run: |
@@ -180,7 +180,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && needs.commit-matrix.outputs.release_commits_matrix
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
@@ -224,7 +224,7 @@ jobs:
     if: needs.python-metadata.outputs.package_name
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       release_text: ${{ steps.generate_text.outputs.release_text }}
     steps:
@@ -256,7 +256,7 @@ jobs:
     if: always() && needs.git-tag.result == 'success'
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Download build artifacts
         # Do not try to fetch build artifacts if the publishing step has been skipped.
