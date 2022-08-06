@@ -34,7 +34,7 @@ Automatic detection of minimal Python version is being discussed upstream for:
 
 import sys
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Generator, Iterable, Optional
 
 if sys.version_info >= (3, 8):
     from functools import cached_property
@@ -78,7 +78,7 @@ class PoetryMetadata:
         return None
 
     @cached_property
-    def black_params(self) -> list[str]:
+    def black_params(self) -> Generator:
         """Generates `black` parameters.
 
         Black should be fed with a subset of these parameters:
