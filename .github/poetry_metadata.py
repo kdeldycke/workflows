@@ -32,96 +32,131 @@ Automatic detection of minimal Python version is being discussed upstream for:
 - `pyupgrade` [rejected] at https://github.com/asottile/pyupgrade/issues/688
 """
 
+import sys
 from pathlib import Path
+from typing import Optional
+
+if sys.version_info >= (3, 8):
+    from functools import cached_property
+else:
+    cached_property = property
+
 
 from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
-from poetry.core.semver import Version, parse_constraint  # type: ignore
-
-# Is the project relying on Poetry?
-is_poetry_project: bool = False
-toml_path = Path("./pyproject.toml")
-if toml_path.exists() and toml_path.is_file():
-    pyproject = PyProjectTOML(toml_path)
-    is_poetry_project = pyproject.is_poetry_project()
+from poetry.core.semver import Version, VersionRange, parse_constraint  # type: ignore
 
 
-# Get package name and Python version support range.
-package_name: str = ""
-project_range = None
-if is_poetry_project:
-    package_name = pyproject.poetry_config["name"]
-    project_range = parse_constraint(pyproject.poetry_config["dependencies"]["python"])
+class PoetryMetadata:
+
+    toml_path = Path("./pyproject.toml")
+
+    @cached_property
+    def pyproject(self) -> PyProjectTOML:
+        return PyProjectTOML(self.toml_path)
+
+    @cached_property
+    def is_poetry_project(self) -> bool:
+        """Is the project relying on Poetry?"""
+        if self.toml_path.exists() and self.toml_path.is_file():
+            return self.pyproject.is_poetry_project()
+        return False
+
+    @cached_property
+    def package_name(self) -> Optional[str]:
+        """Returns package name as published on PyPi."""
+        if self.is_poetry_project:
+            return self.pyproject.poetry_config["name"]
+        return None
+
+    @cached_property
+    def project_range(self) -> Optional[VersionRange]:
+        """Returns Python version support range."""
+        if self.is_poetry_project:
+            return parse_constraint(
+                self.pyproject.poetry_config["dependencies"]["python"]
+            )
+        return None
+
+    @cached_property
+    def black_params(self) -> list[str]:
+        """Generates `black` parameters.
+
+        Black should be fed with a subset of these parameters:
+        - `--target-version py33`
+        - `--target-version py34`
+        - `--target-version py35`
+        - `--target-version py36`
+        - `--target-version py37`
+        - `--target-version py38`
+        - `--target-version py39`
+        - `--target-version py310`
+        - `--target-version py311`
+
+        `You should include all Python versions that you want your code to run under.`,
+        as per: https://github.com/psf/black/issues/751
+        """
+        if self.project_range:
+            black_range = (Version(3, minor) for minor in range(3, 11 + 1))
+            for version in black_range:
+                if self.project_range.allows(version):
+                    yield f"--target-version py{version.text.replace('.', '')}"
+
+    @cached_property
+    def mypy_param(self) -> Optional[str]:
+        """Generates `mypy` parameter.
+
+        Mypy needs to be fed with this parameter: `--python-version x.y`.
+        """
+        if self.project_range:
+            return f"--python-version {self.project_range.min.major}.{self.project_range.min.minor}"
+        return None
+
+    @cached_property
+    def pyupgrade_param(self) -> str:
+        """Generates `pyupgrade` parameter.
+
+        Pyupgrade needs to be fed with one of these parameters:
+        - `--py3-plus`
+        - `--py36-plus`
+        - `--py37-plus`
+        - `--py38-plus`
+        - `--py39-plus`
+        - `--py310-plus`
+        - `--py311-plus`
+
+        Defaults to `--py3-plus`.
+
+        """
+        pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
+        min_version = Version(3)
+        if self.project_range:
+            # XXX Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
+            # https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
+            if self.project_range.min.major < 3:
+                min_version = None
+            for version in pyupgrade_range:
+                if self.project_range.allows(version):
+                    min_version = version
+                    break
+        return f"--py{min_version.text.replace('.', '')}-plus"
 
 
-# Generate black parameters.
-black_params: list[str] = []
-if project_range:
-    # Black should be fed with a subset of these parameters:
-    #   --target-version py33
-    #   --target-version py34
-    #   --target-version py35
-    #   --target-version py36
-    #   --target-version py37
-    #   --target-version py38
-    #   --target-version py39
-    #   --target-version py310
-    #   --target-version py311
-    black_range = (Version(3, minor) for minor in range(3, 11 + 1))
-    # "You should include all Python versions that you want your code to run under.",
-    # as per: https://github.com/psf/black/issues/751
-    for version in black_range:
-        if project_range.allows(version):
-            black_params.append(f"--target-version py{version.text.replace('.', '')}")
-
-
-# Generate mypy parameter.
-mypy_param: str = ""
-if project_range:
-    # Mypy needs to be fed with this parameter:
-    #   --python-version x.y
-    mypy_param = f"--python-version {project_range.min.major}.{project_range.min.minor}"
-
-
-# Generate pyupgrade parameter.
-pyupgrade_param: str = ""
-# Pyupgrade needs to be fed with one of these parameters:
-#   --py3-plus
-#   --py36-plus
-#   --py37-plus
-#   --py38-plus
-#   --py39-plus
-#   --py310-plus
-#   --py311-plus
-pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
-# Defaults to --py3-plus.
-min_version = Version(3)
-if project_range:
-    # Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
-    # https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
-    if project_range.min.major < 3:
-        min_version = None
-    for version in pyupgrade_range:
-        if project_range.allows(version):
-            min_version = version
-            break
-if min_version:
-    pyupgrade_param = f"--py{min_version.text.replace('.', '')}-plus"
-
+metadata = PoetryMetadata()
 
 # Render some types into strings.
-is_poetry_project_str = str(is_poetry_project).lower()
-black_params_str = " ".join(black_params)
+is_poetry_project_str = str(metadata.is_poetry_project).lower()
+black_params_str = " ".join(metadata.black_params)
 
 # Output metadata with GitHub syntax.
 print(f"::set-output name=is_poetry_project::{is_poetry_project_str}")
-print(f"::set-output name=package_name::{package_name}")
+print(f"::set-output name=package_name::{metadata.package_name}")
 print(f"::set-output name=black_params::{black_params_str}")
-print(f"::set-output name=mypy_params::{mypy_param}")
-print(f"::set-output name=pyupgrade_params::{pyupgrade_param}")
+print(f"::set-output name=mypy_params::{metadata.mypy_param}")
+print(f"::set-output name=pyupgrade_params::{metadata.pyupgrade_param}")
 
 # Print summary for debug.
 print(f"Is project poetry-based? {is_poetry_project_str}")
-print(f"Package name: {package_name}")
+print(f"Package name: {metadata.package_name}")
 print(f"Black parameters: {black_params_str}")
-print(f"Mypy parameters: {mypy_param}")
-print(f"Pyupgrade parameters: {pyupgrade_param}")
+print(f"Mypy parameters: {metadata.mypy_param}")
+print(f"Pyupgrade parameters: {metadata.pyupgrade_param}")
