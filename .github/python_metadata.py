@@ -53,7 +53,7 @@ class PythonMetadata:
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
-    def python_files(self) -> list[str]:
+    def python_files(self) -> Generator[str, None, None]:
         yield from map(str, Path().glob("**/*.py"))
 
     @cached_property
@@ -84,7 +84,7 @@ class PythonMetadata:
         return None
 
     @cached_property
-    def black_params(self) -> Generator:
+    def black_params(self) -> Generator[str, None, None]:
         """Generates `black` parameters.
 
         Black should be fed with a subset of these parameters:
@@ -159,7 +159,7 @@ class PythonMetadata:
                 if isinstance(node, ast.Assign) and isinstance(
                     node.value, (ast.List, ast.Tuple)
                 ):
-                    extension_found = "extensions" in (t.id for t in node.targets)
+                    extension_found = "extensions" in (t.id for t in node.targets)  # type: ignore
                     if extension_found:
                         elements = (
                             e.value
