@@ -202,7 +202,7 @@ class PythonMetadata:
             "mypy_params": self.mypy_param,
             "pyupgrade_params": self.pyupgrade_param,
             "is_sphinx": self.is_sphinx,
-            "active_autodoc:": self.active_autodoc,
+            "active_autodoc": self.active_autodoc,
         }
         for name, value in metadata.items():
             value_string = self.format_github_value(value)
