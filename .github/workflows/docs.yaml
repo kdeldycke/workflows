@@ -160,7 +160,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/python_metadata.py)"
 
   update-deps-graph:
-    name: Update dependency image and create a PR
+    name: Update dependency graph
     needs:
       - python-metadata
     if: needs.python-metadata.outputs.package_name
