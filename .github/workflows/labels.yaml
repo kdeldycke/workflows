@@ -31,7 +31,7 @@ jobs:
         with:
           skip_delete: true
           from: |
-            https://raw.githubusercontent.com/kdeldycke/workflows/v1.7.2/.github/labels.yaml
+            https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.yaml
             ${{ inputs.extra-label-files }}
             ${{ startsWith(github.event.repository.name, 'awesome-') &&
-            'https://raw.githubusercontent.com/kdeldycke/workflows/v1.7.2/.github/labels-awesome.yaml' || '' }}
+            'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels-awesome.yaml' || '' }}
