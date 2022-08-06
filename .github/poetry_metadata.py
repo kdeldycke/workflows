@@ -34,7 +34,7 @@ Automatic detection of minimal Python version is being discussed upstream for:
 
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Iterable, Optional
 
 if sys.version_info >= (3, 8):
     from functools import cached_property
@@ -140,23 +140,44 @@ class PoetryMetadata:
                     break
         return f"--py{min_version.text.replace('.', '')}-plus"
 
+    @staticmethod
+    def format_github_value(value: Any) -> str:
+        """Transform Python value to GitHub-friendly, JSON-like, console string.
 
-metadata = PoetryMetadata()
+        Renders:
+        - `str` as-is
+        - `None` into emptry string
+        - `bool` into lower-cased string
+        - `Iterable` of strings into space-separated string
+        """
+        if not isinstance(value, str):
+            if value is None:
+                value = ""
+            elif isinstance(value, bool):
+                value = str(value).lower()
+            elif isinstance(value, Iterable):
+                value = " ".join(value)
+        return value
 
-# Render some types into strings.
-is_poetry_project_str = str(metadata.is_poetry_project).lower()
-black_params_str = " ".join(metadata.black_params)
+    @staticmethod
+    def format_github_output(name: str, value: str) -> str:
+        return f"::set-output name={name}::{value}"
+
+    def print_metadata_github_output(self, debug=True):
+        metadata = {
+            "is_poetry_project": self.is_poetry_project,
+            "package_name": self.package_name,
+            "black_params": self.black_params,
+            "mypy_params": self.mypy_param,
+            "pyupgrade_params": self.pyupgrade_param,
+        }
+        for name, value in metadata.items():
+            value_string = self.format_github_value(value)
+            print(self.format_github_output(name, value_string))
+            if debug:
+                print(f"{name} = {value_string}")
+
 
 # Output metadata with GitHub syntax.
-print(f"::set-output name=is_poetry_project::{is_poetry_project_str}")
-print(f"::set-output name=package_name::{metadata.package_name}")
-print(f"::set-output name=black_params::{black_params_str}")
-print(f"::set-output name=mypy_params::{metadata.mypy_param}")
-print(f"::set-output name=pyupgrade_params::{metadata.pyupgrade_param}")
-
-# Print summary for debug.
-print(f"Is project poetry-based? {is_poetry_project_str}")
-print(f"Package name: {metadata.package_name}")
-print(f"Black parameters: {black_params_str}")
-print(f"Mypy parameters: {metadata.mypy_param}")
-print(f"Pyupgrade parameters: {metadata.pyupgrade_param}")
+metadata = PoetryMetadata()
+metadata.print_metadata_github_output()
