@@ -53,7 +53,7 @@ jobs:
     name: Modernize Python
     needs:
       - poetry-metadata
-    if: needs.poetry-metadata.outputs.pyupgrade_params
+    if: needs.poetry-metadata.steps.poetry-metadata.pyupgrade_params
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -70,7 +70,7 @@ jobs:
       - name: Run pyupgrade
         run: >
           find ./ -type f -name '*.py' -print -exec
-          pyupgrade ${{ needs.poetry-metadata.outputs.pyupgrade_params }} "{}" \;
+          pyupgrade ${{ needs.poetry-metadata.steps.poetry-metadata.pyupgrade_params }} "{}" \;
       - uses: peter-evans/create-pull-request@v4.0.4
         with:
           assignees: ${{ github.actor }}
