@@ -19,6 +19,7 @@ jobs:
     name: Python metadata
     runs-on: ubuntu-20.04
     outputs:
+      python_files: ${{ steps.python-metadata.outputs.python_files }}
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.python-metadata.outputs.package_name }}
     steps:
@@ -43,7 +44,7 @@ jobs:
     needs:
       - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release'
+    if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -94,7 +95,7 @@ jobs:
     needs:
       - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release'
+    if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -113,24 +114,13 @@ jobs:
         if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
         run: |
           poetry install --no-interaction
-      - name: '*.py files found?'
-        # XXX We couldn't use hashFiles() method as the later seems to be broken:
-        # https://github.com/actions/runner/issues/449
-        # https://github.com/actions/cache/issues/753
-        # https://github.com/actions/toolkit/pull/1015
-        uses: tj-actions/glob@v9.2
-        id: glob
-        with:
-          files: |
-            **/**.py
       - name: Run Mypy
-        if: steps.glob.outputs.paths
         run: |
-          mypy ${{ steps.python-metadata.outputs.mypy_params }} $(git ls-files '*.py')
+          mypy ${{ steps.python-metadata.outputs.mypy_params }} ${{ needs.python-metadata.outputs.python_files }}
 
   lint-python-doc:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release'
+    if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2

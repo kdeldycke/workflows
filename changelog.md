@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Skip Python-specific jobs early if no Python files found in repository.
 - Allow execution of `pyupgrade` on non-Poetry-based projects.
 - Default `pyupgrade` parameter to `--py3-plus`.
 - Use auto-generated parameter for `mypy`'s minimal Python version.

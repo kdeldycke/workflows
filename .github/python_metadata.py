@@ -53,6 +53,10 @@ class PythonMetadata:
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
+    def python_files(self) -> list[str]:
+        yield from map(str, Path().glob("**/*.py"))
+
+    @cached_property
     def pyproject(self) -> PyProjectTOML:
         return PyProjectTOML(self.pyproject_path)
 
@@ -191,6 +195,7 @@ class PythonMetadata:
 
     def print_metadata_github_output(self, debug=True):
         metadata = {
+            "python_files": self.python_files,
             "is_poetry_project": self.is_poetry_project,
             "package_name": self.package_name,
             "black_params": self.black_params,

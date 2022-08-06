@@ -28,6 +28,7 @@ jobs:
     name: Python metadata
     runs-on: ubuntu-20.04
     outputs:
+      python_files: ${{ steps.python-metadata.outputs.python_files }}
       black_params: ${{ steps.python-metadata.outputs.black_params }}
       pyupgrade_params: ${{ steps.python-metadata.outputs.pyupgrade_params }}
     steps:
@@ -52,7 +53,7 @@ jobs:
     name: Modernize Python
     needs:
       - python-metadata
-    if: needs.python-metadata.outputs.pyupgrade_params
+    if: needs.python-metadata.outputs.python_files && needs.python-metadata.outputs.pyupgrade_params
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -67,9 +68,8 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run pyupgrade
-        run: >
-          find ./ -type f -name '*.py' -print -exec
-          pyupgrade ${{ needs.python-metadata.outputs.pyupgrade_params }} "{}" \;
+        run: |
+          pyupgrade ${{ needs.python-metadata.outputs.pyupgrade_params }} ${{ needs.python-metadata.outputs.python_files }}
       - uses: peter-evans/create-pull-request@v4.0.4
         with:
           assignees: ${{ github.actor }}
@@ -92,6 +92,7 @@ jobs:
     name: Format Python
     needs:
       - python-metadata
+    if: needs.python-metadata.outputs.python_files
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
