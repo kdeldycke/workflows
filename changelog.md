@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.7.2...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.7.2 (2022-08-06)](https://github.com/kdeldycke/workflows/compare/v1.7.1...v1.7.2)
 
 - Skip Python-specific jobs early if no Python files found in repository.
