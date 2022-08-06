@@ -209,7 +209,9 @@ jobs:
     name: Update autodoc
     needs:
       - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && fromJSON(needs.python-metadata.outputs.active_autodoc)
+    if: >
+      fromJSON(needs.python-metadata.outputs.is_poetry_project)
+      && fromJSON(needs.python-metadata.outputs.active_autodoc)
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2

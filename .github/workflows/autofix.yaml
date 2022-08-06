@@ -68,8 +68,9 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run pyupgrade
-        run: |
-          pyupgrade ${{ needs.python-metadata.outputs.pyupgrade_params }} ${{ needs.python-metadata.outputs.python_files }}
+        run: >
+          pyupgrade ${{ needs.python-metadata.outputs.pyupgrade_params }}
+          ${{ needs.python-metadata.outputs.python_files }}
       - uses: peter-evans/create-pull-request@v4.0.4
         with:
           assignees: ${{ github.actor }}
