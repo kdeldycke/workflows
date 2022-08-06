@@ -133,12 +133,12 @@ jobs:
           labels: "📚 documentation"
           branch: update-mailmap
 
-  poetry-metadata:
-    name: Poetry metadata
+  python-metadata:
+    name: Python metadata
     runs-on: ubuntu-20.04
     outputs:
-      is_poetry_project: ${{ steps.poetry-metadata.outputs.is_poetry_project }}
-      package_name: ${{ steps.poetry-metadata.outputs.package_name }}
+      is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
+      package_name: ${{ steps.python-metadata.outputs.package_name }}
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -151,17 +151,17 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Poetry metadata
-        id: poetry-metadata
+      - name: Python metadata
+        id: python-metadata
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/poetry_metadata.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/python_metadata.py)"
 
   update-deps-graph:
     name: Update dependency image and create a PR
     needs:
-      - poetry-metadata
-    if: needs.poetry-metadata.outputs.package_name
+      - python-metadata
+    if: needs.python-metadata.outputs.package_name
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -181,7 +181,7 @@ jobs:
       - name: Run pipdeptree
         run: >
           pipdeptree
-          --packages ${{ needs.poetry-metadata.outputs.package_name }}
+          --packages ${{ needs.python-metadata.outputs.package_name }}
           --graph-output png > ${{ inputs.dependency-graph-output || './docs/images/dependencies.png' }}
       - uses: peter-evans/create-pull-request@v4.0.4
         # Only triggers on version tagging.
@@ -240,9 +240,9 @@ jobs:
   update-autodoc:
     name: Update autodoc
     needs:
-      - poetry-metadata
+      - python-metadata
       - is-sphinx
-    if: fromJSON(needs.poetry-metadata.outputs.is_poetry_project) && needs.is-sphinx.outputs.active_autodoc
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && needs.is-sphinx.outputs.active_autodoc
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -283,9 +283,9 @@ jobs:
   deploy-docs:
     name: Deploy Sphinx doc
     needs:
-      - poetry-metadata
+      - python-metadata
       - is-sphinx
-    if: fromJSON(needs.poetry-metadata.outputs.is_poetry_project) && needs.is-sphinx.outputs.is_sphinx
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && needs.is-sphinx.outputs.is_sphinx
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2

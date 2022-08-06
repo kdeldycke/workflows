@@ -15,12 +15,12 @@ concurrency:
 
 jobs:
 
-  poetry-metadata:
-    name: Poetry metadata
+  python-metadata:
+    name: Python metadata
     runs-on: ubuntu-20.04
     outputs:
-      is_poetry_project: ${{ steps.poetry-metadata.outputs.is_poetry_project }}
-      package_name: ${{ steps.poetry-metadata.outputs.package_name }}
+      is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
+      package_name: ${{ steps.python-metadata.outputs.package_name }}
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -33,15 +33,15 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Poetry metadata
-        id: poetry-metadata
+      - name: Python metadata
+        id: python-metadata
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/poetry_metadata.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/python_metadata.py)"
 
   lint-python:
     needs:
-      - poetry-metadata
+      - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-20.04
@@ -59,7 +59,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can avoid importing errors in Pylint reports.
-        if: fromJSON(needs.poetry-metadata.outputs.is_poetry_project)
+        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
         run: |
           # Allows our Pylint version to access project's dependencies.
           poetry config virtualenvs.create false
@@ -92,7 +92,7 @@ jobs:
 
   lint-python-types:
     needs:
-      - poetry-metadata
+      - python-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-20.04
@@ -110,7 +110,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can benefits from dependencies on typing stubs.
-        if: fromJSON(needs.poetry-metadata.outputs.is_poetry_project)
+        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
         run: |
           poetry install --no-interaction
       - name: '*.py files found?'
@@ -126,7 +126,7 @@ jobs:
       - name: Run Mypy
         if: steps.glob.outputs.paths
         run: |
-          mypy ${{ steps.poetry-metadata.outputs.mypy_params }} $(git ls-files '*.py')
+          mypy ${{ steps.python-metadata.outputs.mypy_params }} $(git ls-files '*.py')
 
   lint-python-doc:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.

@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Extract some Poetry metadata to be used by GitHub workflows.
+"""Extract some metadata from Python projects to be used by GitHub workflows.
 
 Prints:
 ```text
@@ -46,7 +46,7 @@ from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
 from poetry.core.semver import Version, VersionRange, parse_constraint  # type: ignore
 
 
-class PoetryMetadata:
+class PythonMetadata:
 
     toml_path = Path("./pyproject.toml")
 
@@ -179,5 +179,5 @@ class PoetryMetadata:
 
 
 # Output metadata with GitHub syntax.
-metadata = PoetryMetadata()
+metadata = PythonMetadata()
 metadata.print_metadata_github_output()

@@ -104,12 +104,12 @@ jobs:
           echo '${{ steps.release_commits_matrix.outputs.matrix }}'
           jq -aR <<< echo '${{ steps.release_commits_matrix.outputs.matrix }}'
 
-  poetry-metadata:
-    name: Poetry metadata
+  python-metadata:
+    name: Python metadata
     runs-on: ubuntu-20.04
     outputs:
-      is_poetry_project: ${{ steps.poetry-metadata.outputs.is_poetry_project }}
-      package_name: ${{ steps.poetry-metadata.outputs.package_name }}
+      is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
+      package_name: ${{ steps.python-metadata.outputs.package_name }}
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
@@ -122,18 +122,18 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Poetry metadata
-        id: poetry-metadata
+      - name: Python metadata
+        id: python-metadata
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/poetry_metadata.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/python_metadata.py)"
 
   poetry-build:
     name: "Poetry: build & check package"
     needs:
       - commit-matrix
-      - poetry-metadata
-    if: fromJSON(needs.poetry-metadata.outputs.is_poetry_project)
+      - python-metadata
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix) }}
     runs-on: ubuntu-20.04
@@ -218,10 +218,10 @@ jobs:
     name: Publish to PyPi
     needs:
       - commit-matrix
-      - poetry-metadata
+      - python-metadata
       - poetry-build
       - git-tag
-    if: needs.poetry-metadata.outputs.package_name
+    if: needs.python-metadata.outputs.package_name
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-20.04
@@ -243,7 +243,7 @@ jobs:
         id: generate_text
         run: >
           echo "::set-output name=release_text::[🐍
-          Available on PyPi](https://pypi.org/project/${{ needs.poetry-metadata.outputs.package_name }}/${{
+          Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
           needs.git-tag.outputs.tagged_version }})"
 
   github-release:
