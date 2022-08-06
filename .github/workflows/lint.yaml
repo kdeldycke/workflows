@@ -22,6 +22,7 @@ jobs:
       python_files: ${{ steps.python-metadata.outputs.python_files }}
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.python-metadata.outputs.package_name }}
+      mypy_params: ${{ steps.python-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-python@v4.2.0
