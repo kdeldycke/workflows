@@ -28,7 +28,6 @@ jobs:
     name: Poetry metadata
     runs-on: ubuntu-20.04
     outputs:
-      is_poetry_project: ${{ steps.poetry-metadata.outputs.is_poetry_project }}
       black_params: ${{ steps.poetry-metadata.outputs.black_params }}
       pyupgrade_params: ${{ steps.poetry-metadata.outputs.pyupgrade_params }}
     steps:

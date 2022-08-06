@@ -161,7 +161,7 @@ jobs:
     name: Update dependency image and create a PR
     needs:
       - poetry-metadata
-    if: fromJSON(needs.poetry-metadata.outputs.is_poetry_project) && needs.poetry-metadata.outputs.package_name
+    if: needs.poetry-metadata.outputs.package_name
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2

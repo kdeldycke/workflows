@@ -221,6 +221,7 @@ jobs:
       - poetry-metadata
       - poetry-build
       - git-tag
+    if: needs.poetry-metadata.outputs.package_name
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-20.04
