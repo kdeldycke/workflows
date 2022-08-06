@@ -37,30 +37,25 @@ from pathlib import Path
 from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
 from poetry.core.semver import Version, parse_constraint  # type: ignore
 
-# Initialize output values.
-is_poetry_project: bool = False
-package_name: str = ""
-black_params: list[str] = []
-mypy_param: str = ""
-pyupgrade_param: str = ""
-
-
 # Is the project relying on Poetry?
+is_poetry_project: bool = False
 toml_path = Path("./pyproject.toml")
 if toml_path.exists() and toml_path.is_file():
     pyproject = PyProjectTOML(toml_path)
     is_poetry_project = pyproject.is_poetry_project()
 
 
+# Get package name and Python version support range.
+package_name: str = ""
+project_range = None
 if is_poetry_project:
-
-    # Get package name.
     package_name = pyproject.poetry_config["name"]
-
-    # Extract Python version support range.
     project_range = parse_constraint(pyproject.poetry_config["dependencies"]["python"])
 
-    # Generate black parameters.
+
+# Generate black parameters.
+black_params: list[str] = []
+if project_range:
     # Black should be fed with a subset of these parameters:
     #   --target-version py33
     #   --target-version py34
@@ -74,18 +69,21 @@ if is_poetry_project:
     black_range = (Version(3, minor) for minor in range(3, 11 + 1))
     # "You should include all Python versions that you want your code to run under.",
     # as per: https://github.com/psf/black/issues/751
-    black_params = []
     for version in black_range:
         if project_range.allows(version):
             black_params.append(f"--target-version py{version.text.replace('.', '')}")
 
-    # Generate mypy parameter.
+
+# Generate mypy parameter.
+mypy_param: str = ""
+if project_range:
     # Mypy needs to be fed with this parameter:
     #   --python-version x.y
     mypy_param = f"--python-version {project_range.min.major}.{project_range.min.minor}"
 
 
 # Generate pyupgrade parameter.
+pyupgrade_param: str = ""
 # Pyupgrade needs to be fed with one of these parameters:
 #   --py3-plus
 #   --py36-plus
@@ -95,15 +93,17 @@ if is_poetry_project:
 #   --py310-plus
 #   --py311-plus
 pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
+# Defaults to --py3-plus.
 min_version = Version(3)
-# Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
-# https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
-if project_range.min.major < 3:
-    min_version = None
-for version in pyupgrade_range:
-    if project_range.allows(version):
-        min_version = version
-        break
+if project_range:
+    # Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
+    # https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
+    if project_range.min.major < 3:
+        min_version = None
+    for version in pyupgrade_range:
+        if project_range.allows(version):
+            min_version = version
+            break
 if min_version:
     pyupgrade_param = f"--py{min_version.text.replace('.', '')}-plus"
 
