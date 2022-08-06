@@ -19,11 +19,14 @@
 
 Prints:
 ```text
+::set-output name=python_files::.github/update_mailmap.py .github/update_changelog.py .github/python_metadata.py
 ::set-output name=is_poetry_project::true
 ::set-output name=package_name::click-extra
 ::set-output name=black_params::--target-version py37 --target-version py38
 ::set-output name=mypy_params::--python-version 3.7
 ::set-output name=pyupgrade_params::--py37-plus
+::set-output name=is_sphinx::true
+::set-output name=active_autodoc::true
 ```
 
 Automatic detection of minimal Python version is being discussed upstream for:
