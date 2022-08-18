@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.2
       # XXX calibreapp/image-actions has not been tagged for a while... :(
-      - uses: calibreapp/image-actions@a6fb564733713b0120e56887426c4f5cb8fcbe69
+      - uses: calibreapp/image-actions@737ceeaeed61e17b8d358358a303f1b8d177b779
         id: image_actions
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
