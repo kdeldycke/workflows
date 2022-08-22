@@ -55,8 +55,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
-      # XXX calibreapp/image-actions has not been tagged for a while... :(
-      - uses: calibreapp/image-actions@a6fb564733713b0120e56887426c4f5cb8fcbe69
+      - uses: calibreapp/image-actions@1.1.0
         id: image_actions
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
