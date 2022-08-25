@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Use stable release of `calibreapp/image-actions`.
+
 ## [1.7.4 (2022-08-06)](https://github.com/kdeldycke/workflows/compare/v1.7.3...v1.7.4)
 
 - Fix `mypy` parameters passing.
