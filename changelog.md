@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.7.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.7.4...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.7.5 (2022-08-25)](https://github.com/kdeldycke/workflows/compare/v1.7.4...v1.7.5)
 
 - Use stable release of `calibreapp/image-actions`.
 
