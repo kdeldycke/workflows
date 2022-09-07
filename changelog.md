@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - In Python project metadata fetcher, double-quote file list's items to allow use of path with spaces in workflows.
+- Ignore broken symlinks pointing to non-existing files in Python metadata fetcher.
 
 ## [1.7.5 (2022-08-25)](https://github.com/kdeldycke/workflows/compare/v1.7.4...v1.7.5)
 

@@ -57,7 +57,8 @@ class PythonMetadata:
 
     @cached_property
     def python_files(self) -> Generator[str, None, None]:
-        yield from map(str, Path().glob("**/*.py"))
+        # is_file() return False if the path doesn’t exist or is a broken symlink.
+        yield from (str(p) for p in Path().glob("**/*.py") if p.is_file())
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
