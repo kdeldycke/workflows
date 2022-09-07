@@ -47,7 +47,8 @@ else:
 
 
 from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
-from poetry.core.semver import Version, VersionRange, parse_constraint  # type: ignore
+from poetry.core.semver.helpers import parse_constraint  # type: ignore
+from poetry.core.semver.version_range import VersionRange  # type: ignore
 
 
 class PythonMetadata:
