@@ -19,7 +19,7 @@
 
 Prints:
 ```text
-::set-output name=python_files::.github/update_mailmap.py .github/update_changelog.py .github/python_metadata.py
+::set-output name=python_files::".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
 ::set-output name=is_poetry_project::true
 ::set-output name=package_name::click-extra
 ::set-output name=black_params::--target-version py37 --target-version py38
@@ -181,7 +181,7 @@ class PythonMetadata:
         - `str` as-is
         - `None` into emptry string
         - `bool` into lower-cased string
-        - `Iterable` of strings into space-separated string
+        - `Iterable` of strings into a serialized string whose items are space-separated and double-quoted
         """
         if not isinstance(value, str):
             if value is None:
@@ -189,7 +189,7 @@ class PythonMetadata:
             elif isinstance(value, bool):
                 value = str(value).lower()
             elif isinstance(value, Iterable):
-                value = " ".join(value)
+                value = " ".join(f'"{item}"' for item in value)
         return value
 
     @staticmethod
