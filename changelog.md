@@ -6,8 +6,11 @@
 This version is not released yet and is under active development.
 ```
 
+- Upgrade to `poetry` 1.2.0.
+- Allow dependency graph to be continuously updated. Closes [`#176`](https://github.com/kdeldycke/workflows/issues/176).
 - In Python project metadata fetcher, double-quote file list's items to allow use of path with spaces in workflows.
 - Ignore broken symlinks pointing to non-existing files in Python metadata fetcher.
+- Fix default `pyupgrade` option produced by new Poetry.
 
 ## [1.7.5 (2022-08-25)](https://github.com/kdeldycke/workflows/compare/v1.7.4...v1.7.5)
 
