@@ -137,7 +137,6 @@ class PythonMetadata:
         - `--py311-plus`
 
         Defaults to `--py3-plus`.
-
         """
         pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
         min_version = Version(3)
@@ -150,7 +149,8 @@ class PythonMetadata:
                 if self.project_range.allows(version):
                     min_version = version
                     break
-        return f"--py{min_version.text.replace('.', '')}-plus"
+        # "Version(3).text" returns "3!0".
+        return f"--py{min_version.text.split('!', 1)[0].replace('.', '')}-plus"
 
     @cached_property
     def is_sphinx(self) -> bool:
