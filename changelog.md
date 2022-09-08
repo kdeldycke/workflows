@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.8.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.7.5...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.8.0 (2022-09-08)](https://github.com/kdeldycke/workflows/compare/v1.7.5...v1.8.0)
 
 - Upgrade to `poetry` 1.2.0.
 - Allow dependency graph to be continuously updated. Closes [`#176`](https://github.com/kdeldycke/workflows/issues/176).
