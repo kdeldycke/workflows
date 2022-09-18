@@ -69,7 +69,9 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run pyupgrade
         run: >
-          pyupgrade ${{ needs.python-metadata.outputs.pyupgrade_params }}
+          pyupgrade
+          --exit-zero-even-if-changed
+          ${{ needs.python-metadata.outputs.pyupgrade_params }}
           ${{ needs.python-metadata.outputs.python_files }}
       - uses: peter-evans/create-pull-request@v4.1.1
         with:

@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix workflow continuation on successful `pyupgrade` run.
+
 ## [1.8.1 (2022-09-18)](https://github.com/kdeldycke/workflows/compare/v1.8.0...v1.8.1)
 
 - Fix version setup in Python metadata script.
