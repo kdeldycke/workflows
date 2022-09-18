@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.8.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.1...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.8.2 (2022-09-18)](https://github.com/kdeldycke/workflows/compare/v1.8.1...v1.8.2)
 
 - Fix workflow continuation on successful `pyupgrade` run.
 - Fix quoting of CLI parameters fed to `black`.

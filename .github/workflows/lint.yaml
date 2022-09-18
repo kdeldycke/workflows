@@ -34,12 +34,12 @@ jobs:
       - name: Install Poetry
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v1.8.2/requirements.txt
       - name: Python metadata
         id: python-metadata
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/python_metadata.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/v1.8.2/.github/python_metadata.py)"
 
   lint-python:
     needs:
@@ -58,7 +58,7 @@ jobs:
       - name: Install Poetry and Pylint
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v1.8.2/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can avoid importing errors in Pylint reports.
         if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
@@ -109,7 +109,7 @@ jobs:
       - name: Install Poetry and Mypy
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v1.8.2/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can benefits from dependencies on typing stubs.
         if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
@@ -136,7 +136,7 @@ jobs:
       - name: Install pydocstyle
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v1.8.2/requirements.txt
       - name: Run pydocstyle
         # Do not fail job on doc style errors. Linting docstrings is informative only.
         # Search in all directories, including those starting with a dot.
@@ -158,7 +158,7 @@ jobs:
       - name: Install yamllint
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v1.8.2/requirements.txt
       - name: Run yamllint
         run: |
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
