@@ -58,9 +58,9 @@ class PythonMetadata:
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
-    def python_files(self) -> Generator[str, None, None]:
+    def python_files(self) -> Generator[Path, None, None]:
         # is_file() return False if the path doesn’t exist or is a broken symlink.
-        yield from (str(p) for p in Path().glob("**/*.py") if p.is_file())
+        yield from (p for p in Path().glob("**/*.py") if p.is_file())
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
@@ -187,15 +187,22 @@ class PythonMetadata:
         - `str` as-is
         - `None` into emptry string
         - `bool` into lower-cased string
-        - `Iterable` of strings into a serialized string whose items are space-separated and double-quoted
+        - `Iterable` of strings into a serialized space-separated string
+        - `Iterable` of `Path` into a serialized string whose items are space-separated and double-quoted
         """
         if not isinstance(value, str):
+
             if value is None:
                 value = ""
+
             elif isinstance(value, bool):
                 value = str(value).lower()
+
             elif isinstance(value, Iterable):
-                value = " ".join(f'"{item}"' for item in value)
+                value = " ".join(
+                    (f'"{i}"' if isinstance(i, Path) else f"{i}") for i in value
+                )
+
         return value
 
     @staticmethod
