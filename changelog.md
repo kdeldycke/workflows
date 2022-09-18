@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.8.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.8.1 (2022-09-18)](https://github.com/kdeldycke/workflows/compare/v1.8.0...v1.8.1)
 
 - Fix version setup in Python metadata script.
 
