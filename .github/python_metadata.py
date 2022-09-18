@@ -108,7 +108,9 @@ class PythonMetadata:
         as per: https://github.com/psf/black/issues/751
         """
         if self.project_range:
-            black_range = (Version(3, minor) for minor in range(3, 11 + 1))
+            black_range = (
+                Version.from_parts(major=3, minor=minor) for minor in range(3, 11 + 1)
+            )
             for version in black_range:
                 if self.project_range.allows(version):
                     yield f"--target-version py{version.text.replace('.', '')}"
@@ -138,8 +140,10 @@ class PythonMetadata:
 
         Defaults to `--py3-plus`.
         """
-        pyupgrade_range = (Version(3, minor) for minor in range(6, 11 + 1))
-        min_version = Version(3)
+        pyupgrade_range = (
+            Version.from_parts(major=3, minor=minor) for minor in range(6, 11 + 1)
+        )
+        min_version = Version.from_parts(major=3)
         if self.project_range:
             # XXX Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
             # https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
@@ -149,8 +153,7 @@ class PythonMetadata:
                 if self.project_range.allows(version):
                     min_version = version
                     break
-        # "Version(3).text" returns "3!0".
-        return f"--py{min_version.text.split('!', 1)[0].replace('.', '')}-plus"
+        return f"--py{min_version.text.replace('.', '')}-plus"
 
     @cached_property
     def is_sphinx(self) -> bool:

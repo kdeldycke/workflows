@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix version setup in Python metadata script.
+
 ## [1.8.0 (2022-09-08)](https://github.com/kdeldycke/workflows/compare/v1.7.5...v1.8.0)
 
 - Upgrade to `poetry` 1.2.0.
