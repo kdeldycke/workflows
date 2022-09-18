@@ -208,7 +208,7 @@ jobs:
             github.sha }}/.github/workflows/release.yaml).
 
 
-            ### To release v${{ steps.get_version.outputs.current_version }}
+            ### How-to release v${{ steps.get_version.outputs.current_version }}
 
             1. **click `Re-run all jobs`** from the [workflow run](${{ github.event.repository.html_url
             }}/actions/runs/${{ github.run_id }}), to refresh the release date to today
