@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Print raw `pipdeptree` output for debug.
+
 ## [1.8.4 (2022-09-19)](https://github.com/kdeldycke/workflows/compare/v1.8.3...v1.8.4)
 
 - Fix installation of `graphviz` dependency in Poetry venv.

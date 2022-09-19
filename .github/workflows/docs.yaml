@@ -185,10 +185,12 @@ jobs:
       - name: Install Graphviz
         run: |
           sudo apt install graphviz
-      - name: Run pipdeptree
+      - name: Run pipdeptree for debug
         run: >
-          poetry run pipdeptree
-          --packages ${{ needs.python-metadata.outputs.package_name }}
+          poetry run pipdeptree --packages ${{ needs.python-metadata.outputs.package_name }}
+      - name: Generate graph
+        run: >
+          poetry run pipdeptree --packages ${{ needs.python-metadata.outputs.package_name }}
           --graph-output png > ${{ inputs.dependency-graph-output || './docs/images/dependencies.png' }}
       - uses: peter-evans/create-pull-request@v4.1.1
         with:
