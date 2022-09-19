@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix installation of `graphviz` dependency in Poetry venv.
+
 ## [1.8.3 (2022-09-19)](https://github.com/kdeldycke/workflows/compare/v1.8.2...v1.8.3)
 
 - Run `pipdeptree` in Poetry venv to produce dependency graph.

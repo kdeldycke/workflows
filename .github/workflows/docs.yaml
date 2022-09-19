@@ -180,7 +180,8 @@ jobs:
         # pipdeptree needs to be installed within Poetry's venv to see dependencies. Use the pipdeptree installed
         # above to guess the version pinned in the requirements.txt.
         run: >
-          poetry run python -m pip install "$(pipdeptree | grep pipdeptree)"
+          poetry run python -m pip install
+          "$( pipdeptree | grep pipdeptree | sed 's/pipdeptree/pipdeptree[graphviz]/' )"
       - name: Install Graphviz
         run: |
           sudo apt install graphviz
