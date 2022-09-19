@@ -162,7 +162,7 @@ jobs:
     name: Update dependency graph
     needs:
       - python-metadata
-    if: needs.python-metadata.outputs.package_name
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -172,16 +172,21 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install pipdeptree
+      - name: Install pinned pipdeptree on system
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Install pipdeptree in Poetry
+        # pipdeptree needs to be installed within Poetry's venv to see dependencies. Use the pipdeptree installed
+        # above to guess the version pinned in the requirements.txt.
+        run: >
+          poetry run python -m pip install "$(pipdeptree | grep pipdeptree)"
       - name: Install Graphviz
         run: |
           sudo apt install graphviz
       - name: Run pipdeptree
         run: >
-          pipdeptree
+          poetry run pipdeptree
           --packages ${{ needs.python-metadata.outputs.package_name }}
           --graph-output png > ${{ inputs.dependency-graph-output || './docs/images/dependencies.png' }}
       - uses: peter-evans/create-pull-request@v4.1.1
