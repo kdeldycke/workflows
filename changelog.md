@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.8.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.5...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.8.5 (2022-09-19)](https://github.com/kdeldycke/workflows/compare/v1.8.4...v1.8.5)
 
 - Print raw `pipdeptree` output for debug.
