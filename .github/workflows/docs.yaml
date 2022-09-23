@@ -235,7 +235,7 @@ jobs:
           poetry install --no-interaction --no-ansi
       - name: Run Sphinx
         run: |
-          poetry run sphinx-apidoc -f -o ./docs .
+          poetry run sphinx-apidoc --no-toc --module-first --force -o ./docs .
       - uses: peter-evans/create-pull-request@v4.1.2
         with:
           assignees: ${{ github.actor }}
