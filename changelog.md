@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.8.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.5...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.8.6 (2022-09-23)](https://github.com/kdeldycke/workflows/compare/v1.8.5...v1.8.6)
 
 - Do not let `sphinx-apidoc` CLI produce ToC file.
 
