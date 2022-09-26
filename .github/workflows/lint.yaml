@@ -115,9 +115,16 @@ jobs:
         if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
         run: |
           poetry install --no-interaction
-      - name: Run Mypy
-        run: |
-          mypy ${{ needs.python-metadata.outputs.mypy_params }} ${{ needs.python-metadata.outputs.python_files }}
+      - name: Run Poetry's Mypy
+        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        run: >
+          poetry run mypy ${{ needs.python-metadata.outputs.mypy_params }}
+          ${{ needs.python-metadata.outputs.python_files }}
+      - name: Run vanilla Mypy
+        if: ! fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        run: >
+          mypy ${{ needs.python-metadata.outputs.mypy_params }}
+          ${{ needs.python-metadata.outputs.python_files }}
 
   lint-python-doc:
     needs:

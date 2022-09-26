@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Allow the use of project's own Mypy in Poetry virtual environment to benefits from typeshed dependencies.
+
 ## [1.8.6 (2022-09-23)](https://github.com/kdeldycke/workflows/compare/v1.8.5...v1.8.6)
 
 - Do not let `sphinx-apidoc` CLI produce ToC file.
