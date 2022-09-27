@@ -19,7 +19,7 @@ mdformat_myst == 0.1.5
 mdformat_tables == 0.4.1
 mdformat-toc == 0.3.0
 mdformat-web == 0.1.0
-mypy == 0.971
+mypy == 0.981
 pipdeptree[graphviz] == 2.3.1
 poetry == 1.2.1
 pycln == 2.1.1
