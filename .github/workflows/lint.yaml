@@ -200,7 +200,7 @@ jobs:
       - uses: actions/checkout@v3.0.2
         with:
           fetch-depth: '0'
-      - uses: zricethezav/gitleaks-action@v2.2.0
+      - uses: zricethezav/gitleaks-action@v2.2.1
         with:
           config-path: .github/gitleaks.toml
         env:
