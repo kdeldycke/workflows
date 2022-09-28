@@ -52,7 +52,7 @@ jobs:
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
-      - uses: peter-evans/create-pull-request@v4.1.2
+      - uses: peter-evans/create-pull-request@v4.1.3
         with:
           assignees: ${{ github.actor }}
           commit-message: >
@@ -179,7 +179,7 @@ jobs:
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
-      - uses: peter-evans/create-pull-request@v4.1.2
+      - uses: peter-evans/create-pull-request@v4.1.3
         with:
           # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
           # "Developer Settings > Personal Access Tokens" UI to allow this job to update its own workflows. This is
