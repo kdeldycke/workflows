@@ -76,14 +76,14 @@ class PythonMetadata:
         return False
 
     @cached_property
-    def package_name(self) -> Optional[str]:
+    def package_name(self) -> str | None:
         """Returns package name as published on PyPi."""
         if self.is_poetry_project:
             return self.pyproject.poetry_config["name"]
         return None
 
     @cached_property
-    def project_range(self) -> Optional[VersionRange]:
+    def project_range(self) -> VersionRange | None:
         """Returns Python version support range."""
         if self.is_poetry_project:
             return parse_constraint(
@@ -118,7 +118,7 @@ class PythonMetadata:
                     yield f"--target-version py{version.text.replace('.', '')}"
 
     @cached_property
-    def mypy_param(self) -> Optional[str]:
+    def mypy_param(self) -> str | None:
         """Generates `mypy` parameter.
 
         Mypy needs to be fed with this parameter: `--python-version x.y`.
