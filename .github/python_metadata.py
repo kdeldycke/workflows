@@ -40,7 +40,7 @@ from __future__ import annotations
 import ast
 import sys
 from pathlib import Path
-from typing import Any, Generator, Iterable, Optional
+from typing import Any, Generator, Iterable
 
 if sys.version_info >= (3, 8):
     from functools import cached_property
