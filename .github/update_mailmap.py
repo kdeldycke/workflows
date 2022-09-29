@@ -24,6 +24,8 @@ After the update, we will have the opportunity to identify potential duplicate
 identities, and tidying things up by hand-editing the .mailmap file.
 """
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 from subprocess import run

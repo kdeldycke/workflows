@@ -25,6 +25,8 @@ $ bumpversion --verbose patch
 ```
 """
 
+from __future__ import annotations
+
 import configparser
 import re
 from pathlib import Path

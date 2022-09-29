@@ -35,6 +35,8 @@ Automatic detection of minimal Python version is being discussed upstream for:
 - `pyupgrade` [rejected] at https://github.com/asottile/pyupgrade/issues/688
 """
 
+from __future__ import annotations
+
 import ast
 import sys
 from pathlib import Path
