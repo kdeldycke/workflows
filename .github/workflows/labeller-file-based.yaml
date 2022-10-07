@@ -45,7 +45,7 @@ jobs:
         run: |
           cat ./.github/labeller-file-based.yaml
       - name: Apply rules
-        uses: actions/labeler@v4.0.1
+        uses: actions/labeler@v4.0.2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: ".github/labeller-file-based.yaml"
