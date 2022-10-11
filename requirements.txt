@@ -21,7 +21,7 @@ mdformat-toc == 0.3.0
 mdformat-web == 0.1.0
 mypy == 0.982
 pipdeptree[graphviz] == 2.3.1
-poetry == 1.2.1
+poetry == 1.2.2
 pycln == 2.1.1
 pydocstyle[toml] == 6.1.1
 pylint == 2.15.4
