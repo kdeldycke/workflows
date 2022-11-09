@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.8.9 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.8...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.8.9 (2022-11-09)](https://github.com/kdeldycke/workflows/compare/v1.8.8...v1.8.9)
 
 - Install project with Poetry before generating a dependency graph.
 
