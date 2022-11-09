@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Install project with Poetry before generating a dependency graph.
+
 ## [1.8.8 (2022-11-09)](https://github.com/kdeldycke/workflows/compare/v1.8.7...v1.8.8)
 
 - Update all dependencies.
