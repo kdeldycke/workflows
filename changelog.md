@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Update all dependencies.
+
 ## [1.8.7 (2022-09-26)](https://github.com/kdeldycke/workflows/compare/v1.8.6...v1.8.7)
 
 - Allow the use of project's own Mypy in Poetry virtual environment to benefits from typeshed dependencies.
