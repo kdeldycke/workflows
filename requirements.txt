@@ -25,7 +25,7 @@ poetry == 1.2.2
 pycln == 2.1.1
 pydocstyle[toml] == 6.1.1
 pylint == 2.15.5
-pyupgrade == 3.2.0
+pyupgrade == 3.2.2
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.1
 yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9
