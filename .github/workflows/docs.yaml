@@ -162,7 +162,7 @@ jobs:
     name: Update dependency graph
     needs:
       - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+    if: needs.python-metadata.outputs.is_poetry_project
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.1.0
