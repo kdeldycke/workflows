@@ -43,7 +43,7 @@ import ast
 import os
 import sys
 from pathlib import Path
-from typing import Any, Generator, Iterable
+from typing import IO, Any, Generator, Iterable
 
 if sys.version_info >= (3, 8):
     from functools import cached_property
@@ -223,9 +223,9 @@ class PythonMetadata:
         assert output_path.is_file()
         return output_path
 
-    def save_output_parameter(self, name: str, value: str) -> str:
+    def save_output_parameter(self, output: IO, name: str, value: str) -> None:
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
-        print(f"{name}={value}", file=self.output_env_file)
+        print(f"{name}={value}", file=output)
         if self.debug:
             print(f"{name} = {value}")
 
@@ -240,9 +240,10 @@ class PythonMetadata:
             "is_sphinx": self.is_sphinx,
             "active_autodoc": self.active_autodoc,
         }
-        for name, value in metadata.items():
-            value_string = self.format_github_value(value)
-            self.save_output_parameter(name, value_string)
+        with self.output_env_file.open() as output:
+            for name, value in metadata.items():
+                value_string = self.format_github_value(value)
+                self.save_output_parameter(output, name, value_string)
 
 
 # Output metadata with GitHub syntax.
