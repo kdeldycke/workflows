@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.9.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.9.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.9.1 (2022-11-12)](https://github.com/kdeldycke/workflows/compare/v1.9.0...v1.9.1)
 
 - Fix tagging.
 
