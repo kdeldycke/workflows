@@ -199,7 +199,7 @@ jobs:
           echo "Tagged version: ${{ steps.get_version.outputs.tagged_version }}"
       - id: tag_exists
         run: |
-          echo "tag_exists::$(
+          echo "tag_exists=$(
           git show-ref --tags "v${{ steps.get_version.outputs.tagged_version }}" --quiet )" >> $GITHUB_OUTPUT
       - name: Tag search results
         run: |
