@@ -133,7 +133,7 @@ jobs:
     needs:
       - commit-matrix
       - python-metadata
-    if: needs.python-metadata.outputs.is_poetry_project
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
