@@ -218,8 +218,8 @@ jobs:
     needs:
       - python-metadata
     if: >
-      fromJSON(needs.python-metadata.outputs.is_poetry_project)
-      && fromJSON(needs.python-metadata.outputs.active_autodoc)
+      needs.python-metadata.outputs.is_poetry_project
+      && needs.python-metadata.outputs.active_autodoc
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.1.0
@@ -261,7 +261,7 @@ jobs:
     name: Deploy Sphinx doc
     needs:
       - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && fromJSON(needs.python-metadata.outputs.is_sphinx)
+    if: needs.python-metadata.outputs.is_poetry_project && needs.python-metadata.outputs.is_sphinx
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.1.0

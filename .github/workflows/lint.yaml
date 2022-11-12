@@ -61,7 +61,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can avoid importing errors in Pylint reports.
-        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        if: needs.python-metadata.outputs.is_poetry_project
         run: |
           # Allows our Pylint version to access project's dependencies.
           poetry config virtualenvs.create false
@@ -112,16 +112,16 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can benefits from dependencies on typing stubs.
-        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        if: needs.python-metadata.outputs.is_poetry_project
         run: |
           poetry install --no-interaction
       - name: Run Poetry's Mypy
-        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        if: needs.python-metadata.outputs.is_poetry_project
         run: >
           poetry run mypy ${{ needs.python-metadata.outputs.mypy_params }}
           ${{ needs.python-metadata.outputs.python_files }}
       - name: Run vanilla Mypy
-        if: ${{ ! fromJSON(needs.python-metadata.outputs.is_poetry_project) }}
+        if: \! needs.python-metadata.outputs.is_poetry_project
         run: >
           mypy ${{ needs.python-metadata.outputs.mypy_params }}
           ${{ needs.python-metadata.outputs.python_files }}
