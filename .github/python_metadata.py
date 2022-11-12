@@ -228,9 +228,9 @@ class PythonMetadata:
     def save_output_parameter(self, name: str, value: str) -> None:
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
         record = f"{name}={self.format_github_value(value)}"
+        self.output_env_file.write_text(record)
         if self.debug:
             print(record)
-        self.output_env_file.write_text(record)
 
     def save_metadata(self):
         metadata = {
@@ -245,6 +245,9 @@ class PythonMetadata:
         }
         for name, value in metadata.items():
             self.save_output_parameter(name, value)
+        if self.debug:
+            print(f"--- Content of {self.output_env_file} ---")
+            print(self.output_env_file.read_text())
 
 
 # Output metadata with GitHub syntax.
