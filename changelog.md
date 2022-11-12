@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.9.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.9...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.9.0 (2022-11-12)](https://github.com/kdeldycke/workflows/compare/v1.8.9...v1.9.0)
 
 - Remove use of deprecated `::set-output` directives and replace them by environment files.
 
