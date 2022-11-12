@@ -218,6 +218,8 @@ class PythonMetadata:
     def output_env_file(self) -> Path:
         """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
         env_file = os.getenv("GITHUB_OUTPUT")
+        if self.debug:
+            print(f"$GITHUB_OUTPUT={env_file}")
         assert env_file
         output_path = Path(env_file)
         assert output_path.is_file()
@@ -225,10 +227,10 @@ class PythonMetadata:
 
     def save_output_parameter(self, name: str, value: str) -> None:
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
-        record = f"{name}={value}"
-        self.output_env_file.write_text(record)
+        record = f"{name}={self.format_github_value(value)}"
         if self.debug:
             print(record)
+        self.output_env_file.write_text(record)
 
     def save_metadata(self):
         metadata = {
@@ -242,8 +244,7 @@ class PythonMetadata:
             "active_autodoc": self.active_autodoc,
         }
         for name, value in metadata.items():
-            value_string = self.format_github_value(value)
-            self.save_output_parameter(name, value_string)
+            self.save_output_parameter(name, value)
 
 
 # Output metadata with GitHub syntax.
