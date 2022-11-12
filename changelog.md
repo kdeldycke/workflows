@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.8.10 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.9...main)
+## [1.9.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.8.9...main)
 
 ```{important}
 This version is not released yet and is under active development.
