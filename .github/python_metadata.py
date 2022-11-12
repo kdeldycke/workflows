@@ -218,21 +218,13 @@ class PythonMetadata:
     def output_env_file(self) -> Path:
         """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
         env_file = os.getenv("GITHUB_OUTPUT")
-        if self.debug:
-            print(f"$GITHUB_OUTPUT={env_file}")
         assert env_file
         output_path = Path(env_file)
         assert output_path.is_file()
         return output_path
 
-    def save_output_parameter(self, name: str, value: str) -> None:
-        """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
-        record = f"{name}={self.format_github_value(value)}"
-        self.output_env_file.write_text(record)
-        if self.debug:
-            print(record)
-
     def save_metadata(self):
+        """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
         metadata = {
             "python_files": self.python_files,
             "is_poetry_project": self.is_poetry_project,
@@ -243,8 +235,16 @@ class PythonMetadata:
             "is_sphinx": self.is_sphinx,
             "active_autodoc": self.active_autodoc,
         }
+
+        if self.debug:
+            print(f"--- Writing into {self.output_env_file} ---")
+        content = ""
         for name, value in metadata.items():
-            self.save_output_parameter(name, value)
+            content += f"{name}={self.format_github_value(value)}\n"
+        if self.debug:
+            print(content)
+        self.output_env_file.write_text(content)
+
         if self.debug:
             print(f"--- Content of {self.output_env_file} ---")
             print(self.output_env_file.read_text())
