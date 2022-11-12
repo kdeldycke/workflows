@@ -53,9 +53,13 @@ jobs:
     name: Modernize Python
     needs:
       - python-metadata
-    if: needs.python-metadata.outputs.python_files && needs.python-metadata.outputs.pyupgrade_params
+    #if: needs.python-metadata.outputs.python_files && needs.python-metadata.outputs.pyupgrade_params
     runs-on: ubuntu-22.04
     steps:
+      - name: tmp_debug
+        run: |
+          echo '${{ needs.python-metadata.outputs.python_files }}'
+          echo '${{ needs.python-metadata.outputs.pyupgrade_params }}'
       - uses: actions/checkout@v3.1.0
       - uses: actions/setup-python@v4.3.0
         with:
