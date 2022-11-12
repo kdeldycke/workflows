@@ -7,7 +7,6 @@ This version is not released yet and is under active development.
 ```
 
 - Remove use of deprecated `::set-output` directives and replace them by environment files.
-- Run the debug workflow on all platforms.
 
 ## [1.8.9 (2022-11-09)](https://github.com/kdeldycke/workflows/compare/v1.8.8...v1.8.9)
 
