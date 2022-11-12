@@ -48,7 +48,7 @@ jobs:
       - name: Extract version
         id: get_version
         run: |
-          echo "::set-output name=new_version::$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "new_version=$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )" >> $GITHUB_OUTPUT
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
@@ -114,8 +114,8 @@ jobs:
         # Docs: https://docs.github.com/en/actions/learn-github-actions
         # /workflow-commands-for-github-actions#setting-an-output-parameter
         run: >
-          echo "::set-output name=current_version::$(
-          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )"
+          echo "current_version=$(
+          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )" >> $GITHUB_OUTPUT
       - name: Print version
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"

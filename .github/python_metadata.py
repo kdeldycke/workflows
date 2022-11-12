@@ -17,16 +17,18 @@
 
 """Extract some metadata from Python projects to be used by GitHub workflows.
 
-Prints:
+Outputs the following variables to the environment file (see:
+https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files):
+
 ```text
-::set-output name=python_files::".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
-::set-output name=is_poetry_project::true
-::set-output name=package_name::click-extra
-::set-output name=black_params::--target-version py37 --target-version py38
-::set-output name=mypy_params::--python-version 3.7
-::set-output name=pyupgrade_params::--py37-plus
-::set-output name=is_sphinx::true
-::set-output name=active_autodoc::true
+python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
+is_poetry_project=true
+package_name=click-extra
+black_params=--target-version py37 --target-version py38
+mypy_params=--python-version 3.7
+pyupgrade_params=--py37-plus
+is_sphinx=true
+active_autodoc=true
 ```
 
 Automatic detection of minimal Python version is being discussed upstream for:
@@ -38,6 +40,7 @@ Automatic detection of minimal Python version is being discussed upstream for:
 from __future__ import annotations
 
 import ast
+import os
 import sys
 from pathlib import Path
 from typing import Any, Generator, Iterable
@@ -55,6 +58,8 @@ from poetry.core.semver.version_range import VersionRange  # type: ignore
 
 
 class PythonMetadata:
+    def __init__(self, debug: bool = False) -> None:
+        self.debug = debug
 
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
@@ -207,11 +212,22 @@ class PythonMetadata:
 
         return value
 
-    @staticmethod
-    def format_github_output(name: str, value: str) -> str:
-        return f"::set-output name={name}::{value}"
+    @cached_property
+    def output_env_file(self) -> Path:
+        """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
+        env_file = os.getenv("GITHUB_OUTPUT")
+        assert env_file
+        output_path = Path(env_file)
+        assert output_path.is_file()
+        return output_path
 
-    def print_metadata_github_output(self, debug=True):
+    def save_output_parameter(self, name: str, value: str) -> str:
+        """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
+        print(f"{name}={value}", file=self.output_env_file)
+        if self.debug:
+            print(f"{name} = {value}")
+
+    def save_metadata(self):
         metadata = {
             "python_files": self.python_files,
             "is_poetry_project": self.is_poetry_project,
@@ -224,11 +240,9 @@ class PythonMetadata:
         }
         for name, value in metadata.items():
             value_string = self.format_github_value(value)
-            print(self.format_github_output(name, value_string))
-            if debug:
-                print(f"{name} = {value_string}")
+            self.save_output_parameter(name, value_string)
 
 
 # Output metadata with GitHub syntax.
-metadata = PythonMetadata()
-metadata.print_metadata_github_output()
+metadata = PythonMetadata(debug=True)
+metadata.save_metadata()
