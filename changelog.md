@@ -1,10 +1,6 @@
 # Changelog
 
-## [1.9.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.9.1...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [1.9.2 (2022-11-14)](https://github.com/kdeldycke/workflows/compare/v1.9.1...v1.9.2)
 
 - Fix production of multine commit list in build and release workflow.
 
