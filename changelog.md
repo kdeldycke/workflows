@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix production of multine commit list in build and release workflow.
+
 ## [1.9.1 (2022-11-12)](https://github.com/kdeldycke/workflows/compare/v1.9.0...v1.9.1)
 
 - Fix tagging.

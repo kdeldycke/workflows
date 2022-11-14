@@ -57,21 +57,25 @@ jobs:
           echo "range=$COMMIT_RANGE" >> $GITHUB_OUTPUT
       - name: List new commits
         id: new_commits
-        # Here's a trick to encode "\n" before using the "$GITHUB_OUTPUT" directive:
-        # https://github.community/t/set-output-truncates-multiline-strings/16852/3
+        # Produce a unique delimiter to feed multilines content to "$GITHUB_OUTPUT" directive:
+        # https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
         run: |
+          DELIMITER="ghadelimiter_$(openssl rand -hex 8)"
           COMMITS=$( git rev-list ${{ steps.commit_range.outputs.range }} -- )
-          COMMITS="${COMMITS//$'\n'/'%0A'}"
-          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+          echo "commits<<$DELIMITER" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "$DELIMITER" >> $GITHUB_OUTPUT
       - name: List release commits
         id: release_commits
         # Same as new_commits step, but with "--grep" option.
         run: |
+          DELIMITER="ghadelimiter_$(openssl rand -hex 8)"
           COMMITS=$( \
             git rev-list -E --grep="^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$" \
             ${{ steps.commit_range.outputs.range }} -- )
-          COMMITS="${COMMITS//$'\n'/'%0A'}"
-          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+          echo "commits<<$DELIMITER" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "$DELIMITER" >> $GITHUB_OUTPUT
       - name: Print commits
         run: |
           echo -e "New commits:\n${{ steps.new_commits.outputs.commits }}"
