@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.10.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v1.10.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [1.10.0 (2022-12-02)](https://github.com/kdeldycke/workflows/compare/v1.9.2...v1.10.0)
 
 - Run all Python-based workflows on 3.11.
