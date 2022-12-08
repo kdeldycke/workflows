@@ -107,7 +107,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: actions/setup-python@v4.3.0
+      - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
       - name: Generate .mailmap
@@ -142,7 +142,7 @@ jobs:
       active_autodoc: ${{ steps.python-metadata.outputs.active_autodoc }}
     steps:
       - uses: actions/checkout@v3.1.0
-      - uses: actions/setup-python@v4.3.0
+      - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
       - name: Install pip
@@ -166,7 +166,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.1.0
-      - uses: actions/setup-python@v4.3.0
+      - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
       - name: Install pip
@@ -223,7 +223,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.1.0
-      - uses: actions/setup-python@v4.3.0
+      - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
       - name: Install pip
@@ -265,7 +265,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.1.0
-      - uses: actions/setup-python@v4.3.0
+      - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
       - name: Install pip
