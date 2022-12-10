@@ -20,6 +20,8 @@ mdformat_tables == 0.4.1
 mdformat-toc == 0.3.0
 mdformat-web == 0.1.0
 mypy == 0.991
+nuitka == 1.2.6
+ordered-set == 4.1.0
 pipdeptree[graphviz] == 2.3.3
 poetry == 1.2.2
 pycln == 2.1.2
@@ -29,3 +31,4 @@ pyupgrade == 3.3.1
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.2
 yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9
+zstandard == 0.19.0

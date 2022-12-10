@@ -176,6 +176,86 @@ jobs:
         run: |
           poetry publish --dry-run --no-interaction
 
+  compile-binaries:
+    name: "Nuitka: generate binaries"
+    needs:
+      - commit-matrix
+      - python-metadata
+    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+    strategy:
+      matrix:
+        ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix) }}
+        os:
+          - ubuntu-22.04
+          - macos-12
+          - windows-2022
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+            extension: bin
+            extra_python_params:
+          - os: macos-12
+            platform: macos
+            extension: bin
+            extra_python_params:
+          - os: windows-2022
+            platform: windows
+            extension: exe
+            # XXX "-X utf8" parameter is a workaround for Windows runners redirecting the output of commands to files.
+            # See:
+            # https://github.com/databrickslabs/dbx/issues/455#issuecomment-1312770919
+            # https://github.com/pallets/click/issues/2121#issuecomment-1312773882
+            # https://gist.github.com/NodeJSmith/e7e37f2d3f162456869f015f842bcf15
+            # https://github.com/Nuitka/Nuitka/blob/ca1ec9e8e10b51d187b589f1d33935c4ed558687/nuitka/utils/ReExecute.py#L73-L74
+            extra_python_params: "-X utf8"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Print build target
+        run: |
+          echo "${{ matrix }}"
+      - uses: actions/checkout@v3.1.0
+        with:
+          ref: ${{ matrix.commit }}
+      - uses: actions/setup-python@v4.3.1
+        with:
+          # XXX Nuitka is not ready for Python 3.11 yet.
+          python-version: "3.10"
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install poetry
+        run: >
+          python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Re-install Nuitka in Poetry venv
+        # Nuitka needs to be installed within Poetry's venv to allow for lots of workarounds.
+        # Additional dependencies:
+        #   - ordered-set: used by Nuitka for compilation performance
+        #   - zstandard: for nuitka's onefile compression
+        run: >
+          poetry run python -m pip install --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+      - name: Nuitka + compilers versions
+        run: |
+          poetry run python -m nuitka --version
+      - name: Install package
+        run: |
+          poetry install --no-interaction --no-ansi
+      - name: Build binary within Poetry venv
+        run: >
+          poetry run python ${{ matrix.extra_python_params }} -m nuitka
+          --onefile
+          --assume-yes-for-downloads
+          --nofollow-import-to=*.tests
+          --output-filename=mpm.${{ matrix.extension }}
+          meta_package_manager/__main__.py
+      - name: Upload binaries
+        uses: actions/upload-artifact@v3.1.1
+        with:
+          name: mpm.${{ matrix.extension }}-${{ matrix.platform }}-${{ matrix.commit }}
+          if-no-files-found: error
+          path: mpm.${{ matrix.extension }}
+
   git-tag:
     name: Tag release
     needs:
