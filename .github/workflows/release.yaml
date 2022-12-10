@@ -184,7 +184,7 @@ jobs:
     if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
     strategy:
       matrix:
-        ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix) }}
+        commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
         os:
           - ubuntu-22.04
           - macos-12
