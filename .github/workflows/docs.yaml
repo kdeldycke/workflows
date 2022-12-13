@@ -26,7 +26,7 @@ jobs:
     name: Fix typos
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
       - uses: sobolevn/misspell-fixer-action@0.1.0
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
@@ -54,7 +54,7 @@ jobs:
     name: Optimize images
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
       - uses: calibreapp/image-actions@1.1.0
         id: image_actions
         with:
@@ -87,7 +87,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
       - id: detection
         run: |
           echo "exists=$( [[ -f './.mailmap' ]] && echo 'true' )" >> $GITHUB_OUTPUT
@@ -103,7 +103,7 @@ jobs:
     if: needs.check-mailmap.outputs.exists
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
@@ -141,7 +141,7 @@ jobs:
       is_sphinx: ${{ steps.python-metadata.outputs.is_sphinx }}
       active_autodoc: ${{ steps.python-metadata.outputs.active_autodoc }}
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
@@ -165,7 +165,7 @@ jobs:
     if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
@@ -222,7 +222,7 @@ jobs:
       && fromJSON(needs.python-metadata.outputs.active_autodoc)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
@@ -264,7 +264,7 @@ jobs:
     if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && fromJSON(needs.python-metadata.outputs.is_sphinx)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.3.1
         with:
           python-version: "3.11"
