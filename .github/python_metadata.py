@@ -107,9 +107,10 @@ class PythonMetadata:
                 ...
             )
         """
-        for cli_id, script in self.pyproject.poetry_config["scripts"].items():
-            module_id, callable_id = script.split(":")
-            yield cli_id, module_id, callable_id
+        if self.is_poetry_project:
+            for cli_id, script in self.pyproject.poetry_config["scripts"].items():
+                module_id, callable_id = script.split(":")
+                yield cli_id, module_id, callable_id
 
     @cached_property
     def nuitka_main_modules(self) -> Generator[str, None, None]:
