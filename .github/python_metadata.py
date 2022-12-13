@@ -235,6 +235,9 @@ class PythonMetadata:
         - `Iterable` of strings into a serialized space-separated string
         - `Iterable` of `Path` into a serialized string whose items are space-separated and double-quoted
         """
+        if render_json:
+            return json.dumps(value)
+
         # Convert non-strings.
         if not isinstance(value, str):
 
@@ -244,24 +247,13 @@ class PythonMetadata:
             elif isinstance(value, bool):
                 value = str(value).lower()
 
+            elif isinstance(value, dict):
+                raise NotImplementedError
+
             elif isinstance(value, Iterable):
-                items = []
-                for i in value:
-                    # Wraps Path items with double-quotes.
-                    if not render_json and isinstance(i, Path):
-                        items.append(f'"{i}"')
-                    # Cast item to string.
-                    else:
-                        items.append(str(i))
-
-                # Serialize items with a space if non-json.
-                if not render_json:
-                    value = " ".join(items)
-                else:
-                    value = items
-
-        if render_json:
-            value = json.dumps(value)
+                # Cast all items to string, wrapping Path items with double-quotes.
+                items = ((f'"{i}"' if isinstance(i, Path) else str(i)) for i in value)
+                value = " ".join(items)
 
         return value
 
@@ -282,8 +274,9 @@ class PythonMetadata:
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
             # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
-            # pass a list of strings directly as a variable in GitHub Actions' YAML.
-            "nuitka_main_modules": ({"main_module": self.nuitka_main_modules}, True),
+            # pass a list of strings directly as a variable in GitHub Actions' YAML. Also force serialization
+            # of Path objects into strings.
+            "nuitka_main_modules": ({"main_module": [str(i) for i in self.nuitka_main_modules]}, True),
             "black_params": (self.black_params, False),
             "mypy_params": (self.mypy_param, False),
             "pyupgrade_params": (self.pyupgrade_param, False),
