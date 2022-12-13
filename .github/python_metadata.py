@@ -24,6 +24,7 @@ https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-comma
 python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
 is_poetry_project=true
 package_name=click-extra
+nuitka_main_modules=["\"mail_deduplicate/cli.py"\", "\"meta_package_manager/__main__.py\""]
 black_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
 pyupgrade_params=--py37-plus
@@ -114,12 +115,14 @@ class PythonMetadata:
                 yield cli_id, module_id, callable_id
 
     @cached_property
-    def nuitka_main_modules(self) -> Generator[str, None, None]:
+    def nuitka_main_modules(self) -> tuple[str]:
         """Returns the path of the modules to be compiled by Nuitka."""
+        modules_path = []
         for _, module_id, _ in self.script_entries:
-            module_path = f"{module_id.replace('.', '/')}.py"
-            assert Path(module_path).exists()
-            yield module_path
+            module_path = Path(f"{module_id.replace('.', '/')}.py")
+            assert module_path.exists()
+            modules_path.append(module_path)
+        return modules_path
 
     @cached_property
     def project_range(self) -> VersionRange | None:
@@ -231,6 +234,7 @@ class PythonMetadata:
         - `Iterable` of strings into a serialized space-separated string
         - `Iterable` of `Path` into a serialized string whose items are space-separated and double-quoted
         """
+        # Convert non-strings.
         if not isinstance(value, str):
 
             if value is None:
@@ -241,10 +245,10 @@ class PythonMetadata:
 
             elif isinstance(value, Iterable):
                 # Cast all items to string, wrapping Path items with double-quotes.
-                items = ((f'"{i}"' if isinstance(i, Path) else f"{i}") for i in value)
+                value = [(f'"{i}"' if isinstance(i, Path) else str(i)) for i in value]
                 # Serialize items with a space if non-json.
                 if not force_json:
-                    value = " ".join(items)
+                    value = " ".join(value)
 
         if force_json:
             value = json.dumps(value)
@@ -252,13 +256,13 @@ class PythonMetadata:
         return value
 
     @cached_property
-    def output_env_file(self) -> Path:
+    def output_env_file(self) -> Path | None:
         """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
         env_file = os.getenv("GITHUB_OUTPUT")
-        assert env_file
-        output_path = Path(env_file)
-        assert output_path.is_file()
-        return output_path
+        if env_file:
+            output_path = Path(env_file)
+            assert output_path.is_file()
+            return output_path
 
     def save_metadata(self):
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
