@@ -40,6 +40,7 @@ Automatic detection of minimal Python version is being discussed upstream for:
 from __future__ import annotations
 
 import ast
+import json
 import os
 import sys
 from pathlib import Path
@@ -220,7 +221,7 @@ class PythonMetadata:
         return False
 
     @staticmethod
-    def format_github_value(value: Any) -> str:
+    def format_github_value(value: Any, force_json=False) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
 
         Renders:
@@ -239,9 +240,14 @@ class PythonMetadata:
                 value = str(value).lower()
 
             elif isinstance(value, Iterable):
-                value = " ".join(
-                    (f'"{i}"' if isinstance(i, Path) else f"{i}") for i in value
-                )
+                # Cast all items to string, wrapping Path items with double-quotes.
+                items = ((f'"{i}"' if isinstance(i, Path) else f"{i}") for i in value)
+                # Serialize items with a space if non-json.
+                if not force_json:
+                    value = " ".join(items)
+
+        if force_json:
+            value = json.dumps(value)
 
         return value
 
@@ -257,22 +263,22 @@ class PythonMetadata:
     def save_metadata(self):
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
         metadata = {
-            "python_files": self.python_files,
-            "is_poetry_project": self.is_poetry_project,
-            "package_name": self.package_name,
-            "nuitka_main_modules": self.nuitka_main_modules,
-            "black_params": self.black_params,
-            "mypy_params": self.mypy_param,
-            "pyupgrade_params": self.pyupgrade_param,
-            "is_sphinx": self.is_sphinx,
-            "active_autodoc": self.active_autodoc,
+            "python_files": (self.python_files, False),
+            "is_poetry_project": (self.is_poetry_project, False),
+            "package_name": (self.package_name, False),
+            "nuitka_main_modules": (self.nuitka_main_modules, True),
+            "black_params": (self.black_params, False),
+            "mypy_params": (self.mypy_param, False),
+            "pyupgrade_params": (self.pyupgrade_param, False),
+            "is_sphinx": (self.is_sphinx, False),
+            "active_autodoc": (self.active_autodoc, False),
         }
 
         if self.debug:
             print(f"--- Writing into {self.output_env_file} ---")
         content = ""
-        for name, value in metadata.items():
-            content += f"{name}={self.format_github_value(value)}\n"
+        for name, (value, force_json) in metadata.items():
+            content += f"{name}={self.format_github_value(value, force_json=force_json)}\n"
         if self.debug:
             print(content)
         self.output_env_file.write_text(content)
