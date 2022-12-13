@@ -127,11 +127,12 @@ class PythonMetadata:
     @cached_property
     def project_range(self) -> VersionRange | None:
         """Returns Python version support range."""
+        version_range = None
         if self.is_poetry_project:
-            return parse_constraint(
+            version_range = parse_constraint(
                 self.pyproject.poetry_config["dependencies"]["python"]
             )
-        return None
+        return version_range
 
     @cached_property
     def black_params(self) -> Generator[str, None, None]:
