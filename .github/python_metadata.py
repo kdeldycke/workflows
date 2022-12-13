@@ -225,7 +225,7 @@ class PythonMetadata:
         return False
 
     @staticmethod
-    def format_github_value(value: Any, force_json=False) -> str:
+    def format_github_value(value: Any, render_json=False) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
 
         Renders:
@@ -248,19 +248,19 @@ class PythonMetadata:
                 items = []
                 for i in value:
                     # Wraps Path items with double-quotes.
-                    if not force_json and isinstance(i, Path):
+                    if not render_json and isinstance(i, Path):
                         items.append(f'"{i}"')
                     # Cast item to string.
                     else:
                         items.append(str(i))
 
                 # Serialize items with a space if non-json.
-                if not force_json:
+                if not render_json:
                     value = " ".join(items)
                 else:
                     value = items
 
-        if force_json:
+        if render_json:
             value = json.dumps(value)
 
         return value
@@ -281,7 +281,9 @@ class PythonMetadata:
             "python_files": (self.python_files, False),
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
-            "nuitka_main_modules": (self.nuitka_main_modules, True),
+            # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
+            # pass a list of strings directly as a variable in GitHub Actions' YAML.
+            "nuitka_main_modules": ({"main_module": self.nuitka_main_modules}, True),
             "black_params": (self.black_params, False),
             "mypy_params": (self.mypy_param, False),
             "pyupgrade_params": (self.pyupgrade_param, False),
@@ -292,8 +294,8 @@ class PythonMetadata:
         if self.debug:
             print(f"--- Writing into {self.output_env_file} ---")
         content = ""
-        for name, (value, force_json) in metadata.items():
-            content += f"{name}={self.format_github_value(value, force_json=force_json)}\n"
+        for name, (value, render_json) in metadata.items():
+            content += f"{name}={self.format_github_value(value, render_json=render_json)}\n"
         if self.debug:
             print(content)
         self.output_env_file.write_text(content)

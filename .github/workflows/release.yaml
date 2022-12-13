@@ -185,7 +185,7 @@ jobs:
     strategy:
       matrix:
         commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
-        main_module_path: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules) }}
+        main_module: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules).main_module }}
         os:
           - ubuntu-22.04
           - macos-12
@@ -268,7 +268,7 @@ jobs:
           --assume-yes-for-downloads
           --nofollow-import-to=*.tests
           --output-filename=${{ steps.bin_name.outputs.name }}
-          ${{ matrix.main_module_path }}
+          ${{ matrix.main_module }}
       - name: Upload binaries
         uses: actions/upload-artifact@v3.1.1
         with:
