@@ -24,7 +24,7 @@ https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-comma
 python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
 is_poetry_project=true
 package_name=click-extra
-nuitka_main_modules=["\"mail_deduplicate/cli.py"\", "\"meta_package_manager/__main__.py\""]
+nuitka_main_modules=["mail_deduplicate/cli.py", "meta_package_manager/__main__.py"]
 black_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
 pyupgrade_params=--py37-plus
@@ -244,11 +244,20 @@ class PythonMetadata:
                 value = str(value).lower()
 
             elif isinstance(value, Iterable):
-                # Cast all items to string, wrapping Path items with double-quotes.
-                value = [(f'"{i}"' if isinstance(i, Path) else str(i)) for i in value]
+                items = []
+                for i in value:
+                    # Wraps Path items with double-quotes.
+                    if not force_json and isinstance(i, Path):
+                        items.append(f'"{i}"')
+                    # Cast item to string.
+                    else:
+                        items.append(str(i))
+
                 # Serialize items with a space if non-json.
                 if not force_json:
-                    value = " ".join(value)
+                    value = " ".join(items)
+                else:
+                    value = items
 
         if force_json:
             value = json.dumps(value)
