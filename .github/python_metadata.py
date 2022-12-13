@@ -115,7 +115,7 @@ class PythonMetadata:
                 yield cli_id, module_id, callable_id
 
     @cached_property
-    def nuitka_main_modules(self) -> tuple[str]:
+    def nuitka_main_modules(self) -> list[Path]:
         """Returns the path of the modules to be compiled by Nuitka."""
         modules_path = []
         for _, module_id, _ in self.script_entries:
@@ -268,11 +268,12 @@ class PythonMetadata:
     @cached_property
     def output_env_file(self) -> Path | None:
         """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
+        output_path = None
         env_file = os.getenv("GITHUB_OUTPUT")
         if env_file:
             output_path = Path(env_file)
             assert output_path.is_file()
-            return output_path
+        return output_path
 
     def save_metadata(self):
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
