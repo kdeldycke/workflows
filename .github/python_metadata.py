@@ -55,7 +55,7 @@ else:
 
 from poetry.core.constraints.version import (  # type: ignore[import]
     Version,
-    VersionRange,
+    VersionConstraint,
     parse_constraint,
 )
 from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore[import]
@@ -125,7 +125,7 @@ class PythonMetadata:
         return modules_path
 
     @cached_property
-    def project_range(self) -> VersionRange | None:
+    def project_range(self) -> VersionConstraint | None:
         """Returns Python version support range."""
         version_range = None
         if self.is_poetry_project:
