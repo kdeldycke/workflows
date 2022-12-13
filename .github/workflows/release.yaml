@@ -185,7 +185,7 @@ jobs:
     strategy:
       matrix:
         commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
-        main_module_path: ${{ needs.python-metadata.outputs.nuitka_main_modules }}
+        main_module_path: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules) }}
         os:
           - ubuntu-22.04
           - macos-12
