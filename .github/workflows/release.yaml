@@ -185,6 +185,7 @@ jobs:
     strategy:
       matrix:
         commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
+        main_module_path: ${{ needs.python-metadata.outputs.nuitka_main_modules }}
         os:
           - ubuntu-22.04
           - macos-12
@@ -250,22 +251,30 @@ jobs:
           poetry install --no-interaction --no-ansi
       - name: Generate bin name
         id: bin_name
+        shell: python
         run: |
-          echo "bin_name=mpm_${{ matrix.platform }}_${{ matrix.arch }}.${{ matrix.extension }}" >> $GITHUB_OUTPUT
+          import os
+          from pathlib import Path
+
+          name = "mpm_${{ matrix.platform }}_${{ matrix.arch }}.${{ matrix.extension }}"
+          print(f"Generated binary name: {name}")
+
+          env_file = Path(os.getenv("GITHUB_OUTPUT"))
+          env_file.write_text(f"name={name}")
       - name: Build binary within Poetry venv
         run: >
           poetry run python ${{ matrix.extra_python_params }} -m nuitka
           --onefile
           --assume-yes-for-downloads
           --nofollow-import-to=*.tests
-          --output-filename=${{ steps.bin_name.outputs.bin_name }}
-          meta_package_manager/__main__.py
+          --output-filename=${{ steps.bin_name.outputs.name }}
+          ${{ matrix.main_module_path }}
       - name: Upload binaries
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: ${{ steps.bin_name.outputs.bin_name }}
+          name: ${{ steps.bin_name.outputs.name }}
           if-no-files-found: error
-          path: ${{ steps.bin_name.outputs.bin_name }}
+          path: ${{ steps.bin_name.outputs.name }}
 
   git-tag:
     name: Tag release

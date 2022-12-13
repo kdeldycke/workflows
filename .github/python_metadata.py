@@ -90,6 +90,36 @@ class PythonMetadata:
         return None
 
     @cached_property
+    def script_entries(self) -> Generator[tuple[str, str, str], None, None]:
+        """Returns a list of tuples containing the script name, its module and callable.
+
+        .. code-block:: toml
+            [tool.poetry.scripts]
+            mdedup = "mail_deduplicate.cli:mdedup"
+            mpm = "meta_package_manager.__main__:main"
+
+        Yields:
+
+        .. code-block:: python
+            (
+                ("mdedup", "mail_deduplicate.cli", "mdedup"),
+                ("mpm", "meta_package_manager.__main__", "main"),
+                ...
+            )
+        """
+        for cli_id, script in self.pyproject.poetry_config["scripts"].items():
+            module_id, callable_id = script.split(":")
+            yield cli_id, module_id, callable_id
+
+    @cached_property
+    def nuitka_main_modules(self) -> Generator[str, None, None]:
+        """Returns the path of the modules to be compiled by Nuitka."""
+        for _, module_id, _ in self.script_entries:
+            module_path = f"{module_id.replace('.', '/')}.py"
+            assert Path(module_path).exists()
+            yield module_path
+
+    @cached_property
     def project_range(self) -> VersionRange | None:
         """Returns Python version support range."""
         if self.is_poetry_project:
@@ -229,6 +259,7 @@ class PythonMetadata:
             "python_files": self.python_files,
             "is_poetry_project": self.is_poetry_project,
             "package_name": self.package_name,
+            "nuitka_main_modules": self.nuitka_main_modules,
             "black_params": self.black_params,
             "mypy_params": self.mypy_param,
             "pyupgrade_params": self.pyupgrade_param,
