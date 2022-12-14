@@ -185,7 +185,10 @@ jobs:
     strategy:
       matrix:
         commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
-        main_module: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules).main_module }}
+        # main_module: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules).main_module }}
+        # {"main_module": ["meta_package_manager/__main__.py"]}
+        main_module:
+          - meta_package_manager/__main__.py
         os:
           - ubuntu-22.04
           - macos-12
