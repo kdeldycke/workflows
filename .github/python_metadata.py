@@ -276,7 +276,10 @@ class PythonMetadata:
             # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
             # pass a list of strings directly as a variable in GitHub Actions' YAML. Also force serialization
             # of Path objects into strings.
-            "nuitka_main_modules": ({"main_module": [str(i) for i in self.nuitka_main_modules]}, True),
+            "nuitka_main_modules": (
+                {"main_module": [str(i) for i in self.nuitka_main_modules]},
+                True,
+            ),
             "black_params": (self.black_params, False),
             "mypy_params": (self.mypy_param, False),
             "pyupgrade_params": (self.pyupgrade_param, False),
@@ -288,7 +291,9 @@ class PythonMetadata:
             print(f"--- Writing into {self.output_env_file} ---")
         content = ""
         for name, (value, render_json) in metadata.items():
-            content += f"{name}={self.format_github_value(value, render_json=render_json)}\n"
+            content += (
+                f"{name}={self.format_github_value(value, render_json=render_json)}\n"
+            )
         if self.debug:
             print(content)
         self.output_env_file.write_text(content)
