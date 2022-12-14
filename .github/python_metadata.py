@@ -190,10 +190,6 @@ class PythonMetadata:
         )
         min_version = Version.from_parts(major=3)
         if self.project_range:
-            # XXX Pyupgrade will remove Python < 3.x support in Pyupgrade 3.x. See:
-            # https://github.com/asottile/pyupgrade/blob/b91f0527127f59d4b7e22157d8ee1884966025a5/pyupgrade/_main.py#L491-L494
-            if self.project_range.min.major < 3:
-                min_version = None
             for version in pyupgrade_range:
                 if self.project_range.allows(version):
                     min_version = version
