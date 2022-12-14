@@ -24,7 +24,7 @@ https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-comma
 python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
 is_poetry_project=true
 package_name=click-extra
-nuitka_main_modules=["mail_deduplicate/cli.py", "meta_package_manager/__main__.py"]
+nuitka_main_modules={"main_module": ["mail_deduplicate/cli.py", "meta_package_manager/__main__.py"]}
 black_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
 pyupgrade_params=--py37-plus
