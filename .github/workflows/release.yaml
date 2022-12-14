@@ -114,6 +114,7 @@ jobs:
     outputs:
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.python-metadata.outputs.package_name }}
+      nuitka_main_modules: ${{ steps.python-metadata.outputs.nuitka_main_modules }}
     steps:
       - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.3.1
@@ -185,10 +186,7 @@ jobs:
     strategy:
       matrix:
         commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
-        # main_module: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules).main_module }}
-        # {"main_module": ["meta_package_manager/__main__.py"]}
-        main_module:
-          - meta_package_manager/__main__.py
+        main_module: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules).main_module }}
         os:
           - ubuntu-22.04
           - macos-12
