@@ -330,8 +330,6 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
-    outputs:
-      release_text: ${{ steps.generate_text.outputs.release_text }}
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.1
@@ -344,12 +342,6 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
           packages_dir: ${{ steps.download.outputs.download-path }}
-      - name: Generate release text
-        id: generate_text
-        run: >
-          echo "release_text=[🐍
-          Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
-          needs.git-tag.outputs.tagged_version }})" >> $GITHUB_OUTPUT
 
   github-release:
     name: Publish GitHub release
@@ -379,4 +371,5 @@ jobs:
           target_commitish: ${{ matrix.commit }}
           files: ${{ steps.download.outputs.download-path }}/*
           body: |
-            ${{ needs.pypi-publish.outputs.release_text }}
+            [🐍 Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
+            needs.git-tag.outputs.tagged_version }})
