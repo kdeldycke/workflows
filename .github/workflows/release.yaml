@@ -271,7 +271,9 @@ jobs:
               short_sha +
               ".${{ matrix.extension }}"
           )
+
           print(f"Generated binary name: {name}")
+          print(f"Main module path: {main_module}")
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(f"name={name}")
