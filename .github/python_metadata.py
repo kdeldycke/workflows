@@ -52,13 +52,13 @@ if sys.version_info >= (3, 8):
 else:
     cached_property = property
 
-
-from poetry.core.constraints.version import (  # type: ignore[import]
-    Version,
-    VersionConstraint,
+from poetry.core.constraints.version import (
     parse_constraint,
+    VersionConstraint,
+    Version,
 )
-from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore[import]
+from poetry.core.pyproject.toml import PyProjectTOML
+from mypy.defaults import PYTHON3_VERSION_MIN
 
 
 class PythonMetadata:
@@ -133,7 +133,9 @@ class PythonMetadata:
             version_range = parse_constraint(
                 self.pyproject.poetry_config["dependencies"]["python"]
             )
-        return version_range
+        if version_range and not version_range.is_empty():
+            return version_range
+        return None
 
     @cached_property
     def black_params(self) -> Generator[str, None, None]:
@@ -168,7 +170,16 @@ class PythonMetadata:
         Mypy needs to be fed with this parameter: `--python-version x.y`.
         """
         if self.project_range:
-            return f"--python-version {self.project_range.min.major}.{self.project_range.min.minor}"
+            if self.project_range.is_simple():
+                major = self.project_range.major
+                minor = self.project_range.minor
+            else:
+                major = self.project_range.min.major
+                minor = self.project_range.min.minor
+            # Mypy's lowest supported version of Python dialect.
+            major = max(major, PYTHON3_VERSION_MIN[0])
+            minor = max(minor, PYTHON3_VERSION_MIN[1])
+            return f"--python-version {major}.{minor}"
         return None
 
     @cached_property
