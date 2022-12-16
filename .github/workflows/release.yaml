@@ -253,7 +253,7 @@ jobs:
         run: |
           poetry install --no-interaction --no-ansi
       - name: Generate bin name
-        id: bin_name
+        id: build-metadata
         shell: python
         run: |
           import os
@@ -264,7 +264,7 @@ jobs:
 
           cli_id, main_module = "${{ matrix.entry_point }}".split(":", 1)
 
-          name = (
+          bin_name = (
               cli_id +
               "_${{ matrix.platform }}_${{ matrix.arch }}" +
               "-build-" +
@@ -272,11 +272,11 @@ jobs:
               ".${{ matrix.extension }}"
           )
 
-          print(f"Generated binary name: {name}")
+          print(f"Binary file name: {bin_name}")
           print(f"Main module path: {main_module}")
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(f"name={name}")
+          env_file.write_text(f"bin_name={bin_name}")
           env_file.write_text(f"main_module={main_module}")
       - name: Build binary within Poetry venv
         run: >
@@ -284,14 +284,14 @@ jobs:
           --onefile
           --assume-yes-for-downloads
           --nofollow-import-to=*.tests
-          --output-filename=${{ steps.bin_name.outputs.name }}
-          ${{ steps.bin_name.outputs.main_module }}
+          --output-filename=${{ steps.build-metadata.outputs.bin_name }}
+          ${{ steps.build-metadata.outputs.main_module }}
       - name: Upload binaries
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: ${{ steps.bin_name.outputs.name }}
+          name: ${{ steps.build-metadata.outputs.bin_name }}
           if-no-files-found: error
-          path: ${{ steps.bin_name.outputs.name }}
+          path: ${{ steps.build-metadata.outputs.bin_name }}
 
   git-tag:
     name: Tag release
