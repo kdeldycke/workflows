@@ -115,13 +115,14 @@ class PythonMetadata:
                 yield cli_id, module_id, callable_id
 
     @cached_property
-    def nuitka_main_modules(self) -> list[Path]:
-        """Returns the path of the modules to be compiled by Nuitka."""
+    def nuitka_entry_points(self) -> list[str]:
+        """Returns the path of the modules to be compiled by Nuitka, each prefixed with their CLI ID."""
         modules_path = []
-        for _, module_id, _ in self.script_entries:
+        for cli_id, module_id, _ in self.script_entries:
             module_path = Path(f"{module_id.replace('.', '/')}.py")
             assert module_path.exists()
-            modules_path.append(module_path)
+            # Serialize CLI ID and main module path.
+            modules_path.append(f"{cli_id}:{module_path}")
         return modules_path
 
     @cached_property
@@ -270,10 +271,9 @@ class PythonMetadata:
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
             # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
-            # pass a list of strings directly as a variable in GitHub Actions' YAML. Also force serialization
-            # of Path objects into strings.
-            "nuitka_main_modules": (
-                {"main_module": [str(i) for i in self.nuitka_main_modules]},
+            # pass a list of strings directly as a variable in GitHub Actions' YAML.
+            "nuitka_entry_points": (
+                {"entry_point": self.nuitka_entry_points},
                 True,
             ),
             "black_params": (self.black_params, False),

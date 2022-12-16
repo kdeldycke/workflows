@@ -6,10 +6,11 @@
 This version is not released yet and is under active development.
 ```
 
-- Add Nuitka-based compiling of Poetry's script entry points into standalone binaries for Linux, macOS and Windows.
-- Extract Poetry script entry points in Python metadata script.
-- Produce Nuitka-specific main module path from script entry points.
-- Allow rendering of data structure in JSON for GitHub actions inter-job outputs.
+- Add Nuitka-based compiling of Poetry's script entry-points into standalone binaries for Linux, macOS and Windows.
+- Upload binaries to GitHub releases on tagging.
+- Extract Poetry script entry-points in Python metadata script.
+- Produce Nuitka-specific main module path from script entry-points.
+- Allow rendering of data structure in JSON for inter-job outputs.
 - Print Python metadata output before writing to env for debugging.
 - Add dependency on `nuitka`, `ordered-set` and `zstandard`.
 

@@ -24,7 +24,7 @@ jobs:
     outputs:
         # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins.
         # See: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626
-        # So we will use this step to list all commits by category.
+        # So we will use this step to list all commits by category to trigger a set of jobs per commit.
       new_commits_matrix: ${{ steps.new_commits_matrix.outputs.matrix }}
       release_commits_matrix: ${{ steps.release_commits_matrix.outputs.matrix }}
     steps:
@@ -114,7 +114,7 @@ jobs:
     outputs:
       is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.python-metadata.outputs.package_name }}
-      nuitka_main_modules: ${{ steps.python-metadata.outputs.nuitka_main_modules }}
+      nuitka_entry_points: ${{ steps.python-metadata.outputs.nuitka_entry_points }}
     steps:
       - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.3.1
@@ -186,7 +186,7 @@ jobs:
     strategy:
       matrix:
         commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
-        main_module: ${{ fromJson(needs.python-metadata.outputs.nuitka_main_modules).main_module }}
+        entry_point: ${{ fromJson(needs.python-metadata.outputs.nuitka_entry_points).entry_point }}
         os:
           - ubuntu-22.04
           - macos-12
@@ -218,6 +218,8 @@ jobs:
             # https://github.com/Nuitka/Nuitka/blob/ca1ec9e8e10b51d187b589f1d33935c4ed558687/nuitka/utils/ReExecute.py#L73-L74
             extra_python_params: "-X utf8"
     runs-on: ${{ matrix.os }}
+    outputs:
+      bin_name: ${{ steps.bin_name.outputs.name }}
     steps:
       - name: Print build target
         run: |
@@ -257,11 +259,23 @@ jobs:
           import os
           from pathlib import Path
 
-          name = "mpm_${{ matrix.platform }}_${{ matrix.arch }}.${{ matrix.extension }}"
+          # Truncate commit ref for readability.
+          short_sha = "${{ matrix.commit }}"[:7]
+
+          cli_id, main_module = "${{ entry_point }}".split(":", 1)
+
+          name = (
+              cli_id +
+              "_${{ matrix.platform }}_${{ matrix.arch }}" +
+              "-build-" +
+              short_sha +
+              ".${{ matrix.extension }}"
+          )
           print(f"Generated binary name: {name}")
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(f"name={name}")
+          env_file.write_text(f"main_module={main_module}")
       - name: Build binary within Poetry venv
         run: >
           poetry run python ${{ matrix.extra_python_params }} -m nuitka
@@ -269,7 +283,7 @@ jobs:
           --assume-yes-for-downloads
           --nofollow-import-to=*.tests
           --output-filename=${{ steps.bin_name.outputs.name }}
-          ${{ matrix.main_module }}
+          ${{ steps.bin_name.outputs.main_module }}
       - name: Upload binaries
         uses: actions/upload-artifact@v3.1.1
         with:
@@ -347,6 +361,8 @@ jobs:
     name: Publish GitHub release
     needs:
       - commit-matrix
+      - python-metadata
+      - compile-binaries
       - git-tag
       - pypi-publish
     # Make sure this job always starts if git-tag ran and succeeded.
@@ -355,13 +371,20 @@ jobs:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Download build artifacts
+      - name: Download Poetry artefacts
         # Do not try to fetch build artifacts if the publishing step has been skipped.
         if: needs.pypi-publish.result != 'skipped'
         uses: actions/download-artifact@v3.0.1
-        id: download
+        id: poetry-artefacts
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.commit }}
+      - name: Download Nuitka artefacts
+        # Do not try to fetch build artifacts if the building step has been skipped.
+        if: needs.compile-binaries.result != 'skipped'
+        uses: actions/download-artifact@v3.0.1
+        id: nuitka-artefacts
+        with:
+          name: ${{ needs.compile-binaries.outputs.bin_name }}
       - name: Create a release on GitHub
         uses: softprops/action-gh-release@v1
         env:
@@ -369,7 +392,9 @@ jobs:
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
-          files: ${{ steps.download.outputs.download-path }}/*
+          files: |
+            ${{ steps.poetry-artefacts.outputs.download-path }}/*
+            ${{ steps.nuitka-artefacts.outputs.download-path }}/*
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})
