@@ -45,7 +45,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Generator, Iterable
+from typing import Any, Generator, Iterable, cast
 
 if sys.version_info >= (3, 8):
     from functools import cached_property
@@ -88,7 +88,7 @@ class PythonMetadata:
     def package_name(self) -> str | None:
         """Returns package name as published on PyPi."""
         if self.is_poetry_project:
-            return self.pyproject.poetry_config["name"]
+            return cast(str, self.pyproject.poetry_config["name"])
         return None
 
     @cached_property
@@ -128,13 +128,13 @@ class PythonMetadata:
     @cached_property
     def project_range(self) -> VersionConstraint | None:
         """Returns Python version support range."""
-        version_range = None
+        constraint = None
         if self.is_poetry_project:
-            version_range = parse_constraint(
+            constraint = parse_constraint(
                 self.pyproject.poetry_config["dependencies"]["python"]
             )
-        if version_range and not version_range.is_empty():
-            return version_range
+        if constraint and not constraint.is_empty():
+            return constraint
         return None
 
     @cached_property
@@ -171,11 +171,11 @@ class PythonMetadata:
         """
         if self.project_range:
             if self.project_range.is_simple():
-                major = self.project_range.major
-                minor = self.project_range.minor
+                major = self.project_range.major # type: ignore[attr-defined]
+                minor = self.project_range.minor # type: ignore[attr-defined]
             else:
-                major = self.project_range.min.major
-                minor = self.project_range.min.minor
+                major = self.project_range.min.major # type: ignore[attr-defined]
+                minor = self.project_range.min.minor # type: ignore[attr-defined]
             # Mypy's lowest supported version of Python dialect.
             major = max(major, PYTHON3_VERSION_MIN[0])
             minor = max(minor, PYTHON3_VERSION_MIN[1])
@@ -263,7 +263,7 @@ class PythonMetadata:
                 items = ((f'"{i}"' if isinstance(i, Path) else str(i)) for i in value)
                 value = " ".join(items)
 
-        return value
+        return cast(str, value)
 
     @cached_property
     def output_env_file(self) -> Path | None:
