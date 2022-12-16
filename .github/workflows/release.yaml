@@ -262,7 +262,7 @@ jobs:
           # Truncate commit ref for readability.
           short_sha = "${{ matrix.commit }}"[:7]
 
-          cli_id, main_module = "${{ entry_point }}".split(":", 1)
+          cli_id, main_module = "${{ matrix.entry_point }}".split(":", 1)
 
           name = (
               cli_id +
