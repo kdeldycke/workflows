@@ -52,13 +52,9 @@ if sys.version_info >= (3, 8):
 else:
     cached_property = property
 
-from poetry.core.constraints.version import (
-    parse_constraint,
-    VersionConstraint,
-    Version,
-)
-from poetry.core.pyproject.toml import PyProjectTOML
 from mypy.defaults import PYTHON3_VERSION_MIN
+from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
+from poetry.core.pyproject.toml import PyProjectTOML
 
 
 class PythonMetadata:
@@ -171,11 +167,11 @@ class PythonMetadata:
         """
         if self.project_range:
             if self.project_range.is_simple():
-                major = self.project_range.major # type: ignore[attr-defined]
-                minor = self.project_range.minor # type: ignore[attr-defined]
+                major = self.project_range.major  # type: ignore[attr-defined]
+                minor = self.project_range.minor  # type: ignore[attr-defined]
             else:
-                major = self.project_range.min.major # type: ignore[attr-defined]
-                minor = self.project_range.min.minor # type: ignore[attr-defined]
+                major = self.project_range.min.major  # type: ignore[attr-defined]
+                minor = self.project_range.min.minor  # type: ignore[attr-defined]
             # Mypy's lowest supported version of Python dialect.
             major = max(major, PYTHON3_VERSION_MIN[0])
             minor = max(minor, PYTHON3_VERSION_MIN[1])
