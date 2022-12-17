@@ -276,8 +276,10 @@ jobs:
           print(f"Main module path: {main_module}")
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(f"bin_name={bin_name}")
-          env_file.write_text(f"main_module={main_module}")
+          env_file.write_text("\n".join((
+              f"bin_name={bin_name}",
+              f"main_module={main_module}"
+          )))
       - name: Build binary within Poetry venv
         run: >
           poetry run python ${{ matrix.extra_python_params }} -m nuitka
