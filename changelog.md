@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.0.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.0.0 (2022-12-17)](https://github.com/kdeldycke/workflows/compare/v1.10.0...v2.0.0)
 
 - Add Nuitka-based compiling of Poetry's script entry-points into standalone binaries for Linux, macOS and Windows.
