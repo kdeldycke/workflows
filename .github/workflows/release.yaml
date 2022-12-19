@@ -163,10 +163,23 @@ jobs:
         run: |
           poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
+      - name: Shorten SHA
+        shell: python
+        id: build-metadata
+        run: |
+          import os
+          from pathlib import Path
+
+          # Truncate commit ref for readability.
+          short_sha = "${{ matrix.commit }}"[:7]
+
+          print(f"Short SHA: {short_sha}")
+          env_file = Path(os.getenv("GITHUB_OUTPUT"))
+          env_file.write_text(f"short_sha={short_sha}")
       - name: Artifacts for GitHub release
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: ${{ github.event.repository.name }}-build-${{ matrix.commit }}
+          name: ${{ github.event.repository.name }}-build-${{ steps.build-metadata.outputs.short_sha }}
           path: ./dist/*
       - name: Validates package metadata
         run: |
@@ -349,11 +362,24 @@ jobs:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
+      - name: Shorten SHA
+        shell: python
+        id: build-metadata
+        run: |
+          import os
+          from pathlib import Path
+
+          # Truncate commit ref for readability.
+          short_sha = "${{ matrix.commit }}"[:7]
+
+          print(f"Short SHA: {short_sha}")
+          env_file = Path(os.getenv("GITHUB_OUTPUT"))
+          env_file.write_text(f"short_sha={short_sha}")
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.1
         id: download
         with:
-          name: ${{ github.event.repository.name }}-build-${{ matrix.commit }}
+          name: ${{ github.event.repository.name }}-build-${{ steps.build-metadata.outputs.short_sha }}
       - name: Push package to public PyPi repository
         uses: pypa/gh-action-pypi-publish@v1.6.4
         with:
@@ -375,6 +401,19 @@ jobs:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
+      - name: Shorten SHA
+        shell: python
+        id: build-metadata
+        run: |
+          import os
+          from pathlib import Path
+
+          # Truncate commit ref for readability.
+          short_sha = "${{ matrix.commit }}"[:7]
+
+          print(f"Short SHA: {short_sha}")
+          env_file = Path(os.getenv("GITHUB_OUTPUT"))
+          env_file.write_text(f"short_sha={short_sha}")
       - name: Download artefacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
@@ -389,7 +428,7 @@ jobs:
           target_commitish: ${{ matrix.commit }}
           # Only download artefacts produced from the release commiy.
           files: |
-            ${{ steps.artefacts.outputs.download-path }}/*-build-${{ matrix.commit }}*
+            ${{ steps.artefacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})
