@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix uploading of artefacts to GitHub release on tagging.
+
 ## [2.0.1 (2022-12-19)](https://github.com/kdeldycke/workflows/compare/v2.0.0...v2.0.1)
 
 - Use short SHA commit in build artefacts.

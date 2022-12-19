@@ -428,7 +428,7 @@ jobs:
           target_commitish: ${{ matrix.commit }}
           # Only download artefacts produced from the release commiy.
           files: |
-            ${{ steps.artefacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*
+            ${{ steps.artefacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*/*
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})
