@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.0.2...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.0.2 (2022-12-19)](https://github.com/kdeldycke/workflows/compare/v2.0.1...v2.0.2)
 
 - Fix uploading of artefacts to GitHub release on tagging.
