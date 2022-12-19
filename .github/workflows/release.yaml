@@ -375,30 +375,21 @@ jobs:
       matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Download Poetry artefacts
-        # Do not try to fetch build artifacts if the publishing step has been skipped.
-        if: needs.pypi-publish.result != 'skipped'
+      - name: Download artefacts
+        # Do not try to fetch build artifacts if any of the job producing them was skipped.
+        if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@v3.0.1
-        id: poetry-artefacts
-        with:
-          name: ${{ github.event.repository.name }}-build-${{ matrix.commit }}
-      - name: Download Nuitka artefacts
-        # Do not try to fetch build artifacts if the building step has been skipped.
-        if: needs.compile-binaries.result != 'skipped'
-        uses: actions/download-artifact@v3.0.1
-        id: nuitka-artefacts
-        with:
-          name: ${{ needs.compile-binaries.outputs.bin_name }}
-      - name: Create a release on GitHub
+        id: artefacts
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
+          # Only download artefacts produced from the release commiy.
           files: |
-            ${{ steps.poetry-artefacts.outputs.download-path }}/*
-            ${{ steps.nuitka-artefacts.outputs.download-path }}/*
+            ${{ steps.artefacts.outputs.download-path }}/*${{ matrix.commit }}*
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})
