@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.0.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.0.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.0.1 (2022-12-19)](https://github.com/kdeldycke/workflows/compare/v2.0.0...v2.0.1)
 
 - Use short SHA commit in build artefacts.
 - Fix uploading of Nuitka binaries to GitHub release on tagging.
