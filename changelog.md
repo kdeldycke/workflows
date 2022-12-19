@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Use short SHA commit in build artefacts.
 - Fix uploading of Nuitka binaries to GitHub release on tagging.
 
 ## [2.0.0 (2022-12-17)](https://github.com/kdeldycke/workflows/compare/v1.10.0...v2.0.0)
