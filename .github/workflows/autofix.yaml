@@ -33,7 +33,7 @@ jobs:
       pyupgrade_params: ${{ steps.python-metadata.outputs.pyupgrade_params }}
     steps:
       - uses: actions/checkout@v3.2.0
-      - uses: actions/setup-python@v4.3.1
+      - uses: actions/setup-python@v4.4.0
         with:
           python-version: "3.11"
       - name: Install pip
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0
-      - uses: actions/setup-python@v4.3.1
+      - uses: actions/setup-python@v4.4.0
         with:
           python-version: "3.11"
       - name: Install pip
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0
-      - uses: actions/setup-python@v4.3.1
+      - uses: actions/setup-python@v4.4.0
         with:
           python-version: "3.11"
       - name: Install pip
