@@ -107,7 +107,9 @@ class PythonMetadata:
         """
         entries = []
         if self.is_poetry_project:
-            for cli_id, script in self.pyproject.poetry_config.get("scripts", {}).items():
+            for cli_id, script in self.pyproject.poetry_config.get(
+                "scripts", {}
+            ).items():
                 module_id, callable_id = script.split(":")
                 entries.append((cli_id, module_id, callable_id))
         return entries
@@ -302,7 +304,9 @@ class PythonMetadata:
         if self.debug:
             print(content)
         if not self.output_env_file:
-            raise FileNotFoundError("No output file specified by $GITHUB_OUTPUT environment variable.")
+            raise FileNotFoundError(
+                "No output file specified by $GITHUB_OUTPUT environment variable."
+            )
         self.output_env_file.write_text(content)
 
         if self.debug:
