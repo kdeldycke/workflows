@@ -301,6 +301,8 @@ class PythonMetadata:
             )
         if self.debug:
             print(content)
+        if not self.output_env_file:
+            raise FileNotFoundError("No output file specified by $GITHUB_OUTPUT environment variable.")
         self.output_env_file.write_text(content)
 
         if self.debug:
