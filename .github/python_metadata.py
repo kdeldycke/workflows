@@ -105,10 +105,12 @@ class PythonMetadata:
                 ...
             )
         """
+        entries = []
         if self.is_poetry_project:
-            for cli_id, script in self.pyproject.poetry_config["scripts"].items():
+            for cli_id, script in self.pyproject.poetry_config.get("scripts", {}).items():
                 module_id, callable_id = script.split(":")
-                yield cli_id, module_id, callable_id
+                entries.append(cli_id, module_id, callable_id)
+        return entries
 
     @cached_property
     def nuitka_entry_points(self) -> list[str]:
