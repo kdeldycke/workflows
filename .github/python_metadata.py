@@ -88,7 +88,7 @@ class PythonMetadata:
         return None
 
     @cached_property
-    def script_entries(self) -> Generator[tuple[str, str, str], None, None]:
+    def script_entries(self) -> list[tuple[str, str, str]]:
         """Returns a list of tuples containing the script name, its module and callable.
 
         .. code-block:: toml
@@ -109,7 +109,7 @@ class PythonMetadata:
         if self.is_poetry_project:
             for cli_id, script in self.pyproject.poetry_config.get("scripts", {}).items():
                 module_id, callable_id = script.split(":")
-                entries.append(cli_id, module_id, callable_id)
+                entries.append((cli_id, module_id, callable_id))
         return entries
 
     @cached_property
