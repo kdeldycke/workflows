@@ -291,7 +291,10 @@ class PythonMetadata:
         # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
         # pass a list of strings directly as a variable in GitHub Actions' YAML.
         if self.nuitka_entry_points:
-            metadata["nuitka_entry_points"] = ({"entry_point": self.nuitka_entry_points}, True)
+            metadata["nuitka_entry_points"] = (
+                {"entry_point": self.nuitka_entry_points},
+                True,
+            )
         else:
             metadata["nuitka_entry_points"] = (None, False)
 
