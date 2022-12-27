@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.0.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.0.3...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.0.4 (2022-12-27)](https://github.com/kdeldycke/workflows/compare/v2.0.3...v2.0.4)
 
 - Fix skipping of Nuitka compiling step for projects without entry points.
 - Skip the whole `1.5.x` series of `docformatter` which struggles with long URLs.
