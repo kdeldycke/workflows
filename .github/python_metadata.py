@@ -115,7 +115,7 @@ class PythonMetadata:
         return entries
 
     @cached_property
-    def nuitka_entry_points(self) -> list[str]:
+    def nuitka_entry_points(self) -> list[str] | None:
         """Returns the path of the modules to be compiled by Nuitka, each prefixed with their CLI ID."""
         modules_path = []
         for cli_id, module_id, _ in self.script_entries:
@@ -123,7 +123,11 @@ class PythonMetadata:
             assert module_path.exists()
             # Serialize CLI ID and main module path.
             modules_path.append(f"{cli_id}:{module_path}")
-        return modules_path
+
+        if modules_path:
+            # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
+            # pass a list of strings directly as a variable in GitHub Actions' YAML.
+            return {"entry_point": modules_path}
 
     @cached_property
     def project_range(self) -> VersionConstraint | None:
@@ -281,12 +285,7 @@ class PythonMetadata:
             "python_files": (self.python_files, False),
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
-            # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
-            # pass a list of strings directly as a variable in GitHub Actions' YAML.
-            "nuitka_entry_points": (
-                {"entry_point": self.nuitka_entry_points},
-                True,
-            ),
+            "nuitka_entry_points": (self.nuitka_entry_points, True),
             "black_params": (self.black_params, False),
             "mypy_params": (self.mypy_param, False),
             "pyupgrade_params": (self.pyupgrade_param, False),

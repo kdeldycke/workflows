@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix skipping of Nuitka compiling step for projects without entry points.
+
 ## [2.0.3 (2022-12-26)](https://github.com/kdeldycke/workflows/compare/v2.0.2...v2.0.3)
 
 - Fix fetching of absent entry points in project metadata.

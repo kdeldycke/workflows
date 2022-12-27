@@ -140,7 +140,7 @@ jobs:
       - python-metadata
     if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
     strategy:
-      matrix: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.commit-matrix.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
       - name: Print target commit
@@ -195,11 +195,11 @@ jobs:
     needs:
       - commit-matrix
       - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+    if: fromJSON(needs.python-metadata.outputs.nuitka_entry_points)
     strategy:
       matrix:
-        commit: ${{ fromJson(needs.commit-matrix.outputs.new_commits_matrix).commit }}
-        entry_point: ${{ fromJson(needs.python-metadata.outputs.nuitka_entry_points).entry_point }}
+        commit: ${{ fromJSON(needs.commit-matrix.outputs.new_commits_matrix).commit }}
+        entry_point: ${{ fromJSON(needs.python-metadata.outputs.nuitka_entry_points).entry_point }}
         os:
           - ubuntu-22.04
           - macos-12
@@ -315,7 +315,7 @@ jobs:
     # Only consider pushes to main branch as triggers for releases.
     if: github.ref == 'refs/heads/main' && needs.commit-matrix.outputs.release_commits_matrix
     strategy:
-      matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
@@ -359,7 +359,7 @@ jobs:
       - git-tag
     if: needs.python-metadata.outputs.package_name
     strategy:
-      matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
       - name: Shorten SHA
@@ -398,7 +398,7 @@ jobs:
     # Make sure this job always starts if git-tag ran and succeeded.
     if: always() && needs.git-tag.result == 'success'
     strategy:
-      matrix: ${{ fromJson(needs.commit-matrix.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.commit-matrix.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
       - name: Shorten SHA
