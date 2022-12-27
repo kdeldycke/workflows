@@ -195,7 +195,7 @@ jobs:
     needs:
       - commit-matrix
       - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.nuitka_entry_points)
+    if: needs.python-metadata.outputs.nuitka_entry_points
     strategy:
       matrix:
         commit: ${{ fromJSON(needs.commit-matrix.outputs.new_commits_matrix).commit }}
