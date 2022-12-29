@@ -10,6 +10,9 @@ name: Build & release
       tagged_version:
         description: Tagged/released version (without leading 'v')
         value: ${{ jobs.git-tag.outputs.tagged_version }}
+      bin_name:
+        description: File name of the binary produced by the build and uploaded as an artefact
+        value: ${{ jobs.compile-binaries.outputs.bin_name }}
   # Target are chosen so that all commits get a chance to have their build tested.
   push:
     branches:
@@ -426,7 +429,7 @@ jobs:
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
-          # Only download artefacts produced from the release commiy.
+          # Only download artefacts produced from the release commit.
           files: |
             ${{ steps.artefacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*/*
           body: |

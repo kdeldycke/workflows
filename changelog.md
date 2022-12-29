@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Export binary name from build workflow.
+
 ## [2.0.4 (2022-12-27)](https://github.com/kdeldycke/workflows/compare/v2.0.3...v2.0.4)
 
 - Fix skipping of Nuitka compiling step for projects without entry points.
