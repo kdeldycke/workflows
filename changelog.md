@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.0.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.0.4...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.0.5 (2022-12-29)](https://github.com/kdeldycke/workflows/compare/v2.0.4...v2.0.5)
 
 - Export binary name from build workflow.
 
