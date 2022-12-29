@@ -235,7 +235,7 @@ jobs:
             extra_python_params: "-X utf8"
     runs-on: ${{ matrix.os }}
     outputs:
-      bin_name: ${{ steps.bin_name.outputs.name }}
+      bin_name: ${{ steps.build-metadata.outputs.bin_name }}
     steps:
       - name: Print build target
         run: |
