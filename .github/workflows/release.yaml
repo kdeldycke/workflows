@@ -129,12 +129,12 @@ jobs:
       - name: Install Poetry
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v2.0.6/requirements.txt
       - name: Python metadata
         id: python-metadata
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/python_metadata.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/v2.0.6/.github/python_metadata.py)"
 
   poetry-build:
     name: "Poetry: build & check package"
@@ -161,7 +161,7 @@ jobs:
       - name: Install poetry, twine and check-wheel-contents
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v2.0.6/requirements.txt
       - name: Build package
         run: |
           poetry install --no-interaction --no-ansi
@@ -253,7 +253,7 @@ jobs:
       - name: Install poetry
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v2.0.6/requirements.txt
       - name: Re-install Nuitka in Poetry venv
         # Nuitka needs to be installed within Poetry's venv to allow for lots of workarounds.
         # Additional dependencies:
@@ -261,7 +261,7 @@ jobs:
         #   - zstandard: for nuitka's onefile compression
         run: >
           poetry run python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v2.0.6/requirements.txt
       - name: Nuitka + compilers versions
         run: |
           poetry run python -m nuitka --version
