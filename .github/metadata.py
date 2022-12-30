@@ -130,19 +130,19 @@ class Metadata:
         return start, end
 
     @cached_property
-    def new_commits(self) -> tuple[Commit]:
+    def new_commits(self) -> tuple[Commit, ...]:
         """Returns list of ``Commit`` objects bundled within the triggering event."""
         start, end = self.commit_range
         # Remove the last commit, as the commit range is inclusive.
         return tuple(Repository(".", from_commit=start, to_commit=end, order="reverse").traverse_commits())[:-1]
 
     @cached_property
-    def new_commits_hash(self) -> tuple[str]:
+    def new_commits_hash(self) -> tuple[str, ...]:
         """List all commit hashes bundled within the triggering event."""
         return tuple(commit.hash for commit in self.new_commits)
 
     @cached_property
-    def release_commits(self) -> tuple[Commit]:
+    def release_commits(self) -> tuple[Commit, ...]:
         """Returns list of ``Commit`` objects to be tagged within the triggering event.
 
         We cannot identify a release commit based the presence of a ``vX.Y.Z`` tag
@@ -159,7 +159,7 @@ class Metadata:
         )
 
     @cached_property
-    def release_commits_hash(self) -> tuple[str]:
+    def release_commits_hash(self) -> tuple[str, ...]:
         """List all release commit hashes bundled within the triggering event."""
         return tuple(commit.hash for commit in self.release_commits)
 
