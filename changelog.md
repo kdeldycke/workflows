@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Rewrite new and release commit detection code from YAML to Python.
+- Add dependency on `PyDriller`.
+
 ## [2.0.6 (2022-12-29)](https://github.com/kdeldycke/workflows/compare/v2.0.5...v2.0.6)
 
 - Fix export of binary name from build workflow.
