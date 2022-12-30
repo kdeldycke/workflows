@@ -45,6 +45,8 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Project metadata
         id: project-metadata
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
