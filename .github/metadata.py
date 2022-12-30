@@ -150,7 +150,7 @@ class Metadata:
         message, based on the template used in the ``changelog.yaml`` workflow.
         """
         return tuple(
-            commit for commit in self.new_commits()
+            commit for commit in self.new_commits
             if re.fullmatch(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$", commit.msg)
         )
 
