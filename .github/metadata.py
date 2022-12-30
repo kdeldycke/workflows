@@ -134,7 +134,7 @@ class Metadata:
         """Returns list of ``Commit`` objects bundled within the triggering event."""
         start, end = self.commit_range
         # Remove the last commit, as the commit range is inclusive.
-        return tuple(Repository(".", from_commit=start, to_commit=end).traverse_commits())[:-1]
+        return tuple(Repository(".", from_commit=start, to_commit=end, order="reverse").traverse_commits())[:-1]
 
     @cached_property
     def new_commits_hash(self) -> tuple[str]:
