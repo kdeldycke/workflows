@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.1.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.1.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.1.1 (2022-12-30)](https://github.com/kdeldycke/workflows/compare/v2.1.0...v2.1.1)
 
 - Fix fetching of commit matrix.
