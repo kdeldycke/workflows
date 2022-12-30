@@ -82,7 +82,7 @@ class Metadata:
                 GITHUB_CONTEXT: ${{ toJSON(github) }}
               run: >
                 python -c "$(curl -fsSL
-                https://raw.githubusercontent.com/kdeldycke/workflows/v2.1.0/.github/metadata.py)"
+                https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
         """
         context = json.loads(os.environ["GITHUB_CONTEXT"])
         if self.debug:
