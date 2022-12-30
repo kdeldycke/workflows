@@ -124,6 +124,9 @@ class Metadata:
         else:
             start = self.github_context['event']['before']
             end = self.github_context['sha']
+        print("--- Commit range ---")
+        print(f"Range start: {start}")
+        print(f"Range end: {end}")
         return start, end
 
     @cached_property
