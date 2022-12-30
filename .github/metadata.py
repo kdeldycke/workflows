@@ -115,15 +115,15 @@ class Metadata:
             - https://stackoverflow.com/a/61861763
         """
         # Pull request event.
-        if self.github_context['base_ref']:
+        if self.github_context["base_ref"]:
             start = f"origin/{self.github_context['base_ref']}"
             # We need to checkout the HEAD commit instead of the artificial merge
             # commit introduced by the pull request.
-            end = self.github_context['event']['pull_request']['head']['sha']
+            end = self.github_context["event"]["pull_request"]["head"]["sha"]
         # Push event.
         else:
-            start = self.github_context['event']['before']
-            end = self.github_context['sha']
+            start = self.github_context["event"]["before"]
+            end = self.github_context["sha"]
         print("--- Commit range ---")
         print(f"Range start: {start}")
         print(f"Range end: {end}")
@@ -134,7 +134,11 @@ class Metadata:
         """Returns list of ``Commit`` objects bundled within the triggering event."""
         start, end = self.commit_range
         # Remove the last commit, as the commit range is inclusive.
-        return tuple(Repository(".", from_commit=start, to_commit=end, order="reverse").traverse_commits())[:-1]
+        return tuple(
+            Repository(
+                ".", from_commit=start, to_commit=end, order="reverse"
+            ).traverse_commits()
+        )[:-1]
 
     @cached_property
     def new_commits_hash(self) -> tuple[str, ...]:
@@ -154,8 +158,11 @@ class Metadata:
         message, based on the template used in the ``changelog.yaml`` workflow.
         """
         return tuple(
-            commit for commit in self.new_commits
-            if re.fullmatch(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$", commit.msg)
+            commit
+            for commit in self.new_commits
+            if re.fullmatch(
+                r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$", commit.msg
+            )
         )
 
     @cached_property
