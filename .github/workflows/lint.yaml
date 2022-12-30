@@ -39,7 +39,7 @@ jobs:
         id: python-metadata
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/python_metadata.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   lint-python:
     needs:
