@@ -69,7 +69,26 @@ class Metadata:
 
     @cached_property
     def github_context(self) -> dict[str, Any]:
-        return json.loads(os.environ["GITHUB_CONTEXT"])
+        """Load GitHub context from the environment.
+
+        Expect ``GITHUB_CONTEXT`` to be set as part of the environment. I.e., adds the
+        following as part of your job step calling this script:
+
+        .. code-block:: yaml
+
+            - name: Project metadata
+              id: project-metadata
+              env:
+                GITHUB_CONTEXT: ${{ toJSON(github) }}
+              run: >
+                python -c "$(curl -fsSL
+                https://raw.githubusercontent.com/kdeldycke/workflows/v2.1.0/.github/metadata.py)"
+        """
+        context = json.loads(os.environ["GITHUB_CONTEXT"])
+        if self.debug:
+            print("--- GitHub context ---")
+            print(json.dumps(context, indent=4))
+        return context
 
     @cached_property
     def commit_range(self) -> tuple[str, str]:
@@ -96,7 +115,7 @@ class Metadata:
             - https://stackoverflow.com/a/61861763
         """
         # Pull request event.
-        if "GITHUB_BASE_REF" in os.environ:
+        if self.github_context['base_ref']:
             start = f"origin/{self.github_context['base_ref']}"
             # We need to checkout the HEAD commit instead of the artificial merge
             # commit introduced by the pull request.
