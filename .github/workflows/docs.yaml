@@ -132,14 +132,14 @@ jobs:
           labels: "📚 documentation"
           branch: update-mailmap
 
-  python-metadata:
-    name: Python metadata
+  project-metadata:
+    name: Project metadata
     runs-on: ubuntu-22.04
     outputs:
-      is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
-      package_name: ${{ steps.python-metadata.outputs.package_name }}
-      is_sphinx: ${{ steps.python-metadata.outputs.is_sphinx }}
-      active_autodoc: ${{ steps.python-metadata.outputs.active_autodoc }}
+      is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
+      package_name: ${{ steps.project-metadata.outputs.package_name }}
+      is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
+      active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
     steps:
       - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.4.0
@@ -152,8 +152,8 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Python metadata
-        id: python-metadata
+      - name: Project metadata
+        id: project-metadata
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
@@ -161,8 +161,8 @@ jobs:
   update-deps-graph:
     name: Update dependency graph
     needs:
-      - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+      - project-metadata
+    if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0
@@ -190,10 +190,10 @@ jobs:
           sudo apt install graphviz
       - name: Run pipdeptree for debug
         run: >
-          poetry run pipdeptree --packages ${{ needs.python-metadata.outputs.package_name }}
+          poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
       - name: Generate graph
         run: >
-          poetry run pipdeptree --packages ${{ needs.python-metadata.outputs.package_name }}
+          poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
           --graph-output png > ${{ inputs.dependency-graph-output || './docs/images/dependencies.png' }}
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
@@ -216,10 +216,10 @@ jobs:
   update-autodoc:
     name: Update autodoc
     needs:
-      - python-metadata
+      - project-metadata
     if: >
-      fromJSON(needs.python-metadata.outputs.is_poetry_project)
-      && fromJSON(needs.python-metadata.outputs.active_autodoc)
+      fromJSON(needs.project-metadata.outputs.is_poetry_project)
+      && fromJSON(needs.project-metadata.outputs.active_autodoc)
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0
@@ -260,8 +260,8 @@ jobs:
   deploy-docs:
     name: Deploy Sphinx doc
     needs:
-      - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project) && fromJSON(needs.python-metadata.outputs.is_sphinx)
+      - project-metadata
+    if: fromJSON(needs.project-metadata.outputs.is_poetry_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0

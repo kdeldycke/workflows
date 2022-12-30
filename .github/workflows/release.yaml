@@ -21,8 +21,8 @@ name: Build & release
 
 jobs:
 
-  python-metadata:
-    name: Python metadata
+  project-metadata:
+    name: Project metadata
     runs-on: ubuntu-22.04
     outputs:
       # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins
@@ -30,12 +30,12 @@ jobs:
       # This means in a graph of jobs, a matrix-based one is terminal, and cannot be depended on. Same goes for
       # (reuseable) workflows. We use this preliminary job to produce all matrix we need to trigger depending jobs
       # over the dimensions.
-      new_commits_matrix: ${{ steps.python-metadata.outputs.new_commits_matrix }}
-      release_commits_matrix: ${{ steps.python-metadata.outputs.release_commits_matrix }}
+      new_commits_matrix: ${{ steps.project-metadata.outputs.new_commits_matrix }}
+      release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
       # Export Python project metadata.
-      nuitka_entry_points: ${{ steps.python-metadata.outputs.nuitka_entry_points }}
-      is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
-      package_name: ${{ steps.python-metadata.outputs.package_name }}
+      nuitka_entry_points: ${{ steps.project-metadata.outputs.nuitka_entry_points }}
+      is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
+      package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
       - uses: actions/checkout@v3.2.0
         with:
@@ -59,8 +59,8 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Python metadata
-        id: python-metadata
+      - name: Project metadata
+        id: project-metadata
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
@@ -68,10 +68,10 @@ jobs:
   poetry-build:
     name: "Poetry: build & check package"
     needs:
-      - python-metadata
-    if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+      - project-metadata
+    if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
     strategy:
-      matrix: ${{ fromJSON(needs.python-metadata.outputs.new_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
       - name: Print target commit
@@ -124,12 +124,12 @@ jobs:
   compile-binaries:
     name: "Nuitka: generate binaries"
     needs:
-      - python-metadata
-    if: needs.python-metadata.outputs.nuitka_entry_points
+      - project-metadata
+    if: needs.project-metadata.outputs.nuitka_entry_points
     strategy:
       matrix:
-        commit: ${{ fromJSON(needs.python-metadata.outputs.new_commits_matrix).commit }}
-        entry_point: ${{ fromJSON(needs.python-metadata.outputs.nuitka_entry_points).entry_point }}
+        commit: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix).commit }}
+        entry_point: ${{ fromJSON(needs.project-metadata.outputs.nuitka_entry_points).entry_point }}
         os:
           - ubuntu-22.04
           - macos-12
@@ -241,11 +241,11 @@ jobs:
   git-tag:
     name: Tag release
     needs:
-      - python-metadata
+      - project-metadata
     # Only consider pushes to main branch as triggers for releases.
-    if: github.ref == 'refs/heads/main' && needs.python-metadata.outputs.release_commits_matrix
+    if: github.ref == 'refs/heads/main' && needs.project-metadata.outputs.release_commits_matrix
     strategy:
-      matrix: ${{ fromJSON(needs.python-metadata.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
@@ -283,12 +283,12 @@ jobs:
   pypi-publish:
     name: Publish to PyPi
     needs:
-      - python-metadata
+      - project-metadata
       - poetry-build
       - git-tag
-    if: needs.python-metadata.outputs.package_name
+    if: needs.project-metadata.outputs.package_name
     strategy:
-      matrix: ${{ fromJSON(needs.python-metadata.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
       - name: Shorten SHA
@@ -319,14 +319,14 @@ jobs:
   github-release:
     name: Publish GitHub release
     needs:
-      - python-metadata
+      - project-metadata
       - compile-binaries
       - git-tag
       - pypi-publish
     # Make sure this job always starts if git-tag ran and succeeded.
     if: always() && needs.git-tag.result == 'success'
     strategy:
-      matrix: ${{ fromJSON(needs.python-metadata.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
       - name: Shorten SHA
@@ -358,5 +358,5 @@ jobs:
           files: |
             ${{ steps.artefacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*/*
           body: |
-            [🐍 Available on PyPi](https://pypi.org/project/${{ needs.python-metadata.outputs.package_name }}/${{
+            [🐍 Available on PyPi](https://pypi.org/project/${{ needs.project-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})

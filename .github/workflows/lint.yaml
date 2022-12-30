@@ -15,14 +15,14 @@ concurrency:
 
 jobs:
 
-  python-metadata:
-    name: Python metadata
+  project-metadata:
+    name: Project metadata
     runs-on: ubuntu-22.04
     outputs:
-      python_files: ${{ steps.python-metadata.outputs.python_files }}
-      is_poetry_project: ${{ steps.python-metadata.outputs.is_poetry_project }}
-      package_name: ${{ steps.python-metadata.outputs.package_name }}
-      mypy_params: ${{ steps.python-metadata.outputs.mypy_params }}
+      python_files: ${{ steps.project-metadata.outputs.python_files }}
+      is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
+      package_name: ${{ steps.project-metadata.outputs.package_name }}
+      mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v3.2.0
       - uses: actions/setup-python@v4.4.0
@@ -35,17 +35,17 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Python metadata
-        id: python-metadata
+      - name: Project metadata
+        id: project-metadata
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   lint-python:
     needs:
-      - python-metadata
+      - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
+    if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0
@@ -61,7 +61,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can avoid importing errors in Pylint reports.
-        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: |
           # Allows our Pylint version to access project's dependencies.
           poetry config virtualenvs.create false
@@ -94,9 +94,9 @@ jobs:
 
   lint-python-types:
     needs:
-      - python-metadata
+      - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
+    if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0
@@ -112,25 +112,25 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project with Poetry
         # Install project with Poetry if supported, so we can benefits from dependencies on typing stubs.
-        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: |
           poetry install --no-interaction
       - name: Run Poetry's Mypy
-        if: fromJSON(needs.python-metadata.outputs.is_poetry_project)
+        if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: >
-          poetry run mypy ${{ needs.python-metadata.outputs.mypy_params }}
-          ${{ needs.python-metadata.outputs.python_files }}
+          poetry run mypy ${{ needs.project-metadata.outputs.mypy_params }}
+          ${{ needs.project-metadata.outputs.python_files }}
       - name: Run vanilla Mypy
-        if: ${{ ! fromJSON(needs.python-metadata.outputs.is_poetry_project) }}
+        if: ${{ ! fromJSON(needs.project-metadata.outputs.is_poetry_project) }}
         run: >
-          mypy ${{ needs.python-metadata.outputs.mypy_params }}
-          ${{ needs.python-metadata.outputs.python_files }}
+          mypy ${{ needs.project-metadata.outputs.mypy_params }}
+          ${{ needs.project-metadata.outputs.python_files }}
 
   lint-python-doc:
     needs:
-      - python-metadata
+      - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release' && needs.python-metadata.outputs.python_files
+    if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.2.0
