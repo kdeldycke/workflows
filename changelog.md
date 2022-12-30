@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.1.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.1.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.1.0 (2022-12-30)](https://github.com/kdeldycke/workflows/compare/v2.0.6...v2.1.0)
 
 - Rewrite new and release commit detection code from YAML to Python.
