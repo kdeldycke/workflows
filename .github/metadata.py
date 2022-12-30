@@ -392,13 +392,13 @@ class Metadata:
 
         # Structured metadata to be rendered as JSON.
         json_metadata = {
-            "new_commits_matrix": {"matrix": self.new_commits_hash},
-            "release_commits_matrix": {"matrix": self.release_commits_hash},
-            "nuitka_entry_points": {"entry_point": self.nuitka_entry_points},
+            "new_commits_matrix": ("matrix", self.new_commits_hash),
+            "release_commits_matrix": ("matrix", self.release_commits_hash),
+            "nuitka_entry_points": ("entry_point", self.nuitka_entry_points),
         }
 
-        for name, value in json_metadata.items():
-            metadata[name] = (value, True) if value else (None, False)
+        for name, (key, value) in json_metadata.items():
+            metadata[name] = ({key: value}, True) if value else (None, False)
 
         if self.debug:
             print(f"--- Writing into {self.output_env_file} ---")
