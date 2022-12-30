@@ -57,7 +57,7 @@ else:
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
-from pydriller import Commit, Repository
+from pydriller import Commit, Repository  # type: ignore[import]
 
 
 class Metadata:
