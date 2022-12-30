@@ -399,8 +399,8 @@ class Metadata:
 
         # Structured metadata to be rendered as JSON.
         json_metadata = {
-            "new_commits_matrix": ("matrix", self.new_commits_hash),
-            "release_commits_matrix": ("matrix", self.release_commits_hash),
+            "new_commits_matrix": ("commit", self.new_commits_hash),
+            "release_commits_matrix": ("commit", self.release_commits_hash),
             "nuitka_entry_points": ("entry_point", self.nuitka_entry_points),
         }
 
