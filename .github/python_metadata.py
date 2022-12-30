@@ -15,10 +15,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Extract some metadata from Python projects to be used by GitHub workflows.
+"""Extract some metadata from repository and Python projects to be used by GitHub workflows.
 
-Outputs the following variables to the environment file (see:
-https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files):
+The following variables are `printed to the environment file
+<https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files>`_:
 
 ```text
 python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
@@ -43,6 +43,7 @@ from __future__ import annotations
 import ast
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any, Generator, Iterable, cast
@@ -50,19 +51,94 @@ from typing import Any, Generator, Iterable, cast
 if sys.version_info >= (3, 8):
     from functools import cached_property
 else:
+    # Don't bother caching on older Python versions.
     cached_property = property
 
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
+from pydriller import Commit, Repository
 
 
-class PythonMetadata:
+class Metadata:
     def __init__(self, debug: bool = False) -> None:
         self.debug = debug
 
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
+
+    @cached_property
+    def github_context(self) -> dict[str, Any]:
+        return json.loads(os.environ["GITHUB_CONTEXT"])
+
+    @cached_property
+    def commit_range(self) -> tuple[str, str]:
+        """Range of commits bundled within the triggering event.
+
+        A workflow run is triggered by a singular event, which might encapsulate one or
+        more commits. This means the workflow will only run once on the last commit,
+        even if multiple new commits where pushed.
+
+        This is anoying when we want to keep a carefully constructed commit history,
+        and want to run the workflow on each commit. The typical example is a pull
+        request that is merged upstream but we'd like to produce artefacts (builds,
+        packages, etc.) for each individual commit.
+
+        The default ``GITHUB_SHA`` environment variable is useless as it only points to
+        the last commit. We need to inspect the commit history to find all new one. New
+        commits needs to be fetched differently in ``push`` and ``pull_requests``
+        events.
+
+        .. seealso::
+
+            - https://stackoverflow.com/a/67204539
+            - https://stackoverflow.com/a/62953566
+            - https://stackoverflow.com/a/61861763
+        """
+        # Pull request event.
+        if "GITHUB_BASE_REF" in os.environ:
+            start = f"origin/{self.github_context['base_ref']}"
+            # We need to checkout the HEAD commit instead of the artificial merge
+            # commit introduced by the pull request.
+            end = self.github_context['event']['pull_request']['head']['sha']
+        # Push event.
+        else:
+            start = self.github_context['event']['before']
+            end = self.github_context['sha']
+        return start, end
+
+    @cached_property
+    def new_commits(self) -> tuple[Commit]:
+        """Returns list of ``Commit`` objects bundled within the triggering event."""
+        start, end = self.commit_range
+        return tuple(Repository(".", from_commit=start, to_commit=end).traverse_commits())
+
+    @cached_property
+    def new_commits_hash(self) -> tuple[str]:
+        """List all commit hashes bundled within the triggering event."""
+        return tuple(commit.hash for commit in self.new_commits)
+
+    @cached_property
+    def release_commits(self) -> tuple[Commit]:
+        """Returns list of ``Commit`` objects to be tagged within the triggering event.
+
+        We cannot identify a release commit based the presence of a ``vX.Y.Z`` tag
+        alone. That's because it is not present in the ``prepare-release`` pull request
+        produced by the ``changelog.yaml`` workflow. The tag is produced later on by
+        the ``release.yaml`` workflow, when the pull request is merged to ``main``.
+
+        Our best second option is to identify a release based on the full commit
+        message, based on the template used in the ``changelog.yaml`` workflow.
+        """
+        return tuple(
+            commit for commit in self.new_commits()
+            if re.fullmatch(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$", commit.msg)
+        )
+
+    @cached_property
+    def release_commits_hash(self) -> tuple[str]:
+        """List all release commit hashes bundled within the triggering event."""
+        return tuple(commit.hash for commit in self.release_commits)
 
     @cached_property
     def python_files(self) -> Generator[Path, None, None]:
@@ -277,7 +353,10 @@ class PythonMetadata:
 
     def save_metadata(self):
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
+        # Plain metadata.
         metadata = {
+            "new_commits": (self.new_commits_hash, False),
+            "release_commits": (self.release_commits_hash, False),
             "python_files": (self.python_files, False),
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
@@ -288,15 +367,15 @@ class PythonMetadata:
             "active_autodoc": (self.active_autodoc, False),
         }
 
-        # Rewrap the list of main modules into a JSON-rendered dictionary because we cannot
-        # pass a list of strings directly as a variable in GitHub Actions' YAML.
-        if self.nuitka_entry_points:
-            metadata["nuitka_entry_points"] = (
-                {"entry_point": self.nuitka_entry_points},
-                True,
-            )
-        else:
-            metadata["nuitka_entry_points"] = (None, False)
+        # Structured metadata to be rendered as JSON.
+        json_metadata = {
+            "new_commits_matrix": {"matrix": self.new_commits_hash},
+            "release_commits_matrix": {"matrix": self.release_commits_hash},
+            "nuitka_entry_points": {"entry_point": self.nuitka_entry_points},
+        }
+
+        for name, value in json_metadata.items():
+            metadata[name] = (value, True) if value else (None, False)
 
         if self.debug:
             print(f"--- Writing into {self.output_env_file} ---")
@@ -319,5 +398,5 @@ class PythonMetadata:
 
 
 # Output metadata with GitHub syntax.
-metadata = PythonMetadata(debug=True)
+metadata = Metadata(debug=True)
 metadata.save_metadata()
