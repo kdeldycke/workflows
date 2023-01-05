@@ -37,7 +37,7 @@ jobs:
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -79,7 +79,7 @@ jobs:
       - name: Print target commit
         run: |
           echo "${{ matrix.commit }}"
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.4.0
@@ -169,7 +169,7 @@ jobs:
       - name: Print build target
         run: |
           echo "${{ matrix }}"
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.4.0
@@ -255,7 +255,7 @@ jobs:
       - name: Print release commit
         run: |
           echo "${{ matrix.commit }}"
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
         with:
           ref: ${{ matrix.commit }}
       - name: Extract version

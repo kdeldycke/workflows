@@ -24,7 +24,7 @@ jobs:
       package_name: ${{ steps.project-metadata.outputs.package_name }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -55,7 +55,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
       - uses: actions/setup-python@v4.4.0
         with:
           python-version: "3.11"
@@ -106,7 +106,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
       - uses: actions/setup-python@v4.4.0
         with:
           python-version: "3.11"
@@ -140,7 +140,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
       - uses: actions/setup-python@v4.4.0
         with:
           python-version: "3.11"
@@ -162,7 +162,7 @@ jobs:
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
       - uses: actions/setup-python@v4.4.0
         with:
           python-version: "3.11"
@@ -180,7 +180,7 @@ jobs:
   lint-zsh:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
       - name: Install Zsh
         run: |
           sudo apt install --yes zsh
@@ -193,7 +193,7 @@ jobs:
     if: startsWith(github.event.repository.name, 'awesome-')
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
         with:
           # Fetch all history to please linter's age checks.
           fetch-depth: 0
@@ -204,7 +204,7 @@ jobs:
   check-secrets:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
         with:
           fetch-depth: '0'
       - uses: zricethezav/gitleaks-action@v2.3.1
