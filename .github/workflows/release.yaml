@@ -110,7 +110,7 @@ jobs:
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(f"short_sha={short_sha}")
       - name: Artifacts for GitHub release
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{ github.event.repository.name }}-build-${{ steps.build-metadata.outputs.short_sha }}
           path: ./dist/*
@@ -234,7 +234,7 @@ jobs:
           --output-filename=${{ steps.build-metadata.outputs.bin_name }}
           ${{ steps.build-metadata.outputs.main_module }}
       - name: Upload binaries
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{ steps.build-metadata.outputs.bin_name }}
           if-no-files-found: error
