@@ -29,3 +29,13 @@ All there's left to do is to:
 - click the `Rebase and merge` button,
 - let the workflows tag the release and set back the `main` branch into a
   development state.
+
+## Used in
+
+Check these projects to get real-life examples of usage and inspiration:
+
+- ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/meta-package-manager?label=%E2%AD%90&style=flat-square) [Meta Package Manager](https://github.com/kdeldycke/meta-package-manager#readme)
+  \- A unifying CLI for multiple package managers.
+- ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/mail-deduplicate?label=%E2%AD%90&style=flat-square) [Mail Deduplicate](https://github.com/kdeldycke/mail-deduplicate#readme) - A
+  CLI to deduplicate similar emails.
+- ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/click-extra?label=%E2%AD%90&style=flat-square) [Click Extra](https://github.com/kdeldycke/click-extra#readme) - Extra colorization and configuration loading for Click.
