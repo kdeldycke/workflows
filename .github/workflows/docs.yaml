@@ -3,8 +3,13 @@ name: Docs
 "on":
   workflow_call:
     inputs:
+      dependency-graph-format:
+        description: 'Format of the dependency graph file. Either: dot, jpeg, pdf, png or svg.'
+        default: 'dot'
+        required: false
+        type: string
       dependency-graph-output:
-        description: 'Location in the repository of the dependency graph image'
+        description: 'Location in the repository of the dependency graph image.'
         default: './docs/images/dependencies.png'
         required: false
         type: string
@@ -201,7 +206,29 @@ jobs:
       - name: Generate graph
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
-          --graph-output png > ${{ inputs.dependency-graph-output || './docs/images/dependencies.png' }}
+          --graph-output ${{ inputs.dependency-graph-format || 'dot' }} >
+          ${{ inputs.dependency-graph-output || './docs/images/dependencies.dot' }}
+      - name: Customize graph design
+        if: inputs.dependency-graph-format == 'dot'
+        run: |
+          sed '1a\
+              fontname="Helvetica,Arial,sans-serif"
+              node [
+                  style=filled
+                  shape=box
+                  fontname="Helvetica,Arial,sans-serif"
+                  fontsize=10
+                  color="#b2afa7"
+                  fillcolor="#edeceb"
+              ]
+              edge [
+                  headport=nw
+                  fontname="Helvetica,Arial,sans-serif"
+                  fontsize=8
+                  color="#b2b1ae"
+                  fontcolor="#00000080"
+              ]
+          ' < ${{ inputs.dependency-graph-output || './docs/images/dependencies.dot' }}
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}
@@ -287,6 +314,11 @@ jobs:
         run: |
           poetry config virtualenvs.create false
           poetry install --no-interaction --no-ansi
+      - name: Install Graphviz
+        # So we can use the sphinx.ext.graphviz plugin.
+        # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
+        run: |
+          sudo apt install graphviz
       - name: Build documentation
         run: |
           poetry run sphinx-build -b html ./docs ./docs/html
