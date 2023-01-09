@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.2.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.2.2...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.2.3 (2023-01-09)](https://github.com/kdeldycke/workflows/compare/v2.2.2...v2.2.3)
 
 - Re-parse dependency graph to stabilize its output, customize its style and make it deterministic.
 - Unpin dependency on `yamllint` and depends on latest version.
