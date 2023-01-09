@@ -207,27 +207,62 @@ jobs:
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
           --graph-output ${{ inputs.dependency-graph-format }} > ${{ inputs.dependency-graph-output }}
-      - name: Customize graph design
+      - name: Stabilize and style graph
         if: inputs.dependency-graph-format == 'dot'
+        # XXX Make the output of the dot format deterministic and stable. See:
+        # https://github.com/tox-dev/pipdeptree/issues/188
+        # https://github.com/tox-dev/pipdeptree/pull/189
+        shell: python
+        id: build-metadata
         run: |
-          sed -i '1a\
-              fontname="Helvetica,Arial,sans-serif"      \
-              node [                                     \
-                  style=filled                           \
-                  shape=box                              \
-                  fontname="Helvetica,Arial,sans-serif"  \
-                  fontsize=10                            \
-                  color="#b2afa7"                        \
-                  fillcolor="#edeceb"                    \
-              ]                                          \
-              edge [                                     \
-                  headport=nw                            \
-                  fontname="Helvetica,Arial,sans-serif"  \
-                  fontsize=8                             \
-                  color="#b2b1ae"                        \
-                  fontcolor="#00000080"                  \
-              ]                                          \
-          ' ${{ inputs.dependency-graph-output }}
+          from pathlib import Path
+          from textwrap import dedent, indent
+
+          dot_file = Path("${{ inputs.dependency-graph-output }}")
+          lines = [l.strip() for l in dot_file.read_text().splitlines() if l.strip()]
+          directives = lines[1:-1]
+
+          head = "digraph {"
+          tail = "}"
+
+          # Validates pipdeptree expected output.
+          assert lines[0] == head
+          assert lines[-1] == tail
+          for l in directives:
+              assert "[label=" in l
+
+          # Recompose file content.
+          content = [head]
+          # Customize graph style.
+          content.append(
+              indent(
+                  dedent("""
+                      fontname="Helvetica,Arial,sans-serif"
+                      node [
+                          style=filled
+                          shape=box
+                          fontname="Helvetica,Arial,sans-serif"
+                          fontsize=10
+                          color="#b2afa7"
+                          fillcolor="#edeceb"
+                      ]
+                      edge [
+                          headport=nw
+                          fontname="Helvetica,Arial,sans-serif"
+                          fontsize=8
+                          color="#b2b1ae"
+                          fontcolor="#00000080"
+                      ]
+                  """.strip()),
+                  prefix=" " * 4,
+              )
+          )
+          # Sort directives for determinism.
+          content.extend(indent(l, prefix=" " * 4) for l in sorted(directives))
+          content.append(tail)
+
+          # Overwrite the file created by pipdeptree.
+          dot_file.write_text("\n".join(content))
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}
