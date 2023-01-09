@@ -206,8 +206,7 @@ jobs:
       - name: Generate graph
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
-          --graph-output ${{ inputs.dependency-graph-format || 'dot' }} >
-          ${{ inputs.dependency-graph-output || './docs/images/dependencies.dot' }}
+          --graph-output ${{ inputs.dependency-graph-format }} > ${{ inputs.dependency-graph-output }}
       - name: Customize graph design
         if: inputs.dependency-graph-format == 'dot'
         run: |
@@ -228,7 +227,7 @@ jobs:
                   color="#b2b1ae"                        \
                   fontcolor="#00000080"                  \
               ]                                          \
-          ' ${{ inputs.dependency-graph-output || './docs/images/dependencies.dot' }}
+          ' ${{ inputs.dependency-graph-output }}
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}

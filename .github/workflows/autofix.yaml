@@ -234,9 +234,8 @@ jobs:
       - uses: actions/checkout@v3.3.0
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
-        run: >
-          echo "exists=$( [[ -f
-          '${{ inputs.gitignore-location || './.gitignore' }}' ]] && echo 'true' )" >> $GITHUB_OUTPUT
+        run: |
+          echo "exists=$( [[ -f '${{ inputs.gitignore-location }}' ]] && echo 'true' )" >> $GITHUB_OUTPUT
       - name: Detection results
         run: |
           echo "Does .gitignore exist at root? ${{ steps.detection.outputs.exists && true || false }}"
@@ -262,7 +261,7 @@ jobs:
       - name: Generate .gitignore
         run: >
           git ignore-io emacs git linux macos nohup python vim virtualenv visualstudiocode windows
-          ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location || './.gitignore' }}
+          ${{ inputs.gitignore-extra-categories }} > ${{ inputs.gitignore-location }}
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}
