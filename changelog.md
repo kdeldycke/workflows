@@ -10,6 +10,7 @@ This version is not released yet and is under active development.
 - Add a `dependency-graph-format` parameter to the documentation workflow.
 - Customize the style of dependency graph when Graphiz code is produced.
 - Install Graphviz when we produce the documentation so we can use `sphinx.ext.graphviz` plugin.
+- Add list of projects relying on these scripts.
 
 ## [2.1.1 (2022-12-30)](https://github.com/kdeldycke/workflows/compare/v2.1.0...v2.1.1)
 
