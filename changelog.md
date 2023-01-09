@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.2.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.2.2...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.2.2 (2023-01-09)](https://github.com/kdeldycke/workflows/compare/v2.2.1...v2.2.2)
 
 - Fix default dependency graph extension.
