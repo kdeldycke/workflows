@@ -10,7 +10,7 @@ name: Docs
         type: string
       dependency-graph-output:
         description: 'Location in the repository of the dependency graph image.'
-        default: './docs/images/dependencies.png'
+        default: './docs/images/dependencies.dot'
         required: false
         type: string
   push:
