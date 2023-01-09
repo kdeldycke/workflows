@@ -33,5 +33,5 @@ pylint == 2.15.9
 pyupgrade == 3.3.1
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.2
-yamllint @ git+https://github.com/adrienverge/yamllint.git@d0392b34ca15fb56061a4edc594ae2dd67b0cff9
+yamllint == 1.28.0
 zstandard == 0.19.0
