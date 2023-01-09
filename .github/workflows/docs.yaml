@@ -211,24 +211,24 @@ jobs:
       - name: Customize graph design
         if: inputs.dependency-graph-format == 'dot'
         run: |
-          sed '1a\
-              fontname="Helvetica,Arial,sans-serif"
-              node [
-                  style=filled
-                  shape=box
-                  fontname="Helvetica,Arial,sans-serif"
-                  fontsize=10
-                  color="#b2afa7"
-                  fillcolor="#edeceb"
-              ]
-              edge [
-                  headport=nw
-                  fontname="Helvetica,Arial,sans-serif"
-                  fontsize=8
-                  color="#b2b1ae"
-                  fontcolor="#00000080"
-              ]
-          ' < ${{ inputs.dependency-graph-output || './docs/images/dependencies.dot' }}
+          sed -i '1a\
+              fontname="Helvetica,Arial,sans-serif"      \
+              node [                                     \
+                  style=filled                           \
+                  shape=box                              \
+                  fontname="Helvetica,Arial,sans-serif"  \
+                  fontsize=10                            \
+                  color="#b2afa7"                        \
+                  fillcolor="#edeceb"                    \
+              ]                                          \
+              edge [                                     \
+                  headport=nw                            \
+                  fontname="Helvetica,Arial,sans-serif"  \
+                  fontsize=8                             \
+                  color="#b2b1ae"                        \
+                  fontcolor="#00000080"                  \
+              ]                                          \
+          ' ${{ inputs.dependency-graph-output || './docs/images/dependencies.dot' }}
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}
