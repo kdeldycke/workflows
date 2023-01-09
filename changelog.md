@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.2.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.2.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.2.1 (2023-01-09)](https://github.com/kdeldycke/workflows/compare/v2.2.0...v2.2.1)
 
 - Fix inplace customization of dependency graph.
 
