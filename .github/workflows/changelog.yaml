@@ -142,11 +142,24 @@ jobs:
         run: |
           perl -pi -e "s/\.\.\.main/\.\.\.v${{ steps.get_version.outputs.current_version }}/" ./changelog.md
       - name: Remove first warning message in changelog
+        shell: python
         # Matches first occurrence of a multi-line block of text delimited by triple-backticks (```<anything>```).
-        run: >
-          python -c 'import re; from pathlib import Path; file = Path("./changelog.md");
-          file.write_text(re.sub(r"^\`\`\`.*?\`\`\`\n\n", "", file.read_text(),
-          count=1, flags=re.MULTILINE | re.DOTALL))'
+        run: |
+          import re
+          from pathlib import Path
+
+          file = Path("./changelog.md")
+          content = file.read_text()
+
+          cleaned_content = re.sub(
+              r"^\`\`\`.*?\`\`\`\n\n",
+              "",
+              content,
+              count=1,
+              flags=re.MULTILINE | re.DOTALL
+          )
+
+          file.write_text(cleaned_content)
       - name: Setup Git
         run: |
           git config --global user.name "${{ github.actor }}"
