@@ -21,15 +21,19 @@ The following variables are `printed to the environment file
 <https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files>`_:
 
 ```text
+new_commits=346ce664f055fbd042a25ee0b7e96702394d5e95 6f27db47612aaee06fdf361008744b09a9f5f6c2
+release_commits=6f27db47612aaee06fdf361008744b09a9f5f6c2
 python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
 is_poetry_project=true
 package_name=click-extra
-nuitka_main_modules={"main_module": ["mail_deduplicate/cli.py", "meta_package_manager/__main__.py"]}
 black_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
 pyupgrade_params=--py37-plus
 is_sphinx=true
 active_autodoc=true
+new_commits_matrix={"commit": ["346ce664f055fbd042a25ee0b7e96702394d5e95", "6f27db47612aaee06fdf361008744b09a9f5f6c2"]}
+release_commits_matrix={"commit": ["6f27db47612aaee06fdf361008744b09a9f5f6c2"]}
+nuitka_entry_points={"entry_point": ["mail_deduplicate/cli.py", "meta_package_manager/__main__.py"]}
 ```
 
 Automatic detection of minimal Python version is being discussed upstream for:
