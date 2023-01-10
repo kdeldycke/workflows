@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Format python code blocks in documentation files with `blacken-docs`.
+- Let metadata script locate Markdown, reStructuredText and Tex files under the `doc_files` field.
+- Add new dependency on `blacken-docs`.
 - Allow metadata script to be run on non-GitHub environment.
 
 ## [2.2.3 (2023-01-09)](https://github.com/kdeldycke/workflows/compare/v2.2.2...v2.2.3)

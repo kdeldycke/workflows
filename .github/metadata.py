@@ -24,6 +24,7 @@ The following variables are `printed to the environment file
 new_commits=346ce664f055fbd042a25ee0b7e96702394d5e95 6f27db47612aaee06fdf361008744b09a9f5f6c2
 release_commits=6f27db47612aaee06fdf361008744b09a9f5f6c2
 python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
+doc_files="changelog.md" "readme.md" "docs/license.md"
 is_poetry_project=true
 package_name=click-extra
 black_params=--target-version py37 --target-version py38
@@ -195,10 +196,18 @@ class Metadata:
             return None
         return tuple(commit.hash for commit in self.release_commits)
 
+    def glob_files(self, *patterns: str) -> Generator[Path, None, None]:
+        for pattern in patterns:
+            # is_file() return False if the path doesn’t exist or is a broken symlink.
+            yield from (p for p in Path().glob(pattern) if p.is_file())
+
     @cached_property
     def python_files(self) -> Generator[Path, None, None]:
-        # is_file() return False if the path doesn’t exist or is a broken symlink.
-        yield from (p for p in Path().glob("**/*.py") if p.is_file())
+        yield from self.glob_files("**/*.py")
+
+    @cached_property
+    def doc_files(self) -> Generator[Path, None, None]:
+        yield from self.glob_files("**/*.md", "**/*.markdown", "**/*.rst", "**/*.tex")
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
@@ -285,6 +294,10 @@ class Metadata:
 
         `You should include all Python versions that you want your code to run under.`,
         as per: https://github.com/psf/black/issues/751
+
+        .. tip::
+
+            Can also be used by `blacken-docs CLI <https://github.com/adamchainz/blacken-docs>`_.
         """
         if self.project_range:
             minor_range = sorted(v.value for v in black.TargetVersion)
@@ -414,6 +427,7 @@ class Metadata:
             "new_commits": (self.new_commits_hash, False),
             "release_commits": (self.release_commits_hash, False),
             "python_files": (self.python_files, False),
+            "doc_files": (self.doc_files, False),
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
             "black_params": (self.black_params, False),

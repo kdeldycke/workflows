@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
+      doc_files: ${{ needs.project-metadata.outputs.doc_files }}
       black_params: ${{ steps.project-metadata.outputs.black_params }}
       pyupgrade_params: ${{ steps.project-metadata.outputs.pyupgrade_params }}
     steps:
@@ -102,7 +103,7 @@ jobs:
     name: Format Python
     needs:
       - project-metadata
-    if: needs.project-metadata.outputs.python_files
+    if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.3.0
@@ -112,7 +113,7 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install isort, pycln, docformatter, autopep8 and black
+      - name: Install isort, pycln, docformatter, blacken-docs, autopep8 and black
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
@@ -127,6 +128,17 @@ jobs:
       - name: Run docformatter
         run: |
           docformatter --recursive --in-place --wrap-summaries 88 --wrap-descriptions 88 .
+      - name: Run blacken-docs
+        # blacken-docs reuses Black's ``--target-version pyXY`` parameter.
+        # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
+        # https://github.com/adamchainz/blacken-docs/blob/79ef671d15161b9dbc16ac3760086b5222836583/blacken_docs.py#L207-L211
+        run: >
+          blacken-docs
+          --line-length 88
+          ${{ needs.project-metadata.outputs.black_params }}
+          ${{ needs.project-metadata.outputs.python_files }}
+          ${{ needs.project-metadata.outputs.doc_files }}
+          || true
       - name: Run autopep8
         # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
         # We use autopep8 to only wrap long-line comments and reduce Pylint complaints.
