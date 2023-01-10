@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.3.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.3.0 (2023-01-10)](https://github.com/kdeldycke/workflows/compare/v2.2.3...v2.3.0)
 
 - Format python code blocks in documentation files with `blacken-docs`.
