@@ -58,6 +58,7 @@ else:
     # Don't bother caching on older Python versions.
     cached_property = property
 
+import black
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
@@ -266,8 +267,9 @@ class Metadata:
         as per: https://github.com/psf/black/issues/751
         """
         if self.project_range:
+            minor_range = sorted(v.value for v in black.TargetVersion)
             black_range = (
-                Version.from_parts(major=3, minor=minor) for minor in range(3, 11 + 1)
+                Version.from_parts(major=3, minor=minor) for minor in minor_range
             )
             for version in black_range:
                 if self.project_range.allows(version):
