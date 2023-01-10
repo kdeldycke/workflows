@@ -242,7 +242,7 @@ class Metadata:
             (
                 ("mdedup", "mail_deduplicate.cli", "mdedup"),
                 ("mpm", "meta_package_manager.__main__", "main"),
-                ...
+                ...,
             )
         """
         entries = []
