@@ -89,6 +89,16 @@ class Metadata:
                 python -c "$(curl -fsSL
                 https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
         """
+        if "GITHUB_CONTEXT" not in os.environ:
+            message = (
+                "⚠️  Missing GitHub context in environment. "
+                "Did you forget to set GITHUB_CONTEXT?"
+            )
+            if self.debug:
+                print(message, file=sys.stderr)
+                return {}
+            else:
+                raise RuntimeError(message)
         context = json.loads(os.environ["GITHUB_CONTEXT"])
         if self.debug:
             print("--- GitHub context ---")
@@ -96,7 +106,7 @@ class Metadata:
         return context
 
     @cached_property
-    def commit_range(self) -> tuple[str, str]:
+    def commit_range(self) -> tuple[str, str] | None:
         """Range of commits bundled within the triggering event.
 
         A workflow run is triggered by a singular event, which might encapsulate one or
@@ -119,6 +129,8 @@ class Metadata:
             - https://stackoverflow.com/a/62953566
             - https://stackoverflow.com/a/61861763
         """
+        if not self.github_context:
+            return None
         # Pull request event.
         if self.github_context["base_ref"]:
             start = f"origin/{self.github_context['base_ref']}"
@@ -135,8 +147,10 @@ class Metadata:
         return start, end
 
     @cached_property
-    def new_commits(self) -> tuple[Commit, ...]:
+    def new_commits(self) -> tuple[Commit, ...] | None:
         """Returns list of ``Commit`` objects bundled within the triggering event."""
+        if not self.commit_range:
+            return None
         start, end = self.commit_range
         # Remove the last commit, as the commit range is inclusive.
         return tuple(
@@ -146,12 +160,14 @@ class Metadata:
         )[:-1]
 
     @cached_property
-    def new_commits_hash(self) -> tuple[str, ...]:
+    def new_commits_hash(self) -> tuple[str, ...] | None:
         """List all commit hashes bundled within the triggering event."""
+        if not self.new_commits:
+            return None
         return tuple(commit.hash for commit in self.new_commits)
 
     @cached_property
-    def release_commits(self) -> tuple[Commit, ...]:
+    def release_commits(self) -> tuple[Commit, ...] | None:
         """Returns list of ``Commit`` objects to be tagged within the triggering event.
 
         We cannot identify a release commit based the presence of a ``vX.Y.Z`` tag
@@ -162,6 +178,8 @@ class Metadata:
         Our best second option is to identify a release based on the full commit
         message, based on the template used in the ``changelog.yaml`` workflow.
         """
+        if not self.new_commits:
+            return None
         return tuple(
             commit
             for commit in self.new_commits
@@ -171,8 +189,10 @@ class Metadata:
         )
 
     @cached_property
-    def release_commits_hash(self) -> tuple[str, ...]:
+    def release_commits_hash(self) -> tuple[str, ...] | None:
         """List all release commit hashes bundled within the triggering event."""
+        if not self.release_commits:
+            return None
         return tuple(commit.hash for commit in self.release_commits)
 
     @cached_property

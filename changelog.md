@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Allow metadata script to be run on non-GitHub environment.
+
 ## [2.2.3 (2023-01-09)](https://github.com/kdeldycke/workflows/compare/v2.2.2...v2.2.3)
 
 - Re-parse dependency graph to stabilize its output, customize its style and make it deterministic.
