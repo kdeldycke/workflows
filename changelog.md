@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Force refresh of `apt` before installing `graphviz`.
+
 ## [2.3.0 (2023-01-10)](https://github.com/kdeldycke/workflows/compare/v2.2.3...v2.3.0)
 
 - Format python code blocks in documentation files with `blacken-docs`.

@@ -199,7 +199,8 @@ jobs:
           "$( pipdeptree | grep pipdeptree | sed 's/pipdeptree/pipdeptree[graphviz]/' )"
       - name: Install Graphviz
         run: |
-          sudo apt install graphviz
+          sudo apt update
+          sudo apt install --yes graphviz
       - name: Run pipdeptree for debug
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
@@ -352,7 +353,8 @@ jobs:
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
         run: |
-          sudo apt install graphviz
+          sudo apt update
+          sudo apt install --yes graphviz
       - name: Build documentation
         run: |
           poetry run sphinx-build -b html ./docs ./docs/html
