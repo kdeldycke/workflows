@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Force refresh of `apt` before installing anything.
+
 ## [2.3.1 (2023-01-13)](https://github.com/kdeldycke/workflows/compare/v2.3.0...v2.3.1)
 
 - Force refresh of `apt` before installing `graphviz`.
