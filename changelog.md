@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Update dependencies.
+
 ## [2.3.2 (2023-01-16)](https://github.com/kdeldycke/workflows/compare/v2.3.1...v2.3.2)
 
 - Force refresh of `apt` before installing anything.
