@@ -124,7 +124,7 @@ jobs:
       - name: Run pycln
         # Black is not removing unused imports, as per https://github.com/psf/black/issues/86 . So we rely on pycln.
         run: |
-          pycln .
+          pycln --all .
       - name: Run docformatter
         run: |
           docformatter --recursive --in-place --wrap-summaries 88 --wrap-descriptions 88 .
