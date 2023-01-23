@@ -147,11 +147,11 @@ jobs:
           - os: ubuntu-22.04
             platform: linux
             extension: bin
-            extra_python_params:
+            extra_python_params: ""
           - os: macos-12
             platform: macos
             extension: bin
-            extra_python_params:
+            extra_python_params: ""
           - os: windows-2022
             platform: windows
             extension: exe
@@ -344,11 +344,11 @@ jobs:
           print(f"Short SHA: {short_sha}")
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(f"short_sha={short_sha}")
-      - name: Download artefacts
+      - name: Download artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@v3.0.2
-        id: artefacts
+        id: artifacts
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         env:
@@ -356,9 +356,9 @@ jobs:
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
-          # Only download artefacts produced from the release commit.
+          # Only download artifacts produced from the release commit.
           files: |
-            ${{ steps.artefacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*/*
+            ${{ steps.artifacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*/*
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.project-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})
