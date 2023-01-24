@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.3.4...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.3.4 (2023-01-24)](https://github.com/kdeldycke/workflows/compare/v2.3.3...v2.3.4)
 
 - Target unreleased `docformatter 1.6.0.rc1` to fix long URL rewrapping.
