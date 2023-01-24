@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.3.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.3.5...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.3.6 (2023-01-24)](https://github.com/kdeldycke/workflows/compare/v2.3.5...v2.3.6)
 
 - Reverts to skipping the full `1.5.x` series and `1.6.0rc1` of `docformatter` which struggle on long URLs and admonitions.
 
