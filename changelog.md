@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Target unreleased `docformatter 1.6.0.rc1` to fix long URL rewrapping.
 - Remove thouroughly all unused imports.
 
 ## [2.3.3 (2023-01-21)](https://github.com/kdeldycke/workflows/compare/v2.3.2...v2.3.3)
