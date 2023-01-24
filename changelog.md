@@ -78,11 +78,11 @@ This version is not released yet and is under active development.
 
 ## [2.0.2 (2022-12-19)](https://github.com/kdeldycke/workflows/compare/v2.0.1...v2.0.2)
 
-- Fix uploading of artefacts to GitHub release on tagging.
+- Fix uploading of artifacts to GitHub release on tagging.
 
 ## [2.0.1 (2022-12-19)](https://github.com/kdeldycke/workflows/compare/v2.0.0...v2.0.1)
 
-- Use short SHA commit in build artefacts.
+- Use short SHA commit in build artifacts.
 - Fix uploading of Nuitka binaries to GitHub release on tagging.
 
 ## [2.0.0 (2022-12-17)](https://github.com/kdeldycke/workflows/compare/v1.10.0...v2.0.0)
@@ -329,7 +329,7 @@ This version is not released yet and is under active development.
 
 ## [0.7.24 (2022-01-15)](https://github.com/kdeldycke/workflows/compare/v0.7.23...v0.7.24)
 
-- Fix upload of build artefacts in GitHub release.
+- Fix upload of build artifacts in GitHub release.
 
 ## [0.7.23 (2022-01-15)](https://github.com/kdeldycke/workflows/compare/v0.7.22...v0.7.23)
 
@@ -350,7 +350,7 @@ This version is not released yet and is under active development.
   detection strategy.
 - Trigger tagging by monitoring `main` branch commit messages instead of
   `prepare-release` PR merge event.
-- Upload build artefacts for each commit.
+- Upload build artifacts for each commit.
 - Fix addition of PyPi link in GitHub release content.
 
 ## [0.7.19 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.18...v0.7.19)
@@ -360,7 +360,7 @@ This version is not released yet and is under active development.
 
 ## [0.7.18 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.17...v0.7.18)
 
-- Add version in the name of built artefacts.
+- Add version in the name of built artifacts.
 
 ## [0.7.17 (2022-01-11)](https://github.com/kdeldycke/workflows/compare/v0.7.16...v0.7.17)
 
@@ -435,7 +435,7 @@ This version is not released yet and is under active development.
 
 ## [0.7.4 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.3...v0.7.4)
 
-- Do not try to fetch build artefacts if the publishing step has been skipped.
+- Do not try to fetch build artifacts if the publishing step has been skipped.
 - Do not trigger debug workflow on `pull_request` events.
 
 ## [0.7.3 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.7.2...v0.7.3)
@@ -460,7 +460,7 @@ This version is not released yet and is under active development.
 - Detect Poetry-based project, then auto-build and publish packages on PyPi on
   release.
 - Always test builds on each commit.
-- Add build artefacts to GitHub releases.
+- Add build artifacts to GitHub releases.
 
 ## [0.6.3 (2022-01-09)](https://github.com/kdeldycke/workflows/compare/v0.6.2...v0.6.3)
 

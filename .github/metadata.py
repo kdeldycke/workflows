@@ -116,7 +116,7 @@ class Metadata:
 
         This is anoying when we want to keep a carefully constructed commit history,
         and want to run the workflow on each commit. The typical example is a pull
-        request that is merged upstream but we'd like to produce artefacts (builds,
+        request that is merged upstream but we'd like to produce artifacts (builds,
         packages, etc.) for each individual commit.
 
         The default ``GITHUB_SHA`` environment variable is useless as it only points to
