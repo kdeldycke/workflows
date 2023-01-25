@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.8 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.3.7...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.3.7 (2023-01-25)](https://github.com/kdeldycke/workflows/compare/v2.3.6...v2.3.7)
 
 - Change the order of Python auto-formatting pipeline to `pycln` > `isort` > `black` > `blacken-docs` > `autopep8` > `docformatter`.
