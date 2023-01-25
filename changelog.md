@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Change the order of Python auto-formatting pipeline to `pycln` > `isort` > `black` > `blacken-docs` > `autopep8` > `docformatter`.
 - Target unreleased `docformatter 1.6.0-rc2` to fix admonition formatting.
 - Ignore failing of `docformatter` as `1.6.x` series returns non-zero exit code if files needs to be reformatted.
 
