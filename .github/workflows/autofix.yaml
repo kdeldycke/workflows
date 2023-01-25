@@ -131,7 +131,7 @@ jobs:
       - name: Run blacken-docs
         # blacken-docs reuses Black's ``--target-version pyXY`` parameter.
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
-        # https://github.com/adamchainz/blacken-docs/blob/79ef671d15161b9dbc16ac3760086b5222836583/blacken_docs.py#L207-L211
+        # https://github.com/adamchainz/blacken-docs/blob/79ef671/blacken_docs.py#L207-L211
         run: >
           blacken-docs
           --line-length 88
@@ -147,7 +147,8 @@ jobs:
         run: |
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive .
       - name: Run docformatter
-        # Always ignore failing command: docformatter returns exit code 3 if it finds a file that needs to be reformatted:
+        # Always ignore failing command, as docformatter returns exit code 3 if it finds a file that needs to be
+        # reformatted:
         # https://github.com/PyCQA/docformatter/issues/157#issuecomment-1402573058
         # https://github.com/PyCQA/docformatter/commit/f7d50ae
         run: |
