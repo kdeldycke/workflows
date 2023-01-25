@@ -128,7 +128,7 @@ jobs:
       - name: Run docformatter
         # Always ignore failing command: docformatter returns exit code 3 if it finds a file that needs to be reformatted:
         # https://github.com/PyCQA/docformatter/issues/157#issuecomment-1402573058
-        # https://github.com/PyCQA/docformatter/pull/137/files#diff-66e28562c85a1bb96f431f2dd52bbabab914359e4b06f58eb1e18eadc01f5c06R96
+        # https://github.com/PyCQA/docformatter/commit/f7d50ae
         run: |
           docformatter --recursive --in-place --wrap-summaries 88 --wrap-descriptions 88 . || true
       - name: Run blacken-docs
