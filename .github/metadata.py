@@ -411,7 +411,7 @@ class Metadata:
         return False
 
     @staticmethod
-    def sha_matrix(sha_list: Iterable[str]):
+    def sha_matrix(sha_list: Iterable[str] | None) -> dict[str, Any] | None:
         """Returns a matrix with long and short SHA values.
 
         Returns a ready-to-use, variable-less matrix structure, where `all variations
@@ -433,6 +433,8 @@ class Metadata:
                 ]
             }
         """
+        if not sha_list:
+            return None
         return {"include": [{
             "long_sha": sha,
             "short_sha": sha[:SHORT_SHA_LENGTH],
