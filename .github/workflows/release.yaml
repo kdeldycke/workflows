@@ -78,10 +78,11 @@ jobs:
     steps:
       - name: Print target commit
         run: |
-          echo "${{ matrix.commit }}"
+          echo "${{ matrix.long_sha }}"
+          echo "${{ matrix.short_sha }}"
       - uses: actions/checkout@v3.3.0
         with:
-          ref: ${{ matrix.commit }}
+          ref: ${{ matrix.long_sha }}
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
@@ -96,23 +97,10 @@ jobs:
         run: |
           poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
-      - name: Shorten SHA
-        shell: python
-        id: build-metadata
-        run: |
-          import os
-          from pathlib import Path
-
-          # Truncate commit ref for readability.
-          short_sha = "${{ matrix.commit }}"[:7]
-
-          print(f"Short SHA: {short_sha}")
-          env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(f"short_sha={short_sha}")
       - name: Artifacts for GitHub release
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ github.event.repository.name }}-build-${{ steps.build-metadata.outputs.short_sha }}
+          name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
           path: ./dist/*
       - name: Validates package metadata
         run: |
@@ -130,7 +118,7 @@ jobs:
     if: needs.project-metadata.outputs.nuitka_entry_points
     strategy:
       matrix:
-        commit: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix).commit }}
+        commit: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix).include }}
         entry_point: ${{ fromJSON(needs.project-metadata.outputs.nuitka_entry_points).entry_point }}
         os:
           - ubuntu-22.04
@@ -171,7 +159,7 @@ jobs:
           echo "${{ matrix }}"
       - uses: actions/checkout@v3.3.0
         with:
-          ref: ${{ matrix.commit }}
+          ref: ${{ matrix.commit.long_sha }}
       - uses: actions/setup-python@v4.5.0
         with:
           # XXX Nuitka is not ready for Python 3.11 yet.
@@ -204,16 +192,13 @@ jobs:
           import os
           from pathlib import Path
 
-          # Truncate commit ref for readability.
-          short_sha = "${{ matrix.commit }}"[:7]
-
           cli_id, main_module = "${{ matrix.entry_point }}".split(":", 1)
 
           bin_name = (
               cli_id +
               "_${{ matrix.platform }}_${{ matrix.arch }}" +
               "-build-" +
-              short_sha +
+              "${{ matrix.commit.short_sha }}" +
               ".${{ matrix.extension }}"
           )
 
@@ -254,10 +239,11 @@ jobs:
     steps:
       - name: Print release commit
         run: |
-          echo "${{ matrix.commit }}"
+          echo "${{ matrix.long_sha }}"
+          echo "${{ matrix.short_sha }}"
       - uses: actions/checkout@v3.3.0
         with:
-          ref: ${{ matrix.commit }}
+          ref: ${{ matrix.long_sha }}
       - name: Extract version
         id: get_version
         run: >
@@ -280,7 +266,7 @@ jobs:
         with:
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}
-          commit-sha: ${{ matrix.commit }}
+          commit-sha: ${{ matrix.long_sha }}
 
   pypi-publish:
     name: Publish to PyPi
@@ -293,24 +279,11 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Shorten SHA
-        shell: python
-        id: build-metadata
-        run: |
-          import os
-          from pathlib import Path
-
-          # Truncate commit ref for readability.
-          short_sha = "${{ matrix.commit }}"[:7]
-
-          print(f"Short SHA: {short_sha}")
-          env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(f"short_sha={short_sha}")
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.2
         id: download
         with:
-          name: ${{ github.event.repository.name }}-build-${{ steps.build-metadata.outputs.short_sha }}
+          name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
       - name: Push package to public PyPi repository
         uses: pypa/gh-action-pypi-publish@v1.6.4
         with:
@@ -331,19 +304,6 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Shorten SHA
-        shell: python
-        id: build-metadata
-        run: |
-          import os
-          from pathlib import Path
-
-          # Truncate commit ref for readability.
-          short_sha = "${{ matrix.commit }}"[:7]
-
-          print(f"Short SHA: {short_sha}")
-          env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(f"short_sha={short_sha}")
       - name: Download artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
@@ -358,7 +318,7 @@ jobs:
           target_commitish: ${{ matrix.commit }}
           # Only download artifacts produced from the release commit.
           files: |
-            ${{ steps.artifacts.outputs.download-path }}/*-build-${{ steps.build-metadata.outputs.short_sha }}*/*
+            ${{ steps.artifacts.outputs.download-path }}/*-build-${{ matrix.short_sha }}*/*
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.project-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})

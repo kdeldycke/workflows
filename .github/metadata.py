@@ -32,9 +32,9 @@ mypy_params=--python-version 3.7
 pyupgrade_params=--py37-plus
 is_sphinx=true
 active_autodoc=true
-new_commits_matrix={"commit": ["346ce664f055fbd042a25ee0b7e96702394d5e95", "6f27db47612aaee06fdf361008744b09a9f5f6c2"]}
-release_commits_matrix={"commit": ["6f27db47612aaee06fdf361008744b09a9f5f6c2"]}
-nuitka_entry_points={"entry_point": ["mail_deduplicate/cli.py", "meta_package_manager/__main__.py"]}
+new_commits_matrix={"include": [{"long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95", "short_sha": "346ce66"}, {"long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
+release_commits_matrix={"include": [{"long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
+nuitka_entry_points={"entry_point": ["mdedup:mail_deduplicate/cli.py", "mpm:meta_package_manager/__main__.py"]}
 ```
 
 Automatic detection of minimal Python version is being discussed upstream for:
@@ -64,6 +64,16 @@ from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
 from pydriller import Commit, Repository  # type: ignore[import]
+
+
+SHORT_SHA_LENGTH = 7
+"""Default SHA lentgth hard-coded to ``7``.
+
+.. caution::
+
+    The `default is subject to change <https://stackoverflow.com/a/21015031>`_ and
+    depends on the size of the repository.
+"""
 
 
 class Metadata:
@@ -231,6 +241,8 @@ class Metadata:
     def script_entries(self) -> list[tuple[str, str, str]]:
         """Returns a list of tuples containing the script name, its module and callable.
 
+        Results are derived from the script entries of ``pyproject.toml``. So that:
+
         .. code-block:: toml
             [tool.poetry.scripts]
             mdedup = "mail_deduplicate.cli:mdedup"
@@ -255,15 +267,36 @@ class Metadata:
         return entries
 
     @cached_property
-    def nuitka_entry_points(self) -> list[str]:
-        """Returns the path of the modules to be compiled by Nuitka, each prefixed with their CLI ID."""
+    def nuitka_entry_points(self) -> dict[str, list[str]] | None:
+        """List all path to be compiled by Nuitka, each prefixed with their CLI ID.
+
+        Results are derived from the script entries of ``pyproject.toml``. For example, with::
+
+        .. code-block:: toml
+            [tool.poetry.scripts]
+            mdedup = "mail_deduplicate.cli:mdedup"
+            mpm = "meta_package_manager.__main__:main"
+
+        This function returns the following structure, wrapped in a ``dict`` to be used as a matrix:
+
+        .. code-block:: python
+            {
+                "entry_point": [
+                    "mdedup:mail_deduplicate/cli.py",
+                    "mpm:meta_package_manager/__main__.py",
+                    ...,
+                ]
+            }
+        """
         modules_path = []
         for cli_id, module_id, _ in self.script_entries:
             module_path = Path(f"{module_id.replace('.', '/')}.py")
             assert module_path.exists()
             # Serialize CLI ID and main module path.
             modules_path.append(f"{cli_id}:{module_path}")
-        return modules_path
+        if modules_path:
+            return {"entry_point": modules_path}
+        return None
 
     @cached_property
     def project_range(self) -> VersionConstraint | None:
@@ -378,6 +411,34 @@ class Metadata:
         return False
 
     @staticmethod
+    def sha_matrix(sha_list: Iterable[str]):
+        """Returns a matrix with long and short SHA values.
+
+        Returns a ready-to-use, variable-less matrix structure, where `all variations
+        are already pre-computed
+        <https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#example-adding-configurations>`_
+        in the ``include`` directive:
+
+        .. code-block:: python
+            {"include":
+                [
+                    {
+                        "long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "short_sha": "346ce66"
+                    },
+                    {
+                        "long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "short_sha": "6f27db4"
+                    }
+                ]
+            }
+        """
+        return {"include": [{
+            "long_sha": sha,
+            "short_sha": sha[:SHORT_SHA_LENGTH],
+        } for sha in sha_list]}
+
+    @staticmethod
     def format_github_value(value: Any, render_json=False) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
 
@@ -439,13 +500,12 @@ class Metadata:
 
         # Structured metadata to be rendered as JSON.
         json_metadata = {
-            "new_commits_matrix": ("commit", self.new_commits_hash),
-            "release_commits_matrix": ("commit", self.release_commits_hash),
-            "nuitka_entry_points": ("entry_point", self.nuitka_entry_points),
+            "new_commits_matrix": self.sha_matrix(self.new_commits_hash),
+            "release_commits_matrix": self.sha_matrix(self.release_commits_hash),
+            "nuitka_entry_points": self.nuitka_entry_points,
         }
-
-        for name, (key, value) in json_metadata.items():
-            metadata[name] = ({key: value}, True) if value else (None, False)
+        for name, data_dict in json_metadata.items():
+            metadata[name] = (data_dict, True) if data_dict else (None, False)
 
         if self.debug:
             print(f"--- Writing into {self.output_env_file} ---")
