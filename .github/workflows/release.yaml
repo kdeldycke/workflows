@@ -155,7 +155,7 @@ jobs:
           --assume-yes-for-downloads
           --nofollow-import-to=*.tests
           --output-filename=${{ matrix.bin_name }}
-          ${{ matrix.main_module }}
+          ${{ matrix.module_path }}
       - name: Upload binaries
         uses: actions/upload-artifact@v3.1.2
         with:

@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix module path provided to Nuitka.
+
 ## [2.4.0 (2023-01-27)](https://github.com/kdeldycke/workflows/compare/v2.3.7...v2.4.0)
 
 - Pre-compute the whole Nuitka build matrix.
