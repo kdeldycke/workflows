@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Export full Nuitka build matrix from release workflow.
+
 ## [2.4.1 (2023-01-27)](https://github.com/kdeldycke/workflows/compare/v2.4.0...v2.4.1)
 
 - Reuse and align commit metadata.

@@ -10,6 +10,10 @@ name: Build & release
       tagged_version:
         description: Tagged/released version (without leading 'v')
         value: ${{ jobs.git-tag.outputs.tagged_version }}
+      nuitka_matrix:
+        description: Nuitka build matrix
+        value: ${{ jobs.project-metadata.outputs.nuitka_matrix }}
+
   # Target are chosen so that all commits get a chance to have their build tested.
   push:
     branches:
