@@ -383,7 +383,7 @@ class Metadata:
         return False
 
     @staticmethod
-    def sha_matrix(sha_list: Iterable[str] | None) -> dict[str, Any] | None:
+    def sha_matrix(sha_list: Iterable[str] | None) -> dict[str, list[dict[str, str]]] | None:
         """Pre-compute a matrix with long and short SHA values.
 
         Returns a ready-to-use, variable-less matrix structure, where `all variations
@@ -522,11 +522,11 @@ class Metadata:
         """
         RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
-        # Only produce a matrix if the project is provifing CLI entry poits.
+        # Only produce a matrix if the project is providing CLI entry points.
         if not self.script_entries:
             return None
 
-        matrix = {
+        matrix: dict[str, list[Any]] = {
             "entry_point": [],
             # Run the compilation on the latest supported version of each OS.
             "os": [
@@ -572,14 +572,14 @@ class Metadata:
 
         # We'd like to run a build for each commit bundled in the action trigger.
         if self.new_commits_hash:
-            matrix["commit"] = self.new_commits_hash
+            matrix["commit"] = list(self.new_commits_hash)
             extra_commit_params = [
                 {
                     "commit": commit_params["long_sha"],
                     "long_sha": commit_params["long_sha"],
                     "short_sha": commit_params["short_sha"],
                 }
-                for commit_params in self.sha_matrix(self.new_commits_hash)
+                for commit_params in self.sha_matrix(self.new_commits_hash)["include"]  # type: ignore[index]
             ]
             matrix["include"].extend(extra_commit_params)
 
