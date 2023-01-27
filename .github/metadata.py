@@ -649,9 +649,7 @@ class Metadata:
             extra_name_param = variant_dict.copy()
             # Generate for Nuitka the binary file name to be used that is unique to this variant.
             extra_name_param["bin_name"] = (
-                "{cli_id}_{platform_id}_{arch}"
-                "-build-{short_sha}"
-                ".{extension}"
+                "{cli_id}_{platform_id}_{arch}-build-{short_sha}.{extension}"
             ).format(**full_variant)
             matrix["include"].append(extra_name_param)
 
