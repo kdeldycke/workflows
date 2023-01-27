@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.4.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.4.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.4.0 (2023-01-27)](https://github.com/kdeldycke/workflows/compare/v2.3.7...v2.4.0)
 
 - Pre-compute the whole Nuitka build matrix.
