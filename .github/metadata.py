@@ -140,7 +140,7 @@ class Metadata:
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "short_sha": "6f27db4",
                     },
-                ]
+                ],
             }
         """
         if not commits:
