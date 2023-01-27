@@ -527,6 +527,10 @@ class Metadata:
         if not self.script_entries:
             return None
 
+        # In the future, we might support and bridge tha t matrix with the full CPython
+        # platform support list. See target triples at:
+        # https://peps.python.org/pep-0011/
+        # https://snarky.ca/webassembly-and-its-platform-targets/
         matrix: dict[str, list[Any]] = {
             "entry_point": [],
             # Run the compilation on the latest supported version of each OS.
