@@ -50,9 +50,9 @@ import json
 import os
 import re
 import sys
+from itertools import product
 from pathlib import Path
 from typing import Any, Generator, Iterable, cast
-from itertools import product
 
 if sys.version_info >= (3, 8):
     from functools import cached_property
@@ -65,7 +65,6 @@ from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
 from pydriller import Commit, Repository  # type: ignore[import]
-
 
 SHORT_SHA_LENGTH = 7
 """Default SHA lentgth hard-coded to ``7``.
@@ -383,7 +382,9 @@ class Metadata:
         return False
 
     @staticmethod
-    def sha_matrix(sha_list: Iterable[str] | None) -> dict[str, list[dict[str, str]]] | None:
+    def sha_matrix(
+        sha_list: Iterable[str] | None,
+    ) -> dict[str, list[dict[str, str]]] | None:
         """Pre-compute a matrix with long and short SHA values.
 
         Returns a ready-to-use, variable-less matrix structure, where `all variations
@@ -392,16 +393,16 @@ class Metadata:
         in the ``include`` directive:
 
         .. code-block:: python
-            {"include":
-                [
+            {
+                "include": [
                     {
                         "long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95",
-                        "short_sha": "346ce66"
+                        "short_sha": "346ce66",
                     },
                     {
                         "long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
-                        "short_sha": "6f27db4"
-                    }
+                        "short_sha": "6f27db4",
+                    },
                 ]
             }
         """
@@ -445,79 +446,79 @@ class Metadata:
                         "cli_id": "mpm",
                         "module_id": "meta_package_manager.__main__",
                         "callable_id": "main",
-                        "module_path": "meta_package_manager/__main__.py"
+                        "module_path": "meta_package_manager/__main__.py",
                     },
                     {
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95",
-                        "short_sha": "346ce66"
+                        "short_sha": "346ce66",
                     },
                     {
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
-                        "short_sha": "6f27db4"
+                        "short_sha": "6f27db4",
                     },
                     {
                         "os": "ubuntu-22.04",
                         "platform_id": "linux",
                         "extension": "bin",
-                        "extra_python_params": ""
+                        "extra_python_params": "",
                     },
                     {
                         "os": "macos-12",
                         "platform_id": "macos",
                         "extension": "bin",
-                        "extra_python_params": ""
+                        "extra_python_params": "",
                     },
                     {
                         "os": "windows-2022",
                         "platform_id": "windows",
                         "extension": "exe",
-                        "extra_python_params": "-X utf8"
+                        "extra_python_params": "-X utf8",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "os": "ubuntu-22.04",
                         "arch": "x64",
-                        "bin_name": "mpm_linux_x64-build-346ce66-bin"
+                        "bin_name": "mpm_linux_x64-build-346ce66-bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "os": "macos-12",
                         "arch": "x64",
-                        "bin_name": "mpm_macos_x64-build-346ce66-bin"
+                        "bin_name": "mpm_macos_x64-build-346ce66-bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "os": "windows-2022",
                         "arch": "x64",
-                        "bin_name": "mpm_windows_x64-build-346ce66-exe"
+                        "bin_name": "mpm_windows_x64-build-346ce66-exe",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "os": "ubuntu-22.04",
                         "arch": "x64",
-                        "bin_name": "mpm_linux_x64-build-6f27db4-bin"
+                        "bin_name": "mpm_linux_x64-build-6f27db4-bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "os": "macos-12",
                         "arch": "x64",
-                        "bin_name": "mpm_macos_x64-build-6f27db4-bin"
+                        "bin_name": "mpm_macos_x64-build-6f27db4-bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "os": "windows-2022",
                         "arch": "x64",
-                        "bin_name": "mpm_windows_x64-build-6f27db4-exe"
-                    }
-                ]
+                        "bin_name": "mpm_windows_x64-build-6f27db4-exe",
+                    },
+                ],
             }
         """
         RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
