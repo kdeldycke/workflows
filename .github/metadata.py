@@ -34,7 +34,7 @@ is_sphinx=true
 active_autodoc=true
 new_commits_matrix={"include": [{"long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95", "short_sha": "346ce66"}, {"long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
 release_commits_matrix={"include": [{"long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
-nuitka_entry_points={"entry_point": ["mdedup:mail_deduplicate/cli.py", "mpm:meta_package_manager/__main__.py"]}
+nuitka_matrix={"entry_point": ["mpm"], "os": ["ubuntu-22.04", "macos-12", "windows-2022"], "arch": ["x64"], "include": [{"entry_point": "mpm", "cli_id": "mpm", "module_id": "meta_package_manager.__main__", "callable_id": "main", "module_path": "meta_package_manager/__main__.py"}, {"os": "ubuntu-22.04", "platform_id": "linux", "extension": "bin", "extra_python_params": ""}, {"os": "macos-12", "platform_id": "macos", "extension": "bin", "extra_python_params": ""}, {"os": "windows-2022", "platform_id": "windows", "extension": "exe", "extra_python_params": "-X utf8"}, {"entry_point": "mpm", "os": "ubuntu-22.04", "arch": "x64", "bin_name": "mpm_linux_x64-build-short_sha-bin"}, {"entry_point": "mpm", "os": "macos-12", "arch": "x64", "bin_name": "mpm_macos_x64-build-short_sha-bin"}, {"entry_point": "mpm", "os": "windows-2022", "arch": "x64", "bin_name": "mpm_windows_x64-build-short_sha-exe"}]}
 ```
 
 Automatic detection of minimal Python version is being discussed upstream for:
@@ -52,6 +52,7 @@ import re
 import sys
 from pathlib import Path
 from typing import Any, Generator, Iterable, cast
+from itertools import product
 
 if sys.version_info >= (3, 8):
     from functools import cached_property
@@ -264,39 +265,10 @@ class Metadata:
             ).items():
                 module_id, callable_id = script.split(":")
                 entries.append((cli_id, module_id, callable_id))
+        # Double check we do not have duplicate entries.
+        all_cli_ids = [cli_id for cli_id, _, _ in entries]
+        assert len(set(all_cli_ids)) == len(all_cli_ids)
         return entries
-
-    @cached_property
-    def nuitka_entry_points(self) -> dict[str, list[str]] | None:
-        """List all path to be compiled by Nuitka, each prefixed with their CLI ID.
-
-        Results are derived from the script entries of ``pyproject.toml``. For example, with::
-
-        .. code-block:: toml
-            [tool.poetry.scripts]
-            mdedup = "mail_deduplicate.cli:mdedup"
-            mpm = "meta_package_manager.__main__:main"
-
-        This function returns the following structure, wrapped in a ``dict`` to be used as a matrix:
-
-        .. code-block:: python
-            {
-                "entry_point": [
-                    "mdedup:mail_deduplicate/cli.py",
-                    "mpm:meta_package_manager/__main__.py",
-                    ...,
-                ]
-            }
-        """
-        modules_path = []
-        for cli_id, module_id, _ in self.script_entries:
-            module_path = Path(f"{module_id.replace('.', '/')}.py")
-            assert module_path.exists()
-            # Serialize CLI ID and main module path.
-            modules_path.append(f"{cli_id}:{module_path}")
-        if modules_path:
-            return {"entry_point": modules_path}
-        return None
 
     @cached_property
     def project_range(self) -> VersionConstraint | None:
@@ -412,7 +384,7 @@ class Metadata:
 
     @staticmethod
     def sha_matrix(sha_list: Iterable[str] | None) -> dict[str, Any] | None:
-        """Returns a matrix with long and short SHA values.
+        """Pre-compute a matrix with long and short SHA values.
 
         Returns a ready-to-use, variable-less matrix structure, where `all variations
         are already pre-computed
@@ -435,10 +407,255 @@ class Metadata:
         """
         if not sha_list:
             return None
-        return {"include": [{
-            "long_sha": sha,
-            "short_sha": sha[:SHORT_SHA_LENGTH],
-        } for sha in sha_list]}
+        return {
+            "include": [
+                {
+                    "long_sha": sha,
+                    "short_sha": sha[:SHORT_SHA_LENGTH],
+                }
+                for sha in sha_list
+            ]
+        }
+
+    @cached_property
+    def nuitka_matrix(self) -> dict[str, Any] | None:
+        """Pre-compute a matrix for Nuitka compilation workflows.
+
+        Combine the variations of:
+        - all new commits
+        - all entry points
+        - for the 3 main OSes
+        - for a set of architectures
+
+        Returns a ready-to-use matrix structure, where each variation is augmented with specific extra parameters
+        by the way of matching parameters in the `include` directive.
+
+        .. code-block:: python
+            {
+                "entry_point": ["mpm"],
+                "commit": [
+                    "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                    "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                ],
+                "os": ["ubuntu-22.04", "macos-12", "windows-2022"],
+                "arch": ["x64"],
+                "include": [
+                    {
+                        "entry_point": "mpm",
+                        "cli_id": "mpm",
+                        "module_id": "meta_package_manager.__main__",
+                        "callable_id": "main",
+                        "module_path": "meta_package_manager/__main__.py"
+                    },
+                    {
+                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "short_sha": "346ce66"
+                    },
+                    {
+                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "short_sha": "6f27db4"
+                    },
+                    {
+                        "os": "ubuntu-22.04",
+                        "platform_id": "linux",
+                        "extension": "bin",
+                        "extra_python_params": ""
+                    },
+                    {
+                        "os": "macos-12",
+                        "platform_id": "macos",
+                        "extension": "bin",
+                        "extra_python_params": ""
+                    },
+                    {
+                        "os": "windows-2022",
+                        "platform_id": "windows",
+                        "extension": "exe",
+                        "extra_python_params": "-X utf8"
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "os": "ubuntu-22.04",
+                        "arch": "x64",
+                        "bin_name": "mpm_linux_x64-build-346ce66-bin"
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "os": "macos-12",
+                        "arch": "x64",
+                        "bin_name": "mpm_macos_x64-build-346ce66-bin"
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "os": "windows-2022",
+                        "arch": "x64",
+                        "bin_name": "mpm_windows_x64-build-346ce66-exe"
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "os": "ubuntu-22.04",
+                        "arch": "x64",
+                        "bin_name": "mpm_linux_x64-build-6f27db4-bin"
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "os": "macos-12",
+                        "arch": "x64",
+                        "bin_name": "mpm_macos_x64-build-6f27db4-bin"
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "os": "windows-2022",
+                        "arch": "x64",
+                        "bin_name": "mpm_windows_x64-build-6f27db4-exe"
+                    }
+                ]
+            }
+        """
+        RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
+
+        # Only produce a matrix if the project is provifing CLI entry poits.
+        if not self.script_entries:
+            return None
+
+        matrix = {
+            "entry_point": [],
+            # Run the compilation on the latest supported version of each OS.
+            "os": [
+                "ubuntu-22.04",
+                "macos-12",
+                "windows-2022",
+            ],
+            # Arch values are aligned to those specified for self-hosted runners:
+            # https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners#architectures
+            "arch": [
+                "x64",
+                # XXX GitHub-hosted runners only supports x64.
+                # "ARM64"
+                # "ARM32"
+                # XXX GitHub-hosted macOS runners with Apple silicon are planned in the future:
+                # https://github.com/github/roadmap/issues/528
+                # https://github.com/actions/runner-images/issues/2187
+                # https://github.com/actions/runner/issues/805
+            ],
+            # Extra parameters.
+            "include": [],
+        }
+
+        # Augment each entry point with some metadata.
+        extra_entry_point_params = []
+        for cli_id, module_id, callable_id in self.script_entries:
+            # CLI ID is supposed to be unique, we'll use that as a key.
+            matrix["entry_point"].append(cli_id)
+            # Derive CLI module path from its ID.
+            # XXX We consider here the module is directly callable, because Nuitka doesn't seems to support the entry-point notation.
+            module_path = Path(f"{module_id.replace('.', '/')}.py")
+            assert module_path.exists()
+            extra_entry_point_params.append(
+                {
+                    "entry_point": cli_id,
+                    "cli_id": cli_id,
+                    "module_id": module_id,
+                    "callable_id": callable_id,
+                    "module_path": str(module_path),
+                }
+            )
+        matrix["include"].extend(extra_entry_point_params)
+
+        # We'd like to run a build for each commit bundled in the action trigger.
+        if self.new_commits_hash:
+            matrix["commit"] = self.new_commits_hash
+            extra_commit_params = [
+                {
+                    "commit": commit_params["long_sha"],
+                    "long_sha": commit_params["long_sha"],
+                    "short_sha": commit_params["short_sha"],
+                }
+                for commit_params in self.sha_matrix(self.new_commits_hash)
+            ]
+            matrix["include"].extend(extra_commit_params)
+
+        # Add platform-specific variables.
+        extra_os_params = [
+            {
+                "os": "ubuntu-22.04",
+                "platform_id": "linux",
+                "extension": "bin",
+                "extra_python_params": "",
+            },
+            {
+                "os": "macos-12",
+                "platform_id": "macos",
+                "extension": "bin",
+                "extra_python_params": "",
+            },
+            {
+                "os": "windows-2022",
+                "platform_id": "windows",
+                "extension": "exe",
+                # XXX "-X utf8" parameter is a workaround for Windows runners
+                # redirecting the output of commands to files. See:
+                # https://github.com/databrickslabs/dbx/issues/455#issuecomment-1312770919
+                # https://github.com/pallets/click/issues/2121#issuecomment-1312773882
+                # https://gist.github.com/NodeJSmith/e7e37f2d3f162456869f015f842bcf15
+                # https://github.com/Nuitka/Nuitka/blob/ca1ec9e/nuitka/utils/ReExecute.py#L73-L74
+                "extra_python_params": "-X utf8",
+            },
+        ]
+        matrix["include"].extend(extra_os_params)
+
+        # Check no extra parameter in reserved directive do not override themselves.
+        all_extra_keys = set().union(
+            *(
+                extras.keys()
+                for reserved_key in RESERVED_MATRIX_KEYWORDS
+                if reserved_key in matrix
+                for extras in matrix[reserved_key]
+            )
+        )
+        assert all_extra_keys.isdisjoint(RESERVED_MATRIX_KEYWORDS)
+
+        # Produce all variations encoded by the matrix, by skipping the special directives.
+        all_variations = tuple(
+            tuple((variant_id, value) for value in variant_values)
+            for variant_id, variant_values in matrix.items()
+            if variant_id not in RESERVED_MATRIX_KEYWORDS
+        )
+
+        # Emulate collection and aggregation of the 'include' directive to all variations produced by the matrix.
+        for variant in product(*all_variations):
+            variant_dict = dict(variant)
+
+            # Check each extra parameters from the 'include' directive and accumulate the matching ones to the variant.
+            full_variant = variant_dict.copy()
+            for extra_params in matrix["include"]:
+                # Check if the variant match the extra parameters.
+                dimensions_to_match = set(variant_dict).intersection(extra_params)
+                d0 = {key: variant_dict[key] for key in dimensions_to_match}
+                d1 = {key: extra_params[key] for key in dimensions_to_match}
+                # Extra parameters are matchin the current variant, merge their values.
+                if d0 == d1:
+                    full_variant.update(extra_params)
+
+            # Add to the 'include' directive a new extra parameter that match the current variant.
+            extra_name_param = variant_dict.copy()
+            # Generate for Nuitka the binary file name to be used that is unique to this variant.
+            extra_name_param["bin_name"] = (
+                "{cli_id}_{platform_id}_{arch}"
+                "-build-{short_sha}"
+                ".{extension}"
+            ).format(**full_variant)
+            matrix["include"].append(extra_name_param)
+
+        return matrix
 
     @staticmethod
     def format_github_value(value: Any, render_json=False) -> str:
@@ -504,7 +721,7 @@ class Metadata:
         json_metadata = {
             "new_commits_matrix": self.sha_matrix(self.new_commits_hash),
             "release_commits_matrix": self.sha_matrix(self.release_commits_hash),
-            "nuitka_entry_points": self.nuitka_entry_points,
+            "nuitka_matrix": self.nuitka_matrix,
         }
         for name, data_dict in json_metadata.items():
             metadata[name] = (data_dict, True) if data_dict else (None, False)

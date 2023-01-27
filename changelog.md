@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Pre-compute the whole Nuitka build matrix.
 - Pre-compute matrix variations with long and short SHA values in commit lists.
 
 ## [2.3.7 (2023-01-25)](https://github.com/kdeldycke/workflows/compare/v2.3.6...v2.3.7)

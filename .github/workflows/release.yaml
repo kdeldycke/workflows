@@ -10,9 +10,6 @@ name: Build & release
       tagged_version:
         description: Tagged/released version (without leading 'v')
         value: ${{ jobs.git-tag.outputs.tagged_version }}
-      bin_name:
-        description: File name of the binary produced by the build and uploaded as an artefact
-        value: ${{ jobs.compile-binaries.outputs.bin_name }}
   # Target are chosen so that all commits get a chance to have their build tested.
   push:
     branches:
@@ -33,7 +30,7 @@ jobs:
       new_commits_matrix: ${{ steps.project-metadata.outputs.new_commits_matrix }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
       # Export Python project metadata.
-      nuitka_entry_points: ${{ steps.project-metadata.outputs.nuitka_entry_points }}
+      nuitka_matrix: ${{ steps.project-metadata.outputs.nuitka_matrix }}
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
@@ -115,51 +112,17 @@ jobs:
     name: "Nuitka: generate binaries"
     needs:
       - project-metadata
-    if: needs.project-metadata.outputs.nuitka_entry_points
+    if: needs.project-metadata.outputs.nuitka_matrix
     strategy:
-      matrix:
-        commit: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix).include }}
-        entry_point: ${{ fromJSON(needs.project-metadata.outputs.nuitka_entry_points).entry_point }}
-        os:
-          - ubuntu-22.04
-          - macos-12
-          - windows-2022
-        arch:
-          - x64
-          # XXX There is no GitHub-hosted macOS runners with Apple silicon yet. See:
-          # https://github.com/github/roadmap/issues/528
-          # https://github.com/actions/runner-images/issues/2187
-          # https://github.com/actions/runner/issues/805
-          # - arm64
-        include:
-          - os: ubuntu-22.04
-            platform: linux
-            extension: bin
-            extra_python_params: ""
-          - os: macos-12
-            platform: macos
-            extension: bin
-            extra_python_params: ""
-          - os: windows-2022
-            platform: windows
-            extension: exe
-            # XXX "-X utf8" parameter is a workaround for Windows runners redirecting the output of commands to files.
-            # See:
-            # https://github.com/databrickslabs/dbx/issues/455#issuecomment-1312770919
-            # https://github.com/pallets/click/issues/2121#issuecomment-1312773882
-            # https://gist.github.com/NodeJSmith/e7e37f2d3f162456869f015f842bcf15
-            # https://github.com/Nuitka/Nuitka/blob/ca1ec9e8e10b51d187b589f1d33935c4ed558687/nuitka/utils/ReExecute.py#L73-L74
-            extra_python_params: "-X utf8"
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
-    outputs:
-      bin_name: ${{ steps.build-metadata.outputs.bin_name }}
     steps:
       - name: Print build target
         run: |
           echo "${{ matrix }}"
       - uses: actions/checkout@v3.3.0
         with:
-          ref: ${{ matrix.commit.long_sha }}
+          ref: ${{ matrix.long_sha }}
       - uses: actions/setup-python@v4.5.0
         with:
           # XXX Nuitka is not ready for Python 3.11 yet.
@@ -185,45 +148,20 @@ jobs:
       - name: Install package
         run: |
           poetry install --no-interaction --no-ansi
-      - name: Generate bin name
-        id: build-metadata
-        shell: python
-        run: |
-          import os
-          from pathlib import Path
-
-          cli_id, main_module = "${{ matrix.entry_point }}".split(":", 1)
-
-          bin_name = (
-              cli_id +
-              "_${{ matrix.platform }}_${{ matrix.arch }}" +
-              "-build-" +
-              "${{ matrix.commit.short_sha }}" +
-              ".${{ matrix.extension }}"
-          )
-
-          print(f"Binary file name: {bin_name}")
-          print(f"Main module path: {main_module}")
-
-          env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text("\n".join((
-              f"bin_name={bin_name}",
-              f"main_module={main_module}"
-          )))
       - name: Build binary within Poetry venv
         run: >
           poetry run python ${{ matrix.extra_python_params }} -m nuitka
           --onefile
           --assume-yes-for-downloads
           --nofollow-import-to=*.tests
-          --output-filename=${{ steps.build-metadata.outputs.bin_name }}
-          ${{ steps.build-metadata.outputs.main_module }}
+          --output-filename=${{ matrix.bin_name }}
+          ${{ matrix.main_module }}
       - name: Upload binaries
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ steps.build-metadata.outputs.bin_name }}
+          name: ${{ matrix.bin_name }}
           if-no-files-found: error
-          path: ${{ steps.build-metadata.outputs.bin_name }}
+          path: ${{ matrix.bin_name }}
 
   git-tag:
     name: Tag release
