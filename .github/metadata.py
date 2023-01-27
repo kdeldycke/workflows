@@ -32,8 +32,8 @@ mypy_params=--python-version 3.7
 pyupgrade_params=--py37-plus
 is_sphinx=true
 active_autodoc=true
-new_commits_matrix={"include": [{"long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95", "short_sha": "346ce66"}, {"long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
-release_commits_matrix={"include": [{"long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
+new_commits_matrix={"commit": ["346ce664f055fbd042a25ee0b7e96702394d5e95", "6f27db47612aaee06fdf361008744b09a9f5f6c2"], "include": [{"commit": "346ce664f055fbd042a25ee0b7e96702394d5e95", "short_sha": "346ce66"}, {"commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
+release_commits_matrix={"commit": ["6f27db47612aaee06fdf361008744b09a9f5f6c2"], "include": [{"commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
 nuitka_matrix={"entry_point": ["mpm"], "os": ["ubuntu-22.04", "macos-12", "windows-2022"], "arch": ["x64"], "include": [{"entry_point": "mpm", "cli_id": "mpm", "module_id": "meta_package_manager.__main__", "callable_id": "main", "module_path": "meta_package_manager/__main__.py"}, {"os": "ubuntu-22.04", "platform_id": "linux", "extension": "bin", "extra_python_params": ""}, {"os": "macos-12", "platform_id": "macos", "extension": "bin", "extra_python_params": ""}, {"os": "windows-2022", "platform_id": "windows", "extension": "exe", "extra_python_params": "-X utf8"}, {"entry_point": "mpm", "os": "ubuntu-22.04", "arch": "x64", "bin_name": "mpm_linux_x64-build-short_sha-bin"}, {"entry_point": "mpm", "os": "macos-12", "arch": "x64", "bin_name": "mpm_macos_x64-build-short_sha-bin"}, {"entry_point": "mpm", "os": "windows-2022", "arch": "x64", "bin_name": "mpm_windows_x64-build-short_sha-exe"}]}
 ```
 
@@ -76,6 +76,9 @@ SHORT_SHA_LENGTH = 7
 """
 
 
+TMatrix = dict[str, list[str] | list[dict[str, str]]]
+
+
 class Metadata:
     def __init__(self, debug: bool = False) -> None:
         self.debug = debug
@@ -115,6 +118,44 @@ class Metadata:
             print("--- GitHub context ---")
             print(json.dumps(context, indent=4))
         return context
+
+    @staticmethod
+    def sha_matrix(commits: Iterable[Commit] | None) -> TMatrix | None:
+        """Pre-compute a matrix with long and short SHA values.
+
+        Returns a ready-to-use matrix structure:
+
+        .. code-block:: python
+            {
+                "commit": [
+                    "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                    "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                ],
+                "include": [
+                    {
+                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "short_sha": "346ce66",
+                    },
+                    {
+                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "short_sha": "6f27db4",
+                    },
+                ]
+            }
+        """
+        if not commits:
+            return None
+        sha_list = [commit.hash for commit in commits]
+        return {
+            "commit": sha_list,
+            "include": [
+                {
+                    "commit": sha,
+                    "short_sha": sha[:SHORT_SHA_LENGTH],
+                }
+                for sha in sha_list
+            ],
+        }
 
     @cached_property
     def commit_range(self) -> tuple[str, str] | None:
@@ -171,11 +212,18 @@ class Metadata:
         )[:-1]
 
     @cached_property
+    def new_commits_matrix(self) -> TMatrix | None:
+        """Pre-computed matrix with long and short SHA values of new commits."""
+        return self.sha_matrix(self.new_commits)
+
+    @cached_property
     def new_commits_hash(self) -> tuple[str, ...] | None:
-        """List all commit hashes bundled within the triggering event."""
-        if not self.new_commits:
-            return None
-        return tuple(commit.hash for commit in self.new_commits)
+        """List all hashes of new commits."""
+        return (
+            cast(tuple[str, ...], self.new_commits_matrix["commit"])
+            if self.new_commits_matrix
+            else None
+        )
 
     @cached_property
     def release_commits(self) -> tuple[Commit, ...] | None:
@@ -200,11 +248,18 @@ class Metadata:
         )
 
     @cached_property
+    def release_commits_matrix(self) -> TMatrix | None:
+        """Pre-computed matrix with long and short SHA values of release commits."""
+        return self.sha_matrix(self.release_commits)
+
+    @cached_property
     def release_commits_hash(self) -> tuple[str, ...] | None:
-        """List all release commit hashes bundled within the triggering event."""
-        if not self.release_commits:
-            return None
-        return tuple(commit.hash for commit in self.release_commits)
+        """List all hashes of release commits."""
+        return (
+            cast(tuple[str, ...], self.release_commits_matrix["commit"])
+            if self.release_commits_matrix
+            else None
+        )
 
     def glob_files(self, *patterns: str) -> Generator[Path, None, None]:
         for pattern in patterns:
@@ -381,45 +436,8 @@ class Metadata:
                             return True
         return False
 
-    @staticmethod
-    def sha_matrix(
-        sha_list: Iterable[str] | None,
-    ) -> dict[str, list[dict[str, str]]] | None:
-        """Pre-compute a matrix with long and short SHA values.
-
-        Returns a ready-to-use, variable-less matrix structure, where `all variations
-        are already pre-computed
-        <https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#example-adding-configurations>`_
-        in the ``include`` directive:
-
-        .. code-block:: python
-            {
-                "include": [
-                    {
-                        "long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95",
-                        "short_sha": "346ce66",
-                    },
-                    {
-                        "long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
-                        "short_sha": "6f27db4",
-                    },
-                ]
-            }
-        """
-        if not sha_list:
-            return None
-        return {
-            "include": [
-                {
-                    "long_sha": sha,
-                    "short_sha": sha[:SHORT_SHA_LENGTH],
-                }
-                for sha in sha_list
-            ]
-        }
-
     @cached_property
-    def nuitka_matrix(self) -> dict[str, Any] | None:
+    def nuitka_matrix(self) -> TMatrix | None:
         """Pre-compute a matrix for Nuitka compilation workflows.
 
         Combine the variations of:
@@ -450,12 +468,10 @@ class Metadata:
                     },
                     {
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
-                        "long_sha": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "short_sha": "346ce66",
                     },
                     {
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
-                        "long_sha": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "short_sha": "6f27db4",
                     },
                     {
@@ -576,17 +592,9 @@ class Metadata:
         matrix["include"].extend(extra_entry_point_params)
 
         # We'd like to run a build for each commit bundled in the action trigger.
-        if self.new_commits_hash:
-            matrix["commit"] = list(self.new_commits_hash)
-            extra_commit_params = [
-                {
-                    "commit": commit_params["long_sha"],
-                    "long_sha": commit_params["long_sha"],
-                    "short_sha": commit_params["short_sha"],
-                }
-                for commit_params in self.sha_matrix(self.new_commits_hash)["include"]  # type: ignore[index]
-            ]
-            matrix["include"].extend(extra_commit_params)
+        if self.new_commits_matrix:
+            matrix["commit"] = self.new_commits_matrix["commit"]
+            matrix["include"].extend(self.new_commits_matrix["include"])
 
         # Add platform-specific variables.
         extra_os_params = [
@@ -722,8 +730,8 @@ class Metadata:
 
         # Structured metadata to be rendered as JSON.
         json_metadata = {
-            "new_commits_matrix": self.sha_matrix(self.new_commits_hash),
-            "release_commits_matrix": self.sha_matrix(self.release_commits_hash),
+            "new_commits_matrix": self.new_commits_matrix,
+            "release_commits_matrix": self.release_commits_matrix,
             "nuitka_matrix": self.nuitka_matrix,
         }
         for name, data_dict in json_metadata.items():

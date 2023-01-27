@@ -73,13 +73,9 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Print target commit
-        run: |
-          echo "${{ matrix.long_sha }}"
-          echo "${{ matrix.short_sha }}"
       - uses: actions/checkout@v3.3.0
         with:
-          ref: ${{ matrix.long_sha }}
+          ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
@@ -122,7 +118,7 @@ jobs:
           echo "${{ matrix }}"
       - uses: actions/checkout@v3.3.0
         with:
-          ref: ${{ matrix.long_sha }}
+          ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.5.0
         with:
           # XXX Nuitka is not ready for Python 3.11 yet.
@@ -175,13 +171,9 @@ jobs:
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
-      - name: Print release commit
-        run: |
-          echo "${{ matrix.long_sha }}"
-          echo "${{ matrix.short_sha }}"
       - uses: actions/checkout@v3.3.0
         with:
-          ref: ${{ matrix.long_sha }}
+          ref: ${{ matrix.commit }}
       - name: Extract version
         id: get_version
         run: >
@@ -204,7 +196,7 @@ jobs:
         with:
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}
-          commit-sha: ${{ matrix.long_sha }}
+          commit-sha: ${{ matrix.commit }}
 
   pypi-publish:
     name: Publish to PyPi
