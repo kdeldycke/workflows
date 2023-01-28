@@ -153,7 +153,7 @@ jobs:
           poetry run python ${{ matrix.extra_python_params }} -m nuitka
           --onefile
           --assume-yes-for-downloads
-          --nofollow-import-to=*.tests
+          --nofollow-import-to='*.tests'
           --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries
