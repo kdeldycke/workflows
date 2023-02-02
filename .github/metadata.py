@@ -683,7 +683,6 @@ class Metadata:
 
         # Convert non-strings.
         if not isinstance(value, str):
-
             if value is None:
                 value = ""
 
