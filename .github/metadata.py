@@ -350,12 +350,29 @@ class Metadata:
         - `--target-version py310`
         - `--target-version py311`
 
-        `You should include all Python versions that you want your code to run under.`,
-        as per: https://github.com/psf/black/issues/751
+        `You should include all Python versions that you want your code to run under
+        <https://github.com/psf/black/issues/751>`_.
 
         .. tip::
 
-            Can also be used by `blacken-docs CLI <https://github.com/adamchainz/blacken-docs>`_.
+            Can also be re-used for `blacken-docs CLI <https://github.com/adamchainz/blacken-docs>`_.
+
+        .. caution::
+
+            Black supports auto-detection of the Python version targetted by your
+            project (see `#3124 <https://github.com/psf/black/issues/3124>`_ and
+            `#3219 <https://github.com/psf/black/pull/3219>`_), `since v23.1.0
+            <https://github.com/psf/black/releases/tag/23.1.0>`_.
+
+            But `only looks <https://github.com/psf/black/blob/b0d1fba/src/black/files.py#L141-L142>`_
+            for the `PEP-621's requires-python marker
+            <https://peps.python.org/pep-0621/#requires-python>`_ in the ``pyproject.toml`` file, i.e.:
+
+            .. code-block:: toml
+                [project]
+                requires-python = ">=3.7,<3.11"
+
+            Which means we still needs to resolves these Black parameters for Poetry-based projects.
         """
         if self.project_range:
             minor_range = sorted(v.value for v in black.TargetVersion)
