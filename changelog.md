@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Cache dependencies installed by Pip.
+
 ## [2.4.3 (2023-01-31)](https://github.com/kdeldycke/workflows/compare/v2.4.2...v2.4.3)
 
 - Bump Nuitka to `1.4.1`.
