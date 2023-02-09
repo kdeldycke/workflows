@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Remove Pip cache, which breaks with our reuseable workflows architecture.
+
 ## [2.5.0 (2023-02-09)](https://github.com/kdeldycke/workflows/compare/v2.4.3...v2.5.0)
 
 - Cache dependencies installed by Pip.

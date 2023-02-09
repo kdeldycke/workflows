@@ -42,8 +42,6 @@ jobs:
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: requirements.txt
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -70,8 +68,6 @@ jobs:
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: requirements.txt
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -114,8 +110,6 @@ jobs:
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: requirements.txt
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -185,8 +179,6 @@ jobs:
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: requirements.txt
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
