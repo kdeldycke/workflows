@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Normalize binary file names produced by Nuitka with `-` (dash) separators.
+
 ## [2.5.1 (2023-02-09)](https://github.com/kdeldycke/workflows/compare/v2.5.0...v2.5.1)
 
 - Remove Pip cache, which breaks with our reuseable workflows architecture.

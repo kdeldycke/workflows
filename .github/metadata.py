@@ -33,7 +33,7 @@ is_sphinx=true
 active_autodoc=true
 new_commits_matrix={"commit": ["346ce664f055fbd042a25ee0b7e96702394d5e95", "6f27db47612aaee06fdf361008744b09a9f5f6c2"], "include": [{"commit": "346ce664f055fbd042a25ee0b7e96702394d5e95", "short_sha": "346ce66"}, {"commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
 release_commits_matrix={"commit": ["6f27db47612aaee06fdf361008744b09a9f5f6c2"], "include": [{"commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
-nuitka_matrix={"entry_point": ["mpm"], "os": ["ubuntu-22.04", "macos-12", "windows-2022"], "arch": ["x64"], "include": [{"entry_point": "mpm", "cli_id": "mpm", "module_id": "meta_package_manager.__main__", "callable_id": "main", "module_path": "meta_package_manager/__main__.py"}, {"os": "ubuntu-22.04", "platform_id": "linux", "extension": "bin", "extra_python_params": ""}, {"os": "macos-12", "platform_id": "macos", "extension": "bin", "extra_python_params": ""}, {"os": "windows-2022", "platform_id": "windows", "extension": "exe", "extra_python_params": "-X utf8"}, {"entry_point": "mpm", "os": "ubuntu-22.04", "arch": "x64", "bin_name": "mpm_linux_x64-build-short_sha-bin"}, {"entry_point": "mpm", "os": "macos-12", "arch": "x64", "bin_name": "mpm_macos_x64-build-short_sha-bin"}, {"entry_point": "mpm", "os": "windows-2022", "arch": "x64", "bin_name": "mpm_windows_x64-build-short_sha-exe"}]}
+nuitka_matrix={"entry_point": ["mpm"], "os": ["ubuntu-22.04", "macos-12", "windows-2022"], "arch": ["x64"], "include": [{"entry_point": "mpm", "cli_id": "mpm", "module_id": "meta_package_manager.__main__", "callable_id": "main", "module_path": "meta_package_manager/__main__.py"}, {"os": "ubuntu-22.04", "platform_id": "linux", "extension": "bin", "extra_python_params": ""}, {"os": "macos-12", "platform_id": "macos", "extension": "bin", "extra_python_params": ""}, {"os": "windows-2022", "platform_id": "windows", "extension": "exe", "extra_python_params": "-X utf8"}, {"entry_point": "mpm", "os": "ubuntu-22.04", "arch": "x64", "bin_name": "mpm-linux-x64-build-6f27db4.bin"}, {"entry_point": "mpm", "os": "macos-12", "arch": "x64", "bin_name": "mpm-macos-x64-build-6f27db4.bin"}, {"entry_point": "mpm", "os": "windows-2022", "arch": "x64", "bin_name": "mpm-windows-x64-build-6f27db4.exe"}]}
 ```
 
 Automatic detection of minimal Python version is being discussed upstream for:
@@ -513,42 +513,42 @@ class Metadata:
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "os": "ubuntu-22.04",
                         "arch": "x64",
-                        "bin_name": "mpm_linux_x64-build-346ce66-bin",
+                        "bin_name": "mpm-linux-x64-build-346ce66.bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "os": "macos-12",
                         "arch": "x64",
-                        "bin_name": "mpm_macos_x64-build-346ce66-bin",
+                        "bin_name": "mpm-macos-x64-build-346ce66.bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
                         "os": "windows-2022",
                         "arch": "x64",
-                        "bin_name": "mpm_windows_x64-build-346ce66-exe",
+                        "bin_name": "mpm-windows-x64-build-346ce66.exe",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "os": "ubuntu-22.04",
                         "arch": "x64",
-                        "bin_name": "mpm_linux_x64-build-6f27db4-bin",
+                        "bin_name": "mpm-linux-x64-build-6f27db4.bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "os": "macos-12",
                         "arch": "x64",
-                        "bin_name": "mpm_macos_x64-build-6f27db4-bin",
+                        "bin_name": "mpm-macos-x64-build-6f27db4.bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
                         "os": "windows-2022",
                         "arch": "x64",
-                        "bin_name": "mpm_windows_x64-build-6f27db4-exe",
+                        "bin_name": "mpm-windows-x64-build-6f27db4.exe",
                     },
                 ],
             }
@@ -678,7 +678,7 @@ class Metadata:
             extra_name_param = variant_dict.copy()
             # Generate for Nuitka the binary file name to be used that is unique to this variant.
             extra_name_param["bin_name"] = (
-                "{cli_id}_{platform_id}_{arch}-build-{short_sha}.{extension}"
+                "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
             ).format(**full_variant)
             matrix["include"].append(extra_name_param)
 
