@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Rename artefacts attached to each GitHub release to remove the build ID (i.e. the `-build-6f27db4` suffix). That way we can have stable download URLs pointing to the latest release in the form of: `https://github.com/<user_id>/<project_id>/releases/latest/download/<entry_point>-<platform>-<arch>.{bin,exe}`.
 - Normalize binary file names produced by Nuitka with `-` (dash) separators.
 
 ## [2.5.1 (2023-02-09)](https://github.com/kdeldycke/workflows/compare/v2.5.0...v2.5.1)

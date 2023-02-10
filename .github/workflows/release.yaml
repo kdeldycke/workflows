@@ -243,6 +243,32 @@ jobs:
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@v3.0.2
         id: artifacts
+      - name: Rename artifacts
+        id: rename_artifacts
+        shell: python
+        run: |
+          import os
+          from pathlib import Path, PurePath
+
+          dowload_folder = Path("${{ steps.artifacts.outputs.download-path }}")
+
+          build_id = f"-build-${{ matrix.short_sha }}"
+
+          new_artefacts_path = []
+
+          # Only consider artifacts produced by the release commit.
+          for artifact in dowload_folder.glob(f"*{build_id}.*"):
+              new_name = f"{artifact.stem.split(build_id, 1)[0]}{artifact.suffix}"
+              new_path = artifact.with_name(new_name)
+
+              print(f"Renaming {artifact} to {new_path} ...")
+              assert not new_path.exists()
+
+              artifact.rename(new_path)
+              new_artefacts_path.append(f'"{new_path}"')
+
+          env_file = Path(os.getenv("GITHUB_OUTPUT"))
+          env_file.write_text(f"new_artefacts_path={' '.join(new_artefacts_path)}")
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         env:
@@ -250,9 +276,7 @@ jobs:
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
-          # Only download artifacts produced from the release commit.
-          files: |
-            ${{ steps.artifacts.outputs.download-path }}/*-build-${{ matrix.short_sha }}*/*
+          files: ${{ steps.rename_artifacts.outputs.new_artefacts_path }}
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.project-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})
