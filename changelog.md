@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.6.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.6.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.6.0 (2023-02-10)](https://github.com/kdeldycke/workflows/compare/v2.5.1...v2.6.0)
 
 - Rename artefacts attached to each GitHub release to remove the build ID (i.e. the `-build-6f27db4` suffix). That way we can have stable download URLs pointing to the latest release in the form of: `https://github.com/<user_id>/<project_id>/releases/latest/download/<entry_point>-<platform>-<arch>.{bin,exe}`.
