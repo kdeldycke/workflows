@@ -271,6 +271,10 @@ jobs:
               artifact.rename(new_path)
               new_artifacts.append(new_path)
 
+          if not new_artifacts:
+              print("No artifacts found for this release commit.")
+              exit(1)
+
           # Produce a unique delimiter to feed multiline content to GITHUB_OUTPUT:
           # https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
           delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
