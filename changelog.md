@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.6.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.6.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.6.1 (2023-02-11)](https://github.com/kdeldycke/workflows/compare/v2.6.0...v2.6.1)
 
 - Fix attachement of artifacts to GitHub release.
