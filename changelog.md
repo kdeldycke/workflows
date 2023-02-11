@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.7.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.7.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.7.0 (2023-02-11)](https://github.com/kdeldycke/workflows/compare/v2.6.2...v2.7.0)
 
 - Add new dependency on `mdformat_footnote` to properly wrap long footnotes when autofixing Markdown.
