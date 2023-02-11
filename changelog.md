@@ -8,6 +8,7 @@ This version is not released yet and is under active development.
 
 - Add new dependency on `mdformat_footnote` to properly wrap long footnotes when autofixing Markdown.
 - Add new dependency on `mdformat_admon` to future-proof upcomming admonition support.
+- Add new dependency on `mdformat_pyproject` so that each project reusing the `autofix.yaml` workflow can setup local configuration for `mdformat` via its `pyproject.toml` file.
 
 ## [2.6.2 (2023-02-11)](https://github.com/kdeldycke/workflows/compare/v2.6.1...v2.6.2)
 
