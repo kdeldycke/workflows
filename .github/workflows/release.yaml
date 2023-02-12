@@ -285,13 +285,9 @@ jobs:
           # https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
           delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
 
-          output = dedent(
-              f"""\
-              artifacts_path<<{delimiter}
-              {"\n".join(str(p) for p in artifacts_path)}
-              {delimiter}
-              """
-          )
+          output = f"artifacts_path<<{delimiter}\n"
+          output += "\n".join(str(p) for p in artifacts_path)
+          output += f"\n{delimiter}"
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
