@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.7.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.7.4...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.7.4 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.3...v2.7.4)
 
 - Update artifact name to add `-poetry-` suffix for those to be published on PyPi.
