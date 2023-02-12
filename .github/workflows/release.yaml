@@ -119,7 +119,7 @@ jobs:
     steps:
       - name: Print build target
         run: |
-          echo "${{ matrix }}"
+          echo "${{ fromJSON(matrix) }}"
       - uses: actions/checkout@v3.3.0
         with:
           ref: ${{ matrix.commit }}
