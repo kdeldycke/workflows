@@ -219,7 +219,7 @@ jobs:
           from pathlib import Path
           from textwrap import dedent, indent
 
-          dot_file = Path("${{ inputs.dependency-graph-output }}")
+          dot_file = Path("""${{ inputs.dependency-graph-output }}""")
           lines = [l.strip() for l in dot_file.read_text().splitlines() if l.strip()]
           directives = lines[1:-1]
 
