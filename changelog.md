@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Update artifact name to add `-poetry-` suffix for those to be published on PyPi.
+- Fix collection of artifact files from their folder.
+
 ## [2.7.3 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.2...v2.7.3)
 
 - Fix attachement of artifacts to GitHub release on tagging.

@@ -94,10 +94,10 @@ jobs:
         run: |
           poetry install --no-interaction --no-ansi
           poetry build --no-interaction --no-ansi
-      - name: Artifacts for GitHub release
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
+          name: ${{ github.event.repository.name }}-poetry-build-${{ matrix.short_sha }}
           path: ./dist/*
       - name: Validates package metadata
         run: |
@@ -214,7 +214,7 @@ jobs:
         uses: actions/download-artifact@v3.0.2
         id: download
         with:
-          name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
+          name: ${{ github.event.repository.name }}-poetry-build-${{ matrix.short_sha }}
       - name: Push package to public PyPi repository
         uses: pypa/gh-action-pypi-publish@v1.6.4
         with:
@@ -264,22 +264,29 @@ jobs:
 
           # Only consider artifacts produced by the release commit.
           build_id = f"""-build-${{ matrix.short_sha }}"""
-          for artifact in dowload_folder.glob(f"*{build_id}*"):
+          for artifact_folder in dowload_folder.glob(f"*{build_id}*"):
+              print(f"Processing {artifact_folder} ...")
+              assert artifact_folder.is_dir()
 
-              # Rename binary artifacts to remove the build ID.
-              if artifact.name in binaries:
-                  new_name = f"{artifact.stem.split(build_id, 1)[0]}{artifact.suffix}"
-                  new_path = artifact.with_name(new_name)
+              for artifact in artifact_folder.glob("*"):
+                  print(f"Processing {artifact} ...")
+                  assert artifact_folder.is_file()
 
-                  print(f"Renaming {artifact} to {new_path} ...")
-                  assert not new_path.exists()
+                  # Rename binary artifacts to remove the build ID.
+                  if artifact.name in binaries:
+                      new_name = f"{artifact.stem.split(build_id, 1)[0]}{artifact.suffix}"
+                      new_path = artifact.with_name(new_name)
 
-                  artifact.rename(new_path)
-                  artifacts_path.append(new_path)
+                      print(f"Renaming {artifact} to {new_path} ...")
+                      assert not new_path.exists()
 
-              # Collect other artifacts as-is.
-              else:
-                  artifacts_path.append(artifact)
+                      artifact.rename(new_path)
+                      artifacts_path.append(new_path)
+
+                  # Collect other artifacts as-is.
+                  else:
+                      print(f"Collecting {artifact} ...")
+                      artifacts_path.append(artifact)
 
           # Produce a unique delimiter to feed multiline content to GITHUB_OUTPUT:
           # https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
