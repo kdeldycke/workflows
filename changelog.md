@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.7.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.7.1...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.7.2 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.1...v2.7.2)
 
 - Remove broken print debug statement.
 
