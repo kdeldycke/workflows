@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Remove broken print debug statement.
+
 ## [2.7.1 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.0...v2.7.1)
 
 - Fix attachement of artifacts to GitHub release on tagging.
