@@ -238,7 +238,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Download artifacts
+      - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@v3.0.2
@@ -246,41 +246,58 @@ jobs:
         # XXX Ideally we would only download here artifacts matching the "*-build-${{ matrix.short_sha }}.*" pattern,
         # but actions/download-artifact does not support globbing:
         # https://github.com/actions/download-artifact/issues/103
-      - name: Rename binary artifacts
+      - name: Rename binary artifacts, collect all others
         # Do not try to rename artifacts if the job producing them was skipped.
         if: needs.compile-binaries.result != 'skipped'
         id: rename_artifacts
         shell: python
         run: |
+          import json
           import os
+          from textwrap import dedent
           from pathlib import Path, PurePath
           from random import randint
 
           dowload_folder = Path("${{ steps.artifacts.outputs.download-path }}")
 
-          build_id = f"-build-${{ matrix.short_sha }}"
+          nuitka_matrix = json.loads("${{ needs.project-metadata.outputs.nuitka_matrix }}")
+          binaries = {entry["bin_name"] for entry in nuitka_matrix["include"] if "bin_name" in entry}
 
-          new_artifacts = []
+          artifacts_path = []
 
           # Only consider artifacts produced by the release commit.
-          for artifact in dowload_folder.glob(f"*{build_id}.*"):
-              new_name = f"{artifact.stem.split(build_id, 1)[0]}{artifact.suffix}"
-              new_path = artifact.with_name(new_name)
+          build_id = f"-build-${{ matrix.short_sha }}"
+          for artifact in dowload_folder.glob(f"*{build_id}*"):
 
-              print(f"Renaming {artifact} to {new_path} ...")
-              assert not new_path.exists()
+              # Rename binary artifacts to remove the build ID.
+              if artifact.name in binaries:
+                  new_name = f"{artifact.stem.split(build_id, 1)[0]}{artifact.suffix}"
+                  new_path = artifact.with_name(new_name)
 
-              artifact.rename(new_path)
-              new_artifacts.append(new_path)
+                  print(f"Renaming {artifact} to {new_path} ...")
+                  assert not new_path.exists()
+
+                  artifact.rename(new_path)
+                  artifacts_path.append(new_path)
+
+              # Collect other artifacts as-is.
+              else:
+                  artifacts_path.append(artifact)
 
           # Produce a unique delimiter to feed multiline content to GITHUB_OUTPUT:
           # https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
           delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
 
+          output = dedent(
+              f"""\
+              artifacts_path<<{delimiter}
+              {"\n".join(str(p) for p in artifacts_path)}
+              {delimiter}
+              """
+          )
+
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(f"new_artifacts<<{delimiter}")
-          env_file.write_text("\n".join(str(p) for p in new_artifacts))
-          env_file.write_text(delimiter)
+          env_file.write_text(output)
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         env:
@@ -288,7 +305,7 @@ jobs:
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
-          files: ${{ steps.rename_artifacts.outputs.new_artifacts }}
+          files: ${{ steps.rename_artifacts.outputs.artifacts_path }}
           body: |
             [🐍 Available on PyPi](https://pypi.org/project/${{ needs.project-metadata.outputs.package_name }}/${{
             needs.git-tag.outputs.tagged_version }})
