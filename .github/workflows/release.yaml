@@ -258,15 +258,15 @@ jobs:
           from pathlib import Path, PurePath
           from random import randint
 
-          dowload_folder = Path("${{ steps.artifacts.outputs.download-path }}")
+          dowload_folder = Path("""${{ steps.artifacts.outputs.download-path }}""")
 
-          nuitka_matrix = json.loads("${{ needs.project-metadata.outputs.nuitka_matrix }}")
+          nuitka_matrix = json.loads("""${{ needs.project-metadata.outputs.nuitka_matrix }}""")
           binaries = {entry["bin_name"] for entry in nuitka_matrix["include"] if "bin_name" in entry}
 
           artifacts_path = []
 
           # Only consider artifacts produced by the release commit.
-          build_id = f"-build-${{ matrix.short_sha }}"
+          build_id = f"""-build-${{ matrix.short_sha }}"""
           for artifact in dowload_folder.glob(f"*{build_id}*"):
 
               # Rename binary artifacts to remove the build ID.
