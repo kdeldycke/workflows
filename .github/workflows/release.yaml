@@ -270,7 +270,7 @@ jobs:
 
               for artifact in artifact_folder.glob("*"):
                   print(f"Processing {artifact} ...")
-                  assert artifact_folder.is_file()
+                  assert artifact.is_file()
 
                   # Rename binary artifacts to remove the build ID.
                   if artifact.name in binaries:
