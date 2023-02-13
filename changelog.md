@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.7.7 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.7.6...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.7.6 (2023-02-13)](https://github.com/kdeldycke/workflows/compare/v2.7.5...v2.7.6)
 
 - Test-drive unreleased `docformatter 1.6.0-rc3` to fix URL wrapping and admonition edge-cases.
