@@ -34,7 +34,6 @@ nuitka == 1.4.5
 ordered-set == 4.1.0
 pipdeptree[graphviz] == 2.3.3
 poetry == 1.3.2
-pycln == 2.1.3
 PyDriller == 2.4
 pyupgrade == 3.3.1
 ruff == 0.0.246
