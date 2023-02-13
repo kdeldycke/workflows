@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Replace `isort`, `pyupgrade`, `pylint`, `pycln` and `pydocstyle` with `ruff`.
+- Run `autopep8` before `black` to that longline edge-cases get wrapped first.
 
 ## [2.7.6 (2023-02-13)](https://github.com/kdeldycke/workflows/compare/v2.7.5...v2.7.6)
 

@@ -77,6 +77,13 @@ jobs:
       - name: Run Ruff
         run: |
           ruff check --fix-only --exit-zero .
+      - name: Run autopep8
+        # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
+        # We use autopep8 to only wrap long-line comments:
+        #  - E501 is "Try to make lines fit within --max-line-length characters."
+        #  - --aggressive is requires to force autopep8 to consider comments.
+        run: |
+          autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive .
       - name: Run Black
         run: |
           black ${{ needs.project-metadata.outputs.black_params }} .
@@ -91,13 +98,6 @@ jobs:
           ${{ needs.project-metadata.outputs.python_files }}
           ${{ needs.project-metadata.outputs.doc_files }}
           || true
-      - name: Run autopep8
-        # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
-        # We use autopep8 to only wrap long-line comments:
-        #  - E501 is "Try to make lines fit within --max-line-length characters."
-        #  - --aggressive is requires to force autopep8 to consider comments.
-        run: |
-          autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive .
       - name: Run docformatter
         # Always ignore failing command, as docformatter returns exit code 3 if it finds a file that needs to be
         # reformatted:
