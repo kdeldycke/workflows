@@ -28,7 +28,6 @@ is_poetry_project=true
 package_name=click-extra
 black_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
-pyupgrade_params=--py37-plus
 is_sphinx=true
 active_autodoc=true
 new_commits_matrix={"commit": ["346ce664f055fbd042a25ee0b7e96702394d5e95", "6f27db47612aaee06fdf361008744b09a9f5f6c2"], "include": [{"commit": "346ce664f055fbd042a25ee0b7e96702394d5e95", "short_sha": "346ce66"}, {"commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
@@ -39,7 +38,6 @@ nuitka_matrix={"entry_point": ["mpm"], "os": ["ubuntu-22.04", "macos-12", "windo
 Automatic detection of minimal Python version is being discussed upstream for:
 - `black` at https://github.com/psf/black/issues/3124
 - `mypy` [rejected] at https://github.com/python/mypy/issues/13294
-- `pyupgrade` [rejected] at https://github.com/asottile/pyupgrade/issues/688
 """
 
 from __future__ import annotations
@@ -403,32 +401,6 @@ class Metadata:
         return None
 
     @cached_property
-    def pyupgrade_param(self) -> str:
-        """Generates `pyupgrade` parameter.
-
-        Pyupgrade needs to be fed with one of these parameters:
-        - `--py3-plus`
-        - `--py36-plus`
-        - `--py37-plus`
-        - `--py38-plus`
-        - `--py39-plus`
-        - `--py310-plus`
-        - `--py311-plus`
-
-        Defaults to `--py3-plus`.
-        """
-        pyupgrade_range = (
-            Version.from_parts(major=3, minor=minor) for minor in range(6, 11 + 1)
-        )
-        min_version = Version.from_parts(major=3)
-        if self.project_range:
-            for version in pyupgrade_range:
-                if self.project_range.allows(version):
-                    min_version = version
-                    break
-        return f"--py{min_version.text.replace('.', '')}-plus"
-
-    @cached_property
     def is_sphinx(self) -> bool:
         # The Sphinx config file is present, that's enought for us.
         return self.sphinx_conf_path.exists() and self.sphinx_conf_path.is_file()
@@ -738,7 +710,6 @@ class Metadata:
             "package_name": (self.package_name, False),
             "black_params": (self.black_params, False),
             "mypy_params": (self.mypy_param, False),
-            "pyupgrade_params": (self.pyupgrade_param, False),
             "is_sphinx": (self.is_sphinx, False),
             "active_autodoc": (self.active_autodoc, False),
         }
