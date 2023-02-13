@@ -49,6 +49,7 @@ import re
 import sys
 from itertools import product
 from pathlib import Path
+from textwrap import dedent
 from typing import Any, Generator, Iterable, cast
 
 if sys.version_info >= (3, 8):
@@ -353,7 +354,10 @@ class Metadata:
 
         .. tip::
 
-            Can also be re-used for `blacken-docs CLI <https://github.com/adamchainz/blacken-docs>`_.
+            Can also be re-used both for:
+
+            - `blacken-docs CLI <https://github.com/adamchainz/blacken-docs>`_.
+            - `ruff CLI <https://github.com/charliermarsh/ruff#target-version>`_.
 
         .. caution::
 
@@ -413,7 +417,8 @@ class Metadata:
                 if isinstance(node, ast.Assign) and isinstance(
                     node.value, (ast.List, ast.Tuple)
                 ):
-                    extension_found = "extensions" in (t.id for t in node.targets)  # type: ignore
+                    extension_found = "extensions" in (
+    t.id for t in node.targets)  # type: ignore
                     if extension_found:
                         elements = (
                             e.value
@@ -565,7 +570,8 @@ class Metadata:
             # CLI ID is supposed to be unique, we'll use that as a key.
             matrix["entry_point"].append(cli_id)
             # Derive CLI module path from its ID.
-            # XXX We consider here the module is directly callable, because Nuitka doesn't seems to support the entry-point notation.
+            # XXX We consider here the module is directly callable, because Nuitka
+            # doesn't seems to support the entry-point notation.
             module_path = Path(f"{module_id.replace('.', '/')}.py")
             assert module_path.exists()
             extra_entry_point_params.append(
@@ -624,18 +630,21 @@ class Metadata:
         )
         assert all_extra_keys.isdisjoint(RESERVED_MATRIX_KEYWORDS)
 
-        # Produce all variations encoded by the matrix, by skipping the special directives.
+        # Produce all variations encoded by the matrix, by skipping the special
+        # directives.
         all_variations = tuple(
             tuple((variant_id, value) for value in variant_values)
             for variant_id, variant_values in matrix.items()
             if variant_id not in RESERVED_MATRIX_KEYWORDS
         )
 
-        # Emulate collection and aggregation of the 'include' directive to all variations produced by the matrix.
+        # Emulate collection and aggregation of the 'include' directive to all
+        # variations produced by the matrix.
         for variant in product(*all_variations):
             variant_dict = dict(variant)
 
-            # Check each extra parameters from the 'include' directive and accumulate the matching ones to the variant.
+            # Check each extra parameters from the 'include' directive and accumulate
+            # the matching ones to the variant.
             full_variant = variant_dict.copy()
             for extra_params in matrix["include"]:
                 # Check if the variant match the extra parameters.
@@ -646,15 +655,37 @@ class Metadata:
                 if d0 == d1:
                     full_variant.update(extra_params)
 
-            # Add to the 'include' directive a new extra parameter that match the current variant.
+            # Add to the 'include' directive a new extra parameter that match the
+            # current variant.
             extra_name_param = variant_dict.copy()
-            # Generate for Nuitka the binary file name to be used that is unique to this variant.
+            # Generate for Nuitka the binary file name to be used that is unique to
+            # this variant.
             extra_name_param["bin_name"] = (
                 "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
             ).format(**full_variant)
             matrix["include"].append(extra_name_param)
 
         return matrix
+
+    @cached_property
+    def release_notes(self) -> str:
+        """Generate notes to be attached to the GitHub release."""
+        # Generate a link to the version of the package published on PyPi.
+        pypi_link = ""
+        if self.package_name and self.tagged_version:
+            pypi_link = dedent(
+                f"""\
+                [🐍 Available on PyPi](https://pypi.org/project/{self.package_name}/{self.tagged_version}).
+                """
+            )
+
+        # Assemble the release notes.
+        notes = dedent(
+            f"""\
+            {pypi_link}
+            """
+        )
+        return notes
 
     @staticmethod
     def format_github_value(value: Any, render_json=False) -> str:
