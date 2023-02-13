@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Test-drive unreleased `docformatter 1.6.0-rc3` to fix URL wrapping and admonition edge-cases.
+
 ## [2.7.5 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.4...v2.7.5)
 
 - Fix collection of artifact files from their folder.
