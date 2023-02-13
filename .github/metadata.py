@@ -350,14 +350,14 @@ class Metadata:
         - `--target-version py311`
 
         `You should include all Python versions that you want your code to run under
-        <https://github.com/psf/black/issues/751>`_.
+        <https://github.com/psf/black/issues/751#issuecomment-473066811>`_.
 
         .. tip::
 
             Can also be re-used both for:
 
             - `blacken-docs CLI <https://github.com/adamchainz/blacken-docs>`_.
-            - `ruff CLI <https://github.com/charliermarsh/ruff#target-version>`_.
+            - `ruff CLI <https://github.com/charliermarsh/ruff/issues/2857>`_ (soon I hope).
 
         .. caution::
 
