@@ -1,13 +1,29 @@
 # Workflows
 
-A central place where all my GitHub action worklows are defined.
+Maintaining project takes time. This repository contains workflows to automate most of the boring tasks.
 
-These are [reuseable workflows feature](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
+These workflows are mostly used for Poetry-based Python CLI and their documentation, but not only. They're all [reuseable GitHub actions workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
 
 Reasons for a centralized workflow repository:
 
 - reuseability of course: no need to update dozens of repository where 95% of workflows are the same
 - centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories dependeing on it
+
+## Release management
+
+It turns out [Release Engineering is a full-time job, and full of edge-cases](https://blog.axo.dev/2023/02/cargo-dist).
+
+Rust has [`cargo-dist`](https://github.com/axodotdev/cargo-dist). Go has... ? But there is no equivalent for Python.
+
+So I made up a [`release.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml), which:
+1. Extracts project metadata from `pyproject.toml`
+1. Generates a build matrix of all commits / os / arch / CLI entry points
+1. Build Python wheel with Twine
+1. Compile binaries of all CLI with Nuitka
+1. Tag the release commit in Git
+1. Publish new version to PyPi
+1. Publish a GitHub release
+1. Attach and rename build artifacts to it
 
 ## Changelog
 
