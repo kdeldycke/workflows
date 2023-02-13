@@ -16,6 +16,7 @@ It turns out [Release Engineering is a full-time job, and full of edge-cases](ht
 Rust has [`cargo-dist`](https://github.com/axodotdev/cargo-dist). Go has... ? But there is no equivalent for Python.
 
 So I made up a [`release.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml), which:
+
 1. Extracts project metadata from `pyproject.toml`
 1. Generates a build matrix of all commits / os / arch / CLI entry points
 1. Build Python wheel with Twine
