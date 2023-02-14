@@ -418,7 +418,8 @@ class Metadata:
                     node.value, (ast.List, ast.Tuple)
                 ):
                     extension_found = "extensions" in (
-    t.id for t in node.targets)  # type: ignore
+                        t.id for t in node.targets
+                    )  # type: ignore
                     if extension_found:
                         elements = (
                             e.value
