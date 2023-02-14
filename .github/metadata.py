@@ -94,7 +94,6 @@ import re
 import sys
 from itertools import product
 from pathlib import Path
-from textwrap import dedent
 from typing import Any, Generator, Iterable, cast
 
 if sys.version_info >= (3, 8):
@@ -303,9 +302,6 @@ class Metadata:
             if self.release_commits_matrix
             else None
         )
-
-    def tagged_version(self):
-        raise NotImplementedError
 
     def glob_files(self, *patterns: str) -> Generator[Path, None, None]:
         for pattern in patterns:
@@ -738,27 +734,6 @@ class Metadata:
             matrix["include"].append(extra_name_param)
 
         return matrix
-
-    @cached_property
-    def release_notes(self) -> str:
-        """Generate notes to be attached to the GitHub release."""
-        # Generate a link to the version of the package published on PyPi.
-        pypi_link = ""
-        if self.package_name and self.tagged_version:
-            pypi_link = dedent(
-                f"""\
-                [🐍 Available on
-                PyPi](https://pypi.org/project/{self.package_name}/{self.tagged_version}).
-                """
-            )
-
-        # Assemble the release notes.
-        notes = dedent(
-            f"""\
-            {pypi_link}
-            """
-        )
-        return notes
 
     @staticmethod
     def format_github_value(value: Any, render_json=False) -> str:
