@@ -31,6 +31,7 @@ jobs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       doc_files: ${{ needs.project-metadata.outputs.doc_files }}
       black_params: ${{ steps.project-metadata.outputs.black_params }}
+      ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
     steps:
       - uses: actions/checkout@v3.3.0
         with:
@@ -76,7 +77,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Ruff
         run: |
-          ruff check --fix-only --exit-zero .
+          ruff check --fix-only --exit-zero ${{ needs.project-metadata.outputs.ruff_params }} .
       - name: Run autopep8
         # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
         # We use autopep8 to only wrap long-line comments:

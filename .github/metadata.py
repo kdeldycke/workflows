@@ -27,6 +27,7 @@ doc_files="changelog.md" "readme.md" "docs/license.md"
 is_poetry_project=true
 package_name=click-extra
 black_params=--target-version py37 --target-version py38
+ruff_params=--target-version py37
 mypy_params=--python-version 3.7
 is_sphinx=true
 active_autodoc=true
@@ -379,7 +380,7 @@ class Metadata:
         return None
 
     @cached_property
-    def black_params(self) -> Generator[str, None, None]:
+    def black_params(self) -> tuple[str, ...] | None:
         """Generates `black` parameters.
 
         Black should be fed with a subset of these parameters:
@@ -398,11 +399,8 @@ class Metadata:
 
         .. tip::
 
-            Can also be re-used both for:
-
-            - `blacken-docs
-              <https://github.com/adamchainz/blacken-docs/blob/cd4e60f/src/blacken_docs/__init__.py#L263-L271>`_.
-            - `ruff <https://github.com/charliermarsh/ruff/issues/2857>`_.
+            Can also be re-used for `blacken-docs
+            <https://github.com/adamchainz/blacken-docs/blob/cd4e60f/src/blacken_docs/__init__.py#L263-L271>`_.
 
         .. caution::
 
@@ -429,15 +427,33 @@ class Metadata:
             black_range = (
                 Version.from_parts(major=3, minor=minor) for minor in minor_range
             )
-            for version in black_range:
-                if self.project_range.allows(version):
-                    yield f"--target-version py{version.text.replace('.', '')}"
+            return (
+                f"--target-version py{version.text.replace('.', '')}"
+                for version in black_range
+                if self.project_range.allows(version)
+            )
 
     @cached_property
-    def mypy_param(self) -> str | None:
-        """Generates `mypy` parameter.
+    def ruff_param(self) -> str | None:
+        """Like ``black_params``, but only returns the oldest Python version targetted.
 
-        Mypy needs to be fed with this parameter: `--python-version x.y`.
+        .. caution::
+
+            Unlike ``black`` and ``blacken-docs``, `ruff doen't support multiple
+            --target-version values
+            <https://github.com/charliermarsh/ruff/issues/2857#issuecomment-1428100515>`_.
+            Which is the only reason why we need this property.
+
+            If it was the case we could have reused ``black_params`` instead.
+        """
+        if self.black_params:
+            return self.black_params[0]
+
+    @cached_property
+    def mypy_params(self) -> str | None:
+        """Generates `mypy` parameters.
+
+        Mypy needs to be fed with this parameter: ``--python-version x.y``.
         """
         if self.project_range:
             if self.project_range.is_simple():
@@ -795,7 +811,8 @@ class Metadata:
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
             "black_params": (self.black_params, False),
-            "mypy_params": (self.mypy_param, False),
+            "ruff_params": (self.ruff_params, False),
+            "mypy_params": (self.mypy_params, False),
             "is_sphinx": (self.is_sphinx, False),
             "active_autodoc": (self.active_autodoc, False),
         }

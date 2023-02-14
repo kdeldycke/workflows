@@ -22,6 +22,7 @@ jobs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
+      ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v3.3.0
@@ -68,7 +69,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Ruff
         run: |
-          ruff check --format github .
+          ruff check --format github ${{ needs.project-metadata.outputs.ruff_params }} .
 
   lint-python-types:
     needs:
