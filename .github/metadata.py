@@ -14,15 +14,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Extract some metadata from repository and Python projects to be used by GitHub workflows.
+"""Extract metadata from repository and Python projects to be used by GitHub workflows.
 
 The following variables are `printed to the environment file
 <https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files>`_:
 
 ```text
-new_commits=346ce664f055fbd042a25ee0b7e96702394d5e95 6f27db47612aaee06fdf361008744b09a9f5f6c2
-release_commits=6f27db47612aaee06fdf361008744b09a9f5f6c2
-python_files=".github/update_mailmap.py" ".github/update_changelog.py" ".github/python_metadata.py"
+new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5f6c2
+release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
+python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
 is_poetry_project=true
 package_name=click-extra
@@ -30,10 +30,54 @@ black_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
 is_sphinx=true
 active_autodoc=true
-new_commits_matrix={"commit": ["346ce664f055fbd042a25ee0b7e96702394d5e95", "6f27db47612aaee06fdf361008744b09a9f5f6c2"], "include": [{"commit": "346ce664f055fbd042a25ee0b7e96702394d5e95", "short_sha": "346ce66"}, {"commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
-release_commits_matrix={"commit": ["6f27db47612aaee06fdf361008744b09a9f5f6c2"], "include": [{"commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2", "short_sha": "6f27db4"}]}
-nuitka_matrix={"entry_point": ["mpm"], "os": ["ubuntu-22.04", "macos-12", "windows-2022"], "arch": ["x64"], "include": [{"entry_point": "mpm", "cli_id": "mpm", "module_id": "meta_package_manager.__main__", "callable_id": "main", "module_path": "meta_package_manager/__main__.py"}, {"os": "ubuntu-22.04", "platform_id": "linux", "extension": "bin", "extra_python_params": ""}, {"os": "macos-12", "platform_id": "macos", "extension": "bin", "extra_python_params": ""}, {"os": "windows-2022", "platform_id": "windows", "extension": "exe", "extra_python_params": "-X utf8"}, {"entry_point": "mpm", "os": "ubuntu-22.04", "arch": "x64", "bin_name": "mpm-linux-x64-build-6f27db4.bin"}, {"entry_point": "mpm", "os": "macos-12", "arch": "x64", "bin_name": "mpm-macos-x64-build-6f27db4.bin"}, {"entry_point": "mpm", "os": "windows-2022", "arch": "x64", "bin_name": "mpm-windows-x64-build-6f27db4.exe"}]}
+new_commits_matrix={'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
+                               '6f27db47612aaee06fdf08744b09a9f5f6c2'],
+                    'include': [{'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                                 'short_sha': '346ce66'},
+                                {'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                                 'short_sha': '6f27db4'}]}
+release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
+                        'include': [{'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                                     'short_sha': '6f27db4'}]}
+nuitka_matrix={'entry_point': ['mpm'],
+               'os': ['ubuntu-22.04', 'macos-12', 'windows-2022'],
+               'arch': ['x64'],
+               'include': [{'entry_point': 'mpm',
+                            'cli_id': 'mpm',
+                            'module_id': 'meta_package_manager.__main__',
+                            'callable_id': 'main',
+                            'module_path': 'meta_package_manager/__main__.py'},
+                           {'os': 'ubuntu-22.04',
+                            'platform_id': 'linux',
+                            'extension': 'bin',
+                            'extra_python_params': ''},
+                           {'os': 'macos-12',
+                            'platform_id': 'macos',
+                            'extension': 'bin',
+                            'extra_python_params': ''},
+                           {'os': 'windows-2022',
+                            'platform_id': 'windows',
+                            'extension': 'exe',
+                            'extra_python_params': '-X utf8'},
+                           {'entry_point': 'mpm',
+                            'os': 'ubuntu-22.04',
+                            'arch': 'x64',
+                            'bin_name': 'mpm-linux-x64-build-6f27db4.bin'},
+                           {'entry_point': 'mpm',
+                            'os': 'macos-12',
+                            'arch': 'x64',
+                            'bin_name': 'mpm-macos-x64-build-6f27db4.bin'},
+                           {'entry_point': 'mpm',
+                            'os': 'windows-2022',
+                            'arch': 'x64',
+                            'bin_name': 'mpm-windows-x64-build-6f27db4.exe'}]}
 ```
+
+.. warning::
+
+    The ``new_commits_matrix``, ``release_commits_matrix`` and ``nuitka_matrix``
+    variables in the block above are pretty-printed for readability. They are not
+    actually formatted this way in the environment file, but inlined.
 
 Automatic detection of minimal Python version is being discussed upstream for:
 - `black` at https://github.com/psf/black/issues/3124
@@ -126,16 +170,16 @@ class Metadata:
         .. code-block:: python
             {
                 "commit": [
-                    "346ce664f055fbd042a25ee0b7e96702394d5e95",
-                    "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                    "346ce664f055fbd042a25ee0b7e96702e95",
+                    "6f27db47612aaee06fdf08744b09a9f5f6c2",
                 ],
                 "include": [
                     {
-                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "short_sha": "346ce66",
                     },
                     {
-                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "short_sha": "6f27db4",
                     },
                 ],
@@ -356,8 +400,9 @@ class Metadata:
 
             Can also be re-used both for:
 
-            - `blacken-docs CLI <https://github.com/adamchainz/blacken-docs>`_.
-            - `ruff CLI <https://github.com/charliermarsh/ruff/issues/2857>`_ (soon I hope).
+            - `blacken-docs
+              <https://github.com/adamchainz/blacken-docs/blob/cd4e60f/src/blacken_docs/__init__.py#L263-L271>`_.
+            - `ruff <https://github.com/charliermarsh/ruff/issues/2857>`_.
 
         .. caution::
 
@@ -366,15 +411,18 @@ class Metadata:
             `#3219 <https://github.com/psf/black/pull/3219>`_), `since v23.1.0
             <https://github.com/psf/black/releases/tag/23.1.0>`_.
 
-            But `only looks <https://github.com/psf/black/blob/b0d1fba/src/black/files.py#L141-L142>`_
+            But `only looks
+            <https://github.com/psf/black/blob/b0d1fba/src/black/files.py#L141-L142>`_
             for the `PEP-621's requires-python marker
-            <https://peps.python.org/pep-0621/#requires-python>`_ in the ``pyproject.toml`` file, i.e.:
+            <https://peps.python.org/pep-0621/#requires-python>`_ in the
+            ``pyproject.toml`` file, i.e.:
 
-            .. code-block:: toml
-                [project]
-                requires-python = ">=3.7,<3.11"
+                .. code-block:: toml
+                    [project]
+                    requires-python = ">=3.7,<3.11"
 
-            Which means we still needs to resolves these Black parameters for Poetry-based projects.
+            Which means we still needs to resolves these Black parameters for
+            Poetry-based projects.
         """
         if self.project_range:
             minor_range = sorted(v.value for v in black.TargetVersion)
@@ -440,15 +488,16 @@ class Metadata:
         - for the 3 main OSes
         - for a set of architectures
 
-        Returns a ready-to-use matrix structure, where each variation is augmented with specific extra parameters
-        by the way of matching parameters in the `include` directive.
+        Returns a ready-to-use matrix structure, where each variation is augmented with
+        specific extra parameters by the way of matching parameters in the `include`
+        directive.
 
         .. code-block:: python
             {
                 "entry_point": ["mpm"],
                 "commit": [
-                    "346ce664f055fbd042a25ee0b7e96702394d5e95",
-                    "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                    "346ce664f055fbd042a25ee0b7e96702e95",
+                    "6f27db47612aaee06fdf08744b09a9f5f6c2",
                 ],
                 "os": ["ubuntu-22.04", "macos-12", "windows-2022"],
                 "arch": ["x64"],
@@ -461,11 +510,11 @@ class Metadata:
                         "module_path": "meta_package_manager/__main__.py",
                     },
                     {
-                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "short_sha": "346ce66",
                     },
                     {
-                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "short_sha": "6f27db4",
                     },
                     {
@@ -488,42 +537,42 @@ class Metadata:
                     },
                     {
                         "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "os": "ubuntu-22.04",
                         "arch": "x64",
                         "bin_name": "mpm-linux-x64-build-346ce66.bin",
                     },
                     {
                         "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "os": "macos-12",
                         "arch": "x64",
                         "bin_name": "mpm-macos-x64-build-346ce66.bin",
                     },
                     {
                         "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702394d5e95",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "os": "windows-2022",
                         "arch": "x64",
                         "bin_name": "mpm-windows-x64-build-346ce66.exe",
                     },
                     {
                         "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "os": "ubuntu-22.04",
                         "arch": "x64",
                         "bin_name": "mpm-linux-x64-build-6f27db4.bin",
                     },
                     {
                         "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "os": "macos-12",
                         "arch": "x64",
                         "bin_name": "mpm-macos-x64-build-6f27db4.bin",
                     },
                     {
                         "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf361008744b09a9f5f6c2",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "os": "windows-2022",
                         "arch": "x64",
                         "bin_name": "mpm-windows-x64-build-6f27db4.exe",
@@ -556,7 +605,8 @@ class Metadata:
                 # XXX GitHub-hosted runners only supports x64.
                 # "ARM64"
                 # "ARM32"
-                # XXX GitHub-hosted macOS runners with Apple silicon are planned in the future:
+                # XXX GitHub-hosted macOS runners with Apple silicon are planned in the
+                # future:
                 # https://github.com/github/roadmap/issues/528
                 # https://github.com/actions/runner-images/issues/2187
                 # https://github.com/actions/runner/issues/805
@@ -676,7 +726,8 @@ class Metadata:
         if self.package_name and self.tagged_version:
             pypi_link = dedent(
                 f"""\
-                [🐍 Available on PyPi](https://pypi.org/project/{self.package_name}/{self.tagged_version}).
+                [🐍 Available on
+                PyPi](https://pypi.org/project/{self.package_name}/{self.tagged_version}).
                 """
             )
 
@@ -697,7 +748,8 @@ class Metadata:
         - `None` into emptry string
         - `bool` into lower-cased string
         - `Iterable` of strings into a serialized space-separated string
-        - `Iterable` of `Path` into a serialized string whose items are space-separated and double-quoted
+        - `Iterable` of `Path` into a serialized string whose items are space-separated
+          and double-quoted
         """
         if render_json:
             return json.dumps(value)
@@ -722,7 +774,8 @@ class Metadata:
 
     @cached_property
     def output_env_file(self) -> Path | None:
-        """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
+        """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT`
+        environment variable."""
         output_path = None
         env_file = os.getenv("GITHUB_OUTPUT")
         if env_file:
@@ -731,7 +784,8 @@ class Metadata:
         return output_path
 
     def save_metadata(self):
-        """Write data to the environment file pointed to by the `$GITHUB_OUTPUT` environment variable."""
+        """Write data to the environment file pointed to by the `$GITHUB_OUTPUT`
+        environment variable."""
         # Plain metadata.
         metadata = {
             "new_commits": (self.new_commits_hash, False),
