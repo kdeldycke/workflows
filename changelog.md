@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.8.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.7.6...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.8.0 (2023-02-14)](https://github.com/kdeldycke/workflows/compare/v2.7.6...v2.8.0)
 
 - Replace `isort`, `pyupgrade`, `pylint`, `pycln` and `pydocstyle` with `ruff`.
 - Run `autopep8` before `black` to that longline edge-cases get wrapped first.
