@@ -434,7 +434,7 @@ class Metadata:
             )
 
     @cached_property
-    def ruff_param(self) -> str | None:
+    def ruff_params(self) -> str | None:
         """Like ``black_params``, but only returns the oldest Python version targetted.
 
         .. caution::
