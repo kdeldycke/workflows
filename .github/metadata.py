@@ -304,6 +304,9 @@ class Metadata:
             else None
         )
 
+    def tagged_version(self):
+        raise NotImplementedError
+
     def glob_files(self, *patterns: str) -> Generator[Path, None, None]:
         for pattern in patterns:
             # is_file() return False if the path doesn’t exist or is a broken symlink.
@@ -427,11 +430,12 @@ class Metadata:
             black_range = (
                 Version.from_parts(major=3, minor=minor) for minor in minor_range
             )
-            return (
+            return tuple(
                 f"--target-version py{version.text.replace('.', '')}"
                 for version in black_range
                 if self.project_range.allows(version)
             )
+        return None
 
     @cached_property
     def ruff_params(self) -> str | None:
@@ -448,6 +452,7 @@ class Metadata:
         """
         if self.black_params:
             return self.black_params[0]
+        return None
 
     @cached_property
     def mypy_params(self) -> str | None:
@@ -482,8 +487,8 @@ class Metadata:
                     node.value, (ast.List, ast.Tuple)
                 ):
                     extension_found = "extensions" in (
-                        t.id for t in node.targets
-                    )  # type: ignore
+                        t.id for t in node.targets  # type: ignore
+                    )
                     if extension_found:
                         elements = (
                             e.value
