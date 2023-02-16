@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix subtle bug in `.gitignore` production due to collapsing multiline command block starting with `>` because of variable interpolation.
 - Tweak PR titles.
 
 ## [2.8.1 (2023-02-16)](https://github.com/kdeldycke/workflows/compare/v2.8.0...v2.8.1)
