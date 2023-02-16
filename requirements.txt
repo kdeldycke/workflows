@@ -14,7 +14,7 @@ check-wheel-contents == 0.4.0
 #   https://github.com/PyCQA/docformatter/issues/157#issuecomment-1402573058
 #   https://github.com/PyCQA/docformatter/issues/127
 # XXX Replace this with a pin to latest version once docformatter 1.6.0 released on PyPi.
-docformatter @ git+https://github.com/PyCQA/docformatter.git@v1.6.0-rc3
+docformatter @ git+https://github.com/PyCQA/docformatter.git@v1.6.0-rc4
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
 mdformat == 0.7.16
 mdformat_admon == 1.0.1
