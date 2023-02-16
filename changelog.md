@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Tweak PR titles.
+
 ## [2.8.1 (2023-02-16)](https://github.com/kdeldycke/workflows/compare/v2.8.0...v2.8.1)
 
 - Test unreleased `docformatter 1.6.0-rc4` to fix admonition wrapping.

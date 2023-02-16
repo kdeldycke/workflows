@@ -241,7 +241,7 @@ jobs:
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .gitignore"
-          title: "[autofix] Update .gitignore"
+          title: "[autofix] Update `.gitignore`"
           body: >
             <details><summary><code>Workflow metadata</code></summary>
 

@@ -58,7 +58,7 @@ jobs:
           commit-message: >
             [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}.
           title: >
-            Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}
+            Bump ${{ matrix.part }} version to `v${{ steps.get_version.outputs.new_version }}`
           body: >
             ### Description
 
@@ -200,7 +200,7 @@ jobs:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           title: >
-            Release v${{ steps.get_version.outputs.current_version }}
+            Release `v${{ steps.get_version.outputs.current_version }}`
           body: >
             ### Description
 
