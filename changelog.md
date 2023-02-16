@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Test unreleased `docformatter 1.6.0-rc4` to fix admonition wrapping.
+
 ## [2.8.0 (2023-02-14)](https://github.com/kdeldycke/workflows/compare/v2.7.6...v2.8.0)
 
 - Replace `isort`, `pyupgrade`, `pylint`, `pycln` and `pydocstyle` with `ruff`.
