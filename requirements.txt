@@ -28,7 +28,7 @@ mdformat_pyproject == 0.0.1
 mdformat_tables == 0.4.1
 mdformat-toc == 0.3.0
 mdformat-web == 0.1.0
-mypy == 1.0.0
+mypy == 1.0.1
 nuitka == 1.4.7
 ordered-set == 4.1.0
 pipdeptree == 2.5.0
