@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Renders dependency graph in Mermaid Markdown instead of Graphviz's dot.
+- Removes `dependency-graph-format` input variable to `docs.yaml` workflow.
+
 ## [2.8.3 (2023-02-17)](https://github.com/kdeldycke/workflows/compare/v2.8.2...v2.8.3)
 
 - Test unreleased `docformatter 1.6.0-rc5` to fix link wrapping.

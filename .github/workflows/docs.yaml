@@ -3,14 +3,9 @@ name: Docs
 "on":
   workflow_call:
     inputs:
-      dependency-graph-format:
-        description: 'Format of the dependency graph file. Either: dot, jpeg, pdf, png or svg.'
-        default: 'dot'
-        required: false
-        type: string
       dependency-graph-output:
         description: 'Location in the repository of the dependency graph image.'
-        default: './docs/images/dependencies.dot'
+        default: './docs/images/dependencies.mmd'
         required: false
         type: string
   push:
@@ -194,13 +189,8 @@ jobs:
       - name: Install pipdeptree in Poetry
         # pipdeptree needs to be installed within Poetry's venv to see dependencies. Use the pipdeptree installed
         # above to guess the version pinned in the requirements.txt.
-        run: >
-          poetry run python -m pip install
-          "$( pipdeptree | grep pipdeptree | sed 's/pipdeptree/pipdeptree[graphviz]/' )"
-      - name: Install Graphviz
         run: |
-          sudo apt update
-          sudo apt install --yes graphviz
+          poetry run python -m pip install "$( pipdeptree | grep pipdeptree )"
       - name: Run pipdeptree for debug
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
@@ -210,63 +200,7 @@ jobs:
       - name: Generate graph
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
-          --graph-output ${{ inputs.dependency-graph-format }} > ${{ inputs.dependency-graph-output }}
-      - name: Stabilize and style graph
-        if: inputs.dependency-graph-format == 'dot'
-        # XXX Make the output of the dot format deterministic and stable. See:
-        # https://github.com/tox-dev/pipdeptree/issues/188
-        # https://github.com/tox-dev/pipdeptree/pull/189
-        shell: python
-        id: build-metadata
-        run: |
-          from pathlib import Path
-          from textwrap import dedent, indent
-
-          dot_file = Path("""${{ inputs.dependency-graph-output }}""")
-          lines = [l.strip() for l in dot_file.read_text().splitlines() if l.strip()]
-          directives = lines[1:-1]
-
-          head = "digraph {"
-          tail = "}"
-
-          # Validates pipdeptree expected output.
-          assert lines[0] == head
-          assert lines[-1] == tail
-          for l in directives:
-              assert "[label=" in l
-
-          # Recompose file content.
-          content = [head]
-          # Customize graph style.
-          content.append(
-              indent(
-                  dedent("""
-                      fontname="Helvetica,Arial,sans-serif"
-                      node [
-                          style=filled
-                          shape=box
-                          fontname="Helvetica,Arial,sans-serif"
-                          fontsize=10
-                          color="#b2afa7"
-                          fillcolor="#edeceb"
-                      ]
-                      edge [
-                          headport=nw
-                          fontname="Helvetica,Arial,sans-serif"
-                          fontsize=8
-                          color="#b2b1ae"
-                          fontcolor="#00000080"
-                      ]
-                  """.strip()),
-                  prefix=" " * 4,
-              )
-          )
-          # Sort directives for determinism.
-          content.extend(indent(l, prefix=" " * 4) for l in sorted(directives))
-          content.append(tail)
-
-          # Overwrite the file created by pipdeptree.
-          dot_file.write_text("\n".join(content))
+          --mermaid > ${{ inputs.dependency-graph-output }}
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}
