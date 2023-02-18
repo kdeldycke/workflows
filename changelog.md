@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.9.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.9.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.9.0 (2023-02-18)](https://github.com/kdeldycke/workflows/compare/v2.8.3...v2.9.0)
 
 - Renders dependency graph in Mermaid Markdown instead of Graphviz's dot.
