@@ -12,8 +12,6 @@ updates:
     assignees:
       - "kdeldycke"
 
-  # XXX Dependabot does not update pinned reused workflows yet:
-  # https://github.com/dependabot/dependabot-core/issues/4327
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
