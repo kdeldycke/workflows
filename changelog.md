@@ -6,7 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
-- Lint Github actions workflow with `actionlint`.
+- Lint Github actions workflows with `actionlint`.
 
 ## [2.9.0 (2023-02-18)](https://github.com/kdeldycke/workflows/compare/v2.8.3...v2.9.0)
 
