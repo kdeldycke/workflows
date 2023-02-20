@@ -157,7 +157,7 @@ jobs:
       - name: Run actionlint
         run: |
           echo "::add-matcher::.github/labeller-file-based.yaml"
-          ./${{ steps.install_actionlint.outputs.executable }} -color
+          ${{ steps.install_actionlint.outputs.executable }} -color
 
   lint-awesome:
     name: Lint Awesome list
