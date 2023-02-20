@@ -151,11 +151,12 @@ jobs:
           sudo apt install --yes shellcheck
       - name: Install problem matcher
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/.github/actionlint-matcher.json
+        run: >
+          curl -fsSL --output ./.github/labeller-file-based.yaml
+          https://raw.githubusercontent.com/rhysd/actionlint/main/.github/actionlint-matcher.json
       - name: Run actionlint
         run: |
-          echo "::add-matcher::./actionlint-matcher.json"
+          echo "::add-matcher::.github/labeller-file-based.yaml"
           ./${{ steps.install_actionlint.outputs.executable }} -color
 
   lint-awesome:
