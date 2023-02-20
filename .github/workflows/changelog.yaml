@@ -180,8 +180,8 @@ jobs:
           --search "/workflows/v{current_version}/"
           --replace "/workflows/$DEFAULT_BRANCH/"
           no-bump
-          `grep --files-with-matches "/workflows/v${{ steps.get_version.outputs.current_version }}/"
-          ./.github/workflows/*.yaml`
+          $(grep --files-with-matches "/workflows/v${{ steps.get_version.outputs.current_version }}/"
+          ./.github/workflows/*.yaml)
       - name: Add new changelog entry
         run: >
           python -c "$(curl -fsSL

@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
-      doc_files: ${{ needs.project-metadata.outputs.doc_files }}
+      doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       black_params: ${{ steps.project-metadata.outputs.black_params }}
       ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
     steps:
