@@ -137,6 +137,27 @@ jobs:
         run: |
           find . -iname "*.sh" -exec zsh --no-exec "{}" \;
 
+  lint-github-action:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Install actionlint
+        id: install_actionlint
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+      - name: Install shellcheck
+        run: |
+          sudo apt update
+          sudo apt install --yes shellcheck
+      - name: Install problem matcher
+        # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/.github/actionlint-matcher.json
+      - name: Run actionlint
+        run: |
+          echo "::add-matcher::./actionlint-matcher.json"
+          ./${{ steps.install_actionlint.outputs.executable }} -color
+
   lint-awesome:
     name: Lint Awesome list
     if: startsWith(github.event.repository.name, 'awesome-')
