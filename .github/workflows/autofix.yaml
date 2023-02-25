@@ -209,7 +209,7 @@ jobs:
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
         run: |
-          echo "exists=$( [[ -f '${{ inputs.gitignore-location }}' ]] && echo 'true' )" >> $GITHUB_OUTPUT
+          echo "exists=$( [[ -f '${{ inputs.gitignore-location }}' ]] && echo 'true' )" >> "$GITHUB_OUTPUT"
       - name: Detection results
         run: |
           echo "Does .gitignore exist at root? ${{ steps.detection.outputs.exists && true || false }}"
