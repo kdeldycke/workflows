@@ -13,6 +13,7 @@ name: Docs
       - main
     # Triggers on tags for dependency graph updates.
     tags:
+      - '*'  # Match any tag.
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.
@@ -196,7 +197,7 @@ jobs:
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
       - name: Create dir structure
         run: |
-          mkdir -p $(dirname ${{ inputs.dependency-graph-output }})
+          mkdir -p "$(dirname "${{ inputs.dependency-graph-output }}")"
       - name: Generate graph
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
