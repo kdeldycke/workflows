@@ -195,6 +195,10 @@ jobs:
         if: ${{ ! steps.tag_exists.outputs.tag_exists }}
         uses: tvdias/github-tagger@v0.0.2
         with:
+          # XXX actionlint triggers this error:
+          #   property "workflow_update_github_pat" is not defined in object type {actions_runner_debug: string;
+          #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
+          # See: https://github.com/rhysd/actionlint/issues/148
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}
           commit-sha: ${{ matrix.commit }}
