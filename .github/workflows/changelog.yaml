@@ -130,7 +130,7 @@ jobs:
           --search "/workflows/$DEFAULT_BRANCH/"
           --replace "/workflows/v{current_version}/"
           no-bump
-          "$(grep --files-with-matches "/workflows/$DEFAULT_BRANCH/" ./.github/workflows/*.yaml)"
+          $(grep --files-with-matches "/workflows/$DEFAULT_BRANCH/" ./.github/workflows/*.yaml)
       - name: Set release date for citation
         run: |
           perl -pi -e "s/date-released: \d+-\d+-\d+/date-released: $(date +'%Y-%m-%d')/" ./citation.cff
