@@ -119,6 +119,7 @@ SHORT_SHA_LENGTH = 7
 
 
 TMatrix = dict[str, list[str] | list[dict[str, str]]]
+"""Defines the structure of a matrix to be used in a GitHub workflow."""
 
 
 class Metadata:
