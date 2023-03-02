@@ -235,8 +235,20 @@ jobs:
           git ignore-io --update-list
       - name: Generate .gitignore
         run: >
-          git ignore-io ${{ inputs.gitignore-extra-categories }} emacs git linux macos nohup python vim virtualenv
-          visualstudiocode windows > ${{ inputs.gitignore-location }}
+          git ignore-io ${{ inputs.gitignore-extra-categories }}
+          certificates
+          emacs
+          git
+          gpg
+          linux
+          macos
+          nohup
+          python
+          ssh
+          vim
+          virtualenv
+          visualstudiocode
+          windows > ${{ inputs.gitignore-location }}
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}
