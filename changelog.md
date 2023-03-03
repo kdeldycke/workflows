@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.11.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.11.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.11.0 (2023-03-03)](https://github.com/kdeldycke/workflows/compare/v2.10.0...v2.11.0)
 
 - Add `certificates`, `gpg` and `ssh` artefacts to the list of default files in `.gitignore`.
