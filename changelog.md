@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Add `certificates`, `gpg` and `ssh` artefacts to the list of default files in `.gitignore`.
+- Fix production of dependency graph in Mermaid format.
 
 ## [2.10.0 (2023-02-25)](https://github.com/kdeldycke/workflows/compare/v2.9.0...v2.10.0)
 

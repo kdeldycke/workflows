@@ -31,7 +31,7 @@ mdformat-web == 0.1.0
 mypy == 1.0.1
 nuitka == 1.4.8
 ordered-set == 4.1.0
-pipdeptree == 2.5.0
+pipdeptree == 2.5.1
 poetry == 1.4.0
 PyDriller == 2.4.1
 ruff == 0.0.253
