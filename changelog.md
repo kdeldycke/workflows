@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.12.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.12.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.12.1 (2023-03-05)](https://github.com/kdeldycke/workflows/compare/v2.12.0...v2.12.1)
 
 - Tweak extra content layout.
 
