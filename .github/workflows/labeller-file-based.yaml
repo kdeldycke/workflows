@@ -39,6 +39,7 @@ jobs:
         if: inputs.extra-rules
         run: |
           tee -a ./.github/labeller-file-based.yaml <<-EOF
+
           ${{ inputs.extra-rules }}
           EOF
       - name: Print all rules

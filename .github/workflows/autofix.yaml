@@ -257,6 +257,7 @@ jobs:
         if: inputs.gitignore-extra-content
         run: |
           tee -a ${{ inputs.gitignore-location }} <<-EOF
+
           ${{ inputs.gitignore-extra-content }}
           EOF
       - uses: peter-evans/create-pull-request@v4.2.3
