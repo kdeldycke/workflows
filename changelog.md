@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.12.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.11.1...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.12.0 (2023-03-05)](https://github.com/kdeldycke/workflows/compare/v2.11.1...v2.12.0)
 
 - Add new `gitignore-extra-content` parameter to `update-gitignore` job to append extra content to `.gitignore`.
 
