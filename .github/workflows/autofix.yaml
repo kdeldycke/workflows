@@ -9,7 +9,11 @@ name: Autofix
         required: false
         type: string
       gitignore-extra-categories:
-        description: 'List of additional categories to add to gitignore file.'
+        description: 'List of additional categories to add to .gitignore file.'
+        required: false
+        type: string
+      gitignore-extra-content:
+        description: 'Additional content to append at the end of the generated .gitignore file.'
         required: false
         type: string
   push:
@@ -249,6 +253,12 @@ jobs:
           virtualenv
           visualstudiocode
           windows > ${{ inputs.gitignore-location }}
+      - name: Append extra content to .gitignore
+        if: inputs.gitignore-extra-content
+        run: |
+          tee -a ${{ inputs.gitignore-location }} <<-EOF
+          ${{ inputs.gitignore-extra-content }}
+          EOF
       - uses: peter-evans/create-pull-request@v4.2.3
         with:
           assignees: ${{ github.actor }}
