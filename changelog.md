@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.11.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.11.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.11.1 (2023-03-05)](https://github.com/kdeldycke/workflows/compare/v2.11.0...v2.11.1)
 
 - Fix Mermaid graph rendering colliding with reserved words.
