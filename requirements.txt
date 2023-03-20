@@ -32,7 +32,7 @@ mypy == 1.1.1
 nuitka == 1.5.1
 ordered-set == 4.1.0
 pipdeptree == 2.5.2
-poetry == 1.4.0
+poetry == 1.4.1
 PyDriller == 2.4.1
 ruff == 0.0.257
 tomli == 2.0.1 ; python_version < "3.11"
