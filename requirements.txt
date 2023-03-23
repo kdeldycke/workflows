@@ -37,5 +37,5 @@ PyDriller == 2.4.1
 ruff == 0.0.257
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.2
-yamllint == 1.29.0
+yamllint == 1.30.0
 zstandard == 0.20.0
