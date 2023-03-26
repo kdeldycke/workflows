@@ -224,7 +224,7 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
-          packages_dir: ${{ steps.download.outputs.download-path }}
+          packages-dir: ${{ steps.download.outputs.download-path }}
 
   github-release:
     name: Publish GitHub release
