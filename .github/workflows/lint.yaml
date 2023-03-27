@@ -93,7 +93,7 @@ jobs:
         # Install project with Poetry if supported, so we can benefits from dependencies on typing stubs.
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: |
-          poetry install --no-interaction
+          poetry install --no-interaction --no-ansi
       - name: Run Poetry's Mypy
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: >
