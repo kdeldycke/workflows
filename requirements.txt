@@ -29,7 +29,7 @@ mdformat_tables == 0.4.1
 mdformat-toc == 0.3.0
 mdformat-web == 0.1.0
 mypy == 1.1.1
-nuitka == 1.5.3
+nuitka == 1.5.4
 ordered-set == 4.1.0
 pipdeptree == 2.7.0
 poetry == 1.4.1
