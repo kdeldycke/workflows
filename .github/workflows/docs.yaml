@@ -5,7 +5,7 @@ name: Docs
     inputs:
       dependency-graph-output:
         description: 'Location in the repository of the dependency graph image.'
-        default: './docs/images/dependencies.mmd'
+        default: './docs/assets/dependencies.mmd'
         required: false
         type: string
   push:
