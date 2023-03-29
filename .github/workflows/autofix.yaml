@@ -83,6 +83,7 @@ jobs:
         run: |
           ruff check --fix-only --exit-zero ${{ needs.project-metadata.outputs.ruff_params }} .
       - name: Run autopep8
+        if: needs.project-metadata.outputs.python_files
         # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
         # We use autopep8 to only wrap long-line comments:
         #  - E501 is "Try to make lines fit within --max-line-length characters."
