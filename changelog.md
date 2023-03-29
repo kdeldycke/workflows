@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.13.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.13.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.13.0 (2023-03-29)](https://github.com/kdeldycke/workflows/compare/v2.12.4...v2.13.0)
 
 - Update default destination folder of dependency graph from `images` to `assets`.
