@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.12.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.12.4...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.12.4 (2023-03-29)](https://github.com/kdeldycke/workflows/compare/v2.12.3...v2.12.4)
 
 - Skip running `autopep8` if no Python files found.
