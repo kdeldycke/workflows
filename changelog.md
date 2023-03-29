@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Skip running `autopep8` if no Python files found.
+- Only install main dependencies to generate dependency graph.
 
 ## [2.12.3 (2023-03-27)](https://github.com/kdeldycke/workflows/compare/v2.12.2...v2.12.3)
 
