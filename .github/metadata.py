@@ -442,10 +442,12 @@ class Metadata:
 
             Unlike ``black`` and ``blacken-docs``, `ruff doen't support multiple
             --target-version values
-            <https://github.com/charliermarsh/ruff/issues/2857#issuecomment-1428100515>`_.
-            Which is the only reason why we need this property.
+            <https://github.com/charliermarsh/ruff/issues/2857#issuecomment-1428100515>`_,
+            and `only supports the minimum Python version
+            <https://github.com/charliermarsh/ruff/issues/2519>`_.
 
-            If it was the case we could have reused ``black_params`` instead.
+            If it was the case we could have reused ``black_params`` instead of having
+            this dedicated property.
         """
         if self.black_params:
             return self.black_params[0]
