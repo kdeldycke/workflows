@@ -8,13 +8,7 @@ black == 23.3.0
 blacken-docs == 1.13.0
 bump2version == 1.0.1
 check-wheel-contents == 0.4.0
-# Use docformatter v1.6.0-rc1 to fix long URLs rewrapping:
-#   https://github.com/PyCQA/docformatter/issues/140
-# v1.6.0-rc2 should fix admonition blocks:
-#   https://github.com/PyCQA/docformatter/issues/157#issuecomment-1402573058
-#   https://github.com/PyCQA/docformatter/issues/127
-# XXX Replace this with a pin to latest version once docformatter 1.6.0 released on PyPi.
-docformatter @ git+https://github.com/PyCQA/docformatter.git@v1.6.0-rc7
+docformatter == 1.6.0
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
 mdformat == 0.7.16
 mdformat_admon == 1.0.1
