@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.5.0
       - uses: sobolevn/misspell-fixer-action@0.1.0
-      - uses: peter-evans/create-pull-request@v4.2.4
+      - uses: peter-evans/create-pull-request@v5.0.0
         with:
           # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
           # "Developer Settings > Personal Access Tokens" UI to allow this job to update its own workflows. This is
@@ -61,7 +61,7 @@ jobs:
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           compressOnly: true
-      - uses: peter-evans/create-pull-request@v4.2.4
+      - uses: peter-evans/create-pull-request@v5.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Optimize images"
@@ -115,7 +115,7 @@ jobs:
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_mailmap.py)"
-      - uses: peter-evans/create-pull-request@v4.2.4
+      - uses: peter-evans/create-pull-request@v5.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .mailmap"
@@ -202,7 +202,7 @@ jobs:
         run: >
           poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
           --mermaid > ${{ inputs.dependency-graph-output }}
-      - uses: peter-evans/create-pull-request@v4.2.4
+      - uses: peter-evans/create-pull-request@v5.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate dependency graph"
@@ -246,7 +246,7 @@ jobs:
       - name: Run Sphinx
         run: |
           poetry run sphinx-apidoc --no-toc --module-first --force -o ./docs .
-      - uses: peter-evans/create-pull-request@v4.2.4
+      - uses: peter-evans/create-pull-request@v5.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update Sphinx autodoc"
