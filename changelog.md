@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Various dependency updates.
+
 ## [2.13.1 (2023-04-04)](https://github.com/kdeldycke/workflows/compare/v2.13.0...v2.13.1)
 
 - Use final version of `docformatter 1.6.0`.
