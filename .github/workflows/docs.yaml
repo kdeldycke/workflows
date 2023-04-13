@@ -27,7 +27,7 @@ jobs:
     name: Fix typos
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
       - uses: sobolevn/misspell-fixer-action@0.1.0
       - uses: peter-evans/create-pull-request@v5.0.0
         with:
@@ -55,7 +55,7 @@ jobs:
     name: Optimize images
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
       - uses: calibreapp/image-actions@1.1.0
         id: image_actions
         with:
@@ -88,7 +88,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
       - id: detection
         run: |
           echo "exists=$( [[ -f './.mailmap' ]] && echo 'true' )" >> "$GITHUB_OUTPUT"
@@ -104,7 +104,7 @@ jobs:
     if: needs.check-mailmap.outputs.exists
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
@@ -142,7 +142,7 @@ jobs:
       is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -173,7 +173,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
@@ -229,7 +229,7 @@ jobs:
       && fromJSON(needs.project-metadata.outputs.active_autodoc)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
@@ -271,7 +271,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_poetry_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.1
+      - uses: actions/checkout@v3.5.2
       - uses: actions/setup-python@v4.5.0
         with:
           python-version: "3.11"
