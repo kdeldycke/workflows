@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Publish packages to PyPi with OIDC workflow for trusted publishing.
+
 ## [2.13.5 (2023-05-02)](https://github.com/kdeldycke/workflows/compare/v2.13.4...v2.13.5)
 
 - Update `docformatter`, `ruff` and `nuitka`.

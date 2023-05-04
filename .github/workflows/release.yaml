@@ -213,6 +213,11 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ needs.project-metadata.outputs.package_name }}
+    permissions:
+      id-token: write
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.2
@@ -222,8 +227,6 @@ jobs:
       - name: Push package to public PyPi repository
         uses: pypa/gh-action-pypi-publish@v1.8.6
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
           packages-dir: ${{ steps.download.outputs.download-path }}
 
   github-release:
