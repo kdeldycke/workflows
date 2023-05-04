@@ -6,7 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
-- Remove support for `PYPI_TOKEN` secret in release workflow.
+- Reverts publishing via trusted channel: it doesn't work with reuseable workflows. See #528.
 
 ## [2.14.0 (2023-05-04)](https://github.com/kdeldycke/workflows/compare/v2.13.5...v2.14.0)
 

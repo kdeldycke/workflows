@@ -3,6 +3,9 @@ name: Build & release
 # Read https://github.com/actions/runner/issues/491 for insights on complex workflow execution logic.
 "on":
   workflow_call:
+    secrets:
+      PYPI_TOKEN:
+        required: false
     outputs:
       tagged_version:
         description: Tagged/released version (without leading 'v')
@@ -194,7 +197,7 @@ jobs:
         with:
           # XXX actionlint triggers this error:
           #   property "workflow_update_github_pat" is not defined in object type {actions_runner_debug: string;
-          #   actions_step_debug: string; github_token: string} [expression]
+          #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
           # See: https://github.com/rhysd/actionlint/issues/148
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}
@@ -210,11 +213,6 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
-    environment:
-      name: pypi
-      url: https://pypi.org/p/${{ needs.project-metadata.outputs.package_name }}
-    permissions:
-      id-token: write
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.2
@@ -224,6 +222,8 @@ jobs:
       - name: Push package to public PyPi repository
         uses: pypa/gh-action-pypi-publish@v1.8.6
         with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
           packages-dir: ${{ steps.download.outputs.download-path }}
 
   github-release:
