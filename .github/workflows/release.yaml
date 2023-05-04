@@ -3,9 +3,6 @@ name: Build & release
 # Read https://github.com/actions/runner/issues/491 for insights on complex workflow execution logic.
 "on":
   workflow_call:
-    secrets:
-      PYPI_TOKEN:
-        required: false
     outputs:
       tagged_version:
         description: Tagged/released version (without leading 'v')
@@ -197,7 +194,7 @@ jobs:
         with:
           # XXX actionlint triggers this error:
           #   property "workflow_update_github_pat" is not defined in object type {actions_runner_debug: string;
-          #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
+          #   actions_step_debug: string; github_token: string} [expression]
           # See: https://github.com/rhysd/actionlint/issues/148
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           tag: v${{ steps.get_version.outputs.tagged_version }}

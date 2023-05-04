@@ -161,7 +161,7 @@ jobs:
         # XXX actionlint triggers this error:
         #   Error: .github/workflows/release.yaml:198:27:
         #   property "workflow_update_github_pat" is not defined in object type {actions_runner_debug: string;
-        #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
+        #   actions_step_debug: string; github_token: string} [expression]
         # See: https://github.com/rhysd/actionlint/issues/148
         run: >
           ${{ steps.install_actionlint.outputs.executable }}
