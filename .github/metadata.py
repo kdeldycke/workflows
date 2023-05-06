@@ -306,7 +306,7 @@ class Metadata:
 
     def glob_files(self, *patterns: str) -> Generator[Path, None, None]:
         for pattern in patterns:
-            # is_file() return False if the path doesn’t exist or is a broken symlink.
+            # is_file() return False if the path doesn't exist or is a broken symlink.
             yield from (p for p in Path().glob(pattern) if p.is_file())
 
     @cached_property
