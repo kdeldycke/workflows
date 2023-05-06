@@ -125,17 +125,18 @@ jobs:
         # The while-based iteration over all matching workflows files is sourced from
         # https://www.shellcheck.net/wiki/SC2046
         # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
-        # Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
+        # XXX Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
         run: |
-          grep --files-with-matches "/workflows/$DEFAULT_BRANCH/" \
+          RELEASE_DEFAULT_BRANCH="main"
+          grep --files-with-matches "/workflows/$RELEASE_DEFAULT_BRANCH/" \
             ./.github/workflows/*.yaml | while IFS='' read -r workflow_file
           do
-            DEFAULT_BRANCH="main" && \
             bumpversion --verbose --no-configured-files \
-            --search "/workflows/$DEFAULT_BRANCH/" \
+            --search "/workflows/$RELEASE_DEFAULT_BRANCH/" \
             --replace "/workflows/v{current_version}/" \
             no-bump "$workflow_file"
           done
+          unset RELEASE_DEFAULT_BRANCH
       - name: Set release date for citation
         run: |
           perl -pi -e "s/date-released: \d+-\d+-\d+/date-released: $(date +'%Y-%m-%d')/" ./citation.cff
@@ -180,17 +181,18 @@ jobs:
         # The while-based iteration over all matching workflows files is sourced from
         # https://www.shellcheck.net/wiki/SC2046
         # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
-        # Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
+        # XXX Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
         run: |
+          RELEASE_DEFAULT_BRANCH="main"
           grep --files-with-matches "/workflows/v${{ steps.get_version.outputs.current_version }}/" \
             ./.github/workflows/*.yaml | while IFS='' read -r workflow_file
           do
-            DEFAULT_BRANCH="main" && \
             bumpversion --verbose --no-configured-files \
             --search "/workflows/v{current_version}/" \
-            --replace "/workflows/$DEFAULT_BRANCH/" \
+            --replace "/workflows/$RELEASE_DEFAULT_BRANCH/" \
             no-bump "$workflow_file"
           done
+          unset RELEASE_DEFAULT_BRANCH
       - name: Add new changelog entry
         run: >
           python -c "$(curl -fsSL

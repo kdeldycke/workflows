@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix hard-coding of tagged external asset's URLs on release and version bump.
 - Forces `ruff` to check and autofix against all rules.
 
 ## [2.14.1 (2023-05-04)](https://github.com/kdeldycke/workflows/compare/v2.14.0...v2.14.1)
