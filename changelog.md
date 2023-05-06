@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.15.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.15.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.15.0 (2023-05-06)](https://github.com/kdeldycke/workflows/compare/v2.14.1...v2.15.0)
 
 - Fix hard-coding of tagged external asset's URLs on release and version bump.
