@@ -69,7 +69,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Ruff
         run: |
-          ruff check --format github ${{ needs.project-metadata.outputs.ruff_params }} .
+          ruff check --select=ALL --format=github ${{ needs.project-metadata.outputs.ruff_params }} .
 
   lint-python-types:
     needs:

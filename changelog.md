@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Forces `ruff` to check and autofix against all rules.
+
 ## [2.14.1 (2023-05-04)](https://github.com/kdeldycke/workflows/compare/v2.14.0...v2.14.1)
 
 - Reverts publishing via trusted channel: it doesn't work with reuseable workflows. See #528.
