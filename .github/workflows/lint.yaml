@@ -68,8 +68,14 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Ruff
-        run: |
-          ruff check --select=ALL --format=github ${{ needs.project-metadata.outputs.ruff_params }} .
+        # --ignore=D400 - First line should end with a period.
+        #   Allows docstrings to end up with any punctuation, not just a period.
+        #   See: https://github.com/charliermarsh/ruff/issues/1858#issuecomment-1382640623
+        run: >
+          ruff check --format=github ${{ needs.project-metadata.outputs.ruff_params }}
+          --select=ALL
+          --ignore=D400
+          .
 
   lint-python-types:
     needs:
