@@ -81,7 +81,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Ruff
         run: |
-          ruff check --fix-only --exit-zero ${{ needs.project-metadata.outputs.ruff_params }} .
+          ruff check --fix-only ${{ needs.project-metadata.outputs.ruff_params }} .
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
         # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
