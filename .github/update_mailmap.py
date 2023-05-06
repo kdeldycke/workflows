@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-""" Add all missing contributors from commit history to the ``.mailmap`` file
+"""Add all missing contributors from commit history to the ``.mailmap`` file
 at the root of repository.
 
 This script will refrain from adding those already registered as aliases.
@@ -62,7 +62,7 @@ if not content:
         #   Prefered Name <preferred e-mail>  Other Name <other e-mail>
         #
         # Reference: https://git-scm.com/docs/git-blame#_mapping_authors
-        """
+        """,
     )
 
 # Extract comments in .mailmap header and keep mapping lines.
@@ -81,5 +81,5 @@ for contributor in contributors:
 
 # Save content to .mailmap file.
 mailmap_file.write_text(
-    "{}\n\n{}\n".format("\n".join(header_comments), "\n".join(sorted(mappings)))
+    "{}\n\n{}\n".format("\n".join(header_comments), "\n".join(sorted(mappings))),
 )

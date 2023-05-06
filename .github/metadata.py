@@ -92,15 +92,11 @@ import json
 import os
 import re
 import sys
+from collections.abc import Generator, Iterable
+from functools import cached_property
 from itertools import product
 from pathlib import Path
-from typing import Any, Generator, Iterable, cast
-
-if sys.version_info >= (3, 8):
-    from functools import cached_property
-else:
-    # Don't bother caching on older Python versions.
-    cached_property = property
+from typing import Any, cast
 
 import black
 from mypy.defaults import PYTHON3_VERSION_MIN
@@ -250,8 +246,11 @@ class Metadata:
         # Remove the last commit, as the commit range is inclusive.
         return tuple(
             Repository(
-                ".", from_commit=start, to_commit=end, order="reverse"
-            ).traverse_commits()
+                ".",
+                from_commit=start,
+                to_commit=end,
+                order="reverse",
+            ).traverse_commits(),
         )[:-1]
 
     @cached_property
@@ -286,7 +285,8 @@ class Metadata:
             commit
             for commit in self.new_commits
             if re.fullmatch(
-                r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$", commit.msg
+                r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$",
+                commit.msg,
             )
         )
 
@@ -358,7 +358,8 @@ class Metadata:
         entries = []
         if self.is_poetry_project:
             for cli_id, script in self.pyproject.poetry_config.get(
-                "scripts", {}
+                "scripts",
+                {},
             ).items():
                 module_id, callable_id = script.split(":")
                 entries.append((cli_id, module_id, callable_id))
@@ -373,7 +374,7 @@ class Metadata:
         constraint = None
         if self.is_poetry_project:
             constraint = parse_constraint(
-                self.pyproject.poetry_config["dependencies"]["python"]
+                self.pyproject.poetry_config["dependencies"]["python"],
             )
         if constraint and not constraint.is_empty():
             return constraint
@@ -483,7 +484,8 @@ class Metadata:
             # Look for list of active Sphinx extensions.
             for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
                 if isinstance(node, ast.Assign) and isinstance(
-                    node.value, (ast.List, ast.Tuple)
+                    node.value,
+                    ast.List | ast.Tuple,
                 ):
                     extension_found = "extensions" in (
                         t.id for t in node.targets  # type: ignore
@@ -652,7 +654,7 @@ class Metadata:
                     "module_id": module_id,
                     "callable_id": callable_id,
                     "module_path": str(module_path),
-                }
+                },
             )
         matrix["include"].extend(extra_entry_point_params)
 
@@ -697,7 +699,7 @@ class Metadata:
                 for reserved_key in RESERVED_MATRIX_KEYWORDS
                 if reserved_key in matrix
                 for extras in matrix[reserved_key]
-            )
+            ),
         )
         assert all_extra_keys.isdisjoint(RESERVED_MATRIX_KEYWORDS)
 
@@ -774,7 +776,8 @@ class Metadata:
     @cached_property
     def output_env_file(self) -> Path | None:
         """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT`
-        environment variable."""
+        environment variable.
+        """
         output_path = None
         env_file = os.getenv("GITHUB_OUTPUT")
         if env_file:
@@ -784,7 +787,8 @@ class Metadata:
 
     def save_metadata(self):
         """Write data to the environment file pointed to by the `$GITHUB_OUTPUT`
-        environment variable."""
+        environment variable.
+        """
         # Plain metadata.
         metadata = {
             "new_commits": (self.new_commits_hash, False),
@@ -819,8 +823,9 @@ class Metadata:
         if self.debug:
             print(content)
         if not self.output_env_file:
+            msg = "No output file specified by $GITHUB_OUTPUT environment variable."
             raise FileNotFoundError(
-                "No output file specified by $GITHUB_OUTPUT environment variable."
+                msg,
             )
         self.output_env_file.write_text(content)
 
