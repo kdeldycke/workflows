@@ -107,8 +107,9 @@ jobs:
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Run vanilla Mypy
         if: ${{ ! fromJSON(needs.project-metadata.outputs.is_poetry_project) }}
+        # --color-output - Force colorized output as in CI, Mypy defaults to no color.
         run: >
-          mypy ${{ needs.project-metadata.outputs.mypy_params }}
+          mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
           ${{ needs.project-metadata.outputs.python_files }}
 
   lint-yaml:
