@@ -118,7 +118,7 @@ jobs:
         # https://github.com/PyCQA/docformatter/issues/157#issuecomment-1402573058
         # https://github.com/PyCQA/docformatter/commit/f7d50ae
         run: |
-          docformatter --recursive --in-place --wrap-summaries 88 --wrap-descriptions 88 . || true
+          docformatter --recursive --in-place --black . || true
       - uses: peter-evans/create-pull-request@v5.0.1
         with:
           assignees: ${{ github.actor }}
