@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Force colorized output of Mypy, as in CI it defaults to no color.
+- Only activates all `ruff` rules for autofix, not linting.
 - Ignore `D400` rule in `ruff` to allow for docstrings first line finishing with a punctuation other than a period.
 
 ## [2.15.0 (2023-05-06)](https://github.com/kdeldycke/workflows/compare/v2.14.1...v2.15.0)
