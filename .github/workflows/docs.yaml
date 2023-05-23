@@ -186,7 +186,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project with Poetry
         run: |
-          poetry install --only main --no-interaction --no-ansi
+          poetry install --only main --no-interaction
       - name: Install pipdeptree in Poetry
         # pipdeptree needs to be installed within Poetry's venv to see dependencies. Use the pipdeptree installed
         # above to guess the version pinned in the requirements.txt.
@@ -242,7 +242,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install project dependencies
         run: |
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction
       - name: Run Sphinx
         run: |
           poetry run sphinx-apidoc --no-toc --module-first --force -o ./docs .
@@ -286,7 +286,7 @@ jobs:
         # Let sphinx-click access project's code to generate CLI help.
         run: |
           poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html

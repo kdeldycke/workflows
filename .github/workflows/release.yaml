@@ -92,8 +92,8 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Build package
         run: |
-          poetry install --no-interaction --no-ansi
-          poetry build --no-interaction --no-ansi
+          poetry install --no-interaction
+          poetry build --no-interaction
       - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -101,7 +101,7 @@ jobs:
           path: ./dist/*
       - name: Validates package metadata
         run: |
-          poetry check --no-interaction --no-ansi
+          poetry check --no-interaction
           poetry run twine check ./dist/*
           poetry run check-wheel-contents ./dist/*.whl
       - name: Test publishing
@@ -144,7 +144,7 @@ jobs:
           poetry run python -m nuitka --version
       - name: Install package
         run: |
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction
       - name: Build binary within Poetry venv
         run: >
           poetry run python ${{ matrix.extra_python_params }} -m nuitka
