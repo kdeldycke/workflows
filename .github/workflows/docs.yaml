@@ -28,7 +28,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.5.2
-      - uses: sobolevn/misspell-fixer-action@0.1.0
+      # XXX Use unreleased dev version while we wait for a new one to be cut. See:
+      # https://github.com/sobolevn/misspell-fixer-action/issues/15
+      - uses: sobolevn/misspell-fixer-action@8842a5615f83fed75e8a87015e9300a54d049961
       - uses: peter-evans/create-pull-request@v5.0.1
         with:
           # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
