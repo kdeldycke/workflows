@@ -188,7 +188,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.5.2
         with:
-          fetch-depth: '0'
+          fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2.3.2
         with:
           config-path: .github/gitleaks.toml
