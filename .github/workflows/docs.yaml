@@ -58,6 +58,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.5.2
+      # XXX Waiting for a recent release for image-actions so we'll get rid of some warning annotations like
+      # "Unexpected input(s) 'compressOnly'". See: https://github.com/calibreapp/image-actions/issues/128
       - uses: calibreapp/image-actions@1.1.0
         id: image_actions
         with:
