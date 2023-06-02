@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Upgrade Nuitka builds to Python 3.11.
 - Remove `--no-ansi` option on Poetry calls.
 
 ## [2.15.1 (2023-05-22)](https://github.com/kdeldycke/workflows/compare/v2.15.0...v2.15.1)
