@@ -85,10 +85,14 @@ jobs:
         # --ignore=D400 - First line should end with a period.
         #   Allows docstrings to end up with any punctuation, not just a period.
         #   See: https://github.com/charliermarsh/ruff/issues/1858#issuecomment-1382640623
+        # --ignore=ERA001 - Found commented-out code.
+        #   Do not remove commented code, as it might be used for documentation.
+        #   See: https://beta.ruff.rs/docs/rules/#eradicate-era
         run: >
           ruff check --fix-only --format=github ${{ needs.project-metadata.outputs.ruff_params }}
           --select=ALL
           --ignore=D400
+          --ignore=ERA001
           .
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
