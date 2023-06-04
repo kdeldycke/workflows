@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.15.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.15.2...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.15.2 (2023-06-04)](https://github.com/kdeldycke/workflows/compare/v2.15.1...v2.15.2)
 
 - Upgrade Nuitka builds to Python 3.11.
