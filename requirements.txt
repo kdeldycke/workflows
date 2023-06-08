@@ -31,7 +31,7 @@ ordered-set == 4.1.0
 pipdeptree == 2.9.0
 poetry == 1.5.1
 PyDriller == 2.5
-ruff == 0.0.271
+ruff == 0.0.272
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.2
 yamllint == 1.32.0
