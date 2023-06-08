@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.16.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.15.2...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.16.0 (2023-06-08)](https://github.com/kdeldycke/workflows/compare/v2.15.2...v2.16.0)
 
 - Replace `bump2version` with `bump-my-version`. Closes [`#162`](https://github.com/kdeldycke/workflows/issues/162).
 - Move version bumping configuration from `.bumpversion.cfg` to `pyproject.toml`.
