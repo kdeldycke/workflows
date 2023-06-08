@@ -8,6 +8,7 @@ This version is not released yet and is under active development.
 
 - Replace `bump2version` with `bump-my-version`. Closes [`#162`](https://github.com/kdeldycke/workflows/issues/162).
 - Move version bumping configuration from `.bumpversion.cfg` to `pyproject.toml`.
+- Cap `mdformat_admon == 1.0.1` to prevent `mdit-py-plugins >= 0.4.0` conflict.
 
 ## [2.15.2 (2023-06-04)](https://github.com/kdeldycke/workflows/compare/v2.15.1...v2.15.2)
 
