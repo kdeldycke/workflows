@@ -176,8 +176,8 @@ jobs:
           ref: ${{ matrix.commit }}
       - name: Extract version
         id: get_version
-        run: >
-          echo "tagged_version=$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "tagged_version=$( grep "current_version = " ./pyproject.toml | cut -d '"' -f 2 )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "Tagged version: ${{ steps.get_version.outputs.tagged_version }}"

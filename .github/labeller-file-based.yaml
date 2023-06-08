@@ -7,7 +7,7 @@
 "🤖 ci":
   - .github/**/*
   - .github/workflows/release.yaml
-  - .bumpversion.cfg
+  - pyproject.toml
   - .gitignore
 
 "📦 dependencies":

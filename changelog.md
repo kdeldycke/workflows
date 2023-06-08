@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Replace `bump2version` with `bump-my-version`.
+- Move version bumping configuration from `.bumpversion.cfg` to `pyproject.toml`.
+
 ## [2.15.2 (2023-06-04)](https://github.com/kdeldycke/workflows/compare/v2.15.1...v2.15.2)
 
 - Upgrade Nuitka builds to Python 3.11.

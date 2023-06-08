@@ -20,23 +20,27 @@ This is designed to be used just after a new release has been tagged. And before
 post-release version increment is applied with a call to:
 
 ```shell-sesssion
-$ bumpversion --verbose patch
+$ bump-my-version --verbose patch
 ```
 """
 
 from __future__ import annotations
 
-import configparser
 import re
+import sys
 from pathlib import Path
 from textwrap import indent
 
-# Extract current version as per bump2version.
-config_file = Path("./.bumpversion.cfg").resolve()
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import]
+
+# Extract current version as defined by bump-my-version.
+config_file = Path("./pyproject.toml").resolve()
 print(f"Open {config_file}")
-config = configparser.ConfigParser()
-config.read_string(config_file.read_text())
-current_version = config["bumpversion"]["current_version"]
+config = tomllib.loads(config_file.read_text())
+current_version = config["tool"]["bumpversion"]["current_version"]
 print(f"Current version: {current_version}")
 assert current_version
 

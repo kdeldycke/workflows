@@ -1,0 +1,8 @@
+[tool.bumpversion]
+current_version = "2.15.3"
+allow_dirty = true
+
+[[tool.bumpversion.files]]
+filename = "./changelog.md"
+search = "[{current_version} (unreleased)]("
+replace = "[{new_version} (unreleased)]("

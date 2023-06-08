@@ -7,7 +7,7 @@ name: Changelog & versions
       - main
     paths:
       - changelog.md
-      - .bumpversion.cfg
+      - pyproject.toml
       - .github/update_changelog.py
       # Trigger on any workflow change to make sure version gets hard-coded everywhere.
       - .github/workflows/*.yaml
@@ -22,7 +22,7 @@ jobs:
 
   version-increments:
     # This job is not time-sensitive: do not let it to be triggered by schedule event.
-    # Also skip release commits (during which bumpversion cannot find "unreleased" string in changelog.md).
+    # Also skip release commits (during which bump-my-version cannot find "unreleased" string in changelog.md).
     if: github.event_name != 'schedule' && !startsWith(github.event.head_commit.message, '[changelog] Release v')
     runs-on: ubuntu-22.04
     strategy:
@@ -38,17 +38,21 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install bumpversion
+      - name: Install bump-my-version
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: ${{ matrix.part }} version bump
         run: |
-          bumpversion --verbose ${{ matrix.part }}
+          bump-my-version --verbose ${{ matrix.part }}
       - name: Extract version
         id: get_version
+        # XXX Could be replaced by `bump-my-version --print-version` or something in the future. See:
+        # https://github.com/callowayproject/bump-my-version/issues/15
+        # XXX Instead, we could have relied on `poetry version --short`, but this job is also used on the original
+        # `workflow` repository, and it is not based on Poetry (yet?).
         run: |
-          echo "new_version=$( grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )" >> "$GITHUB_OUTPUT"
+          echo "new_version=$( grep "current_version = " ./pyproject.toml | cut -d '"' -f 2 )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
@@ -105,38 +109,36 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install bumpversion
+      - name: Install bump-my-version
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Extract version
         id: get_version
-        # Docs: https://docs.github.com/en/actions/learn-github-actions
-        # /workflow-commands-for-github-actions#setting-an-output-parameter
-        run: >
-          echo "current_version=$(
-          grep "current_version = " ./.bumpversion.cfg | cut -d ' ' -f 3 )" >> "$GITHUB_OUTPUT"
+        # XXX Could be replaced by `bump-my-version --print-version` or something in the future. See:
+        # https://github.com/callowayproject/bump-my-version/issues/15
+        # XXX Instead, we could have relied on `poetry version --short`, but this job is also used on the original
+        # `workflow` repository, and it is not based on Poetry (yet?).
+        run: |
+          echo "current_version=$( grep "current_version = " ./pyproject.toml | cut -d '"' -f 2 )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"
       - name: Hard-code version in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        # The while-based iteration over all matching workflows files is sourced from
-        # https://www.shellcheck.net/wiki/SC2046
-        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
-        # XXX Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
-        run: |
-          RELEASE_DEFAULT_BRANCH="main"
-          grep --files-with-matches "/workflows/$RELEASE_DEFAULT_BRANCH/" \
-            ./.github/workflows/*.yaml | while IFS='' read -r workflow_file
-          do
-            bumpversion --verbose --no-configured-files \
-            --search "/workflows/$RELEASE_DEFAULT_BRANCH/" \
-            --replace "/workflows/v{current_version}/" \
-            no-bump "$workflow_file"
-          done
-          unset RELEASE_DEFAULT_BRANCH
+        # XXX Ideally, this step should have been encoded into bump-my-version configuration. Something like:
+        #
+        #   [[tool.bumpversion.files]]
+        #   filename = ".github/workflows/*.yaml"
+        #   search = "/workflows/main/"
+        #   replace = "/workflows/v{current_version}/"
+        #
+        # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
+        run: >
+          find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
+          "s/\/workflows\/main\//\/workflows\/v${{ steps.get_version.outputs.current_version }}\//g"
+          {} \;
       - name: Set release date for citation
         run: |
           perl -pi -e "s/date-released: \d+-\d+-\d+/date-released: $(date +'%Y-%m-%d')/" ./citation.cff
@@ -178,28 +180,25 @@ jobs:
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        # The while-based iteration over all matching workflows files is sourced from
-        # https://www.shellcheck.net/wiki/SC2046
-        # XXX Ideally, this step should have been encoded into .bumpversion.cfg configuration.
-        # XXX Default branch is set in a variable as a hack to prevent bumpversion to modify its own invocation.
-        run: |
-          RELEASE_DEFAULT_BRANCH="main"
-          grep --files-with-matches "/workflows/v${{ steps.get_version.outputs.current_version }}/" \
-            ./.github/workflows/*.yaml | while IFS='' read -r workflow_file
-          do
-            bumpversion --verbose --no-configured-files \
-            --search "/workflows/v{current_version}/" \
-            --replace "/workflows/$RELEASE_DEFAULT_BRANCH/" \
-            no-bump "$workflow_file"
-          done
-          unset RELEASE_DEFAULT_BRANCH
+        # XXX Ideally, this step should have been encoded into bump-my-version configuration. Something like:
+        #
+        #   [[tool.bumpversion.files]]
+        #   filename = ".github/workflows/*.yaml"
+        #   search = "/workflows/main/"
+        #   replace = "/workflows/v{current_version}/"
+        #
+        # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
+        run: >
+          find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
+          "s/\/workflows\/v${{ steps.get_version.outputs.current_version }}\//\/workflows\/main\//g"
+          {} \;
       - name: Add new changelog entry
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_changelog.py)"
       - name: Version bump
         run: |
-          bumpversion --verbose patch
+          bump-my-version --verbose patch
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
