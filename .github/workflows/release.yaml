@@ -38,7 +38,7 @@ jobs:
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -77,7 +77,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.6.1
@@ -117,7 +117,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.6.1
@@ -171,7 +171,7 @@ jobs:
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
         with:
           ref: ${{ matrix.commit }}
       - name: Extract version

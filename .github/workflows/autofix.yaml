@@ -37,7 +37,7 @@ jobs:
       black_params: ${{ steps.project-metadata.outputs.black_params }}
       ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -68,7 +68,7 @@ jobs:
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
           python-version: "3.11"
@@ -147,7 +147,7 @@ jobs:
     name: Format Markdown
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
           python-version: "3.11"
@@ -191,7 +191,7 @@ jobs:
     name: Format JSON
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
       - name: Install jsonlint
         run: |
           sudo npm install --global jsonlint
@@ -222,7 +222,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
         run: |
@@ -239,7 +239,7 @@ jobs:
     if: needs.check-gitignore.outputs.exists
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.2
+      - uses: actions/checkout@v3.5.3
       - name: Install git-extras
         run: |
           sudo apt update
