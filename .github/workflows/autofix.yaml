@@ -161,14 +161,22 @@ jobs:
       - name: Auto-format Markdown
         run: |
           find ./ -iname "*.md" -exec mdformat "{}" \;
-      - name: Remove forbidden TOC entries in awesome lists
+      - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
-        # See: https://github.com/sindresorhus/awesome-lint/blob/v0.18.0/rules/toc.js#L15-L18
-        # Also remove the title of the section containing the TOC (i.e. "Contents") to fix the following error:
-        #   ✖  26:1  ToC item "Contents" does not match corresponding heading "Meta"  remark-lint:awesome-toc
+        # Remove forbidden TOC entries
+        #     See: https://github.com/sindresorhus/awesome-lint/blob/v0.18.0/rules/toc.js#L15-L18
+        #     Also remove the title of the section containing the TOC (i.e. "Contents") to fix the following error:
+        #       ✖  26:1  ToC item "Contents" does not match corresponding heading "Meta"  remark-lint:awesome-toc
+        #
+        # Replace long <hr> rule
+        #    Reported upstream at: https://github.com/executablebooks/mdformat/issues/328#issuecomment-1585775337
+        #    See: https://mdformat.readthedocs.io/en/stable/users/style.html#thematic-breaks
+        #      ✖  15:1  Rules should use ---       remark-lint:rule-style
+        #
         # TODO: contribute these fixes to mdformat-toc as configurable options.
         run: |
           gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' ./readme.md
+          sed -i "s/______________________________________________________________________/---/g" ./readme.md
       - uses: peter-evans/create-pull-request@v5.0.1
         with:
           assignees: ${{ github.actor }}
