@@ -174,9 +174,10 @@ jobs:
         #      ✖  15:1  Rules should use ---       remark-lint:rule-style
         #
         # TODO: contribute these fixes to mdformat-toc as configurable options.
-        run: |
-          gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' ./readme.md
-          sed -i "s/______________________________________________________________________/---/g" ./readme.md
+        run: >
+          find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
+          -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
+          -exec sed -i "s/______________________________________________________________________/---/g" "{}" \;
       - uses: peter-evans/create-pull-request@v5.0.1
         with:
           assignees: ${{ github.actor }}

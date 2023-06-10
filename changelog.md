@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Replace long `____(....)____` `<hr>` rule produced by `mdformat` with canonical `---` form. Refs [`executablebooks/mdformat#328`](https://github.com/executablebooks/mdformat/issues/328#issuecomment-1585775337).
+- Apply Markdown fixes for awesome lists to localized versions.
 
 ## [2.16.0 (2023-06-08)](https://github.com/kdeldycke/workflows/compare/v2.15.2...v2.16.0)
 
