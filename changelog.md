@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.16.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.16.2...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.16.2 (2023-06-11)](https://github.com/kdeldycke/workflows/compare/v2.16.1...v2.16.2)
 
 - Use `mdformat_simple_breaks` plugin to format long `<hr>` rules.
