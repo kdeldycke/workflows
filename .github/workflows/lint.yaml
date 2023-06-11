@@ -188,7 +188,7 @@ jobs:
         with:
           title: Broken links
           content-filepath: ./lychee/out.md
-          labels: ${{ steps.get_label.outputs.label }}"
+          labels: ${{ steps.get_label.outputs.label }}
 
   lint-awesome:
     name: Lint Awesome list
