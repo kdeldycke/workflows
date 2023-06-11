@@ -178,13 +178,17 @@ jobs:
       - uses: lycheeverse/lychee-action@v1.8.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get issue label
+        id: get_label
+        run: |
+          echo "label='${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}'" >> "$GITHUB_OUTPUT"
       - name: Create issue
         if: env.lychee_exit_code != 0
         uses: peter-evans/create-issue-from-file@v4.0.1
         with:
           title: Broken links
           content-filepath: ./lychee/out.md
-          labels: "📚 documentation"
+          labels: ${{ steps.get_label.outputs.label }}"
 
   lint-awesome:
     name: Lint Awesome list
