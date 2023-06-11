@@ -181,7 +181,7 @@ jobs:
       - name: Get issue label
         id: get_label
         run: |
-          echo "label='${{ startsWith(github.event.repository.name, 'awesome-') && "🩹 fix link" || "📚 documentation" }}'" >> "$GITHUB_OUTPUT"
+          echo "label=${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
       - name: Create issue
         if: env.lychee_exit_code != 0
         uses: peter-evans/create-issue-from-file@v4.0.1
