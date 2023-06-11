@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Use `mdformat_simple_breaks` plugin to format long `<hr>` rules.
+
 ## [2.16.1 (2023-06-10)](https://github.com/kdeldycke/workflows/compare/v2.16.0...v2.16.1)
 
 - Replace long `____(....)____` `<hr>` rule produced by `mdformat` with canonical `---` form. Refs [`executablebooks/mdformat#328`](https://github.com/executablebooks/mdformat/issues/328#issuecomment-1585775337).

@@ -168,16 +168,10 @@ jobs:
         #     Also remove the title of the section containing the TOC (i.e. "Contents") to fix the following error:
         #       ✖  26:1  ToC item "Contents" does not match corresponding heading "Meta"  remark-lint:awesome-toc
         #
-        # Replace long <hr> rule
-        #    Reported upstream at: https://github.com/executablebooks/mdformat/issues/328#issuecomment-1585775337
-        #    See: https://mdformat.readthedocs.io/en/stable/users/style.html#thematic-breaks
-        #      ✖  15:1  Rules should use ---       remark-lint:rule-style
-        #
         # TODO: contribute these fixes to mdformat-toc as configurable options.
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
-          -exec sed -i "s/______________________________________________________________________/---/g" "{}" \;
       - uses: peter-evans/create-pull-request@v5.0.1
         with:
           assignees: ${{ github.actor }}
