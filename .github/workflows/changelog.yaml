@@ -60,7 +60,7 @@ jobs:
         with:
           assignees: ${{ github.actor }}
           commit-message: >
-            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}.
+            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}
           title: >
             Bump ${{ matrix.part }} version to `v${{ steps.get_version.outputs.new_version }}`
           body: >
