@@ -9,6 +9,7 @@ This version is not released yet and is under active development.
 - Use `mdformat_simple_breaks` plugin to format long `<hr>` rules.
 - Format bash code blocks in Markdown via `mdformat-shfmt`.
 - Install `shfmt` before calling `mdformat`.
+- Add dependencies on `mdformat_deflist` and `mdformat_pelican`.
 
 ## [2.16.1 (2023-06-10)](https://github.com/kdeldycke/workflows/compare/v2.16.0...v2.16.1)
 
