@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.17.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.16.2...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.17.0 (2023-06-12)](https://github.com/kdeldycke/workflows/compare/v2.16.2...v2.17.0)
 
 - Check and report links with `lychee`. Closes [`#563`](https://github.com/kdeldycke/workflows/issues/563).
 
