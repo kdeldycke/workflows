@@ -190,21 +190,44 @@ jobs:
           hub issue
           --state open
           --creator "github-actions[bot]"
-          --format $'%I %t\n'
-          --sort created | grep -F "Broken links" | cut -d ' ' -f 1
-          )'" >> "$GITHUB_OUTPUT"
+          --format $'%I %t\0'
+          --sort created )'" >> "$GITHUB_OUTPUT"
       - name: Print open issues
         run: |
           echo "Open issues: ${{ steps.open_issues.outputs.issues }}"
-      - name: Categorize open issues
-        id: issue_categories
+      - name: Filter open issues
+        id: issue_groups
+        shell: python
         run: |
-          echo "last_issue=$( echo ${{ steps.open_issues.outputs.issues }} | head -n 1 )" >> "$GITHUB_OUTPUT"
-          echo "old_issues=$( echo ${{ steps.open_issues.outputs.issues }} | tail -n+2 )" >> "$GITHUB_OUTPUT"
+          import os
+
+          open_issues = """${{ steps.open_issues.outputs.issues }}"""
+
+          last_issue = ""
+          old_issues = set()
+
+          for entry in open_issues.split("\0"):
+              print(f"Processing {entry!r} ...")
+              number, title = entry.split(" ", 1)
+              if title != "Broken links":
+                  print(f"{entry!r} is not a broken links issue, skip it.")
+                  continue
+              if not last_issue:
+                  print(f"Issue #{number} is the last broken links open issue.")
+                  last_issue = number
+              else:
+                  print(f"Issue #{number} is an old broken links open issue.")
+                  old_issues.add(number)
+
+          output = f"last_issue={last_issue}\n"
+          output += f"old_issues={','.join(old_issues)}\n"
+
+          env_file = Path(os.getenv("GITHUB_OUTPUT"))
+          env_file.write_text(output)
       - name: Print open issue categories
         run: |
-          echo "Last open issue: ${{ steps.issue_categories.outputs.last_issue }}"
-          echo "Old open issues: ${{ steps.issue_categories.outputs.old_issues }}"
+          echo "Last open issue: ${{ steps.issue_groups.outputs.last_issue }}"
+          echo "Old open issues: ${{ steps.issue_groups.outputs.old_issues }}"
       - name: Get issue label
         id: get_label
         run: |
@@ -214,7 +237,7 @@ jobs:
         uses: peter-evans/create-issue-from-file@v4.0.1
         with:
           title: "Broken links"
-          issue-number: ${{ steps.issue_categories.outputs.last_issue }}
+          issue-number: ${{ steps.issue_groups.outputs.last_issue }}
           content-filepath: ./lychee/out.md
           labels: ${{ steps.get_label.outputs.label }}
 
