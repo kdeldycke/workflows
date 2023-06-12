@@ -250,8 +250,9 @@ jobs:
       - name: Get label
         if: ${{ steps.issue_groups.outputs.broken_links_found }}
         id: get_label
-        run: |
-          echo "label=${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
+        run: >
+          echo "label=${{ startsWith(github.event.repository.name, 'awesome-')
+          && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
       - name: Create or update issue
         if: ${{ steps.issue_groups.outputs.broken_links_found }}
         uses: peter-evans/create-issue-from-file@v4.0.1
