@@ -201,12 +201,11 @@ jobs:
         shell: python
         run: |
           import os
-          from configparser import RawConfigParser
           from pathlib import Path
 
           exit_code = os.getenv("lychee_exit_code")
           print(f"Lychee exit code: {exit_code!r} (type: {type(exit_code)})")
-          broken_links_found = RawConfigParser.BOOLEAN_STATES[str(exit_code)]
+          broken_links_found = bool(int(exit_code))
           if broken_links_found:
               print("Broken links found: create or update an issue.")
           else:
