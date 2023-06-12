@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Do not triggers docs workflow on tagging. There is not enough metadata on these events to complete the workflow.
+
 ## [2.17.1 (2023-06-12)](https://github.com/kdeldycke/workflows/compare/v2.17.0...v2.17.1)
 
 - Fix parsing of `lychee` exit code.

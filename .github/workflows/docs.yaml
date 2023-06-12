@@ -11,9 +11,6 @@ name: Docs
   push:
     branches:
       - main
-    # Triggers on tags for dependency graph updates.
-    tags:
-      - '*'  # Match any tag.
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.
