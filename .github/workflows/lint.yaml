@@ -201,10 +201,18 @@ jobs:
           import os
           from pathlib import Path
 
+          exit_code = os.getenv("lychee_exit_code")
+          print(f"Lychee exit code: {exit_code!r}")
+          broken_links_found = bool(exit_code != 0)
+          if broken_links_found:
+              print("Broken links found: create or update an issue.")
+          else:
+              print("No broken link found: close all open issues.")
+
           open_issues = """${{ steps.open_issues.outputs.issues }}""".strip()
 
-          last_issue = ""
-          old_issues = set()
+          update_issue = ""
+          close_issues = set()
 
           for entry in open_issues.split("\t"):
               print(f"Processing {entry!r} ...")
@@ -212,40 +220,43 @@ jobs:
               if title != "Broken links":
                   print(f"{entry!r} is not a broken links issue, skip it.")
                   continue
-              if not last_issue:
-                  print(f"Issue #{number} is the last broken links open issue.")
-                  last_issue = number
+              if broken_links_found and not update_issue:
+                  print(f"Issue #{number} is the last open issue.")
+                  update_issue = number
               else:
-                  print(f"Issue #{number} is an old broken links open issue.")
+                  print(f"Issue #{number} is an old open issue.")
                   old_issues.add(number)
 
-          output = f"last_issue={last_issue}\n"
-          output += f"old_issues={' '.join(old_issues)}\n"
+          output = f"broken_links_found={broken_links_found}\n"
+          output += f"update_issue={update_issue}\n"
+          output += f"close_issues={' '.join(close_issues)}\n"
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
       - name: Print issue groups
         run: |
-          echo "Last open issue: ${{ steps.issue_groups.outputs.last_issue }}"
-          echo "Old open issues: ${{ steps.issue_groups.outputs.old_issues }}"
-      - name: Get issue label
-        id: get_label
-        run: |
-          echo "label=${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
+          echo "Broken links found: ${{ steps.issue_groups.outputs.broken_links_found }}"
+          echo "Issue to update: ${{ steps.issue_groups.outputs.update_issue }}"
+          echo "Issues to close: ${{ steps.issue_groups.outputs.close_issues }}"
       - name: Close old issues
-        if: ${{ steps.issue_groups.outputs.old_issues }}
+        if: ${{ steps.issue_groups.outputs.close_issues }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for number in ${{ steps.issue_groups.outputs.old_issues }}; do
+          for number in ${{ steps.issue_groups.outputs.close_issues }}; do
               hub issue update "$number" --state closed;
           done
+      - name: Get label
+        if: ${{ steps.issue_groups.outputs.broken_links_found }}
+        id: get_label
+        run: |
+          echo "label=${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
       - name: Create or update issue
-        if: env.lychee_exit_code != 0
+        if: ${{ steps.issue_groups.outputs.broken_links_found }}
         uses: peter-evans/create-issue-from-file@v4.0.1
         with:
           title: "Broken links"
-          issue-number: ${{ steps.issue_groups.outputs.last_issue }}
+          issue-number: ${{ steps.issue_groups.outputs.update_issue }}
           content-filepath: ./lychee/out.md
           labels: ${{ steps.get_label.outputs.label }}
 
