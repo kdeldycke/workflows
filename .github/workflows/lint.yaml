@@ -171,6 +171,8 @@ jobs:
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
 
   broken-links:
+    # Skip checks on prepare-release branch as it points to a tagged URL that does not exist yet.
+    if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.5.3
