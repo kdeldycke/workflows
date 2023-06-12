@@ -240,7 +240,7 @@ jobs:
           echo "Issue to update: ${{ steps.issue_groups.outputs.update_issue }}"
           echo "Issues to close: ${{ steps.issue_groups.outputs.close_issues }}"
       - name: Close old issues
-        if: ${{ steps.issue_groups.outputs.close_issues }}
+        if: steps.issue_groups.outputs.close_issues
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -249,13 +249,13 @@ jobs:
               hub issue update "$number" --state closed;
           done
       - name: Get label
-        if: ${{ steps.issue_groups.outputs.broken_links_found }}
+        if: fromJSON(steps.issue_groups.outputs.broken_links_found)
         id: get_label
         run: >
           echo "label=${{ startsWith(github.event.repository.name, 'awesome-')
           && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
       - name: Create or update issue
-        if: ${{ steps.issue_groups.outputs.broken_links_found }}
+        if: fromJSON(steps.issue_groups.outputs.broken_links_found)
         uses: peter-evans/create-issue-from-file@v4.0.1
         with:
           title: "Broken links"
