@@ -185,12 +185,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          echo "issues='$(
+          echo "issues=$(
           hub issue
           --state open
           --creator "github-actions[bot]"
-          --format $'%I %t\0'
-          --sort created )'" >> "$GITHUB_OUTPUT"
+          --format $'%I %t\t'
+          --sort created )" >> "$GITHUB_OUTPUT"
       - name: Print open issues
         run: |
           echo "Open issues: ${{ steps.open_issues.outputs.issues }}"
@@ -206,7 +206,7 @@ jobs:
           last_issue = ""
           old_issues = set()
 
-          for entry in open_issues.split("\0"):
+          for entry in open_issues.split("\t"):
               print(f"Processing {entry!r} ...")
               number, title = entry.split(" ", 1)
               if title != "Broken links":
