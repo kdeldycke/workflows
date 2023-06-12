@@ -246,7 +246,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NUMBER_LIST=${{ steps.issue_groups.outputs.close_issues }}
+          NUMBER_LIST="${{ steps.issue_groups.outputs.close_issues }}"
           for number in $NUMBER_LIST; do
               hub issue update "$number" --state closed;
           done
