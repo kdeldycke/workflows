@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.17.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.1...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.17.2 (2023-06-12)](https://github.com/kdeldycke/workflows/compare/v2.17.1...v2.17.2)
 
 - Limit `lychee` max concurrency and sacrifice performances, to prevent false positives.
 - Do not triggers docs workflow on tagging. There is not enough metadata on these events to complete the workflow.
