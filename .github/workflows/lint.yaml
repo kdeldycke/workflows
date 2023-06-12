@@ -220,7 +220,7 @@ jobs:
                   old_issues.add(number)
 
           output = f"last_issue={last_issue}\n"
-          output += f"old_issues={','.join(old_issues)}\n"
+          output += f"old_issues={' '.join(old_issues)}\n"
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
@@ -232,6 +232,10 @@ jobs:
         id: get_label
         run: |
           echo "label=${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
+      - name: Close old issues
+        if: ${{ steps.issue_groups.outputs.old_issues }}
+        run: |
+          echo "${{ steps.issue_groups.outputs.old_issues }}" | xargs -I {} hub issue update {} --state closed
       - name: Create or update issue
         if: env.lychee_exit_code != 0
         uses: peter-evans/create-issue-from-file@v4.0.1
