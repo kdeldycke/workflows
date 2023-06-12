@@ -234,8 +234,10 @@ jobs:
           echo "label=${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
       - name: Close old issues
         if: ${{ steps.issue_groups.outputs.old_issues }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "${{ steps.issue_groups.outputs.old_issues }}" | xargs -I {} hub issue update {} --state closed
+          echo "${{ steps.issue_groups.outputs.old_issues }}" | xargs -d " " -I {} hub issue update {} --state closed
       - name: Create or update issue
         if: env.lychee_exit_code != 0
         uses: peter-evans/create-issue-from-file@v4.0.1
