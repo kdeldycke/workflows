@@ -210,12 +210,12 @@ jobs:
           else:
               print("No broken link found: close all open issues.")
 
-          open_issues = """${{ steps.open_issues.outputs.issues }}""".strip()
+          open_issues = """${{ steps.open_issues.outputs.issues }}"""
 
           update_issue = ""
           close_issues = set()
 
-          for entry in open_issues.split("\t"):
+          for entry in (e.strip() for e in open_issues.split("\t") if e.strip()):
               print(f"Processing {entry!r} ...")
               number, title = entry.split(" ", 1)
               if title != "Broken links":
