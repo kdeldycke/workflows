@@ -170,8 +170,7 @@ jobs:
           -color
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
 
-  lint-links:
-    name: Check links
+  broken-links:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3.5.3
@@ -195,7 +194,7 @@ jobs:
       - name: Print open issues
         run: |
           echo "Open issues: ${{ steps.open_issues.outputs.issues }}"
-      - name: Filter open issues
+      - name: Filter issues
         id: issue_groups
         shell: python
         run: |
@@ -225,7 +224,7 @@ jobs:
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
-      - name: Print open issue categories
+      - name: Print issue groups
         run: |
           echo "Last open issue: ${{ steps.issue_groups.outputs.last_issue }}"
           echo "Old open issues: ${{ steps.issue_groups.outputs.old_issues }}"
@@ -233,7 +232,7 @@ jobs:
         id: get_label
         run: |
           echo "label=${{ startsWith(github.event.repository.name, 'awesome-') && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
-      - name: Create issue
+      - name: Create or update issue
         if: env.lychee_exit_code != 0
         uses: peter-evans/create-issue-from-file@v4.0.1
         with:
