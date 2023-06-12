@@ -225,7 +225,7 @@ jobs:
                   update_issue = number
               else:
                   print(f"Issue #{number} is an old open issue.")
-                  old_issues.add(number)
+                  close_issues.add(number)
 
           output = f"broken_links_found={broken_links_found}\n"
           output += f"update_issue={update_issue}\n"
