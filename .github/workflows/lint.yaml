@@ -201,7 +201,7 @@ jobs:
           import os
           from pathlib import Path
 
-          open_issues = """${{ steps.open_issues.outputs.issues }}"""
+          open_issues = """${{ steps.open_issues.outputs.issues }}""".strip()
 
           last_issue = ""
           old_issues = set()
