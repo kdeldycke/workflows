@@ -178,6 +178,33 @@ jobs:
       - uses: lycheeverse/lychee-action@v1.8.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install hub
+        run: |
+          sudo apt install --yes hub
+      - name: List open issues
+        id: open_issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          echo "issues='$(
+          hub issue
+          --state open
+          --creator "github-actions[bot]"
+          --format $'%I %t\n'
+          --sort created | grep -F "Broken links" | cut -d ' ' -f 1
+          )'" >> "$GITHUB_OUTPUT"
+      - name: Print open issues
+        run: |
+          echo "Open issues: ${{ steps.open_issues.outputs.issues }}"
+      - name: Categorize open issues
+        id: issue_categories
+        run: |
+          echo "last_issue=$( echo ${{ steps.open_issues.outputs.issues }} | head -n 1 )" >> "$GITHUB_OUTPUT"
+          echo "old_issues=$( echo ${{ steps.open_issues.outputs.issues }} | tail -n+2 )" >> "$GITHUB_OUTPUT"
+      - name: Print open issue categories
+        run: |
+          echo "Last open issue: ${{ steps.issue_categories.outputs.last_issue }}"
+          echo "Old open issues: ${{ steps.issue_categories.outputs.old_issues }}"
       - name: Get issue label
         id: get_label
         run: |
@@ -186,7 +213,8 @@ jobs:
         if: env.lychee_exit_code != 0
         uses: peter-evans/create-issue-from-file@v4.0.1
         with:
-          title: Broken links
+          title: "Broken links"
+          issue-number: ${{ steps.issue_categories.outputs.last_issue }}
           content-filepath: ./lychee/out.md
           labels: ${{ steps.get_label.outputs.label }}
 
