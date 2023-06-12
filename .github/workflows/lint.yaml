@@ -237,9 +237,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for number in "${{ steps.issue_groups.outputs.old_issues }}"; do
-            hub issue update "$number" --state closed
-          ;done
+          for number in ${{ steps.issue_groups.outputs.old_issues }}; do
+              hub issue update "$number" --state closed;
+          done
       - name: Create or update issue
         if: env.lychee_exit_code != 0
         uses: peter-evans/create-issue-from-file@v4.0.1
