@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.17.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.17.1 (2023-06-12)](https://github.com/kdeldycke/workflows/compare/v2.17.0...v2.17.1)
 
 - Fix parsing of `lychee` exit code.
