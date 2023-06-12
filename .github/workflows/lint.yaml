@@ -184,6 +184,9 @@ jobs:
       - uses: lycheeverse/lychee-action@v1.8.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # XXX Adds --max-concurrency 1 to defaults so we prevents false-positives at the price of performances. See:
+        # https://github.com/lycheeverse/lychee/issues/989#issuecomment-1587208730
+        args: "--max-concurrency 1 --verbose --no-progress './**/*.md' './**/*.html' './**/*.rst'"
       - name: Install hub
         run: |
           sudo apt install --yes hub

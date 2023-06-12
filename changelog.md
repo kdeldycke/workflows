@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Limit `lychee` max concurrency and sacrifice performances, to prevent false positives.
 - Do not triggers docs workflow on tagging. There is not enough metadata on these events to complete the workflow.
 - Skip broken links check on release merge: the tag is created asynchronously which produce false positive reports.
 
