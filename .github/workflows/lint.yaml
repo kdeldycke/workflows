@@ -171,8 +171,10 @@ jobs:
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
 
   broken-links:
-    # Skip checks on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release'
+    # Skip checks on prepare-release branch as it contains commits in changelog and documentation that points to a tag
+    # that does not exist yet, rendering URLs artifficially broken. Also skips the merge commit of the prepare-release
+    # branch, as if the URLs are good, the tag is created asynchronously by release.yaml:git-tag job.
+    if: github.head_ref != 'prepare-release' && github.ref != 'refs/heads/prepare-release'
     runs-on: ubuntu-22.04
     # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
     # action blindy creates issues ad-nauseum. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
