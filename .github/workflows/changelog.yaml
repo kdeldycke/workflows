@@ -41,7 +41,7 @@ jobs:
       - name: Install bump-my-version
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/v2.17.2/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: ${{ matrix.part }} version bump
         run: |
           bump-my-version --verbose ${{ matrix.part }}
@@ -112,7 +112,7 @@ jobs:
       - name: Install bump-my-version
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/v2.17.2/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Extract version
         id: get_version
         # XXX Could be replaced by `bump-my-version --print-version` or something in the future. See:
@@ -131,7 +131,7 @@ jobs:
         #
         #   [[tool.bumpversion.files]]
         #   filename = ".github/workflows/*.yaml"
-        #   search = "/workflows/v2.17.2/"
+        #   search = "/workflows/main/"
         #   replace = "/workflows/v{current_version}/"
         #
         # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
@@ -184,7 +184,7 @@ jobs:
         #
         #   [[tool.bumpversion.files]]
         #   filename = ".github/workflows/*.yaml"
-        #   search = "/workflows/v2.17.2/"
+        #   search = "/workflows/main/"
         #   replace = "/workflows/v{current_version}/"
         #
         # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
@@ -195,7 +195,7 @@ jobs:
       - name: Add new changelog entry
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/v2.17.2/.github/update_changelog.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_changelog.py)"
       - name: Version bump
         run: |
           bump-my-version --verbose patch
