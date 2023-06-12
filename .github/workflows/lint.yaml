@@ -202,7 +202,7 @@ jobs:
           from pathlib import Path
 
           exit_code = os.getenv("lychee_exit_code")
-          print(f"Lychee exit code: {exit_code!r}")
+          print(f"Lychee exit code: {exit_code!r} (type: {type(exit_code)})")
           broken_links_found = bool(exit_code != 0)
           if broken_links_found:
               print("Broken links found: create or update an issue.")
