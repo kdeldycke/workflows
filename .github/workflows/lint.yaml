@@ -200,6 +200,7 @@ jobs:
         shell: python
         run: |
           import os
+          from pathlib import Path
 
           open_issues = """${{ steps.open_issues.outputs.issues }}"""
 
