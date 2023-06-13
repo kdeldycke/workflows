@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Reactive maximum concurrency in `lychee`, but ignore checks on `twitter.com` and `ycombinator.com`.
+
 ## [2.17.2 (2023-06-12)](https://github.com/kdeldycke/workflows/compare/v2.17.1...v2.17.2)
 
 - Limit `lychee` max concurrency and sacrifice performances, to prevent false positives.
