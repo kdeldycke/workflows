@@ -178,7 +178,7 @@ jobs:
     if: >
       github.head_ref != 'prepare-release'
       && github.ref != 'refs/heads/prepare-release'
-      && (! contains(github.event.commits.*.message, "[changelog] Post-release version bump")
+      && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump')
     runs-on: ubuntu-22.04
     # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
     # action blindy creates issues ad-nauseum. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
