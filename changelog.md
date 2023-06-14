@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.17.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.3...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.17.3 (2023-06-14)](https://github.com/kdeldycke/workflows/compare/v2.17.2...v2.17.3)
 
 - Reactive maximum concurrency in `lychee`, but ignore checks on `twitter.com` and `ycombinator.com`.
