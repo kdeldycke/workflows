@@ -125,7 +125,7 @@ jobs:
         # https://github.com/PyCQA/docformatter/commit/f7d50ae
         run: |
           docformatter --recursive --in-place --black . || true
-      - uses: peter-evans/create-pull-request@v5.0.1
+      - uses: peter-evans/create-pull-request@v5.0.2
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python"
@@ -175,7 +175,7 @@ jobs:
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
-      - uses: peter-evans/create-pull-request@v5.0.1
+      - uses: peter-evans/create-pull-request@v5.0.2
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
@@ -204,7 +204,7 @@ jobs:
       - name: Lint
         run: |
           find ./ -type f -name '*.json' -print -exec jsonlint --in-place "{}" \;
-      - uses: peter-evans/create-pull-request@v5.0.1
+      - uses: peter-evans/create-pull-request@v5.0.2
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON"
@@ -279,7 +279,7 @@ jobs:
 
           ${{ inputs.gitignore-extra-content }}
           EOF
-      - uses: peter-evans/create-pull-request@v5.0.1
+      - uses: peter-evans/create-pull-request@v5.0.2
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .gitignore"
