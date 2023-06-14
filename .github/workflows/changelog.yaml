@@ -135,6 +135,8 @@ jobs:
         #   replace = "/workflows/v{current_version}/"
         #
         # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
+        #
+        # This is being discussed at: https://github.com/callowayproject/bump-my-version/issues/19
         run: >
           find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
           "s/\/workflows\/main\//\/workflows\/v${{ steps.get_version.outputs.current_version }}\//g"
@@ -188,6 +190,8 @@ jobs:
         #   replace = "/workflows/v{current_version}/"
         #
         # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
+        #
+        # This is being discussed at: https://github.com/callowayproject/bump-my-version/issues/19
         run: >
           find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
           "s/\/workflows\/v${{ steps.get_version.outputs.current_version }}\//\/workflows\/main\//g"
