@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.17.4 (2023-06-22)](https://github.com/kdeldycke/workflows/compare/v2.17.3...v2.17.4)
 
 - Use patched version of `mdformat-web` to fix formatting of HTML code in code blocks.
