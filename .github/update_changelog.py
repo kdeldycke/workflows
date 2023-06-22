@@ -83,7 +83,7 @@ new_entry = re.sub(
 
 # Prefix entries with section marker.
 new_entry = f"{SECTION_START}{new_entry}"
-history = f"{SECTION_START}{last_entry}" f"{SECTION_START}{past_entries}"
+history = f"{SECTION_START}{last_entry}{SECTION_START}{past_entries}"
 
 print("New generated section:\n" + indent(new_entry, " " * 2))
 
