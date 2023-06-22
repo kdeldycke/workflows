@@ -28,7 +28,11 @@ mdformat-shfmt == 0.1.0
 mdformat_simple_breaks == 0.0.1
 mdformat_tables == 0.4.1
 mdformat-toc == 0.3.0
-mdformat-web == 0.1.0
+# XXX Fix formatting of HTML in Markdown code blocks which adds extra doctype.
+# This has been proposed upstream at: https://github.com/hukkin/mdformat-web/pull/5
+# So waiting for the PR to be merged and a new release to be published.
+# mdformat-web > 0.1.0
+mdformat-web @ git+https://github.com/kdeldycke/mdformat-web.git@fix-extra-html-tags
 mypy == 1.4.0
 nuitka == 1.6.4
 ordered-set == 4.1.0
