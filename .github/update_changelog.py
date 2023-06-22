@@ -20,7 +20,7 @@ This is designed to be used just after a new release has been tagged. And before
 post-release version increment is applied with a call to:
 
 ```shell-sesssion
-$ bump-my-version --verbose patch
+$ bump-my-version bump --verbose patch
 ```
 """
 
