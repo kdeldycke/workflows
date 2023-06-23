@@ -6,7 +6,11 @@
 autopep8 == 2.0.2
 black == 23.3.0
 blacken-docs == 1.14.0
-bump-my-version == 0.5.1
+# Testing the upcoming bump-my-version 0.5.1.dev6, which supports new subcommands. See:
+# https://github.com/callowayproject/bump-my-version/pull/23
+# https://github.com/callowayproject/bump-my-version/issues/15
+# bump-my-version == 0.6.0
+bump-my-version @ git+https://github.com/callowayproject/bump-my-version.git@9d965e57f2c0a41476d75ec053653416eae966c9
 check-wheel-contents == 0.4.0
 docformatter == 1.7.2
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html

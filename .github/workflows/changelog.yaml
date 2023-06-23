@@ -44,15 +44,11 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: ${{ matrix.part }} version bump
         run: |
-          bump-my-version --verbose ${{ matrix.part }}
+          bump-my-version bump --verbose ${{ matrix.part }}
       - name: Extract version
         id: get_version
-        # XXX Could be replaced by `bump-my-version --print-version` or something in the future. See:
-        # https://github.com/callowayproject/bump-my-version/issues/15
-        # XXX Instead, we could have relied on `poetry version --short`, but this job is also used on the original
-        # `workflow` repository, and it is not based on Poetry (yet?).
         run: |
-          echo "new_version=$( grep "current_version = " ./pyproject.toml | cut -d '"' -f 2 )" >> "$GITHUB_OUTPUT"
+          echo "new_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
@@ -115,12 +111,8 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Extract version
         id: get_version
-        # XXX Could be replaced by `bump-my-version --print-version` or something in the future. See:
-        # https://github.com/callowayproject/bump-my-version/issues/15
-        # XXX Instead, we could have relied on `poetry version --short`, but this job is also used on the original
-        # `workflow` repository, and it is not based on Poetry (yet?).
         run: |
-          echo "current_version=$( grep "current_version = " ./pyproject.toml | cut -d '"' -f 2 )" >> "$GITHUB_OUTPUT"
+          echo "current_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"
@@ -202,7 +194,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_changelog.py)"
       - name: Version bump
         run: |
-          bump-my-version --verbose patch
+          bump-my-version bump --verbose patch
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"

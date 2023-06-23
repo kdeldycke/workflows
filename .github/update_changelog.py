@@ -20,7 +20,54 @@ This is designed to be used just after a new release has been tagged. And before
 post-release version increment is applied with a call to:
 
 ```shell-sesssion
-$ bump-my-version --verbose patch
+$ bump-my-version bump --verbose patch
+Starting BumpVersion 0.5.1.dev6
+Reading config file pyproject.toml:
+Specified version (2.17.5) does not match last tagged version (2.17.4)
+Parsing version '2.17.5' using regexp '(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)'
+Parsed the following values: major=2, minor=17, patch=5
+Attempting to increment part 'patch'
+Values are now: major=2, minor=17, patch=6
+New version will be '2.17.6'
+Dry run active, won't touch any files.
+Asserting files ./changelog.md contain the version string...
+Found '[2.17.5 (unreleased)](' in ./changelog.md at line 2: ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+Would change file ./changelog.md:
+*** before ./changelog.md
+--- after ./changelog.md
+***************
+*** 1,6 ****
+  # Changelog
+
+! ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+
+  ```{important}
+  This version is not released yet and is under active development.
+--- 1,6 ----
+  # Changelog
+
+! ## [2.17.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+
+  ```{important}
+  This version is not released yet and is under active development.
+Would write to config file pyproject.toml:
+*** before pyproject.toml
+--- after pyproject.toml
+***************
+*** 1,5 ****
+  [tool.bumpversion]
+! current_version = "2.17.5"
+  allow_dirty = true
+
+  [[tool.bumpversion.files]]
+--- 1,5 ----
+  [tool.bumpversion]
+! current_version = "2.17.6"
+  allow_dirty = true
+
+  [[tool.bumpversion.files]]
+Would not commit
+Would not tag since we are not committing
 ```
 """
 
