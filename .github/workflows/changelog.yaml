@@ -129,6 +129,22 @@ jobs:
         # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
         #
         # This is being discussed at: https://github.com/callowayproject/bump-my-version/issues/19
+        #
+        # In the mean time, there might be a way to soon use the `--search` and `--replace` options to do the same
+        # thing:
+        #
+        # $ bump-my-version
+        #   bump
+        #   --verbose --no-configured-files
+        #   --search "/workflows/main/"
+        #   --replace "/workflows/v{current_version}/"
+        #   --ignore-missing
+        #   patch
+        #   ./.github/workflows/*.yaml
+        #
+        # But we are waiting for these features to be released addressed first:
+        # https://github.com/callowayproject/bump-my-version/issues/25
+        # https://github.com/callowayproject/bump-my-version/issues/10
         run: >
           find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
           "s/\/workflows\/main\//\/workflows\/v${{ steps.get_version.outputs.current_version }}\//g"
@@ -178,12 +194,28 @@ jobs:
         #
         #   [[tool.bumpversion.files]]
         #   filename = ".github/workflows/*.yaml"
-        #   search = "/workflows/main/"
-        #   replace = "/workflows/v{current_version}/"
+        #   search = "/workflows/v{current_version}/"
+        #   replace = "/workflows/main/"
         #
         # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
         #
         # This is being discussed at: https://github.com/callowayproject/bump-my-version/issues/19
+        #
+        # In the mean time, there might be a way to soon use the `--search` and `--replace` options to do the same
+        # thing:
+        #
+        # $ bump-my-version
+        #   bump
+        #   --verbose --no-configured-files
+        #   --search "/workflows/v{current_version}/"
+        #   --replace "/workflows/main/"
+        #   --ignore-missing
+        #   patch
+        #   ./.github/workflows/*.yaml
+        #
+        # But we are waiting for these features to be released addressed first:
+        # https://github.com/callowayproject/bump-my-version/issues/25
+        # https://github.com/callowayproject/bump-my-version/issues/10
         run: >
           find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
           "s/\/workflows\/v${{ steps.get_version.outputs.current_version }}\//\/workflows\/main\//g"
