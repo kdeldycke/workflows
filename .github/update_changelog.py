@@ -24,7 +24,7 @@ $ bump-my-version bump --verbose patch
 Starting BumpVersion 0.5.1.dev6
 Reading config file pyproject.toml:
 Specified version (2.17.5) does not match last tagged version (2.17.4)
-Parsing version '2.17.5' using regexp '(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)'
+Parsing version '2.17.5' using '(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)'
 Parsed the following values: major=2, minor=17, patch=5
 Attempting to increment part 'patch'
 Values are now: major=2, minor=17, patch=6
