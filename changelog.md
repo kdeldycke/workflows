@@ -6,7 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
-- Testing bump-my-version `v0.6.0-dev`.
+- Use bump-my-version `v0.6.0` to fetch current version.
 
 ## [2.17.4 (2023-06-22)](https://github.com/kdeldycke/workflows/compare/v2.17.3...v2.17.4)
 
