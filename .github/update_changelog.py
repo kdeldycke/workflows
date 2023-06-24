@@ -31,7 +31,8 @@ Values are now: major=2, minor=17, patch=6
 New version will be '2.17.6'
 Dry run active, won't touch any files.
 Asserting files ./changelog.md contain the version string...
-Found '[2.17.5 (unreleased)](' in ./changelog.md at line 2: ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+Found '[2.17.5 (unreleased)](' in ./changelog.md at line 2:
+## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
 Would change file ./changelog.md:
 *** before ./changelog.md
 --- after ./changelog.md
