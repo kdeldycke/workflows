@@ -68,6 +68,7 @@ jobs:
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
@@ -147,6 +148,7 @@ jobs:
     name: Format Markdown
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
@@ -197,6 +199,7 @@ jobs:
     name: Format JSON
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - name: Install jsonlint
         run: |
@@ -228,6 +231,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
@@ -245,6 +249,7 @@ jobs:
     if: needs.check-gitignore.outputs.exists
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - name: Install git-extras
         run: |

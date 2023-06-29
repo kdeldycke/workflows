@@ -31,6 +31,7 @@ jobs:
           - minor
           - major
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
@@ -98,6 +99,7 @@ jobs:
     # keep the release date in sync.
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:

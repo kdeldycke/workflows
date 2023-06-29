@@ -12,6 +12,7 @@ jobs:
   lock:
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: dessant/lock-threads@v4.0.1
         with:
           # Lock down after 3 months.

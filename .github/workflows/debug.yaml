@@ -10,4 +10,5 @@ jobs:
   print-context:
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: crazy-max/ghaction-dump-context@v2.0.0

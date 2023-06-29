@@ -38,6 +38,7 @@ jobs:
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
@@ -77,6 +78,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
         with:
           ref: ${{ matrix.commit }}
@@ -117,6 +119,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
         with:
           ref: ${{ matrix.commit }}
@@ -171,6 +174,7 @@ jobs:
     outputs:
       tagged_version: ${{ steps.get_version.outputs.tagged_version }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
         with:
           ref: ${{ matrix.commit }}
@@ -223,6 +227,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.2
         id: download
@@ -248,6 +253,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'

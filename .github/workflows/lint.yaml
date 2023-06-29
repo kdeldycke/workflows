@@ -25,6 +25,7 @@ jobs:
       ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
@@ -56,6 +57,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
@@ -79,6 +81,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
@@ -112,6 +115,7 @@ jobs:
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: actions/setup-python@v4.6.1
         with:
@@ -130,6 +134,7 @@ jobs:
   lint-zsh:
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - name: Install Zsh
         run: |
@@ -142,6 +147,7 @@ jobs:
   lint-github-action:
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - name: Install actionlint
         id: install_actionlint
@@ -184,6 +190,7 @@ jobs:
     # action blindy creates issues ad-nauseum. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
       - uses: lycheeverse/lychee-action@v1.8.0
         env:
@@ -287,6 +294,7 @@ jobs:
     if: startsWith(github.event.repository.name, 'awesome-')
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
         with:
           # Fetch all history to please linter's age checks.
@@ -298,6 +306,7 @@ jobs:
   check-secrets:
     runs-on: ubuntu-22.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions@v1.0.0
       - uses: actions/checkout@v3.5.3
         with:
           fetch-depth: 0

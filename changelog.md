@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Use bump-my-version `v0.6.0` to fetch current version.
+- Add GitHub token permissions monitor and advisor action to every job.
 
 ## [2.17.4 (2023-06-22)](https://github.com/kdeldycke/workflows/compare/v2.17.3...v2.17.4)
 
