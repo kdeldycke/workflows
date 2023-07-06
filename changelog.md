@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix retrieval of tagged version in release workflow.
+
 ## [2.17.5 (2023-07-01)](https://github.com/kdeldycke/workflows/compare/v2.17.4...v2.17.5)
 
 - Use bump-my-version `v0.6.0` to fetch current version.

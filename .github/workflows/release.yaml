@@ -169,7 +169,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     outputs:
-      tagged_version: ${{ steps.get_version.outputs.tagged_version }}
+      tagged_version: ${{ steps.get_version.outputs.current_version }}
     steps:
       - uses: actions/checkout@v3.5.3
         with:
