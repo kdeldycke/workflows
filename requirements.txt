@@ -8,7 +8,7 @@ black == 23.3.0
 blacken-docs == 1.14.0
 bump-my-version == 0.6.0
 check-wheel-contents == 0.4.0
-docformatter == 1.7.3
+docformatter == 1.7.4
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
 mdformat == 0.7.16
 # XXX: mdformat_admon 1.0.2 conflicts with mdformat-gfm == 0.3.5. See:
