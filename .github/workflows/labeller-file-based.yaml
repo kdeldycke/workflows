@@ -46,7 +46,7 @@ jobs:
         run: |
           cat ./.github/labeller-file-based.yaml
       - name: Apply rules
-        uses: actions/labeler@v4.2.0
+        uses: actions/labeler@v4.3.0
         with:
           configuration-path: ".github/labeller-file-based.yaml"
           sync-labels: true
