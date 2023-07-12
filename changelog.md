@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.17.8 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.7...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.17.7 (2023-07-12)](https://github.com/kdeldycke/workflows/compare/v2.17.6...v2.17.7)
 
 - Replace some Perl oneliners with `bump-my-version` invokation.
