@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Replace some Perl oneliners with `bump-my-version` invokation.
+
 ## [2.17.6 (2023-07-06)](https://github.com/kdeldycke/workflows/compare/v2.17.5...v2.17.6)
 
 - Fix retrieval of tagged version in release workflow.
