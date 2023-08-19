@@ -36,7 +36,7 @@ mdformat-web @ git+https://github.com/kdeldycke/mdformat-web.git@fix-extra-html-
 mypy == 1.5.1
 nuitka == 1.7.10
 ordered-set == 4.1.0
-pipdeptree == 2.12.0
+pipdeptree == 2.13.0
 poetry == 1.5.1
 PyDriller == 2.5
 ruff == 0.0.284
