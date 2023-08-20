@@ -149,11 +149,6 @@ jobs:
           find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
           "s/\/workflows\/main\//\/workflows\/v${{ steps.get_version.outputs.current_version }}\//g"
           {} \;
-      - name: Set release date for citation
-        # XXX Date-based search and replace is not supported yet:
-        # https://github.com/callowayproject/bump-my-version/issues/35
-        run: |
-          perl -pi -e "s/date-released: \d+-\d+-\d+/date-released: $(date +'%Y-%m-%d')/" ./citation.cff
       - name: Set release date in changelog
         # TODO: encode this search and replace pattern in bump-my-version's TOML.
         run: >
