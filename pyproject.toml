@@ -1,6 +1,7 @@
 [tool.bumpversion]
 current_version = "2.17.9"
 allow_dirty = true
+no_regex = true
 
 [[tool.bumpversion.files]]
 filename = "./changelog.md"
