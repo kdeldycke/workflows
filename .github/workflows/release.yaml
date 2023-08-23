@@ -264,8 +264,7 @@ jobs:
         run: |
           import json
           import os
-          from textwrap import dedent
-          from pathlib import Path, PurePath
+          from pathlib import Path
           from random import randint
 
           download_folder = Path("""${{ steps.artifacts.outputs.download-path }}""")
@@ -276,7 +275,7 @@ jobs:
           artifacts_path = []
 
           # Only consider artifacts produced by the release commit.
-          build_id = f"""-build-${{ matrix.short_sha }}"""
+          build_id = """-build-${{ matrix.short_sha }}"""
           for artifact_folder in download_folder.glob(f"*{build_id}*"):
               print(f"Processing {artifact_folder} ...")
               assert artifact_folder.is_dir()
