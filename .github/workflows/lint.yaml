@@ -172,9 +172,9 @@ jobs:
 
   broken-links:
     # Skip checks on prepare-release branch as it contains commits in changelog and documentation that points to a tag
-    # that does not exist yet, rendering URLs artifficially broken. Also skips the merge commit of the prepare-release
+    # that does not exist yet, rendering URLs artificially broken. Also skips the merge commit of the prepare-release
     # branch, as if the URLs are good, the tag is created asynchronously by release.yaml:git-tag job. And as a
-    # precautionnary measure, just skip any event that contains a post-release bump commit.
+    # precautionary measure, just skip any event that contains a post-release bump commit.
     if: >
       github.head_ref != 'prepare-release'
       && github.ref != 'refs/heads/prepare-release'

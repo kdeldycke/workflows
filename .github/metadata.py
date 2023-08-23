@@ -204,7 +204,7 @@ class Metadata:
         more commits. This means the workflow will only run once on the last commit,
         even if multiple new commits where pushed.
 
-        This is anoying when we want to keep a carefully constructed commit history,
+        This is annoying when we want to keep a carefully constructed commit history,
         and want to run the workflow on each commit. The typical example is a pull
         request that is merged upstream but we'd like to produce artifacts (builds,
         packages, etc.) for each individual commit.
@@ -405,7 +405,7 @@ class Metadata:
 
         .. caution::
 
-            Black supports auto-detection of the Python version targetted by your
+            Black supports auto-detection of the Python version targeted by your
             project (see `#3124 <https://github.com/psf/black/issues/3124>`_ and
             `#3219 <https://github.com/psf/black/pull/3219>`_), `since v23.1.0
             <https://github.com/psf/black/releases/tag/23.1.0>`_.
@@ -437,11 +437,11 @@ class Metadata:
 
     @cached_property
     def ruff_params(self) -> str | None:
-        """Like ``black_params``, but only returns the oldest Python version targetted.
+        """Like ``black_params``, but only returns the oldest Python version targeted.
 
         .. caution::
 
-            Unlike ``black`` and ``blacken-docs``, `ruff doen't support multiple
+            Unlike ``black`` and ``blacken-docs``, `ruff doesn't support multiple
             --target-version values
             <https://github.com/charliermarsh/ruff/issues/2857#issuecomment-1428100515>`_,
             and `only supports the minimum Python version
@@ -475,7 +475,7 @@ class Metadata:
 
     @cached_property
     def is_sphinx(self) -> bool:
-        # The Sphinx config file is present, that's enought for us.
+        # The Sphinx config file is present, that's enough for us.
         return self.sphinx_conf_path.exists() and self.sphinx_conf_path.is_file()
 
     @cached_property
@@ -746,7 +746,7 @@ class Metadata:
 
         Renders:
         - `str` as-is
-        - `None` into emptry string
+        - `None` into empty string
         - `bool` into lower-cased string
         - `Iterable` of strings into a serialized space-separated string
         - `Iterable` of `Path` into a serialized string whose items are space-separated

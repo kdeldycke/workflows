@@ -32,7 +32,7 @@ from textwrap import dedent
 
 contributors = set()
 
-# Fetch all variations of authors and commiters.
+# Fetch all variations of authors and committers.
 # For format output syntax, see: https://git-scm.com/docs
 #   /pretty-formats#Documentation/pretty-formats.txt-emaNem
 for param in ("%aN <%aE>", "%cN <%cE>"):
@@ -59,7 +59,7 @@ if not content:
     content = dedent(
         """
         # Format is:
-        #   Prefered Name <preferred e-mail>  Other Name <other e-mail>
+        #   Preferred Name <preferred e-mail>  Other Name <other e-mail>
         #
         # Reference: https://git-scm.com/docs/git-blame#_mapping_authors
         """,
