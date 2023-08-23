@@ -19,7 +19,7 @@
 This is designed to be used just after a new release has been tagged. And before a
 post-release version increment is applied with a call to:
 
-```shell-sesssion
+```shell-session
 $ bump-my-version bump --verbose patch
 Starting BumpVersion 0.5.1.dev6
 Reading config file pyproject.toml:

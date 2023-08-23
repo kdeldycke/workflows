@@ -6,8 +6,8 @@ These workflows are mostly used for Poetry-based Python CLI and their documentat
 
 Reasons for a centralized workflow repository:
 
-- reuseability of course: no need to update dozens of repository where 95% of workflows are the same
-- centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories dependeing on it
+- reusability of course: no need to update dozens of repository where 95% of workflows are the same
+- centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories depending on it
 
 ## Release management
 
