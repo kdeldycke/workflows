@@ -85,6 +85,8 @@ Automatic detection of minimal Python version is being discussed upstream for:
 - `mypy` [rejected] at https://github.com/python/mypy/issues/13294
 """
 
+# pylint: disable=fixme,no-name-in-module,too-many-public-methods
+
 from __future__ import annotations
 
 import ast
@@ -98,7 +100,7 @@ from itertools import product
 from pathlib import Path
 from typing import Any, cast
 
-import black
+from black.mode import TargetVersion
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
@@ -113,20 +115,24 @@ SHORT_SHA_LENGTH = 7
     depends on the size of the repository.
 """
 
+RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
 TMatrix = dict[str, list[str] | list[dict[str, str]]]
 """Defines the structure of a matrix to be used in a GitHub workflow."""
 
 
 class Metadata:
+    """Metadata class."""
+
     def __init__(self, debug: bool = False) -> None:
+        """Initialize instance."""
         self.debug = debug
 
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
-    def github_context(self) -> dict[str, Any]:
+    def github_context(self) -> Any:
         """Load GitHub context from the environment.
 
         Expect ``GITHUB_CONTEXT`` to be set as part of the environment. I.e., adds the
@@ -150,8 +156,7 @@ class Metadata:
             if self.debug:
                 print(message, file=sys.stderr)
                 return {}
-            else:
-                raise RuntimeError(message)
+            raise RuntimeError(message)
         context = json.loads(os.environ["GITHUB_CONTEXT"])
         if self.debug:
             print("--- GitHub context ---")
@@ -304,26 +309,31 @@ class Metadata:
             else None
         )
 
-    def glob_files(self, *patterns: str) -> Generator[Path, None, None]:
+    @staticmethod
+    def glob_files(*patterns: str) -> Generator[Path, None, None]:
+        """Glob files in patterns."""
         for pattern in patterns:
             # is_file() return False if the path doesn't exist or is a broken symlink.
             yield from (p for p in Path().glob(pattern) if p.is_file())
 
     @cached_property
     def python_files(self) -> Generator[Path, None, None]:
+        """Returns list of python files."""
         yield from self.glob_files("**/*.py")
 
     @cached_property
     def doc_files(self) -> Generator[Path, None, None]:
+        """Returns list of doc files."""
         yield from self.glob_files("**/*.md", "**/*.markdown", "**/*.rst", "**/*.tex")
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
+        """Returns PyProjectTOML object."""
         return PyProjectTOML(self.pyproject_path)
 
     @cached_property
     def is_poetry_project(self) -> bool:
-        """Is the project relying on Poetry?"""
+        """Returns true if project relies on Poetry."""
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
             return self.pyproject.is_poetry_project()
         return False
@@ -424,7 +434,7 @@ class Metadata:
             Poetry-based projects.
         """
         if self.project_range:
-            minor_range = sorted(v.value for v in black.TargetVersion)
+            minor_range = sorted(v.value for v in TargetVersion)
             black_range = (
                 Version.from_parts(major=3, minor=minor) for minor in minor_range
             )
@@ -475,11 +485,13 @@ class Metadata:
 
     @cached_property
     def is_sphinx(self) -> bool:
+        """Returns true if the Sphinx config file is present."""
         # The Sphinx config file is present, that's enough for us.
         return self.sphinx_conf_path.exists() and self.sphinx_conf_path.is_file()
 
     @cached_property
     def active_autodoc(self) -> bool:
+        """Returns true if there are active Sphinx extensions."""
         if self.is_sphinx:
             # Look for list of active Sphinx extensions.
             for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
@@ -500,6 +512,7 @@ class Metadata:
                             return True
         return False
 
+    # pylint: disable=too-many-locals
     @cached_property
     def nuitka_matrix(self) -> TMatrix | None:
         """Pre-compute a matrix for Nuitka compilation workflows.
@@ -602,8 +615,6 @@ class Metadata:
                 ],
             }
         """
-        RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
-
         # Only produce a matrix if the project is providing CLI entry points.
         if not self.script_entries:
             return None
@@ -733,6 +744,7 @@ class Metadata:
             extra_name_param = variant_dict.copy()
             # Generate for Nuitka the binary file name to be used that is unique to
             # this variant.
+            # pylint: disable=consider-using-f-string
             extra_name_param["bin_name"] = (
                 "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
             ).format(**full_variant)
@@ -741,7 +753,7 @@ class Metadata:
         return matrix
 
     @staticmethod
-    def format_github_value(value: Any, render_json=False) -> str:
+    def format_github_value(value: Any, render_json: bool = False) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
 
         Renders:
@@ -775,9 +787,7 @@ class Metadata:
 
     @cached_property
     def output_env_file(self) -> Path | None:
-        """Returns the `Path` to the environment file pointed to by the `$GITHUB_OUTPUT`
-        environment variable.
-        """
+        """Returns environment file `Path` pointed to by `$GITHUB_OUTPUT`."""
         output_path = None
         env_file = os.getenv("GITHUB_OUTPUT")
         if env_file:
@@ -785,12 +795,10 @@ class Metadata:
             assert output_path.is_file()
         return output_path
 
-    def save_metadata(self):
-        """Write data to the environment file pointed to by the `$GITHUB_OUTPUT`
-        environment variable.
-        """
+    def save_metadata(self) -> None:
+        """Write data to the environment file pointed to by `$GITHUB_OUTPUT`."""
         # Plain metadata.
-        metadata = {
+        metadata: dict[str, Any] = {
             "new_commits": (self.new_commits_hash, False),
             "release_commits": (self.release_commits_hash, False),
             "python_files": (self.python_files, False),
@@ -827,13 +835,12 @@ class Metadata:
             raise FileNotFoundError(
                 msg,
             )
-        self.output_env_file.write_text(content)
+        self.output_env_file.write_text(content, encoding="utf-8")
 
         if self.debug:
             print(f"--- Content of {self.output_env_file} ---")
-            print(self.output_env_file.read_text())
+            print(self.output_env_file.read_text(encoding="utf-8"))
 
 
 # Output metadata with GitHub syntax.
-metadata = Metadata(debug=True)
-metadata.save_metadata()
+Metadata(debug=True).save_metadata()
