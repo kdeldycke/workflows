@@ -30,7 +30,13 @@ mdformat_frontmatter == 2.0.1
 # https://github.com/KyleKing/mdformat-admon/issues/15
 # mdformat-gfm == 0.X.X
 mdformat-gfm @ git+https://github.com/hukkin/mdformat-gfm.git@e60f449674d8f8dc91f9e348dd1c08d1ddc244ff
-mdformat_myst == 0.1.5
+# Use the unreleased version of mdformat_myst, which is relaxing capped dependency on
+# mdit-py-plugins < 0.4 . This allows for mdformat-admon to be upgraded to 1.0.2. See:
+# https://github.com/executablebooks/mdformat-myst/issues/27
+# https://github.com/executablebooks/mdformat-myst/pull/
+# https://github.com/KyleKing/mdformat-admon/issues/15
+# mdformat_myst == 0.X.X
+mdformat_myst @ git+https://github.com/kdeldycke/mdformat-myst.git@uncap-mdit-py-plugins-version
 mdformat_pelican == 0.1.0
 mdformat_pyproject == 0.0.1
 mdformat-shfmt == 0.1.0
