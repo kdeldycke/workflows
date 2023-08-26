@@ -6,7 +6,7 @@
 autopep8 == 2.0.3
 black == 23.7.0
 blacken-docs == 1.16.0
-bump-my-version == 0.9.2
+bump-my-version == 0.9.3
 check-wheel-contents == 0.4.0
 docformatter == 1.7.5
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
