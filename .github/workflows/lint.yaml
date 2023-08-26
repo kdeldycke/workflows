@@ -25,7 +25,7 @@ jobs:
       ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -56,7 +56,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
       - uses: actions/setup-python@v4.7.0
         with:
           python-version: "3.11"
@@ -79,7 +79,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
       - uses: actions/setup-python@v4.7.0
         with:
           python-version: "3.11"
@@ -112,7 +112,7 @@ jobs:
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
       - uses: actions/setup-python@v4.7.0
         with:
           python-version: "3.11"
@@ -130,7 +130,7 @@ jobs:
   lint-zsh:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
       - name: Install Zsh
         run: |
           sudo apt update
@@ -142,7 +142,7 @@ jobs:
   lint-github-action:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
       - name: Install actionlint
         id: install_actionlint
         run: |
@@ -184,7 +184,7 @@ jobs:
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
       - uses: lycheeverse/lychee-action@v1.8.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -287,7 +287,7 @@ jobs:
     if: startsWith(github.event.repository.name, 'awesome-')
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
         with:
           # Fetch all history to please linter's age checks.
           fetch-depth: 0
@@ -298,7 +298,7 @@ jobs:
   check-secrets:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v3.6.0
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2.3.2
