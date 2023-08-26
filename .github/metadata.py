@@ -724,7 +724,7 @@ class Metadata:
                 dimensions_to_match = set(variant_dict).intersection(extra_params)
                 d0 = {key: variant_dict[key] for key in dimensions_to_match}
                 d1 = {key: extra_params[key] for key in dimensions_to_match}
-                # Extra parameters are matchin the current variant, merge their values.
+                # Extra parameters are matching the current variant, merge their values.
                 if d0 == d1:
                     full_variant.update(extra_params)
 
