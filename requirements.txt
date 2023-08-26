@@ -10,7 +10,7 @@ bump-my-version == 0.9.2
 check-wheel-contents == 0.4.0
 docformatter == 1.7.5
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
-mdformat == 0.7.16
+mdformat == 0.7.17
 mdformat_admon == 1.0.2
 mdformat-black == 0.1.1
 mdformat-config == 0.1.3
