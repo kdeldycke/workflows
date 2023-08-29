@@ -152,14 +152,14 @@ jobs:
       - name: Set release date in changelog
         # TODO: encode this search and replace pattern in bump-my-version's TOML.
         run: >
-          bump-my-version replace --no-configured-files
+          bump-my-version replace --no-regex --no-configured-files
           --search "(unreleased)"
           --replace "({now:%Y-%m-%d})"
           ./changelog.md
       - name: Update comparison URL in changelog
         # TODO: encode this search and replace pattern in bump-my-version's TOML.
         run: >
-          bump-my-version replace --no-configured-files
+          bump-my-version replace --no-regex --no-configured-files
           --search "...main"
           --replace "...v{current_version}"
           ./changelog.md
