@@ -6,8 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
-- Upgrade to `bump-my-version` `0.9.3`.
-- Remove the step updating the release date of `citation.cff` in `changelog` job. This can be done with `bump-my-version`.
+- Upgrade to `bump-my-version` `0.10.0`.
+- Remove the step updating the release date of `citation.cff` in `changelog` job. This can be done with `bump-my-version` now.
+- Trigger changelog updates on `requirements.txt` changes.
 
 ## [2.17.8 (2023-07-16)](https://github.com/kdeldycke/workflows/compare/v2.17.7...v2.17.8)
 
