@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.18.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.8...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.18.0 (2023-09-06)](https://github.com/kdeldycke/workflows/compare/v2.17.8...v2.18.0)
 
 - Upgrade to `bump-my-version` `0.10.x` series.
 - Remove the step updating the release date of `citation.cff` in `changelog` job. This can be done with `bump-my-version` now.
