@@ -6,7 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
-- Upgrade to `bump-my-version` `0.10.0`.
+- Upgrade to `bump-my-version` `0.10.x` series.
 - Remove the step updating the release date of `citation.cff` in `changelog` job. This can be done with `bump-my-version` now.
 - Trigger changelog updates on `requirements.txt` changes.
 
