@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.19.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.18.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.19.0 (2023-09-15)](https://github.com/kdeldycke/workflows/compare/v2.18.0...v2.19.0)
 
 - Replace `black` with `ruff`'s autoformatter.
 - Rely even more on `bump-my-version` for string replacement.
