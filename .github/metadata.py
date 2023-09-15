@@ -502,8 +502,8 @@ class Metadata:
                     extension_found = (
                         "extensions"
                         in (
-                            t.id
-                            for t in node.targets  # type: ignore
+                            t.id  # type: ignore[attr-defined]
+                            for t in node.targets
                         )
                     )
                     if extension_found:
