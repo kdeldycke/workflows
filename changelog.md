@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Replace `black` with `ruff`'s autoformatter.
+- Rely even more on `bump-my-version` for string replacement.
 
 ## [2.18.0 (2023-09-06)](https://github.com/kdeldycke/workflows/compare/v2.17.8...v2.18.0)
 

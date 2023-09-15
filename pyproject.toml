@@ -9,17 +9,3 @@ filename = "./changelog.md"
 no_regex = true
 search = "## [{current_version} (unreleased)]("
 replace = "## [{new_version} (unreleased)]("
-
-[[tool.bumpversion.files]]
-# Update the release date in changelog, whatever the format.
-filename = "./changelog.md"
-no_regex = true
-search = " (unreleased)"
-replace = " ({utcnow:%Y-%m-%d})"
-
-[[tool.bumpversion.files]]
-# Update comparison URL in changelog.
-filename = "./changelog.md"
-no_regex = true
-search = "...main"
-replace = "...v{current_version}"
