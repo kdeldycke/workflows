@@ -96,7 +96,7 @@ jobs:
           .
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
-        # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
+        # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
         # We use autopep8 to only wrap long-line comments:
         #  - E501 is "Try to make lines fit within --max-line-length characters."
         #  - --aggressive is requires to force autopep8 to consider comments.
