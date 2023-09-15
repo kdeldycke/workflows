@@ -120,50 +120,21 @@ jobs:
       - name: Hard-code version in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        # XXX Ideally, this step should have been encoded into bump-my-version configuration. Something like:
+        # XXX Default branch is set in a variable as a hack to prevent bump-my-version to modify its own invocation.
+        # This hack could be removed if we manage to encode these search and replace patterns into bump-my-version's
+        # TOML. Something like:
         #
         #   [[tool.bumpversion.files]]
         #   filename = ".github/workflows/*.yaml"
+        #   no-regex = true
         #   search = "/workflows/main/"
         #   replace = "/workflows/v{current_version}/"
-        #
-        # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
-        #
-        # This is being discussed at: https://github.com/callowayproject/bump-my-version/issues/19
-        #
-        # In the mean time, there might be a way to soon use the `--search` and `--replace` options to do the same
-        # thing:
-        #
-        # $ bump-my-version
-        #   bump
-        #   --verbose --no-configured-files
-        #   --search "/workflows/main/"
-        #   --replace "/workflows/v{current_version}/"
-        #   --ignore-missing
-        #   patch
-        #   ./.github/workflows/*.yaml
-        #
-        # But we are waiting for these features to be released addressed first:
-        # https://github.com/callowayproject/bump-my-version/issues/25
-        # https://github.com/callowayproject/bump-my-version/issues/10
         run: >
-          find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
-          "s/\/workflows\/main\//\/workflows\/v${{ steps.get_version.outputs.current_version }}\//g"
-          {} \;
-      - name: Set release date in changelog
-        # TODO: encode this search and replace pattern in bump-my-version's TOML.
-        run: >
-          bump-my-version replace --no-regex --no-configured-files
-          --search "(unreleased)"
-          --replace "({now:%Y-%m-%d})"
-          ./changelog.md
-      - name: Update comparison URL in changelog
-        # TODO: encode this search and replace pattern in bump-my-version's TOML.
-        run: >
-          bump-my-version replace --no-regex --no-configured-files
-          --search "...main"
-          --replace "...v{current_version}"
-          ./changelog.md
+          RELEASE_DEFAULT_BRANCH="main" &&
+          bump-my-version replace --no-regex --no-configured-files --ignore-missing-version
+          --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
+          --replace "/workflows/v{current_version}/"
+          ./.github/workflows/*.yaml
       - name: Remove first warning message in changelog
         shell: python
         # Matches first occurrence of a multi-line block of text delimited by triple-backticks (```<anything>```).
@@ -196,36 +167,21 @@ jobs:
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        # XXX Ideally, this step should have been encoded into bump-my-version configuration. Something like:
+        # XXX Default branch is set in a variable as a hack to prevent bump-my-version to modify its own invocation.
+        # This hack could be removed if we manage to encode these search and replace patterns into bump-my-version's
+        # TOML. Something like:
         #
         #   [[tool.bumpversion.files]]
         #   filename = ".github/workflows/*.yaml"
+        #   no-regex = true
         #   search = "/workflows/v{current_version}/"
         #   replace = "/workflows/main/"
-        #
-        # $ bump-my-version --verbose --force-current-version .github/workflows/*.yaml
-        #
-        # This is being discussed at: https://github.com/callowayproject/bump-my-version/issues/19
-        #
-        # In the mean time, there might be a way to soon use the `--search` and `--replace` options to do the same
-        # thing:
-        #
-        # $ bump-my-version
-        #   bump
-        #   --verbose --no-configured-files
-        #   --search "/workflows/v{current_version}/"
-        #   --replace "/workflows/main/"
-        #   --ignore-missing
-        #   patch
-        #   ./.github/workflows/*.yaml
-        #
-        # But we are waiting for these features to be released addressed first:
-        # https://github.com/callowayproject/bump-my-version/issues/25
-        # https://github.com/callowayproject/bump-my-version/issues/10
         run: >
-          find ./.github/workflows/ -type f -iname "*.yaml" -print -exec sed -i
-          "s/\/workflows\/v${{ steps.get_version.outputs.current_version }}\//\/workflows\/main\//g"
-          {} \;
+          RELEASE_DEFAULT_BRANCH="main" &&
+          bump-my-version replace --dry-run --no-regex --no-configured-files --ignore-missing-version
+          --search "/workflows/v{current_version}/"
+          --replace "/workflows/$RELEASE_DEFAULT_BRANCH/"
+          ./.github/workflows/*.yaml
       - name: Add new changelog entry
         run: >
           python -c "$(curl -fsSL
