@@ -32,7 +32,7 @@ jobs:
           - minor
           - major
     steps:
-      - uses: actions/checkout@v4.0.0
+      - uses: actions/checkout@v4.1.0
       - uses: actions/setup-python@v4.7.0
         with:
           python-version: "3.11"
@@ -99,7 +99,7 @@ jobs:
     # keep the release date in sync.
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.0.0
+      - uses: actions/checkout@v4.1.0
       - uses: actions/setup-python@v4.7.0
         with:
           python-version: "3.11"
