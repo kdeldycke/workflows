@@ -89,7 +89,7 @@ jobs:
         #   Do not remove commented code, as it might be used for documentation.
         #   See: https://beta.ruff.rs/docs/rules/#eradicate-era
         run: >
-          ruff check --fix-only --format=github ${{ needs.project-metadata.outputs.ruff_params }}
+          ruff check --fix-only --output-format=github ${{ needs.project-metadata.outputs.ruff_params }}
           --select=ALL
           --ignore=D400
           --ignore=ERA001
