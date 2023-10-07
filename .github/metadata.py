@@ -428,7 +428,7 @@ class Metadata:
 
                 .. code-block:: toml
                     [project]
-                    requires-python = ">=3.7,<3.11"
+                    requires-python = ">=3.8,<3.12"
 
             Which means we still needs to resolves these Black parameters for
             Poetry-based projects.

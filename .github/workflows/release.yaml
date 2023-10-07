@@ -52,7 +52,7 @@ jobs:
           git log --decorate=full --oneline
       - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -82,7 +82,7 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -122,7 +122,7 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -176,7 +176,7 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
