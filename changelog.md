@@ -1,13 +1,21 @@
 # Changelog
 
-## [2.17.9 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.8...main)
+## [2.19.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.19.0...main)
 
 ```{important}
 This version is not released yet and is under active development.
 ```
 
-- Upgrade to `bump-my-version` `0.9.2`.
-- Remove the step updating the release date of `citation.cff` in `changelog` job. This can be done with `bump-my-version`.
+## [2.19.0 (2023-09-15)](https://github.com/kdeldycke/workflows/compare/v2.18.0...v2.19.0)
+
+- Replace `black` with `ruff`'s autoformatter.
+- Rely even more on `bump-my-version` for string replacement.
+
+## [2.18.0 (2023-09-06)](https://github.com/kdeldycke/workflows/compare/v2.17.8...v2.18.0)
+
+- Upgrade to `bump-my-version` `0.10.x` series.
+- Remove the step updating the release date of `citation.cff` in `changelog` job. This can be done with `bump-my-version` now.
+- Trigger changelog updates on `requirements.txt` changes.
 
 ## [2.17.8 (2023-07-16)](https://github.com/kdeldycke/workflows/compare/v2.17.7...v2.17.8)
 
@@ -15,7 +23,7 @@ This version is not released yet and is under active development.
 
 ## [2.17.7 (2023-07-12)](https://github.com/kdeldycke/workflows/compare/v2.17.6...v2.17.7)
 
-- Replace some Perl oneliners with `bump-my-version` invokation.
+- Replace some Perl oneliners with `bump-my-version` invocation.
 
 ## [2.17.6 (2023-07-06)](https://github.com/kdeldycke/workflows/compare/v2.17.5...v2.17.6)
 
@@ -187,7 +195,7 @@ This version is not released yet and is under active development.
 
 ## [2.7.3 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.2...v2.7.3)
 
-- Fix attachement of artifacts to GitHub release on tagging.
+- Fix attachment of artifacts to GitHub release on tagging.
 
 ## [2.7.2 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.1...v2.7.2)
 
@@ -195,12 +203,12 @@ This version is not released yet and is under active development.
 
 ## [2.7.1 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.0...v2.7.1)
 
-- Fix attachement of artifacts to GitHub release on tagging.
+- Fix attachment of artifacts to GitHub release on tagging.
 
 ## [2.7.0 (2023-02-11)](https://github.com/kdeldycke/workflows/compare/v2.6.2...v2.7.0)
 
 - Add new dependency on `mdformat_footnote` to properly wrap long footnotes when autofixing Markdown.
-- Add new dependency on `mdformat_admon` to future-proof upcomming admonition support.
+- Add new dependency on `mdformat_admon` to future-proof upcoming admonition support.
 - Add new dependency on `mdformat_pyproject` so that each project reusing the `autofix.yaml` workflow can setup local configuration for `mdformat` via its `pyproject.toml` file.
 
 ## [2.6.2 (2023-02-11)](https://github.com/kdeldycke/workflows/compare/v2.6.1...v2.6.2)
@@ -209,7 +217,7 @@ This version is not released yet and is under active development.
 
 ## [2.6.1 (2023-02-11)](https://github.com/kdeldycke/workflows/compare/v2.6.0...v2.6.1)
 
-- Fix attachement of artifacts to GitHub release.
+- Fix attachment of artifacts to GitHub release.
 
 ## [2.6.0 (2023-02-10)](https://github.com/kdeldycke/workflows/compare/v2.5.1...v2.6.0)
 
@@ -259,7 +267,7 @@ This version is not released yet and is under active development.
 ## [2.3.4 (2023-01-24)](https://github.com/kdeldycke/workflows/compare/v2.3.3...v2.3.4)
 
 - Target unreleased `docformatter 1.6.0.rc1` to fix long URL rewrapping. Closes [`#397`](https://github.com/kdeldycke/workflows/issues/397).
-- Remove thouroughly all unused imports.
+- Remove thoroughly all unused imports.
 
 ## [2.3.3 (2023-01-21)](https://github.com/kdeldycke/workflows/compare/v2.3.2...v2.3.3)
 
@@ -297,7 +305,7 @@ This version is not released yet and is under active development.
 
 - Change the default dependency graph format from `PNG` to `dot` file.
 - Add a `dependency-graph-format` parameter to the documentation workflow.
-- Customize the style of dependency graph when Graphiz code is produced.
+- Customize the style of dependency graph when Graphviz code is produced.
 - Install Graphviz when we produce the documentation so we can use `sphinx.ext.graphviz` plugin.
 - Add list of projects relying on these scripts.
 
@@ -500,7 +508,7 @@ This version is not released yet and is under active development.
 
 ## [1.1.0 (2022-03-30)](https://github.com/kdeldycke/workflows/compare/v1.0.1...v1.1.0)
 
-- Dynamiccaly add `⚖️ curation`, `🆕 new link` and `🩹 fix link` labels on
+- Dynamically add `⚖️ curation`, `🆕 new link` and `🩹 fix link` labels on
   awesome list projects.
 
 ## [1.0.1 (2022-03-30)](https://github.com/kdeldycke/workflows/compare/v1.0.0...v1.0.1)
@@ -571,8 +579,8 @@ This version is not released yet and is under active development.
 
 - Add new workflow proposing PRs to modernize Python code for Poetry-based
   projects.
-- Add new wofklow to produce dependency graph of Poetry-based project.
-- Auto-detect minimal Python version targetted by Poetry projects.
+- Add new workflow to produce dependency graph of Poetry-based project.
+- Auto-detect minimal Python version targeted by Poetry projects.
 - Add dependency on `pipdeptree`, `pyupgrade` and `tomli`.
 
 ## [0.7.25 (2022-01-16)](https://github.com/kdeldycke/workflows/compare/v0.7.24...v0.7.25)
@@ -833,7 +841,7 @@ This version is not released yet and is under active development.
   yet.
 - Reduce changelog PRs refresh rate based on changed files.
 - Rely on `create-pull-request` action default to set authorship.
-- Fix `autofix` workflow reuseability.
+- Fix `autofix` workflow reusability.
 
 ## [0.3.1 (2021-12-23)](https://github.com/kdeldycke/workflows/compare/v0.3.0...v0.3.1)
 

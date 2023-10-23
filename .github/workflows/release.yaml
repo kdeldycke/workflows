@@ -38,7 +38,7 @@ jobs:
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -50,9 +50,9 @@ jobs:
       - name: List all commits
         run: |
           git log --decorate=full --oneline
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -78,12 +78,12 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
         with:
           ref: ${{ matrix.commit }}
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -97,7 +97,7 @@ jobs:
           poetry install --no-interaction
           poetry build --no-interaction
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: ${{ github.event.repository.name }}-poetry-build-${{ matrix.short_sha }}
           path: ./dist/*
@@ -119,12 +119,12 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
         with:
           ref: ${{ matrix.commit }}
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -156,7 +156,7 @@ jobs:
           --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: ${{ matrix.bin_name }}
           if-no-files-found: error
@@ -174,12 +174,12 @@ jobs:
     outputs:
       tagged_version: ${{ steps.get_version.outputs.current_version }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
         with:
           ref: ${{ matrix.commit }}
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -268,11 +268,10 @@ jobs:
         run: |
           import json
           import os
-          from textwrap import dedent
-          from pathlib import Path, PurePath
+          from pathlib import Path
           from random import randint
 
-          dowload_folder = Path("""${{ steps.artifacts.outputs.download-path }}""")
+          download_folder = Path("""${{ steps.artifacts.outputs.download-path }}""")
 
           nuitka_matrix = json.loads("""${{ needs.project-metadata.outputs.nuitka_matrix }}""")
           binaries = {entry["bin_name"] for entry in nuitka_matrix["include"] if "bin_name" in entry}
@@ -280,8 +279,8 @@ jobs:
           artifacts_path = []
 
           # Only consider artifacts produced by the release commit.
-          build_id = f"""-build-${{ matrix.short_sha }}"""
-          for artifact_folder in dowload_folder.glob(f"*{build_id}*"):
+          build_id = """-build-${{ matrix.short_sha }}"""
+          for artifact_folder in download_folder.glob(f"*{build_id}*"):
               print(f"Processing {artifact_folder} ...")
               assert artifact_folder.is_dir()
 

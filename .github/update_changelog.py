@@ -14,12 +14,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Adds a new empty entry at the top of the changelog.
+r"""Adds a new empty entry at the top of the changelog.
 
 This is designed to be used just after a new release has been tagged. And before a
 post-release version increment is applied with a call to:
 
-```shell-sesssion
+```shell-session
 $ bump-my-version bump --verbose patch
 Starting BumpVersion 0.5.1.dev6
 Reading config file pyproject.toml:
@@ -87,7 +87,7 @@ else:
 # Extract current version as defined by bump-my-version.
 config_file = Path("./pyproject.toml").resolve()
 print(f"Open {config_file}")
-config = tomllib.loads(config_file.read_text())
+config = tomllib.loads(config_file.read_text(encoding="utf-8"))
 current_version = config["tool"]["bumpversion"]["current_version"]
 print(f"Current version: {current_version}")
 assert current_version
@@ -95,7 +95,7 @@ assert current_version
 # Open changelog.
 changelog_file = Path("./changelog.md").resolve()
 print(f"Open {changelog_file}")
-content = changelog_file.read_text()
+content = changelog_file.read_text(encoding="utf-8")
 assert current_version in content
 
 # Analyse the current changelog.
@@ -136,4 +136,4 @@ history = f"{SECTION_START}{last_entry}{SECTION_START}{past_entries}"
 print("New generated section:\n" + indent(new_entry, " " * 2))
 
 # Recompose full changelog with new top entry.
-changelog_file.write_text(f"{changelog_header}{new_entry}{history}")
+changelog_file.write_text(f"{changelog_header}{new_entry}{history}", encoding="utf-8")

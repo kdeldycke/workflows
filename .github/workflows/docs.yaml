@@ -24,7 +24,7 @@ jobs:
     name: Fix typos
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
       # XXX Use unreleased dev version while we wait for a new one to be cut. See:
       # https://github.com/sobolevn/misspell-fixer-action/issues/15
       - uses: sobolevn/misspell-fixer-action@8842a5615f83fed75e8a87015e9300a54d049961
@@ -54,7 +54,7 @@ jobs:
     name: Optimize images
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
       # XXX Waiting for a recent release for image-actions so we'll get rid of some warning annotations like
       # "Unexpected input(s) 'compressOnly'". See: https://github.com/calibreapp/image-actions/issues/128
       - uses: calibreapp/image-actions@1.1.0
@@ -89,7 +89,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
       - id: detection
         run: |
           echo "exists=$( [[ -f './.mailmap' ]] && echo 'true' )" >> "$GITHUB_OUTPUT"
@@ -105,13 +105,13 @@ jobs:
     if: needs.check-mailmap.outputs.exists
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Generate .mailmap
         run: >
@@ -144,15 +144,15 @@ jobs:
       is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # We're going to browse all new commits.
           fetch-depth: 0
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -176,10 +176,10 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/checkout@v4.1.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -233,10 +233,10 @@ jobs:
       && fromJSON(needs.project-metadata.outputs.active_autodoc)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/checkout@v4.1.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -276,10 +276,10 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_poetry_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/checkout@v4.1.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |

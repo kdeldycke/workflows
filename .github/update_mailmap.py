@@ -14,8 +14,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Add all missing contributors from commit history to the ``.mailmap`` file
-at the root of repository.
+"""Add all missing contributors from commit history to the ``.mailmap`` file.
+
+The ``.mailmap`` files is in the root of repository.
 
 This script will refrain from adding those already registered as aliases.
 
@@ -32,10 +33,11 @@ from textwrap import dedent
 
 contributors = set()
 
-# Fetch all variations of authors and commiters.
+# Fetch all variations of authors and committers.
 # For format output syntax, see: https://git-scm.com/docs
 #   /pretty-formats#Documentation/pretty-formats.txt-emaNem
 for param in ("%aN <%aE>", "%cN <%cE>"):
+    # pylint: disable=subprocess-run-check
     process = run(
         ("git", "log", f"--pretty=format:{param}"),
         capture_output=True,
@@ -52,14 +54,14 @@ for param in ("%aN <%aE>", "%cN <%cE>"):
 # Load-up .mailmap content. Create file if it doesn't exists.
 mailmap_file = Path("./.mailmap").resolve()
 mailmap_file.touch(exist_ok=True)
-content = mailmap_file.read_text()
+content = mailmap_file.read_text(encoding="utf-8")
 
 # Initialize empty .mailmap with pointers to reference documentation.
 if not content:
     content = dedent(
         """
         # Format is:
-        #   Prefered Name <preferred e-mail>  Other Name <other e-mail>
+        #   Preferred Name <preferred e-mail>  Other Name <other e-mail>
         #
         # Reference: https://git-scm.com/docs/git-blame#_mapping_authors
         """,
@@ -82,4 +84,5 @@ for contributor in contributors:
 # Save content to .mailmap file.
 mailmap_file.write_text(
     "{}\n\n{}\n".format("\n".join(header_comments), "\n".join(sorted(mappings))),
+    encoding="utf-8",
 )

@@ -37,15 +37,15 @@ jobs:
       black_params: ${{ steps.project-metadata.outputs.black_params }}
       ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # We're going to browse all new commits.
           fetch-depth: 0
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -69,19 +69,19 @@ jobs:
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/checkout@v4.1.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install ruff, black, blacken-docs, autopep8 and docformatter
+      - name: Install ruff, blacken-docs, autopep8 and docformatter
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Run Ruff
+      - name: Run Ruff check
         # --select=ALL - Autofix everything.
         #   Includes rules in the nursery, a collection of newer lints that are still under development.
         # --ignore=D400 - First line should end with a period.
@@ -91,24 +91,24 @@ jobs:
         #   Do not remove commented code, as it might be used for documentation.
         #   See: https://beta.ruff.rs/docs/rules/#eradicate-era
         run: >
-          ruff check --fix-only --format=github ${{ needs.project-metadata.outputs.ruff_params }}
+          ruff check --fix-only --output-format=github ${{ needs.project-metadata.outputs.ruff_params }}
           --select=ALL
           --ignore=D400
           --ignore=ERA001
           .
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
-        # Black is not formatting comments, as per https://github.com/psf/black/issues/181#issuecomment-385326100 .
+        # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
         # We use autopep8 to only wrap long-line comments:
         #  - E501 is "Try to make lines fit within --max-line-length characters."
         #  - --aggressive is requires to force autopep8 to consider comments.
-        # Explicit list of files is provided, as autopep8 is not able to handle find files in ".gihtub" subdirectory.
+        # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
-      - name: Run Black
+      - name: Run Ruff format
         run: |
-          black ${{ needs.project-metadata.outputs.black_params }} .
+          ruff format .
       - name: Run blacken-docs
         # blacken-docs reuses Black's ``--target-version pyXY`` parameter.
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
@@ -149,10 +149,10 @@ jobs:
     name: Format Markdown
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/checkout@v4.1.0
+      - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
       - name: Install pip
         run: |
@@ -200,7 +200,7 @@ jobs:
     name: Format JSON
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
       - name: Install jsonlint
         run: |
           sudo npm install --global jsonlint
@@ -231,7 +231,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
         run: |
@@ -248,7 +248,7 @@ jobs:
     if: needs.check-gitignore.outputs.exists
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4.1.0
       - name: Install git-extras
         run: |
           sudo apt update
