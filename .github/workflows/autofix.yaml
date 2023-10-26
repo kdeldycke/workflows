@@ -109,8 +109,9 @@ jobs:
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Run Ruff format
+        # --target-version has no effect yet, but will be: https://github.com/astral-sh/ruff/pull/8055
         run: |
-          ruff format .
+          ruff format ${{ needs.project-metadata.outputs.ruff_params }} .
       - name: Run blacken-docs
         # blacken-docs reuses Black's ``--target-version pyXY`` parameter.
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
