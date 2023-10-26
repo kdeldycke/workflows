@@ -80,8 +80,11 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Ruff check
-        # --select=ALL - Autofix everything.
-        #   Includes rules in the nursery, a collection of newer lints that are still under development.
+        # --preview - Enable preview mode; checks will include unstable rules and fixes.
+        #   See: https://astral.sh/blog/ruff-v0.1.0#introducing-preview-mode
+        # --unsafe-fixes - Include fixes that may not retain the original intent of the code.
+        #   Ruff will be conservative by default, and only apply fixes that are guaranteed to be safe.
+        #   See: https://astral.sh/blog/ruff-v0.1.0#respecting-fix-safety
         # --ignore=D400 - First line should end with a period.
         #   Allows docstrings to end up with any punctuation, not just a period.
         #   See: https://github.com/astral-sh/ruff/issues/1858#issuecomment-1382640623
@@ -90,7 +93,8 @@ jobs:
         #   See: https://docs.astral.sh/ruff/rules/#eradicate-era
         run: >
           ruff check --fix-only --output-format=github ${{ needs.project-metadata.outputs.ruff_params }}
-          --select=ALL
+          --preview
+          --unsafe-fixes
           --ignore=D400
           --ignore=ERA001
           .
