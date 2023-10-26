@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Activates `ruff` preview and unsafe rules.
+- Run actions on Python 3.12.
 
 ## [2.19.0 (2023-09-15)](https://github.com/kdeldycke/workflows/compare/v2.18.0...v2.19.0)
 
