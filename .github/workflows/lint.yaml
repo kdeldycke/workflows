@@ -70,7 +70,7 @@ jobs:
       - name: Run Ruff
         # Runs with the default set of rules. Trust ruff to select a sensible subset.
         run: >
-          ruff check --format=github ${{ needs.project-metadata.outputs.ruff_params }} .
+          ruff check --output-format=github ${{ needs.project-metadata.outputs.ruff_params }} .
 
   lint-python-types:
     needs:
