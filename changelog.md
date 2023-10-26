@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.19.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.19.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.19.1 (2023-10-26)](https://github.com/kdeldycke/workflows/compare/v2.19.0...v2.19.1)
 
 - Activates `ruff` preview and unsafe rules.
