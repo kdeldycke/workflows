@@ -499,12 +499,9 @@ class Metadata:
                     node.value,
                     ast.List | ast.Tuple,
                 ):
-                    extension_found = (
-                        "extensions"
-                        in (
-                            t.id  # type: ignore[attr-defined]
-                            for t in node.targets
-                        )
+                    extension_found = "extensions" in (
+                        t.id  # type: ignore[attr-defined]
+                        for t in node.targets
                     )
                     if extension_found:
                         elements = (
