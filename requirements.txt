@@ -48,7 +48,7 @@ mdformat-toc == 0.3.0
 # mdformat-web > 0.1.0
 mdformat-web @ git+https://github.com/kdeldycke/mdformat-web.git@fix-extra-html-tags
 mypy == 1.6.1
-nuitka == 1.8.4
+nuitka == 1.8.5
 ordered-set == 4.1.0
 pipdeptree == 2.13.0
 poetry == 1.6.1
