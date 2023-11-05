@@ -250,7 +250,7 @@ jobs:
     # Fix creation of GitHub release by action-gh-release.
     # See: https://github.com/softprops/action-gh-release/issues/236#issuecomment-1150530128
     permissions:
-      contents: write
+      permissions: write-all
     steps:
       - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
