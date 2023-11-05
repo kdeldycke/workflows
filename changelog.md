@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Upgrade to `bump-my-version` `0.12.x` series.
+- Upgrade to Poetry `1.7.x` series.
+
 ## [2.19.1 (2023-10-26)](https://github.com/kdeldycke/workflows/compare/v2.19.0...v2.19.1)
 
 - Activates `ruff` preview and unsafe rules.
