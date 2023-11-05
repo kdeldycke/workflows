@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix creation of GitHub release. Take #2.
+
 ## [2.20.1 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.0...v2.20.1)
 
 - Fix creation of GitHub release.
