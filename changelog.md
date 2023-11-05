@@ -6,19 +6,28 @@
 This version is not released yet and is under active development.
 ```
 
+- Remove hard-coded permissions for realease action.
+
 ## [2.20.5 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.4...v2.20.5)
+
+- Increase scope of hard-coded permissions for realease action.
+- Use custom token for GitHub release creation.
 
 ## [2.20.4 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.3...v2.20.4)
 
+- Increase token permissions to full write.
+
 ## [2.20.3 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.2...v2.20.3)
+
+- Test release action.
 
 ## [2.20.2 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.1...v2.20.2)
 
-- Fix creation of GitHub release. Take #2.
+- Increase scope of hard-coded token contents permission.
 
 ## [2.20.1 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.0...v2.20.1)
 
-- Fix creation of GitHub release.
+- Hard-code token contents permission for creation of GitHub release.
 
 ## [2.20.0 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.19.1...v2.20.0)
 
