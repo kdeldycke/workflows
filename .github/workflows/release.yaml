@@ -20,11 +20,6 @@ name: Build & release
       - main
   pull_request:
 
-# Fix creation of GitHub release by action-gh-release.
-# See: https://github.com/softprops/action-gh-release/issues/236#issuecomment-1150530128
-permissions: write-all
-
-
 jobs:
 
   project-metadata:
