@@ -20,6 +20,11 @@ name: Build & release
       - main
   pull_request:
 
+# Fix creation of GitHub release by action-gh-release.
+# See: https://github.com/softprops/action-gh-release/issues/236#issuecomment-1150530128
+permissions: write-all
+
+
 jobs:
 
   project-metadata:
@@ -247,9 +252,6 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
-    # Fix creation of GitHub release by action-gh-release.
-    # See: https://github.com/softprops/action-gh-release/issues/236#issuecomment-1150530128
-    permissions: write-all
     steps:
       - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
@@ -316,7 +318,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
