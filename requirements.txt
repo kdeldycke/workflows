@@ -21,7 +21,7 @@ mdformat-config == 0.1.3
 # mdformat_deflist == 0.X.X
 mdformat_deflist @ git+https://github.com/kdeldycke/mdformat-deflist.git@uncap-mdit-py-plugins-version
 mdformat_footnote == 0.1.1
-mdformat_frontmatter == 2.0.1
+mdformat_frontmatter == 2.0.8
 # Use the unreleased version of mdformat-gfm, which is relaxing capped dependency on
 # mdit-py-plugins < 0.4 . This allows for mdformat-admon to be upgraded to 1.0.2. See:
 # https://github.com/hukkin/mdformat-gfm/issues/27
