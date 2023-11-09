@@ -37,7 +37,7 @@ jobs:
       black_params: ${{ steps.project-metadata.outputs.black_params }}
       ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -69,7 +69,7 @@ jobs:
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
@@ -82,17 +82,21 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Run Ruff check
-        # --select=ALL - Autofix everything.
-        #   Includes rules in the nursery, a collection of newer lints that are still under development.
+        # --preview - Enable preview mode; checks will include unstable rules and fixes.
+        #   See: https://astral.sh/blog/ruff-v0.1.0#introducing-preview-mode
+        # --unsafe-fixes - Include fixes that may not retain the original intent of the code.
+        #   Ruff will be conservative by default, and only apply fixes that are guaranteed to be safe.
+        #   See: https://astral.sh/blog/ruff-v0.1.0#respecting-fix-safety
         # --ignore=D400 - First line should end with a period.
         #   Allows docstrings to end up with any punctuation, not just a period.
-        #   See: https://github.com/charliermarsh/ruff/issues/1858#issuecomment-1382640623
+        #   See: https://github.com/astral-sh/ruff/issues/1858#issuecomment-1382640623
         # --ignore=ERA001 - Found commented-out code.
         #   Do not remove commented code, as it might be used for documentation.
-        #   See: https://beta.ruff.rs/docs/rules/#eradicate-era
+        #   See: https://docs.astral.sh/ruff/rules/#eradicate-era
         run: >
           ruff check --fix-only --output-format=github ${{ needs.project-metadata.outputs.ruff_params }}
-          --select=ALL
+          --preview
+          --unsafe-fixes
           --ignore=D400
           --ignore=ERA001
           .
@@ -107,8 +111,9 @@ jobs:
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Run Ruff format
+        # --target-version has no effect yet, but will be: https://github.com/astral-sh/ruff/pull/8055
         run: |
-          ruff format .
+          ruff format ${{ needs.project-metadata.outputs.ruff_params }} .
       - name: Run blacken-docs
         # blacken-docs reuses Black's ``--target-version pyXY`` parameter.
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
@@ -149,7 +154,7 @@ jobs:
     name: Format Markdown
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
@@ -200,7 +205,7 @@ jobs:
     name: Format JSON
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
       - name: Install jsonlint
         run: |
           sudo npm install --global jsonlint
@@ -231,7 +236,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
         run: |
@@ -248,7 +253,7 @@ jobs:
     if: needs.check-gitignore.outputs.exists
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
       - name: Install git-extras
         run: |
           sudo apt update

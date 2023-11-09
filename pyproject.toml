@@ -1,11 +1,9 @@
 [tool.bumpversion]
-current_version = "2.19.1"
+current_version = "2.20.8"
 allow_dirty = true
-no_regex = true
 
 [[tool.bumpversion.files]]
 # Update the version in standard Markdown changelog.
 filename = "./changelog.md"
-no_regex = true
 search = "## [{current_version} (unreleased)]("
 replace = "## [{new_version} (unreleased)]("

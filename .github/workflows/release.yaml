@@ -38,7 +38,7 @@ jobs:
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -78,7 +78,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.7.1
@@ -119,12 +119,14 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.12"
+          # XXX Nuitka does not support Python 3.12 yet.
+          # See: https://github.com/Nuitka/Nuitka/issues/2433
+          python-version: "3.11"
           cache: "pip"
       - name: Install pip
         run: |
@@ -174,7 +176,7 @@ jobs:
     outputs:
       tagged_version: ${{ steps.get_version.outputs.current_version }}
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.7.1
@@ -317,7 +319,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}

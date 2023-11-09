@@ -32,7 +32,7 @@ jobs:
           - minor
           - major
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
@@ -100,7 +100,7 @@ jobs:
     # keep the release date in sync.
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.0
+      - uses: actions/checkout@v4.1.1
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
@@ -127,19 +127,19 @@ jobs:
         # TOML.
         run: >
           RELEASE_DEFAULT_BRANCH="main" &&
-          bump-my-version replace --no-regex --no-configured-files --ignore-missing-version
+          bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
           --replace "/workflows/v{current_version}/"
           ./.github/workflows/*.yaml
       - name: Set release date in changelog
         run: >
-          bump-my-version replace --no-regex --no-configured-files
+          bump-my-version replace --no-configured-files
           --search " (unreleased)"
           --replace " ({utcnow:%Y-%m-%d})"
           ./changelog.md
       - name: Update comparison URL in changelog
         run: >
-          bump-my-version replace --no-regex --no-configured-files
+          bump-my-version replace --no-configured-files
           --search "...main"
           --replace "...v{current_version}"
           ./changelog.md
@@ -180,7 +180,7 @@ jobs:
         # TOML.
         run: >
           RELEASE_DEFAULT_BRANCH="main" &&
-          bump-my-version replace --no-regex --no-configured-files --ignore-missing-version
+          bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/v{current_version}/"
           --replace "/workflows/$RELEASE_DEFAULT_BRANCH/"
           ./.github/workflows/*.yaml

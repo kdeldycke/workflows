@@ -453,9 +453,9 @@ class Metadata:
 
             Unlike ``black`` and ``blacken-docs``, `ruff doesn't support multiple
             --target-version values
-            <https://github.com/charliermarsh/ruff/issues/2857#issuecomment-1428100515>`_,
+            <https://github.com/astral-sh/ruff/issues/2857#issuecomment-1428100515>`_,
             and `only supports the minimum Python version
-            <https://github.com/charliermarsh/ruff/issues/2519>`_.
+            <https://github.com/astral-sh/ruff/issues/2519>`_.
 
             If it was the case we could have reused ``black_params`` instead of having
             this dedicated property.
@@ -499,12 +499,9 @@ class Metadata:
                     node.value,
                     ast.List | ast.Tuple,
                 ):
-                    extension_found = (
-                        "extensions"
-                        in (
-                            t.id  # type: ignore[attr-defined]
-                            for t in node.targets
-                        )
+                    extension_found = "extensions" in (
+                        t.id  # type: ignore[attr-defined]
+                        for t in node.targets
                     )
                     if extension_found:
                         elements = (

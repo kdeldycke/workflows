@@ -1,10 +1,49 @@
 # Changelog
 
-## [2.19.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.19.0...main)
+## [2.20.8 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.20.7...main)
 
 ```{important}
 This version is not released yet and is under active development.
 ```
+
+## [2.20.7 (2023-11-09)](https://github.com/kdeldycke/workflows/compare/v2.20.6...v2.20.7)
+
+- Run Nuitka builds on Python 3.11 while we wait for 3.12 support upstream.
+
+## [2.20.6 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.5...v2.20.6)
+
+- Remove hard-coded permissions for realease action.
+
+## [2.20.5 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.4...v2.20.5)
+
+- Increase scope of hard-coded permissions for realease action.
+- Use custom token for GitHub release creation.
+
+## [2.20.4 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.3...v2.20.4)
+
+- Increase token permissions to full write.
+
+## [2.20.3 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.2...v2.20.3)
+
+- Test release action.
+
+## [2.20.2 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.1...v2.20.2)
+
+- Increase scope of hard-coded token contents permission.
+
+## [2.20.1 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.0...v2.20.1)
+
+- Hard-code token contents permission for creation of GitHub release.
+
+## [2.20.0 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.19.1...v2.20.0)
+
+- Upgrade to `bump-my-version` `0.12.x` series.
+- Upgrade to Poetry `1.7.x` series.
+
+## [2.19.1 (2023-10-26)](https://github.com/kdeldycke/workflows/compare/v2.19.0...v2.19.1)
+
+- Activates `ruff` preview and unsafe rules.
+- Run actions on Python 3.12.
 
 ## [2.19.0 (2023-09-15)](https://github.com/kdeldycke/workflows/compare/v2.18.0...v2.19.0)
 
