@@ -122,7 +122,9 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v4.7.1
         with:
-          python-version: "3.12"
+          # XXX Nuitka does not support Python 3.12 yet.
+          # See: https://github.com/Nuitka/Nuitka/issues/2433
+          python-version: "3.11"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip

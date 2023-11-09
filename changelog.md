@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Run Nuitka builds on Python 3.11 while we wait for 3.12 support upstream.
+
 ## [2.20.6 (2023-11-05)](https://github.com/kdeldycke/workflows/compare/v2.20.5...v2.20.6)
 
 - Remove hard-coded permissions for realease action.
