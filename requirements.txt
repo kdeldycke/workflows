@@ -50,7 +50,7 @@ mdformat-web @ git+https://github.com/kdeldycke/mdformat-web.git@fix-extra-html-
 mypy == 1.6.1
 nuitka == 1.8.5
 ordered-set == 4.1.0
-pipdeptree == 2.13.0
+pipdeptree == 2.13.1
 poetry == 1.7.0
 PyDriller == 2.5.1
 ruff == 0.1.5
