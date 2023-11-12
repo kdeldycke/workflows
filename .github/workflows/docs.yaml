@@ -112,6 +112,7 @@ jobs:
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
+          cache: "pip"
       - name: Generate .mailmap
         run: >
           python -c "$(curl -fsSL
@@ -152,6 +153,7 @@ jobs:
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
+          cache: "pip"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -178,6 +180,7 @@ jobs:
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
+          cache: "pip"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -234,6 +237,7 @@ jobs:
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
+          cache: "pip"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -276,6 +280,7 @@ jobs:
       - uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.12"
+          cache: "pip"
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
