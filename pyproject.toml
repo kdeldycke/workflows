@@ -1,5 +1,5 @@
 [tool.bumpversion]
-current_version = "2.20.8"
+current_version = "2.20.9"
 allow_dirty = true
 
 [[tool.bumpversion.files]]
