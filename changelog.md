@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Do not cache dependency-less mailmap update workflow step.
+
 ## [2.20.8 (2023-11-12)](https://github.com/kdeldycke/workflows/compare/v2.20.7...v2.20.8)
 
 - Cache Python setups.
