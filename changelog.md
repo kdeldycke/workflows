@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.20.9 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.20.8...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.20.9 (2023-11-13)](https://github.com/kdeldycke/workflows/compare/v2.20.8...v2.20.9)
 
 - Do not cache dependency-less mailmap update workflow step.
 
