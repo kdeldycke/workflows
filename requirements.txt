@@ -52,7 +52,7 @@ nuitka == 1.8.6
 ordered-set == 4.1.0
 pipdeptree == 2.13.1
 poetry == 1.7.1
-PyDriller == 2.5.1
+PyDriller == 2.6
 ruff == 0.1.6
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 4.0.2
