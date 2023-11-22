@@ -107,7 +107,7 @@ from poetry.core.pyproject.toml import PyProjectTOML
 from pydriller import Commit, Repository  # type: ignore[import]
 
 SHORT_SHA_LENGTH = 7
-"""Default SHA lentgth hard-coded to ``7``.
+"""Default SHA length hard-coded to ``7``.
 
 .. caution::
 
