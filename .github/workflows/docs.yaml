@@ -109,7 +109,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: actions/setup-python@v4.7.1
+      - uses: actions/setup-python@v5.0.0
         with:
           python-version: "3.12"
       - name: Generate .mailmap
@@ -149,7 +149,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # We're going to browse all new commits.
           fetch-depth: 0
-      - uses: actions/setup-python@v4.7.1
+      - uses: actions/setup-python@v5.0.0
         with:
           python-version: "3.12"
           cache: "pip"
@@ -176,7 +176,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: actions/setup-python@v4.7.1
+      - uses: actions/setup-python@v5.0.0
         with:
           python-version: "3.12"
           cache: "pip"
@@ -233,7 +233,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: actions/setup-python@v4.7.1
+      - uses: actions/setup-python@v5.0.0
         with:
           python-version: "3.12"
           cache: "pip"
@@ -276,7 +276,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: actions/setup-python@v4.7.1
+      - uses: actions/setup-python@v5.0.0
         with:
           python-version: "3.12"
           cache: "pip"
