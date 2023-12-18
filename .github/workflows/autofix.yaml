@@ -112,6 +112,8 @@ jobs:
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Run Ruff format
         # --target-version has no effect yet, but will be: https://github.com/astral-sh/ruff/pull/8055
+        # TODO: Activate docstring formatting once Ruff is able to activate it by the way of a CLI option:
+        # https://github.com/astral-sh/ruff/issues/9186
         run: |
           ruff format ${{ needs.project-metadata.outputs.ruff_params }} .
       - name: Run blacken-docs
