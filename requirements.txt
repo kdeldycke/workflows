@@ -47,7 +47,7 @@ mdformat-toc == 0.3.0
 # So waiting for the PR to be merged and a new release to be published.
 # mdformat-web > 0.1.0
 mdformat-web @ git+https://github.com/kdeldycke/mdformat-web.git@fix-extra-html-tags
-mypy == 1.7.1
+mypy == 1.8.0
 nuitka == 1.9.5
 ordered-set == 4.1.0
 pipdeptree == 2.13.1
