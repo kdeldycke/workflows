@@ -26,7 +26,9 @@ python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
 is_poetry_project=true
 package_name=click-extra
+py_target_versions=py37 py38
 black_params=--target-version py37 --target-version py38
+ruff_py_version=py37
 ruff_params=--target-version py37
 mypy_params=--python-version 3.7
 is_sphinx=true
@@ -388,13 +390,32 @@ class Metadata:
             )
         if constraint and not constraint.is_empty():
             return constraint
+        # TODO: Should we default to current running Python ?
+        return None
+
+    @cached_property
+    def py_target_versions(self) -> tuple[str, ...] | None:
+        """Generates the list of Python target versions.
+
+        This is based on Black's support matrix.
+        """
+        if self.project_range:
+            minor_range = sorted(v.value for v in TargetVersion)
+            black_range = (
+                Version.from_parts(major=3, minor=minor) for minor in minor_range
+            )
+            return tuple(
+                f"py{version.text.replace('.', '')}"
+                for version in black_range
+                if self.project_range.allows(version)
+            )
         return None
 
     @cached_property
     def black_params(self) -> tuple[str, ...] | None:
         """Generates `black` parameters.
 
-        Black should be fed with a subset of these parameters:
+        Black needs to be fed with a subset of these parameters:
         - `--target-version py33`
         - `--target-version py34`
         - `--target-version py35`
@@ -404,6 +425,7 @@ class Metadata:
         - `--target-version py39`
         - `--target-version py310`
         - `--target-version py311`
+        - `--target-version py312`
 
         `You should include all Python versions that you want your code to run under
         <https://github.com/psf/black/issues/751#issuecomment-473066811>`_.
@@ -420,7 +442,10 @@ class Metadata:
             `#3219 <https://github.com/psf/black/pull/3219>`_), `since v23.1.0
             <https://github.com/psf/black/releases/tag/23.1.0>`_.
 
-            But `only looks
+            But we still needs to resolves and feed the full list of `--target-version`
+            parameters for Poetry-based projects.
+
+            That's because Black `only looks
             <https://github.com/psf/black/blob/b0d1fba/src/black/files.py#L141-L142>`_
             for the `PEP-621's requires-python marker
             <https://peps.python.org/pep-0621/#requires-python>`_ in the
@@ -429,25 +454,16 @@ class Metadata:
                 .. code-block:: toml
                     [project]
                     requires-python = ">=3.8,<3.12"
-
-            Which means we still needs to resolves these Black parameters for
-            Poetry-based projects.
         """
-        if self.project_range:
-            minor_range = sorted(v.value for v in TargetVersion)
-            black_range = (
-                Version.from_parts(major=3, minor=minor) for minor in minor_range
-            )
+        if self.py_target_versions:
             return tuple(
-                f"--target-version py{version.text.replace('.', '')}"
-                for version in black_range
-                if self.project_range.allows(version)
+                f"--target-version {py_target}" for py_target in self.py_target_versions
             )
         return None
 
     @cached_property
-    def ruff_params(self) -> str | None:
-        """Like ``black_params``, but only returns the oldest Python version targeted.
+    def ruff_py_version(self) -> str | None:
+        """Returns the oldest Python version targeted.
 
         .. caution::
 
@@ -457,11 +473,18 @@ class Metadata:
             and `only supports the minimum Python version
             <https://github.com/astral-sh/ruff/issues/2519>`_.
 
-            If it was the case we could have reused ``black_params`` instead of having
+            If it was the case we could have reused ``py_target_versions`` instead of having
             this dedicated property.
         """
-        if self.black_params:
-            return self.black_params[0]
+        if self.py_target_versions:
+            return self.py_target_versions[0]
+        return None
+
+    @cached_property
+    def ruff_params(self) -> str | None:
+        """Like ``black_params``, but only returns the oldest Python version targeted."""
+        if self.ruff_py_version:
+            return f"--target-version {self.ruff_py_version}"
         return None
 
     @cached_property
@@ -806,7 +829,9 @@ class Metadata:
             "doc_files": (self.doc_files, False),
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
+            "py_target_versions": (self.py_target_versions, False),
             "black_params": (self.black_params, False),
+            "ruff_py_version": (self.ruff_py_version, False),
             "ruff_params": (self.ruff_params, False),
             "mypy_params": (self.mypy_params, False),
             "is_sphinx": (self.is_sphinx, False),
