@@ -21,8 +21,6 @@ jobs:
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
-      package_name: ${{ steps.project-metadata.outputs.package_name }}
-      ruff_params: ${{ steps.project-metadata.outputs.ruff_params }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -49,30 +47,6 @@ jobs:
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
-
-  lint-python:
-    needs:
-      - project-metadata
-    # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4.1.1
-      - uses: actions/setup-python@v5.0.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-      - name: Install pip
-        run: |
-          python -m pip install --upgrade pip
-      - name: Install Ruff
-        run: >
-          python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Run Ruff
-        # Runs with the default set of rules. Trust ruff to select a sensible subset.
-        run: >
-          ruff check --output-format=github ${{ needs.project-metadata.outputs.ruff_params }} .
 
   lint-python-types:
     needs:
