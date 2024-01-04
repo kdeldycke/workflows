@@ -83,7 +83,6 @@ jobs:
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Generate ruff config
-        id: ruff-config
         run: |
           cat > ./ruff.toml <<EOL
 
@@ -101,14 +100,19 @@ jobs:
           # See: https://astral.sh/blog/ruff-v0.1.0#introducing-preview-mode
           preview = true
 
-          target-version = "${{ needs.project-metadata.outputs.ruff_py_version }}"
-
           # Include fixes that may not retain the original intent of the code.
           # Ruff will be conservative by default, and only apply fixes that are guaranteed to be safe.
           # See: https://astral.sh/blog/ruff-v0.1.0#respecting-fix-safety
           unsafe-fixes = true
 
           EOL
+      - name: Optional ruff config
+        if: needs.project-metadata.outputs.ruff_py_version
+        run: |
+          tee -a ./ruff.toml <<-EOF
+
+          target-version = "${{ needs.project-metadata.outputs.ruff_py_version }}"
+          EOF
       - name: Print ruff config
         run: |
           cat ./ruff.toml
