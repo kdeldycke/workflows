@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.21.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.21.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.21.0 (2024-01-04)](https://github.com/kdeldycke/workflows/compare/v2.20.9...v2.21.0)
 
 - Use `ruff` instead of `blacken-docs` to format docstrings inside Python files.
