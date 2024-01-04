@@ -26,7 +26,6 @@ python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
 is_poetry_project=true
 package_name=click-extra
-py_target_versions=py37 py38
 blacken_docs_params=--target-version py37 --target-version py38
 ruff_py_version=py37
 mypy_params=--python-version 3.7
@@ -792,7 +791,6 @@ class Metadata:
             "doc_files": (self.doc_files, False),
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
-            "py_target_versions": (self.py_target_versions, False),
             "blacken_docs_params": (self.blacken_docs_params, False),
             "ruff_py_version": (self.ruff_py_version, False),
             "mypy_params": (self.mypy_params, False),
