@@ -163,6 +163,9 @@ jobs:
         # https://github.com/PyCQA/docformatter/commit/f7d50ae
         run: |
           docformatter --recursive --in-place --black . || true
+      - name: Remove temporary Ruff config
+        run: |
+          rm ./ruff.toml
       - uses: peter-evans/create-pull-request@v5.0.2
         with:
           assignees: ${{ github.actor }}
