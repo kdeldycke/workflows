@@ -27,9 +27,8 @@ doc_files="changelog.md" "readme.md" "docs/license.md"
 is_poetry_project=true
 package_name=click-extra
 py_target_versions=py37 py38
-black_params=--target-version py37 --target-version py38
+blacken_docs_params=--target-version py37 --target-version py38
 ruff_py_version=py37
-ruff_params=--target-version py37
 mypy_params=--python-version 3.7
 is_sphinx=true
 active_autodoc=true
@@ -81,10 +80,6 @@ nuitka_matrix={'entry_point': ['mpm'],
     The ``new_commits_matrix``, ``release_commits_matrix`` and ``nuitka_matrix``
     variables in the block above are pretty-printed for readability. They are not
     actually formatted this way in the environment file, but inlined.
-
-Automatic detection of minimal Python version is being discussed upstream for:
-- `black` at https://github.com/psf/black/issues/3124
-- `mypy` [rejected] at https://github.com/python/mypy/issues/13294
 """
 
 # pylint: disable=fixme,no-name-in-module,too-many-public-methods
@@ -412,10 +407,12 @@ class Metadata:
         return None
 
     @cached_property
-    def black_params(self) -> tuple[str, ...] | None:
-        """Generates `black` parameters.
+    def blacken_docs_params(self) -> tuple[str, ...] | None:
+        """Generates `blacken-docs` parameters.
 
-        Black needs to be fed with a subset of these parameters:
+        `Blacken-docs reuses Black's --target-version pyXY parameters
+        <https://github.com/adamchainz/blacken-docs/blob/cd4e60f/src/blacken_docs/__init__.py#L263-L271>`_,
+        and needs to be fed with a subset of these:
         - `--target-version py33`
         - `--target-version py34`
         - `--target-version py35`
@@ -427,33 +424,9 @@ class Metadata:
         - `--target-version py311`
         - `--target-version py312`
 
-        `You should include all Python versions that you want your code to run under
+        As mentionned in Black usage, you should `include all Python versions that you
+        want your code to run under
         <https://github.com/psf/black/issues/751#issuecomment-473066811>`_.
-
-        .. tip::
-
-            Can also be re-used for `blacken-docs
-            <https://github.com/adamchainz/blacken-docs/blob/cd4e60f/src/blacken_docs/__init__.py#L263-L271>`_.
-
-        .. caution::
-
-            Black supports auto-detection of the Python version targeted by your
-            project (see `#3124 <https://github.com/psf/black/issues/3124>`_ and
-            `#3219 <https://github.com/psf/black/pull/3219>`_), `since v23.1.0
-            <https://github.com/psf/black/releases/tag/23.1.0>`_.
-
-            But we still needs to resolves and feed the full list of `--target-version`
-            parameters for Poetry-based projects.
-
-            That's because Black `only looks
-            <https://github.com/psf/black/blob/b0d1fba/src/black/files.py#L141-L142>`_
-            for the `PEP-621's requires-python marker
-            <https://peps.python.org/pep-0621/#requires-python>`_ in the
-            ``pyproject.toml`` file, i.e.:
-
-                .. code-block:: toml
-                    [project]
-                    requires-python = ">=3.8,<3.12"
         """
         if self.py_target_versions:
             return tuple(
@@ -467,24 +440,14 @@ class Metadata:
 
         .. caution::
 
-            Unlike ``black`` and ``blacken-docs``, `ruff doesn't support multiple
+            Unlike ``blacken-docs``, `ruff doesn't support multiple
             --target-version values
             <https://github.com/astral-sh/ruff/issues/2857#issuecomment-1428100515>`_,
             and `only supports the minimum Python version
             <https://github.com/astral-sh/ruff/issues/2519>`_.
-
-            If it was the case we could have reused ``py_target_versions`` instead of having
-            this dedicated property.
         """
         if self.py_target_versions:
             return self.py_target_versions[0]
-        return None
-
-    @cached_property
-    def ruff_params(self) -> str | None:
-        """Like ``black_params``, but only returns the oldest Python version targeted."""
-        if self.ruff_py_version:
-            return f"--target-version {self.ruff_py_version}"
         return None
 
     @cached_property
@@ -830,9 +793,8 @@ class Metadata:
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
             "py_target_versions": (self.py_target_versions, False),
-            "black_params": (self.black_params, False),
+            "blacken_docs_params": (self.blacken_docs_params, False),
             "ruff_py_version": (self.ruff_py_version, False),
-            "ruff_params": (self.ruff_params, False),
             "mypy_params": (self.mypy_params, False),
             "is_sphinx": (self.is_sphinx, False),
             "active_autodoc": (self.active_autodoc, False),
