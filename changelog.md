@@ -6,8 +6,10 @@
 This version is not released yet and is under active development.
 ```
 
-- Only run ruff once for autofix and linting. Removes `lint-python` job.
-- Auto-generate local configuration for ruff instead of passing parameters.
+- Use `ruff` instead of `blacken-docs` to format docstrings inside Python files.
+- Remove dependency on `docformatter`.
+- Only run `ruff` once for autofix and linting. Removes `lint-python` job.
+- Auto-generate local configuration for `ruff` instead of passing parameters.
 - Split generation of Python target version from CLI parameters.
 
 ## [2.20.9 (2023-11-13)](https://github.com/kdeldycke/workflows/compare/v2.20.8...v2.20.9)
