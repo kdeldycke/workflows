@@ -198,7 +198,8 @@ jobs:
       - name: Print version
         run: |
           echo "Tagged version: ${{ steps.get_version.outputs.current_version }}"
-      - id: tag_exists
+      - name: Check if tag exists
+        id: tag_exists
         run: |
           echo "tag_exists=$(
           git show-ref --tags "v${{ steps.get_version.outputs.current_version }}" --quiet )" >> "$GITHUB_OUTPUT"
