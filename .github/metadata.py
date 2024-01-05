@@ -776,7 +776,7 @@ class Metadata:
             {pypi_link}
             """
         )
-        return notes
+        return notes.strip()
 
     @staticmethod
     def format_github_value(value: Any, render_json: bool = False) -> str:
