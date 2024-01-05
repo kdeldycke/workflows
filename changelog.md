@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Update default file-based labelling rules for new configuration format.
+- Run `autopep8` before `ruff`.
 
 ## [2.21.0 (2024-01-04)](https://github.com/kdeldycke/workflows/compare/v2.20.9...v2.21.0)
 
