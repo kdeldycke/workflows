@@ -259,9 +259,11 @@ jobs:
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@v4.1.0
         id: artifacts
-        # XXX Ideally we would only download here artifacts matching the "*-build-${{ matrix.short_sha }}.*" pattern,
-        # but actions/download-artifact does not support globbing:
-        # https://github.com/actions/download-artifact/issues/103
+        with:
+          path: release_artifact
+          # Only consider artifacts produced by the release commit.
+          pattern: "*-build-${{ matrix.short_sha }}*"
+          merge-multiple: true
       - name: Rename binary artifacts, collect all others
         # Do not try to rename artifacts if the job producing them was skipped.
         if: needs.compile-binaries.result != 'skipped'
@@ -280,31 +282,25 @@ jobs:
 
           artifacts_path = []
 
-          # Only consider artifacts produced by the release commit.
-          build_id = """-build-${{ matrix.short_sha }}"""
-          for artifact_folder in download_folder.glob(f"*{build_id}*"):
-              print(f"Processing {artifact_folder} ...")
-              assert artifact_folder.is_dir()
+          for artifact in download_folder.glob("*"):
+              print(f"Processing {artifact} ...")
+              assert artifact.is_file()
 
-              for artifact in artifact_folder.glob("*"):
-                  print(f"Processing {artifact} ...")
-                  assert artifact.is_file()
+              # Rename binary artifacts to remove the build ID.
+              if artifact.name in binaries:
+                  new_name = f'{artifact.stem.split("""-build-${{ matrix.short_sha }}""", 1)[0]}{artifact.suffix}'
+                  new_path = artifact.with_name(new_name)
 
-                  # Rename binary artifacts to remove the build ID.
-                  if artifact.name in binaries:
-                      new_name = f"{artifact.stem.split(build_id, 1)[0]}{artifact.suffix}"
-                      new_path = artifact.with_name(new_name)
+                  print(f"Renaming {artifact} to {new_path} ...")
+                  assert not new_path.exists()
 
-                      print(f"Renaming {artifact} to {new_path} ...")
-                      assert not new_path.exists()
+                  artifact.rename(new_path)
+                  artifacts_path.append(new_path)
 
-                      artifact.rename(new_path)
-                      artifacts_path.append(new_path)
-
-                  # Collect other artifacts as-is.
-                  else:
-                      print(f"Collecting {artifact} ...")
-                      artifacts_path.append(artifact)
+              # Collect other artifacts as-is.
+              else:
+                  print(f"Collecting {artifact} ...")
+                  artifacts_path.append(artifact)
 
           # Produce a unique delimiter to feed multiline content to GITHUB_OUTPUT:
           # https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
