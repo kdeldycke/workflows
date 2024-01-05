@@ -787,11 +787,19 @@ class Metadata:
         """Generate notes to be attached to the GitHub release."""
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
-        if self.package_name and self.current_version:
+        if self.package_name:
+            # Get version from the release commit, or the only new commit.
+            if self.release_commits_matrix:
+                assert len(self.release_commits_matrix) == 1
+                source_matrix = self.release_commits_matrix
+            else:
+                assert len(self.new_commits_matrix) == 1
+                source_matrix = self.new_commits_matrix
+            current_version = source_matrix["include"][0]["current_version"]
             pypi_link = dedent(
                 f"""\
                 [🐍 Available on
-                PyPi](https://pypi.org/project/{self.package_name}/{self.current_version}).
+                PyPi](https://pypi.org/project/{self.package_name}/{current_version}).
                 """
             )
 
