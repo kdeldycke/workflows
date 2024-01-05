@@ -790,10 +790,10 @@ class Metadata:
         if self.package_name:
             # Get version from the release commit, or the only new commit.
             if self.release_commits_matrix:
-                assert len(self.release_commits_matrix) == 1
+                assert len(self.release_commits_matrix["include"]) == 1
                 source_matrix = self.release_commits_matrix
             else:
-                assert len(self.new_commits_matrix) == 1
+                assert len(self.new_commits_matrix["include"]) == 1
                 source_matrix = self.new_commits_matrix
             current_version = source_matrix["include"][0]["current_version"]
             pypi_link = dedent(
