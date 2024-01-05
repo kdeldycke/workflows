@@ -100,9 +100,9 @@ from textwrap import dedent
 from typing import Any, cast
 
 from black.mode import TargetVersion
-from bumpversion.config import get_configuration
-from bumpversion.config.files import find_config_file
-from bumpversion.show import resolve_name
+from bumpversion.config import get_configuration  # type: ignore[import-untyped]
+from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
+from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
