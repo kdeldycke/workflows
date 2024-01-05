@@ -163,7 +163,7 @@ jobs:
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: lycheeverse/lychee-action@v1.8.0
+      - uses: lycheeverse/lychee-action@v1.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
