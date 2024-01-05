@@ -789,13 +789,14 @@ class Metadata:
         pypi_link = ""
         if self.package_name:
             # Get version from the release commit, or the only new commit.
-            if self.release_commits_matrix:
-                assert len(self.release_commits_matrix["include"]) == 1
-                source_matrix = self.release_commits_matrix
-            else:
-                assert len(self.new_commits_matrix["include"]) == 1
-                source_matrix = self.new_commits_matrix
-            current_version = source_matrix["include"][0]["current_version"]
+            current_version = None
+            for matrix in (self.release_commits_matrix, self.new_commits_matrix):
+                if matrix:
+                    assert len(matrix.get("include", [])) == 1
+                    current_version = matrix["include"][0]["current_version"]  # type: ignore[index]
+                    if current_version:
+                        break
+
             pypi_link = dedent(
                 f"""\
                 [🐍 Available on
