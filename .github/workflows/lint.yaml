@@ -163,15 +163,14 @@ jobs:
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: lycheeverse/lychee-action@v1.8.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: lycheeverse/lychee-action@v1.9.0
         with:
           # XXX Skip twitter.com which is blackholing requests from GitHub, and HN because of rate-limiting.
           # See: https://github.com/lycheeverse/lychee/issues/989#issuecomment-1587208730
           args: >
             --exclude twitter.com
             --exclude ycombinator.com
+            --base .
             --verbose
             --no-progress
             './**/*.md' './**/*.html' './**/*.rst'
