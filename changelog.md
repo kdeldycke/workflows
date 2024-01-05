@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.23.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.23.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.23.0 (2024-01-05)](https://github.com/kdeldycke/workflows/compare/v2.22.0...v2.23.0)
 
 - Produce GitHub release notes dynamiccaly.
