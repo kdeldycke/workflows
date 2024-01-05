@@ -7,7 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Produce GitHub release notes dynamiccaly.
-- Expose current version of `bump-my-version` in metadata script output.
+- Augment all commits matrix with current version from `bump-my-version`.
 - Use new artifact features and scripts.
 
 ## [2.22.0 (2024-01-05)](https://github.com/kdeldycke/workflows/compare/v2.21.0...v2.22.0)

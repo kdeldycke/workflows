@@ -7,9 +7,6 @@ name: Build & release
       PYPI_TOKEN:
         required: false
     outputs:
-      tagged_version:
-        description: Tagged/released version (without leading 'v')
-        value: ${{ jobs.git-tag.outputs.tagged_version }}
       nuitka_matrix:
         description: Nuitka build matrix
         value: ${{ jobs.project-metadata.outputs.nuitka_matrix }}
@@ -174,8 +171,6 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
-    outputs:
-      tagged_version: ${{ steps.get_version.outputs.current_version }}
     steps:
       - uses: actions/checkout@v4.1.1
         with:
@@ -191,18 +186,10 @@ jobs:
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
-      - name: Extract version
-        id: get_version
-        run: |
-          echo "current_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
-      - name: Print version
-        run: |
-          echo "Tagged version: ${{ steps.get_version.outputs.current_version }}"
       - name: Check if tag exists
         id: tag_exists
         run: |
-          echo "tag_exists=$(
-          git show-ref --tags "v${{ steps.get_version.outputs.current_version }}" --quiet )" >> "$GITHUB_OUTPUT"
+          echo "tag_exists=$(git show-ref --tags "v${{ matrix.current_version }}" --quiet )" >> "$GITHUB_OUTPUT"
       - name: Tag search results
         run: |
           echo "Does tag exist? ${{ steps.tag_exists.outputs.tag_exists && true || false }}"
@@ -217,7 +204,7 @@ jobs:
           #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
           # See: https://github.com/rhysd/actionlint/issues/148
           repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-          tag: v${{ steps.get_version.outputs.current_version }}
+          tag: v${{ matrix.current_version }}
           commit-sha: ${{ matrix.commit }}
 
   pypi-publish:
@@ -319,7 +306,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ needs.git-tag.outputs.tagged_version }}
+          tag_name: v${{ matrix.current_version }}
           target_commitish: ${{ matrix.commit }}
           files: ${{ steps.rename_artifacts.outputs.artifacts_path }}
           body: ${{ needs.project-metadata.outputs.release_notes }}

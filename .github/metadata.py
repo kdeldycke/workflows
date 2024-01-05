@@ -29,19 +29,21 @@ package_name=click-extra
 blacken_docs_params=--target-version py37 --target-version py38
 ruff_py_version=py37
 mypy_params=--python-version 3.7
-current_version=2.21.3
 is_sphinx=true
 active_autodoc=true
 release_notes=[🐍 Available on PyPi](https://pypi.org/project/click-extra/2.21.3).
 new_commits_matrix={'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
                                '6f27db47612aaee06fdf08744b09a9f5f6c2'],
                     'include': [{'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                                 'short_sha': '346ce66'},
+                                 'short_sha': '346ce66',
+                                 'current_version': '1.2.3'},
                                 {'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                                 'short_sha': '6f27db4'}]}
+                                 'short_sha': '6f27db4',
+                                 'current_version': '2.0.0'}]}
 release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
                         'include': [{'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                                     'short_sha': '6f27db4'}]}
+                                     'short_sha': '6f27db4',
+                                     'current_version': '2.0.0'}]}
 nuitka_matrix={'entry_point': ['mpm'],
                'os': ['ubuntu-22.04', 'macos-12', 'windows-2022'],
                'arch': ['x64'],
@@ -106,7 +108,7 @@ from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
-from pydriller import Commit, Repository  # type: ignore[import]
+from pydriller import Commit, Git, Repository  # type: ignore[import]
 
 SHORT_SHA_LENGTH = 7
 """Default SHA length hard-coded to ``7``.
@@ -166,8 +168,11 @@ class Metadata:
         return context
 
     @staticmethod
-    def sha_matrix(commits: Iterable[Commit] | None) -> TMatrix | None:
-        """Pre-compute a matrix with long and short SHA values.
+    def commit_matrix(commits: Iterable[Commit] | None) -> TMatrix | None:
+        """Pre-compute a matrix of commits.
+
+        The list of commits is augmented with long and short SHA values, as well as
+        current version.
 
         Returns a ready-to-use matrix structure:
 
@@ -181,26 +186,46 @@ class Metadata:
                     {
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "short_sha": "346ce66",
+                        "current_version": "1.2.3",
                     },
                     {
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "short_sha": "6f27db4",
+                        "current_version": "2.0.0",
                     },
                 ],
             }
         """
         if not commits:
             return None
-        sha_list = [commit.hash for commit in commits]
+
+        # Save a reference to the current commit.
+        git = Git(".")
+        head_sha = git.get_head().hash
+
+        sha_list = []
+        include_list = []
+        for commit in commits:
+            sha = commit.hash
+
+            # Checkout the commit so we can read the version associated with it.
+            current_version = None
+            git.checkout(sha)
+            current_version = Metadata.get_current_version()
+
+            sha_list.append(sha)
+            include_list.append({
+                "commit": sha,
+                "short_sha": sha[:SHORT_SHA_LENGTH],
+                "current_version": current_version,
+            })
+
+        # Restore the repository to the initial commit.
+        git.checkout(head_sha)
+
         return {
             "commit": sha_list,
-            "include": [
-                {
-                    "commit": sha,
-                    "short_sha": sha[:SHORT_SHA_LENGTH],
-                }
-                for sha in sha_list
-            ],
+            "include": include_list,
         }
 
     @cached_property
@@ -263,7 +288,7 @@ class Metadata:
     @cached_property
     def new_commits_matrix(self) -> TMatrix | None:
         """Pre-computed matrix with long and short SHA values of new commits."""
-        return self.sha_matrix(self.new_commits)
+        return self.commit_matrix(self.new_commits)
 
     @cached_property
     def new_commits_hash(self) -> tuple[str, ...] | None:
@@ -300,7 +325,7 @@ class Metadata:
     @cached_property
     def release_commits_matrix(self) -> TMatrix | None:
         """Pre-computed matrix with long and short SHA values of release commits."""
-        return self.sha_matrix(self.release_commits)
+        return self.commit_matrix(self.release_commits)
 
     @cached_property
     def release_commits_hash(self) -> tuple[str, ...] | None:
@@ -474,8 +499,8 @@ class Metadata:
             return f"--python-version {major}.{minor}"
         return None
 
-    @cached_property
-    def current_version(self):
+    @staticmethod
+    def get_current_version():
         """Returns the current version as managed by bump-my-version.
 
         Same as calling the CLI:
@@ -834,7 +859,6 @@ class Metadata:
             "blacken_docs_params": (self.blacken_docs_params, False),
             "ruff_py_version": (self.ruff_py_version, False),
             "mypy_params": (self.mypy_params, False),
-            "current_version": (self.current_version, False),
             "is_sphinx": (self.is_sphinx, False),
             "active_autodoc": (self.active_autodoc, False),
             "release_notes": (self.release_notes, False),
