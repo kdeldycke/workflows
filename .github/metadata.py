@@ -29,6 +29,7 @@ package_name=click-extra
 blacken_docs_params=--target-version py37 --target-version py38
 ruff_py_version=py37
 mypy_params=--python-version 3.7
+current_version=2.21.3
 is_sphinx=true
 active_autodoc=true
 new_commits_matrix={'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
@@ -97,6 +98,9 @@ from pathlib import Path
 from typing import Any, cast
 
 from black.mode import TargetVersion
+from bumpversion.config import get_configuration
+from bumpversion.config.files import find_config_file
+from bumpversion.show import resolve_name
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
@@ -469,6 +473,19 @@ class Metadata:
         return None
 
     @cached_property
+    def current_version(self):
+        """Returns the current version as managed by bump-my-version.
+
+        Same as calling the CLI:
+
+            .. code-block:: shell-session
+                $ bump-my-version show current_version
+        """
+        config = get_configuration(find_config_file())
+        config_dict = config.model_dump()
+        return resolve_name(config_dict, "current_version")
+
+    @cached_property
     def is_sphinx(self) -> bool:
         """Returns true if the Sphinx config file is present."""
         # The Sphinx config file is present, that's enough for us.
@@ -794,6 +811,7 @@ class Metadata:
             "blacken_docs_params": (self.blacken_docs_params, False),
             "ruff_py_version": (self.ruff_py_version, False),
             "mypy_params": (self.mypy_params, False),
+            "current_version": (self.current_version, False),
             "is_sphinx": (self.is_sphinx, False),
             "active_autodoc": (self.active_autodoc, False),
         }
