@@ -32,6 +32,7 @@ mypy_params=--python-version 3.7
 current_version=2.21.3
 is_sphinx=true
 active_autodoc=true
+release_notes=[🐍 Available on PyPi](https://pypi.org/project/click-extra/2.21.3).
 new_commits_matrix={'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
                                '6f27db47612aaee06fdf08744b09a9f5f6c2'],
                     'include': [{'commit': '346ce664f055fbd042a25ee0b7e96702e95',
@@ -95,6 +96,7 @@ from collections.abc import Generator, Iterable
 from functools import cached_property
 from itertools import product
 from pathlib import Path
+from textwrap import dedent
 from typing import Any, cast
 
 from black.mode import TargetVersion
@@ -755,6 +757,27 @@ class Metadata:
 
         return matrix
 
+    @cached_property
+    def release_notes(self) -> str:
+        """Generate notes to be attached to the GitHub release."""
+        # Generate a link to the version of the package published on PyPi.
+        pypi_link = ""
+        if self.package_name and self.current_version:
+            pypi_link = dedent(
+                f"""\
+                [🐍 Available on
+                PyPi](https://pypi.org/project/{self.package_name}/{self.current_version}).
+                """
+            )
+
+        # Assemble the release notes.
+        notes = dedent(
+            f"""\
+            {pypi_link}
+            """
+        )
+        return notes
+
     @staticmethod
     def format_github_value(value: Any, render_json: bool = False) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
@@ -814,6 +837,7 @@ class Metadata:
             "current_version": (self.current_version, False),
             "is_sphinx": (self.is_sphinx, False),
             "active_autodoc": (self.active_autodoc, False),
+            "release_notes": (self.release_notes, False),
         }
 
         # Structured metadata to be rendered as JSON.

@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Produce GitHub release notes dynamiccaly.
 - Expose current version of `bump-my-version` in metadata script output.
 - Use new artifact features and scripts.
 

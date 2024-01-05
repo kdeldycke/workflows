@@ -37,6 +37,7 @@ jobs:
       nuitka_matrix: ${{ steps.project-metadata.outputs.nuitka_matrix }}
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
+      release_notes: ${{ steps.project-metadata.outputs.release_notes }}
     steps:
       - uses: actions/checkout@v4.1.1
         with:
@@ -320,6 +321,4 @@ jobs:
           tag_name: v${{ needs.git-tag.outputs.tagged_version }}
           target_commitish: ${{ matrix.commit }}
           files: ${{ steps.rename_artifacts.outputs.artifacts_path }}
-          body: |
-            [🐍 Available on PyPi](https://pypi.org/project/${{ needs.project-metadata.outputs.package_name }}/${{
-            needs.git-tag.outputs.tagged_version }})
+          body: ${{ needs.project-metadata.outputs.release_notes }}
