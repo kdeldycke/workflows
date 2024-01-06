@@ -98,6 +98,7 @@ from collections.abc import Generator, Iterable
 from functools import cached_property
 from itertools import product
 from pathlib import Path
+from random import randint
 from textwrap import dedent
 from typing import Any, cast
 
@@ -899,10 +900,17 @@ class Metadata:
         if self.debug:
             print(f"--- Writing into {self.output_env_file} ---")
         content = ""
-        for name, (value, render_json) in metadata.items():
-            content += (
-                f"{name}={self.format_github_value(value, render_json=render_json)}\n"
-            )
+        for env_name, (value, render_json) in metadata.items():
+            env_value = self.format_github_value(value, render_json=render_json)
+
+            is_multiline = bool(len(env_value.splitlines()) > 1)
+            if not is_multiline:
+                content += f"{env_name}={env_value}\n"
+            else:
+                # Use a random unique delimiter to encode multiline value:
+                delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
+                content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
+
         if self.debug:
             print(content)
         if not self.output_env_file:
