@@ -786,6 +786,16 @@ class Metadata:
     @cached_property
     def release_notes(self) -> str:
         """Generate notes to be attached to the GitHub release."""
+        # Extract the changelog entry located between the first two `##` second-level markdown titles.
+        changes = ""
+        match = re.search(
+            r"^##(?P<title>.*?)\n(?P<changes>.*?)\n##",
+            Path("./changelog.md").read_text(),
+            flags=re.MULTILINE | re.DOTALL,
+        )
+        if match:
+            changes = match.groupdict().get("changes").strip()
+
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
         if self.package_name:
@@ -805,27 +815,8 @@ class Metadata:
                 """
             )
 
-        # Extract the changelog entry located between the first two `##` second-level markdown titles.
-        changes = (
-            re.search(
-                r"^##(?P<title>.*?)\n(?P<changes>.*?)\n##",
-                Path("./changelog.md").read_text(),
-                flags=re.MULTILINE | re.DOTALL,
-            )
-            .groupdict()
-            .get("changes")
-            .strip()
-        )
-
         # Assemble the release notes.
-        notes = dedent(
-            f"""
-            {changes}
-
-            {pypi_link}
-            """
-        )
-        return notes.strip()
+        return f"{changes}\n\n{pypi_link}".strip()
 
     @staticmethod
     def format_github_value(value: Any, render_json: bool = False) -> str:
