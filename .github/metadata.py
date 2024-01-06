@@ -29,6 +29,8 @@ package_name=click-extra
 blacken_docs_params=--target-version py37 --target-version py38
 ruff_py_version=py37
 mypy_params=--python-version 3.7
+current_version=2.0.1
+released_version=2.0.0
 is_sphinx=true
 active_autodoc=true
 release_notes=[🐍 Available on PyPi](https://pypi.org/project/click-extra/2.21.3).
@@ -36,7 +38,7 @@ new_commits_matrix={'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
                                '6f27db47612aaee06fdf08744b09a9f5f6c2'],
                     'include': [{'commit': '346ce664f055fbd042a25ee0b7e96702e95',
                                  'short_sha': '346ce66',
-                                 'current_version': '1.2.3'},
+                                 'current_version': '2.0.1'},
                                 {'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
                                  'short_sha': '6f27db4',
                                  'current_version': '2.0.0'}]}
@@ -174,7 +176,7 @@ class Metadata:
         """Pre-compute a matrix of commits.
 
         The list of commits is augmented with long and short SHA values, as well as
-        current version.
+        current version. Most recent commit is first, oldest is last.
 
         Returns a ready-to-use matrix structure:
 
@@ -188,7 +190,7 @@ class Metadata:
                     {
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "short_sha": "346ce66",
-                        "current_version": "1.2.3",
+                        "current_version": "2.0.1",
                     },
                     {
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
@@ -516,7 +518,10 @@ class Metadata:
 
     @cached_property
     def current_version(self) -> str | None:
-        """Returns the current version."""
+        """Returns the current version.
+
+        I.e. the version of the most recent commit.
+        """
         version = None
         if self.new_commits_matrix:
             details = self.new_commits_matrix.get("include")
@@ -897,6 +902,8 @@ class Metadata:
             "blacken_docs_params": (self.blacken_docs_params, False),
             "ruff_py_version": (self.ruff_py_version, False),
             "mypy_params": (self.mypy_params, False),
+            "current_version": (self.current_version, False),
+            "released_version": (self.released_version, False),
             "is_sphinx": (self.is_sphinx, False),
             "active_autodoc": (self.active_autodoc, False),
             "release_notes": (self.release_notes, False),
