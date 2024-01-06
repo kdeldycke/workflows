@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix fetching of changelog entry for release notes.
+
 ## [2.24.0 (2024-01-06)](https://github.com/kdeldycke/workflows/compare/v2.23.0...v2.24.0)
 
 - Add latest changelog entries in GitHub release notes.

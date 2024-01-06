@@ -99,6 +99,7 @@ from functools import cached_property
 from itertools import product
 from pathlib import Path
 from random import randint
+from re import escape
 from textwrap import dedent
 from typing import Any, cast
 
@@ -501,7 +502,7 @@ class Metadata:
         return None
 
     @staticmethod
-    def get_current_version():
+    def get_current_version() -> str:
         """Returns the current version as managed by bump-my-version.
 
         Same as calling the CLI:
@@ -512,6 +513,15 @@ class Metadata:
         config = get_configuration(find_config_file())
         config_dict = config.model_dump()
         return resolve_name(config_dict, "current_version")
+
+    @cached_property
+    def released_version(self) -> str | None:
+        """Returns the version of the release commit."""
+        version = None
+        if self.release_commits_matrix:
+            assert len(self.release_commits_matrix.get("include", [])) == 1
+            version = self.release_commits_matrix["include"][0]["current_version"]  # type: ignore[index]
+        return version
 
     @cached_property
     def is_sphinx(self) -> bool:
@@ -786,10 +796,11 @@ class Metadata:
     @cached_property
     def release_notes(self) -> str:
         """Generate notes to be attached to the GitHub release."""
-        # Extract the changelog entry located between the first two `##` second-level markdown titles.
+        # Extract the changelog entry corresponding to the release version, and located
+        # between the first two `##` second-level markdown titles.
         changes = ""
         match = re.search(
-            r"^##(?P<title>.*?)\n(?P<changes>.*?)\n##",
+            rf"^##(?P<title>.+{escape(self.released_version)} .+?)\n(?P<changes>.*?)\n##",
             Path("./changelog.md").read_text(),
             flags=re.MULTILINE | re.DOTALL,
         )
@@ -799,19 +810,10 @@ class Metadata:
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
         if self.package_name:
-            # Get version from the release commit, or the only new commit.
-            current_version = None
-            for matrix in (self.release_commits_matrix, self.new_commits_matrix):
-                if matrix:
-                    assert len(matrix.get("include", [])) == 1
-                    current_version = matrix["include"][0]["current_version"]  # type: ignore[index]
-                    if current_version:
-                        break
-
             pypi_link = dedent(
                 f"""\
                 [🐍 Available on
-                PyPi](https://pypi.org/project/{self.package_name}/{current_version}).
+                PyPi](https://pypi.org/project/{self.package_name}/{self.released_version}).
                 """
             )
 
