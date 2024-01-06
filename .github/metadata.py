@@ -794,7 +794,7 @@ class Metadata:
             flags=re.MULTILINE | re.DOTALL,
         )
         if match:
-            changes = match.groupdict().get("changes").strip()
+            changes = match.groupdict().get("changes", "").strip()
 
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
