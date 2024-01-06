@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Add latest changelog entries in GitHub release notes.
+
 ## [2.23.0 (2024-01-05)](https://github.com/kdeldycke/workflows/compare/v2.22.0...v2.23.0)
 
 - Produce GitHub release notes dynamiccaly.

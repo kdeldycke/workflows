@@ -804,9 +804,23 @@ class Metadata:
                 """
             )
 
+        # Extract the changelog entry located between the first two `##` second-level markdown titles.
+        changes = (
+            re.search(
+                r"^##(?P<title>.*?)\n(?P<changes>.*?)\n##",
+                Path("./changelog.md").read_text(),
+                flags=re.MULTILINE | re.DOTALL,
+            )
+            .groupdict()
+            .get("changes")
+            .strip()
+        )
+
         # Assemble the release notes.
         notes = dedent(
-            f"""\
+            f"""
+            {changes}
+
             {pypi_link}
             """
         )
