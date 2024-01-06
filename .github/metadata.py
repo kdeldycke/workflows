@@ -521,7 +521,7 @@ class Metadata:
         if self.new_commits_matrix:
             details = self.new_commits_matrix.get("include")
             if details:
-                version = details[0].get("current_version")
+                version = details[0].get("current_version")  # type: ignore[union-attr]
         return version
 
     @cached_property
@@ -534,7 +534,7 @@ class Metadata:
                 # This script is only designed for at most 1 release in the list of new
                 # commits.
                 assert len(details) == 1
-                version = details[0].get("current_version")
+                version = details[0].get("current_version")  # type: ignore[union-attr]
         return version
 
     @cached_property
@@ -808,12 +808,14 @@ class Metadata:
         return matrix
 
     @cached_property
-    def release_notes(self) -> str:
+    def release_notes(self) -> str | None:
         """Generate notes to be attached to the GitHub release."""
         # Produce the release notes of the release version or the current one.
         version = self.released_version
         if not version:
             version = self.current_version
+        if not version:
+            return None
 
         # Extract the changelog entry corresponding to the release version, and located
         # between the first two `##` second-level markdown titles.
