@@ -515,12 +515,26 @@ class Metadata:
         return resolve_name(config_dict, "current_version")
 
     @cached_property
+    def current_version(self) -> str | None:
+        """Returns the current version."""
+        version = None
+        if self.new_commits_matrix:
+            details = self.new_commits_matrix.get("include")
+            if details:
+                version = details[0].get("current_version")
+        return version
+
+    @cached_property
     def released_version(self) -> str | None:
         """Returns the version of the release commit."""
         version = None
         if self.release_commits_matrix:
-            assert len(self.release_commits_matrix.get("include", [])) == 1
-            version = self.release_commits_matrix["include"][0]["current_version"]  # type: ignore[index]
+            details = self.release_commits_matrix.get("include")
+            if details:
+                # This script is only designed for at most 1 release in the list of new
+                # commits.
+                assert len(details) == 1
+                version = details[0].get("current_version")
         return version
 
     @cached_property
@@ -796,11 +810,16 @@ class Metadata:
     @cached_property
     def release_notes(self) -> str:
         """Generate notes to be attached to the GitHub release."""
+        # Produce the release notes of the release version or the current one.
+        version = self.released_version
+        if not version:
+            version = self.current_version
+
         # Extract the changelog entry corresponding to the release version, and located
         # between the first two `##` second-level markdown titles.
         changes = ""
         match = re.search(
-            rf"^##(?P<title>.+{escape(self.released_version)} .+?)\n(?P<changes>.*?)\n##",
+            rf"^##(?P<title>.+{escape(version)} .+?)\n(?P<changes>.*?)\n##",
             Path("./changelog.md").read_text(),
             flags=re.MULTILINE | re.DOTALL,
         )
@@ -813,7 +832,7 @@ class Metadata:
             pypi_link = dedent(
                 f"""\
                 [🐍 Available on
-                PyPi](https://pypi.org/project/{self.package_name}/{self.released_version}).
+                PyPi](https://pypi.org/project/{self.package_name}/{version}).
                 """
             )
 
