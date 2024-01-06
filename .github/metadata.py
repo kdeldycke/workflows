@@ -47,7 +47,7 @@ release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
                                      'short_sha': '6f27db4',
                                      'current_version': '2.0.0'}]}
 nuitka_matrix={'entry_point': ['mpm'],
-               'os': ['ubuntu-22.04', 'macos-12', 'windows-2022'],
+               'os': ['ubuntu-22.04', 'macos-13', 'windows-2022'],
                'arch': ['x64'],
                'include': [{'entry_point': 'mpm',
                             'cli_id': 'mpm',
@@ -58,7 +58,7 @@ nuitka_matrix={'entry_point': ['mpm'],
                             'platform_id': 'linux',
                             'extension': 'bin',
                             'extra_python_params': ''},
-                           {'os': 'macos-12',
+                           {'os': 'macos-13',
                             'platform_id': 'macos',
                             'extension': 'bin',
                             'extra_python_params': ''},
@@ -71,7 +71,7 @@ nuitka_matrix={'entry_point': ['mpm'],
                             'arch': 'x64',
                             'bin_name': 'mpm-linux-x64-build-6f27db4.bin'},
                            {'entry_point': 'mpm',
-                            'os': 'macos-12',
+                            'os': 'macos-13',
                             'arch': 'x64',
                             'bin_name': 'mpm-macos-x64-build-6f27db4.bin'},
                            {'entry_point': 'mpm',
@@ -594,7 +594,7 @@ class Metadata:
                     "346ce664f055fbd042a25ee0b7e96702e95",
                     "6f27db47612aaee06fdf08744b09a9f5f6c2",
                 ],
-                "os": ["ubuntu-22.04", "macos-12", "windows-2022"],
+                "os": ["ubuntu-22.04", "macos-13", "windows-2022"],
                 "arch": ["x64"],
                 "include": [
                     {
@@ -619,7 +619,7 @@ class Metadata:
                         "extra_python_params": "",
                     },
                     {
-                        "os": "macos-12",
+                        "os": "macos-13",
                         "platform_id": "macos",
                         "extension": "bin",
                         "extra_python_params": "",
@@ -640,7 +640,7 @@ class Metadata:
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "os": "macos-12",
+                        "os": "macos-13",
                         "arch": "x64",
                         "bin_name": "mpm-macos-x64-build-346ce66.bin",
                     },
@@ -661,7 +661,7 @@ class Metadata:
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "os": "macos-12",
+                        "os": "macos-13",
                         "arch": "x64",
                         "bin_name": "mpm-macos-x64-build-6f27db4.bin",
                     },
@@ -688,7 +688,7 @@ class Metadata:
             # Run the compilation on the latest supported version of each OS.
             "os": [
                 "ubuntu-22.04",
-                "macos-12",
+                "macos-13",
                 "windows-2022",
             ],
             # Arch values are aligned to those specified for self-hosted runners:
@@ -743,7 +743,7 @@ class Metadata:
                 "extra_python_params": "",
             },
             {
-                "os": "macos-12",
+                "os": "macos-13",
                 "platform_id": "macos",
                 "extension": "bin",
                 "extra_python_params": "",

@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Use `macos-13` instead of `macos-12` for Nuitka builds.
+
 ## [2.24.2 (2024-01-06)](https://github.com/kdeldycke/workflows/compare/v2.24.1...v2.24.2)
 
 - Use `bump-my-version` to remove admonition in changelog.
