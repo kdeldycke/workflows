@@ -832,6 +832,9 @@ class Metadata:
         )
         if match:
             changes = match.groupdict().get("changes", "").strip()
+            # Add a title.
+            if changes:
+                changes = "### Changes\n\n" + changes
 
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
