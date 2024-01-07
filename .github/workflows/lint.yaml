@@ -165,10 +165,10 @@ jobs:
       - uses: actions/checkout@v4.1.1
       - uses: lycheeverse/lychee-action@v1.9.0
         with:
-          # XXX Skip twitter.com which is blackholing requests from GitHub, and HN because of rate-limiting.
+          # XXX Skip HN because of rate-limiting.
           # See: https://github.com/lycheeverse/lychee/issues/989#issuecomment-1587208730
+          # https://github.com/lycheeverse/lychee/pull/1147
           args: >
-            --exclude twitter.com
             --exclude ycombinator.com
             --base .
             --verbose
