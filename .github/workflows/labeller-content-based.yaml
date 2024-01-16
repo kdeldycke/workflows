@@ -1,13 +1,16 @@
 ---
-name: Labeller (file-based)
+name: Labeller (content-based)
 "on":
   workflow_call:
     inputs:
       extra-rules:
-        description: 'YAML describing the additional labelling rules respecting the actions/labeler dialect'
+        description: 'YAML describing the additional labelling rules respecting the github/issue-labeler dialect'
         required: false
         type: string
+  issues:
+    types: [opened]
   pull_request:
+    types: [opened]
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.
@@ -18,7 +21,7 @@ concurrency:
 jobs:
 
   labeller:
-    name: File-based PR labeller
+    name: Content-based issue & PR labeller
     # Skip labelling:
     # 1. On prepare-release branch as it points to a tagged URL that does not exist yet.
     # 2. If PR was created/triggered by a bot. That way we can prevent content-rich PRs (like those produced by
@@ -33,20 +36,22 @@ jobs:
       - uses: actions/checkout@v4.1.1
       - name: Download default rules
         run: >
-          curl -fsSL --output ./.github/labeller-file-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
+          curl -fsSL --output ./.github/labeller-content-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-content-based.yaml
       - name: Extend default rules
         if: inputs.extra-rules
         run: |
-          tee -a ./.github/labeller-file-based.yaml <<-EOF
+          tee -a ./.github/labeller-content-based.yaml <<-EOF
 
           ${{ inputs.extra-rules }}
           EOF
       - name: Print all rules
         run: |
-          cat ./.github/labeller-file-based.yaml
+          cat ./.github/labeller-content-based.yaml
+
       - name: Apply rules
-        uses: actions/labeler@v5.0.0
+        uses: github/issue-labeler@v3.3
         with:
-          configuration-path: ".github/labeller-file-based.yaml"
-          sync-labels: true
+          configuration-path: ".github/labeller-content-based.yaml"
+          enable-versioned-regex: 0
+          include-title: 1
