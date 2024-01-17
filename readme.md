@@ -2,7 +2,7 @@
 
 Maintaining project takes time. This repository contains workflows to automate most of the boring tasks.
 
-These workflows are mostly used for Poetry-based Python CLI and their documentation, but not only. They're all [reuseable GitHub actions workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
+These workflows are mostly used for Poetry-based Python CLI and their documentation, but not only. They're all [reusable GitHub actions workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
 
 Reasons for a centralized workflow repository:
 
