@@ -182,7 +182,7 @@ This version is not released yet and is under active development.
 
 ## [2.14.1 (2023-05-04)](https://github.com/kdeldycke/workflows/compare/v2.14.0...v2.14.1)
 
-- Reverts publishing via trusted channel: it doesn't work with reuseable workflows. See #528.
+- Reverts publishing via trusted channel: it doesn't work with reusable workflows. See #528.
 
 ## [2.14.0 (2023-05-04)](https://github.com/kdeldycke/workflows/compare/v2.13.5...v2.14.0)
 
@@ -317,7 +317,7 @@ This version is not released yet and is under active development.
 
 ## [2.5.1 (2023-02-09)](https://github.com/kdeldycke/workflows/compare/v2.5.0...v2.5.1)
 
-- Remove Pip cache, which breaks with our reuseable workflows architecture.
+- Remove Pip cache, which breaks with our reusable workflows architecture.
 
 ## [2.5.0 (2023-02-09)](https://github.com/kdeldycke/workflows/compare/v2.4.3...v2.5.0)
 
@@ -526,7 +526,7 @@ This version is not released yet and is under active development.
 - Allow execution of `pyupgrade` on non-Poetry-based projects.
 - Default `pyupgrade` parameter to `--py3-plus`.
 - Use auto-generated parameter for `mypy`'s minimal Python version.
-- Merge all Poetry and Sphinx metadata fetching into a Python script, as we cannot have reuseable workflows use reuseable workflows. Closes #160.
+- Merge all Poetry and Sphinx metadata fetching into a Python script, as we cannot have reusable workflows use reusable workflows. Closes #160.
 
 ## [1.7.1 (2022-08-05)](https://github.com/kdeldycke/workflows/compare/v1.7.0...v1.7.1)
 
@@ -829,7 +829,7 @@ This version is not released yet and is under active development.
 
 ## [0.6.0 (2022-01-08)](https://github.com/kdeldycke/workflows/compare/v0.5.5...v0.6.0)
 
-- Add a reuseable workflow to automatically label issues and PRs depending on
+- Add a reusable workflow to automatically label issues and PRs depending on
   changed files.
 - Allow extra labelling rules to be specified via custom input.
 - Let sponsor labelling workflow to be reused.
@@ -858,7 +858,7 @@ This version is not released yet and is under active development.
 
 ## [0.5.0 (2022-01-05)](https://github.com/kdeldycke/workflows/compare/v0.4.8...v0.5.0)
 
-- Add a reuseable workflow to maintain GitHub labels.
+- Add a reusable workflow to maintain GitHub labels.
 - Add a set of default emoji-based labels.
 - Add dedicated `changelog`, `sponsor` and `dependencies` labels.
 - Update `CI/CD` label icon.
@@ -868,7 +868,7 @@ This version is not released yet and is under active development.
 ## [0.4.8 (2022-01-04)](https://github.com/kdeldycke/workflows/compare/v0.4.7...v0.4.8)
 
 - Use more recent `calibreapp/image-actions` action.
-- Remove unused custom variable for reuseable GitHub release job.
+- Remove unused custom variable for reusable GitHub release job.
 
 ## [0.4.7 (2022-01-04)](https://github.com/kdeldycke/workflows/compare/v0.4.6...v0.4.7)
 
@@ -879,7 +879,7 @@ This version is not released yet and is under active development.
 
 - Let GitHub release produced on tagging to be customized with user's content
   and uploaded files.
-- Expose tagged version from reuseable `release` workflow.
+- Expose tagged version from reusable `release` workflow.
 
 ## [0.4.5 (2022-01-03)](https://github.com/kdeldycke/workflows/compare/v0.4.4...v0.4.5)
 
@@ -904,7 +904,7 @@ This version is not released yet and is under active development.
 
 ## [0.4.1 (2022-01-03)](https://github.com/kdeldycke/workflows/compare/v0.4.0...v0.4.1)
 
-- Allow changelog and release workflows to be reuseable.
+- Allow changelog and release workflows to be reusable.
 
 ## [0.4.0 (2021-12-31)](https://github.com/kdeldycke/workflows/compare/v0.3.5...v0.4.0)
 
@@ -942,19 +942,19 @@ This version is not released yet and is under active development.
 
 ## [0.3.0 (2021-12-16)](https://github.com/kdeldycke/workflows/compare/v0.2.0...v0.3.0)
 
-- Add a reuseable workflow to fix typos.
-- Add a reuseable workflow to optimize images.
-- Add a reuseable workflow to auto-format Python files with isort and Black.
-- Add a reuseable workflow to auto-format Markdown files with mdformat.
-- Add a reuseable workflow to auto-format JSON files with jsonlint.
-- Add a reuseable workflow to auto-update .gitignore file.
-- Add a reuseable workflow to auto-update .mailmap file.
+- Add a reusable workflow to fix typos.
+- Add a reusable workflow to optimize images.
+- Add a reusable workflow to auto-format Python files with isort and Black.
+- Add a reusable workflow to auto-format Markdown files with mdformat.
+- Add a reusable workflow to auto-format JSON files with jsonlint.
+- Add a reusable workflow to auto-update .gitignore file.
+- Add a reusable workflow to auto-update .mailmap file.
 - Force retargetting of workflow dependencies to `main` branch on post-release
   version bump.
 
 ## [0.2.0 (2021-12-15)](https://github.com/kdeldycke/workflows/compare/v0.1.0...v0.2.0)
 
-- Add autolock reuseable workflow for closed issues and PRs.
+- Add autolock reusable workflow for closed issues and PRs.
 - Automate changelog and version management.
 - Add workflow to create ready-to-use PRs to prepare a release, post-release
   version bump and minor & major version increments.
@@ -965,7 +965,7 @@ This version is not released yet and is under active development.
 
 - Install project with Poetry before calling Pylint if `pyproject.toml`
   presence is detected.
-- Hard-code tagged version in requirement URL for reuseable workflows.
+- Hard-code tagged version in requirement URL for reusable workflows.
 - Document the release process.
 
 ## [0.0.1 (2021-12-11)](https://github.com/kdeldycke/workflows/compare/5cbdbb...v0.0.1)
