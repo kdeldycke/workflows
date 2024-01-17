@@ -23,7 +23,7 @@
   - "dependabot"
   - "poetry.lock"
   - "poetry"
-  - "pyproject.toml
+  - "pyproject.toml"
 
 "📚 documentation":
   - "sphinx"
