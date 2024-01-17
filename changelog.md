@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Replace unmaintained `misspell-fixer` by `typos` to autofix typos.
+
 ## [2.25.0 (2024-01-17)](https://github.com/kdeldycke/workflows/compare/v2.24.3...v2.25.0)
 
 - Add a content-based labeller job for issues and PRs.
