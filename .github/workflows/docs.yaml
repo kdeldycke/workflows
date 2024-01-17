@@ -28,6 +28,8 @@ jobs:
       - uses: crate-ci/typos@v1.17.1
         with:
           write_changes: true
+      - name: Remove local typos binary
+        run: rm ./typos
       - uses: peter-evans/create-pull-request@v5.0.2
         with:
           # WORKFLOW_UPDATE_GITHUB_PAT is a custom token created from my user's profile via the
