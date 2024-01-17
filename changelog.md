@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.25.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.25.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.25.0 (2024-01-17)](https://github.com/kdeldycke/workflows/compare/v2.24.3...v2.25.0)
 
 - Add a content-based labeller job for issues and PRs.
