@@ -252,7 +252,7 @@ jobs:
           && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
       - name: Create or update issue
         if: fromJSON(steps.issue_groups.outputs.broken_links_found)
-        uses: peter-evans/create-issue-from-file@v4.0.1
+        uses: peter-evans/create-issue-from-file@v5.0.0
         with:
           title: "Broken links"
           issue-number: ${{ steps.issue_groups.outputs.update_issue }}
