@@ -5,7 +5,7 @@
 # All versions are pinned so we have ultimate control over reproducibility.
 autopep8 == 2.0.4
 blacken-docs == 1.16.0
-bump-my-version == 0.17.1
+bump-my-version == 0.17.3
 check-wheel-contents == 0.6.0
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
 mdformat == 0.7.17
