@@ -826,7 +826,7 @@ class Metadata:
         changes = ""
         match = re.search(
             rf"^##(?P<title>.+{escape(version)} .+?)\n(?P<changes>.*?)\n##",
-            Path("./changelog.md").read_text(),
+            Path("./changelog.md").read_text(encoding="utf-8"),
             flags=re.MULTILINE | re.DOTALL,
         )
         if match:
