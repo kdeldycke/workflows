@@ -457,7 +457,7 @@ class Metadata:
         - `--target-version py311`
         - `--target-version py312`
 
-        As mentionned in Black usage, you should `include all Python versions that you
+        As mentioned in Black usage, you should `include all Python versions that you
         want your code to run under
         <https://github.com/psf/black/issues/751#issuecomment-473066811>`_.
         """
