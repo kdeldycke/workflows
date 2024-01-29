@@ -525,7 +525,7 @@ class Metadata:
         if self.new_commits_matrix:
             details = self.new_commits_matrix.get("include")
             if details:
-                version = details[0].get("current_version")  # type: ignore[union-attr]
+                version = str(details[0].get("current_version"))  # type: ignore[union-attr]
         return version
 
     @cached_property
