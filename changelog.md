@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.26.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.26.4...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.26.4 (2024-01-30)](https://github.com/kdeldycke/workflows/compare/v2.26.3...v2.26.4)
 
 - Generate a dummy `pyproject.toml` instead of `requirements.txt` to make our ruff local conf work.
