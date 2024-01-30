@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Add workaround to allow caching on non-Python repositories.
+- Remove hard-coded commit version for `mdformat-gfm`.
+
 ## [2.26.0 (2024-01-17)](https://github.com/kdeldycke/workflows/compare/v2.25.0...v2.26.0)
 
 - Replace unmaintained `misspell-fixer` by `typos` to autofix typos.
