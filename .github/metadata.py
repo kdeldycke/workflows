@@ -212,7 +212,6 @@ class Metadata:
             sha = commit.hash
 
             # Checkout the commit so we can read the version associated with it.
-            current_version = None
             git.checkout(sha)
             current_version = Metadata.get_current_version()
 
@@ -503,7 +502,7 @@ class Metadata:
         return None
 
     @staticmethod
-    def get_current_version() -> str:
+    def get_current_version() -> str | None:
         """Returns the current version as managed by bump-my-version.
 
         Same as calling the CLI:
@@ -511,7 +510,10 @@ class Metadata:
             .. code-block:: shell-session
                 $ bump-my-version show current_version
         """
-        config = get_configuration(find_config_file())
+        conf_file = find_config_file()
+        if not conf_file:
+            return None
+        config = get_configuration(conf_file)
         config_dict = config.model_dump()
         return str(resolve_name(config_dict, "current_version"))
 
