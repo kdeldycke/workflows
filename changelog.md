@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Generate a dummy `pyproject.toml` instead of `requirements.txt` to make our ruff local conf work.
+
 ## [2.26.3 (2024-01-30)](https://github.com/kdeldycke/workflows/compare/v2.26.2...v2.26.3)
 
 - Fix Python job on non-Python repositories.
