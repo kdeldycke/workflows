@@ -457,7 +457,7 @@ class Metadata:
         - `--target-version py311`
         - `--target-version py312`
 
-        As mentionned in Black usage, you should `include all Python versions that you
+        As mentioned in Black usage, you should `include all Python versions that you
         want your code to run under
         <https://github.com/psf/black/issues/751#issuecomment-473066811>`_.
         """
@@ -513,7 +513,7 @@ class Metadata:
         """
         config = get_configuration(find_config_file())
         config_dict = config.model_dump()
-        return resolve_name(config_dict, "current_version")
+        return str(resolve_name(config_dict, "current_version"))
 
     @cached_property
     def current_version(self) -> str | None:
@@ -826,7 +826,7 @@ class Metadata:
         changes = ""
         match = re.search(
             rf"^##(?P<title>.+{escape(version)} .+?)\n(?P<changes>.*?)\n##",
-            Path("./changelog.md").read_text(),
+            Path("./changelog.md").read_text(encoding="utf-8"),
             flags=re.MULTILINE | re.DOTALL,
         )
         if match:
@@ -838,8 +838,9 @@ class Metadata:
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
         if self.package_name:
-            pypi_link = f"[🐍 Available on PyPi](https://pypi.org/project/{
-                                                self.package_name}/{version})."
+            pypi_link = (
+                f"[🐍 Available on PyPi](https://pypi.org/project/{self.package_name}/{version})."
+            )
 
         # Assemble the release notes.
         return f"{changes}\n\n{pypi_link}".strip()

@@ -33,7 +33,7 @@ This version is not released yet and is under active development.
 
 ## [2.23.0 (2024-01-05)](https://github.com/kdeldycke/workflows/compare/v2.22.0...v2.23.0)
 
-- Produce GitHub release notes dynamiccaly.
+- Produce GitHub release notes dynamically.
 - Augment all commits matrix with current version from `bump-my-version`.
 - Use new artifact features and scripts.
 
