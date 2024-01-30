@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.26.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.26.1...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.26.2 (2024-01-30)](https://github.com/kdeldycke/workflows/compare/v2.26.1...v2.26.2)
 
 - Fix absence of version in non-Python repositories.
 
