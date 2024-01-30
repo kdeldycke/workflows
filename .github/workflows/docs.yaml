@@ -151,6 +151,26 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # We're going to browse all new commits.
           fetch-depth: 0
+      - name: Hack setup-python cache
+        # XXX Create an empty requirements.txt if this file (or pyproject.toml) doesn't exist.
+        # This work around and issue with setup-python for non-Python projects, which ends up with ends up
+        # with this error:
+        #
+        #   Run actions/setup-python@v5.0.0
+        #     with:
+        #       python-version: 3.12
+        #       cache: pip
+        #   Installed versions
+        #     Successfully set up CPython (3.12.1)
+        #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
+        #   [**/requirements.txt or **/pyproject.toml], make sure you have checked out the target repository
+        #
+        # This has been reported at: https://github.com/actions/setup-python/issues/807
+        # In the future this might be addressed by: https://github.com/actions/setup-python/pull/762
+        # or https://github.com/actions/setup-python/issues/751
+        if: hashFiles('**/requirements.txt', '**/pyproject.toml') == ''
+        run: |
+          touch ./requirements.txt
       - uses: actions/setup-python@v5.0.0
         with:
           python-version: "3.12"
