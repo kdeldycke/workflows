@@ -527,7 +527,7 @@ class Metadata:
             if details:
                 version = details[0].get("current_version")  # type: ignore[union-attr]
         if not version:
-          return None
+            return None
         return str(version)
 
     @cached_property
