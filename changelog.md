@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.26.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.26.0...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.26.1 (2024-01-30)](https://github.com/kdeldycke/workflows/compare/v2.26.0...v2.26.1)
 
 - Add workaround to allow caching on non-Python repositories.
 - Remove hard-coded commit version for `mdformat-gfm`.
