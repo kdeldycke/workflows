@@ -513,7 +513,7 @@ class Metadata:
         """
         config = get_configuration(find_config_file())
         config_dict = config.model_dump()
-        return resolve_name(config_dict, "current_version")
+        return str(resolve_name(config_dict, "current_version"))
 
     @cached_property
     def current_version(self) -> str | None:
@@ -526,9 +526,7 @@ class Metadata:
             details = self.new_commits_matrix.get("include")
             if details:
                 version = details[0].get("current_version")  # type: ignore[union-attr]
-        if not version:
-            return None
-        return str(version)
+        return version
 
     @cached_property
     def released_version(self) -> str | None:
@@ -840,8 +838,9 @@ class Metadata:
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
         if self.package_name:
-            pypi_link = f"[🐍 Available on PyPi](https://pypi.org/project/{
-                                                self.package_name}/{version})."
+            pypi_link = (
+                f"[🐍 Available on PyPi](https://pypi.org/project/{self.package_name}/{version})."
+            )
 
         # Assemble the release notes.
         return f"{changes}\n\n{pypi_link}".strip()
