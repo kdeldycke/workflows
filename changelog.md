@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Generate dummy `pyproject.toml` instead of `requirements.txt` everywhere to bypass `setup-python` cache limits for non-Python repositories. Remove the temporary `pyproject.toml` dummy after the fact.
+
 ## [2.26.4 (2024-01-30)](https://github.com/kdeldycke/workflows/compare/v2.26.3...v2.26.4)
 
 - Generate a dummy `pyproject.toml` instead of `requirements.txt` to make our ruff local conf work.

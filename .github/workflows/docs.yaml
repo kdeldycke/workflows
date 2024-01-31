@@ -152,7 +152,8 @@ jobs:
           # We're going to browse all new commits.
           fetch-depth: 0
       - name: Hack setup-python cache
-        # XXX Create an empty requirements.txt if this file (or pyproject.toml) doesn't exist.
+        id: setup_python_hack
+        # XXX Create an empty pyproject.toml if this file (or requirements.txt) doesn't exist.
         # This work around and issue with setup-python for non-Python projects, which ends up with ends up
         # with this error:
         #
@@ -170,11 +171,16 @@ jobs:
         # or https://github.com/actions/setup-python/issues/751
         if: hashFiles('**/requirements.txt', '**/pyproject.toml') == ''
         run: |
-          touch ./requirements.txt
+          touch ./pyproject.toml
+          echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v5.0.0
         with:
           python-version: "3.12"
           cache: "pip"
+      - name: Remove setup-python hack
+        if: steps.setup_python_hack.outputs.tmp_deps_file
+        run: |
+          rm ./pyproject.toml
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
