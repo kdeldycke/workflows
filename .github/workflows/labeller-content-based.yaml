@@ -50,7 +50,7 @@ jobs:
           cat ./.github/labeller-content-based.yaml
 
       - name: Apply rules
-        uses: github/issue-labeler@v3.3
+        uses: github/issue-labeler@v3.4
         with:
           configuration-path: ".github/labeller-content-based.yaml"
           enable-versioned-regex: 0
