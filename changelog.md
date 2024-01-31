@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.26.7 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.26.6...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [2.26.6 (2024-01-31)](https://github.com/kdeldycke/workflows/compare/v2.26.5...v2.26.6)
 
 - Remove temporary `pyproject.toml` dummy file after ruff invocation not to let it fail due to missing reference.
