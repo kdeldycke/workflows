@@ -1,10 +1,6 @@
 # Changelog
 
-## [2.26.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.26.4...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [2.26.5 (2024-01-31)](https://github.com/kdeldycke/workflows/compare/v2.26.4...v2.26.5)
 
 - Generate dummy `pyproject.toml` instead of `requirements.txt` everywhere to bypass `setup-python` cache limits for non-Python repositories. Remove the temporary `pyproject.toml` dummy after the fact.
 
