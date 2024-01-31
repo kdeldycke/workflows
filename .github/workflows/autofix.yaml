@@ -122,10 +122,6 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-      - name: Remove setup-python hack
-        if: steps.setup_python_hack.outputs.tmp_deps_file
-        run: |
-          rm ./pyproject.toml
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -204,6 +200,10 @@ jobs:
       - name: Remove temporary Ruff config
         run: |
           rm ./ruff.toml
+      - name: Remove setup-python hack
+        if: steps.setup_python_hack.outputs.tmp_deps_file
+        run: |
+          rm ./pyproject.toml
       - name: Run blacken-docs
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
         # https://github.com/adamchainz/blacken-docs/blob/79ef671/blacken_docs.py#L207-L211

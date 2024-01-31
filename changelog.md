@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Remove temporary `pyproject.toml` dummy file after ruff invocation not to let it fail due to missing reference.
+
 ## [2.26.5 (2024-01-31)](https://github.com/kdeldycke/workflows/compare/v2.26.4...v2.26.5)
 
 - Generate dummy `pyproject.toml` instead of `requirements.txt` everywhere to bypass `setup-python` cache limits for non-Python repositories. Remove the temporary `pyproject.toml` dummy after the fact.
