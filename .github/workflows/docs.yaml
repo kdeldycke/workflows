@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: crate-ci/typos@v1.17.2
+      - uses: crate-ci/typos@v1.18.0
         with:
           write_changes: true
       - name: Remove local typos binary
