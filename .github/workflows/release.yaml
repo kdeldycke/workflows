@@ -219,7 +219,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4.1.1
+        uses: actions/download-artifact@v4.1.2
         id: download
         with:
           name: ${{ github.event.repository.name }}-poetry-build-${{ matrix.short_sha }}
@@ -246,7 +246,7 @@ jobs:
       - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
         if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
-        uses: actions/download-artifact@v4.1.1
+        uses: actions/download-artifact@v4.1.2
         id: artifacts
         with:
           path: release_artifact
