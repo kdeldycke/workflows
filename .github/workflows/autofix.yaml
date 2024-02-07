@@ -167,9 +167,10 @@ jobs:
           # Enumerate all fixed violations.
           show-fixes = true
 
-          # By default, always show source code snippets.
-          show-source = true
+          output-format = "github"
 
+
+          [lint]
           # D400 - First line should end with a period.
           #   Allows docstrings to end up with any punctuation, not just a period.
           #   See: https://github.com/astral-sh/ruff/issues/1858#issuecomment-1382640623
@@ -178,7 +179,6 @@ jobs:
           #   See: https://docs.astral.sh/ruff/rules/#eradicate-era
           ignore = ["D400", "ERA001"]
 
-          output-format = "github"
 
           [format]
           # Enable reformatting of code snippets in docstrings.
