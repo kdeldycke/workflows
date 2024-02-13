@@ -72,7 +72,7 @@ This version is not released yet and is under active development.
 
 ## [2.21.0 (2024-01-04)](https://github.com/kdeldycke/workflows/compare/v2.20.9...v2.21.0)
 
-- Use `ruff` instead of `blacken-docs` to format docstrings inside Python files.
+- Use `ruff` instead of `docformatter` to format docstrings inside Python files.
 - Remove dependency on `docformatter`.
 - Only run `ruff` once for autofix and linting. Removes `lint-python` job.
 - Auto-generate local configuration for `ruff` instead of passing parameters.
