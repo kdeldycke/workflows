@@ -9,6 +9,47 @@ Reasons for a centralized workflow repository:
 - reusability of course: no need to update dozens of repository where 95% of workflows are the same
 - centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories depending on it
 
+## Permissions and token
+
+This repository updates itself via GitHub actions. It particularly updates its own YAML files in `.github/workflows`. That's forbidden by default. So we need extra permissions.
+
+Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files. It looks like this:
+
+```yaml
+on:
+  (...)
+
+jobs:
+
+  my-job:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      (...)
+```
+
+But the `contents: write` permission doesn't allow write access to the workflow files in the `.github` subfolder. There is `actions: write`, but it only covers workflow runs, not their YAML source file. Even a `permissions: write-all` doesn't work. So you cannot use the `permissions` parameter to allow a repository's workflow update its own workflow files.
+
+You will always end up with this kind or errors:
+```text
+   ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a GitHub App to create or update workflow `.github/workflows/my_workflow.yaml` without `workflows` permission)
+
+  error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
+```
+
+> [!NOTE]
+> That's also why the Settings > Actions > General > Workflow permissions parameter on your repository has no effect on this issue, even with the `Read and write permissions` set:
+> 
+
+To bypass the limitation, we rely on a custom access token. By convention, we call it `WORKFLOW_UPDATE_GITHUB_PAT`. It will be used, [in place of the default `secrets.GITHUB_TOKEN`](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code), in steps in which we need to change the workflow YAML files.
+
+To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
+- Go to your GitHub user's profile via the `Developer Settings` > `Personal Access Tokens` UI
+          
+
 ## Release management
 
 It turns out [Release Engineering is a full-time job, and full of edge-cases](https://blog.axo.dev/2023/02/cargo-dist).
