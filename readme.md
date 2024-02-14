@@ -47,8 +47,22 @@ You will always end up with this kind or errors:
 To bypass the limitation, we rely on a custom access token. By convention, we call it `WORKFLOW_UPDATE_GITHUB_PAT`. It will be used, [in place of the default `secrets.GITHUB_TOKEN`](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code), in steps in which we need to change the workflow YAML files.
 
 To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
-- Go to your GitHub user's profile via the `Developer Settings` > `Personal Access Tokens` UI
-          
+- From your GitHub user, go to `Settings` > `Developer Settings` > `Personal Access Tokens` > `Fine-grained tokens`
+- Click on the `Generate new token` button
+- Choose a good token name like `workflow-self-update` to make your intention clear
+- Choose `Only select repositories` and the list the repositories in needs of updating their workflow YAML files
+- In the `Repository permissions` drop-down, sets:
+  - `Contents`: `Access: **Read and Write**`
+  - `Metadata` (mandatory): `Access: **Read-only**`
+  - `Pull Requests`: `Access: **Read and Write**`
+  - `Workflows`: `Access: **Read and Write**`
+    > [!NOTE]
+    > This is the only place where I can have control over the `Workflows` permission, which is not supported by the `permissions:` parameter in YAML files.
+- Now save these parameters and copy the `github_pat_XXXX` secret token
+- Got to your repo > `Settings` > `Security` > `Secrets and variables` > `Actions` > `Secrets` > `Repository secrets` and click `New repository secrets`
+- Name your secret `WORKFLOW_UPDATE_GITHUB_PAT` and copy the `github_pat_XXXX` token in the `Secret` field
+
+Now re-run your actions and they should be able to update the workflow files in `.github` folder without the `refusing to allow a GitHub App to create or update workflow` error.
 
 ## Release management
 
