@@ -16,7 +16,7 @@ This repository updates itself via GitHub actions. It particularly updates its o
 Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files. It looks like this:
 
 ```yaml
-on:
+"on":
   (...)
 
 jobs:
@@ -42,7 +42,7 @@ You will always end up with this kind or errors:
 
 > [!NOTE]
 > That's also why the Settings > Actions > General > Workflow permissions parameter on your repository has no effect on this issue, even with the `Read and write permissions` set:
-> 
+> ![](assets/repo-workflow-permissions.png)
 
 To bypass the limitation, we rely on a custom access token. By convention, we call it `WORKFLOW_UPDATE_GITHUB_PAT`. It will be used, [in place of the default `secrets.GITHUB_TOKEN`](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code), in steps in which we need to change the workflow YAML files.
 
