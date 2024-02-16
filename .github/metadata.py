@@ -96,13 +96,13 @@ import json
 import os
 import re
 import sys
-from collections.abc import Generator, Iterable
+from collections.abc import Iterable
 from functools import cached_property
 from itertools import product
 from pathlib import Path
 from random import randint
 from re import escape
-from typing import Any, cast
+from typing import Any, Iterator, cast
 
 from black.mode import TargetVersion
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
@@ -349,7 +349,7 @@ class Metadata:
         )
 
     @staticmethod
-    def glob_files(*patterns: str) -> Generator[Path, None, None]:
+    def glob_files(*patterns: str) -> Iterator[str]:
         """Glob files in patterns, while optionally ignoring some."""
         yield from iglob(
             patterns,
@@ -357,12 +357,12 @@ class Metadata:
         )
 
     @cached_property
-    def python_files(self) -> Generator[Path, None, None]:
+    def python_files(self) -> Iterator[str]:
         """Returns list of python files."""
         yield from self.glob_files("**/*.py", "!.venv/**")
 
     @cached_property
-    def doc_files(self) -> Generator[Path, None, None]:
+    def doc_files(self) -> Iterator[str]:
         """Returns list of doc files."""
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
