@@ -339,21 +339,38 @@ class Metadata:
         )
 
     @staticmethod
-    def glob_files(*patterns: str) -> Generator[Path, None, None]:
-        """Glob files in patterns."""
+    def glob_files(
+        *patterns: str, ignore: str | None = None
+    ) -> Generator[Path, None, None]:
+        """Glob files in patterns, while optionally ignoring some."""
+        # Build an evaluation function to selectively ignore some patterns.
+        if ignore:
+            ignore_pattern = Path(ignore)
+
+            def ignore_filter(p):
+                return not p.match(ignore_pattern)
+        else:
+
+            def ignore_filter(p):
+                return True
+
         for pattern in patterns:
             # is_file() return False if the path doesn't exist or is a broken symlink.
-            yield from (p for p in Path().glob(pattern) if p.is_file())
+            yield from (
+                p for p in Path().glob(pattern) if p.is_file() and ignore_filter(p)
+            )
 
     @cached_property
     def python_files(self) -> Generator[Path, None, None]:
         """Returns list of python files."""
-        yield from self.glob_files("**/*.py")
+        yield from self.glob_files("**/*.py", ignore=".venv/*")
 
     @cached_property
     def doc_files(self) -> Generator[Path, None, None]:
         """Returns list of doc files."""
-        yield from self.glob_files("**/*.md", "**/*.markdown", "**/*.rst", "**/*.tex")
+        yield from self.glob_files(
+            "**/*.md", "**/*.markdown", "**/*.rst", "**/*.tex", ignore=".venv/*"
+        )
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
