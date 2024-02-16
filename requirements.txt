@@ -51,5 +51,6 @@ tomli == 2.0.1 ; python_version < "3.11"
 twine == 5.0.0
 uv == 0.1.2
 wcmatch == 8.5
-yamllint == 1.35.1
 zstandard == 0.22.0
+
+-r yamllint-requirements.txt
