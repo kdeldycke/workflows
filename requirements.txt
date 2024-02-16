@@ -7,39 +7,6 @@ autopep8 == 2.0.4
 blacken-docs == 1.16.0
 bump-my-version == 0.17.4
 check-wheel-contents == 0.6.0
-# https://mdformat.readthedocs.io/en/stable/users/plugins.html
-mdformat == 0.7.17
-mdformat_admon == 2.0.1
-mdformat-black == 0.1.1
-mdformat-config == 0.1.3
-# Use the unreleased version of mdformat_deflist, which is relaxing capped dependency on
-# mdit-py-plugins < 0.4 . This allows for mdformat-admon to be upgraded to 1.0.2. See:
-# https://github.com/executablebooks/mdformat-deflist/issues/4
-# https://github.com/executablebooks/mdformat-deflist/pull/5
-# https://github.com/KyleKing/mdformat-admon/issues/15
-# mdformat_deflist == 0.X.X
-mdformat_deflist @ git+https://github.com/kdeldycke/mdformat-deflist.git@uncap-mdit-py-plugins-version
-mdformat_footnote == 0.1.1
-mdformat_frontmatter == 2.0.8
-mdformat-gfm == 0.3.6
-# Use the unreleased version of mdformat_myst, which is relaxing capped dependency on
-# mdit-py-plugins < 0.4 . This allows for mdformat-admon to be upgraded to 1.0.2. See:
-# https://github.com/executablebooks/mdformat-myst/issues/27
-# https://github.com/executablebooks/mdformat-myst/pull/28
-# https://github.com/KyleKing/mdformat-admon/issues/15
-# mdformat_myst == 0.X.X
-mdformat_myst @ git+https://github.com/kdeldycke/mdformat-myst.git@uncap-mdit-py-plugins-version
-mdformat_pelican == 0.1.0
-mdformat_pyproject == 0.0.1
-mdformat-shfmt == 0.1.0
-mdformat_simple_breaks == 0.0.1
-mdformat_tables == 0.4.1
-mdformat-toc == 0.3.0
-# XXX Fix formatting of HTML in Markdown code blocks which adds extra doctype.
-# This has been proposed upstream at: https://github.com/hukkin/mdformat-web/pull/5
-# So waiting for the PR to be merged and a new release to be published.
-# mdformat-web > 0.1.0
-mdformat-web @ git+https://github.com/kdeldycke/mdformat-web.git@fix-extra-html-tags
 mypy == 1.8.0
 nuitka == 2.0.2
 ordered-set == 4.1.0
@@ -52,5 +19,3 @@ twine == 5.0.0
 uv == 0.1.2
 wcmatch == 8.5
 zstandard == 0.22.0
-
--r yamllint-requirements.txt
