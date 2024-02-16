@@ -50,5 +50,6 @@ ruff == 0.2.1
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 5.0.0
 uv == 0.1.2
+wcmatch == 8.5
 yamllint == 1.34.0
 zstandard == 0.22.0

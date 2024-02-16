@@ -112,6 +112,16 @@ from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
 from pydriller import Commit, Git, Repository  # type: ignore[import]
+from wcmatch.glob import (
+    BRACE,
+    DOTGLOB,
+    FOLLOW,
+    GLOBSTAR,
+    GLOBTILDE,
+    NEGATE,
+    NODIR,
+    iglob,
+)
 
 SHORT_SHA_LENGTH = 7
 """Default SHA length hard-coded to ``7``.
@@ -339,38 +349,22 @@ class Metadata:
         )
 
     @staticmethod
-    def glob_files(
-        *patterns: str, ignore: str | None = None
-    ) -> Generator[Path, None, None]:
+    def glob_files(*patterns: str) -> Generator[Path, None, None]:
         """Glob files in patterns, while optionally ignoring some."""
-        # Build an evaluation function to selectively ignore some patterns.
-        if ignore:
-            ignore_pattern = Path(ignore)
-
-            def ignore_filter(p):
-                return not p.match(ignore_pattern)
-        else:
-
-            def ignore_filter(p):
-                return True
-
-        for pattern in patterns:
-            # is_file() return False if the path doesn't exist or is a broken symlink.
-            yield from (
-                p for p in Path().glob(pattern) if p.is_file() and ignore_filter(p)
-            )
+        yield from iglob(
+            patterns,
+            flags=NODIR | GLOBSTAR | DOTGLOB | GLOBTILDE | BRACE | FOLLOW | NEGATE,
+        )
 
     @cached_property
     def python_files(self) -> Generator[Path, None, None]:
         """Returns list of python files."""
-        yield from self.glob_files("**/*.py", ignore=".venv/*")
+        yield from self.glob_files("**/*.py", "!.venv/**")
 
     @cached_property
     def doc_files(self) -> Generator[Path, None, None]:
         """Returns list of doc files."""
-        yield from self.glob_files(
-            "**/*.md", "**/*.markdown", "**/*.rst", "**/*.tex", ignore=".venv/*"
-        )
+        yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
