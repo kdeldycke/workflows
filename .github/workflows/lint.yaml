@@ -69,14 +69,18 @@ jobs:
           curl -fsSL --output ./pinned-requirements.txt
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
       - name: Install Poetry
+        # uv needs a venv. See:
+        # https://github.com/astral-sh/uv/issues/1386
+        # https://github.com/astral-sh/uv/issues/1374
         run: |
+          uv venv
           uv pip install --requirement ./pinned-requirements.txt
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
-          python -c "$(curl -fsSL
+          . .venv/bin/activate && python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   lint-python-types:
