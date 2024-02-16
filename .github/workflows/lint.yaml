@@ -62,7 +62,7 @@ jobs:
       - name: Hack uv to use system Python as default venv
         # See: https://github.com/astral-sh/uv/issues/1386#issuecomment-1947801083
         run: |
-          echo "VIRTUAL_ENV=${Python_ROOT_DIR}" >> $GITHUB_ENV
+          echo "VIRTUAL_ENV=${Python_ROOT_DIR}" >> "$GITHUB_ENV"
       - name: Install uv
         run: |
           python -m pip install uv
