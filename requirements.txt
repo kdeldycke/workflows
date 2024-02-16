@@ -9,9 +9,7 @@ nuitka == 2.0.2
 ordered-set == 4.1.0
 pipdeptree == 2.13.2
 poetry == 1.7.1
-PyDriller == 2.6
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 5.0.0
 uv == 0.1.2
-wcmatch == 8.5
 zstandard == 0.22.0

@@ -71,7 +71,7 @@ jobs:
       - name: Download requirements.txt
         run: >
           curl -fsSL --output ./pinned-requirements.txt
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/metadata-requirements.txt
       - name: Install Poetry
         # uv needs a venv. See:
         # https://github.com/astral-sh/uv/issues/1386
