@@ -451,21 +451,21 @@ class Metadata:
 
     @cached_property
     def blacken_docs_params(self) -> tuple[str, ...] | None:
-        """Generates `blacken-docs` parameters.
+        """Generates ``blacken-docs`` parameters.
 
         `Blacken-docs reuses Black's --target-version pyXY parameters
         <https://github.com/adamchainz/blacken-docs/blob/cd4e60f/src/blacken_docs/__init__.py#L263-L271>`_,
         and needs to be fed with a subset of these:
-        - `--target-version py33`
-        - `--target-version py34`
-        - `--target-version py35`
-        - `--target-version py36`
-        - `--target-version py37`
-        - `--target-version py38`
-        - `--target-version py39`
-        - `--target-version py310`
-        - `--target-version py311`
-        - `--target-version py312`
+        - ``--target-version py33``
+        - ``--target-version py34``
+        - ``--target-version py35``
+        - ``--target-version py36``
+        - ``--target-version py37``
+        - ``--target-version py38``
+        - ``--target-version py39``
+        - ``--target-version py310``
+        - ``--target-version py311``
+        - ``--target-version py312``
 
         As mentioned in Black usage, you should `include all Python versions that you
         want your code to run under
