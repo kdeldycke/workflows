@@ -16,8 +16,7 @@ This repository updates itself via GitHub actions. It particularly updates its o
 Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files. It looks like this:
 
 ```yaml
-"on":
-  (...)
+on: (...)
 
 jobs:
 
@@ -27,26 +26,27 @@ jobs:
       contents: write
       pull-requests: write
 
-    steps:
-      (...)
+    steps: (...)
 ```
 
 But the `contents: write` permission doesn't allow write access to the workflow files in the `.github` subfolder. There is `actions: write`, but it only covers workflow runs, not their YAML source file. Even a `permissions: write-all` doesn't work. So you cannot use the `permissions` parameter to allow a repository's workflow update its own workflow files.
 
 You will always end up with this kind or errors:
+
 ```text
    ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a GitHub App to create or update workflow `.github/workflows/my_workflow.yaml` without `workflows` permission)
 
   error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
 ```
 
-> [!NOTE]
+> \[!NOTE\]
 > That's also why the Settings > Actions > General > Workflow permissions parameter on your repository has no effect on this issue, even with the `Read and write permissions` set:
 > ![](assets/repo-workflow-permissions.png)
 
 To bypass the limitation, we rely on a custom access token. By convention, we call it `WORKFLOW_UPDATE_GITHUB_PAT`. It will be used, [in place of the default `secrets.GITHUB_TOKEN`](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code), in steps in which we need to change the workflow YAML files.
 
 To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
+
 - From your GitHub user, go to `Settings` > `Developer Settings` > `Personal Access Tokens` > `Fine-grained tokens`
 - Click on the `Generate new token` button
 - Choose a good token name like `workflow-self-update` to make your intention clear
@@ -56,7 +56,7 @@ To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
   - `Metadata` (mandatory): `Access: **Read-only**`
   - `Pull Requests`: `Access: **Read and Write**`
   - `Workflows`: `Access: **Read and Write**`
-    > [!NOTE]
+    > \[!NOTE\]
     > This is the only place where I can have control over the `Workflows` permission, which is not supported by the `permissions:` parameter in YAML files.
 - Now save these parameters and copy the `github_pat_XXXX` secret token
 - Got to your repo > `Settings` > `Security` > `Secrets and variables` > `Actions` > `Secrets` > `Repository secrets` and click `New repository secrets`
