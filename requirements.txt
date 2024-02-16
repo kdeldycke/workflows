@@ -3,8 +3,6 @@
 # Also, a project relying on this repository can point to this external requirement.txt,
 # even from its Poetry's venv. We cannot do that with Poetry, as it doesn't support sub-venvs.
 # All versions are pinned so we have ultimate control over reproducibility.
-autopep8 == 2.0.4
-blacken-docs == 1.16.0
 bump-my-version == 0.17.4
 check-wheel-contents == 0.6.0
 mypy == 1.8.0
@@ -13,7 +11,6 @@ ordered-set == 4.1.0
 pipdeptree == 2.13.2
 poetry == 1.7.1
 PyDriller == 2.6
-ruff == 0.2.1
 tomli == 2.0.1 ; python_version < "3.11"
 twine == 5.0.0
 uv == 0.1.2
