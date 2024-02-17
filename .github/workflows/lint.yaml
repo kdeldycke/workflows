@@ -31,23 +31,25 @@ jobs:
           fetch-depth: 0
       - name: Hack setup-python cache
         id: setup_python_hack
-        # XXX Create an empty pyproject.toml if this file (or requirements.txt) doesn't exist.
-        # This work around and issue with setup-python for non-Python projects, which ends up with ends up
-        # with this error:
+        # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
+        # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
         #
         #   Run actions/setup-python@v5.0.0
         #     with:
         #       python-version: 3.12
         #       cache: pip
+        #       cache-dependency-path: |
+        #         **/pyproject.toml
+        #         **/*requirements.txt
         #   Installed versions
         #     Successfully set up CPython (3.12.1)
         #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
-        #   [**/requirements.txt or **/pyproject.toml], make sure you have checked out the target repository
+        #   [**/*requirements.txt or **/pyproject.toml], make sure you have checked out the target repository
         #
         # This has been reported at: https://github.com/actions/setup-python/issues/807
         # In the future this might be addressed by: https://github.com/actions/setup-python/pull/762
         # or https://github.com/actions/setup-python/issues/751
-        if: hashFiles('**/requirements.txt', '**/pyproject.toml') == ''
+        if: hashFiles('**/*requirements.txt', '**/pyproject.toml') == ''
         run: |
           touch ./pyproject.toml
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
@@ -55,6 +57,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: |
+            **/pyproject.toml
+            **/*requirements.txt
       - name: Remove setup-python hack
         if: steps.setup_python_hack.outputs.tmp_deps_file
         run: |
@@ -99,6 +104,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: |
+            **/pyproject.toml
+            **/*requirements.txt
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
@@ -131,23 +139,25 @@ jobs:
       - uses: actions/checkout@v4.1.1
       - name: Hack setup-python cache
         id: setup_python_hack
-        # XXX Create an empty pyproject.toml if this file (or requirements.txt) doesn't exist.
-        # This work around and issue with setup-python for non-Python projects, which ends up with ends up
-        # with this error:
+        # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
+        # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
         #
         #   Run actions/setup-python@v5.0.0
         #     with:
         #       python-version: 3.12
         #       cache: pip
+        #       cache-dependency-path: |
+        #         **/pyproject.toml
+        #         **/*requirements.txt
         #   Installed versions
         #     Successfully set up CPython (3.12.1)
         #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
-        #   [**/requirements.txt or **/pyproject.toml], make sure you have checked out the target repository
+        #   [**/*requirements.txt or **/pyproject.toml], make sure you have checked out the target repository
         #
         # This has been reported at: https://github.com/actions/setup-python/issues/807
         # In the future this might be addressed by: https://github.com/actions/setup-python/pull/762
         # or https://github.com/actions/setup-python/issues/751
-        if: hashFiles('**/requirements.txt', '**/pyproject.toml') == ''
+        if: hashFiles('**/*requirements.txt', '**/pyproject.toml') == ''
         run: |
           touch ./pyproject.toml
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
@@ -155,6 +165,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: |
+            **/pyproject.toml
+            **/*requirements.txt
       - name: Remove setup-python hack
         if: steps.setup_python_hack.outputs.tmp_deps_file
         run: |
