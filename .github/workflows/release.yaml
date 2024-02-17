@@ -26,7 +26,7 @@ jobs:
       # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins
       # (see: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626).
       # This means in a graph of jobs, a matrix-based one is terminal, and cannot be depended on. Same goes for
-      # (reuseable) workflows. We use this preliminary job to produce all matrix we need to trigger depending jobs
+      # (reusable) workflows. We use this preliminary job to produce all matrix we need to trigger depending jobs
       # over the dimensions.
       new_commits_matrix: ${{ steps.project-metadata.outputs.new_commits_matrix }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
