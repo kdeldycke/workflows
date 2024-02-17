@@ -9,6 +9,32 @@ Reasons for a centralized workflow repository:
 - reusability of course: no need to update dozens of repository where 95% of workflows are the same
 - centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories depending on it
 
+## Why all these `*requirements.txt` files?
+
+Let's look for example atthe `lint-yaml` job from [`.github/workflows/lint.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml#L126). Here we only need the `yamllint` CLI. This CLI is [distributed on PyPi](https://pypi.org/project/yamllint/). So before executing it, we could have simply run the following step:
+```yaml
+      - name: Install yamllint
+        run: |
+          pip install yamllint
+```
+
+Instead, we install it via the [`yamllint-requirements.txt` at the root of this repository](https://github.com/kdeldycke/workflows/blob/main/yamllint-requirements.txt).
+
+Why? Because I want the version of `yamllint` to be pinned. By pinning it, I make the workflow stable, predictable and reproducible.
+
+So why use a dedicated requirements file? Why don't we simply add the version? Like:
+```yaml
+      - name: Install yamllint
+        run: |
+          pip install yamllint==1.35.1
+```
+
+That would indeed pin the version. But it requires the maintainer (me) to keep track of new release and update manually the version string. That's a lot of work. And I'm lazy. So this should be automated.
+
+To automate that, the only practical way I found was to rely on dependabot. But dependabot cannot update arbitrary versions in `run:` YAML blocks. It [only supports `**/*requirements.txt` and `**/pyproject.toml`](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file#pip-and-pip-compile) files for Python projects.
+
+So to keep track of new versions of dependencies while keeping them stable, we've hard-coded all Python libraries and CLIs in the `*requirements.txt` files. All with pinned versions.
+
 ## Permissions and token
 
 This repository updates itself via GitHub actions. It particularly updates its own YAML files in `.github/workflows`. That's forbidden by default. So we need extra permissions.
