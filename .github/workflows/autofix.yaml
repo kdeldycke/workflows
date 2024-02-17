@@ -87,17 +87,20 @@ jobs:
           python -m pip install uv
       # XXX Wait for https://github.com/astral-sh/uv/issues/1481 to bypass the intermediate requirements.txt
       # download with curl.
-      - name: Download requirements.txt
+      - name: Download pinned requirements.txt
         run: >
           curl -fsSL --output ./pinned-requirements.txt
           https://raw.githubusercontent.com/kdeldycke/workflows/main/metadata-requirements.txt
-      - name: Install Poetry
+      - name: Install Poetry from pinned requirements.txt
         # uv needs a venv. See:
         # https://github.com/astral-sh/uv/issues/1386
         # https://github.com/astral-sh/uv/issues/1374
         run: |
           uv venv
           uv pip install --requirement ./pinned-requirements.txt
+      - name: Remove pinned requirements.txt
+        run: |
+          rm ./pinned-requirements.txt
       - name: Project metadata
         id: project-metadata
         env:
