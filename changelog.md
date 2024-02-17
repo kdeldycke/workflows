@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Start replacing some `pip` invocation by `uv`.
+- Split Python dependencies into sevearal `*-requirements.txt` files.
 - Lint and format Jupyter notebooks with ruff.
 - Update default ruff config file to new `0.2.x` series.
 
