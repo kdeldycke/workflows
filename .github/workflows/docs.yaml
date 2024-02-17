@@ -237,10 +237,12 @@ jobs:
       - name: Install pip
         run: |
           python -m pip install --upgrade pip
-      - name: Install pinned pipdeptree on system
+      - name: Install pipdeptree and Poetry on system
         run: >
           python -m pip install --requirement
           https://raw.githubusercontent.com/kdeldycke/workflows/main/pipdeptree-requirements.txt
+          --requirement
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/build-requirements.txt
       - name: Install project with Poetry
         run: |
           poetry install --only main --no-interaction
