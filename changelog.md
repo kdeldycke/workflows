@@ -6,10 +6,16 @@
 This version is not released yet and is under active development.
 ```
 
-- Start replacing some `pip` invocation by `uv`.
-- Split Python dependencies into sevearal `*-requirements.txt` files.
+- Start replacing `pip` invocations by `uv`.
+- Split Python dependencies into sevearal `*requirements.txt` files.
+- Let metadata script generates Pip's `--requirement` parameters.
+- Add new dependency on `wcmatch` and `uv`.
+- Ignore all files from local `.venv/` subfolder.
+- Tie Pip cache to `**/pyproject.toml` and `**/*requirements.txt` files.
 - Lint and format Jupyter notebooks with ruff.
 - Update default ruff config file to new `0.2.x` series.
+- Remove installation of unused `bump-my-version` in Git tagging job.
+- Document setup and rationale of custom PAT and `*requirements.txt` files.
 
 ## [2.26.6 (2024-01-31)](https://github.com/kdeldycke/workflows/compare/v2.26.5...v2.26.6)
 
