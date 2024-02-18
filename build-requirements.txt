@@ -1,4 +1,4 @@
 check-wheel-contents == 0.6.0
 poetry == 1.7.1
 twine == 5.0.0
-uv == 0.1.2
+uv == 0.1.4
