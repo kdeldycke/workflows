@@ -757,7 +757,8 @@ class Metadata:
         # Add platform-specific variables.
         # Arch values are inspired from those specified for self-hosted runners:
         # https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners#architectures
-        # Arch is not a matrix variant because support is not widely distributed between different OS.
+        # Arch is not a matrix variant because support is not widely distributed
+        # between different OS.
         extra_os_params = [
             {
                 "os": "ubuntu-22.04",
