@@ -49,7 +49,6 @@ release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
                                      'current_version': '2.0.0'}]}
 nuitka_matrix={'entry_point': ['mpm'],
                'os': ['ubuntu-22.04', 'macos-13', 'windows-2022'],
-               'arch': ['x64'],
                'include': [{'entry_point': 'mpm',
                             'cli_id': 'mpm',
                             'module_id': 'meta_package_manager.__main__',
@@ -71,6 +70,10 @@ nuitka_matrix={'entry_point': ['mpm'],
                             'os': 'ubuntu-22.04',
                             'arch': 'x64',
                             'bin_name': 'mpm-linux-x64-build-6f27db4.bin'},
+                           {'entry_point': 'mpm',
+                            'os': 'macos-14',
+                            'arch': 'arm64',
+                            'bin_name': 'mpm-macos-arm64-build-6f27db4.bin'},
                            {'entry_point': 'mpm',
                             'os': 'macos-13',
                             'arch': 'x64',
@@ -712,24 +715,14 @@ class Metadata:
         # https://snarky.ca/webassembly-and-its-platform-targets/
         matrix: dict[str, list[Any]] = {
             "entry_point": [],
-            # Run the compilation on the latest supported version of each OS.
+            # Run the compilation only the latest supported version of each OS.
+            # The exception is macOS, as macos-14 is arm64 and macos-13 is x64, so we
+            # need both to target the two architectures.
             "os": [
                 "ubuntu-22.04",
+                "macos-14",
                 "macos-13",
                 "windows-2022",
-            ],
-            # Arch values are aligned to those specified for self-hosted runners:
-            # https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners#architectures
-            "arch": [
-                "x64",
-                # XXX GitHub-hosted runners only supports x64.
-                # "ARM64"
-                # "ARM32"
-                # XXX GitHub-hosted macOS runners with Apple silicon are planned in the
-                # future:
-                # https://github.com/github/roadmap/issues/528
-                # https://github.com/actions/runner-images/issues/2187
-                # https://github.com/actions/runner/issues/805
             ],
             # Extra parameters.
             "include": [],
@@ -762,22 +755,35 @@ class Metadata:
             matrix["include"].extend(self.new_commits_matrix["include"])
 
         # Add platform-specific variables.
+        # Arch values are inspired from those specified for self-hosted runners:
+        # https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners#architectures
+        # Arch is not a matrix variant because support is not widely distributed between different OS.
         extra_os_params = [
             {
                 "os": "ubuntu-22.04",
                 "platform_id": "linux",
+                "arch": "x64",
+                "extension": "bin",
+                "extra_python_params": "",
+            },
+            {
+                "os": "macos-14",
+                "platform_id": "macos",
+                "arch": "arm64",
                 "extension": "bin",
                 "extra_python_params": "",
             },
             {
                 "os": "macos-13",
                 "platform_id": "macos",
+                "arch": "x64",
                 "extension": "bin",
                 "extra_python_params": "",
             },
             {
                 "os": "windows-2022",
                 "platform_id": "windows",
+                "arch": "x64",
                 "extension": "exe",
                 # XXX "-X utf8" parameter is a workaround for Windows runners
                 # redirecting the output of commands to files. See:
