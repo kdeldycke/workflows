@@ -874,7 +874,8 @@ class Metadata:
         pypi_link = ""
         if self.package_name:
             pypi_link = f"[🐍 Available on PyPi](https://pypi.org/project/{
-                                        self.package_name}/{version})."
+                self.package_name
+            }/{version})."
 
         # Assemble the release notes.
         return f"{changes}\n\n{pypi_link}".strip()
