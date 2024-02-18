@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.1.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.1.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.1.0 (2024-02-18)](https://github.com/kdeldycke/workflows/compare/v3.0.0...v3.1.0)
 
 - Produce `arm64` binaries with Nuitka by using `macos-14` runners.
