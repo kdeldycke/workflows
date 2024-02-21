@@ -1,0 +1,9 @@
+-r build-requirements.txt
+-r changelog-requirements.txt
+-r format-python-requirements.txt
+-r mdformat-requirements.txt
+-r metadata-requirements.txt
+-r mypy-requirements.txt
+-r nuitka-requirements.txt
+-r pipdeptree-requirements.txt
+-r yamllint-requirements.txt
