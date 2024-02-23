@@ -10,4 +10,4 @@ jobs:
   print-context:
     runs-on: ubuntu-22.04
     steps:
-      - uses: crazy-max/ghaction-dump-context@v2.1.0
+      - uses: crazy-max/ghaction-dump-context@v2.2.0
