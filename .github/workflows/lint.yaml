@@ -352,7 +352,9 @@ jobs:
 
   lint-awesome:
     name: Lint Awesome list
-    if: startsWith(github.event.repository.name, 'awesome-')
+    if: >
+      startsWith(github.event.repository.name, 'awesome-')
+      && github.event.repository.name != 'awesome-template'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
