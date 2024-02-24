@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Try to hack `actions-template-sync` labels.
+
 ## [3.2.1 (2024-02-24)](https://github.com/kdeldycke/workflows/compare/v3.2.0...v3.2.1)
 
 - Add label to awesome template sync PR.
