@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.2.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.2.4...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.2.4 (2024-02-24)](https://github.com/kdeldycke/workflows/compare/v3.2.3...v3.2.4)
 
 - Remove labels in `awesome-template-sync` job while we wait for upstream fix.
