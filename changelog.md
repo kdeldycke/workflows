@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Add a job to sync awesome repository project from the `awesome-template` repository.
+
 ## [3.1.0 (2024-02-18)](https://github.com/kdeldycke/workflows/compare/v3.0.0...v3.1.0)
 
 - Produce `arm64` binaries with Nuitka by using `macos-14` runners.

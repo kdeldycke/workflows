@@ -369,3 +369,19 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/html
           force_orphan: true
+
+  awesome-template-sync:
+    name: Sync awesome template
+    if: startsWith(github.event.repository.name, 'awesome-')
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - uses: AndreasAugustin/actions-template-sync@v1.6.0
+        with:
+          # We need custom PAT with workflows permissions so we can update all the boilerplate .github files from
+          # awesome-template.
+          github_token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          source_repo_path: kdeldycke/awesome-template
+          pr_title: "[sync] Template"
+          pr_commit_msg: "[sync] Template"
+          # pr_labels: '📚 documentation'
