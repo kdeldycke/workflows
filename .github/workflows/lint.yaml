@@ -77,7 +77,7 @@ jobs:
       - name: Download pinned requirements.txt
         run: >
           curl -fsSL --output ./pinned-requirements.txt
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/metadata-requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v3.2.3/metadata-requirements.txt
       - name: Install Poetry from pinned requirements.txt
         # uv needs a venv. See:
         # https://github.com/astral-sh/uv/issues/1386
@@ -94,7 +94,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
+          https://raw.githubusercontent.com/kdeldycke/workflows/v3.2.3/.github/metadata.py)"
 
   mypy-lint:
     needs:
@@ -117,12 +117,12 @@ jobs:
       - name: Install Mypy
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/mypy-requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v3.2.3/mypy-requirements.txt
       - name: Install Poetry
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/build-requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v3.2.3/build-requirements.txt
       - name: Install dependencies with Poetry
         # Install project with Poetry if supported, so we can benefits from dependencies on typing stubs.
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
@@ -191,7 +191,7 @@ jobs:
       - name: Install yamllint
         run: >
           python -m pip install --requirement
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/yamllint-requirements.txt
+          https://raw.githubusercontent.com/kdeldycke/workflows/v3.2.3/yamllint-requirements.txt
       - name: Run yamllint
         run: |
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
