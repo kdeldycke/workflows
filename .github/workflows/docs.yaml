@@ -388,4 +388,4 @@ jobs:
           pr_commit_msg: "[sync] Template"
           # XXX There's an issue with emoji labels, see:
           # https://github.com/AndreasAugustin/actions-template-sync/issues/461
-          pr_labels: "📚 documentation"
+          # pr_labels: "📚 documentation"
