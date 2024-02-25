@@ -8,6 +8,8 @@ This version is not released yet and is under active development.
 
 - Start collecting `bump-my-version` rules from different projects.
 - Move all `*-requirements.txt` files to `requirements` subfolder.
+- Remove generation of Pip's `--requirement` parameters in metadata script.
+- Reuse `requirements.txt` root file to install dependencies in `mypy-lint` job.
 
 ## [3.2.4 (2024-02-24)](https://github.com/kdeldycke/workflows/compare/v3.2.3...v3.2.4)
 

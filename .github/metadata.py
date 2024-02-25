@@ -24,7 +24,6 @@ new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
 python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
-pip_requirements_params=--requirement build-requirements.txt --requirement changelog-requirements.txt
 is_poetry_project=true
 package_name=click-extra
 blacken_docs_params=--target-version py37 --target-version py38
@@ -369,20 +368,6 @@ class Metadata:
     def doc_files(self) -> Iterator[str]:
         """Returns list of doc files."""
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
-
-    @cached_property
-    def requirements_files(self) -> Iterator[str]:
-        """Returns list of all requirements files used ."""
-        yield from self.glob_files("**/*requirements.txt", "!.venv/**")
-
-    @cached_property
-    def pip_requirements_params(self) -> tuple[str, ...] | None:
-        """Generates a list of  ``--requirement <file>`` parameters for ``pip``."""
-        if self.requirements_files:
-            return tuple(
-                f"--requirement {req_file}" for req_file in self.requirements_files
-            )
-        return None
 
     @cached_property
     def pyproject(self) -> PyProjectTOML:
@@ -931,7 +916,6 @@ class Metadata:
             "release_commits": (self.release_commits_hash, False),
             "python_files": (self.python_files, False),
             "doc_files": (self.doc_files, False),
-            "pip_requirements_params": (self.pip_requirements_params, False),
             "is_poetry_project": (self.is_poetry_project, False),
             "package_name": (self.package_name, False),
             "blacken_docs_params": (self.blacken_docs_params, False),
