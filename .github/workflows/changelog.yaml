@@ -49,7 +49,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/changelog-requirements.txt
       - name: ${{ matrix.part }} version bump
         run: |
-          bump-my-version bump --verbose ${{ matrix.part }}
+          bump-my-version bump --verbose --ignore-missing-files ${{ matrix.part }}
       - name: Extract version
         id: get_version
         run: |
@@ -184,7 +184,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_changelog.py)"
       - name: Version bump
         run: |
-          bump-my-version bump --verbose patch
+          bump-my-version bump --verbose --ignore-missing-files patch
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"

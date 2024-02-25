@@ -1,8 +1,8 @@
 [tool.bumpversion]
 current_version = "3.2.5"
 allow_dirty = true
-# We ignore missing files so we can collect here lots of search and replace rules from heterogenous projects.
-ignore_missing_files = true
+# XXX Wait for https://github.com/callowayproject/bump-my-version/issues/145 to activate global option.
+# ignore_missing_files = true
 
 [[tool.bumpversion.files]]
 # Update Python package version in any __init__.py file.
