@@ -1,5 +1,5 @@
 [tool.bumpversion]
-current_version = "3.3.0"
+current_version = "3.3.1"
 allow_dirty = true
 # XXX Wait for https://github.com/callowayproject/bump-my-version/issues/145 to activate global option.
 # ignore_missing_files = true
