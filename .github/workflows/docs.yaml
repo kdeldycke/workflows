@@ -378,7 +378,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: AndreasAugustin/actions-template-sync@v1.6.0
+      - uses: AndreasAugustin/actions-template-sync@v1.6.2
         with:
           # We need custom PAT with workflows permissions so we can update all the boilerplate .github files from
           # awesome-template.
@@ -386,6 +386,4 @@ jobs:
           source_repo_path: kdeldycke/awesome-template
           pr_title: "[sync] Template"
           pr_commit_msg: "[sync] Template"
-          # XXX There's an issue with emoji labels, see:
-          # https://github.com/AndreasAugustin/actions-template-sync/issues/461
-          # pr_labels: "📚 documentation"
+          pr_labels: "📚 documentation"
