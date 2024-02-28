@@ -244,7 +244,7 @@ jobs:
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
           || true
-      - uses: peter-evans/create-pull-request@v6.0.0
+      - uses: peter-evans/create-pull-request@v6.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python"
@@ -326,7 +326,7 @@ jobs:
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
-      - uses: peter-evans/create-pull-request@v6.0.0
+      - uses: peter-evans/create-pull-request@v6.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
@@ -355,7 +355,7 @@ jobs:
       - name: Lint
         run: |
           find ./ -type f -name '*.json' -print -exec jsonlint --in-place "{}" \;
-      - uses: peter-evans/create-pull-request@v6.0.0
+      - uses: peter-evans/create-pull-request@v6.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON"
@@ -430,7 +430,7 @@ jobs:
 
           ${{ inputs.gitignore-extra-content }}
           EOF
-      - uses: peter-evans/create-pull-request@v6.0.0
+      - uses: peter-evans/create-pull-request@v6.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .gitignore"
