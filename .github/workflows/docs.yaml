@@ -378,7 +378,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: AndreasAugustin/actions-template-sync@v1.6.2
+      - uses: AndreasAugustin/actions-template-sync@v1.8.0
         with:
           # We need custom PAT with workflows permissions so we can update all the boilerplate .github files from
           # awesome-template.
