@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix updating of existing PR from `awesome-template-sync`.
+
 ## [3.3.2 (2024-03-01)](https://github.com/kdeldycke/workflows/compare/v3.3.1...v3.3.2)
 
 - Fix fetching of newly created PR in `awesome-template-sync`.
