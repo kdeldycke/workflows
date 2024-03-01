@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.3.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.3.1...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.3.1 (2024-03-01)](https://github.com/kdeldycke/workflows/compare/v3.3.0...v3.3.1)
 
 - Update repository URLs in `awesome-template-sync` job before re committing the PR.
