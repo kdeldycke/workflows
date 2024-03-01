@@ -403,8 +403,8 @@ jobs:
       - name: Update repo URLs
         # Replace "/kdeldycke/awesome-template/" in URLs by "/kdeldycke/awesome-<repo_id>/".
         run: >
-          find ./.github/ -type f -iregex '.*\.\(md\|yaml\)$' -exec
-          sed -i "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
+          find ./.github/ -type f -iregex '.*\.\(md\|yaml\)$' -print -exec sed --quiet -i
+          "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//gp" "{}" \;
       - name: Push to PR
         uses: peter-evans/create-pull-request@v6.0.1
         with:
