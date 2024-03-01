@@ -398,7 +398,7 @@ jobs:
       - name: Update repo URLs
         # Replace "/kdeldycke/awesome-template/" in URLs by "/kdeldycke/awesome-<repo_id>/".
         run: >
-          find ./.github/ -iname "*.md" -or -iname "*.yaml" -exec
+          find ./.github/ -type f -iregex '.*\.\(md\|yaml\)$' -exec
           sed -i "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
       - name: Push to PR
         uses: peter-evans/create-pull-request@v6.0.1
