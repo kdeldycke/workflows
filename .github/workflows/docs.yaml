@@ -378,6 +378,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
+        with:
+          # We need to get the whole commit history to be able to re-call the actions/checkout action below and fetch
+          # the new PR created by AndreasAugustin/actions-template-sync. This is a known limitation:
+          # https://github.com/actions/checkout/issues/439
+          fetch-depth: 0
       - name: Sync from template repo
         id: template_sync
         uses: AndreasAugustin/actions-template-sync@v1.8.0
