@@ -378,12 +378,31 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - uses: AndreasAugustin/actions-template-sync@v1.6.2
+      - name: Sync from template repo
+        id: template_sync
+        uses: AndreasAugustin/actions-template-sync@v1.8.0
         with:
           # We need custom PAT with workflows permissions so we can update all the boilerplate .github files from
           # awesome-template.
           github_token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           source_repo_path: kdeldycke/awesome-template
-          pr_title: "[sync] Template"
-          pr_commit_msg: "[sync] Template"
+          pr_title: "[sync] Update from `awesome-template` repository"
+          pr_commit_msg: "[sync] Update from `awesome-template` repository"
           pr_labels: "📚 documentation"
+      # XXX Stuff below are being discussed as a feature request at:
+      # https://github.com/AndreasAugustin/actions-template-sync/issues/467
+      - name: Checkout template sync PR
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ steps.template_sync.outputs.pr_branch }}
+      - name: Update repo URLs
+        # Replace "/kdeldycke/awesome-template/" in URLs by "/kdeldycke/awesome-<repo_id>/".
+        run: >
+          find ./.github/ -iname "*.md" -or -iname "*.yaml" -exec
+          sed -i "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
+      - name: Push to PR
+        uses: peter-evans/create-pull-request@v6.0.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[sync] Update template URLs"
+          branch: ${{ steps.template_sync.outputs.pr_branch }}

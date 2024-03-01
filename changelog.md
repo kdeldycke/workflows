@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Update repository URLs in `awesome-template-sync` job before re committing the PR.
+
 ## [3.3.0 (2024-02-26)](https://github.com/kdeldycke/workflows/compare/v3.2.4...v3.3.0)
 
 - Start collecting `bump-my-version` rules from different projects.
