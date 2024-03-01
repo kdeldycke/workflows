@@ -401,7 +401,7 @@ jobs:
           find ./.github/ -iname "*.md" -or -iname "*.yaml" -exec
           sed -i "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
       - name: Push to PR
-        uses: peter-evans/create-pull-request@v6.0.0
+        uses: peter-evans/create-pull-request@v6.0.1
         with:
           assignees: ${{ github.actor }}
           commit-message: "[sync] Update template URLs"
