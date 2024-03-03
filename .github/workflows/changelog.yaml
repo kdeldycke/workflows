@@ -52,7 +52,7 @@ jobs:
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
-          bump-my-version bump --verbose --ignore-missing-files ${{ matrix.part }}
+          bump-my-version bump --verbose ${{ matrix.part }}
       - name: Extract version
         id: get_version
         run: |
@@ -192,7 +192,7 @@ jobs:
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
-          bump-my-version bump --verbose --ignore-missing-files patch
+          bump-my-version bump --verbose patch
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
