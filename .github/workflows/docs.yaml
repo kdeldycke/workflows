@@ -202,6 +202,7 @@ jobs:
         run: |
           uv venv --system
           uv pip install --requirement ./pinned-requirements.txt
+          source .venv/bin/activate
       - name: Remove pinned requirements.txt
         run: |
           rm ./pinned-requirements.txt
