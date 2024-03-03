@@ -1,10 +1,6 @@
 # Changelog
 
-## [3.3.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.3.4...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [3.3.5 (2024-03-03)](https://github.com/kdeldycke/workflows/compare/v3.3.4...v3.3.5)
 
 - Set `ignore_missing_files` option globally in `pyproject.toml`.
 - Remove temporary hack to make `uv` use system Python in workflows.
