@@ -9,6 +9,12 @@ Reasons for a centralized workflow repository:
 - reusability of course: no need to update dozens of repository where 95% of workflows are the same
 - centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories depending on it
 
+## Guidelines
+
+I don't want to copy-n-past, keep in sync and maintain another `N`th CI/CD file at the root of my repositories.
+
+So my policy is: move every repository-specific config in a `pyproject.toml` file, or hide the gory details in a reused workflow.
+
 ## Why all these `requirements/*.txt` files?
 
 Let's look for example at the `lint-yaml` job from [`.github/workflows/lint.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml#L126). Here we only need the `yamllint` CLI. This CLI is [distributed on PyPi](https://pypi.org/project/yamllint/). So before executing it, we could have simply run the following step:
