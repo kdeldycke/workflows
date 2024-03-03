@@ -188,10 +188,6 @@ jobs:
         if: steps.setup_python_hack.outputs.tmp_deps_file
         run: |
           rm ./pyproject.toml
-      - name: Hack uv to use system Python as default venv
-        # See: https://github.com/astral-sh/uv/issues/1386#issuecomment-1947801083
-        run: |
-          echo "VIRTUAL_ENV=${Python_ROOT_DIR}" >> "$GITHUB_ENV"
       - name: Install uv
         run: |
           python -m pip install uv
@@ -202,11 +198,9 @@ jobs:
           curl -fsSL --output ./pinned-requirements.txt
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/metadata.txt
       - name: Install Poetry from pinned requirements.txt
-        # uv needs a venv. See:
-        # https://github.com/astral-sh/uv/issues/1386
-        # https://github.com/astral-sh/uv/issues/1374
+        # uv needs a venv. See: https://github.com/astral-sh/uv/issues/1374
         run: |
-          uv venv
+          uv venv --system
           uv pip install --requirement ./pinned-requirements.txt
       - name: Remove pinned requirements.txt
         run: |
