@@ -78,7 +78,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
-          python -c "$(curl -fsSL
+          source .venv/bin/activate && python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   poetry-build:
