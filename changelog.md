@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix `awesome-template-sync` job.
+
 ## [3.3.5 (2024-03-03)](https://github.com/kdeldycke/workflows/compare/v3.3.4...v3.3.5)
 
 - Set `ignore_missing_files` option globally in `pyproject.toml`.
