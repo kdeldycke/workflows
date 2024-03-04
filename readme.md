@@ -43,7 +43,7 @@ To automate that, the only practical way I found was to rely on dependabot. But 
 
 So to keep track of new versions of dependencies while keeping them stable, we've hard-coded all Python libraries and CLIs in the `requirements/*.txt` files. All with pinned versions.
 
-And for the case we need to install all dependencies in one go, we have a [`requirements.txt` file at the root](https://github.com/kdeldycke/workflows/blob/main/requirements/yamllint.txt) that is referencing all files from the `requirements/` subfolder.
+And for the case we need to install all dependencies in one go, we have a [`requirements.txt` file at the root](https://github.com/kdeldycke/workflows/blob/main/requirements.txt) that is referencing all files from the `requirements/` subfolder.
 
 ## Permissions and token
 
