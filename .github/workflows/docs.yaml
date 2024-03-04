@@ -404,7 +404,7 @@ jobs:
           find ./.github/ -type f -iregex ".*\.\(md\|yaml\)$" -print -exec sed -i
           "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
       - name: Deactivate LFS
-        # XXX Was introduced in https://github.com/AndreasAugustin/actions-template-sync/commit/5335a55
+        # XXX Issue reported upstream at: https://github.com/AndreasAugustin/actions-template-sync/issues/485
         run: |
           git config lfs.https://github.com/kdeldycke/${{ github.event.repository.name }}.git/info/lfs.locksverify false
       - name: Setup Git user
@@ -412,6 +412,8 @@ jobs:
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
       - name: Merge change to previous commit
+        # XXX Note that this step fails on first run, as reported by:
+        # https://github.com/AndreasAugustin/actions-template-sync/issues/467#issuecomment-1976345287
         run: |
           git commit --all --amend --no-edit
       - name: Push new commit to PR
