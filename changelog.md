@@ -66,7 +66,7 @@ This version is not released yet and is under active development.
 ## [3.0.0 (2024-02-17)](https://github.com/kdeldycke/workflows/compare/v2.26.6...v3.0.0)
 
 - Start replacing `pip` invocations by `uv`.
-- Split Python dependencies into sevearal `*requirements.txt` files.
+- Split Python dependencies into several `*requirements.txt` files.
 - Let metadata script generates Pip's `--requirement` parameters.
 - Add new dependency on `wcmatch` and `uv`.
 - Ignore all files from local `.venv/` subfolder.
