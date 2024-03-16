@@ -75,7 +75,7 @@ You will always end up with this kind or errors:
   error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
 ```
 
-> \[!NOTE\]
+> [!NOTE]
 > That's also why the Settings > Actions > General > Workflow permissions parameter on your repository has no effect on this issue, even with the `Read and write permissions` set:
 > ![](assets/repo-workflow-permissions.png)
 
@@ -92,7 +92,7 @@ To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
   - `Metadata` (mandatory): `Access: **Read-only**`
   - `Pull Requests`: `Access: **Read and Write**`
   - `Workflows`: `Access: **Read and Write**`
-    > \[!NOTE\]
+    > [!NOTE]
     > This is the only place where I can have control over the `Workflows` permission, which is not supported by the `permissions:` parameter in YAML files.
 - Now save these parameters and copy the `github_pat_XXXX` secret token
 - Got to your repo > `Settings` > `Security` > `Secrets and variables` > `Actions` > `Secrets` > `Repository secrets` and click `New repository secrets`
