@@ -298,7 +298,7 @@ jobs:
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2.0.4
         env:
           # XXX We need custom PAT with workflows permissions BECAUSE ??? in .github/workflows/*.yaml files.
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
