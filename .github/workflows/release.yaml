@@ -62,7 +62,6 @@ jobs:
         # uv needs a venv. See: https://github.com/astral-sh/uv/issues/1374
         run: |
           uv venv --system
-          source .venv/bin/activate
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/metadata.txt
       - name: Project metadata
         id: project-metadata
