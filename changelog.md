@@ -6,6 +6,9 @@
 This version is not released yet and is under active development.
 ```
 
+- Support GitHub admonition in Markdown linting.
+- Add new dependency on `mdformat_gfm_alerts`.
+
 ## [3.3.6 (2024-03-04)](https://github.com/kdeldycke/workflows/compare/v3.3.5...v3.3.6)
 
 - Fix `awesome-template-sync` job.
