@@ -408,10 +408,6 @@ jobs:
         run: >
           find ./.github/ -type f -iregex ".*\.\(md\|yaml\)$" -print -exec sed -i
           "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
-      - name: Deactivate LFS
-        # XXX Issue reported upstream at: https://github.com/AndreasAugustin/actions-template-sync/issues/485
-        run: |
-          git config lfs.https://github.com/kdeldycke/${{ github.event.repository.name }}.git/info/lfs.locksverify false
       - name: Setup Git user
         run: |
           git config --global user.name "${{ github.actor }}"
