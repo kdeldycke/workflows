@@ -375,6 +375,9 @@ jobs:
         with:
           github_token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           source_repo_path: kdeldycke/awesome-template
+          # Action will update PR only if there is file changes. is_force_push_pr also force the PR to be updated
+          # only if metadata changes.
+          is_force_push_pr: true
           is_allow_hooks: true
           # Replace "/kdeldycke/awesome-template/" in URLs by "/kdeldycke/awesome-<repo_id>/".
           hooks: >
@@ -385,6 +388,8 @@ jobs:
           pr_title: "[sync] Updates from `awesome-template`"
           pr_commit_msg: "[sync] Updates from awesome-template"
           pr_branch_name_prefix: "sync-awesome-template"
+          # XXX SOURCE_REPO_PATH and TEMPLATE_GIT_HASH variables are not populated and rendered as-is.
+          # See: https://github.com/AndreasAugustin/actions-template-sync/issues/507
           pr_body: >
             Files synced from [`${SOURCE_REPO_PATH}@${TEMPLATE_GIT_HASH}`
             repository](https://github.com/${SOURCE_REPO_PATH}/tree/${TEMPLATE_GIT_HASH}).
