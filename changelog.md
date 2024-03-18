@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.4.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.4.0 (2024-03-18)](https://github.com/kdeldycke/workflows/compare/v3.3.6...v3.4.0)
 
 - Support GitHub admonition in Markdown linting.
