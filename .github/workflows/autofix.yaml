@@ -205,12 +205,12 @@ jobs:
           cat ./ruff.toml
       - name: Run Ruff check
         run: >
-          ruff check --config ./ruff.toml .
+          ruff check --config ./ruff.toml
       - name: Run Ruff format
         # XXX: Ruff is planning to support linting and formatting in one unified command at one point.
         # See: https://github.com/astral-sh/ruff/issues/8232
         run: |
-          ruff format --config ./ruff.toml .
+          ruff format --config ./ruff.toml
       - name: Remove temporary Ruff config
         run: |
           rm ./ruff.toml
