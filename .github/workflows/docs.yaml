@@ -389,8 +389,8 @@ jobs:
           pr_commit_msg: "[sync] Updates from awesome-template"
           pr_branch_name_prefix: "sync-awesome-template"
           pr_body: >
-            Files synced from [`${SOURCE_REPO}@${TEMPLATE_GIT_HASH}`
-            repository](https://github.com/${SOURCE_REPO}/tree/${TEMPLATE_GIT_HASH}).
+            Files synced from [`${SOURCE_REPO_PATH}@${TEMPLATE_GIT_HASH}`
+            repository](${SOURCE_REPO}/tree/${TEMPLATE_GIT_HASH}).
 
 
             <details><summary><code>Workflow metadata</code></summary>
