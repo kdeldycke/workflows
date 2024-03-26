@@ -48,7 +48,7 @@ jobs:
         # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
         # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
         #
-        #   Run actions/setup-python@v5.0.0
+        #   Run actions/setup-python@v5.1.0
         #     with:
         #       python-version: 3.12
         #       cache: pip
@@ -67,7 +67,7 @@ jobs:
         run: |
           touch ./pyproject.toml
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5.0.0
+      - uses: actions/setup-python@v5.1.0
         with:
           python-version: "3.12"
           cache: "pip"
@@ -107,7 +107,7 @@ jobs:
         # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
         # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
         #
-        #   Run actions/setup-python@v5.0.0
+        #   Run actions/setup-python@v5.1.0
         #     with:
         #       python-version: 3.12
         #       cache: pip
@@ -126,7 +126,7 @@ jobs:
         run: |
           touch ./pyproject.toml
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5.0.0
+      - uses: actions/setup-python@v5.1.0
         with:
           python-version: "3.12"
           cache: "pip"
@@ -257,7 +257,7 @@ jobs:
         # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
         # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
         #
-        #   Run actions/setup-python@v5.0.0
+        #   Run actions/setup-python@v5.1.0
         #     with:
         #       python-version: 3.12
         #       cache: pip
@@ -276,7 +276,7 @@ jobs:
         run: |
           touch ./pyproject.toml
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5.0.0
+      - uses: actions/setup-python@v5.1.0
         with:
           python-version: "3.12"
           cache: "pip"
