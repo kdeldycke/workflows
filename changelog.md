@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix template URL in `awesome-template-sync` job PR body.
+
 ## [3.4.1 (2024-03-19)](https://github.com/kdeldycke/workflows/compare/v3.4.0...v3.4.1)
 
 - Fix variable substitution in `awesome-template-sync` job PR body.
