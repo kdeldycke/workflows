@@ -385,7 +385,9 @@ class Metadata:
     def package_name(self) -> str | None:
         """Returns package name as published on PyPi."""
         if self.is_poetry_project:
-            return cast(str, self.pyproject.poetry_config["name"])
+            name = self.pyproject.poetry_config.get("name")
+            if name:
+                return cast(str, name)
         return None
 
     @cached_property
