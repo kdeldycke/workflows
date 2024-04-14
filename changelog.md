@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix incompatility between `mdformat-gfm` and `mdformat-pelican`.
+
 ## [3.4.2 (2024-04-04)](https://github.com/kdeldycke/workflows/compare/v3.4.1...v3.4.2)
 
 - Fix template URL in `awesome-template-sync` job PR body.

@@ -21,7 +21,10 @@ mdformat_gfm_alerts == 0.0.1
 # https://github.com/KyleKing/mdformat-admon/issues/15
 # mdformat_myst == 0.X.X
 mdformat_myst @ git+https://github.com/kdeldycke/mdformat-myst.git@uncap-mdit-py-plugins-version
-mdformat_pelican == 0.1.0
+# XXX mdformat_pelican and mdformat-gfm conflicts. See:
+# https://github.com/hukkin/mdformat-gfm/issues/38
+# https://github.com/gaige/mdformat-pelican/issues/3
+mdformat_pelican @ git+https://github.com/kdeldycke/mdformat-pelican.git@hack-mdformat-gfm-compat
 mdformat_pyproject == 0.0.1
 mdformat-shfmt == 0.1.0
 mdformat_simple_breaks == 0.0.1
