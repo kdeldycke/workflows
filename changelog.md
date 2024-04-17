@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.4.4...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.4.4 (2024-04-17)](https://github.com/kdeldycke/workflows/compare/v3.4.3...v3.4.4)
 
 - Name is optional for non `package-mode` Poetry projects.
