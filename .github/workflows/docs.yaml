@@ -231,20 +231,17 @@ jobs:
       - name: Install project with Poetry
         run: |
           poetry install --only main --no-interaction
-      - name: Install pipdeptree in Poetry
-        # pipdeptree needs to be installed within Poetry's venv to see dependencies. Use the pipdeptree installed
-        # above to guess the version pinned in the requirements.txt.
-        run: |
-          poetry run python -m pip install "$( pipdeptree | grep pipdeptree )"
+      # XXX We explicitly provide the Python binary from the virtualenv so pipdeptree will restrict its dependency tree
+      # to virtualenv. See: https://github.com/tox-dev/pipdeptree/issues/130#issuecomment-2029280908
       - name: Run pipdeptree for debug
         run: >
-          poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
+          pipdeptree --python ./.venv/bin/python --packages ${{ needs.project-metadata.outputs.package_name }}
       - name: Create dir structure
         run: |
           mkdir -p "$(dirname "${{ inputs.dependency-graph-output }}")"
       - name: Generate graph
         run: >
-          poetry run pipdeptree --packages ${{ needs.project-metadata.outputs.package_name }}
+          pipdeptree --python ./.venv/bin/python --packages ${{ needs.project-metadata.outputs.package_name }}
           --mermaid > ${{ inputs.dependency-graph-output }}
       - uses: peter-evans/create-pull-request@v6.0.4
         with:
