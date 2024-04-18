@@ -6,9 +6,11 @@
 This version is not released yet and is under active development.
 ```
 
+- Do not try to generate dependency graphs for non-`package-mode` Poetry projects.
+
 ## [3.4.4 (2024-04-17)](https://github.com/kdeldycke/workflows/compare/v3.4.3...v3.4.4)
 
-- Name is optional for non `package-mode` Poetry projects.
+- Name is optional for non-`package-mode` Poetry projects.
 
 ## [3.4.3 (2024-04-14)](https://github.com/kdeldycke/workflows/compare/v3.4.2...v3.4.3)
 

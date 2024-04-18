@@ -208,7 +208,7 @@ jobs:
     name: Update dependency graph
     needs:
       - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
+    if: fromJSON(needs.project-metadata.outputs.is_poetry_project) && needs.project-metadata.outputs.package_name
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.2
