@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.4.5...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.4.5 (2024-04-18)](https://github.com/kdeldycke/workflows/compare/v3.4.4...v3.4.5)
 
 - Support dependency graph generation for both package and non-package Poetry projects.
