@@ -208,7 +208,7 @@ jobs:
     name: Update dependency graph
     needs:
       - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_poetry_project) && needs.project-metadata.outputs.package_name
+    if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.2
@@ -235,14 +235,17 @@ jobs:
       # to virtualenv. See: https://github.com/tox-dev/pipdeptree/issues/130#issuecomment-2029280908
       - name: Run pipdeptree for debug
         run: >
-          pipdeptree --python ./.venv/bin/python --packages ${{ needs.project-metadata.outputs.package_name }}
+          pipdeptree --python ./.venv/bin/python
+          ${{ needs.project-metadata.outputs.package_name && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
       - name: Create dir structure
         run: |
           mkdir -p "$(dirname "${{ inputs.dependency-graph-output }}")"
       # TODO: generate a graph for each extra requirement sets (like main, dev, docs, tests, ...).
+      # See: https://github.com/tox-dev/pipdeptree/issues/107
       - name: Generate graph
         run: >
-          pipdeptree --python ./.venv/bin/python --packages ${{ needs.project-metadata.outputs.package_name }}
+          pipdeptree --python ./.venv/bin/python
+          ${{ needs.project-metadata.outputs.package_name && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
           --mermaid > ${{ inputs.dependency-graph-output }}
       - uses: peter-evans/create-pull-request@v6.0.4
         with:
