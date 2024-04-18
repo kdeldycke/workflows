@@ -235,7 +235,7 @@ jobs:
       # to virtualenv. See: https://github.com/tox-dev/pipdeptree/issues/130#issuecomment-2029280908
       - name: Run pipdeptree for debug
         run: >
-          pipdeptree --python $( poetry env info --executable )
+          pipdeptree --python "$( poetry env info --executable )"
           ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
       - name: Create dir structure
@@ -245,7 +245,7 @@ jobs:
       # See: https://github.com/tox-dev/pipdeptree/issues/107
       - name: Generate graph
         run: >
-          pipdeptree --python $( poetry env info --executable )
+          pipdeptree --python "$( poetry env info --executable )"
           ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
           --mermaid > ${{ inputs.dependency-graph-output }}
