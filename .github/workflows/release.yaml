@@ -36,7 +36,7 @@ jobs:
       package_name: ${{ steps.project-metadata.outputs.package_name }}
       release_notes: ${{ steps.project-metadata.outputs.release_notes }}
     steps:
-      - uses: actions/checkout@v4.1.2
+      - uses: actions/checkout@v4.1.3
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -80,7 +80,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.2
+      - uses: actions/checkout@v4.1.3
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v5.1.0
@@ -124,7 +124,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4.1.2
+      - uses: actions/checkout@v4.1.3
         with:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v5.1.0
@@ -182,7 +182,7 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.2
+      - uses: actions/checkout@v4.1.3
         with:
           ref: ${{ matrix.commit }}
       - name: Check if tag exists
