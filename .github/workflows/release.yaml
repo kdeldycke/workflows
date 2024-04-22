@@ -102,7 +102,7 @@ jobs:
           poetry install --no-interaction
           poetry build --no-interaction
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4.3.2
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: ${{ github.event.repository.name }}-poetry-build-${{ matrix.short_sha }}
           path: ./dist/*
@@ -166,7 +166,7 @@ jobs:
           --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries
-        uses: actions/upload-artifact@v4.3.2
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: ${{ matrix.bin_name }}
           if-no-files-found: error
