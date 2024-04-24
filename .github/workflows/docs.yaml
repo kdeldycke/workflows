@@ -374,7 +374,7 @@ jobs:
           fetch-depth: 0
       - name: Sync from template repo
         id: template_sync
-        uses: AndreasAugustin/actions-template-sync@v2.0.2
+        uses: AndreasAugustin/actions-template-sync@v2.1.0
         with:
           github_token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           source_repo_path: kdeldycke/awesome-template
