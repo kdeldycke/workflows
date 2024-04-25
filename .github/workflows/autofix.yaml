@@ -37,7 +37,7 @@ jobs:
       blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
       ruff_py_version: ${{ steps.project-metadata.outputs.ruff_py_version }}
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -101,7 +101,7 @@ jobs:
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - name: Hack setup-python cache
         id: setup_python_hack
         # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
@@ -251,7 +251,7 @@ jobs:
     name: Format Markdown
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - name: Hack setup-python cache
         id: setup_python_hack
         # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
@@ -333,7 +333,7 @@ jobs:
     name: Format JSON
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - name: Install jsonlint
         run: |
           sudo npm install --global jsonlint
@@ -364,7 +364,7 @@ jobs:
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
         run: |
@@ -381,7 +381,7 @@ jobs:
     if: needs.check-gitignore.outputs.exists
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - name: Install git-extras
         run: |
           sudo apt update
