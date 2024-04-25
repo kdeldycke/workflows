@@ -1,4 +1,4 @@
-black == 24.4.0
+black == 24.4.1
 bump-my-version == 0.20.2
 mypy == 1.10.0
 poetry == 1.8.2
