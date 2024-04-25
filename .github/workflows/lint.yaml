@@ -23,7 +23,7 @@ jobs:
       is_poetry_project: ${{ steps.project-metadata.outputs.is_poetry_project }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -87,7 +87,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - uses: actions/setup-python@v5.1.0
         with:
           python-version: "3.12"
@@ -134,7 +134,7 @@ jobs:
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - name: Hack setup-python cache
         id: setup_python_hack
         # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
@@ -184,7 +184,7 @@ jobs:
   lint-zsh:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - name: Install Zsh
         run: |
           sudo apt update
@@ -196,7 +196,7 @@ jobs:
   lint-github-action:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - name: Install actionlint
         id: install_actionlint
         run: |
@@ -238,7 +238,7 @@ jobs:
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
       - uses: lycheeverse/lychee-action@v1.9.3
         with:
           # XXX Skip HN because of rate-limiting.
@@ -342,7 +342,7 @@ jobs:
       && github.event.repository.name != 'awesome-template'
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
         with:
           # Fetch all history to please linter's age checks.
           fetch-depth: 0
@@ -353,7 +353,7 @@ jobs:
   check-secrets:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2.3.4
