@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.8 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.4.7...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.4.7 (2024-04-26)](https://github.com/kdeldycke/workflows/compare/v3.4.6...v3.4.7)
 
 - Update dependencies.
