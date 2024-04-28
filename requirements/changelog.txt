@@ -1,2 +1,2 @@
-bump-my-version == 0.20.2
+bump-my-version == 0.20.3
 tomli == 2.0.1 ; python_version < "3.11"
