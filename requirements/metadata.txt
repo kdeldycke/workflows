@@ -1,5 +1,5 @@
 black == 24.4.2
-bump-my-version == 0.20.3
+bump-my-version == 0.21.0
 mypy == 1.10.0
 poetry == 1.8.2
 PyDriller == 2.6
