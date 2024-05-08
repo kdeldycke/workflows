@@ -378,7 +378,7 @@ class Metadata:
     def is_poetry_project(self) -> bool:
         """Returns true if project relies on Poetry."""
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            return self.pyproject.is_poetry_project()
+            return bool(self.pyproject.is_poetry_project())
         return False
 
     @cached_property
