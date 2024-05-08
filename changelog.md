@@ -12,7 +12,7 @@ This version is not released yet and is under active development.
 
 ## [3.4.6 (2024-04-18)](https://github.com/kdeldycke/workflows/compare/v3.4.5...v3.4.6)
 
-- Dynamiccaly search the Python executable used by Poetry.
+- Dynamically search the Python executable used by Poetry.
 
 ## [3.4.5 (2024-04-18)](https://github.com/kdeldycke/workflows/compare/v3.4.4...v3.4.5)
 
@@ -25,7 +25,7 @@ This version is not released yet and is under active development.
 
 ## [3.4.3 (2024-04-14)](https://github.com/kdeldycke/workflows/compare/v3.4.2...v3.4.3)
 
-- Fix incompatility between `mdformat-gfm` and `mdformat-pelican`.
+- Fix incompatibility between `mdformat-gfm` and `mdformat-pelican`.
 
 ## [3.4.2 (2024-04-04)](https://github.com/kdeldycke/workflows/compare/v3.4.1...v3.4.2)
 
@@ -39,7 +39,7 @@ This version is not released yet and is under active development.
 
 - Support GitHub admonition in Markdown linting.
 - Add new dependency on `mdformat_gfm_alerts`.
-- Use precommit hooks in `awesome-template-sync` job to replace URLs.
+- Use pre-commit hooks in `awesome-template-sync` job to replace URLs.
 - Source remote requirement files from `uv` CLI.
 
 ## [3.3.6 (2024-03-04)](https://github.com/kdeldycke/workflows/compare/v3.3.5...v3.3.6)
