@@ -3,4 +3,4 @@ bump-my-version == 0.21.0
 mypy == 1.10.0
 poetry == 1.8.3
 PyDriller == 2.6
-wcmatch == 8.5.1
+wcmatch == 8.5.2
