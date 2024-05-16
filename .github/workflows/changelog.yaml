@@ -33,7 +33,7 @@ jobs:
           - minor
           - major
     steps:
-      - uses: actions/checkout@v4.1.5
+      - uses: actions/checkout@v4.1.6
       - uses: actions/setup-python@v5.1.0
         with:
           python-version: "3.12"
@@ -109,7 +109,7 @@ jobs:
     # XXX This cannot be done because there is no way to group "replace" actions into a collection. Maybe we should
     # start to discuss this upstream.
     steps:
-      - uses: actions/checkout@v4.1.5
+      - uses: actions/checkout@v4.1.6
       - uses: actions/setup-python@v5.1.0
         with:
           python-version: "3.12"
