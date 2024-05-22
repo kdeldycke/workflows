@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Requires Sphinx dependencies to be set in a `docs` group in `pyproject.toml`.
 - Let `pipdeptree` resolve the Python executable to use in a virtual environment.
 - Reduce number of `git` calls to produce `.mailmap`. Refs #984.
 
