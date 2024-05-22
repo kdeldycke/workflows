@@ -111,7 +111,7 @@ jobs:
         # Install project with Poetry if supported, so we can benefits from dependencies on typing stubs.
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: |
-          poetry install --no-interaction
+          poetry install --with typing --no-interaction
       - name: Install dependencies with pip
         if: ${{ ! fromJSON(needs.project-metadata.outputs.is_poetry_project) }}
         run: >
