@@ -8,6 +8,7 @@ This version is not released yet and is under active development.
 
 - Requires Sphinx dependencies to be set in a `docs` group in `pyproject.toml`.
 - Let `pipdeptree` resolve the Python executable to use in a virtual environment.
+- Do not let Nuitka assume a Python package is bundled with its unittests in a `tests` subfolder.
 - Reduce number of `git` calls to produce `.mailmap`. Refs #984.
 
 ## [3.4.7 (2024-04-26)](https://github.com/kdeldycke/workflows/compare/v3.4.6...v3.4.7)
