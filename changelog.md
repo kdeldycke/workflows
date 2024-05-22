@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.5.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.0...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.5.0 (2024-05-22)](https://github.com/kdeldycke/workflows/compare/v3.4.7...v3.5.0)
 
 - Requires Sphinx dependencies to be set in a `docs` group in `pyproject.toml`.
