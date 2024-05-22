@@ -7,6 +7,7 @@ This version is not released yet and is under active development.
 ```
 
 - Requires typing dependencies to be set in a `typing` group in `pyproject.toml`.
+- Install all extra dependencies on doc generation.
 
 ## [3.5.0 (2024-05-22)](https://github.com/kdeldycke/workflows/compare/v3.4.7...v3.5.0)
 

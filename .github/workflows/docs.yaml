@@ -337,7 +337,7 @@ jobs:
         # Let sphinx-click access project's code to generate CLI help.
         run: |
           poetry config virtualenvs.create false
-          poetry install --with docs --no-interaction
+          poetry install --all-extras --with docs --no-interaction
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
