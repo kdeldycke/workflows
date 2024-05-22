@@ -1,10 +1,6 @@
 # Changelog
 
-## [3.5.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.4.7...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [3.5.0 (2024-05-22)](https://github.com/kdeldycke/workflows/compare/v3.4.7...v3.5.0)
 
 - Requires Sphinx dependencies to be set in a `docs` group in `pyproject.toml`.
 - Let `pipdeptree` resolve the Python executable to use in a virtual environment.
