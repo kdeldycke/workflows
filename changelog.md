@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Let `pipdeptree` resolve the Python executable to use in a virtual environment.
+
 ## [3.4.7 (2024-04-26)](https://github.com/kdeldycke/workflows/compare/v3.4.6...v3.4.7)
 
 - Update dependencies.
