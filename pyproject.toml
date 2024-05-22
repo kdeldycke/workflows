@@ -1,5 +1,5 @@
 [tool.bumpversion]
-current_version = "3.5.2"
+current_version = "3.5.3"
 allow_dirty = true
 ignore_missing_files = true
 
