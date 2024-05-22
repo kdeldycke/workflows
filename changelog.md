@@ -1,10 +1,6 @@
 # Changelog
 
-## [3.5.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.1...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [3.5.2 (2024-05-22)](https://github.com/kdeldycke/workflows/compare/v3.5.1...v3.5.2)
 
 - Install all extra dependencies before checking typing with `mypy`.
 
