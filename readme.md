@@ -15,6 +15,26 @@ I don't want to copy-n-past, keep in sync and maintain another `N`th CI/CD file 
 
 So my policy is: move every repository-specific config in a `pyproject.toml` file, or hide the gory details in a reused workflow.
 
+## `.github/workflows/docs.yaml` jobs
+
+* Autofix typos
+
+* Optimize images
+
+* Keep `.mailmap` up to date
+
+* Update dependency graph of Poetry-based projects
+    * **Requires**:
+      * Poetry-based project with a `pyproject.toml` file
+
+* Build Sphinx-based documentation and publish it to GitHub Pages
+    * **Requires**:
+      * Poetry-based project with a `pyproject.toml` file
+      * All Sphinx dependencies in a `[tool.poetry.group.docs]` [group](https://python-poetry.org/docs/managing-dependencies/#dependency-groups)
+      * Sphinx configuration file at `docs/conf.py`
+
+* Sync awesome projects from `awesome-template` repository
+
 ## Why all these `requirements/*.txt` files?
 
 Let's look for example at the `lint-yaml` job from [`.github/workflows/lint.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml#L126). Here we only need the `yamllint` CLI. This CLI is [distributed on PyPi](https://pypi.org/project/yamllint/). So before executing it, we could have simply run the following step:
