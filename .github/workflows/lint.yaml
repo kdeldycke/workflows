@@ -107,7 +107,7 @@ jobs:
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: |
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
-          poetry install --all-extras --with typing --with test --no-interaction
+          source .venv/bin/activate && poetry install --all-extras --with typing --with test --no-interaction
       - name: Install package with uv
         if: ${{ ! fromJSON(needs.project-metadata.outputs.is_poetry_project) }}
         run: |

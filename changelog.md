@@ -6,10 +6,12 @@
 This version is not released yet and is under active development.
 ```
 
+- Fix `mypy` run for Poetry projects.
+
 ## [3.5.3 (2024-05-23)](https://github.com/kdeldycke/workflows/compare/v3.5.2...v3.5.3)
 
 - Pin `uv` version everywhere to improve stability.
-- Fix mypy execution and dependency installation.
+- Fix `mypy` execution and dependency installation.
 
 ## [3.5.2 (2024-05-22)](https://github.com/kdeldycke/workflows/compare/v3.5.1...v3.5.2)
 
