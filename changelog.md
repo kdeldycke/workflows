@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.5.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.3...main)
+
+```{important}
+This version is not released yet and is under active development.
+```
+
 ## [3.5.3 (2024-05-23)](https://github.com/kdeldycke/workflows/compare/v3.5.2...v3.5.3)
 
 - Pin `uv` version everywhere to improve stability.
