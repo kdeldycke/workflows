@@ -6,4 +6,5 @@
 --requirement ./requirements/mypy.txt
 --requirement ./requirements/nuitka.txt
 --requirement ./requirements/pipdeptree.txt
+--requirement ./requirements/uv.txt
 --requirement ./requirements/yamllint.txt

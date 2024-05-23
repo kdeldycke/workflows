@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Pin `uv` version everywhere to improve stability.
 - Fix mypy execution and dependency installation.
 
 ## [3.5.2 (2024-05-22)](https://github.com/kdeldycke/workflows/compare/v3.5.1...v3.5.2)
