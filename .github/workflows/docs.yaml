@@ -377,6 +377,7 @@ jobs:
           # only if metadata changes.
           is_force_push_pr: true
           is_allow_hooks: true
+          is_pr_cleanup: true
           # Replace "/kdeldycke/awesome-template/" in URLs by "/kdeldycke/awesome-<repo_id>/".
           hooks: >
             precommit:
