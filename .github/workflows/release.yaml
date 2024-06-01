@@ -128,9 +128,7 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v5.1.0
         with:
-          # XXX Nuitka does not support Python 3.12 yet.
-          # See: https://github.com/Nuitka/Nuitka/issues/2433
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml

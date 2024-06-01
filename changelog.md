@@ -6,6 +6,7 @@
 This version is not released yet and is under active development.
 ```
 
+- Run Nuitka builds on Python 3.12.
 - Auto cleanup PRs produced by awesome template sync job.
 
 ## [3.5.4 (2024-05-23)](https://github.com/kdeldycke/workflows/compare/v3.5.3...v3.5.4)
