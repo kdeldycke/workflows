@@ -1,10 +1,6 @@
 # Changelog
 
-## [3.5.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.4...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [3.5.5 (2024-06-05)](https://github.com/kdeldycke/workflows/compare/v3.5.4...v3.5.5)
 
 - Run Nuitka builds on Python 3.12.
 - Auto cleanup PRs produced by awesome template sync job.
