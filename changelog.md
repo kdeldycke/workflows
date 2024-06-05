@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Use `uv` to install `mdformat`.
+
 ## [3.5.5 (2024-06-05)](https://github.com/kdeldycke/workflows/compare/v3.5.4...v3.5.5)
 
 - Run Nuitka builds on Python 3.12.
