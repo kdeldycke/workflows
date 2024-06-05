@@ -54,6 +54,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Install uv
         run: |
@@ -88,6 +89,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Install pip
         run: |
@@ -132,6 +134,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Install pip
         run: |

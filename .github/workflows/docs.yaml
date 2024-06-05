@@ -115,6 +115,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Generate .mailmap
         run: >
@@ -173,7 +174,7 @@ jobs:
         # This has been reported at: https://github.com/actions/setup-python/issues/807
         # In the future this might be addressed by: https://github.com/actions/setup-python/pull/762
         # or https://github.com/actions/setup-python/issues/751
-        if: hashFiles('requirements/*.txt', '**/pyproject.toml') == ''
+        if: hashFiles('**/pyproject.toml', '*requirements.txt', 'requirements/*.txt') == ''
         run: |
           touch ./pyproject.toml
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
@@ -183,6 +184,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Remove setup-python hack
         if: steps.setup_python_hack.outputs.tmp_deps_file
@@ -217,6 +219,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Install pip
         run: |
@@ -278,6 +281,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Install pip
         run: |
@@ -324,6 +328,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
+            *requirements.txt
             requirements/*.txt
       - name: Install pip
         run: |
