@@ -1,10 +1,6 @@
 # Changelog
 
-## [3.5.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.5...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [3.5.6 (2024-06-05)](https://github.com/kdeldycke/workflows/compare/v3.5.5...v3.5.6)
 
 - Use `uv` to install `mdformat`.
 
