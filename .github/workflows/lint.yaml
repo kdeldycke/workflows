@@ -108,7 +108,7 @@ jobs:
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: |
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
-          source .venv/bin/activate && poetry install --all-extras --with typing --with test --no-interaction
+          uv tool run poetry install --all-extras --with typing --with test --no-interaction
       - name: Install package with uv
         if: ${{ ! fromJSON(needs.project-metadata.outputs.is_poetry_project) }}
         run: |
@@ -117,8 +117,7 @@ jobs:
         # We can use the bare mypy CLI for both Poetry and non-Poetry projects after activating the venv.
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
-          source .venv/bin/activate &&
-          mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
+          uv tool run mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
           ${{ needs.project-metadata.outputs.python_files }}
 
   lint-yaml:
@@ -172,8 +171,7 @@ jobs:
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
       - name: Run yamllint
         run: |
-          source .venv/bin/activate &&
-          yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
+          uv tool run yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
     runs-on: ubuntu-22.04

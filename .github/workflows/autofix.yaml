@@ -149,8 +149,7 @@ jobs:
         #  - --aggressive is requires to force autopep8 to consider comments.
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
-          source .venv/bin/activate &&
-          autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
+          uv tool run autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Optional Ruff config
         if: needs.project-metadata.outputs.ruff_py_version
@@ -206,15 +205,13 @@ jobs:
         run: |
           cat ./ruff.toml
       - name: Run Ruff check
-        run: >
-          source .venv/bin/activate &&
-          ruff check --config ./ruff.toml
+        run: |
+          uv tool run ruff check --config ./ruff.toml
       - name: Run Ruff format
         # XXX: Ruff is planning to support linting and formatting in one unified command at one point.
         # See: https://github.com/astral-sh/ruff/issues/8232
-        run: >
-          source .venv/bin/activate &&
-          ruff format --config ./ruff.toml
+        run: |
+          uv tool run ruff format --config ./ruff.toml
       - name: Remove temporary Ruff config
         run: |
           rm ./ruff.toml
@@ -228,8 +225,7 @@ jobs:
         # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
-          source .venv/bin/activate &&
-          blacken-docs
+          uv tool run blacken-docs
           --line-length 88
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
@@ -304,9 +300,8 @@ jobs:
         run: |
           sudo apt install --yes shfmt
       - name: Auto-format Markdown
-        run: >
-          source .venv/bin/activate &&
-          find ./ -iname "*.md" -exec mdformat "{}" \;
+        run: |
+          find ./ -iname "*.md" -exec uv tool run mdformat "{}" \;
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # Remove forbidden TOC entries

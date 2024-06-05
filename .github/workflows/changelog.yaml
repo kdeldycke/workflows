@@ -52,14 +52,12 @@ jobs:
       - name: ${{ matrix.part }} version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
-        run: >
-          source .venv/bin/activate &&
-          bump-my-version bump --verbose ${{ matrix.part }}
+        run: |
+          uv tool run bump-my-version bump --verbose ${{ matrix.part }}
       - name: Extract version
         id: get_version
-        run: >
-          source .venv/bin/activate &&
-          echo "new_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "new_version=$( uv tool run bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
@@ -130,9 +128,8 @@ jobs:
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/changelog.txt
       - name: Extract version
         id: get_version
-        run: >
-          source .venv/bin/activate &&
-          echo "current_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "current_version=$( uv tool run bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"
@@ -143,31 +140,27 @@ jobs:
         # This hack could be removed if we manage to encode these search and replace patterns into bump-my-version's
         # TOML.
         run: >
-          source .venv/bin/activate &&
           RELEASE_DEFAULT_BRANCH="main" &&
-          bump-my-version replace --no-configured-files --ignore-missing-version
+          uv tool run bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
           --replace "/workflows/v{current_version}/"
           ./.github/workflows/*.yaml
       - name: Set release date in changelog
         run: >
-          source .venv/bin/activate &&
-          bump-my-version replace --no-configured-files
+          uv tool run bump-my-version replace --no-configured-files
           --search " (unreleased)"
           --replace " ({utcnow:%Y-%m-%d})"
           ./changelog.md
       - name: Update comparison URL in changelog
         run: >
-          source .venv/bin/activate &&
-          bump-my-version replace --no-configured-files
+          uv tool run bump-my-version replace --no-configured-files
           --search "...main"
           --replace "...v{current_version}"
           ./changelog.md
       - name: Remove first warning message in changelog
         # Matches first occurrence of a multi-line block of text delimited by triple-backticks (```<anything>```).
         run: >
-          source .venv/bin/activate &&
-          bump-my-version replace --no-configured-files --ignore-missing-version
+          uv tool run bump-my-version replace --no-configured-files --ignore-missing-version
           --regex --search "^\\\`\\\`\\\`.*?\\\`\\\`\\\`\\n\\n"
           --replace ""
           ./changelog.md
@@ -188,9 +181,8 @@ jobs:
         # This hack could be removed if we manage to encode these search and replace patterns into bump-my-version's
         # TOML.
         run: >
-          source .venv/bin/activate &&
           RELEASE_DEFAULT_BRANCH="main" &&
-          bump-my-version replace --no-configured-files --ignore-missing-version
+          uv tool run bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/v{current_version}/"
           --replace "/workflows/$RELEASE_DEFAULT_BRANCH/"
           ./.github/workflows/*.yaml
@@ -201,9 +193,8 @@ jobs:
       - name: Version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
-        run: >
-          source .venv/bin/activate &&
-          bump-my-version bump --verbose patch
+        run: |
+          uv tool run bump-my-version bump --verbose patch
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
