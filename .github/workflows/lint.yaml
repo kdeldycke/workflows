@@ -67,18 +67,18 @@ jobs:
           rm ./pyproject.toml
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install pinned Poetry
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/requirements/metadata.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/metadata.txt
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           source .venv/bin/activate &&
-          python -c "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/.github/metadata.py)"
+          python -c "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   mypy-lint:
     needs:
@@ -98,16 +98,16 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install Mypy
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/requirements/mypy.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mypy.txt
       - name: Install package with Poetry
         # Install Poetry, then install the package with it, as uv cannot read Poetry-flavored pyproject.toml.
         if: fromJSON(needs.project-metadata.outputs.is_poetry_project)
         run: |
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/requirements/build.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
           uv tool run poetry install --all-extras --with typing --with test --no-interaction
       - name: Install package with uv
         if: ${{ ! fromJSON(needs.project-metadata.outputs.is_poetry_project) }}
@@ -165,11 +165,11 @@ jobs:
           rm ./pyproject.toml
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install yamllint
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v3.5.7/requirements/yamllint.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
       - name: Run yamllint
         run: |
           uv tool run yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
