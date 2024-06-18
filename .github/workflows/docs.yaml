@@ -30,7 +30,7 @@ jobs:
           write_changes: true
       - name: Remove local typos binary
         run: rm ./typos
-      - uses: peter-evans/create-pull-request@v6.0.5
+      - uses: peter-evans/create-pull-request@v6.1.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
@@ -62,7 +62,7 @@ jobs:
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           compressOnly: true
-      - uses: peter-evans/create-pull-request@v6.0.5
+      - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Optimize images"
@@ -121,7 +121,7 @@ jobs:
         run: >
           python -c "$(curl -fsSL
           https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_mailmap.py)"
-      - uses: peter-evans/create-pull-request@v6.0.5
+      - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .mailmap"
@@ -247,7 +247,7 @@ jobs:
           pipdeptree --python auto ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
           --mermaid > ${{ inputs.dependency-graph-output }}
-      - uses: peter-evans/create-pull-request@v6.0.5
+      - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate dependency graph"
@@ -296,7 +296,7 @@ jobs:
       - name: Run Sphinx
         run: |
           poetry run sphinx-apidoc --no-toc --module-first --force -o ./docs .
-      - uses: peter-evans/create-pull-request@v6.0.5
+      - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update Sphinx autodoc"
