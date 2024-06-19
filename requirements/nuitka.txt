@@ -1,4 +1,4 @@
-nuitka == 2.3.6
+nuitka == 2.3.7
 # Additional dependencies:
 #   - ordered-set: used by Nuitka for compilation performance
 #   - zstandard: for nuitka's onefile compression
