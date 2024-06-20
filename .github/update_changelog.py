@@ -42,15 +42,15 @@ Would change file ./changelog.md:
 
 ! ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
 
-  ```{important}
-  This version is not released yet and is under active development.
+  > [!IMPORTANT]
+  > This version is not released yet and is under active development.
 --- 1,6 ----
   # Changelog
 
 ! ## [2.17.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
 
-  ```{important}
-  This version is not released yet and is under active development.
+  > [!IMPORTANT]
+  > This version is not released yet and is under active development.
 Would write to config file pyproject.toml:
 *** before pyproject.toml
 --- after pyproject.toml
