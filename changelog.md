@@ -1,10 +1,6 @@
 # Changelog
 
-## [3.5.8 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.7...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [3.5.8 (2024-06-20)](https://github.com/kdeldycke/workflows/compare/v3.5.7...v3.5.8)
 
 - Fix dependency graph generation by replacing Poetry by `uv`.
 
