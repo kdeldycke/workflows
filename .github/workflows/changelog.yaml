@@ -159,11 +159,11 @@ jobs:
           ./changelog.md
       - name: Remove first warning message in changelog
         # Matches first occurrence of a multi-line important GFM alert:
-        #   > [!IMPORTANT]
+        #   > \[!IMPORTANT\]
         #   > ...
         run: >
           uv tool run bump-my-version replace --no-configured-files --ignore-missing-version
-          --regex --search "^> \[\!IMPORTANT\]\\n> .+?\\n\\n"
+          --regex --search "^> \\\[\!IMPORTANT\\\]\\n> .+?\\n\\n"
           --replace ""
           ./changelog.md
       - name: Setup Git

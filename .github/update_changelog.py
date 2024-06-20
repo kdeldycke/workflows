@@ -42,14 +42,14 @@ Would change file ./changelog.md:
 
 ! ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
 
-  > [!IMPORTANT]
+  > \[!IMPORTANT\]
   > This version is not released yet and is under active development.
 --- 1,6 ----
   # Changelog
 
 ! ## [2.17.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
 
-  > [!IMPORTANT]
+  > \[!IMPORTANT\]
   > This version is not released yet and is under active development.
 Would write to config file pyproject.toml:
 *** before pyproject.toml
@@ -122,7 +122,7 @@ new_entry = re.sub(
 new_entry = re.sub(
     r"\n\n.*",
     "\n\n"
-    "> [!IMPORTANT]\n"
+    "> \[!IMPORTANT\]\n"
     "> This version is not released yet and is under active development.\n\n",
     new_entry,
     flags=re.MULTILINE | re.DOTALL,
