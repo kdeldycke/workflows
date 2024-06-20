@@ -2,9 +2,10 @@
 
 ## [3.5.10 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.9...main)
 
-```{important}
-This version is not released yet and is under active development.
-```
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
+- Replace Myst admonition in changelog by GFM alerts.
 
 ## [3.5.9 (2024-06-20)](https://github.com/kdeldycke/workflows/compare/v3.5.8...v3.5.9)
 
