@@ -1,10 +1,6 @@
 # Changelog
 
-## [3.5.9 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.8...main)
-
-```{important}
-This version is not released yet and is under active development.
-```
+## [3.5.9 (2024-06-20)](https://github.com/kdeldycke/workflows/compare/v3.5.8...v3.5.9)
 
 - Restrict removal of changelog warning admonition to `{important}` class on version bump.
 
