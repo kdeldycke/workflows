@@ -6,6 +6,8 @@
 This version is not released yet and is under active development.
 ```
 
+- Restrict removal of changelog warning admonition to `{important}` class on version bump.
+
 ## [3.5.8 (2024-06-20)](https://github.com/kdeldycke/workflows/compare/v3.5.7...v3.5.8)
 
 - Fix dependency graph generation by replacing Poetry by `uv`.
