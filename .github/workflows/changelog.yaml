@@ -163,7 +163,7 @@ jobs:
         #   > ...
         run: >
           uv tool run bump-my-version replace --no-configured-files --ignore-missing-version
-          --regex --search "^> \\\[\!IMPORTANT\\\]\\n> .+?\\n\\n"
+          --regex --search "^> \\\.\!IMPORTANT\\\..+?\\n\\n"
           --replace ""
           ./changelog.md
       - name: Setup Git
