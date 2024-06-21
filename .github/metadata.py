@@ -397,12 +397,14 @@ class Metadata:
     def poetry_config(self) -> dict[str, Any] | None:
         if self.is_poetry_project:
             return self.pyproject["tool"]["poetry"]
+        return None
 
     @cached_property
     def package_name(self) -> str | None:
         """Returns package name as published on PyPi."""
-        if self.is_poetry_project:
+        if self.is_poetry_project and self.poetry_config:
             return self.poetry_config["name"]
+        return None
 
     @cached_property
     def script_entries(self) -> list[tuple[str, str, str]]:
@@ -425,8 +427,8 @@ class Metadata:
             )
         """
         entries = []
-        if self.is_poetry_project:
-            for cli_id, script in self.pyproject.poetry_config.get(
+        if self.is_poetry_project and self.poetry_config:
+            for cli_id, script in self.poetry_config.get(
                 "scripts",
                 {},
             ).items():
@@ -441,7 +443,7 @@ class Metadata:
     def project_range(self) -> VersionConstraint | None:
         """Returns Python version support range."""
         constraint = None
-        if self.is_poetry_project:
+        if self.is_poetry_project and self.poetry_config:
             constraint = parse_constraint(self.poetry_config["dependencies"]["python"])
         if constraint and not constraint.is_empty():
             return constraint
