@@ -3,4 +3,5 @@ bump-my-version == 0.23.0
 mypy == 1.10.0
 poetry == 1.8.3
 PyDriller == 2.6
+tomli == 2.0.1 ; python_version < '3.11'
 wcmatch == 8.5.2

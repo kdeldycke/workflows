@@ -107,13 +107,17 @@ from random import randint
 from re import escape
 from typing import Any, Iterator, cast
 
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
+
 from black.mode import TargetVersion
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from mypy.defaults import PYTHON3_VERSION_MIN
 from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
-from poetry.core.pyproject.toml import PyProjectTOML
 from pydriller import Commit, Git, Repository  # type: ignore[import]
 from wcmatch.glob import (
     BRACE,
@@ -370,25 +374,35 @@ class Metadata:
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
     @cached_property
-    def pyproject(self) -> PyProjectTOML:
-        """Returns PyProjectTOML object."""
-        return PyProjectTOML(self.pyproject_path)
+    def pyproject(self) -> dict[str, Any]:
+        """Returns content of pyproject.toml file."""
+        return tomllib.loads(self.pyproject_path.read_text())
 
     @cached_property
     def is_poetry_project(self) -> bool:
-        """Returns true if project relies on Poetry."""
+        """Returns ``true`` if project relies on Poetry.
+
+        Emulates Poetry's own internals:
+        https://github.com/python-poetry/poetry-core/blob/06d72bc/src/poetry/core/pyproject/toml.py#L67-L88
+        """
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            return bool(self.pyproject.is_poetry_project())
+            tool_section = self.pyproject.get("tool")
+            if isinstance(tool_section, dict):
+                poetry_section = tool_section.get("poetry")
+                if isinstance(poetry_section, dict):
+                    return True
         return False
+
+    @cached_property
+    def poetry_config(self) -> dict[str, Any] | None:
+        if self.is_poetry_project:
+            return self.pyproject["tool"]["poetry"]
 
     @cached_property
     def package_name(self) -> str | None:
         """Returns package name as published on PyPi."""
         if self.is_poetry_project:
-            name = self.pyproject.poetry_config.get("name")
-            if name:
-                return cast(str, name)
-        return None
+            return self.poetry_config["name"]
 
     @cached_property
     def script_entries(self) -> list[tuple[str, str, str]]:
@@ -428,9 +442,7 @@ class Metadata:
         """Returns Python version support range."""
         constraint = None
         if self.is_poetry_project:
-            constraint = parse_constraint(
-                self.pyproject.poetry_config["dependencies"]["python"],
-            )
+            constraint = parse_constraint(self.poetry_config["dependencies"]["python"])
         if constraint and not constraint.is_empty():
             return constraint
         # TODO: Should we default to current running Python ?

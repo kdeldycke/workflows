@@ -5,6 +5,8 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Read `pyproject.toml` without relying on Poetry.
+
 ## [3.5.10 (2024-06-20)](https://github.com/kdeldycke/workflows/compare/v3.5.9...v3.5.10)
 
 - Replace Myst admonition in changelog by GFM alerts.
