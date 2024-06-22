@@ -202,8 +202,8 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
-          source .venv/bin/activate &&
-          python -c "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
+          uv run python -c
+          "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   update-deps-graph:
     name: Update dependency graph
@@ -233,8 +233,7 @@ jobs:
           uv pip install .
       - name: Run pipdeptree for debug
         run: >
-          source .venv/bin/activate &&
-          pipdeptree --python auto ${{ needs.project-metadata.outputs.package_name
+          uv run pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
       - name: Create dir structure
         run: |
@@ -243,8 +242,7 @@ jobs:
       # See: https://github.com/tox-dev/pipdeptree/issues/107
       - name: Generate graph
         run: >
-          source .venv/bin/activate &&
-          pipdeptree --python auto ${{ needs.project-metadata.outputs.package_name
+          uv run pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
           --mermaid > ${{ inputs.dependency-graph-output }}
       - uses: peter-evans/create-pull-request@v6.1.0

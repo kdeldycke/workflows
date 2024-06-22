@@ -77,8 +77,8 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
-          source .venv/bin/activate &&
-          python -c "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
+          uv run python -c
+          "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   mypy-lint:
     needs:
@@ -117,8 +117,7 @@ jobs:
         # We can use the bare mypy CLI for both Poetry and non-Poetry projects after activating the venv.
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
-          source .venv/bin/activate &&
-          mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
+          uv run mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
           ${{ needs.project-metadata.outputs.python_files }}
 
   lint-yaml:
