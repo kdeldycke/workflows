@@ -394,7 +394,7 @@ class Metadata:
         return (f"--requirement {req}" for req in self.requirement_files)
 
     @cached_property
-    def pyproject(self) -> dict[str, Any] | None:
+    def pyproject(self) -> StandardMetadata | None:
         """Returns pyproject metadata."""
         if self.is_python_project:
             toml = tomllib.loads(self.pyproject_path.read_text())
