@@ -33,15 +33,15 @@ So my policy is: move every repository-specific config in a `pyproject.toml` fil
   - **Requires**:
     - Python package with a `pyproject.toml` file
     - All Sphinx dependencies in a `docs` [extra dependency group](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#dependencies-and-requirements):
-        ```toml
-        [project.optional-dependencies]
-        docs = [
-            "furo == 2024.1.29",
-            "myst-parser ~= 3.0.0",
-            "sphinx >= 6",
-            ...
-        ]
-        ```
+      ```toml
+      [project.optional-dependencies]
+      docs = [
+          "furo == 2024.1.29",
+          "myst-parser ~= 3.0.0",
+          "sphinx >= 6",
+          ...
+      ]
+      ```
     - Sphinx configuration file at `docs/conf.py`
 
 - Sync awesome projects from `awesome-template` repository
