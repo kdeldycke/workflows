@@ -402,6 +402,13 @@ class Metadata:
         return None
 
     @cached_property
+    def package_name(self) -> str | None:
+        """Returns package name as published on PyPi."""
+        if self.pyproject and self.pyproject.canonical_name:
+            return self.pyproject.canonical_name
+        return None
+
+    @cached_property
     def script_entries(self) -> list[tuple[str, str, str]]:
         """Returns a list of tuples containing the script name, its module and callable.
 
@@ -850,9 +857,9 @@ class Metadata:
 
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
-        if self.pyproject.canonical_name:
+        if self.package_name:
             pypi_link = f"[🐍 Available on PyPi](https://pypi.org/project/{
-                self.pyproject.canonical_name
+                self.package_name
             }/{version})."
 
         # Assemble the release notes.
@@ -911,7 +918,7 @@ class Metadata:
             "doc_files": (self.doc_files, False),
             "is_python_project": (self.is_python_project, False),
             "uv_requirement_params": (self.uv_requirement_params, False),
-            "package_name": (self.pyproject.canonical_name, False),
+            "package_name": (self.package_name, False),
             "blacken_docs_params": (self.blacken_docs_params, False),
             "ruff_py_version": (self.ruff_py_version, False),
             "mypy_params": (self.mypy_params, False),
