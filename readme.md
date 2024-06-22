@@ -2,7 +2,7 @@
 
 Maintaining project takes time. This repository contains workflows to automate most of the boring tasks.
 
-These workflows are mostly used for Poetry-based Python CLI and their documentation, but not only. They're all [reusable GitHub actions workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
+These workflows are mostly used for Python projects and their documentation, but not only. They're all [reusable GitHub actions workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
 
 Reasons for a centralized workflow repository:
 
@@ -23,16 +23,25 @@ So my policy is: move every repository-specific config in a `pyproject.toml` fil
 
 - Keep `.mailmap` up to date
 
-- Update dependency graph of Poetry-based projects
+- Update dependency graph of Python projects
 
   - **Requires**:
-    - Poetry-based project with a `pyproject.toml` file
+    - Python package with a `pyproject.toml` file
 
 - Build Sphinx-based documentation and publish it to GitHub Pages
 
   - **Requires**:
-    - Poetry-based project with a `pyproject.toml` file
-    - All Sphinx dependencies in a `[tool.poetry.group.docs]` [group](https://python-poetry.org/docs/managing-dependencies/#dependency-groups)
+    - Python package with a `pyproject.toml` file
+    - All Sphinx dependencies in a `docs` [extra dependency group](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#dependencies-and-requirements):
+        ```toml
+        [project.optional-dependencies]
+        docs = [
+            "furo == 2024.1.29",
+            "myst-parser ~= 3.0.0",
+            "sphinx >= 6",
+            ...
+        ]
+        ```
     - Sphinx configuration file at `docs/conf.py`
 
 - Sync awesome projects from `awesome-template` repository

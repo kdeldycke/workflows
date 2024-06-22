@@ -24,7 +24,7 @@ new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
 python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
-is_poetry_project=true
+is_python_project=true
 package_name=click-extra
 blacken_docs_params=--target-version py37 --target-version py38
 ruff_py_version=py37
@@ -117,8 +117,9 @@ from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from mypy.defaults import PYTHON3_VERSION_MIN
-from poetry.core.constraints.version import Version, VersionConstraint, parse_constraint
+from packaging.version import Version
 from pydriller import Commit, Git, Repository  # type: ignore[import]
+from pyproject_metadata import StandardMetadata
 from wcmatch.glob import (
     BRACE,
     DOTGLOB,
@@ -374,36 +375,18 @@ class Metadata:
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
     @cached_property
-    def pyproject(self) -> dict[str, Any]:
-        """Returns content of pyproject.toml file."""
-        return tomllib.loads(self.pyproject_path.read_text())
-
-    @cached_property
-    def is_poetry_project(self) -> bool:
-        """Returns ``true`` if project relies on Poetry.
-
-        Emulates Poetry's own internals:
-        https://github.com/python-poetry/poetry-core/blob/06d72bc/src/poetry/core/pyproject/toml.py#L67-L88
-        """
+    def is_python_project(self) -> bool:
+        """Returns ``true`` if repository is a Python project."""
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            tool_section = self.pyproject.get("tool")
-            if isinstance(tool_section, dict):
-                poetry_section = tool_section.get("poetry")
-                if isinstance(poetry_section, dict):
-                    return True
+            return True
         return False
 
     @cached_property
-    def poetry_config(self) -> dict[str, Any] | None:
-        if self.is_poetry_project:
-            return self.pyproject["tool"]["poetry"]
-        return None
-
-    @cached_property
-    def package_name(self) -> str | None:
-        """Returns package name as published on PyPi."""
-        if self.is_poetry_project and self.poetry_config:
-            return self.poetry_config["name"]
+    def pyproject(self) -> dict[str, Any] | None:
+        """Returns pyproject metadata."""
+        if self.is_python_project:
+            toml = tomllib.loads(self.pyproject_path.read_text())
+            return StandardMetadata.from_pyproject(toml)
         return None
 
     @cached_property
@@ -413,7 +396,7 @@ class Metadata:
         Results are derived from the script entries of ``pyproject.toml``. So that:
 
         .. code-block:: toml
-            [tool.poetry.scripts]
+            [project.scripts]
             mdedup = "mail_deduplicate.cli:mdedup"
             mpm = "meta_package_manager.__main__:main"
 
@@ -427,11 +410,8 @@ class Metadata:
             )
         """
         entries = []
-        if self.is_poetry_project and self.poetry_config:
-            for cli_id, script in self.poetry_config.get(
-                "scripts",
-                {},
-            ).items():
+        if self.pyproject:
+            for cli_id, script in self.pyproject.scripts:
                 module_id, callable_id = script.split(":")
                 entries.append((cli_id, module_id, callable_id))
         # Double check we do not have duplicate entries.
@@ -440,31 +420,18 @@ class Metadata:
         return entries
 
     @cached_property
-    def project_range(self) -> VersionConstraint | None:
-        """Returns Python version support range."""
-        constraint = None
-        if self.is_poetry_project and self.poetry_config:
-            constraint = parse_constraint(self.poetry_config["dependencies"]["python"])
-        if constraint and not constraint.is_empty():
-            return constraint
-        # TODO: Should we default to current running Python ?
-        return None
-
-    @cached_property
-    def py_target_versions(self) -> tuple[str, ...] | None:
+    def py_target_versions(self) -> tuple[Version, ...] | None:
         """Generates the list of Python target versions.
 
         This is based on Black's support matrix.
         """
-        if self.project_range:
+        if self.pyproject.requires_python:
             minor_range = sorted(v.value for v in TargetVersion)
-            black_range = (
-                Version.from_parts(major=3, minor=minor) for minor in minor_range
-            )
+            black_range = (Version(f"3.{minor}") for minor in minor_range)
             return tuple(
-                f"py{version.text.replace('.', '')}"
+                version
                 for version in black_range
-                if self.project_range.allows(version)
+                if self.pyproject.requires_python.contains(version)
             )
         return None
 
@@ -492,7 +459,8 @@ class Metadata:
         """
         if self.py_target_versions:
             return tuple(
-                f"--target-version {py_target}" for py_target in self.py_target_versions
+                f"--target-version py{version.major}{version.minor}"
+                for version in self.py_target_versions
             )
         return None
 
@@ -509,7 +477,8 @@ class Metadata:
             <https://github.com/astral-sh/ruff/issues/2519>`_.
         """
         if self.py_target_versions:
-            return self.py_target_versions[0]
+            version = self.py_target_versions[0]
+            return f"py{version.major}{version.minor}"
         return None
 
     @cached_property
@@ -518,16 +487,12 @@ class Metadata:
 
         Mypy needs to be fed with this parameter: ``--python-version x.y``.
         """
-        if self.project_range:
-            if self.project_range.is_simple():
-                major = self.project_range.major  # type: ignore[attr-defined]
-                minor = self.project_range.minor  # type: ignore[attr-defined]
-            else:
-                major = self.project_range.min.major  # type: ignore[attr-defined]
-                minor = self.project_range.min.minor  # type: ignore[attr-defined]
-            # Mypy's lowest supported version of Python dialect.
-            major = max(major, PYTHON3_VERSION_MIN[0])
-            minor = max(minor, PYTHON3_VERSION_MIN[1])
+        if self.py_target_versions:
+            # Compare to Mypy's lowest supported version of Python dialect.
+            major, minor = max(
+                PYTHON3_VERSION_MIN,
+                min((v.major, v.minor) for v in self.py_target_versions),
+            )
             return f"--python-version {major}.{minor}"
         return None
 
@@ -873,9 +838,9 @@ class Metadata:
 
         # Generate a link to the version of the package published on PyPi.
         pypi_link = ""
-        if self.package_name:
+        if self.pyproject.canonical_name:
             pypi_link = f"[🐍 Available on PyPi](https://pypi.org/project/{
-                self.package_name
+                self.pyproject.canonical_name
             }/{version})."
 
         # Assemble the release notes.
@@ -932,8 +897,8 @@ class Metadata:
             "release_commits": (self.release_commits_hash, False),
             "python_files": (self.python_files, False),
             "doc_files": (self.doc_files, False),
-            "is_poetry_project": (self.is_poetry_project, False),
-            "package_name": (self.package_name, False),
+            "is_python_project": (self.is_python_project, False),
+            "package_name": (self.pyproject.canonical_name, False),
             "blacken_docs_params": (self.blacken_docs_params, False),
             "ruff_py_version": (self.ruff_py_version, False),
             "mypy_params": (self.mypy_params, False),

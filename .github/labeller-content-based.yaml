@@ -21,8 +21,7 @@
 
 "📦 dependencies":
   - "dependabot"
-  - "poetry.lock"
-  - "poetry"
+  - ".lock"
   - "pyproject.toml"
 
 "📚 documentation":

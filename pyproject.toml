@@ -13,7 +13,7 @@ glob = "./**/__init__.py"
 ignore_missing_version = true
 
 [[tool.bumpversion.files]]
-# Update version in Poetry section.
+# Update version in project section.
 filename = "./pyproject.toml"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
