@@ -1,9 +1,6 @@
 # Changelog
 
-## [3.5.11 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.10...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [3.5.11 (2024-06-22)](https://github.com/kdeldycke/workflows/compare/v3.5.10...v3.5.11)
 
 - Read `pyproject.toml` without relying on Poetry.
 
