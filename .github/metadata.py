@@ -430,7 +430,7 @@ class Metadata:
         """
         entries = []
         if self.pyproject:
-            for cli_id, script in self.pyproject.scripts:
+            for cli_id, script in self.pyproject.scripts.items():
                 module_id, callable_id = script.split(":")
                 entries.append((cli_id, module_id, callable_id))
         # Double check we do not have duplicate entries.
@@ -444,7 +444,7 @@ class Metadata:
 
         This is based on Black's support matrix.
         """
-        if self.pyproject.requires_python:
+        if self.pyproject and self.pyproject.requires_python:
             minor_range = sorted(v.value for v in TargetVersion)
             black_range = (Version(f"3.{minor}") for minor in minor_range)
             return tuple(
