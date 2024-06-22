@@ -7,6 +7,8 @@
 
 - Remove support for Poetry-based projects. All Python projects are expected to follow [standard `pyproject.toml` conventions](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
 - Run all Python-based commands via `uv run` and `uv tool run`.
+- Add new `is_python_project` and `uv_requirement_params` metadata outputs.
+- Remove `is_poetry_project` metadata output.
 - Remove dependency on `poetry` package.
 - Add new dependencies on `build`, `packaging` and `pyproject-metadata`.
 
