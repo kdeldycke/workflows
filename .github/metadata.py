@@ -120,7 +120,7 @@ from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from mypy.defaults import PYTHON3_VERSION_MIN
 from packaging.version import Version
 from pydriller import Commit, Git, Repository  # type: ignore[import]
-from pyproject_metadata import StandardMetadata
+from pyproject_metadata import ConfigurationError, StandardMetadata
 from wcmatch.glob import (
     BRACE,
     DOTGLOB,
@@ -153,6 +153,7 @@ class Metadata:
     def __init__(self, debug: bool = False) -> None:
         """Initialize instance."""
         self.debug = debug
+        self._is_python_project = None
 
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
@@ -383,22 +384,44 @@ class Metadata:
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
     @cached_property
-    def is_python_project(self) -> bool:
-        """Returns ``true`` if repository is a Python project."""
-        if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            return True
-        return False
-
-    @cached_property
     def uv_requirement_params(self) -> Iterator[str]:
         return (f"--requirement {req}" for req in self.requirement_files)
 
+    @property
+    def is_python_project(self):
+        """Returns ``true`` if repository is a Python project.
+
+        Presence of a ``pyproject.toml`` file is not enough, as 3rd party tools can use
+        that file to store their own configuration.
+        """
+        return self._is_python_project
+
+    @is_python_project.getter
+    def is_python_project(self):
+        """Try to read and validate the ``pyproject.toml`` file on access to the
+        ``is_python_project`` property.
+        """
+        if self._is_python_project is None:
+            self.pyproject
+        return self._is_python_project
+
     @cached_property
     def pyproject(self) -> StandardMetadata | None:
-        """Returns pyproject metadata."""
-        if self.is_python_project:
+        """Returns metadata stored in the ``pyproject.toml`` file.
+
+        Also sets the internal ``_is_python_project`` value to ``True`` if the
+        ``pyproject.toml`` exists and respects the standards. ``False`` otherwise.
+        """
+        if self.pyproject_path.exists() and self.pyproject_path.is_file():
             toml = tomllib.loads(self.pyproject_path.read_text())
-            return StandardMetadata.from_pyproject(toml)
+            try:
+                metadata = StandardMetadata.from_pyproject(toml)
+                self._is_python_project = True
+                return metadata
+            except ConfigurationError:
+                pass
+
+        self._is_python_project = False
         return None
 
     @cached_property
