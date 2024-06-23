@@ -1,4 +1,4 @@
-# `gha-utils` CLI + collection of reuseable workflows
+# `gha-utils` CLI + reuseable workflows
 
 `gha-utils` stands for GitHub Action workflows Utilities.
 
