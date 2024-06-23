@@ -17,13 +17,23 @@
 from __future__ import annotations
 
 from click_extra import (
-    echo,
-    extra_command,
+    extra_group,
     pass_context,
 )
 
+from .metadata import Metadata
 
-@extra_command
+
+@extra_group
 @pass_context
 def gha_utils(ctx):
-    echo("Yo!")
+    pass
+
+
+@gha_utils.command(
+    short_help="Produce metadata",
+)
+@pass_context
+def metadata(ctx):
+    # Output metadata with GitHub syntax.
+    Metadata().write_metadata()

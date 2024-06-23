@@ -91,12 +91,11 @@ nuitka_matrix={'entry_point': ['mpm'],
     actually formatted this way in the environment file, but inlined.
 """
 
-# pylint: disable=fixme,no-name-in-module,too-many-public-methods
-
 from __future__ import annotations
 
 import ast
 import json
+import logging
 import os
 import re
 import sys
@@ -150,9 +149,8 @@ TMatrix = dict[str, list[str] | list[dict[str, str]]]
 class Metadata:
     """Metadata class."""
 
-    def __init__(self, debug: bool = False) -> None:
-        """Initialize instance."""
-        self.debug = debug
+    def __init__(self) -> None:
+        """Initialize internal variables."""
         self._is_python_project = None
 
     pyproject_path = Path() / "pyproject.toml"
@@ -177,17 +175,14 @@ class Metadata:
         """
         if "GITHUB_CONTEXT" not in os.environ:
             message = (
-                "⚠️  Missing GitHub context in environment. "
+                "Missing GitHub context in environment. "
                 "Did you forget to set GITHUB_CONTEXT?"
             )
-            if self.debug:
-                print(message, file=sys.stderr)
-                return {}
-            raise RuntimeError(message)
+            logging.warning(message)
+            return {}
         context = json.loads(os.environ["GITHUB_CONTEXT"])
-        if self.debug:
-            print("--- GitHub context ---")
-            print(json.dumps(context, indent=4))
+        logging.debug("--- GitHub context ---")
+        logging.debug(json.dumps(context, indent=4))
         return context
 
     @staticmethod
@@ -286,9 +281,9 @@ class Metadata:
         else:
             start = self.github_context["event"]["before"]
             end = self.github_context["sha"]
-        print("--- Commit range ---")
-        print(f"Range start: {start}")
-        print(f"Range end: {end}")
+        logging.debug("--- Commit range ---")
+        logging.debug(f"Range start: {start}")
+        logging.debug(f"Range end: {end}")
         return start, end
 
     @cached_property
@@ -610,7 +605,6 @@ class Metadata:
                             return True
         return False
 
-    # pylint: disable=too-many-locals
     @cached_property
     def nuitka_matrix(self) -> TMatrix | None:
         """Pre-compute a matrix for Nuitka compilation workflows.
@@ -846,7 +840,6 @@ class Metadata:
             extra_name_param = variant_dict.copy()
             # Generate for Nuitka the binary file name to be used that is unique to
             # this variant.
-            # pylint: disable=consider-using-f-string
             extra_name_param["bin_name"] = (
                 "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
             ).format(**full_variant)
@@ -931,7 +924,7 @@ class Metadata:
             assert output_path.is_file()
         return output_path
 
-    def save_metadata(self) -> None:
+    def write_metadata(self) -> None:
         """Write data to the environment file pointed to by `$GITHUB_OUTPUT`."""
         # Plain metadata.
         metadata: dict[str, Any] = {
@@ -961,8 +954,7 @@ class Metadata:
         for name, data_dict in json_metadata.items():
             metadata[name] = (data_dict, True) if data_dict else (None, False)
 
-        if self.debug:
-            print(f"--- Writing into {self.output_env_file} ---")
+        logging.info(f"--- Writing into {self.output_env_file} ---")
         content = ""
         for env_name, (value, render_json) in metadata.items():
             env_value = self.format_github_value(value, render_json=render_json)
@@ -975,8 +967,8 @@ class Metadata:
                 delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
                 content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
 
-        if self.debug:
-            print(content)
+        logging.info(content)
+
         if not self.output_env_file:
             msg = "No output file specified by $GITHUB_OUTPUT environment variable."
             raise FileNotFoundError(
@@ -984,10 +976,5 @@ class Metadata:
             )
         self.output_env_file.write_text(content, encoding="utf-8")
 
-        if self.debug:
-            print(f"--- Content of {self.output_env_file} ---")
-            print(self.output_env_file.read_text(encoding="utf-8"))
-
-
-# Output metadata with GitHub syntax.
-Metadata(debug=True).save_metadata()
+        logging.info(f"--- Content of {self.output_env_file} ---")
+        logging.info(self.output_env_file.read_text(encoding="utf-8"))
