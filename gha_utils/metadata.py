@@ -224,26 +224,31 @@ class Metadata:
         if not commits:
             return None
 
-        # Save a reference to the current repository commit. Either the canonical
-        # active branch name (i.e. ``main``), or the commit SHA if the current HEAD
-        # commit is detached from a branch.
+        # Save the initial commit reference and SHA of the repository. The reference is
+        # either the canonical active branch name (i.e. ``main``), or the commit SHA if
+        # the current HEAD commit is detached from a branch.
         git = Git(".")
+        init_sha = git.repo.head.commit.hexsha
         if git.repo.head.is_detached:
-            ref_id = git.repo.head.commit.hexsha
+            init_ref = init_sha
         else:
-            ref_id = git.repo.active_branch.name
+            init_ref = git.repo.active_branch.name
 
         sha_list = []
         include_list = []
         for commit in commits:
             sha = commit.hash
 
-            # Checkout the commit so we can read the version associated with it, but
-            # stash local changes first.
-            git.repo.git.stash()
-            git.checkout(sha)
+            # Checkout the target commit so we can read the version associated with it,
+            # but stash local changes first. Do not perform the stash/checkout dance if
+            # the repository is already at the target commit.
+            need_checkout = bool(git.repo.head.commit.hexsha != sha)
+            if need_checkout:
+                git.repo.git.stash()
+                git.checkout(sha)
             current_version = Metadata.get_current_version()
-            git.repo.git.stash("pop")
+            if need_checkout:
+                git.repo.git.stash("pop")
 
             sha_list.append(sha)
             include_list.append({
@@ -252,8 +257,9 @@ class Metadata:
                 "current_version": current_version,
             })
 
-        # Restore the repository to its initial commit.
-        git.checkout(ref_id)
+        # Restore the repository to its initial commit if its not in the initial state.
+        if git.repo.head.commit.hexsha != init_sha:
+            git.checkout(init_ref)
 
         return {
             "commit": sha_list,
