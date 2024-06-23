@@ -5,12 +5,13 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Package all utilities in a `gha_utils` CLI.
 - Remove support for Poetry-based projects. All Python projects are expected to follow [standard `pyproject.toml` conventions](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
 - Run all Python-based commands via `uv run` and `uv tool run`.
 - Add new `is_python_project` and `uv_requirement_params` metadata outputs.
 - Remove `is_poetry_project` metadata output.
 - Remove dependency on `poetry` package.
-- Add new dependencies on `build`, `packaging` and `pyproject-metadata`.
+- Add new dependencies on `build`, `packaging`, `pyproject-metadata` and `click-extra`.
 
 ## [3.5.11 (2024-06-22)](https://github.com/kdeldycke/workflows/compare/v3.5.10...v3.5.11)
 

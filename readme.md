@@ -1,6 +1,28 @@
-# Workflows
+# `gha-utils` CLI + collection of reuseable workflows
 
-Maintaining project takes time. This repository contains workflows to automate most of the boring tasks.
+`gha-utils` stands for GitHub Action workflows Utilities.
+
+Maintaining project takes time. This repository contains the code of the `gha-utils` CLI and a collection of reuseable workflows to:
+- maintain a Python project, its CLI, doc, QA, etc.
+- maintain an Awesome List project.
+
+## `gha-utils` CLI
+
+### Run dev version
+
+```shell-session
+$ git clone https://github.com/kdeldycke/workflows
+$ cd workflows
+$ python -m pip install uv
+$ uv venv
+$ source .venv/bin/activate
+$ uv pip install .
+$ uv run gha-utils
+```
+
+## Reusable workflows collection
+
+This repository contains workflows to automate most of the boring tasks.
 
 These workflows are mostly used for Python projects and their documentation, but not only. They're all [reusable GitHub actions workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
 
@@ -9,13 +31,13 @@ Reasons for a centralized workflow repository:
 - reusability of course: no need to update dozens of repository where 95% of workflows are the same
 - centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories depending on it
 
-## Guidelines
+### Guidelines
 
 I don't want to copy-n-past, keep in sync and maintain another `N`th CI/CD file at the root of my repositories.
 
 So my policy is: move every repository-specific config in a `pyproject.toml` file, or hide the gory details in a reused workflow.
 
-## `.github/workflows/docs.yaml` jobs
+### `.github/workflows/docs.yaml` jobs
 
 - Autofix typos
 
@@ -46,7 +68,7 @@ So my policy is: move every repository-specific config in a `pyproject.toml` fil
 
 - Sync awesome projects from `awesome-template` repository
 
-## Why all these `requirements/*.txt` files?
+### Why all these `requirements/*.txt` files?
 
 Let's look for example at the `lint-yaml` job from [`.github/workflows/lint.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml#L126). Here we only need the `yamllint` CLI. This CLI is [distributed on PyPi](https://pypi.org/project/yamllint/). So before executing it, we could have simply run the following step:
 
@@ -76,7 +98,7 @@ So to keep track of new versions of dependencies while keeping them stable, we'v
 
 And for the case we need to install all dependencies in one go, we have a [`requirements.txt` file at the root](https://github.com/kdeldycke/workflows/blob/main/requirements.txt) that is referencing all files from the `requirements/` subfolder.
 
-## Permissions and token
+### Permissions and token
 
 This repository updates itself via GitHub actions. It particularly updates its own YAML files in `.github/workflows`. That's forbidden by default. So we need extra permissions.
 
@@ -131,7 +153,7 @@ To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
 
 Now re-run your actions and they should be able to update the workflow files in `.github` folder without the `refusing to allow a GitHub App to create or update workflow` error.
 
-## Release management
+### Release management
 
 It turns out [Release Engineering is a full-time job, and full of edge-cases](https://blog.axo.dev/2023/02/cargo-dist).
 

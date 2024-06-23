@@ -1,6 +1,6 @@
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
-name = "gha_utils"
+name = "gha-utils"
 version = "4.0.0"
 # Python versions and their status: https://devguide.python.org/versions/
 requires-python = ">= 3.8"
@@ -72,6 +72,7 @@ classifiers = [
 dependencies = [
     "black ~= 24.4.2",
     "bump-my-version ~= 0.23.0",
+    "click-extra ~= 4.8.3",
     "mypy ~= 1.10.0",
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",
@@ -86,6 +87,12 @@ dependencies = [
 "Funding" = "https://github.com/sponsors/kdeldycke"
 "Issues" = "https://github.com/kdeldycke/workflows/issues"
 "Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
+
+[project.scripts]
+gha-utils = "gha_utils.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["gha_utils"]
 
 [tool.bumpversion]
 current_version = "4.0.0"
