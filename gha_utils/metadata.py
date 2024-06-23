@@ -189,6 +189,13 @@ class Metadata:
     def commit_matrix(commits: Iterable[Commit] | None) -> TMatrix | None:
         """Pre-compute a matrix of commits.
 
+        .. danger::
+            This method temporarily modify the state of the repository to compute
+            version metadata from the past.
+
+            To prevent any loss of uncommitted data, it stashes and unstash the
+            local changes between checkouts.
+
         The list of commits is augmented with long and short SHA values, as well as
         current version. Most recent commit is first, oldest is last.
 
@@ -217,18 +224,26 @@ class Metadata:
         if not commits:
             return None
 
-        # Save a reference to the current commit.
+        # Save a reference to the current repository commit. Either the canonical
+        # active branch name (i.e. ``main``), or the commit SHA if the current HEAD
+        # commit is detached from a branch.
         git = Git(".")
-        head_sha = git.get_head().hash
+        if git.repo.head.is_detached:
+            ref_id = git.repo.head.commit.hexsha
+        else:
+            ref_id = git.repo.active_branch.name
 
         sha_list = []
         include_list = []
         for commit in commits:
             sha = commit.hash
 
-            # Checkout the commit so we can read the version associated with it.
+            # Checkout the commit so we can read the version associated with it, but
+            # stash local changes first.
+            git.repo.git.stash()
             git.checkout(sha)
             current_version = Metadata.get_current_version()
+            git.repo.git.stash("pop")
 
             sha_list.append(sha)
             include_list.append({
@@ -237,8 +252,8 @@ class Metadata:
                 "current_version": current_version,
             })
 
-        # Restore the repository to the initial commit.
-        git.checkout(head_sha)
+        # Restore the repository to its initial commit.
+        git.checkout(ref_id)
 
         return {
             "commit": sha_list,
