@@ -287,6 +287,16 @@ class Metadata:
         return start, end
 
     @cached_property
+    def current_commit(self) -> Commit | None:
+        """Returns the current ``Commit`` object."""
+        return next(Repository(".", single="HEAD").traverse_commits())
+
+    @cached_property
+    def current_commit_matrix(self) -> TMatrix | None:
+        """Pre-computed matrix with long and short SHA values of the current commit."""
+        return self.commit_matrix((self.current_commit,))
+
+    @cached_property
     def new_commits(self) -> tuple[Commit, ...] | None:
         """Returns list of ``Commit`` objects bundled within the triggering event."""
         if not self.commit_range:
@@ -751,10 +761,18 @@ class Metadata:
             )
         matrix["include"].extend(extra_entry_point_params)
 
-        # We'd like to run a build for each commit bundled in the action trigger.
-        if self.new_commits_matrix:
-            matrix["commit"] = self.new_commits_matrix["commit"]
-            matrix["include"].extend(self.new_commits_matrix["include"])
+        # We'd like to run a build for each new commit bundled in the action trigger.
+        # If no new commits are detected, it's because we are not in a GitHub workflow
+        # event, so we'll fallback to the current commit and only build for it.
+        build_commit_matrix = (
+            self.new_commits_matrix
+            if self.new_commits_matrix
+            else self.current_commit_matrix
+        )
+        assert build_commit_matrix
+        # Extend the matrix with a new dimension: a list of commits.
+        matrix["commit"] = build_commit_matrix["commit"]
+        matrix["include"].extend(build_commit_matrix["include"])
 
         # Add platform-specific variables.
         # Arch values are inspired from those specified for self-hosted runners:
