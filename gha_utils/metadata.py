@@ -157,7 +157,16 @@ class Metadata:
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
-    def github_context(self) -> Any:
+    def in_ci_env(self) -> bool:
+        """Returns ``True`` if the code is executed in a GitHub Actions runner.
+
+        Other CI are available at:
+        https://github.com/cucumber/ci-environment/blob/main/python/src/ci_environment/CiEnvironments.json
+        """
+        return bool("GITHUB_RUN_ID" in os.environ)
+
+    @cached_property
+    def github_context(self) -> dict[str, Any]:
         """Load GitHub context from the environment.
 
         Expect ``GITHUB_CONTEXT`` to be set as part of the environment. I.e., adds the
@@ -174,19 +183,19 @@ class Metadata:
                 https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
         """
         if "GITHUB_CONTEXT" not in os.environ:
-            message = (
-                "Missing GitHub context in environment. "
-                "Did you forget to set GITHUB_CONTEXT?"
-            )
-            logging.warning(message)
+            if self.in_ci_env:
+                message = (
+                    "Missing GitHub context in environment. "
+                    "Did you forget to set GITHUB_CONTEXT?"
+                )
+                logging.warning(message)
             return {}
         context = json.loads(os.environ["GITHUB_CONTEXT"])
         logging.debug("--- GitHub context ---")
         logging.debug(json.dumps(context, indent=4))
         return context
 
-    @staticmethod
-    def commit_matrix(commits: Iterable[Commit] | None) -> TMatrix | None:
+    def commit_matrix(self, commits: Iterable[Commit] | None) -> TMatrix | None:
         """Pre-compute a matrix of commits.
 
         .. danger::
@@ -243,6 +252,10 @@ class Metadata:
             # but stash local changes first. Do not perform the stash/checkout dance if
             # the repository is already at the target commit.
             need_checkout = bool(git.repo.head.commit.hexsha != sha)
+            if need_checkout and not self.in_ci_env:
+                raise RuntimeError(
+                    "Local repository manipulations only allowed in CI environment"
+                )
             if need_checkout:
                 git.repo.git.stash()
                 git.checkout(sha)
