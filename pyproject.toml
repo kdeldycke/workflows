@@ -1,3 +1,92 @@
+[project]
+# Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+name = "gha_utils"
+version = "4.0.0"
+# Python versions and their status: https://devguide.python.org/versions/
+requires-python = ">= 3.8"
+description = "⚙️ CLI helpers for GitHub Action + collection of reuseable workflows"
+license = { file = "license" }
+authors = [{ name = "Kevin Deldycke", email = "kevin@deldycke.com" }]
+readme = "readme.md"
+keywords = [
+    'build-automation',
+    'changelog-formatter',
+    'ci-cd',
+    'cli',
+    'formatting',
+    'github-actions',
+    'labels',
+    'linting',
+    'markdown',
+    'mypy',
+    'nuitka',
+    'packaging',
+    'pypi',
+    'python',
+    'release-automation',
+    'sphinx',
+    'sponsorship',
+    'terminal',
+    'typo',
+    'workflow-reusable',
+    'yaml',
+]
+classifiers = [
+    # See: https://pypi.org/pypi?%3Aaction=list_classifiers
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Console',
+    'Framework :: Sphinx',
+    'Framework :: Pelican',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX :: Linux',
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    'Programming Language :: Python :: Implementation :: CPython',
+    'Programming Language :: Unix Shell',
+    'Topic :: Documentation :: Sphinx',
+    'Topic :: File Formats :: JSON',
+    'Topic :: Security',
+    'Topic :: Software Development :: Build Tools',
+    'Topic :: Software Development :: Compilers',
+    'Topic :: Software Development :: Documentation',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Software Development :: Quality Assurance',
+    'Topic :: Software Development :: Version Control :: Git',
+    'Topic :: System :: Archiving :: Packaging',
+    'Topic :: System :: Installation/Setup',
+    'Topic :: System :: Shells',
+    'Topic :: System :: Software Distribution',
+    'Topic :: Terminals',
+    'Topic :: Text Processing :: Markup :: HTML',
+    'Topic :: Text Processing :: Markup :: Markdown',
+    'Topic :: Utilities',
+    'Typing :: Typed',
+]
+dependencies = [
+    "black ~= 24.4.2",
+    "bump-my-version ~= 0.23.0",
+    "mypy ~= 1.10.0",
+    "packaging ~= 24.1",
+    "PyDriller ~= 2.6",
+    "pyproject-metadata ~= 0.8.0",
+    "tomli ~= 2.0.1 ; python_version < '3.11'",
+    "wcmatch ~= 8.5.2",
+]
+
+[project.urls]
+"Homepage" = 'https://github.com/kdeldycke/workflows'
+"Repository" = 'https://github.com/kdeldycke/workflows'
+"Funding" = "https://github.com/sponsors/kdeldycke"
+"Issues" = "https://github.com/kdeldycke/workflows/issues"
+"Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
+
 [tool.bumpversion]
 current_version = "4.0.0"
 allow_dirty = true
