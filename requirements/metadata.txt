@@ -1,5 +1,5 @@
 black == 24.4.2
-bump-my-version == 0.23.0
+bump-my-version == 0.24.0
 mypy == 1.10.0
 packaging == 24.1
 PyDriller == 2.6
