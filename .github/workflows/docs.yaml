@@ -231,6 +231,11 @@ jobs:
       - name: Install project
         run: |
           uv pip install .
+      - name: Run uv for debug
+        # TODO: switch from pipdeptree to uv.
+        # See: https://github.com/astral-sh/uv/issues/4439#issuecomment-2183911185
+        run: |
+          uv pip tree
       - name: Run pipdeptree for debug
         run: >
           uv run pipdeptree ${{ needs.project-metadata.outputs.package_name
