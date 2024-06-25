@@ -71,7 +71,7 @@ classifiers = [
 ]
 dependencies = [
     "black ~= 24.4.2",
-    "bump-my-version ~= 0.23.0",
+    "bump-my-version ~= 0.24.0",
     "click-extra ~= 4.8.3",
     "mypy ~= 1.10.0",
     "packaging ~= 24.1",
