@@ -84,55 +84,60 @@ if sys.version_info >= (3, 11):
 else:
     import tomli as tomllib  # type: ignore[import]
 
-# Extract current version as defined by bump-my-version.
-config_file = Path("./pyproject.toml").resolve()
-print(f"Open {config_file}")
-config = tomllib.loads(config_file.read_text(encoding="utf-8"))
-current_version = config["tool"]["bumpversion"]["current_version"]
-print(f"Current version: {current_version}")
-assert current_version
 
-# Open changelog.
-changelog_file = Path("./changelog.md").resolve()
-print(f"Open {changelog_file}")
-content = changelog_file.read_text(encoding="utf-8")
-assert current_version in content
+class Changelog:
+    def update():
+        # Extract current version as defined by bump-my-version.
+        config_file = Path("./pyproject.toml").resolve()
+        print(f"Open {config_file}")
+        config = tomllib.loads(config_file.read_text(encoding="utf-8"))
+        current_version = config["tool"]["bumpversion"]["current_version"]
+        print(f"Current version: {current_version}")
+        assert current_version
 
-# Analyse the current changelog.
-SECTION_START = "##"
-changelog_header, last_entry, past_entries = content.split(SECTION_START, 2)
+        # Open changelog.
+        changelog_file = Path("./changelog.md").resolve()
+        print(f"Open {changelog_file}")
+        content = changelog_file.read_text(encoding="utf-8")
+        assert current_version in content
 
-# Derive the release template from the last entry.
-DATE_REGEX = r"\d{4}\-\d{2}\-\d{2}"
-VERSION_REGEX = r"\d+\.\d+\.\d+"
+        # Analyse the current changelog.
+        SECTION_START = "##"
+        changelog_header, last_entry, past_entries = content.split(SECTION_START, 2)
 
-# Replace the release date with the unreleased tag.
-new_entry = re.sub(DATE_REGEX, "unreleased", last_entry, count=1)
+        # Derive the release template from the last entry.
+        DATE_REGEX = r"\d{4}\-\d{2}\-\d{2}"
+        VERSION_REGEX = r"\d+\.\d+\.\d+"
 
-# Update GitHub's comparison URL to target the main branch.
-new_entry = re.sub(
-    rf"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}",
-    f"v{current_version}...main",
-    new_entry,
-    count=1,
-)
+        # Replace the release date with the unreleased tag.
+        new_entry = re.sub(DATE_REGEX, "unreleased", last_entry, count=1)
 
-# Replace the whole paragraph of changes by a notice message. The paragraph is
-# identified as starting by a blank line, at which point everything gets replaced.
-new_entry = re.sub(
-    r"\n\n.*",
-    "\n\n"
-    "> \[!IMPORTANT\]\n"
-    "> This version is not released yet and is under active development.\n\n",
-    new_entry,
-    flags=re.MULTILINE | re.DOTALL,
-)
+        # Update GitHub's comparison URL to target the main branch.
+        new_entry = re.sub(
+            rf"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}",
+            f"v{current_version}...main",
+            new_entry,
+            count=1,
+        )
 
-# Prefix entries with section marker.
-new_entry = f"{SECTION_START}{new_entry}"
-history = f"{SECTION_START}{last_entry}{SECTION_START}{past_entries}"
+        # Replace the whole paragraph of changes by a notice message. The paragraph is
+        # identified as starting by a blank line, at which point everything gets replaced.
+        new_entry = re.sub(
+            r"\n\n.*",
+            "\n\n"
+            "> \[!IMPORTANT\]\n"
+            "> This version is not released yet and is under active development.\n\n",
+            new_entry,
+            flags=re.MULTILINE | re.DOTALL,
+        )
 
-print("New generated section:\n" + indent(new_entry, " " * 2))
+        # Prefix entries with section marker.
+        new_entry = f"{SECTION_START}{new_entry}"
+        history = f"{SECTION_START}{last_entry}{SECTION_START}{past_entries}"
 
-# Recompose full changelog with new top entry.
-changelog_file.write_text(f"{changelog_header}{new_entry}{history}", encoding="utf-8")
+        print("New generated section:\n" + indent(new_entry, " " * 2))
+
+        # Recompose full changelog with new top entry.
+        changelog_file.write_text(
+            f"{changelog_header}{new_entry}{history}", encoding="utf-8"
+        )

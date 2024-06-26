@@ -16,24 +16,29 @@
 
 from __future__ import annotations
 
-from click_extra import (
-    extra_group,
-    pass_context,
-)
+from click_extra import extra_group
 
+from .changelog import Changelog
+from .mailmap import Mailmap
 from .metadata import Metadata
 
 
 @extra_group
-@pass_context
-def gha_utils(ctx):
+def gha_utils():
     pass
 
 
-@gha_utils.command(
-    short_help="Produce metadata",
-)
-@pass_context
-def metadata(ctx):
+@gha_utils.command(short_help="Produce metadata")
+def metadata():
     # Output metadata with GitHub syntax.
     Metadata().write_metadata()
+
+
+@gha_utils.command(short_help="Update changelog")
+def changelog():
+    Changelog().update()
+
+
+@gha_utils.command(short_help="Update .mailmap")
+def mailmap():
+    Mailmap().update()
