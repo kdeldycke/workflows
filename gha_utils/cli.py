@@ -156,6 +156,9 @@ def mailmap(ctx, source, updated_mailmap):
 
     To have the updated results written
     to a file on disk, specify the output file like so: `gha-utils mailmap .mailmap`.
+
+    The updated results are quite dumb, so it is advised to identify potential duplicate identities,
+    then regroup them by hand.
     """
     initial_content = None
     if source:

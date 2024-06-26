@@ -76,9 +76,6 @@ class Mailmap:
         """Add all missing contributors from commit history to mailmap.
 
         This method will refrain from adding contributors already registered as aliases.
-
-        After the update, it is advised to identify potential duplicate identities,
-        and tidying things up by hand-editing the ``.mailmap`` file.
         """
         # Extract comments in .mailmap header and keep mapping lines.
         header_comments = []
