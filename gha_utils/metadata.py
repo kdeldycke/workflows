@@ -111,6 +111,7 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
+from enum import Enum
 
 from black.mode import TargetVersion
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
@@ -142,8 +143,16 @@ SHORT_SHA_LENGTH = 7
 
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
+
 TMatrix = dict[str, list[str] | list[dict[str, str]]]
 """Defines the structure of a matrix to be used in a GitHub workflow."""
+
+
+class Dialects(Enum):
+    """Dialects in which metadata can be formatted to."""
+
+    GITHUB = "github"
+    PLAIN = "plain"
 
 
 class Metadata:
@@ -966,18 +975,8 @@ class Metadata:
 
         return cast(str, value)
 
-    @cached_property
-    def output_env_file(self) -> Path | None:
-        """Returns environment file `Path` pointed to by `$GITHUB_OUTPUT`."""
-        output_path = None
-        env_file = os.getenv("GITHUB_OUTPUT")
-        if env_file:
-            output_path = Path(env_file)
-            assert output_path.is_file()
-        return output_path
-
-    def write_metadata(self) -> None:
-        """Write data to the environment file pointed to by `$GITHUB_OUTPUT`."""
+    def dump(self, dialect: Dialects = Dialects.GITHUB) -> str:
+        """Returns all metadata in the provided format."""
         # Plain metadata.
         metadata: dict[str, Any] = {
             "new_commits": (self.new_commits_hash, False),
@@ -1006,27 +1005,25 @@ class Metadata:
         for name, data_dict in json_metadata.items():
             metadata[name] = (data_dict, True) if data_dict else (None, False)
 
-        logging.info(f"--- Writing into {self.output_env_file} ---")
+        logging.debug(f"Raw metadata: {metadata!r}")
+        logging.debug(f"Format metadata into {dialect} dialect.")
+
         content = ""
-        for env_name, (value, render_json) in metadata.items():
-            env_value = self.format_github_value(value, render_json=render_json)
+        if dialect == Dialects.GITHUB:
+            for env_name, (value, render_json) in metadata.items():
+                env_value = self.format_github_value(value, render_json=render_json)
 
-            is_multiline = bool(len(env_value.splitlines()) > 1)
-            if not is_multiline:
-                content += f"{env_name}={env_value}\n"
-            else:
-                # Use a random unique delimiter to encode multiline value:
-                delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
-                content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
+                is_multiline = bool(len(env_value.splitlines()) > 1)
+                if not is_multiline:
+                    content += f"{env_name}={env_value}\n"
+                else:
+                    # Use a random unique delimiter to encode multiline value:
+                    delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
+                    content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
+        else:
+            assert dialect == Dialects.PLAIN
+            content = repr(metadata)
 
-        logging.info(content)
+        logging.debug(f"Formatted metadata: {content}")
 
-        if not self.output_env_file:
-            msg = "No output file specified by $GITHUB_OUTPUT environment variable."
-            raise FileNotFoundError(
-                msg,
-            )
-        self.output_env_file.write_text(content, encoding="utf-8")
-
-        logging.info(f"--- Content of {self.output_env_file} ---")
-        logging.info(self.output_env_file.read_text(encoding="utf-8"))
+        return content
