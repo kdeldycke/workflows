@@ -14,37 +14,50 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Add all missing contributors from commit history to the ``.mailmap`` file.
-
-The ``.mailmap`` files is in the root of repository.
-
-This script will refrain from adding those already registered as aliases.
-
-After the update, we will have the opportunity to identify potential duplicate
-identities, and tidying things up by hand-editing the .mailmap file.
-"""
-
 from __future__ import annotations
 
+import logging
 import sys
-from pathlib import Path
+from functools import cached_property
 from subprocess import run
 from textwrap import dedent
 
 
 class Mailmap:
-    def update():
+    """Helpers to manipulate ``.mailmap`` file.
+
+    The ``.mailmap`` files excpected to be found in the root of repository.
+    """
+
+    def __init__(self, initial_mailmap: str | None = None) -> None:
+        if not initial_mailmap:
+            # Initialize empty .mailmap with pointers to reference documentation.
+            self.content = dedent(
+                """\
+                # Format is:
+                #   Preferred Name <preferred e-mail>  Other Name <other e-mail>
+                #
+                # Reference: https://git-scm.com/docs/git-blame#_mapping_authors
+                """,
+            )
+        else:
+            self.content = initial_mailmap
+        logging.debug(f"Initial content set to:\n{self.content}")
+
+    @cached_property
+    def git_contributors(self) -> set[str]:
+        """Returns the set of all constributors found in the Git commit history.
+
+        No normalization happens: all variations of authors and committers strings attached to all commits are considered.
+
+        For format output syntax, see:
+        https://git-scm.com/docs/pretty-formats#Documentation/pretty-formats.txt-emaNem
+        """
         contributors = set()
 
-        # Fetch all variations of authors and committers.
-        # For format output syntax, see: https://git-scm.com/docs
-        #   /pretty-formats#Documentation/pretty-formats.txt-emaNem
-        # pylint: disable=subprocess-run-check
-        process = run(
-            ("git", "log", "--pretty=format:%aN <%aE>%n%cN <%cE>"),
-            capture_output=True,
-            encoding="utf-8",
-        )
+        git_cli = ("git", "log", "--pretty=format:%aN <%aE>%n%cN <%cE>")
+        logging.debug(f"Run: {' '.join(git_cli)}")
+        process = run(git_cli, capture_output=True, encoding="utf-8")
 
         # Parse git CLI output.
         if process.returncode:
@@ -53,40 +66,37 @@ class Mailmap:
             if line.strip():
                 contributors.add(line)
 
-        # Load-up .mailmap content. Create file if it doesn't exists.
-        mailmap_file = Path("./.mailmap").resolve()
-        mailmap_file.touch(exist_ok=True)
-        content = mailmap_file.read_text(encoding="utf-8")
+        logging.debug(
+            "Authors and commiters found in Git history:\n"
+            f"{'\n'.join(sorted(contributors, key=str.casefold))}"
+        )
+        return contributors
 
-        # Initialize empty .mailmap with pointers to reference documentation.
-        if not content:
-            content = dedent(
-                """
-            # Format is:
-            #   Preferred Name <preferred e-mail>  Other Name <other e-mail>
-            #
-            # Reference: https://git-scm.com/docs/git-blame#_mapping_authors
-            """,
-            )
+    def updated_map(self):
+        """Add all missing contributors from commit history to mailmap.
 
+        This method will refrain from adding contributors already registered as aliases.
+
+        After the update, it is advised to identify potential duplicate identities,
+        and tidying things up by hand-editing the ``.mailmap`` file.
+        """
         # Extract comments in .mailmap header and keep mapping lines.
         header_comments = []
         mappings = set()
-        for line in content.splitlines():
+        for line in self.content.splitlines():
             if line.startswith("#"):
                 header_comments.append(line)
             elif line.strip():
                 mappings.add(line)
 
         # Add all missing contributors to the mail mapping.
-        for contributor in contributors:
-            if contributor not in content:
+        for contributor in self.git_contributors:
+            if contributor not in self.content:
+                logging.debug(f"{contributor!r} not found in original content, add it.")
                 mappings.add(contributor)
 
-        # Save content to .mailmap file.
-        mailmap_file.write_text(
-            "{}\n\n{}\n".format(
-                "\n".join(header_comments), "\n".join(sorted(mappings))
-            ),
-            encoding="utf-8",
+        # Render content in .mailmap format.
+        return (
+            f"{'\n'.join(header_comments)}\n\n"
+            f"{'\n'.join(sorted(mappings, key=str.casefold))}\n"
         )
