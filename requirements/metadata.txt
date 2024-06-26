@@ -1,6 +1,6 @@
 black == 24.4.2
 bump-my-version == 0.24.0
-mypy == 1.10.0
+mypy == 1.10.1
 packaging == 24.1
 PyDriller == 2.6
 pyproject-metadata == 0.8.0
