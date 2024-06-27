@@ -15,7 +15,8 @@ name: Docs
 # Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
 # We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
 env:
-  dependency-graph-output: ${{ inputs.dependency-graph-output == null && './docs/assets/dependencies.mmd' || inputs.dependency-graph-output }}
+  dependency-graph-output: >
+    ${{ inputs.dependency-graph-output == null && './docs/assets/dependencies.mmd' || inputs.dependency-graph-output }}
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.

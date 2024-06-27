@@ -20,6 +20,12 @@ name: Autofix
     branches:
       - main
 
+# Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
+# We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
+env:
+  gitignore-location: >
+    ${{ inputs.gitignore-location == null && './.gitignore' || inputs.gitignore-location }}
+
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.
   # Source: https://mail.python.org/archives/list/pypa-committers@python.org/thread/PCBCQMJF64JGRBOX7E2EE4YLKHT4DI55/
@@ -370,7 +376,7 @@ jobs:
       - id: detection
         # Bare-called reused workflow are not fed with defaults, so force it here.
         run: |
-          echo "exists=$( [[ -f '${{ inputs.gitignore-location }}' ]] && echo 'true' )" >> "$GITHUB_OUTPUT"
+          echo "exists=$( [[ -f '${{ env.gitignore-location }}' ]] && echo 'true' )" >> "$GITHUB_OUTPUT"
       - name: Detection results
         run: |
           echo "Does .gitignore exist at root? ${{ steps.detection.outputs.exists && true || false }}"
@@ -409,11 +415,11 @@ jobs:
           vim
           virtualenv
           visualstudiocode
-          windows > ${{ inputs.gitignore-location }}
+          windows > ${{ env.gitignore-location }}
       - name: Append extra content to .gitignore
         if: inputs.gitignore-extra-content
         run: |
-          tee -a ${{ inputs.gitignore-location }} <<-EOF
+          tee -a ${{ env.gitignore-location }} <<-EOF
 
           ${{ inputs.gitignore-extra-content }}
           EOF
