@@ -131,8 +131,34 @@ def metadata(ctx, format, overwrite, output_path):
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
-def changelog():
-    Changelog().update()
+@option(
+    "--source",
+    type=path(exists=True, readable=True, resolve_path=True),
+    default="changelog.md",
+    help="Changelog source file in Markdown format.",
+)
+@argument(
+    "changelog_path",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+)
+@pass_context
+def changelog(ctx, source, changelog_path):
+    initial_content = None
+    if source:
+        logging.info(f"Read initial changelog from {source}")
+        initial_content = source.read_text()
+
+    changelog = Changelog(initial_content)
+    content = changelog.update()
+
+    if is_stdout(changelog_path):
+        logging.info(f"Print updated results to {sys.stdout.name}")
+    else:
+        logging.info(f"Save updated results to {changelog_path}")
+
+    with file_writer(changelog_path) as f:
+        f.write(content)
 
 
 @gha_utils.command(short_help="Sync Git's .mailmap at project's root")

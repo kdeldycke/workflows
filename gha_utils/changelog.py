@@ -14,66 +14,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-r"""Adds a new empty entry at the top of the changelog.
-
-This is designed to be used just after a new release has been tagged. And before a
-post-release version increment is applied with a call to:
-
-```shell-session
-$ bump-my-version bump --verbose patch
-Starting BumpVersion 0.5.1.dev6
-Reading config file pyproject.toml:
-Specified version (2.17.5) does not match last tagged version (2.17.4)
-Parsing version '2.17.5' using '(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)'
-Parsed the following values: major=2, minor=17, patch=5
-Attempting to increment part 'patch'
-Values are now: major=2, minor=17, patch=6
-New version will be '2.17.6'
-Dry run active, won't touch any files.
-Asserting files ./changelog.md contain the version string...
-Found '[2.17.5 (unreleased)](' in ./changelog.md at line 2:
-## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
-Would change file ./changelog.md:
-*** before ./changelog.md
---- after ./changelog.md
-***************
-*** 1,6 ****
-  # Changelog
-
-! ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
-
-  > \[!IMPORTANT\]
-  > This version is not released yet and is under active development.
---- 1,6 ----
-  # Changelog
-
-! ## [2.17.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
-
-  > \[!IMPORTANT\]
-  > This version is not released yet and is under active development.
-Would write to config file pyproject.toml:
-*** before pyproject.toml
---- after pyproject.toml
-***************
-*** 1,5 ****
-  [tool.bumpversion]
-! current_version = "2.17.5"
-  allow_dirty = true
-
-  [[tool.bumpversion.files]]
---- 1,5 ----
-  [tool.bumpversion]
-! current_version = "2.17.6"
-  allow_dirty = true
-
-  [[tool.bumpversion.files]]
-Would not commit
-Would not tag since we are not committing
-```
-"""
-
 from __future__ import annotations
 
+import logging
 import re
 import sys
 from pathlib import Path
@@ -86,24 +29,85 @@ else:
 
 
 class Changelog:
-    def update():
+    """Helpers to manipulate changelog files written in Markdown."""
+
+    def __init__(self, initial_changelog: str | None = None) -> None:
+        self.content = initial_changelog
+        logging.debug(f"Initial content set to:\n{self.content}")
+
+    def update(self) -> str:
+        r"""Adds a new empty entry at the top of the changelog.
+
+        This is designed to be used just after a new release has been tagged. And before a
+        post-release version increment is applied with a call to:
+
+        ```shell-session
+        $ bump-my-version bump --verbose patch
+        Starting BumpVersion 0.5.1.dev6
+        Reading config file pyproject.toml:
+        Specified version (2.17.5) does not match last tagged version (2.17.4)
+        Parsing version '2.17.5' using '(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)'
+        Parsed the following values: major=2, minor=17, patch=5
+        Attempting to increment part 'patch'
+        Values are now: major=2, minor=17, patch=6
+        New version will be '2.17.6'
+        Dry run active, won't touch any files.
+        Asserting files ./changelog.md contain the version string...
+        Found '[2.17.5 (unreleased)](' in ./changelog.md at line 2:
+        ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+        Would change file ./changelog.md:
+        *** before ./changelog.md
+        --- after ./changelog.md
+        ***************
+        *** 1,6 ****
+          # Changelog
+
+        ! ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+
+          > \[!IMPORTANT\]
+          > This version is not released yet and is under active development.
+        --- 1,6 ----
+          # Changelog
+
+        ! ## [2.17.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
+
+          > \[!IMPORTANT\]
+          > This version is not released yet and is under active development.
+        Would write to config file pyproject.toml:
+        *** before pyproject.toml
+        --- after pyproject.toml
+        ***************
+        *** 1,5 ****
+          [tool.bumpversion]
+        ! current_version = "2.17.5"
+          allow_dirty = true
+
+          [[tool.bumpversion.files]]
+        --- 1,5 ----
+          [tool.bumpversion]
+        ! current_version = "2.17.6"
+          allow_dirty = true
+
+          [[tool.bumpversion.files]]
+        Would not commit
+        Would not tag since we are not committing
+        ```
+        """
         # Extract current version as defined by bump-my-version.
         config_file = Path("./pyproject.toml").resolve()
-        print(f"Open {config_file}")
+        logging.info(f"Open {config_file}")
         config = tomllib.loads(config_file.read_text(encoding="utf-8"))
         current_version = config["tool"]["bumpversion"]["current_version"]
-        print(f"Current version: {current_version}")
+        logging.info(f"Current version: {current_version}")
         assert current_version
 
-        # Open changelog.
-        changelog_file = Path("./changelog.md").resolve()
-        print(f"Open {changelog_file}")
-        content = changelog_file.read_text(encoding="utf-8")
-        assert current_version in content
+        assert current_version in self.content
 
         # Analyse the current changelog.
         SECTION_START = "##"
-        changelog_header, last_entry, past_entries = content.split(SECTION_START, 2)
+        changelog_header, last_entry, past_entries = self.content.split(
+            SECTION_START, 2
+        )
 
         # Derive the release template from the last entry.
         DATE_REGEX = r"\d{4}\-\d{2}\-\d{2}"
@@ -135,9 +139,9 @@ class Changelog:
         new_entry = f"{SECTION_START}{new_entry}"
         history = f"{SECTION_START}{last_entry}{SECTION_START}{past_entries}"
 
-        print("New generated section:\n" + indent(new_entry, " " * 2))
+        logging.info("New generated section:\n" + indent(new_entry, " " * 2))
+
+        assert new_entry not in history
 
         # Recompose full changelog with new top entry.
-        changelog_file.write_text(
-            f"{changelog_header}{new_entry}{history}", encoding="utf-8"
-        )
+        return f"{changelog_header}{new_entry}{history}"
