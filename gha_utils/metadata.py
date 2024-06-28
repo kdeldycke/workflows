@@ -144,15 +144,19 @@ SHORT_SHA_LENGTH = 7
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
 
-TMatrix = dict[str, list[str] | list[dict[str, str]]]
-"""Defines the structure of a matrix to be used in a GitHub workflow."""
-
-
 class Dialects(Enum):
     """Dialects in which metadata can be formatted to."""
 
     GITHUB = "github"
     PLAIN = "plain"
+
+
+class Matrix(dict):
+    """A matrix to used in a GitHub workflow."""
+
+    def __str__(self) -> str:
+        """Render matrix as a JSON string."""
+        return json.dumps(self)
 
 
 class Metadata:
@@ -204,7 +208,7 @@ class Metadata:
         logging.debug(json.dumps(context, indent=4))
         return context
 
-    def commit_matrix(self, commits: Iterable[Commit] | None) -> TMatrix | None:
+    def commit_matrix(self, commits: Iterable[Commit] | None) -> Matrix | None:
         """Pre-compute a matrix of commits.
 
         .. danger::
@@ -283,10 +287,10 @@ class Metadata:
         if git.repo.head.commit.hexsha != init_sha:
             git.checkout(init_ref)
 
-        return {
+        return Matrix({
             "commit": sha_list,
             "include": include_list,
-        }
+        })
 
     @cached_property
     def commit_range(self) -> tuple[str, str] | None:
@@ -335,7 +339,7 @@ class Metadata:
         return next(Repository(".", single="HEAD").traverse_commits())
 
     @cached_property
-    def current_commit_matrix(self) -> TMatrix | None:
+    def current_commit_matrix(self) -> Matrix | None:
         """Pre-computed matrix with long and short SHA values of the current commit."""
         return self.commit_matrix((self.current_commit,))
 
@@ -356,7 +360,7 @@ class Metadata:
         )[:-1]
 
     @cached_property
-    def new_commits_matrix(self) -> TMatrix | None:
+    def new_commits_matrix(self) -> Matrix | None:
         """Pre-computed matrix with long and short SHA values of new commits."""
         return self.commit_matrix(self.new_commits)
 
@@ -393,7 +397,7 @@ class Metadata:
         )
 
     @cached_property
-    def release_commits_matrix(self) -> TMatrix | None:
+    def release_commits_matrix(self) -> Matrix | None:
         """Pre-computed matrix with long and short SHA values of release commits."""
         return self.commit_matrix(self.release_commits)
 
@@ -659,7 +663,7 @@ class Metadata:
         return False
 
     @cached_property
-    def nuitka_matrix(self) -> TMatrix | None:
+    def nuitka_matrix(self) -> Matrix | None:
         """Pre-compute a matrix for Nuitka compilation workflows.
 
         Combine the variations of:
@@ -906,7 +910,7 @@ class Metadata:
             ).format(**full_variant)
             matrix["include"].append(extra_name_param)
 
-        return matrix
+        return Matrix(matrix)
 
     @cached_property
     def release_notes(self) -> str | None:
@@ -943,19 +947,21 @@ class Metadata:
         return f"{changes}\n\n{pypi_link}".strip()
 
     @staticmethod
-    def format_github_value(value: Any, render_json: bool = False) -> str:
+    def format_github_value(value: Any) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
 
         Renders:
         - `str` as-is
         - `None` into empty string
         - `bool` into lower-cased string
+        - `Matrix` into JSON string
         - `Iterable` of strings into a serialized space-separated string
         - `Iterable` of `Path` into a serialized string whose items are space-separated
           and double-quoted
         """
-        if render_json:
-            return json.dumps(value)
+        # Structured metadata to be rendered as JSON.
+        if isinstance(value, Matrix):
+            return str(value)
 
         # Convert non-strings.
         if not isinstance(value, str):
@@ -976,42 +982,38 @@ class Metadata:
         return cast(str, value)
 
     def dump(self, dialect: Dialects = Dialects.GITHUB) -> str:
-        """Returns all metadata in the provided format."""
-        # Plain metadata.
-        metadata: dict[str, Any] = {
-            "new_commits": (self.new_commits_hash, False),
-            "release_commits": (self.release_commits_hash, False),
-            "python_files": (self.python_files, False),
-            "doc_files": (self.doc_files, False),
-            "is_python_project": (self.is_python_project, False),
-            "uv_requirement_params": (self.uv_requirement_params, False),
-            "package_name": (self.package_name, False),
-            "blacken_docs_params": (self.blacken_docs_params, False),
-            "ruff_py_version": (self.ruff_py_version, False),
-            "mypy_params": (self.mypy_params, False),
-            "current_version": (self.current_version, False),
-            "released_version": (self.released_version, False),
-            "is_sphinx": (self.is_sphinx, False),
-            "active_autodoc": (self.active_autodoc, False),
-            "release_notes": (self.release_notes, False),
-        }
+        """Returns all metadata in the specified format.
 
-        # Structured metadata to be rendered as JSON.
-        json_metadata = {
+        Defaults to GitHub dialect.
+        """
+        metadata: dict[str, Any] = {
+            "new_commits": self.new_commits_hash,
+            "release_commits": self.release_commits_hash,
+            "python_files": self.python_files,
+            "doc_files": self.doc_files,
+            "is_python_project": self.is_python_project,
+            "uv_requirement_params": self.uv_requirement_params,
+            "package_name": self.package_name,
+            "blacken_docs_params": self.blacken_docs_params,
+            "ruff_py_version": self.ruff_py_version,
+            "mypy_params": self.mypy_params,
+            "current_version": self.current_version,
+            "released_version": self.released_version,
+            "is_sphinx": self.is_sphinx,
+            "active_autodoc": self.active_autodoc,
+            "release_notes": self.release_notes,
             "new_commits_matrix": self.new_commits_matrix,
             "release_commits_matrix": self.release_commits_matrix,
             "nuitka_matrix": self.nuitka_matrix,
         }
-        for name, data_dict in json_metadata.items():
-            metadata[name] = (data_dict, True) if data_dict else (None, False)
 
         logging.debug(f"Raw metadata: {metadata!r}")
         logging.debug(f"Format metadata into {dialect} dialect.")
 
         content = ""
         if dialect == Dialects.GITHUB:
-            for env_name, (value, render_json) in metadata.items():
-                env_value = self.format_github_value(value, render_json=render_json)
+            for env_name, value in metadata.items():
+                env_value = self.format_github_value(value)
 
                 is_multiline = bool(len(env_value.splitlines()) > 1)
                 if not is_multiline:
