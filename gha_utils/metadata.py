@@ -164,7 +164,8 @@ class Metadata:
 
     def __init__(self) -> None:
         """Initialize internal variables."""
-        self._is_python_project = None
+        # None indicates the is_python_project variable has not been evaluated yet.
+        self._is_python_project: bool | None = None
 
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
@@ -646,7 +647,7 @@ class Metadata:
             for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
                 if isinstance(node, ast.Assign) and isinstance(
                     node.value,
-                    ast.List | ast.Tuple,
+                    ast.List | ast.Tuple,  # type: ignore[operator]
                 ):
                     extension_found = "extensions" in (
                         t.id  # type: ignore[attr-defined]
