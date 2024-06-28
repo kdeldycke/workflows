@@ -128,7 +128,8 @@ class Changelog:
         )
 
         # Replace the whole paragraph of changes by a notice message. The paragraph is
-        # identified as starting by a blank line, at which point everything gets replaced.
+        # identified as starting by a blank line, at which point everything gets
+        # replaced.
         new_entry = re.sub(
             r"\n\n.*",
             "\n\n"
