@@ -140,10 +140,11 @@ jobs:
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
       - name: Nuitka + compilers versions
         run: |
-          uv run nuitka3 --version
+          uv run python ${{ matrix.extra_python_params }} -m nuitka --version
       - name: Build binary
         run: >
-          uv run nuitka3 --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
+          uv run python ${{ matrix.extra_python_params }} -m nuitka
+          --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries
         uses: actions/upload-artifact@v4.3.3
