@@ -1,6 +1,10 @@
 # `gha-utils` CLI + reuseable workflows
 
-`gha-utils` stands for GitHub Action workflows Utilities.
+[![Last release](https://img.shields.io/pypi/v/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
+[![Python versions](https://img.shields.io/pypi/pyversions/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
+[![Type checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+
+`gha-utils` stands for **G**it**H**ub **A**ction workflows **Util**itie**s**.
 
 Maintaining project takes time. This repository contains the code of the `gha-utils` CLI and a collection of reuseable workflows to:
 - maintain a Python project, its CLI, doc, QA, etc.
