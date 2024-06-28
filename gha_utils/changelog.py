@@ -32,7 +32,10 @@ class Changelog:
     """Helpers to manipulate changelog files written in Markdown."""
 
     def __init__(self, initial_changelog: str | None = None) -> None:
-        self.content = initial_changelog
+        if not initial_changelog:
+            self.content = "# Changelog\n"
+        else:
+            self.content = initial_changelog
         logging.debug(f"Initial content set to:\n{self.content}")
 
     def update(self) -> str:
