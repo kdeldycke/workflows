@@ -1,0 +1,114 @@
+flowchart TD
+    classDef missing stroke-dasharray: 5
+    annotated-types["annotated-types\n0.7.0"]
+    black["black\n24.4.2"]
+    boltons["boltons\n24.0.0"]
+    bracex["bracex\n2.4"]
+    bump-my-version["bump-my-version\n0.24.1"]
+    certifi["certifi\n2024.6.2"]
+    charset-normalizer["charset-normalizer\n3.3.2"]
+    click-extra["click-extra\n4.8.3"]
+    click_0["click\n8.1.7"]
+    cloup["cloup\n3.0.5"]
+    commentjson["commentjson\n0.9.0"]
+    gha-utils["gha-utils\n4.0.0"]
+    gitdb["gitdb\n4.0.11"]
+    gitpython["GitPython\n3.1.43"]
+    idna["idna\n3.7"]
+    lark-parser["lark-parser\n0.7.8"]
+    lizard["lizard\n1.17.10"]
+    markdown-it-py["markdown-it-py\n3.0.0"]
+    mdurl["mdurl\n0.1.2"]
+    mergedeep["mergedeep\n1.3.4"]
+    mypy-extensions["mypy-extensions\n1.0.0"]
+    mypy["mypy\n1.10.1"]
+    packaging["packaging\n24.1"]
+    pathspec["pathspec\n0.12.1"]
+    platformdirs["platformdirs\n4.2.2"]
+    prompt-toolkit["prompt-toolkit\n3.0.36"]
+    pydantic-core["pydantic_core\n2.18.4"]
+    pydantic-settings["pydantic-settings\n2.3.4"]
+    pydantic["pydantic\n2.7.4"]
+    pydriller["PyDriller\n2.6"]
+    pygments["Pygments\n2.18.0"]
+    pyproject-metadata["pyproject-metadata\n0.8.0"]
+    python-dotenv["python-dotenv\n1.0.1"]
+    pytz["pytz\n2024.1"]
+    pyyaml["PyYAML\n6.0.1"]
+    questionary["questionary\n2.0.1"]
+    regex["regex\n2024.5.15"]
+    requests["requests\n2.32.3"]
+    rich-click["rich-click\n1.8.3"]
+    rich["rich\n13.7.1"]
+    smmap["smmap\n5.0.1"]
+    tabulate["tabulate\n0.9.0"]
+    tomlkit["tomlkit\n0.12.5"]
+    types-pytz["types-pytz\n2024.1.0.20240417"]
+    typing-extensions["typing_extensions\n4.12.2"]
+    urllib3["urllib3\n2.2.2"]
+    wcmatch["wcmatch\n8.5.2"]
+    wcwidth["wcwidth\n0.2.13"]
+    xmltodict["xmltodict\n0.13.0"]
+    black -- ">=0.4.3" --> mypy-extensions
+    black -- ">=0.9.0" --> pathspec
+    black -- ">=2" --> platformdirs
+    black -- ">=22.0" --> packaging
+    black -- ">=8.0.0" --> click_0
+    bump-my-version -- ">=2.0.0" --> pydantic
+    bump-my-version -- ">=8.5.1" --> wcmatch
+    bump-my-version -- "any" --> click_0
+    bump-my-version -- "any" --> pydantic-settings
+    bump-my-version -- "any" --> questionary
+    bump-my-version -- "any" --> rich
+    bump-my-version -- "any" --> rich-click
+    bump-my-version -- "any" --> tomlkit
+    click-extra -- ">=0.13.0,<0.14.0" --> xmltodict
+    click-extra -- ">=0.9,<0.10" --> tabulate
+    click-extra -- ">=0.9.0,<0.10.0" --> commentjson
+    click-extra -- ">=1.3.4,<2.0.0" --> mergedeep
+    click-extra -- ">=2.28.2,<3.0.0" --> requests
+    click-extra -- ">=2024.4.16,<2025.0.0" --> regex
+    click-extra -- ">=24.0.0,<25.0.0" --> boltons
+    click-extra -- ">=3.0.5,<4.0.0" --> cloup
+    click-extra -- ">=6.0.0,<7.0.0" --> pyyaml
+    click-extra -- ">=8.1.4,<9.0.0" --> click_0
+    click-extra -- ">=8.5,<9.0" --> wcmatch
+    cloup -- ">=8.0,<9.0" --> click_0
+    commentjson -- ">=0.7.1,<0.8.0" --> lark-parser
+    gha-utils -- "~=0.24.0" --> bump-my-version
+    gha-utils -- "~=0.8.0" --> pyproject-metadata
+    gha-utils -- "~=1.10.0" --> mypy
+    gha-utils -- "~=2.6" --> pydriller
+    gha-utils -- "~=24.1" --> packaging
+    gha-utils -- "~=24.4.2" --> black
+    gha-utils -- "~=4.8.3" --> click-extra
+    gha-utils -- "~=8.5.2" --> wcmatch
+    gitdb -- ">=3.0.1,<6" --> smmap
+    gitpython -- ">=4.0.1,<5" --> gitdb
+    markdown-it-py -- "~=0.1" --> mdurl
+    mypy -- ">=1.0.0" --> mypy-extensions
+    mypy -- ">=4.1.0" --> typing-extensions
+    prompt-toolkit -- "any" --> wcwidth
+    pydantic -- "==2.18.4" --> pydantic-core
+    pydantic -- ">=0.4.0" --> annotated-types
+    pydantic -- ">=4.6.1" --> typing-extensions
+    pydantic-core -- ">=4.6.0,!=4.7.0" --> typing-extensions
+    pydantic-settings -- ">=0.21.0" --> python-dotenv
+    pydantic-settings -- ">=2.7.0" --> pydantic
+    pydriller -- "any" --> gitpython
+    pydriller -- "any" --> lizard
+    pydriller -- "any" --> pytz
+    pydriller -- "any" --> types-pytz
+    pyproject-metadata -- ">=19.0" --> packaging
+    questionary -- ">=2.0,<=3.0.36" --> prompt-toolkit
+    requests -- ">=1.21.1,<3" --> urllib3
+    requests -- ">=2,<4" --> charset-normalizer
+    requests -- ">=2.5,<4" --> idna
+    requests -- ">=2017.4.17" --> certifi
+    rich -- ">=2.13.0,<3.0.0" --> pygments
+    rich -- ">=2.2.0" --> markdown-it-py
+    rich-click -- ">=10.7" --> rich
+    rich-click -- ">=7" --> click_0
+    rich-click -- "any" --> typing-extensions
+    wcmatch -- ">=2.1.1" --> bracex
+
