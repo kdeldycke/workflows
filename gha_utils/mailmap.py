@@ -26,7 +26,7 @@ from textwrap import dedent
 class Mailmap:
     """Helpers to manipulate ``.mailmap`` file.
 
-    The ``.mailmap`` files excpected to be found in the root of repository.
+    The ``.mailmap`` files expected to be found in the root of repository.
     """
 
     def __init__(self, initial_mailmap: str | None = None) -> None:
@@ -67,7 +67,7 @@ class Mailmap:
                 contributors.add(line)
 
         logging.debug(
-            "Authors and commiters found in Git history:\n"
+            "Authors and committers found in Git history:\n"
             f"{'\n'.join(sorted(contributors, key=str.casefold))}"
         )
         return contributors
