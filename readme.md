@@ -12,6 +12,16 @@ Maintaining project takes time. This repository contains the code of the `gha-ut
 
 ## `gha-utils` CLI
 
+### Executables
+
+Standalone executables of `gha-utils`'s latest version are available as direct downloads for several platforms and architectures:
+
+| Platform          | `x86_64`                                                                                                                         | `arm64`                                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Linux**[^linux] | [Download `gha-utils-linux-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-linux-x64.bin)     |                                                                                                                                  |
+| **macOS**         | [Download `gha-utils-macos-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-x64.bin)     | [Download `gha-utils-macos-arm64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-arm64.bin) |
+| **Windows**       | [Download `gha-utils-windows-x64.exe`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-windows-x64.exe) |                                                                                                                                  |
+
 ### Run dev version
 
 ```shell-session
