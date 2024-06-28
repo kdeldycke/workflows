@@ -7,6 +7,7 @@
 `gha-utils` stands for **G**it**H**ub **A**ction workflows **Util**itie**s**.
 
 Maintaining project takes time. This repository contains the code of the `gha-utils` CLI and a collection of reuseable workflows to:
+
 - maintain a Python project, its CLI, doc, QA, etc.
 - maintain an Awesome List project.
 
