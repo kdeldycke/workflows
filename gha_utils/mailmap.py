@@ -68,7 +68,7 @@ class Mailmap:
 
         logging.debug(
             "Authors and committers found in Git history:\n"
-            f"{'\n'.join(sorted(contributors, key=str.casefold))}"
+            + "\n".join(sorted(contributors, key=str.casefold))
         )
         return contributors
 
