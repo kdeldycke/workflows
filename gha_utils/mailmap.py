@@ -94,6 +94,7 @@ class Mailmap:
 
         # Render content in .mailmap format.
         return (
-            f"{'\n'.join(header_comments)}\n\n"
-            f"{'\n'.join(sorted(mappings, key=str.casefold))}\n"
+            "\n".join(header_comments)
+            + "\n\n"
+            + "\n".join(sorted(mappings, key=str.casefold))
         )
