@@ -5,7 +5,6 @@ version = "4.0.2"
 # Python versions and their status: https://devguide.python.org/versions/
 requires-python = ">= 3.8"
 description = "⚙️ CLI helpers for GitHub Actions + reuseable workflows"
-license = { file = "license" }
 authors = [{ name = "Kevin Deldycke", email = "kevin@deldycke.com" }]
 readme = "readme.md"
 keywords = [
