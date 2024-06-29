@@ -89,26 +89,8 @@ jobs:
           labels: "📚 documentation"
           branch: optimize-images
 
-  check-mailmap:
-    name: Does .mailmap exist?
-    runs-on: ubuntu-22.04
-    outputs:
-      exists: ${{ steps.detection.outputs.exists }}
-    steps:
-      - uses: actions/checkout@v4.1.7
-      - id: detection
-        run: |
-          echo "exists=$( [[ -f './.mailmap' ]] && echo 'true' )" >> "$GITHUB_OUTPUT"
-      - name: Detection results
-        run: |
-          echo "Does .mailmap exist at root? ${{ steps.detection.outputs.exists && true || false  }}"
-
   update-mailmap:
     name: Update .mailmap
-    needs:
-      - check-mailmap
-    # Only update mailmap if a file is found at the root of repository.
-    if: needs.check-mailmap.outputs.exists
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.7
@@ -123,10 +105,16 @@ jobs:
             **/pyproject.toml
             *requirements.txt
             requirements/*.txt
+      - name: Install uv
+        run: |
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+      - name: Install gha-utils
+        run: |
+          uv venv --system
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
       - name: Generate .mailmap
-        run: >
-          python -c "$(curl -fsSL
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/update_mailmap.py)"
+        run: |
+          uv run gha-utils --verbosity DEBUG mailmap ./.mailmap
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}

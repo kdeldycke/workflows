@@ -5,11 +5,13 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Replace in-place `metadata.py`, `update_changelog.py` and `update_mailmap.py` scripts by `gha-utils` CLI.
+- Remove pre-workflow `check-mailmap` job.
+
 ## [4.0.2 (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v4.0.1...v4.0.2)
 
 - Remove comments in GitHub action's environment variable files.
 - Test CLI invocation.
-- Replace in-place `metadata.py` script by `gha-utils` CLI.
 
 ## [4.0.1 (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v4.0.0...v4.0.1)
 

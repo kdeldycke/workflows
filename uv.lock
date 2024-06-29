@@ -304,7 +304,7 @@ name = "lark-parser"
 
 [[distribution]]
 name = "gha-utils"
-version = "4.0.0"
+version = "4.0.3"
 source = "editable+."
 
 [[distribution.dependencies]]
