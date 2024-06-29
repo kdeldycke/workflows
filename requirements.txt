@@ -3,7 +3,6 @@
 --requirement ./requirements/format-python.txt
 --requirement ./requirements/gha-utils.txt
 --requirement ./requirements/mdformat.txt
---requirement ./requirements/metadata.txt
 --requirement ./requirements/mypy.txt
 --requirement ./requirements/nuitka.txt
 --requirement ./requirements/pipdeptree.txt
