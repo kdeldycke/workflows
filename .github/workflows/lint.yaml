@@ -73,11 +73,6 @@ jobs:
         run: |
           uv venv --system
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-      - name: Print metadata
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: |
-          uv run gha-utils --verbosity INFO metadata
       - name: Project metadata
         id: project-metadata
         env:
