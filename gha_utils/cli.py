@@ -124,7 +124,9 @@ def metadata(ctx, format, overwrite, output_path):
         env_file = os.getenv("GITHUB_OUTPUT")
         if env_file and Path(env_file) != output_path:
             logging.warning(
-                "Output path is not the same as $GITHUB_OUTPUT environment variable, which is generally what we're looking to do in GitHub CI runners for other jobs to consume the produced metadata."
+                "Output path is not the same as $GITHUB_OUTPUT environment variable,"
+                " which is generally what we're looking to do in GitHub CI runners for"
+                " other jobs to consume the produced metadata."
             )
 
     dialect = Dialects(format)
