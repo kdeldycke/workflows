@@ -5,7 +5,9 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
-- Test run CLI invokation.
+- Remove comments in GitHub action's environment variable files.
+- Test CLI invocation.
+
 ## [4.0.1 (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v4.0.0...v4.0.1)
 
 - Re-release to register PyPi project.

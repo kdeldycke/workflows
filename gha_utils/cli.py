@@ -133,7 +133,7 @@ def metadata(ctx, format, overwrite, output_path):
     content = metadata.dump(dialect=dialect)
 
     with file_writer(output_path) as f:
-        f.write(f"{get_header(ctx)}{content}")
+        f.write(content)
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
