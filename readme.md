@@ -3,6 +3,7 @@
 [![Last release](https://img.shields.io/pypi/v/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
 [![Python versions](https://img.shields.io/pypi/pyversions/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
 [![Type checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+[![Unittests status](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml?query=branch%3Amain)
 
 `gha-utils` stands for **G**it**H**ub **A**ction workflows **Util**itie**s**.
 
