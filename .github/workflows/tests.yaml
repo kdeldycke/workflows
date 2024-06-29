@@ -1,0 +1,143 @@
+---
+name: Tests
+"on":
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    # Run tests every Monday at 9:17 to catch regressions.
+    - cron: "17 9 * * 1"
+
+# XXX Concurrency detection sucks and jobs gets killed randonmly.
+# concurrency:
+#   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.
+#   # Source: https://mail.python.org/archives/list/pypa-committers@python.org/thread/PCBCQMJF64JGRBOX7E2EE4YLKHT4DI55/
+#   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+#   cancel-in-progress: true
+
+jobs:
+
+  test-matrix:
+    # There is no way to selective flags collections of elements in a matrix, without having to flag all combinations.
+    # This will became unmaintainable and tedious so we use this job to pre-compute which jobs is going to get our
+    # "stable" flag.
+    name: "OS/Python/stable matrix pre-compute"
+    runs-on: ubuntu-22.04
+    outputs:
+      test_matrix: ${{ steps.create_matrix.outputs.matrix }}
+    steps:
+      - name: Create JSON matrix
+        id: create_matrix
+        shell: python
+        run: |
+          import json
+          import os
+          from itertools import product
+          from pathlib import Path
+
+          variants: dict[str, set[str]] = {
+              "os": {
+                  # Available OSes: https://github.com/actions/runner-images#available-images
+                  "ubuntu-22.04",
+                  "ubuntu-20.04",
+                  "macos-14",
+                  "macos-13",
+                  "windows-2022",
+                  "windows-2019",
+              },
+              "python-version": {
+                  "3.8",
+                  "3.9",
+                  "3.10",
+                  "3.11",
+                  "3.12",
+                  "3.13-dev",
+              }
+          }
+          # TODO: List of additional variants to include in the matrix.
+          include: list[dict[str, str]] = []
+
+          # List of variants to exclude from the matrix.
+          exclude: list[dict[str, str]] = []
+
+          # List of unstable criterions.
+          unstable: list[dict[str, str]] = [
+              # Python 3.13-dev is only failing on macOS:
+              #   Building wheel for cffi (pyproject.toml) did not run successfully.
+              #   Failed to build cffi
+              #   ERROR: Could not build wheels for cffi, which is required to install pyproject.toml-based projects
+              {"python-version": "3.13-dev", "os": "macos-14"},
+              {"python-version": "3.13-dev", "os": "macos-13"},
+          ]
+
+          # Build the job matrix.
+          jobs: list[dict[str, str]] = []
+          for variants in product(*[{(key, value) for value in values} for key, values in variants.items()]):
+              job = dict(variants)
+
+              # Match the job against the exclude criterions.
+              exclude_job = False
+              for criterion in exclude:
+                  if set(criterion.items()).issubset(job.items()):
+                      exclude_job = True
+                      break
+              if exclude_job:
+                  continue
+
+              # Match the job against the unstable criterions.
+              job["state"] = "stable"
+              for criterion in unstable:
+                  if set(criterion.items()).issubset(job.items()):
+                      job["state"] = "unstable"
+                      break
+
+              jobs.append(job)
+
+          matrix = json.dumps({"include": jobs})
+
+          env_file = Path(os.getenv("GITHUB_OUTPUT"))
+          env_file.write_text(f"matrix={matrix}")
+
+      - name: Print JSON matrix
+        run: |
+          echo '${{ steps.create_matrix.outputs.matrix }}'
+          jq -aR <<< echo '${{ steps.create_matrix.outputs.matrix }}'
+
+  tests:
+    needs:
+      - test-matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.test-matrix.outputs.test_matrix) }}
+    runs-on: ${{ matrix.os }}
+    # We keep going when a job flagged as not stable fails.
+    continue-on-error: ${{ matrix.state == 'unstable' }}
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install click-extra and its dependencies
+        run: |
+          uv pip install .
+
+      # CLI tests.
+      - name: gha-utils --help
+        run: |
+          uv run gha-utils --help
+      - name: gha-utils --verbosity DEBUG --version
+        run: |
+          uv run gha-utils --verbosity DEBUG --version
+      - name: gha-utils metadata
+        run: |
+          uv run gha-utils metadata
+      - name: gha-utils mailmap
+        run: |
+          uv run gha-utils mailmap
+      - name: gha-utils changelog
+        run: |
+          uv run gha-utils changelog
