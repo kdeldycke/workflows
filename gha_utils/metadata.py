@@ -466,7 +466,7 @@ class Metadata:
         ``pyproject.toml`` exists and respects the standards. ``False`` otherwise.
         """
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            toml = tomllib.loads(self.pyproject_path.read_text())
+            toml = tomllib.loads(self.pyproject_path.read_text(encoding="utf-8"))
             try:
                 metadata = StandardMetadata.from_pyproject(toml)
                 self._is_python_project = True

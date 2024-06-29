@@ -153,7 +153,7 @@ def changelog(ctx, source, changelog_path):
     initial_content = None
     if source:
         logging.info(f"Read initial changelog from {source}")
-        initial_content = source.read_text()
+        initial_content = source.read_text(encoding="utf-8")
 
     changelog = Changelog(initial_content)
     content = changelog.update()
@@ -198,7 +198,7 @@ def mailmap(ctx, source, updated_mailmap):
     initial_content = None
     if source:
         logging.info(f"Read initial mapping from {source}")
-        initial_content = source.read_text()
+        initial_content = source.read_text(encoding="utf-8")
 
     mailmap = Mailmap(initial_content)
     content = mailmap.updated_map()
