@@ -58,18 +58,18 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.1/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install dependencies
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.1/requirements/metadata.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/metadata.txt
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uv run python -c
-          "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.1/.github/metadata.py)"
+          "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
 
   package-build:
     name: "build & check package"
@@ -93,11 +93,11 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.1/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install build dependencies
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.1/requirements/build.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package
         run: |
           uv run python -m build
@@ -133,11 +133,11 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.1/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install Nuitka
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.1/requirements/nuitka.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
       - name: Nuitka + compilers versions
         run: |
           uv run python ${{ matrix.extra_python_params }} -m nuitka --version
