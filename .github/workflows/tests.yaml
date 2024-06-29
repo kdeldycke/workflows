@@ -134,12 +134,12 @@ jobs:
       - name: gha-utils --verbosity DEBUG --version
         run: |
           uv run gha-utils --verbosity DEBUG --version
-      - name: gha-utils metadata
+      - name: gha-utils --verbosity INFO metadata
         run: |
-          uv run gha-utils metadata
-      - name: gha-utils mailmap
+          uv run gha-utils --verbosity INFO metadata
+      - name: gha-utils --verbosity INFO mailmap
         run: |
-          uv run gha-utils mailmap
-      - name: gha-utils changelog
+          uv run gha-utils --verbosity INFO mailmap
+      - name: gha-utils --verbosity INFO changelog
         run: |
-          uv run gha-utils changelog
+          uv run gha-utils --verbosity INFO changelog
