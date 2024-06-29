@@ -124,6 +124,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install project
         run: |
+          uv venv --system
           uv pip install .
 
       # CLI tests.
