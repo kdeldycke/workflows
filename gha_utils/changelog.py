@@ -38,8 +38,10 @@ class Changelog:
             self.content = initial_changelog
         logging.debug(f"Initial content set to:\n{self.content}")
 
-    def update(self) -> str:
+    def update(self) -> str | None:
         r"""Adds a new empty entry at the top of the changelog.
+
+        Returns ``None`` if initial changelog content has already been updated.
 
         This is designed to be used just after a new release has been tagged. And before a
         post-release version increment is applied with a call to:
@@ -145,7 +147,9 @@ class Changelog:
 
         logging.info("New generated section:\n" + indent(new_entry, " " * 2))
 
-        assert new_entry not in history
+        # No need to update.
+        if new_entry in history:
+            return None
 
         # Recompose full changelog with new top entry.
         return f"{changelog_header}{new_entry}{history}"

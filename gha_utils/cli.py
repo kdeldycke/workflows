@@ -157,6 +157,9 @@ def changelog(ctx, source, changelog_path):
 
     changelog = Changelog(initial_content)
     content = changelog.update()
+    if not content:
+        logging.warning("Changelog already up to date. Do nothing.")
+        ctx.exit()
 
     if is_stdout(changelog_path):
         logging.info(f"Print updated results to {sys.stdout.name}")
