@@ -7,11 +7,11 @@
 
 - Package all utilities in a `gha_utils` CLI.
 - Remove support for Poetry-based projects. All Python projects are expected to follow [standard `pyproject.toml` conventions](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
-- Sort contricutors in `.mailmap` files without case sensitivity.
-- Fix default values of workflow inputs when triggered from other events.
+- Sort contributors in `.mailmap` files regardless of case sensitivity.
+- Force default values of workflow's inputs when triggered from other events (i.e. in non-reuseable contexts).
 - Run all Python-based commands via `uv run` and `uv tool run`.
-- Add new `is_python_project` and `uv_requirement_params` metadata outputs.
-- Remove `is_poetry_project` metadata output.
+- Replace `is_poetry_project` metadata by `is_python_project`.
+- Add new  and `uv_requirement_params` metadata output.
 - Remove dependency on `poetry` package.
 - Add new dependencies on `build`, `packaging`, `pyproject-metadata` and `click-extra`.
 
