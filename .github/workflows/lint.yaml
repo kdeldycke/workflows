@@ -77,13 +77,13 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv run gha-utils --verbosity DEBUG metadata
+          uv run gha-utils --verbosity INFO metadata
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv run gha-utils --verbosity INFO metadata --overwrite "$GITHUB_OUTPUT"
+          uv run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   mypy-lint:
     needs:

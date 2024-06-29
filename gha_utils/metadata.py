@@ -1009,7 +1009,7 @@ class Metadata:
         }
 
         logging.debug(f"Raw metadata: {metadata!r}")
-        logging.debug(f"Format metadata into {dialect} dialect.")
+        logging.debug(f"Format metadata into {dialect} format.")
 
         content = ""
         if dialect == Dialects.GITHUB:
@@ -1027,6 +1027,6 @@ class Metadata:
             assert dialect == Dialects.PLAIN
             content = repr(metadata)
 
-        logging.debug(f"Formatted metadata: {content}")
+        logging.debug(f"Formatted metadata:\n{content}")
 
         return content
