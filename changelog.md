@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.0.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v3.5.11...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.0.0 (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v3.5.11...v4.0.0)
 
 - Package all utilities in a `gha_utils` CLI.
 - Remove support for Poetry-based projects. All Python projects are expected to follow [standard `pyproject.toml` conventions](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
