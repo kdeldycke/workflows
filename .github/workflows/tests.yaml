@@ -63,12 +63,11 @@ jobs:
 
           # List of unstable criterions.
           unstable: list[dict[str, str]] = [
-              # Python 3.13-dev is only failing on macOS:
-              #   Building wheel for cffi (pyproject.toml) did not run successfully.
-              #   Failed to build cffi
-              #   ERROR: Could not build wheels for cffi, which is required to install pyproject.toml-based projects
-              {"python-version": "3.13-dev", "os": "macos-14"},
-              {"python-version": "3.13-dev", "os": "macos-13"},
+              # Python 3.13-dev is not supported yet:
+              #   error: failed to run custom build command for `pyo3-ffi v0.21.2`
+              #   error: the configured Python interpreter version (3.13) is newer than PyO3's
+              #          maximum supported version (3.12)
+              {"python-version": "3.13-dev"},
           ]
 
           # Build the job matrix.
