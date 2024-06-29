@@ -75,13 +75,13 @@ jobs:
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
       - name: Print metadata
         run: |
-          uv run gha-utils --verbosity DEBUG metadata "$GITHUB_OUTPUT"
+          uv run gha-utils --verbosity DEBUG metadata
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv run gha-utils metadata "$GITHUB_OUTPUT"
+          uv run gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
   mypy-lint:
     needs:
