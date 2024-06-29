@@ -137,9 +137,9 @@ jobs:
       - name: gha-utils --verbosity INFO metadata
         run: |
           uv run gha-utils --verbosity INFO metadata
-      - name: gha-utils --verbosity INFO mailmap
-        run: |
-          uv run gha-utils --verbosity INFO mailmap
       - name: gha-utils --verbosity INFO changelog
         run: |
           uv run gha-utils --verbosity INFO changelog
+      - name: gha-utils --verbosity INFO mailmap
+        run: |
+          uv run gha-utils --verbosity INFO mailmap
