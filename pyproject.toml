@@ -3,7 +3,9 @@
 name = "gha-utils"
 version = "4.0.3"
 # Python versions and their status: https://devguide.python.org/versions/
-requires-python = ">= 3.8"
+# XXX 3.8 is not enough and we need to bump requirements to 3.8.6 because of:
+# https://github.com/clbarnes/backports.strenum/issues/1
+requires-python = ">= 3.8.6"
 description = "⚙️ CLI helpers for GitHub Actions + reuseable workflows"
 authors = [{ name = "Kevin Deldycke", email = "kevin@deldycke.com" }]
 readme = "readme.md"
