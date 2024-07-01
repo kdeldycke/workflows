@@ -100,6 +100,7 @@ import os
 import re
 import sys
 from collections.abc import Iterable
+from enum import StrEnum
 from functools import cached_property
 from itertools import product
 from pathlib import Path
@@ -111,7 +112,6 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
-from enum import Enum
 
 from black.mode import TargetVersion
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
@@ -144,11 +144,56 @@ SHORT_SHA_LENGTH = 7
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
 
-class Dialects(Enum):
-    """Dialects in which metadata can be formatted to."""
+WorkflowEvent = StrEnum(
+    "WorkflowEvent",
+    (
+        "branch_protection_rule",
+        "check_run",
+        "check_suite",
+        "create",
+        "delete",
+        "deployment",
+        "deployment_status",
+        "discussion",
+        "discussion_comment",
+        "fork",
+        "gollum",
+        "issue_comment",
+        "issues",
+        "label",
+        "merge_group",
+        "milestone",
+        "page_build",
+        "project",
+        "project_card",
+        "project_column",
+        "public",
+        "pull_request",
+        "pull_request_comment",
+        "pull_request_review",
+        "pull_request_review_comment",
+        "pull_request_target",
+        "push",
+        "registry_package",
+        "release",
+        "repository_dispatch",
+        "schedule",
+        "status",
+        "watch",
+        "workflow_call",
+        "workflow_dispatch",
+        "workflow_run",
+    ),
+)
+"""Workflow events that cause a workflow to run.
 
-    GITHUB = "github"
-    PLAIN = "plain"
+`List of events
+<https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
+"""
+
+
+Dialects = StrEnum("Dialects", ("github", "plain"))
+"""Dialects in which metadata can be formatted to."""
 
 
 class Matrix(dict):
@@ -294,6 +339,34 @@ class Metadata:
         })
 
     @cached_property
+    def event_type(self) -> WorkflowEvent | None:
+        """Returns the type of event that triggered the workflow run.
+
+        .. caution::
+            This property is based on a crude heuristics as it only looks at the value
+            of the ``GITHUB_BASE_REF`` environment variable. Which is `only set when
+            the event that triggers a workflow run is either pull_request or pull_request_target
+            <https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables>`_.
+
+        .. todo::
+            Add detection of all workflow trigger events.
+        """
+        if not self.in_ci_env:
+            logging.warning(
+                "Cannot guess event type because we're not in a CI environment."
+            )
+            return None
+        if "GITHUB_BASE_REF" not in os.environ:
+            logging.warning(
+                "Cannot guess event type because no GITHUB_BASE_REF env var found."
+            )
+            return None
+
+        if bool(os.environ.get("GITHUB_BASE_REF")):
+            return WorkflowEvent.pull_request
+        return WorkflowEvent.push
+
+    @cached_property
     def commit_range(self) -> tuple[str, str] | None:
         """Range of commits bundled within the triggering event.
 
@@ -307,7 +380,7 @@ class Metadata:
         packages, etc.) for each individual commit.
 
         The default ``GITHUB_SHA`` environment variable is useless as it only points to
-        the last commit. We need to inspect the commit history to find all new one. New
+        the last commit. We need to inspect the commit history to find all new ones. New
         commits needs to be fetched differently in ``push`` and ``pull_requests``
         events.
 
@@ -317,10 +390,10 @@ class Metadata:
             - https://stackoverflow.com/a/62953566
             - https://stackoverflow.com/a/61861763
         """
-        if not self.github_context:
+        if not self.github_context or not self.event_type:
             return None
         # Pull request event.
-        if self.github_context["base_ref"]:
+        if self.event_type is WorkflowEvent.pull_request:
             start = f"origin/{self.github_context['base_ref']}"
             # We need to checkout the HEAD commit instead of the artificial merge
             # commit introduced by the pull request.
@@ -329,9 +402,7 @@ class Metadata:
         else:
             start = self.github_context["event"]["before"]
             end = self.github_context["sha"]
-        logging.debug("--- Commit range ---")
-        logging.debug(f"Range start: {start}")
-        logging.debug(f"Range end: {end}")
+        logging.debug(f"Commit range: {start} -> {end}")
         return start, end
 
     @cached_property
@@ -986,7 +1057,7 @@ class Metadata:
 
         return cast(str, value)
 
-    def dump(self, dialect: Dialects = Dialects.GITHUB) -> str:
+    def dump(self, dialect: Dialects = Dialects.github) -> str:
         """Returns all metadata in the specified format.
 
         Defaults to GitHub dialect.
@@ -1016,7 +1087,7 @@ class Metadata:
         logging.debug(f"Format metadata into {dialect} format.")
 
         content = ""
-        if dialect == Dialects.GITHUB:
+        if dialect == Dialects.github:
             for env_name, value in metadata.items():
                 env_value = self.format_github_value(value)
 
