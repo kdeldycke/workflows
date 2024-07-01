@@ -8,6 +8,7 @@
 - Replace in-place `metadata.py`, `update_changelog.py` and `update_mailmap.py` scripts by `gha-utils` CLI.
 - Remove pre-workflow `check-mailmap` job.
 - Bump Python minimal requirement to 3.8.6.
+- Fix computation of lower bound Python version support if minimal requirement is not contained to `major.minor` specifier.
 - Add dependency on `backports.strenum` for `Python < 3.11`.
 - Change dependency on `mdformat-pelican` from personal fork to unreleased upstream.
 

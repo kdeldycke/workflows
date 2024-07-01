@@ -120,6 +120,7 @@ from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from mypy.defaults import PYTHON3_VERSION_MIN
+from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from pydriller import Commit, Git, Repository  # type: ignore[import]
 from pyproject_metadata import ConfigurationError, StandardMetadata
@@ -591,15 +592,33 @@ class Metadata:
     def py_target_versions(self) -> tuple[Version, ...] | None:
         """Generates the list of Python target versions.
 
+        Only takes ``major.minor`` variations into account. Smaller version dimensions
+        are ignored, so a package depending on ``3.8.6`` will keep ``3.8`` as a Python
+        target.
+
         This is based on Black's support matrix.
         """
         if self.pyproject and self.pyproject.requires_python:
+            # Dumb down specifiers' lower bounds to their major.minor version.
+            spec_list = []
+            for spec in self.pyproject.requires_python:
+                if spec.operator in (">=", ">"):
+                    major, minor, _ = Version(spec.version).release
+                    new_spec = f"{spec.operator}{major}.{minor}"
+                else:
+                    new_spec = str(spec)
+                spec_list.append(new_spec)
+            relaxed_specs = SpecifierSet(",".join(spec_list))
+            logging.debug(
+                "Relax Python requirements from "
+                f"{self.pyproject.requires_python} to {relaxed_specs}."
+            )
+
+            # Iterate through Black's Python version support.
             minor_range = sorted(v.value for v in TargetVersion)
             black_range = (Version(f"3.{minor}") for minor in minor_range)
             return tuple(
-                version
-                for version in black_range
-                if self.pyproject.requires_python.contains(version)
+                version for version in black_range if relaxed_specs.contains(version)
             )
         return None
 
