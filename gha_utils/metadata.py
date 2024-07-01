@@ -634,7 +634,8 @@ class Metadata:
 
             # Iterate through Python version support.
             return tuple(
-                Version(target) for target in TargetVersion if relaxed_specs.contains(target)
+                Version(target) for target in tuple(TargetVersion)
+                if relaxed_specs.contains(target)
             )
         return None
 
