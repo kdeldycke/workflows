@@ -11,7 +11,7 @@
 - Fix computation of lower bound Python version support if minimal requirement is not contained to `major.minor` specifier.
 - Add dependency on `backports.strenum` for `Python < 3.11`.
 - Change dependency on `mdformat-pelican` from personal fork to unreleased upstream.
-- Remove dependency on `black`.
+- Remove dependency on `black` and `mypy`.
 
 ## [4.0.2 (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v4.0.1...v4.0.2)
 

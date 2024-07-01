@@ -100,13 +100,12 @@ import os
 import re
 import sys
 from collections.abc import Iterable
-from enum import Enum
 from functools import cached_property
 from itertools import product
 from pathlib import Path
 from random import randint
 from re import escape
-from typing import Any, Iterator, cast
+from typing import Any, Final, Iterator, cast
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -119,7 +118,6 @@ else:
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
-from mypy.defaults import PYTHON3_VERSION_MIN
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from pydriller import Commit, Git, Repository  # type: ignore[import]
@@ -200,7 +198,7 @@ Dialects = StrEnum("Dialects", ("github", "plain"))
 
 
 class TargetVersion(StrEnum):
-    """List of Python 3 minor versions supported by Black
+    """List of Python 3 minor versions supported by Black.
 
     `Mirrors official implementation from black.mode.TargetVersion
     <https://github.com/psf/black/blob/main/src/black/mode.py>`_.
@@ -217,6 +215,14 @@ class TargetVersion(StrEnum):
     PY311 = "3.11"
     PY312 = "3.12"
     PY313 = "3.13"
+
+
+MYPY_VERSION_MIN: Final = (3, 8)
+"""Earliest version supported by Mypy's ``--python-version 3.x`` parameter.
+
+`Sourced from Mypy original implementation
+<https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
+"""
 
 
 class Matrix(dict):
@@ -634,7 +640,8 @@ class Metadata:
 
             # Iterate through Python version support.
             return tuple(
-                Version(target) for target in tuple(TargetVersion)
+                Version(target)
+                for target in tuple(TargetVersion)
                 if relaxed_specs.contains(target)
             )
         return None
@@ -689,12 +696,12 @@ class Metadata:
     def mypy_params(self) -> str | None:
         """Generates `mypy` parameters.
 
-        Mypy needs to be fed with this parameter: ``--python-version x.y``.
+        Mypy needs to be fed with this parameter: ``--python-version 3.x``.
         """
         if self.py_target_versions:
             # Compare to Mypy's lowest supported version of Python dialect.
             major, minor = max(
-                PYTHON3_VERSION_MIN,
+                MYPY_VERSION_MIN,
                 min((v.major, v.minor) for v in self.py_target_versions),
             )
             return f"--python-version {major}.{minor}"
