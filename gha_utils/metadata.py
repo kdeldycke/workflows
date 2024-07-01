@@ -1078,7 +1078,10 @@ class Metadata:
 
         return cast(str, value)
 
-    def dump(self, dialect: Dialects = Dialects.github) -> str:  # type: ignore[valid-type]
+    def dump(
+        self,
+        dialect: Dialects = Dialects.github,  # type: ignore[valid-type]
+    ) -> str:
         """Returns all metadata in the specified format.
 
         Defaults to GitHub dialect.
