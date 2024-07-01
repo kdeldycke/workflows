@@ -113,7 +113,7 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
-    from backports.strenum import StrEnum
+    from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
 from black.mode import TargetVersion
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
@@ -341,7 +341,7 @@ class Metadata:
         })
 
     @cached_property
-    def event_type(self) -> WorkflowEvent | None:
+    def event_type(self) -> WorkflowEvent | None:  # type: ignore[valid-type]
         """Returns the type of event that triggered the workflow run.
 
         .. caution::
@@ -1059,7 +1059,7 @@ class Metadata:
 
         return cast(str, value)
 
-    def dump(self, dialect: Dialects = Dialects.github) -> str:
+    def dump(self, dialect: Dialects = Dialects.github) -> str:  # type: ignore[valid-type]
         """Returns all metadata in the specified format.
 
         Defaults to GitHub dialect.
