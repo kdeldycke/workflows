@@ -100,7 +100,6 @@ import os
 import re
 import sys
 from collections.abc import Iterable
-from enum import StrEnum
 from functools import cached_property
 from itertools import product
 from pathlib import Path
@@ -109,9 +108,12 @@ from re import escape
 from typing import Any, Iterator, cast
 
 if sys.version_info >= (3, 11):
+    from enum import StrEnum
+
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
+    from backports.strenum import StrEnum
 
 from black.mode import TargetVersion
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
