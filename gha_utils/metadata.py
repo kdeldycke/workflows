@@ -100,7 +100,6 @@ import os
 import re
 import sys
 from collections.abc import Iterable
-from enum import Enum
 from functools import cached_property
 from itertools import product
 from pathlib import Path
@@ -634,7 +633,8 @@ class Metadata:
 
             # Iterate through Python version support.
             return tuple(
-                Version(target) for target in tuple(TargetVersion)
+                Version(target)
+                for target in tuple(TargetVersion)
                 if relaxed_specs.contains(target)
             )
         return None
