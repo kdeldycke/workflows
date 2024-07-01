@@ -1,7 +1,6 @@
 flowchart TD
     classDef missing stroke-dasharray: 5
     annotated-types["annotated-types\n0.7.0"]
-    black["black\n24.4.2"]
     boltons["boltons\n24.0.0"]
     bracex["bracex\n2.4"]
     bump-my-version["bump-my-version\n0.24.1"]
@@ -23,8 +22,6 @@ flowchart TD
     mypy-extensions["mypy-extensions\n1.0.0"]
     mypy["mypy\n1.10.1"]
     packaging["packaging\n24.1"]
-    pathspec["pathspec\n0.12.1"]
-    platformdirs["platformdirs\n4.2.2"]
     prompt-toolkit["prompt-toolkit\n3.0.36"]
     pydantic-core["pydantic_core\n2.18.4"]
     pydantic-settings["pydantic-settings\n2.3.4"]
@@ -49,11 +46,6 @@ flowchart TD
     wcmatch["wcmatch\n8.5.2"]
     wcwidth["wcwidth\n0.2.13"]
     xmltodict["xmltodict\n0.13.0"]
-    black -- ">=0.4.3" --> mypy-extensions
-    black -- ">=0.9.0" --> pathspec
-    black -- ">=2" --> platformdirs
-    black -- ">=22.0" --> packaging
-    black -- ">=8.0.0" --> click_0
     bump-my-version -- ">=2.0.0" --> pydantic
     bump-my-version -- ">=8.5.1" --> wcmatch
     bump-my-version -- "any" --> click_0
@@ -80,7 +72,6 @@ flowchart TD
     gha-utils -- "~=1.10.0" --> mypy
     gha-utils -- "~=2.6" --> pydriller
     gha-utils -- "~=24.1" --> packaging
-    gha-utils -- "~=24.4.2" --> black
     gha-utils -- "~=4.8.3" --> click-extra
     gha-utils -- "~=8.5.2" --> wcmatch
     gitdb -- ">=3.0.1,<6" --> smmap
