@@ -100,6 +100,7 @@ import os
 import re
 import sys
 from collections.abc import Iterable
+from enum import Enum
 from functools import cached_property
 from itertools import product
 from pathlib import Path
@@ -115,7 +116,6 @@ else:
     import tomli as tomllib  # type: ignore[import-not-found]
     from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
-from black.mode import TargetVersion
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
@@ -197,6 +197,26 @@ WorkflowEvent = StrEnum(
 
 Dialects = StrEnum("Dialects", ("github", "plain"))
 """Dialects in which metadata can be formatted to."""
+
+
+class TargetVersion(StrEnum):
+    """List of Python 3 minor versions supported by Black
+
+    `Mirrors official implementation from black.mode.TargetVersion
+    <https://github.com/psf/black/blob/main/src/black/mode.py>`_.
+    """
+
+    PY33 = "3.3"
+    PY34 = "3.4"
+    PY35 = "3.5"
+    PY36 = "3.6"
+    PY37 = "3.7"
+    PY38 = "3.8"
+    PY39 = "3.9"
+    PY310 = "3.10"
+    PY311 = "3.11"
+    PY312 = "3.12"
+    PY313 = "3.13"
 
 
 class Matrix(dict):
@@ -595,8 +615,6 @@ class Metadata:
         Only takes ``major.minor`` variations into account. Smaller version dimensions
         are ignored, so a package depending on ``3.8.6`` will keep ``3.8`` as a Python
         target.
-
-        This is based on Black's support matrix.
         """
         if self.pyproject and self.pyproject.requires_python:
             # Dumb down specifiers' lower bounds to their major.minor version.
@@ -614,11 +632,9 @@ class Metadata:
                 f"{self.pyproject.requires_python} to {relaxed_specs}."
             )
 
-            # Iterate through Black's Python version support.
-            minor_range = sorted(v.value for v in TargetVersion)
-            black_range = (Version(f"3.{minor}") for minor in minor_range)
+            # Iterate through Python version support.
             return tuple(
-                version for version in black_range if relaxed_specs.contains(version)
+                Version(target) for target in TargetVersion if relaxed_specs.contains(target)
             )
         return None
 
