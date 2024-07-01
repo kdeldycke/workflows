@@ -68,11 +68,11 @@ jobs:
           rm ./pyproject.toml
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.1.0/requirements/uv.txt
       - name: Install gha-utils
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.1.0/requirements/gha-utils.txt
       - name: Project metadata
         id: project-metadata
         env:
@@ -98,11 +98,11 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.1.0/requirements/uv.txt
       - name: Install Mypy
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mypy.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.1.0/requirements/mypy.txt
       - name: Install package from all requirement files
         run: |
           uv pip install --all-extras ${{ needs.project-metadata.outputs.uv_requirement_params }}
@@ -156,11 +156,11 @@ jobs:
           rm ./pyproject.toml
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.1.0/requirements/uv.txt
       - name: Install yamllint
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.1.0/requirements/yamllint.txt
       - name: Run yamllint
         run: |
           uv tool run yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .

@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.1.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.0.2...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.1.0 (2024-07-01)](https://github.com/kdeldycke/workflows/compare/v4.0.2...v4.1.0)
 
 - Replace in-place `metadata.py`, `update_changelog.py` and `update_mailmap.py` scripts by `gha-utils` CLI.
 - Remove pre-workflow `check-mailmap` job.
