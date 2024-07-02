@@ -337,9 +337,11 @@ class Metadata:
         current_commit = git.repo.head.commit.hexsha
 
         # Check if we need to get back in time in the Git log and browse past commits.
-        if len(commits) == 1:
+        if len(commits) == 1:  # type: ignore[arg-type]
             # Is the current commit the one we're looking for?
-            past_commit_lookup = bool(current_commit != commits[0].hash)
+            past_commit_lookup = bool(
+                current_commit != commits[0].hash  # type: ignore[index]
+            )
         # If we have multiple commits then yes, we need to look for past commits.
         else:
             past_commit_lookup = True
