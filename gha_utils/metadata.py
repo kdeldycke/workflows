@@ -283,6 +283,12 @@ class Metadata:
         logging.debug(json.dumps(context, indent=4))
         return context
 
+    def git_stash_count(self, git_repo: Git) -> int:
+        """Returns the number of stashes."""
+        count = int(git_repo.repo.git.rev_list("--walk-reflogs", "--ignore-missing", "--count", "refs/stash"))
+        logging.debug(f"Number of stashes in repository: {stash_count}")
+        return count
+
     def commit_matrix(self, commits: Iterable[Commit] | None) -> Matrix | None:
         """Pre-compute a matrix of commits.
 
@@ -321,46 +327,74 @@ class Metadata:
         if not commits:
             return None
 
-        # Save the initial commit reference and SHA of the repository. The reference is
-        # either the canonical active branch name (i.e. ``main``), or the commit SHA if
-        # the current HEAD commit is detached from a branch.
         git = Git(".")
-        init_sha = git.repo.head.commit.hexsha
-        if git.repo.head.is_detached:
-            init_ref = init_sha
+        current_commit = git.repo.head.commit.hexsha
+
+        # Check if we need to get back in time in the Git log and browse past commits.
+        if len(commits) == 1:
+            # Is the current commit the one we're looking for?
+            past_commit_lookup = bool(current_commit != commits[0].hash)
+        # If we have multiple commits then yes, we need to look for past commits.
         else:
-            init_ref = git.repo.active_branch.name
+            past_commit_lookup = True
+
+        # We need to go back in time, but first save the current state of the repository.
+        if past_commit_lookup:
+            logging.debug("We need to look into the commit history. Inspect the initial state of the repository.")
+
+            if not self.in_ci_env:
+                raise RuntimeError(
+                    "Local repository manipulations only allowed in CI environment"
+                 )
+
+            # Save the initial commit reference and SHA of the repository. The reference is
+            # either the canonical active branch name (i.e. ``main``), or the commit SHA if
+            # the current HEAD commit is detached from a branch.
+            if git.repo.head.is_detached:
+                init_ref = current_commit
+            else:
+                init_ref = git.repo.active_branch.name
+            logging.debug(f"Initial commit reference: {init_ref}")
+
+            # Try to stash local changes and check if we'll need to unstash them later.
+            counter_before = self.git_stash_count(git)
+            logging.debug("Try to stash local changes before our series of checkouts.")
+            git.repo.git.stash()
+            counter_after = self.git_stash_count(git)
+            logging.debug(f"Stash counter changes after 'git stash' command: {counter_before} -> {counter_after}")
+            assert counter_before >= counter_after
+            need_unstash = bool(counter_after > counter_before)
+            logging.debug(f"Need to unstash after checkouts: {need_unstash}")
+
+        else:
+            init_ref = None
+            need_unstash = False
+            logging.debug(f"No need to look into the commit history: repository is already checked out at {current_commit}")
 
         sha_list = []
         include_list = []
         for commit in commits:
-            sha = commit.hash
+            if past_commit_lookup:
+                logging.debug(f"Checkout to commit {commit.hash}")
+                git.checkout(commit.hash)
 
-            # Checkout the target commit so we can read the version associated with it,
-            # but stash local changes first. Do not perform the stash/checkout dance if
-            # the repository is already at the target commit.
-            need_checkout = bool(git.repo.head.commit.hexsha != sha)
-            if need_checkout and not self.in_ci_env:
-                raise RuntimeError(
-                    "Local repository manipulations only allowed in CI environment"
-                )
-            if need_checkout:
-                git.repo.git.stash()
-                git.checkout(sha)
+            logging.debug(f"Extract project version at commit {commit.hash}")
             current_version = Metadata.get_current_version()
-            if need_checkout:
-                git.repo.git.stash("pop")
 
-            sha_list.append(sha)
+            sha_list.append(commit.hash)
             include_list.append({
-                "commit": sha,
-                "short_sha": sha[:SHORT_SHA_LENGTH],
+                "commit": commit.hash,
+                "short_sha": commit.hash[:SHORT_SHA_LENGTH],
                 "current_version": current_version,
             })
 
-        # Restore the repository to its initial commit if its not in the initial state.
-        if git.repo.head.commit.hexsha != init_sha:
+        # Restore the repository to its initial state.
+        if past_commit_lookup:
+            logging.debug(f"Restore repository to {init_ref}.")
             git.checkout(init_ref)
+            if need_unstash:
+                logging.debug(f"Unstash local changes that were previously saved.")
+                git.repo.git.stash("pop")
 
         return Matrix({
             "commit": sha_list,

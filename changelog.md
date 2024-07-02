@@ -5,6 +5,7 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Pre-compute repository initial state before digging into commit log history.
 - Redo release as `v4.1.0` has been broken.
 - Rely on old `v4.0.2` standalone metadata script temporarily to fix release process.
 
