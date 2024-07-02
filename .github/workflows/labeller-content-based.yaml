@@ -37,7 +37,7 @@ jobs:
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-content-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.1.1/.github/labeller-content-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-content-based.yaml
       - name: Extend default rules
         if: inputs.extra-rules
         run: |

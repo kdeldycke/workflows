@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.1.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.1.1...main)
+
+> \[!IMPORTANT\]
+> This version is not released yet and is under active development.
+
 ## [4.1.1 (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.0...v4.1.1)
 
 - Pre-compute repository initial state before digging into commit log history.
