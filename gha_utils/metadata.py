@@ -686,8 +686,8 @@ class Metadata:
             spec_list = []
             for spec in self.pyproject.requires_python:
                 if spec.operator in (">=", ">"):
-                    major, minor, _ = Version(spec.version).release
-                    new_spec = f"{spec.operator}{major}.{minor}"
+                    release = Version(spec.version).release
+                    new_spec = f"{spec.operator}{release[0]}.{release[1]}"
                 else:
                     new_spec = str(spec)
                 spec_list.append(new_spec)
