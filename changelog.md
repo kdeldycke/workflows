@@ -5,6 +5,8 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Bump `gha-utils` CLI.
+
 ## [4.1.3 (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.2...v4.1.3)
 
 - Fix recreation of specifiers.
