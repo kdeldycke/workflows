@@ -442,7 +442,7 @@ class Metadata:
         request that is merged upstream but we'd like to produce artifacts (builds,
         packages, etc.) for each individual commit.
 
-        The default ``GITHUB_SHA`` environment variable is useless as it only points to
+        The default ``GITHUB_SHA`` environment variable is not enough as it only points to
         the last commit. We need to inspect the commit history to find all new ones. New
         commits needs to be fetched differently in ``push`` and ``pull_requests``
         events.
@@ -452,19 +452,26 @@ class Metadata:
             - https://stackoverflow.com/a/67204539
             - https://stackoverflow.com/a/62953566
             - https://stackoverflow.com/a/61861763
+
+        .. todo::
+            Refactor so we can get rid of ``self.github_context``. Maybe there's enough metadata lying around in
+            the environment variables that we can inspect the git history and find the commit range.
         """
         if not self.github_context or not self.event_type:
             return None
         # Pull request event.
-        if self.event_type is WorkflowEvent.pull_request:
-            start = f"origin/{self.github_context['base_ref']}"
+        if self.event_type in (WorkflowEvent.pull_request, WorkflowEvent.pull_request_target):
+            base_ref = os.environ["GITHUB_BASE_REF"]
+            assert base_ref
+            start = f"origin/{base_ref}"
             # We need to checkout the HEAD commit instead of the artificial merge
             # commit introduced by the pull request.
             end = self.github_context["event"]["pull_request"]["head"]["sha"]
         # Push event.
         else:
             start = self.github_context["event"]["before"]
-            end = self.github_context["sha"]
+            end = os.environ["GITHUB_SHA"]
+            assert end
         logging.debug(f"Commit range: {start} -> {end}")
         return start, end
 
