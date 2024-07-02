@@ -62,13 +62,17 @@ jobs:
       - name: Install gha-utils
         run: |
           uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          # uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.2/requirements/metadata.txt
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: |
-          uv run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+        # run: |
+        #   uv run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+        run: >
+          uv run python -c
+          "$(curl -fsSL https://raw.githubusercontent.com/kdeldycke/workflows/v4.0.2/.github/metadata.py)"
 
   package-build:
     name: "build & check package"
