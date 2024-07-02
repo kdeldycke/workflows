@@ -266,9 +266,11 @@ class Metadata:
               id: project-metadata
               env:
                 GITHUB_CONTEXT: ${{ toJSON(github) }}
-              run: >
-                python -c "$(curl -fsSL
-                https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/metadata.py)"
+              run: |
+                uv run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+
+        .. todo::
+            Try to remove reliance on GitHub context entirely so we can eliminate the JSON/env hack above.
         """
         if "GITHUB_CONTEXT" not in os.environ:
             if self.in_ci_env:
