@@ -211,7 +211,7 @@ jobs:
           cat ./ruff.toml
       - name: Run Ruff check
         run: |
-          uv tool run ruff check --statistics --config ./ruff.toml
+          uv tool run ruff check --config ./ruff.toml
       - name: Run Ruff format
         # XXX: Ruff is planning to support linting and formatting in one unified command at one point.
         # See: https://github.com/astral-sh/ruff/issues/8232
