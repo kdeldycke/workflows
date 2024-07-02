@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.1.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.1.4...main)
+
+> \[!IMPORTANT\]
+> This version is not released yet and is under active development.
+
 ## [4.1.4 (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.3...v4.1.4)
 
 - Bump `gha-utils` CLI.
