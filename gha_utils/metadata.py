@@ -346,12 +346,14 @@ class Metadata:
 
         # We need to go back in time, but first save the current state of the repository.
         if past_commit_lookup:
-            logging.debug("We need to look into the commit history. Inspect the initial state of the repository.")
+            logging.debug(
+                "We need to look into the commit history. Inspect the initial state of the repository."
+            )
 
             if not self.in_ci_env:
                 raise RuntimeError(
                     "Local repository manipulations only allowed in CI environment"
-                 )
+                )
 
             # Save the initial commit reference and SHA of the repository. The reference is
             # either the canonical active branch name (i.e. ``main``), or the commit SHA if
@@ -367,7 +369,9 @@ class Metadata:
             logging.debug("Try to stash local changes before our series of checkouts.")
             git.repo.git.stash()
             counter_after = self.git_stash_count(git)
-            logging.debug(f"Stash counter changes after 'git stash' command: {counter_before} -> {counter_after}")
+            logging.debug(
+                f"Stash counter changes after 'git stash' command: {counter_before} -> {counter_after}"
+            )
             assert counter_before >= counter_after
             need_unstash = bool(counter_after > counter_before)
             logging.debug(f"Need to unstash after checkouts: {need_unstash}")
@@ -375,7 +379,9 @@ class Metadata:
         else:
             init_ref = None
             need_unstash = False
-            logging.debug(f"No need to look into the commit history: repository is already checked out at {current_commit}")
+            logging.debug(
+                f"No need to look into the commit history: repository is already checked out at {current_commit}"
+            )
 
         sha_list = []
         include_list = []
@@ -399,7 +405,7 @@ class Metadata:
             logging.debug(f"Restore repository to {init_ref}.")
             git.checkout(init_ref)
             if need_unstash:
-                logging.debug(f"Unstash local changes that were previously saved.")
+                logging.debug("Unstash local changes that were previously saved.")
                 git.repo.git.stash("pop")
 
         return Matrix({
@@ -466,7 +472,10 @@ class Metadata:
         if not self.github_context or not self.event_type:
             return None
         # Pull request event.
-        if self.event_type in (WorkflowEvent.pull_request, WorkflowEvent.pull_request_target):
+        if self.event_type in (
+            WorkflowEvent.pull_request,
+            WorkflowEvent.pull_request_target,
+        ):
             base_ref = os.environ["GITHUB_BASE_REF"]
             assert base_ref
             start = f"origin/{base_ref}"
