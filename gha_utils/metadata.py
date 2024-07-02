@@ -346,7 +346,8 @@ class Metadata:
         else:
             past_commit_lookup = True
 
-        # We need to go back in time, but first save the current state of the repository.
+        # We need to go back in time, but first save the current state of the
+        # repository.
         if past_commit_lookup:
             logging.debug(
                 "We need to look into the commit history. Inspect the initial state of the repository."
