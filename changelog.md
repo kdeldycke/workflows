@@ -8,7 +8,7 @@
 - Pre-compute repository initial state before digging into commit log history.
 - Redo release as `v4.1.0` has been broken.
 - Rely on old `v4.0.2` standalone metadata script temporarily to fix release process.
-- Remove failing `--statistics` production on `ruff` invokation.
+- Remove failing `--statistics` production on `ruff` invocation.
 
 ## [4.1.0 (2024-07-01)](https://github.com/kdeldycke/workflows/compare/v4.0.2...v4.1.0)
 
