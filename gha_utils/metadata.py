@@ -374,7 +374,7 @@ class Metadata:
             logging.debug(
                 f"Stash counter changes after 'git stash' command: {counter_before} -> {counter_after}"
             )
-            assert counter_before >= counter_after
+            assert counter_after >= counter_before
             need_unstash = bool(counter_after > counter_before)
             logging.debug(f"Need to unstash after checkouts: {need_unstash}")
 
