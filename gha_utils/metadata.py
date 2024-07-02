@@ -287,8 +287,12 @@ class Metadata:
 
     def git_stash_count(self, git_repo: Git) -> int:
         """Returns the number of stashes."""
-        count = int(git_repo.repo.git.rev_list("--walk-reflogs", "--ignore-missing", "--count", "refs/stash"))
-        logging.debug(f"Number of stashes in repository: {stash_count}")
+        count = int(
+            git_repo.repo.git.rev_list(
+                "--walk-reflogs", "--ignore-missing", "--count", "refs/stash"
+            )
+        )
+        logging.debug(f"Number of stashes in repository: {count}")
         return count
 
     def commit_matrix(self, commits: Iterable[Commit] | None) -> Matrix | None:
