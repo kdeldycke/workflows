@@ -1186,7 +1186,7 @@
 - Add a reusable workflow to auto-format JSON files with jsonlint.
 - Add a reusable workflow to auto-update .gitignore file.
 - Add a reusable workflow to auto-update .mailmap file.
-- Force retargetting of workflow dependencies to `main` branch on post-release
+- Force retargeting of workflow dependencies to `main` branch on post-release
   version bump.
 
 ## [0.2.0 (2021-12-15)](https://github.com/kdeldycke/workflows/compare/v0.1.0...v0.2.0)
