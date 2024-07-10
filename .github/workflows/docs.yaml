@@ -97,7 +97,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: actions/setup-python@v5.1.0
+      - uses: actions/setup-python@v5.1.1
         with:
           python-version: "3.12"
           cache: "pip"
@@ -153,7 +153,7 @@ jobs:
         # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
         # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
         #
-        #   Run actions/setup-python@v5.1.0
+        #   Run actions/setup-python@v5.1.1
         #     with:
         #       python-version: 3.12
         #       cache: pip
@@ -172,7 +172,7 @@ jobs:
         run: |
           touch ./pyproject.toml
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5.1.0
+      - uses: actions/setup-python@v5.1.1
         with:
           python-version: "3.12"
           cache: "pip"
@@ -206,7 +206,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-python@v5.1.0
+      - uses: actions/setup-python@v5.1.1
         with:
           python-version: "3.12"
           cache: "pip"
@@ -271,7 +271,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-python@v5.1.0
+      - uses: actions/setup-python@v5.1.1
         with:
           python-version: "3.12"
           cache: "pip"
@@ -315,7 +315,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-python@v5.1.0
+      - uses: actions/setup-python@v5.1.1
         with:
           python-version: "3.12"
           cache: "pip"
