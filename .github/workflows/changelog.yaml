@@ -33,7 +33,7 @@ jobs:
           - major
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-python@v5.1.0
+      - uses: actions/setup-python@v5.1.1
         with:
           python-version: "3.12"
           cache: "pip"
@@ -110,7 +110,7 @@ jobs:
     # start to discuss this upstream.
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: actions/setup-python@v5.1.0
+      - uses: actions/setup-python@v5.1.1
         with:
           python-version: "3.12"
           cache: "pip"
