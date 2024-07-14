@@ -137,6 +137,7 @@ jobs:
     name: Project metadata
     runs-on: ubuntu-22.04
     outputs:
+      has_mailmap: ${{ steps.project-metadata.outputs.has_mailmap }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
       is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
