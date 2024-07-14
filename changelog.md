@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Add new `has_mailmap` metadata output.
+- Do not create `.mailmap` from scratch: only update existing ones.
 
 ## [4.1.4 (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.3...v4.1.4)
 

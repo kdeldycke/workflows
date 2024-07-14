@@ -89,50 +89,6 @@ jobs:
           labels: "📚 documentation"
           branch: optimize-images
 
-  update-mailmap:
-    name: Update .mailmap
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4.1.7
-        with:
-          # Fetch all history to extract all contributors.
-          fetch-depth: 0
-      - uses: actions/setup-python@v5.1.1
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
-      - name: Install uv
-        run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
-      - name: Install gha-utils
-        run: |
-          uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-      - name: Generate .mailmap
-        run: |
-          uv run gha-utils --verbosity DEBUG mailmap ./.mailmap
-      - uses: peter-evans/create-pull-request@v6.1.0
-        with:
-          assignees: ${{ github.actor }}
-          commit-message: "[autofix] Update .mailmap"
-          title: "[autofix] Update `.mailmap`"
-          body: >
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
-          labels: "📚 documentation"
-          branch: update-mailmap
-
   project-metadata:
     name: Project metadata
     runs-on: ubuntu-22.04
@@ -198,6 +154,53 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
           uv run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+
+  update-mailmap:
+    name: Update .mailmap
+    needs:
+      - project-metadata
+    if: fromJSON(needs.project-metadata.outputs.has_mailmap)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4.1.7
+        with:
+          # Fetch all history to extract all contributors.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5.1.1
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            **/pyproject.toml
+            *requirements.txt
+            requirements/*.txt
+      - name: Install uv
+        run: |
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+      - name: Install gha-utils
+        run: |
+          uv venv --system
+          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+      - name: Generate .mailmap
+        run: |
+          uv run gha-utils --verbosity DEBUG mailmap ./.mailmap
+      - uses: peter-evans/create-pull-request@v6.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Update .mailmap"
+          title: "[autofix] Update `.mailmap`"
+          body: >
+            <details><summary><code>Workflow metadata</code></summary>
+
+
+            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
+
+
+            </details>
+          labels: "📚 documentation"
+          branch: update-mailmap
 
   update-deps-graph:
     name: Update dependency graph
