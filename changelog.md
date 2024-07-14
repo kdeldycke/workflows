@@ -53,7 +53,7 @@
 - Force default values of workflow's inputs when triggered from other events (i.e. in non-reusable contexts).
 - Run all Python-based commands via `uv run` and `uv tool run`.
 - Replace `is_poetry_project` metadata by `is_python_project`.
-- Add new  and `uv_requirement_params` metadata output.
+- Add new `uv_requirement_params` metadata output.
 - Remove dependency on `poetry` package.
 - Add new dependencies on `build`, `packaging`, `pyproject-metadata` and `click-extra`.
 

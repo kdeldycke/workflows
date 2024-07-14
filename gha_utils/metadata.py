@@ -608,7 +608,7 @@ class Metadata:
 
     @property
     def is_python_project(self):
-        """Returns ``true`` if repository is a Python project.
+        """Returns ``True`` if repository is a Python project.
 
         Presence of a ``pyproject.toml`` file is not enough, as 3rd party tools can use
         that file to store their own configuration.
@@ -817,13 +817,13 @@ class Metadata:
 
     @cached_property
     def is_sphinx(self) -> bool:
-        """Returns true if the Sphinx config file is present."""
+        """Returns ``True`` if the Sphinx config file is present."""
         # The Sphinx config file is present, that's enough for us.
         return self.sphinx_conf_path.exists() and self.sphinx_conf_path.is_file()
 
     @cached_property
     def active_autodoc(self) -> bool:
-        """Returns true if there are active Sphinx extensions."""
+        """Returns ``True`` if there are active Sphinx extensions."""
         if self.is_sphinx:
             # Look for list of active Sphinx extensions.
             for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
