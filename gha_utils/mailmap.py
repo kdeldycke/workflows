@@ -73,7 +73,7 @@ class Mailmap:
 
         assert len(identities), f"No identities found in {mapping!r}"
 
-        identities = tuple(unique(identities))
+        identities = list(unique(identities))
         return identities[0], set(identities[1:])
 
     def parse(self, content: str) -> None:
