@@ -114,7 +114,7 @@ jobs:
           uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
       - name: Generate .mailmap
         run: |
-          uv run gha-utils --verbosity DEBUG mailmap ./.mailmap
+          uv run gha-utils --verbosity DEBUG --skip-if-missing mailmap-sync ./.mailmap
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
