@@ -82,7 +82,7 @@ class Mailmap:
 
         Each non-empty, non-comment line is considered a mapping entry.
 
-        The preceding lines of a maping entry are kept attached to it as pre-comments,
+        The preceding lines of a mapping entry are kept attached to it as pre-comments,
         so the layout will be preserved on rendering, during which records are sorted.
         """
         logging.debug(f"Parsing:\n{content}")
