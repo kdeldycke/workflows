@@ -201,7 +201,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     history.
 
     By default the ``.mailmap`` at the root of the repository is read and its content
-    is reused as reference, so identities already gouped in there are preserved and
+    is reused as reference, so identities already grouped in there are preserved and
     used as initial mapping. To which missing contributors are added.
 
     The resulting updated mapping is printed to the console output. So a bare call to
