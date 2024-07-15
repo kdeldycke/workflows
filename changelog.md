@@ -7,9 +7,11 @@
 
 - Rename `gha-utils mailmap` command to `gha-utils mailmap-sync`.
 - Add new `--create-if-missing`/`--skip-if-missing` option to `gha-utils mailmap-sync` command.
+- Normalize, deduplicate and sort identities in `.mailmap` files.
 - Keep comments attached to their mapping when re-sorting `.mailmap` files.
 - Do not duplicate header metadata on `.mailmap` updates.
 - Do not update `.mailmap` files if no changes are detected.
+- Add new `boltons` dependency.
 
 ## [4.1.4 (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.3...v4.1.4)
 

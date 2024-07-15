@@ -18,9 +18,11 @@ from __future__ import annotations
 
 import logging
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from subprocess import run
+
+from boltons.iterutils import unique
 
 
 @dataclass(order=True, frozen=True)
@@ -28,16 +30,23 @@ class Record:
     """A mailmap identity mapping entry."""
 
     # Mapping is define as the first field so we have natural sorting, whatever the value of the pre_comment is.
-    mapping: str
-    pre_comment: str
+    canonical: str = ""
+    aliases: set[str] = field(default_factory=set)
+    pre_comment: str = ""
 
     def __str__(self) -> str:
-        """Render the record with pre-comments first, followed by the identity mapping."""
+        """Render the record with pre-comments first, followed by the identity mapping.
+
+        Sort all entries in the mapping without case-sensitivity, but keep the first in
+        its place as the canonical identity.
+        """
         lines = []
         if self.pre_comment:
             lines.append(self.pre_comment)
-        if self.mapping:
-            lines.append(self.mapping)
+        if self.canonical:
+            lines.append(
+                " ".join((self.canonical, *sorted(self.aliases, key=str.casefold)))
+            )
         return "\n".join(lines)
 
 
@@ -48,10 +57,26 @@ class Mailmap:
     <https://git-scm.com/docs/gitmailmap>`_.
     """
 
-    # Use a set to naturally deduplicate identical records.
-    records: set[Record] = set()
+    records: list[Record] = list()
 
-    def parse(self, content: str):
+    @staticmethod
+    def split_identities(mapping: str) -> tuple[str, set[str]]:
+        """Split a mapping of identities and normalize them."""
+        identities = []
+        for identity in map(str.strip, mapping.split(">")):
+            # Skip blank strings produced by uneven spaces.
+            if not identity:
+                continue
+            assert identity.count("<") == 1, f"Unexpected email format in {identity!r}"
+            name, email = identity.split("<", maxsplit=1)
+            identities.append(f"{name.strip()} <{email}>")
+
+        assert len(identities), f"No identities found in {mapping!r}"
+
+        identities = tuple(unique(identities))
+        return identities[0], set(identities[1:])
+
+    def parse(self, content: str) -> None:
         """Parse mailmap content and add it to the current list of records.
 
         Each non-empty, non-comment line is considered a mapping entry.
@@ -61,26 +86,31 @@ class Mailmap:
         """
         logging.debug(f"Parsing:\n{content}")
         preceeding_lines = []
-        for line in content.splitlines():
+        for line in map(str.strip, content.splitlines()):
             # Comment lines are added as-is.
             if line.startswith("#"):
                 preceeding_lines.append(line)
             # Blank lines are added as-is.
-            elif not line.strip():
+            elif not line:
                 preceeding_lines.append(line)
             # Mapping entry, which mark the end of a block, so add it to the list mailmap records.
             else:
-                # TODO: Validates and plit mapping entry here.
-                record = Record(pre_comment="\n".join(preceeding_lines), mapping=line)
+                canonical, aliases = self.split_identities(line)
+                record = Record(
+                    pre_comment="\n".join(preceeding_lines),
+                    canonical=canonical,
+                    aliases=aliases,
+                )
                 logging.debug(record)
                 preceeding_lines = []
-                self.records.add(record)
+                self.records.append(record)
 
     def find(self, identity: str) -> bool:
         """Returns ``True`` if the provided identity matched any record."""
+        identity_token = identity.lower()
         for record in self.records:
             # Identity matching is case insensitive: https://git-scm.com/docs/gitmailmap#_syntax
-            if identity.lower() in record.mapping.lower():
+            if identity_token in map(str.lower, (record.canonical, *record.aliases)):
                 return True
         return False
 
@@ -103,8 +133,8 @@ class Mailmap:
         # Parse git CLI output.
         if process.returncode:
             sys.exit(process.stderr)
-        for line in process.stdout.splitlines():
-            if line.strip():
+        for line in map(str.strip, process.stdout.splitlines()):
+            if line:
                 contributors.add(line)
 
         logging.debug(
@@ -120,13 +150,14 @@ class Mailmap:
         """
         for contributor in self.git_contributors:
             if not self.find(contributor):
-                logging.info(f"Add new identity {contributor}")
-                self.records.add(contributor)
+                record = Record(canonical=contributor)
+                logging.info(f"Add new identity {record}")
+                self.records.append(record)
             else:
                 logging.debug(f"Ignore existing identity {contributor}")
 
     def render(self) -> str:
         """Render internal records in Mailmap format."""
         return "\n".join(
-            map(str, sorted(self.records, key=lambda r: r.mapping.casefold()))
+            map(str, sorted(self.records, key=lambda r: r.canonical.casefold()))
         )
