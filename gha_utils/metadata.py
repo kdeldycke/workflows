@@ -120,7 +120,7 @@ from bumpversion.config.files import find_config_file  # type: ignore[import-unt
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
-from pydriller import Commit, Git, Repository  # type: ignore[import]
+from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
 from pyproject_metadata import ConfigurationError, StandardMetadata
 from wcmatch.glob import (
     BRACE,
@@ -283,7 +283,7 @@ class Metadata:
         context = json.loads(os.environ["GITHUB_CONTEXT"])
         logging.debug("--- GitHub context ---")
         logging.debug(json.dumps(context, indent=4))
-        return context
+        return context  # type:ignore[no-any-return]
 
     def git_stash_count(self, git_repo: Git) -> int:
         """Returns the number of stashes."""
@@ -441,8 +441,8 @@ class Metadata:
             return None
 
         if bool(os.environ.get("GITHUB_BASE_REF")):
-            return WorkflowEvent.pull_request
-        return WorkflowEvent.push
+            return WorkflowEvent.pull_request  # type: ignore[no-any-return]
+        return WorkflowEvent.push  # type: ignore[no-any-return]
 
     @cached_property
     def commit_range(self) -> tuple[str, str] | None:
@@ -475,7 +475,7 @@ class Metadata:
         if not self.github_context or not self.event_type:
             return None
         # Pull request event.
-        if self.event_type in (
+        if self.event_type in (  # type: ignore[unreachable]
             WorkflowEvent.pull_request,
             WorkflowEvent.pull_request_target,
         ):
@@ -792,7 +792,7 @@ class Metadata:
         if self.new_commits_matrix:
             details = self.new_commits_matrix.get("include")
             if details:
-                version = details[0].get("current_version")  # type: ignore[union-attr]
+                version = details[0].get("current_version")
         return version
 
     @cached_property
@@ -805,7 +805,7 @@ class Metadata:
                 # This script is only designed for at most 1 release in the list of new
                 # commits.
                 assert len(details) == 1
-                version = details[0].get("current_version")  # type: ignore[union-attr]
+                version = details[0].get("current_version")
         return version
 
     @cached_property
