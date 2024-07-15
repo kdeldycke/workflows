@@ -82,29 +82,29 @@ class Mailmap:
 
         Each non-empty, non-comment line is considered a mapping entry.
 
-        The preceeding lines of a maping entry are kept attached to it as pre-comments,
+        The preceding lines of a maping entry are kept attached to it as pre-comments,
         so the layout will be preserved on rendering, during which records are sorted.
         """
         logging.debug(f"Parsing:\n{content}")
-        preceeding_lines = []
+        pre_lines = []
         for line in map(str.strip, content.splitlines()):
             # Comment lines are added as-is.
             if line.startswith("#"):
-                preceeding_lines.append(line)
+                pre_lines.append(line)
             # Blank lines are added as-is.
             elif not line:
-                preceeding_lines.append(line)
+                pre_lines.append(line)
             # Mapping entry, which mark the end of a block, so add it to the list
             # mailmap records.
             else:
                 canonical, aliases = self.split_identities(line)
                 record = Record(
-                    pre_comment="\n".join(preceeding_lines),
+                    pre_comment="\n".join(pre_lines),
                     canonical=canonical,
                     aliases=aliases,
                 )
                 logging.debug(record)
-                preceeding_lines = []
+                pre_lines = []
                 self.records.append(record)
 
     def find(self, identity: str) -> bool:
