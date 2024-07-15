@@ -29,7 +29,8 @@ from boltons.iterutils import unique
 class Record:
     """A mailmap identity mapping entry."""
 
-    # Mapping is define as the first field so we have natural sorting, whatever the value of the pre_comment is.
+    # Mapping is define as the first field so we have natural sorting,
+    # whatever the value of the pre_comment is.
     canonical: str = ""
     aliases: set[str] = field(default_factory=set)
     pre_comment: str = ""
@@ -93,7 +94,8 @@ class Mailmap:
             # Blank lines are added as-is.
             elif not line:
                 preceeding_lines.append(line)
-            # Mapping entry, which mark the end of a block, so add it to the list mailmap records.
+            # Mapping entry, which mark the end of a block, so add it to the list
+            # mailmap records.
             else:
                 canonical, aliases = self.split_identities(line)
                 record = Record(
@@ -109,7 +111,8 @@ class Mailmap:
         """Returns ``True`` if the provided identity matched any record."""
         identity_token = identity.lower()
         for record in self.records:
-            # Identity matching is case insensitive: https://git-scm.com/docs/gitmailmap#_syntax
+            # Identity matching is case insensitive:
+            # https://git-scm.com/docs/gitmailmap#_syntax
             if identity_token in map(str.lower, (record.canonical, *record.aliases)):
                 return True
         return False
