@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.2.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.2.0...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.2.1 (2024-07-15)](https://github.com/kdeldycke/workflows/compare/v4.2.0...v4.2.1)
 
 - Fix options in `gha-utils mailmap-sync` calls.
 - Use latest `gha-utils` release in workflows.
