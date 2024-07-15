@@ -226,18 +226,19 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     history.
 
     By default the ``.mailmap`` at the root of the repository is read and its content
-    is reused as reference, so identities already grouped in there are preserved and
-    used as initial mapping. To which missing contributors are added.
+    is reused as reference, so identities already aliased in there are preserved and
+    used as initial mapping. Only missing contributors not found in this initial maping
+    are added.
 
     The resulting updated mapping is printed to the console output. So a bare call to
-    `gha-utils mailmap` is the same as a call to
-    `gha-utils mailmap --source .mailmap -`.
+    `gha-utils mailmap-sync` is the same as a call to
+    `gha-utils mailmap-sync --source .mailmap -`.
 
     To have the updated mapping written to a file, specify the output file like so:
-    `gha-utils mailmap .mailmap`.
+    `gha-utils mailmap-sync .mailmap`.
 
-    The updated results are sorted but simple, so it is advised to identify potential
-    duplicate identities, and regroup them by hand.
+    The updated results are sorted. But no attempts are made at regrouping new
+    contributors. SO you have to edit entries by hand to regroup them
     """
     mailmap = Mailmap()
 
@@ -249,6 +250,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
         logging.debug(f"Mailmap source file {source} does not exists.")
 
     mailmap.update_from_git()
+    new_content = mailmap.render()
 
     if is_stdout(destination_mailmap):
         logging.info(f"Print updated results to {sys.stdout.name}.")
@@ -261,9 +263,12 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
         logging.info(f"Save updated results to {destination_mailmap}")
         if not create_if_missing and not destination_mailmap.exists():
             logging.warning(
-                f"{destination_mailmap} does not exists, skip the update process."
+                f"{destination_mailmap} does not exists, stop the sync process."
             )
+            ctx.exit()
+        if content == new_content:
+            logging.warning("Nothing to update, stop the sync process.")
             ctx.exit()
 
     with file_writer(destination_mailmap) as f:
-        f.write(generate_header(ctx) + mailmap.render())
+        f.write(generate_header(ctx) + new_content)

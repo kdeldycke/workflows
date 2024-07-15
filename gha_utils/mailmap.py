@@ -127,9 +127,6 @@ class Mailmap:
 
     def render(self) -> str:
         """Render internal records in Mailmap format."""
-        return (
-            "\n".join(
-                map(str, sorted(self.records, key=lambda r: r.mapping.casefold()))
-            )
-            + "\n"
+        return "\n".join(
+            map(str, sorted(self.records, key=lambda r: r.mapping.casefold()))
         )
