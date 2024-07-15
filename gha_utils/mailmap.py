@@ -97,4 +97,5 @@ class Mailmap:
             "\n".join(header_comments)
             + "\n\n"
             + "\n".join(sorted(mappings, key=str.casefold))
+            + "\n"
         )

@@ -24,7 +24,6 @@ new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
 python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
-has_mailmap=true
 is_python_project=true
 uv_requirement_params=--requirement pyproject.toml
 package_name=click-extra
@@ -242,7 +241,6 @@ class Metadata:
         # None indicates the is_python_project variable has not been evaluated yet.
         self._is_python_project: bool | None = None
 
-    mailmap_path = Path() / ".mailmap"
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
@@ -596,11 +594,6 @@ class Metadata:
     def doc_files(self) -> Iterator[str]:
         """Returns a list of doc files."""
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
-
-    @cached_property
-    def has_mailmap(self) -> bool:
-        """Returns ``True`` if a ``.mailmap`` file is present."""
-        return self.mailmap_path.exists() and self.mailmap_path.is_file()
 
     @cached_property
     def uv_requirement_params(self) -> Iterator[str]:
@@ -1181,7 +1174,6 @@ class Metadata:
             "release_commits": self.release_commits_hash,
             "python_files": self.python_files,
             "doc_files": self.doc_files,
-            "has_mailmap": self.has_mailmap,
             "is_python_project": self.is_python_project,
             "uv_requirement_params": self.uv_requirement_params,
             "package_name": self.package_name,

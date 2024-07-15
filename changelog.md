@@ -5,8 +5,9 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
-- Add new `has_mailmap` metadata output.
-- Do not create `.mailmap` from scratch: only update existing ones.
+- Rename `gha-utils mailmap` command to `gha-utils mailmap-sync`.
+- Add new `--create-if-missing`/`--skip-if-missing` option to `gha-utils mailmap-sync` command.
+- Do not create `.mailmap` from scratch in workflows: only update existing ones.
 
 ## [4.1.4 (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.3...v4.1.4)
 
