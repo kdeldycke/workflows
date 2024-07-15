@@ -105,6 +105,7 @@ pretty = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
+module = ["boltons.*"]
 
 [tool.bumpversion]
 current_version = "4.2.0"
