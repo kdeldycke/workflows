@@ -1,7 +1,7 @@
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
-version = "4.2.0"
+version = "4.2.1"
 # Python versions and their status: https://devguide.python.org/versions/
 # XXX 3.8 is not enough and we need to bump requirements to 3.8.6 because of:
 # https://github.com/clbarnes/backports.strenum/issues/1
@@ -104,7 +104,7 @@ warn_unreachable = true
 pretty = true
 
 [tool.bumpversion]
-current_version = "4.2.0"
+current_version = "4.2.1"
 allow_dirty = true
 ignore_missing_files = true
 
