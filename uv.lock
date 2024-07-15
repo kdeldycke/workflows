@@ -206,7 +206,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/c0/76/c4aa9e408dbacee3f
 
 [[distribution]]
 name = "gha-utils"
-version = "4.2.0"
+version = "4.2.1"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_version < '3.11'" },
