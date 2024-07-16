@@ -40,6 +40,7 @@ jobs:
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
+      is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
       ruff_py_version: ${{ steps.project-metadata.outputs.ruff_py_version }}
     steps:
