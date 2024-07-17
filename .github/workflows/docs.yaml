@@ -132,7 +132,7 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: update-mailmap
-          # Only consider specific path so we do not pollute the PR with uv.lock file auto-updates.
+          # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
           # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
           add-paths: |
             !uv.lock
@@ -264,6 +264,10 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: update-deps-graph
+          # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
+          # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
+          add-paths: |
+            !uv.lock
 
   update-autodoc:
     name: Update autodoc
@@ -310,6 +314,10 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: update-autodoc
+          # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
+          # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
+          add-paths: |
+            !uv.lock
 
   deploy-docs:
     name: Deploy Sphinx doc
