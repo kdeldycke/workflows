@@ -132,8 +132,10 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: update-mailmap
+          # Only consider specific path so we do not pollute the PR with uv.lock file auto-updates.
+          # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
           add-paths: |
-            .mailmap
+            !uv.lock
 
   project-metadata:
     name: Project metadata
