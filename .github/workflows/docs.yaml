@@ -132,6 +132,8 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: update-mailmap
+          add-paths: |
+            .mailmap
 
   project-metadata:
     name: Project metadata
