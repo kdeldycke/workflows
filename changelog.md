@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.3.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.2.1...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.3.0 (2024-07-17)](https://github.com/kdeldycke/workflows/compare/v4.2.1...v4.3.0)
 
 - Add a new job to keep `uv.lock` updated and in sync.
 - Exclude auto-updated `uv.lock` files from PRs produced from `uv run` and `uv tool run` invocations.
