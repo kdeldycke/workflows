@@ -200,14 +200,14 @@ jobs:
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
           uv tool run bump-my-version bump --verbose patch
-      - name: Commit post-release version bump
-        run: |
-          git commit --all --message="[changelog] Post-release version bump"
       - name: Reset uv.lock
         # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
         # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
         run: |
           git checkout -- uv.lock
+      - name: Commit post-release version bump
+        run: |
+          git commit --all --message="[changelog] Post-release version bump"
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in
