@@ -236,6 +236,11 @@ jobs:
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
           || true
+      - name: Reset uv.lock
+        # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
+        # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
+        run: |
+          git checkout -- uv.lock
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
@@ -253,10 +258,6 @@ jobs:
             </details>
           labels: "🤖 ci"
           branch: format-python
-          # Exclude `uv.lock` file which might be auto-updated by calls to `uv tool run`.
-          # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
-          add-paths: |
-            !uv.lock
 
   sync-uv-lock:
     # XXX Dependabot does not support uv.lock files yet, so this job is doing it.
@@ -365,6 +366,11 @@ jobs:
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
+      - name: Reset uv.lock
+        # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
+        # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
+        run: |
+          git checkout -- uv.lock
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
@@ -382,10 +388,6 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: format-markdown
-          # Exclude `uv.lock` file which might be auto-updated by calls to `uv tool run`.
-          # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
-          add-paths: |
-            !uv.lock
 
   format-json:
     name: Format JSON

@@ -60,6 +60,11 @@ jobs:
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
+      - name: Reset uv.lock
+        # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
+        # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
+        run: |
+          git checkout -- uv.lock
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
@@ -100,10 +105,6 @@ jobs:
           branch: ${{ matrix.part }}-version-increment
           delete-branch: true
           draft: true
-          # Exclude `uv.lock` file which might be auto-updated by calls to `uv tool run`.
-          # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
-          add-paths: |
-            !uv.lock
 
   prepare-release:
     # TODO: add complex time-based trigger condition to only update the changelog once a day on main branch activity to
@@ -202,6 +203,11 @@ jobs:
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
+      - name: Reset uv.lock
+        # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
+        # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
+        run: |
+          git checkout -- uv.lock
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in
@@ -262,7 +268,3 @@ jobs:
           branch: prepare-release
           delete-branch: true
           draft: true
-          # Exclude `uv.lock` file which might be auto-updated by calls to `uv tool run`.
-          # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
-          add-paths: |
-            !uv.lock
