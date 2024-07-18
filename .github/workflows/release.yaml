@@ -136,9 +136,18 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install Nuitka
+        # XXX We cannot break the long "pip install" line below with a class "\" because it will not be able to run on
+        # Windows' shell:
+        #   ParserError: D:\a\_temp\330d7ec7-c0bf-4856-b2d8-407b69be9ee2.ps1:4
+        #   Line |
+        #      4 |  --requirement https://raw.githubusercontent.com/kdeldycke/workflows/m …
+        #        |    ~
+        #        | Missing expression after unary operator '--'.
+        # yamllint disable rule:line-length
         run: |
           uv --no-progress venv --system
-          uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt  # yamllint disable-line
+          uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
+        # yamllint enable
       - name: Nuitka + compilers versions
         run: |
           uv --no-progress run python ${{ matrix.extra_python_params }} -m nuitka --version
