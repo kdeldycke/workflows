@@ -5,6 +5,8 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Do not print progress bars on `uv` calls.
+
 ## [4.3.0 (2024-07-17)](https://github.com/kdeldycke/workflows/compare/v4.2.1...v4.3.0)
 
 - Add a new job to keep `uv.lock` updated and in sync.

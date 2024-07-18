@@ -91,14 +91,14 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
         run: |
-          uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          uv --no-progress venv --system
+          uv --no-progress pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          uv --no-progress run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   format-python:
     name: Format Python
@@ -145,8 +145,8 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install Ruff, blacken-docs and autopep8
         run: |
-          uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/format-python.txt
+          uv --no-progress venv --system
+          uv --no-progress pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/format-python.txt
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
@@ -155,7 +155,7 @@ jobs:
         #  - --aggressive is requires to force autopep8 to consider comments.
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
-          uv tool run autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
+          uv --no-progress tool run autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Optional Ruff config
         if: needs.project-metadata.outputs.ruff_py_version
@@ -212,12 +212,12 @@ jobs:
           cat ./ruff.toml
       - name: Run Ruff check
         run: |
-          uv tool run ruff check --config ./ruff.toml
+          uv --no-progress tool run ruff check --config ./ruff.toml
       - name: Run Ruff format
         # XXX: Ruff is planning to support linting and formatting in one unified command at one point.
         # See: https://github.com/astral-sh/ruff/issues/8232
         run: |
-          uv tool run ruff format --config ./ruff.toml
+          uv --no-progress tool run ruff format --config ./ruff.toml
       - name: Remove temporary Ruff config
         run: |
           rm ./ruff.toml
@@ -231,7 +231,7 @@ jobs:
         # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
-          uv tool run blacken-docs
+          uv --no-progress tool run blacken-docs
           --line-length 88
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
@@ -282,7 +282,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Sync uv.lock
         run: |
-          uv sync --upgrade
+          uv --no-progress sync --upgrade
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
@@ -347,14 +347,14 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install mdformat
         run: |
-          uv venv --system
-          uv pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mdformat.txt
+          uv --no-progress venv --system
+          uv --no-progress pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mdformat.txt
       - name: Install shfmt
         run: |
           sudo apt install --yes shfmt
       - name: Auto-format Markdown
         run: |
-          find ./ -iname "*.md" -exec uv tool run mdformat "{}" \;
+          find ./ -iname "*.md" -exec uv --no-progress tool run mdformat "{}" \;
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # Remove forbidden TOC entries

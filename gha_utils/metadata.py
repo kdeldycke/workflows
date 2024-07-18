@@ -267,10 +267,11 @@ class Metadata:
               env:
                 GITHUB_CONTEXT: ${{ toJSON(github) }}
               run: |
-                uv run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+                uv --no-progress run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
         .. todo::
-            Try to remove reliance on GitHub context entirely so we can eliminate the JSON/env hack above.
+            Try to remove reliance on GitHub context entirely so we can eliminate the
+            JSON/env hack above.
         """
         if "GITHUB_CONTEXT" not in os.environ:
             if self.in_ci_env:
