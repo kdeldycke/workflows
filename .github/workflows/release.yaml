@@ -62,7 +62,8 @@ jobs:
       - name: Install gha-utils
         run: |
           uv --no-progress venv --system
-          uv --no-progress pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          uv --no-progress pip install \
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
       - name: Project metadata
         id: project-metadata
         env:
@@ -96,7 +97,8 @@ jobs:
       - name: Install build dependencies
         run: |
           uv --no-progress venv --system
-          uv --no-progress pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
+          uv --no-progress pip install \
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package
         run: |
           uv --no-progress run python -m build
@@ -136,7 +138,8 @@ jobs:
       - name: Install Nuitka
         run: |
           uv --no-progress venv --system
-          uv --no-progress pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
+          uv --no-progress pip install \
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
       - name: Nuitka + compilers versions
         run: |
           uv --no-progress run python ${{ matrix.extra_python_params }} -m nuitka --version
