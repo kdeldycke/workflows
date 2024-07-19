@@ -33,7 +33,7 @@ $ python -m pip install uv
 $ uv venv
 $ source .venv/bin/activate
 $ uv pip install .
-$ uv run gha-utils
+$ uv run -- gha-utils
 ```
 
 ## Reusable workflows collection

@@ -69,7 +69,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv --no-progress run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          uv --no-progress run -- gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   package-build:
     name: "build & check package"
@@ -101,7 +101,7 @@ jobs:
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package
         run: |
-          uv --no-progress run python -m build
+          uv --no-progress run -- python -m build
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.3.4
         with:
@@ -109,8 +109,8 @@ jobs:
           path: ./dist/*
       - name: Validates package metadata
         run: |
-          uv --no-progress tool run twine check ./dist/*
-          uv --no-progress tool run check-wheel-contents ./dist/*.whl
+          uv --no-progress tool run -- twine check ./dist/*
+          uv --no-progress tool run -- check-wheel-contents ./dist/*.whl
 
   compile-binaries:
     name: "Nuitka: generate binaries"
@@ -150,10 +150,10 @@ jobs:
         # yamllint enable
       - name: Nuitka + compilers versions
         run: |
-          uv --no-progress run python ${{ matrix.extra_python_params }} -m nuitka --version
+          uv --no-progress run -- python ${{ matrix.extra_python_params }} -m nuitka --version
       - name: Build binary
         run: >
-          uv --no-progress run python ${{ matrix.extra_python_params }} -m nuitka
+          uv --no-progress run -- python ${{ matrix.extra_python_params }} -m nuitka
           --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries
