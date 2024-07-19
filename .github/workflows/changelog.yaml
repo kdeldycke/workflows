@@ -53,7 +53,7 @@ jobs:
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
-          uv --no-progress  tool run bump-my-version bump --verbose ${{ matrix.part }}
+          uv --no-progress tool run -- bump-my-version bump --verbose ${{ matrix.part }}
       - name: Extract version
         id: get_version
         run: |
