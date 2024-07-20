@@ -53,20 +53,15 @@ jobs:
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
-          uv --no-progress tool run -- bump-my-version bump --verbose ${{ matrix.part }}
+          uv --no-progress tool run --frozen -- bump-my-version bump --verbose ${{ matrix.part }}
       - name: Extract version
         id: get_version
-        run: |
-          echo "new_version=$( uv --no-progress tool run -- bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
+        run: >
+          echo "new_version=$( uv --no-progress tool run --frozen -- bump-my-version show current_version )"
+          >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
-      - name: Reset uv.lock
-        # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
-        # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
-        # https://github.com/astral-sh/uv/issues/5185
-        run: |
-          git checkout -- uv.lock
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
@@ -136,7 +131,7 @@ jobs:
       - name: Extract version
         id: get_version
         run: >
-          echo "current_version=$( uv --no-progress tool run -- bump-my-version show current_version )"
+          echo "current_version=$( uv --no-progress tool run --frozen -- bump-my-version show current_version )"
           >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
@@ -149,19 +144,19 @@ jobs:
         # TOML.
         run: >
           RELEASE_DEFAULT_BRANCH="main" &&
-          uv --no-progress tool run -- bump-my-version replace --no-configured-files --ignore-missing-version
+          uv --no-progress tool run --frozen -- bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
           --replace "/workflows/v{current_version}/"
           ./.github/workflows/*.yaml
       - name: Set release date in changelog
         run: >
-          uv --no-progress tool run -- bump-my-version replace --no-configured-files
+          uv --no-progress tool run --frozen -- bump-my-version replace --no-configured-files
           --search " (unreleased)"
           --replace " ({utcnow:%Y-%m-%d})"
           ./changelog.md
       - name: Update comparison URL in changelog
         run: >
-          uv --no-progress tool run -- bump-my-version replace --no-configured-files
+          uv --no-progress tool run --frozen -- bump-my-version replace --no-configured-files
           --search "...main"
           --replace "...v{current_version}"
           ./changelog.md
@@ -170,7 +165,7 @@ jobs:
         #   > \[!IMPORTANT\]
         #   > ...
         run: >
-          uv --no-progress tool run -- bump-my-version replace --no-configured-files --ignore-missing-version
+          uv --no-progress tool run --frozen -- bump-my-version replace --no-configured-files --ignore-missing-version
           --regex --search "^> \\\.\!IMPORTANT\\\..+?\\n\\n"
           --replace ""
           ./changelog.md
@@ -192,24 +187,18 @@ jobs:
         # TOML.
         run: >
           RELEASE_DEFAULT_BRANCH="main" &&
-          uv --no-progress tool run -- bump-my-version replace --no-configured-files --ignore-missing-version
+          uv --no-progress tool run --frozen -- bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/v{current_version}/"
           --replace "/workflows/$RELEASE_DEFAULT_BRANCH/"
           ./.github/workflows/*.yaml
       - name: Add new changelog entry
         run: |
-          uv --no-progress run -- gha-utils --verbosity DEBUG changelog ./changelog.md
+          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG changelog ./changelog.md
       - name: Version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
-          uv --no-progress tool run -- bump-my-version bump --verbose patch
-      - name: Reset uv.lock
-        # Exclude `uv.lock` file which might be auto-updated by calls to `uv run`.
-        # See: https://github.com/peter-evans/create-pull-request#controlling-committed-files
-        # https://github.com/astral-sh/uv/issues/5185
-        run: |
-          git checkout -- uv.lock
+          uv --no-progress tool run --frozen -- bump-my-version bump --verbose patch
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"

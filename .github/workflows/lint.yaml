@@ -79,7 +79,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv --no-progress run -- gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   mypy-lint:
     needs:
@@ -111,7 +111,7 @@ jobs:
       - name: Run Mypy
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
-          uv --no-progress run -- mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
+          uv --no-progress run --frozen -- mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
           ${{ needs.project-metadata.outputs.python_files }}
 
   lint-yaml:

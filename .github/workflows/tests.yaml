@@ -129,16 +129,16 @@ jobs:
       # CLI tests.
       - name: gha-utils --help
         run: |
-          uv --no-progress run -- gha-utils --help
+          uv --no-progress run --frozen -- gha-utils --help
       - name: gha-utils --verbosity DEBUG --version
         run: |
-          uv --no-progress run -- gha-utils --verbosity DEBUG --version
+          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG --version
       - name: gha-utils --verbosity INFO metadata
         run: |
-          uv --no-progress run -- gha-utils --verbosity INFO metadata
+          uv --no-progress run --frozen -- gha-utils --verbosity INFO metadata
       - name: gha-utils --verbosity INFO changelog
         run: |
-          uv --no-progress run -- gha-utils --verbosity INFO changelog
+          uv --no-progress run --frozen -- gha-utils --verbosity INFO changelog
       - name: gha-utils --verbosity INFO mailmap-sync
         run: |
-          uv --no-progress run -- gha-utils --verbosity INFO mailmap-sync
+          uv --no-progress run --frozen -- gha-utils --verbosity INFO mailmap-sync
