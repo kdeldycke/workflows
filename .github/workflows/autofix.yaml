@@ -215,12 +215,12 @@ jobs:
           cat ./ruff.toml
       - name: Run Ruff check
         run: |
-          uv --no-progress tool run --frozen -- ruff check --config ./ruff.toml
+          uv --no-progress tool run -- ruff check --config ./ruff.toml
       - name: Run Ruff format
         # XXX: Ruff is planning to support linting and formatting in one unified command at one point.
         # See: https://github.com/astral-sh/ruff/issues/8232
         run: |
-          uv --no-progress tool run --frozen -- ruff format --config ./ruff.toml
+          uv --no-progress tool run -- ruff format --config ./ruff.toml
       - name: Remove temporary Ruff config
         run: |
           rm ./ruff.toml
@@ -234,7 +234,7 @@ jobs:
         # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
-          uv --no-progress tool run --frozen --
+          uv --no-progress tool run --
           blacken-docs
           --line-length 88
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
@@ -354,7 +354,7 @@ jobs:
           sudo apt install --yes shfmt
       - name: Auto-format Markdown
         run: |
-          find ./ -iname "*.md" -exec uv --no-progress tool run --frozen -- mdformat "{}" \;
+          find ./ -iname "*.md" -exec uv --no-progress tool run -- mdformat "{}" \;
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # Remove forbidden TOC entries
