@@ -5,6 +5,8 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Always use frozen `uv.lock` file on `uv run` invokation.
+
 ## [4.3.1 (2024-07-18)](https://github.com/kdeldycke/workflows/compare/v4.3.0...v4.3.1)
 
 - Do not print progress bars on `uv` calls.
