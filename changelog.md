@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.3.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.3.1...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.3.2 (2024-07-22)](https://github.com/kdeldycke/workflows/compare/v4.3.1...v4.3.2)
 
 - Always use frozen `uv.lock` file on `uv run` invocation.
 
