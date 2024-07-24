@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.3.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.3.3...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.3.4 (2024-07-24)](https://github.com/kdeldycke/workflows/compare/v4.3.3...v4.3.4)
 
 - Do not maintain `.mailmap` files on Awesome repositories.
 
