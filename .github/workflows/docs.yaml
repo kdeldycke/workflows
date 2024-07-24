@@ -91,7 +91,7 @@ jobs:
 
   update-mailmap:
     name: Update .mailmap
-    if: {{ ! startsWith(github.event.repository.name, 'awesome-') }}
+    if: ! startsWith(github.event.repository.name, 'awesome-')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.7
