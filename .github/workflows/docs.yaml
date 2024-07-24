@@ -107,12 +107,12 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/uv.txt
       - name: Install gha-utils
         run: |
           uv --no-progress venv --system
           uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/gha-utils.txt
       - name: Generate .mailmap
         run: |
           uv --no-progress run --frozen -- gha-utils --verbosity DEBUG mailmap-sync --skip-if-missing ./.mailmap
@@ -187,12 +187,12 @@ jobs:
           rm ./pyproject.toml
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/uv.txt
       - name: Install gha-utils
         run: |
           uv --no-progress venv --system
           uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/gha-utils.txt
       - name: Project metadata
         id: project-metadata
         env:
@@ -218,12 +218,12 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/uv.txt
       - name: Install pipdeptree
         run: |
           uv --no-progress venv --system
           uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/pipdeptree.txt
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/pipdeptree.txt
       - name: Install project
         run: |
           uv --no-progress pip install .
@@ -284,7 +284,7 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/uv.txt
       - name: Install project dependencies
         run: |
           uv --no-progress venv --system
@@ -328,7 +328,7 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.3.3/requirements/uv.txt
       - name: Install project dependencies
         run: |
           uv --no-progress venv --system
