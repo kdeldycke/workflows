@@ -5,6 +5,8 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Do not maintain `.mailmap` files on Awesome repositories.
+
 ## [4.3.3 (2024-07-24)](https://github.com/kdeldycke/workflows/compare/v4.3.2...v4.3.3)
 
 - Bump `uv` and Nuitka.
