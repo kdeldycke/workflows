@@ -5,12 +5,26 @@
 [![Type checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 [![Unittests status](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml?query=branch%3Amain)
 
-`gha-utils` stands for **G**it**H**ub **A**ction workflows **Util**itie**s**.
+Thanks to this project, I am able to **release Python packages multiple times a day with only 2-clicks**.
 
-Maintaining project takes time. This repository contains the code of the `gha-utils` CLI and a collection of reusable workflows to:
+This repository contains a collection of reusable workflows and its companion CLI called `gha-utils` (which stands for *GitHub action workflows utilities*).
 
-- maintain a Python project, its CLI, doc, QA, etc.
-- maintain an Awesome List project.
+It is designed for `uv`-based Python projects (and Awesome List projects as a bonus).
+
+It takes care of:
+- Version bumping
+- Formatting autofix for: Python, Markdown, JSON, typos
+- Linting: Python types with `mypy`, YAML, `zsh`, GitHub actions, links, Awesome lists, secrets
+- Compiling of Python binaries for Linux / macOS / Windows
+- Building of Python packages and upload to PyPi
+- Git version tagging and GitHub release creation
+- Synchonization of: `uv.lock`, `.gitignore`, `.mailmap` and Mermaid dependency graph
+- Auto-locking of inactive closed issues
+- Static image optimization
+- Sphinx documentation building & deployment, and `autodoc` updates
+- Label management, with file-based and content-based rules
+
+Nothing is done behind your back. A PR is created everytime a change is proposed, so you can inspect it, ala dependabot.
 
 ## `gha-utils` CLI
 
