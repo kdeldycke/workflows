@@ -18,7 +18,7 @@ It takes care of:
 - Compiling of Python binaries for Linux / macOS / Windows on `x86_64`	& `arm64`
 - Building of Python packages and upload to PyPi
 - Git version tagging and GitHub release creation
-- Synchonization of: `uv.lock`, `.gitignore`, `.mailmap` and Mermaid dependency graph
+- Synchronization of: `uv.lock`, `.gitignore`, `.mailmap` and Mermaid dependency graph
 - Auto-locking of inactive closed issues
 - Static image optimization
 - Sphinx documentation building & deployment, and `autodoc` updates
