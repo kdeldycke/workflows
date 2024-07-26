@@ -12,6 +12,7 @@ This repository contains a collection of reusable workflows and its companion CL
 It is designed for `uv`-based Python projects (and Awesome List projects as a bonus).
 
 It takes care of:
+
 - Version bumping
 - Formatting autofix for: Python, Markdown, JSON, typos
 - Linting: Python types with `mypy`, YAML, `zsh`, GitHub actions, links, Awesome lists, secrets
