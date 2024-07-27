@@ -5,6 +5,7 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Drop support for Python 3.8.
 - Rely on released version of `mdformat-pelican`.
 - Fix invocation of installed `mdformat` and its plugin.
 

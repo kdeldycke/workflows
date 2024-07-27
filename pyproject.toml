@@ -3,9 +3,7 @@
 name = "gha-utils"
 version = "4.3.5"
 # Python versions and their status: https://devguide.python.org/versions/
-# XXX 3.8 is not enough and we need to bump requirements to 3.8.6 because of:
-# https://github.com/clbarnes/backports.strenum/issues/1
-requires-python = ">= 3.8.6"
+requires-python = ">= 3.9"
 description = "⚙️ CLI helpers for GitHub Actions + reuseable workflows"
 authors = [{ name = "Kevin Deldycke", email = "kevin@deldycke.com" }]
 readme = "readme.md"
@@ -44,7 +42,6 @@ classifiers = [
     'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX :: Linux',
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -74,7 +71,7 @@ dependencies = [
     "backports.strenum ~= 1.3.1 ; python_version < '3.11'",
     "boltons ~= 24.0.0",
     "bump-my-version ~= 0.24.0",
-    "click-extra ~= 4.8.3",
+    "click-extra ~= 4.9.0",
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.8.0",
