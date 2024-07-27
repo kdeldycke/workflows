@@ -354,7 +354,7 @@ jobs:
           sudo apt install --yes shfmt
       - name: Auto-format Markdown
         run: |
-          find ./ -iname "*.md" -exec uv --no-progress tool run -- mdformat "{}" \;
+          find ./ -iname "*.md" -exec uv --no-progress run --frozen -- mdformat "{}" \;
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # Remove forbidden TOC entries
