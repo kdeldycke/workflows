@@ -109,8 +109,8 @@ jobs:
           path: ./dist/*
       - name: Validates package metadata
         run: |
-          uv --no-progress tool run -- twine check ./dist/*
-          uv --no-progress tool run -- check-wheel-contents ./dist/*.whl
+          uv --no-progress run --frozen -- twine check ./dist/*
+          uv --no-progress run --frozen -- check-wheel-contents ./dist/*.whl
 
   compile-binaries:
     name: "Nuitka: generate binaries"

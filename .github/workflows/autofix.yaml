@@ -157,7 +157,7 @@ jobs:
         #  - --aggressive is requires to force autopep8 to consider comments.
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
-          uv --no-progress tool run --
+          uv --no-progress run --frozen --
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Optional Ruff config
@@ -215,12 +215,12 @@ jobs:
           cat ./ruff.toml
       - name: Run Ruff check
         run: |
-          uv --no-progress tool run -- ruff check --config ./ruff.toml
+          uv --no-progress run --frozen -- ruff check --config ./ruff.toml
       - name: Run Ruff format
         # XXX: Ruff is planning to support linting and formatting in one unified command at one point.
         # See: https://github.com/astral-sh/ruff/issues/8232
         run: |
-          uv --no-progress tool run -- ruff format --config ./ruff.toml
+          uv --no-progress run --frozen -- ruff format --config ./ruff.toml
       - name: Remove temporary Ruff config
         run: |
           rm ./ruff.toml
@@ -234,7 +234,7 @@ jobs:
         # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
-          uv --no-progress tool run --
+          uv --no-progress run --frozen --
           blacken-docs
           --line-length 88
           ${{ needs.project-metadata.outputs.blacken_docs_params }}

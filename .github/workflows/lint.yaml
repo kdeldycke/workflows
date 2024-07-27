@@ -166,7 +166,7 @@ jobs:
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
       - name: Run yamllint
         run: >
-          uv --no-progress tool run
+          uv --no-progress run --frozen --
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
