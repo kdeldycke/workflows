@@ -6,11 +6,11 @@ flowchart TD
     bump-my-version["bump-my-version\n0.24.3"]
     certifi["certifi\n2024.7.4"]
     charset-normalizer["charset-normalizer\n3.3.2"]
-    click-extra["click-extra\n4.8.3"]
+    click-extra["click-extra\n4.9.0"]
     click_0["click\n8.1.7"]
     cloup["cloup\n3.0.5"]
     commentjson["commentjson\n0.9.0"]
-    gha-utils["gha-utils\n4.3.1"]
+    gha-utils["gha-utils\n4.3.5"]
     gitdb["gitdb\n4.0.11"]
     gitpython["GitPython\n3.1.43"]
     idna["idna\n3.7"]
@@ -31,7 +31,6 @@ flowchart TD
     pytz["pytz\n2024.1"]
     pyyaml["PyYAML\n6.0.1"]
     questionary["questionary\n2.0.1"]
-    regex["regex\n2024.5.15"]
     requests["requests\n2.32.3"]
     rich-click["rich-click\n1.8.3"]
     rich["rich\n13.7.1"]
@@ -52,17 +51,16 @@ flowchart TD
     bump-my-version -- "any" --> rich
     bump-my-version -- "any" --> rich-click
     bump-my-version -- "any" --> tomlkit
-    click-extra -- ">=0.13.0,<0.14.0" --> xmltodict
-    click-extra -- ">=0.9,<0.10" --> tabulate
-    click-extra -- ">=0.9.0,<0.10.0" --> commentjson
-    click-extra -- ">=1.3.4,<2.0.0" --> mergedeep
-    click-extra -- ">=2.28.2,<3.0.0" --> requests
-    click-extra -- ">=2024.4.16,<2025.0.0" --> regex
-    click-extra -- ">=24.0.0,<25.0.0" --> boltons
-    click-extra -- ">=3.0.5,<4.0.0" --> cloup
-    click-extra -- ">=6.0.0,<7.0.0" --> pyyaml
-    click-extra -- ">=8.1.4,<9.0.0" --> click_0
-    click-extra -- ">=8.5,<9.0" --> wcmatch
+    click-extra -- "~=0.13.0" --> xmltodict
+    click-extra -- "~=0.9" --> tabulate
+    click-extra -- "~=0.9.0" --> commentjson
+    click-extra -- "~=1.3.4" --> mergedeep
+    click-extra -- "~=2.32.3" --> requests
+    click-extra -- "~=24.0.0" --> boltons
+    click-extra -- "~=3.0.5" --> cloup
+    click-extra -- "~=6.0.0" --> pyyaml
+    click-extra -- "~=8.1.4" --> click_0
+    click-extra -- "~=8.5" --> wcmatch
     cloup -- ">=8.0,<9.0" --> click_0
     commentjson -- ">=0.7.1,<0.8.0" --> lark-parser
     gha-utils -- "~=0.24.0" --> bump-my-version
@@ -70,7 +68,7 @@ flowchart TD
     gha-utils -- "~=2.6" --> pydriller
     gha-utils -- "~=24.0.0" --> boltons
     gha-utils -- "~=24.1" --> packaging
-    gha-utils -- "~=4.8.3" --> click-extra
+    gha-utils -- "~=4.9.0" --> click-extra
     gha-utils -- "~=8.5.2" --> wcmatch
     gitdb -- ">=3.0.1,<6" --> smmap
     gitpython -- ">=4.0.1,<5" --> gitdb
