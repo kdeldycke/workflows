@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.4.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.4.0...main)
+
+> \[!IMPORTANT\]
+> This version is not released yet and is under active development.
+
 ## [4.4.0 (2024-07-27)](https://github.com/kdeldycke/workflows/compare/v4.3.4...v4.4.0)
 
 - Drop support for Python 3.8.
