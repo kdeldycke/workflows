@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.4.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.4.0...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.4.1 (2024-08-01)](https://github.com/kdeldycke/workflows/compare/v4.4.0...v4.4.1)
 
 - Bump Nuitka and `uv`.
 
