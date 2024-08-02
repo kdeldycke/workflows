@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.4.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.4.1...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.4.2 (2024-08-02)](https://github.com/kdeldycke/workflows/compare/v4.4.1...v4.4.2)
 
 - Add local workaround for Nuitka to fix bad packaging of `license_expression` package at build time.
 
