@@ -157,11 +157,11 @@ jobs:
         # https://github.com/Nuitka/Nuitka/pull/3037
         shell: python
         run: |
-          import sys
+          import os
           from pathlib import Path
 
           conf_path = Path(
-              env["GITHUB_WORKSPACE"] +
+              os.environ["GITHUB_WORKSPACE"] +
               "/.venv/lib/python3.12/site-packages/nuitka/plugins/standard/standard.nuitka-package.config.yml"
           ).normalize()
           print(f"Fixing: {conf_path}")
