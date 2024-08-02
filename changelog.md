@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.4.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.4.2...main)
-
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
+## [4.4.3 (2024-08-02)](https://github.com/kdeldycke/workflows/compare/v4.4.2...v4.4.3)
 
 ## [4.4.2 (2024-08-02)](https://github.com/kdeldycke/workflows/compare/v4.4.1...v4.4.2)
 
