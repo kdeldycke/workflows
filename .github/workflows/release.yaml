@@ -163,7 +163,7 @@ jobs:
           conf_path = Path(
               os.environ["GITHUB_WORKSPACE"] +
               "/.venv/lib/python3.12/site-packages/nuitka/plugins/standard/standard.nuitka-package.config.yml"
-          ).normalize()
+          ).resolve()
           print(f"Fixing: {conf_path}")
 
           conf = conf_path.read_text()
