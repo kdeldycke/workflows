@@ -151,6 +151,15 @@ jobs:
       - name: Nuitka + compilers versions
         run: |
           uv --no-progress run --frozen -- python ${{ matrix.extra_python_params }} -m nuitka --version
+      - name: Workaround license_expression missing data file
+        # XXX Fix packaging of license_expression in Nuitka while we wait for 2.4.6 release:
+        # https://github.com/Nuitka/Nuitka/commit/5b4e8baa1c28e2be724d9cb366400af7f427c06d
+        # https://github.com/Nuitka/Nuitka/pull/3037
+        # yamllint disable rule:line-length
+        run: >
+          sed -i "s/module-name: 'license-expression'/module-name: 'license_expression'/"
+          "$GITHUB_WORKSPACE/.venv/lib/python3.12/site-packages/nuitka/plugins/standard/standard.nuitka-package.config.yml"
+        # yamllint enable
       - name: Build binary
         run: >
           uv --no-progress run --frozen -- python ${{ matrix.extra_python_params }} -m nuitka
