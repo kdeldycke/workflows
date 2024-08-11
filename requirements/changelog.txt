@@ -1,2 +1,2 @@
 bump-my-version == 0.25.1
-gha-utils == 4.4.1
+gha-utils == 4.4.2
