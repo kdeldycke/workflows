@@ -69,13 +69,18 @@ classifiers = [
 ]
 dependencies = [
     "backports.strenum ~= 1.3.1 ; python_version < '3.11'",
-    "boltons ~= 24.0.0",
-    "bump-my-version ~= 0.25.1",
+    # Loose version to let click-extra set its own stricter dependency.
+    "boltons >= 24.0.0",
+    # Dependency version is more relaxed on bump-my-version to prevent chicken and egg
+    # while releasing gha-utils itself.
+    # v0.21.0 is the first to rely on wcmatch library.
+    "bump-my-version >= 0.21.0",
     "click-extra ~= 4.9.0",
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.8.0",
     "tomli ~= 2.0.1 ; python_version < '3.11'",
+    # Loose version to let click-extra set its own stricter dependency.
     "wcmatch >= 8.5",
 ]
 
