@@ -43,7 +43,7 @@ wheels = [
 
 [[package]]
 name = "bump-my-version"
-version = "0.25.2"
+version = "0.25.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -55,9 +55,9 @@ dependencies = [
     { name = "tomlkit" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a9/cb/9328df10ec5de26bccef29cbf02a46a9b6071d5ecadf404ed864b9f6cf9c/bump_my_version-0.25.2.tar.gz", hash = "sha256:19d86623611ad6c9b3e662e1dae27736a43cdc99add0cc00d06f2f37f655c482", size = 104270 }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/3b/023e18fb8e202f3c9f44440c5e99e40c3cd46a282edeac2bb28d748af069/bump_my_version-0.25.3.tar.gz", hash = "sha256:9a3752cccf5a4235d2e23705e09ba322f38b20ec162089b6af523049005c5245", size = 104976 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/0a/450d4de0a429372735bcef20fd7d5ae02f61b93a8ff5384145873ffd9a62/bump_my_version-0.25.2-py3-none-any.whl", hash = "sha256:7dbfd3ef1b139a6c67892621628c33284607d8ea17a984b6d3d9ed84a18840f0", size = 49734 },
+    { url = "https://files.pythonhosted.org/packages/92/1b/e7f828df15092759bc79ad8939f856b6589ffd507e91b877309603390b3b/bump_my_version-0.25.3-py3-none-any.whl", hash = "sha256:43638a60adee76d6d7112b7ab7403f0115a4db96d8e6276d935fcbed853673aa", size = 49917 },
 ]
 
 [[package]]
@@ -162,7 +162,6 @@ dependencies = [
     { name = "mergedeep" },
     { name = "pyyaml" },
     { name = "requests" },
-    { name = "tabulate" },
     { name = "tabulate", extra = ["widechars"] },
     { name = "tomli", marker = "python_version < '3.11'" },
     { name = "wcmatch" },
@@ -626,11 +625,11 @@ wheels = [
 
 [[package]]
 name = "tomlkit"
-version = "0.13.0"
+version = "0.13.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4b/34/f5f4fbc6b329c948a90468dd423aaa3c3bfc1e07d5a76deec269110f2f6e/tomlkit-0.13.0.tar.gz", hash = "sha256:08ad192699734149f5b97b45f1f18dad7eb1b6d16bc72ad0c2335772650d7b72", size = 191792 }
+sdist = { url = "https://files.pythonhosted.org/packages/3e/4a/5b5a13efd33514374e872a084de9968a384c87fbfeb8959ca90551c0e2f9/tomlkit-0.13.1.tar.gz", hash = "sha256:1be06879860054a26faba7acf2af62b45c94aa43b00a5f87fc445c5f930ad754", size = 192625 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/7c/b753bf603852cab0a660da6e81f4ea5d2ca0f0b2b4870766d7aa9bceb7a2/tomlkit-0.13.0-py3-none-any.whl", hash = "sha256:7075d3042d03b80f603482d69bf0c8f345c2b30e41699fd8883227f89972b264", size = 37770 },
+    { url = "https://files.pythonhosted.org/packages/2c/11/385cbe44dc3ed0929c93e93053014462b003080c0c3c1fb66fd518d8db17/tomlkit-0.13.1-py3-none-any.whl", hash = "sha256:fb12e89373b28f3cd6679035324770123d6df04488431e1c7bcecf17820ee2e4", size = 37872 },
 ]
 
 [[package]]
