@@ -1,8 +1,8 @@
 version = 1
 requires-python = ">=3.9"
 environment-markers = [
-    "python_version < '3.13'",
-    "python_version >= '3.13'",
+    "python_full_version < '3.13'",
+    "python_full_version >= '3.13'",
 ]
 
 [[package]]
@@ -43,7 +43,7 @@ wheels = [
 
 [[package]]
 name = "bump-my-version"
-version = "0.25.3"
+version = "0.25.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -55,9 +55,9 @@ dependencies = [
     { name = "tomlkit" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bf/3b/023e18fb8e202f3c9f44440c5e99e40c3cd46a282edeac2bb28d748af069/bump_my_version-0.25.3.tar.gz", hash = "sha256:9a3752cccf5a4235d2e23705e09ba322f38b20ec162089b6af523049005c5245", size = 104976 }
+sdist = { url = "https://files.pythonhosted.org/packages/65/3a/1f7de0bff28a05f44bd90fcda63ef1f067ca5d30b176d2841ee65f5a5790/bump_my_version-0.25.4.tar.gz", hash = "sha256:06a96dd6bb36b39b1f8cf37368c52794f89ba392780ac3c697fcf751a134f9a5", size = 105271 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/92/1b/e7f828df15092759bc79ad8939f856b6589ffd507e91b877309603390b3b/bump_my_version-0.25.3-py3-none-any.whl", hash = "sha256:43638a60adee76d6d7112b7ab7403f0115a4db96d8e6276d935fcbed853673aa", size = 49917 },
+    { url = "https://files.pythonhosted.org/packages/45/07/b2840786a6d17ea2a6151ed779cd3ce8daf1d20b37412209ba01feaa9614/bump_my_version-0.25.4-py3-none-any.whl", hash = "sha256:cedcb408101cce6413d9b390c7af6c5424dbfde95549d3eef35b19f81940c5bb", size = 49945 },
 ]
 
 [[package]]
@@ -163,7 +163,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "requests" },
     { name = "tabulate", extra = ["widechars"] },
-    { name = "tomli", marker = "python_version < '3.11'" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
     { name = "xmltodict" },
 ]
@@ -207,15 +207,28 @@ name = "gha-utils"
 version = "4.4.4"
 source = { editable = "." }
 dependencies = [
-    { name = "backports-strenum", marker = "python_version < '3.11'" },
+    { name = "backports-strenum", marker = "python_full_version < '3.11'" },
     { name = "boltons" },
     { name = "bump-my-version" },
     { name = "click-extra" },
     { name = "packaging" },
     { name = "pydriller" },
     { name = "pyproject-metadata" },
-    { name = "tomli", marker = "python_version < '3.11'" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "backports-strenum", marker = "python_full_version < '3.11'", specifier = "~=1.3.1" },
+    { name = "boltons", specifier = ">=24.0.0" },
+    { name = "bump-my-version", specifier = ">=0.21.0" },
+    { name = "click-extra", specifier = "~=4.9.0" },
+    { name = "packaging", specifier = "~=24.1" },
+    { name = "pydriller", specifier = "~=2.6" },
+    { name = "pyproject-metadata", specifier = "~=0.8.0" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = "~=2.0.1" },
+    { name = "wcmatch", specifier = ">=8.5" },
 ]
 
 [[package]]
@@ -625,11 +638,11 @@ wheels = [
 
 [[package]]
 name = "tomlkit"
-version = "0.13.1"
+version = "0.13.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3e/4a/5b5a13efd33514374e872a084de9968a384c87fbfeb8959ca90551c0e2f9/tomlkit-0.13.1.tar.gz", hash = "sha256:1be06879860054a26faba7acf2af62b45c94aa43b00a5f87fc445c5f930ad754", size = 192625 }
+sdist = { url = "https://files.pythonhosted.org/packages/b1/09/a439bec5888f00a54b8b9f05fa94d7f901d6735ef4e55dcec9bc37b5d8fa/tomlkit-0.13.2.tar.gz", hash = "sha256:fff5fe59a87295b278abd31bec92c15d9bc4a06885ab12bcea52c71119392e79", size = 192885 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2c/11/385cbe44dc3ed0929c93e93053014462b003080c0c3c1fb66fd518d8db17/tomlkit-0.13.1-py3-none-any.whl", hash = "sha256:fb12e89373b28f3cd6679035324770123d6df04488431e1c7bcecf17820ee2e4", size = 37872 },
+    { url = "https://files.pythonhosted.org/packages/f9/b6/a447b5e4ec71e13871be01ba81f5dfc9d0af7e473da256ff46bc0e24026f/tomlkit-0.13.2-py3-none-any.whl", hash = "sha256:7a974427f6e119197f670fbbbeae7bef749a6c14e793db934baefc1b5f03efde", size = 37955 },
 ]
 
 [[package]]
