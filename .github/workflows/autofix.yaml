@@ -175,9 +175,6 @@ jobs:
           # Extend the pyproject.toml file of the project.
           extend = "./pyproject.toml"
 
-          # Add support for Jupyter notebooks.
-          extend-include = ["*.ipynb"]
-
           # Enable preview mode; checks will include unstable rules and fixes.
           # See: https://astral.sh/blog/ruff-v0.1.0#introducing-preview-mode
           preview = true
