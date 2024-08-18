@@ -5,6 +5,8 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Fix update of changelog without past entries.
+
 ## [4.4.3 (2024-08-12)](https://github.com/kdeldycke/workflows/compare/v4.4.2...v4.4.3)
 
 - Release with relaxed dependencies.
