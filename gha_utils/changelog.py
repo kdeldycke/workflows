@@ -112,15 +112,15 @@ class Changelog:
         SECTION_START = "##"
         sections = self.content.split(SECTION_START, 2)
         changelog_header = sections[0] if len(sections) > 0 else "# Changelog\n\n"
-        recent_entry = sections[1] if len(sections) > 1 else ""
-        past_entries = sections[2] if len(sections) > 2 else ""
+        current_entry = f"{SECTION_START}{sections[1]}" if len(sections) > 1 else ""
+        past_entries = f"{SECTION_START}{sections[2]}" if len(sections) > 2 else ""
 
         # Derive the release template from the last entry.
         DATE_REGEX = r"\d{4}\-\d{2}\-\d{2}"
         VERSION_REGEX = r"\d+\.\d+\.\d+"
 
         # Replace the release date with the unreleased tag.
-        new_entry = re.sub(DATE_REGEX, "unreleased", recent_entry, count=1)
+        new_entry = re.sub(DATE_REGEX, "unreleased", current_entry, count=1)
 
         # Update GitHub's comparison URL to target the main branch.
         new_entry = re.sub(
@@ -141,16 +141,12 @@ class Changelog:
             new_entry,
             flags=re.MULTILINE | re.DOTALL,
         )
-
-        # Prefix entries with section marker.
         new_entry = f"{SECTION_START}{new_entry}"
-        history = f"{SECTION_START}{recent_entry}{SECTION_START}{past_entries}"
-
         logging.info("New generated section:\n" + indent(new_entry, " " * 2))
 
         # No need to update.
+        history = f"{current_entry}{past_entries}"
         if new_entry in history:
             return None
-
         # Recompose full changelog with new top entry.
         return f"{changelog_header}{new_entry}{history}"

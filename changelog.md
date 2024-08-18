@@ -5,6 +5,8 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Fix empty entry composition.
+
 ## [4.4.5 (2024-08-18)](https://github.com/kdeldycke/workflows/compare/v4.4.4...v4.4.5)
 
 - Bump `gha-utils` CLI.
