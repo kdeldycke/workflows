@@ -108,18 +108,19 @@ class Changelog:
 
         assert current_version in self.content
 
-        # Analyse the current changelog.
+        # Extract parts of the changelog or set default values.
         SECTION_START = "##"
-        changelog_header, last_entry, past_entries = self.content.split(
-            SECTION_START, 2
-        )
+        sections = self.content.split(SECTION_START, 2)
+        changelog_header = sections[0] if len(sections) > 0 else "# Changelog\n\n"
+        recent_entry = sections[1] if len(sections) > 1 else ""
+        past_entries = sections[2] if len(sections) > 2 else ""
 
         # Derive the release template from the last entry.
         DATE_REGEX = r"\d{4}\-\d{2}\-\d{2}"
         VERSION_REGEX = r"\d+\.\d+\.\d+"
 
         # Replace the release date with the unreleased tag.
-        new_entry = re.sub(DATE_REGEX, "unreleased", last_entry, count=1)
+        new_entry = re.sub(DATE_REGEX, "unreleased", recent_entry, count=1)
 
         # Update GitHub's comparison URL to target the main branch.
         new_entry = re.sub(
@@ -143,7 +144,7 @@ class Changelog:
 
         # Prefix entries with section marker.
         new_entry = f"{SECTION_START}{new_entry}"
-        history = f"{SECTION_START}{last_entry}{SECTION_START}{past_entries}"
+        history = f"{SECTION_START}{recent_entry}{SECTION_START}{past_entries}"
 
         logging.info("New generated section:\n" + indent(new_entry, " " * 2))
 
