@@ -51,7 +51,7 @@ def file_writer(filepath):
     if is_stdout(filepath):
         yield sys.stdout
     else:
-        writer = filepath.open("w")
+        writer = filepath.open("w", encoding="utf-8")
         yield writer
         writer.close()
 
