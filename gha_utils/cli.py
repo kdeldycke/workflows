@@ -51,7 +51,7 @@ def file_writer(filepath):
     if is_stdout(filepath):
         yield sys.stdout
     else:
-        writer = filepath.open("w", encoding="utf-8")
+        writer = filepath.open("w", encoding="UTF-8")
         yield writer
         writer.close()
 
@@ -165,7 +165,7 @@ def metadata(ctx, format, overwrite, output_path):
     content = metadata.dump(dialect=dialect)
 
     with file_writer(output_path) as f:
-        f.write(content, encoding="utf-8")
+        f.write(content)
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
@@ -185,7 +185,7 @@ def changelog(ctx, source, changelog_path):
     initial_content = None
     if source:
         logging.info(f"Read initial changelog from {source}")
-        initial_content = source.read_text(encoding="utf-8")
+        initial_content = source.read_text(encoding="UTF-8")
 
     changelog = Changelog(initial_content)
     content = changelog.update()
@@ -199,7 +199,7 @@ def changelog(ctx, source, changelog_path):
         logging.info(f"Save updated results to {changelog_path}")
 
     with file_writer(changelog_path) as f:
-        f.write(content, encoding="utf-8")
+        f.write(content)
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
@@ -247,7 +247,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 
     if source.exists():
         logging.info(f"Read initial mapping from {source}")
-        content = remove_header(source.read_text(encoding="utf-8"))
+        content = remove_header(source.read_text(encoding="UTF-8"))
         mailmap.parse(content)
     else:
         logging.debug(f"Mailmap source file {source} does not exists.")
@@ -274,4 +274,4 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
             ctx.exit()
 
     with file_writer(destination_mailmap) as f:
-        f.write(generate_header(ctx) + new_content, encoding="utf-8")
+        f.write(generate_header(ctx) + new_content)
