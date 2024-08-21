@@ -165,7 +165,7 @@ def metadata(ctx, format, overwrite, output_path):
     content = metadata.dump(dialect=dialect)
 
     with file_writer(output_path) as f:
-        f.write(content)
+        f.write(content, encoding="utf-8")
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
@@ -199,7 +199,7 @@ def changelog(ctx, source, changelog_path):
         logging.info(f"Save updated results to {changelog_path}")
 
     with file_writer(changelog_path) as f:
-        f.write(content)
+        f.write(content, encoding="utf-8")
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
@@ -274,4 +274,4 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
             ctx.exit()
 
     with file_writer(destination_mailmap) as f:
-        f.write(generate_header(ctx) + new_content)
+        f.write(generate_header(ctx) + new_content, encoding="utf-8")
