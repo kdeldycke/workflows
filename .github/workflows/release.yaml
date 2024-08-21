@@ -151,25 +151,6 @@ jobs:
       - name: Nuitka + compilers versions
         run: |
           uv --no-progress run --frozen -- python ${{ matrix.extra_python_params }} -m nuitka --version
-      - name: Workaround license_expression missing data file
-        # XXX Fix packaging of license_expression in Nuitka while we wait for 2.4.6 release:
-        # https://github.com/Nuitka/Nuitka/commit/5b4e8baa1c28e2be724d9cb366400af7f427c06d
-        # https://github.com/Nuitka/Nuitka/pull/3037
-        shell: python
-        run: |
-          import os
-          from pathlib import Path
-
-          matches = Path(os.environ["GITHUB_WORKSPACE"]).resolve().rglob("standard.nuitka-package.config.yml")
-          conf_path = next(matches)
-          print(f"Fixing: {conf_path}")
-
-          conf = conf_path.read_text()
-          conf = conf.replace(
-              "module-name: 'license-expression'",
-              "module-name: 'license_expression'"
-          )
-          conf_path.write_text(conf)
       - name: Build binary
         run: >
           uv --no-progress run --frozen -- python ${{ matrix.extra_python_params }} -m nuitka

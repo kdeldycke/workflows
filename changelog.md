@@ -8,6 +8,7 @@
 - Upgrade job runs from `ubuntu-22.04` to `ubuntu-24.04`.
 - Mark python 3.13-dev tests as stable.
 - Fix empty entry composition.
+- Remove local workaround for Nuitka.
 
 ## [4.4.5 (2024-08-18)](https://github.com/kdeldycke/workflows/compare/v4.4.4...v4.4.5)
 
