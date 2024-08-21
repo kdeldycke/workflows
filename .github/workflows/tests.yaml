@@ -61,13 +61,7 @@ jobs:
           exclude: list[dict[str, str]] = []
 
           # List of unstable criterions.
-          unstable: list[dict[str, str]] = [
-              # Python 3.13-dev is not supported yet:
-              #   error: failed to run custom build command for `pyo3-ffi v0.21.2`
-              #   error: the configured Python interpreter version (3.13) is newer than PyO3's
-              #          maximum supported version (3.12)
-              {"python-version": "3.13-dev"},
-          ]
+          unstable: list[dict[str, str]] = []
 
           # Build the job matrix.
           jobs: list[dict[str, str]] = []
