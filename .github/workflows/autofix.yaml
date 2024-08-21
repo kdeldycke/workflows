@@ -36,7 +36,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
@@ -106,7 +106,7 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - name: Hack setup-python cache
@@ -262,7 +262,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - uses: actions/setup-python@v5.1.1
@@ -299,7 +299,7 @@ jobs:
 
   format-markdown:
     name: Format Markdown
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - name: Hack setup-python cache
@@ -386,7 +386,7 @@ jobs:
 
   format-json:
     name: Format JSON
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - name: Install jsonlint
@@ -415,7 +415,7 @@ jobs:
 
   check-gitignore:
     name: Does .gitignore exist?
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       exists: ${{ steps.detection.outputs.exists }}
     steps:
@@ -434,7 +434,7 @@ jobs:
       - check-gitignore
     # Only update gitignore if a file is found at the root of repository.
     if: needs.check-gitignore.outputs.exists
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - name: Install git-extras

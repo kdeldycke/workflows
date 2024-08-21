@@ -28,7 +28,7 @@ jobs:
 
   autofix-typo:
     name: Fix typos
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - uses: crate-ci/typos@v1.23.6
@@ -58,7 +58,7 @@ jobs:
 
   optimize-images:
     name: Optimize images
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       # XXX Waiting for a recent release for image-actions so we'll get rid of some warning annotations like
@@ -92,7 +92,7 @@ jobs:
   update-mailmap:
     name: Update .mailmap
     if: ${{ ! startsWith(github.event.repository.name, 'awesome-') }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
         with:
@@ -137,7 +137,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
@@ -206,7 +206,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - uses: actions/setup-python@v5.1.1
@@ -272,7 +272,7 @@ jobs:
     if: >
       fromJSON(needs.project-metadata.outputs.is_python_project)
       && fromJSON(needs.project-metadata.outputs.active_autodoc)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - uses: actions/setup-python@v5.1.1
@@ -316,7 +316,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
       - uses: actions/setup-python@v5.1.1
@@ -355,7 +355,7 @@ jobs:
     if: >
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     # We need custom PAT through the whole job so we get workflow permissions to update all the boilerplate .github
     # files from awesome-template.
     steps:

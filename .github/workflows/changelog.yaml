@@ -25,7 +25,7 @@ jobs:
     # This job is not time-sensitive: do not let it to be triggered by schedule event.
     # Also skip release commits (during which bump-my-version cannot find "unreleased" string in changelog.md).
     if: github.event_name != 'schedule' && !startsWith(github.event.head_commit.message, '[changelog] Release v')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         part:
@@ -106,7 +106,7 @@ jobs:
   prepare-release:
     # TODO: add complex time-based trigger condition to only update the changelog once a day on main branch activity to
     # keep the release date in sync.
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     # TODO: Use the collection of search and replace patterns from bump-my-version's TOML configuration file.
     # XXX This cannot be done because there is no way to group "replace" actions into a collection. Maybe we should
     # start to discuss this upstream.

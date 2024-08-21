@@ -21,7 +21,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins
       # (see: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626).
@@ -78,7 +78,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
         with:
@@ -190,7 +190,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && needs.project-metadata.outputs.release_commits_matrix
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
         with:
@@ -222,7 +222,7 @@ jobs:
     if: needs.project-metadata.outputs.package_name
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4.1.8
@@ -247,7 +247,7 @@ jobs:
     if: always() && needs.git-tag.result == 'success'
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
