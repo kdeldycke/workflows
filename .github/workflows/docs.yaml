@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
-      - uses: crate-ci/typos@v1.23.6
+      - uses: crate-ci/typos@v1.23.7
         with:
           write_changes: true
       - name: Remove local typos binary
