@@ -1,6 +1,6 @@
 version = 1
 requires-python = ">=3.9"
-environment-markers = [
+resolution-markers = [
     "python_full_version < '3.13'",
     "python_full_version >= '3.13'",
 ]
@@ -43,7 +43,7 @@ wheels = [
 
 [[package]]
 name = "bump-my-version"
-version = "0.25.4"
+version = "0.26.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -55,9 +55,9 @@ dependencies = [
     { name = "tomlkit" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/65/3a/1f7de0bff28a05f44bd90fcda63ef1f067ca5d30b176d2841ee65f5a5790/bump_my_version-0.25.4.tar.gz", hash = "sha256:06a96dd6bb36b39b1f8cf37368c52794f89ba392780ac3c697fcf751a134f9a5", size = 105271 }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/34/926646fa7d1c91b8ae215766b88370bea06cf95658fc5eba08b6853cd782/bump_my_version-0.26.0.tar.gz", hash = "sha256:9e2c01b7639960379440c4a371b3c8c0aa66cf6979985f1c9ba2e7c2fb4a185f", size = 109841 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/07/b2840786a6d17ea2a6151ed779cd3ce8daf1d20b37412209ba01feaa9614/bump_my_version-0.25.4-py3-none-any.whl", hash = "sha256:cedcb408101cce6413d9b390c7af6c5424dbfde95549d3eef35b19f81940c5bb", size = 49945 },
+    { url = "https://files.pythonhosted.org/packages/b2/1a/95fbe16cc0b9f4043b69612685b8848aaf5a89a2fa8ac645ba9333b5625d/bump_my_version-0.26.0-py3-none-any.whl", hash = "sha256:fe35ebae91e92deebe809ce06bfa37303e45e4f087ad4a371f605702e767623f", size = 51510 },
 ]
 
 [[package]]
@@ -204,7 +204,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/c0/76/c4aa9e408dbacee3f
 
 [[package]]
 name = "gha-utils"
-version = "4.4.5"
+version = "4.4.6"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
