@@ -5,6 +5,7 @@
 > \[!IMPORTANT\]
 > This version is not released yet and is under active development.
 
+- Replace `mdformat-black` by `mdformat-ruff`.
 - Upgrade job runs from `ubuntu-22.04` to `ubuntu-24.04`.
 - Mark python 3.13-dev tests as stable.
 - Fix empty entry composition.
