@@ -32,4 +32,4 @@ mdformat-toc == 0.3.0
 # So waiting for the PR to be merged and a new release to be published.
 # mdformat-web > 0.1.0
 mdformat-web @ git+https://github.com/kdeldycke/mdformat-web.git@fix-extra-html-tags
-ruff == 0.6.1
+ruff == 0.6.2
