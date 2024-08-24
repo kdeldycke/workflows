@@ -351,7 +351,7 @@ jobs:
           sudo apt install --yes shfmt
       - name: mdformat --version
         run: |
-          uv --no-progress run --frozen -- mdformat --version
+          uv --no-progress --verbose run --frozen -- mdformat --version
       - name: Auto-format Markdown
         run: |
           find ./ -iname "*.md" -exec uv --no-progress run --frozen -- mdformat "{}" \;
