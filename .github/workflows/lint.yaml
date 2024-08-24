@@ -70,16 +70,16 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
-        run: |
-          uv --no-progress venv
-          uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+        run: >
+          uv tool install
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          gha-utils
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   mypy-lint:
     needs:
@@ -160,13 +160,12 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install yamllint
-        run: |
-          uv --no-progress venv
-          uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
-      - name: Run yamllint
         run: >
-          uv --no-progress run --frozen --
+          uv tool install
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
+          yamllint
+      - name: Run yamllint
+        run: |
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:

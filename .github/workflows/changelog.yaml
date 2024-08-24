@@ -45,20 +45,19 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install bump-my-version
-        run: |
-          uv --no-progress venv
-          uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/changelog.txt
+        run: >
+          uv tool install
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/changelog.txt
+          bump-my-version
       - name: ${{ matrix.part }} version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
-          uv --no-progress run --frozen -- bump-my-version bump --verbose ${{ matrix.part }}
+          bump-my-version bump --verbose ${{ matrix.part }}
       - name: Extract version
         id: get_version
-        run: >
-          echo "new_version=$( uv --no-progress run --frozen -- bump-my-version show current_version )"
-          >> "$GITHUB_OUTPUT"
+        run: |
+          echo "new_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "New version: ${{ steps.get_version.outputs.new_version }}"
@@ -124,15 +123,14 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install bump-my-version and gha-utils
-        run: |
-          uv --no-progress venv
-          uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/changelog.txt
+        run: >
+          uv tool install
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/changelog.txt
+          bump-my-version
       - name: Extract version
         id: get_version
-        run: >
-          echo "current_version=$( uv --no-progress run --frozen -- bump-my-version show current_version )"
-          >> "$GITHUB_OUTPUT"
+        run: |
+          echo "current_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
       - name: Print version
         run: |
           echo "Current version: ${{ steps.get_version.outputs.current_version }}"
@@ -144,19 +142,19 @@ jobs:
         # TOML.
         run: >
           RELEASE_DEFAULT_BRANCH="main" &&
-          uv --no-progress run --frozen -- bump-my-version replace --no-configured-files --ignore-missing-version
+          bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
           --replace "/workflows/v{current_version}/"
           ./.github/workflows/*.yaml
       - name: Set release date in changelog
         run: >
-          uv --no-progress run --frozen -- bump-my-version replace --no-configured-files
+          bump-my-version replace --no-configured-files
           --search " (unreleased)"
           --replace " ({utcnow:%Y-%m-%d})"
           ./changelog.md
       - name: Update comparison URL in changelog
         run: >
-          uv --no-progress run --frozen -- bump-my-version replace --no-configured-files
+          bump-my-version replace --no-configured-files
           --search "...main"
           --replace "...v{current_version}"
           ./changelog.md
@@ -165,7 +163,7 @@ jobs:
         #   > \[!IMPORTANT\]
         #   > ...
         run: >
-          uv --no-progress run --frozen -- bump-my-version replace --no-configured-files --ignore-missing-version
+          bump-my-version replace --no-configured-files --ignore-missing-version
           --regex --search "^> \\\.\!IMPORTANT\\\..+?\\n\\n"
           --replace ""
           ./changelog.md
@@ -187,18 +185,18 @@ jobs:
         # TOML.
         run: >
           RELEASE_DEFAULT_BRANCH="main" &&
-          uv --no-progress run --frozen -- bump-my-version replace --no-configured-files --ignore-missing-version
+          bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/v{current_version}/"
           --replace "/workflows/$RELEASE_DEFAULT_BRANCH/"
           ./.github/workflows/*.yaml
       - name: Add new changelog entry
         run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG changelog ./changelog.md
+          gha-utils --verbosity DEBUG changelog ./changelog.md
       - name: Version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
-          uv --no-progress run --frozen -- bump-my-version bump --verbose patch
+          bump-my-version bump --verbose patch
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"

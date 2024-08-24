@@ -110,13 +110,13 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
-        run: |
-          uv --no-progress venv
-          uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+        run: >
+          uv tool install
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          gha-utils
       - name: Generate .mailmap
         run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG mailmap-sync --skip-if-missing ./.mailmap
+          gha-utils --verbosity DEBUG mailmap-sync --skip-if-missing ./.mailmap
       - uses: peter-evans/create-pull-request@v6.1.0
         with:
           assignees: ${{ github.actor }}
@@ -190,16 +190,16 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
-        run: |
-          uv --no-progress venv
-          uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+        run: >
+          uv tool install
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          gha-utils
       - name: Project metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   update-deps-graph:
     name: Update dependency graph

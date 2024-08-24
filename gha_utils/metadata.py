@@ -267,7 +267,7 @@ class Metadata:
               env:
                 GITHUB_CONTEXT: ${{ toJSON(github) }}
               run: |
-                uv --no-progress run gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+                gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
         .. todo::
             Try to remove reliance on GitHub context entirely so we can eliminate the
