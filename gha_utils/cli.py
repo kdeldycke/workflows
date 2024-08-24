@@ -19,7 +19,6 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -44,16 +43,13 @@ def is_stdout(filepath):
     return str(filepath) == "-"
 
 
-@contextmanager
-def file_writer(filepath):
-    """A context-aware file writer which default to stdout if no path is
-    provided."""
-    if is_stdout(filepath):
-        yield sys.stdout
+def output_content(content, filepath=None):
+    """Save content to provided ``filepath``, or print to `<stdout>` if none is provided."""
+    if not filepath or is_stdout(filepath):
+        print(content)
     else:
-        writer = filepath.open("w", encoding="UTF-8")
-        yield writer
-        writer.close()
+        with open(filepath, "w", encoding="UTF-8") as f:
+            f.write(content)
 
 
 def generate_header(ctx: Context) -> str:
@@ -163,9 +159,7 @@ def metadata(ctx, format, overwrite, output_path):
 
     dialect = Dialects(format)
     content = metadata.dump(dialect=dialect)
-
-    with file_writer(output_path) as f:
-        f.write(content)
+    output_content(content, output_path)
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
@@ -197,9 +191,7 @@ def changelog(ctx, source, changelog_path):
         logging.info(f"Print updated results to {sys.stdout.name}")
     else:
         logging.info(f"Save updated results to {changelog_path}")
-
-    with file_writer(changelog_path) as f:
-        f.write(content)
+    output_content(content, changelog_path)
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
@@ -273,5 +265,4 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
             logging.warning("Nothing to update, stop the sync process.")
             ctx.exit()
 
-    with file_writer(destination_mailmap) as f:
-        f.write(generate_header(ctx) + new_content)
+    output_content(generate_header(ctx) + new_content, destination_mailmap)
