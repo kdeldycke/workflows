@@ -345,6 +345,7 @@ jobs:
         run: >
           uv tool install
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mdformat.txt
+          mdformat
       - name: Install shfmt
         run: |
           sudo apt install --yes shfmt
