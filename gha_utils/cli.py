@@ -26,6 +26,7 @@ from click_extra import (
     Choice,
     Context,
     argument,
+    echo,
     extra_group,
     file_path,
     option,
@@ -39,17 +40,14 @@ from .mailmap import Mailmap
 from .metadata import Dialects, Metadata
 
 
-def is_stdout(filepath):
+def is_stdout(filepath: str) -> bool:
     return str(filepath) == "-"
 
 
-def output_content(content, filepath=None):
-    """Save content to provided ``filepath``, or print to `<stdout>` if none is provided."""
-    if not filepath or is_stdout(filepath):
-        print(content)
-    else:
-        with open(filepath, "w", encoding="UTF-8") as f:
-            f.write(content)
+def handle_stdout(filepath: str) -> str | None:
+    if is_stdout(filepath):
+        return None
+    return filepath
 
 
 def generate_header(ctx: Context) -> str:
@@ -159,7 +157,7 @@ def metadata(ctx, format, overwrite, output_path):
 
     dialect = Dialects(format)
     content = metadata.dump(dialect=dialect)
-    output_content(content, output_path)
+    echo(content, file=handle_stdout(output_path))
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
@@ -191,7 +189,7 @@ def changelog(ctx, source, changelog_path):
         logging.info(f"Print updated results to {sys.stdout.name}")
     else:
         logging.info(f"Save updated results to {changelog_path}")
-    output_content(content, changelog_path)
+    echo(content, file=handle_stdout(changelog_path))
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
@@ -265,4 +263,4 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
             logging.warning("Nothing to update, stop the sync process.")
             ctx.exit()
 
-    output_content(generate_header(ctx) + new_content, destination_mailmap)
+    echo(generate_header(ctx) + new_content, file=handle_stdout(destination_mailmap))
