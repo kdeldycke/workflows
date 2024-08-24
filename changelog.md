@@ -2,7 +2,7 @@
 
 ## [4.5.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.4.5...main)
 
-> \[!IMPORTANT\]
+> [!IMPORTANT]
 > This version is not released yet and is under active development.
 
 - Replace `mdformat-black` by `mdformat-ruff`.
