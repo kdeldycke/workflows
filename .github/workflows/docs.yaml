@@ -111,7 +111,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
       - name: Generate .mailmap
@@ -191,7 +191,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
       - name: Project metadata
@@ -222,7 +222,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install pipdeptree
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/pipdeptree.txt
       - name: Install project
@@ -288,7 +288,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install project dependencies
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv
           uv --no-progress pip install --extra docs --requirement ./pyproject.toml
       - name: Run Sphinx
         run: |
@@ -332,7 +332,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install project dependencies
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv
           uv --no-progress pip install --all-extras --requirement ./pyproject.toml
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.

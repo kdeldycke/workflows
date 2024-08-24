@@ -46,7 +46,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install bump-my-version
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/changelog.txt
       - name: ${{ matrix.part }} version bump
@@ -125,7 +125,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install bump-my-version and gha-utils
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/changelog.txt
       - name: Extract version
