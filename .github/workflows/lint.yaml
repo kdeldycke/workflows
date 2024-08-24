@@ -71,9 +71,8 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
         run: >
-          uv tool install
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          gha-utils
+          uv tool install --with-requirements
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt gha-utils
       - name: Project metadata
         id: project-metadata
         env:
@@ -161,9 +160,8 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install yamllint
         run: >
-          uv tool install
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
-          yamllint
+          uv tool install --with-requirements
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt yamllint
       - name: Run yamllint
         run: |
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .

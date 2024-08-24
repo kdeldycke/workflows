@@ -1,10 +1,12 @@
+--requirement ./requirements/autopep8.txt
+--requirement ./requirements/blacken-docs.txt
 --requirement ./requirements/build.txt
---requirement ./requirements/changelog.txt
---requirement ./requirements/format-python.txt
+--requirement ./requirements/bump-my-version.txt
 --requirement ./requirements/gha-utils.txt
 --requirement ./requirements/mdformat.txt
 --requirement ./requirements/mypy.txt
 --requirement ./requirements/nuitka.txt
 --requirement ./requirements/pipdeptree.txt
+--requirement ./requirements/ruff.txt
 --requirement ./requirements/uv.txt
 --requirement ./requirements/yamllint.txt

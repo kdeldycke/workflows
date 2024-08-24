@@ -111,9 +111,8 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
         run: >
-          uv tool install
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          gha-utils
+          uv tool install --with-requirements
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt gha-utils
       - name: Generate .mailmap
         run: |
           gha-utils --verbosity DEBUG mailmap-sync --skip-if-missing ./.mailmap
@@ -191,9 +190,8 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
         run: >
-          uv tool install
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          gha-utils
+          uv tool install --with-requirements
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt gha-utils
       - name: Project metadata
         id: project-metadata
         env:
@@ -221,10 +219,9 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install pipdeptree
-        run: |
-          uv --no-progress venv
-          uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/pipdeptree.txt
+        run: >
+          uv tool install --with-requirements
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/pipdeptree.txt pipdeptree
       - name: Install project
         run: |
           uv --no-progress pip install .
@@ -235,7 +232,7 @@ jobs:
           uv --no-progress pip tree
       - name: Run pipdeptree for debug
         run: >
-          uv --no-progress run --frozen -- pipdeptree ${{ needs.project-metadata.outputs.package_name
+          pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
       - name: Create dir structure
         run: |
@@ -244,7 +241,7 @@ jobs:
       # See: https://github.com/tox-dev/pipdeptree/issues/107
       - name: Generate graph
         run: >
-          uv --no-progress run --frozen -- pipdeptree ${{ needs.project-metadata.outputs.package_name
+          pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
           --mermaid > ${{ env.dependency-graph-output }}
       - uses: peter-evans/create-pull-request@v6.1.0
