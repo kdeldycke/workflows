@@ -224,6 +224,7 @@ jobs:
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/pipdeptree.txt pipdeptree
       - name: Install project
         run: |
+          uv --no-progress venv
           uv --no-progress pip install .
       - name: Run uv for debug
         # TODO: switch from pipdeptree to uv.
