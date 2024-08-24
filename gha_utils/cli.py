@@ -40,11 +40,11 @@ from .mailmap import Mailmap
 from .metadata import Dialects, Metadata
 
 
-def is_stdout(filepath: str) -> bool:
+def is_stdout(filepath: Path) -> bool:
     return str(filepath) == "-"
 
 
-def handle_stdout(filepath: str) -> str | None:
+def handle_stdout(filepath: Path) -> Path | None:
     if is_stdout(filepath):
         return None
     return filepath
