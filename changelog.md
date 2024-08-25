@@ -2,13 +2,12 @@
 
 ## [4.5.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.5.1...main)
 
-> \[!IMPORTANT\]
-> This version is not released yet and is under active development.
-
-## [4.5.1 (2024-08-25)](https://github.com/kdeldycke/workflows/compare/v4.5.0...v4.5.1)
-
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
+
+- Rerelease to fix admonition in changelog.
+
+## [4.5.1 (2024-08-25)](https://github.com/kdeldycke/workflows/compare/v4.5.0...v4.5.1)
 
 - Fix over-escaping of `[!IMPORTANT]` admonition in changelog.
 - Fix content writing into output files.
