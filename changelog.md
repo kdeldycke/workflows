@@ -5,10 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-## [4.5.0 (2024-08-24)](https://github.com/kdeldycke/workflows/compare/v4.4.5...v4.5.0)
+- Fix over-escaping of `[!IMPORTANT]` admonition in changelog.
 
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.5.0 (2024-08-24)](https://github.com/kdeldycke/workflows/compare/v4.4.5...v4.5.0)
 
 - Replace `mdformat-black` by `mdformat-ruff`.
 - Install `mdformat`, `gha-utils`, `yamllint`, `bump-my-version`, `ruff`, `blacken-docs` and `autopep8` as a global tool to not interfere with the project dependencies.
