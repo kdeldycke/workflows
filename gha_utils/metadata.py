@@ -626,7 +626,7 @@ class Metadata:
         ``pyproject.toml`` exists and respects the standards. ``False`` otherwise.
         """
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            toml = tomllib.loads(self.pyproject_path.read_text(encoding="utf-8"))
+            toml = tomllib.loads(self.pyproject_path.read_text(encoding="UTF-8"))
             try:
                 metadata = StandardMetadata.from_pyproject(toml)
                 self._is_python_project = True
@@ -1104,7 +1104,7 @@ class Metadata:
         changes = ""
         match = re.search(
             rf"^##(?P<title>.+{escape(version)} .+?)\n(?P<changes>.*?)\n##",
-            Path("./changelog.md").read_text(encoding="utf-8"),
+            Path("./changelog.md").read_text(encoding="UTF-8"),
             flags=re.MULTILINE | re.DOTALL,
         )
         if match:

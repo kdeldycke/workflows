@@ -131,7 +131,7 @@ class Mailmap:
 
         git_cli = ("git", "log", "--pretty=format:%aN <%aE>%n%cN <%cE>")
         logging.debug(f"Run: {' '.join(git_cli)}")
-        process = run(git_cli, capture_output=True, encoding="utf-8")
+        process = run(git_cli, capture_output=True, encoding="UTF-8")
 
         # Parse git CLI output.
         if process.returncode:

@@ -41,13 +41,18 @@ from .metadata import Dialects, Metadata
 
 
 def is_stdout(filepath: Path) -> bool:
+    """Check if a file path is set to stdout.
+
+    Prevents the creation of a ``-`` file in the current directory.
+    """
     return str(filepath) == "-"
 
 
-def handle_stdout(filepath: Path) -> Path | None:
+def prep_path(filepath: Path) -> Path | None:
+    """Prepare the output file parameter for Click's echo function."""
     if is_stdout(filepath):
         return None
-    return filepath
+    return filepath.open("w", encoding="UTF-8")
 
 
 def generate_header(ctx: Context) -> str:
@@ -157,7 +162,7 @@ def metadata(ctx, format, overwrite, output_path):
 
     dialect = Dialects(format)
     content = metadata.dump(dialect=dialect)
-    echo(content, file=handle_stdout(output_path))
+    echo(content, file=prep_path(output_path))
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
@@ -189,7 +194,7 @@ def changelog(ctx, source, changelog_path):
         logging.info(f"Print updated results to {sys.stdout.name}")
     else:
         logging.info(f"Save updated results to {changelog_path}")
-    echo(content, file=handle_stdout(changelog_path))
+    echo(content, file=prep_path(changelog_path))
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
@@ -263,4 +268,4 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
             logging.warning("Nothing to update, stop the sync process.")
             ctx.exit()
 
-    echo(generate_header(ctx) + new_content, file=handle_stdout(destination_mailmap))
+    echo(generate_header(ctx) + new_content, file=prep_path(destination_mailmap))

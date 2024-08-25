@@ -101,7 +101,7 @@ class Changelog:
         # Extract current version as defined by bump-my-version.
         config_file = Path("./pyproject.toml").resolve()
         logging.info(f"Open {config_file}")
-        config = tomllib.loads(config_file.read_text(encoding="utf-8"))
+        config = tomllib.loads(config_file.read_text(encoding="UTF-8"))
         current_version = config["tool"]["bumpversion"]["current_version"]
         logging.info(f"Current version: {current_version}")
         assert current_version
