@@ -21,6 +21,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import IO
 
 from click_extra import (
     Choice,
@@ -48,7 +49,7 @@ def is_stdout(filepath: Path) -> bool:
     return str(filepath) == "-"
 
 
-def prep_path(filepath: Path) -> Path | None:
+def prep_path(filepath: Path) -> IO | None:
     """Prepare the output file parameter for Click's echo function."""
     if is_stdout(filepath):
         return None
