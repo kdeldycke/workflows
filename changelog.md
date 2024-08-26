@@ -1,5 +1,10 @@
 # Changelog
 
+#### [4.5.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.5.2...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.5.2 (2024-08-26)](https://github.com/kdeldycke/workflows/compare/v4.5.1...v4.5.2)
 
 - Rerelease to fix admonition in changelog.
@@ -1286,3 +1291,4 @@
 ## [0.0.1 (2021-12-11)](https://github.com/kdeldycke/workflows/compare/5cbdbb...v0.0.1)
 
 - Initial public release.
+
