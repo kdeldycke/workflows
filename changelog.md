@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Rerelease to fix admonition in changelog.
+- Fix changelog new entry format.
 
 ## [4.5.1 (2024-08-25)](https://github.com/kdeldycke/workflows/compare/v4.5.0...v4.5.1)
 

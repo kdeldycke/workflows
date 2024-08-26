@@ -141,7 +141,6 @@ class Changelog:
             new_entry,
             flags=re.MULTILINE | re.DOTALL,
         )
-        new_entry = f"{SECTION_START}{new_entry}"
         logging.info("New generated section:\n" + indent(new_entry, " " * 2))
 
         # No need to update.
