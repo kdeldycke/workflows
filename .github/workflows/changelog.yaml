@@ -163,8 +163,8 @@ jobs:
         #   > [!IMPORTANT]
         #   > ...
         run: >
-          bump-my-version replace -vvvvvvvvvv --no-configured-files --ignore-missing-version
-          --regex --search "^> \.\!IMPORTANT\..+?\\n\\n"
+          bump-my-version replace --no-configured-files --ignore-missing-version
+          --regex --search "^> \[\!IMPORTANT\].+?\\n\\n"
           --replace ""
           ./changelog.md
       - name: Setup Git
