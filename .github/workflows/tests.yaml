@@ -107,12 +107,16 @@ jobs:
     continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
       - uses: actions/checkout@v4.1.7
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5.1.1
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install project
         run: |
-          uv --no-progress venv --python ${{ matrix.python-version }}
+          uv --no-progress venv
           uv --no-progress sync --all-extras --dev
 
       # CLI tests.
