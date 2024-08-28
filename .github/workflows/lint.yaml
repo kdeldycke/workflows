@@ -106,7 +106,7 @@ jobs:
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mypy.txt
       - name: Install package from all requirement files
         run: |
-          uv --no-progress pip install --all-extras ${{ needs.project-metadata.outputs.uv_requirement_params }}
+          uv --no-progress sync --all-extras --dev
       - name: Run Mypy
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
