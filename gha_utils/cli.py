@@ -187,7 +187,7 @@ def changelog(ctx, source, changelog_path):
 
     changelog = Changelog(initial_content)
     content = changelog.update()
-    if not content:
+    if content == initial_content:
         logging.warning("Changelog already up to date. Do nothing.")
         ctx.exit()
 
