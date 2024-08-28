@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Fix changelog indention.
+- Add changelog unittests.
 
 ## [4.5.2 (2024-08-26)](https://github.com/kdeldycke/workflows/compare/v4.5.1...v4.5.2)
 
