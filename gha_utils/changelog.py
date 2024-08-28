@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 import re
 import sys
+from functools import cached_property
 from pathlib import Path
 from textwrap import indent
 
@@ -38,10 +39,20 @@ class Changelog:
             self.content = initial_changelog
         logging.debug(f"Initial content set to:\n{self.content}")
 
-    def update(self) -> str | None:
+    @cached_property
+    def current_version(self) -> str | None:
+        # Extract current version as defined by bump-my-version.
+        config_file = Path("./pyproject.toml").resolve()
+        logging.info(f"Open {config_file}")
+        config = tomllib.loads(config_file.read_text(encoding="UTF-8"))
+        current_version = config["tool"]["bumpversion"]["current_version"]
+        logging.info(f"Current version: {current_version}")
+        return current_version if current_version else None
+
+    def update(self) -> str:
         r"""Adds a new empty entry at the top of the changelog.
 
-        Returns ``None`` if initial changelog content has already been updated.
+        Will return the same content as the current changelog if it has already been updated.
 
         This is designed to be used just after a new release has been tagged. And before a
         post-release version increment is applied with a call to:
@@ -98,16 +109,6 @@ class Changelog:
         Would not tag since we are not committing
         ```
         """
-        # Extract current version as defined by bump-my-version.
-        config_file = Path("./pyproject.toml").resolve()
-        logging.info(f"Open {config_file}")
-        config = tomllib.loads(config_file.read_text(encoding="UTF-8"))
-        current_version = config["tool"]["bumpversion"]["current_version"]
-        logging.info(f"Current version: {current_version}")
-        assert current_version
-
-        assert current_version in self.content
-
         # Extract parts of the changelog or set default values.
         SECTION_START = "##"
         sections = self.content.split(SECTION_START, 2)
@@ -125,7 +126,7 @@ class Changelog:
         # Update GitHub's comparison URL to target the main branch.
         new_entry = re.sub(
             rf"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}",
-            f"v{current_version}...main",
+            f"v{self.current_version}...main",
             new_entry,
             count=1,
         )
@@ -143,9 +144,7 @@ class Changelog:
         )
         logging.info("New generated section:\n" + indent(new_entry, " " * 2))
 
-        # No need to update.
-        history = f"{current_entry}{past_entries}"
-        if new_entry in history:
-            return None
-        # Recompose full changelog with new top entry.
-        return f"{changelog_header}{new_entry}{history}"
+        history = current_entry + past_entries
+        if new_entry not in history:
+            history = new_entry + history
+        return (changelog_header + history).rstrip()

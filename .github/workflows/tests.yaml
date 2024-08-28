@@ -139,3 +139,12 @@ jobs:
       - name: gha-utils --verbosity INFO mailmap-sync
         run: |
           uv --no-progress run --frozen -- gha-utils --verbosity INFO mailmap-sync
+
+      - name: Unittests
+        run: |
+          uv --no-progress run -- pytest
+
+      - name: Codecov upload
+        uses: codecov/codecov-action@v4.5.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
