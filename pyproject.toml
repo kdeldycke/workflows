@@ -2,6 +2,7 @@
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
 version = "4.5.3"
+package = true
 # Python versions and their status: https://devguide.python.org/versions/
 requires-python = ">= 3.9"
 description = "⚙️ CLI helpers for GitHub Actions + reuseable workflows"
