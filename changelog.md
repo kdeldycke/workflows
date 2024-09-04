@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.5.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.5.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.5.3 (2024-09-04)](https://github.com/kdeldycke/workflows/compare/v4.5.2...v4.5.3)
 
 - Fix changelog indention.
 - Add changelog unittests.
