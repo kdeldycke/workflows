@@ -99,7 +99,7 @@ jobs:
           base: main
           branch: ${{ matrix.part }}-version-increment
           delete-branch: true
-          draft: true
+          draft: always-true
 
   prepare-release:
     # TODO: add complex time-based trigger condition to only update the changelog once a day on main branch activity to
@@ -259,4 +259,4 @@ jobs:
           base: main
           branch: prepare-release
           delete-branch: true
-          draft: true
+          draft: always-true
