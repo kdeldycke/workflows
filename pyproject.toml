@@ -75,7 +75,7 @@ dependencies = [
     # while releasing gha-utils itself.
     # v0.21.0 is the first to rely on wcmatch library.
     "bump-my-version >= 0.21.0",
-    "click-extra ~= 4.9.0",
+    "click-extra ~= 4.10.0",
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.8.0",
