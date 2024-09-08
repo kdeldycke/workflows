@@ -5,6 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use `uv` to build Python packages.
+- Remove dependency on `build` package.
+
 ## [4.5.4 (2024-09-04)](https://github.com/kdeldycke/workflows/compare/v4.5.3...v4.5.4)
 
 - Rerelease to stabilize changelog updates.

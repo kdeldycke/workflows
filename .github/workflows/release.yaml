@@ -71,7 +71,7 @@ jobs:
           gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   package-build:
-    name: "build & check package"
+    name: "Build & check package"
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
@@ -100,7 +100,7 @@ jobs:
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package
         run: |
-          uv --no-progress run --frozen -- python -m build
+          uv --no-progress build
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.4.0
         with:
