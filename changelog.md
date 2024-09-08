@@ -7,6 +7,7 @@
 
 - Use `uv` to build Python packages.
 - Remove dependency on `build` package.
+- Fix coverage report upload.
 
 ## [4.5.4 (2024-09-04)](https://github.com/kdeldycke/workflows/compare/v4.5.3...v4.5.4)
 
