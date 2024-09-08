@@ -108,9 +108,6 @@ gha-utils = "gha_utils.__main__:main"
 [tool.uv]
 package = true
 
-[tool.setuptools.packages.find]
-include = ["gha_utils"]
-
 [tool.mypy]
 warn_unused_configs = true
 warn_redundant_casts = true
