@@ -398,13 +398,11 @@ class Metadata:
             current_version = Metadata.get_current_version()
 
             sha_list.append(commit.hash)
-            include_list.append(
-                {
-                    "commit": commit.hash,
-                    "short_sha": commit.hash[:SHORT_SHA_LENGTH],
-                    "current_version": current_version,
-                }
-            )
+            include_list.append({
+                "commit": commit.hash,
+                "short_sha": commit.hash[:SHORT_SHA_LENGTH],
+                "current_version": current_version,
+            })
 
         # Restore the repository to its initial state.
         if past_commit_lookup:
@@ -414,12 +412,10 @@ class Metadata:
                 logging.debug("Unstash local changes that were previously saved.")
                 git.repo.git.stash("pop")
 
-        return Matrix(
-            {
-                "commit": sha_list,
-                "include": include_list,
-            }
-        )
+        return Matrix({
+            "commit": sha_list,
+            "include": include_list,
+        })
 
     @cached_property
     def event_type(self) -> WorkflowEvent | None:  # type: ignore[valid-type]
