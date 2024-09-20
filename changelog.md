@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.6.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.5.4...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.6.0 (2024-09-20)](https://github.com/kdeldycke/workflows/compare/v4.5.4...v4.6.0)
 
 - Use `uv` to build Python packages.
 - Remove dependency on `build` package.
