@@ -322,7 +322,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.6.0"
+version = "4.6.1"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
