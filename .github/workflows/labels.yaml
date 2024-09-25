@@ -23,7 +23,7 @@ jobs:
     name: Sync labels
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.2.0
       - name: Sync labels
         uses: julb/action-manage-label@1.0.1
         env:
