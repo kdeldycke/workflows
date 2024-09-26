@@ -26,7 +26,7 @@ It takes care of:
 - Sphinx documentation building & deployment, and `autodoc` updates
 - Label management, with file-based and content-based rules
 
-Nothing is done behind your back. A PR is created everytime a change is proposed, so you can inspect it, ala dependabot.
+Nothing is done behind your back. A PR is created every time a change is proposed, so you can inspect it, ala dependabot.
 
 ## `gha-utils` CLI
 
