@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use `uv` to publish Python packages.
+
 ## [4.6.0 (2024-09-20)](https://github.com/kdeldycke/workflows/compare/v4.5.4...v4.6.0)
 
 - Use `uv` to build Python packages.
