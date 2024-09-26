@@ -126,7 +126,7 @@ addopts = [
     "--junitxml=junit.xml",
     "--override-ini=junit_family=legacy",
 ]
-# Make sure tests that are expected to fail do not resurect and start working all of a sudden.
+# Make sure tests that are expected to fail do not resurrect and start working all of a sudden.
 xfail_strict = true
 
 # https://coverage.readthedocs.io/en/latest/config.html
