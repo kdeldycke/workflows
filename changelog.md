@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.6.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.6.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.6.1 (2024-09-26)](https://github.com/kdeldycke/workflows/compare/v4.6.0...v4.6.1)
 
 - Use `uv` to publish Python packages.
