@@ -322,7 +322,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.6.1"
+version = "4.6.2"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -436,11 +436,11 @@ wheels = [
 
 [[package]]
 name = "makefun"
-version = "1.15.4"
+version = "1.15.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a9/97/cf52b3ae6c9ab4e8f7786f483abdc7da0f02785ea78f835a0b2e75f868a7/makefun-1.15.4.tar.gz", hash = "sha256:9f9b9904e7c397759374a88f4c57781fbab2a458dec78df4b3ee6272cd9fb010", size = 72160 }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/00/62966769824620717a3c2d76b1d442489648398b599bdcd490af13bff101/makefun-1.15.6.tar.gz", hash = "sha256:26bc63442a6182fb75efed8b51741dd2d1db2f176bec8c64e20a586256b8f149", size = 72583 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7a/9d/655cbedbe6df11126bae5752ca41bd8cf5180a01c4148577fc547a4c0b14/makefun-1.15.4-py2.py3-none-any.whl", hash = "sha256:945d078a7e01a903f2cbef738b33e0ebc52b8d35fb7e20c528ed87b5c80db5b7", size = 23057 },
+    { url = "https://files.pythonhosted.org/packages/89/a1/3e145759e776c8866488a71270c399bf7c4e554551ac2e247aa0a18a0596/makefun-1.15.6-py2.py3-none-any.whl", hash = "sha256:e69b870f0bb60304765b1e3db576aaecf2f9b3e5105afe8cfeff8f2afe6ad067", size = 22946 },
 ]
 
 [[package]]
@@ -671,16 +671,16 @@ wheels = [
 
 [[package]]
 name = "pytest-cases"
-version = "3.8.5"
+version = "3.8.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "decopatch" },
     { name = "makefun" },
     { name = "packaging" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a9/13/9f07854b636403d9eadaacd602cb23b07cf86d1420af6d44100c4fbf9cf3/pytest-cases-3.8.5.tar.gz", hash = "sha256:c92054187847a7d30d8ab6709fb1670a830e4e19234be700c85c96b6d7102c16", size = 1096408 }
+sdist = { url = "https://files.pythonhosted.org/packages/15/cb/d0d0810f9771b7daf35be7f283035c7a24c8c53b0272be458aebc2169ced/pytest_cases-3.8.6.tar.gz", hash = "sha256:5c24e0ab0cb6f8e802a469b7965906a333d3babb874586ebc56f7e2cbe1a7c44", size = 1092150 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/4f/9a0f678d1e3ba7787580fe2a244fa05e39bd4b9be3dcea24ec51890027d4/pytest_cases-3.8.5-py2.py3-none-any.whl", hash = "sha256:0c8e3727f6494e65b47321adbd94c767277c7b5de1bd40dd518a13f7443b1fff", size = 107391 },
+    { url = "https://files.pythonhosted.org/packages/78/63/965396a32be6f2cd6d16650ef1e103caf5df92a530087bb0cf0b2509a04e/pytest_cases-3.8.6-py2.py3-none-any.whl", hash = "sha256:564c722492ea7e7ec3ac433fd14070180e65866f49fa35bfe938c0d5d9afba67", size = 107283 },
 ]
 
 [[package]]
