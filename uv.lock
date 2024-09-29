@@ -34,11 +34,11 @@ wheels = [
 
 [[package]]
 name = "bracex"
-version = "2.5"
+version = "2.5.post1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ac/f1/ac657fd234f4ee61da9d90f2bae7d6078074de2f97cb911743faa8d10a91/bracex-2.5.tar.gz", hash = "sha256:0725da5045e8d37ea9592ab3614d8b561e22c3c5fde3964699be672e072ab611", size = 26622 }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/6c/57418c4404cd22fe6275b8301ca2b46a8cdaa8157938017a9ae0b3edf363/bracex-2.5.post1.tar.gz", hash = "sha256:12c50952415bfa773d2d9ccb8e79651b8cdb1f31a42f6091b804f6ba2b4a66b6", size = 26641 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/4f/54d324c35221c027ca77e9aae418f525003bd0cc2613eea162a1246b5a92/bracex-2.5-py3-none-any.whl", hash = "sha256:d2fcf4b606a82ac325471affe1706dd9bbaa3536c91ef86a31f6b766f3dad1d0", size = 11509 },
+    { url = "https://files.pythonhosted.org/packages/4b/02/8db98cdc1a58e0abd6716d5e63244658e6e63513c65f469f34b6f1053fd0/bracex-2.5.post1-py3-none-any.whl", hash = "sha256:13e5732fec27828d6af308628285ad358047cec36801598368cb28bc631dbaf6", size = 11558 },
 ]
 
 [[package]]
