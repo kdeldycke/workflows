@@ -52,6 +52,7 @@ jobs:
                   "3.11",
                   "3.12",
                   "3.13-dev",
+                  "3.14-dev",
               }
           }
           # TODO: List of additional variants to include in the matrix.
