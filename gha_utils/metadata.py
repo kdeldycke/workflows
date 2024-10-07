@@ -912,12 +912,12 @@ class Metadata:
                     {
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "short_sha": "346ce66",
-                        "current_version": "2.0.0"
+                        "current_version": "2.0.0",
                     },
                     {
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "short_sha": "6f27db4",
-                        "current_version": "1.9.1"
+                        "current_version": "1.9.1",
                     },
                     {
                         "os": "ubuntu-22.04",
