@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add official support of Python 3.13.
 - Use `macos-15` instead of `macos-14` to build binaries.
 - Run tests on Python 3.14-dev.
 
