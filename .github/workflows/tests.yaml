@@ -37,8 +37,8 @@ jobs:
           from pathlib import Path
 
           variants: dict[str, set[str]] = {
+              # Available OS: https://github.com/actions/runner-images#available-images
               "os": {
-                  # Available OSes: https://github.com/actions/runner-images#available-images
                   "ubuntu-24.04",
                   "ubuntu-22.04",
                   "macos-15",  # arm64
@@ -46,6 +46,7 @@ jobs:
                   "windows-2022",
                   "windows-2019",
               },
+              # Available Python: https://github.com/actions/python-versions/blob/main/versions-manifest.json
               "python-version": {
                   "3.9",
                   "3.10",
