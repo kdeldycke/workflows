@@ -862,8 +862,7 @@ class Metadata:
             # Look for list of active Sphinx extensions.
             for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
                 if isinstance(node, ast.Assign) and isinstance(
-                    node.value,
-                    ast.List | ast.Tuple,  # type: ignore[operator]
+                    node.value, ast.List | ast.Tuple
                 ):
                     extension_found = "extensions" in (
                         t.id  # type: ignore[attr-defined]
