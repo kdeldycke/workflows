@@ -102,7 +102,7 @@ jobs:
         run: |
           uv --no-progress build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4.4.2
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
           path: ./dist/*
@@ -156,7 +156,7 @@ jobs:
           --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries
-        uses: actions/upload-artifact@v4.4.2
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: ${{ matrix.bin_name }}
           if-no-files-found: error
