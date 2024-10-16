@@ -1,5 +1,5 @@
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
-mdformat == 0.7.17
+mdformat == 0.7.18
 mdformat_admon == 2.0.6
 mdformat-config == 0.2.0
 # Use the unreleased version of mdformat_deflist, which is relaxing capped dependency on
