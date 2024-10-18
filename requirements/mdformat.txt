@@ -13,13 +13,7 @@ mdformat_footnote == 0.1.1
 mdformat_frontmatter == 2.0.8
 mdformat-gfm == 0.3.6
 mdformat_gfm_alerts == 1.0.1
-# Use the unreleased version of mdformat_myst, which is relaxing capped dependency on
-# mdit-py-plugins < 0.4 . This allows for mdformat-admon to be upgraded to 1.0.2. See:
-# https://github.com/executablebooks/mdformat-myst/issues/27
-# https://github.com/executablebooks/mdformat-myst/pull/28
-# https://github.com/KyleKing/mdformat-admon/issues/15
-# mdformat_myst == 0.X.X
-mdformat_myst @ git+https://github.com/executablebooks/mdformat-myst.git@b33da85
+mdformat_myst == 0.2.0
 # mdformat-pelican == 0.2.1
 mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
 mdformat_pyproject == 0.0.1
