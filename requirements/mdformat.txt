@@ -18,7 +18,7 @@ mdformat_myst == 0.2.0
 mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
 mdformat_pyproject == 0.0.1
 mdformat-ruff == 0.1.3
-mdformat-shfmt == 0.1.0
+mdformat-shfmt == 0.2.0
 mdformat_simple_breaks == 0.0.1
 mdformat_tables == 1.0.0
 mdformat-toc == 0.3.0
