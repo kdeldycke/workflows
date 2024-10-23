@@ -33,7 +33,7 @@ jobs:
       && github.actor != 'dependabot-preview[bot]'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4.2.1
+      - uses: actions/checkout@v4.2.2
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-content-based.yaml
