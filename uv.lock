@@ -345,7 +345,7 @@ requires-dist = [
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "~=7.6.0" },
     { name = "packaging", specifier = "~=24.1" },
     { name = "pydriller", specifier = "~=2.6" },
-    { name = "pyproject-metadata", specifier = "~=0.8.0" },
+    { name = "pyproject-metadata", specifier = "~=0.9.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = "~=8.3.1" },
     { name = "pytest-cases", marker = "extra == 'test'", specifier = "~=3.8.3" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = "~=5.0.0" },
@@ -600,14 +600,14 @@ wheels = [
 
 [[package]]
 name = "pyproject-metadata"
-version = "0.8.1"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fa/24/47dc876eacddcf7125fe59cd26b064530c7e58655dae87f6928bf47aabaf/pyproject_metadata-0.8.1.tar.gz", hash = "sha256:e6b494d4fbac8007ed0efd3a08df067bb28a299fb113b885ce77e492ad1f0600", size = 15404 }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/79/406a9f56c435caaaca4a1c66397e4f63ecd48a72a6c4fc1d9ecdaac66acb/pyproject_metadata-0.9.0.tar.gz", hash = "sha256:8511c00a4cad96686af6a6b4143433298beb96105a9379afdc9b0328f4f260c9", size = 32096 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/81/42aaafbff27ca340eef777a4e3e8a509941e75fc0eeb9da2be5ee4159041/pyproject_metadata-0.8.1-py3-none-any.whl", hash = "sha256:adf593fa478b787c90cc77fcea4114f19a3a1335532bdcba2851be9459a6c39e", size = 7810 },
+    { url = "https://files.pythonhosted.org/packages/e8/61/9dd3e68d2b6aa40a5fc678662919be3c3a7bf22cba5a6b4437619b77e156/pyproject_metadata-0.9.0-py3-none-any.whl", hash = "sha256:fc862aab066a2e87734333293b0af5845fe8ac6cb69c451a41551001e923be0b", size = 18314 },
 ]
 
 [[package]]
