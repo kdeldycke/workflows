@@ -150,9 +150,14 @@ jobs:
       - run: |
           uv run
         continue-on-error: true
-      - name: Nuitka + compilers versions
+      - name: Nuitka + compilers versions - Linux & macOS
+        if: runner.os != 'Windows'
         run: |
           uv --no-progress run --frozen -- nuitka --version
+      - name: Nuitka + compilers versions - Windows
+        if: runner.os == 'Windows'
+        run: |
+          uv --no-progress run --frozen -- python -m nuitka --version
       - name: Build binary - Linux & macOS
         if: runner.os != 'Windows'
         run: >
