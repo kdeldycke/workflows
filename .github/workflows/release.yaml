@@ -149,6 +149,7 @@ jobs:
         # yamllint enable
       - name: Nuitka + compilers versions
         run: |
+          uv run
           uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
         env:
