@@ -226,6 +226,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4.2.2
       - uses: lycheeverse/lychee-action@v2.0.2
+        id: lychee_run
         with:
           # XXX Skip HN because of rate-limiting.
           # See: https://github.com/lycheeverse/lychee/issues/989#issuecomment-1587208730
@@ -261,7 +262,11 @@ jobs:
           from pathlib import Path
 
           exit_code = os.getenv("exit_code")
-          print(f"Lychee exit code: {exit_code!r} (type: {type(exit_code)})")
+          print(f"Lychee exit code 1: {exit_code!r} (type: {type(exit_code)})")
+
+          exit_code = """${{ steps.lychee_run.outputs.exit_code }}"""
+          print(f"Lychee exit code 2: {exit_code!r} (type: {type(exit_code)})")
+
           broken_links_found = bool(int(exit_code))
           if broken_links_found:
               print("Broken links found: create or update an issue.")
