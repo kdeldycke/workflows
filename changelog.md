@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Remove `extra_python_params` variant in `nuitka_matrix` metadata.
 - Add official support of Python 3.13.
 - Drop support for Python 3.9.
 - Use `macos-15` instead of `macos-14` to build binaries.
