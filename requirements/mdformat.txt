@@ -11,7 +11,7 @@ mdformat-config == 0.2.1
 mdformat_deflist @ git+https://github.com/kdeldycke/mdformat-deflist.git@uncap-mdit-py-plugins-version
 mdformat_footnote == 0.1.1
 mdformat_frontmatter == 2.0.8
-mdformat-gfm == 0.3.6
+mdformat-gfm == 0.3.7
 mdformat_gfm_alerts == 1.0.1
 mdformat_myst == 0.2.0
 # mdformat-pelican == 0.2.1
