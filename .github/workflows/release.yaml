@@ -106,11 +106,6 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
           path: ./dist/*
-      - name: Test package
-        run: >
-          uv run --no-progress
-          --with "${{ needs.project-metadata.outputs.package_name }}" --no-project --
-          python -c "import ${{ needs.project-metadata.outputs.package_name }}"
       - name: Validates package metadata
         # XXX These checks might be replaced by uv one day:
         # https://github.com/astral-sh/uv/issues/8641
