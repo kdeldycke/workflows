@@ -107,6 +107,9 @@ jobs:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
           path: ./dist/*
       - name: Validates package metadata
+        # XXX These checks might be replaced by uv one day:
+        # https://github.com/astral-sh/uv/issues/8641
+        # https://github.com/astral-sh/uv/issues/8774
         run: |
           uv --no-progress run --frozen -- twine check ./dist/*
           uv --no-progress run --frozen -- check-wheel-contents ./dist/*.whl
