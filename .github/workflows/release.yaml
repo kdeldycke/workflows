@@ -163,6 +163,7 @@ jobs:
           ${{ matrix.module_path }}
       # XXX We need to call "uv run python -m nuitka" instead of "uv run nuitka" on Windows because of this bug:
       # https://github.com/Nuitka/Nuitka/issues/3173
+      # https://github.com/astral-sh/uv/issues/8770
       - name: Nuitka + compilers versions - Windows
         if: runner.os == 'Windows'
         run: |
