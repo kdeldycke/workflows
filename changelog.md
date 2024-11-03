@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Fix upload to PyPi on release.
+- Check for built package through `uv`.
 
 ## [4.7.0 (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.6.1...v4.7.0)
 
