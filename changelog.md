@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.7.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.7.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.7.1 (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.7.0...v4.7.1)
 
 - Fix upload to PyPi on release.
