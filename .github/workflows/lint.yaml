@@ -262,7 +262,7 @@ jobs:
           from pathlib import Path
 
           exit_code = """${{ steps.lychee_run.outputs.exit_code }}"""
-          print(f"Lychee exit code 2: {exit_code!r} (type: {type(exit_code)})")
+          print(f"Lychee exit code: {exit_code!r}")
           broken_links_found = bool(int(exit_code))
           if broken_links_found:
               print("Broken links found: create or update an issue.")
