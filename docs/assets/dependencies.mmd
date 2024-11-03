@@ -3,48 +3,48 @@ flowchart TD
     annotated-types["annotated-types\n0.7.0"]
     boltons["boltons\n24.0.0"]
     bracex["bracex\n2.5.post1"]
-    bump-my-version["bump-my-version\n0.27.0"]
+    bump-my-version["bump-my-version\n0.28.0"]
     certifi["certifi\n2024.8.30"]
-    charset-normalizer["charset-normalizer\n3.3.2"]
-    click-extra["click-extra\n4.10.0"]
+    charset-normalizer["charset-normalizer\n3.4.0"]
+    click-extra["click-extra\n4.11.1"]
     click_0["click\n8.1.7"]
     cloup["cloup\n3.0.5"]
     commentjson["commentjson\n0.9.0"]
     distro["distro\n1.9.0"]
-    extra-platforms["extra-platforms\n1.2.1"]
-    gha-utils["gha-utils\n4.6.2"]
+    extra-platforms["extra-platforms\n1.4.0"]
+    gha-utils["gha-utils\n4.7.1"]
     gitdb["gitdb\n4.0.11"]
     gitpython["GitPython\n3.1.43"]
     idna["idna\n3.10"]
     lark-parser["lark-parser\n0.7.8"]
-    lizard["lizard\n1.17.10"]
+    lizard["lizard\n1.17.13"]
     markdown-it-py["markdown-it-py\n3.0.0"]
     mdurl["mdurl\n0.1.2"]
     mergedeep["mergedeep\n1.3.4"]
     packaging["packaging\n24.1"]
     prompt-toolkit["prompt-toolkit\n3.0.36"]
     pydantic-core["pydantic_core\n2.23.4"]
-    pydantic-settings["pydantic-settings\n2.5.2"]
+    pydantic-settings["pydantic-settings\n2.6.1"]
     pydantic["pydantic\n2.9.2"]
-    pydriller["PyDriller\n2.6"]
+    pydriller["PyDriller\n2.7"]
     pygments["Pygments\n2.18.0"]
-    pyproject-metadata["pyproject-metadata\n0.8.1"]
+    pyproject-metadata["pyproject-metadata\n0.9.0"]
     python-dotenv["python-dotenv\n1.0.1"]
     pytz["pytz\n2024.2"]
     pyyaml["PyYAML\n6.0.2"]
     questionary["questionary\n2.0.1"]
     requests["requests\n2.32.3"]
     rich-click["rich-click\n1.8.3"]
-    rich["rich\n13.9.2"]
+    rich["rich\n13.9.4"]
     smmap["smmap\n5.0.1"]
     tabulate["tabulate\n0.9.0"]
     tomlkit["tomlkit\n0.13.2"]
     types-pytz["types-pytz\n2024.2.0.20241003"]
     typing-extensions["typing_extensions\n4.12.2"]
     urllib3["urllib3\n2.2.3"]
-    wcmatch["wcmatch\n9.0"]
+    wcmatch["wcmatch\n10.0"]
     wcwidth["wcwidth\n0.2.13"]
-    xmltodict["xmltodict\n0.13.0"]
+    xmltodict["xmltodict\n0.14.2"]
     bump-my-version -- ">=2.0.0" --> pydantic
     bump-my-version -- ">=8.5.1" --> wcmatch
     bump-my-version -- "any" --> click_0
@@ -53,17 +53,17 @@ flowchart TD
     bump-my-version -- "any" --> rich
     bump-my-version -- "any" --> rich-click
     bump-my-version -- "any" --> tomlkit
-    click-extra -- "~=0.13.0" --> xmltodict
+    click-extra -- "~=0.14.2" --> xmltodict
     click-extra -- "~=0.9" --> tabulate
     click-extra -- "~=0.9.0" --> commentjson
-    click-extra -- "~=1.2.0" --> extra-platforms
     click-extra -- "~=1.3.4" --> mergedeep
+    click-extra -- "~=1.4.0" --> extra-platforms
+    click-extra -- "~=10.0" --> wcmatch
     click-extra -- "~=2.32.3" --> requests
     click-extra -- "~=24.0.0" --> boltons
     click-extra -- "~=3.0.5" --> cloup
     click-extra -- "~=6.0.0" --> pyyaml
     click-extra -- "~=8.1.4" --> click_0
-    click-extra -- "~=9.0" --> wcmatch
     cloup -- ">=8.0,<9.0" --> click_0
     commentjson -- ">=0.7.1,<0.8.0" --> lark-parser
     extra-platforms -- "~=1.9.0" --> distro
@@ -71,12 +71,13 @@ flowchart TD
     gha-utils -- ">=0.21.0" --> bump-my-version
     gha-utils -- ">=24.0.0" --> boltons
     gha-utils -- ">=8.5" --> wcmatch
-    gha-utils -- "~=0.8.0" --> pyproject-metadata
+    gha-utils -- "~=0.9.0" --> pyproject-metadata
     gha-utils -- "~=2.6" --> pydriller
     gha-utils -- "~=24.1" --> packaging
-    gha-utils -- "~=4.10.0" --> click-extra
+    gha-utils -- "~=4.11.0" --> click-extra
     gitdb -- ">=3.0.1,<6" --> smmap
     gitpython -- ">=4.0.1,<5" --> gitdb
+    lizard -- "any" --> pygments
     markdown-it-py -- "~=0.1" --> mdurl
     prompt-toolkit -- "any" --> wcwidth
     pydantic -- "==2.23.4" --> pydantic-core
