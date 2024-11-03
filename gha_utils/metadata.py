@@ -50,7 +50,7 @@ release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
 nuitka_matrix={'entry_point': ['mpm'],
                'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
                           '6f27db47612aaee06fdf08744b09a9f5f6c2'],
-                'os': ['ubuntu-22.04', 'macos-15', 'macos-13', 'windows-2022'],
+                'os': ['ubuntu-24.04', 'macos-15', 'macos-13', 'windows-2022'],
                 'include': [{'entry_point': 'mpm',
                              'cli_id': 'mpm',
                              'module_id': 'meta_package_manager.__main__',
@@ -62,7 +62,7 @@ nuitka_matrix={'entry_point': ['mpm'],
                             {'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
                              'short_sha': '6f27db4',
                              'current_version': '1.9.1'},
-                            {'os': 'ubuntu-22.04',
+                            {'os': 'ubuntu-24.04',
                              'platform_id': 'linux',
                              'arch': 'x64',
                              'extension': 'bin'},
@@ -80,12 +80,12 @@ nuitka_matrix={'entry_point': ['mpm'],
                              'extension': 'exe'},
                             {'entry_point': 'mpm',
                              'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'ubuntu-22.04',
+                             'os': 'ubuntu-24.04',
                              'arch': 'x64',
                              'bin_name': 'mpm-linux-x64-build-346ce66.bin'},
                             {'entry_point': 'mpm',
                              'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'ubuntu-22.04',
+                             'os': 'ubuntu-24.04',
                              'arch': 'x64',
                              'bin_name': 'mpm-linux-x64-build-6f27db4.bin'},
                             {'entry_point': 'mpm',
@@ -896,7 +896,7 @@ class Metadata:
                     "346ce664f055fbd042a25ee0b7e96702e95",
                     "6f27db47612aaee06fdf08744b09a9f5f6c2",
                 ],
-                "os": ["ubuntu-22.04", "macos-15", "macos-13", "windows-2022"],
+                "os": ["ubuntu-24.04", "macos-15", "macos-13", "windows-2022"],
                 "include": [
                     {
                         "entry_point": "mpm",
@@ -916,7 +916,7 @@ class Metadata:
                         "current_version": "1.9.1",
                     },
                     {
-                        "os": "ubuntu-22.04",
+                        "os": "ubuntu-24.04",
                         "platform_id": "linux",
                         "arch": "x64",
                         "extension": "bin",
@@ -942,14 +942,14 @@ class Metadata:
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "os": "ubuntu-22.04",
+                        "os": "ubuntu-24.04",
                         "arch": "x64",
                         "bin_name": "mpm-linux-x64-build-346ce66.bin",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "os": "ubuntu-22.04",
+                        "os": "ubuntu-24.04",
                         "arch": "x64",
                         "bin_name": "mpm-linux-x64-build-6f27db4.bin",
                     },
@@ -1009,12 +1009,12 @@ class Metadata:
         matrix: dict[str, list[Any]] = {
             "entry_point": [],
             # Run the compilation only the latest supported version of each OS.
-            # The exception is macOS, as macos-14 is arm64 and macos-13 is x64, so we
+            # The exception is macOS, as macos-15 is arm64 and macos-13 is x64, so we
             # need both to target the two architectures.
             "os": [
-                "ubuntu-22.04",
-                "macos-15",
-                "macos-13",
+                "ubuntu-24.04",
+                "macos-15",  # arm64
+                "macos-13",  # x64
                 "windows-2022",
             ],
             # Extra parameters.
@@ -1062,7 +1062,7 @@ class Metadata:
         # between different OS.
         extra_os_params = [
             {
-                "os": "ubuntu-22.04",
+                "os": "ubuntu-24.04",
                 "platform_id": "linux",
                 "arch": "x64",
                 "extension": "bin",
