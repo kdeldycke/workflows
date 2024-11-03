@@ -241,7 +241,7 @@ jobs:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
       - name: Push to PyPi
         run: |
-          uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}"
+          uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}/*"
 
   github-release:
     name: Publish GitHub release

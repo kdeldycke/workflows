@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix upload to PyPi on release.
+
 ## [4.7.0 (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.6.1...v4.7.0)
 
 - Remove `extra_python_params` variant in `nuitka_matrix` metadata.
