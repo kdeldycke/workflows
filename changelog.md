@@ -8,7 +8,8 @@
 - Remove `extra_python_params` variant in `nuitka_matrix` metadata.
 - Add official support of Python 3.13.
 - Drop support for Python 3.9.
-- Use `macos-15` instead of `macos-14` to build binaries.
+- Use `macos-15` instead of `macos-14` to build binaries for `arm64`.
+- Use `ubuntu-24.04` instead of `ubuntu-22.04` to built binaries for Linux.
 - Run tests on Python 3.14-dev.
 
 ## [4.6.1 (2024-09-26)](https://github.com/kdeldycke/workflows/compare/v4.6.0...v4.6.1)
