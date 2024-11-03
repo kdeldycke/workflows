@@ -25,7 +25,6 @@ release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
 python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
 is_python_project=true
-uv_requirement_params=--requirement pyproject.toml
 package_name=click-extra
 blacken_docs_params=--target-version py37 --target-version py38
 ruff_py_version=py37
@@ -621,20 +620,9 @@ class Metadata:
         yield from self.glob_files("**/*.py", "!.venv/**")
 
     @cached_property
-    def requirement_files(self) -> Iterator[str]:
-        """Returns a list of requirement files supported by uv."""
-        yield from self.glob_files(
-            "**/pyproject.toml", "*requirements.txt", "requirements/*.txt"
-        )
-
-    @cached_property
     def doc_files(self) -> Iterator[str]:
         """Returns a list of doc files."""
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
-
-    @cached_property
-    def uv_requirement_params(self) -> Iterator[str]:
-        return (f"--requirement {req}" for req in self.requirement_files)
 
     @property
     def is_python_project(self):
@@ -1223,7 +1211,6 @@ class Metadata:
             "python_files": self.python_files,
             "doc_files": self.doc_files,
             "is_python_project": self.is_python_project,
-            "uv_requirement_params": self.uv_requirement_params,
             "package_name": self.package_name,
             "blacken_docs_params": self.blacken_docs_params,
             "ruff_py_version": self.ruff_py_version,

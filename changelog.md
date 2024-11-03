@@ -7,6 +7,7 @@
 
 - Fix upload to PyPi on release.
 - Check for built package through `uv`.
+- Remove unused `uv_requirement_params` in metadata.
 
 ## [4.7.0 (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.6.1...v4.7.0)
 

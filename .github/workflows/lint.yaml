@@ -21,7 +21,6 @@ jobs:
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      uv_requirement_params: ${{ steps.project-metadata.outputs.uv_requirement_params }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v4.2.2
