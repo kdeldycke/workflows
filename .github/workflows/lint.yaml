@@ -224,7 +224,7 @@ jobs:
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
     steps:
       - uses: actions/checkout@v4.2.2
-      - uses: lycheeverse/lychee-action@v2.0.2
+      - uses: lycheeverse/lychee-action@v2.1.0
         id: lychee_run
         with:
           # XXX Skip HN because of rate-limiting.
