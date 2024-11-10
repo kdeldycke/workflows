@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix installation of `hub` on broken links job.
+
 ## [4.7.1 (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.7.0...v4.7.1)
 
 - Fix upload to PyPi on release.

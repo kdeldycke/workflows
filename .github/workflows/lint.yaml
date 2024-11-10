@@ -238,6 +238,7 @@ jobs:
             './**/*.md' './**/*.html' './**/*.rst'
       - name: Install hub
         run: |
+          sudo apt --quiet --yes update
           sudo apt install --yes hub
       - name: List open issues
         id: open_issues
