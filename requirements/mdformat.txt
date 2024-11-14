@@ -13,7 +13,7 @@ mdformat_footnote == 0.1.1
 mdformat_frontmatter == 2.0.8
 mdformat-gfm == 0.3.7
 mdformat_gfm_alerts == 1.0.1
-mdformat_myst == 0.2.0
+mdformat_myst == 0.2.1
 # mdformat-pelican == 0.2.1
 mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
 mdformat_pyproject == 0.0.1
