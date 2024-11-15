@@ -151,38 +151,20 @@ jobs:
           uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
         # yamllint enable
       - name: List uv CLIs
-        continue-on-error: true
         run: |
           uv run
-      - name: Nuitka + compilers versions - Linux & macOS
+      - name: Nuitka + compilers versions
         if: runner.os != 'Windows'
-        run: |
-          uv --no-progress run --frozen -- nuitka --version
-      - name: Build binary - Linux & macOS
-        if: runner.os != 'Windows'
+        # XXX Nuitka on Windows need the ".cmd" on Windows:
+        # https://github.com/Nuitka/Nuitka/issues/3173
+        # https://github.com/astral-sh/uv/issues/8770
+        # https://github.com/astral-sh/uv/pull/9099
         run: >
-          uv --no-progress run --frozen -- nuitka
-          --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
-          ${{ matrix.module_path }}
-      # XXX We need to call "uv run python -m nuitka" instead of "uv run nuitka" on Windows because of this bug:
-      # https://github.com/Nuitka/Nuitka/issues/3173
-      # https://github.com/astral-sh/uv/issues/8770
-      - name: Nuitka + compilers versions - Windows
-        if: runner.os == 'Windows'
-        run: |
-          uv --no-progress run --frozen -- python -m nuitka --version
-      - name: Build binary - Windows
-        if: runner.os == 'Windows'
-        env:
-          # Sets sys.flags.utf8_mode to True, which is like calling Python with the "-X utf8" parameter.
-          # This is a workaround for Windows runners, on redirecting the output of commands to files. See:
-          # https://github.com/databrickslabs/dbx/issues/455#issuecomment-1312770919
-          # https://github.com/pallets/click/issues/2121#issuecomment-1312773882
-          # https://gist.github.com/NodeJSmith/e7e37f2d3f162456869f015f842bcf15
-          # https://github.com/Nuitka/Nuitka/blob/ca1ec9e/nuitka/utils/ReExecute.py#L73-L74
-          PYTHONUTF8: 1
+          uv --no-progress run --frozen -- nuitka${{ runner.os == 'Windows' && '.cmd' || '' }}
+          --version
+      - name: Build binary
         run: >
-          uv --no-progress run --frozen -- python -m nuitka
+          uv --no-progress run --frozen -- nuitka${{ runner.os == 'Windows' && '.cmd' || '' }}
           --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries
