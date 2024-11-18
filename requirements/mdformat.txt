@@ -9,6 +9,8 @@ mdformat-config == 0.2.1
 # https://github.com/KyleKing/mdformat-admon/issues/15
 # mdformat_deflist == 0.X.X
 mdformat_deflist @ git+https://github.com/kdeldycke/mdformat-deflist.git@uncap-mdit-py-plugins-version
+# XXX mdformat-footnote is stripping trailing comments in footnotes. See:
+# https://github.com/executablebooks/mdformat-footnote/issues/11
 mdformat_footnote == 0.1.1
 mdformat_frontmatter == 2.0.8
 mdformat-gfm == 0.3.7
