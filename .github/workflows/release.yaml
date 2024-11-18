@@ -128,7 +128,7 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: actions/setup-python@v5.3.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml

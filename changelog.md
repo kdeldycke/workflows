@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Run Nuitka binary builds on Python 3.13.
+
 ## [4.7.2 (2024-11-10)](https://github.com/kdeldycke/workflows/compare/v4.7.1...v4.7.2)
 
 - Fix installation of `hub` on broken links job.
