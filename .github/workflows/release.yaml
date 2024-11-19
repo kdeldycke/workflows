@@ -6,6 +6,24 @@ name: Build & release
     secrets:
       PYPI_TOKEN:
         required: false
+    inputs:
+      binaries-test-plan:
+        description: Test plan for binaries
+        default: |
+          # Example of a test plan for a binary.
+          # Each line is a test, composed of CLI parameters.
+          # Empty lines and lines starting with "#" are ignored.
+
+          # Output the version of the CLI.
+          --version
+
+          # Test combination of version and verbosity.
+          --verbosity DEBUG --version
+
+          # Test help output.
+          --help
+        required: false
+        type: string
     outputs:
       nuitka_matrix:
         description: Nuitka build matrix
@@ -169,6 +187,45 @@ jobs:
           name: ${{ matrix.bin_name }}
           if-no-files-found: error
           path: ${{ matrix.bin_name }}
+
+  test-binaries:
+    needs:
+      - project-metadata
+      - compile-binaries
+    if: needs.project-metadata.outputs.nuitka_matrix && inputs.binaries-test-plan
+    strategy:
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4.1.8
+        id: artifacts
+        with:
+          name: ${{ matrix.bin_name }}
+      - name: Set binary permissions
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x ${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}
+      - name: Run tests
+        shell: python
+        run: |
+          import shlex
+          import subprocess
+          from pathlib import Path
+
+          bin_path = Path("${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}").resolve(strict=True)
+          assert bin_path.is_file()
+
+          test_plan = """${{ inputs.binaries-test-plan }}"""
+
+          for index, args in enumerate(test_plan.splitlines()):
+              args = args.strip()
+              if not args or args.startswith("#"):
+                  continue
+
+              cli = [str(bin_path)] + shlex.split(args)
+              print(f"\n\n======== Running test #{index}:\n=======> {' '.join(cli)}")
+              subprocess.run(cli, timeout=30, check=True)
 
   git-tag:
     name: Tag release
