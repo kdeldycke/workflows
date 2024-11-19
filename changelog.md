@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.8.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.7.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.8.0 (2024-11-19)](https://github.com/kdeldycke/workflows/compare/v4.7.2...v4.8.0)
 
 - Run Nuitka binary builds on Python 3.13.
 - Run a series of test calls on the binaries produced by the build job.
