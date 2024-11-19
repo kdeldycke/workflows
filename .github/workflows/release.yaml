@@ -233,7 +233,7 @@ jobs:
 
               cli = [str(bin_path)]
               if sys.platform == "win32":
-                  cli.append(params)
+                  cli.extend(params.split())
               else:
                   cli.extend(shlex.split(params))
 
