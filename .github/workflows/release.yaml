@@ -232,7 +232,8 @@ jobs:
 
               cli = [str(bin_path)] + (shlex.split(args) if sys.platform != 'win32' else [args])
               print(f"\n\n======== Running test #{index}:\n=======> {' '.join(cli)}")
-              subprocess.run(cli, timeout=30, check=True)
+              result = subprocess.run(cli, capture_output=True, timeout=30, check=True)
+              print(result.stdout)
 
   git-tag:
     name: Tag release
