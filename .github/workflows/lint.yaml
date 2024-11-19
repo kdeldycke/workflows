@@ -245,7 +245,7 @@ jobs:
           gh issue list
           --state open
           --author 'github-actions[bot]'
-          --json number,title,createdAt )"  >> "$GITHUB_OUTPUT"
+          --json number,title,createdAt )" >> "$GITHUB_OUTPUT"
       - name: Print open issues
         run: |
           echo '${{ steps.open_issues.outputs.issues }}'
