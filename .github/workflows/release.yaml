@@ -204,11 +204,11 @@ jobs:
           from pathlib import Path
 
           bin_path = (
-              Path("${{ steps.artifacts.outputs.download-path }}") / "${{ matrix.bin_name }}"
+              Path(r"${{ steps.artifacts.outputs.download-path }}") / r"${{ matrix.bin_name }}"
           ).resolve(strict=True)
           assert bin_path.is_file()
 
-          test_plan = """${{ inputs.binaries-test-plan }}""".strip()
+          test_plan = r"""${{ inputs.binaries-test-plan }}""".strip()
           if not test_plan:
               test_plan = dedent("""\
                   # Example of a test plan for a binary.
@@ -232,7 +232,7 @@ jobs:
 
               cli = [str(bin_path)] + (shlex.split(args) if sys.platform != 'win32' else [args])
               print(f"\n\n======== Running test #{index}:\n=======> {' '.join(cli)}")
-              result = subprocess.run(cli, capture_output=True, timeout=30, check=True)
+              result = subprocess.run(cli, capture_output=True, timeout=30, check=True, encoding="utf-8", text=True)
               print(result.stdout)
 
   git-tag:
