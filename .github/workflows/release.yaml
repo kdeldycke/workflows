@@ -246,10 +246,10 @@ jobs:
                       encoding="utf-8",
                       text=True
                   )
-              except SubprocessError, excpt:
-                  print(f"\n=== stdout ===\n{excpt.stdout}")
-                  print(f"\n=== stderr ===\n{excpt.stderr}")
-                  raise excpt
+              except SubprocessError as ex:
+                  print(f"\n=== stdout ===\n{ex.stdout}")
+                  print(f"\n=== stderr ===\n{ex.stderr}")
+                  raise ex
 
               print(result.stdout)
 
