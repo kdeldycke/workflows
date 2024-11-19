@@ -198,6 +198,7 @@ jobs:
         shell: python
         run: |
           import shlex
+          import sys
           import subprocess
           from textwrap import dedent
           from pathlib import Path
@@ -227,7 +228,7 @@ jobs:
               if not args or args.startswith("#"):
                   continue
 
-              cli = [str(bin_path)] + shlex.split(args)
+              cli = [str(bin_path)] + (shlex.split(args) if sys.platform != 'win32' else [args])
               print(f"\n\n======== Running test #{index}:\n=======> {' '.join(cli)}")
               subprocess.run(cli, timeout=30, check=True)
 
