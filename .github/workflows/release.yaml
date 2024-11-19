@@ -221,7 +221,7 @@ jobs:
 
                   # Test help output.
                   --help
-              """)
+                  """)
 
           for index, args in enumerate(test_plan.splitlines()):
               args = args.strip()
