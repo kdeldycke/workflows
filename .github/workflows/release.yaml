@@ -279,8 +279,9 @@ jobs:
         run: |
           echo "Does tag exist? ${{ steps.tag_exists.outputs.tag_exists && true || false }}"
       - name: Push tag
-        # If for whatever reason the workflow is re-run because it failed the first time, just
-        # skip the tag creation if it already exists.
+        # Skip the tag creation if it already exists instead of failing flat. This allows us to re-run the workflow if
+        # it was interrupted the first time. Which is really useful if the tagging fails during a release: we can
+        # simply push the new tag by hand and re-launch the workflow run.
         if: ${{ ! steps.tag_exists.outputs.tag_exists }}
         run: |
           git tag "v${{ matrix.current_version }}" "${{ matrix.commit }}"
