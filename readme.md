@@ -17,7 +17,7 @@ It takes care of:
 - Version bumping
 - Formatting autofix for: Python, Markdown, JSON, typos
 - Linting: Python types with `mypy`, YAML, `zsh`, GitHub actions, links, Awesome lists, secrets
-- Compiling of Python binaries for Linux / macOS / Windows on `x86_64`	& `arm64`
+- Compiling of Python binaries for Linux / macOS / Windows on `x86_64` & `arm64`
 - Building of Python packages and upload to PyPi
 - Git version tagging and GitHub release creation
 - Synchronization of: `uv.lock`, `.gitignore`, `.mailmap` and Mermaid dependency graph
