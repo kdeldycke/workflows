@@ -156,7 +156,7 @@ jobs:
           uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
         # yamllint enable
       - name: Nuitka + compilers versions
-        # XXX Nuitka on Windows need the ".cmd" on Windows:
+        # XXX Nuitka needs the ".cmd" extension on Windows:
         # https://github.com/Nuitka/Nuitka/issues/3173
         # https://github.com/astral-sh/uv/issues/8770
         # https://github.com/astral-sh/uv/pull/9099
