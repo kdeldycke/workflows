@@ -203,7 +203,9 @@ jobs:
           from textwrap import dedent
           from pathlib import Path
 
-          bin_path = Path("${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}").resolve(strict=True)
+          bin_path = (
+              Path("${{ steps.artifacts.outputs.download-path }}") / "${{ matrix.bin_name }}"
+          ).resolve(strict=True)
           assert bin_path.is_file()
 
           test_plan = """${{ inputs.binaries-test-plan }}""".strip()
