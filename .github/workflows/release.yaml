@@ -179,6 +179,12 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-24.04
+    # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
+    # any other workflows that use `on.push.tags` triggers. See:
+    # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
+    # https://github.com/orgs/community/discussions/27028
+    env:
+      GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -194,12 +200,9 @@ jobs:
         # If for whatever reason the workflow is re-run because it failed the first time, just
         # skip the tag creation if it already exists.
         if: ${{ ! steps.tag_exists.outputs.tag_exists }}
-        uses: tvdias/github-tagger@v0.0.2
-        with:
-          # XXX We need custom PAT with workflows permissions BECAUSE ??? in .github/workflows/*.yaml files.
-          repo-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-          tag: v${{ matrix.current_version }}
-          commit-sha: ${{ matrix.commit }}
+        run: |
+          git tag "v${{ matrix.current_version }}" "${{ matrix.commit }}"
+          git push origin "v${{ matrix.current_version }}"
 
   pypi-publish:
     name: Publish to PyPi
@@ -297,8 +300,11 @@ jobs:
           env_file.write_text(output)
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.1.0
+        # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
+        # any other workflows that use `on.push.tags` triggers. See:
+        # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
+        # https://github.com/orgs/community/discussions/27028
         env:
-          # XXX We need custom PAT with workflows permissions BECAUSE ??? in .github/workflows/*.yaml files.
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ matrix.current_version }}
