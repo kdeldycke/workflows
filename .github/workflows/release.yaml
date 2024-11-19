@@ -189,10 +189,11 @@ jobs:
           path: ${{ matrix.bin_name }}
 
   test-binaries:
+    name: Test binaries
     needs:
       - project-metadata
       - compile-binaries
-    if: needs.project-metadata.outputs.nuitka_matrix && inputs.binaries-test-plan
+    if: needs.project-metadata.outputs.nuitka_matrix
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
