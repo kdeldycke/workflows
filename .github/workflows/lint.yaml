@@ -236,76 +236,72 @@ jobs:
             --verbose
             --no-progress
             './**/*.md' './**/*.html' './**/*.rst'
-      - name: Install hub
-        run: |
-          sudo apt --quiet --yes update
-          sudo apt install --yes hub
       - name: List open issues
         id: open_issues
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
           echo "issues=$(
-          hub issue
+          gh issue list
           --state open
-          --creator "github-actions[bot]"
-          --format $'%I %t\t'
-          --sort created )" >> "$GITHUB_OUTPUT"
+          --author "github-actions[bot]"
+          --json number,title,createdAt >> "$GITHUB_OUTPUT"
       - name: Print open issues
         run: |
-          echo "Open issues: ${{ steps.open_issues.outputs.issues }}"
+          echo '${{ steps.open_issues.outputs.issues }}'
+          jq -aR <<< echo '${{ steps.open_issues.outputs.issues }}'
       - name: Filter issues
         id: issue_groups
         shell: python
         run: |
+          import json
           import os
+          from operator import itemgetter
           from pathlib import Path
 
           exit_code = """${{ steps.lychee_run.outputs.exit_code }}"""
           print(f"Lychee exit code: {exit_code!r}")
           broken_links_found = bool(int(exit_code))
           if broken_links_found:
-              print("Broken links found: create or update an issue.")
+              print("Broken links found: create a new issue or update the existing one.")
           else:
               print("No broken link found: close all open issues.")
 
-          open_issues = """${{ steps.open_issues.outputs.issues }}"""
+          open_issues = json.loads("""${{ steps.open_issues.outputs.issues }}""")
+          issue_to_update: int | None = None
+          issues_to_close: set[int] = set()
 
-          update_issue = ""
-          close_issues = set()
-
-          for entry in (e.strip() for e in open_issues.split("\t") if e.strip()):
-              print(f"Processing {entry!r} ...")
-              number, title = entry.split(" ", 1)
-              if title != "Broken links":
-                  print(f"{entry!r} is not a broken links issue, skip it.")
+          for issue in sorted(open_issues, key=itemgetter("createdAt"), reverse=True):
+              print(f"Processing {issue!r} ...")
+              if issue["title"] != "Broken links":
+                  print(f"{issue!r} is not a broken links issue, skip it.")
                   continue
-              if broken_links_found and not update_issue:
-                  print(f"Issue #{number} is the last open issue.")
-                  update_issue = number
+              if broken_links_found and not issue_to_update:
+                  print(f"{issue!r} is the most recent open issue.")
+                  issue_to_update = issue["number"]
               else:
-                  print(f"Issue #{number} is an old open issue.")
-                  close_issues.add(number)
+                  print(f"{issue!r} is an old open issue we have to close.")
+                  issues_to_close.add(issue["number"])
 
           output = f"broken_links_found={str(broken_links_found).lower()}\n"
-          output += f"update_issue={update_issue}\n"
-          output += f"close_issues={' '.join(close_issues)}\n"
+          output += f"issue_to_update={issue_to_update}\n"
+          output += f"issues_to_close={' '.join(issues_to_close)}\n"
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
       - name: Print issue groups
         run: |
           echo "Broken links found: ${{ steps.issue_groups.outputs.broken_links_found }}"
-          echo "Issue to update: ${{ steps.issue_groups.outputs.update_issue }}"
-          echo "Issues to close: ${{ steps.issue_groups.outputs.close_issues }}"
+          echo "Issue to update: ${{ steps.issue_groups.outputs.issue_to_update }}"
+          echo "Issues to close: ${{ steps.issue_groups.outputs.issues_to_close }}"
       - name: Close old issues
-        if: steps.issue_groups.outputs.close_issues
+        if: steps.issue_groups.outputs.issues_to_close
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NUMBER_LIST="${{ steps.issue_groups.outputs.close_issues }}"
+          NUMBER_LIST="${{ steps.issue_groups.outputs.issues_to_close }}"
           for number in $NUMBER_LIST; do
-              hub issue update "$number" --state closed;
+              gh issue close "$number" --comment "Superseded by #${{ steps.issue_groups.outputs.issue_to_update }}.";
           done
       - name: Get label
         if: fromJSON(steps.issue_groups.outputs.broken_links_found)
@@ -318,7 +314,7 @@ jobs:
         uses: peter-evans/create-issue-from-file@v5.0.1
         with:
           title: "Broken links"
-          issue-number: ${{ steps.issue_groups.outputs.update_issue }}
+          issue-number: ${{ steps.issue_groups.outputs.issue_to_update }}
           content-filepath: ./lychee/out.md
           labels: ${{ steps.get_label.outputs.label }}
 
