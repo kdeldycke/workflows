@@ -262,16 +262,15 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-24.04
-    # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
-    # any other workflows that use `on.push.tags` triggers. See:
-    # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
-    # https://github.com/orgs/community/discussions/27028
-    env:
-      GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4.2.2
         with:
           ref: ${{ matrix.commit }}
+          # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
+          # any other workflows that use `on.push.tags` triggers. See:
+          # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
+          # https://github.com/orgs/community/discussions/27028
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
       - name: Check if tag exists
         id: tag_exists
         run: |

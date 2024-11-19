@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix permissions for tagging in release workflow.
+
 ## [4.8.0 (2024-11-19)](https://github.com/kdeldycke/workflows/compare/v4.7.2...v4.8.0)
 
 - Run Nuitka binary builds on Python 3.13.
