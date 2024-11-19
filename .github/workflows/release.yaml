@@ -199,13 +199,12 @@ jobs:
         run: |
           import shlex
           import sys
-          import subprocess
+          from subprocess import run, SubprocessError
           from textwrap import dedent
           from pathlib import Path
 
-          bin_path = (
-              Path(r"${{ steps.artifacts.outputs.download-path }}") / r"${{ matrix.bin_name }}"
-          ).resolve(strict=True)
+          bin_name = r"${{ matrix.bin_name }}"
+          bin_path = (Path(r"${{ steps.artifacts.outputs.download-path }}") / bin_name).resolve(strict=True)
           assert bin_path.is_file()
 
           test_plan = r"""${{ inputs.binaries-test-plan }}""".strip()
@@ -225,14 +224,33 @@ jobs:
                   --help
                   """)
 
-          for index, args in enumerate(test_plan.splitlines()):
-              args = args.strip()
-              if not args or args.startswith("#"):
+          for index, params in enumerate(test_plan.splitlines()):
+              params = params.strip()
+              if not params or params.startswith("#"):
                   continue
 
-              cli = [str(bin_path)] + (shlex.split(args) if sys.platform != 'win32' else [args])
-              print(f"\n\n======== Running test #{index}:\n=======> {' '.join(cli)}")
-              result = subprocess.run(cli, capture_output=True, timeout=30, check=True, encoding="utf-8", text=True)
+              print(f"\n======== Test from line #{index + 1} ========\n$ {bin_name} {params}")
+
+              cli = [str(bin_path)]
+              if sys.platform == "win32":
+                  cli.append(params)
+              else:
+                  cli.extend(shlex.split(params))
+
+              try:
+                  result = run(
+                      cli,
+                      capture_output=True,
+                      timeout=30,
+                      check=True,
+                      encoding="utf-8",
+                      text=True
+                  )
+              except SubprocessError, excpt:
+                  print(f"\n=== stdout ===\n{excpt.stdout}")
+                  print(f"\n=== stderr ===\n{excpt.stderr}")
+                  raise excpt
+
               print(result.stdout)
 
   git-tag:
