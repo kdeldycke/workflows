@@ -9,19 +9,6 @@ name: Build & release
     inputs:
       binaries-test-plan:
         description: Test plan for binaries
-        default: |
-          # Example of a test plan for a binary.
-          # Each line is a test, composed of CLI parameters.
-          # Empty lines and lines starting with "#" are ignored.
-
-          # Output the version of the CLI.
-          --version
-
-          # Test combination of version and verbosity.
-          --verbosity DEBUG --version
-
-          # Test help output.
-          --help
         required: false
         type: string
     outputs:
@@ -212,12 +199,28 @@ jobs:
         run: |
           import shlex
           import subprocess
+          from textwrap import dedent
           from pathlib import Path
 
           bin_path = Path("${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}").resolve(strict=True)
           assert bin_path.is_file()
 
-          test_plan = """${{ inputs.binaries-test-plan }}"""
+          test_plan = """${{ inputs.binaries-test-plan }}""".strip()
+          if not test_plan:
+              test_plan = dedent("""\
+                  # Example of a test plan for a binary.
+                  # Each line is a test, composed of CLI parameters.
+                  # Empty lines and lines starting with "#" are ignored.
+
+                  # Output the version of the CLI.
+                  --version
+
+                  # Test combination of version and verbosity.
+                  --verbosity DEBUG --version
+
+                  # Test help output.
+                  --help
+              """)
 
           for index, args in enumerate(test_plan.splitlines()):
               args = args.strip()
