@@ -63,11 +63,11 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install gha-utils
         run: >
           uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.0/requirements/gha-utils.txt gha-utils
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt gha-utils
       - name: Project metadata
         id: project-metadata
         env:
@@ -97,12 +97,12 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install build dependencies
         run: |
           uv --no-progress venv
           uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.0/requirements/build.txt
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package
         run: |
           uv --no-progress build
@@ -141,7 +141,7 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install Nuitka
         # XXX We cannot break the long "pip install" line below with a class "\" because it will not be able to run on
         # Windows' shell:
@@ -153,7 +153,7 @@ jobs:
         # yamllint disable rule:line-length
         run: |
           uv --no-progress venv
-          uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.0/requirements/nuitka.txt
+          uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
         # yamllint enable
       - name: Nuitka + compilers versions
         # XXX Nuitka on Windows need the ".cmd" on Windows:
@@ -300,7 +300,7 @@ jobs:
     steps:
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Download build artifacts
         uses: actions/download-artifact@v4.1.8
         id: download
