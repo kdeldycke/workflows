@@ -11,6 +11,10 @@ name: Build & release
         description: Test plan for binaries
         required: false
         type: string
+      timeout:
+        description: Timeout in seconds for each binary test
+        required: false
+        type: number
     outputs:
       nuitka_matrix:
         description: Nuitka build matrix
@@ -203,10 +207,7 @@ jobs:
           from textwrap import dedent
           from pathlib import Path
 
-          bin_name = r"${{ matrix.bin_name }}"
-          bin_path = (Path(r"${{ steps.artifacts.outputs.download-path }}") / bin_name).resolve(strict=True)
-          assert bin_path.is_file()
-
+          # Load test plan from workflow input, or use a default one.
           test_plan = r"""${{ inputs.binaries-test-plan }}""".strip()
           if not test_plan:
               test_plan = dedent("""\
@@ -224,6 +225,20 @@ jobs:
                   --help
                   """)
 
+          # Load timeout from workflow input, or use a default one.
+          timeout = r"${{ matrix.bin_name }}"
+          assert timeout.isdigit()
+          timeout = int(timeout)
+          if not timeout:
+              timeout = 60
+          assert timeout > 0
+
+          # Resolve binary path.
+          bin_name = r"${{ matrix.bin_name }}"
+          bin_path = (Path(r"${{ steps.artifacts.outputs.download-path }}") / bin_name).resolve(strict=True)
+          assert bin_path.is_file()
+
+          # Run tests.
           for index, params in enumerate(test_plan.splitlines()):
               params = params.strip()
               if not params or params.startswith("#"):
@@ -241,7 +256,7 @@ jobs:
                   result = run(
                       cli,
                       capture_output=True,
-                      timeout=30,
+                      timeout=timeout,
                       check=True,
                       encoding="utf-8",
                       text=True
