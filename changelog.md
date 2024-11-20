@@ -6,7 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Fix parsing of default timeout.
-- Do not force encoding when runnning CLI in binary test job.
+- Do not force encoding when running CLI in binary test job.
 
 ## [4.8.2 (2024-11-20)](https://github.com/kdeldycke/workflows/compare/v4.8.1...v4.8.2)
 
