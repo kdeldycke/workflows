@@ -227,12 +227,13 @@ jobs:
                   """)
 
           # Load timeout from workflow input, or use a default one.
-          timeout = r"${{ matrix.bin_name }}"
-          assert timeout.isdigit()
-          timeout = int(timeout)
-          if not timeout:
+          timeout = r"${{ matrix.bin_name }}".strip()
+          if timeout:
+              assert timeout.isdigit()
+              timeout = int(timeout)
+              assert timeout > 0
+          else:
               timeout = 60
-          assert timeout > 0
 
           # Resolve binary path.
           bin_name = r"${{ matrix.bin_name }}"
