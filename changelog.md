@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Add a `timeout` parameter to release workflow test execution.
+- Valides `uv.lock` file on package build.
 
 ## [4.8.1 (2024-11-19)](https://github.com/kdeldycke/workflows/compare/v4.8.0...v4.8.1)
 
