@@ -1,18 +1,18 @@
 flowchart TD
     classDef missing stroke-dasharray: 5
     annotated-types["annotated-types\n0.7.0"]
-    boltons["boltons\n24.0.0"]
+    boltons["boltons\n24.1.0"]
     bracex["bracex\n2.5.post1"]
     bump-my-version["bump-my-version\n0.28.1"]
     certifi["certifi\n2024.8.30"]
     charset-normalizer["charset-normalizer\n3.4.0"]
-    click-extra["click-extra\n4.11.1"]
+    click-extra["click-extra\n4.11.5"]
     click_0["click\n8.1.7"]
     cloup["cloup\n3.0.5"]
     commentjson["commentjson\n0.9.0"]
     distro["distro\n1.9.0"]
-    extra-platforms["extra-platforms\n1.4.0"]
-    gha-utils["gha-utils\n4.7.2"]
+    extra-platforms["extra-platforms\n1.6.0"]
+    gha-utils["gha-utils\n4.8.3"]
     gitdb["gitdb\n4.0.11"]
     gitpython["GitPython\n3.1.43"]
     idna["idna\n3.10"]
@@ -34,7 +34,7 @@ flowchart TD
     pyyaml["PyYAML\n6.0.2"]
     questionary["questionary\n2.0.1"]
     requests["requests\n2.32.3"]
-    rich-click["rich-click\n1.8.3"]
+    rich-click["rich-click\n1.8.4"]
     rich["rich\n13.9.4"]
     smmap["smmap\n5.0.1"]
     tabulate["tabulate\n0.9.0"]
@@ -57,17 +57,17 @@ flowchart TD
     click-extra -- "~=0.9" --> tabulate
     click-extra -- "~=0.9.0" --> commentjson
     click-extra -- "~=1.3.4" --> mergedeep
-    click-extra -- "~=1.4.0" --> extra-platforms
+    click-extra -- "~=1.6.0" --> extra-platforms
     click-extra -- "~=10.0" --> wcmatch
     click-extra -- "~=2.32.3" --> requests
-    click-extra -- "~=24.0.0" --> boltons
+    click-extra -- "~=24.1.0" --> boltons
     click-extra -- "~=3.0.5" --> cloup
     click-extra -- "~=6.0.0" --> pyyaml
     click-extra -- "~=8.1.4" --> click_0
     cloup -- ">=8.0,<9.0" --> click_0
     commentjson -- ">=0.7.1,<0.8.0" --> lark-parser
     extra-platforms -- "~=1.9.0" --> distro
-    extra-platforms -- "~=24.0.0" --> boltons
+    extra-platforms -- "~=24.1.0" --> boltons
     gha-utils -- ">=0.21.0" --> bump-my-version
     gha-utils -- ">=24.0.0" --> boltons
     gha-utils -- ">=8.5" --> wcmatch
@@ -99,7 +99,7 @@ flowchart TD
     rich -- ">=2.13.0,<3.0.0" --> pygments
     rich -- ">=2.2.0" --> markdown-it-py
     rich-click -- ">=10.7" --> rich
+    rich-click -- ">=4" --> typing-extensions
     rich-click -- ">=7" --> click_0
-    rich-click -- "any" --> typing-extensions
     wcmatch -- ">=2.1.1" --> bracex
 
