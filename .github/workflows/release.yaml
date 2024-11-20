@@ -230,9 +230,10 @@ jobs:
           if timeout:
               assert timeout.isdigit()
               timeout = int(timeout)
-              assert timeout > 0
-          else:
+          if not timeout:
               timeout = 60
+          else:
+              assert timeout > 0
 
           # Resolve binary path.
           bin_name = r"${{ matrix.bin_name }}"

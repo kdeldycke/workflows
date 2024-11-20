@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix parsing of default timeout.
+
 ## [4.8.2 (2024-11-20)](https://github.com/kdeldycke/workflows/compare/v4.8.1...v4.8.2)
 
 - Add a `timeout` parameter to release workflow test execution.
