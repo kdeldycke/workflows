@@ -122,7 +122,6 @@ jobs:
         run: |
           uv --no-progress run --frozen -- twine check ./dist/*
           uv --no-progress run --frozen -- check-wheel-contents ./dist/*.whl
-          uv --no-progress lock --locked
 
   compile-binaries:
     name: "Nuitka: generate binaries"
