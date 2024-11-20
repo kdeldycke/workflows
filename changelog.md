@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.8.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.8.3...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.8.3 (2024-11-20)](https://github.com/kdeldycke/workflows/compare/v4.8.2...v4.8.3)
 
 - Fix parsing of default timeout.
