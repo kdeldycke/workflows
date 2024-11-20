@@ -227,7 +227,7 @@ jobs:
                   """)
 
           # Load timeout from workflow input, or use a default one.
-          timeout = r"${{ matrix.bin_name }}".strip()
+          timeout = r"${{ inputs.timeout }}".strip()
           if timeout:
               assert timeout.isdigit()
               timeout = int(timeout)
