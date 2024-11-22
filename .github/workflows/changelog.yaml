@@ -43,11 +43,11 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.4/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install bump-my-version
         run: >
           uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.4/requirements/bump-my-version.txt bump-my-version
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/bump-my-version.txt bump-my-version
       - name: ${{ matrix.part }} version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
@@ -120,13 +120,13 @@ jobs:
             requirements/*.txt
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.4/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install bump-my-version and gha-utils
         run: |
           uv tool install --with-requirements \
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.4/requirements/bump-my-version.txt bump-my-version
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/bump-my-version.txt bump-my-version
           uv tool install --with-requirements \
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.8.4/requirements/gha-utils.txt gha-utils
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt gha-utils
       - name: Extract version
         id: get_version
         run: |
