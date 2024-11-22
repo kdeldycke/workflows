@@ -258,6 +258,7 @@ jobs:
                   result = run(
                       cli,
                       capture_output=True,
+                      shell=True,
                       timeout=timeout,
                       check=True,
                       # XXX Do not force encoding to let CLIs figure out by themselves the contextual encoding to use.
