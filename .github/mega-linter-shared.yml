@@ -187,4 +187,3 @@ SHOW_ELAPSED_TIME: true # default: false
 #
 # cspell:ignore CHECKMAKE, HADOLINT, HEALTHCHECK, MARKDOWNLINT, markdownlint
 # cspell:ignore MYPY, mypy, PYRIGHT, pyright, pyrightconfig
-
