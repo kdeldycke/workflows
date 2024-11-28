@@ -80,6 +80,7 @@ enableFiletypes:
   - 'shellscript'
   - 'sql'
   - '!svelte'
+# Check filenames that begin with a period:
 enableGlobDot: true
 ignorePaths:
   - '**/.git/**'
