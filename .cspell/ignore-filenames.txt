@@ -1,0 +1,17 @@
+## cSpell:disable
+##  ~/.cspell/ignore-filenames.txt
+## Auto-generated cSpell dictionary of filenames to assume are correctly spelled
+## See https://cspell.org/docs/dictionaries-custom/
+##
+
+ecrc
+golangci
+grype
+jsonlintrc
+markdownlint
+mdformat
+nuitka
+pydeps
+pylintrc
+rasa
+textlintrc
