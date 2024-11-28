@@ -1,0 +1,174 @@
+---
+# Copied from: rasa/dotfiles/.github/workflows/clean-logs.yml
+# EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
+# $schema https://json.schemastore.org/github-workflow.json
+# yamllint disable rule:line-length
+# checkov:skip=CKV_GHA_7:The build output cannot be affected by user parameters
+#   other than the build entry point and the top-level source location.
+#   GitHub Actions workflow_dispatch inputs MUST be empty.
+
+name: clean-workflows
+
+on: # yamllint disable-line rule:truthy
+  schedule:
+  # runs at 20:02 UTC (12:02 PST) every day.
+  - cron: "02 20 * * *"
+  #        ┬  ┬  ┬  ┬  ┬                               # *    : run every 5 min/every 1 hour/every 1 day/every 1 mon
+  #        │  │  │  │  └─ day of week (0-6 or SUN-SAT) # */X  : run every X min/every X hour/every X day/every X mon
+  #        │  │  │  └──── month (1-12 or JAN-DEC)      # A,B  : run when min/hour/day/mon = A or B
+  #        │  │  └─────── day of month (1-31)          # A-B  : run every min/hour/day/mon between A and B
+  #        │  └────────── hour (0-23) (UTC/GMT+0 time) # A-B/X: run every X min/hour/day/mon between A and B
+  #        └───────────── minute (0-59)                # Ex: '0 9-17/2 * * 1-5' : 9/11/1/3/5 on Mon/Tue/Wed/Thu/Fri
+  workflow_call: # Required so this workflow can be called from another workflow
+    inputs:
+      retain_days:
+        default: "30"
+        type: string
+      keep_minimum_runs:
+        default: "6"
+        type: string
+      delete_workflow_pattern:
+        type: string
+      delete_workflow_by_state_pattern:
+        default: ALL
+        type: string
+      delete_run_by_conclusion_pattern:
+        default: ALL
+        type: string
+      dry_run:
+        type: boolean
+      check_branch_existence:
+        default: "Keep"
+        type: string
+      check_pullrequest_exist:
+        default: "Keep"
+        type: string
+      repository:
+        type: string
+
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+    inputs:
+      # checkov:skip=CKV_GHA_7
+      retain_days:
+        description: Days to keep
+        # Days-worth of runs to keep for each workflow
+        required: true
+        default: "30"
+      # checkov:skip=CKV_GHA_7
+      keep_minimum_runs:
+        description: Runs to keep
+        # Minimum runs to keep for each workflow
+        required: true
+        default: "6"
+      # checkov:skip=CKV_GHA_7
+      delete_workflow_pattern:
+        description: "Workflow name/filename (optional)"
+        # Name or filename of the workflow (if not set, all workflows are targeted)
+      # checkov:skip=CKV_GHA_7
+      delete_workflow_by_state_pattern:
+        description: State to clean
+        # "Filter workflows by state: active, deleted, disabled_fork, disabled_inactivity, disabled_manually"
+        required: true
+        default: ALL
+        type: choice
+        options:
+          - ALL
+          - active
+          - deleted
+          - disabled_inactivity
+          - disabled_manually
+      # checkov:skip=CKV_GHA_7
+      delete_run_by_conclusion_pattern:
+        description: Conclusion to clean
+        # "Remove runs based on conclusion: action_required, cancelled, failure, skipped, success"
+        required: true
+        default: ALL
+        type: choice
+        options:
+          - ALL
+          - "Unsuccessful: action_required,cancelled,failure,skipped"
+          - action_required
+          - cancelled
+          - failure
+          - skipped
+          - success
+      # checkov:skip=CKV_GHA_7
+      dry_run:
+        description: Dry run only
+        type: boolean
+      # checkov:skip=CKV_GHA_7
+      check_branch_existence:
+        description: Existing branch workflows
+        # If the workflow was triggered by a branch, the branch must be deleted before the workflow run is deleted as well.
+        default: "Keep"
+        type: choice
+        options:
+          - "Keep"
+          - "Remove"
+      # checkov:skip=CKV_GHA_7
+      check_pullrequest_exist:
+        description: Active PR workflows
+        # If the run is linked to a pull request, the deletion is skipped.
+        default: "Keep"
+        type: choice
+        options:
+          - "Keep"
+          - "Remove"
+      # checkov:skip=CKV_GHA_7
+      repository:
+        description: Repository (user/repo) (optional)
+        # (default is current repository).
+        type: string
+        default: ""
+
+concurrency:
+  # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits.
+  # Source: https://mail.python.org/archives/list/pypa-committers@python.org/thread/PCBCQMJF64JGRBOX7E2EE4YLKHT4DI55/
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+
+permissions: write-all
+
+jobs:
+  clean-logs:
+    runs-on: ubuntu-24.04
+    steps:
+      # Was crazy-max/ghaction-dump-context@v2.1.0
+      # but it reports a deprecation error:
+      # Node.js 16 actions are deprecated. Please update the following actions to use Node.js 20: actions/github-script@v6.
+      # - name: rasa/ghaction-dump-context@master
+      #   uses: rasa/ghaction-dump-context@master
+      - name: USES crazy-max/ghaction-dump-context@v2.3.0
+        uses: crazy-max/ghaction-dump-context@v2.3.0
+
+      - name: Scheduled run (github.event_name == 'schedule')
+        if: github.event_name == 'schedule'
+        # was Mattraks/delete-workflow-runs@main
+        uses: rasa/delete-workflow-runs@main
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          retain_days: "30" # default: 30
+          keep_minimum_runs: "6" # default: 6
+          check_branch_existence: "Keep" # default: Keep
+          check_pullrequest_exist: "Keep" # default: Keep
+
+      - name: Non-scheduled run (github.event_name != 'schedule')
+        if: github.event_name != 'schedule'
+        # was Mattraks/delete-workflow-runs@main
+        uses: rasa/delete-workflow-runs@main
+        with:
+          repository: ${{ github.event.inputs.repository || github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          retain_days: ${{ github.event.inputs.retain_days }}
+          keep_minimum_runs: ${{ github.event.inputs.keep_minimum_runs }}
+          delete_workflow_pattern: ${{ github.event.inputs.delete_workflow_pattern }}
+          delete_workflow_by_state_pattern: ${{ github.event.inputs.delete_workflow_by_state_pattern }}
+          delete_run_by_conclusion_pattern: ${{
+              startsWith(github.event.inputs.delete_run_by_conclusion_pattern, 'Unsuccessful:')
+              && 'action_required,cancelled,failure,skipped'
+              || github.event.inputs.delete_run_by_conclusion_pattern
+            }}
+          check_branch_existence: ${{ github.event.inputs.check_branch_existence   == 'Keep' && 'true' || null }}
+          check_pullrequest_exist: ${{ github.event.inputs.check_pullrequest_exist == 'Keep' && 'true' || null }}
+          dry_run: ${{ github.event.inputs.dry_run == true && 'true' || null }}
+
