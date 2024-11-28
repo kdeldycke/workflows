@@ -26,5 +26,3 @@
     '''(?i)(.*?)(png|jpg|gif|doc|docx|pdf|bin|xls|pyc|zip)$''',
     '''(?i)\.(jpeg|xlsx)$''',
     ]
-
-

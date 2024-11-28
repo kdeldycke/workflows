@@ -17,5 +17,3 @@ trailingComma: "es5" # default: all
 # semi: false          # default: true
 # singleQuote: true    # default: false
 # tabWidth: 4          # default: 2
-
-

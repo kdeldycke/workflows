@@ -33,4 +33,3 @@ disable=import-error, E0401,
 
 [REPORTS]
 score=no
-
