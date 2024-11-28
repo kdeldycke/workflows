@@ -1,0 +1,8 @@
+---
+# Copied from: rasa/dotfiles/.github/linters/actionlint.yml
+# EDIT THE ABOVE FILE OR YOUR CHANGES WILL BE LOST!
+
+# https://github.com/rhysd/actionlint/issues/424#issuecomment-2110743431
+self-hosted-runner:
+  labels:
+    - ubuntu-24.04

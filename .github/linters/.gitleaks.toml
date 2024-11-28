@@ -1,0 +1,30 @@
+# ~/.github/linters/.gitleaks.toml
+# Copied from: rasa/dotfiles/.github/linters/.gitleaks.toml
+# EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
+# Docs: https://github.com/gitleaks/gitleaks/blob/master/README.md
+# ML:   https://megalinter.io/latest/descriptors/repository_gitleaks/#gitleaks-documentation
+# MLT:  https://github.com/oxsecurity/megalinter/blob/main/TEMPLATES/.gitleaks.toml
+
+[extend]
+    # useDefault will extend the base configuration with the default gitleaks config:
+    # https://github.com/zricethezav/gitleaks/blob/master/config/gitleaks.toml
+    useDefault = true
+
+[allowlist]
+    description = "Global list of allowed files"
+    paths = [
+    # from https://github.com/oxsecurity/megalinter/blob/main/TEMPLATES/.gitleaks.toml :
+    '''.automation/test''',
+    '''megalinter-reports''',
+    '''.github/linters''',
+    '''node_modules''',
+    '''.mypy_cache''',
+    '''(.*?)gitleaks\.toml$''',
+    '''(.*?)(png|jpg|gif|doc|docx|pdf|bin|xls|pyc|zip)$''',
+    '''(go.mod|go.sum)$''',
+    # added by @rasa:
+    '''(?i)(.*?)(png|jpg|gif|doc|docx|pdf|bin|xls|pyc|zip)$''',
+    '''(?i)\.(jpeg|xlsx)$''',
+    ]
+
+
