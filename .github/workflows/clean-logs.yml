@@ -171,4 +171,3 @@ jobs:
           check_branch_existence: ${{ github.event.inputs.check_branch_existence   == 'Keep' && 'true' || null }}
           check_pullrequest_exist: ${{ github.event.inputs.check_pullrequest_exist == 'Keep' && 'true' || null }}
           dry_run: ${{ github.event.inputs.dry_run == true && 'true' || null }}
-
