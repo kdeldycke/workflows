@@ -13,212 +13,104 @@
 ## whenever this file is regenerated.
 ##
 
-admon           #  8 hits in  2 files
-apdisk          #  2 hits in  1 file: .gitignore
-artefacts       #  2 hits in  1 file: changelog.md
-asottile        #  2 hits in  1 file: changelog.md
-calibreapp      #  4 hits in  1 file: changelog.md
-celerybeat      #  4 hits in  1 file: .gitignore
-cloup           #  8 hits in  1 file: docs/assets/dependencies.mmd
-Connor          #  2 hits in  1 file: .gitignore
-constributors   #  2 hits in  1 file: gha_utils/mailmap.py
-cripts          #  2 hits in  1 file: .gitignore
-Deldycke        # 24 hits in 10 files
-dmypy           #  4 hits in  1 file: .gitignore
-donotpresent    #  2 hits in  1 file: .gitignore
-ehthumbs        #  4 hits in  1 file: .gitignore
-elpa            #  4 hits in  1 file: .gitignore
-encryptable     #  2 hits in  1 file: .gitignore
-eshell          #  6 hits in  1 file: .gitignore
-esktop          #  2 hits in  1 file: .gitignore
-executablebooks #  2 hits in  1 file: changelog.md
-Flycheck        #  2 hits in  1 file: .gitignore
-flycheck        #  2 hits in  1 file: .gitignore
-flymake         #  4 hits in  1 file: .gitignore
-frontmatter     #  2 hits in  1 file: requirements/mdformat.txt
-fseventsd       #  2 hits in  1 file: .gitignore
-ghadelimiter    #  2 hits in  1 file: gha_utils/metadata.py
-Gnomovision     #  6 hits in  1 file: license
-gollum          #  2 hits in  1 file: gha_utils/metadata.py
-hexsha          #  2 hits in  1 file: gha_utils/metadata.py
-htmlcov         #  2 hits in  1 file: .gitignore
-icns            #  2 hits in  1 file: .gitignore
-ionide          #  2 hits in  1 file: .gitignore
-ipynb           #  2 hits in  1 file: .gitignore
-jsonlint        #  2 hits in  1 file: changelog.md
-julb            #  4 hits in  1 file: changelog.md
-junitxml        #  2 hits in  1 file: pyproject.toml
-kdeldycke       #  6 hits in  1 file: .mailmap
-mdedup          #  8 hits in  1 file: gha_utils/metadata.py
-mergetool       #  2 hits in  1 file: .gitignore
-msix            #  2 hits in  1 file: .gitignore
-nclude          #  2 hits in  1 file: .gitignore
-netrwhist       #  2 hits in  1 file: .gitignore
-Nohup           #  2 hits in  1 file: .gitignore
-nohup           #  2 hits in  1 file: .gitignore
-nosetests       #  2 hits in  1 file: .gitignore
-ocal            #  2 hits in  1 file: .gitignore
-oneliners       #  2 hits in  1 file: changelog.md
-Optimised       #  2 hits in  1 file: readme.md
-pybuilder       #  2 hits in  1 file: .gitignore
-pycln           #  6 hits in  1 file: changelog.md
-pydriller       # 12 hits in  2 files
-pypa            #  2 hits in  1 file: .gitignore
-pyupgrade       # 10 hits in  1 file: changelog.md
-pyvenv          #  2 hits in  1 file: .gitignore
-reftex          #  2 hits in  1 file: .gitignore
-retargeting     #  2 hits in  1 file: changelog.md
-seealso         #  2 hits in  1 file: gha_utils/metadata.py
-Sessionx        #  2 hits in  1 file: .gitignore
-Spyder          #  2 hits in  1 file: .gitignore
-spyderproject   #  2 hits in  1 file: .gitignore
-spyproject      #  2 hits in  1 file: .gitignore
-Tabler          #  2 hits in  1 file: readme.md
-timemachine     #  2 hits in  1 file: .gitignore
-typeshed        #  2 hits in  1 file: changelog.md
-webassets       #  2 hits in  1 file: .gitignore
-ycombinator     #  2 hits in  1 file: changelog.md
-Yoyodyne        #  2 hits in  1 file: license
-# admon          :  8 hits in  2 files
-#   changelog.md: 4 hits
-#   requirements/mdformat.txt: 4 hits
-# apdisk         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# artefacts      :  2 hits in  1 file
-#   changelog.md: 2 hits
-# asottile       :  2 hits in  1 file
-#   changelog.md: 2 hits
-# calibreapp     :  4 hits in  1 file
-#   changelog.md: 4 hits
-# celerybeat     :  4 hits in  1 file
-#   .gitignore: 4 hits
-# cloup          :  8 hits in  1 file
-#   docs/assets/dependencies.mmd: 8 hits
-# Connor         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# constributors  :  2 hits in  1 file
-#   gha_utils/mailmap.py: 2 hits
-# cripts         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# Deldycke       : 24 hits in 10 files
-#   .mailmap: 6 hits
-#   gha_utils/__init__.py: 2 hits
-#   gha_utils/__main__.py: 2 hits
-#   gha_utils/changelog.py: 2 hits
-#   gha_utils/cli.py: 2 hits
-#   gha_utils/mailmap.py: 2 hits
-#   gha_utils/metadata.py: 2 hits
-#   pyproject.toml: 2 hits
-#   tests/__init__.py: 2 hits
-#   tests/test_changelog.py: 2 hits
-# dmypy          :  4 hits in  1 file
-#   .gitignore: 4 hits
-# donotpresent   :  2 hits in  1 file
-#   .gitignore: 2 hits
-# ehthumbs       :  4 hits in  1 file
-#   .gitignore: 4 hits
-# elpa           :  4 hits in  1 file
-#   .gitignore: 4 hits
-# encryptable    :  2 hits in  1 file
-#   .gitignore: 2 hits
-# eshell         :  6 hits in  1 file
-#   .gitignore: 6 hits
-# esktop         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# executablebooks:  2 hits in  1 file
-#   changelog.md: 2 hits
-# Flycheck       :  2 hits in  1 file
-#   .gitignore: 2 hits
-# flycheck       :  2 hits in  1 file
-#   .gitignore: 2 hits
-# flymake        :  4 hits in  1 file
-#   .gitignore: 4 hits
-# frontmatter    :  2 hits in  1 file
-#   requirements/mdformat.txt: 2 hits
-# fseventsd      :  2 hits in  1 file
-#   .gitignore: 2 hits
-# ghadelimiter   :  2 hits in  1 file
-#   gha_utils/metadata.py: 2 hits
-# Gnomovision    :  6 hits in  1 file
-#   license: 6 hits
-# gollum         :  2 hits in  1 file
-#   gha_utils/metadata.py: 2 hits
-# hexsha         :  2 hits in  1 file
-#   gha_utils/metadata.py: 2 hits
-# htmlcov        :  2 hits in  1 file
-#   .gitignore: 2 hits
-# icns           :  2 hits in  1 file
-#   .gitignore: 2 hits
-# ionide         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# ipynb          :  2 hits in  1 file
-#   .gitignore: 2 hits
-# jsonlint       :  2 hits in  1 file
-#   changelog.md: 2 hits
-# julb           :  4 hits in  1 file
-#   changelog.md: 4 hits
-# junitxml       :  2 hits in  1 file
-#   pyproject.toml: 2 hits
-# kdeldycke      :  6 hits in  1 file
-#   .mailmap: 6 hits
-# mdedup         :  8 hits in  1 file
-#   gha_utils/metadata.py: 8 hits
-# mergetool      :  2 hits in  1 file
-#   .gitignore: 2 hits
-# msix           :  2 hits in  1 file
-#   .gitignore: 2 hits
-# nclude         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# netrwhist      :  2 hits in  1 file
-#   .gitignore: 2 hits
-# Nohup          :  2 hits in  1 file
-#   .gitignore: 2 hits
-# nohup          :  2 hits in  1 file
-#   .gitignore: 2 hits
-# nosetests      :  2 hits in  1 file
-#   .gitignore: 2 hits
-# ocal           :  2 hits in  1 file
-#   .gitignore: 2 hits
-# oneliners      :  2 hits in  1 file
-#   changelog.md: 2 hits
-# Optimised      :  2 hits in  1 file
-#   readme.md: 2 hits
-# pybuilder      :  2 hits in  1 file
-#   .gitignore: 2 hits
-# pycln          :  6 hits in  1 file
-#   changelog.md: 6 hits
-# pydriller      : 12 hits in  2 files
-#   docs/assets/dependencies.mmd: 10 hits
-#   gha_utils/metadata.py: 2 hits
-# pypa           :  2 hits in  1 file
-#   .gitignore: 2 hits
-# pyupgrade      : 10 hits in  1 file
-#   changelog.md: 10 hits
-# pyvenv         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# reftex         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# retargeting    :  2 hits in  1 file
-#   changelog.md: 2 hits
-# seealso        :  2 hits in  1 file
-#   gha_utils/metadata.py: 2 hits
-# Sessionx       :  2 hits in  1 file
-#   .gitignore: 2 hits
-# Spyder         :  2 hits in  1 file
-#   .gitignore: 2 hits
-# spyderproject  :  2 hits in  1 file
-#   .gitignore: 2 hits
-# spyproject     :  2 hits in  1 file
-#   .gitignore: 2 hits
-# Tabler         :  2 hits in  1 file
-#   readme.md: 2 hits
-# timemachine    :  2 hits in  1 file
-#   .gitignore: 2 hits
-# typeshed       :  2 hits in  1 file
-#   changelog.md: 2 hits
-# webassets      :  2 hits in  1 file
-#   .gitignore: 2 hits
-# ycombinator    :  2 hits in  1 file
-#   changelog.md: 2 hits
-# Yoyodyne       :  2 hits in  1 file
-#   license: 2 hits
+admon
+apdisk
+artefacts
+asottile
+Augustin
+bbwe
+calibreapp
+celerybeat
+choco
+cloup
+commitish
+Connor
+constributors
+cripts
+Deldycke
+dessant
+DEVSKIM
+dmypy
+donotpresent
+ehthumbs
+elpa
+encryptable
+errorf
+eshell
+esktop
+Etco
+executablebooks
+Flycheck
+flycheck
+flymake
+frontmatter
+fseventsd
+ghaction
+ghadelimiter
+Gnomovision
+gocritic
+gofmt
+gollum
+gosimple
+GOTOOLCHAIN
+govet
+hexsha
+htmlcov
+icns
+ineffassign
+innounp
+ionide
+ipynb
+Joblint
+JSONLINT
+jsonlint
+julb
+junitxml
+kdeldycke
+KICS
+lessmsi
+lycheeverse
+Mattraks
+mdedup
+mergetool
+Minoru
+msix
+msixbundle
+nclude
+netrwhist
+nohup
+Nohup
+norc
+nosetests
+ocal
+oneliners
+Optimised
+peaceiris
+pybuilder
+pycln
+pydriller
+pylints
+pypa
+pyupgrade
+pyvenv
+randonmly
+rcfile
+reftex
+retargeting
+seealso
+Sekine
+Sessionx
+Spyder
+spyderproject
+spyproject
+stefanzweifel
+Tabler
+timemachine
+TRUFFLEHOG
+typeshed
+visualstudiocode
+webassets
+wekyb
+xlarge
+ycombinator
+Yoyodyne
