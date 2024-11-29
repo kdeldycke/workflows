@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Move coverage configuration to pytest invocation.
+
 ## [4.8.4 (2024-11-22)](https://github.com/kdeldycke/workflows/compare/v4.8.3...v4.8.4)
 
 - Run binaries tests into a shell subprocess.
