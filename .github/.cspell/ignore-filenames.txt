@@ -12,6 +12,5 @@ jsonlintrc
 markdownlint
 pydeps
 pylintrc
-rasa
 regen
 textlintrc
