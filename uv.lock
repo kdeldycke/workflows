@@ -148,13 +148,12 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "4.11.5"
+version = "4.11.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },
     { name = "cloup" },
-    { name = "commentjson" },
     { name = "extra-platforms" },
     { name = "mergedeep" },
     { name = "pyyaml" },
@@ -164,9 +163,9 @@ dependencies = [
     { name = "wcmatch" },
     { name = "xmltodict" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6b/95/91202f785473dbd40af553f669921911159eb9bd433e2ef6d9140faa5c61/click_extra-4.11.5.tar.gz", hash = "sha256:cab14bd14e7173ab335b08d37bd0ff31175bc4d3f1cb8b701683211f67139335", size = 87373 }
+sdist = { url = "https://files.pythonhosted.org/packages/71/24/288936d3cedcb3a951a83fa735c990f166a6d58b26a0e292c66ed8710c23/click_extra-4.11.7.tar.gz", hash = "sha256:d70f2dc5287b414eb26cb3cdd165163941755728973fc8f00a7003e4dd18884b", size = 88113 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/84/e8de1c9eb15c05a4a09313f4594f6b7feeff52084de7a0207cf4e4d2678e/click_extra-4.11.5-py3-none-any.whl", hash = "sha256:158aa2c08da830a520c51b578566b6f820cbab44ce277ba29249895c55e65515", size = 70806 },
+    { url = "https://files.pythonhosted.org/packages/2b/b6/dd197e455345af1d0b47ac9c054f09760ae3c66753c5dec7b9afe880d986/click_extra-4.11.7-py3-none-any.whl", hash = "sha256:82ae8999bb48d317d40a2e03def6ba437a73aba7a07b5eed76321ecaf7210d13", size = 71306 },
 ]
 
 [[package]]
@@ -189,15 +188,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335 },
 ]
-
-[[package]]
-name = "commentjson"
-version = "0.9.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "lark-parser" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c0/76/c4aa9e408dbacee3f4de8e6c5417e5f55de7e62fb5a50300e1233a2c9cb5/commentjson-0.9.0.tar.gz", hash = "sha256:42f9f231d97d93aff3286a4dc0de39bfd91ae823d1d9eba9fa901fe0c7113dd4", size = 8653 }
 
 [[package]]
 name = "coverage"
@@ -392,12 +382,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/d7/4b/cbd8e699e64a6f16c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beeac6173dc9db836a5b46/iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374", size = 5892 },
 ]
-
-[[package]]
-name = "lark-parser"
-version = "0.7.8"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/34/b8/aa7d6cf2d5efdd2fcd85cf39b33584fe12a0f7086ed451176ceb7fb510eb/lark-parser-0.7.8.tar.gz", hash = "sha256:26215ebb157e6fb2ee74319aa4445b9f3b7e456e26be215ce19fdaaa901c20a4", size = 276204 }
 
 [[package]]
 name = "lizard"
