@@ -287,7 +287,7 @@ jobs:
       - name: Install project dependencies
         run: |
           uv --no-progress venv
-          uv --no-progress pip install --extra docs --requirement ./pyproject.toml
+          uv --no-progress sync --frozen --extra docs
       - name: Run Sphinx
         run: |
           uv --no-progress run --frozen -- sphinx-apidoc --no-toc --module-first --force -o ./docs .
@@ -331,7 +331,7 @@ jobs:
       - name: Install project dependencies
         run: |
           uv --no-progress venv
-          uv --no-progress sync --all-extras
+          uv --no-progress sync --frozen --all-extras
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html

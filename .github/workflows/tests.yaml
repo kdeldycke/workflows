@@ -118,7 +118,7 @@ jobs:
       - name: Install project
         run: |
           uv --no-progress venv --python ${{ matrix.python-version }}
-          uv --no-progress sync --extra test
+          uv --no-progress sync --frozen --extra test
 
       # CLI tests.
       - name: gha-utils --help

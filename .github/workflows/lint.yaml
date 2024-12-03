@@ -106,7 +106,7 @@ jobs:
       - name: Install package
         # Use --inexact so that uv doesn't try to remove the mypy package installed above.
         run: |
-          uv --no-progress sync --all-extras --inexact
+          uv --no-progress sync --frozen --all-extras --inexact
       - name: Run Mypy
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
