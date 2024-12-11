@@ -1,9 +1,11 @@
 # Changelog
 
-## [4.8.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.8.4...main)
+## [4.8.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.8.5...main)
 
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
+
+## [4.8.5 (2024-12-11)](https://github.com/kdeldycke/workflows/compare/v4.8.4...v4.8.5)
 
 - Move coverage configuration to pytest invocation.
 - Do not let `uv sync` operation update the `uv.lock` file.
