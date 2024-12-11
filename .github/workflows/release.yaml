@@ -423,7 +423,7 @@ jobs:
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2.1.0
+        uses: softprops/action-gh-release@v2.2.0
         # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
         # any other workflows that use `on.push.tags` triggers. See:
         # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
