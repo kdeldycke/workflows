@@ -14,7 +14,7 @@ on: # yamllint disable-line rule:truthy
   #   - main
 
 jobs:
-  job:
+  codeql:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     runs-on: ubuntu-24.04
 
