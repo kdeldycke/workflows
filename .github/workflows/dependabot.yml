@@ -27,7 +27,7 @@ permissions:
   contents: write
 
 jobs:
-  job:
+  dependabot:
     runs-on: ubuntu-24.04
     # See https://github.com/dependabot/fetch-metadata?tab=readme-ov-file#enabling-auto-merge
     # if: startsWith(github.event.pull_request.user.login, 'dependabot')
