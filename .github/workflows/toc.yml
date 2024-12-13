@@ -24,7 +24,7 @@ concurrency:
 permissions: write-all
 
 jobs:
-  job:
+  toc:
     runs-on: ubuntu-24.04
     # permissions:
     #  # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
