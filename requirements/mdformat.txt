@@ -13,7 +13,7 @@ mdformat_deflist @ git+https://github.com/kdeldycke/mdformat-deflist.git@uncap-m
 # https://github.com/executablebooks/mdformat-footnote/issues/11
 mdformat_footnote == 0.1.1
 mdformat_frontmatter == 2.0.8
-mdformat-gfm == 0.3.7
+mdformat-gfm == 0.4.1
 mdformat_gfm_alerts == 1.0.1
 mdformat_myst == 0.2.1
 # mdformat-pelican == 0.2.1
