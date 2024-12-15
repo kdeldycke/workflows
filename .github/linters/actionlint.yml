@@ -6,3 +6,11 @@
 self-hosted-runner:
   labels:
     - ubuntu-24.04
+
+paths:
+  # This pattern matches any YAML file under the '.github/workflows/' directory.
+  .github/workflows/**/*:
+    ignore:
+      # Ignore undocumented option repository_visibility.
+      # PR to fix is at https://github.com/rhysd/actionlint/pull/489 .
+      - 'repository_visibility'
