@@ -7,6 +7,7 @@
 
 - Move coverage configuration to pytest invocation.
 - Do not let `uv sync` operation update the `uv.lock` file.
+- Depends on released version of `mdformat_deflist`.
 
 ## [4.8.4 (2024-11-22)](https://github.com/kdeldycke/workflows/compare/v4.8.3...v4.8.4)
 
