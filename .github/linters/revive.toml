@@ -19,6 +19,7 @@ warningCode = 0
 [rule.error-strings]
 [rule.error-naming]
 [rule.exported]
+  # quiets: exported var x should have comment or be unexported
   # Disabled = true
 # [rule.file-header]
 #  arguments = ["Copyright.*", "SPDX-License-Identifier: MIT"]
@@ -29,7 +30,8 @@ warningCode = 0
   Disabled = true
 [rule.var-declaration]
 [rule.package-comments]
-  # Disabled = true
+  # quieting: should have a package comment (even though there is one)
+  Disabled = true
 [rule.range]
 [rule.receiver-naming]
 [rule.time-naming]
