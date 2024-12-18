@@ -20,7 +20,7 @@ warningCode = 0
 [rule.error-naming]
 [rule.exported]
   # quiets: exported var x should have comment or be unexported
-  # Disabled = true
+  Disabled = true
 # [rule.file-header]
 #  arguments = ["Copyright.*", "SPDX-License-Identifier: MIT"]
 [rule.if-return]
