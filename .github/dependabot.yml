@@ -6,7 +6,8 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/" # == /.github/workflows/
+    directories:
+      - "/**/*"
     schedule:
       interval: "daily"
       time: "08:00"
@@ -28,7 +29,8 @@ updates:
       prefix: "[pip] "
       prefix-development: "[pip dev] "
   - package-ecosystem: "docker"
-    directory: "/"
+    directories:
+      - "/**/*"
     schedule:
       interval: "daily"
       time: "08:00"
@@ -38,7 +40,8 @@ updates:
     commit-message:
       prefix: "[docker] "
   - package-ecosystem: "gomod"
-    directory: "/"
+    directories:
+      - "/**/*"
     schedule:
       interval: "daily"
       time: "08:00"
