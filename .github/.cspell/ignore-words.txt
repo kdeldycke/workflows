@@ -28,6 +28,7 @@ errorf
 ghaction
 gocritic
 gofmt
+gomod
 gosimple
 GOTOOLCHAIN
 govet
