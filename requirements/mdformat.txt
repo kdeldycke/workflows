@@ -1,5 +1,5 @@
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
-mdformat == 0.7.19
+mdformat == 0.7.21
 mdformat_admon == 2.0.6
 mdformat-config == 0.2.1
 mdformat_deflist == 0.1.3
