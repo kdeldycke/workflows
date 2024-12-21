@@ -14,10 +14,10 @@ name: mega-linter
 on: # yamllint disable-line rule:truthy
   # Comment this line to trigger action only on pull-requests
   # (not recommended if you don't pay for GH Actions)
-  push:
-    branches:
-      - main
-      - master # @TODO remove
+  # push:
+  #  branches:
+  #    - main
+  #    - master # @TODO remove
   pull_request:
     branches:
       - main
