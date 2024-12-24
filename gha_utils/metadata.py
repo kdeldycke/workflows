@@ -1003,8 +1003,8 @@ class Metadata:
             # https://github.com/actions/runner-images/issues/10820
             "os": [
                 "ubuntu-24.04",  # x64
-                "macos-15",      # arm64
-                "macos-13",      # x64
+                "macos-15",  # arm64
+                "macos-13",  # x64
                 "windows-2022",  # x64
             ],
             # Extra parameters.
