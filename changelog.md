@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use `uv` instead of GitHub action to install a specific version of Python. On all platforms but `windows-2019`.
 - Move coverage configuration to pytest invocation.
 - Do not let `uv sync` operation update the `uv.lock` file.
 - Depends on released version of `mdformat_deflist`.

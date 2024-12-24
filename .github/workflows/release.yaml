@@ -91,20 +91,12 @@ jobs:
       - uses: actions/checkout@v4.2.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install build dependencies
         run: |
-          uv --no-progress venv
+          uv --no-progress venv --python 3.12
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package
@@ -135,14 +127,6 @@ jobs:
       - uses: actions/checkout@v4.2.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.13"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
@@ -156,7 +140,7 @@ jobs:
         #        | Missing expression after unary operator '--'.
         # yamllint disable rule:line-length
         run: |
-          uv --no-progress venv
+          uv --no-progress venv --python 3.13
           uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
         # yamllint enable
       - name: Nuitka + compilers versions

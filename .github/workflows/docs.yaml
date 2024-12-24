@@ -207,20 +207,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install pipdeptree
         run: |
-          uv --no-progress venv --system
+          uv --no-progress venv --python 3.12
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/pipdeptree.txt
       - name: Install project
@@ -273,20 +265,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install project dependencies
         run: |
-          uv --no-progress venv
+          uv --no-progress venv --python 3.12
           uv --no-progress sync --frozen --extra docs
       - name: Run Sphinx
         run: |
@@ -317,20 +301,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install project dependencies
         run: |
-          uv --no-progress venv
+          uv --no-progress venv --python 3.12
           uv --no-progress sync --frozen --all-extras
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.

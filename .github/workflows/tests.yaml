@@ -114,6 +114,20 @@ jobs:
     continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
       - uses: actions/checkout@v4.2.2
+      # Default Python on windows-2019 is older than the minimum required by uv:
+      #
+      #   ERROR: Ignored the following versions that require a different python version:
+      #   (...) 0.5.11 Requires-Python >=3.8
+      #   ERROR: Could not find a version that satisfies the requirement uv==0.5.11 (from versions: none)
+      #   ERROR: No matching distribution found for uv==0.5.11
+      #
+      # XXX This step might be able to be removed after 2025-01-10, once Python 3.8 is the default on windows-2019
+      # images: https://github.com/actions/runner-images/issues/10893
+      - name: windows-2019 - Update old Python
+        if: matrix.os == 'windows-2019'
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
