@@ -59,7 +59,7 @@ jobs:
           git log --decorate=full --oneline
       - uses: actions/setup-python@v5.3.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
@@ -96,7 +96,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install build dependencies
         run: |
-          uv --no-progress venv --python 3.12
+          uv --no-progress venv --python 3.13
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package

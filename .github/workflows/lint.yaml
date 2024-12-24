@@ -36,13 +36,13 @@ jobs:
         #
         #   Run actions/setup-python@v5.3.0
         #     with:
-        #       python-version: 3.12
+        #       python-version: 3.13
         #       cache: pip
         #       cache-dependency-path: |
         #         **/pyproject.toml
         #         requirements/*.txt
         #   Installed versions
-        #     Successfully set up CPython (3.12.1)
+        #     Successfully set up CPython (3.13.1)
         #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
         #   [requirements/*.txt or **/pyproject.toml], make sure you have checked out the target repository
         #
@@ -55,7 +55,7 @@ jobs:
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v5.3.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
@@ -92,7 +92,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install Mypy
         run: |
-          uv --no-progress venv --python 3.12
+          uv --no-progress venv --python 3.13
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mypy.txt
       - name: Install package
@@ -118,13 +118,13 @@ jobs:
         #
         #   Run actions/setup-python@v5.3.0
         #     with:
-        #       python-version: 3.12
+        #       python-version: 3.13
         #       cache: pip
         #       cache-dependency-path: |
         #         **/pyproject.toml
         #         requirements/*.txt
         #   Installed versions
-        #     Successfully set up CPython (3.12.1)
+        #     Successfully set up CPython (3.13.1)
         #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
         #   [requirements/*.txt or **/pyproject.toml], make sure you have checked out the target repository
         #
@@ -137,7 +137,7 @@ jobs:
           echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v5.3.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: "pip"
           cache-dependency-path: |
             **/pyproject.toml
