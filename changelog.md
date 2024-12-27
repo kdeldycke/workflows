@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.9.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.9.0...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.9.0 (2024-12-27)](https://github.com/kdeldycke/workflows/compare/v4.8.4...v4.9.0)
 
 - Use `uv` instead of `setup-python` action to install Python. On all platforms but `windows-2019`.
