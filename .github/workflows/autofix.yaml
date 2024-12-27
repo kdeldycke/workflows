@@ -164,7 +164,7 @@ jobs:
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
           || true
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python"
@@ -198,7 +198,7 @@ jobs:
       - name: Sync uv.lock
         run: |
           uv --no-progress sync --upgrade
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Sync uv.lock"
@@ -248,7 +248,7 @@ jobs:
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
@@ -321,7 +321,7 @@ jobs:
           "**/*.json"
           "**/*.jsonc"
           "**/*.json5"
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON"
@@ -396,7 +396,7 @@ jobs:
 
           ${{ inputs.gitignore-extra-content }}
           EOF
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .gitignore"
