@@ -273,7 +273,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install ESLint with JSON support
         run: |
-          npm --no-progress install --save-dev "@eslint/json@0.9.0"
+          npm --global --no-progress install --save-dev "@eslint/json@0.9.0"
       - name: Generate ESLint config
         # To debug config, run:
         #   $ npx --no-progress --yes eslint --inspect-config
