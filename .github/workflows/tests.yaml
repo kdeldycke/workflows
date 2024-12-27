@@ -65,8 +65,7 @@ jobs:
           unstable: list[dict[str, str]] = [
               # XXX error: Python 3.14 is still not available through uv, which gets its standalone Python executables
               # from the python-build-standalone project:
-              # https://github.com/indygreg/python-build-standalone/releases/tag/20241016
-              # https://gregoryszorc.com/docs/python-build-standalone/main/running.html
+              # https://github.com/astral-sh/python-build-standalone/releases
               {"python-version": "3.14-dev"},
           ]
 
