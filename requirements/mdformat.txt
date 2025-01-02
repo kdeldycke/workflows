@@ -19,4 +19,4 @@ mdformat_simple_breaks == 0.0.1
 mdformat_tables == 1.0.0
 mdformat-toc == 0.3.0
 mdformat-web == 0.2.0
-ruff == 0.8.4
+ruff == 0.8.5
