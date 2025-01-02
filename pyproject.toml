@@ -1,7 +1,7 @@
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
-version = "4.10.0"
+version = "4.11.0"
 # Python versions and their status: https://devguide.python.org/versions/
 requires-python = ">= 3.10"
 description = "⚙️ CLI helpers for GitHub Actions + reuseable workflows"
@@ -132,7 +132,7 @@ addopts = [
 xfail_strict = true
 
 [tool.bumpversion]
-current_version = "4.10.0"
+current_version = "4.11.0"
 allow_dirty = true
 ignore_missing_files = true
 
