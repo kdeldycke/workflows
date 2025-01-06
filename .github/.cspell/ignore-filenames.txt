@@ -10,8 +10,6 @@ golangci
 grype
 jsonlintrc
 markdownlint
-mdformat
-nuitka
 pydeps
 pylintrc
 regen
