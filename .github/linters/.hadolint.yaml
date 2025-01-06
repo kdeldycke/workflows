@@ -17,4 +17,3 @@ override:
     # Instead of apk add <package> use apk add <package>=<version>.
     - DL3018
 
-# cspell:ignore hadolint

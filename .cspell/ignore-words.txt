@@ -30,6 +30,7 @@ cripts
 Deldycke
 dessant
 DEVSKIM
+diskpart
 dmypy
 donotpresent
 ehthumbs
@@ -103,11 +104,16 @@ Sessionx
 Spyder
 spyderproject
 spyproject
+sqbpro
 stefanzweifel
 Tabler
+Televideo
 timemachine
+toprc
 TRUFFLEHOG
 typeshed
+vcproj
+VCPROJ
 visualstudiocode
 webassets
 wekyb

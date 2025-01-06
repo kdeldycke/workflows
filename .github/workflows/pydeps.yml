@@ -218,4 +218,3 @@ jobs:
           pipdeptree --freeze --warn silence \
             | grep -E '^[a-zA-Z0-9\-]+' || true
 
-# cspell:ignore pipreqs
