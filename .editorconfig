@@ -118,3 +118,5 @@ indent_style = unset
 insert_final_newline = unset
 trim_trailing_whitespace = unset
 
+# cspell:ignore diskpart, ecrc, jsonlint, Makefiles, mylogin, sqbpro, Televideo
+# cspell:ignore textlintrc, toprc, vcproj, VCPROJ, vcprops, VCPROPS
