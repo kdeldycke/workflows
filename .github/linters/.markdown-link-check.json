@@ -13,7 +13,7 @@
       "pattern": "^https?://10\\."
     },
     {
-      "pattern": "^https?://127\\.",
+      "pattern": "^https?://127\\."
     },
     {
       "pattern": "^https?://169\\.254\\."
@@ -29,7 +29,6 @@
     },
     {
       "pattern": "^https://github\\.com/rasa/"
-  
     },
     {
       "pattern": "^https://sysupgrade.openwrt.org/?"
