@@ -6,3 +6,4 @@ ignore:
   # selenium 4.9.1
   - vulnerability: CVE-2023-5590
 
+# cspell:ignore grype

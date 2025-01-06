@@ -16,3 +16,4 @@ quiet = true
 # https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#t-target-version
 target-version = ["py310", "py311", "py312"]
 
+# cspell:ignore pyproject
