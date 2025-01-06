@@ -1,0 +1,44 @@
+---
+
+# yamllint disable rule:line-length
+# $schema https://raw.githubusercontent.com/megalinter/megalinter/main/megalinter/descriptors/schemas/megalinter-configuration.jsonschema.json
+# ~/.mega-linter.yml
+# See all available variables at https://megalinter.io/latest/configuration/ and in linters documentation
+
+EXTENDS: https://raw.githubusercontent.com/rasa/workflows/main/.github/mega-linter-shared.yml
+
+# LOG_LEVEL: DEBUG
+
+## FILTERS ##
+
+# See https://megalinter.io/latest/config-filtering/
+FILTER_REGEX_EXCLUDE: >-
+  (?ix)(
+    \.diff
+    | megalinter-reports/.*
+  )$
+
+YAML_V8R_FILTER_REGEX_EXCLUDE: '\.mega-?linter\.ya?ml'
+
+## CONVERT ERRORS TO WARNINGS ##
+
+PYTHON_BANDIT_DISABLE_ERRORS: true
+REPOSITORY_DEVSKIM_DISABLE_ERRORS: true
+REPOSITORY_KICS_DISABLE_ERRORS: true
+PYTHON_PYLINT_DISABLE_ERRORS: true
+PYTHON_MYPY_DISABLE_ERRORS: true
+PYTHON_PYRIGHT_DISABLE_ERRORS: true
+
+# Good URLs are reporting as 404s or timing out:
+SPELL_LYCHEE_DISABLE_ERRORS: true
+
+# YAML_V8R_DISABLE_ERRORS: true
+
+## COMMAND ARGUMENTS ##
+
+# PYTHON_PYRIGHT_ARGUMENTS: '-p .github/linters/.pyrightconfig-strict.json'
+
+#######################
+
+EDITORCONFIG_EDITORCONFIG_CHECKER_FILTER_REGEX_EXCLUDE: '(\.py$)'
+
