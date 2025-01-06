@@ -185,3 +185,5 @@ SHOW_ELAPSED_TIME: true # default: false
 
 # REPORT_OUTPUT_FOLDER: '${GITHUB_WORKSPACE}/.cache/mega-linter'
 #
+# cspell:ignore CHECKMAKE, HADOLINT, HEALTHCHECK, MARKDOWNLINT, markdownlint
+# cspell:ignore MYPY, mypy, PYRIGHT, pyright, pyrightconfig
