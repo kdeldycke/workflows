@@ -996,14 +996,16 @@ class Metadata:
         # https://snarky.ca/webassembly-and-its-platform-targets/
         matrix: dict[str, list[Any]] = {
             "entry_point": [],
-            # Run the compilation only the latest supported version of each OS.
+            # Run the compilation only on the latest supported version of each OS.
             # The exception is macOS, as macos-15 is arm64 and macos-13 is x64, so we
             # need both to target the two architectures.
+            # XXX In the future arm64 versions of Ubuntu and Windows might be supported:
+            # https://github.com/actions/runner-images/issues/10820
             "os": [
-                "ubuntu-24.04",
+                "ubuntu-24.04",  # x64
                 "macos-15",  # arm64
                 "macos-13",  # x64
-                "windows-2022",
+                "windows-2022",  # x64
             ],
             # Extra parameters.
             "include": [],

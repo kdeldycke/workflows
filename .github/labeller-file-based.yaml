@@ -19,7 +19,9 @@
     - any-glob-to-any-file:
       - .github/dependabot.yaml
       - "*.lock"
-      - pyproject.toml
+      - "**/pyproject.toml"
+      - "*requirements.txt"
+      - "requirements/*.txt"
 
 "📚 documentation":
   - changed-files:

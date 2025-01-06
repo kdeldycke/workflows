@@ -39,12 +39,12 @@ jobs:
           variants: dict[str, set[str]] = {
               # Available OS: https://github.com/actions/runner-images#available-images
               "os": {
-                  "ubuntu-24.04",
-                  "ubuntu-22.04",
-                  "macos-15",  # arm64
-                  "macos-13",  # x86
-                  "windows-2022",
-                  "windows-2019",
+                  "ubuntu-24.04", # x86
+                  "ubuntu-22.04", # x86
+                  "macos-15",     # arm64
+                  "macos-13",     # x86
+                  "windows-2022", # x86
+                  "windows-2019", # x86
               },
               # Available Python: https://github.com/actions/python-versions/blob/main/versions-manifest.json
               "python-version": {
@@ -63,9 +63,10 @@ jobs:
 
           # List of unstable criterions.
           unstable: list[dict[str, str]] = [
-                # XXX error: the configured Python interpreter version (3.14) is
-                # newer than PyO3's maximum supported version (3.13)
-                {"python-version": "3.14-dev"},
+              # XXX error: Python 3.14 is still not available through uv, which gets its standalone Python executables
+              # from the python-build-standalone project:
+              # https://github.com/astral-sh/python-build-standalone/releases
+              {"python-version": "3.14-dev"},
           ]
 
           # Build the job matrix.
@@ -112,17 +113,27 @@ jobs:
     continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
       - uses: actions/checkout@v4.2.2
-      - name: Set up Python ${{ matrix.python-version }}
+      # Default Python on windows-2019 is older than the minimum required by uv:
+      #
+      #   ERROR: Ignored the following versions that require a different python version:
+      #   (...) 0.5.11 Requires-Python >=3.8
+      #   ERROR: Could not find a version that satisfies the requirement uv==0.5.11 (from versions: none)
+      #   ERROR: No matching distribution found for uv==0.5.11
+      #
+      # XXX This step might be able to be removed after 2025-01-10, once Python 3.8 is the default on windows-2019
+      # images: https://github.com/actions/runner-images/issues/10893
+      - name: windows-2019 - Update old Python
+        if: matrix.os == 'windows-2019'
         uses: actions/setup-python@v5.3.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "${{ matrix.python-version }}"
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install project
         run: |
-          uv --no-progress venv
-          uv --no-progress sync --extra test
+          uv --no-progress venv --python ${{ matrix.python-version }}
+          uv --no-progress sync --frozen --extra test
 
       # CLI tests.
       - name: gha-utils --help
@@ -147,10 +158,10 @@ jobs:
 
       - name: Unittests
         run: |
-          uv --no-progress run -- pytest
+          uv --no-progress run --frozen -- pytest
 
       - name: Codecov - coverage
-        uses: codecov/codecov-action@v5.0.7
+        uses: codecov/codecov-action@v5.1.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Codecov - test results

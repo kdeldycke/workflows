@@ -50,54 +50,17 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # We're going to browse all new commits.
           fetch-depth: 0
-      - name: Hack setup-python cache
-        id: setup_python_hack
-        # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
-        # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
-        #
-        #   Run actions/setup-python@v5.3.0
-        #     with:
-        #       python-version: 3.12
-        #       cache: pip
-        #       cache-dependency-path: |
-        #         **/pyproject.toml
-        #         requirements/*.txt
-        #   Installed versions
-        #     Successfully set up CPython (3.12.1)
-        #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
-        #   [requirements/*.txt or **/pyproject.toml], make sure you have checked out the target repository
-        #
-        # This has been reported at: https://github.com/actions/setup-python/issues/807
-        # In the future this might be addressed by: https://github.com/actions/setup-python/pull/762
-        # or https://github.com/actions/setup-python/issues/751
-        if: hashFiles('**/pyproject.toml', '*requirements.txt', 'requirements/*.txt') == ''
-        run: |
-          touch ./pyproject.toml
-          echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
-      - name: Remove setup-python hack
-        if: steps.setup_python_hack.outputs.tmp_deps_file
-        run: |
-          rm ./pyproject.toml
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
-      - name: Install gha-utils
-        run: >
-          uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt gha-utils
-      - name: Project metadata
+      - name: Run gha-utils metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: |
+        run: >
+          uvx
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --
           gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   format-python:
@@ -108,38 +71,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
-      - name: Hack setup-python cache
-        id: setup_python_hack
-        # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
-        # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
-        #
-        #   Run actions/setup-python@v5.3.0
-        #     with:
-        #       python-version: 3.12
-        #       cache: pip
-        #       cache-dependency-path: |
-        #         **/pyproject.toml
-        #         requirements/*.txt
-        #   Installed versions
-        #     Successfully set up CPython (3.12.1)
-        #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
-        #   [requirements/*.txt or **/pyproject.toml], make sure you have checked out the target repository
-        #
-        # This has been reported at: https://github.com/actions/setup-python/issues/807
-        # In the future this might be addressed by: https://github.com/actions/setup-python/pull/762
-        # or https://github.com/actions/setup-python/issues/751
-        if: hashFiles('**/pyproject.toml', '*requirements.txt', 'requirements/*.txt') == ''
-        run: |
-          touch ./pyproject.toml
-          echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
@@ -222,10 +153,6 @@ jobs:
       - name: Remove temporary Ruff config
         run: |
           rm ./ruff.toml
-      - name: Remove setup-python hack
-        if: steps.setup_python_hack.outputs.tmp_deps_file
-        run: |
-          rm ./pyproject.toml
       - name: Run blacken-docs
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
         # https://github.com/adamchainz/blacken-docs/blob/79ef671/blacken_docs.py#L207-L211
@@ -237,7 +164,7 @@ jobs:
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
           || true
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python"
@@ -265,21 +192,13 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Sync uv.lock
         run: |
           uv --no-progress sync --upgrade
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Sync uv.lock"
@@ -302,42 +221,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
-      - name: Hack setup-python cache
-        id: setup_python_hack
-        # XXX Create an empty pyproject.toml if this file (or any *requirements.txt) can't be found in repository.
-        # This hack fix an issue with setup-python, which ends up with this error in non-Python repos:
-        #
-        #   Run actions/setup-python@v5.3.0
-        #     with:
-        #       python-version: 3.12
-        #       cache: pip
-        #       cache-dependency-path: |
-        #         **/pyproject.toml
-        #         requirements/*.txt
-        #   Installed versions
-        #     Successfully set up CPython (3.12.1)
-        #   Error: No file in /home/runner/work/awesome-iam/awesome-iam matched to
-        #   [requirements/*.txt or **/pyproject.toml], make sure you have checked out the target repository
-        #
-        # This has been reported at: https://github.com/actions/setup-python/issues/807
-        # In the future this might be addressed by: https://github.com/actions/setup-python/pull/762
-        # or https://github.com/actions/setup-python/issues/751
-        if: hashFiles('**/pyproject.toml', '*requirements.txt', 'requirements/*.txt') == ''
-        run: |
-          touch ./pyproject.toml
-          echo "tmp_deps_file=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@v5.3.0
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: |
-            **/pyproject.toml
-            *requirements.txt
-            requirements/*.txt
-      - name: Remove setup-python hack
-        if: steps.setup_python_hack.outputs.tmp_deps_file
-        run: |
-          rm ./pyproject.toml
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
@@ -365,7 +248,7 @@ jobs:
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
@@ -388,13 +271,57 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
-      - name: Install jsonlint
+      - name: Install ESLint with JSON support
         run: |
-          sudo npm install --global jsonlint
+          npm --global --no-progress install --save-dev "@eslint/json@0.9.0"
+      - name: Generate ESLint config
+        # To debug config, run:
+        #   $ npx --no-progress --yes eslint --inspect-config
+        run: |
+          tee -a ./eslint.config.mjs <<-EOF
+
+          # Source: https://github.com/eslint/json?tab=readme-ov-file#recommended-configuration
+          import json from "@eslint/json";
+
+          export default [
+              // lint JSON files
+              {
+                  files: ["**/*.json"],
+                  ignores: ["package-lock.json"],
+                  language: "json/json",
+                  ...json.configs.recommended,
+              },
+
+              // lint JSONC files
+              {
+                  files: ["**/*.jsonc"],
+                  language: "json/jsonc",
+                  ...json.configs.recommended,
+              },
+
+              // lint JSON5 files
+              {
+                  files: ["**/*.json5"],
+                  language: "json/json5",
+                  ...json.configs.recommended,
+              },
+          ];
+
+          EOF
+      - name: ESLint version
+        run: |
+          npm exec -- eslint --env-info
       - name: Lint
-        run: |
-          find ./ -type f -name '*.json' -print -exec jsonlint --in-place "{}" \;
-      - uses: peter-evans/create-pull-request@v7.0.5
+        run: >
+          npm exec -- eslint
+          --config ./eslint.config.mjs
+          --stats
+          --no-error-on-unmatched-pattern
+          --fix
+          "**/*.json"
+          "**/*.jsonc"
+          "**/*.json5"
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON"
@@ -469,7 +396,7 @@ jobs:
 
           ${{ inputs.gitignore-extra-content }}
           EOF
-      - uses: peter-evans/create-pull-request@v7.0.5
+      - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .gitignore"

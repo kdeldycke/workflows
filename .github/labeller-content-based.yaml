@@ -23,6 +23,7 @@
   - "dependabot"
   - ".lock"
   - "pyproject.toml"
+  - "requirements.txt"
 
 "📚 documentation":
   - "sphinx"

@@ -1,9 +1,20 @@
 # Changelog
 
-## [4.8.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.8.4...main)
+## [4.10.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.9.0...main)
 
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
+
+- Replace unmaintained `jsonlint` by ESLint.
+
+## [4.9.0 (2024-12-27)](https://github.com/kdeldycke/workflows/compare/v4.8.4...v4.9.0)
+
+- Use `uv` instead of `setup-python` action to install Python. On all platforms but `windows-2019`.
+- Remove auto-generated dummy `pyproject.toml` used to hack `setup-python` caching.
+- Run all jobs on Python 3.13.
+- Move coverage configuration to pytest invocation.
+- Do not let `uv sync` operation update the `uv.lock` file.
+- Depends on released version of `mdformat_deflist`.
 
 ## [4.8.4 (2024-11-22)](https://github.com/kdeldycke/workflows/compare/v4.8.3...v4.8.4)
 
@@ -1327,7 +1338,7 @@
 - Add a reusable workflow to optimize images.
 - Add a reusable workflow to auto-format Python files with isort and Black.
 - Add a reusable workflow to auto-format Markdown files with mdformat.
-- Add a reusable workflow to auto-format JSON files with jsonlint.
+- Add a reusable workflow to auto-format JSON files with `jsonlint`.
 - Add a reusable workflow to auto-update .gitignore file.
 - Add a reusable workflow to auto-update .mailmap file.
 - Force retargeting of workflow dependencies to `main` branch on post-release

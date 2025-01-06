@@ -30,9 +30,48 @@ Nothing is done behind your back. A PR is created every time a change is propose
 
 ## `gha-utils` CLI
 
+### Ad-hoc execution
+
+Thanks to `uv`, you can install and run `gha-utils` in one command, without polluting your system:
+
+```shell-session
+$ uvx gha-utils
+Installed 45 packages in 45ms
+Usage: gha-utils [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --time / --no-time        Measure and print elapsed execution time.  [default:
+                            no-time]
+  --color, --ansi / --no-color, --no-ansi
+                            Strip out all colors and all ANSI codes from output.
+                            [default: color]
+  -C, --config CONFIG_PATH  Location of the configuration file. Supports glob
+                            pattern of local path and remote URL.  [default:
+                            ~/Library/Application Support/gha-
+                            utils/*.{toml,yaml,yml,json,ini,xml}]
+  --show-params             Show all CLI parameters, their provenance, defaults
+                            and value, then exit.
+  -v, --verbosity LEVEL     Either CRITICAL, ERROR, WARNING, INFO, DEBUG.
+                            [default: WARNING]
+  --version                 Show the version and exit.
+  -h, --help                Show this message and exit.
+
+Commands:
+  changelog     Maintain a Markdown-formatted changelog
+  mailmap-sync  Update Git's .mailmap file with missing contributors
+  metadata      Output project metadata
+```
+
+```shell-session
+$ uvx gha-utils --version
+gha-utils, version 4.9.0
+```
+
+That's the best way to get started with `gha-utils`, and experiment with its features.
+
 ### Executables
 
-Standalone executables of `gha-utils`'s latest version are available as direct downloads for several platforms and architectures:
+To ease deployment, standalone executables of `gha-utils`'s latest version are available as direct downloads for several platforms and architectures:
 
 | Platform    | `x86_64`                                                                                                                          | `arm64`                                                                                                                           |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -40,7 +79,9 @@ Standalone executables of `gha-utils`'s latest version are available as direct d
 | **macOS**   | [Download `gha-utils-macos-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-x64.bin)     | [Download `gha-utils-macos-arm64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-arm64.bin) |
 | **Windows** | [Download `gha-utils-windows-x64.exe`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-windows-x64.exe) |                                                                                                                                   |
 
-### Run dev version
+### Development version
+
+To play with the latest development version of `gha-utils`, you can install it directly from the repository:
 
 ```shell-session
 $ git clone https://github.com/kdeldycke/workflows
@@ -48,7 +89,7 @@ $ cd workflows
 $ python -m pip install uv
 $ uv venv
 $ source .venv/bin/activate
-$ uv pip install .
+$ uv sync
 $ uv run -- gha-utils
 ```
 
