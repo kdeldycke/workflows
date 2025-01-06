@@ -14,10 +14,10 @@ name: mega-linter
 on: # yamllint disable-line rule:truthy
   # Comment this line to trigger action only on pull-requests
   # (not recommended if you don't pay for GH Actions)
-  push:
-    branches:
-      - main
-      - master # @TODO remove
+  # push:
+  #  branches:
+  #    - main
+  #    - master # @TODO remove
   pull_request:
     branches:
       - main
@@ -74,7 +74,7 @@ env:
   APPLY_FIXES_MODE: commit
 
 jobs:
-  megalinter:
+  mega-linter:
     name: MegaLinter
     runs-on: ubuntu-24.04
 
@@ -153,7 +153,7 @@ jobs:
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v4.4.3 # changed from v3 by @rasa
+        uses: actions/upload-artifact@v4.5.0 # changed from v3 by @rasa
         if: success() || failure() # changed by @rasa: was ${{ success() }} || ${{ failure() }}
         with:
           name: MegaLinter reports
@@ -209,7 +209,7 @@ jobs:
       # Create pull request if applicable
       # (for now works only on PR from same repository, not from forks)
       - name: Create Pull Request with applied fixes
-        uses: peter-evans/create-pull-request@v7.0.5 # changed from v5 by @rasa
+        uses: peter-evans/create-pull-request@v7.0.6 # changed from v5 by @rasa
         id: cpr
         if: env.APPLY_FIXES_IF_PR == 'true'
         with:

@@ -47,7 +47,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  job:
+  pydeps:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
