@@ -40,5 +40,7 @@ SPELL_LYCHEE_DISABLE_ERRORS: true
 
 #######################
 
-EDITORCONFIG_EDITORCONFIG_CHECKER_FILTER_REGEX_EXCLUDE: '(license\.md|\.py$)'
-
+# .gitignore requires mixed EOL chars
+# license.md has a centered header
+# many .py files have comments with varying leading characters
+EDITORCONFIG_EDITORCONFIG_CHECKER_FILTER_REGEX_EXCLUDE: '(\.gitignore|license\.md|\.py$)'
