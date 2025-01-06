@@ -196,7 +196,7 @@ But the `contents: write` permission doesn't allow write access to the workflow 
 You will always end up with this kind or errors:
 
 ```text
-   ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a GitHub App to create or update workflow `.github/workflows/my_workflow.yaml` without `workflows` permission)
+  ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a GitHub App to create or update workflow `.github/workflows/my_workflow.yaml` without `workflows` permission)
 
   error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
 ```
