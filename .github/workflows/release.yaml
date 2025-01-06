@@ -6,6 +6,8 @@ name: Build & release
     secrets:
       PYPI_TOKEN:
         required: false
+      WORKFLOW_UPDATE_GITHUB_PAT:
+        required: false
     inputs:
       binaries-test-plan:
         description: Test plan for binaries
