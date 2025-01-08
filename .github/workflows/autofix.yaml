@@ -312,6 +312,7 @@ jobs:
           EOF
       - name: ESLint version
         run: |
+          npm list --global --depth 0
           npm exec -- eslint --env-info
       - name: Lint
         run: >
