@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Re-release with latest `gha-utils`.
+
 ## [4.10.0 (2025-01-08)](https://github.com/kdeldycke/workflows/compare/v4.9.0...v4.10.0)
 
 - Replace unmaintained `jsonlint` by ESLint.
