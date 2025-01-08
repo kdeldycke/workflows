@@ -175,6 +175,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Codecov - test results
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1.0.1
+        uses: codecov/test-results-action@v1.0.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
