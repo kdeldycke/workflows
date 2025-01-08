@@ -74,14 +74,6 @@ jobs:
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
-      - name: Install Ruff, blacken-docs and autopep8
-        run: |
-          uv tool install --with-requirements \
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/ruff.txt ruff
-          uv tool install --with-requirements \
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/blacken-docs.txt blacken-docs
-          uv tool install --with-requirements \
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/autopep8.txt autopep8
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
@@ -90,6 +82,9 @@ jobs:
         #  - --aggressive is requires to force autopep8 to consider comments.
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
+          uvx
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/autopep8.txt
+          --
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Optional Ruff config
@@ -142,6 +137,10 @@ jobs:
       - name: Print Ruff config
         run: |
           cat ./ruff.toml
+      - name: Install Ruff
+        run: >
+          uv tool install --with-requirements
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/ruff.txt ruff
       - name: Run Ruff check
         run: |
           ruff check --config ./ruff.toml
@@ -159,6 +158,9 @@ jobs:
         # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
+          uvx
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/blacken-docs.txt
+          --
           blacken-docs
           --line-length 88
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
