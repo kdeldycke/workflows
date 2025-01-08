@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Replace unmaintained `jsonlint` by ESLint.
+- Add `node` artefacts to the list of default files in `.gitignore`.
 
 ## [4.9.0 (2024-12-27)](https://github.com/kdeldycke/workflows/compare/v4.8.4...v4.9.0)
 
