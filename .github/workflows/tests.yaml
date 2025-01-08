@@ -64,11 +64,18 @@ jobs:
           # List of unstable criterions.
           unstable: list[dict[str, str]] = [
               # XXX Python 3.14.0a3 is not available for Windows yet:
-              # https://github.com/astral-sh/python-build-standalone/releases/tag/20250106
-              # https://github.com/astral-sh/python-build-standalone/pull/478
-              # https://github.com/astral-sh/python-build-standalone/pull/443
+              #   https://github.com/astral-sh/python-build-standalone/releases/tag/20250106
+              #   https://github.com/astral-sh/python-build-standalone/pull/478
+              #   https://github.com/astral-sh/python-build-standalone/pull/443
               {"python-version": "3.14", "os": "windows-2022"},
               {"python-version": "3.14", "os": "windows-2019"},
+              # XXX If Python 3.14.0a3 is available on Linux and macOS, PyO3 does not support it:
+              #   error: the configured Python interpreter version (3.14) is
+              #   newer than PyO3's maximum supported version (3.13)
+              {"python-version": "3.14", "os": "ubuntu-24.04"},
+              {"python-version": "3.14", "os": "ubuntu-22.04"},
+              {"python-version": "3.14", "os": "macos-15"},
+              {"python-version": "3.14", "os": "macos-13"},
           ]
 
           # Build the job matrix.

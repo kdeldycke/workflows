@@ -6,7 +6,6 @@
 > This version is not released yet and is under active development.
 
 - Replace unmaintained `jsonlint` by ESLint.
-- Activate mark Python 3.14-dev tests as stable on Linux and macOS.
 
 ## [4.9.0 (2024-12-27)](https://github.com/kdeldycke/workflows/compare/v4.8.4...v4.9.0)
 
