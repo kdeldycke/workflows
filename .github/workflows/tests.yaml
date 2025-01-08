@@ -52,7 +52,7 @@ jobs:
                   "3.11",
                   "3.12",
                   "3.13",
-                  "3.14-dev",
+                  "3.14",
               }
           }
           # TODO: List of additional variants to include in the matrix.
@@ -63,10 +63,12 @@ jobs:
 
           # List of unstable criterions.
           unstable: list[dict[str, str]] = [
-              # XXX error: Python 3.14 is still not available through uv, which gets its standalone Python executables
-              # from the python-build-standalone project:
-              # https://github.com/astral-sh/python-build-standalone/releases
-              {"python-version": "3.14-dev"},
+              # XXX Python 3.14.0a3 is not available for Windows yet:
+              # https://github.com/astral-sh/python-build-standalone/releases/tag/20250106
+              # https://github.com/astral-sh/python-build-standalone/pull/478
+              # https://github.com/astral-sh/python-build-standalone/pull/443
+              {"python-version": "3.14", "os": "windows-2022"},
+              {"python-version": "3.14", "os": "windows-2019"},
           ]
 
           # Build the job matrix.
