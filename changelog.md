@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.10.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.10.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.10.1 (2025-01-08)](https://github.com/kdeldycke/workflows/compare/v4.10.0...v4.10.1)
 
 - Re-release with latest `gha-utils`.
 
