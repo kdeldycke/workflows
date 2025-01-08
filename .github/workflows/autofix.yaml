@@ -282,7 +282,6 @@ jobs:
         #   $ npx --no-progress --yes -- eslint --inspect-config
         run: |
           tee -a ./eslint.config.mjs <<-EOF
-
           // Source: https://github.com/eslint/json?tab=readme-ov-file#recommended-configuration
           import json from "@eslint/json";
 
@@ -309,7 +308,6 @@ jobs:
                   ...json.configs.recommended,
               },
           ];
-
           EOF
       - name: ESLint version
         run: |
@@ -324,6 +322,9 @@ jobs:
           "**/*.json"
           "**/*.jsonc"
           "**/*.json5"
+      - name: Remove temporary ESLint config
+        run: |
+          rm ./eslint.config.mjs
       - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
