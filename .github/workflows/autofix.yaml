@@ -38,6 +38,7 @@ jobs:
     name: Project metadata
     runs-on: ubuntu-24.04
     outputs:
+      gitignore_exists: ${{ steps.project-metadata.outputs.gitignore_exists }}
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
@@ -341,27 +342,11 @@ jobs:
           labels: "🤖 ci"
           branch: format-json
 
-  check-gitignore:
-    name: Does .gitignore exist?
-    runs-on: ubuntu-24.04
-    outputs:
-      exists: ${{ steps.detection.outputs.exists }}
-    steps:
-      - uses: actions/checkout@v4.2.2
-      - id: detection
-        # Bare-called reused workflow are not fed with defaults, so force it here.
-        run: |
-          echo "exists=$( [[ -f '${{ env.gitignore-location }}' ]] && echo 'true' )" >> "$GITHUB_OUTPUT"
-      - name: Detection results
-        run: |
-          echo "Does .gitignore exist at root? ${{ steps.detection.outputs.exists && true || false }}"
-
   update-gitignore:
     name: Update .gitignore
     needs:
-      - check-gitignore
-    # Only update gitignore if a file is found at the root of repository.
-    if: needs.check-gitignore.outputs.exists
+      - project-metadata
+    if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2

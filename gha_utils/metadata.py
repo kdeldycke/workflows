@@ -22,6 +22,7 @@ The following variables are `printed to the environment file
 ```text
 new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5f6c2
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
+gitignore_exists=true
 python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
 is_python_project=true
@@ -613,6 +614,10 @@ class Metadata:
             patterns,
             flags=NODIR | GLOBSTAR | DOTGLOB | GLOBTILDE | BRACE | FOLLOW | NEGATE,
         )
+
+    @cached_property
+    def gitignore_exists(self) -> bool:
+        return Path(".gitignore").is_file()
 
     @cached_property
     def python_files(self) -> Iterator[str]:
@@ -1210,6 +1215,7 @@ class Metadata:
         metadata: dict[str, Any] = {
             "new_commits": self.new_commits_hash,
             "release_commits": self.release_commits_hash,
+            "gitignore_exists": self.gitignore_exists,
             "python_files": self.python_files,
             "doc_files": self.doc_files,
             "is_python_project": self.is_python_project,
