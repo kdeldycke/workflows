@@ -282,7 +282,7 @@ jobs:
         run: |
           tee -a ./eslint.config.mjs <<-EOF
 
-          # Source: https://github.com/eslint/json?tab=readme-ov-file#recommended-configuration
+          // Source: https://github.com/eslint/json?tab=readme-ov-file#recommended-configuration
           import json from "@eslint/json";
 
           export default [
