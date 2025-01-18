@@ -903,7 +903,13 @@ class Metadata:
                     "346ce664f055fbd042a25ee0b7e96702e95",
                     "6f27db47612aaee06fdf08744b09a9f5f6c2",
                 ],
-                "os": ["ubuntu-24.04", "ubuntu-24.04-arm", "macos-15", "macos-13", "windows-2022"],
+                "os": [
+                    "ubuntu-24.04",
+                    "ubuntu-24.04-arm",
+                    "macos-15",
+                    "macos-13",
+                    "windows-2022",
+                ],
                 "include": [
                     {
                         "entry_point": "mpm",
