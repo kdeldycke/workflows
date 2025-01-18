@@ -31,14 +31,14 @@ jobs:
           fetch-depth: 0
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.11.1/requirements/uv.txt
       - name: Run gha-utils metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.11.1/requirements/gha-utils.txt
           --
           gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
@@ -52,12 +52,12 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.11.1/requirements/uv.txt
       - name: Install Mypy
         run: |
           uv --no-progress venv --python 3.13
           uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mypy.txt
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.11.1/requirements/mypy.txt
       - name: Install package
         # Use --inexact so that uv doesn't try to remove the mypy package installed above.
         run: |
@@ -76,11 +76,11 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.11.1/requirements/uv.txt
       - name: Run yamllint
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.11.1/requirements/yamllint.txt
           --
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
