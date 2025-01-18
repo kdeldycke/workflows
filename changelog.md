@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Re-release to build Linux `arm64` binaries by default.
+
 ## [4.11.0 (2025-01-18)](https://github.com/kdeldycke/workflows/compare/v4.10.1...v4.11.0)
 
 - Use `ubuntu-24.04-arm` to build Linux binaries for `arm64`.
