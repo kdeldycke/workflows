@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use `ubuntu-24.04-arm` to build Linux binaries for `arm64`.
+
 ## [4.10.1 (2025-01-08)](https://github.com/kdeldycke/workflows/compare/v4.10.0...v4.10.1)
 
 - Re-release with latest `gha-utils`.

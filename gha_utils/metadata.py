@@ -50,7 +50,7 @@ release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
 nuitka_matrix={'entry_point': ['mpm'],
                'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
                           '6f27db47612aaee06fdf08744b09a9f5f6c2'],
-                'os': ['ubuntu-24.04', 'macos-15', 'macos-13', 'windows-2022'],
+                'os': ['ubuntu-24.04', 'ubuntu-24.04-arm', 'macos-15', 'macos-13', 'windows-2022'],
                 'include': [{'entry_point': 'mpm',
                              'cli_id': 'mpm',
                              'module_id': 'meta_package_manager.__main__',
@@ -65,6 +65,10 @@ nuitka_matrix={'entry_point': ['mpm'],
                             {'os': 'ubuntu-24.04',
                              'platform_id': 'linux',
                              'arch': 'x64',
+                             'extension': 'bin'},
+                            {'os': 'ubuntu-24.04-arm',
+                             'platform_id': 'linux',
+                             'arch': 'arm64',
                              'extension': 'bin'},
                             {'os': 'macos-15',
                              'platform_id': 'macos',
@@ -88,6 +92,16 @@ nuitka_matrix={'entry_point': ['mpm'],
                              'os': 'ubuntu-24.04',
                              'arch': 'x64',
                              'bin_name': 'mpm-linux-x64-build-6f27db4.bin'},
+                            {'entry_point': 'mpm',
+                             'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                             'os': 'ubuntu-24.04-arm',
+                             'arch': 'arm64',
+                             'bin_name': 'mpm-linux-arm64-build-346ce66.bin'},
+                            {'entry_point': 'mpm',
+                             'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                             'os': 'ubuntu-24.04-arm',
+                             'arch': 'arm64',
+                             'bin_name': 'mpm-linux-arm64-build-6f27db4.bin'},
                             {'entry_point': 'mpm',
                              'commit': '346ce664f055fbd042a25ee0b7e96702e95',
                              'os': 'macos-15',
@@ -889,7 +903,7 @@ class Metadata:
                     "346ce664f055fbd042a25ee0b7e96702e95",
                     "6f27db47612aaee06fdf08744b09a9f5f6c2",
                 ],
-                "os": ["ubuntu-24.04", "macos-15", "macos-13", "windows-2022"],
+                "os": ["ubuntu-24.04", "ubuntu-24.04-arm", "macos-15", "macos-13", "windows-2022"],
                 "include": [
                     {
                         "entry_point": "mpm",
@@ -912,6 +926,12 @@ class Metadata:
                         "os": "ubuntu-24.04",
                         "platform_id": "linux",
                         "arch": "x64",
+                        "extension": "bin",
+                    },
+                    {
+                        "os": "ubuntu-24.04-arm",
+                        "platform_id": "linux",
+                        "arch": "arm64",
                         "extension": "bin",
                     },
                     {
@@ -945,6 +965,20 @@ class Metadata:
                         "os": "ubuntu-24.04",
                         "arch": "x64",
                         "bin_name": "mpm-linux-x64-build-6f27db4.bin",
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                        "os": "ubuntu-24.04-arm",
+                        "arch": "arm64",
+                        "bin_name": "mpm-linux-arm64-build-346ce66.bin",
+                    },
+                    {
+                        "entry_point": "mpm",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                        "os": "ubuntu-24.04-arm",
+                        "arch": "arm64",
+                        "bin_name": "mpm-linux-arm64-build-6f27db4.bin",
                     },
                     {
                         "entry_point": "mpm",
@@ -1004,10 +1038,11 @@ class Metadata:
             # Run the compilation only on the latest supported version of each OS.
             # The exception is macOS, as macos-15 is arm64 and macos-13 is x64, so we
             # need both to target the two architectures.
-            # XXX In the future arm64 versions of Ubuntu and Windows might be supported:
+            # XXX Windows arm64 Windows is considered:
             # https://github.com/actions/runner-images/issues/10820
             "os": [
                 "ubuntu-24.04",  # x64
+                "ubuntu-24.04-arm",  # arm64
                 "macos-15",  # arm64
                 "macos-13",  # x64
                 "windows-2022",  # x64
@@ -1060,6 +1095,12 @@ class Metadata:
                 "os": "ubuntu-24.04",
                 "platform_id": "linux",
                 "arch": "x64",
+                "extension": "bin",
+            },
+            {
+                "os": "ubuntu-24.04-arm",
+                "platform_id": "linux",
+                "arch": "arm64",
                 "extension": "bin",
             },
             {
