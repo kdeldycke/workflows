@@ -87,7 +87,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install build dependencies
         run: |
-          uv --no-progress venv --python 3.13
+          uv --no-progress venv
           uv --no-progress pip install \
           --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/build.txt
       - name: Build package

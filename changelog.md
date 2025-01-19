@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Let `uv` choose the appropriate Python version depending on context.
+
 ## [4.11.1 (2025-01-18)](https://github.com/kdeldycke/workflows/compare/v4.11.0...v4.11.1)
 
 - Re-release to build Linux `arm64` binaries by default.
