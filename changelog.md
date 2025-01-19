@@ -566,7 +566,7 @@
 
 ## [2.16.1 (2023-06-10)](https://github.com/kdeldycke/workflows/compare/v2.16.0...v2.16.1)
 
-- Replace long `____(....)____` `<hr>` rule produced by `mdformat` with canonical `---` form. Refs [`executablebooks/mdformat#328`](https://github.com/executablebooks/mdformat/issues/328#issuecomment-1585775337).
+- Replace long `____(....)____` `<hr>` rule produced by `mdformat` with canonical `---` form. Refs [`hukkin/mdformat#328`](https://github.com/hukkin/mdformat/issues/328#issuecomment-1585775337).
 - Apply Markdown fixes for awesome lists to localized versions.
 
 ## [2.16.0 (2023-06-08)](https://github.com/kdeldycke/workflows/compare/v2.15.2...v2.16.0)
