@@ -236,7 +236,7 @@ So I made up a [`release.yaml` workflow](https://github.com/kdeldycke/workflows/
 
 1. Extracts project metadata from `pyproject.toml`
 1. Generates a build matrix of all commits / os / arch / CLI entry points
-1. Build Python wheel with Twine
+1. Build Python wheels with `uv`
 1. Compile binaries of all CLI with Nuitka
 1. Tag the release commit in Git
 1. Publish new version to PyPi

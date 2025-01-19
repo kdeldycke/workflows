@@ -1,6 +1,5 @@
 --requirement ./requirements/autopep8.txt
 --requirement ./requirements/blacken-docs.txt
---requirement ./requirements/build.txt
 --requirement ./requirements/bump-my-version.txt
 --requirement ./requirements/gha-utils.txt
 --requirement ./requirements/mdformat.txt
