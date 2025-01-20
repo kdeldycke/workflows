@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.12.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.12.0...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.12.0 (2025-01-20)](https://github.com/kdeldycke/workflows/compare/v4.11.1...v4.12.0)
 
 - Let `uv` choose the appropriate Python version depending on context.
