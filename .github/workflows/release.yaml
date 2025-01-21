@@ -78,13 +78,6 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-24.04
-    permissions:
-      # Allow GitHub's OIDC provider to create a JSON Web Token:
-      # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
-      # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
-      # TODO: minimize permissions: https://github.com/actions/attest-build-provenance/issues/103
-      id-token: write
-      attestations: write
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -95,11 +88,6 @@ jobs:
       - name: Build package
         run: |
           uv --no-progress build
-      - name: Generate attestations
-        uses: actions/attest-build-provenance@v2.1.0
-        with:
-          subject-path: ./dist/*
-          push-to-registry: true
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.6.0
         with:
@@ -114,13 +102,6 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
-    permissions:
-      # Allow GitHub's OIDC provider to create a JSON Web Token:
-      # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
-      # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
-      # TODO: minimize permissions: https://github.com/actions/attest-build-provenance/issues/103
-      id-token: write
-      attestations: write
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -159,10 +140,6 @@ jobs:
           uv --no-progress run --frozen -- nuitka${{ runner.os == 'Windows' && '.cmd' || '' }}
           --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
-      - name: Generate attestations
-        uses: actions/attest-build-provenance@v2.1.0
-        with:
-          subject-path: ${{ matrix.bin_name }}
       - name: Upload binaries
         uses: actions/upload-artifact@v4.6.0
         with:
@@ -329,6 +306,12 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-24.04
+    permissions:
+      # Allow GitHub's OIDC provider to create a JSON Web Token:
+      # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
+      # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
+      id-token: write
+      attestations: write
     steps:
       - name: Install uv
         run: |
@@ -338,6 +321,10 @@ jobs:
         id: download
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
+      - name: Generate attestations
+        uses: actions/attest-build-provenance@v2.1.0
+        with:
+          subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPi
         run: |
           uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}/*"
@@ -354,6 +341,12 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-24.04
+    permissions:
+      # Allow GitHub's OIDC provider to create a JSON Web Token:
+      # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
+      # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
+      id-token: write
+      attestations: write
     steps:
       - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.
@@ -413,6 +406,10 @@ jobs:
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
+      - name: Generate attestations
+        uses: actions/attest-build-provenance@v2.1.0
+        with:
+          subject-path: ${{ steps.rename_artifacts.outputs.artifacts_path }}
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.2.1
         # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger

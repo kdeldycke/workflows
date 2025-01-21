@@ -239,6 +239,7 @@ So I made up this [`release.yaml` workflow](https://github.com/kdeldycke/workflo
 1. Builds Python wheels with `uv`
 1. Compiles binaries of all CLI with Nuitka
 1. Tag the release commit in Git
+1. Produces attestations of released artefacts
 1. Publish new version to PyPi
 1. Publish a GitHub release
 1. Attach and rename build artifacts to the GitHub release
