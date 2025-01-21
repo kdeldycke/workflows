@@ -53,14 +53,14 @@ jobs:
           fetch-depth: 0
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Run gha-utils metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
@@ -84,7 +84,7 @@ jobs:
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/autopep8.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/autopep8.txt
           --
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
@@ -141,7 +141,7 @@ jobs:
       - name: Install Ruff
         run: >
           uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/ruff.txt ruff
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/ruff.txt ruff
       - name: Run Ruff check
         run: |
           ruff check --config ./ruff.toml
@@ -160,7 +160,7 @@ jobs:
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/blacken-docs.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/blacken-docs.txt
           --
           blacken-docs
           --line-length 88
@@ -197,7 +197,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Sync uv.lock
         run: |
           uv --no-progress sync --upgrade
@@ -226,11 +226,11 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install mdformat
         run: >
           uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.0/requirements/mdformat.txt mdformat
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mdformat.txt mdformat
       - name: Install shfmt
         run: |
           sudo apt install --yes shfmt
