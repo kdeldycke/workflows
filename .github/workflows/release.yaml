@@ -79,6 +79,10 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-24.04
     permissions:
+      # Allow GitHub's OIDC provider to create a JSON Web Token:
+      # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
+      # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
+      # TODO: minimize permissions: https://github.com/actions/attest-build-provenance/issues/103
       id-token: write
     steps:
       - uses: actions/checkout@v4.2.2
@@ -111,6 +115,10 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
     permissions:
+      # Allow GitHub's OIDC provider to create a JSON Web Token:
+      # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
+      # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
+      # TODO: minimize permissions: https://github.com/actions/attest-build-provenance/issues/103
       id-token: write
     steps:
       - uses: actions/checkout@v4.2.2
