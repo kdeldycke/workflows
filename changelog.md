@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.13.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.12.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.13.0 (2025-01-21)](https://github.com/kdeldycke/workflows/compare/v4.12.0...v4.13.0)
 
 - Generates attestion for Python packages and standalone binaries on release.
 
