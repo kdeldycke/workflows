@@ -214,7 +214,6 @@ To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
 - Choose a good token name like `workflow-self-update` to make your intention clear
 - Choose `Only select repositories` and the list the repositories in needs of updating their workflow YAML files
 - In the `Repository permissions` drop-down, sets:
-  - `Attestations`: `Access: **Read and Write**`
   - `Contents`: `Access: **Read and Write**`
   - `Metadata` (mandatory): `Access: **Read-only**`
   - `Pull Requests`: `Access: **Read and Write**`
