@@ -231,18 +231,18 @@ Now re-run your actions and they should be able to update the workflow files in 
 
 It turns out [Release Engineering is a full-time job, and full of edge-cases](https://blog.axo.dev/2023/02/cargo-dist).
 
-Rust has [`cargo-dist`](https://github.com/axodotdev/cargo-dist). Go has... ? But there is no equivalent for Python.
+Things have improved a lot in the Python ecosystem with `uv`. But there are still a lot of manual steps to do to release.
 
-So I made up a [`release.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml), which:
+So I made up this [`release.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml), which:
 
 1. Extracts project metadata from `pyproject.toml`
 1. Generates a build matrix of all commits / os / arch / CLI entry points
-1. Build Python wheels with `uv`
-1. Compile binaries of all CLI with Nuitka
+1. Builds Python wheels with `uv`
+1. Compiles binaries of all CLI with Nuitka
 1. Tag the release commit in Git
 1. Publish new version to PyPi
 1. Publish a GitHub release
-1. Attach and rename build artifacts to it
+1. Attach and rename build artifacts to the GitHub release
 
 ## Changelog
 
