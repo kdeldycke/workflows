@@ -78,6 +78,10 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     steps:
       - uses: actions/checkout@v4.2.2
         with:
