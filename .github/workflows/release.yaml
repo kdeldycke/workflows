@@ -71,7 +71,7 @@ jobs:
           gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   package-build:
-    name: "Build & check package"
+    name: Build package
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
@@ -88,6 +88,10 @@ jobs:
       - name: Build package
         run: |
           uv --no-progress build
+      - name: Generate attestations
+        uses: actions/attest-build-provenance@v2.1.0
+        with:
+          subject-path: ./dist/*
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.6.0
         with:
