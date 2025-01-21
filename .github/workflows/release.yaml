@@ -91,6 +91,8 @@ jobs:
       - name: Generate attestations
         uses: actions/attest-build-provenance@v2.1.0
         with:
+          # XXX https://github.com/actions/attest-build-provenance/issues/99
+          github-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           subject-path: ./dist/*
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.6.0
@@ -147,6 +149,8 @@ jobs:
       - name: Generate attestations
         uses: actions/attest-build-provenance@v2.1.0
         with:
+          # XXX https://github.com/actions/attest-build-provenance/issues/99
+          github-token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           subject-path: ${{ matrix.bin_name }}
       - name: Upload binaries
         uses: actions/upload-artifact@v4.6.0
