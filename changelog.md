@@ -5,7 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add attestion on built packages.
+- Generates attestion for Python packages and standalone binaries.
 
 ## [4.12.0 (2025-01-20)](https://github.com/kdeldycke/workflows/compare/v4.11.1...v4.12.0)
 

@@ -144,6 +144,10 @@ jobs:
           uv --no-progress run --frozen -- nuitka${{ runner.os == 'Windows' && '.cmd' || '' }}
           --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
+      - name: Generate attestations
+        uses: actions/attest-build-provenance@v2.1.0
+        with:
+          subject-path: ${{ matrix.bin_name }}
       - name: Upload binaries
         uses: actions/upload-artifact@v4.6.0
         with:
