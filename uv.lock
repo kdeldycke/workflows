@@ -140,7 +140,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "4.11.7"
+version = "4.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -155,9 +155,9 @@ dependencies = [
     { name = "wcmatch" },
     { name = "xmltodict" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/71/24/288936d3cedcb3a951a83fa735c990f166a6d58b26a0e292c66ed8710c23/click_extra-4.11.7.tar.gz", hash = "sha256:d70f2dc5287b414eb26cb3cdd165163941755728973fc8f00a7003e4dd18884b", size = 88113 }
+sdist = { url = "https://files.pythonhosted.org/packages/64/9a/e100696eac4ec9d249ed5736871716174134e031833fdaf53efbfffda23d/click_extra-4.12.0.tar.gz", hash = "sha256:cf82c76a1cc69fe08e5eb4a6d548a8591b6e30602385da9b4adb2d8da88855ee", size = 87473 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/b6/dd197e455345af1d0b47ac9c054f09760ae3c66753c5dec7b9afe880d986/click_extra-4.11.7-py3-none-any.whl", hash = "sha256:82ae8999bb48d317d40a2e03def6ba437a73aba7a07b5eed76321ecaf7210d13", size = 71306 },
+    { url = "https://files.pythonhosted.org/packages/96/dc/866f72a5a51f2ac0b385bc6d21951c44f0f1702e249503eeea54b241d3b9/click_extra-4.12.0-py3-none-any.whl", hash = "sha256:357c293ec4ee83e35043d4fb0c42f19f9d1aa54e034ba0965cfeba7d67b6b401", size = 70800 },
 ]
 
 [[package]]
@@ -277,20 +277,20 @@ wheels = [
 
 [[package]]
 name = "extra-platforms"
-version = "1.6.0"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
     { name = "distro" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e0/a7/7fb81009b351e4f3194806cad083515bc11d9df0c86d731c7913840598fa/extra_platforms-1.6.0.tar.gz", hash = "sha256:dbef8d68019362690bd87fcb98ea287e7d381d7b1758a500d66abea320485234", size = 40464 }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/5e/445afff9427d74e72703aaac8fc7245758f3060036a413f317b638eaba92/extra_platforms-2.0.0.tar.gz", hash = "sha256:f26d83800eaa71ef70ba61e338ef0065c34e817746f15cbd35912c1315821f52", size = 47029 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e5/1c/205a8e36650ac5984b55493453dbb80283c55b2fe5c9f66f87d104a5951b/extra_platforms-1.6.0-py3-none-any.whl", hash = "sha256:fdd27b0babec649dda212f9a16ddd9edd12f8288996de729422c6fe60fd1c588", size = 27510 },
+    { url = "https://files.pythonhosted.org/packages/03/06/1289c053365d89598f272db2d7698aa3497abe0ce2d7febd1e19a0d3d420/extra_platforms-2.0.0-py3-none-any.whl", hash = "sha256:5899b1f6e8d06274e7982239b7f49c86a74e42ddd86c362fd11bae106823d93c", size = 32232 },
 ]
 
 [[package]]
 name = "gha-utils"
-version = "4.12.0"
+version = "4.13.0"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -319,7 +319,7 @@ requires-dist = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'", specifier = "~=1.3.1" },
     { name = "boltons", specifier = ">=24.0.0" },
     { name = "bump-my-version", specifier = ">=0.21.0" },
-    { name = "click-extra", specifier = "~=4.11.0" },
+    { name = "click-extra", specifier = "~=4.12.0" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "~=7.6.0" },
     { name = "packaging", specifier = "~=24.1" },
     { name = "pydriller", specifier = "~=2.6" },
@@ -327,7 +327,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = "~=8.3.1" },
     { name = "pytest-cases", marker = "extra == 'test'", specifier = "~=3.8.3" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = "~=6.0.0" },
-    { name = "pytest-github-actions-annotate-failures", marker = "extra == 'test'", specifier = "~=0.2.0" },
+    { name = "pytest-github-actions-annotate-failures", marker = "extra == 'test'", specifier = "~=0.3.0" },
     { name = "pytest-randomly", marker = "extra == 'test'", specifier = "~=3.16.0" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = "~=2.0.1" },
     { name = "wcmatch", specifier = ">=8.5" },
@@ -446,14 +446,14 @@ wheels = [
 
 [[package]]
 name = "prompt-toolkit"
-version = "3.0.48"
+version = "3.0.50"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "wcwidth" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/4f/feb5e137aff82f7c7f3248267b97451da3644f6cdc218edfe549fb354127/prompt_toolkit-3.0.48.tar.gz", hash = "sha256:d6623ab0477a80df74e646bdbc93621143f5caf104206aa29294d53de1a03d90", size = 424684 }
+sdist = { url = "https://files.pythonhosted.org/packages/a1/e1/bd15cb8ffdcfeeb2bdc215de3c3cffca11408d829e4b8416dcfe71ba8854/prompt_toolkit-3.0.50.tar.gz", hash = "sha256:544748f3860a2623ca5cd6d2795e7a14f3d0e1c3c9728359013f79877fc89bab", size = 429087 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/6a/fd08d94654f7e67c52ca30523a178b3f8ccc4237fce4be90d39c938a831a/prompt_toolkit-3.0.48-py3-none-any.whl", hash = "sha256:f49a827f90062e411f1ce1f854f2aedb3c23353244f8108b89283587397ac10e", size = 386595 },
+    { url = "https://files.pythonhosted.org/packages/e4/ea/d836f008d33151c7a1f62caf3d8dd782e4d15f6a43897f64480c2b8de2ad/prompt_toolkit-3.0.50-py3-none-any.whl", hash = "sha256:9b6427eb19e479d98acff65196a307c555eb567989e6d88ebbb1b509d9779198", size = 387816 },
 ]
 
 [[package]]
@@ -640,14 +640,14 @@ wheels = [
 
 [[package]]
 name = "pytest-github-actions-annotate-failures"
-version = "0.2.0"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/d6/76d074e1e4d78c5144397e6061af29bcc218dbf19bb64b39e5c296bf42f1/pytest-github-actions-annotate-failures-0.2.0.tar.gz", hash = "sha256:844ab626d389496e44f960b42f0a72cce29ae06d363426d17ea9ae1b4bef2288", size = 9450 }
+sdist = { url = "https://files.pythonhosted.org/packages/39/d4/c54ee6a871eee4a7468e3a8c0dead28e634c0bc2110c694309dcb7563a66/pytest_github_actions_annotate_failures-0.3.0.tar.gz", hash = "sha256:d4c3177c98046c3900a7f8ddebb22ea54b9f6822201b5d3ab8fcdea51e010db7", size = 11248 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/eb/86/9ffd9f10a7ba7387ce4ef4362505d739a48dd988051b41d255eb7f102c17/pytest_github_actions_annotate_failures-0.2.0-py3-none-any.whl", hash = "sha256:8bcef65fed503faaa0524b59cfeccc8995130972dd7b008d64193cc41b9cde85", size = 5496 },
+    { url = "https://files.pythonhosted.org/packages/6d/73/7b0b15cb8605ee967b34aa1d949737ab664f94e6b0f1534e8339d9e64ab2/pytest_github_actions_annotate_failures-0.3.0-py3-none-any.whl", hash = "sha256:41ea558ba10c332c0bfc053daeee0c85187507b2034e990f21e4f7e5fef044cf", size = 6030 },
 ]
 
 [[package]]
