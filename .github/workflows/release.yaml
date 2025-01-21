@@ -80,8 +80,6 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       id-token: write
-      contents: read
-      attestations: write
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -112,6 +110,8 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4.2.2
         with:
