@@ -322,7 +322,7 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
       - name: Generate attestations
-        uses: actions/attest-build-provenance@v2.1.0
+        uses: actions/attest-build-provenance@v2.2.0
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPi
@@ -407,7 +407,7 @@ jobs:
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
       - name: Generate attestations
-        uses: actions/attest-build-provenance@v2.1.0
+        uses: actions/attest-build-provenance@v2.2.0
         with:
           subject-path: ${{ steps.rename_artifacts.outputs.artifacts_path }}
       - name: Create GitHub release
