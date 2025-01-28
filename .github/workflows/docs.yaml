@@ -100,11 +100,11 @@ jobs:
           fetch-depth: 0
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Generate .mailmap
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils --verbosity DEBUG mailmap-sync --skip-if-missing ./.mailmap
       - uses: peter-evans/create-pull-request@v7.0.6
@@ -142,14 +142,14 @@ jobs:
           fetch-depth: 0
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Run gha-utils metadata
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
@@ -163,12 +163,12 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install pipdeptree
         run: |
           uv --no-progress venv
           uv --no-progress pip install \
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/pipdeptree.txt
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/pipdeptree.txt
       - name: Install project
         run: |
           uv --no-progress pip install .
@@ -221,7 +221,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Run Sphinx
         run: |
           uv --no-progress run --frozen --extra docs -- sphinx-apidoc --no-toc --module-first --force -o ./docs .
@@ -253,7 +253,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/v4.13.2/requirements/uv.txt
+          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
