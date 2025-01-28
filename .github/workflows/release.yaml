@@ -349,6 +349,8 @@ jobs:
       # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
       id-token: write
       attestations: write
+      # Allow project without WORKFLOW_UPDATE_GITHUB_PAT to create a GitHub release.
+      contents: write
     steps:
       - name: Download all artifacts
         # Do not try to fetch build artifacts if any of the job producing them was skipped.

@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix permission for GitHub release publishing.
+
 ## [4.13.1 (2025-01-28)](https://github.com/kdeldycke/workflows/compare/v4.13.0...v4.13.1)
 
 - Fix publishing of GitHub release if no binary artefacts have been produced.
