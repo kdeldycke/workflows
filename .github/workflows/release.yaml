@@ -110,7 +110,7 @@ jobs:
           ref: ${{ matrix.commit }}
       # XXX We need to install Python 3.13 system-wide as Nuitka is not going to magically pickup the Python 3.13
       # managed by uv.
-      - uses: actions/setup-python@v5.3.0
+      - uses: actions/setup-python@v5.4.0
         with:
           python-version: "3.13"
       - name: Install uv
