@@ -93,6 +93,8 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
           path: ./dist/*
+      # TODO: Should we also attest the archive created here? See:
+      # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
 
   compile-binaries:
     name: "Nuitka: generate binaries"
