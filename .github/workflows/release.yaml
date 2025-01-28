@@ -359,7 +359,7 @@ jobs:
           pattern: "*-build-${{ matrix.short_sha }}*"
           merge-multiple: true
       - name: Rename binary artifacts, collect all others
-        # Do not try to rename artifacts if the job producing them was skipped.
+        # Do not try to rename artifacts if none have been produced.
         if: needs.compile-binaries.result != 'skipped'
         id: rename_artifacts
         shell: python
@@ -407,6 +407,8 @@ jobs:
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
       - name: Generate attestations
+        # Do not try to attest artifacts if none have been produced.
+        if: steps.rename_artifacts.outputs.artifacts_path
         uses: actions/attest-build-provenance@v2.2.0
         with:
           subject-path: ${{ steps.rename_artifacts.outputs.artifacts_path }}

@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix publishing of GitHub release if no binary artefacts have been produced.
+
 ## [4.13.0 (2025-01-21)](https://github.com/kdeldycke/workflows/compare/v4.12.0...v4.13.0)
 
 - Generates attestion for Python packages and standalone binaries on release.
