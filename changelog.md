@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.13.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.13.3...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.13.3 (2025-01-29)](https://github.com/kdeldycke/workflows/compare/v4.13.2...v4.13.3)
 
 - Fix uploads of Python packages to GitHub release when binaries are not produced.
