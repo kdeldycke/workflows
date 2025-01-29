@@ -1,11 +1,11 @@
 {
   "$comment": "Copied from: rasa/dotfiles/.github/linters/.ecrc",
   "$comment2": "EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!",
-  "Version": "v3.0.3",
+  "Version": "v3.1.2",
   "Verbose": false,
   "Debug": false,
   "IgnoreDefaults": false,
-  "SpacesAftertabs": false,
+  "SpacesAfterTabs": false,
   "NoColor": true,
   "Exclude": [
     "go.mod",
