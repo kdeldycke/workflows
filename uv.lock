@@ -140,7 +140,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "4.12.0"
+version = "4.13.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -155,9 +155,9 @@ dependencies = [
     { name = "wcmatch" },
     { name = "xmltodict" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/64/9a/e100696eac4ec9d249ed5736871716174134e031833fdaf53efbfffda23d/click_extra-4.12.0.tar.gz", hash = "sha256:cf82c76a1cc69fe08e5eb4a6d548a8591b6e30602385da9b4adb2d8da88855ee", size = 87473 }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/7d/84b827721c7c4ad36f70695e0edf876b4e028e7372efacc78d5b159f794a/click_extra-4.13.2.tar.gz", hash = "sha256:818d2df0506f44897006d4c55010ee7681e16ddf6d2ead01ee147774291bd20b", size = 88996 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/dc/866f72a5a51f2ac0b385bc6d21951c44f0f1702e249503eeea54b241d3b9/click_extra-4.12.0-py3-none-any.whl", hash = "sha256:357c293ec4ee83e35043d4fb0c42f19f9d1aa54e034ba0965cfeba7d67b6b401", size = 70800 },
+    { url = "https://files.pythonhosted.org/packages/f4/53/78bacac62ea1128c4207049e73ad1146ded307c859f71eb314ab20c3ddc0/click_extra-4.13.2-py3-none-any.whl", hash = "sha256:9b1946328143f8ee6e8b2e47ffd15447258ec3e2fe17d29dccc3e0784c5d737d", size = 71932 },
 ]
 
 [[package]]
@@ -290,7 +290,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.13.1"
+version = "4.13.4"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -319,7 +319,7 @@ requires-dist = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'", specifier = "~=1.3.1" },
     { name = "boltons", specifier = ">=24.0.0" },
     { name = "bump-my-version", specifier = ">=0.21.0" },
-    { name = "click-extra", specifier = "~=4.12.0" },
+    { name = "click-extra", specifier = "~=4.13.2" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "~=7.6.0" },
     { name = "packaging", specifier = "~=24.1" },
     { name = "pydriller", specifier = "~=2.6" },
