@@ -30,7 +30,7 @@ on: # yamllint disable-line rule:truthy
       fetch_depth:
         # description: "Number of commits to fetch. 0 indicates all history for all branches and tags."
         type: string
-        default: "1"
+        default: "0"
       # checkov:skip=CKV_GHA_7
       validate_all_codebase:
         # description: "Validate the entire code base (enter any value)"
@@ -42,7 +42,7 @@ on: # yamllint disable-line rule:truthy
       fetch_depth:
         description: "Number of commits to fetch. 0 indicates all history for all branches and tags."
         type: string
-        default: "1"
+        default: "0"
       # checkov:skip=CKV_GHA_7
       validate_all_codebase:
         description: "Validate the entire code base."
@@ -116,7 +116,7 @@ jobs:
 
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.io/flavors/
-        uses: oxsecurity/megalinter@v8.3.0 # changed from v7 by @rasa
+        uses: oxsecurity/megalinter@v8.4.1 # changed from v7 by @rasa
 
         id: ml
 
