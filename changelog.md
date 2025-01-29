@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix uploads of Python packages to GitHub release when binaries are not produced.
+
 ## [4.13.2 (2025-01-28)](https://github.com/kdeldycke/workflows/compare/v4.13.1...v4.13.2)
 
 - Fix permission for GitHub release publishing.

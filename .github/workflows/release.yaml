@@ -335,9 +335,9 @@ jobs:
     name: Publish GitHub release
     needs:
       - project-metadata
+      - package-build
       - compile-binaries
       - git-tag
-      - pypi-publish
     # Make sure this job always starts if git-tag ran and succeeded.
     if: always() && needs.git-tag.result == 'success'
     strategy:
@@ -353,8 +353,8 @@ jobs:
       contents: write
     steps:
       - name: Download all artifacts
-        # Do not try to fetch build artifacts if any of the job producing them was skipped.
-        if: needs.pypi-publish.result != 'skipped' || needs.compile-binaries.result != 'skipped'
+        # Do not fetch build artifacts if all jobs producing them were skipped.
+        if: needs.package-build.result != 'skipped' || needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@v4.1.8
         id: artifacts
         with:
@@ -362,10 +362,10 @@ jobs:
           # Only consider artifacts produced by the release commit.
           pattern: "*-build-${{ matrix.short_sha }}*"
           merge-multiple: true
-      - name: Rename binary artifacts, collect all others
-        # Do not try to rename artifacts if none have been produced.
-        if: needs.compile-binaries.result != 'skipped'
-        id: rename_artifacts
+      - name: Collect all artefacts, rename binaries
+        # Do not try to rename artifacts if none have been downloaded.
+        if: steps.artifacts.outputs.download-path
+        id: collect_artifacts
         shell: python
         run: |
           import json
@@ -412,10 +412,10 @@ jobs:
           env_file.write_text(output)
       - name: Generate attestations
         # Do not try to attest artifacts if none have been produced.
-        if: steps.rename_artifacts.outputs.artifacts_path
+        if: steps.collect_artifacts.outputs.artifacts_path
         uses: actions/attest-build-provenance@v2.2.0
         with:
-          subject-path: ${{ steps.rename_artifacts.outputs.artifacts_path }}
+          subject-path: ${{ steps.collect_artifacts.outputs.artifacts_path }}
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.2.1
         # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
@@ -427,5 +427,5 @@ jobs:
         with:
           tag_name: v${{ matrix.current_version }}
           target_commitish: ${{ matrix.commit }}
-          files: ${{ steps.rename_artifacts.outputs.artifacts_path }}
+          files: ${{ steps.collect_artifacts.outputs.artifacts_path }}
           body: ${{ needs.project-metadata.outputs.release_notes }}
