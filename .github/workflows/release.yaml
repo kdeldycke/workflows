@@ -375,8 +375,11 @@ jobs:
 
           download_folder = Path("""${{ steps.artifacts.outputs.download-path }}""")
 
-          nuitka_matrix = json.loads("""${{ needs.project-metadata.outputs.nuitka_matrix }}""")
-          binaries = {entry["bin_name"] for entry in nuitka_matrix["include"] if "bin_name" in entry}
+          nuitka_matrix_json = """${{ needs.project-metadata.outputs.nuitka_matrix }}"""
+          binaries = {}
+          if nuitka_matrix_json:
+              nuitka_matrix = json.loads(nuitka_matrix_json)
+              binaries = {entry["bin_name"] for entry in nuitka_matrix["include"] if "bin_name" in entry}
 
           artifacts_path = []
 
