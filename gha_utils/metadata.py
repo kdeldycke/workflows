@@ -151,7 +151,6 @@ import re
 import sys
 from collections.abc import Iterable
 from functools import cached_property
-from itertools import product
 from pathlib import Path
 from random import randint
 from re import escape
@@ -183,7 +182,7 @@ from wcmatch.glob import (
     iglob,
 )
 
-from .matrix import RESERVED_MATRIX_KEYWORDS, Matrix
+from .matrix import Matrix
 
 SHORT_SHA_LENGTH = 7
 """Default SHA length hard-coded to ``7``.
@@ -1025,48 +1024,42 @@ class Metadata:
         if not self.script_entries:
             return None
 
-        # In the future, we might support and bridge that matrix with the full CPython
-        # platform support list. See target triples at:
-        # https://peps.python.org/pep-0011/
-        # https://snarky.ca/webassembly-and-its-platform-targets/
-        matrix: dict[str, list[Any]] = {
-            "entry_point": [],
-            # Run the compilation only on the latest supported version of each OS.
-            # The exception is macOS, as macos-15 is arm64 and macos-13 is x64, so we
-            # need both to target the two architectures.
-            # XXX Windows arm64 Windows is considered:
-            # https://github.com/actions/runner-images/issues/10820
-            "os": [
+        matrix = Matrix()
+
+        # Run the compilation only on the latest supported version of each OS. The
+        # exception is macOS, as macos-15 is arm64-only and macos-13 is x64-only, so we
+        # need both to target the two architectures.
+        # XXX arm64 Windows is planned for the future:
+        # https://github.com/actions/runner-images/issues/10820
+        matrix.add_variation(
+            "os",
+            (
                 "ubuntu-24.04",  # x64
                 "ubuntu-24.04-arm",  # arm64
                 "macos-15",  # arm64
                 "macos-13",  # x64
                 "windows-2022",  # x64
-            ],
-            # Extra parameters.
-            "include": [],
-        }
+            ),
+        )
 
         # Augment each entry point with some metadata.
-        extra_entry_point_params = []
         for cli_id, module_id, callable_id in self.script_entries:
             # CLI ID is supposed to be unique, we'll use that as a key.
-            matrix["entry_point"].append(cli_id)
+            matrix.add_variation("entry_point", [cli_id])
             # Derive CLI module path from its ID.
             # XXX We consider here the module is directly callable, because Nuitka
             # doesn't seems to support the entry-point notation.
             module_path = Path(f"{module_id.replace('.', '/')}.py")
             assert module_path.exists()
-            extra_entry_point_params.append(
+            matrix.add_includes(
                 {
                     "entry_point": cli_id,
                     "cli_id": cli_id,
                     "module_id": module_id,
                     "callable_id": callable_id,
                     "module_path": str(module_path),
-                },
+                }
             )
-        matrix["include"].extend(extra_entry_point_params)
 
         # We'd like to run a build for each new commit bundled in the action trigger.
         # If no new commits are detected, it's because we are not in a GitHub workflow
@@ -1078,15 +1071,15 @@ class Metadata:
         )
         assert build_commit_matrix
         # Extend the matrix with a new dimension: a list of commits.
-        matrix["commit"] = build_commit_matrix["commit"]
-        matrix["include"].extend(build_commit_matrix["include"])
+        matrix.add_variation("commit", [build_commit_matrix["commit"]])
+        matrix.add_includes(*build_commit_matrix["include"])
 
         # Add platform-specific variables.
         # Arch values are inspired from those specified for self-hosted runners:
         # https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners#architectures
         # Arch is not a matrix variant because support is not widely distributed
         # between different OS.
-        extra_os_params = [
+        matrix.add_includes(
             {
                 "os": "ubuntu-24.04",
                 "platform_id": "linux",
@@ -1117,37 +1110,15 @@ class Metadata:
                 "arch": "x64",
                 "extension": "exe",
             },
-        ]
-        matrix["include"].extend(extra_os_params)
-
-        # Check no extra parameter in reserved directive do not override themselves.
-        all_extra_keys = set().union(
-            *(
-                extras.keys()
-                for reserved_key in RESERVED_MATRIX_KEYWORDS
-                if reserved_key in matrix
-                for extras in matrix[reserved_key]
-            ),
-        )
-        assert all_extra_keys.isdisjoint(RESERVED_MATRIX_KEYWORDS)
-
-        # Produce all variations encoded by the matrix, by skipping the special
-        # directives.
-        all_variations = tuple(
-            tuple((variant_id, value) for value in variant_values)
-            for variant_id, variant_values in matrix.items()
-            if variant_id not in RESERVED_MATRIX_KEYWORDS
         )
 
         # Emulate collection and aggregation of the 'include' directive to all
         # variations produced by the matrix.
-        for variant in product(*all_variations):
-            variant_dict = dict(variant)
-
+        for variant_dict in matrix.product(ignore_includes=True, ignore_excludes=True):
             # Check each extra parameters from the 'include' directive and accumulate
             # the matching ones to the variant.
             full_variant = variant_dict.copy()
-            for extra_params in matrix["include"]:
+            for extra_params in matrix.include:
                 # Check if the variant match the extra parameters.
                 dimensions_to_match = set(variant_dict).intersection(extra_params)
                 d0 = {key: variant_dict[key] for key in dimensions_to_match}
@@ -1164,7 +1135,7 @@ class Metadata:
             extra_name_param["bin_name"] = (
                 "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
             ).format(**full_variant)
-            matrix["include"].append(extra_name_param)
+            matrix.add_includes(extra_name_param)
 
         return Matrix(matrix)
 
