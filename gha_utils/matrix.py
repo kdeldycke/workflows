@@ -87,11 +87,11 @@ class Matrix(dict):
         )
 
     def add_includes(self, *new_includes: dict[str:str]) -> None:
-        """Expand matrix results with custom configuration."""
+        """Add one or more ``include`` special directives to the matrix."""
         self.include = self._add_and_dedup_dicts(*self.include, *new_includes)
 
     def add_excludes(self, *new_excludes: dict[str:str]) -> None:
-        """Reduce matrix results with custom configuration."""
+        """Add one or more ``exclude`` special directives to the matrix."""
         self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
 
     def all_variations(
@@ -115,3 +115,18 @@ class Matrix(dict):
                         variations.setdefault(k, []).append(v)
 
         return {k: tuple(unique(v)) for k, v in variations.items()}
+
+    def product(
+        self, ignore_includes: bool = False, ignore_excludes: bool = False
+    ) -> Iterator[dict[str:str]]:
+        yield from map(
+            dict,
+            itertools.product(
+                *(
+                    tuple((variant_id, value) for value in variant_values)
+                    for variant_id, variant_values in self.all_variations(
+                        ignore_includes=ignore_includes, ignore_excludes=ignore_excludes
+                    ).items()
+                )
+            ),
+        )
