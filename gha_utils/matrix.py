@@ -37,20 +37,30 @@ class Matrix(dict):
     include: tuple[dict[str:str], ...] = tuple()
     exclude: tuple[dict[str:str], ...] = tuple()
 
+    def matrix(
+        self, ignore_includes: bool = False, ignore_excludes: bool = False
+    ) -> dict[str:str]:
+        """Returns a copy of the matrix.
+
+        The special ``include`` and ``excludes`` directives will be added by default.
+        You can selectively ignore them by passing the corresponding parameters.
+        """
+        dict_copy = dict(self)
+        if not ignore_includes and self.include:
+            dict_copy["include"] = self.include
+        if not ignore_excludes and self.exclude:
+            dict_copy["exclude"] = self.exclude
+        return dict_copy
+
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}: {super().__repr__()};"
+            f"<{self.__class__.__name__}: {super().__repr__()}; "
             f"include={self.include}; exclude={self.exclude}>"
         )
 
     def __str__(self) -> str:
         """Render matrix as a JSON string."""
-        dict_copy = dict(self)
-        if self.include:
-            dict_copy["include"] = self.include
-        if self.exclude:
-            dict_copy["exclude"] = self.exclude
-        return json.dumps(dict_copy)
+        return json.dumps(self.matrix())
 
     @staticmethod
     def _check_ids(*var_ids: str) -> None:
