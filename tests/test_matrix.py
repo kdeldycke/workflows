@@ -22,67 +22,70 @@ from gha_utils.matrix import Matrix
 
 
 def test_matrix():
-    m = Matrix()
+    matrix = Matrix()
 
-    assert m == dict()
+    assert matrix == dict()
 
-    assert hasattr(m, "include")
-    assert hasattr(m, "exclude")
-    assert m.include == tuple()
-    assert m.exclude == tuple()
+    assert hasattr(matrix, "include")
+    assert hasattr(matrix, "exclude")
+    assert matrix.include == tuple()
+    assert matrix.exclude == tuple()
 
-    m.add_variation("foo", ["a", "b", "c"])
-    assert m == {"foo": ("a", "b", "c")}
-    assert not m.include
-    assert not m.exclude
+    matrix.add_variation("foo", ["a", "b", "c"])
+    assert matrix == {"foo": ("a", "b", "c")}
+    assert not matrix.include
+    assert not matrix.exclude
 
     # Natural deduplication.
-    m.add_variation("foo", ["a", "a", "d"])
-    assert m == {"foo": ("a", "b", "c", "d")}
-    assert not m.include
-    assert not m.exclude
+    matrix.add_variation("foo", ["a", "a", "d"])
+    assert matrix == {"foo": ("a", "b", "c", "d")}
+    assert not matrix.include
+    assert not matrix.exclude
 
-    assert m.matrix() == {"foo": ("a", "b", "c", "d")}
+    assert matrix.matrix() == {"foo": ("a", "b", "c", "d")}
 
-    assert str(m) == '{"foo": ["a", "b", "c", "d"]}'
-    assert repr(m) == "<Matrix: {'foo': ('a', 'b', 'c', 'd')}; include=(); exclude=()>"
-
-    with pytest.raises(ValueError):
-        m.add_variation("variation_1", None)
-
-    with pytest.raises(ValueError):
-        m.add_variation("variation_1", [])
+    assert str(matrix) == '{"foo": ["a", "b", "c", "d"]}'
+    assert (
+        repr(matrix)
+        == "<Matrix: {'foo': ('a', 'b', 'c', 'd')}; include=(); exclude=()>"
+    )
 
     with pytest.raises(ValueError):
-        m.add_variation("variation_1", [None])
+        matrix.add_variation("variation_1", None)
 
     with pytest.raises(ValueError):
-        m.add_variation("include", ["a", "b", "c"])
+        matrix.add_variation("variation_1", [])
 
     with pytest.raises(ValueError):
-        m.add_variation("exclude", ["a", "b", "c"])
+        matrix.add_variation("variation_1", [None])
+
+    with pytest.raises(ValueError):
+        matrix.add_variation("include", ["a", "b", "c"])
+
+    with pytest.raises(ValueError):
+        matrix.add_variation("exclude", ["a", "b", "c"])
 
 
 def test_includes():
-    m = Matrix()
+    matrix = Matrix()
 
-    m.add_variation("foo", ["a", "b", "c"])
-    assert m.matrix() == {"foo": ("a", "b", "c")}
+    matrix.add_variation("foo", ["a", "b", "c"])
+    assert matrix.matrix() == {"foo": ("a", "b", "c")}
 
-    m.add_includes({"foo": "a", "bar": "1"})
-    assert m.matrix() == {
+    matrix.add_includes({"foo": "a", "bar": "1"})
+    assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "include": ({"foo": "a", "bar": "1"},),
     }
 
-    m.add_includes({"foo": "b", "bar": "2"})
-    assert m.matrix() == {
+    matrix.add_includes({"foo": "b", "bar": "2"})
+    assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "include": ({"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}),
     }
 
-    m.add_includes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
-    assert m.matrix() == {
+    matrix.add_includes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
+    assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "include": (
             {"foo": "a", "bar": "1"},
@@ -93,32 +96,32 @@ def test_includes():
     }
 
     with pytest.raises(ValueError):
-        m.add_includes({"include": "random"})
+        matrix.add_includes({"include": "random"})
 
     with pytest.raises(ValueError):
-        m.add_includes({"exclude": "random"})
+        matrix.add_includes({"exclude": "random"})
 
 
 def test_excludes():
-    m = Matrix()
+    matrix = Matrix()
 
-    m.add_variation("foo", ["a", "b", "c"])
-    assert m.matrix() == {"foo": ("a", "b", "c")}
+    matrix.add_variation("foo", ["a", "b", "c"])
+    assert matrix.matrix() == {"foo": ("a", "b", "c")}
 
-    m.add_excludes({"foo": "a", "bar": "1"})
-    assert m.matrix() == {
+    matrix.add_excludes({"foo": "a", "bar": "1"})
+    assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "exclude": ({"foo": "a", "bar": "1"},),
     }
 
-    m.add_excludes({"foo": "b", "bar": "2"})
-    assert m.matrix() == {
+    matrix.add_excludes({"foo": "b", "bar": "2"})
+    assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "exclude": ({"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}),
     }
 
-    m.add_excludes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
-    assert m.matrix() == {
+    matrix.add_excludes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
+    assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "exclude": (
             {"foo": "a", "bar": "1"},
@@ -129,32 +132,32 @@ def test_excludes():
     }
 
     with pytest.raises(ValueError):
-        m.add_excludes({"include": "random"})
+        matrix.add_excludes({"include": "random"})
 
     with pytest.raises(ValueError):
-        m.add_excludes({"exclude": "random"})
+        matrix.add_excludes({"exclude": "random"})
 
 
 def test_all_variations():
-    m = Matrix()
+    matrix = Matrix()
 
-    m.add_variation("foo", ["a", "b", "c"])
-    m.add_variation("bar", ["1", "2", "3"])
+    matrix.add_variation("foo", ["a", "b", "c"])
+    matrix.add_variation("bar", ["1", "2", "3"])
 
-    m.add_includes(
+    matrix.add_includes(
         {"foo": "b", "color": "green"},
         {"foo": "d", "color": "orange"},
         {"bar": "1", "shape": "triangle"},
         {"size": "small"},
     )
-    m.add_excludes(
+    matrix.add_excludes(
         {"foo": "b", "shape": "circle"},
         {"bar": "2", "color": "blue"},
         {"bar": "4", "color": "yellow"},
         {"weight": "heavy"},
     )
 
-    assert m.matrix() == {
+    assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "bar": ("1", "2", "3"),
         "include": (
@@ -171,7 +174,7 @@ def test_all_variations():
         ),
     }
 
-    assert m.matrix(ignore_includes=True) == {
+    assert matrix.matrix(ignore_includes=True) == {
         "foo": ("a", "b", "c"),
         "bar": ("1", "2", "3"),
         "exclude": (
@@ -182,7 +185,7 @@ def test_all_variations():
         ),
     }
 
-    assert m.matrix(ignore_excludes=True) == {
+    assert matrix.matrix(ignore_excludes=True) == {
         "foo": ("a", "b", "c"),
         "bar": ("1", "2", "3"),
         "include": (
@@ -193,12 +196,12 @@ def test_all_variations():
         ),
     }
 
-    assert m.matrix(ignore_includes=True, ignore_excludes=True) == {
+    assert matrix.matrix(ignore_includes=True, ignore_excludes=True) == {
         "foo": ("a", "b", "c"),
         "bar": ("1", "2", "3"),
     }
 
-    assert m.all_variations() == {
+    assert matrix.all_variations() == {
         "foo": ("a", "b", "c", "d"),
         "bar": ("1", "2", "3", "4"),
         "color": ("green", "orange", "blue", "yellow"),
@@ -207,7 +210,7 @@ def test_all_variations():
         "weight": ("heavy",),
     }
 
-    assert m.all_variations(ignore_includes=True) == {
+    assert matrix.all_variations(ignore_includes=True) == {
         "foo": ("a", "b", "c"),
         "bar": ("1", "2", "3", "4"),
         "shape": ("circle",),
@@ -215,7 +218,7 @@ def test_all_variations():
         "weight": ("heavy",),
     }
 
-    assert m.all_variations(ignore_excludes=True) == {
+    assert matrix.all_variations(ignore_excludes=True) == {
         "foo": ("a", "b", "c", "d"),
         "bar": ("1", "2", "3"),
         "color": ("green", "orange"),
@@ -223,19 +226,19 @@ def test_all_variations():
         "size": ("small",),
     }
 
-    assert m.all_variations(ignore_includes=True, ignore_excludes=True) == {
+    assert matrix.all_variations(ignore_includes=True, ignore_excludes=True) == {
         "foo": ("a", "b", "c"),
         "bar": ("1", "2", "3"),
     }
 
 
 def test_product():
-    m = Matrix()
+    matrix = Matrix()
 
-    m.add_variation("foo", ["a", "b", "c"])
-    m.add_variation("bar", ["1", "2", "3"])
+    matrix.add_variation("foo", ["a", "b", "c"])
+    matrix.add_variation("bar", ["1", "2", "3"])
 
-    assert tuple(m.product()) == (
+    assert tuple(matrix.product()) == (
         {"foo": "a", "bar": "1"},
         {"foo": "a", "bar": "2"},
         {"foo": "a", "bar": "3"},
@@ -247,20 +250,20 @@ def test_product():
         {"foo": "c", "bar": "3"},
     )
 
-    m.add_includes(
+    matrix.add_includes(
         {"foo": "b", "color": "green"},
         {"foo": "d", "color": "orange"},
         {"bar": "1", "shape": "triangle"},
         {"size": "small"},
     )
-    m.add_excludes(
+    matrix.add_excludes(
         {"foo": "b", "shape": "circle"},
         {"bar": "2", "color": "blue"},
         {"bar": "4", "color": "yellow"},
         {"weight": "heavy"},
     )
 
-    assert tuple(m.product()) == (
+    assert tuple(matrix.product()) == (
         {
             "foo": "a",
             "bar": "1",
@@ -1287,7 +1290,7 @@ def test_product():
         },
     )
 
-    assert tuple(m.product(ignore_includes=True)) == (
+    assert tuple(matrix.product(ignore_includes=True)) == (
         {"foo": "a", "bar": "1", "shape": "circle", "color": "blue", "weight": "heavy"},
         {
             "foo": "a",
@@ -1386,7 +1389,7 @@ def test_product():
         },
     )
 
-    assert tuple(m.product(ignore_excludes=True)) == (
+    assert tuple(matrix.product(ignore_excludes=True)) == (
         {
             "foo": "a",
             "bar": "1",
@@ -1557,7 +1560,7 @@ def test_product():
         },
     )
 
-    assert tuple(m.product(ignore_includes=True, ignore_excludes=True)) == (
+    assert tuple(matrix.product(ignore_includes=True, ignore_excludes=True)) == (
         {"foo": "a", "bar": "1"},
         {"foo": "a", "bar": "2"},
         {"foo": "a", "bar": "3"},
@@ -1567,4 +1570,32 @@ def test_product():
         {"foo": "c", "bar": "1"},
         {"foo": "c", "bar": "2"},
         {"foo": "c", "bar": "3"},
+    )
+
+
+def test_solve_excludes():
+    matrix = Matrix()
+
+    matrix.add_variation("os", ["macos-latest", "windows-latest"])
+    matrix.add_variation("version", ["12", "14", "16"])
+    matrix.add_variation("environment", ["staging", "production"])
+
+    matrix.add_excludes(
+        {"os": "macos-latest", "version": "12", "environment": "production"},
+        {"os": "windows-latest", "version": "16"},
+    )
+
+    assert tuple(matrix.solve()) == (
+        {"os": "macos-latest", "version": "12", "environment": "staging"},
+        # {"os": "macos-latest", "version": "12", "environment": "production"},
+        {"os": "macos-latest", "version": "14", "environment": "staging"},
+        {"os": "macos-latest", "version": "14", "environment": "production"},
+        {"os": "macos-latest", "version": "16", "environment": "staging"},
+        {"os": "macos-latest", "version": "16", "environment": "production"},
+        {"os": "windows-latest", "version": "12", "environment": "staging"},
+        {"os": "windows-latest", "version": "12", "environment": "production"},
+        {"os": "windows-latest", "version": "14", "environment": "staging"},
+        {"os": "windows-latest", "version": "14", "environment": "production"},
+        # {"os": "windows-latest", "version": "16", "environment": "staging"},
+        # {"os": "windows-latest", "version": "16", "environment": "production"},
     )

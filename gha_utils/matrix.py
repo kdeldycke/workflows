@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import logging
 from typing import Iterable, Iterator
 
 from boltons.iterutils import unique  # type: ignore[import-untyped]
@@ -73,7 +74,7 @@ class Matrix(dict):
         self._check_ids(variation_id)
         if not values:
             raise ValueError(f"No variation values provided: {values}")
-        if set(map(type, values)) != {str}:
+        if any(type(v) is not str for v in values):
             raise ValueError(f"Only strings are accepted in {values}")
         # Extend variation with values, and deduplicate them along the way.
         var_values = list(self.get(variation_id, [])) + list(values)
@@ -124,10 +125,32 @@ class Matrix(dict):
             dict,
             itertools.product(
                 *(
-                    tuple((variant_id, value) for value in variant_values)
+                    tuple((variant_id, variation) for variation in variant_values)
                     for variant_id, variant_values in self.all_variations(
                         ignore_includes=ignore_includes, ignore_excludes=ignore_excludes
                     ).items()
                 )
             ),
         )
+
+    def solve(self) -> Iterator[dict[str:str]]:
+        """Returns all combinations of matrix variations while applying ``include`` and ``exclude`` constraints.
+
+        .. caution::
+            All ``include`` combinations are processed after ``exclude``. This allows
+            you to use ``include`` to add back combinations that were previously excluded.
+        """
+        counter = 0
+
+        # inclusion_filters = {set(d.items()) for d in self.include}
+        exclusion_filters = {frozenset(d.items()) for d in self.exclude}
+
+        for variation_set in self.product():
+            # Skip sets matching exclusion criterions.
+            if any(f.issubset(variation_set.items()) for f in exclusion_filters):
+                continue
+
+            yield variation_set
+            counter += 1
+            if counter == 256:
+                logging.warning("GitHub workflow matrix limits of 256 jobs reached")
