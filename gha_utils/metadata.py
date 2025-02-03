@@ -183,6 +183,8 @@ from wcmatch.glob import (
     iglob,
 )
 
+from .matrix import RESERVED_MATRIX_KEYWORDS, Matrix
+
 SHORT_SHA_LENGTH = 7
 """Default SHA length hard-coded to ``7``.
 
@@ -191,8 +193,6 @@ SHORT_SHA_LENGTH = 7
     The `default is subject to change <https://stackoverflow.com/a/21015031>`_ and
     depends on the size of the repository.
 """
-
-RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
 
 WorkflowEvent = StrEnum(
@@ -273,14 +273,6 @@ MYPY_VERSION_MIN: Final = (3, 8)
 `Sourced from Mypy original implementation
 <https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
 """
-
-
-class Matrix(dict):
-    """A matrix to used in a GitHub workflow."""
-
-    def __str__(self) -> str:
-        """Render matrix as a JSON string."""
-        return json.dumps(self)
 
 
 class Metadata:
@@ -437,8 +429,7 @@ class Metadata:
                 f"No need to look into the commit history: repository is already checked out at {current_commit}"
             )
 
-        sha_list = []
-        include_list = []
+        matrix = Matrix()
         for commit in commits:
             if past_commit_lookup:
                 logging.debug(f"Checkout to commit {commit.hash}")
@@ -447,12 +438,14 @@ class Metadata:
             logging.debug(f"Extract project version at commit {commit.hash}")
             current_version = Metadata.get_current_version()
 
-            sha_list.append(commit.hash)
-            include_list.append({
-                "commit": commit.hash,
-                "short_sha": commit.hash[:SHORT_SHA_LENGTH],
-                "current_version": current_version,
-            })
+            matrix.add_variation("commit", commit.hash)
+            matrix.include.add(
+                {
+                    "commit": commit.hash,
+                    "short_sha": commit.hash[:SHORT_SHA_LENGTH],
+                    "current_version": current_version,
+                }
+            )
 
         # Restore the repository to its initial state.
         if past_commit_lookup:
@@ -462,10 +455,7 @@ class Metadata:
                 logging.debug("Unstash local changes that were previously saved.")
                 git.repo.git.stash("pop")
 
-        return Matrix({
-            "commit": sha_list,
-            "include": include_list,
-        })
+        return matrix
 
     @cached_property
     def event_type(self) -> WorkflowEvent | None:  # type: ignore[valid-type]
