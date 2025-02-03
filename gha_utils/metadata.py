@@ -439,7 +439,7 @@ class Metadata:
             current_version = Metadata.get_current_version()
 
             matrix.add_variation("commit", commit.hash)
-            matrix.include.add(
+            matrix.add_include(
                 {
                     "commit": commit.hash,
                     "short_sha": commit.hash[:SHORT_SHA_LENGTH],

@@ -28,16 +28,17 @@ def test_matrix():
 
     assert hasattr(m, "include")
     assert hasattr(m, "exclude")
-    assert m.include == set()
-    assert m.exclude == set()
+    assert m.include == tuple()
+    assert m.exclude == tuple()
 
     m.add_variation("foo", ["a", "b", "c"])
-    assert m == {"foo": {"a", "b", "c"}}
+    assert m == {"foo": ("a", "b", "c")}
     assert not m.include
     assert not m.exclude
 
+    # Natural deduplication.
     m.add_variation("foo", ["a", "a", "d"])
-    assert m == {"foo": {"a", "b", "c", "d"}}
+    assert m == {"foo": ("a", "b", "c", "d")}
     assert not m.include
     assert not m.exclude
 

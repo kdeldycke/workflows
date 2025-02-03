@@ -19,19 +19,19 @@ from __future__ import annotations
 import json
 from typing import Iterable
 
+from boltons.iterutils import unique  # type: ignore[import-untyped]
+
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
 
 class Matrix(dict):
-    """A matrix to used in a GitHub workflow."""
+    """A matrix as defined by GitHub actions workflows.
 
-    include: set[dict[str:str]]
-    exclude: set[dict[str:str]]
+    See: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
+    """
 
-    def __init__(self):
-        super().__init__()
-        self.include = set()
-        self.exclude = set()
+    include: tuple[dict[str:str]] = tuple()
+    exclude: tuple[dict[str:str]] = tuple()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}: {super().__repr__()}; include={self.include!r}; exclude={self.exclude!r}>"
@@ -43,10 +43,7 @@ class Matrix(dict):
             dict_copy["include"] = self.include
         if self.exclude:
             dict_copy["exclude"] = self.exclude
-        return json.dumps(dict_copy, cls=MatrixEncoder)
-
-    def __setattr__(self, name, value):
-        return super().__setattr__(name, value)
+        return json.dumps(dict_copy)
 
     def add_variation(self, variation_id: str, values: Iterable[str]) -> None:
         if variation_id in RESERVED_MATRIX_KEYWORDS:
@@ -55,11 +52,14 @@ class Matrix(dict):
             raise ValueError(f"No variation values provided: {values}")
         if set(map(type, values)) != {str}:
             raise ValueError(f"Only strings are accepted in {values}")
-        self.setdefault(variation_id, set()).update(values)
+        # Extend variation with values, and deduplicate them along the way.
+        var_values = list(self.get(variation_id, [])) + list(values)
+        self[variation_id] = tuple(unique(var_values))
 
+    def add_include(self, value: dict[str:str]) -> None:
+        """Expand matrix results with custom configuration."""
+        self.include = tuple(unique(list(self.include) + [value]))
 
-class MatrixEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, set):
-            return sorted(obj)
-        return super().default(obj)
+    def add_exclude(self, value: dict[str:str]) -> None:
+        """Reduce matrix results with custom configuration."""
+        self.exclude = tuple(unique(list(self.exclude) + [value]))
