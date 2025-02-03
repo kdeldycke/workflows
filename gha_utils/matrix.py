@@ -16,8 +16,9 @@
 
 from __future__ import annotations
 
+import itertools
 import json
-from typing import Iterable
+from typing import Iterable, Iterator
 
 from boltons.iterutils import unique  # type: ignore[import-untyped]
 
