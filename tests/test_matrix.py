@@ -58,3 +58,61 @@ def test_matrix():
         m.add_variation("exclude", ["a", "b", "c"])
 
     assert str(m) == '{"foo": ["a", "b", "c", "d"]}'
+
+
+def test_includes():
+    m = Matrix()
+
+    m.add_variation("foo", ["a", "b", "c"])
+    assert str(m) == '{"foo": ["a", "b", "c"]}'
+
+    m.add_includes({"foo": "a", "bar": "1"})
+    assert str(m) == '{"foo": ["a", "b", "c"], "include": [{"foo": "a", "bar": "1"}]}'
+
+    m.add_includes({"foo": "b", "bar": "2"})
+    assert str(m) == (
+        '{"foo": ["a", "b", "c"],'
+        ' "include": [{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}]}'
+    )
+
+    m.add_includes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
+    assert str(m) == (
+        '{"foo": ["a", "b", "c"], "include": ['
+        '{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}, '
+        '{"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"}]}'
+    )
+
+    with pytest.raises(ValueError):
+        m.add_includes({"include": "random"})
+
+    with pytest.raises(ValueError):
+        m.add_includes({"exclude": "random"})
+
+
+def test_excludes():
+    m = Matrix()
+
+    m.add_variation("foo", ["a", "b", "c"])
+    assert str(m) == '{"foo": ["a", "b", "c"]}'
+
+    m.add_excludes({"foo": "a", "bar": "1"})
+    assert str(m) == '{"foo": ["a", "b", "c"], "exclude": [{"foo": "a", "bar": "1"}]}'
+
+    m.add_excludes({"foo": "b", "bar": "2"})
+    assert str(m) == (
+        '{"foo": ["a", "b", "c"],'
+        ' "exclude": [{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}]}'
+    )
+
+    m.add_excludes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
+    assert str(m) == (
+        '{"foo": ["a", "b", "c"], "exclude": ['
+        '{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}, '
+        '{"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"}]}'
+    )
+
+    with pytest.raises(ValueError):
+        m.add_excludes({"include": "random"})
+
+    with pytest.raises(ValueError):
+        m.add_excludes({"exclude": "random"})

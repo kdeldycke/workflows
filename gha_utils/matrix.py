@@ -30,11 +30,18 @@ class Matrix(dict):
     See: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
     """
 
-    include: tuple[dict[str:str]] = tuple()
-    exclude: tuple[dict[str:str]] = tuple()
+    # Special directives are tuples to:
+    # - make the matrix immutable and prevent users meddling with our internals (unless
+    #   using the proper update methods)
+    # - keep items ordered by their insertion into the matrix
+    include: tuple[dict[str:str], ...] = tuple()
+    exclude: tuple[dict[str:str], ...] = tuple()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}: {super().__repr__()}; include={self.include!r}; exclude={self.exclude!r}>"
+        return (
+            f"<{self.__class__.__name__}: {super().__repr__()};"
+            f"include={self.include}; exclude={self.exclude}>"
+        )
 
     def __str__(self) -> str:
         """Render matrix as a JSON string."""
@@ -45,9 +52,14 @@ class Matrix(dict):
             dict_copy["exclude"] = self.exclude
         return json.dumps(dict_copy)
 
+    @staticmethod
+    def _check_ids(*var_ids: str) -> None:
+        for var_id in var_ids:
+            if var_id in RESERVED_MATRIX_KEYWORDS:
+                raise ValueError(f"{var_id} cannot be used as a variation ID")
+
     def add_variation(self, variation_id: str, values: Iterable[str]) -> None:
-        if variation_id in RESERVED_MATRIX_KEYWORDS:
-            raise ValueError(f"{variation_id} cannot be used as a variation ID")
+        self._check_ids(variation_id)
         if not values:
             raise ValueError(f"No variation values provided: {values}")
         if set(map(type, values)) != {str}:
@@ -56,10 +68,18 @@ class Matrix(dict):
         var_values = list(self.get(variation_id, [])) + list(values)
         self[variation_id] = tuple(unique(var_values))
 
-    def add_include(self, value: dict[str:str]) -> None:
-        """Expand matrix results with custom configuration."""
-        self.include = tuple(unique(list(self.include) + [value]))
+    def _add_and_dedup_dicts(
+        self, *new_dicts: dict[str:str]
+    ) -> tuple[dict[str:str], ...]:
+        self._check_ids(*(k for d in new_dicts for k in d))
+        return tuple(
+            dict(items) for items in unique((tuple(d.items()) for d in new_dicts))
+        )
 
-    def add_exclude(self, value: dict[str:str]) -> None:
+    def add_includes(self, *new_includes: dict[str:str]) -> None:
+        """Expand matrix results with custom configuration."""
+        self.include = self._add_and_dedup_dicts(*self.include, *new_includes)
+
+    def add_excludes(self, *new_excludes: dict[str:str]) -> None:
         """Reduce matrix results with custom configuration."""
-        self.exclude = tuple(unique(list(self.exclude) + [value]))
+        self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
