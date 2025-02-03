@@ -119,7 +119,7 @@ class Matrix(dict):
         return {k: tuple(unique(v)) for k, v in variations.items()}
 
     def product(
-        self, ignore_includes: bool = False, ignore_excludes: bool = False
+        self, with_includes: bool = False, with_excludes: bool = False
     ) -> Iterator[dict[str:str]]:
         yield from map(
             dict,
@@ -127,7 +127,8 @@ class Matrix(dict):
                 *(
                     tuple((variant_id, variation) for variation in variant_values)
                     for variant_id, variant_values in self.all_variations(
-                        ignore_includes=ignore_includes, ignore_excludes=ignore_excludes
+                        ignore_includes=not with_includes,
+                        ignore_excludes=not with_excludes,
                     ).items()
                 )
             ),
@@ -151,6 +152,7 @@ class Matrix(dict):
                 continue
 
             yield variation_set
+
             counter += 1
             if counter == 256:
                 logging.warning("GitHub workflow matrix limits of 256 jobs reached")
