@@ -93,3 +93,25 @@ class Matrix(dict):
     def add_excludes(self, *new_excludes: dict[str:str]) -> None:
         """Reduce matrix results with custom configuration."""
         self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
+
+    def all_variations(
+        self, ignore_includes: bool = False, ignore_excludes: bool = False
+    ) -> dict[str : tuple[str, ...]]:
+        """Return all variations encountered in the matrix.
+
+        Extra variations mentioned in the special ``include`` and ``excludes``
+        directives will be taken into account by default. You can selectively ignore
+        them by passing the corresponding parameters.
+        """
+        variations = {k: list(v) for k, v in self.items()}
+
+        for ignore, directive_values in (
+            (ignore_includes, self.include),
+            (ignore_excludes, self.exclude),
+        ):
+            if not ignore:
+                for value in directive_values:
+                    for k, v in value.items():
+                        variations.setdefault(k, []).append(v)
+
+        return {k: tuple(unique(v)) for k, v in variations.items()}

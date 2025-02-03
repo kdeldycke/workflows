@@ -133,3 +133,97 @@ def test_excludes():
 
     with pytest.raises(ValueError):
         m.add_excludes({"exclude": "random"})
+
+
+def test_all_variations():
+    m = Matrix()
+
+    m.add_variation("foo", ["a", "b", "c"])
+    m.add_variation("bar", ["1", "2", "3"])
+
+    m.add_includes(
+        {"foo": "b", "color": "green"},
+        {"foo": "d", "color": "orange"},
+        {"bar": "1", "shape": "triangle"},
+        {"size": "small"},
+    )
+    m.add_excludes(
+        {"foo": "b", "shape": "circle"},
+        {"bar": "2", "color": "blue"},
+        {"bar": "4", "color": "yellow"},
+        {"weight": "heavy"},
+    )
+
+    assert m.matrix() == {
+        "foo": ("a", "b", "c"),
+        "bar": ("1", "2", "3"),
+        "include": (
+            {"foo": "b", "color": "green"},
+            {"foo": "d", "color": "orange"},
+            {"bar": "1", "shape": "triangle"},
+            {"size": "small"},
+        ),
+        "exclude": (
+            {"foo": "b", "shape": "circle"},
+            {"bar": "2", "color": "blue"},
+            {"bar": "4", "color": "yellow"},
+            {"weight": "heavy"},
+        ),
+    }
+
+    assert m.matrix(ignore_includes=True) == {
+        "foo": ("a", "b", "c"),
+        "bar": ("1", "2", "3"),
+        "exclude": (
+            {"foo": "b", "shape": "circle"},
+            {"bar": "2", "color": "blue"},
+            {"bar": "4", "color": "yellow"},
+            {"weight": "heavy"},
+        ),
+    }
+
+    assert m.matrix(ignore_excludes=True) == {
+        "foo": ("a", "b", "c"),
+        "bar": ("1", "2", "3"),
+        "include": (
+            {"foo": "b", "color": "green"},
+            {"foo": "d", "color": "orange"},
+            {"bar": "1", "shape": "triangle"},
+            {"size": "small"},
+        ),
+    }
+
+    assert m.matrix(ignore_includes=True, ignore_excludes=True) == {
+        "foo": ("a", "b", "c"),
+        "bar": ("1", "2", "3"),
+    }
+
+    assert m.all_variations() == {
+        "foo": ("a", "b", "c", "d"),
+        "bar": ("1", "2", "3", "4"),
+        "color": ("green", "orange", "blue", "yellow"),
+        "shape": ("triangle", "circle"),
+        "size": ("small",),
+        "weight": ("heavy",),
+    }
+
+    assert m.all_variations(ignore_includes=True) == {
+        "foo": ("a", "b", "c"),
+        "bar": ("1", "2", "3", "4"),
+        "shape": ("circle",),
+        "color": ("blue", "yellow"),
+        "weight": ("heavy",),
+    }
+
+    assert m.all_variations(ignore_excludes=True) == {
+        "foo": ("a", "b", "c", "d"),
+        "bar": ("1", "2", "3"),
+        "color": ("green", "orange"),
+        "shape": ("triangle",),
+        "size": ("small",),
+    }
+
+    assert m.all_variations(ignore_includes=True, ignore_excludes=True) == {
+        "foo": ("a", "b", "c"),
+        "bar": ("1", "2", "3"),
+    }
