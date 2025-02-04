@@ -1072,7 +1072,7 @@ class Metadata:
         assert build_commit_matrix
         # Extend the matrix with a new dimension: a list of commits.
         matrix.add_variation("commit", build_commit_matrix["commit"])
-        matrix.add_includes(*build_commit_matrix.get("include", ()))
+        matrix.add_includes(*build_commit_matrix.include)
 
         # Add platform-specific variables.
         # Arch values are inspired from those specified for self-hosted runners:
@@ -1257,7 +1257,7 @@ class Metadata:
                     delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
                     content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
         else:
-            assert dialect == Dialects.PLAIN
+            assert dialect == Dialects.plain
             content = repr(metadata)
 
         logging.debug(f"Formatted metadata:\n{content}")
