@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+from itertools import permutations
+
 import pytest
 
 from gha_utils.matrix import Matrix
@@ -415,16 +417,30 @@ def test_product():
     )
 
 
-def test_solve_includes():
+@pytest.mark.parametrize(
+    "includes",
+    (
+        permutations(
+            (
+                # The order of these 3 includes directives can be shuffled as the
+                # final result order is imposed by the base variations of the original
+                # matrix.
+                {"color": "green"},
+                {"color": "pink", "animal": "cat"},
+                {"fruit": "apple", "shape": "circle"},
+            ),
+            3,
+        )
+    ),
+)
+def test_solve_includes(includes):
     matrix = Matrix()
 
     matrix.add_variation("fruit", ["apple", "pear"])
     matrix.add_variation("animal", ["cat", "dog"])
 
     matrix.add_includes(
-        {"color": "green"},
-        {"color": "pink", "animal": "cat"},
-        {"fruit": "apple", "shape": "circle"},
+        *includes,
         {"fruit": "banana"},
         {"fruit": "banana", "animal": "cat"},
     )
@@ -488,17 +504,29 @@ def test_solve_empty_matrix():
     )
 
 
-def test_solve_excludes():
+@pytest.mark.parametrize(
+    "excludes",
+    (
+        permutations(
+            (
+                # The order of these 3 includes directives can be shuffled as the
+                # final result order is imposed by the base variations of the original
+                # matrix.
+                {"os": "macos-latest", "version": "12", "environment": "production"},
+                {"os": "windows-latest", "version": "16"},
+            ),
+            2,
+        )
+    ),
+)
+def test_solve_excludes(excludes):
     matrix = Matrix()
 
     matrix.add_variation("os", ["macos-latest", "windows-latest"])
     matrix.add_variation("version", ["12", "14", "16"])
     matrix.add_variation("environment", ["staging", "production"])
 
-    matrix.add_excludes(
-        {"os": "macos-latest", "version": "12", "environment": "production"},
-        {"os": "windows-latest", "version": "16"},
-    )
+    matrix.add_excludes(*excludes)
 
     assert tuple(matrix.solve()) == (
         {"os": "macos-latest", "version": "12", "environment": "staging"},
@@ -516,16 +544,28 @@ def test_solve_excludes():
     )
 
 
-def test_solve_exclude_partial():
+@pytest.mark.parametrize(
+    "excludes",
+    (
+        permutations(
+            (
+                # The order of these 3 includes directives can be shuffled as the
+                # final result order is imposed by the base variations of the original
+                # matrix.
+                {"os": "windows-latest", "version": "14", "node": "20"},
+                {"os": "linux-latest"},
+            ),
+            2,
+        )
+    ),
+)
+def test_solve_exclude_partial(excludes):
     matrix = Matrix()
 
     matrix.add_variation("os", ["macos-latest", "windows-latest", "linux-latest"])
     matrix.add_variation("version", ["14", "16"])
 
-    matrix.add_excludes(
-        {"os": "windows-latest", "version": "14", "node": "20"},
-        {"os": "linux-latest"},
-    )
+    matrix.add_excludes(*excludes)
 
     assert tuple(matrix.solve()) == (
         {"os": "macos-latest", "version": "14"},

@@ -222,20 +222,25 @@ class Matrix(FrozenDict):
             # directives.
             updated_variations = base_variations.copy()
             for include in applicable_includes:
-                # No variant ID match any of the base variation, so we can update the variation with it.
-
+                # Check if the include directive is completely disjoint to the
+                # variations of the original matrix. If that's the case, then we are
+                # supposed to augment the current variation with this include, at it has
+                # already been identified as applicable. But only do that if the updated
+                # variation has not been already updated with a previously evaluated,
+                # more targeted include directive.
                 if set(include).isdisjoint(base_variations):
                     if set(include).isdisjoint(updated_variations):
                         updated_variations.update(include)
                     continue
 
-                # Expand the variation set with the fully matching include directive.
+                # Expand the base variation set with the fully matching include directive.
                 if all(
                     include[k] == base_variations[k]
                     for k in set(include).intersection(base_variations)
                 ):
                     # Re-instate the variation set as a valid candidate since we found
-                    # an include directive which revived it.
+                    # an include directive that is explicitly referring to it,
+                    # resurrecting it from the dead.
                     exclusion_candidate = False
                     updated_variations.update(include)
 
