@@ -1114,7 +1114,7 @@ class Metadata:
 
         # Emulate collection and aggregation of the 'include' directive to all
         # variations produced by the matrix.
-        for variant_dict in matrix.product(ignore_includes=True, ignore_excludes=True):
+        for variant_dict in matrix.product():
             # Check each extra parameters from the 'include' directive and accumulate
             # the matching ones to the variant.
             full_variant = variant_dict.copy()
