@@ -24,8 +24,6 @@ from gha_utils.metadata import Dialects, Metadata
 def test_metadata_github_format():
     metadata = Metadata()
 
-    print(metadata.dump(Dialects.github))
-
     assert re.fullmatch(
         (
             r"new_commits=\n"
@@ -58,16 +56,14 @@ def test_metadata_github_format():
 def test_metadata_plain_format():
     metadata = Metadata()
 
-    print(metadata.dump(Dialects.plain))
-
     assert re.fullmatch(
         (
             r"\{"
             r"'new_commits': None, "
             r"'release_commits': None, "
             r"'gitignore_exists': True, "
-            r"'python_files': <generator object Metadata\.python_files at 0x[a-z0-9]+>, "
-            r"'doc_files': <generator object Metadata\.doc_files at 0x[a-z0-9]+>, "
+            r"'python_files': <generator object Metadata\.python_files at \S+>, "
+            r"'doc_files': <generator object Metadata\.doc_files at \S+>, "
             r"'is_python_project': True, "
             r"'package_name': 'gha-utils', "
             r"'blacken_docs_params': \("
