@@ -204,23 +204,11 @@ def test_all_variations():
     }
 
     assert matrix.all_variations() == {
-        "foo": ("a", "b", "c", "d"),
-        "bar": ("1", "2", "3", "4"),
-        "color": ("green", "orange", "blue", "yellow"),
-        "shape": ("triangle", "circle"),
-        "size": ("small",),
-        "weight": ("heavy",),
-    }
-
-    assert matrix.all_variations(ignore_includes=True) == {
         "foo": ("a", "b", "c"),
-        "bar": ("1", "2", "3", "4"),
-        "shape": ("circle",),
-        "color": ("blue", "yellow"),
-        "weight": ("heavy",),
+        "bar": ("1", "2", "3"),
     }
 
-    assert matrix.all_variations(ignore_excludes=True) == {
+    assert matrix.all_variations(with_includes=True) == {
         "foo": ("a", "b", "c", "d"),
         "bar": ("1", "2", "3"),
         "color": ("green", "orange"),
@@ -228,9 +216,21 @@ def test_all_variations():
         "size": ("small",),
     }
 
-    assert matrix.all_variations(ignore_includes=True, ignore_excludes=True) == {
+    assert matrix.all_variations(with_excludes=True) == {
         "foo": ("a", "b", "c"),
-        "bar": ("1", "2", "3"),
+        "bar": ("1", "2", "3", "4"),
+        "shape": ("circle",),
+        "color": ("blue", "yellow"),
+        "weight": ("heavy",),
+    }
+
+    assert matrix.all_variations(with_excludes=True, with_includes=True) == {
+        "foo": ("a", "b", "c", "d"),
+        "bar": ("1", "2", "3", "4"),
+        "color": ("green", "orange", "blue", "yellow"),
+        "shape": ("triangle", "circle"),
+        "size": ("small",),
+        "weight": ("heavy",),
     }
 
 

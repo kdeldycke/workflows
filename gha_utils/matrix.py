@@ -97,24 +97,26 @@ class Matrix(dict):
         self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
 
     def all_variations(
-        self, ignore_includes: bool = False, ignore_excludes: bool = False
+        self, with_includes: bool = False, with_excludes: bool = False
     ) -> dict[str : tuple[str, ...]]:
-        """Return all variations encountered in the matrix.
+        """Returns all variations encountered in the matrix.
 
         Extra variations mentioned in the special ``include`` and ``excludes``
-        directives will be taken into account by default. You can selectively ignore
-        them by passing the corresponding parameters.
+        directives will be ignored by default. You can selectively have them expand the
+        inventory of variations by passing the corresponding boolean parameters to the
+        method.
         """
         variations = {k: list(v) for k, v in self.items()}
 
-        for ignore, directive_values in (
-            (ignore_includes, self.include),
-            (ignore_excludes, self.exclude),
+        for expand, directives in (
+            (with_includes, self.include),
+            (with_excludes, self.exclude),
         ):
-            if not ignore:
-                for value in directive_values:
-                    for k, v in value.items():
-                        variations.setdefault(k, []).append(v)
+            if not expand:
+                continue
+            for value in directives:
+                for k, v in value.items():
+                    variations.setdefault(k, []).append(v)
 
         return {k: tuple(unique(v)) for k, v in variations.items()}
 
@@ -128,7 +130,7 @@ class Matrix(dict):
         Respects the order of variations and their values.
         """
         variations = self.all_variations(
-            ignore_includes=not with_includes, ignore_excludes=not with_excludes
+            with_includes=with_includes, with_excludes=with_excludes
         )
         if not variations:
             return
@@ -155,7 +157,7 @@ class Matrix(dict):
         exclusion_filters = {frozenset(d.items()) for d in self.exclude}
 
 
-        var2 = self.all_variations(ignore_includes=True, ignore_excludes=True)
+        var2 = self.all_variations()
 
         # Search for include directives not applicables to any of base matrix's variations, and put them on the side.
         applicable_includes = []
