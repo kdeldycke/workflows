@@ -218,10 +218,12 @@ class Matrix(FrozenDict):
             ):
                 exclusion_candidate = True
 
-            # Expand and/or extend the original variation set with applicable include directives.
+            # Expand and/or extend the original variation set with applicable include
+            # directives.
             updated_variations = base_variations.copy()
             for include in applicable_includes:
-                # No variant IDs match any of the base variation, so we can update the variation with it.
+                # No variant ID match any of the base variation, so we can update the variation with it.
+
                 if set(include).isdisjoint(base_variations):
                     if set(include).isdisjoint(updated_variations):
                         updated_variations.update(include)
@@ -232,8 +234,8 @@ class Matrix(FrozenDict):
                     include[k] == base_variations[k]
                     for k in set(include).intersection(base_variations)
                 ):
-                    # Re-instate the variation set as a valid candidate since we found an include directive
-                    # which revived it.
+                    # Re-instate the variation set as a valid candidate since we found
+                    # an include directive which revived it.
                     exclusion_candidate = False
                     updated_variations.update(include)
 
@@ -241,7 +243,7 @@ class Matrix(FrozenDict):
                 self._count_job()
                 yield updated_variations
 
-        # Return as-is alld the includes that were not applied to the original matrix.
+        # Return as-is all the includes that were not applied to the original matrix.
         for variation in leftover_includes:
             self._count_job()
             yield variation
