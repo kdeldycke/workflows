@@ -48,12 +48,12 @@ class Matrix(FrozenDict):
     """
 
     # Tuples are used to keep track of the insertion order and force immutability.
-    include: tuple[dict[str:str], ...] = tuple()
-    exclude: tuple[dict[str:str], ...] = tuple()
+    include: tuple[dict[str, str], ...] = tuple()
+    exclude: tuple[dict[str, str], ...] = tuple()
 
     def matrix(
         self, ignore_includes: bool = False, ignore_excludes: bool = False
-    ) -> dict[str:str]:
+    ) -> dict[str, str]:
         """Returns a copy of the matrix.
 
         The special ``include`` and ``excludes`` directives will be added by default.
@@ -93,24 +93,24 @@ class Matrix(FrozenDict):
         super(FrozenDict, self).__setitem__(variation_id, tuple(unique(var_values)))
 
     def _add_and_dedup_dicts(
-        self, *new_dicts: dict[str:str]
-    ) -> tuple[dict[str:str], ...]:
+        self, *new_dicts: dict[str, str]
+    ) -> tuple[dict[str, str], ...]:
         self._check_ids(*(k for d in new_dicts for k in d))
         return tuple(
             dict(items) for items in unique((tuple(d.items()) for d in new_dicts))
         )
 
-    def add_includes(self, *new_includes: dict[str:str]) -> None:
+    def add_includes(self, *new_includes: dict[str, str]) -> None:
         """Add one or more ``include`` special directives to the matrix."""
         self.include = self._add_and_dedup_dicts(*self.include, *new_includes)
 
-    def add_excludes(self, *new_excludes: dict[str:str]) -> None:
+    def add_excludes(self, *new_excludes: dict[str, str]) -> None:
         """Add one or more ``exclude`` special directives to the matrix."""
         self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
 
     def all_variations(
         self, with_includes: bool = False, with_excludes: bool = False
-    ) -> dict[str : tuple[str, ...]]:
+    ) -> dict[str, tuple[str, ...]]:
         """Returns all variations encountered in the matrix.
 
         Extra variations mentioned in the special ``include`` and ``excludes``
@@ -134,7 +134,7 @@ class Matrix(FrozenDict):
 
     def product(
         self, with_includes: bool = False, with_excludes: bool = False
-    ) -> Iterator[dict[str:str]]:
+    ) -> Iterator[dict[str, str]]:
         """Only returns the combinations of the base matrix by default.
 
         You can optionally add any variation referenced in the ``include`` and
@@ -162,7 +162,7 @@ class Matrix(FrozenDict):
         if self._job_counter > 256:
             logging.critical("GitHub job matrix limit of 256 jobs reached")
 
-    def solve(self) -> Iterator[dict[str:str]]:
+    def solve(self) -> Iterator[dict[str, str]]:
         """Returns all combinations and apply ``include`` and ``exclude`` constraints.
 
         .. caution::
@@ -174,12 +174,12 @@ class Matrix(FrozenDict):
         self._job_counter = 0
 
         applicable_includes = []
-        leftover_includes = []
+        leftover_includes: list[dict[str, str]] = []
 
         # The matrix is empty, none of the include directive will match, so condider all
         # directives as un-applicable.
         if not self:
-            leftover_includes = self.include
+            leftover_includes = list(self.include)
 
         # Search for include directives that matches the original matrix variations
         # without overwriting their values. Keep the left overs on the side.
