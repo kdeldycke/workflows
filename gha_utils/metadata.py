@@ -1071,7 +1071,7 @@ class Metadata:
         )
         assert build_commit_matrix
         # Extend the matrix with a new dimension: a list of commits.
-        matrix.add_variation("commit", [build_commit_matrix["commit"]])
+        matrix.add_variation("commit", build_commit_matrix["commit"])
         matrix.add_includes(*build_commit_matrix["include"])
 
         # Add platform-specific variables.
