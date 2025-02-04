@@ -137,7 +137,8 @@ class Matrix(FrozenDict):
     ) -> Iterator[dict[str:str]]:
         """Only returns the combinations of the base matrix by default.
 
-        You can optionnally add any variation referenced in the ``include`` and ``exclude`` special directives.
+        You can optionally add any variation referenced in the ``include`` and
+        ``exclude`` special directives.
 
         Respects the order of variations and their values.
         """
@@ -150,46 +151,63 @@ class Matrix(FrozenDict):
             dict,
             itertools.product(
                 *(
-                    tuple((variant_id, variation) for variation in variant_values)
-                    for variant_id, variant_values in variations.items()
+                    tuple((variant_id, v) for v in variations)
+                    for variant_id, variations in variations.items()
                 )
             ),
         )
 
+    def _count_job(self) -> None:
+        self._job_counter += 1
+        if self._job_counter > 256:
+            logging.critical("GitHub job matrix limit of 256 jobs reached")
+
     def solve(self) -> Iterator[dict[str:str]]:
-        """Returns all combinations of matrix variations while applying ``include`` and ``exclude`` constraints.
+        """Returns all combinations and apply ``include`` and ``exclude`` constraints.
 
         .. caution::
-            All ``include`` combinations are processed after ``exclude``. This allows
-            you to use ``include`` to add back combinations that were previously excluded.
+            As per GitHub specifications, all ``include`` combinations are processed
+            after ``exclude``. This allows you to use ``include`` to add back
+            combinations that were previously excluded.
         """
-        counter = 0
+        # Reset the number of combinations.
+        self._job_counter = 0
 
-        # inclusion_filters = {set(d.items()) for d in self.include}
-        exclusion_filters = {frozenset(d.items()) for d in self.exclude}
-
-
-        var2 = self.all_variations()
-
-        # Search for include directives not applicables to any of base matrix's variations, and put them on the side.
         applicable_includes = []
-        unapplicable_includes = []
+        leftover_includes = []
 
-        if not var2:
-            unapplicable_includes = self.include
+        # The matrix is empty, none of the include directive will match, so condider all
+        # directives as un-applicable.
+        if not self:
+            leftover_includes = self.include
 
+        # Search for include directives that matches the original matrix variations
+        # without overwriting their values. Keep the left overs on the side.
         else:
+            original_variations = self.all_variations()
             for include in self.include:
-                matching_keys = set(include).intersection(var2)
-
-                if not matching_keys or all(
-                    include[k] in var2[k] for k in matching_keys
+                # Keys shared between the include directive and the original matrix.
+                keys_overlap = set(include).intersection(original_variations)
+                # Collect include directives applicable to the original matrix.
+                if (
+                    # If all overlapping keys in the directive exactly match any value
+                    # of the original matrix, then we are certain the directive can be
+                    # applied without overwriting the original variations.
+                    all(include[k] in original_variations[k] for k in keys_overlap)
+                    # Same if no keys are shared, in which case these extra variations
+                    # will be added to all original ones.
+                    or not keys_overlap
                 ):
                     applicable_includes.append(include)
+                # Other directives are considered non-applicable and will be returned
+                # as-is at the end of the process.
                 else:
-                    unapplicable_includes.append(include)
+                    leftover_includes.append(include)
 
         # Include and exclude directives only applies to variations of the base matrix.
+
+        exclusion_filters = {frozenset(d.items()) for d in self.exclude}
+
         for base_variations in self.product():
             # Skip sets matching exclusion criterions.
             if any(f.issubset(base_variations.items()) for f in exclusion_filters):
@@ -209,10 +227,10 @@ class Matrix(FrozenDict):
                 ):
                     updated_variations.update(include)
 
+            self._count_job()
             yield updated_variations
 
-            counter += 1
-            if counter == 256:
-                logging.warning("GitHub workflow matrix limits of 256 jobs reached")
-
-        yield from unapplicable_includes
+        # Return as-is alld the includes that were not applied to the original matrix.
+        for variation in leftover_includes:
+            self._count_job()
+            yield variation
