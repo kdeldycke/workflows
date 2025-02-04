@@ -204,15 +204,21 @@ class Matrix(FrozenDict):
                 else:
                     leftover_includes.append(include)
 
-        # Include and exclude directives only applies to variations of the base matrix.
-
-        exclusion_filters = {frozenset(d.items()) for d in self.exclude}
-
+        # Iterates through all the variations of the original matrix, and act on the
+        # matching exclude and include directives.
         for base_variations in self.product():
-            # Skip sets matching exclusion criterions.
-            if any(f.issubset(base_variations.items()) for f in exclusion_filters):
-                continue
+            # Skip the variation if it is fully matching at least one exclude directive.
+            exclusion_candidate = False
+            if any(
+                all(
+                    exclude[k] == base_variations[k]
+                    for k in set(exclude).intersection(base_variations)
+                )
+                for exclude in self.exclude
+            ):
+                exclusion_candidate = True
 
+            # Expand and/or extend the original variation set with applicable include directives.
             updated_variations = base_variations.copy()
             for include in applicable_includes:
                 # No variant IDs match any of the base variation, so we can update the variation with it.
@@ -221,14 +227,19 @@ class Matrix(FrozenDict):
                         updated_variations.update(include)
                     continue
 
+                # Expand the variation set with the fully matching include directive.
                 if all(
-                    base_variations[k] == include[k]
+                    include[k] == base_variations[k]
                     for k in set(include).intersection(base_variations)
                 ):
+                    # Re-instate the variation set as a valid candidate since we found an include directive
+                    # which revived it.
+                    exclusion_candidate = False
                     updated_variations.update(include)
 
-            self._count_job()
-            yield updated_variations
+            if not exclusion_candidate:
+                self._count_job()
+                yield updated_variations
 
         # Return as-is alld the includes that were not applied to the original matrix.
         for variation in leftover_includes:

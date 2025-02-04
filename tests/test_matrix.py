@@ -514,3 +514,62 @@ def test_solve_excludes():
         # {"os": "windows-latest", "version": "16", "environment": "staging"},
         # {"os": "windows-latest", "version": "16", "environment": "production"},
     )
+
+
+def test_solve_exclude_partial():
+    matrix = Matrix()
+
+    matrix.add_variation("os", ["macos-latest", "windows-latest", "linux-latest"])
+    matrix.add_variation("version", ["14", "16"])
+
+    matrix.add_excludes(
+        {"os": "windows-latest", "version": "14", "node": "20"},
+        {"os": "linux-latest"},
+    )
+
+    assert tuple(matrix.solve()) == (
+        {"os": "macos-latest", "version": "14"},
+        {"os": "macos-latest", "version": "16"},
+        # {"os": "windows-latest", "version": "14"},
+        {"os": "windows-latest", "version": "16"},
+        # {"os": "linux-latest", "version": "14"},
+        # {"os": "linux-latest", "version": "16"},
+    )
+
+
+def test_solve_exclude_include_priority():
+    matrix = Matrix()
+
+    matrix.add_variation("os", ["macos-latest", "windows-latest", "linux-latest"])
+    matrix.add_variation("version", ["14", "16"])
+
+    matrix.add_includes({"os": "linux-latest"})
+    matrix.add_excludes({"os": "linux-latest"})
+
+    assert tuple(matrix.solve()) == (
+        {"os": "macos-latest", "version": "14"},
+        {"os": "macos-latest", "version": "16"},
+        {"os": "windows-latest", "version": "14"},
+        {"os": "windows-latest", "version": "16"},
+        {"os": "linux-latest", "version": "14"},
+        {"os": "linux-latest", "version": "16"},
+    )
+
+
+def test_solve_exclude_include_selectivity():
+    matrix = Matrix()
+
+    matrix.add_variation("os", ["macos-latest", "windows-latest", "linux-latest"])
+    matrix.add_variation("version", ["14", "16"])
+
+    matrix.add_includes({"os": "linux-latest", "version": "16", "node": "20"})
+    matrix.add_excludes({"os": "linux-latest"})
+
+    assert tuple(matrix.solve()) == (
+        {"os": "macos-latest", "version": "14"},
+        {"os": "macos-latest", "version": "16"},
+        {"os": "windows-latest", "version": "14"},
+        {"os": "windows-latest", "version": "16"},
+        # {"os": "linux-latest", "version": "14"},
+        {"os": "linux-latest", "version": "16", "node": "20"},
+    )
