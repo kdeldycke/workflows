@@ -21,21 +21,33 @@ import json
 import logging
 from typing import Iterable, Iterator
 
+from boltons.dictutils import FrozenDict  # type: ignore[import-untyped]
 from boltons.iterutils import unique  # type: ignore[import-untyped]
 
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
 
-class Matrix(dict):
-    """A matrix as defined by GitHub actions workflows.
+class Matrix(FrozenDict):
+    """A matrix as defined by GitHub's actions workflows.
 
-    See: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
+    See GitHub official documentation on `how-to implement variations of jobs in a
+    workflow
+    <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow>`_.
+
+    This Matrix behave like a ``dict`` and works everywhere a ``dict`` would. Only that
+    it is immutable and based on :class:`FrozenDict`. If you want to populate the matrix
+    you have to use the following methods:
+
+    - :meth:`add_variation`
+    - :meth:`add_includes`
+    - :meth:`add_excludes`
+
+    The implementation respects the order in which items were inserted. This provides a
+    natural and visual sorting that should ease the inspection and debugging of large
+    matrix.
     """
 
-    # Special directives are tuples to:
-    # - make the matrix immutable and prevent users meddling with our internals (unless
-    #   using the proper update methods)
-    # - keep items ordered by their insertion into the matrix
+    # Tuples are used to keep track of the insertion order and force immutability.
     include: tuple[dict[str:str], ...] = tuple()
     exclude: tuple[dict[str:str], ...] = tuple()
 
@@ -45,7 +57,7 @@ class Matrix(dict):
         """Returns a copy of the matrix.
 
         The special ``include`` and ``excludes`` directives will be added by default.
-        You can selectively ignore them by passing the corresponding parameters.
+        You can selectively ignore them by passing the corresponding boolean parameters.
         """
         dict_copy = dict(self)
         if not ignore_includes and self.include:
@@ -56,7 +68,7 @@ class Matrix(dict):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}: {super().__repr__()}; "
+            f"<{self.__class__.__name__}: {super(FrozenDict, self).__repr__()}; "
             f"include={self.include}; exclude={self.exclude}>"
         )
 
@@ -78,7 +90,7 @@ class Matrix(dict):
             raise ValueError(f"Only strings are accepted in {values}")
         # Extend variation with values, and deduplicate them along the way.
         var_values = list(self.get(variation_id, [])) + list(values)
-        self[variation_id] = tuple(unique(var_values))
+        super(FrozenDict, self).__setitem__(variation_id, tuple(unique(var_values)))
 
     def _add_and_dedup_dicts(
         self, *new_dicts: dict[str:str]

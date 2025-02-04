@@ -72,18 +72,38 @@ def test_includes():
     matrix.add_variation("foo", ["a", "b", "c"])
     assert matrix.matrix() == {"foo": ("a", "b", "c")}
 
+    # First addition.
     matrix.add_includes({"foo": "a", "bar": "1"})
     assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "include": ({"foo": "a", "bar": "1"},),
     }
 
+    # Second addition is cumulative.
     matrix.add_includes({"foo": "b", "bar": "2"})
     assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "include": ({"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}),
     }
 
+    # Deduplication.
+    matrix.add_includes({"foo": "b", "bar": "2"})
+    assert matrix.matrix() == {
+        "foo": ("a", "b", "c"),
+        "include": ({"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}),
+    }
+
+    # Rendering.
+    assert (
+        str(matrix) == '{"foo": ["a", "b", "c"], '
+        '"include": [{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}]}'
+    )
+    assert (
+        repr(matrix) == "<Matrix: {'foo': ('a', 'b', 'c')}; "
+        "include=({'foo': 'a', 'bar': '1'}, {'foo': 'b', 'bar': '2'}); exclude=()>"
+    )
+
+    # Multiple insertions.
     matrix.add_includes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
     assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
@@ -95,9 +115,9 @@ def test_includes():
         ),
     }
 
+    # Forbidden values.
     with pytest.raises(ValueError):
         matrix.add_includes({"include": "random"})
-
     with pytest.raises(ValueError):
         matrix.add_includes({"exclude": "random"})
 
@@ -108,18 +128,38 @@ def test_excludes():
     matrix.add_variation("foo", ["a", "b", "c"])
     assert matrix.matrix() == {"foo": ("a", "b", "c")}
 
+    # First addition.
     matrix.add_excludes({"foo": "a", "bar": "1"})
     assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "exclude": ({"foo": "a", "bar": "1"},),
     }
 
+    # Second addition is cumulative.
     matrix.add_excludes({"foo": "b", "bar": "2"})
     assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
         "exclude": ({"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}),
     }
 
+    # Deduplication.
+    matrix.add_excludes({"foo": "b", "bar": "2"})
+    assert matrix.matrix() == {
+        "foo": ("a", "b", "c"),
+        "exclude": ({"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}),
+    }
+
+    # Rendering.
+    assert (
+        str(matrix) == '{"foo": ["a", "b", "c"], '
+        '"exclude": [{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}]}'
+    )
+    assert (
+        repr(matrix) == "<Matrix: {'foo': ('a', 'b', 'c')}; "
+        "include=(); exclude=({'foo': 'a', 'bar': '1'}, {'foo': 'b', 'bar': '2'})>"
+    )
+
+    # Multiple insertions.
     matrix.add_excludes({"foo": "c", "bar": "3"}, {"foo": "d", "bar": "4"})
     assert matrix.matrix() == {
         "foo": ("a", "b", "c"),
@@ -131,9 +171,9 @@ def test_excludes():
         ),
     }
 
+    # Forbidden values.
     with pytest.raises(ValueError):
         matrix.add_excludes({"include": "random"})
-
     with pytest.raises(ValueError):
         matrix.add_excludes({"exclude": "random"})
 
