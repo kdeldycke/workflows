@@ -121,15 +121,23 @@ class Matrix(dict):
     def product(
         self, with_includes: bool = False, with_excludes: bool = False
     ) -> Iterator[dict[str:str]]:
+        """Only returns the combinations of the base matrix by default.
+
+        You can optionnally add any variation referenced in the ``include`` and ``exclude`` special directives.
+
+        Respects the order of variations and their values.
+        """
+        variations = self.all_variations(
+            ignore_includes=not with_includes, ignore_excludes=not with_excludes
+        )
+        if not variations:
+            return
         yield from map(
             dict,
             itertools.product(
                 *(
                     tuple((variant_id, variation) for variation in variant_values)
-                    for variant_id, variant_values in self.all_variations(
-                        ignore_includes=not with_includes,
-                        ignore_excludes=not with_excludes,
-                    ).items()
+                    for variant_id, variant_values in variations.items()
                 )
             ),
         )
@@ -146,13 +154,51 @@ class Matrix(dict):
         # inclusion_filters = {set(d.items()) for d in self.include}
         exclusion_filters = {frozenset(d.items()) for d in self.exclude}
 
-        for variation_set in self.product():
+
+        var2 = self.all_variations(ignore_includes=True, ignore_excludes=True)
+
+        # Search for include directives not applicables to any of base matrix's variations, and put them on the side.
+        applicable_includes = []
+        unapplicable_includes = []
+
+        if not var2:
+            unapplicable_includes = self.include
+
+        else:
+            for include in self.include:
+                matching_keys = set(include).intersection(var2)
+
+                if not matching_keys or all(
+                    include[k] in var2[k] for k in matching_keys
+                ):
+                    applicable_includes.append(include)
+                else:
+                    unapplicable_includes.append(include)
+
+        # Include and exclude directives only applies to variations of the base matrix.
+        for base_variations in self.product():
             # Skip sets matching exclusion criterions.
-            if any(f.issubset(variation_set.items()) for f in exclusion_filters):
+            if any(f.issubset(base_variations.items()) for f in exclusion_filters):
                 continue
 
-            yield variation_set
+            updated_variations = base_variations.copy()
+            for include in applicable_includes:
+                # No variant IDs match any of the base variation, so we can update the variation with it.
+                if set(include).isdisjoint(base_variations):
+                    if set(include).isdisjoint(updated_variations):
+                        updated_variations.update(include)
+                    continue
+
+                if all(
+                    base_variations[k] == include[k]
+                    for k in set(include).intersection(base_variations)
+                ):
+                    updated_variations.update(include)
+
+            yield updated_variations
 
             counter += 1
             if counter == 256:
                 logging.warning("GitHub workflow matrix limits of 256 jobs reached")
+
+        yield from unapplicable_includes

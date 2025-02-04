@@ -141,6 +141,8 @@ def test_excludes():
 def test_all_variations():
     matrix = Matrix()
 
+    assert matrix.all_variations() == {}
+
     matrix.add_variation("foo", ["a", "b", "c"])
     matrix.add_variation("bar", ["1", "2", "3"])
 
@@ -234,6 +236,8 @@ def test_all_variations():
 
 def test_product():
     matrix = Matrix()
+
+    assert tuple(matrix.product()) == tuple()
 
     matrix.add_variation("foo", ["a", "b"])
     matrix.add_variation("bar", ["1", "2"])
@@ -368,6 +372,79 @@ def test_product():
         {"foo": "c", "bar": "3", "baz": "Y", "qux": "子", "@": "$", "E": "O"},
         {"foo": "c", "bar": "3", "baz": "Z", "qux": "福", "@": "$", "E": "O"},
         {"foo": "c", "bar": "3", "baz": "Z", "qux": "子", "@": "$", "E": "O"},
+    )
+
+
+def test_solve_includes():
+    matrix = Matrix()
+
+    matrix.add_variation("fruit", ["apple", "pear"])
+    matrix.add_variation("animal", ["cat", "dog"])
+
+    matrix.add_includes(
+        {"color": "green"},
+        {"color": "pink", "animal": "cat"},
+        {"fruit": "apple", "shape": "circle"},
+        {"fruit": "banana"},
+        {"fruit": "banana", "animal": "cat"},
+    )
+
+    assert tuple(matrix.solve()) == (
+        {"fruit": "apple", "animal": "cat", "color": "pink", "shape": "circle"},
+        {"fruit": "apple", "animal": "dog", "color": "green", "shape": "circle"},
+        {"fruit": "pear", "animal": "cat", "color": "pink"},
+        {"fruit": "pear", "animal": "dog", "color": "green"},
+        {"fruit": "banana"},
+        {"fruit": "banana", "animal": "cat"},
+    )
+
+
+def test_solve_expanded_configuration():
+    matrix = Matrix()
+
+    matrix.add_variation("os", ["windows-latest", "ubuntu-latest"])
+    matrix.add_variation("node", ["14", "16"])
+
+    matrix.add_includes({"os": "windows-latest", "node": "16", "npm": "6"})
+
+    assert tuple(matrix.solve()) == (
+        {"os": "windows-latest", "node": "14"},
+        {"os": "windows-latest", "node": "16", "npm": "6"},
+        {"os": "ubuntu-latest", "node": "14"},
+        {"os": "ubuntu-latest", "node": "16"},
+    )
+
+
+def test_solve_extended_configuration():
+    matrix = Matrix()
+
+    matrix.add_variation("os", ["macos-latest", "windows-latest"])
+    matrix.add_variation("version", ["12", "14", "16"])
+
+    matrix.add_includes({"os": "windows-latest", "version": "17"})
+
+    assert tuple(matrix.solve()) == (
+        {"os": "macos-latest", "version": "12"},
+        {"os": "macos-latest", "version": "14"},
+        {"os": "macos-latest", "version": "16"},
+        {"os": "windows-latest", "version": "12"},
+        {"os": "windows-latest", "version": "14"},
+        {"os": "windows-latest", "version": "16"},
+        {"os": "windows-latest", "version": "17"},
+    )
+
+
+def test_solve_empty_matrix():
+    matrix = Matrix()
+
+    matrix.add_includes(
+        {"site": "production", "datacenter": "site-a"},
+        {"site": "staging", "datacenter": "site-b"},
+    )
+
+    assert tuple(matrix.solve()) == (
+        {"site": "production", "datacenter": "site-a"},
+        {"site": "staging", "datacenter": "site-b"},
     )
 
 
