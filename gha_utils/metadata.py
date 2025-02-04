@@ -437,7 +437,7 @@ class Metadata:
             logging.debug(f"Extract project version at commit {commit.hash}")
             current_version = Metadata.get_current_version()
 
-            matrix.add_variation("commit", commit.hash)
+            matrix.add_variation("commit", [commit.hash])
             matrix.add_includes(
                 {
                     "commit": commit.hash,
