@@ -266,12 +266,36 @@ def test_all_variations():
         "weight": ("heavy",),
     }
 
-    assert matrix.all_variations(with_excludes=True, with_includes=True) == {
+    assert matrix.all_variations(with_includes=True, with_excludes=True) == {
         "foo": ("a", "b", "c", "d"),
         "bar": ("1", "2", "3", "4"),
         "color": ("green", "orange", "blue", "yellow"),
         "shape": ("triangle", "circle"),
         "size": ("small",),
+        "weight": ("heavy",),
+    }
+
+    assert matrix.all_variations(with_matrix=False) == {}
+    assert (
+        matrix.all_variations(
+            with_matrix=False, with_excludes=False, with_includes=False
+        )
+        == {}
+    )
+
+    assert matrix.all_variations(with_matrix=False, with_includes=True) == {
+        "foo": ("b", "d"),
+        "color": ("green", "orange"),
+        "bar": ("1",),
+        "shape": ("triangle",),
+        "size": ("small",),
+    }
+
+    assert matrix.all_variations(with_matrix=False, with_excludes=True) == {
+        "foo": ("b",),
+        "shape": ("circle",),
+        "bar": ("2", "4"),
+        "color": ("blue", "yellow"),
         "weight": ("heavy",),
     }
 
@@ -549,10 +573,10 @@ def test_solve_excludes(excludes):
     (
         permutations(
             (
-                # The order of these 3 includes directives can be shuffled as the
+                # The order of these 2 excludes directives can be shuffled as the
                 # final result order is imposed by the base variations of the original
                 # matrix.
-                {"os": "windows-latest", "version": "14", "node": "20"},
+                {"os": "windows-latest", "version": "14"},
                 {"os": "linux-latest"},
             ),
             2,
@@ -613,3 +637,26 @@ def test_solve_exclude_include_selectivity():
         # {"os": "linux-latest", "version": "14"},
         {"os": "linux-latest", "version": "16", "node": "20"},
     )
+
+
+def test_strict_mode_unknown_exclude_key():
+    matrix = Matrix()
+
+    matrix.add_variation("os", ["macos-latest", "windows-latest", "linux-latest"])
+    matrix.add_variation("version", ["3.14", "3.13", "3.12"])
+
+    matrix.add_includes()
+    matrix.add_excludes(
+        {"os": "linux-latest", "unknown_key": "random"},
+        {"version": "3.14"},
+    )
+
+    assert tuple(matrix.solve(strict=False)) == (
+        {"os": "macos-latest", "version": "3.13"},
+        {"os": "macos-latest", "version": "3.12"},
+        {"os": "windows-latest", "version": "3.13"},
+        {"os": "windows-latest", "version": "3.12"},
+    )
+
+    with pytest.raises(ValueError):
+        tuple(matrix.solve(strict=True))

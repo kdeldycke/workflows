@@ -40,17 +40,17 @@ jobs:
           - "3.13"
           - "3.14"
         include:
+          # Default all jobs as stable, unless marked otherwise below.
           - state: stable
-        exclude:
           # XXX There is an issue with the ubuntu-22.04-arm image:
           #   Error: Defaulting to user installation because normal site-packages is not writeable
-          - os: ubuntu-22.04-arm
-            state: unstable
+          - state: unstable
+            os: ubuntu-22.04-arm
           # XXX PyO3 does not support 3.14 yet: https://github.com/PyO3/pyo3/issues/4662
           #   error: the configured Python interpreter version (3.14) is
           #   newer than PyO3's maximum supported version (3.13)
-          - python-version: "3.14"
-            state: unstable
+          - state: unstable
+            python-version: "3.14"
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}

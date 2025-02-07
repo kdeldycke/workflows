@@ -109,26 +109,32 @@ class Matrix(FrozenDict):
         self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
 
     def all_variations(
-        self, with_includes: bool = False, with_excludes: bool = False
+        self,
+        with_matrix: bool = True,
+        with_includes: bool = False,
+        with_excludes: bool = False,
     ) -> dict[str, tuple[str, ...]]:
-        """Returns all variations encountered in the matrix.
+        """Collect all variations encountered in the matrix.
 
-        Extra variations mentioned in the special ``include`` and ``excludes``
-        directives will be ignored by default. You can selectively have them expand the
-        inventory of variations by passing the corresponding boolean parameters to the
-        method.
+        Extra variations mentioned in the special ``include`` and ``exclude``
+        directives will be ignored by default.
+
+        You can selectively expand or restrict the resulting inventory of variations by
+        passing the corresponding ``with_matrix``, ``with_includes`` and
+        ``with_excludes`` boolean filter parameters.
         """
-        variations = {k: list(v) for k, v in self.items()}
+        variations = {}
+        if with_matrix:
+            variations = {k: list(v) for k, v in self.items()}
 
         for expand, directives in (
             (with_includes, self.include),
             (with_excludes, self.exclude),
         ):
-            if not expand:
-                continue
-            for value in directives:
-                for k, v in value.items():
-                    variations.setdefault(k, []).append(v)
+            if expand:
+                for value in directives:
+                    for k, v in value.items():
+                        variations.setdefault(k, []).append(v)
 
         return {k: tuple(unique(v)) for k, v in variations.items()}
 
@@ -162,7 +168,7 @@ class Matrix(FrozenDict):
         if self._job_counter > 256:
             logging.critical("GitHub job matrix limit of 256 jobs reached")
 
-    def solve(self) -> Iterator[dict[str, str]]:
+    def solve(self, strict: bool = False) -> Iterator[dict[str, str]]:
         """Returns all combinations and apply ``include`` and ``exclude`` constraints.
 
         .. caution::
@@ -170,6 +176,24 @@ class Matrix(FrozenDict):
             after ``exclude``. This allows you to use ``include`` to add back
             combinations that were previously excluded.
         """
+        # GitHub jobs fails with the following message if the exclude directive is
+        # referencing keys that are not present in the original base matrix:
+        #   Invalid workflow file: .github/workflows/tests.yaml#L48
+        #   The workflow is not valid.
+        #   .github/workflows/tests.yaml (Line: 48, Col: 13): Matrix exclude key 'state'
+        #   does not match any key within the matrix
+        if strict:
+            unreferenced_keys = set(
+                self.all_variations(
+                    with_matrix=False, with_includes=True, with_excludes=True
+                )
+            ).difference(self)
+            if unreferenced_keys:
+                raise ValueError(
+                    f"Matrix exclude keys {list(unreferenced_keys)} does not match any "
+                    f"{list(self)} key within the matrix"
+                )
+
         # Reset the number of combinations.
         self._job_counter = 0
 
