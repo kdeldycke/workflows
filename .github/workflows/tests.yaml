@@ -18,101 +18,39 @@ concurrency:
 
 jobs:
 
-  test-matrix:
-    # There is no way to selective flags collections of elements in a matrix, without having to flag all combinations.
-    # This will became unmaintainable and tedious so we use this job to pre-compute which jobs is going to get our
-    # "stable" flag.
-    name: "OS/Python/stable matrix pre-compute"
-    runs-on: ubuntu-24.04
-    outputs:
-      test_matrix: ${{ steps.create_matrix.outputs.matrix }}
-    steps:
-      - name: Create JSON matrix
-        id: create_matrix
-        shell: python
-        run: |
-          import json
-          import os
-          from itertools import product
-          from pathlib import Path
-
-          variants: dict[str, set[str]] = {
-              # Available OS: https://github.com/actions/runner-images#available-images
-              "os": {
-                  "ubuntu-24.04",     # x86
-                  "ubuntu-24.04-arm", # arm64
-                  "ubuntu-22.04",     # x86
-                  "ubuntu-22.04-arm", # arm64
-                  "macos-15",         # arm64
-                  "macos-13",         # x86
-                  "windows-2022",     # x86
-                  "windows-2019",     # x86
-              },
-              # Available Python: https://github.com/actions/python-versions/blob/main/versions-manifest.json
-              "python-version": {
-                  "3.10",
-                  "3.11",
-                  "3.12",
-                  "3.13",
-                  "3.14",
-              }
-          }
-          # TODO: List of additional variants to include in the matrix.
-          include: list[dict[str, str]] = []
-
-          # List of variants to exclude from the matrix.
-          exclude: list[dict[str, str]] = []
-
-          # List of unstable criterions.
-          unstable: list[dict[str, str]] = [
-              # XXX There is an issue with the ubuntu-22.04-arm image:
-              #   Error: Defaulting to user installation because normal site-packages is not writeable
-              {"os": "ubuntu-22.04-arm"},
-              # XXX PyO3 does not support 3.14 yet: https://github.com/PyO3/pyo3/issues/4662
-              #   error: the configured Python interpreter version (3.14) is
-              #   newer than PyO3's maximum supported version (3.13)
-              {"python-version": "3.14"},
-          ]
-
-          # Build the job matrix.
-          jobs: list[dict[str, str]] = []
-          for variants in product(*[{(key, value) for value in values} for key, values in variants.items()]):
-              job = dict(variants)
-
-              # Match the job against the exclude criterions.
-              exclude_job = False
-              for criterion in exclude:
-                  if set(criterion.items()).issubset(job.items()):
-                      exclude_job = True
-                      break
-              if exclude_job:
-                  continue
-
-              # Match the job against the unstable criterions.
-              job["state"] = "stable"
-              for criterion in unstable:
-                  if set(criterion.items()).issubset(job.items()):
-                      job["state"] = "unstable"
-                      break
-
-              jobs.append(job)
-
-          matrix = json.dumps({"include": jobs})
-
-          env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(f"matrix={matrix}")
-
-      - name: Print JSON matrix
-        run: |
-          echo '${{ steps.create_matrix.outputs.matrix }}'
-          jq -aR <<< echo '${{ steps.create_matrix.outputs.matrix }}'
-
   tests:
-    needs:
-      - test-matrix
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.test-matrix.outputs.test_matrix) }}
+      matrix:
+        # Available OS: https://github.com/actions/runner-images#available-images
+        os:
+          - ubuntu-24.04     # x86
+          - ubuntu-24.04-arm # arm64
+          - ubuntu-22.04     # x86
+          - ubuntu-22.04-arm # arm64
+          - macos-15         # arm64
+          - macos-13         # x86
+          - windows-2022     # x86
+          - windows-2019     # x86
+        # Available Python: https://github.com/actions/python-versions/blob/main/versions-manifest.json
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+        include:
+          - state: stable
+        exclude:
+          # XXX There is an issue with the ubuntu-22.04-arm image:
+          #   Error: Defaulting to user installation because normal site-packages is not writeable
+          - os: ubuntu-22.04-arm
+            state: unstable
+          # XXX PyO3 does not support 3.14 yet: https://github.com/PyO3/pyo3/issues/4662
+          #   error: the configured Python interpreter version (3.14) is
+          #   newer than PyO3's maximum supported version (3.13)
+          - python-version: "3.14"
+            state: unstable
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
