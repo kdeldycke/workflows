@@ -1112,30 +1112,17 @@ class Metadata:
             },
         )
 
-        # Emulate collection and aggregation of the 'include' directive to all
-        # variations produced by the matrix.
-        for variant_dict in matrix.product():
-            # Check each extra parameters from the 'include' directive and accumulate
-            # the matching ones to the variant.
-            full_variant = variant_dict.copy()
-            for extra_params in matrix.include:
-                # Check if the variant match the extra parameters.
-                dimensions_to_match = set(variant_dict).intersection(extra_params)
-                d0 = {key: variant_dict[key] for key in dimensions_to_match}
-                d1 = {key: extra_params[key] for key in dimensions_to_match}
-                # Extra parameters are matching the current variant, merge their values.
-                if d0 == d1:
-                    full_variant.update(extra_params)
-
-            # Add to the 'include' directive a new extra parameter that match the
-            # current variant.
-            extra_name_param = variant_dict.copy()
-            # Generate for Nuitka the binary file name to be used that is unique to
-            # this variant.
-            extra_name_param["bin_name"] = (
+        # Augment each variation set of the matrix with a the binary name to be produced
+        # by Nuitka. Itererate over all matrix variation sets so we have all metadata
+        # necessary to generate a unique name specific to these variations.
+        for variations in matrix.solve():
+            # We will re-attach back this binary name to the with an include directive,
+            # so we need a copy the main variants it corresponds to.
+            bin_name_include = {k: variations[k] for k in matrix}
+            bin_name_include["bin_name"] = (
                 "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
-            ).format(**full_variant)
-            matrix.add_includes(extra_name_param)
+            ).format(**variations)
+            matrix.add_includes(bin_name_include)
 
         return Matrix(matrix)
 
