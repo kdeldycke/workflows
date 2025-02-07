@@ -434,17 +434,18 @@ class Metadata:
                 logging.debug(f"Checkout to commit {commit.hash}")
                 git.checkout(commit.hash)
 
+            commit_metadata = {
+                "commit": commit.hash,
+                "short_sha": commit.hash[:SHORT_SHA_LENGTH],
+            }
+
             logging.debug(f"Extract project version at commit {commit.hash}")
             current_version = Metadata.get_current_version()
+            if current_version:
+                commit_metadata["current_version"] = current_version
 
             matrix.add_variation("commit", [commit.hash])
-            matrix.add_includes(
-                {
-                    "commit": commit.hash,
-                    "short_sha": commit.hash[:SHORT_SHA_LENGTH],
-                    "current_version": current_version,
-                }
-            )
+            matrix.add_includes(commit_metadata)
 
         # Restore the repository to its initial state.
         if past_commit_lookup:
