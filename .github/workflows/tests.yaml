@@ -47,6 +47,7 @@ jobs:
           #   newer than PyO3's maximum supported version (3.13)
           - state: unstable
             python-version: "3.14"
+    name: "[${{ matrix.state }}] ${{ matrix.os }}, Python ${{ matrix.python-version }}"
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
