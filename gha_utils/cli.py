@@ -23,22 +23,24 @@ from datetime import datetime
 from pathlib import Path
 from typing import IO
 
+import click
 from click_extra import (
     Choice,
     Context,
+    IntRange,
     argument,
     echo,
     extra_group,
     file_path,
     option,
     pass_context,
-    path,
 )
 
 from . import __version__
 from .changelog import Changelog
 from .mailmap import Mailmap
 from .metadata import Dialects, Metadata
+from .testing import DEFAULT_TEST_PLAN, parse_test_plan, run_cli_test
 
 
 def is_stdout(filepath: Path) -> bool:
@@ -268,3 +270,38 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
             ctx.exit()
 
     echo(generate_header(ctx) + new_content, file=prep_path(destination_mailmap))
+
+
+@gha_utils.command(short_help="Run a test plan from a file agaisnt a binary")
+@option(
+    "--binary",
+    # XXX Wait for https://github.com/janluke/cloup/issues/185 to use the
+    # `file_path` type.
+    type=click.Path(exists=True, executable=True, resolve_path=True),
+    required=True,
+    help="Path to the binary to test.",
+)
+@option(
+    "--plan",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    help="Test plan in YAML.",
+)
+@option(
+    "-t",
+    "--timeout",
+    type=IntRange(min=0),
+    default=60,
+    help="Set maximum duration in seconds for each CLI call.",
+)
+def test_plan(binary, plan, timeout):
+    # Load test plan from workflow input, or use a default one.
+    if plan:
+        logging.debug(f"Read test plan from {plan}")
+        test_plan = parse_test_plan(plan)
+    else:
+        logging.warning(f"No test plan provided. Default to: {DEFAULT_TEST_PLAN}")
+        test_plan = DEFAULT_TEST_PLAN
+
+    for index, cli_params in enumerate(test_plan):
+        logging.info(f"Run test #{index}: {binary} {' '.join(cli_params)}")
+        run_cli_test(binary, cli_params, timeout)

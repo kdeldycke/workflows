@@ -79,6 +79,7 @@ dependencies = [
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.9.0",
+    "pyyaml ~= 6.0.0",
     "tomli ~= 2.0.1 ; python_version < '3.11'",
     # Loose version to let click-extra set its own stricter dependency.
     "wcmatch >= 8.5",

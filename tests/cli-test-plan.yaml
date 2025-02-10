@@ -1,0 +1,11 @@
+# Output the version of the CLI.
+- cli-parameters: >-
+    --version
+
+# Test combination of version and verbosity.
+- cli-parameters: >-
+    --verbosity DEBUG --version
+
+# Test help output.
+- cli-parameters: >-
+    --help
