@@ -169,7 +169,7 @@ def metadata(ctx, format, overwrite, output_path):
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
 @option(
     "--source",
-    type=path(exists=True, readable=True, resolve_path=True),
+    type=file_path(exists=True, readable=True, resolve_path=True),
     default="changelog.md",
     help="Changelog source file in Markdown format.",
 )
