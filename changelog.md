@@ -6,6 +6,8 @@
 > This version is not released yet and is under active development.
 
 - Add new `gha-utils test-plan` subcommand.
+- Replace ad-hoc custom matrix code by generic matrix model.
+- Replace test matrix pre-computation by native features.
 
 ## [4.13.4 (2025-02-02)](https://github.com/kdeldycke/workflows/compare/v4.13.3...v4.13.4)
 
