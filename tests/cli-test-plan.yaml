@@ -1,11 +1,25 @@
 # Output the version of the CLI.
-- cli-parameters: >-
-    --version
+- cli_parameters:
+    - --version
+  stdout_contains: ", version"
+  stdout_regex_fullmatch: "\x1b\\[97mgha-utils\x1b\\[0m, version \x1b\\[32mNone\x1b\\[0m\\n"
+  # exit_code: 0
+
 
 # Test combination of version and verbosity.
-- cli-parameters: >-
-    --verbosity DEBUG --version
+- cli_parameters:
+    - --verbosity
+    - DEBUG
+    - --version
+  stdout_contains: ", version"
+  stdout_regex_matches: "\x1b\\[97mgha-utils\x1b\\[0m, version "
+  stderr_contains:
+    - "Set <RootLogger root (DEBUG)> to DEBUG."
+    - "\x1b[34mdebug\x1b[0m: {prog_name}      : \x1b[97mgha-utils\x1b[0m\n"
+  stderr_regex_matches:
+    - "\x1b\\[34mdebug\x1b\\[0m: {prog_name}      : \x1b\\[97mgha-utils\x1b\\[0m\n"
+
 
 # Test help output.
-- cli-parameters: >-
-    --help
+- cli_parameters:
+    - --help

@@ -7,15 +7,14 @@ name: Build & release
       PYPI_TOKEN:
         required: false
     inputs:
+      binaries-test-plan:
+        description: Test plan for binaries
+        required: false
+        type: string
       timeout:
         description: Timeout in seconds for each binary test
         required: false
         type: number
-      test-plan-file:
-        description: YAML file containing the full test plan for binaries
-        default: './tests/cli-test-plan.yaml'
-        required: false
-        type: string
     outputs:
       nuitka_matrix:
         description: Nuitka build matrix
@@ -26,12 +25,6 @@ name: Build & release
     branches:
       - main
   pull_request:
-
-# Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
-# We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
-env:
-  test-plan-file: >
-    ${{ inputs.test-plan-file == null && './tests/cli-test-plan.yaml' || inputs.test-plan-file }}
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits. Source:
@@ -174,9 +167,6 @@ jobs:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4.2.2
-        with:
-          ref: ${{ matrix.commit }}
       - name: Download artifact
         uses: actions/download-artifact@v4.1.8
         id: artifacts
@@ -186,18 +176,101 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           chmod +x ${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}
-      - name: Install uv
+      - name: Run tests
+        shell: python
         run: |
-          python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
-      - name: Run test plan for binaries
-        run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          --
-          gha-utils --verbosity DEBUG test-plan
-          --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
-          --plan ${{ env.test-plan-file }}
-          --timeout ${{ inputs.timeout }}
+          import shlex
+          import sys
+          from subprocess import run, SubprocessError
+          from textwrap import dedent
+          from pathlib import Path
+
+          # Load test plan from workflow input, or use a default one.
+          test_plan = r"""${{ inputs.binaries-test-plan }}""".strip()
+          if not test_plan:
+              test_plan = dedent("""\
+                  # Example of a test plan for a binary.
+                  # Each line is a test, composed of CLI parameters.
+                  # Empty lines and lines starting with "#" are ignored.
+
+                  # Output the version of the CLI.
+                  --version
+
+                  # Test combination of version and verbosity.
+                  --verbosity DEBUG --version
+
+                  # Test help output.
+                  --help
+                  """)
+
+          # Load timeout from workflow input, or use a default one.
+          timeout = r"${{ inputs.timeout }}".strip()
+          if timeout:
+              assert timeout.isdigit()
+              timeout = int(timeout)
+          if not timeout:
+              timeout = 60
+          else:
+              assert timeout > 0
+
+          # Resolve binary path.
+          bin_name = r"${{ matrix.bin_name }}"
+          bin_path = (Path(r"${{ steps.artifacts.outputs.download-path }}") / bin_name).resolve(strict=True)
+          assert bin_path.is_file()
+
+          # Run tests.
+          for index, params in enumerate(test_plan.splitlines()):
+              params = params.strip()
+              if not params or params.startswith("#"):
+                  continue
+
+              print(f"\n======== Test from line #{index + 1} ========\n$ {bin_name} {params}")
+
+              cli = [str(bin_path)]
+              if sys.platform == "win32":
+                  cli.extend(params.split())
+              else:
+                  cli.extend(shlex.split(params))
+
+              try:
+                  result = run(
+                      cli,
+                      capture_output=True,
+                      shell=True,
+                      timeout=timeout,
+                      check=True,
+                      # XXX Do not force encoding to let CLIs figure out by themselves the contextual encoding to use.
+                      # This avoid UnicodeDecodeError on output in Window's console which still defaults to legacy
+                      # encoding (e.g. cp1252, cp932, etc...):
+                      #
+                      #   Traceback (most recent call last):
+                      #     File "C:\...\__main__.py", line 49, in <module>
+                      #     File "C:\...\__main__.py", line 45, in main
+                      #     File "C:\...\click\core.py", line 1157, in __call__
+                      #     File "C:\...\click_extra\commands.py", line 347, in main
+                      #     File "C:\...\click\core.py", line 1078, in main
+                      #     File "C:\...\click_extra\commands.py", line 377, in invoke
+                      #     File "C:\...\click\core.py", line 1688, in invoke
+                      #     File "C:\...\click_extra\commands.py", line 377, in invoke
+                      #     File "C:\...\click\core.py", line 1434, in invoke
+                      #     File "C:\...\click\core.py", line 783, in invoke
+                      #     File "C:\...\cloup\_context.py", line 47, in new_func
+                      #     File "C:\...\meta_package_manager\cli.py", line 570, in managers
+                      #     File "C:\...\meta_package_manager\output.py", line 187, in print_table
+                      #     File "C:\...\click_extra\tabulate.py", line 97, in render_csv
+                      #     File "encodings\cp1252.py", line 19, in encode
+                      #   UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 128:
+                      #   character maps to <undefined>
+                      #
+                      # encoding="utf-8",
+                      text=True,
+                  )
+              except SubprocessError as ex:
+                  print(f"\n=== stdout ===\n{ex.stdout}")
+                  print(f"\n=== stderr ===\n{ex.stderr}")
+                  raise ex
+
+              print(result.stdout)
 
   git-tag:
     name: Tag release

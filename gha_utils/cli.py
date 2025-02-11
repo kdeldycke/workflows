@@ -40,7 +40,7 @@ from . import __version__
 from .changelog import Changelog
 from .mailmap import Mailmap
 from .metadata import Dialects, Metadata
-from .testing import DEFAULT_TEST_PLAN, parse_test_plan, run_cli_test
+from .test_plan import DEFAULT_TEST_PLAN, parse_test_plan
 
 
 def is_stdout(filepath: Path) -> bool:
@@ -302,6 +302,6 @@ def test_plan(binary, plan, timeout):
         logging.warning(f"No test plan provided. Default to: {DEFAULT_TEST_PLAN}")
         test_plan = DEFAULT_TEST_PLAN
 
-    for index, cli_params in enumerate(test_plan):
-        logging.info(f"Run test #{index}: {binary} {' '.join(cli_params)}")
-        run_cli_test(binary, cli_params, timeout)
+    for index, test_case in enumerate(test_plan):
+        logging.info(f"Run test #{index}")
+        test_case.check_cli_test(binary, timeout=timeout)
