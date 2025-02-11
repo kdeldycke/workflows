@@ -1,9 +1,9 @@
 # Output the version of the CLI.
 - cli_parameters:
     - --version
+  exit_code: 0
   stdout_contains: ", version"
   stdout_regex_fullmatch: "\x1b\\[97mgha-utils\x1b\\[0m, version \x1b\\[32mNone\x1b\\[0m\\n"
-  # exit_code: 0
 
 
 # Test combination of version and verbosity.
@@ -11,6 +11,7 @@
     - --verbosity
     - DEBUG
     - --version
+  exit_code: 0
   stdout_contains: ", version"
   stdout_regex_matches: "\x1b\\[97mgha-utils\x1b\\[0m, version "
   stderr_contains:

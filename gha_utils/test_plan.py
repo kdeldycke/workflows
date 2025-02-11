@@ -32,6 +32,7 @@ class TestCase:
     cli_parameters: tuple[str, ...] = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
+    exit_code: int | None = None
     output_contains: tuple[str, ...] = field(default_factory=tuple)
     stdout_contains: tuple[str, ...] = field(default_factory=tuple)
     stderr_contains: tuple[str, ...] = field(default_factory=tuple)
@@ -45,8 +46,15 @@ class TestCase:
     def __post_init__(self) -> None:
         """Normalize all fields."""
         for field_id, field_data in asdict(self).items():
+            # Validates and normalize exit code.
+            if field_id == "exit_code":
+                if isinstance(field_data, str):
+                    field_data = int(field_data)
+                elif field_data is not None and not isinstance(field_data, int):
+                    raise ValueError(f"exit_code is not an integer: {field_data}")
+
             # Validates and normalize regex fullmatch fields.
-            if field_id.endswith("_fullmatch"):
+            elif field_id.endswith("_fullmatch"):
                 if field_data:
                     if not isinstance(field_data, str):
                         raise ValueError(f"{field_id} is not a string: {field_data}")
@@ -137,15 +145,19 @@ class TestCase:
         print_cli_run(clean_args, result)
 
         for field_id, field_data in asdict(self).items():
-            if field_id == "cli_parameters" or not field_data:
+            if field_id == "cli_parameters" or (not field_data and field_data != 0):
                 continue
+
+            if field_id == "exit_code":
+                if result.returncode != field_data:
+                    raise AssertionError(
+                        f"CLI exited with code {result.returncode}, expected {field_data}"
+                    )
 
             output = ""
             name = ""
             if field_id.startswith("output_"):
-                raise NotImplementedError(
-                    "Output matching mixing <stdout> and<stderr>."
-                )
+                raise NotImplementedError("Output mixing <stdout>/<stderr>")
                 # output = result.output
                 # name = "output"
             elif field_id.startswith("stdout_"):
