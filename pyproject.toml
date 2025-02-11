@@ -95,6 +95,7 @@ test = [
     "pytest-github-actions-annotate-failures ~= 0.3.0",
     "pytest-randomly ~= 3.16.0",
 ]
+typing = ["types-PyYAML ~= 6.0.12.9"]
 
 [project.urls]
 "Homepage" = 'https://github.com/kdeldycke/workflows'
