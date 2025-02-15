@@ -257,7 +257,8 @@ class Matrix(FrozenDict):
                         updated_variations.update(include)
                     continue
 
-                # Expand the base variation set with the fully matching include directive.
+                # Expand the base variation set with the fully matching include
+                # directive.
                 if all(
                     include[k] == base_variations[k]
                     for k in set(include).intersection(base_variations)

@@ -1052,15 +1052,13 @@ class Metadata:
             # doesn't seems to support the entry-point notation.
             module_path = Path(f"{module_id.replace('.', '/')}.py")
             assert module_path.exists()
-            matrix.add_includes(
-                {
-                    "entry_point": cli_id,
-                    "cli_id": cli_id,
-                    "module_id": module_id,
-                    "callable_id": callable_id,
-                    "module_path": str(module_path),
-                }
-            )
+            matrix.add_includes({
+                "entry_point": cli_id,
+                "cli_id": cli_id,
+                "module_id": module_id,
+                "callable_id": callable_id,
+                "module_path": str(module_path),
+            })
 
         # We'd like to run a build for each new commit bundled in the action trigger.
         # If no new commits are detected, it's because we are not in a GitHub workflow
