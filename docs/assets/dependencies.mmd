@@ -1,25 +1,30 @@
 flowchart TD
     classDef missing stroke-dasharray: 5
     annotated-types["annotated-types\n0.7.0"]
+    anyio["anyio\n4.8.0"]
     boltons["boltons\n24.1.0"]
     bracex["bracex\n2.5.post1"]
-    bump-my-version["bump-my-version\n0.31.0"]
+    bump-my-version["bump-my-version\n0.32.1"]
     certifi["certifi\n2025.1.31"]
     charset-normalizer["charset-normalizer\n3.4.1"]
-    click-extra["click-extra\n4.13.2"]
+    click-extra["click-extra\n4.14.1"]
     click_0["click\n8.1.8"]
     cloup["cloup\n3.0.5"]
     distro["distro\n1.9.0"]
     extra-platforms["extra-platforms\n2.0.0"]
-    gha-utils["gha-utils\n4.13.5"]
+    gha-utils["gha-utils\n4.14.0"]
     gitdb["gitdb\n4.0.12"]
     gitpython["GitPython\n3.1.44"]
+    h11["h11\n0.14.0"]
+    httpcore["httpcore\n1.0.7"]
+    httpx["httpx\n0.28.1"]
     idna["idna\n3.10"]
-    lizard["lizard\n1.17.14"]
+    lizard["lizard\n1.17.19"]
     markdown-it-py["markdown-it-py\n3.0.0"]
     mdurl["mdurl\n0.1.2"]
     mergedeep["mergedeep\n1.3.4"]
     packaging["packaging\n24.2"]
+    pathspec["pathspec\n0.12.1"]
     prompt-toolkit["prompt_toolkit\n3.0.50"]
     pydantic-core["pydantic_core\n2.27.2"]
     pydantic-settings["pydantic-settings\n2.7.1"]
@@ -35,14 +40,19 @@ flowchart TD
     rich-click["rich-click\n1.8.5"]
     rich["rich\n13.9.4"]
     smmap["smmap\n5.0.2"]
+    sniffio["sniffio\n1.3.1"]
     tabulate["tabulate\n0.9.0"]
     tomlkit["tomlkit\n0.13.2"]
-    types-pytz["types-pytz\n2024.2.0.20241221"]
+    types-pytz["types-pytz\n2025.1.0.20250204"]
     typing-extensions["typing_extensions\n4.12.2"]
     urllib3["urllib3\n2.3.0"]
     wcmatch["wcmatch\n10.0"]
     wcwidth["wcwidth\n0.2.13"]
     xmltodict["xmltodict\n0.14.2"]
+    anyio -- ">=1.1" --> sniffio
+    anyio -- ">=2.8" --> idna
+    anyio -- ">=4.5" --> typing-extensions
+    bump-my-version -- ">=0.28.1" --> httpx
     bump-my-version -- ">=2.0.0" --> pydantic
     bump-my-version -- ">=8.5.1" --> wcmatch
     bump-my-version -- "any" --> click_0
@@ -70,9 +80,17 @@ flowchart TD
     gha-utils -- "~=0.9.0" --> pyproject-metadata
     gha-utils -- "~=2.6" --> pydriller
     gha-utils -- "~=24.1" --> packaging
-    gha-utils -- "~=4.13.2" --> click-extra
+    gha-utils -- "~=4.14.1" --> click-extra
+    gha-utils -- "~=6.0.0" --> pyyaml
     gitdb -- ">=3.0.1,<6" --> smmap
     gitpython -- ">=4.0.1,<5" --> gitdb
+    httpcore -- ">=0.13,<0.15" --> h11
+    httpcore -- "any" --> certifi
+    httpx -- "==1.*" --> httpcore
+    httpx -- "any" --> anyio
+    httpx -- "any" --> certifi
+    httpx -- "any" --> idna
+    lizard -- "any" --> pathspec
     lizard -- "any" --> pygments
     markdown-it-py -- "~=0.1" --> mdurl
     prompt-toolkit -- "any" --> wcwidth
