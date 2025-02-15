@@ -33,14 +33,14 @@ class TestCase:
     cli_parameters: tuple[str, ...] = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
-    exit_code: int | None = None
+    exit_code: int | str | None = None
     strip_ansi: bool = False
-    output_contains: tuple[str, ...] = field(default_factory=tuple)
-    stdout_contains: tuple[str, ...] = field(default_factory=tuple)
-    stderr_contains: tuple[str, ...] = field(default_factory=tuple)
-    output_regex_matches: tuple[str, ...] = field(default_factory=tuple)
-    stdout_regex_matches: tuple[str, ...] = field(default_factory=tuple)
-    stderr_regex_matches: tuple[str, ...] = field(default_factory=tuple)
+    output_contains: tuple[str, ...] | str = field(default_factory=tuple)
+    stdout_contains: tuple[str, ...] | str = field(default_factory=tuple)
+    stderr_contains: tuple[str, ...] | str = field(default_factory=tuple)
+    output_regex_matches: tuple[str, ...] | str = field(default_factory=tuple)
+    stdout_regex_matches: tuple[str, ...] | str = field(default_factory=tuple)
+    stderr_regex_matches: tuple[str, ...] | str = field(default_factory=tuple)
     output_regex_fullmatch: str | None = None
     stdout_regex_fullmatch: str | None = None
     stderr_regex_fullmatch: str | None = None
