@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.14.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.14.0...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.14.0 (2025-02-15)](https://github.com/kdeldycke/workflows/compare/v4.13.4...v4.14.0)
 
 - Add new `gha-utils test-plan` subcommand.
