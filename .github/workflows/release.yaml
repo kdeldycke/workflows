@@ -293,10 +293,7 @@ jobs:
       - name: Check if tag exists
         id: tag_exists
         run: |
-          echo "tag_exists=$(git show-ref --tags "v${{ matrix.current_version }}" --quiet )" >> "$GITHUB_OUTPUT"
-      - name: Tag search results
-        run: |
-          echo "Does tag exist? ${{ steps.tag_exists.outputs.tag_exists && true || false }}"
+          echo "tag_exists=$(git show-ref --tags "v${{ matrix.current_version }}" --quiet )" | tee -a "$GITHUB_OUTPUT"
       - name: Push tag
         # Skip the tag creation if it already exists instead of failing flat. This allows us to re-run the workflow if
         # it was interrupted the first time. Which is really useful if the tagging fails during a release: we can

@@ -158,11 +158,7 @@ jobs:
           gh issue list
           --state open
           --author 'github-actions[bot]'
-          --json number,title,createdAt )" >> "$GITHUB_OUTPUT"
-      - name: Print open issues
-        run: |
-          echo '${{ steps.open_issues.outputs.issues }}'
-          jq -aR <<< echo '${{ steps.open_issues.outputs.issues }}'
+          --json number,title,createdAt )" | tee -a "$GITHUB_OUTPUT"
       - name: Filter issues
         id: issue_groups
         shell: python
@@ -221,7 +217,7 @@ jobs:
         id: get_label
         run: >
           echo "label=${{ startsWith(github.event.repository.name, 'awesome-')
-          && '🩹 fix link' || '📚 documentation' }}" >> "$GITHUB_OUTPUT"
+          && '🩹 fix link' || '📚 documentation' }}" | tee -a "$GITHUB_OUTPUT"
       - name: Create or update issue
         if: fromJSON(steps.issue_groups.outputs.broken_links_found)
         uses: peter-evans/create-issue-from-file@v5.0.1

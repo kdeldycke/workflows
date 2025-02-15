@@ -49,10 +49,7 @@ jobs:
       - name: Extract version
         id: get_version
         run: |
-          echo "new_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
-      - name: Print version
-        run: |
-          echo "New version: ${{ steps.get_version.outputs.new_version }}"
+          echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
@@ -113,10 +110,7 @@ jobs:
       - name: Extract version
         id: get_version
         run: |
-          echo "current_version=$( bump-my-version show current_version )" >> "$GITHUB_OUTPUT"
-      - name: Print version
-        run: |
-          echo "Current version: ${{ steps.get_version.outputs.current_version }}"
+          echo "current_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
       - name: Hard-code version in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
