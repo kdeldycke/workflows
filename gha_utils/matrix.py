@@ -21,8 +21,8 @@ import json
 import logging
 from typing import Iterable, Iterator
 
-from boltons.dictutils import FrozenDict  # type: ignore[import-untyped]
-from boltons.iterutils import unique  # type: ignore[import-untyped]
+from boltons.dictutils import FrozenDict
+from boltons.iterutils import unique
 
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 

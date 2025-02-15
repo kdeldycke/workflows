@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from subprocess import run
 
-from boltons.iterutils import unique  # type: ignore[import-untyped]
+from boltons.iterutils import unique
 
 
 @dataclass(order=True, frozen=True)

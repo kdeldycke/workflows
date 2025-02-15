@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from subprocess import SubprocessError, run
+from subprocess import CalledProcessError, TimeoutExpired, run
 from typing import Generator, Sequence
 
 import yaml
@@ -30,7 +30,7 @@ from click_extra.testing import args_cleanup, print_cli_run
 
 @dataclass(order=True)
 class TestCase:
-    cli_parameters: tuple[str, ...] = field(default_factory=tuple)
+    cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
     exit_code: int | str | None = None
@@ -143,7 +143,7 @@ class TestCase:
                 # encoding="utf-8",
                 text=True,
             )
-        except SubprocessError as ex:
+        except (CalledProcessError, TimeoutExpired) as ex:
             print(f"\n=== stdout ===\n{ex.stdout}")
             print(f"\n=== stderr ===\n{ex.stderr}")
             raise ex
