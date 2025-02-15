@@ -125,7 +125,6 @@ jobs:
           --config "show-fixes = true"
           --config "output-format = 'github'"
           --preview
-          --ignore D400,ERA001
           --config "format.docstring-code-format = true"
       - name: Run blacken-docs
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
