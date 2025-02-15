@@ -151,7 +151,9 @@ class TestCase:
             if field_id == "exit_code":
                 if result.returncode != field_data:
                     raise AssertionError(
-                        f"CLI exited with code {result.returncode}, expected {field_data}"
+                        f"CLI exited with code {result.returncode}, expected {
+                            field_data
+                        }"
                     )
 
             output = ""
