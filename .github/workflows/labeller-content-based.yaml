@@ -49,7 +49,6 @@ jobs:
       - name: Print all rules
         run: |
           cat ./.github/labeller-content-based.yaml
-
       - name: Apply rules
         uses: github/issue-labeler@v3.4
         with:
