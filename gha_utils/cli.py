@@ -272,7 +272,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     echo(generate_header(ctx) + new_content, file=prep_path(destination_mailmap))
 
 
-@gha_utils.command(short_help="Run a test plan from a file agaisnt a binary")
+@gha_utils.command(short_help="Run a test plan from a file against a binary")
 @option(
     "--binary",
     # XXX Wait for https://github.com/janluke/cloup/issues/185 to use the
