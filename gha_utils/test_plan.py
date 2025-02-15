@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from subprocess import CalledProcessError, TimeoutExpired, run
+from subprocess import run
 from typing import Generator, Sequence
 
 import yaml
@@ -110,44 +110,37 @@ class TestCase:
             intertwined output.
         """
         clean_args = args_cleanup(binary, self.cli_parameters)
-        try:
-            result = run(
-                clean_args,
-                capture_output=True,
-                timeout=timeout,
-                check=True,
-                # XXX Do not force encoding to let CLIs figure out by
-                # themselves the contextual encoding to use. This avoid
-                # UnicodeDecodeError on output in Window's console which still
-                # defaults to legacy encoding (e.g. cp1252, cp932, etc...):
-                #
-                #   Traceback (most recent call last):
-                #     File "…\__main__.py", line 49, in <module>
-                #     File "…\__main__.py", line 45, in main
-                #     File "…\click\core.py", line 1157, in __call__
-                #     File "…\click_extra\commands.py", line 347, in main
-                #     File "…\click\core.py", line 1078, in main
-                #     File "…\click_extra\commands.py", line 377, in invoke
-                #     File "…\click\core.py", line 1688, in invoke
-                #     File "…\click_extra\commands.py", line 377, in invoke
-                #     File "…\click\core.py", line 1434, in invoke
-                #     File "…\click\core.py", line 783, in invoke
-                #     File "…\cloup\_context.py", line 47, in new_func
-                #     File "…\mpm\cli.py", line 570, in managers
-                #     File "…\mpm\output.py", line 187, in print_table
-                #     File "…\click_extra\tabulate.py", line 97, in render_csv
-                #     File "encodings\cp1252.py", line 19, in encode
-                #   UnicodeEncodeError: 'charmap' codec can't encode character
-                #   '\u2713' in position 128: character maps to <undefined>
-                #
-                # encoding="utf-8",
-                text=True,
-            )
-        except (CalledProcessError, TimeoutExpired) as ex:
-            print(f"\n=== stdout ===\n{ex.stdout}")
-            print(f"\n=== stderr ===\n{ex.stderr}")
-            raise ex
-
+        result = run(
+            clean_args,
+            capture_output=True,
+            timeout=timeout,
+            # XXX Do not force encoding to let CLIs figure out by themselves the
+            # contextual encoding to use. This avoid UnicodeDecodeError on output in
+            # Window's console which still defaults to legacy encoding (e.g. cp1252,
+            # cp932, etc...):
+            #
+            #   Traceback (most recent call last):
+            #     File "…\__main__.py", line 49, in <module>
+            #     File "…\__main__.py", line 45, in main
+            #     File "…\click\core.py", line 1157, in __call__
+            #     File "…\click_extra\commands.py", line 347, in main
+            #     File "…\click\core.py", line 1078, in main
+            #     File "…\click_extra\commands.py", line 377, in invoke
+            #     File "…\click\core.py", line 1688, in invoke
+            #     File "…\click_extra\commands.py", line 377, in invoke
+            #     File "…\click\core.py", line 1434, in invoke
+            #     File "…\click\core.py", line 783, in invoke
+            #     File "…\cloup\_context.py", line 47, in new_func
+            #     File "…\mpm\cli.py", line 570, in managers
+            #     File "…\mpm\output.py", line 187, in print_table
+            #     File "…\click_extra\tabulate.py", line 97, in render_csv
+            #     File "encodings\cp1252.py", line 19, in encode
+            #   UnicodeEncodeError: 'charmap' codec can't encode character
+            #   '\u2713' in position 128: character maps to <undefined>
+            #
+            # encoding="utf-8",
+            text=True,
+        )
         print_cli_run(clean_args, result)
 
         for field_id, field_data in asdict(self).items():
