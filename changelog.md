@@ -8,6 +8,8 @@
 - Add new `gha-utils test-plan` subcommand.
 - Replace ad-hoc custom matrix code by generic matrix model.
 - Replace test matrix pre-computation by native features.
+- Remove `ruff_py_version` field from `gha-utils metadata` output: Ruff is extracting it automaticcaly from the `pyproject.toml` file of the project.
+- Inline all forced Ruff configuration to CLI parameters.
 
 ## [4.13.4 (2025-02-02)](https://github.com/kdeldycke/workflows/compare/v4.13.3...v4.13.4)
 

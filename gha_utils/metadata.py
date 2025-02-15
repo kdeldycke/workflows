@@ -28,7 +28,6 @@ doc_files="changelog.md" "readme.md" "docs/license.md"
 is_python_project=true
 package_name=click-extra
 blacken_docs_params=--target-version py37 --target-version py38
-ruff_py_version=py37
 mypy_params=--python-version 3.7
 current_version=2.0.1
 released_version=2.0.0
@@ -770,23 +769,6 @@ class Metadata:
         return None
 
     @cached_property
-    def ruff_py_version(self) -> str | None:
-        """Returns the oldest Python version targeted.
-
-        .. caution::
-
-            Unlike ``blacken-docs``, `ruff doesn't support multiple
-            --target-version values
-            <https://github.com/astral-sh/ruff/issues/2857#issuecomment-1428100515>`_,
-            and `only supports the minimum Python version
-            <https://github.com/astral-sh/ruff/issues/2519>`_.
-        """
-        if self.py_target_versions:
-            version = self.py_target_versions[0]
-            return f"py{version.major}{version.minor}"
-        return None
-
-    @cached_property
     def mypy_params(self) -> str | None:
         """Generates `mypy` parameters.
 
@@ -1217,7 +1199,6 @@ class Metadata:
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,
             "blacken_docs_params": self.blacken_docs_params,
-            "ruff_py_version": self.ruff_py_version,
             "mypy_params": self.mypy_params,
             "current_version": self.current_version,
             "released_version": self.released_version,

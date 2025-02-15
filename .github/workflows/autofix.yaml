@@ -44,7 +44,6 @@ jobs:
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
-      ruff_py_version: ${{ steps.project-metadata.outputs.ruff_py_version }}
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -89,71 +88,45 @@ jobs:
           --
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
-      - name: Optional Ruff config
-        if: needs.project-metadata.outputs.ruff_py_version
-        run: |
-          cat > ./ruff.toml <<EOF
-
-          target-version = "${{ needs.project-metadata.outputs.ruff_py_version }}"
-
-          EOF
-      - name: Generate Ruff config
-        run: |
-          tee -a ./ruff.toml <<-EOF
-
-          # Extend the pyproject.toml file of the project.
-          extend = "./pyproject.toml"
-
-          # Enable preview mode; checks will include unstable rules and fixes.
-          # See: https://astral.sh/blog/ruff-v0.1.0#introducing-preview-mode
-          preview = true
-
-          fix = true
-
-          # Include fixes that may not retain the original intent of the code.
-          # See: https://docs.astral.sh/ruff/linter/#fix-safety
-          unsafe-fixes = true
-
-          # Enumerate all fixed violations.
-          show-fixes = true
-
-          output-format = "github"
-
-
-          [lint]
-          # D400 - First line should end with a period.
-          #   Allows docstrings to end up with any punctuation, not just a period.
-          #   See: https://github.com/astral-sh/ruff/issues/1858#issuecomment-1382640623
-          # ERA001 - Found commented-out code.
-          #   Do not remove commented code, as it might be used for documentation.
-          #   See: https://docs.astral.sh/ruff/rules/#eradicate-era
-          ignore = ["D400", "ERA001"]
-
-
-          [format]
-          # Enable reformatting of code snippets in docstrings.
-          # https://docs.astral.sh/ruff/formatter/#docstring-formatting
-          docstring-code-format = true
-
-          EOF
-      - name: Print Ruff config
-        run: |
-          cat ./ruff.toml
       - name: Install Ruff
         run: >
           uv tool install --with-requirements
           https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/ruff.txt ruff
+      # --fix : Automatically fix issues that can be fixed.
+      # --unsafe-fixes : Include fixes that may not retain the original intent of the code.
+      #   See: https://docs.astral.sh/ruff/linter/#fix-safety
+      # --show-fixes : Enumerate all fixed violations.
+      # --preview : Enable preview mode; checks will include unstable rules and fixes.
+      #   See: https://astral.sh/blog/ruff-v0.1.0#introducing-preview-mode
+      # D400 : First line should end with a period.
+      #   Allows docstrings to end up with any punctuation, not just a period.
+      #   See: https://github.com/astral-sh/ruff/issues/1858#issuecomment-1382640623
+      # ERA001 : Found commented-out code.
+      #   Do not remove commented code, as it might be used for documentation.
+      #   See: https://docs.astral.sh/ruff/rules/#eradicate-era
       - name: Run Ruff check
-        run: |
-          ruff check --config ./ruff.toml
+        run: >
+          ruff check
+          --fix
+          --unsafe-fixes
+          --show-fixes
+          --output-format github
+          --preview
+          --ignore D400,ERA001
       - name: Run Ruff format
-        # XXX: Ruff is planning to support linting and formatting in one unified command at one point.
-        # See: https://github.com/astral-sh/ruff/issues/8232
-        run: |
-          ruff format --config ./ruff.toml
-      - name: Remove temporary Ruff config
-        run: |
-          rm ./ruff.toml
+        # format.docstring-code-format : Enable reformatting of code snippets in docstrings.
+        #   https://docs.astral.sh/ruff/formatter/#docstring-formatting
+        # XXX Ruff is planning to support linting and formatting in one unified command at one point.
+        #     See: https://github.com/astral-sh/ruff/issues/8232
+        run: >
+          ruff format
+          --config "fix = true"
+          --config "unsafe-fixes = true"
+          --config "show-fixes = true"
+          --config "output-format = 'github'"
+          --preview
+          --ignore D400,ERA001
+          --config "format.docstring-code-format = true"
       - name: Run blacken-docs
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
         # https://github.com/adamchainz/blacken-docs/blob/79ef671/blacken_docs.py#L207-L211
