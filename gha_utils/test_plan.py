@@ -24,6 +24,7 @@ from typing import Generator, Sequence
 
 import yaml
 from boltons.iterutils import flatten
+from boltons.strutils import strip_ansi
 from click_extra.testing import args_cleanup, print_cli_run
 
 
@@ -33,6 +34,7 @@ class TestCase:
     """Parameters, arguments and options to pass to the CLI."""
 
     exit_code: int | None = None
+    strip_ansi: bool = False
     output_contains: tuple[str, ...] = field(default_factory=tuple)
     stdout_contains: tuple[str, ...] = field(default_factory=tuple)
     stderr_contains: tuple[str, ...] = field(default_factory=tuple)
@@ -52,6 +54,10 @@ class TestCase:
                     field_data = int(field_data)
                 elif field_data is not None and not isinstance(field_data, int):
                     raise ValueError(f"exit_code is not an integer: {field_data}")
+
+            elif field_id == "strip_ansi":
+                if not isinstance(field_data, bool):
+                    raise ValueError(f"strip_ansi is not a boolean: {field_data}")
 
             # Validates and normalize regex fullmatch fields.
             elif field_id.endswith("_fullmatch"):
@@ -168,6 +174,9 @@ class TestCase:
             elif field_id.startswith("stderr_"):
                 output = result.stderr
                 name = "<stderr>"
+
+            if self.strip_ansi:
+                output = strip_ansi(output)
 
             if field_id.endswith("_contains"):
                 for sub_string in field_data:

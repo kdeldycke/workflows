@@ -24,3 +24,7 @@
 # Test help output.
 - cli_parameters:
     - --help
+  strip_ansi: true
+  stdout_contains:
+    - "Usage: gha-utils [OPTIONS] COMMAND [ARGS]..."
+    - "-h, --help"
