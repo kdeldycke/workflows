@@ -5,19 +5,19 @@ name: Autofix
     inputs:
       gitignore-location:
         description: 'File path of the .gitignore to update, relative to the root of the repository.'
-        required: false
         type: string
         default: ./.gitignore
+        required: false
       gitignore-extra-categories:
         description: 'List of additional categories to add to .gitignore file.'
-        required: false
         type: string
+        required: false
       gitignore-extra-content:
         description: 'Additional content to append at the end of the generated .gitignore file.'
-        required: false
         type: string
         default: |
           junit.xml
+        required: false
   push:
     branches:
       - main
