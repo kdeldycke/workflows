@@ -5,6 +5,10 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix update of `.gitignore` with `gitignore-extra-content` content.
+- Fix `--timeout` parameter on `gha-utils test-plan` call in release workflow.
+- Move all high level CLI tests to test plan file.
+
 ## [4.14.1 (2025-02-16)](https://github.com/kdeldycke/workflows/compare/v4.14.0...v4.14.1)
 
 - Add a new `test-plan-file` parameter to the `release` workflow.
