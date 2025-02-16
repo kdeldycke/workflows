@@ -279,12 +279,15 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     # `file_path` type.
     type=click.Path(exists=True, executable=True, resolve_path=True),
     required=True,
-    help="Path to the binary to test.",
+    metavar="FILE_PATH",
+    help="Path to the binary file to test.",
 )
 @option(
     "--plan",
     type=file_path(exists=True, readable=True, resolve_path=True),
-    help="Test plan in YAML.",
+    metavar="FILE_PATH",
+    help="Path to the test plan file in YAML. If not provided, a default test "
+    "plan will be executed.",
 )
 @option(
     "-t",
@@ -293,6 +296,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     # 0.0 is negative values are provided, so we mimic this behavior here:
     # https://github.com/python/cpython/blob/5740b95076b57feb6293cda4f5504f706a7d622d/Lib/subprocess.py#L1596-L1597
     type=FloatRange(min=0, clamp=True),
+    metavar="SECONDS",
     help="Set the default timeout for each CLI call, if not specified in the "
     "test plan.",
 )
