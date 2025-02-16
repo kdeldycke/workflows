@@ -7,7 +7,7 @@ name: Autofix
         description: 'File path of the .gitignore to update, relative to the root of the repository.'
         required: false
         type: string
-        default: './.gitignore'
+        default: ./.gitignore
       gitignore-extra-categories:
         description: 'List of additional categories to add to .gitignore file.'
         required: false
@@ -355,17 +355,17 @@ jobs:
           vim
           virtualenv
           visualstudiocode
-          windows > ${{ env.gitignore-location }}
+          windows > "${{ env.gitignore-location }}"
       - name: Append extra content to .gitignore
         if: env.gitignore-extra-content
         run: |
-          tee -a ${{ env.gitignore-location }} <<-EOF
+          tee -a "${{ env.gitignore-location }}" <<-EOF
 
           ${{ env.gitignore-extra-content }}
           EOF
       - name: Show .gitignore
         run: |
-          cat ${{ env.gitignore-location }}
+          cat "${{ env.gitignore-location }}"
       - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
@@ -383,5 +383,3 @@ jobs:
             </details>
           labels: "🤖 ci"
           branch: update-gitignore
-          add-paths: ${{ env.gitignore-location }}
-
