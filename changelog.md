@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.14.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.14.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.14.1 (2025-02-16)](https://github.com/kdeldycke/workflows/compare/v4.14.0...v4.14.1)
 
 - Add a new `test-plan-file` parameter to the `release` workflow.
 - Remove the `binaries-test-plan` parameter in `release` workflow.
