@@ -306,9 +306,11 @@ def test_plan(binary: Path, plan: Path | None, timeout: float | None) -> None:
         logging.info(f"Read test plan from {plan}")
         test_plan = parse_test_plan(plan)
     else:
-        logging.warning(f"No test plan provided. Default to: {DEFAULT_TEST_PLAN}")
+        logging.warning("No test plan provided: use default test plan.")
         test_plan = DEFAULT_TEST_PLAN  # type: ignore[assignment]
+    logging.debug(f"Test plan: {test_plan}")
 
     for index, test_case in enumerate(test_plan):
-        logging.info(f"Run test #{index}")
+        logging.info(f"Run test #{index + 1}")
+        logging.debug(f"Test case parameters: {test_case}")
         test_case.check_cli_test(binary, default_timeout=timeout)

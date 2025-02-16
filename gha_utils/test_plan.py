@@ -193,10 +193,12 @@ class TestCase:
                 name = "<stderr>"
 
             if self.strip_ansi:
+                logging.info(f"Strip ANSI escape sequences from CLI's {name}")
                 output = strip_ansi(output)
 
             if field_id.endswith("_contains"):
                 for sub_string in field_data:
+                    logging.info(f"Check if CLI's {name} contains: {sub_string!r}")
                     if sub_string not in output:
                         raise AssertionError(
                             f"CLI's {name} does not contain {sub_string!r}"
@@ -204,6 +206,7 @@ class TestCase:
 
             elif field_id.endswith("_regex_matches"):
                 for regex in field_data:
+                    logging.info(f"Check if CLI's {name} matches: {sub_string!r}")
                     if not regex.search(output):
                         raise AssertionError(
                             f"CLI's {name} does not match regex {regex}"
@@ -215,6 +218,8 @@ class TestCase:
                     raise AssertionError(
                         f"CLI's {name} does not fully match regex {regex}"
                     )
+
+        logging.info("All tests passed for CLI.")
 
 
 DEFAULT_TEST_PLAN = (
