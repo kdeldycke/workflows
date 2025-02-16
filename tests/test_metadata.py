@@ -24,6 +24,8 @@ from gha_utils.metadata import Dialects, Metadata
 def test_metadata_github_format():
     metadata = Metadata()
 
+    print(metadata.dump(Dialects.github))
+
     assert re.fullmatch(
         (
             r"new_commits=\n"
@@ -81,6 +83,8 @@ def test_metadata_github_format():
 
 def test_metadata_plain_format():
     metadata = Metadata()
+
+    print(metadata.dump(Dialects.plain()))
 
     assert re.fullmatch(
         (
