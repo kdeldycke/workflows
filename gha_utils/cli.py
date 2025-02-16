@@ -299,7 +299,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 def test_plan(binary: Path, plan: Path | None, timeout: float | None) -> None:
     # Load test plan from workflow input, or use a default one.
     if plan:
-        logging.debug(f"Read test plan from {plan}")
+        logging.info(f"Read test plan from {plan}")
         test_plan = parse_test_plan(plan)
     else:
         logging.warning(f"No test plan provided. Default to: {DEFAULT_TEST_PLAN}")
