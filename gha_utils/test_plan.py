@@ -170,7 +170,7 @@ class TestCase:
             output = ""
             name = ""
             if field_id.startswith("output_"):
-                raise NotImplementedError("Output mixing <stdout>/<stderr>")
+                raise NotImplementedError("<stdout>/<stderr> output mix")
                 # output = result.output
                 # name = "output"
             elif field_id.startswith("stdout_"):
