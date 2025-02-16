@@ -21,7 +21,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from subprocess import TimeoutExpired, run
-from typing import Generator, Sequence
+from typing import Generator
 
 import yaml
 from boltons.iterutils import flatten
@@ -40,12 +40,12 @@ class TestCase:
     output_contains: tuple[str, ...] | str = field(default_factory=tuple)
     stdout_contains: tuple[str, ...] | str = field(default_factory=tuple)
     stderr_contains: tuple[str, ...] | str = field(default_factory=tuple)
-    output_regex_matches: tuple[str, ...] | str = field(default_factory=tuple)
-    stdout_regex_matches: tuple[str, ...] | str = field(default_factory=tuple)
-    stderr_regex_matches: tuple[str, ...] | str = field(default_factory=tuple)
-    output_regex_fullmatch: str | None = None
-    stdout_regex_fullmatch: str | None = None
-    stderr_regex_fullmatch: str | None = None
+    output_regex_matches: tuple[re.Pattern, ...] | str = field(default_factory=tuple)
+    stdout_regex_matches: tuple[re.Pattern, ...] | str = field(default_factory=tuple)
+    stderr_regex_matches: tuple[re.Pattern, ...] | str = field(default_factory=tuple)
+    output_regex_fullmatch: re.Pattern | str | None = None
+    stdout_regex_fullmatch: re.Pattern | str | None = None
+    stderr_regex_fullmatch: re.Pattern | str | None = None
 
     def __post_init__(self) -> None:
         """Normalize all fields."""
@@ -72,40 +72,37 @@ class TestCase:
                 if not isinstance(field_data, bool):
                     raise ValueError(f"strip_ansi is not a boolean: {field_data}")
 
-            # Validates and normalize regex fullmatch fields.
-            elif field_id.endswith("_fullmatch"):
-                if field_data:
-                    if not isinstance(field_data, str):
-                        raise ValueError(f"{field_id} is not a string: {field_data}")
-                # Normalize empty strings to None.
-                else:
-                    field_data = None
-
             # Validates and normalize tuple of strings.
             else:
                 # Wraps single string into a tuple.
                 if isinstance(field_data, str):
                     field_data = (field_data,)
-                if not isinstance(field_data, Sequence):
-                    raise ValueError(
-                        f"{field_id} is not a tuple or a list: {field_data}"
-                    )
-                if not all(isinstance(i, str) for i in field_data):
-                    raise ValueError(
-                        f"{field_id} contains non-string elements: {field_data}"
-                    )
-                # Ignore blank value.
-                field_data = tuple(i.strip() for i in field_data if i.strip())
+                if field_data:
+                    for item in field_data:
+                        if not isinstance(item, str):
+                            raise ValueError(f"Invalid string in {field_id}: {item}")
+                    # Ignore blank value.
+                    field_data = tuple(i for i in field_data if i.strip())
 
-            # Validates regexps.
+            # Validates fields containing one or more regexes.
             if field_data and "_regex_" in field_id:
+                # Compile all regexes.
+                valid_regexes = []
                 for regex in flatten((field_data,)):
                     try:
-                        re.compile(regex)
+                        valid_regexes.append(re.compile(regex))
                     except re.error as ex:
                         raise ValueError(
                             f"Invalid regex in {field_id}: {regex}"
                         ) from ex
+                # Normalize single regex to a single element.
+                if field_id.endswith("_fullmatch"):
+                    if valid_regexes:
+                        field_data = valid_regexes.pop()
+                    else:
+                        field_data = None
+                else:
+                    field_data = tuple(valid_regexes)
 
             setattr(self, field_id, field_data)
 
@@ -164,16 +161,24 @@ class TestCase:
         print_cli_run(clean_args, result)
 
         for field_id, field_data in asdict(self).items():
-            if field_id == "cli_parameters" or (not field_data and field_data != 0):
+            if field_id == "exit_code":
+                if field_data is not None:
+                    logging.info(f"Test exit code, expecting: {field_data}")
+                    if result.returncode != field_data:
+                        raise AssertionError(
+                            f"CLI exited with code {result.returncode}, "
+                            f"expected {field_data}"
+                        )
+                # The specific exit code matches, let's proceed to the next test.
                 continue
 
-            if field_id == "exit_code":
-                if result.returncode != field_data:
-                    raise AssertionError(
-                        f"CLI exited with code {result.returncode}, "
-                        f"expected {field_data}"
-                    )
+            # Ignore non-output fields, and empty test cases.
+            elif not (
+                field_id.startswith(("output_", "stdout_", "stderr_")) and field_data
+            ):
+                continue
 
+            # Prepare output and name for comparison.
             output = ""
             name = ""
             if field_id.startswith("output_"):
@@ -199,16 +204,16 @@ class TestCase:
 
             elif field_id.endswith("_regex_matches"):
                 for regex in field_data:
-                    if not re.search(regex, output):
+                    if not regex.search(output):
                         raise AssertionError(
-                            f"CLI's {name} does not match regex {regex!r}"
+                            f"CLI's {name} does not match regex {regex}"
                         )
 
             elif field_id.endswith("_regex_fullmatch"):
                 regex = field_data
-                if not re.fullmatch(regex, output):
+                if not regex.fullmatch(output):
                     raise AssertionError(
-                        f"CLI's {name} does not fully match regex {regex!r}"
+                        f"CLI's {name} does not fully match regex {regex}"
                     )
 
 
