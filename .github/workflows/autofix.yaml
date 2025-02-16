@@ -5,19 +5,19 @@ name: Autofix
     inputs:
       gitignore-location:
         description: 'File path of the .gitignore to update, relative to the root of the repository.'
+        required: false
         type: string
         default: ./.gitignore
-        required: false
       gitignore-extra-categories:
         description: 'List of additional categories to add to .gitignore file.'
         type: string
         required: false
       gitignore-extra-content:
         description: 'Additional content to append at the end of the generated .gitignore file.'
+        required: false
         type: string
         default: |
           junit.xml
-        required: false
   push:
     branches:
       - main
@@ -25,9 +25,9 @@ name: Autofix
 # Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
 # We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
 env:
-  gitignore-location: >
+  gitignore-location: >-
     ${{ inputs.gitignore-location == null && './.gitignore' || inputs.gitignore-location }}
-  gitignore-extra-content: >
+  gitignore-extra-content: >-
     ${{ inputs.gitignore-extra-content == null && 'junit.xml' || inputs.gitignore-extra-content }}
 
 
@@ -363,9 +363,6 @@ jobs:
 
           ${{ env.gitignore-extra-content }}
           EOF
-      - name: Show .gitignore
-        run: |
-          cat "${{ env.gitignore-location }}"
       - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}

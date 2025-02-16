@@ -30,7 +30,7 @@ name: Build & release
 # Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
 # We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
 env:
-  test-plan-file: >
+  test-plan-file: >-
     ${{ inputs.test-plan-file == null && './tests/cli-test-plan.yaml' || inputs.test-plan-file }}
 
 concurrency:
@@ -196,7 +196,7 @@ jobs:
           --
           gha-utils --verbosity DEBUG test-plan
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
-          --plan ${{ env.test-plan-file }}
+          --plan "${{ env.test-plan-file }}"
           ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) }}
 
   git-tag:

@@ -7,7 +7,7 @@ name: Docs
         description: 'Location in the repository of the dependency graph image.'
         required: false
         type: string
-        default: './docs/assets/dependencies.mmd'
+        default: ./docs/assets/dependencies.mmd
   push:
     branches:
       - main
@@ -15,7 +15,7 @@ name: Docs
 # Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
 # We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
 env:
-  dependency-graph-output: >
+  dependency-graph-output: >-
     ${{ inputs.dependency-graph-output == null && './docs/assets/dependencies.mmd' || inputs.dependency-graph-output }}
 
 concurrency:
@@ -191,7 +191,7 @@ jobs:
         run: >
           uv --no-progress run --frozen -- pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
-          --mermaid > ${{ env.dependency-graph-output }}
+          --mermaid > "${{ env.dependency-graph-output }}"
       - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
