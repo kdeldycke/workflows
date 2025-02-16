@@ -51,7 +51,7 @@ def test_metadata_github_format():
             r'"include": \[\{"entry_point": "gha-utils", '
             r'"cli_id": "gha-utils", "module_id": "gha_utils\.__main__", '
             r'"callable_id": "main", '
-            r'"module_path": "gha_utils[\\/]__main__\.py"\}, '
+            r'"module_path": "gha_utils.__main__\.py"\}, '
             r'\{"commit": "[a-z0-9]+", "short_sha": "[a-z0-9]+", '
             r'"current_version": "4\.14\.1"\}, \{"os": "ubuntu-24\.04", '
             r'"platform_id": "linux", "arch": "x64", "extension": "bin"\}, '
@@ -116,7 +116,7 @@ def test_metadata_plain_format():
             r"'commit': \('[a-z0-9]+',\)\}; "
             r"include=\(\{'entry_point': 'gha-utils', 'cli_id': 'gha-utils', "
             r"'module_id': 'gha_utils\.__main__', 'callable_id': 'main', "
-            r"'module_path': 'gha_utils[\\/]__main__\.py'\}, "
+            r"'module_path': 'gha_utils.__main__\.py'\}, "
             r"\{'commit': '[a-z0-9]+', 'short_sha': '[a-z0-9]+', "
             r"'current_version': '4\.14\.1'\}, \{'os': 'ubuntu-24\.04', "
             r"'platform_id': 'linux', 'arch': 'x64', 'extension': 'bin'}, "
