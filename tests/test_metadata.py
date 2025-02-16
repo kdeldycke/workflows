@@ -51,7 +51,7 @@ def test_metadata_github_format():
             r'"callable_id": "main", '
             r'"module_path": "gha_utils(/|\\\\)__main__\.py"\}, '
             r'\{"commit": "[a-z0-9]+", "short_sha": "[a-z0-9]+", '
-            r'"current_version": "4\.14\.1"\}, \{"os": "ubuntu-24\.04", '
+            r'"current_version": "[0-9\.]+"\}, \{"os": "ubuntu-24\.04", '
             r'"platform_id": "linux", "arch": "x64", "extension": "bin"\}, '
             r'\{"os": "ubuntu-24\.04-arm", "platform_id": "linux", '
             r'"arch": "arm64", "extension": "bin"\}, \{"os": "macos-15", '
@@ -114,7 +114,7 @@ def test_metadata_plain_format():
             r"'module_id': 'gha_utils\.__main__', 'callable_id': 'main', "
             r"'module_path': 'gha_utils(/|\\\\)__main__\.py'\}, "
             r"\{'commit': '[a-z0-9]+', 'short_sha': '[a-z0-9]+', "
-            r"'current_version': '4\.14\.1'\}, \{'os': 'ubuntu-24\.04', "
+            r"'current_version': '[0-9\.]+'\}, \{'os': 'ubuntu-24\.04', "
             r"'platform_id': 'linux', 'arch': 'x64', 'extension': 'bin'}, "
             r"{'os': 'ubuntu-24\.04-arm', 'platform_id': 'linux', "
             r"'arch': 'arm64', 'extension': 'bin'\}, \{'os': 'macos-15', "
