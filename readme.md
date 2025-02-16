@@ -36,7 +36,6 @@ Thanks to `uv`, you can install and run `gha-utils` in one command, without poll
 
 ```shell-session
 $ uvx gha-utils
-Installed 45 packages in 45ms
 Usage: gha-utils [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -51,8 +50,11 @@ Options:
                             utils/*.{toml,yaml,yml,json,ini,xml}]
   --show-params             Show all CLI parameters, their provenance, defaults
                             and value, then exit.
-  -v, --verbosity LEVEL     Either CRITICAL, ERROR, WARNING, INFO, DEBUG.
+  --verbosity LEVEL         Either CRITICAL, ERROR, WARNING, INFO, DEBUG.
                             [default: WARNING]
+  -v, --verbose             Increase the default WARNING verbosity by one level
+                            for each additional repetition of the option.
+                            [default: 0]
   --version                 Show the version and exit.
   -h, --help                Show this message and exit.
 
@@ -60,6 +62,7 @@ Commands:
   changelog     Maintain a Markdown-formatted changelog
   mailmap-sync  Update Git's .mailmap file with missing contributors
   metadata      Output project metadata
+  test-plan     Run a test plan from a file against a binary
 ```
 
 ```shell-session
