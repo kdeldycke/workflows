@@ -16,10 +16,11 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from subprocess import run
+from subprocess import TimeoutExpired, run
 from typing import Generator, Sequence
 
 import yaml
@@ -33,6 +34,7 @@ class TestCase:
     cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
+    timeout: int | str | None = None
     exit_code: int | str | None = None
     strip_ansi: bool = False
     output_contains: tuple[str, ...] | str = field(default_factory=tuple)
@@ -48,13 +50,17 @@ class TestCase:
     def __post_init__(self) -> None:
         """Normalize all fields."""
         for field_id, field_data in asdict(self).items():
-            # Validates and normalize exit code.
-            if field_id == "exit_code":
+            # Validates and normalize integer properties.
+            if field_id in ("timeout", "exit_code"):
                 if isinstance(field_data, str):
                     field_data = int(field_data)
                 elif field_data is not None and not isinstance(field_data, int):
-                    raise ValueError(f"exit_code is not an integer: {field_data}")
+                    raise ValueError(f"{field_id} is not an integer: {field_data}")
+                # Timeout can only be unset or positive.
+                if field_id == "timeout" and field_data and field_data < 0:
+                    raise ValueError(f"{field_id} is negative: {field_data}")
 
+            # Validates and normalize boolean properties.
             elif field_id == "strip_ansi":
                 if not isinstance(field_data, bool):
                     raise ValueError(f"strip_ansi is not a boolean: {field_data}")
@@ -96,7 +102,7 @@ class TestCase:
 
             setattr(self, field_id, field_data)
 
-    def check_cli_test(self, binary: str | Path, timeout: int | None = None):
+    def check_cli_test(self, binary: str | Path, default_timeout: int):
         """Run a CLI command and check its output against the test case.
 
         ..todo::
@@ -106,38 +112,48 @@ class TestCase:
             Add support for proper mixed stdout/stderr stream as a single,
             intertwined output.
         """
+        if self.timeout is None:
+            logging.info(f"Set default test case timeout to {default_timeout} seconds")
+            self.timeout = default_timeout
+
         clean_args = args_cleanup(binary, self.cli_parameters)
-        result = run(
-            clean_args,
-            capture_output=True,
-            timeout=timeout,
-            # XXX Do not force encoding to let CLIs figure out by themselves the
-            # contextual encoding to use. This avoid UnicodeDecodeError on output in
-            # Window's console which still defaults to legacy encoding (e.g. cp1252,
-            # cp932, etc...):
-            #
-            #   Traceback (most recent call last):
-            #     File "…\__main__.py", line 49, in <module>
-            #     File "…\__main__.py", line 45, in main
-            #     File "…\click\core.py", line 1157, in __call__
-            #     File "…\click_extra\commands.py", line 347, in main
-            #     File "…\click\core.py", line 1078, in main
-            #     File "…\click_extra\commands.py", line 377, in invoke
-            #     File "…\click\core.py", line 1688, in invoke
-            #     File "…\click_extra\commands.py", line 377, in invoke
-            #     File "…\click\core.py", line 1434, in invoke
-            #     File "…\click\core.py", line 783, in invoke
-            #     File "…\cloup\_context.py", line 47, in new_func
-            #     File "…\mpm\cli.py", line 570, in managers
-            #     File "…\mpm\output.py", line 187, in print_table
-            #     File "…\click_extra\tabulate.py", line 97, in render_csv
-            #     File "encodings\cp1252.py", line 19, in encode
-            #   UnicodeEncodeError: 'charmap' codec can't encode character
-            #   '\u2713' in position 128: character maps to <undefined>
-            #
-            # encoding="utf-8",
-            text=True,
-        )
+        try:
+            result = run(
+                clean_args,
+                capture_output=True,
+                timeout=self.timeout,
+                # XXX Do not force encoding to let CLIs figure out by
+                # themselves the contextual encoding to use. This avoid
+                # UnicodeDecodeError on output in Window's console which still
+                # defaults to legacy encoding (e.g. cp1252, cp932, etc...):
+                #
+                #   Traceback (most recent call last):
+                #     File "…\__main__.py", line 49, in <module>
+                #     File "…\__main__.py", line 45, in main
+                #     File "…\click\core.py", line 1157, in __call__
+                #     File "…\click_extra\commands.py", line 347, in main
+                #     File "…\click\core.py", line 1078, in main
+                #     File "…\click_extra\commands.py", line 377, in invoke
+                #     File "…\click\core.py", line 1688, in invoke
+                #     File "…\click_extra\commands.py", line 377, in invoke
+                #     File "…\click\core.py", line 1434, in invoke
+                #     File "…\click\core.py", line 783, in invoke
+                #     File "…\cloup\_context.py", line 47, in new_func
+                #     File "…\mpm\cli.py", line 570, in managers
+                #     File "…\mpm\output.py", line 187, in print_table
+                #     File "…\click_extra\tabulate.py", line 97, in render_csv
+                #     File "encodings\cp1252.py", line 19, in encode
+                #   UnicodeEncodeError: 'charmap' codec can't encode character
+                #   '\u2713' in position 128: character maps to <undefined>
+                #
+                # encoding="utf-8",
+                text=True,
+            )
+        except TimeoutExpired as ex:
+            raise TimeoutError(
+                f"CLI timed out after {self.timeout} seconds: {clean_args}"
+            ) from ex
+
         print_cli_run(clean_args, result)
 
         for field_id, field_data in asdict(self).items():

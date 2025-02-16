@@ -1,6 +1,7 @@
 # Output the version of the CLI.
 - cli_parameters:
     - --version
+  timeout: 5
   exit_code: 0
   stdout_contains: ", version"
   stdout_regex_fullmatch: "\x1b\\[97mgha-utils\x1b\\[0m, version \x1b\\[32mNone\x1b\\[0m\\n"

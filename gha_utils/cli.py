@@ -291,9 +291,10 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     "--timeout",
     type=IntRange(min=0),
     default=60,
-    help="Set maximum duration in seconds for each CLI call.",
+    help="Set the default timeout for each CLI call, if not specified in the "
+    "test plan.",
 )
-def test_plan(binary, plan, timeout):
+def test_plan(binary: Path, plan: Path | None, timeout: int) -> None:
     # Load test plan from workflow input, or use a default one.
     if plan:
         logging.debug(f"Read test plan from {plan}")
@@ -304,4 +305,4 @@ def test_plan(binary, plan, timeout):
 
     for index, test_case in enumerate(test_plan):
         logging.info(f"Run test #{index}")
-        test_case.check_cli_test(binary, timeout=timeout)
+        test_case.check_cli_test(binary, default_timeout=timeout)
