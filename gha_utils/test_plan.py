@@ -128,7 +128,7 @@ class TestCase:
             result = run(
                 clean_args,
                 capture_output=True,
-                timeout=self.timeout,
+                timeout=self.timeout,  # type: ignore[arg-type]
                 # XXX Do not force encoding to let CLIs figure out by
                 # themselves the contextual encoding to use. This avoid
                 # UnicodeDecodeError on output in Window's console which still
