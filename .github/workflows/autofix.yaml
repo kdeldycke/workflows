@@ -383,3 +383,5 @@ jobs:
             </details>
           labels: "🤖 ci"
           branch: update-gitignore
+          add-paths: ${{ env.gitignore-location }}
+
