@@ -16,6 +16,8 @@ name: Autofix
         description: 'Additional content to append at the end of the generated .gitignore file.'
         required: false
         type: string
+        default: |
+          junit.xml
   push:
     branches:
       - main
@@ -25,6 +27,9 @@ name: Autofix
 env:
   gitignore-location: >
     ${{ inputs.gitignore-location == null && './.gitignore' || inputs.gitignore-location }}
+  gitignore-extra-content: >
+    ${{ inputs.gitignore-extra-content == null && 'junit.xml' || inputs.gitignore-extra-content }}
+
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits. Source:
@@ -352,11 +357,11 @@ jobs:
           visualstudiocode
           windows > ${{ env.gitignore-location }}
       - name: Append extra content to .gitignore
-        if: inputs.gitignore-extra-content
+        if: env.gitignore-extra-content
         run: |
           tee -a ${{ env.gitignore-location }} <<-EOF
 
-          ${{ inputs.gitignore-extra-content }}
+          ${{ env.gitignore-extra-content }}
           EOF
       - uses: peter-evans/create-pull-request@v7.0.6
         with:
