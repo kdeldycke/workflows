@@ -363,6 +363,9 @@ jobs:
 
           ${{ env.gitignore-extra-content }}
           EOF
+      - name: Show .gitignore
+        run: |
+          cat ${{ env.gitignore-location }}
       - uses: peter-evans/create-pull-request@v7.0.6
         with:
           assignees: ${{ github.actor }}
