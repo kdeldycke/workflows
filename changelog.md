@@ -7,6 +7,7 @@
 
 - Add a new `test-plan-file` parameter to the `release` workflow.
 - Remove the `binaries-test-plan` parameter in `release` workflow.
+- Fix production of `nuitka_matrix` field in `gha-utils metadata` output.
 
 ## [4.14.0 (2025-02-15)](https://github.com/kdeldycke/workflows/compare/v4.13.4...v4.14.0)
 

@@ -1105,7 +1105,7 @@ class Metadata:
             ).format(**variations)
             matrix.add_includes(bin_name_include)
 
-        return Matrix(matrix)
+        return matrix
 
     @cached_property
     def release_notes(self) -> str | None:
