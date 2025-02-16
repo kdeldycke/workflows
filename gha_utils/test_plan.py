@@ -103,9 +103,6 @@ class TestCase:
             Add support for environment variables.
 
         ..todo::
-            Add support for ANSI code stripping.
-
-        ..todo::
             Add support for proper mixed stdout/stderr stream as a single,
             intertwined output.
         """
