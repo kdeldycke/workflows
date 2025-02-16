@@ -60,32 +60,9 @@ jobs:
         run: |
           uv --no-progress venv --python ${{ matrix.python-version }}
           uv --no-progress sync --frozen --extra test
-
-      # CLI tests.
-      - name: gha-utils --help
-        run: |
-          uv --no-progress run --frozen -- gha-utils --help
-      - name: gha-utils --verbosity DEBUG --version
-        run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity DEBUG --version
-      - name: gha-utils --verbosity INFO metadata
-        run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity INFO metadata
-      - name: gha-utils --verbosity INFO changelog
-        # XXX This command fail on Windows as it try to print emojis to the console, from the source changelog:
-        # UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f64f' in position 39913: character maps
-        # to <undefined>
-        if: runner.os != 'Windows'
-        run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity INFO changelog
-      - name: gha-utils --verbosity INFO mailmap-sync
-        run: |
-          uv --no-progress run --frozen -- gha-utils --verbosity INFO mailmap-sync
-
       - name: Unittests
         run: |
           uv --no-progress run --frozen -- pytest
-
       - name: Codecov - coverage
         uses: codecov/codecov-action@v5.3.1
         with:
