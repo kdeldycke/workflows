@@ -5,9 +5,9 @@ name: Autofix
     inputs:
       gitignore-location:
         description: 'File path of the .gitignore to update, relative to the root of the repository.'
-        default: './.gitignore'
         required: false
         type: string
+        default: './.gitignore'
       gitignore-extra-categories:
         description: 'List of additional categories to add to .gitignore file.'
         required: false
