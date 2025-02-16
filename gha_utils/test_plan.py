@@ -21,7 +21,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from subprocess import TimeoutExpired, run
-from typing import Generator
+from typing import Generator, Sequence
 
 import yaml
 from boltons.iterutils import flatten
@@ -40,9 +40,15 @@ class TestCase:
     output_contains: tuple[str, ...] | str = field(default_factory=tuple)
     stdout_contains: tuple[str, ...] | str = field(default_factory=tuple)
     stderr_contains: tuple[str, ...] | str = field(default_factory=tuple)
-    output_regex_matches: tuple[re.Pattern, ...] | str = field(default_factory=tuple)
-    stdout_regex_matches: tuple[re.Pattern, ...] | str = field(default_factory=tuple)
-    stderr_regex_matches: tuple[re.Pattern, ...] | str = field(default_factory=tuple)
+    output_regex_matches: tuple[re.Pattern | str, ...] | str = field(
+        default_factory=tuple
+    )
+    stdout_regex_matches: tuple[re.Pattern | str, ...] | str = field(
+        default_factory=tuple
+    )
+    stderr_regex_matches: tuple[re.Pattern | str, ...] | str = field(
+        default_factory=tuple
+    )
     output_regex_fullmatch: re.Pattern | str | None = None
     stdout_regex_fullmatch: re.Pattern | str | None = None
     stderr_regex_fullmatch: re.Pattern | str | None = None
@@ -74,10 +80,13 @@ class TestCase:
 
             # Validates and normalize tuple of strings.
             else:
-                # Wraps single string into a tuple.
-                if isinstance(field_data, str):
-                    field_data = (field_data,)
                 if field_data:
+                    # Wraps single string and other types into a tuple.
+                    if isinstance(field_data, str) or not isinstance(
+                        field_data, Sequence
+                    ):
+                        field_data = (field_data,)
+
                     for item in field_data:
                         if not isinstance(item, str):
                             raise ValueError(f"Invalid string in {field_id}: {item}")
@@ -85,7 +94,7 @@ class TestCase:
                     field_data = tuple(i for i in field_data if i.strip())
 
             # Validates fields containing one or more regexes.
-            if field_data and "_regex_" in field_id:
+            if "_regex_" in field_id and field_data:
                 # Compile all regexes.
                 valid_regexes = []
                 for regex in flatten((field_data,)):
