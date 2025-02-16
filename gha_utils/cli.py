@@ -303,7 +303,7 @@ def test_plan(binary: Path, plan: Path | None, timeout: float | None) -> None:
         test_plan = parse_test_plan(plan)
     else:
         logging.warning(f"No test plan provided. Default to: {DEFAULT_TEST_PLAN}")
-        test_plan = DEFAULT_TEST_PLAN
+        test_plan = DEFAULT_TEST_PLAN  # type: ignore[assignment]
 
     for index, test_case in enumerate(test_plan):
         logging.info(f"Run test #{index}")
