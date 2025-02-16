@@ -34,7 +34,7 @@ class TestCase:
     cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
-    timeout: int | str | None = None
+    timeout: float | str | None = None
     exit_code: int | str | None = None
     strip_ansi: bool = False
     output_contains: tuple[str, ...] | str = field(default_factory=tuple)
@@ -51,14 +51,21 @@ class TestCase:
         """Normalize all fields."""
         for field_id, field_data in asdict(self).items():
             # Validates and normalize integer properties.
-            if field_id in ("timeout", "exit_code"):
+            if field_id == "exit_code":
                 if isinstance(field_data, str):
                     field_data = int(field_data)
                 elif field_data is not None and not isinstance(field_data, int):
-                    raise ValueError(f"{field_id} is not an integer: {field_data}")
+                    raise ValueError(f"exit_code is not an integer: {field_data}")
+
+            # Validates and normalize float properties.
+            elif field_id == "timeout":
+                if isinstance(field_data, str):
+                    field_data = float(field_data)
+                elif field_data is not None and not isinstance(field_data, float):
+                    raise ValueError(f"timeout is not a float: {field_data}")
                 # Timeout can only be unset or positive.
-                if field_id == "timeout" and field_data and field_data < 0:
-                    raise ValueError(f"{field_id} is negative: {field_data}")
+                if field_data and field_data < 0:
+                    raise ValueError(f"timeout is negative: {field_data}")
 
             # Validates and normalize boolean properties.
             elif field_id == "strip_ansi":
@@ -102,7 +109,7 @@ class TestCase:
 
             setattr(self, field_id, field_data)
 
-    def check_cli_test(self, binary: str | Path, default_timeout: int):
+    def check_cli_test(self, binary: str | Path, default_timeout: float | None):
         """Run a CLI command and check its output against the test case.
 
         ..todo::
@@ -112,7 +119,7 @@ class TestCase:
             Add support for proper mixed stdout/stderr stream as a single,
             intertwined output.
         """
-        if self.timeout is None:
+        if self.timeout is None and default_timeout is not None:
             logging.info(f"Set default test case timeout to {default_timeout} seconds")
             self.timeout = default_timeout
 

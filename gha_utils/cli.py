@@ -27,7 +27,7 @@ import click
 from click_extra import (
     Choice,
     Context,
-    IntRange,
+    FloatRange,
     argument,
     echo,
     extra_group,
@@ -289,12 +289,14 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 @option(
     "-t",
     "--timeout",
-    type=IntRange(min=0),
-    default=60,
+    # Timeout passed to subprocess.run() is a float that is silently clamped to
+    # 0.0 is negative values are provided, so we mimic this behavior here:
+    # https://github.com/python/cpython/blob/5740b95076b57feb6293cda4f5504f706a7d622d/Lib/subprocess.py#L1596-L1597
+    type=FloatRange(min=0, clamp=True),
     help="Set the default timeout for each CLI call, if not specified in the "
     "test plan.",
 )
-def test_plan(binary: Path, plan: Path | None, timeout: int) -> None:
+def test_plan(binary: Path, plan: Path | None, timeout: float | None) -> None:
     # Load test plan from workflow input, or use a default one.
     if plan:
         logging.debug(f"Read test plan from {plan}")

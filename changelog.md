@@ -8,6 +8,7 @@
 - Add a new `test-plan-file` parameter to the `release` workflow.
 - Remove the `binaries-test-plan` parameter in `release` workflow.
 - Allow for setting a specific `timeout` for each CLI test case.
+- Allow `timeout` to be floats.
 - Fix production of `nuitka_matrix` field in `gha-utils metadata` output.
 - Add `junit.xml` file in default `.gitignore` extra directive.
 
