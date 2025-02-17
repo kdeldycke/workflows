@@ -197,7 +197,7 @@ jobs:
           gha-utils --verbosity DEBUG test-plan
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
           --plan "${{ env.test-plan-file }}"
-          ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) }}
+          ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) || '' }}
 
   git-tag:
     name: Tag release
