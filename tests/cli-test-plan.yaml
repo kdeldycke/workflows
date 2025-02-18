@@ -61,10 +61,19 @@
 # UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f64f' in position 39913: character maps
 # to <undefined>
 #if: runner.os != 'Windows'
-# - cli_parameters:
-#     - --verbosity
-#     - INFO
-#     - changelog
+- cli_parameters:
+    - --verbosity
+    - INFO
+    - changelog
+  stdout_regex_fullmatch: |-
+    # Changelog
+
+    ## \[[0-9\.]+ \(unreleased\)\]\(https://github.com/kdeldycke/workflows/compare/v[0-9\.]+\.\.\.main\)
+
+    > \[\!IMPORTANT\]
+    > This version is not released yet and is under active development\.
+
+    .*
 
 
 # Test mailmap-sync output.

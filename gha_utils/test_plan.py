@@ -107,7 +107,8 @@ class TestCase:
                 valid_regexes = []
                 for regex in flatten((field_data,)):
                     try:
-                        valid_regexes.append(re.compile(regex))
+                        # Let dots in regex match newlines.
+                        valid_regexes.append(re.compile(regex, re.DOTALL))
                     except re.error as ex:
                         raise ValueError(
                             f"Invalid regex in {field_id}: {regex}"
