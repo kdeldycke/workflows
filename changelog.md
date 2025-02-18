@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.14.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.14.2...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.14.2 (2025-02-18)](https://github.com/kdeldycke/workflows/compare/v4.14.1...v4.14.2)
 
 - Fix update of `.gitignore` with `gitignore-extra-content` content.
