@@ -162,10 +162,10 @@ class TestCase:
                 # encoding="utf-8",
                 text=True,
             )
-        except TimeoutExpired as ex:
+        except TimeoutExpired:
             raise TimeoutError(
-                f"CLI timed out after {self.timeout} seconds: {clean_args}"
-            ) from ex
+                f"CLI timed out after {self.timeout} seconds: {' '.join(clean_args)}"
+            )
 
         print_cli_run(clean_args, result)
 
