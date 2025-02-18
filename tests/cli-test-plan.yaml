@@ -32,6 +32,28 @@
 
 # Test metadata output.
 - cli_parameters: --verbosity INFO metadata
+  stderr_contains:
+    - "info: Print metadata to <stdout>"
+  # XXX bump-myversion is crashing when compiled with Nuitka because of a pydantic-related issue:
+  # https://github.com/callowayproject/bump-my-version/issues/300
+  # stdout_regex_fullmatch: |-
+  #   new_commits=
+  #   release_commits=
+  #   gitignore_exists=true
+  #   python_files=[\S ]*
+  #   doc_files=[\S ]*
+  #   is_python_project=true
+  #   package_name=gha-utils
+  #   blacken_docs_params=--target-version py310 --target-version py311 --target-version py312 --target-version py313
+  #   mypy_params=--python-version 3\.10
+  #   current_version=
+  #   released_version=
+  #   is_sphinx=false
+  #   active_autodoc=false
+  #   release_notes=
+  #   new_commits_matrix=
+  #   release_commits_matrix=
+  #   nuitka_matrix={"os": ["ubuntu-24\.04", "ubuntu-24\.04-arm", "macos-15", "macos-13", "windows-2022"], "entry_point": ["gha-utils"], "commit": ["[a-z0-9]+"], "include": [{"entry_point": "gha-utils", "cli_id": "gha-utils", "module_id": "gha_utils\.__main__", "callable_id": "main", "module_path": "gha_utils(/|\\\\)__main__\.py"}, {"commit": "[a-z0-9]+", "short_sha": "[a-z0-9]+", "current_version": "[0-9\.]+"}, {"os": "ubuntu-24\.04", "platform_id": "linux", "arch": "x64", "extension": "bin"}, {"os": "ubuntu-24\.04-arm", "platform_id": "linux", "arch": "arm64", "extension": "bin"}, {"os": "macos-15", "platform_id": "macos", "arch": "arm64", "extension": "bin"}, {"os": "macos-13", "platform_id": "macos", "arch": "x64", "extension": "bin"}, {"os": "windows-2022", "platform_id": "windows", "arch": "x64", "extension": "exe"}, {"os": "ubuntu-24\.04", "entry_point": "gha-utils", "commit": "[a-z0-9]+", "bin_name": "gha-utils-linux-x64-build-[a-z0-9]+\.bin"}, {"os": "ubuntu-24\.04-arm", "entry_point": "gha-utils", "commit": "[a-z0-9]+", "bin_name": "gha-utils-linux-arm64-build-[a-z0-9]+\.bin"}, {"os": "macos-15", "entry_point": "gha-utils", "commit": "[a-z0-9]+", "bin_name": "gha-utils-macos-arm64-build-[a-z0-9]+\.bin"}, {"os": "macos-13", "entry_point": "gha-utils", "commit": "[a-z0-9]+", "bin_name": "gha-utils-macos-x64-build-[a-z0-9]+\.bin"}, {"os": "windows-2022", "entry_point": "gha-utils", "commit": "[a-z0-9]+", "bin_name": "gha-utils-windows-x64-build-[a-z0-9]+\.exe"\}\]\}
 
 
 # Test changelog output.
