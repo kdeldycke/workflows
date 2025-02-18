@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import logging
 import re
+import shlex
+import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from subprocess import TimeoutExpired, run
@@ -85,7 +87,13 @@ class TestCase:
                     if isinstance(field_data, str) or not isinstance(
                         field_data, Sequence
                     ):
-                        field_data = (field_data,)
+                        # CLI parameters needs to be split on Unix-like systems.
+                        # XXX If we need the same for Windows, have a look at:
+                        # https://github.com/maxpat78/w32lex
+                        if field_id == "cli_parameters" and sys.platform != "win32":
+                            field_data = tuple(shlex.split(field_data))
+                        else:
+                            field_data = (field_data,)
 
                     for item in field_data:
                         if not isinstance(item, str):

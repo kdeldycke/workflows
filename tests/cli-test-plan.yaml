@@ -1,6 +1,5 @@
 # Output the version of the CLI.
-- cli_parameters:
-    - --version
+- cli_parameters: --version
   timeout: 10.0
   exit_code: 0
   stdout_contains: ", version"
@@ -32,10 +31,7 @@
 
 
 # Test metadata output.
-- cli_parameters:
-    - --verbosity
-    - INFO
-    - metadata
+- cli_parameters: --verbosity INFO metadata
 
 
 # Test changelog output.
