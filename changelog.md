@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.14.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.14.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.14.3 (2025-02-20)](https://github.com/kdeldycke/workflows/compare/v4.14.2...v4.14.3)
 
 - Use `windows-2025` instead of `windows-2022` for Nuitka builds.
 - Add `windows-2025` to the test matrix.
