@@ -44,7 +44,7 @@ def test_metadata_github_format():
             r"new_commits_matrix=\n"
             r"release_commits_matrix=\n"
             r'nuitka_matrix=\{"os": \["ubuntu-24\.04", "ubuntu-24\.04-arm", '
-            r'"macos-15", "macos-13", "windows-2022"\], '
+            r'"macos-15", "macos-13", "windows-2025"\], '
             r'"entry_point": \["gha-utils"\], "commit": \["[a-z0-9]+"\], '
             r'"include": \[\{"entry_point": "gha-utils", '
             r'"cli_id": "gha-utils", "module_id": "gha_utils\.__main__", '
@@ -57,7 +57,7 @@ def test_metadata_github_format():
             r'"arch": "arm64", "extension": "bin"\}, \{"os": "macos-15", '
             r'"platform_id": "macos", "arch": "arm64", "extension": "bin"\}, '
             r'\{"os": "macos-13", "platform_id": "macos", "arch": "x64", '
-            r'"extension": "bin"\}, \{"os": "windows-2022", '
+            r'"extension": "bin"\}, \{"os": "windows-2025", '
             r'"platform_id": "windows", "arch": "x64", "extension": "exe"\}, '
             r'\{"os": "ubuntu-24\.04", "entry_point": "gha-utils", '
             r'"commit": "[a-z0-9]+", '
@@ -71,7 +71,7 @@ def test_metadata_github_format():
             r'\{"os": "macos-13", "entry_point": "gha-utils", '
             r'"commit": "[a-z0-9]+", '
             r'"bin_name": "gha-utils-macos-x64-build-[a-z0-9]+\.bin"\}, '
-            r'\{"os": "windows-2022", "entry_point": "gha-utils", '
+            r'\{"os": "windows-2025", "entry_point": "gha-utils", '
             r'"commit": "[a-z0-9]+", '
             r'"bin_name": "gha-utils-windows-x64-build-[a-z0-9]+\.exe"\}\]\}\n'
         ),
@@ -107,7 +107,7 @@ def test_metadata_plain_format():
             r"'release_commits_matrix': None, "
             r"'nuitka_matrix': <Matrix: \{"
             r"'os': \('ubuntu-24\.04', 'ubuntu-24\.04-arm', "
-            r"'macos-15', 'macos-13', 'windows-2022'\), "
+            r"'macos-15', 'macos-13', 'windows-2025'\), "
             r"'entry_point': \('gha-utils',\), "
             r"'commit': \('[a-z0-9]+',\)\}; "
             r"include=\(\{'entry_point': 'gha-utils', 'cli_id': 'gha-utils', "
@@ -120,7 +120,7 @@ def test_metadata_plain_format():
             r"'arch': 'arm64', 'extension': 'bin'\}, \{'os': 'macos-15', "
             r"'platform_id': 'macos', 'arch': 'arm64', 'extension': 'bin'\}, "
             r"\{'os': 'macos-13', 'platform_id': 'macos', 'arch': 'x64', "
-            r"'extension': 'bin'\}, \{'os': 'windows-2022', 'platform_id': "
+            r"'extension': 'bin'\}, \{'os': 'windows-2025', 'platform_id': "
             r"'windows', 'arch': 'x64', 'extension': 'exe'\}, "
             r"\{'os': 'ubuntu-24\.04', 'entry_point': 'gha-utils', "
             r"'commit': '[a-z0-9]+', "
@@ -134,7 +134,7 @@ def test_metadata_plain_format():
             r"\{'os': 'macos-13', 'entry_point': 'gha-utils', "
             r"'commit': '[a-z0-9]+', 'bin_name': "
             r"'gha-utils-macos-x64-build-[a-z0-9]+\.bin'\}, "
-            r"\{'os': 'windows-2022', 'entry_point': 'gha-utils', "
+            r"\{'os': 'windows-2025', 'entry_point': 'gha-utils', "
             r"'commit': '[a-z0-9]+', "
             r"'bin_name': 'gha-utils-windows-x64-build-[a-z0-9]+\.exe'\}\); "
             r"exclude=\(\)>\}"

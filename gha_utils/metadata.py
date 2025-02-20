@@ -49,7 +49,7 @@ release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
 nuitka_matrix={'entry_point': ['mpm'],
                'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
                           '6f27db47612aaee06fdf08744b09a9f5f6c2'],
-                'os': ['ubuntu-24.04', 'ubuntu-24.04-arm', 'macos-15', 'macos-13', 'windows-2022'],
+                'os': ['ubuntu-24.04', 'ubuntu-24.04-arm', 'macos-15', 'macos-13', 'windows-2025'],
                 'include': [{'entry_point': 'mpm',
                              'cli_id': 'mpm',
                              'module_id': 'meta_package_manager.__main__',
@@ -77,7 +77,7 @@ nuitka_matrix={'entry_point': ['mpm'],
                              'platform_id': 'macos',
                              'arch': 'x64',
                              'extension': 'bin'},
-                            {'os': 'windows-2022',
+                            {'os': 'windows-2025',
                              'platform_id': 'windows',
                              'arch': 'x64',
                              'extension': 'exe'},
@@ -123,12 +123,12 @@ nuitka_matrix={'entry_point': ['mpm'],
                              'bin_name': 'mpm-macos-x64-build-6f27db4.bin'},
                             {'entry_point': 'mpm',
                              'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'windows-2022',
+                             'os': 'windows-2025',
                              'arch': 'x64',
                              'bin_name': 'mpm-windows-x64-build-346ce66.exe'},
                             {'entry_point': 'mpm',
                              'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'windows-2022',
+                             'os': 'windows-2025',
                              'arch': 'x64',
                              'bin_name': 'mpm-windows-x64-build-6f27db4.exe'}]}
 ```
@@ -880,7 +880,7 @@ class Metadata:
                     "ubuntu-24.04-arm",
                     "macos-15",
                     "macos-13",
-                    "windows-2022",
+                    "windows-2025",
                 ],
                 "include": [
                     {
@@ -925,7 +925,7 @@ class Metadata:
                         "extension": "bin",
                     },
                     {
-                        "os": "windows-2022",
+                        "os": "windows-2025",
                         "platform_id": "windows",
                         "arch": "x64",
                         "extension": "exe",
@@ -989,14 +989,14 @@ class Metadata:
                     {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "os": "windows-2022",
+                        "os": "windows-2025",
                         "arch": "x64",
                         "bin_name": "mpm-windows-x64-build-346ce66.exe",
                     },
                     {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "os": "windows-2022",
+                        "os": "windows-2025",
                         "arch": "x64",
                         "bin_name": "mpm-windows-x64-build-6f27db4.exe",
                     },
@@ -1021,7 +1021,7 @@ class Metadata:
                 "ubuntu-24.04-arm",  # arm64
                 "macos-15",  # arm64
                 "macos-13",  # x64
-                "windows-2022",  # x64
+                "windows-2025",  # x64
             ),
         )
 
@@ -1086,7 +1086,7 @@ class Metadata:
                 "extension": "bin",
             },
             {
-                "os": "windows-2022",
+                "os": "windows-2025",
                 "platform_id": "windows",
                 "arch": "x64",
                 "extension": "exe",
