@@ -7,6 +7,7 @@
 
 - Use `windows-2025` instead of `windows-2022` for Nuitka builds.
 - Add `windows-2025` to the test matrix.
+- Fix running of Nuitka-compiled `gha-utils metadata` command.
 
 ## [4.14.2 (2025-02-18)](https://github.com/kdeldycke/workflows/compare/v4.14.1...v4.14.2)
 
