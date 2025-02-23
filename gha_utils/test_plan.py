@@ -28,7 +28,7 @@ from typing import Generator, Sequence
 import yaml
 from boltons.iterutils import flatten
 from boltons.strutils import strip_ansi
-from click_extra.testing import args_cleanup, print_cli_run
+from click_extra.testing import args_cleanup, render_cli_run
 
 
 @dataclass(order=True)
@@ -176,7 +176,8 @@ class TestCase:
                 f"CLI timed out after {self.timeout} seconds: {' '.join(clean_args)}"
             )
 
-        print_cli_run(clean_args, result)
+        for line in render_cli_run(clean_args, result).splitlines():
+            logging.info(line)
 
         for field_id, field_data in asdict(self).items():
             if field_id == "exit_code":
