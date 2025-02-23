@@ -23,7 +23,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import IO
 
-import click
 from click_extra import (
     Choice,
     Context,
@@ -275,9 +274,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 @gha_utils.command(short_help="Run a test plan from a file against a binary")
 @option(
     "--binary",
-    # XXX Wait for https://github.com/janluke/cloup/issues/185 to use the
-    # `file_path` type.
-    type=click.Path(exists=True, executable=True, resolve_path=True),
+    type=file_path(exists=True, executable=True, resolve_path=True),
     required=True,
     metavar="FILE_PATH",
     help="Path to the binary file to test.",
