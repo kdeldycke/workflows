@@ -29,6 +29,12 @@ import yaml
 from boltons.iterutils import flatten
 from boltons.strutils import strip_ansi
 from click_extra.testing import args_cleanup, render_cli_run
+from extra_platforms import (
+    ALL_IDS,
+    current_os,
+    platforms_from_ids,
+)
+from extra_platforms.group import _TNestedSources
 
 
 @dataclass(order=True)
@@ -36,6 +42,9 @@ class TestCase:
     cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
+    skip_platforms: _TNestedSources | tuple[str, ...] | str = field(
+        default_factory=tuple
+    )
     timeout: float | str | None = None
     exit_code: int | str | None = None
     strip_ansi: bool = False
@@ -101,6 +110,15 @@ class TestCase:
                     # Ignore blank value.
                     field_data = tuple(i for i in field_data if i.strip())
 
+            # Validates fields containing one or more platform IDs.
+            if field_id.endswith("_platforms") and field_data:
+                field_data = platforms_from_ids(*(s.lower() for s in field_data))
+                for platform_id in field_data:
+                    if platform_id not in ALL_IDS:
+                        raise ValueError(
+                            f"Invalid platform ID in {field_id}: {platform_id}"
+                        )
+
             # Validates fields containing one or more regexes.
             if "_regex_" in field_id and field_data:
                 # Compile all regexes.
@@ -124,7 +142,12 @@ class TestCase:
 
             setattr(self, field_id, field_data)
 
-    def check_cli_test(self, binary: str | Path, default_timeout: float | None):
+    def check_cli_test(
+        self,
+        binary: str | Path,
+        additional_skip_platforms: tuple[str, ...] | None,
+        default_timeout: float | None,
+    ):
         """Run a CLI command and check its output against the test case.
 
         ..todo::
@@ -134,6 +157,15 @@ class TestCase:
             Add support for proper mixed stdout/stderr stream as a single,
             intertwined output.
         """
+        # XXX With the next extra-platforms release, we should be able to directly
+        # resolve platforms and groups from their unique ID string like this:
+        # if current_os() in Group._extract_platforms((self.skip_platforms, additional_skip_platforms)):
+        platforms_to_skip = [*self.skip_platforms]
+        if additional_skip_platforms:
+            platforms_to_skip.extend(platforms_from_ids(*additional_skip_platforms))
+        if current_os() in platforms_to_skip:
+            raise ValueError(f"Skipping test case on platform: {current_os()}")
+
         if self.timeout is None and default_timeout is not None:
             logging.info(f"Set default test case timeout to {default_timeout} seconds")
             self.timeout = default_timeout

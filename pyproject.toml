@@ -76,6 +76,7 @@ dependencies = [
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     "bump-my-version >= 0.32.2",
     "click-extra ~= 4.14.2",
+    "extra-platforms ~= 2.1.0",
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.9.0",

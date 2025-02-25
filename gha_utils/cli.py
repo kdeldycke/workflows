@@ -34,6 +34,7 @@ from click_extra import (
     option,
     pass_context,
 )
+from extra_platforms import ALL_IDS
 
 from . import __version__
 from .changelog import Changelog
@@ -287,6 +288,14 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     "plan will be executed.",
 )
 @option(
+    "-s",
+    "--skip-platform",
+    type=Choice(sorted(ALL_IDS), case_sensitive=False),
+    multiple=True,
+    help="Skip tests for the specified platforms. This option can be repeated to "
+    "skip multiple platforms.",
+)
+@option(
     "-t",
     "--timeout",
     # Timeout passed to subprocess.run() is a float that is silently clamped to
@@ -297,7 +306,12 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     help="Set the default timeout for each CLI call, if not specified in the "
     "test plan.",
 )
-def test_plan(binary: Path, plan: Path | None, timeout: float | None) -> None:
+def test_plan(
+    binary: Path,
+    plan: Path | None,
+    skip_platform: tuple[str, ...] | None,
+    timeout: float | None,
+) -> None:
     # Load test plan from workflow input, or use a default one.
     if plan:
         logging.info(f"Read test plan from {plan}")
@@ -310,4 +324,6 @@ def test_plan(binary: Path, plan: Path | None, timeout: float | None) -> None:
     for index, test_case in enumerate(test_plan):
         logging.info(f"Run test #{index + 1}")
         logging.debug(f"Test case parameters: {test_case}")
-        test_case.check_cli_test(binary, default_timeout=timeout)
+        test_case.check_cli_test(
+            binary, additional_skip_platforms=skip_platform, default_timeout=timeout
+        )

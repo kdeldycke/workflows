@@ -57,14 +57,15 @@
 
 
 # Test changelog output.
-# XXX This command fail on Windows as it try to print emojis to the console, from the source changelog:
-# UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f64f' in position 39913: character maps
-# to <undefined>
-#if: runner.os != 'Windows'
 - cli_parameters:
     - --verbosity
     - INFO
     - changelog
+  # XXX This command fail on Windows as it try to print emojis to the console, from the source changelog:
+  # UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f64f' in position 39913: character maps
+  # to <undefined>
+  skip_platforms:
+    - Windows
   stdout_regex_fullmatch: |-
     # Changelog
 
