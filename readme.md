@@ -70,7 +70,7 @@ $ uvx gha-utils --version
 gha-utils, version 4.9.0
 ```
 
-That's the best way to get started with `gha-utils`, and experiment with its features.
+That's the best way to get started with `gha-utils` and experiment with it.
 
 ### Executables
 
