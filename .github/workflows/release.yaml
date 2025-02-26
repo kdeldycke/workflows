@@ -178,7 +178,7 @@ jobs:
         with:
           ref: ${{ matrix.commit }}
       - name: Download artifact
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.1.9
         id: artifacts
         with:
           name: ${{ matrix.bin_name }}
@@ -251,7 +251,7 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Download build artifacts
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.1.9
         id: download
         with:
           name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
@@ -287,7 +287,7 @@ jobs:
       - name: Download all artifacts
         # Do not fetch build artifacts if all jobs producing them were skipped.
         if: needs.package-build.result != 'skipped' || needs.compile-binaries.result != 'skipped'
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.1.9
         id: artifacts
         with:
           path: release_artifact
