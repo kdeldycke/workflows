@@ -147,22 +147,15 @@ import json
 import logging
 import os
 import re
-import sys
 from collections.abc import Iterable
+from enum import StrEnum
 from functools import cached_property
 from pathlib import Path
 from random import randint
 from re import escape
 from typing import Any, Final, Iterator, cast
 
-if sys.version_info >= (3, 11):
-    from enum import StrEnum
-
-    import tomllib
-else:
-    import tomli as tomllib  # type: ignore[import-not-found]
-    from backports.strenum import StrEnum  # type: ignore[import-not-found]
-
+import tomllib
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]

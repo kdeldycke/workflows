@@ -29,8 +29,7 @@ import yaml
 from boltons.iterutils import flatten
 from boltons.strutils import strip_ansi
 from click_extra.testing import args_cleanup, render_cli_run
-from extra_platforms import current_os, platforms_from_ids
-from extra_platforms.group import _TNestedSources
+from extra_platforms import Group, _TNestedSources, current_os, platforms_from_ids
 
 
 class SkippedTest(Exception):
@@ -162,13 +161,10 @@ class TestCase:
             if current_os() not in platforms_from_ids(*self.only_platforms):
                 raise SkippedTest(f"Test case only runs on platform: {current_os()}")
 
-        # XXX With the next extra-platforms release, we should be able to directly
-        # resolve platforms and groups from their unique ID string like this:
-        # if current_os() in Group._extract_platforms((self.skip_platforms, additional_skip_platforms)):
-        platforms_to_skip = [*self.skip_platforms]
-        if additional_skip_platforms:
-            platforms_to_skip.extend(platforms_from_ids(*additional_skip_platforms))
-        if current_os() in platforms_to_skip:
+        if current_os() in Group._extract_platforms((
+            self.skip_platforms,
+            additional_skip_platforms,
+        )):
             raise SkippedTest(f"Skipping test case on platform: {current_os()}")
 
         if self.timeout is None and default_timeout is not None:

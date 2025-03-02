@@ -3,7 +3,7 @@
 name = "gha-utils"
 version = "4.14.3"
 # Python versions and their status: https://devguide.python.org/versions/
-requires-python = ">= 3.10"
+requires-python = ">= 3.11"
 description = "⚙️ CLI helpers for GitHub Actions + reuseable workflows"
 authors = [{ name = "Kevin Deldycke", email = "kevin@deldycke.com" }]
 readme = "readme.md"
@@ -42,7 +42,6 @@ classifiers = [
     'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX :: Linux',
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -68,7 +67,6 @@ classifiers = [
     'Typing :: Typed',
 ]
 dependencies = [
-    "backports.strenum ~= 1.3.1 ; python_version < '3.11'",
     # Loose version to let click-extra set its own stricter dependency.
     "boltons >= 24.0.0",
     # Dependency version is more relaxed on bump-my-version to prevent chicken and egg
@@ -76,12 +74,11 @@ dependencies = [
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     "bump-my-version >= 0.32.2",
     "click-extra ~= 4.14.2",
-    "extra-platforms ~= 2.1.0",
+    "extra-platforms ~= 3.0.0",
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.9.0",
     "pyyaml ~= 6.0.0",
-    "tomli ~= 2.0.1 ; python_version < '3.11'",
     # Loose version to let click-extra set its own stricter dependency.
     "wcmatch >= 8.5",
 ]
