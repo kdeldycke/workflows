@@ -154,7 +154,7 @@ class TestCase:
             Add support for environment variables.
 
         ..todo::
-            Add support for proper mixed stdout/stderr stream as a single,
+            Add support for proper mixed <stdout>/<stderr> stream as a single,
             intertwined output.
         """
         if self.only_platforms:
@@ -234,15 +234,15 @@ class TestCase:
             output = ""
             name = ""
             if field_id.startswith("output_"):
-                raise NotImplementedError("stdout/stderr output mix")
+                raise NotImplementedError("<stdout>/<stderr> output mix")
                 # output = result.output
                 # name = "output"
             elif field_id.startswith("stdout_"):
                 output = result.stdout
-                name = "stdout"
+                name = "<stdout>"
             elif field_id.startswith("stderr_"):
                 output = result.stderr
-                name = "stderr"
+                name = "<stderr>"
 
             if self.strip_ansi:
                 logging.info(f"Strip ANSI sequences from {name}")
