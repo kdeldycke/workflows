@@ -29,12 +29,14 @@ import yaml
 from boltons.iterutils import flatten
 from boltons.strutils import strip_ansi
 from click_extra.testing import args_cleanup, render_cli_run
-from extra_platforms import (
-    ALL_IDS,
-    current_os,
-    platforms_from_ids,
-)
+from extra_platforms import current_os, platforms_from_ids
 from extra_platforms.group import _TNestedSources
+
+
+class SkippedTest(Exception):
+    """Raised when a test case should be skipped."""
+
+    pass
 
 
 @dataclass(order=True)
@@ -43,6 +45,9 @@ class TestCase:
     """Parameters, arguments and options to pass to the CLI."""
 
     skip_platforms: _TNestedSources | tuple[str, ...] | str = field(
+        default_factory=tuple
+    )
+    only_platforms: _TNestedSources | tuple[str, ...] | str = field(
         default_factory=tuple
     )
     timeout: float | str | None = None
@@ -112,12 +117,8 @@ class TestCase:
 
             # Validates fields containing one or more platform IDs.
             if field_id.endswith("_platforms") and field_data:
-                field_data = platforms_from_ids(*(s.lower() for s in field_data))
-                for platform_id in field_data:
-                    if platform_id not in ALL_IDS:
-                        raise ValueError(
-                            f"Invalid platform ID in {field_id}: {platform_id}"
-                        )
+                # platforms_from_ids() is already validating and normalizing the case of IDs.
+                field_data = platforms_from_ids(*field_data)
 
             # Validates fields containing one or more regexes.
             if "_regex_" in field_id and field_data:
@@ -142,7 +143,7 @@ class TestCase:
 
             setattr(self, field_id, field_data)
 
-    def check_cli_test(
+    def run_cli_test(
         self,
         binary: str | Path,
         additional_skip_platforms: tuple[str, ...] | None,
@@ -157,6 +158,10 @@ class TestCase:
             Add support for proper mixed stdout/stderr stream as a single,
             intertwined output.
         """
+        if self.only_platforms:
+            if current_os() not in platforms_from_ids(*self.only_platforms):
+                raise SkippedTest(f"Test case only runs on platform: {current_os()}")
+
         # XXX With the next extra-platforms release, we should be able to directly
         # resolve platforms and groups from their unique ID string like this:
         # if current_os() in Group._extract_platforms((self.skip_platforms, additional_skip_platforms)):
@@ -164,7 +169,7 @@ class TestCase:
         if additional_skip_platforms:
             platforms_to_skip.extend(platforms_from_ids(*additional_skip_platforms))
         if current_os() in platforms_to_skip:
-            raise ValueError(f"Skipping test case on platform: {current_os()}")
+            raise SkippedTest(f"Skipping test case on platform: {current_os()}")
 
         if self.timeout is None and default_timeout is not None:
             logging.info(f"Set default test case timeout to {default_timeout} seconds")
@@ -233,44 +238,36 @@ class TestCase:
             output = ""
             name = ""
             if field_id.startswith("output_"):
-                raise NotImplementedError("<stdout>/<stderr> output mix")
+                raise NotImplementedError("stdout/stderr output mix")
                 # output = result.output
                 # name = "output"
             elif field_id.startswith("stdout_"):
                 output = result.stdout
-                name = "<stdout>"
+                name = "stdout"
             elif field_id.startswith("stderr_"):
                 output = result.stderr
-                name = "<stderr>"
+                name = "stderr"
 
             if self.strip_ansi:
-                logging.info(f"Strip ANSI escape sequences from CLI's {name}")
+                logging.info(f"Strip ANSI sequences from {name}")
                 output = strip_ansi(output)
 
             if field_id.endswith("_contains"):
                 for sub_string in field_data:
-                    logging.info(f"Check if CLI's {name} contains: {sub_string!r}")
+                    logging.info(f"Check if {name} contains {sub_string!r}")
                     if sub_string not in output:
-                        raise AssertionError(
-                            f"CLI's {name} does not contain {sub_string!r}"
-                        )
+                        raise AssertionError(f"{name} does not contain {sub_string!r}")
 
             elif field_id.endswith("_regex_matches"):
                 for regex in field_data:
-                    logging.info(f"Check if CLI's {name} matches: {sub_string!r}")
+                    logging.info(f"Check if {name} matches {sub_string!r}")
                     if not regex.search(output):
-                        raise AssertionError(
-                            f"CLI's {name} does not match regex {regex}"
-                        )
+                        raise AssertionError(f"{name} does not match regex {regex}")
 
             elif field_id.endswith("_regex_fullmatch"):
                 regex = field_data
                 if not regex.fullmatch(output):
-                    raise AssertionError(
-                        f"CLI's {name} does not fully match regex {regex}"
-                    )
-
-        logging.info("All tests passed for CLI.")
+                    raise AssertionError(f"{name} does not fully match regex {regex}")
 
 
 DEFAULT_TEST_PLAN = (

@@ -5,7 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Allow CLI test cases to specify platforms on which to skip testing via the `skip_platforms` setting.
+- Add support for `only_platforms` and `skip_platforms` settings in test plans, to specify platforms to only runs tests on and/or to explicitly skips.
 - Add a `--skip-platform`/`-s` option to `gha-utils test-plan` to allow skipping of test plan on a whole set of platforms.
 - Use `windows-2025` instead of `windows-2022` for Nuitka builds.
 - Add `windows-2025` to the test matrix.

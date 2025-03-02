@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import IO
@@ -40,7 +41,7 @@ from . import __version__
 from .changelog import Changelog
 from .mailmap import Mailmap
 from .metadata import Dialects, Metadata
-from .test_plan import DEFAULT_TEST_PLAN, parse_test_plan
+from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 
 
 def is_stdout(filepath: Path) -> bool:
@@ -321,9 +322,25 @@ def test_plan(
         test_plan = DEFAULT_TEST_PLAN  # type: ignore[assignment]
     logging.debug(f"Test plan: {test_plan}")
 
+    stats = Counter(total=0, skipped=0, failed=0)
+
     for index, test_case in enumerate(test_plan):
         logging.info(f"Run test #{index + 1}")
-        logging.debug(f"Test case parameters: {test_case}")
-        test_case.check_cli_test(
-            binary, additional_skip_platforms=skip_platform, default_timeout=timeout
-        )
+        stats["total"] += 1
+        try:
+            logging.debug(f"Test case parameters: {test_case}")
+            test_case.run_cli_test(
+                binary, additional_skip_platforms=skip_platform, default_timeout=timeout
+            )
+        except SkippedTest as ex:
+            stats["skipped"] += 1
+            logging.warning(f"Test skipped: {ex}")
+        except Exception as ex:
+            stats["failed"] += 1
+            logging.error(f"Test failed: {ex}")
+
+    logging.info(
+        f"Test plan results - {', '.join((f'{k.title()}: {v}' for k, v in stats.items()))}"
+    )
+    if stats["failed"]:
+        sys.exit(1)
