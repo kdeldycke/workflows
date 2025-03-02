@@ -442,15 +442,15 @@ wheels = [
 
 [[package]]
 name = "lizard"
-version = "1.17.19"
+version = "1.17.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pathspec" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/92/fc/b7d0e763bc17533b80c174d3da8d6321d32a1d844b6eed1344628961a42c/lizard-1.17.19.tar.gz", hash = "sha256:366b79106018b465fee88ac971beef47b5b8be1b0dd6e1d4e5823f48af34ae6e", size = 67742 }
+sdist = { url = "https://files.pythonhosted.org/packages/41/11/04a81bc89e9046b570ae0cab6928769b3fd1d6634e36b4012950e3825acf/lizard-1.17.20.tar.gz", hash = "sha256:8c2e6fb07779fac72e510ce70d8369c375e7e7d3e04013a7ebe7b63d128591ca", size = 68878 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/2f/1df4424f123f6a6bcf92bdcb22be331fa32981aee9193f6fd325fd1b35ee/lizard-1.17.19-py2.py3-none-any.whl", hash = "sha256:a30fbb9fc8410f42bcb2c8c5bbf63908c9cee33f98a43111d06367fe7f7c927b", size = 73569 },
+    { url = "https://files.pythonhosted.org/packages/9a/cb/f03b09ae39886f9ad94e8111a97df47618557a71dc795be95659c6695fa9/lizard-1.17.20-py2.py3-none-any.whl", hash = "sha256:b2323e0670fc5408b41b48f297008948a46bcdc17d95a65e81128773e4140698", size = 74966 },
 ]
 
 [[package]]
@@ -622,15 +622,15 @@ wheels = [
 
 [[package]]
 name = "pydantic-settings"
-version = "2.8.0"
+version = "2.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/a2/ad2511ede77bb424f3939e5148a56d968cdc6b1462620d24b2a1f4ab65b4/pydantic_settings-2.8.0.tar.gz", hash = "sha256:88e2ca28f6e68ea102c99c3c401d6c9078e68a5df600e97b43891c34e089500a", size = 83347 }
+sdist = { url = "https://files.pythonhosted.org/packages/88/82/c79424d7d8c29b994fb01d277da57b0a9b09cc03c3ff875f9bd8a86b2145/pydantic_settings-2.8.1.tar.gz", hash = "sha256:d5c663dfbe9db9d5e1c646b2e161da12f0d734d422ee56f567d0ea2cee4e8585", size = 83550 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/a9/3b9642025174bbe67e900785fb99c9bfe91ea584b0b7126ff99945c24a0e/pydantic_settings-2.8.0-py3-none-any.whl", hash = "sha256:c782c7dc3fb40e97b238e713c25d26f64314aece2e91abcff592fcac15f71820", size = 30746 },
+    { url = "https://files.pythonhosted.org/packages/0b/53/a64f03044927dc47aafe029c42a5b7aabc38dfb813475e0e1bf71c4a59d0/pydantic_settings-2.8.1-py3-none-any.whl", hash = "sha256:81942d5ac3d905f7f3ee1a70df5dfb62d5569c12f51a5a647defc1c3d9ee2e9c", size = 30839 },
 ]
 
 [[package]]
