@@ -50,8 +50,8 @@
   #   doc_files=[\S ]*
   #   is_python_project=true
   #   package_name=gha-utils
-  #   blacken_docs_params=--target-version py310 --target-version py311 --target-version py312 --target-version py313
-  #   mypy_params=--python-version 3\.10
+  #   blacken_docs_params=--target-version py311 --target-version py312 --target-version py313
+  #   mypy_params=--python-version 3\.11
   #   current_version=
   #   released_version=
   #   is_sphinx=false
