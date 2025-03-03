@@ -39,7 +39,7 @@ class SkippedTest(Exception):
 
 
 @dataclass(order=True)
-class TestCase:
+class CLITestCase:
     cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
@@ -268,15 +268,15 @@ class TestCase:
 
 DEFAULT_TEST_PLAN = (
     # Output the version of the CLI.
-    TestCase(cli_parameters="--version"),
+    CLITestCase(cli_parameters="--version"),
     # Test combination of version and verbosity.
-    TestCase(cli_parameters=("--verbosity", "DEBUG", "--version")),
+    CLITestCase(cli_parameters=("--verbosity", "DEBUG", "--version")),
     # Test help output.
-    TestCase(cli_parameters="--help"),
+    CLITestCase(cli_parameters="--help"),
 )
 
 
-def parse_test_plan(plan_path: Path) -> Generator[TestCase, None, None]:
+def parse_test_plan(plan_path: Path) -> Generator[CLITestCase, None, None]:
     plan = yaml.full_load(plan_path.read_text(encoding="UTF-8"))
 
     # Validates test plan structure.
@@ -285,7 +285,7 @@ def parse_test_plan(plan_path: Path) -> Generator[TestCase, None, None]:
     if not isinstance(plan, list):
         raise ValueError(f"Test plan is not a list: {plan}")
 
-    directives = frozenset(TestCase.__dataclass_fields__.keys())
+    directives = frozenset(CLITestCase.__dataclass_fields__.keys())
 
     for index, test_case in enumerate(plan):
         # Validates test case structure.
@@ -297,4 +297,4 @@ def parse_test_plan(plan_path: Path) -> Generator[TestCase, None, None]:
                 f"{set(test_case) - directives}"
             )
 
-        yield TestCase(**test_case)
+        yield CLITestCase(**test_case)
