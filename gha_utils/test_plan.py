@@ -43,12 +43,8 @@ class CLITestCase:
     cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
-    skip_platforms: _TNestedSources | tuple[str, ...] | str = field(
-        default_factory=tuple
-    )
-    only_platforms: _TNestedSources | tuple[str, ...] | str = field(
-        default_factory=tuple
-    )
+    skip_platforms: _TNestedSources = field(default_factory=tuple)
+    only_platforms: _TNestedSources = field(default_factory=tuple)
     timeout: float | str | None = None
     exit_code: int | str | None = None
     strip_ansi: bool = False
@@ -114,11 +110,9 @@ class CLITestCase:
                     # Ignore blank value.
                     field_data = tuple(i for i in field_data if i.strip())
 
-            # Validates fields containing one or more platform IDs.
+            # Normalize any mishmash of platform and group IDs into a set of platforms.
             if field_id.endswith("_platforms") and field_data:
-                # platforms_from_ids() is already validating and normalizing the case of
-                # IDs.
-                field_data = platforms_from_ids(*field_data)
+                field_data = frozenset(Group._extract_platforms(field_data))
 
             # Validates fields containing one or more regexes.
             if "_regex_" in field_id and field_data:
@@ -146,7 +140,7 @@ class CLITestCase:
     def run_cli_test(
         self,
         binary: str | Path,
-        additional_skip_platforms: tuple[str, ...] | None,
+        additional_skip_platforms: _TNestedSources | None,
         default_timeout: float | None,
     ):
         """Run a CLI command and check its output against the test case.
