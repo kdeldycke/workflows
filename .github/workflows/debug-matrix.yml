@@ -48,7 +48,8 @@ jobs:
           # aka ubuntu-latest:
           # - ubuntu-22.04
           # aka windows-latest:
-          - windows-2022
+          - windows-2025
+          # - windows-2022
           # https://github.com/actions/runner-images/issues/10686
           # in preview mode:
           # aka macos-15-xlarge (arm64)
