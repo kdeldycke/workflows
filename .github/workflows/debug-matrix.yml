@@ -2,7 +2,7 @@
 # ./.github/workflows/debug-matrix.yaml
 # Copied from: rasa/dotfiles/.github/debug-matrix.yaml
 # EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
-# $schema https://json.schemastore.org/github-workflow.json
+# yaml-language-server: $schema https://json.schemastore.org/github-workflow.json
 # yamllint disable rule:line-length
 # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#preinstalled-software
 
@@ -529,5 +529,3 @@ jobs:
         continue-on-error: true
         run: |
           # shell: python3 .github/scripts/debug-vars.py {0}
-
-# cspell:ignore
