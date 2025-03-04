@@ -1,7 +1,7 @@
 ---
 # Copied from: rasa/dotfiles/.github/workflows/mega-linter.yml
 # EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
-# $schema https://json.schemastore.org/github-workflow.json
+# yaml-language-server: $schema https://json.schemastore.org/github-workflow.json
 # yamllint disable rule:line-length
 # checkov:skip=CKV_GHA_7:The build output cannot be affected by user parameters
 #   other than the build entry point and the top-level source location.
@@ -209,7 +209,7 @@ jobs:
       # Create pull request if applicable
       # (for now works only on PR from same repository, not from forks)
       - name: Create Pull Request with applied fixes
-        uses: peter-evans/create-pull-request@v7.0.7 # changed from v5 by @rasa
+        uses: peter-evans/create-pull-request@v7.0.8 # changed from v5 by @rasa
         id: cpr
         if: env.APPLY_FIXES_IF_PR == 'true'
         with:
@@ -243,5 +243,3 @@ jobs:
           commit_message: "[MegaLinter] Apply linters fixes"
           commit_user_name: megalinter-bot
           commit_user_email: nicolas.vuillamy@ox.security
-
-# cspell:ignore stefanzweifel
