@@ -5,14 +5,14 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add support for `only_platforms` and `skip_platforms` settings in test plans, to specify platforms to only runs tests on and/or to explicitly skips.
+- Add support for `only_platforms` and `skip_platforms` settings in test plans, to finely select platforms to run tests on.
 - Add a `--skip-platform`/`-s` option to `gha-utils test-plan` to allow skipping of test plan on a whole set of platforms.
 - Allow `--plan` option to be used multiple times in `gha-utils test-plan` to merge multiple test plans.
-- Use `windows-2025` instead of `windows-2022` for Nuitka builds.
-- Add `windows-2025` to the test matrix.
 - Allow ad-hoc YAML `test-plan` to be passed as a input parameter in reused `release` workflow.
 - Fix running of Nuitka-compiled `gha-utils metadata` command.
 - Drop support for Python 3.10.
+- Use `windows-2025` instead of `windows-2022` for Nuitka builds.
+- Add `windows-2025` to the test matrix.
 
 ## [4.14.2 (2025-02-18)](https://github.com/kdeldycke/workflows/compare/v4.14.1...v4.14.2)
 
