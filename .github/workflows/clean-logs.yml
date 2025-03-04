@@ -1,18 +1,18 @@
 ---
 # Copied from: rasa/dotfiles/.github/workflows/clean-logs.yml
 # EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
-# $schema https://json.schemastore.org/github-workflow.json
+# yaml-language-server: $schema https://json.schemastore.org/github-workflow.json
 # yamllint disable rule:line-length
 # checkov:skip=CKV_GHA_7:The build output cannot be affected by user parameters
 #   other than the build entry point and the top-level source location.
 #   GitHub Actions workflow_dispatch inputs MUST be empty.
 
-name: clean-workflows
+name: clean-logs
 
 on: # yamllint disable-line rule:truthy
   schedule:
-  # runs at 20:02 UTC (12:02 PST) every day.
-  - cron: "02 20 * * *"
+    # runs at 20:02 UTC (12:02 PST) every day.
+    - cron: "02 20 * * *"
   #        ┬  ┬  ┬  ┬  ┬                               # *    : run every 5 min/every 1 hour/every 1 day/every 1 mon
   #        │  │  │  │  └─ day of week (0-6 or SUN-SAT) # */X  : run every X min/every X hour/every X day/every X mon
   #        │  │  │  └──── month (1-12 or JAN-DEC)      # A,B  : run when min/hour/day/mon = A or B
@@ -130,6 +130,7 @@ permissions: write-all
 
 jobs:
   clean-logs:
+    name: clean-logs
     runs-on: ubuntu-24.04
     steps:
       # Was crazy-max/ghaction-dump-context@v2.1.0
@@ -137,10 +138,10 @@ jobs:
       # Node.js 16 actions are deprecated. Please update the following actions to use Node.js 20: actions/github-script@v6.
       # - name: rasa/ghaction-dump-context@master
       #   uses: rasa/ghaction-dump-context@master
-      - name: USES crazy-max/ghaction-dump-context@v2.3.0
+      - name: USE crazy-max/ghaction-dump-context@v2.3.0
         uses: crazy-max/ghaction-dump-context@v2.3.0
 
-      - name: Scheduled run (github.event_name == 'schedule')
+      - name: USE rasa/delete-workflow-runs@main (Scheduled run)
         if: github.event_name == 'schedule'
         # was Mattraks/delete-workflow-runs@main
         uses: rasa/delete-workflow-runs@main
@@ -152,7 +153,7 @@ jobs:
           check_branch_existence: "Keep" # default: Keep
           check_pullrequest_exist: "Keep" # default: Keep
 
-      - name: Non-scheduled run (github.event_name != 'schedule')
+      - name: USE rasa/delete-workflow-runs@main (Non-scheduled run)
         if: github.event_name != 'schedule'
         # was Mattraks/delete-workflow-runs@main
         uses: rasa/delete-workflow-runs@main
