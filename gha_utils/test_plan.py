@@ -260,14 +260,14 @@ class CLITestCase:
                     raise AssertionError(f"{name} does not fully match regex {regex}")
 
 
-DEFAULT_TEST_PLAN = (
+DEFAULT_TEST_PLAN: list[CLITestCase] = [
     # Output the version of the CLI.
     CLITestCase(cli_parameters="--version"),
     # Test combination of version and verbosity.
     CLITestCase(cli_parameters=("--verbosity", "DEBUG", "--version")),
     # Test help output.
     CLITestCase(cli_parameters="--help"),
-)
+]
 
 
 def parse_test_plan(plan_path: Path) -> Generator[CLITestCase, None, None]:

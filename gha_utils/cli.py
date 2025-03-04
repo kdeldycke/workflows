@@ -24,6 +24,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import IO
 
+from boltons.iterutils import unique
 from click_extra import (
     Choice,
     Context,
@@ -284,9 +285,11 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 @option(
     "--plan",
     type=file_path(exists=True, readable=True, resolve_path=True),
+    multiple=True,
     metavar="FILE_PATH",
-    help="Path to the test plan file in YAML. If not provided, a default test "
-    "plan will be executed.",
+    help="Path to the test plan file in YAML. This option can be repeated to run "
+    "multiple test plans in sequence. If not provided, a default test plan will be "
+    "executed.",
 )
 @option(
     "-s",
@@ -309,24 +312,27 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 )
 def test_plan(
     binary: Path,
-    plan: Path | None,
+    plan: tuple[Path, ...] | None,
     skip_platform: tuple[str, ...] | None,
     timeout: float | None,
 ) -> None:
     # Load test plan from workflow input, or use a default one.
+    test_list = []
     if plan:
-        logging.info(f"Read test plan from {plan}")
-        test_plan = parse_test_plan(plan)
+        for plan_file in unique(plan):
+            logging.info(f"Read test plan from {plan_file}")
+            tests = list(parse_test_plan(plan_file))
+            logging.info(f"{len(tests)} test cases found.")
+            test_list.extend(tests)
     else:
         logging.warning("No test plan provided: use default test plan.")
-        test_plan = DEFAULT_TEST_PLAN  # type: ignore[assignment]
-    logging.debug(f"Test plan: {test_plan}")
+        test_list = DEFAULT_TEST_PLAN
+    logging.debug(f"Test plan: {test_list}")
 
-    stats = Counter(total=0, skipped=0, failed=0)
+    stats = Counter(total=len(test_list), skipped=0, failed=0)
 
-    for index, test_case in enumerate(test_plan):
+    for index, test_case in enumerate(test_list):
         logging.info(f"Run test #{index + 1}")
-        stats["total"] += 1
         try:
             logging.debug(f"Test case parameters: {test_case}")
             test_case.run_cli_test(
