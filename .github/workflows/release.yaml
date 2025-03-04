@@ -205,7 +205,9 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: In-place test-plan
         run: |
-          echo "${{ env.test-plan }}" | tee -a "${{ env.test-plan-file }}"
+          tee -a "${{ env.test-plan-file }}" <<-EOF
+          ${{ env.test-plan }}
+          EOF
       - name: Run test plan for binary
         run: >
           uvx
