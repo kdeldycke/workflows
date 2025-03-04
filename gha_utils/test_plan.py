@@ -29,7 +29,7 @@ import yaml
 from boltons.iterutils import flatten
 from boltons.strutils import strip_ansi
 from click_extra.testing import args_cleanup, render_cli_run
-from extra_platforms import Group, _TNestedSources, current_os, platforms_from_ids
+from extra_platforms import Group, _TNestedSources, current_os
 
 
 class SkippedTest(Exception):
@@ -153,10 +153,10 @@ class CLITestCase:
             intertwined output.
         """
         if self.only_platforms:
-            if current_os() not in platforms_from_ids(*self.only_platforms):
+            if current_os() not in self.only_platforms:  # type: ignore[operator]
                 raise SkippedTest(f"Test case only runs on platform: {current_os()}")
 
-        if current_os() in Group._extract_platforms((
+        if current_os() in Group._extract_platforms((  # type: ignore[arg-type]
             self.skip_platforms,
             additional_skip_platforms,
         )):

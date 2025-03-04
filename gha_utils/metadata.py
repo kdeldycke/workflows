@@ -450,7 +450,7 @@ class Metadata:
         return matrix
 
     @cached_property
-    def event_type(self) -> WorkflowEvent | None:  # type: ignore[valid-type]
+    def event_type(self) -> WorkflowEvent | None:
         """Returns the type of event that triggered the workflow run.
 
         .. caution::
@@ -474,8 +474,8 @@ class Metadata:
             return None
 
         if bool(os.environ.get("GITHUB_BASE_REF")):
-            return WorkflowEvent.pull_request  # type: ignore[no-any-return]
-        return WorkflowEvent.push  # type: ignore[no-any-return]
+            return WorkflowEvent.pull_request
+        return WorkflowEvent.push
 
     @cached_property
     def commit_range(self) -> tuple[str, str] | None:
@@ -508,7 +508,7 @@ class Metadata:
         if not self.github_context or not self.event_type:
             return None
         # Pull request event.
-        if self.event_type in (  # type: ignore[unreachable]
+        if self.event_type in (
             WorkflowEvent.pull_request,
             WorkflowEvent.pull_request_target,
         ):
@@ -1173,10 +1173,7 @@ class Metadata:
 
         return cast(str, value)
 
-    def dump(
-        self,
-        dialect: Dialects = Dialects.github,  # type: ignore[valid-type]
-    ) -> str:
+    def dump(self, dialect: Dialects = Dialects.github) -> str:
         """Returns all metadata in the specified format.
 
         Defaults to GitHub dialect.
