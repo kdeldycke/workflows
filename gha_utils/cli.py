@@ -340,7 +340,8 @@ def test_plan(
             logging.error(f"Test failed: {ex}")
 
     logging.info(
-        f"Test plan results - {', '.join((f'{k.title()}: {v}' for k, v in stats.items()))}"
+        "Test plan results - "
+        + ", ".join((f"{k.title()}: {v}" for k, v in stats.items()))
     )
     if stats["failed"]:
         sys.exit(1)

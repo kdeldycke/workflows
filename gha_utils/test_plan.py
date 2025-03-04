@@ -116,7 +116,8 @@ class CLITestCase:
 
             # Validates fields containing one or more platform IDs.
             if field_id.endswith("_platforms") and field_data:
-                # platforms_from_ids() is already validating and normalizing the case of IDs.
+                # platforms_from_ids() is already validating and normalizing the case of
+                # IDs.
                 field_data = platforms_from_ids(*field_data)
 
             # Validates fields containing one or more regexes.
