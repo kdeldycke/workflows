@@ -204,8 +204,9 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: In-place test-plan
+        if: env.test-plan
         run: |
-          tee -a "${{ env.test-plan-file }}" <<-EOF
+          tee -a "$RUNNER_TEMP/extra-test-plan.yaml" <<-EOF
           ${{ env.test-plan }}
           EOF
       - name: Run test plan for binary
@@ -216,6 +217,7 @@ jobs:
           gha-utils --verbosity DEBUG test-plan
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
           --plan "${{ env.test-plan-file }}"
+          ${{ env.test-plan != null && '--plan "$RUNNER_TEMP/extra-test-plan.yaml"' || '' }}
           ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) || '' }}
 
   git-tag:
