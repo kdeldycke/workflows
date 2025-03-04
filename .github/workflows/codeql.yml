@@ -1,21 +1,23 @@
 ---
 # Copied from: rasa/dotfiles/.github/workflows/codeql.yml
 # EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
-# $schema https://json.schemastore.org/github-workflow.json
+# yaml-language-server: $schema https://json.schemastore.org/github-workflow.json
+
 name: codeql
 
 on: # yamllint disable-line rule:truthy
-  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
-  # push:
-  # branches:
-  #   - main
   # pull_request:
-  # branches:
-  #   - main
+  #   branches:
+  #     - main
+  # push:
+  #   branches:
+  #     - main
+  workflow_call:
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
 jobs:
   codeql:
-    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+    name: codeql
     runs-on: ubuntu-24.04
 
     permissions:
@@ -27,13 +29,13 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout repository
+      - name: USE actions/checkout@v4.2.2
         uses: actions/checkout@v4.2.2
         with:
           show-progress: false
 
       # Initializes the CodeQL tools for scanning.
-      - name: Initialize CodeQL
+      - name: USE github/codeql-action/init@v3 (Initialize CodeQL)
         uses: github/codeql-action/init@v3
         # Override language selection by uncommenting this and choosing your languages
         # with:
@@ -41,7 +43,7 @@ jobs:
 
       # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
       # If this step fails, then you should remove it and run the build manually (see below).
-      - name: Autobuild
+      - name: USE github/codeql-action/autobuild@v3 (Autobuild)
         uses: github/codeql-action/autobuild@v3
 
       # ℹ️ Command-line programs to run using the OS shell.
@@ -55,7 +57,5 @@ jobs:
       #     make bootstrap
       #     make release
 
-      - name: Perform CodeQL Analysis
+      - name: USE github/codeql-action/analyze@v3 (Perform CodeQL Analysis)
         uses: github/codeql-action/analyze@v3
-#
-#
