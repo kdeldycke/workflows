@@ -145,7 +145,7 @@ jobs:
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
           || true
-      - uses: peter-evans/create-pull-request@v7.0.7
+      - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Python"
@@ -179,7 +179,7 @@ jobs:
       - name: Sync uv.lock
         run: |
           uv --no-progress sync --upgrade
-      - uses: peter-evans/create-pull-request@v7.0.7
+      - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Sync uv.lock"
@@ -229,7 +229,7 @@ jobs:
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
-      - uses: peter-evans/create-pull-request@v7.0.7
+      - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format Markdown"
@@ -303,7 +303,7 @@ jobs:
       - name: Remove temporary ESLint config
         run: |
           rm ./eslint.config.mjs
-      - uses: peter-evans/create-pull-request@v7.0.7
+      - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Format JSON"
@@ -363,7 +363,7 @@ jobs:
 
           ${{ env.gitignore-extra-content }}
           EOF
-      - uses: peter-evans/create-pull-request@v7.0.7
+      - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .gitignore"
