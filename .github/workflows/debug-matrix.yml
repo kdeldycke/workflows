@@ -45,10 +45,11 @@ jobs:
           # https://github.blog/changelog/2024-05-14-github-hosted-runners-public-beta-of-ubuntu-24-04-is-now-available/
           # Beta, released 14-May-24:
           - ubuntu-24.04
+          - ubuntu-24.04-arm
           # aka ubuntu-latest:
           # - ubuntu-22.04
-          # aka windows-latest:
           - windows-2025
+          # aka windows-latest:
           # - windows-2022
           # https://github.com/actions/runner-images/issues/10686
           # in preview mode:
@@ -65,7 +66,7 @@ jobs:
           # (arm64) (NOT FREE):
           # - macos-13-xlarge
           # aka macos-13-large (amd64):
-          # - macos-13
+          - macos-13
           # Deprecated:
           # - macos-12
           # - ubuntu-20.04
