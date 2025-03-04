@@ -251,15 +251,15 @@ wheels = [
 
 [[package]]
 name = "extra-platforms"
-version = "3.0.0"
+version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
     { name = "distro" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/22/cc/19d62fab6d882ec2eb51bca62229f527df01a2d60942b904b37e204154be/extra_platforms-3.0.0.tar.gz", hash = "sha256:1bf0c1e26232d70f7a5d7951e947bb66f59869e0146fc0e960683a82478cc1c8", size = 48218 }
+sdist = { url = "https://files.pythonhosted.org/packages/3b/79/47d9a71e0f97172c5c4b63c3aae66af4cc8e2b4a81473c840b1aa6e18da5/extra_platforms-3.1.0.tar.gz", hash = "sha256:60b6da2d0976aae1f88e6176516d46a5230861b24b5d20c14d1dee788c801690", size = 48932 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e3/f6/890fc647ecd2a28d17ae8b29520574ac8a8feb868ef983f591ef1a384d67/extra_platforms-3.0.0-py3-none-any.whl", hash = "sha256:3a70817633c0d65622b57914b8aa8067332a4c2aa1d6bd1481906bc5020d0fc9", size = 34008 },
+    { url = "https://files.pythonhosted.org/packages/a9/7c/486291846d57e421b1ed01aac4e1ecc5ea61b00da0d7aeb30dc2208f0d99/extra_platforms-3.1.0-py3-none-any.whl", hash = "sha256:16ac650a176c212101995f42cc0fde12c50682b351cc64c23683e0d1ee823d2e", size = 34262 },
 ]
 
 [[package]]
@@ -297,7 +297,7 @@ requires-dist = [
     { name = "bump-my-version", specifier = ">=0.32.2" },
     { name = "click-extra", specifier = "~=4.14.2" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "~=7.6.0" },
-    { name = "extra-platforms", specifier = "~=3.0.0" },
+    { name = "extra-platforms", specifier = "~=3.1.0" },
     { name = "packaging", specifier = "~=24.1" },
     { name = "pydriller", specifier = "~=2.6" },
     { name = "pyproject-metadata", specifier = "~=0.9.0" },

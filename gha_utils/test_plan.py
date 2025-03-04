@@ -29,7 +29,7 @@ import yaml
 from boltons.iterutils import flatten
 from boltons.strutils import strip_ansi
 from click_extra.testing import args_cleanup, render_cli_run
-from extra_platforms import Group, _TNestedSources, current_os
+from extra_platforms import Group, _TNestedReferences, current_os
 
 
 class SkippedTest(Exception):
@@ -43,8 +43,8 @@ class CLITestCase:
     cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
     """Parameters, arguments and options to pass to the CLI."""
 
-    skip_platforms: _TNestedSources = field(default_factory=tuple)
-    only_platforms: _TNestedSources = field(default_factory=tuple)
+    skip_platforms: _TNestedReferences = field(default_factory=tuple)
+    only_platforms: _TNestedReferences = field(default_factory=tuple)
     timeout: float | str | None = None
     exit_code: int | str | None = None
     strip_ansi: bool = False
@@ -140,7 +140,7 @@ class CLITestCase:
     def run_cli_test(
         self,
         binary: str | Path,
-        additional_skip_platforms: _TNestedSources | None,
+        additional_skip_platforms: _TNestedReferences | None,
         default_timeout: float | None,
     ):
         """Run a CLI command and check its output against the test case.
@@ -156,10 +156,9 @@ class CLITestCase:
             if current_os() not in self.only_platforms:  # type: ignore[operator]
                 raise SkippedTest(f"Test case only runs on platform: {current_os()}")
 
-        if current_os() in Group._extract_platforms((  # type: ignore[arg-type]
-            self.skip_platforms,
-            additional_skip_platforms,
-        )):
+        if current_os() in Group._extract_platforms(  # type: ignore[arg-type]
+            self.skip_platforms, additional_skip_platforms
+        ):
             raise SkippedTest(f"Skipping test case on platform: {current_os()}")
 
         if self.timeout is None and default_timeout is not None:
