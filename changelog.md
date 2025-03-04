@@ -10,6 +10,7 @@
 - Allow `--plan` option to be used multiple times in `gha-utils test-plan` to merge multiple test plans.
 - Use `windows-2025` instead of `windows-2022` for Nuitka builds.
 - Add `windows-2025` to the test matrix.
+- Allow ad-hoc YAML `test-plan` to be passed as a input parameter in reused `release` workflow.
 - Fix running of Nuitka-compiled `gha-utils metadata` command.
 - Drop support for Python 3.10.
 

@@ -37,15 +37,7 @@ name: Build & release
 env:
   test-plan-file: >-
     ${{ inputs.test-plan-file == null && './tests/cli-test-plan.yaml' || inputs.test-plan-file }}
-  # XXX Temporary hard-coded test for multi-line values.
-  test-plan: >
-    - cli_parameters:
-        # Test parameters provided as a list of strings.
-        - --verbosity
-        - DEBUG
-        - --version
-      exit_code: 0
-      stdout_contains: ", version"
+  test-plan: ${{ inputs.test-plan }}
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits. Source:
