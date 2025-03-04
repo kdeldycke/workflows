@@ -1,7 +1,7 @@
 ---
 # Copied from: rasa/dotfiles/.github/workflows/toc.yml
 # EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
-# $schema https://json.schemastore.org/github-workflow.json
+# yaml-language-server: $schema https://json.schemastore.org/github-workflow.json
 
 name: toc
 
@@ -15,6 +15,7 @@ on: # yamllint disable-line rule:truthy
   push:
     paths:
       - "**/*.md"
+  workflow_call:
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
 concurrency:
@@ -25,6 +26,7 @@ permissions: write-all
 
 jobs:
   toc:
+    name: toc
     runs-on: ubuntu-24.04
     # permissions:
     #  # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
@@ -33,21 +35,28 @@ jobs:
     env:
       GH_TOC_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: USES actions/checkout@v4.2.2
+      - name: USE actions/checkout@v4.2.2
         uses: actions/checkout@v4.2.2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
           show-progress: false
+          # token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: RUN gh-md-toc
         run: |
+          # RUN gh-md-toc
+          mapfile -t < <(git ls-files '*.[Mm][Dd]')
+          if ((${#MAPFILE[@]}==0)); then
+            printf 'No .md files found in %s\n' "${PWD}"
+            exit 0
+          fi
+          printf 'Processing %d .md files...\n' "${#MAPFILE[@]}"
           curl -fsSL --output gh-md-toc https://raw.githubusercontent.com/ekalinin/github-markdown-toc/HEAD/gh-md-toc
-          chmod a+x gh-md-toc
-          find . -type f -iname '*.md' -exec ./gh-md-toc --indent 0 --no-backup --hide-footer --skip-header {} \;
+          chmod a+x gh-md-toc          
+          ./gh-md-toc --indent 0 --no-backup --hide-footer --skip-header "${MAPFILES[@]}"
           rm -f gh-md-toc
-          true
 
-      - name: USES stefanzweifel/git-auto-commit-action@v5.1.0
+      - name: USE stefanzweifel/git-auto-commit-action@v5.1.0
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
           commit_message: "docs: auto update table-of-contents in markdown"
