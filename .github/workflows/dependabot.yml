@@ -1,7 +1,7 @@
 ---
 # Copied from: rasa/dotfiles/.github/workflows/dependabot.yml
 # EDIT THE ABOVE FILE, NOT THIS COPY, OR YOUR CHANGES WILL BE LOST!
-# $schema https://json.schemastore.org/github-workflow.json
+# yaml-language-server: $schema https://json.schemastore.org/github-workflow.json
 
 name: dependabot
 
@@ -28,17 +28,18 @@ permissions:
 
 jobs:
   dependabot:
+    name: dependabot
     runs-on: ubuntu-24.04
     # See https://github.com/dependabot/fetch-metadata?tab=readme-ov-file#enabling-auto-merge
     # if: startsWith(github.event.pull_request.user.login, 'dependabot')
     steps:
-      - name: Dependabot metadata
+      - name: USE dependabot/fetch-metadata@v2.3.0
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v2.3.0
 
-      - name: Enable auto-merge for Dependabot PRs
+      - name: RUN gh pr merge --auto --merge ${{ github.event.pull_request.html_url }}
         # if: steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'
-        run: gh pr merge --auto --merge "$PR_URL"
+        run: gh pr merge --auto --merge "${PR_URL}"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
