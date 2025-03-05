@@ -47,18 +47,18 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
-env:
-  WORKFLOW_USER: ${{ inputs.workflow_user }}
-  WORKFLOW_REPO: ${{ inputs.workflow_repo }}
-
 jobs:
   debug-rasa:
     name: debug-rasa
     runs-on: ubuntu-22.04
 
+    env:
+      WORKFLOW_USER: ${{ inputs.workflow_user || env.WORKFLOW_USER }}
+      WORKFLOW_REPO: ${{ inputs.workflow_repo || env.WORKFLOW_REPO }}
+
     steps:
       - name: USE crazy-max/ghaction-dump-context@v2.3.0
         uses: crazy-max/ghaction-dump-context@v2.3.0
         with:
-          workflow_user: ${{ inputs.workflow_user }}
-          workflow_repo: ${{ inputs.workflow_repo }}
+          _workflow_user: ${{ inputs.workflow_user || env.WORKFLOW_USER }}
+          _workflow_repo: ${{ inputs.workflow_repo || env.WORKFLOW_REPO }}
