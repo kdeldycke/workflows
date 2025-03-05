@@ -45,7 +45,7 @@ wheels = [
 
 [[package]]
 name = "bump-my-version"
-version = "1.0.0"
+version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -58,9 +58,9 @@ dependencies = [
     { name = "tomlkit" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/05/3d/037b2ac73264db7d64da8046ce43c6e21cbb8d1306d1eddd3927d11b33b1/bump_my_version-1.0.0.tar.gz", hash = "sha256:cbedf33d2e18d18ee3ad99f73309a75d85707b7a3d42ca96160b5b5b0a2f6104", size = 1101219 }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/bb/b44a279103af555aad46a238dd39880bb6fda9684c27142c062e87112ebc/bump_my_version-1.0.1.tar.gz", hash = "sha256:2bc399b2133a1bd27e0d180cd6a445b42cae25c2dde6698ca8d9971eeb258eaf", size = 1101376 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/d7/ecfcd3f5bf3af712339aaed186dbdd1c4ba6571a9f2e10d90a07806fba92/bump_my_version-1.0.0-py3-none-any.whl", hash = "sha256:f90324a8cde98c5ff09632eada4ba847096817463a37b6fa9b8899ec4192b45d", size = 58549 },
+    { url = "https://files.pythonhosted.org/packages/90/b3/6f3db4bb92bad5a83ed1af5d0c7f4140bb3ed69602c3089d2d2dd8eb4a5d/bump_my_version-1.0.1-py3-none-any.whl", hash = "sha256:6f52157f5e4966e7a94f4fa9ff56429f7292d6b5743c616558eec25f7c3270a1", size = 58561 },
 ]
 
 [[package]]
@@ -134,7 +134,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "4.14.2"
+version = "4.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -148,9 +148,9 @@ dependencies = [
     { name = "wcmatch" },
     { name = "xmltodict" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/85/e9/b54b8e9b5e6e1464329e6a668a0da81c9ec8f5eea4eeb23f7f5500aa09a8/click_extra-4.14.2.tar.gz", hash = "sha256:86e1c02d66de7ab59ae42d4ee25c5a4abde4a7bc3959c093d09282064c61c5a0", size = 91936 }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/21/f9dbd25024266effdfee7dc608b0b76ea757184a07de5e96b347c1ed2439/click_extra-4.15.0.tar.gz", hash = "sha256:20184fdb1791853cf5b68ab9f43c01cffd05f0d37c0295676bb4e0f20aee25fc", size = 92544 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/ef/77346b2336cd0fe14f4f08a5e552cfa6f4a05147a4fea2a355b1b60b5bca/click_extra-4.14.2-py3-none-any.whl", hash = "sha256:dad54de526cd2a92aaea38b574391a488d2ca27cd3dc675d3ec2050d11337d69", size = 74330 },
+    { url = "https://files.pythonhosted.org/packages/de/e0/e7961f807fd210a55b5267d8c6d0e2fd5400542ae7ea142adbe37938786a/click_extra-4.15.0-py3-none-any.whl", hash = "sha256:04ba277175cba8d89982560a58a564271b35a45ac01a0fe52b8d4c0d29110965", size = 75487 },
 ]
 
 [[package]]
@@ -295,7 +295,7 @@ typing = [
 requires-dist = [
     { name = "boltons", specifier = ">=24.0.0" },
     { name = "bump-my-version", specifier = ">=0.32.2" },
-    { name = "click-extra", specifier = "~=4.14.2" },
+    { name = "click-extra", specifier = "~=4.15.0" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "~=7.6.0" },
     { name = "extra-platforms", specifier = "~=3.1.0" },
     { name = "packaging", specifier = "~=24.1" },

@@ -270,12 +270,12 @@ DEFAULT_TEST_PLAN: list[CLITestCase] = [
 ]
 
 
-def parse_test_plan(plan_path: Path) -> Generator[CLITestCase, None, None]:
-    plan = yaml.full_load(plan_path.read_text(encoding="UTF-8"))
+def parse_test_plan(plan_string: str) -> Generator[CLITestCase, None, None]:
+    plan = yaml.full_load(plan_string)
 
     # Validates test plan structure.
     if not plan:
-        raise ValueError(f"Empty test plan file {plan_path}")
+        raise ValueError("Empty test plan")
     if not isinstance(plan, list):
         raise ValueError(f"Test plan is not a list: {plan}")
 

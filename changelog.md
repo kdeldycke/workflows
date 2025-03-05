@@ -7,7 +7,9 @@
 
 - Add support for `only_platforms` and `skip_platforms` settings in test plans, to finely select platforms to run tests on.
 - Add a `--skip-platform`/`-s` option to `gha-utils test-plan` to allow skipping of test plan on a whole set of platforms.
-- Allow `--plan` option to be used multiple times in `gha-utils test-plan` to merge multiple test plans.
+- Rename `--plan` option to `--plan-file`.
+- Allow `--plan-file`/`-F` option to be used multiple times in `gha-utils test-plan` to merge multiple test plans.
+- Add a new `--plan-envvar`/`-E` option to allow `gha-utils test-plan` command to read test plan from environment variables.
 - Allow ad-hoc YAML `test-plan` to be passed as a input parameter in reused `release` workflow.
 - Fix running of Nuitka-compiled `gha-utils metadata` command.
 - Drop support for Python 3.10.

@@ -73,7 +73,7 @@ dependencies = [
     # while releasing gha-utils itself.
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     "bump-my-version >= 0.32.2",
-    "click-extra ~= 4.14.2",
+    "click-extra ~= 4.15.0",
     "extra-platforms ~= 3.1.0",
     "packaging ~= 24.1",
     "PyDriller ~= 2.6",

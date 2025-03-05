@@ -36,6 +36,7 @@ from click_extra import (
     option,
     pass_context,
 )
+from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS
 
 from . import __version__
@@ -283,13 +284,24 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     help="Path to the binary file to test.",
 )
 @option(
+    "-F",
+    "--plan-file",
+    # TODO: remove deprecated --plan option to avoid confusion.
     "--plan",
     type=file_path(exists=True, readable=True, resolve_path=True),
     multiple=True,
     metavar="FILE_PATH",
-    help="Path to the test plan file in YAML. This option can be repeated to run "
+    help="Path to a test plan file in YAML. This option can be repeated to run "
     "multiple test plans in sequence. If not provided, a default test plan will be "
     "executed.",
+)
+@option(
+    "-E",
+    "--plan-envvar",
+    multiple=True,
+    metavar="ENVVAR_NAME",
+    help="Name of an environment variable containing a test plan in YAML. This "
+    "option can be repeated to collect multiple test plans.",
 )
 @option(
     "-s",
@@ -312,20 +324,30 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 )
 def test_plan(
     binary: Path,
-    plan: tuple[Path, ...] | None,
+    plan_file: tuple[Path, ...] | None,
+    plan_envvar: tuple[str, ...] | None,
     skip_platform: tuple[str, ...] | None,
     timeout: float | None,
 ) -> None:
     # Load test plan from workflow input, or use a default one.
     test_list = []
-    if plan:
-        for plan_file in unique(plan):
-            logging.info(f"Read test plan from {plan_file}")
-            tests = list(parse_test_plan(plan_file))
+    if plan_file or plan_envvar:
+        for file in unique(plan_file):
+            logging.info(f"Get test plan from {file} file")
+            tests = list(parse_test_plan(file.read_text(encoding="UTF-8")))
             logging.info(f"{len(tests)} test cases found.")
             test_list.extend(tests)
+        for envvar_id in merge_envvar_ids(plan_envvar):
+            logging.info(f"Get test plan from {envvar_id!r} environment variable")
+            tests = list(parse_test_plan(os.getenv(envvar_id)))
+            logging.info(f"{len(tests)} test cases found.")
+            test_list.extend(tests)
+
     else:
-        logging.warning("No test plan provided: use default test plan.")
+        logging.warning(
+            "No test plan provided through --plan-file/-F or --plan-envvar/-E options:"
+            " use default test plan."
+        )
         test_list = DEFAULT_TEST_PLAN
     logging.debug(f"Test plan: {test_list}")
 
