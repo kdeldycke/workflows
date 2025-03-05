@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.15.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.14.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.15.0 (2025-03-05)](https://github.com/kdeldycke/workflows/compare/v4.14.2...v4.15.0)
 
 - Add support for `only_platforms` and `skip_platforms` settings in test plans, to finely select platforms to run tests on.
 - Add a `--skip-platform`/`-s` option to `gha-utils test-plan` to allow skipping of test plan on a whole set of platforms.
