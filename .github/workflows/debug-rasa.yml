@@ -51,7 +51,7 @@ jobs:
   debug-rasa:
     name: debug-rasa
     runs-on: ubuntu-24.04
-          
+
     steps:
       - name: Set workflow variables with fallback
         run: |
