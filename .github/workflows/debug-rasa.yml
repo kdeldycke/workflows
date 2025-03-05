@@ -56,5 +56,5 @@ jobs:
       - name: USE crazy-max/ghaction-dump-context@v2.3.0
         uses: crazy-max/ghaction-dump-context@v2.3.0
         with:
-          _workflow_user: ${{ inputs.workflow_user || env.WORKFLOW_USER }}
-          _workflow_repo: ${{ inputs.workflow_repo || env.WORKFLOW_REPO }}
+          workflow_user_: ${{ inputs.workflow_user || env.WORKFLOW_USER }}
+          workflow_repo_: ${{ inputs.workflow_repo || env.WORKFLOW_REPO }}
