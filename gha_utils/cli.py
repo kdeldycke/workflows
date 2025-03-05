@@ -286,8 +286,6 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 @option(
     "-F",
     "--plan-file",
-    # TODO: remove deprecated --plan option to avoid confusion.
-    "--plan",
     type=file_path(exists=True, readable=True, resolve_path=True),
     multiple=True,
     metavar="FILE_PATH",

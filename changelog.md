@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Remove deprecated `--plan` option.
+
 ## [4.15.0 (2025-03-05)](https://github.com/kdeldycke/workflows/compare/v4.14.2...v4.15.0)
 
 - Add support for `only_platforms` and `skip_platforms` settings in test plans, to finely select platforms to run tests on.
