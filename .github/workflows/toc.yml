@@ -51,7 +51,7 @@ jobs:
             printf 'No .md files found in %s\n' "${PWD}"
             exit 0
           fi
-          printf 'Downlooading %s\n' "${TOC_URL}"
+          printf 'Downloading %s\n' "${TOC_URL}"
           curl -fsSL --output gh-md-toc "${TOC_URL}"
           chmod a+x gh-md-toc
           printf 'Processing %d .md files...\n' "${#MAPFILE[@]}"
