@@ -40,26 +40,24 @@
 - cli_parameters: --verbosity INFO metadata
   stderr_contains:
     - "info: Print metadata to <stdout>"
-  # XXX bump-myversion is crashing when compiled with Nuitka because of a pydantic-related issue:
-  # https://github.com/callowayproject/bump-my-version/issues/300
-  # stdout_regex_fullmatch: |-
-  #   new_commits=
-  #   release_commits=
-  #   gitignore_exists=true
-  #   python_files=[\S ]*
-  #   doc_files=[\S ]*
-  #   is_python_project=true
-  #   package_name=gha-utils
-  #   blacken_docs_params=--target-version py311 --target-version py312 --target-version py313
-  #   mypy_params=--python-version 3\.11
-  #   current_version=
-  #   released_version=
-  #   is_sphinx=false
-  #   active_autodoc=false
-  #   release_notes=
-  #   new_commits_matrix=
-  #   release_commits_matrix=
-  #   nuitka_matrix=(...)
+  stdout_regex_fullmatch: |-
+    new_commits=
+    release_commits=
+    gitignore_exists=true
+    python_files=[\S ]*
+    doc_files=[\S ]*
+    is_python_project=true
+    package_name=gha-utils
+    blacken_docs_params=--target-version py311 --target-version py312 --target-version py313
+    mypy_params=--python-version 3\.11
+    current_version=
+    released_version=
+    is_sphinx=false
+    active_autodoc=false
+    release_notes=
+    new_commits_matrix=
+    release_commits_matrix=
+    nuitka_matrix=.+
 
 
 # Test changelog output.
