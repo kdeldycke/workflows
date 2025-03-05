@@ -156,7 +156,7 @@ class CLITestCase:
             if current_os() not in self.only_platforms:  # type: ignore[operator]
                 raise SkippedTest(f"Test case only runs on platform: {current_os()}")
 
-        if current_os() in Group._extract_platforms(  # type: ignore[arg-type]
+        if current_os() in Group._extract_platforms(
             self.skip_platforms, additional_skip_platforms
         ):
             raise SkippedTest(f"Skipping test case on platform: {current_os()}")
@@ -270,7 +270,10 @@ DEFAULT_TEST_PLAN: list[CLITestCase] = [
 ]
 
 
-def parse_test_plan(plan_string: str) -> Generator[CLITestCase, None, None]:
+def parse_test_plan(plan_string: str | None) -> Generator[CLITestCase, None, None]:
+    if not plan_string:
+        raise ValueError("Empty test plan")
+
     plan = yaml.full_load(plan_string)
 
     # Validates test plan structure.
