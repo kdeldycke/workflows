@@ -16,6 +16,7 @@ updates:
       - "rasa"
     commit-message:
       prefix: "[action] "
+
   - package-ecosystem: "pip"
     directories:
       - "/**/*"
@@ -28,6 +29,7 @@ updates:
     commit-message:
       prefix: "[pip] "
       prefix-development: "[pip dev] "
+
   - package-ecosystem: "docker"
     directories:
       - "/**/*"
@@ -39,6 +41,7 @@ updates:
       - "rasa"
     commit-message:
       prefix: "[docker] "
+
   - package-ecosystem: "gomod"
     directories:
       - "/**/*"
