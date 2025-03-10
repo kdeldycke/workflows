@@ -29,22 +29,19 @@ jobs:
       contents: read
 
     steps:
-      - name: USE actions/checkout@v4.2.2
-        uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.2.2
         with:
           show-progress: false
 
       # Initializes the CodeQL tools for scanning.
-      - name: USE github/codeql-action/init@v3 (Initialize CodeQL)
-        uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v3
         # Override language selection by uncommenting this and choosing your languages
         # with:
         #   languages: go, javascript, csharp, python, cpp, java, ruby
 
       # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
       # If this step fails, then you should remove it and run the build manually (see below).
-      - name: USE github/codeql-action/autobuild@v3 (Autobuild)
-        uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/autobuild@v3
 
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
@@ -57,5 +54,5 @@ jobs:
       #     make bootstrap
       #     make release
 
-      - name: USE github/codeql-action/analyze@v3 (Perform CodeQL Analysis)
-        uses: github/codeql-action/analyze@v3
+      # Perform CodeQL Analysis
+      - uses: github/codeql-action/analyze@v3
