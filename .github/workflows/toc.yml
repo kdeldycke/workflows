@@ -29,23 +29,22 @@ jobs:
     name: toc
     runs-on: ubuntu-24.04
     permissions:
-      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
+      # Give GITHUB_TOKEN permission to push changes to repo.
       contents: write
     timeout-minutes: 5
     env:
       GH_TOC_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TOC_URL: https://raw.githubusercontent.com/ekalinin/github-markdown-toc/HEAD/gh-md-toc
     steps:
-      - name: USE actions/checkout@v4.2.2
-        uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
           show-progress: false
           # token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: RUN gh-md-toc
+      - name: gh-md-toc **/*.md
         run: |
-          # RUN gh-md-toc
+          # gh-md-toc **/*.md
           mapfile -t < <(git ls-files '*.[Mm][Dd]')
           if ((${#MAPFILE[@]}==0)); then
             printf 'No .md files found in %s\n' "${PWD}"
@@ -58,7 +57,6 @@ jobs:
           ./gh-md-toc --indent 0 --no-backup --hide-footer --skip-header "${MAPFILE[@]}"
           rm -f gh-md-toc
 
-      - name: USE stefanzweifel/git-auto-commit-action@v5.1.0
-        uses: stefanzweifel/git-auto-commit-action@v5.1.0
+      - uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
           commit_message: "docs: auto update table-of-contents in *.md files"
