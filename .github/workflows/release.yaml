@@ -151,16 +151,11 @@ jobs:
           uv --no-progress pip install --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
         # yamllint enable
       - name: Nuitka + compilers versions
-        # XXX Nuitka needs the ".cmd" extension on Windows:
-        # https://github.com/Nuitka/Nuitka/issues/3173
-        # https://github.com/astral-sh/uv/issues/8770
-        # https://github.com/astral-sh/uv/pull/9099
-        run: >
-          uv --no-progress run --frozen -- nuitka${{ runner.os == 'Windows' && '.cmd' || '' }}
-          --version
+        run: |
+          uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
         run: >
-          uv --no-progress run --frozen -- nuitka${{ runner.os == 'Windows' && '.cmd' || '' }}
+          uv --no-progress run --frozen -- nuitka
           --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }}
           ${{ matrix.module_path }}
       - name: Upload binaries

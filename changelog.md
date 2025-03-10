@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Remove deprecated `--plan` option.
+- Remove Nuitka script command extension workaround.
 
 ## [4.15.0 (2025-03-05)](https://github.com/kdeldycke/workflows/compare/v4.14.2...v4.15.0)
 
