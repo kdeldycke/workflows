@@ -138,13 +138,12 @@ jobs:
       # Node.js 16 actions are deprecated. Please update the following actions to use Node.js 20: actions/github-script@v6.
       # - name: rasa/ghaction-dump-context@master
       #   uses: rasa/ghaction-dump-context@master
-      - name: USE crazy-max/ghaction-dump-context@v2.3.0
-        uses: crazy-max/ghaction-dump-context@v2.3.0
+      - uses: crazy-max/ghaction-dump-context@v2.3.0
 
-      - name: USE rasa/delete-workflow-runs@main (Scheduled run)
+      - name: Run rasa/delete-workflow-runs@main (Scheduled run)
         if: github.event_name == 'schedule'
-        # was Mattraks/delete-workflow-runs@main
         uses: rasa/delete-workflow-runs@main
+        # was Mattraks/delete-workflow-runs@main
         with:
           repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -153,10 +152,10 @@ jobs:
           check_branch_existence: "Keep" # default: Keep
           check_pullrequest_exist: "Keep" # default: Keep
 
-      - name: USE rasa/delete-workflow-runs@main (Non-scheduled run)
+      - name: Run rasa/delete-workflow-runs@main (Non-scheduled run)
         if: github.event_name != 'schedule'
-        # was Mattraks/delete-workflow-runs@main
         uses: rasa/delete-workflow-runs@main
+        # was Mattraks/delete-workflow-runs@main
         with:
           repository: ${{ github.event.inputs.repository || github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
