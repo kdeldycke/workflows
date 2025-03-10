@@ -96,11 +96,16 @@ class CLITestCase:
                     if isinstance(field_data, str) or not isinstance(
                         field_data, Sequence
                     ):
-                        # CLI parameters needs to be split on Unix-like systems.
-                        # XXX If we need the same for Windows, have a look at:
-                        # https://github.com/maxpat78/w32lex
-                        if field_id == "cli_parameters" and sys.platform != "win32":
-                            field_data = tuple(shlex.split(field_data))
+                        # CLI parameters provided as a long string needs to be split so
+                        # that each argument is a separate item in the final tuple.
+                        if field_id == "cli_parameters":
+                            # XXX Maybe we should rely on a library to parse them:
+                            # https://github.com/maxpat78/w32lex
+                            if sys.platform == "win32":
+                                field_data = field_data.split()
+                            # For Unix platforms, we have the dedicated shlex module.
+                            else:
+                                field_data = shlex.split(field_data)
                         else:
                             field_data = (field_data,)
 

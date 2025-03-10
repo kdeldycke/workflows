@@ -7,6 +7,7 @@
 
 - Remove deprecated `--plan` option.
 - Remove Nuitka script command extension workaround.
+- Fix arguments normalization on Windows for CLI parameters in test plans.
 
 ## [4.15.0 (2025-03-05)](https://github.com/kdeldycke/workflows/compare/v4.14.2...v4.15.0)
 
