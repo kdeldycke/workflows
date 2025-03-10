@@ -70,14 +70,14 @@ jobs:
           - "3.11"
           # - "3.12"
     steps:
-      - name: USES actions/checkout@v4.2.2
-        uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.2.2
         with:
           show-progress: false
 
-      - name: RUN gather file list
+      - name: Gather list of "**/*requirements*.txt" files
         continue-on-error: true
         run: |
+          # Gather list of "**/*requirements*.txt" files
           mask="${{ inputs.mask || env.DEFAULT_MASK }}"
           printf "mask=%s\n" "${mask}"
           dir=$(dirname "${mask}")
@@ -95,9 +95,10 @@ jobs:
           printf 'serialized=%s\n' "${serialized}" >>"${GITHUB_ENV}"
           ((${#MAPFILE[@]}>0))
 
-      - name: RUN find duplicate packages, if any, across all requirements files
+      - name: Find duplicate packages, if any, across all requirements files
         if: success()
         run: |
+          # Find duplicate packages, if any, across all requirements files
           deserialized=$(base64 -d <<<"${serialized}")
           eval "${deserialized}"
           mask="${{ inputs.mask || env.DEFAULT_MASK }}"
@@ -123,9 +124,8 @@ jobs:
           fi
           exit 0
 
-      - name: USES actions/setup-python@v5.4.0
+      - uses: actions/setup-python@v5.4.0
         if: success()
-        uses: actions/setup-python@v5.4.0
         with:
           python-version: ${{ matrix.python-version }}
           # yamllint disable-line rule:line-length
@@ -133,36 +133,35 @@ jobs:
           # cache: 'pip'
           # cache-dependency-path: '${{ inputs.mask }}'
 
-      - name: RUN pip install --upgrade pip
+      - run: python -m pip install --upgrade pip
         if: success()
-        run: |
-          python -m pip install --upgrade pip
+        
+      - run: pip install pipdeptree pipreqs pur
+        if: success()
 
-      - name: RUN pip install pipdeptree pipreqs pur
+      - name: sed -E -i.bak -e '/^\s*#/d; /^\s*$/d;' **/*requirements*.txt
         if: success()
         run: |
-          pip install pipdeptree pipreqs pur
-
-      - name: RUN sed -E -i.bak -e '/^\s*#/d; /^\s*$/d;' requirements.txt
-        if: success()
-        run: |
+          # sed -E -i.bak -e '/^\s*#/d; /^\s*$/d;' **/*requirements*.txt
           eval "$(base64 -d <<<"${serialized}")"
           sed -E -i.bak -e '/^\s*#/d; /^\s*$/d;' "${MAPFILE[@]}"
           pr -f -n "${MAPFILE[@]}" \
             | tr -s '\n'
 
-      - name: RUN pipreqs --print --diff requirements.txt
+      - name: pipreqs --print --diff **/*requirements*.txt
         if: success()
         run: |
+          # pipreqs --print --diff **/*requirements*.txt
           eval "$(base64 -d <<<"${serialized}")"
           for file in "${MAPFILE[@]}"; do
             printf '\n%s:\n' "${file}"
             pipreqs --print --diff "${file}" 2>/dev/null || true
           done
 
-      - name: RUN pur --dry-run --dry-run-changed --no-recursive --requirement requirements.txt
+      - name: pur --dry-run --dry-run-changed --no-recursive --requirement **/*requirements*.txt
         if: success()
         run: |
+          # pur --dry-run --dry-run-changed --no-recursive --requirement **/*requirements*.txt
           eval "$(base64 -d <<<"${serialized}")"
           for file in "${MAPFILE[@]}"; do
             printf '\n%s: ' "${file}"
@@ -179,9 +178,10 @@ jobs:
             sed "s|^|::notice::${file}:|g" <<<"${out}"
           done
 
-      - name: RUN pur --no-recursive --requirement requirements.txt
+      - name: pur --no-recursive --requirement **/*requirements*.txt
         if: success()
         run: |
+          # pur --no-recursive --requirement **/*requirements*.txt
           eval "$(base64 -d <<<"${serialized}")"
           for file in "${MAPFILE[@]}"; do
               printf '\n%s: ' "${file}"
@@ -198,24 +198,20 @@ jobs:
               sed "s|^|::notice::${file}:|g" <<<"${out}"
           done
 
-      - name: RUN pip install -r requirements.txt
+      - name: pip install -r **/*requirements*.txt
         if: success()
         run: |
+          # pip install -r **/*requirements*.txt
           eval "$(base64 -d <<<"${serialized}")"
           for file in "${MAPFILE[@]}"; do
             printf '\n%s: ' "${file}"
             pip install -r "${file}" || true
           done
 
-      - name: RUN pipdeptree --warn silence
+      - run: pipdeptree --warn silence || true
         if: success()
-        run: |
-          pipdeptree --warn silence || true
 
-      - name: RUN pipdeptree --freeze --warn silence | grep -E '^[a-zA-Z0-9\-]+'
+      - run: pipdeptree --freeze --warn silence | grep -E '^[a-zA-Z0-9\-]+' || true
         if: success()
-        run: |
-          pipdeptree --freeze --warn silence \
-            | grep -E '^[a-zA-Z0-9\-]+' || true
 
 # cspell:ignore pipreqs
