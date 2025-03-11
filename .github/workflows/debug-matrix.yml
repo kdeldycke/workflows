@@ -521,14 +521,14 @@ jobs:
           sys.exit(0)
 
       - name: python .github/scripts/debug-vars.py
-        if: false # the file was accidentally removed from the repo
+        # if: false # the file was accidentally removed from the repo
         shell: python .github/scripts/debug-vars.py {0}
         continue-on-error: true
         run: |
           # shell: python .github/scripts/debug-vars.py {0}
 
       - name: python3 .github/scripts/debug-vars.py
-        if: false # the file was accidentally removed from the repo
+        # if: false # the file was accidentally removed from the repo
         shell: python3 .github/scripts/debug-vars.py {0}
         continue-on-error: true
         run: |
