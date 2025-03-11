@@ -18,7 +18,7 @@ on: # yamllint disable-line rule:truthy
       - master # @TODO remove
     paths:
       - .github/scripts/debug-*
-      - .github/workflows/debug-matrix.yaml
+      - .github/workflows/debug-matrix.yml
   workflow_call: # Required so this workflow can be called from another workflow
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
