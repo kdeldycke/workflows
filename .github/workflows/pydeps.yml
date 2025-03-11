@@ -62,13 +62,14 @@ jobs:
       # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
       matrix:
         os:
-          - ubuntu-24.04 # was ubuntu-22.04
-          # - windows-latest # aka windows-2022
-          # - macos-latest # aka macos-12 (macos-13 in beta)
+          - ubuntu-24.04
+          # - windows-2025
+          # - macos-15
+          # - windows-latest
+          # - macos-latest
         python-version:
-          # - "3.10"
-          - "3.11"
-          # - "3.12"
+          # - '3.12'
+          - '3.13'
     steps:
       - uses: actions/checkout@v4.2.2
         with:
