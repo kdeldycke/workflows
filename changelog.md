@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.15.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.15.3...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.15.3 (2025-03-12)](https://github.com/kdeldycke/workflows/compare/v4.15.2...v4.15.3)
 
 - Use latest `gha-utils` CLI to fix release notes in GitHub releases.
