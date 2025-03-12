@@ -11,10 +11,10 @@ on: # yamllint disable-line rule:truthy
       - main
       - master # @TODO remove
     paths:
-      - "**/*.md"
+      - "**.md"
   push:
     paths:
-      - "**/*.md"
+      - "**.md"
   workflow_call:
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
@@ -22,25 +22,23 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
-# permissions: write-all
+env:
+  TOC_URL: https://raw.githubusercontent.com/ekalinin/github-markdown-toc/HEAD/gh-md-toc
 
 jobs:
   toc:
     name: toc
     runs-on: ubuntu-24.04
     permissions:
-      # Give GITHUB_TOKEN permission to push changes to repo.
-      contents: write
+      contents: write # Required to push changes to repo.
     timeout-minutes: 5
     env:
       GH_TOC_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      TOC_URL: https://raw.githubusercontent.com/ekalinin/github-markdown-toc/HEAD/gh-md-toc
     steps:
       - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
           show-progress: false
-          # token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: gh-md-toc **/*.md
         run: |
@@ -55,7 +53,6 @@ jobs:
           chmod a+x gh-md-toc
           printf 'Processing %d .md files...\n' "${#MAPFILE[@]}"
           ./gh-md-toc --indent 0 --no-backup --hide-footer --skip-header "${MAPFILE[@]}"
-          rm -f gh-md-toc
 
       - uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
