@@ -36,11 +36,16 @@ def test_metadata_github_format():
             r"blacken_docs_params=--target-version py311 "
             r"--target-version py312 --target-version py313\n"
             r"mypy_params=--python-version 3\.11\n"
-            r"current_version=\n"
+            r"current_version=[0-9\.]+\n"
             r"released_version=\n"
             r"is_sphinx=false\n"
             r"active_autodoc=false\n"
-            r"release_notes=\n"
+            r"release_notes<<ghadelimiter_[0-9]+\n"
+            r"### Changes\n\n"
+            r"> \[\!IMPORTANT\]\n"
+            r"> This version is not released yet and is under active development.\n\n"
+            r".*\n"
+            r"ghadelimiter_[0-9]+\n"
             r"new_commits_matrix=\n"
             r"release_commits_matrix=\n"
             r'nuitka_matrix=\{"os": \["ubuntu-24\.04", "ubuntu-24\.04-arm", '
@@ -76,6 +81,7 @@ def test_metadata_github_format():
             r'"bin_name": "gha-utils-windows-x64-build-[a-z0-9]+\.exe"\}\]\}\n'
         ),
         metadata.dump(Dialects.github),
+        re.DOTALL,
     )
 
 
@@ -97,11 +103,14 @@ def test_metadata_plain_format():
             r"'--target-version py312', "
             r"'--target-version py313'\), "
             r"'mypy_params': '--python-version 3\.11', "
-            r"'current_version': None, "
+            r"'current_version': '[0-9\.]+', "
             r"'released_version': None, "
             r"'is_sphinx': False, "
             r"'active_autodoc': False, "
-            r"'release_notes': None, "
+            r"'release_notes': '### Changes\\n\\n"
+            r"> \[\!IMPORTANT\]\\n"
+            r"> This version is not released yet and is under active development.\\n\\n"
+            r".*', "
             r"'new_commits_matrix': None, "
             r"'release_commits_matrix': None, "
             r"'nuitka_matrix': <Matrix: \{"
@@ -139,4 +148,5 @@ def test_metadata_plain_format():
             r"exclude=\(\)>\}"
         ),
         metadata.dump(Dialects.plain),
+        re.DOTALL,
     )
