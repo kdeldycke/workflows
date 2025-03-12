@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Use uv-provided Python to compile binaries with Nuitka on Linux.
+- Populate `current_version` and `release_notes` field in `gha-utils metadata` output for unreleased versions.
 
 ## [4.15.1 (2025-03-10)](https://github.com/kdeldycke/workflows/compare/v4.15.0...v4.15.1)
 

@@ -796,13 +796,20 @@ class Metadata:
     def current_version(self) -> str | None:
         """Returns the current version.
 
-        I.e. the version of the most recent commit.
+        Current version is fetched from the ``bump-my-version`` configuration file.
+
+        During a release we get two commits bundled into a single event. The first one
+        is the release commit itself freezing the version to the release number. The
+        second one is the commit that bumps the version to the next one. In this situation,
+        the current version returned is the one from the most recent commit.
         """
         version = None
         if self.new_commits_matrix:
             details = self.new_commits_matrix.get("include")
             if details:
                 version = details[0].get("current_version")
+        else:
+            version = self.get_current_version()
         return version
 
     @cached_property
