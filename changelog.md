@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use latest `gha-utils` CLI to fix release notes in GitHub releases.
+
 ## [4.15.2 (2025-03-12)](https://github.com/kdeldycke/workflows/compare/v4.15.1...v4.15.2)
 
 - Use uv-provided Python to compile binaries with Nuitka on Linux.
