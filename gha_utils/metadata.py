@@ -805,7 +805,7 @@ class Metadata:
         """
         version = None
         if self.new_commits_matrix:
-            details = self.new_commits_matrix.get("include")
+            details = self.new_commits_matrix.include
             if details:
                 version = details[0].get("current_version")
         else:
@@ -817,7 +817,7 @@ class Metadata:
         """Returns the version of the release commit."""
         version = None
         if self.release_commits_matrix:
-            details = self.release_commits_matrix.get("include")
+            details = self.release_commits_matrix.include
             if details:
                 # This script is only designed for at most 1 release in the list of new
                 # commits.
