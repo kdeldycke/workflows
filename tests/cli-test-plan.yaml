@@ -44,17 +44,19 @@
     new_commits=
     release_commits=
     gitignore_exists=true
-    python_files=[\S ]*
-    doc_files=[\S ]*
+    python_files=[\S ]+
+    doc_files=[\S ]+
     is_python_project=true
     package_name=gha-utils
     blacken_docs_params=--target-version py311 --target-version py312 --target-version py313
     mypy_params=--python-version 3\.11
-    current_version=
+    current_version=[0-9.]+
     released_version=
     is_sphinx=false
     active_autodoc=false
-    release_notes=
+    release_notes<<ghadelimiter_[0-9]+
+    .+
+    ghadelimiter_[0-9]+
     new_commits_matrix=
     release_commits_matrix=
     nuitka_matrix=.+
@@ -77,7 +79,7 @@
     > \[\!IMPORTANT\]
     > This version is not released yet and is under active development\.
 
-    .*
+    .+
 
 
 # Test mailmap-sync output.
