@@ -7,17 +7,12 @@ name: toc
 
 on: # yamllint disable-line rule:truthy
   pull_request:
-    # branches:
-    #   - main
-    #   - master # @TODO remove
     paths:
-      - '!**'
-      - '*.md'
+      - 'README.md'
   push:
     paths:
-      - '!**'
-      - '*.md'
-  workflow_call:
+      - 'README.md'
+  # workflow_call:
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
 concurrency:
