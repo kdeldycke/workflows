@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Re-release to fix GitHub release notes.
+
 ## [4.15.4 (2025-03-13)](https://github.com/kdeldycke/workflows/compare/v4.15.3...v4.15.4)
 
 - Fix fetching of released version and notes on release commits.
