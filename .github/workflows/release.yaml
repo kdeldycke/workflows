@@ -133,7 +133,7 @@ jobs:
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Build binary
         run: >
-          uvx
+          uv run
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
           --
           nuitka --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
