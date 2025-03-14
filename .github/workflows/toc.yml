@@ -50,6 +50,7 @@ jobs:
           curl -fsSL --output "${tmp1}" "${TOC_URL}"
           chmod a+x "${tmp1}" || true
           printf 'Processing %d .md files...\n' "${#MAPFILE[@]}"
+          # shellcheck source=/dev/null
           source "${tmp1}" --indent 0 --no-backup --hide-footer --skip-header "${MAPFILE[@]}"
           rm -fr "${tmp1}"
 
