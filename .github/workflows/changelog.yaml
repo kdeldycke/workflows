@@ -129,7 +129,7 @@ jobs:
           cat ./changelog.md
       - name: Set release date in changelog
         run: >
-          bump-my-version replace --no-configured-files
+          bump-my-version replace --verbose --no-configured-files
           --search " (unreleased)"
           --replace " ({utcnow:%Y-%m-%d})"
           ./changelog.md
