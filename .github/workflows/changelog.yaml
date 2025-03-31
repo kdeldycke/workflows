@@ -123,6 +123,10 @@ jobs:
           --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
           --replace "/workflows/v{current_version}/"
           ./.github/workflows/*.yaml
+      - name: debug
+        run: |
+          bump-my-version --version
+          cat ./changelog.md
       - name: Set release date in changelog
         run: >
           bump-my-version replace --no-configured-files
