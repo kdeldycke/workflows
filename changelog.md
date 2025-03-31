@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Avoid `bump-my-version` v1.1.1 due to [regression](https://github.com/callowayproject/bump-my-version/issues/331).
+
 ## [4.15.5 (2025-03-13)](https://github.com/kdeldycke/workflows/compare/v4.15.4...v4.15.5)
 
 - Re-release to fix GitHub release notes.

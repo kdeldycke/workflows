@@ -72,7 +72,8 @@ dependencies = [
     # Dependency version is more relaxed on bump-my-version to prevent chicken and egg
     # while releasing gha-utils itself.
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
-    "bump-my-version >= 0.32.2",
+    # v1.1.1 has some regressions: see https://github.com/callowayproject/bump-my-version/issues/331
+    "bump-my-version >= 0.32.2, != 1.1.1",
     "click-extra ~= 4.15.0",
     "extra-platforms ~= 3.1.0",
     "packaging ~= 24.1",
