@@ -117,7 +117,7 @@ jobs:
       # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
 
   compile-binaries:
-    name: "Nuitka: generate binaries"
+    name: "Nuitka compilation: ${{ matrix.os }}, ${{ matrix.commit }}"
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.nuitka_matrix
