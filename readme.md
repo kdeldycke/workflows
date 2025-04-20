@@ -81,10 +81,11 @@ To ease deployment, standalone executables of `gha-utils`'s latest version are a
 | **Linux**    | [Download `gha-utils-linux-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-linux-x64.bin)     | [Download `gha-utils-linux-arm64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-linux-arm64.bin) |
 | **macOS**    | [Download `gha-utils-macos-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-x64.bin)     | [Download `gha-utils-macos-arm64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-arm64.bin) |
 | **Windows**  | [Download `gha-utils-windows-x64.exe`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-windows-x64.exe) |                                                                                                                                   |
-| ABI targets: |                                                                                                                                   |                                                                                                                                   |
+
+ABI targets:
 
 ```shell-session
-$ file ./gha-utils-*              
+$ file ./gha-utils-*
 ./gha-utils-linux-arm64.bin: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=e35a1082c9c124edaa1c4b1bbb7e1aaf53baf870, for GNU/Linux 3.7.0, stripped
 ./gha-utils-linux-x64.bin:   ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2874af3c68a8588ccdf9e59d5c1b78e2b5bdc5bb, for GNU/Linux 3.2.0, stripped
 ./gha-utils-macos-arm64.bin: Mach-O 64-bit executable arm64
