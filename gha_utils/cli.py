@@ -376,7 +376,7 @@ def test_plan(
         test_list = DEFAULT_TEST_PLAN
     logging.debug(f"Test plan: {test_list}")
 
-    stats = Counter(total=len(test_list), skipped=0, failed=0)
+    counter = Counter(total=len(test_list), skipped=0, failed=0)
 
     for index, test_case in enumerate(test_list):
         test_number = index + 1
@@ -385,7 +385,7 @@ def test_plan(
 
         if select_test and test_number not in select_test:
             logging.warning(f"Test {test_name} skipped by user request.")
-            stats["skipped"] += 1
+            counter["skipped"] += 1
             continue
 
         try:
@@ -394,10 +394,10 @@ def test_plan(
                 binary, additional_skip_platforms=skip_platform, default_timeout=timeout
             )
         except SkippedTest as ex:
-            stats["skipped"] += 1
+            counter["skipped"] += 1
             logging.warning(f"Test {test_name} skipped: {ex}")
         except Exception as ex:
-            stats["failed"] += 1
+            counter["failed"] += 1
             logging.error(f"Test {test_name} failed: {ex}")
             if exit_on_error:
                 logging.debug("Don't continue testing, a failed test was found.")
@@ -406,8 +406,8 @@ def test_plan(
     if stats:
         echo(
             "Test plan results - "
-            + ", ".join((f"{k.title()}: {v}" for k, v in stats.items()))
+            + ", ".join((f"{k.title()}: {v}" for k, v in counter.items()))
         )
 
-    if stats["failed"]:
+    if counter["failed"]:
         sys.exit(1)
