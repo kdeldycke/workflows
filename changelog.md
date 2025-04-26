@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.16.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.16.0...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.16.0 (2025-04-26)](https://github.com/kdeldycke/workflows/compare/v4.15.6...v4.16.0)
 
 - Add a new `--exit-on-error`/`-x` option to `gha-utils test-plan` command to exit right away on the first failing test.
