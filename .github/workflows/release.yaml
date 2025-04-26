@@ -50,7 +50,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     outputs:
       # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins
       # (see: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626).
@@ -97,7 +97,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -188,7 +188,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && needs.project-metadata.outputs.release_commits_matrix
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -220,7 +220,7 @@ jobs:
     if: needs.project-metadata.outputs.package_name
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     permissions:
       # Allow GitHub's OIDC provider to create a JSON Web Token:
       # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
@@ -255,7 +255,7 @@ jobs:
     if: always() && needs.git-tag.result == 'success'
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     permissions:
       # Allow GitHub's OIDC provider to create a JSON Web Token:
       # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/

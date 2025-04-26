@@ -21,7 +21,7 @@ jobs:
 
   label-sponsors:
     name: Tag sponsors
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     steps:
       - uses: JasonEtco/is-sponsor-label-action@v2.0.0
         env:
