@@ -381,7 +381,7 @@ def test_plan(
     for index, test_case in enumerate(test_list):
         test_number = index + 1
         test_name = f"#{test_number}"
-        logging.info(f"Run test {test_name}")
+        logging.info(f"Run test {test_name}...")
 
         if select_test and test_number not in select_test:
             logging.warning(f"Test {test_name} skipped by user request.")

@@ -255,7 +255,7 @@ class CLITestCase:
 
             elif field_id.endswith("_regex_matches"):
                 for regex in field_data:
-                    logging.info(f"Check if {name} matches {sub_string!r}")
+                    logging.info(f"Check if {name} matches {regex!r}")
                     if not regex.search(output):
                         raise AssertionError(f"{name} does not match regex {regex}")
 
