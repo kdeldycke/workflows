@@ -1058,6 +1058,7 @@ class Metadata:
         # Add platform-specific variables.
         # Arch values are inspired from those specified for self-hosted runners:
         # https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners#architectures
+        # XXX Maybe we should just adopt target triple: https://mcyoung.xyz/2025/04/14/target-triples/
         # Arch is not a matrix variant because support is not widely distributed
         # between different OS.
         matrix.add_includes(
