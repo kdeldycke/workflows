@@ -42,7 +42,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       gitignore_exists: ${{ steps.project-metadata.outputs.gitignore_exists }}
       python_files: ${{ steps.project-metadata.outputs.python_files }}
@@ -74,7 +74,7 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -170,7 +170,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -199,7 +199,7 @@ jobs:
 
   format-markdown:
     name: Format Markdown
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -249,7 +249,7 @@ jobs:
 
   format-json:
     name: Format JSON
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install ESLint with JSON support
@@ -326,7 +326,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install git-extras

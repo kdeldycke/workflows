@@ -29,7 +29,7 @@ jobs:
 
   autofix-typo:
     name: Fix typos
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - uses: crate-ci/typos@v1.31.1
@@ -59,7 +59,7 @@ jobs:
 
   optimize-images:
     name: Optimize images
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       # XXX Waiting for a recent release for image-actions so we'll get rid of some warning annotations like
@@ -93,7 +93,7 @@ jobs:
   update-mailmap:
     name: Update .mailmap
     if: ${{ ! startsWith(github.event.repository.name, 'awesome-') }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -128,7 +128,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
@@ -159,7 +159,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -217,7 +217,7 @@ jobs:
     if: >
       fromJSON(needs.project-metadata.outputs.is_python_project)
       && fromJSON(needs.project-metadata.outputs.active_autodoc)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -249,7 +249,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -276,7 +276,7 @@ jobs:
     if: >
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     # We need custom PAT through the whole job so we get workflow permissions to update all the boilerplate .github
     # files from awesome-template.
     steps:

@@ -18,7 +18,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
@@ -48,7 +48,7 @@ jobs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -66,7 +66,7 @@ jobs:
   lint-yaml:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install uv
@@ -80,7 +80,7 @@ jobs:
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install Zsh
@@ -92,7 +92,7 @@ jobs:
           find . -iname "*.sh" -exec zsh --no-exec "{}" \;
 
   lint-github-action:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
       - name: Install actionlint
@@ -137,7 +137,7 @@ jobs:
       github.head_ref != 'prepare-release'
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
@@ -238,7 +238,7 @@ jobs:
     if: >
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -249,7 +249,7 @@ jobs:
           npx awesome-lint
 
   check-secrets:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4.2.2
         with:
