@@ -242,7 +242,7 @@ Now re-run your actions and they should be able to update the workflow files in 
 
 ### Release management
 
-It turns out [Release Engineering is a full-time job, and full of edge-cases](https://blog.axo.dev/2023/02/cargo-dist).
+It turns out [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist).
 
 Things have improved a lot in the Python ecosystem with `uv`. But there are still a lot of manual steps to do to release.
 
