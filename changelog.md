@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add a new `--exit-on-error`/`-x` option to `gha-utils test-plan` command to exit right away on the first failing test.
+
 ## [4.15.6 (2025-04-20)](https://github.com/kdeldycke/workflows/compare/v4.15.5...v4.15.6)
 
 - Avoid `bump-my-version` v1.1.1 due to [regression](https://github.com/callowayproject/bump-my-version/issues/331).

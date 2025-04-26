@@ -310,6 +310,13 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     "skip multiple platforms.",
 )
 @option(
+    "-x",
+    "--exit-on-error",
+    is_flag=True,
+    default=False,
+    help="Exit instantly on first failed test.",
+)
+@option(
     "-t",
     "--timeout",
     # Timeout passed to subprocess.run() is a float that is silently clamped to
@@ -325,6 +332,7 @@ def test_plan(
     plan_file: tuple[Path, ...] | None,
     plan_envvar: tuple[str, ...] | None,
     skip_platform: tuple[str, ...] | None,
+    exit_on_error: bool,
     timeout: float | None,
 ) -> None:
     # Load test plan from workflow input, or use a default one.
@@ -352,7 +360,8 @@ def test_plan(
     stats = Counter(total=len(test_list), skipped=0, failed=0)
 
     for index, test_case in enumerate(test_list):
-        logging.info(f"Run test #{index + 1}")
+        test_name = f"#{index + 1}"
+        logging.info(f"Run test {test_name}")
         try:
             logging.debug(f"Test case parameters: {test_case}")
             test_case.run_cli_test(
@@ -360,10 +369,13 @@ def test_plan(
             )
         except SkippedTest as ex:
             stats["skipped"] += 1
-            logging.warning(f"Test skipped: {ex}")
+            logging.warning(f"Test {test_name} skipped: {ex}")
         except Exception as ex:
             stats["failed"] += 1
-            logging.error(f"Test failed: {ex}")
+            logging.error(f"Test {test_name} failed: {ex}")
+            if exit_on_error:
+                logging.debug("Don't continue testing, a failed test was found.")
+                sys.exit(1)
 
     logging.info(
         "Test plan results - "
