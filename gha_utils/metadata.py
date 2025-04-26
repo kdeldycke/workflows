@@ -161,6 +161,7 @@ import json
 import logging
 import os
 import re
+import tomllib
 from collections.abc import Iterable
 from enum import StrEnum
 from functools import cached_property
@@ -169,7 +170,6 @@ from random import randint
 from re import escape
 from typing import Any, Final, Iterator, cast
 
-import tomllib
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
