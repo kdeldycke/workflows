@@ -1044,11 +1044,9 @@ class Metadata:
 
         matrix = Matrix()
 
-        # Run the compilation only on the latest supported version of each OS. The
-        # exception is macOS, as macos-15 is arm64-only and macos-13 is x64-only, so we
-        # need both to target the two architectures.
-        # XXX arm64 Windows is planned for the future:
-        # https://github.com/actions/runner-images/issues/10820
+        # Run the compilation only on the latest supported version of each OS. Note
+        # that macOS and Windows do not have the latest version available for each
+        # architecture.
         matrix.add_variation(
             "os",
             (
@@ -1095,8 +1093,6 @@ class Metadata:
         # Arch values are inspired from those specified for self-hosted runners:
         # https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures
         # XXX Maybe we should just adopt target triple: https://mcyoung.xyz/2025/04/14/target-triples/
-        # Arch is not a matrix variant because support is not widely distributed
-        # between different OS.
         matrix.add_includes(
             {
                 "os": "ubuntu-24.04-arm",
