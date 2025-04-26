@@ -117,10 +117,16 @@ jobs:
         #   property "workflow_update_github_pat" is not defined in object type {actions_runner_debug: string;
         #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
         # See: https://github.com/rhysd/actionlint/issues/148
+        # XXX actionlint triggers this error:
+        #   Error: .github/workflows/tests.yaml:32:13:
+        #   label "windows-11-arm" is unknown. available labels are ...
+        #   if it is a custom label for self-hosted runner, set list of labels in actionlint.yaml config file [runner-label]
+        # See: https://github.com/rhysd/actionlint/issues/533
         run: >
           ${{ steps.install_actionlint.outputs.executable }}
           -color
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
+          -ignore 'label "windows-11-arm" is unknown. .+'
 
   broken-links:
     # Skip checks on prepare-release branch as it contains commits in changelog and documentation that points to a tag
