@@ -1092,7 +1092,8 @@ class Metadata:
         # Add platform-specific variables.
         # Arch values are inspired from those specified for self-hosted runners:
         # https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures
-        # XXX Maybe we should just adopt target triple: https://mcyoung.xyz/2025/04/14/target-triples/
+        # XXX Maybe we should just adopt target triple:
+        # https://mcyoung.xyz/2025/04/14/target-triples/
         matrix.add_includes(
             {
                 "os": "ubuntu-24.04-arm",
