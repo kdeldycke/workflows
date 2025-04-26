@@ -337,6 +337,12 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     help="Set the default timeout for each CLI call, if not specified in the "
     "test plan.",
 )
+@option(
+    "--stats/--no-stats",
+    is_flag=True,
+    default=True,
+    help="Print per-manager package statistics.",
+)
 def test_plan(
     binary: Path,
     plan_file: tuple[Path, ...] | None,
@@ -345,6 +351,7 @@ def test_plan(
     skip_platform: tuple[str, ...] | None,
     exit_on_error: bool,
     timeout: float | None,
+    stats: bool,
 ) -> None:
     # Load test plan from workflow input, or use a default one.
     test_list = []
@@ -395,9 +402,11 @@ def test_plan(
                 logging.debug("Don't continue testing, a failed test was found.")
                 sys.exit(1)
 
-    logging.info(
-        "Test plan results - "
-        + ", ".join((f"{k.title()}: {v}" for k, v in stats.items()))
-    )
+    if stats:
+        echo(
+            "Test plan results - "
+            + ", ".join((f"{k.title()}: {v}" for k, v in stats.items()))
+        )
+
     if stats["failed"]:
         sys.exit(1)
