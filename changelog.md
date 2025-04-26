@@ -6,7 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Add a new `--exit-on-error`/`-x` option to `gha-utils test-plan` command to exit right away on the first failing test.
-- Add a new `--select-test`/`-t` option to `gha-utils test-plan` command to run a specific test case.
+- Add a new `--select-test`/`-t` option to `gha-utils test-plan` command to run specific test cases.
 - Rename short option for `--timeout` in `gha-utils test-plan` command from `-t` to `-T`.
 - Add a new `--stats`/`--no-stats` option to `gha-utils test-plan` command to control display of statistics at the end of test execution.
 

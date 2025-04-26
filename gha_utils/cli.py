@@ -307,6 +307,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     "--select-test",
     type=IntRange(min=1),
     multiple=True,
+    metavar="INTEGER",
     help="Only run the tests matching the provided test case numbers. This option can "
     "be repeated to run multiple test cases. If not provided, all test cases will be "
     "run.",
