@@ -6,6 +6,8 @@
 > This version is not released yet and is under active development.
 
 - Add a new `--exit-on-error`/`-x` option to `gha-utils test-plan` command to exit right away on the first failing test.
+- Add a new `--select-test`/`-t` option to `gha-utils test-plan` command to run a specific test case.
+- Rename short option for `--timeout` in `gha-utils test-plan` command from `-t` to `-T`.
 
 ## [4.15.6 (2025-04-20)](https://github.com/kdeldycke/workflows/compare/v4.15.5...v4.15.6)
 

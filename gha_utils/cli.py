@@ -29,6 +29,7 @@ from click_extra import (
     Choice,
     Context,
     FloatRange,
+    IntRange,
     argument,
     echo,
     extra_group,
@@ -302,6 +303,15 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     "option can be repeated to collect multiple test plans.",
 )
 @option(
+    "-t",
+    "--select-test",
+    type=IntRange(min=1),
+    multiple=True,
+    help="Only run the tests matching the provided test case numbers. This option can "
+    "be repeated to run multiple test cases. If not provided, all test cases will be "
+    "run.",
+)
+@option(
     "-s",
     "--skip-platform",
     type=Choice(sorted(ALL_IDS), case_sensitive=False),
@@ -317,7 +327,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     help="Exit instantly on first failed test.",
 )
 @option(
-    "-t",
+    "-T",
     "--timeout",
     # Timeout passed to subprocess.run() is a float that is silently clamped to
     # 0.0 is negative values are provided, so we mimic this behavior here:
@@ -331,6 +341,7 @@ def test_plan(
     binary: Path,
     plan_file: tuple[Path, ...] | None,
     plan_envvar: tuple[str, ...] | None,
+    select_test: tuple[int, ...] | None,
     skip_platform: tuple[str, ...] | None,
     exit_on_error: bool,
     timeout: float | None,
@@ -360,8 +371,15 @@ def test_plan(
     stats = Counter(total=len(test_list), skipped=0, failed=0)
 
     for index, test_case in enumerate(test_list):
-        test_name = f"#{index + 1}"
+        test_number = index + 1
+        test_name = f"#{test_number}"
         logging.info(f"Run test {test_name}")
+
+        if select_test and test_number not in select_test:
+            logging.warning(f"Test {test_name} skipped by user request.")
+            stats["skipped"] += 1
+            continue
+
         try:
             logging.debug(f"Test case parameters: {test_case}")
             test_case.run_cli_test(
