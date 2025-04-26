@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.16.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.16.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.16.1 (2025-04-26)](https://github.com/kdeldycke/workflows/compare/v4.16.0...v4.16.1)
 
 - Use latest `gha-utils` CLI to build ARM64 binaries by default.
