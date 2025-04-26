@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use latest `gha-utils` CLI to build ARM64 binaries by default.
+
 ## [4.16.0 (2025-04-26)](https://github.com/kdeldycke/workflows/compare/v4.15.6...v4.16.0)
 
 - Add a new `--exit-on-error`/`-x` option to `gha-utils test-plan` command to exit right away on the first failing test.
