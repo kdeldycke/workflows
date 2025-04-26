@@ -1,51 +1,52 @@
 flowchart TD
     classDef missing stroke-dasharray: 5
     annotated-types["annotated-types\n0.7.0"]
-    anyio["anyio\n4.8.0"]
-    boltons["boltons\n24.1.0"]
+    anyio["anyio\n4.9.0"]
+    boltons["boltons\n25.0.0"]
     bracex["bracex\n2.5.post1"]
-    bump-my-version["bump-my-version\n0.32.1"]
-    certifi["certifi\n2025.1.31"]
+    bump-my-version["bump-my-version\n1.1.0"]
+    certifi["certifi\n2025.4.26"]
     charset-normalizer["charset-normalizer\n3.4.1"]
-    click-extra["click-extra\n4.14.1"]
+    click-extra["click-extra\n4.15.0"]
     click_0["click\n8.1.8"]
-    cloup["cloup\n3.0.5"]
+    cloup["cloup\n3.0.7"]
     distro["distro\n1.9.0"]
-    extra-platforms["extra-platforms\n2.0.0"]
-    gha-utils["gha-utils\n4.14.0"]
+    extra-platforms["extra-platforms\n3.1.0"]
+    gha-utils["gha-utils\n4.16.2"]
     gitdb["gitdb\n4.0.12"]
     gitpython["GitPython\n3.1.44"]
-    h11["h11\n0.14.0"]
-    httpcore["httpcore\n1.0.7"]
+    h11["h11\n0.16.0"]
+    httpcore["httpcore\n1.0.9"]
     httpx["httpx\n0.28.1"]
     idna["idna\n3.10"]
-    lizard["lizard\n1.17.19"]
+    lizard["lizard\n1.17.27"]
     markdown-it-py["markdown-it-py\n3.0.0"]
     mdurl["mdurl\n0.1.2"]
     mergedeep["mergedeep\n1.3.4"]
-    packaging["packaging\n24.2"]
+    packaging["packaging\n25.0"]
     pathspec["pathspec\n0.12.1"]
-    prompt-toolkit["prompt_toolkit\n3.0.50"]
-    pydantic-core["pydantic_core\n2.27.2"]
-    pydantic-settings["pydantic-settings\n2.7.1"]
-    pydantic["pydantic\n2.10.6"]
+    prompt-toolkit["prompt_toolkit\n3.0.51"]
+    pydantic-core["pydantic_core\n2.33.1"]
+    pydantic-settings["pydantic-settings\n2.9.1"]
+    pydantic["pydantic\n2.11.3"]
     pydriller["PyDriller\n2.7"]
     pygments["Pygments\n2.19.1"]
-    pyproject-metadata["pyproject-metadata\n0.9.0"]
-    python-dotenv["python-dotenv\n1.0.1"]
-    pytz["pytz\n2025.1"]
+    pyproject-metadata["pyproject-metadata\n0.9.1"]
+    python-dotenv["python-dotenv\n1.1.0"]
+    pytz["pytz\n2025.2"]
     pyyaml["PyYAML\n6.0.2"]
     questionary["questionary\n2.1.0"]
     requests["requests\n2.32.3"]
-    rich-click["rich-click\n1.8.5"]
-    rich["rich\n13.9.4"]
+    rich-click["rich-click\n1.8.8"]
+    rich["rich\n14.0.0"]
     smmap["smmap\n5.0.2"]
     sniffio["sniffio\n1.3.1"]
     tabulate["tabulate\n0.9.0"]
     tomlkit["tomlkit\n0.13.2"]
-    types-pytz["types-pytz\n2025.1.0.20250204"]
-    typing-extensions["typing_extensions\n4.12.2"]
-    urllib3["urllib3\n2.3.0"]
+    types-pytz["types-pytz\n2025.2.0.20250326"]
+    typing-extensions["typing_extensions\n4.13.2"]
+    typing-inspection["typing-inspection\n0.4.0"]
+    urllib3["urllib3\n2.4.0"]
     wcmatch["wcmatch\n10.0"]
     wcwidth["wcwidth\n0.2.13"]
     xmltodict["xmltodict\n0.14.2"]
@@ -61,30 +62,31 @@ flowchart TD
     bump-my-version -- "any" --> rich
     bump-my-version -- "any" --> rich-click
     bump-my-version -- "any" --> tomlkit
+    click-extra -- ">=2.0.0" --> extra-platforms
     click-extra -- "~=0.14.2" --> xmltodict
     click-extra -- "~=0.9" --> tabulate
     click-extra -- "~=1.3.4" --> mergedeep
     click-extra -- "~=10.0" --> wcmatch
-    click-extra -- "~=2.0.0" --> extra-platforms
     click-extra -- "~=2.32.3" --> requests
-    click-extra -- "~=24.1.0" --> boltons
+    click-extra -- "~=25.0.0" --> boltons
     click-extra -- "~=3.0.5" --> cloup
     click-extra -- "~=6.0.0" --> pyyaml
     click-extra -- "~=8.1.8" --> click_0
     cloup -- ">=8.0,<9.0" --> click_0
     extra-platforms -- "~=1.9.0" --> distro
-    extra-platforms -- "~=24.1.0" --> boltons
-    gha-utils -- ">=0.21.0" --> bump-my-version
+    extra-platforms -- "~=25.0.0" --> boltons
+    gha-utils -- ">=0.32.2,<1.1.1" --> bump-my-version
     gha-utils -- ">=24.0.0" --> boltons
     gha-utils -- ">=8.5" --> wcmatch
     gha-utils -- "~=0.9.0" --> pyproject-metadata
     gha-utils -- "~=2.6" --> pydriller
-    gha-utils -- "~=24.1" --> packaging
-    gha-utils -- "~=4.14.1" --> click-extra
+    gha-utils -- "~=25.0" --> packaging
+    gha-utils -- "~=3.1.0" --> extra-platforms
+    gha-utils -- "~=4.15.0" --> click-extra
     gha-utils -- "~=6.0.0" --> pyyaml
     gitdb -- ">=3.0.1,<6" --> smmap
     gitpython -- ">=4.0.1,<5" --> gitdb
-    httpcore -- ">=0.13,<0.15" --> h11
+    httpcore -- ">=0.16" --> h11
     httpcore -- "any" --> certifi
     httpx -- "==1.*" --> httpcore
     httpx -- "any" --> anyio
@@ -94,11 +96,13 @@ flowchart TD
     lizard -- "any" --> pygments
     markdown-it-py -- "~=0.1" --> mdurl
     prompt-toolkit -- "any" --> wcwidth
-    pydantic -- "==2.27.2" --> pydantic-core
+    pydantic -- "==2.33.1" --> pydantic-core
+    pydantic -- ">=0.4.0" --> typing-inspection
     pydantic -- ">=0.6.0" --> annotated-types
     pydantic -- ">=4.12.2" --> typing-extensions
     pydantic-core -- ">=4.6.0,!=4.7.0" --> typing-extensions
     pydantic-settings -- ">=0.21.0" --> python-dotenv
+    pydantic-settings -- ">=0.4.0" --> typing-inspection
     pydantic-settings -- ">=2.7.0" --> pydantic
     pydriller -- "any" --> gitpython
     pydriller -- "any" --> lizard
@@ -115,5 +119,6 @@ flowchart TD
     rich-click -- ">=10.7" --> rich
     rich-click -- ">=4" --> typing-extensions
     rich-click -- ">=7" --> click_0
+    typing-inspection -- ">=4.12.0" --> typing-extensions
     wcmatch -- ">=2.1.1" --> bracex
 
