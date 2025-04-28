@@ -339,6 +339,11 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     "test plan.",
 )
 @option(
+    "--show-trace-on-error/--hide-trace-on-error",
+    default=True,
+    help="Show execution trace of failed tests.",
+)
+@option(
     "--stats/--no-stats",
     is_flag=True,
     default=True,
@@ -352,6 +357,7 @@ def test_plan(
     skip_platform: tuple[str, ...] | None,
     exit_on_error: bool,
     timeout: float | None,
+    show_trace_on_error: bool,
     stats: bool,
 ) -> None:
     # Load test plan from workflow input, or use a default one.
@@ -399,6 +405,8 @@ def test_plan(
         except Exception as ex:
             counter["failed"] += 1
             logging.error(f"Test {test_name} failed: {ex}")
+            if show_trace_on_error:
+                echo(test_case.execution_trace or "No execution trace available.")
             if exit_on_error:
                 logging.debug("Don't continue testing, a failed test was found.")
                 sys.exit(1)

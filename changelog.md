@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add a new `--show-trace-on-error`/`--hide-trace-on-error` option to `gha-utils test-plan` command to show execution trace of CLI on error.
+
 ## [4.16.1 (2025-04-26)](https://github.com/kdeldycke/workflows/compare/v4.16.0...v4.16.1)
 
 - Use latest `gha-utils` CLI to build ARM64 binaries by default.

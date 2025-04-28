@@ -64,6 +64,9 @@ class CLITestCase:
     stdout_regex_fullmatch: re.Pattern | str | None = None
     stderr_regex_fullmatch: re.Pattern | str | None = None
 
+    execution_trace: str | None = None
+    """User-friendly rendering of the CLI command execution and its output."""
+
     def __post_init__(self) -> None:
         """Normalize all fields."""
         for field_id, field_data in asdict(self).items():
@@ -208,7 +211,9 @@ class CLITestCase:
                 f"CLI timed out after {self.timeout} seconds: {' '.join(clean_args)}"
             )
 
-        for line in render_cli_run(clean_args, result).splitlines():
+        # Execution has been completed, save the output for user's inspection.
+        self.execution_trace = render_cli_run(clean_args, result)
+        for line in self.execution_trace.splitlines():
             logging.info(line)
 
         for field_id, field_data in asdict(self).items():
