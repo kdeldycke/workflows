@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Bump dependencies.
+
 ## [4.16.2 (2025-04-28)](https://github.com/kdeldycke/workflows/compare/v4.16.1...v4.16.2)
 
 - Add a new `--show-trace-on-error`/`--hide-trace-on-error` option to `gha-utils test-plan` command to show execution trace of CLI on error.
