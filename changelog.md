@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.16.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.16.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.16.3 (2025-05-13)](https://github.com/kdeldycke/workflows/compare/v4.16.2...v4.16.3)
 
 - Bump dependencies.
 
