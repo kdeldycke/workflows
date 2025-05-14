@@ -161,11 +161,13 @@ class Mailmap:
 
     def render(self) -> str:
         """Render internal records in Mailmap format."""
-        # Extract the pre-comment from the first record, if any, so we can keep it attached to the top of the file.
+        # Extract the pre-comment from the first record, if any, so we can keep it
+        # attached to the top of the file.
         top_comment = self.records[0].pre_comment if self.records else ""
         if top_comment:
             top_comment += "\n"
-            # Reset the pre-comment of the first record, so it doesn't get duplicated in the output.
+            # Reset the pre-comment of the first record, so it doesn't get duplicated
+            # in the output.
             self.records[0].pre_comment = ""
 
         return top_comment + "\n".join(
