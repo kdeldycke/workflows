@@ -25,7 +25,7 @@ from subprocess import run
 from boltons.iterutils import unique
 
 
-@dataclass(order=True, frozen=True)
+@dataclass(order=True)
 class Record:
     """A mailmap identity mapping entry."""
 
@@ -161,6 +161,13 @@ class Mailmap:
 
     def render(self) -> str:
         """Render internal records in Mailmap format."""
-        return "\n".join(
+        # Extract the pre-comment from the first record, if any, so we can keep it attached to the top of the file.
+        top_comment = self.records[0].pre_comment if self.records else ""
+        if top_comment:
+            top_comment += "\n"
+            # Reset the pre-comment of the first record, so it doesn't get duplicated in the output.
+            self.records[0].pre_comment = ""
+
+        return top_comment + "\n".join(
             map(str, sorted(self.records, key=lambda r: r.canonical.casefold()))
         )
