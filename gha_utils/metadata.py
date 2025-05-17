@@ -173,6 +173,7 @@ from typing import Any, Final, Iterator, cast
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
+from extra_platforms import is_github_ci
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
@@ -292,15 +293,6 @@ class Metadata:
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
-    def in_ci_env(self) -> bool:
-        """Returns ``True`` if the code is executed in a GitHub Actions runner.
-
-        Other CI are available at:
-        https://github.com/cucumber/ci-environment/blob/main/python/src/ci_environment/CiEnvironments.json
-        """
-        return bool("GITHUB_RUN_ID" in os.environ)
-
-    @cached_property
     def github_context(self) -> dict[str, Any]:
         """Load GitHub context from the environment.
 
@@ -321,7 +313,7 @@ class Metadata:
             JSON/env hack above.
         """
         if "GITHUB_CONTEXT" not in os.environ:
-            if self.in_ci_env:
+            if is_github_ci():
                 message = (
                     "Missing GitHub context in environment. "
                     "Did you forget to set GITHUB_CONTEXT?"
@@ -401,7 +393,7 @@ class Metadata:
                 "We need to look into the commit history. Inspect the initial state of the repository."
             )
 
-            if not self.in_ci_env:
+            if not is_github_ci():
                 raise RuntimeError(
                     "Local repository manipulations only allowed in CI environment"
                 )
@@ -476,7 +468,7 @@ class Metadata:
         .. todo::
             Add detection of all workflow trigger events.
         """
-        if not self.in_ci_env:
+        if not is_github_ci():
             logging.warning(
                 "Cannot guess event type because we're not in a CI environment."
             )
