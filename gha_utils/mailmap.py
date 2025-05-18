@@ -35,6 +35,11 @@ class Record:
     aliases: set[str] = field(default_factory=set)
     pre_comment: str = ""
 
+    def __post_init__(self) -> None:
+        """Empty pre-comment are normalized to empty string, even if they are multi-lines."""
+        if self.pre_comment.strip() == "":
+            self.pre_comment = ""
+
     def __str__(self) -> str:
         """Render the record with pre-comments first, followed by the identity mapping.
 
@@ -58,7 +63,11 @@ class Mailmap:
     <https://git-scm.com/docs/gitmailmap>`_.
     """
 
-    records: list[Record] = list()
+    records: list[Record]
+
+    def __init__(self) -> None:
+        """Initialize the mailmap with an empty list of records."""
+        self.records = []
 
     @staticmethod
     def split_identities(mapping: str) -> tuple[str, set[str]]:
