@@ -38,7 +38,7 @@ from click_extra import (
     pass_context,
 )
 from click_extra.envvar import merge_envvar_ids
-from extra_platforms import ALL_IDS
+from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
 from .changelog import Changelog
@@ -156,7 +156,7 @@ def metadata(ctx, format, overwrite, output_path):
     metadata = Metadata()
 
     # Output a warning in GitHub runners if metadata are not saved to $GITHUB_OUTPUT.
-    if metadata.in_ci_env:
+    if is_github_ci():
         env_file = os.getenv("GITHUB_OUTPUT")
         if env_file and Path(env_file) != output_path:
             logging.warning(
