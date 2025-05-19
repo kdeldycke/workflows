@@ -134,6 +134,9 @@ jobs:
       - uses: actions/setup-python@v5.6.0
         if: matrix.os == 'windows-11-arm'
         with:
+          # XXX Python version here does not really matter but we had to set it for the action to pick-up the
+          # architecture parameter.
+          python-version: "3.13"
           architecture: arm64
       - name: Install uv
         run: |
