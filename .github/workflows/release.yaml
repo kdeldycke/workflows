@@ -165,7 +165,7 @@ jobs:
         #   CPU Type      : AMD x86-64
         # macOS:
         #   CPU Type      : ARM 64-bit
-        #   CPU Type      :
+        #   CPU Type      : x86 64-bit
         # Windows
         #   Machine Type  : ARM64 little endian
         #   Machine Type  : AMD AMD64
