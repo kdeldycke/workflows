@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Inspect binary metadata after compiling them with Nuitka.
+
 ## [4.16.4 (2025-05-18)](https://github.com/kdeldycke/workflows/compare/v4.16.3...v4.16.4)
 
 - Keep to the top the first comment in `.mailmap` files.
