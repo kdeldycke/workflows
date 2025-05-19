@@ -160,6 +160,15 @@ jobs:
         run: |
           choco install exiftool --no-progress --yes
       - name: Binary metadata
+        # Ubuntu:
+        #   CPU Type      : Arm 64-bits (Armv8/AArch64)
+        #   CPU Type      : AMD x86-64
+        # macOS:
+        #   CPU Type      : ARM 64-bit
+        #   CPU Type      :
+        # Windows
+        #   Machine Type  : ARM64 little endian
+        #   Machine Type  : AMD AMD64
         run: |
           exiftool${{ runner.os == 'Windows' && '.exe' || '' }} ${{ matrix.bin_name }}
       - name: Upload binaries
