@@ -5,7 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Inspect binary metadata after compiling them with Nuitka.
+- Print binary metadata after compiling them with Nuitka.
+- Fix production of arm64 binaries on Windows.
 
 ## [4.16.4 (2025-05-18)](https://github.com/kdeldycke/workflows/compare/v4.16.3...v4.16.4)
 
