@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.16.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.16.4...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.16.5 (2025-05-19)](https://github.com/kdeldycke/workflows/compare/v4.16.4...v4.16.5)
 
 - Print binary metadata after compiling them with Nuitka.
 - Fix production of arm64 binaries on Windows.
