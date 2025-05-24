@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add a `state` parameter to the Nuitka build matrix and mark `windows-11-arm` as unstable target while we wait for `lxml` to work on it.
+
 ## [4.16.5 (2025-05-19)](https://github.com/kdeldycke/workflows/compare/v4.16.4...v4.16.5)
 
 - Print binary metadata after compiling them with Nuitka.

@@ -144,7 +144,10 @@ nuitka_matrix={'entry_point': ['mpm'],
                              'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
                              'os': 'windows-2025',
                              'arch': 'x64',
-                             'bin_name': 'mpm-windows-x64-build-6f27db4.exe'}]}
+                             'bin_name': 'mpm-windows-x64-build-6f27db4.exe'},
+                            {'state': 'stable'},
+                            {'state': 'unstable',
+                             'os': 'windows-11-arm'}]}
 ```
 
 .. warning::
@@ -1027,6 +1030,13 @@ class Metadata:
                         "arch": "x64",
                         "bin_name": "mpm-windows-x64-build-6f27db4.exe",
                     },
+                    {
+                        "state": "stable",
+                    },
+                    {
+                        "state": "unstable",
+                        "os": "windows-11-arm",
+                    },
                 ],
             }
         """
@@ -1136,6 +1146,42 @@ class Metadata:
                 "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
             ).format(**variations)
             matrix.add_includes(bin_name_include)
+
+        matrix.add_includes(
+            # Default all jobs as stable, unless marked otherwise below.
+            {"state": "stable"},
+            # XXX Projects dependendong on lxml will not be able to compile on Windows
+            # ARM64: https://bugs.launchpad.net/lxml/+bug/2004481
+            #
+            # I tried to rely on vcpkg but this didn't work:
+            #   - run: |
+            #       vcpkg install libxml2:arm64-windows
+            #       vcpkg install libxslt:arm64-windows
+            #       vcpkg integrate install
+            #
+            # Another possibility would be to install the pre-built binaries available
+            # at: https://github.com/lxml/libxml2-win-binaries
+            #
+            # But all build attempts ends up with:
+            #   C:\Users\RUNNER~1\AppData\Local\Temp\xmlXPathInit8xwj7_4f.c(1): fatal
+            #   error C1083: Cannot open include file: 'libxml/xpath.h': No such file
+            #   or directory
+            #   ***********************************************************************
+            #   Could not find function xmlXPathInit in library libxml2. Is libxml2
+            #   installed?
+            #   Is your C compiler installed and configured correctly?
+            #   ***********************************************************************
+            #   error: command 'C:\\Program Files\\Microsoft Visual
+            #   Studio\\2022\\Enterprise\\VC\\Tools\\MSVC\\14.43.34808\\bin\\HostARM64
+            #   \\ARM64\\cl.exe'
+            #   failed with exit code 2
+            #   hint: This usually indicates a problem with the package or the build
+            #   environment.
+            #
+            # So keep an eye on Meta Package Manager builds, maybe one day it will
+            # succeed once the lxml project will works on Windows ARM64.
+            {"state": "unstable", "os": "windows-11-arm"},
+        )
 
         return matrix
 
