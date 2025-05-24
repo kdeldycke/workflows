@@ -117,13 +117,15 @@ jobs:
       # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
 
   compile-binaries:
-    name: "Nuitka compilation: ${{ matrix.os }}, ${{ matrix.commit }}"
+    name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.commit }}"
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.nuitka_matrix
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
+    # We keep going when a job flagged as not stable fails.
+    continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
       - uses: actions/checkout@v4.2.2
         with:
