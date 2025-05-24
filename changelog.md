@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.16.7 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.16.6...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.16.6 (2025-05-24)](https://github.com/kdeldycke/workflows/compare/v4.16.5...v4.16.6)
 
 - Add a `state` parameter to the Nuitka build matrix and mark `windows-11-arm` as unstable target while we wait for `lxml` to work on it.
