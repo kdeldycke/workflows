@@ -83,7 +83,9 @@ def test_metadata_github_format():
             r'"bin_name": "gha-utils-windows-arm64-build-[a-z0-9]+\.exe"\}, '
             r'\{"os": "windows-2025", "entry_point": "gha-utils", '
             r'"commit": "[a-z0-9]+", '
-            r'"bin_name": "gha-utils-windows-x64-build-[a-z0-9]+\.exe"\}\]\}\n'
+            r'"bin_name": "gha-utils-windows-x64-build-[a-z0-9]+\.exe"\}, '
+            r'\{"state": "stable"\}, '
+            r'\{"state": "unstable", "os": "windows-11-arm"\}\]\}\n'
         ),
         metadata.dump(Dialects.github),
         re.DOTALL,
@@ -154,7 +156,9 @@ def test_metadata_plain_format():
             r"'bin_name': 'gha-utils-windows-arm64-build-[a-z0-9]+\.exe'\}, "
             r"\{'os': 'windows-2025', 'entry_point': 'gha-utils', "
             r"'commit': '[a-z0-9]+', "
-            r"'bin_name': 'gha-utils-windows-x64-build-[a-z0-9]+\.exe'\}\); "
+            r"'bin_name': 'gha-utils-windows-x64-build-[a-z0-9]+\.exe'\}, "
+            r"\{'state': 'stable'\}, "
+            r"\{'state': 'unstable', 'os': 'windows-11-arm'\}\); "
             r"exclude=\(\)>\}"
         ),
         metadata.dump(Dialects.plain),
