@@ -7,6 +7,13 @@ name: Build & release
       PYPI_TOKEN:
         required: false
     inputs:
+      unstable-targets:
+        description: List of unstable targets on which the build should be attempted but not fatal
+        required: false
+        # XXX This has to be a string because workflow inputs are not allowed to be complex types.
+        # Still, thanks to gha-utils resilience, we can pass a list of targets as a string, separated
+        # by arbitrary sepatarators.
+        type: string
       timeout:
         description: Timeout in seconds for each binary test
         required: false
@@ -88,7 +95,9 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          gha-utils --verbosity DEBUG metadata
+          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
+          --overwrite "$GITHUB_OUTPUT"
 
   package-build:
     name: Build package
@@ -111,7 +120,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
           path: ./dist/*
       # TODO: Should we also attest the archive created here? See:
       # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
@@ -273,7 +282,7 @@ jobs:
         uses: actions/download-artifact@v4.3.0
         id: download
         with:
-          name: ${{ github.event.repository.name }}-build-${{ matrix.short_sha }}
+          name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
       - name: Generate attestations
         uses: actions/attest-build-provenance@v2.3.0
         with:
@@ -311,7 +320,7 @@ jobs:
         with:
           path: release_artifact
           # Only consider artifacts produced by the release commit.
-          pattern: "*-build-${{ matrix.short_sha }}*"
+          pattern: "*-${{ matrix.short_sha }}*"
           merge-multiple: true
       - name: Collect all artefacts, rename binaries
         # Do not try to rename artifacts if none have been downloaded.
@@ -340,7 +349,7 @@ jobs:
 
               # Rename binary artifacts to remove the build ID.
               if artifact.name in binaries:
-                  new_name = f'{artifact.stem.split("""-build-${{ matrix.short_sha }}""", 1)[0]}{artifact.suffix}'
+                  new_name = f'{artifact.stem.split("""-${{ matrix.short_sha }}""", 1)[0]}{artifact.suffix}'
                   new_path = artifact.with_name(new_name)
 
                   print(f"Renaming {artifact} to {new_path} ...")
