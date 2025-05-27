@@ -46,108 +46,100 @@ release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
                         'include': [{'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
                                      'short_sha': '6f27db4',
                                      'current_version': '2.0.0'}]}
-nuitka_matrix={'entry_point': ['mpm'],
+nuitka_matrix={'os': ['ubuntu-24.04-arm', 'ubuntu-24.04', 'macos-15', 'macos-13', 'windows-11-arm', 'windows-2025'],
+               'entry_point': ['mpm'],
                'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
                           '6f27db47612aaee06fdf08744b09a9f5f6c2'],
-                'os': ['ubuntu-24.04-arm', 'ubuntu-24.04', 'macos-15', 'macos-13', 'windows-11-arm', 'windows-2025'],
-                'include': [{'entry_point': 'mpm',
-                             'cli_id': 'mpm',
-                             'module_id': 'meta_package_manager.__main__',
-                             'callable_id': 'main',
-                             'module_path': 'meta_package_manager/__main__.py'},
-                            {'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'short_sha': '346ce66',
-                             'current_version': '2.0.0'},
-                            {'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'short_sha': '6f27db4',
-                             'current_version': '1.9.1'},
-                            {'os': 'ubuntu-24.04-arm',
-                             'platform_id': 'linux',
-                             'arch': 'arm64',
-                             'extension': 'bin'},
-                            {'os': 'ubuntu-24.04',
-                             'platform_id': 'linux',
-                             'arch': 'x64',
-                             'extension': 'bin'},
-                            {'os': 'macos-15',
-                             'platform_id': 'macos',
-                             'arch': 'arm64',
-                             'extension': 'bin'},
-                            {'os': 'macos-13',
-                             'platform_id': 'macos',
-                             'arch': 'x64',
-                             'extension': 'bin'},
-                            {'os': 'windows-11-arm',
-                             'platform_id": 'windows',
-                             'arch": 'arm64',
-                             'extension": 'exe'},
-                            {'os': 'windows-2025',
-                             'platform_id': 'windows',
-                             'arch': 'x64',
-                             'extension': 'exe'},
-                            {'entry_point': 'mpm',
-                             'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'ubuntu-24.04-arm',
-                             'arch': 'arm64',
-                             'bin_name': 'mpm-linux-arm64-build-346ce66.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'ubuntu-24.04-arm',
-                             'arch': 'arm64',
-                             'bin_name': 'mpm-linux-arm64-build-6f27db4.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'ubuntu-24.04',
-                             'arch': 'x64',
-                             'bin_name': 'mpm-linux-x64-build-346ce66.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'ubuntu-24.04',
-                             'arch': 'x64',
-                             'bin_name': 'mpm-linux-x64-build-6f27db4.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'macos-15',
-                             'arch': 'arm64',
-                             'bin_name': 'mpm-macos-arm64-build-346ce66.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'macos-15',
-                             'arch': 'arm64',
-                             'bin_name': 'mpm-macos-arm64-build-6f27db4.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'macos-13',
-                             'arch': 'x64',
-                             'bin_name': 'mpm-macos-x64-build-346ce66.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'macos-13',
-                             'arch': 'x64',
-                             'bin_name': 'mpm-macos-x64-build-6f27db4.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'windows-11-arm',
-                             'arch': 'arm64',
-                             'bin_name': 'mpm-windows-arm64-build-346ce66.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'windows-11-arm',
-                             'arch': 'arm64',
-                             'bin_name': 'mpm-windows-arm64-build-6f27db4.bin'},
-                            {'entry_point': 'mpm',
-                             'commit': '346ce664f055fbd042a25ee0b7e96702e95',
-                             'os': 'windows-2025',
-                             'arch': 'x64',
-                             'bin_name': 'mpm-windows-x64-build-346ce66.exe'},
-                            {'entry_point': 'mpm',
-                             'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
-                             'os': 'windows-2025',
-                             'arch': 'x64',
-                             'bin_name': 'mpm-windows-x64-build-6f27db4.exe'},
-                            {'state': 'stable'},
-                            {'state': 'unstable',
-                             'os': 'windows-11-arm'}]}
+               'include': [{'target': 'linux-arm64',
+                            'os': 'ubuntu-24.04-arm',
+                            'platform_id': 'linux',
+                            'arch': 'arm64',
+                            'extension': 'bin'},
+                           {'target': 'linux-x64',
+                            'os': 'ubuntu-24.04',
+                            'platform_id': 'linux',
+                            'arch': 'x64',
+                            'extension': 'bin'},
+                           {'target': 'macos-arm64',
+                            'os': 'macos-15',
+                            'platform_id': 'macos',
+                            'arch': 'arm64',
+                            'extension': 'bin'},
+                           {'target': 'macos-x64',
+                            'os': 'macos-13',
+                            'platform_id': 'macos',
+                            'arch': 'x64',
+                            'extension': 'bin'},
+                           {'target': 'windows-arm64',
+                            'os': 'windows-11-arm',
+                            'platform_id": 'windows',
+                            'arch": 'arm64',
+                            'extension": 'exe'},
+                           {'target': 'windows-x64',
+                            'os': 'windows-2025',
+                            'platform_id': 'windows',
+                            'arch': 'x64',
+                            'extension': 'exe'},
+                           {'entry_point': 'mpm',
+                            'cli_id': 'mpm',
+                            'module_id': 'meta_package_manager.__main__',
+                            'callable_id': 'main',
+                            'module_path': 'meta_package_manager/__main__.py'},
+                           {'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                            'short_sha': '346ce66',
+                            'current_version': '2.0.0'},
+                           {'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                            'short_sha': '6f27db4',
+                            'current_version': '1.9.1'},
+                           {'os': 'ubuntu-24.04-arm',
+                            'entry_point': 'mpm',
+                            'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                            'bin_name': 'mpm-linux-arm64-346ce66.bin'},
+                           {'os': 'ubuntu-24.04-arm',
+                            'entry_point': 'mpm',
+                            'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                            'bin_name': 'mpm-linux-arm64-6f27db4.bin'},
+                           {'os': 'ubuntu-24.04',
+                            'entry_point': 'mpm',
+                            'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                            'bin_name': 'mpm-linux-x64-346ce66.bin'},
+                           {'os': 'ubuntu-24.04',
+                            'entry_point': 'mpm',
+                            'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                            'bin_name': 'mpm-linux-x64-6f27db4.bin'},
+                           {'os': 'macos-15',
+                            'entry_point': 'mpm',
+                            'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                            'bin_name': 'mpm-macos-arm64-346ce66.bin'},
+                           {'os': 'macos-15',
+                            'entry_point': 'mpm',
+                            'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                            'bin_name': 'mpm-macos-arm64-6f27db4.bin'},
+                           {'os': 'macos-13',
+                            'entry_point': 'mpm',
+                            'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                            'bin_name': 'mpm-macos-x64-346ce66.bin'},
+                           {'os': 'macos-13',
+                            'entry_point': 'mpm',
+                            'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                            'bin_name': 'mpm-macos-x64-6f27db4.bin'},
+                           {'os': 'windows-11-arm',
+                            'entry_point': 'mpm',
+                            'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                            'bin_name': 'mpm-windows-arm64-346ce66.bin'},
+                           {'os': 'windows-11-arm',
+                            'entry_point': 'mpm',
+                            'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                            'bin_name': 'mpm-windows-arm64-6f27db4.bin'},
+                           {'os': 'windows-2025',
+                            'entry_point': 'mpm',
+                            'commit': '346ce664f055fbd042a25ee0b7e96702e95',
+                            'bin_name': 'mpm-windows-x64-346ce66.exe'},
+                           {'os': 'windows-2025',
+                            'entry_point': 'mpm',
+                            'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
+                            'bin_name': 'mpm-windows-x64-6f27db4.exe'},
+                           {'state': 'stable'}]}
 ```
 
 .. warning::
@@ -168,6 +160,7 @@ import tomllib
 from collections.abc import Iterable
 from enum import StrEnum
 from functools import cached_property
+from operator import itemgetter
 from pathlib import Path
 from random import randint
 from re import escape
@@ -201,6 +194,76 @@ SHORT_SHA_LENGTH = 7
 
     The `default is subject to change <https://stackoverflow.com/a/21015031>`_ and
     depends on the size of the repository.
+"""
+
+
+NUITKA_BUILD_TARGETS = {
+    "linux-arm64": {
+        "os": "ubuntu-24.04-arm",
+        "platform_id": "linux",
+        "arch": "arm64",
+        "extension": "bin",
+    },
+    "linux-x64": {
+        "os": "ubuntu-24.04",
+        "platform_id": "linux",
+        "arch": "x64",
+        "extension": "bin",
+    },
+    "macos-arm64": {
+        "os": "macos-15",
+        "platform_id": "macos",
+        "arch": "arm64",
+        "extension": "bin",
+    },
+    "macos-x64": {
+        "os": "macos-13",
+        "platform_id": "macos",
+        "arch": "x64",
+        "extension": "bin",
+    },
+    "windows-arm64": {
+        "os": "windows-11-arm",
+        "platform_id": "windows",
+        "arch": "arm64",
+        "extension": "exe",
+    },
+    "windows-x64": {
+        "os": "windows-2025",
+        "platform_id": "windows",
+        "arch": "x64",
+        "extension": "exe",
+    },
+}
+"""List of GitHub-hosted runners used for Nuitka builds.
+
+The key of the dictionary is the target name, which is used as a short name for
+user-friendlyness. As such, it is used to name the compiled binary.
+
+Values are dictionaries with the following keys:
+
+- ``os``: Operating system name, as used in `GitHub-hosted runners
+    <https://docs.github.com/en/actions/writing-workflows/choosing-where-your-workflow-runs/choosing-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories>`_.
+
+    .. hint::
+        We choose to run the compilation only on the latest supported version of each
+        OS, for each architecture. Note that macOS and Windows do not have the latest
+        version available for each architecture.
+
+- ``platform_id``: Platform identifier, as defined by `Extra Platform
+  <https://github.com/kdeldycke/extra-platforms>`_.
+
+- ``arch``: Architecture identifier.
+
+    .. note::
+        Architecture IDs are `inspired from those specified for self-hosted runners
+        <https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures>`_
+
+    .. note::
+        Maybe we should just adopt `target triple
+        <https://mcyoung.xyz/2025/04/14/target-triples/>`_.
+
+- ``extension``: File extension of the compiled binary.
 """
 
 
@@ -885,11 +948,6 @@ class Metadata:
 
         .. code-block:: python
             {
-                "entry_point": ["mpm"],
-                "commit": [
-                    "346ce664f055fbd042a25ee0b7e96702e95",
-                    "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                ],
                 "os": [
                     "ubuntu-24.04-arm",
                     "ubuntu-24.04",
@@ -898,7 +956,56 @@ class Metadata:
                     "windows-11-arm",
                     "windows-2025",
                 ],
+                "entry_point": [
+                    "mpm",
+                ],
+                "commit": [
+                    "346ce664f055fbd042a25ee0b7e96702e95",
+                    "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                ],
                 "include": [
+                    {
+                        "target": "linux-arm64",
+                        "os": "ubuntu-24.04-arm",
+                        "platform_id": "linux",
+                        "arch": "arm64",
+                        "extension": "bin",
+                    },
+                    {
+                        "target": "linux-x64",
+                        "os": "ubuntu-24.04",
+                        "platform_id": "linux",
+                        "arch": "x64",
+                        "extension": "bin",
+                    },
+                    {
+                        "target": "macos-arm64",
+                        "os": "macos-15",
+                        "platform_id": "macos",
+                        "arch": "arm64",
+                        "extension": "bin",
+                    },
+                    {
+                        "target": "macos-x64",
+                        "os": "macos-13",
+                        "platform_id": "macos",
+                        "arch": "x64",
+                        "extension": "bin",
+                    },
+                    {
+                        "target": "windows-arm64",
+                        "os": "windows-11-arm",
+                        "platform_id": "windows",
+                        "arch": "arm64",
+                        "extension": "exe",
+                    },
+                    {
+                        "target": "windows-x64",
+                        "os": "windows-2025",
+                        "platform_id": "windows",
+                        "arch": "x64",
+                        "extension": "exe",
+                    },
                     {
                         "entry_point": "mpm",
                         "cli_id": "mpm",
@@ -918,130 +1025,78 @@ class Metadata:
                     },
                     {
                         "os": "ubuntu-24.04-arm",
-                        "platform_id": "linux",
-                        "arch": "arm64",
-                        "extension": "bin",
-                    },
-                    {
-                        "os": "ubuntu-24.04",
-                        "platform_id": "linux",
-                        "arch": "x64",
-                        "extension": "bin",
-                    },
-                    {
-                        "os": "macos-15",
-                        "platform_id": "macos",
-                        "arch": "arm64",
-                        "extension": "bin",
-                    },
-                    {
-                        "os": "macos-13",
-                        "platform_id": "macos",
-                        "arch": "x64",
-                        "extension": "bin",
-                    },
-                    {
-                        "os": "windows-11-arm",
-                        "platform_id": "windows",
-                        "arch": "arm64",
-                        "extension": "exe",
-                    },
-                    {
-                        "os": "windows-2025",
-                        "platform_id": "windows",
-                        "arch": "x64",
-                        "extension": "exe",
-                    },
-                    {
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                        "bin_name": "mpm-linux-arm64-346ce66.bin",
+                    },
+                    {
                         "os": "ubuntu-24.04-arm",
-                        "arch": "arm64",
-                        "bin_name": "mpm-linux-arm64-build-346ce66.bin",
-                    },
-                    {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "os": "ubuntu-24.04-arm",
-                        "arch": "arm64",
-                        "bin_name": "mpm-linux-arm64-build-6f27db4.bin",
+                        "bin_name": "mpm-linux-arm64-6f27db4.bin",
                     },
                     {
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "os": "ubuntu-24.04",
-                        "arch": "x64",
-                        "bin_name": "mpm-linux-x64-build-346ce66.bin",
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                        "bin_name": "mpm-linux-x64-346ce66.bin",
                     },
                     {
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "os": "ubuntu-24.04",
-                        "arch": "x64",
-                        "bin_name": "mpm-linux-x64-build-6f27db4.bin",
+                        "entry_point": "mpm",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                        "bin_name": "mpm-linux-x64-6f27db4.bin",
                     },
                     {
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "os": "macos-15",
-                        "arch": "arm64",
-                        "bin_name": "mpm-macos-arm64-build-346ce66.bin",
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                        "bin_name": "mpm-macos-arm64-346ce66.bin",
                     },
                     {
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "os": "macos-15",
-                        "arch": "arm64",
-                        "bin_name": "mpm-macos-arm64-build-6f27db4.bin",
+                        "entry_point": "mpm",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                        "bin_name": "mpm-macos-arm64-6f27db4.bin",
                     },
                     {
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "os": "macos-13",
-                        "arch": "x64",
-                        "bin_name": "mpm-macos-x64-build-346ce66.bin",
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                        "bin_name": "mpm-macos-x64-346ce66.bin",
                     },
                     {
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "os": "macos-13",
-                        "arch": "x64",
-                        "bin_name": "mpm-macos-x64-build-6f27db4.bin",
-                    },
-                    {
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "os": "windows-11-arm",
-                        "arch": "arm64",
-                        "bin_name": "mpm-windows-arm64-build-346ce66.bin",
-                    },
-                    {
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "os": "windows-11-arm",
-                        "arch": "arm64",
-                        "bin_name": "mpm-windows-arm64-build-6f27db4.bin",
+                        "bin_name": "mpm-macos-x64-6f27db4.bin",
                     },
                     {
+                        "os": "windows-11-arm",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "os": "windows-2025",
-                        "arch": "x64",
-                        "bin_name": "mpm-windows-x64-build-346ce66.exe",
+                        "bin_name": "mpm-windows-arm64-346ce66.bin",
                     },
                     {
+                        "os": "windows-11-arm",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                        "bin_name": "mpm-windows-arm64-6f27db4.bin",
+                    },
+                    {
                         "os": "windows-2025",
-                        "arch": "x64",
-                        "bin_name": "mpm-windows-x64-build-6f27db4.exe",
+                        "entry_point": "mpm",
+                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                        "bin_name": "mpm-windows-x64-346ce66.exe",
+                    },
+                    {
+                        "os": "windows-2025",
+                        "entry_point": "mpm",
+                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                        "bin_name": "mpm-windows-x64-6f27db4.exe",
                     },
                     {
                         "state": "stable",
-                    },
-                    {
-                        "state": "unstable",
-                        "os": "windows-11-arm",
                     },
                 ],
             }
@@ -1052,20 +1107,13 @@ class Metadata:
 
         matrix = Matrix()
 
-        # Run the compilation only on the latest supported version of each OS. Note
-        # that macOS and Windows do not have the latest version available for each
-        # architecture.
+        # Register all runners on which we want to run Nuitka builds.
         matrix.add_variation(
-            "os",
-            (
-                "ubuntu-24.04-arm",  # arm64
-                "ubuntu-24.04",  # x64
-                "macos-15",  # arm64
-                "macos-13",  # x64
-                "windows-11-arm",  # arm64
-                "windows-2025",  # x64
-            ),
+            "os", tuple(map(itemgetter("os"), NUITKA_BUILD_TARGETS.values()))
         )
+        # Augment each "os" entry with platform-specific data.
+        for target_id, target_data in NUITKA_BUILD_TARGETS.items():
+            matrix.add_includes({"target": target_id} | target_data)
 
         # Augment each entry point with some metadata.
         for cli_id, module_id, callable_id in self.script_entries:
@@ -1097,50 +1145,6 @@ class Metadata:
         matrix.add_variation("commit", build_commit_matrix["commit"])
         matrix.add_includes(*build_commit_matrix.include)
 
-        # Add platform-specific variables.
-        # Arch values are inspired from those specified for self-hosted runners:
-        # https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures
-        # XXX Maybe we should just adopt target triple:
-        # https://mcyoung.xyz/2025/04/14/target-triples/
-        matrix.add_includes(
-            {
-                "os": "ubuntu-24.04-arm",
-                "platform_id": "linux",
-                "arch": "arm64",
-                "extension": "bin",
-            },
-            {
-                "os": "ubuntu-24.04",
-                "platform_id": "linux",
-                "arch": "x64",
-                "extension": "bin",
-            },
-            {
-                "os": "macos-15",
-                "platform_id": "macos",
-                "arch": "arm64",
-                "extension": "bin",
-            },
-            {
-                "os": "macos-13",
-                "platform_id": "macos",
-                "arch": "x64",
-                "extension": "bin",
-            },
-            {
-                "os": "windows-11-arm",
-                "platform_id": "windows",
-                "arch": "arm64",
-                "extension": "exe",
-            },
-            {
-                "os": "windows-2025",
-                "platform_id": "windows",
-                "arch": "x64",
-                "extension": "exe",
-            },
-        )
-
         # Augment each variation set of the matrix with a the binary name to be
         # produced by Nuitka. Itererate over all matrix variation sets so we have all
         # metadata necessary to generate a unique name specific to these variations.
@@ -1149,7 +1153,7 @@ class Metadata:
             # so we need a copy the main variants it corresponds to.
             bin_name_include = {k: variations[k] for k in matrix}
             bin_name_include["bin_name"] = (
-                "{cli_id}-{platform_id}-{arch}-build-{short_sha}.{extension}"
+                "{cli_id}-{target}-{short_sha}.{extension}"
             ).format(**variations)
             matrix.add_includes(bin_name_include)
 
