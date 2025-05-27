@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import re
+from string import ascii_lowercase, digits
 
 from extra_platforms import ALL_IDS
 
@@ -40,9 +41,13 @@ def test_nuitka_targets():
         assert isinstance(target_data["arch"], str)
         assert isinstance(target_data["extension"], str)
 
-        target_id = target_data["platform_id"] + "-" + target_data["arch"]
-
+        assert set(target_data["os"]).issubset(ascii_lowercase + digits + "-.")
         assert target_data["platform_id"] in ALL_IDS
+        assert target_data["arch"] in {"arm64", "x64"}
+        assert set(target_data["extension"]).issubset(ascii_lowercase)
+
+        assert target_id == target_data["platform_id"] + "-" + target_data["arch"]
+        assert set(target_id).issubset(ascii_lowercase + digits + "-")
 
 
 def test_metadata_github_format():

@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add a new `-u`/`--unstable-target` option to `metadata` command to allow some Nuitka builds to fail.
 - Do not flag `windows-11-arm` as unstable by default for Nuitka builds.
 - Refactor management of Nuitka build parameters.
 - Remove `-build` suffix in binary names produced by Nuitka.

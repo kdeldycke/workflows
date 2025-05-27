@@ -269,7 +269,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.16.7"
+version = "4.17.0"
 source = { editable = "." }
 dependencies = [
     { name = "boltons" },
@@ -398,15 +398,15 @@ wheels = [
 
 [[package]]
 name = "lizard"
-version = "1.17.30"
+version = "1.17.31"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pathspec" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f0/29/ff8f58e4e495cb31d6826e89b26d9aa411c211f46edb1625a7aa061af609/lizard-1.17.30.tar.gz", hash = "sha256:fbe1cfadb28402baaf6c858ec1eca1b9e1b62ca9826a16471e2e1045c66c1b77", size = 74162, upload-time = "2025-05-12T09:24:56.709Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/c9/ef0a3a8df311938df2f15d3861073d3861bb2e32f43be85c3cf8f7f81ba8/lizard-1.17.31.tar.gz", hash = "sha256:af6b35d06bcc9718ff3db1ad7ce1f7645f2d8e07c2348e8873817f61d6592888", size = 75271, upload-time = "2025-05-25T09:21:43.13Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fb/18/077f18c91a2e37756ecf52482e33f755014f1125f457a20fba7fb0d10dfe/lizard-1.17.30-py2.py3-none-any.whl", hash = "sha256:2df9aad2829e8bfd7de8864e6ce9fea58c7809acf4cb4f550d05bf2fa91b83ad", size = 80984, upload-time = "2025-05-12T09:24:54.872Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/25/f3b7a347aae3c1f36ef86b5dfc3f05af8ec44e096725f675280c83073b57/lizard-1.17.31-py2.py3-none-any.whl", hash = "sha256:e2a87b0a6be04c2db41a0708fc81ac7ef50694c92360233b7b81088a9695076f", size = 82126, upload-time = "2025-05-25T09:21:40.347Z" },
 ]
 
 [[package]]

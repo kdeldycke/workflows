@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import sys
 from collections import Counter
 from datetime import datetime
@@ -43,7 +44,7 @@ from extra_platforms import ALL_IDS, is_github_ci
 from . import __version__
 from .changelog import Changelog
 from .mailmap import Mailmap
-from .metadata import Dialects, Metadata
+from .metadata import NUITKA_BUILD_TARGETS, Dialects, Metadata
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 
 
@@ -106,6 +107,14 @@ def gha_utils():
 
 @gha_utils.command(short_help="Output project metadata")
 @option(
+    "-u",
+    "--unstable-targets",
+    help="Build targets for which Nuitka is allowed to fail without comprimising the "
+    " release workflow. This option accepts a mangled string with multiple targets "
+    "separated by arbitrary separators. Recognized targets are: "
+    f"{', '.join(NUITKA_BUILD_TARGETS)}.",
+)
+@option(
     "--format",
     type=Choice(tuple(item.value for item in Dialects), case_sensitive=False),
     default="github",
@@ -125,7 +134,7 @@ def gha_utils():
     default="-",
 )
 @pass_context
-def metadata(ctx, format, overwrite, output_path):
+def metadata(ctx, unstable_targets, format, overwrite, output_path):
     """Dump project metadata to a file.
 
     By default the metadata produced are displayed directly to the console output.
@@ -153,7 +162,23 @@ def metadata(ctx, format, overwrite, output_path):
                 logging.critical(msg)
                 ctx.exit(2)
 
-    metadata = Metadata()
+    # Extract targets from the raw string provided by the user.
+    valid_targets = set()
+    if unstable_targets:
+        for target in re.split("[^a-z0-9\-]", unstable_targets.lower()):
+            if target:
+                if target not in NUITKA_BUILD_TARGETS:
+                    logging.fatal(
+                        f"Unrecognized {target!r} target. "
+                        f"Must be one of {', '.join(NUITKA_BUILD_TARGETS)}."
+                    )
+                    sys.exit(1)
+                valid_targets.add(target)
+        logging.debug(
+            f"Parsed {unstable_targets!r} string into {valid_targets} targets."
+        )
+
+    metadata = Metadata(valid_targets)
 
     # Output a warning in GitHub runners if metadata are not saved to $GITHUB_OUTPUT.
     if is_github_ci():

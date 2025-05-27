@@ -350,8 +350,11 @@ MYPY_VERSION_MIN: Final = (3, 8)
 class Metadata:
     """Metadata class."""
 
-    def __init__(self) -> None:
+    def __init__(self, unstable_targets: Iterable[str]) -> None:
         """Initialize internal variables."""
+        self.unstable_targets = set(unstable_targets)
+        assert self.unstable_targets.issubset(NUITKA_BUILD_TARGETS)
+
         # None indicates the is_python_project variable has not been evaluated yet.
         self._is_python_project: bool | None = None
 
@@ -1157,8 +1160,14 @@ class Metadata:
             ).format(**variations)
             matrix.add_includes(bin_name_include)
 
-        # All jobs are stable by default, unless marked otherwise by specific configuration.
+        # All jobs are stable by default, unless marked otherwise by specific
+        # configuration.
         matrix.add_includes({"state": "stable"})
+        for unstable_target in self.unstable_targets:
+            matrix.add_includes({
+                "state": "unstable",
+                "os": NUITKA_BUILD_TARGETS[unstable_target]["os"],
+            })
 
         return matrix
 
