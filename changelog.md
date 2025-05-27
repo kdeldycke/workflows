@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Do not flag `windows-11-arm` as unstable by default for Nuitka builds.
+
 ## [4.16.7 (2025-05-24)](https://github.com/kdeldycke/workflows/compare/v4.16.6...v4.16.7)
 
 - Always allows `windows-11-arm` target to fails for Nuitka builds.

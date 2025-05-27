@@ -124,8 +124,7 @@ def test_metadata_github_format():
             r'\{"os": "windows-2025", "entry_point": "gha-utils", '
             r'"commit": "[a-z0-9]+", '
             r'"bin_name": "gha-utils-windows-x64-[a-z0-9]+\.exe"\}, '
-            r'\{"state": "stable"\}, '
-            r'\{"state": "unstable", "os": "windows-11-arm"\}\]\}\n'
+            r'\{"state": "stable"\}\]\}\n'
         ),
         metadata.dump(Dialects.github),
         re.DOTALL,
@@ -202,8 +201,7 @@ def test_metadata_plain_format():
             r"\{'os': 'windows-2025', 'entry_point': 'gha-utils', "
             r"'commit': '[a-z0-9]+', "
             r"'bin_name': 'gha-utils-windows-x64-[a-z0-9]+\.exe'\}, "
-            r"\{'state': 'stable'\}, "
-            r"\{'state': 'unstable', 'os': 'windows-11-arm'\}\); "
+            r"\{'state': 'stable'\}\); "
             r"exclude=\(\)>\}"
         ),
         metadata.dump(Dialects.plain),
