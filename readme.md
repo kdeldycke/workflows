@@ -86,12 +86,12 @@ ABI targets:
 
 ```shell-session
 $ file ./gha-utils-*
-./gha-utils-linux-arm64-build-01ac36d.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=e35a1082c9c124edaa1c4b1bbb7e1aaf53baf870, for GNU/Linux 3.7.0, stripped
-./gha-utils-linux-x64-build-01ac36d.bin:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2874af3c68a8588ccdf9e59d5c1b78e2b5bdc5bb, for GNU/Linux 3.2.0, stripped
-./gha-utils-macos-arm64-build-01ac36d.bin:   Mach-O 64-bit executable arm64
-./gha-utils-macos-x64-build-01ac36d.bin:     Mach-O 64-bit executable x86_64
-./gha-utils-windows-arm64-build-01ac36d.exe: PE32+ executable (console) x86-64, for MS Windows
-./gha-utils-windows-x64-build-01ac36d.exe:   PE32+ executable (console) x86-64, for MS Windows
+./gha-utils-linux-arm64.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=520bfc6f2bb21f48ad568e46752888236552b26a, for GNU/Linux 3.7.0, stripped
+./gha-utils-linux-x64.bin:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=56ba24bccfa917e6ce9009223e4e83924f616d46, for GNU/Linux 3.2.0, stripped
+./gha-utils-macos-arm64.bin:   Mach-O 64-bit executable arm64
+./gha-utils-macos-x64.bin:     Mach-O 64-bit executable x86_64
+./gha-utils-windows-arm64.exe: PE32+ executable (console) Aarch64, for MS Windows
+./gha-utils-windows-x64.exe:   PE32+ executable (console) x86-64, for MS Windows
 ```
 
 ### Development version
