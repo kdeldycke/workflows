@@ -393,7 +393,8 @@ class Metadata:
         # repository.
         if past_commit_lookup:
             logging.debug(
-                "We need to look into the commit history. Inspect the initial state of the repository."
+                "We need to look into the commit history. Inspect the initial state "
+                "of the repository."
             )
 
             if not is_github_ci():
@@ -401,9 +402,9 @@ class Metadata:
                     "Local repository manipulations only allowed in CI environment"
                 )
 
-            # Save the initial commit reference and SHA of the repository. The reference is
-            # either the canonical active branch name (i.e. ``main``), or the commit SHA if
-            # the current HEAD commit is detached from a branch.
+            # Save the initial commit reference and SHA of the repository. The
+            # reference is either the canonical active branch name (i.e. ``main``), or
+            # the commit SHA if the current HEAD commit is detached from a branch.
             if git.repo.head.is_detached:
                 init_ref = current_commit
             else:
@@ -416,7 +417,8 @@ class Metadata:
             git.repo.git.stash()
             counter_after = self.git_stash_count(git)
             logging.debug(
-                f"Stash counter changes after 'git stash' command: {counter_before} -> {counter_after}"
+                "Stash counter changes after 'git stash' command: "
+                f"{counter_before} -> {counter_after}"
             )
             assert counter_after >= counter_before
             need_unstash = bool(counter_after > counter_before)
@@ -426,7 +428,8 @@ class Metadata:
             init_ref = None
             need_unstash = False
             logging.debug(
-                f"No need to look into the commit history: repository is already checked out at {current_commit}"
+                "No need to look into the commit history: repository is already "
+                f"checked out at {current_commit}"
             )
 
         matrix = Matrix()
@@ -465,7 +468,8 @@ class Metadata:
         .. caution::
             This property is based on a crude heuristics as it only looks at the value
             of the ``GITHUB_BASE_REF`` environment variable. Which is `only set when
-            the event that triggers a workflow run is either pull_request or pull_request_target
+            the event that triggers a workflow run is either pull_request or
+            pull_request_target
             <https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables>`_.
 
         .. todo::
@@ -499,9 +503,9 @@ class Metadata:
         request that is merged upstream but we'd like to produce artifacts (builds,
         packages, etc.) for each individual commit.
 
-        The default ``GITHUB_SHA`` environment variable is not enough as it only points to
-        the last commit. We need to inspect the commit history to find all new ones. New
-        commits needs to be fetched differently in ``push`` and ``pull_requests``
+        The default ``GITHUB_SHA`` environment variable is not enough as it only points
+        to the last commit. We need to inspect the commit history to find all new ones.
+        New commits needs to be fetched differently in ``push`` and ``pull_requests``
         events.
 
         .. seealso::
@@ -511,8 +515,9 @@ class Metadata:
             - https://stackoverflow.com/a/61861763
 
         .. todo::
-            Refactor so we can get rid of ``self.github_context``. Maybe there's enough metadata lying around in
-            the environment variables that we can inspect the git history and find the commit range.
+            Refactor so we can get rid of ``self.github_context``. Maybe there's enough
+            metadata lying around in the environment variables that we can inspect the
+            git history and find the commit range.
         """
         if not self.github_context or not self.event_type:
             return None
@@ -680,7 +685,8 @@ class Metadata:
 
     @cached_property
     def script_entries(self) -> list[tuple[str, str, str]]:
-        """Returns a list of tuples containing the script name, its module and callable.
+        """Returns a list of tuples containing the script name, its module and
+        callable.
 
         Results are derived from the script entries of ``pyproject.toml``. So that:
 
@@ -809,8 +815,8 @@ class Metadata:
 
         During a release we get two commits bundled into a single event. The first one
         is the release commit itself freezing the version to the release number. The
-        second one is the commit that bumps the version to the next one. In this situation,
-        the current version returned is the one from the most recent commit.
+        second one is the commit that bumps the version to the next one. In this
+        situation, the current version returned is the one from the most recent commit.
         """
         version = None
         if self.new_commits_matrix:
@@ -1135,9 +1141,9 @@ class Metadata:
             },
         )
 
-        # Augment each variation set of the matrix with a the binary name to be produced
-        # by Nuitka. Itererate over all matrix variation sets so we have all metadata
-        # necessary to generate a unique name specific to these variations.
+        # Augment each variation set of the matrix with a the binary name to be
+        # produced by Nuitka. Itererate over all matrix variation sets so we have all
+        # metadata necessary to generate a unique name specific to these variations.
         for variations in matrix.solve():
             # We will re-attach back this binary name to the with an include directive,
             # so we need a copy the main variants it corresponds to.
