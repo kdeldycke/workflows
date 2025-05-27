@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.17.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.16.7...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.17.0 (2025-05-27)](https://github.com/kdeldycke/workflows/compare/v4.16.7...v4.17.0)
 
 - Add a new `-u`/`--unstable-target` option to `metadata` command to allow some Nuitka builds to fail.
 - Do not flag `windows-11-arm` as unstable by default for Nuitka builds.
