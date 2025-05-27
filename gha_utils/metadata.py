@@ -350,10 +350,12 @@ MYPY_VERSION_MIN: Final = (3, 8)
 class Metadata:
     """Metadata class."""
 
-    def __init__(self, unstable_targets: Iterable[str]) -> None:
+    def __init__(self, unstable_targets: Iterable[str] | None = None) -> None:
         """Initialize internal variables."""
-        self.unstable_targets = set(unstable_targets)
-        assert self.unstable_targets.issubset(NUITKA_BUILD_TARGETS)
+        self.unstable_targets = set()
+        if unstable_targets:
+            self.unstable_targets = set(unstable_targets)
+            assert self.unstable_targets.issubset(NUITKA_BUILD_TARGETS)
 
         # None indicates the is_python_project variable has not been evaluated yet.
         self._is_python_project: bool | None = None
