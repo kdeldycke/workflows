@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.17.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.17.1 (2025-05-27)](https://github.com/kdeldycke/workflows/compare/v4.17.0...v4.17.1)
 
 - Add new `unstable-targets` parameter to release workflow.
