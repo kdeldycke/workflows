@@ -134,7 +134,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "5.0.0"
+version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -148,9 +148,9 @@ dependencies = [
     { name = "wcmatch" },
     { name = "xmltodict" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/01/c2/a47dbed58ae2b8c9b4401c8e44fe0f8fa9febad95674674ccb356b5a05e9/click_extra-5.0.0.tar.gz", hash = "sha256:6d8dac57a41cf84009b68ac10090a29f648fa1007bdba524f788445b0c4032aa", size = 92357, upload-time = "2025-05-13T13:22:59.688Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7c/0a/80624abf9c2fe72d9fb1b0a30deafe8bdd421a67162518c65bcd4f4827f0/click_extra-5.0.1.tar.gz", hash = "sha256:0f67e86c812f0880abf54b255e80a51df03281081ac68ef5d2c857297cd4302c", size = 92602, upload-time = "2025-05-28T11:17:21.033Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/00/7111a11398930c765fe040a4a41b898c315c75c11f669e1ba67eeec4068c/click_extra-5.0.0-py3-none-any.whl", hash = "sha256:027c686cfd61ace2204312db6345f3b63278fe6321da72267a833fd9462d9fae", size = 74876, upload-time = "2025-05-13T13:22:58.229Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/dd/d8ba2019bc4089b32bf6ee13fe72ce7700fefb9adca725ec04a0c1607d9d/click_extra-5.0.1-py3-none-any.whl", hash = "sha256:a813678548fbb37c123802a9638e5d5f809e0e1c6016b1d35d5d234b092d4600", size = 75046, upload-time = "2025-05-28T11:17:19.423Z" },
 ]
 
 [[package]]
@@ -269,7 +269,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.17.1"
+version = "4.17.2"
 source = { editable = "." }
 dependencies = [
     { name = "boltons" },
