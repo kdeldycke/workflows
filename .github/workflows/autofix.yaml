@@ -267,7 +267,7 @@ jobs:
               // lint JSON files
               {
                   files: ["**/*.json"],
-                  ignores: ["package-lock.json"],
+                  ignores: ["package-lock.json", "node_modules/**"],
                   language: "json/json",
                   ...json.configs.recommended,
               },
