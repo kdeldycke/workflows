@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Ignore `node_modules` subfolder when linting JSON files.
+- Skip `Sci-Hub` and `archive.ph` when checking URLs because they restricts access to crawlers.
 
 ## [4.17.1 (2025-05-27)](https://github.com/kdeldycke/workflows/compare/v4.17.0...v4.17.1)
 
