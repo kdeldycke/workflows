@@ -147,7 +147,7 @@ jobs:
         with:
           # XXX Python version here does not really matter but we had to set it for the action to pick-up the
           # architecture parameter.
-          python-version: "3.13"
+          python-version: "3.13.3"
           architecture: arm64
       - name: Install uv
         run: |
