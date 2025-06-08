@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.17.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.17.3 (2025-06-08)](https://github.com/kdeldycke/workflows/compare/v4.17.2...v4.17.3)
 
 - Remove temporary `node_modules` subfolder when linting JSON files.
 - Do not fail on Lychee finding bad URLs.
