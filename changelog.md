@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Remove temporary `node_modules` subfolder when linting JSON files.
+- Do not fail on Lychee finding bad URLs.
 
 ## [4.17.2 (2025-06-08)](https://github.com/kdeldycke/workflows/compare/v4.17.1...v4.17.2)
 

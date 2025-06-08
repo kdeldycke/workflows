@@ -147,6 +147,7 @@ jobs:
       - uses: lycheeverse/lychee-action@v2.4.1
         id: lychee_run
         with:
+          fail: false
           # XXX Skip HN because of rate-limiting.
           # See: https://github.com/lycheeverse/lychee/issues/989#issuecomment-1587208730
           # https://github.com/lycheeverse/lychee/pull/1147
