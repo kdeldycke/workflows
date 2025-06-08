@@ -152,6 +152,7 @@ jobs:
           # https://github.com/lycheeverse/lychee/pull/1147
           # XXX Skip Sci-Hub and archive.ph because they restricts access to crawlers.
           args: >
+            --exclude x.com
             --exclude ycombinator.com
             --exclude sci-hub.st
             --exclude archive.ph
