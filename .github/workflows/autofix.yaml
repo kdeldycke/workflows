@@ -300,9 +300,9 @@ jobs:
           "**/*.json"
           "**/*.jsonc"
           "**/*.json5"
-      - name: Remove temporary ESLint config
+      - name: Remove temporary ESLint config and node modules
         run: |
-          rm ./eslint.config.mjs
+          rm ./eslint.config.mjs ./node_modules/
       - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
