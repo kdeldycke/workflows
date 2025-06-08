@@ -7,6 +7,7 @@
 
 - Ignore `node_modules` subfolder when linting JSON files.
 - Skip `Sci-Hub`, `x.com` and `archive.ph` when checking URLs because they restricts access to crawlers.
+- Force uv to ignore managed Python on Windows ARM 64.
 
 ## [4.17.1 (2025-05-27)](https://github.com/kdeldycke/workflows/compare/v4.17.0...v4.17.1)
 

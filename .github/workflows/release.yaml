@@ -153,8 +153,15 @@ jobs:
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
       - name: Build binary
+        # XXX Python for Windows ARM64 has not been shipped yet, so don't make uv try to fall back on x64 Python by
+        # forcing the --no-managed-python option. See:
+        # https://github.com/astral-sh/python-build-standalone/pull/387#issuecomment-2836029040
+        # https://github.com/astral-sh/uv/issues/12906
+        # https://github.com/astral-sh/uv/pull/13719
+        # https://github.com/astral-sh/uv/pull/13724
         run: >
           uv run
+          ${{ matrix.os == 'windows-11-arm' && '--no-managed-python' || '' }}
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
           --
           nuitka --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
