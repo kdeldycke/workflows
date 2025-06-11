@@ -387,7 +387,7 @@ jobs:
         with:
           subject-path: ${{ steps.collect_artifacts.outputs.artifacts_path }}
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2.3.0
+        uses: softprops/action-gh-release@v2.3.2
         # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
         # any other workflows that use `on.push.tags` triggers. See:
         # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
