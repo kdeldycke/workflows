@@ -209,7 +209,7 @@ jobs:
 
           output = f"broken_links_found={str(broken_links_found).lower()}\n"
           output += f"issue_to_update={issue_to_update}\n"
-          output += f"issues_to_close={' '.join(issues_to_close)}\n"
+          output += f"issues_to_close={' '.join((map(str, issues_to_close))}\n"
 
           env_file = Path(os.getenv("GITHUB_OUTPUT"))
           env_file.write_text(output)
