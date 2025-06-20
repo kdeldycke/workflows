@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.4...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.17.4 (2025-06-20)](https://github.com/kdeldycke/workflows/compare/v4.17.3...v4.17.4)
 
 - Remove hard-coded domains to skip when checking URLs. Use a `.lycheeignore` file instead.
