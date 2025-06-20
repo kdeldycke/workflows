@@ -180,31 +180,27 @@ jobs:
           from operator import itemgetter
           from pathlib import Path
 
-          exit_code = """${{ steps.lychee_run.outputs.exit_code }}"""
-          print(f"Lychee exit code: {exit_code!r}")
-          broken_links_found = bool(int(exit_code))
-          if broken_links_found:
-              print("Broken links found: create a new issue or update the existing one.")
-          else:
-              print("No broken link found: close all open issues.")
-
           open_issues = json.loads("""${{ steps.open_issues.outputs.issues }}""")
+          print(f"Found {len(open_issues)} open issues opened by GitHub Actions.")
+
+          link_issues = [
+              issue for issue in sorted(open_issues, key=itemgetter("createdAt"), reverse=True)
+              if issue["title"] == "Broken links"
+          ]
+          print(f"Found {len(link_issues)} 'Broken links' open issues.")
+
           issue_to_update: int | None = None
           issues_to_close: set[int] = set()
-
-          for issue in sorted(open_issues, key=itemgetter("createdAt"), reverse=True):
+          for issue in link_issues:
               print(f"Processing {issue!r} ...")
-              if issue["title"] != "Broken links":
-                  print(f"{issue!r} is not a broken links issue, skip it.")
-                  continue
-              if broken_links_found and not issue_to_update:
+              if not issue_to_update:
                   print(f"{issue!r} is the most recent open issue.")
                   issue_to_update = issue["number"]
               else:
                   print(f"{issue!r} is an old open issue we have to close.")
                   issues_to_close.add(issue["number"])
 
-          output = f"broken_links_found={str(broken_links_found).lower()}\n"
+          output = f"broken_links_found={len(link_issues)}\n"
           output += f"issue_to_update={issue_to_update}\n"
           output += f"issues_to_close={' '.join(issues_to_close)}\n"
 
@@ -212,7 +208,7 @@ jobs:
           env_file.write_text(output)
       - name: Print issue groups
         run: |
-          echo "Broken links found: ${{ steps.issue_groups.outputs.broken_links_found }}"
+          echo "Open broken links issues found: ${{ steps.issue_groups.outputs.broken_links_found }}"
           echo "Issue to update: ${{ steps.issue_groups.outputs.issue_to_update }}"
           echo "Issues to close: ${{ steps.issue_groups.outputs.issues_to_close }}"
       - name: Close old issues
