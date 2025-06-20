@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Remove hard-coded domains to skip when checking URLs. Use a `.lycheeignore` file instead.
 - Fix auto-closing and updating of open broken links issues.
 
 ## [4.17.3 (2025-06-08)](https://github.com/kdeldycke/workflows/compare/v4.17.2...v4.17.3)
