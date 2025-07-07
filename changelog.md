@@ -7,6 +7,7 @@
 
 - Use `uv`-provided ARM64 Python on `windows-11-arm` platform for Nuitka builds.
 - Force use of latest `3.13` Python for all platforms for Nuitka builds.
+- Fix quoting of file path in `python_files` and `doc_files` matrix fields.
 
 ## [4.17.5 (2025-06-26)](https://github.com/kdeldycke/workflows/compare/v4.17.4...v4.17.5)
 

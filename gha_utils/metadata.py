@@ -686,11 +686,14 @@ class Metadata:
         )
 
     @staticmethod
-    def glob_files(*patterns: str) -> Iterator[str]:
+    def glob_files(*patterns: str) -> Iterator[Path]:
         """Glob files in patterns, while optionally ignoring some."""
-        yield from iglob(
-            patterns,
-            flags=NODIR | GLOBSTAR | DOTGLOB | GLOBTILDE | BRACE | FOLLOW | NEGATE,
+        yield from map(
+            Path,
+            iglob(
+                patterns,
+                flags=NODIR | GLOBSTAR | DOTGLOB | GLOBTILDE | BRACE | FOLLOW | NEGATE,
+            ),
         )
 
     @cached_property
@@ -698,12 +701,12 @@ class Metadata:
         return Path(".gitignore").is_file()
 
     @cached_property
-    def python_files(self) -> Iterator[str]:
+    def python_files(self) -> Iterator[Path]:
         """Returns a list of python files."""
         yield from self.glob_files("**/*.py", "!.venv/**")
 
     @cached_property
-    def doc_files(self) -> Iterator[str]:
+    def doc_files(self) -> Iterator[Path]:
         """Returns a list of doc files."""
         yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
