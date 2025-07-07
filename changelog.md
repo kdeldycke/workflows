@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use `uv`-provided ARM64 Python on `windows-11-arm` platform for Nuitka builds.
+
 ## [4.17.5 (2025-06-26)](https://github.com/kdeldycke/workflows/compare/v4.17.4...v4.17.5)
 
 - Bump `uv`.
