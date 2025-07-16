@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.17.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.5...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.17.6 (2025-07-16)](https://github.com/kdeldycke/workflows/compare/v4.17.5...v4.17.6)
 
 - Use `uv`-provided ARM64 Python on `windows-11-arm` platform for Nuitka builds.
 - Force use of latest `3.13` Python for all platforms for Nuitka builds.
