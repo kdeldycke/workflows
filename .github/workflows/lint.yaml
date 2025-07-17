@@ -149,8 +149,13 @@ jobs:
         with:
           fail: false
           args: >
-            --base .
+            --hidden
+            --suggest
+            --insecure
+            --base-url .
             --no-progress
+            --include-fragments
+            --exclude-all-private
             './**/*.md' './**/*.html' './**/*.rst'
       - name: List open issues
         id: open_issues
