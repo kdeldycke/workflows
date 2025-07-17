@@ -165,7 +165,7 @@ def metadata(ctx, unstable_targets, format, overwrite, output_path):
     # Extract targets from the raw string provided by the user.
     valid_targets = set()
     if unstable_targets:
-        for target in re.split("[^a-z0-9\-]", unstable_targets.lower()):
+        for target in re.split(r"[^a-z0-9\-]", unstable_targets.lower()):
             if target:
                 if target not in NUITKA_BUILD_TARGETS:
                     logging.fatal(
