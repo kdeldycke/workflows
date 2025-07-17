@@ -687,14 +687,40 @@ class Metadata:
 
     @staticmethod
     def glob_files(*patterns: str) -> Iterator[Path]:
-        """Glob files in patterns, while optionally ignoring some."""
-        yield from map(
-            Path,
-            iglob(
-                patterns,
-                flags=NODIR | GLOBSTAR | DOTGLOB | GLOBTILDE | BRACE | FOLLOW | NEGATE,
-            ),
-        )
+        """Return all file path matching the ``patterns``.
+
+        Patterns are glob patterns supporting ``**`` for recursive search, and ``!``
+        for negation.
+
+        All directories are traversed, whether they are hidden (i.e. starting with a
+        dot ``.``) or not, including symlinks.
+
+        Returns both hidden and non-hidden files, but no directories.
+
+        All files are normalized to their absolute path, so that duplicates produced by
+        symlinks are ignored.
+
+        Files that doesn't exist and broken symlinks are skipped.
+        """
+        seen = set()
+        for file_path in iglob(
+            patterns,
+            flags=NODIR | GLOBSTAR | DOTGLOB | GLOBTILDE | BRACE | FOLLOW | NEGATE,
+        ):
+            # Normalize the path to avoid duplicates.
+            try:
+                normalized_path = Path(file_path).resolve(strict=True)
+            # Skip files that do not exist or broken symlinks.
+            except OSError:
+                logging.warning(
+                    f"Skipping non-existing file / broken symlink: {file_path}"
+                )
+                continue
+            if normalized_path in seen:
+                logging.debug(f"Skipping duplicate file: {normalized_path}")
+                continue
+            seen.add(normalized_path)
+            yield normalized_path
 
     @cached_property
     def gitignore_exists(self) -> bool:

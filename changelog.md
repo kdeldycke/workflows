@@ -5,6 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Normalized and deduplicate file paths in `gha-utils metadata` output.
+- Ignore non-existing files and broken symlinks in `gha-utils metadata` output.
+
 ## [4.17.7 (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.6...v4.17.7)
 
 - Replace `Superseded by #None` comment by `No more broken links` when closing issues in `broken-links` job.
