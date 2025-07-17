@@ -148,6 +148,7 @@ jobs:
         id: lychee_run
         with:
           fail: false
+          lycheeVersion: v0.19.1
           args: >
             --hidden
             --suggest
