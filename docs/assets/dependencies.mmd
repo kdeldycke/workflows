@@ -3,40 +3,39 @@ flowchart TD
     annotated-types["annotated-types\n0.7.0"]
     anyio["anyio\n4.9.0"]
     boltons["boltons\n25.0.0"]
-    bracex["bracex\n2.5.post1"]
+    bracex["bracex\n2.6"]
     bump-my-version["bump-my-version\n1.1.0"]
-    certifi["certifi\n2025.4.26"]
+    certifi["certifi\n2025.7.14"]
     charset-normalizer["charset-normalizer\n3.4.2"]
     click-extra["click-extra\n5.0.2"]
     click_0["click\n8.2.1"]
     cloup["cloup\n3.0.7"]
     distro["distro\n1.9.0"]
     extra-platforms["extra-platforms\n3.2.2"]
-    gha-utils["gha-utils\n4.17.2"]
+    gha-utils["gha-utils\n4.17.7"]
     gitdb["gitdb\n4.0.12"]
     gitpython["GitPython\n3.1.44"]
     h11["h11\n0.16.0"]
     httpcore["httpcore\n1.0.9"]
     httpx["httpx\n0.28.1"]
     idna["idna\n3.10"]
-    lizard["lizard\n1.17.31"]
+    lizard["lizard\n1.17.10"]
     markdown-it-py["markdown-it-py\n3.0.0"]
     mdurl["mdurl\n0.1.2"]
     mergedeep["mergedeep\n1.3.4"]
     packaging["packaging\n25.0"]
-    pathspec["pathspec\n0.12.1"]
     prompt-toolkit["prompt_toolkit\n3.0.51"]
     pydantic-core["pydantic_core\n2.33.2"]
-    pydantic-settings["pydantic-settings\n2.9.1"]
-    pydantic["pydantic\n2.11.5"]
-    pydriller["PyDriller\n2.7"]
-    pygments["Pygments\n2.19.1"]
+    pydantic-settings["pydantic-settings\n2.10.1"]
+    pydantic["pydantic\n2.11.7"]
+    pydriller["PyDriller\n2.8"]
+    pygments["Pygments\n2.19.2"]
     pyproject-metadata["pyproject-metadata\n0.9.1"]
-    python-dotenv["python-dotenv\n1.1.0"]
+    python-dotenv["python-dotenv\n1.1.1"]
     pytz["pytz\n2025.2"]
     pyyaml["PyYAML\n6.0.2"]
     questionary["questionary\n2.1.0"]
-    requests["requests\n2.32.3"]
+    requests["requests\n2.32.4"]
     rich-click["rich-click\n1.8.9"]
     rich["rich\n14.0.0"]
     smmap["smmap\n5.0.2"]
@@ -44,10 +43,10 @@ flowchart TD
     tabulate["tabulate\n0.9.0"]
     tomlkit["tomlkit\n0.13.3"]
     types-pytz["types-pytz\n2025.2.0.20250516"]
-    typing-extensions["typing_extensions\n4.14.0"]
+    typing-extensions["typing_extensions\n4.14.1"]
     typing-inspection["typing-inspection\n0.4.1"]
-    urllib3["urllib3\n2.4.0"]
-    wcmatch["wcmatch\n10.0"]
+    urllib3["urllib3\n2.5.0"]
+    wcmatch["wcmatch\n10.1"]
     wcwidth["wcwidth\n0.2.13"]
     xmltodict["xmltodict\n0.14.2"]
     anyio -- ">=1.1" --> sniffio
@@ -92,8 +91,6 @@ flowchart TD
     httpx -- "any" --> anyio
     httpx -- "any" --> certifi
     httpx -- "any" --> idna
-    lizard -- "any" --> pathspec
-    lizard -- "any" --> pygments
     markdown-it-py -- "~=0.1" --> mdurl
     prompt-toolkit -- "any" --> wcwidth
     pydantic -- "==2.33.2" --> pydantic-core
@@ -104,8 +101,8 @@ flowchart TD
     pydantic-settings -- ">=0.21.0" --> python-dotenv
     pydantic-settings -- ">=0.4.0" --> typing-inspection
     pydantic-settings -- ">=2.7.0" --> pydantic
+    pydriller -- "==1.17.10" --> lizard
     pydriller -- "any" --> gitpython
-    pydriller -- "any" --> lizard
     pydriller -- "any" --> pytz
     pydriller -- "any" --> types-pytz
     pyproject-metadata -- ">=19.0" --> packaging
