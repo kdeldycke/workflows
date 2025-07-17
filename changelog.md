@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Replace `Superseded by #None` comment by `No more broken links` when closing issues in `broken-links` job.
+
 ## [4.17.6 (2025-07-16)](https://github.com/kdeldycke/workflows/compare/v4.17.5...v4.17.6)
 
 - Use `uv`-provided ARM64 Python on `windows-11-arm` platform for Nuitka builds.

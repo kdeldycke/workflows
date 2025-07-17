@@ -214,10 +214,12 @@ jobs:
         if: steps.issue_groups.outputs.issues_to_close
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          NUMBER_LIST="${{ steps.issue_groups.outputs.issues_to_close }}"
+        run: >
+          NUMBER_LIST="${{ steps.issue_groups.outputs.issues_to_close }}";
           for number in $NUMBER_LIST; do
-              gh issue close "$number" --comment "Superseded by #${{ steps.issue_groups.outputs.issue_to_update }}.";
+              gh issue close "$number" --comment "${{ steps.issue_groups.outputs.issue_to_update
+              && format('Superseded by #{0}.', steps.issue_groups.outputs.issue_to_update)
+              || 'No more broken links.' }}";
           done
       - name: Get label
         if: fromJSON(steps.issue_groups.outputs.broken_links_found)
