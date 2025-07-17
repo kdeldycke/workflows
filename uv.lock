@@ -269,7 +269,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.17.7"
+version = "4.17.8"
 source = { editable = "." }
 dependencies = [
     { name = "boltons" },
