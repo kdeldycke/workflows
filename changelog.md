@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.17.8 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.7...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.17.8 (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.7...v4.17.8)
 
 - Normalized and deduplicate file paths in `gha-utils metadata` output.
 - Ignore non-existing files and broken symlinks in `gha-utils metadata` output.
