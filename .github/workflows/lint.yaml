@@ -155,7 +155,6 @@ jobs:
             --insecure
             --base-url .
             --no-progress
-            --include-fragments
             --exclude-all-private
             './**/*.md' './**/*.html' './**/*.rst'
       - name: List open issues
