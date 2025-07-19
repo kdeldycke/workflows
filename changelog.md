@@ -7,6 +7,8 @@
 
 ## [4.17.9 (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.8...v4.17.9)
 
+- Bump `gha-utils`.
+
 ## [4.17.8 (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.7...v4.17.8)
 
 - Normalized and deduplicate file paths in `gha-utils metadata` output.
