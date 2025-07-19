@@ -254,7 +254,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
       - name: Install ESLint with JSON support
         run: |
-          npm --no-progress install --no-save "eslint@9.17.0" "@eslint/json@0.9.0"
+          npm --no-progress install --no-save "eslint@9.31.0" "@eslint/json@0.13.0"
       - name: Generate ESLint config
         # To debug config, run:
         #   $ npx --no-progress --yes -- eslint --inspect-config
@@ -263,25 +263,46 @@ jobs:
           // Source: https://github.com/eslint/json?tab=readme-ov-file#recommended-configuration
           import json from "@eslint/json";
 
+          const globalIgnores = [
+              // Ignore package-lock.json files
+              "package-lock.json",
+              // Ignore node_modules directories
+              "node_modules/**",
+          ];
+
+          // VS Code JSON configuration files allow comments but have a ``.json`` extension.
+          // https://github.com/microsoft/vscode/blob/8a42946/extensions/configuration-editing/package.json#L41-L59
+          const vscodeFiles = [
+              ".vscode/*.json",
+              ".code-workspace",
+              "**/Library/Application Support/Code/**/*.json"
+          ];
+
           export default [
-              // lint JSON files
+              // Lint JSON files
               {
                   files: ["**/*.json"],
-                  ignores: ["package-lock.json", "node_modules/**"],
+                  ignores: globalIgnores.concat(vscodeFiles),
                   language: "json/json",
                   ...json.configs.recommended,
               },
 
-              // lint JSONC files
+
+              // Lint JSONC files
               {
-                  files: ["**/*.jsonc"],
+                  files: ["**/*.jsonc"].concat(vscodeFiles),
+                  ignores: globalIgnores,
                   language: "json/jsonc",
+                  languageOptions: {
+                      allowTrailingCommas: true,
+                  },
                   ...json.configs.recommended,
               },
 
-              // lint JSON5 files
+              // Lint JSON5 files
               {
                   files: ["**/*.json5"],
+                  ignores: globalIgnores,
                   language: "json/json5",
                   ...json.configs.recommended,
               },
