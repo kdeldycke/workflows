@@ -260,15 +260,9 @@ jobs:
         #   $ npx --no-progress --yes -- eslint --inspect-config
         run: |
           tee -a ./eslint.config.mjs <<-EOF
-          // Source: https://github.com/eslint/json?tab=readme-ov-file#recommended-configuration
+          // Source: https://github.com/eslint/eslint/blob/main/docs/src/use/configure/configuration-files.md
           import json from "@eslint/json";
-
-          const globalIgnores = [
-              // Ignore package-lock.json files
-              "package-lock.json",
-              // Ignore node_modules directories
-              "node_modules/**",
-          ];
+          import { defineConfig, globalIgnores } from "eslint/config";
 
           // VS Code JSON configuration files allow comments but have a ``.json`` extension.
           // https://github.com/microsoft/vscode/blob/8a42946/extensions/configuration-editing/package.json#L41-L59
@@ -278,35 +272,41 @@ jobs:
               "**/Library/Application Support/Code/**/*.json"
           ];
 
-          export default [
+          export default defineConfig([
+              // Reduce noise from common files
+              globalIgnores([
+                  "package-lock.json",
+                  "node_modules/**"
+              ]),
+
               // Lint JSON files
               {
                   files: ["**/*.json"],
-                  ignores: globalIgnores.concat(vscodeFiles),
+                  ignores: vscodeFiles,
                   language: "json/json",
-                  ...json.configs.recommended,
+                  plugins: { json },
+                  extends: ["json/recommended"],
               },
-
 
               // Lint JSONC files
               {
                   files: ["**/*.jsonc"].concat(vscodeFiles),
-                  ignores: globalIgnores,
                   language: "json/jsonc",
                   languageOptions: {
                       allowTrailingCommas: true,
                   },
-                  ...json.configs.recommended,
+                  plugins: { json },
+                  extends: ["json/recommended"],
               },
 
               // Lint JSON5 files
               {
                   files: ["**/*.json5"],
-                  ignores: globalIgnores,
                   language: "json/json5",
-                  ...json.configs.recommended,
+                  plugins: { json },
+                  extends: ["json/recommended"],
               },
-          ];
+          ]);
           EOF
       - name: ESLint version
         run: |
