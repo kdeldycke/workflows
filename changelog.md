@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.17.10 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.9...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.17.10 (2025-08-09)](https://github.com/kdeldycke/workflows/compare/v4.17.9...v4.17.10)
 
 - Force all VSCode JSON files to be formatted in `jsonc` dialect.
 - Prevent overlapping matching of JSON files by different dialect linters.
