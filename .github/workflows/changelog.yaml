@@ -33,7 +33,7 @@ jobs:
           - minor
           - major
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5.0.0
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
@@ -99,7 +99,7 @@ jobs:
     # XXX This cannot be done because there is no way to group "replace" actions into a collection. Maybe we should
     # start to discuss this upstream.
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5.0.0
       - name: Install uv
         run: |
           python -m pip install -r https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/uv.txt
