@@ -16,12 +16,18 @@
 
 from __future__ import annotations
 
+import json
 import re
 from string import ascii_lowercase, digits
 
 from extra_platforms import ALL_IDS
 
 from gha_utils.metadata import NUITKA_BUILD_TARGETS, Dialects, Metadata
+
+
+def regex(pattern: str) -> re.Pattern:
+    """Compile a regex pattern with DOTALL flag."""
+    return re.compile(pattern, re.DOTALL)
 
 
 def test_nuitka_targets():
@@ -136,79 +142,78 @@ def test_metadata_github_format():
     )
 
 
-def test_metadata_plain_format():
-    metadata = Metadata()
-
-    assert re.fullmatch(
-        (
-            r"\{"
-            r"'new_commits': None, "
-            r"'release_commits': None, "
-            r"'gitignore_exists': True, "
-            r"'python_files': <generator object Metadata\.python_files at \S+>, "
-            r"'doc_files': <generator object Metadata\.doc_files at \S+>, "
-            r"'is_python_project': True, "
-            r"'package_name': 'gha-utils', "
-            r"'blacken_docs_params': \("
-            r"'--target-version py311', "
-            r"'--target-version py312', "
-            r"'--target-version py313'\), "
-            r"'mypy_params': '--python-version 3\.11', "
-            r"'current_version': '[0-9\.]+', "
-            r"'released_version': None, "
-            r"'is_sphinx': False, "
-            r"'active_autodoc': False, "
-            r"'release_notes': '### Changes\\n\\n"
-            r"> \[\!IMPORTANT\]\\n"
-            r"> This version is not released yet and is under active development.\\n\\n"
-            r".+', "
-            r"'new_commits_matrix': None, "
-            r"'release_commits_matrix': None, "
-            r"'nuitka_matrix': <Matrix: \{"
-            r"'os': \('ubuntu-24\.04-arm', 'ubuntu-24\.04', "
-            r"'macos-15', 'macos-13', 'windows-11-arm', 'windows-2025'\), "
-            r"'entry_point': \('gha-utils',\), "
-            r"'commit': \('[a-z0-9]+',\)\}; "
-            #
-            r"include=\(\{'target': 'linux-arm64', 'os': 'ubuntu-24\.04-arm', "
-            r"'platform_id': 'linux', 'arch': 'arm64', 'extension': 'bin'\}, "
-            r"\{'target': 'linux-x64', 'os': 'ubuntu-24\.04', 'platform_id': 'linux', "
-            r"'arch': 'x64', 'extension': 'bin'\}, \{'target': 'macos-arm64', 'os': 'macos-15', "
-            r"'platform_id': 'macos', 'arch': 'arm64', 'extension': 'bin'\}, "
-            r"\{'target': 'macos-x64', 'os': 'macos-13', 'platform_id': 'macos', 'arch': 'x64', "
-            r"'extension': 'bin'\}, \{'target': 'windows-arm64', 'os': 'windows-11-arm', 'platform_id': "
-            r"'windows', 'arch': 'arm64', 'extension': 'exe'\}, "
-            r"\{'target': 'windows-x64', 'os': 'windows-2025', 'platform_id': "
-            r"'windows', 'arch': 'x64', 'extension': 'exe'\}, "
-            #
-            r"\{'entry_point': 'gha-utils', 'cli_id': 'gha-utils', "
-            r"'module_id': 'gha_utils\.__main__', 'callable_id': 'main', "
-            r"'module_path': 'gha_utils(/|\\\\)__main__\.py'\}, "
-            #
-            r"\{'commit': '[a-z0-9]+', 'short_sha': '[a-z0-9]+', "
-            r"'current_version': '[0-9\.]+'\}, "
-            #
-            r"\{'os': 'ubuntu-24\.04-arm', 'entry_point': 'gha-utils', "
-            r"'commit': '[a-z0-9]+', "
-            r"'bin_name': 'gha-utils-linux-arm64-[a-z0-9]+\.bin'\}, "
-            r"\{'os': 'ubuntu-24\.04', 'entry_point': 'gha-utils', "
-            r"'commit': '[a-z0-9]+', "
-            r"'bin_name': 'gha-utils-linux-x64-[a-z0-9]+\.bin'\}, "
-            r"\{'os': 'macos-15', 'entry_point': 'gha-utils', "
-            r"'commit': '[a-z0-9]+', "
-            r"'bin_name': 'gha-utils-macos-arm64-[a-z0-9]+\.bin'\}, "
-            r"\{'os': 'macos-13', 'entry_point': 'gha-utils', "
-            r"'commit': '[a-z0-9]+', 'bin_name': "
-            r"'gha-utils-macos-x64-[a-z0-9]+\.bin'\}, "
-            r"\{'os': 'windows-11-arm', 'entry_point': 'gha-utils', "
-            r"'commit': '[a-z0-9]+', "
-            r"'bin_name': 'gha-utils-windows-arm64-[a-z0-9]+\.exe'\}, "
-            r"\{'os': 'windows-2025', 'entry_point': 'gha-utils', "
-            r"'commit': '[a-z0-9]+', "
-            r"'bin_name': 'gha-utils-windows-x64-[a-z0-9]+\.exe'\}, "
-            r"\{'state': 'stable'\}\); "
-            r"exclude=\(\)>\}"
+def test_metadata_json_format():
+    expected = {
+        "new_commits": None,
+        "release_commits": None,
+        "gitignore_exists": True,
+        "python_files": [
+            "tests/test_mailmap.py",
+            "tests/test_changelog.py",
+            "tests/test_metadata.py",
+            "tests/__init__.py",
+            "tests/test_matrix.py",
+            "gha_utils/matrix.py",
+            "gha_utils/test_plan.py",
+            "gha_utils/metadata.py",
+            "gha_utils/mailmap.py",
+            "gha_utils/__init__.py",
+            "gha_utils/changelog.py",
+            "gha_utils/cli.py",
+            "gha_utils/__main__.py",
+        ],
+        "doc_files": [
+            ".pytest_cache/README.md",
+            "changelog.md",
+            "readme.md",
+            ".github/code-of-conduct.md",
+        ],
+        "is_python_project": True,
+        "package_name": "gha-utils",
+        "blacken_docs_params": [
+            "--target-version py311",
+            "--target-version py312",
+            "--target-version py313",
+        ],
+        "mypy_params": "--python-version 3.11",
+        "current_version": regex(r"[0-9\.]+"),
+        "released_version": None,
+        "is_sphinx": False,
+        "active_autodoc": False,
+        "release_notes": regex(
+            r"### Changes\n\n"
+            r"> \[\!IMPORTANT\]\n"
+            r"> This version is not released yet and is under active development\.\n\n"
+            r".+"
         ),
-        metadata.dump(Dialects.plain),
-        re.DOTALL,
-    )
+        "new_commits_matrix": None,
+        "release_commits_matrix": None,
+        "nuitka_matrix": {
+            "os": [
+                "ubuntu-24.04-arm",
+                "ubuntu-24.04",
+                "macos-15",
+                "macos-13",
+                "windows-11-arm",
+                "windows-2025",
+            ],
+            "entry_point": ["gha-utils"],
+            "commit": ["3265a2751d864f280d3ba355fb7461eb16d09adc"],
+        },
+    }
+
+    metadata = Metadata().dump(Dialects.json)
+    assert isinstance(metadata, str)
+
+    metadata = json.loads(metadata)
+
+    assert set(metadata) == set(expected)
+
+    for key, value in expected.items():
+        assert key in metadata
+        if isinstance(value, re.Pattern):
+            assert re.fullmatch(value, metadata[key]) is not None
+        else:
+            assert metadata[key] == value, (
+                f"Expected {key} to be {value!r}, got {metadata[key]!r}"
+            )

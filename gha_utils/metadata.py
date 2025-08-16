@@ -315,7 +315,7 @@ WorkflowEvent = StrEnum(
 """
 
 
-Dialects = StrEnum("Dialects", ("github", "plain"))
+Dialects = StrEnum("Dialects", ("github", "json"))
 """Dialects in which metadata can be formatted to."""
 
 
@@ -345,6 +345,15 @@ MYPY_VERSION_MIN: Final = (3, 8)
 `Sourced from Mypy original implementation
 <https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
 """
+
+
+class JSONMetadata(json.JSONEncoder):
+    """Custom JSON encoder for metadata serialization."""
+
+    def default(self, o):
+        if isinstance(o, Path):
+            return str(o)
+        return super().default(o)
 
 
 class Metadata:
@@ -742,14 +751,14 @@ class Metadata:
         return Path(".gitignore").is_file()
 
     @cached_property
-    def python_files(self) -> Iterator[Path]:
+    def python_files(self) -> tuple[Path]:
         """Returns a list of python files."""
-        yield from self.glob_files("**/*.py", "!.venv/**")
+        return tuple(self.glob_files("**/*.py", "!.venv/**"))
 
     @cached_property
-    def doc_files(self) -> Iterator[Path]:
+    def doc_files(self) -> tuple[Path]:
         """Returns a list of doc files."""
-        yield from self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
+        return tuple(self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**"))
 
     @property
     def is_python_project(self):
@@ -1331,8 +1340,8 @@ class Metadata:
                     delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
                     content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
         else:
-            assert dialect == Dialects.plain
-            content = repr(metadata)
+            assert dialect == Dialects.json
+            content = json.dumps(metadata, cls=JSONMetadata, indent=2)
 
         logging.debug(f"Formatted metadata:\n{content}")
 

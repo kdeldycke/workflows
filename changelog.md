@@ -5,11 +5,13 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Adds `--format json` option.
+- Remove `--format plain` option.
+- Returns file paths relative to the current directory whenever we can in `gha-utils metadata` output.
 - Force all VSCode JSON files to be formatted in `jsonc` dialect.
 - Prevent overlapping matching of JSON files by different dialect linters.
 - Share linter's file exclusion list between dialects.
 - Bump hard-coded `eslint` and `eslint/json` packages to their latest versions.
-- Returns file paths relative to the current directory whenever we can in `gha-utils metadata` output.
 
 ## [4.17.9 (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.8...v4.17.9)
 
