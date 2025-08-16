@@ -116,7 +116,7 @@ def gha_utils():
 )
 @option(
     "--format",
-    type=Choice(tuple(item.value for item in Dialects), case_sensitive=False),
+    type=Choice(Dialects, case_sensitive=False),
     default="github",
     help="Rendering format of the metadata.",
 )
