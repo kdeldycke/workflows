@@ -1,9 +1,11 @@
 # Changelog
 
-## [4.17.10 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.9...main)
+## [4.17.11 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.17.10...main)
 
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
+
+## [4.17.10 (2025-08-16)](https://github.com/kdeldycke/workflows/compare/v4.17.9...v4.17.10)
 
 - Adds `--format json` option.
 - Remove `--format plain` option.
