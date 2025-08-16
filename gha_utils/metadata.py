@@ -700,8 +700,12 @@ class Metadata:
         All files are normalized to their absolute path, so that duplicates produced by
         symlinks are ignored.
 
-        Files that doesn't exist and broken symlinks are skipped.
+        Files that doesn't exist are skipped, as well as broken symlinks.
+
+        File path are returned as relative to the current working directory if
+        possible, or as absolute path otherwise.
         """
+        current_dir = Path.cwd()
         seen = set()
         for file_path in iglob(
             patterns,
@@ -709,13 +713,24 @@ class Metadata:
         ):
             # Normalize the path to avoid duplicates.
             try:
-                normalized_path = Path(file_path).resolve(strict=True)
+                absolute_path = Path(file_path).resolve(strict=True)
             # Skip files that do not exist or broken symlinks.
             except OSError:
                 logging.warning(
                     f"Skipping non-existing file / broken symlink: {file_path}"
                 )
                 continue
+            # Simplify the path by trying to make it relative to the current location.
+            normalized_path = absolute_path
+            try:
+                normalized_path = absolute_path.relative_to(current_dir)
+            except ValueError:
+                # If the file is not relative to the current directory, keep its
+                # absolute path.
+                logging.debug(
+                    f"{absolute_path} is not relative to {current_dir}. "
+                    "Keeping the path absolute."
+                )
             if normalized_path in seen:
                 logging.debug(f"Skipping duplicate file: {normalized_path}")
                 continue
