@@ -874,7 +874,7 @@ class Metadata:
         return None
 
     @cached_property
-    def blacken_docs_params(self) -> tuple[str, ...] | None:
+    def blacken_docs_params(self) -> str | None:
         """Generates ``blacken-docs`` parameters.
 
         `Blacken-docs reuses Black's --target-version pyXY parameters
@@ -897,7 +897,7 @@ class Metadata:
         <https://github.com/psf/black/issues/751#issuecomment-473066811>`_.
         """
         if self.py_target_versions:
-            return tuple(
+            return " ".join(
                 f"--target-version py{version.major}{version.minor}"
                 for version in self.py_target_versions
             )
