@@ -22,7 +22,7 @@ from string import ascii_lowercase, digits
 from typing import Any
 
 import pytest
-from extra_platforms import ALL_IDS
+from extra_platforms import ALL_IDS, is_windows
 
 from gha_utils.metadata import NUITKA_BUILD_TARGETS, Dialects, Metadata
 
@@ -87,6 +87,22 @@ expected = {
     "release_commits": None,
     "gitignore_exists": True,
     "python_files": [
+        "gha_utils\\__init__.py",
+        "gha_utils\\__main__.py",
+        "gha_utils\\changelog.py",
+        "gha_utils\\cli.py",
+        "gha_utils\\mailmap.py",
+        "gha_utils\\matrix.py",
+        "gha_utils\\metadata.py",
+        "gha_utils\\test_plan.py",
+        "tests\\__init__.py",
+        "tests\\test_changelog.py",
+        "tests\\test_mailmap.py",
+        "tests\\test_matrix.py",
+        "tests\\test_metadata.py",
+    ]
+    if is_windows()
+    else [
         "gha_utils/__init__.py",
         "gha_utils/__main__.py",
         "gha_utils/changelog.py",
