@@ -161,7 +161,7 @@ from collections.abc import Iterable
 from enum import StrEnum
 from functools import cached_property
 from operator import itemgetter
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from random import randint
 from re import escape
 from typing import Any, Final, cast
@@ -768,9 +768,15 @@ class Metadata:
                 continue
 
             # Skip files that are ignored by .gitignore.
-            if gitignore and gitignore(file_path):
-                logging.debug(f"Skip file matching {GITIGNORE_PATH}: {file_path}")
-                continue
+            if gitignore:
+                if gitignore(
+                    # gitignore does not support WindowsPath.
+                    file_path.as_posix()
+                    if isinstance(file_path, PureWindowsPath)
+                    else file_path
+                ):
+                    logging.debug(f"Skip file matching {GITIGNORE_PATH}: {file_path}")
+                    continue
 
             seen.add(normalized_path)
         return sorted(seen)
