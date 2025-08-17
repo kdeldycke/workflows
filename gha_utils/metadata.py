@@ -164,7 +164,7 @@ from operator import itemgetter
 from pathlib import Path
 from random import randint
 from re import escape
-from typing import Any, Final, Iterator, cast
+from typing import Any, Final, cast
 
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
@@ -699,7 +699,7 @@ class Metadata:
         )
 
     @staticmethod
-    def glob_files(*patterns: str) -> Iterator[Path]:
+    def glob_files(*patterns: str) -> tuple[Path]:
         """Return all file path matching the ``patterns``.
 
         Patterns are glob patterns supporting ``**`` for recursive search, and ``!``
@@ -717,6 +717,8 @@ class Metadata:
 
         File path are returned as relative to the current working directory if
         possible, or as absolute path otherwise.
+
+        The result is a sorted tuple of :class:`pathlib.Path` objects.
         """
         current_dir = Path.cwd()
         seen = set()
@@ -748,7 +750,7 @@ class Metadata:
                 logging.debug(f"Skipping duplicate file: {normalized_path}")
                 continue
             seen.add(normalized_path)
-            yield normalized_path
+        return tuple(sorted(seen))
 
     @cached_property
     def gitignore_exists(self) -> bool:
