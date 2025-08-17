@@ -76,6 +76,7 @@ dependencies = [
     "bump-my-version >= 0.32.2, < 1.1.1",
     "click-extra ~= 5.0.2",
     "extra-platforms ~= 3.2.0",
+    "gitignore-parser ~= 0.1.12",
     "packaging ~= 25.0",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.9.0",

@@ -103,7 +103,6 @@ expected = {
     ],
     "doc_files": [
         ".github/code-of-conduct.md",
-        ".pytest_cache/README.md",
         "changelog.md",
         "readme.md",
     ],

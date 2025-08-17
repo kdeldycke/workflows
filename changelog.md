@@ -8,6 +8,7 @@
 - Adds `--format json` option.
 - Remove `--format plain` option.
 - Returns file paths relative to the current directory whenever we can in `gha-utils metadata` output.
+- Ignore files matching `.gitignore` rules in the `python_files` and `doc_files` fields of `gha-utils metadata` output.
 - Force all VSCode JSON files to be formatted in `jsonc` dialect.
 - Prevent overlapping matching of JSON files by different dialect linters.
 - Share linter's file exclusion list between dialects.

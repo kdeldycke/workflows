@@ -170,6 +170,7 @@ from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
+from gitignore_parser import parse_gitignore
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
@@ -196,6 +197,7 @@ SHORT_SHA_LENGTH = 7
     depends on the size of the repository.
 """
 
+GITIGNORE_PATH = Path(".gitignore")
 
 NUITKA_BUILD_TARGETS = {
     "linux-arm64": {
@@ -698,8 +700,11 @@ class Metadata:
             else None
         )
 
-    @staticmethod
-    def glob_files(*patterns: str) -> tuple[Path]:
+    @cached_property
+    def gitignore_exists(self) -> bool:
+        return GITIGNORE_PATH.is_file()
+
+    def glob_files(self, *patterns: str) -> list[Path]:
         """Return all file path matching the ``patterns``.
 
         Patterns are glob patterns supporting ``**`` for recursive search, and ``!``
@@ -708,20 +713,32 @@ class Metadata:
         All directories are traversed, whether they are hidden (i.e. starting with a
         dot ``.``) or not, including symlinks.
 
-        Returns both hidden and non-hidden files, but no directories.
+        Skips:
+
+        - files which does not exists
+        - directories
+        - broken symlinks
+        - files matching patterns specified by ``.gitignore`` file
+
+        Returns both hidden and non-hidden files.
 
         All files are normalized to their absolute path, so that duplicates produced by
         symlinks are ignored.
 
-        Files that doesn't exist are skipped, as well as broken symlinks.
-
         File path are returned as relative to the current working directory if
         possible, or as absolute path otherwise.
 
-        The result is a sorted tuple of :class:`pathlib.Path` objects.
+        The resulting list of file paths is sorted.
         """
         current_dir = Path.cwd()
         seen = set()
+
+        # If the .gitignore file exists, we parse it to filter out ignored files.
+        gitignore = None
+        if self.gitignore_exists:
+            logging.debug(f"Load {GITIGNORE_PATH} to filter out ignored files.")
+            gitignore = parse_gitignore(GITIGNORE_PATH)
+
         for file_path in iglob(
             patterns,
             flags=NODIR | GLOBSTAR | DOTGLOB | GLOBTILDE | BRACE | FOLLOW | NEGATE,
@@ -729,12 +746,11 @@ class Metadata:
             # Normalize the path to avoid duplicates.
             try:
                 absolute_path = Path(file_path).resolve(strict=True)
-            # Skip files that do not exist or broken symlinks.
+            # Skip files that do not exists and broken symlinks.
             except OSError:
-                logging.warning(
-                    f"Skipping non-existing file / broken symlink: {file_path}"
-                )
+                logging.warning(f"Skip non-existing file / broken symlink: {file_path}")
                 continue
+
             # Simplify the path by trying to make it relative to the current location.
             normalized_path = absolute_path
             try:
@@ -746,25 +762,28 @@ class Metadata:
                     f"{absolute_path} is not relative to {current_dir}. "
                     "Keeping the path absolute."
                 )
+
             if normalized_path in seen:
-                logging.debug(f"Skipping duplicate file: {normalized_path}")
+                logging.debug(f"Skip duplicate file: {normalized_path}")
                 continue
+
+            # Skip files that are ignored by .gitignore.
+            if gitignore and gitignore(file_path):
+                logging.debug(f"Skip file matching {GITIGNORE_PATH}: {file_path}")
+                continue
+
             seen.add(normalized_path)
-        return tuple(sorted(seen))
+        return sorted(seen)
 
     @cached_property
-    def gitignore_exists(self) -> bool:
-        return Path(".gitignore").is_file()
-
-    @cached_property
-    def python_files(self) -> tuple[Path]:
+    def python_files(self) -> list[Path]:
         """Returns a list of python files."""
-        return tuple(self.glob_files("**/*.py", "!.venv/**"))
+        return self.glob_files("**/*.py", "!.venv/**")
 
     @cached_property
-    def doc_files(self) -> tuple[Path]:
+    def doc_files(self) -> list[Path]:
         """Returns a list of doc files."""
-        return tuple(self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**"))
+        return self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
     @property
     def is_python_project(self):
