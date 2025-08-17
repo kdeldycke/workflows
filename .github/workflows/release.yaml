@@ -147,9 +147,10 @@ jobs:
         # We have to explicitly install it for it to be picked-up by Nuitka.
         # https://github.com/astral-sh/uv/issues/12906
         # https://docs.astral.sh/uv/reference/cli/#uv-python
+        # https://github.com/astral-sh/uv/pull/14399
         run: >
-          uv run --managed-python
-          --python ${{ matrix.os == 'windows-11-arm' && 'cpython-3.13-windows-aarch64-none' || '3.13' }}
+          uv run
+          --python ${{ matrix.os == 'windows-11-arm' && '3.13-aarch64' || '3.13' }}
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
           --
           nuitka --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
