@@ -350,9 +350,13 @@ MYPY_VERSION_MIN: Final = (3, 8)
 class JSONMetadata(json.JSONEncoder):
     """Custom JSON encoder for metadata serialization."""
 
-    def default(self, o):
+    def default(self, o: Any) -> str:
+        if isinstance(o, Matrix):
+            return o.matrix()
+
         if isinstance(o, Path):
             return str(o)
+
         return super().default(o)
 
 
@@ -1209,7 +1213,7 @@ class Metadata:
         for variations in matrix.solve():
             # We will re-attach back this binary name to the with an include directive,
             # so we need a copy the main variants it corresponds to.
-            bin_name_include = {k: variations[k] for k in matrix}
+            bin_name_include = {k: variations[k] for k in matrix.variations}
             bin_name_include["bin_name"] = (
                 "{cli_id}-{target}-{short_sha}.{extension}"
             ).format(**variations)

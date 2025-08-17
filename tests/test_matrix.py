@@ -26,7 +26,11 @@ from gha_utils.matrix import Matrix
 def test_matrix():
     matrix = Matrix()
 
-    assert matrix == dict()
+    assert isinstance(matrix, Matrix)
+    assert not isinstance(matrix, dict)
+
+    assert hasattr(matrix, "variations")
+    assert isinstance(matrix.variations, dict)
 
     assert hasattr(matrix, "include")
     assert hasattr(matrix, "exclude")
@@ -34,23 +38,20 @@ def test_matrix():
     assert matrix.exclude == tuple()
 
     matrix.add_variation("foo", ["a", "b", "c"])
-    assert matrix == {"foo": ("a", "b", "c")}
+    assert matrix.variations == {"foo": ("a", "b", "c")}
     assert not matrix.include
     assert not matrix.exclude
 
     # Natural deduplication.
     matrix.add_variation("foo", ["a", "a", "d"])
-    assert matrix == {"foo": ("a", "b", "c", "d")}
+    assert matrix.variations == {"foo": ("a", "b", "c", "d")}
     assert not matrix.include
     assert not matrix.exclude
 
     assert matrix.matrix() == {"foo": ("a", "b", "c", "d")}
 
     assert str(matrix) == '{"foo": ["a", "b", "c", "d"]}'
-    assert (
-        repr(matrix)
-        == "<Matrix: {'foo': ('a', 'b', 'c', 'd')}; include=(); exclude=()>"
-    )
+    assert repr(matrix) == "<Matrix: FrozenDict({'foo': ('a', 'b', 'c', 'd')})>"
 
     with pytest.raises(ValueError):
         matrix.add_variation("variation_1", None)
@@ -101,8 +102,8 @@ def test_includes():
         '"include": [{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}]}'
     )
     assert (
-        repr(matrix) == "<Matrix: {'foo': ('a', 'b', 'c')}; "
-        "include=({'foo': 'a', 'bar': '1'}, {'foo': 'b', 'bar': '2'}); exclude=()>"
+        repr(matrix) == "<Matrix: FrozenDict({'foo': ('a', 'b', 'c'), "
+        "'include': ({'foo': 'a', 'bar': '1'}, {'foo': 'b', 'bar': '2'})})>"
     )
 
     # Multiple insertions.
@@ -157,8 +158,8 @@ def test_excludes():
         '"exclude": [{"foo": "a", "bar": "1"}, {"foo": "b", "bar": "2"}]}'
     )
     assert (
-        repr(matrix) == "<Matrix: {'foo': ('a', 'b', 'c')}; "
-        "include=(); exclude=({'foo': 'a', 'bar': '1'}, {'foo': 'b', 'bar': '2'})>"
+        repr(matrix) == "<Matrix: FrozenDict({'foo': ('a', 'b', 'c'), "
+        "'exclude': ({'foo': 'a', 'bar': '1'}, {'foo': 'b', 'bar': '2'})})>"
     )
 
     # Multiple insertions.

@@ -19,10 +19,38 @@ from __future__ import annotations
 import json
 import re
 from string import ascii_lowercase, digits
+from typing import Any
 
+import pytest
 from extra_platforms import ALL_IDS
 
 from gha_utils.metadata import NUITKA_BUILD_TARGETS, Dialects, Metadata
+
+
+@pytest.mark.parametrize("target_id, target_data", NUITKA_BUILD_TARGETS.items())
+def test_nuitka_targets(target_id: str, target_data: dict[str, str]) -> None:
+    assert isinstance(target_id, str)
+    assert isinstance(target_data, dict)
+
+    assert set(target_data) == {
+        "os",
+        "platform_id",
+        "arch",
+        "extension",
+    }, f"Unexpected keys in target data for {target_id}"
+
+    assert isinstance(target_data["os"], str)
+    assert isinstance(target_data["platform_id"], str)
+    assert isinstance(target_data["arch"], str)
+    assert isinstance(target_data["extension"], str)
+
+    assert set(target_data["os"]).issubset(ascii_lowercase + digits + "-.")
+    assert target_data["platform_id"] in ALL_IDS
+    assert target_data["arch"] in {"arm64", "x64"}
+    assert set(target_data["extension"]).issubset(ascii_lowercase)
+
+    assert target_id == target_data["platform_id"] + "-" + target_data["arch"]
+    assert set(target_id).issubset(ascii_lowercase + digits + "-")
 
 
 def regex(pattern: str) -> re.Pattern:
@@ -30,30 +58,28 @@ def regex(pattern: str) -> re.Pattern:
     return re.compile(pattern, re.DOTALL)
 
 
-def test_nuitka_targets():
-    for target_id, target_data in NUITKA_BUILD_TARGETS.items():
-        assert isinstance(target_id, str)
-        assert isinstance(target_data, dict)
+def iter_checks(metadata: Any, expected: Any) -> None:
+    """Recursively iterate over expected content and check it matches in metadata."""
 
-        assert set(target_data) == {
-            "os",
-            "platform_id",
-            "arch",
-            "extension",
-        }, f"Unexpected keys in target data for {target_id}"
+    if isinstance(expected, re.Pattern):
+        assert isinstance(metadata, str)
+        assert re.fullmatch(expected, metadata) is not None
 
-        assert isinstance(target_data["os"], str)
-        assert isinstance(target_data["platform_id"], str)
-        assert isinstance(target_data["arch"], str)
-        assert isinstance(target_data["extension"], str)
+    elif isinstance(expected, dict):
+        assert isinstance(metadata, dict)
+        assert set(metadata) == set(expected)
+        for key, value in expected.items():
+            iter_checks(metadata[key], value)
 
-        assert set(target_data["os"]).issubset(ascii_lowercase + digits + "-.")
-        assert target_data["platform_id"] in ALL_IDS
-        assert target_data["arch"] in {"arm64", "x64"}
-        assert set(target_data["extension"]).issubset(ascii_lowercase)
+    elif isinstance(expected, list):
+        assert isinstance(metadata, list)
+        assert len(metadata) == len(expected)
+        for item in expected:
+            iter_checks(metadata[expected.index(item)], item)
 
-        assert target_id == target_data["platform_id"] + "-" + target_data["arch"]
-        assert set(target_id).issubset(ascii_lowercase + digits + "-")
+    else:
+        assert metadata == expected
+        assert type(metadata) is type(expected)
 
 
 def test_metadata_github_format():
@@ -198,22 +224,104 @@ def test_metadata_json_format():
                 "windows-2025",
             ],
             "entry_point": ["gha-utils"],
-            "commit": ["3265a2751d864f280d3ba355fb7461eb16d09adc"],
+            "commit": [regex(r"[a-z0-9]+")],
+            "include": [
+                {
+                    "target": "linux-arm64",
+                    "os": "ubuntu-24.04-arm",
+                    "platform_id": "linux",
+                    "arch": "arm64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "linux-x64",
+                    "os": "ubuntu-24.04",
+                    "platform_id": "linux",
+                    "arch": "x64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "macos-arm64",
+                    "os": "macos-15",
+                    "platform_id": "macos",
+                    "arch": "arm64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "macos-x64",
+                    "os": "macos-13",
+                    "platform_id": "macos",
+                    "arch": "x64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "windows-arm64",
+                    "os": "windows-11-arm",
+                    "platform_id": "windows",
+                    "arch": "arm64",
+                    "extension": "exe",
+                },
+                {
+                    "target": "windows-x64",
+                    "os": "windows-2025",
+                    "platform_id": "windows",
+                    "arch": "x64",
+                    "extension": "exe",
+                },
+                {
+                    "entry_point": "gha-utils",
+                    "cli_id": "gha-utils",
+                    "module_id": "gha_utils.__main__",
+                    "callable_id": "main",
+                    "module_path": regex(r"gha_utils(/|\\\\)__main__\.py"),
+                },
+                {
+                    "commit": regex(r"[a-z0-9]+"),
+                    "short_sha": regex(r"[a-z0-9]+"),
+                    "current_version": regex(r"[0-9\.]+"),
+                },
+                {
+                    "os": "ubuntu-24.04-arm",
+                    "entry_point": "gha-utils",
+                    "commit": regex(r"[a-z0-9]+"),
+                    "bin_name": regex(r"gha-utils-linux-arm64-[a-z0-9]+\.bin"),
+                },
+                {
+                    "os": "ubuntu-24.04",
+                    "entry_point": "gha-utils",
+                    "commit": regex(r"[a-z0-9]+"),
+                    "bin_name": regex(r"gha-utils-linux-x64-[a-z0-9]+\.bin"),
+                },
+                {
+                    "os": "macos-15",
+                    "entry_point": "gha-utils",
+                    "commit": regex(r"[a-z0-9]+"),
+                    "bin_name": regex(r"gha-utils-macos-arm64-[a-z0-9]+\.bin"),
+                },
+                {
+                    "os": "macos-13",
+                    "entry_point": "gha-utils",
+                    "commit": regex(r"[a-z0-9]+"),
+                    "bin_name": regex(r"gha-utils-macos-x64-[a-z0-9]+\.bin"),
+                },
+                {
+                    "os": "windows-11-arm",
+                    "entry_point": "gha-utils",
+                    "commit": regex(r"[a-z0-9]+"),
+                    "bin_name": regex(r"gha-utils-windows-arm64-[a-z0-9]+\.exe"),
+                },
+                {
+                    "os": "windows-2025",
+                    "entry_point": "gha-utils",
+                    "commit": regex(r"[a-z0-9]+"),
+                    "bin_name": regex(r"gha-utils-windows-x64-[a-z0-9]+\.exe"),
+                },
+                {"state": "stable"},
+            ],
         },
     }
 
     metadata = Metadata().dump(Dialects.json)
     assert isinstance(metadata, str)
 
-    metadata = json.loads(metadata)
-
-    assert set(metadata) == set(expected)
-
-    for key, value in expected.items():
-        assert key in metadata
-        if isinstance(value, re.Pattern):
-            assert re.fullmatch(value, metadata[key]) is not None
-        else:
-            assert metadata[key] == value, (
-                f"Expected {key} to be {value!r}, got {metadata[key]!r}"
-            )
+    iter_checks(json.loads(metadata), expected)

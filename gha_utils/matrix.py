@@ -27,7 +27,7 @@ from boltons.iterutils import unique
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
 
-class Matrix(FrozenDict):
+class Matrix:
     """A matrix as defined by GitHub's actions workflows.
 
     See GitHub official documentation on `how-to implement variations of jobs in a
@@ -47,34 +47,42 @@ class Matrix(FrozenDict):
     matrix.
     """
 
-    # Tuples are used to keep track of the insertion order and force immutability.
-    include: tuple[dict[str, str], ...] = tuple()
-    exclude: tuple[dict[str, str], ...] = tuple()
+    def __init__(self, *args, **kwargs):
+        self.variations: dict = {}
+
+        # Tuples are used to keep track of the insertion order and force immutability.
+        self.include: tuple[dict[str, str], ...] = tuple()
+        self.exclude: tuple[dict[str, str], ...] = tuple()
+
+        self._job_counter = None
 
     def matrix(
         self, ignore_includes: bool = False, ignore_excludes: bool = False
-    ) -> dict[str, str]:
+    ) -> FrozenDict[str, str]:
         """Returns a copy of the matrix.
 
         The special ``include`` and ``excludes`` directives will be added by default.
         You can selectively ignore them by passing the corresponding boolean parameters.
         """
-        dict_copy = dict(self)
+        dict_copy = self.variations.copy()
         if not ignore_includes and self.include:
             dict_copy["include"] = self.include
         if not ignore_excludes and self.exclude:
             dict_copy["exclude"] = self.exclude
-        return dict_copy
+        return FrozenDict(dict_copy)
 
     def __repr__(self) -> str:
-        return (
-            f"<{self.__class__.__name__}: {super(FrozenDict, self).__repr__()}; "
-            f"include={self.include}; exclude={self.exclude}>"
-        )
+        return f"<{self.__class__.__name__}: {self.matrix()}>"
 
     def __str__(self) -> str:
         """Render matrix as a JSON string."""
         return json.dumps(self.matrix())
+
+    def __getitem__(self, key: str) -> tuple[str, ...]:
+        """Returns the values of a variation by its ID."""
+        if key in self.variations:
+            return self.variations[key]
+        raise KeyError(f"Variation {key} not found in matrix")
 
     @staticmethod
     def _check_ids(*var_ids: str) -> None:
@@ -89,8 +97,8 @@ class Matrix(FrozenDict):
         if any(type(v) is not str for v in values):
             raise ValueError(f"Only strings are accepted in {values}")
         # Extend variation with values, and deduplicate them along the way.
-        var_values = list(self.get(variation_id, [])) + list(values)
-        super(FrozenDict, self).__setitem__(variation_id, tuple(unique(var_values)))
+        var_values = list(self.variations.get(variation_id, [])) + list(values)
+        self.variations[variation_id] = tuple(unique(var_values))
 
     def _add_and_dedup_dicts(
         self, *new_dicts: dict[str, str]
@@ -123,9 +131,9 @@ class Matrix(FrozenDict):
         passing the corresponding ``with_matrix``, ``with_includes`` and
         ``with_excludes`` boolean filter parameters.
         """
-        variations = {}
+        all_variations = {}
         if with_matrix:
-            variations = {k: list(v) for k, v in self.items()}
+            all_variations = {k: list(v) for k, v in self.variations.items()}
 
         for expand, directives in (
             (with_includes, self.include),
@@ -134,9 +142,9 @@ class Matrix(FrozenDict):
             if expand:
                 for value in directives:
                     for k, v in value.items():
-                        variations.setdefault(k, []).append(v)
+                        all_variations.setdefault(k, []).append(v)
 
-        return {k: tuple(unique(v)) for k, v in variations.items()}
+        return {k: tuple(unique(v)) for k, v in all_variations.items()}
 
     def product(
         self, with_includes: bool = False, with_excludes: bool = False
@@ -148,17 +156,17 @@ class Matrix(FrozenDict):
 
         Respects the order of variations and their values.
         """
-        variations = self.all_variations(
+        all_variations = self.all_variations(
             with_includes=with_includes, with_excludes=with_excludes
         )
-        if not variations:
+        if not all_variations:
             return
         yield from map(
             dict,
             itertools.product(
                 *(
                     tuple((variant_id, v) for v in variations)
-                    for variant_id, variations in variations.items()
+                    for variant_id, variations in all_variations.items()
                 )
             ),
         )
@@ -187,11 +195,11 @@ class Matrix(FrozenDict):
                 self.all_variations(
                     with_matrix=False, with_includes=True, with_excludes=True
                 )
-            ).difference(self)
+            ).difference(self.variations)
             if unreferenced_keys:
                 raise ValueError(
                     f"Matrix exclude keys {list(unreferenced_keys)} does not match any "
-                    f"{list(self)} key within the matrix"
+                    f"{self.variations.keys()} key within the matrix"
                 )
 
         # Reset the number of combinations.
@@ -202,7 +210,7 @@ class Matrix(FrozenDict):
 
         # The matrix is empty, none of the include directive will match, so condider all
         # directives as un-applicable.
-        if not self:
+        if not self.variations:
             leftover_includes = list(self.include)
 
         # Search for include directives that matches the original matrix variations
