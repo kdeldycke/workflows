@@ -352,7 +352,7 @@ MYPY_VERSION_MIN: Final = (3, 8)
 class JSONMetadata(json.JSONEncoder):
     """Custom JSON encoder for metadata serialization."""
 
-    def default(self, o: Any) -> str:
+    def default(self, o: Any) -> Any:
         if isinstance(o, Matrix):
             return o.matrix()
 
@@ -661,11 +661,7 @@ class Metadata:
     @cached_property
     def new_commits_hash(self) -> tuple[str, ...] | None:
         """List all hashes of new commits."""
-        return (
-            cast(tuple[str, ...], self.new_commits_matrix["commit"])
-            if self.new_commits_matrix
-            else None
-        )
+        return self.new_commits_matrix["commit"] if self.new_commits_matrix else None
 
     @cached_property
     def release_commits(self) -> tuple[Commit, ...] | None:
@@ -699,7 +695,7 @@ class Metadata:
     def release_commits_hash(self) -> tuple[str, ...] | None:
         """List all hashes of release commits."""
         return (
-            cast(tuple[str, ...], self.release_commits_matrix["commit"])
+            self.release_commits_matrix["commit"]
             if self.release_commits_matrix
             else None
         )

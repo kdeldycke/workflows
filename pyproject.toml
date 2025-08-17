@@ -120,7 +120,7 @@ pretty = true
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
-module = ["boltons.*"]
+module = ["boltons.*", "gitignore_parser.*"]
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/latest/customize.html#pyproject-toml

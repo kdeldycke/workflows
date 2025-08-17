@@ -48,7 +48,7 @@ class Matrix:
     """
 
     def __init__(self, *args, **kwargs):
-        self.variations: dict = {}
+        self.variations: dict[str, tuple[str, ...]] = {}
 
         # Tuples are used to keep track of the insertion order and force immutability.
         self.include: tuple[dict[str, str], ...] = tuple()
@@ -66,9 +66,9 @@ class Matrix:
         """
         dict_copy = self.variations.copy()
         if not ignore_includes and self.include:
-            dict_copy["include"] = self.include
+            dict_copy["include"] = self.include  # type: ignore[assignment]
         if not ignore_excludes and self.exclude:
-            dict_copy["exclude"] = self.exclude
+            dict_copy["exclude"] = self.exclude  # type: ignore[assignment]
         return FrozenDict(dict_copy)
 
     def __repr__(self) -> str:
