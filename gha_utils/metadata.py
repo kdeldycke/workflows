@@ -592,10 +592,14 @@ class Metadata:
         events.
 
         .. seealso::
-
             - https://stackoverflow.com/a/67204539
             - https://stackoverflow.com/a/62953566
             - https://stackoverflow.com/a/61861763
+
+        .. seealso::
+            Pull request events on GitHub are a bit complex, see: `The Many SHAs of a
+            GitHub Pull Request
+            <https://www.kenmuse.com/blog/the-many-shas-of-a-github-pull-request/>`_.
 
         .. todo::
             Refactor so we can get rid of ``self.github_context``. Maybe there's enough
