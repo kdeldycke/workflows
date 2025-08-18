@@ -58,27 +58,31 @@ def regex(pattern: str) -> re.Pattern:
     return re.compile(pattern, re.DOTALL)
 
 
-def iter_checks(metadata: Any, expected: Any) -> None:
+def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
     """Recursively iterate over expected content and check it matches in metadata."""
 
     if isinstance(expected, re.Pattern):
         assert isinstance(metadata, str)
-        assert re.fullmatch(expected, metadata) is not None
+        assert re.fullmatch(expected, metadata) is not None, (
+            f"{metadata!r} does not match {expected.pattern!r} in {context!r}"
+        )
 
     elif isinstance(expected, dict):
         assert isinstance(metadata, dict)
         assert set(metadata) == set(expected)
         for key, value in expected.items():
-            iter_checks(metadata[key], value)
+            iter_checks(metadata[key], value, metadata)
 
     elif isinstance(expected, list):
         assert isinstance(metadata, list)
         assert len(metadata) == len(expected)
         for item in expected:
-            iter_checks(metadata[expected.index(item)], item)
+            iter_checks(metadata[expected.index(item)], item, metadata)
 
     else:
-        assert metadata == expected
+        assert metadata == expected, (
+            f"{metadata!r} does not match {expected!r} in {context!r}"
+        )
         assert type(metadata) is type(expected)
 
 
@@ -256,7 +260,7 @@ def test_metadata_json_format():
     metadata = Metadata().dump(Dialects.json)
     assert isinstance(metadata, str)
 
-    iter_checks(json.loads(metadata), expected)
+    iter_checks(json.loads(metadata), expected, metadata)
 
 
 def test_metadata_github_format():
@@ -326,4 +330,4 @@ def test_metadata_github_format():
             new_value = " ".join(f'"{i}"' for i in value)
         github_format_expected[key] = new_value
 
-    iter_checks(metadata, github_format_expected)
+    iter_checks(metadata, github_format_expected, raw_metadata)
