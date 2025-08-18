@@ -1,26 +1,27 @@
 flowchart TD
     classDef missing stroke-dasharray: 5
     annotated-types["annotated-types\n0.7.0"]
-    anyio["anyio\n4.9.0"]
+    anyio["anyio\n4.10.0"]
     boltons["boltons\n25.0.0"]
     bracex["bracex\n2.6"]
     bump-my-version["bump-my-version\n1.1.0"]
-    certifi["certifi\n2025.7.14"]
-    charset-normalizer["charset-normalizer\n3.4.2"]
+    certifi["certifi\n2025.8.3"]
+    charset-normalizer["charset-normalizer\n3.4.3"]
     click-extra["click-extra\n5.0.2"]
     click_0["click\n8.2.1"]
-    cloup["cloup\n3.0.7"]
+    cloup["cloup\n3.0.8"]
     distro["distro\n1.9.0"]
-    extra-platforms["extra-platforms\n3.2.2"]
-    gha-utils["gha-utils\n4.17.7"]
+    extra-platforms["extra-platforms\n3.2.3"]
+    gha-utils["gha-utils\n4.18.1"]
     gitdb["gitdb\n4.0.12"]
-    gitpython["GitPython\n3.1.44"]
+    gitignore-parser["gitignore_parser\n0.1.12"]
+    gitpython["GitPython\n3.1.45"]
     h11["h11\n0.16.0"]
     httpcore["httpcore\n1.0.9"]
     httpx["httpx\n0.28.1"]
     idna["idna\n3.10"]
     lizard["lizard\n1.17.10"]
-    markdown-it-py["markdown-it-py\n3.0.0"]
+    markdown-it-py["markdown-it-py\n4.0.0"]
     mdurl["mdurl\n0.1.2"]
     mergedeep["mergedeep\n1.3.4"]
     packaging["packaging\n25.0"]
@@ -37,12 +38,12 @@ flowchart TD
     questionary["questionary\n2.1.0"]
     requests["requests\n2.32.4"]
     rich-click["rich-click\n1.8.9"]
-    rich["rich\n14.0.0"]
+    rich["rich\n14.1.0"]
     smmap["smmap\n5.0.2"]
     sniffio["sniffio\n1.3.1"]
     tabulate["tabulate\n0.9.0"]
     tomlkit["tomlkit\n0.13.3"]
-    types-pytz["types-pytz\n2025.2.0.20250516"]
+    types-pytz["types-pytz\n2025.2.0.20250809"]
     typing-extensions["typing_extensions\n4.14.1"]
     typing-inspection["typing-inspection\n0.4.1"]
     urllib3["urllib3\n2.5.0"]
@@ -77,6 +78,7 @@ flowchart TD
     gha-utils -- ">=0.32.2,<1.1.1" --> bump-my-version
     gha-utils -- ">=24.0.0" --> boltons
     gha-utils -- ">=8.5" --> wcmatch
+    gha-utils -- "~=0.1.12" --> gitignore-parser
     gha-utils -- "~=0.9.0" --> pyproject-metadata
     gha-utils -- "~=2.6" --> pydriller
     gha-utils -- "~=25.0" --> packaging
