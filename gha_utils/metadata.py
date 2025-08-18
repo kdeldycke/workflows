@@ -350,8 +350,12 @@ MYPY_VERSION_MIN: Final = (3, 8)
 """
 
 
-# XXX Patch gitignore-parser to support Windows paths.
-# Refs: https://github.com/mherrmann/gitignore_parser/pull/61
+# XXX Patch gitignore-parser to support Windows paths. Refs:
+# https://github.com/mherrmann/gitignore_parser/issues/60
+# https://github.com/mherrmann/gitignore_parser/pull/61
+# XXX In the future, replace this with wcmatch once it supports gitignore files:
+# https://github.com/facelessuser/wcmatch/issues/226
+
 
 _OriginalIgnoreRule = gitignore_parser.IgnoreRule
 
