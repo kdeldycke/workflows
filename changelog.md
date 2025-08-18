@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.18.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.18.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.18.1 (2025-08-18)](https://github.com/kdeldycke/workflows/compare/v4.18.0...v4.18.1)
 
 - Patch `gitignore-parser` locally to support Windows paths.
 
