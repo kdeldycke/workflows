@@ -207,7 +207,7 @@ expected = {
                 "cli_id": "gha-utils",
                 "module_id": "gha_utils.__main__",
                 "callable_id": "main",
-                "module_path": regex(r"gha_utils(/|\\\\)__main__\.py"),
+                "module_path": regex(r"gha_utils(/|\\)__main__\.py"),
             },
             {
                 "commit": regex(r"[a-z0-9]+"),
