@@ -156,21 +156,22 @@ import json
 import logging
 import os
 import re
+import sys
 import tomllib
 from collections.abc import Iterable
 from enum import StrEnum
 from functools import cached_property
 from operator import itemgetter
-from pathlib import Path, PureWindowsPath
+from pathlib import Path
 from random import randint
 from re import escape
 from typing import Any, Final, cast
 
+import gitignore_parser
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
-from gitignore_parser import parse_gitignore
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
@@ -347,6 +348,58 @@ MYPY_VERSION_MIN: Final = (3, 8)
 `Sourced from Mypy original implementation
 <https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
 """
+
+
+# XXX Patch gitignore-parser to support Windows paths.
+# Refs: https://github.com/mherrmann/gitignore_parser/pull/61
+
+_OriginalIgnoreRule = gitignore_parser.IgnoreRule
+
+
+class PatchedIgnoreRule(_OriginalIgnoreRule):
+    """Patch version of ``IgnoreRule`` to support Windows paths.
+
+    Taken from: https://github.com/mherrmann/gitignore_parser/pull/61/files
+    """
+
+    @staticmethod
+    def _count_trailing_symbol(symbol: str, text: str) -> int:
+        """Count the number of trailing characters in a string."""
+        count = 0
+        for char in reversed(str(text)):
+            if char == symbol:
+                count += 1
+            else:
+                break
+        return count
+
+    def match(self, abs_path: str | Path) -> bool:
+        matched = False
+        if self.base_path:
+            rel_path = (
+                gitignore_parser._normalize_path(abs_path)
+                .relative_to(self.base_path)
+                .as_posix()
+            )
+        else:
+            rel_path = gitignore_parser._normalize_path(abs_path).as_posix()
+        # Path() strips the trailing following symbols on windows, so we need to
+        # preserve it: ' ', '.'
+        if sys.platform.startswith("win"):
+            rel_path += " " * self._count_trailing_symbol(" ", abs_path)
+            rel_path += "." * self._count_trailing_symbol(".", abs_path)
+        # Path() strips the trailing slash, so we need to preserve it
+        # in case of directory-only negation
+        if self.negation and type(abs_path) is str and abs_path[-1] == "/":
+            rel_path += "/"
+        if rel_path.startswith("./"):
+            rel_path = rel_path[2:]
+        if re.search(self.regex, rel_path):
+            matched = True
+        return matched
+
+
+gitignore_parser.IgnoreRule = PatchedIgnoreRule
 
 
 class JSONMetadata(json.JSONEncoder):
@@ -737,7 +790,7 @@ class Metadata:
         gitignore = None
         if self.gitignore_exists:
             logging.debug(f"Load {GITIGNORE_PATH} to filter out ignored files.")
-            gitignore = parse_gitignore(GITIGNORE_PATH)
+            gitignore = gitignore_parser.parse_gitignore(GITIGNORE_PATH)
 
         for file_path in iglob(
             patterns,
@@ -768,15 +821,9 @@ class Metadata:
                 continue
 
             # Skip files that are ignored by .gitignore.
-            if gitignore:
-                if gitignore(
-                    # gitignore does not support WindowsPath.
-                    file_path.as_posix()
-                    if isinstance(file_path, PureWindowsPath)
-                    else file_path
-                ):
-                    logging.debug(f"Skip file matching {GITIGNORE_PATH}: {file_path}")
-                    continue
+            if gitignore and gitignore(file_path):
+                logging.debug(f"Skip file matching {GITIGNORE_PATH}: {file_path}")
+                continue
 
             seen.add(normalized_path)
         return sorted(seen)

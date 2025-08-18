@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Patch `gitignore-parser` locally to support Windows paths.
+
 ## [4.18.0 (2025-08-17)](https://github.com/kdeldycke/workflows/compare/v4.17.9...v4.18.0)
 
 - Adds `--format json` option.
