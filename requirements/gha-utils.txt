@@ -1,1 +1,1 @@
-gha-utils == 4.18.0
+gha-utils == 4.18.1
