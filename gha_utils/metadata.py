@@ -360,7 +360,7 @@ MYPY_VERSION_MIN: Final = (3, 8)
 _OriginalIgnoreRule = gitignore_parser.IgnoreRule
 
 
-class PatchedIgnoreRule(_OriginalIgnoreRule):
+class PatchedIgnoreRule(_OriginalIgnoreRule):  # type: ignore[misc,valid-type]
     """Patch version of ``IgnoreRule`` to support Windows paths.
 
     Taken from: https://github.com/mherrmann/gitignore_parser/pull/61/files
