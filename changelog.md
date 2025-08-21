@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use temporary fork of upcoming Nuitka `v2.8rc11` to fix compilation of `rfc3987_syntax` data file.
+
 ## [4.18.1 (2025-08-18)](https://github.com/kdeldycke/workflows/compare/v4.18.0...v4.18.1)
 
 - Patch `gitignore-parser` locally to support Windows paths.
