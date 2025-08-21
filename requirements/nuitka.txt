@@ -1,6 +1,6 @@
 # XXX Temporary workaround for missing RFC 3987 syntax data file in Nuitka.
 # Refs: https://github.com/Nuitka/Nuitka/pull/3578
-nuitka == "git+https://github.com/kdeldycke/Nuitka@add-missing-rfc3987-syntax-data-file"
+nuitka @ git+https://github.com/kdeldycke/Nuitka.git@add-missing-rfc3987-syntax-data-file
 # Additional dependencies:
 #   - ordered-set: used by Nuitka for compilation performance
 #   - zstandard: for nuitka's onefile compression
