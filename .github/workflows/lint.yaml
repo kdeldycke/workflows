@@ -148,13 +148,14 @@ jobs:
         id: lychee_run
         with:
           fail: false
-          lycheeVersion: v0.19.1
+          lycheeVersion: v0.20.0
           args: >
             --hidden
             --suggest
             --insecure
             --base-url .
             --no-progress
+            --include-fragments
             --exclude-all-private
             './**/*.md' './**/*.html' './**/*.rst'
       - name: List open issues
