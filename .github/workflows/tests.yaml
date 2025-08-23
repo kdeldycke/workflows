@@ -56,6 +56,14 @@ jobs:
         run: |
           uv --no-progress venv --python ${{ matrix.python-version }}
           uv --no-progress sync --frozen --extra test
+      - name: Check launchable modules
+        run: |
+          uv run python -m gha_utils --version
+          uv run -m gha_utils --version
+      - name: Check launchable CLI
+        run: |
+          uv run -- gha-utils --version
+          uvx -- gha-utils --version
       - name: Unittests
         run: |
           uv --no-progress run --frozen -- pytest

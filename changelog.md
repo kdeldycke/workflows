@@ -7,6 +7,7 @@
 
 - Check for URL fragments when checking links with Lychee.
 - Use temporary fork of upcoming Nuitka `v2.8rc11` to fix compilation of `rfc3987_syntax` data file.
+- Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
 
 ## [4.18.1 (2025-08-18)](https://github.com/kdeldycke/workflows/compare/v4.18.0...v4.18.1)
 
