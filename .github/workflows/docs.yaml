@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v5.0.0
       # XXX Waiting for a recent release for image-actions so we'll get rid of some warning annotations like
       # "Unexpected input(s) 'compressOnly'". See: https://github.com/calibreapp/image-actions/issues/128
-      - uses: calibreapp/image-actions@1.1.0
+      - uses: calibreapp/image-actions@1.2.0
         id: image_actions
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
