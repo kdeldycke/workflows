@@ -287,7 +287,7 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
       - name: Generate attestations
-        uses: actions/attest-build-provenance@v2.4.0
+        uses: actions/attest-build-provenance@v3.0.0
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPi
@@ -379,7 +379,7 @@ jobs:
       - name: Generate attestations
         # Do not try to attest artifacts if none have been produced.
         if: steps.collect_artifacts.outputs.artifacts_path
-        uses: actions/attest-build-provenance@v2.4.0
+        uses: actions/attest-build-provenance@v3.0.0
         with:
           subject-path: ${{ steps.collect_artifacts.outputs.artifacts_path }}
       - name: Create GitHub release
