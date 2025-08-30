@@ -65,7 +65,6 @@ jobs:
       - uses: calibreapp/image-actions@1.4.0
         id: image_actions
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           compressOnly: true
       - uses: peter-evans/create-pull-request@v7.0.8
         with:
