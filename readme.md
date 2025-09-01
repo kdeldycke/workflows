@@ -96,16 +96,11 @@ $ file ./gha-utils-*
 
 ### Development version
 
-To play with the latest development version of `gha-utils`, you can install it directly from the repository:
+To play with the latest development version of `gha-utils`, you can run it directly from the repository:
 
 ```shell-session
-$ git clone https://github.com/kdeldycke/workflows
-$ cd workflows
-$ python -m pip install uv
-$ uv venv
-$ source .venv/bin/activate
-$ uv sync
-$ uv run -- gha-utils
+$ uvx --from git+https://github.com/kdeldycke/workflows -- gha-utils --version
+gha-utils, version 4.18.2
 ```
 
 ## Reusable workflows collection
