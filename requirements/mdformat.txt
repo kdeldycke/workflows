@@ -9,6 +9,9 @@ mdformat_footnote == 0.1.1
 mdformat_frontmatter == 2.0.8
 mdformat-gfm == 0.4.1
 mdformat_gfm_alerts == 2.0.0
+# XXX Annoying issue with mdformat-myst: it forces colon-delimited parameters in code blocks
+# to be normalized as YAML frontmatter. See:
+# https://github.com/executablebooks/mdformat-myst/issues/21#issuecomment-3247818021
 mdformat_myst == 0.2.2
 # mdformat-pelican == 0.2.1
 mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
