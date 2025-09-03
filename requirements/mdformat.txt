@@ -17,17 +17,11 @@ mdformat_myst == 0.2.2
 mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
 mdformat_pyproject == 0.0.2
 # Fix URL encoding: https://github.com/hukkin/mdformat/issues/312#issuecomment-3227866895
-# Also fix issue with mdformat-toc:
-# https://github.com/hukkin/mdformat-toc/issues/19
-# https://github.com/holy-two/mdformat-recover-urls/pull/2
-# https://github.com/hukkin/mdformat/issues/312#issuecomment-1586025822
-mdformat-recover-urls @ git+https://github.com/kdeldycke/mdformat-recover-urls@fix-recovering
+mdformat-recover-urls == 0.0.2
 mdformat-ruff == 0.1.3
 mdformat-shfmt == 0.2.0
 mdformat_simple_breaks == 0.0.1
 mdformat_tables == 1.0.0
-# XXX mdformat-toc is incompatible with mdformat-recover-urls. See:
-# https://github.com/hukkin/mdformat-toc/issues/19
 mdformat-toc == 0.3.0
 mdformat-web == 0.2.0
 ruff == 0.12.11
