@@ -95,7 +95,7 @@ test = [
     "pytest ~= 8.4.0",
     # More pytest plugins at: https://docs.pytest.org/en/latest/reference/plugin_list.html
     "pytest-cases ~= 3.9.1",
-    "pytest-cov ~= 6.2.1",
+    "pytest-cov ~= 6.3.0",
     "pytest-github-actions-annotate-failures ~= 0.3.0",
     "pytest-randomly ~= 3.16.0",
 ]
