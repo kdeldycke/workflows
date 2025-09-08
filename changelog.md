@@ -6,7 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Check for URL fragments when checking links with Lychee.
-- Temporaryly depends on upcoming Nuitka `v2.7.14` to fix compilation of `rfc3987_syntax` data file.
+- Fix compilation of `rfc3987_syntax` data file thanks to Nuitka `v2.7.14`.
 - Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
 - Remove local patch of `gitignore-parser`, rely on `v0.1.13` release instead.
 - Add dependency on `mdformat-recover-urls` to fix URL encoding in Markdown files.
