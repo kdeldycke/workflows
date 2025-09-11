@@ -136,7 +136,7 @@ dependencies = [
 [[package]]
 name = "click-extra"
 version = "5.2.0"
-source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#941534219507ade8cc709abf57ab5fd00bc36813" }
+source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#ec8a709ced87b1f34370a188dc61aa3e0009a55b" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },
