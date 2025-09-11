@@ -119,6 +119,10 @@ jobs:
           --preview
           --ignore D400,ERA001
       - name: Run Ruff format
+        # Additional configuration compared to the "ruff check" step above:
+        # future-annotations : Whether to allow rules to add from __future__ import annotations in cases where
+        #   this would simplify a fix or enable a new diagnostic.
+        #   https://docs.astral.sh/ruff/settings/#lint_future-annotations
         # format.docstring-code-format : Enable reformatting of code snippets in docstrings.
         #   https://docs.astral.sh/ruff/formatter/#docstring-formatting
         # XXX Ruff is planning to support linting and formatting in one unified command at one point.
@@ -130,6 +134,7 @@ jobs:
           --config "show-fixes = true"
           --config "output-format = 'github'"
           --preview
+          --config "lint.future-annotations = true"
           --config "format.docstring-code-format = true"
       - name: Run blacken-docs
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
