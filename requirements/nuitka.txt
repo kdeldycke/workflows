@@ -3,4 +3,4 @@ nuitka == 2.7.14
 #   - ordered-set: used by Nuitka for compilation performance
 #   - zstandard: for nuitka's onefile compression
 ordered-set == 4.1.0
-zstandard == 0.24.0
+zstandard == 0.25.0
