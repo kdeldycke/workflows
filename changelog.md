@@ -10,6 +10,7 @@
 - Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
 - Remove local patch of `gitignore-parser`, rely on `v0.1.13` release instead.
 - Add dependency on `mdformat-recover-urls` to fix URL encoding in Markdown files.
+- Force installation of all dependencies before running Mypy in lint workflow to ensure all typeshed are present.
 
 ## [4.18.1 (2025-08-18)](https://github.com/kdeldycke/workflows/compare/v4.18.0...v4.18.1)
 
