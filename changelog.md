@@ -11,7 +11,7 @@
 - Remove local patch of `gitignore-parser`, rely on `v0.1.13` release instead.
 - Add dependency on `mdformat-recover-urls` to fix URL encoding in Markdown files.
 - Force installation of all dependencies before running Mypy in lint workflow to ensure all typeshed are present.
-- Ignore `click 8.3.0` when installing `bump-my-version` to avoid incompatible API changes.
+- Cap `click` to `8.2.x` series when installing `bump-my-version` to avoid incompatible API changes.
 
 ## [4.18.1 (2025-08-18)](https://github.com/kdeldycke/workflows/compare/v4.18.0...v4.18.1)
 
