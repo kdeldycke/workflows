@@ -47,18 +47,18 @@ class Matrix:
     matrix.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.variations: dict[str, tuple[str, ...]] = {}
 
         # Tuples are used to keep track of the insertion order and force immutability.
         self.include: tuple[dict[str, str], ...] = tuple()
         self.exclude: tuple[dict[str, str], ...] = tuple()
 
-        self._job_counter = None
+        self._job_counter: int = 0
 
     def matrix(
         self, ignore_includes: bool = False, ignore_excludes: bool = False
-    ) -> FrozenDict[str, str]:
+    ) -> FrozenDict[str, tuple[str, ...] | tuple[dict[str, str], ...]]:
         """Returns a copy of the matrix.
 
         The special ``include`` and ``excludes`` directives will be added by default.

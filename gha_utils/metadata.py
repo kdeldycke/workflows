@@ -372,9 +372,6 @@ class Metadata:
             self.unstable_targets = set(unstable_targets)
             assert self.unstable_targets.issubset(NUITKA_BUILD_TARGETS)
 
-        # None indicates the is_python_project variable has not been evaluated yet.
-        self._is_python_project: bool | None = None
-
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
@@ -785,41 +782,35 @@ class Metadata:
         """Returns a list of doc files."""
         return self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
 
-    @property
+    @cached_property
     def is_python_project(self):
         """Returns ``True`` if repository is a Python project.
 
-        Presence of a ``pyproject.toml`` file is not enough, as 3rd party tools can use
-        that file to store their own configuration.
+        Presence of a ``pyproject.toml`` file that respects the standards is enough
+        to consider the project as a Python one.
         """
-        return self._is_python_project
-
-    @is_python_project.getter
-    def is_python_project(self):
-        """Try to read and validate the ``pyproject.toml`` file on access to the
-        ``is_python_project`` property.
-        """
-        if self._is_python_project is None:
-            self.pyproject
-        return self._is_python_project
+        return False if self.pyproject is None else True
 
     @cached_property
     def pyproject(self) -> StandardMetadata | None:
         """Returns metadata stored in the ``pyproject.toml`` file.
 
-        Also sets the internal ``_is_python_project`` value to ``True`` if the
-        ``pyproject.toml`` exists and respects the standards. ``False`` otherwise.
+        Returns ``None`` if the ``pyproject.toml`` does not exists or does not respects
+        the PEP standards.
+
+        .. warning::
+            Some third-party apps have their configuration saved into
+            ``pyproject.toml`` file, but that does not means the project is a Python
+            one. For that, the ``pyproject.toml`` needs to respect the PEPs.
         """
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
             toml = tomllib.loads(self.pyproject_path.read_text(encoding="UTF-8"))
             try:
                 metadata = StandardMetadata.from_pyproject(toml)
-                self._is_python_project = True
                 return metadata
             except ConfigurationError:
                 pass
 
-        self._is_python_project = False
         return None
 
     @cached_property
