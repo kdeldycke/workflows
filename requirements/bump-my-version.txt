@@ -1,2 +1,7 @@
 bump-my-version == 1.1.0
-click != 8.3.0
+# Bump-my-version does not cap Click so breaking version release are fetched: See:
+# https://github.com/callowayproject/bump-my-version/pull/371
+# https://github.com/pallets/click/issues/3066
+# https://github.com/pallets/click/issues/3065
+# https://github.com/pallets/click/pull/3068
+click < 8.3
