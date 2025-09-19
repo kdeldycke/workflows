@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.18.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.18.1...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.18.2 (2025-09-19)](https://github.com/kdeldycke/workflows/compare/v4.18.1...v4.18.2)
 
 - Check for URL fragments when checking links with Lychee.
 - Fix compilation of `rfc3987_syntax` data file thanks to Nuitka `v2.7.14`.
