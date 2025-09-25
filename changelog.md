@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.19.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.19.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.19.1 (2025-09-25)](https://github.com/kdeldycke/workflows/compare/v4.19.0...v4.19.1)
 
 - Bump to Click Extra 6.0.0.
 
