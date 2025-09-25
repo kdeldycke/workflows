@@ -7,7 +7,6 @@
 
 - Check for URL fragments when checking links with Lychee.
 - Fix compilation of `rfc3987_syntax` data file thanks to Nuitka `v2.7.14`.
-- Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
 - Remove local patch of `gitignore-parser`, rely on `v0.1.13` release instead.
 - Add dependency on `mdformat-recover-urls` to fix URL encoding in Markdown files.
 - Force installation of all dependencies before running Mypy in lint workflow to ensure all `typeshed-*` packages are present.
