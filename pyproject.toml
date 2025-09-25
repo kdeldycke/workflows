@@ -73,7 +73,7 @@ dependencies = [
     # while releasing gha-utils itself.
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     # v1.1.1 and later have some regressions: see https://github.com/callowayproject/bump-my-version/issues/331
-    "bump-my-version >= 0.32.2, < 1.1.1",
+    "bump-my-version >= 0.32.2, < 1.2.4",
     # Click Extra 6.0.0 fix an isue with --version option.
     "click-extra ~= 6.0.0",
     "extra-platforms ~= 3.2.0",
