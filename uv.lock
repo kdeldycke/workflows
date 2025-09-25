@@ -140,7 +140,7 @@ wheels = [
 [[package]]
 name = "click-extra"
 version = "5.2.0"
-source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#0b20dfc4a97f03dcde15aade8c3cca80e41a7b8c" }
+source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#4af21db64e4a6d5127872cb4f8c8623f867510e2" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },
