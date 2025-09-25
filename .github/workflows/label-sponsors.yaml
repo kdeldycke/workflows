@@ -21,6 +21,8 @@ jobs:
 
   label-sponsors:
     name: Tag sponsors
+    # Skip sponsor tagging on prepare-release branch and Dependabot PRs.
+    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: JasonEtco/is-sponsor-label-action@v2.0.0

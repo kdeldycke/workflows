@@ -12,6 +12,7 @@
 - Add dependency on `mdformat-recover-urls` to fix URL encoding in Markdown files.
 - Force installation of all dependencies before running Mypy in lint workflow to ensure all typeshed are present.
 - Cap `click` to `8.2.x` series when installing `bump-my-version` to avoid incompatible API changes.
+- Skip linting and sponsoring jobs on Dependabot PRs and `prepare-release` branch.
 
 ## [4.18.1 (2025-08-18)](https://github.com/kdeldycke/workflows/compare/v4.18.0...v4.18.1)
 

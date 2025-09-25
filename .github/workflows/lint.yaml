@@ -68,7 +68,8 @@ jobs:
 
   lint-yaml:
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release'
+    # Also skip Dependabot PRs which does not heavily alters YAML files.
+    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -83,6 +84,8 @@ jobs:
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
+    # Skip linting on prepare-release branch and Dependabot PRs because they do not alter Zsh files.
+    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -95,6 +98,8 @@ jobs:
           find . -iname "*.sh" -exec zsh --no-exec "{}" \;
 
   lint-github-action:
+    # Skip linting on prepare-release branch and Dependabot PRs because they do not heavily alters GitHub Actions.
+    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -137,10 +142,12 @@ jobs:
     # that does not exist yet, rendering URLs artificially broken. Also skips the merge commit of the prepare-release
     # branch, as if the URLs are good, the tag is created asynchronously by release.yaml:git-tag job. And as a
     # precautionary measure, just skip any event that contains a post-release bump commit.
+    # Also skip Dependabot PRs which does not heavily alters URLs.
     if: >
       github.head_ref != 'prepare-release'
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
+      && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
@@ -246,9 +253,11 @@ jobs:
 
   lint-awesome:
     name: Lint Awesome list
+    # Lint only "awesome-*" repositories except "awesome-template" and skip Dependabot PRs.
     if: >
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
+      && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -260,6 +269,8 @@ jobs:
           npx awesome-lint
 
   check-secrets:
+    # Skip secret checks on prepare-release branch and Dependabot PRs.
+    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
