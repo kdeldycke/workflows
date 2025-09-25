@@ -74,9 +74,8 @@ dependencies = [
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     # v1.1.1 and later have some regressions: see https://github.com/callowayproject/bump-my-version/issues/331
     "bump-my-version >= 0.32.2, < 1.1.1",
-    # XXX Upcoming click-extra 5.2.0 will fix an isue with --version option.
-    # "click-extra ~= 5.2.0",
-    "click-extra @ git+https://github.com/kdeldycke/click-extra.git@main",
+    # Click Extra 6.0.0 fix an isue with --version option.
+    "click-extra ~= 6.0.0",
     "extra-platforms ~= 3.2.0",
     # In the future, replace gitignore-parser with wcmatch once the latter supports gitignore files:
     # https://github.com/facelessuser/wcmatch/issues/226

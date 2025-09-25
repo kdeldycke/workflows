@@ -139,8 +139,8 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "5.2.0"
-source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#4af21db64e4a6d5127872cb4f8c8623f867510e2" }
+version = "6.0.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },
@@ -152,6 +152,10 @@ dependencies = [
     { name = "tabulate", extra = ["widechars"] },
     { name = "wcmatch" },
     { name = "xmltodict" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d2/bf/5de3b94bb5e6e4da3f209cfbbabcf353f5947f826e59fc349199e27c4d22/click_extra-6.0.0.tar.gz", hash = "sha256:fad577db924d25ee7838699d162f13af089cab49c09345e827b780197ea7b581", size = 115778, upload-time = "2025-09-25T16:00:54.951Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/13/22dfbbd0c998dee5d460128d32ff13d3f5ebc767348749496b31ae044089/click_extra-6.0.0-py3-none-any.whl", hash = "sha256:45674d1e7cd92042cde5bc1587a88364f5f7ee88aa2f4394dc20eba7d9e0ea0f", size = 84110, upload-time = "2025-09-25T16:00:53.679Z" },
 ]
 
 [[package]]
@@ -345,7 +349,7 @@ typing = [
 requires-dist = [
     { name = "boltons", specifier = ">=24.0.0" },
     { name = "bump-my-version", specifier = ">=0.32.2,<1.1.1" },
-    { name = "click-extra", git = "https://github.com/kdeldycke/click-extra.git?rev=main" },
+    { name = "click-extra", specifier = "~=6.0.0" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "~=7.10.0" },
     { name = "extra-platforms", specifier = "~=3.2.0" },
     { name = "gitignore-parser", specifier = "~=0.1.13" },
