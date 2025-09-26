@@ -5,9 +5,12 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add new `is_bot` field to `gha-utils metadata` to detect if the current run is not triggered by a human.
-- Add new `build_targets` field to `gha-utils metadata` to list all supported Nuitka build targets.
-- Add new `markdown_files` field to `gha-utils metadata` to list all Markdown files in the repository.
+- Add new fields to `gha-utils metadata`:
+  - `is_bot` to detect if the current run is not triggered by a human.
+  - `build_targets` to list all supported Nuitka build targets.
+  - `markdown_files` to list all Markdown files in the repository.
+  - `zsh_files` to list all Zsh files in the repository.
+  - `json_files` to list all JSON files in the repository.
 - Include `*.pyi`, `*.pyw`, `*.pyx` and `*.ipynb` files in `python_files` field.
 - Include `*.mdown`, `*.mkdn`, `*.mdwn`, `*.mkd`, `*.mdtxt` and `*.mdtext` files in `doc_files` field.
 - Add support for Python 3.14 syntax in blacken-docs.

@@ -122,6 +122,7 @@ expected = {
         "tests/test_matrix.py",
         "tests/test_metadata.py",
     ],
+    "json_files": [],
     "doc_files": [
         ".github\\code-of-conduct.md",
         "changelog.md",
@@ -144,6 +145,7 @@ expected = {
         "changelog.md",
         "readme.md",
     ],
+    "zsh_files": [],
     "is_python_project": True,
     "package_name": "gha-utils",
     "blacken_docs_params": (

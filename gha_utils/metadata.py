@@ -842,6 +842,17 @@ class Metadata:
         return self.glob_files("**/*.{py,pyi,pyw,pyx,ipynb}", "!.venv/**")
 
     @cached_property
+    def json_files(self) -> list[Path]:
+        """Returns a list of JSON files."""
+        return self.glob_files(
+            "**/*.{json,jsonc,json5}",
+            ".code-workspace",
+            "!package-lock.json",
+            "!node_modules/**",
+            "!.venv/**",
+        )
+
+    @cached_property
     def doc_files(self) -> list[Path]:
         """Returns a list of doc files."""
         return self.glob_files(
@@ -853,6 +864,13 @@ class Metadata:
         """Returns a list of Markdown files."""
         return self.glob_files(
             "**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}", "!.venv/**"
+        )
+
+    @cached_property
+    def zsh_files(self) -> list[Path]:
+        """Returns a list of Zsh files."""
+        return self.glob_files(
+            "**/*.{sh,zsh}", ".zshrc", ".zprofile", ".zshenv", ".zlogin", "!.venv/**"
         )
 
     @cached_property
@@ -1416,8 +1434,10 @@ class Metadata:
             "release_commits": self.release_commits_hash,
             "gitignore_exists": self.gitignore_exists,
             "python_files": self.python_files,
+            "json_files": self.json_files,
             "doc_files": self.doc_files,
             "markdown_files": self.markdown_files,
+            "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,
             "blacken_docs_params": self.blacken_docs_params,
