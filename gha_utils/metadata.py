@@ -617,7 +617,8 @@ class Metadata:
     @cached_property
     def event_sender_type(self) -> str | None:
         """Returns the type of the user that triggered the workflow run."""
-        return self.github_context.get("event", {}).get("sender", {}).get("type")
+        sender_type = self.github_context.get("event", {}).get("sender", {}).get("type")
+        return cast(str | None, sender_type)
 
     @cached_property
     def is_bot(self) -> bool:
