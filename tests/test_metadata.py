@@ -87,6 +87,7 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
 
 
 expected = {
+    "is_bot": False,
     "new_commits": None,
     "release_commits": None,
     "gitignore_exists": True,

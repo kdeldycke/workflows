@@ -20,6 +20,7 @@ The following variables are `printed to the environment file
 <https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files>`_:
 
 ```text
+is_bot=false
 new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5f6c2
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
 gitignore_exists=true
@@ -569,6 +570,30 @@ class Metadata:
         if bool(os.environ.get("GITHUB_BASE_REF")):
             return WorkflowEvent.pull_request
         return WorkflowEvent.push
+
+    @cached_property
+    def event_actor(self) -> str | None:
+        """Returns the GitHub login of the user that triggered the workflow run."""
+        return self.github_context.get("actor")
+
+    @cached_property
+    def event_sender_type(self) -> str | None:
+        """Returns the type of the user that triggered the workflow run."""
+        return self.github_context.get("event", {}).get("sender", {}).get("type")
+
+    @cached_property
+    def is_bot(self) -> bool:
+        """Returns ``True`` if the workflow was triggered by a bot or automated process.
+
+        This is useful to only run some jobs on human-triggered events. Or skip jobs
+        triggered by bots to avoid infinite loops.
+        """
+        if self.event_sender_type == "Bot" or self.event_actor in (
+            "dependabot[bot]",
+            "dependabot-preview[bot]",
+        ):
+            return True
+        return False
 
     @cached_property
     def commit_range(self) -> tuple[str, str] | None:
@@ -1321,6 +1346,7 @@ class Metadata:
         Defaults to GitHub dialect.
         """
         metadata: dict[str, Any] = {
+            "is_bot": self.is_bot,
             "new_commits": self.new_commits_hash,
             "release_commits": self.release_commits_hash,
             "gitignore_exists": self.gitignore_exists,
