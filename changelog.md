@@ -7,6 +7,7 @@
 
 - Add `is_bot` field to `gha-utils metadata` output to detect if the current run is not triggered by a human.
 - Add `build_targets` field to `gha-utils metadata` output to list all supported Nuitka build targets.
+- Add support for Python 3.14 syntax in blacken-docs.
 - Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
 
 ## [4.19.1 (2025-09-25)](https://github.com/kdeldycke/workflows/compare/v4.19.0...v4.19.1)

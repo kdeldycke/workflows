@@ -135,7 +135,12 @@ expected = {
     ],
     "is_python_project": True,
     "package_name": "gha-utils",
-    "blacken_docs_params": "--target-version py311 --target-version py312 --target-version py313",
+    "blacken_docs_params": (
+        "--target-version py311 "
+        "--target-version py312 "
+        "--target-version py313 "
+        "--target-version py314"
+    ),
     "mypy_params": "--python-version 3.11",
     "current_version": regex(r"[0-9\.]+"),
     "released_version": None,
