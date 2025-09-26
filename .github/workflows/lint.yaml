@@ -18,6 +18,8 @@ jobs:
 
   project-metadata:
     name: Project metadata
+    # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
+    if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-24.04
     outputs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
@@ -253,11 +255,13 @@ jobs:
 
   lint-awesome:
     name: Lint Awesome list
-    # Lint only "awesome-*" repositories except "awesome-template" and skip Dependabot PRs.
+    # Lint only "awesome-*" repositories except "awesome-template".
+    # Skip linting on prepare-release branch to align the condition with other jobs, even if it does not really matter
+    # here as "awesome-*" repositories don't trigger the release workflow.
     if: >
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
-      && github.actor != 'dependabot[bot]'
+      && github.head_ref != 'prepare-release'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
