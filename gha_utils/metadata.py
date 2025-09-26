@@ -846,9 +846,9 @@ class Metadata:
         """Returns a list of JSON files."""
         return self.glob_files(
             "**/*.{json,jsonc,json5}",
-            ".code-workspace",
-            "!package-lock.json",
-            "!node_modules/**",
+            "**/.code-workspace",
+            "!**/package-lock.json",
+            "!**/node_modules/**",
             "!.venv/**",
         )
 
@@ -870,7 +870,7 @@ class Metadata:
     def zsh_files(self) -> list[Path]:
         """Returns a list of Zsh files."""
         return self.glob_files(
-            "**/*.{sh,zsh}", ".zshrc", ".zprofile", ".zshenv", ".zlogin", "!.venv/**"
+            "**/*.{sh,zsh}", "**/.{zshrc,zprofile,zshenv,zlogin}", "!.venv/**"
         )
 
     @cached_property
