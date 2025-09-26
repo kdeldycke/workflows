@@ -839,12 +839,21 @@ class Metadata:
     @cached_property
     def python_files(self) -> list[Path]:
         """Returns a list of python files."""
-        return self.glob_files("**/*.py", "!.venv/**")
+        return self.glob_files("**/*.{py,pyi,pyw,pyx,ipynb}", "!.venv/**")
 
     @cached_property
     def doc_files(self) -> list[Path]:
         """Returns a list of doc files."""
-        return self.glob_files("**/*.{md,markdown,rst,tex}", "!.venv/**")
+        return self.glob_files(
+            "**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}", "!.venv/**"
+        )
+
+    @cached_property
+    def markdown_files(self) -> list[Path]:
+        """Returns a list of Markdown files."""
+        return self.glob_files(
+            "**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}", "!.venv/**"
+        )
 
     @cached_property
     def is_python_project(self):
@@ -1408,6 +1417,7 @@ class Metadata:
             "gitignore_exists": self.gitignore_exists,
             "python_files": self.python_files,
             "doc_files": self.doc_files,
+            "markdown_files": self.markdown_files,
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,
             "blacken_docs_params": self.blacken_docs_params,

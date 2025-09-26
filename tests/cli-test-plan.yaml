@@ -51,6 +51,7 @@
     gitignore_exists=true
     python_files=[\S ]+
     doc_files=[\S ]+
+    markdown_files=[\S ]+
     is_python_project=true
     package_name=gha-utils
     blacken_docs_params=--target-version py311 --target-version py312 --target-version py313

@@ -5,8 +5,11 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add `is_bot` field to `gha-utils metadata` output to detect if the current run is not triggered by a human.
-- Add `build_targets` field to `gha-utils metadata` output to list all supported Nuitka build targets.
+- Add new `is_bot` field to `gha-utils metadata` to detect if the current run is not triggered by a human.
+- Add new `build_targets` field to `gha-utils metadata` to list all supported Nuitka build targets.
+- Add new `markdown_files` field to `gha-utils metadata` to list all Markdown files in the repository.
+- Include `*.pyi`, `*.pyw`, `*.pyx` and `*.ipynb` files in `python_files` field.
+- Include `*.mdown`, `*.mkdn`, `*.mdwn`, `*.mkd`, `*.mdtxt` and `*.mdtext` files in `doc_files` field.
 - Add support for Python 3.14 syntax in blacken-docs.
 - Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
 

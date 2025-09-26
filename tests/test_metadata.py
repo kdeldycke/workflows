@@ -133,6 +133,17 @@ expected = {
         "changelog.md",
         "readme.md",
     ],
+    "markdown_files": [
+        ".github\\code-of-conduct.md",
+        "changelog.md",
+        "readme.md",
+    ]
+    if is_windows()
+    else [
+        ".github/code-of-conduct.md",
+        "changelog.md",
+        "readme.md",
+    ],
     "is_python_project": True,
     "package_name": "gha-utils",
     "blacken_docs_params": (
