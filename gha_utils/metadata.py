@@ -839,7 +839,7 @@ class Metadata:
     @cached_property
     def python_files(self) -> list[Path]:
         """Returns a list of python files."""
-        return self.glob_files("**/*.{py,pyi,pyw,pyx,ipynb}", "!.venv/**")
+        return self.glob_files("**/*.{py,pyi,pyw,pyx,ipynb}")
 
     @cached_property
     def json_files(self) -> list[Path]:
@@ -848,30 +848,24 @@ class Metadata:
             "**/*.{json,jsonc,json5}",
             "**/.code-workspace",
             "!**/package-lock.json",
-            "!**/node_modules/**",
-            "!.venv/**",
         )
 
     @cached_property
     def doc_files(self) -> list[Path]:
         """Returns a list of doc files."""
         return self.glob_files(
-            "**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}", "!.venv/**"
+            "**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}"
         )
 
     @cached_property
     def markdown_files(self) -> list[Path]:
         """Returns a list of Markdown files."""
-        return self.glob_files(
-            "**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}", "!.venv/**"
-        )
+        return self.glob_files("**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}")
 
     @cached_property
     def zsh_files(self) -> list[Path]:
         """Returns a list of Zsh files."""
-        return self.glob_files(
-            "**/*.{sh,zsh}", "**/.{zshrc,zprofile,zshenv,zlogin}", "!.venv/**"
-        )
+        return self.glob_files("**/*.{sh,zsh}", "**/.{zshrc,zprofile,zshenv,zlogin}")
 
     @cached_property
     def is_python_project(self):
