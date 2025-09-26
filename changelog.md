@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
+
 ## [4.19.1 (2025-09-25)](https://github.com/kdeldycke/workflows/compare/v4.19.0...v4.19.1)
 
 - Bump to Click Extra 6.0.0.
