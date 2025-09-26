@@ -149,6 +149,50 @@ expected = {
     ),
     "new_commits_matrix": None,
     "release_commits_matrix": None,
+    "build_targets": [
+        {
+            "target": "linux-arm64",
+            "os": "ubuntu-24.04-arm",
+            "platform_id": "linux",
+            "arch": "arm64",
+            "extension": "bin",
+        },
+        {
+            "target": "linux-x64",
+            "os": "ubuntu-24.04",
+            "platform_id": "linux",
+            "arch": "x64",
+            "extension": "bin",
+        },
+        {
+            "target": "macos-arm64",
+            "os": "macos-15",
+            "platform_id": "macos",
+            "arch": "arm64",
+            "extension": "bin",
+        },
+        {
+            "target": "macos-x64",
+            "os": "macos-13",
+            "platform_id": "macos",
+            "arch": "x64",
+            "extension": "bin",
+        },
+        {
+            "target": "windows-arm64",
+            "os": "windows-11-arm",
+            "platform_id": "windows",
+            "arch": "arm64",
+            "extension": "exe",
+        },
+        {
+            "target": "windows-x64",
+            "os": "windows-2025",
+            "platform_id": "windows",
+            "arch": "x64",
+            "extension": "exe",
+        },
+    ],
     "nuitka_matrix": {
         "os": [
             "ubuntu-24.04-arm",
@@ -308,8 +352,8 @@ def test_metadata_github_format():
         # We are at a simple key-value pair.
         if "=" in line:
             key, value = line.split("=", 1)
-            # Convert dict-like JSON string into Python dict.
-            if value.startswith("{"):
+            # Convert list-like and dict-like JSON string into Python objects.
+            if value.startswith(("[", "{")):
                 value = json.loads(value)
             metadata[key] = value
             continue
@@ -327,7 +371,7 @@ def test_metadata_github_format():
             new_value = ""
         elif isinstance(value, bool):
             new_value = str(value).lower()
-        elif isinstance(value, list):
+        elif isinstance(value, list) and all(isinstance(i, str) for i in value):
             new_value = " ".join(f'"{i}"' for i in value)
         github_format_expected[key] = new_value
 

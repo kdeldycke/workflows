@@ -47,6 +47,36 @@ release_commits_matrix={'commit': ['6f27db47612aaee06fdf08744b09a9f5f6c2'],
                         'include': [{'commit': '6f27db47612aaee06fdf08744b09a9f5f6c2',
                                      'short_sha': '6f27db4',
                                      'current_version': '2.0.0'}]}
+build_targets=[{'target': 'linux-arm64',
+                'os': 'ubuntu-24.04-arm',
+                'platform_id': 'linux',
+                'arch': 'arm64',
+                'extension': 'bin'},
+               {'target': 'linux-x64',
+                'os': 'ubuntu-24.04',
+                'platform_id': 'linux',
+                'arch': 'x64',
+                'extension': 'bin'},
+               {'target': 'macos-arm64',
+                'os': 'macos-15',
+                'platform_id': 'macos',
+                'arch': 'arm64',
+                'extension': 'bin'},
+               {'target': 'macos-x64',
+                'os': 'macos-13',
+                'platform_id': 'macos',
+                'arch': 'x64',
+                'extension': 'bin'},
+               {'target': 'windows-arm64',
+                'os': 'windows-11-arm',
+                'platform_id": 'windows',
+                'arch": 'arm64',
+                'extension": 'exe'},
+               {'target': 'windows-x64',
+                'os': 'windows-2025',
+                'platform_id': 'windows',
+                'arch': 'x64',
+                'extension': 'exe'}]
 nuitka_matrix={'os': ['ubuntu-24.04-arm', 'ubuntu-24.04', 'macos-15', 'macos-13', 'windows-11-arm', 'windows-2025'],
                'entry_point': ['mpm'],
                'commit': ['346ce664f055fbd042a25ee0b7e96702e95',
@@ -268,6 +298,13 @@ Values are dictionaries with the following keys:
 
 - ``extension``: File extension of the compiled binary.
 """
+
+
+FLAT_BUILD_TARGETS = [
+    {"target": target_id} | target_data
+    for target_id, target_data in NUITKA_BUILD_TARGETS.items()
+]
+"""List of build targets in a flat format, suitable for matrix inclusion."""
 
 
 WorkflowEvent = StrEnum(
@@ -1211,8 +1248,8 @@ class Metadata:
             "os", tuple(map(itemgetter("os"), NUITKA_BUILD_TARGETS.values()))
         )
         # Augment each "os" entry with platform-specific data.
-        for target_id, target_data in NUITKA_BUILD_TARGETS.items():
-            matrix.add_includes({"target": target_id} | target_data)
+        for target_data in FLAT_BUILD_TARGETS:
+            matrix.add_includes(target_data)
 
         # Augment each entry point with some metadata.
         for cli_id, module_id, callable_id in self.script_entries:
@@ -1314,9 +1351,9 @@ class Metadata:
         - `None` into empty string
         - `bool` into lower-cased string
         - `Matrix` into JSON string
-        - `Iterable` of strings into a serialized space-separated string
-        - `Iterable` of `Path` into a serialized string whose items are space-separated
-          and double-quoted
+        - `Iterable` of mixed strings and `Path` into a serialized space-separated
+          string, where `Path` items are double-quoted
+        - other `Iterable` into a JSON string
         """
         # Structured metadata to be rendered as JSON.
         if isinstance(value, Matrix):
@@ -1334,9 +1371,26 @@ class Metadata:
                 raise NotImplementedError
 
             elif isinstance(value, Iterable):
-                # Cast all items to string, wrapping Path items with double-quotes.
-                items = ((f'"{i}"' if isinstance(i, Path) else str(i)) for i in value)
-                value = " ".join(items)
+                # Cast all items to strings, wrapping Path items with double-quotes.
+                if all(isinstance(i, (str, Path)) for i in value):
+                    items = (
+                        (f'"{i}"' if isinstance(i, Path) else str(i)) for i in value
+                    )
+                    value = " ".join(items)
+                # XXX We only support iterables of dict[str, str] for now.
+                else:
+                    assert all(
+                        isinstance(i, dict)
+                        and all(
+                            isinstance(k, str) and isinstance(v, str)
+                            for k, v in i.items()
+                        )
+                        for i in value
+                    ), f"Unsupported iterable value: {value!r}"
+                    value = json.dumps(value)
+
+            else:
+                raise NotImplementedError(f"GitHub formatting for: {value!r}")
 
         return cast(str, value)
 
@@ -1363,6 +1417,7 @@ class Metadata:
             "release_notes": self.release_notes,
             "new_commits_matrix": self.new_commits_matrix,
             "release_commits_matrix": self.release_commits_matrix,
+            "build_targets": FLAT_BUILD_TARGETS,
             "nuitka_matrix": self.nuitka_matrix,
         }
 
