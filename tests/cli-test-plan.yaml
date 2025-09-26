@@ -45,6 +45,7 @@
   stderr_contains:
     - "info: Print metadata to <stdout>"
   stdout_regex_fullmatch: |-
+    is_bot=false
     new_commits=
     release_commits=
     gitignore_exists=true
@@ -63,6 +64,7 @@
     ghadelimiter_[0-9]+
     new_commits_matrix=
     release_commits_matrix=
+    build_targets=.+
     nuitka_matrix=.+
 
 
