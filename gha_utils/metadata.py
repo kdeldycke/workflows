@@ -38,20 +38,20 @@ release_notes=[🐍 Available on PyPi](https://pypi.org/project/click-extra/2.21
 new_commits_matrix={
     "commit": [
         "346ce664f055fbd042a25ee0b7e96702e95",
-        "6f27db47612aaee06fdf08744b09a9f5f6c2",
+        "6f27db47612aaee06fdf08744b09a9f5f6c2"
     ],
     "include": [
         {
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
             "short_sha": "346ce66",
-            "current_version": "2.0.1",
+            "current_version": "2.0.1"
         },
         {
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
             "short_sha": "6f27db4",
-            "current_version": "2.0.0",
-        },
-    ],
+            "current_version": "2.0.0"
+        }
+    ]
 }
 release_commits_matrix={
     "commit": ["6f27db47612aaee06fdf08744b09a9f5f6c2"],
@@ -59,9 +59,9 @@ release_commits_matrix={
         {
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
             "short_sha": "6f27db4",
-            "current_version": "2.0.0",
+            "current_version": "2.0.0"
         }
-    ],
+    ]
 }
 build_targets=[
     {
@@ -69,43 +69,43 @@ build_targets=[
         "os": "ubuntu-24.04-arm",
         "platform_id": "linux",
         "arch": "arm64",
-        "extension": "bin",
+        "extension": "bin"
     },
     {
         "target": "linux-x64",
         "os": "ubuntu-24.04",
         "platform_id": "linux",
         "arch": "x64",
-        "extension": "bin",
+        "extension": "bin"
     },
     {
         "target": "macos-arm64",
         "os": "macos-15",
         "platform_id": "macos",
         "arch": "arm64",
-        "extension": "bin",
+        "extension": "bin"
     },
     {
         "target": "macos-x64",
         "os": "macos-13",
         "platform_id": "macos",
         "arch": "x64",
-        "extension": "bin",
+        "extension": "bin"
     },
     {
         "target": "windows-arm64",
         "os": "windows-11-arm",
         "platform_id": "windows",
         "arch": "arm64",
-        "extension": "exe",
+        "extension": "exe"
     },
     {
         "target": "windows-x64",
         "os": "windows-2025",
         "platform_id": "windows",
         "arch": "x64",
-        "extension": "exe",
-    },
+        "extension": "exe"
+    }
 ]
 nuitka_matrix={
     "os": [
@@ -114,12 +114,12 @@ nuitka_matrix={
         "macos-15",
         "macos-13",
         "windows-11-arm",
-        "windows-2025",
+        "windows-2025"
     ],
     "entry_point": ["mpm"],
     "commit": [
         "346ce664f055fbd042a25ee0b7e96702e95",
-        "6f27db47612aaee06fdf08744b09a9f5f6c2",
+        "6f27db47612aaee06fdf08744b09a9f5f6c2"
     ],
     "include": [
         {
@@ -127,134 +127,134 @@ nuitka_matrix={
             "os": "ubuntu-24.04-arm",
             "platform_id": "linux",
             "arch": "arm64",
-            "extension": "bin",
+            "extension": "bin"
         },
         {
             "target": "linux-x64",
             "os": "ubuntu-24.04",
             "platform_id": "linux",
             "arch": "x64",
-            "extension": "bin",
+            "extension": "bin"
         },
         {
             "target": "macos-arm64",
             "os": "macos-15",
             "platform_id": "macos",
             "arch": "arm64",
-            "extension": "bin",
+            "extension": "bin"
         },
         {
             "target": "macos-x64",
             "os": "macos-13",
             "platform_id": "macos",
             "arch": "x64",
-            "extension": "bin",
+            "extension": "bin"
         },
         {
             "target": "windows-arm64",
             "os": "windows-11-arm",
             "platform_id": "windows",
             "arch": "arm64",
-            "extension": "exe",
+            "extension": "exe"
         },
         {
             "target": "windows-x64",
             "os": "windows-2025",
             "platform_id": "windows",
             "arch": "x64",
-            "extension": "exe",
+            "extension": "exe"
         },
         {
             "entry_point": "mpm",
             "cli_id": "mpm",
             "module_id": "meta_package_manager.__main__",
             "callable_id": "main",
-            "module_path": "meta_package_manager/__main__.py",
+            "module_path": "meta_package_manager/__main__.py"
         },
         {
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
             "short_sha": "346ce66",
-            "current_version": "2.0.0",
+            "current_version": "2.0.0"
         },
         {
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
             "short_sha": "6f27db4",
-            "current_version": "1.9.1",
+            "current_version": "1.9.1"
         },
         {
             "os": "ubuntu-24.04-arm",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-            "bin_name": "mpm-linux-arm64-346ce66.bin",
+            "bin_name": "mpm-linux-arm64-346ce66.bin"
         },
         {
             "os": "ubuntu-24.04-arm",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-            "bin_name": "mpm-linux-arm64-6f27db4.bin",
+            "bin_name": "mpm-linux-arm64-6f27db4.bin"
         },
         {
             "os": "ubuntu-24.04",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-            "bin_name": "mpm-linux-x64-346ce66.bin",
+            "bin_name": "mpm-linux-x64-346ce66.bin"
         },
         {
             "os": "ubuntu-24.04",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-            "bin_name": "mpm-linux-x64-6f27db4.bin",
+            "bin_name": "mpm-linux-x64-6f27db4.bin"
         },
         {
             "os": "macos-15",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-            "bin_name": "mpm-macos-arm64-346ce66.bin",
+            "bin_name": "mpm-macos-arm64-346ce66.bin"
         },
         {
             "os": "macos-15",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-            "bin_name": "mpm-macos-arm64-6f27db4.bin",
+            "bin_name": "mpm-macos-arm64-6f27db4.bin"
         },
         {
             "os": "macos-13",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-            "bin_name": "mpm-macos-x64-346ce66.bin",
+            "bin_name": "mpm-macos-x64-346ce66.bin"
         },
         {
             "os": "macos-13",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-            "bin_name": "mpm-macos-x64-6f27db4.bin",
+            "bin_name": "mpm-macos-x64-6f27db4.bin"
         },
         {
             "os": "windows-11-arm",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-            "bin_name": "mpm-windows-arm64-346ce66.bin",
+            "bin_name": "mpm-windows-arm64-346ce66.bin"
         },
         {
             "os": "windows-11-arm",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-            "bin_name": "mpm-windows-arm64-6f27db4.bin",
+            "bin_name": "mpm-windows-arm64-6f27db4.bin"
         },
         {
             "os": "windows-2025",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-            "bin_name": "mpm-windows-x64-346ce66.exe",
+            "bin_name": "mpm-windows-x64-346ce66.exe"
         },
         {
             "os": "windows-2025",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-            "bin_name": "mpm-windows-x64-6f27db4.exe",
+            "bin_name": "mpm-windows-x64-6f27db4.exe"
         },
-        {"state": "stable"},
-    ],
+        {"state": "stable"}
+    ]
 }
 ```
 
