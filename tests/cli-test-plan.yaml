@@ -62,9 +62,9 @@
     released_version=
     is_sphinx=false
     active_autodoc=false
-    release_notes<<ghadelimiter_[0-9]+
+    release_notes<<GHA_DELIMITER_[0-9]+
     .+
-    ghadelimiter_[0-9]+
+    GHA_DELIMITER_[0-9]+
     new_commits_matrix=
     release_commits_matrix=
     build_targets=\[\{"target": .+\}\]

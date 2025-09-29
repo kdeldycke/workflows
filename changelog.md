@@ -14,6 +14,7 @@
 - Include `*.pyi`, `*.pyw`, `*.pyx` and `*.ipynb` files in `python_files` field.
 - Include `*.mdown`, `*.mkdn`, `*.mdwn`, `*.mkd`, `*.mdtxt` and `*.mdtext` files in `doc_files` field.
 - Add support for Python 3.14 syntax in blacken-docs.
+- Rename `ghdelimiter_XXXXX` tags in GitHub action multiline text blocks to `GHA_DELIMITER_XXXXX` for better visibility.
 - Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
 
 ## [4.19.1 (2025-09-25)](https://github.com/kdeldycke/workflows/compare/v4.19.0...v4.19.1)

@@ -364,7 +364,7 @@ def test_metadata_github_format():
             # Check the delimiter syntax.
             assert line.count("<<") == 1
             acc_key, acc_delimiter = line.split("<<", 1)
-            assert re.fullmatch(r"ghadelimiter_[0-9]+", acc_delimiter)
+            assert re.fullmatch(r"GHA_DELIMITER_[0-9]+", acc_delimiter)
             continue
 
         # We are at a simple key-value pair.

@@ -1460,7 +1460,7 @@ class Metadata:
                     content += f"{env_name}={env_value}\n"
                 else:
                     # Use a random unique delimiter to encode multiline value:
-                    delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
+                    delimiter = f"GHA_DELIMITER_{randint(10**8, (10**9) - 1)}"
                     content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
         else:
             assert dialect == Dialects.json
