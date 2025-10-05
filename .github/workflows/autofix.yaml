@@ -132,7 +132,7 @@ jobs:
           --config "fix = true"
           --config "unsafe-fixes = true"
           --config "show-fixes = true"
-          --config "output-format = 'github'"
+          --output-format github
           --preview
           --config "lint.future-annotations = true"
           --config "format.docstring-code-format = true"
