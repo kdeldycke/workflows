@@ -128,7 +128,7 @@ class Mailmap:
 
     @cached_property
     def git_contributors(self) -> set[str]:
-        """Returns the set of all constributors found in the Git commit history.
+        """Returns the set of all contributors found in the Git commit history.
 
         No normalization happens: all variations of authors and committers strings
         attached to all commits are considered.
