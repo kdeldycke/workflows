@@ -1,1 +1,3 @@
+# XXX extra dependencies for Nuitka are not recognized:
+# https://github.com/Nuitka/Nuitka/issues/3631
 nuitka [onefile] == 2.7.16
