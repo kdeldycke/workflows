@@ -47,6 +47,7 @@ jobs:
       gitignore_exists: ${{ steps.project-metadata.outputs.gitignore_exists }}
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
+      markdown_files: ${{ steps.project-metadata.outputs.markdown_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
     steps:
@@ -204,6 +205,9 @@ jobs:
 
   format-markdown:
     name: Format Markdown
+    needs:
+      - project-metadata
+    if: needs.project-metadata.outputs.markdown_files
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -222,7 +226,7 @@ jobs:
           mdformat --version
       - name: Auto-format Markdown
         run: |
-          find ./ -iname "*.md" -exec mdformat "{}" \;
+          mdformat ${{ needs.project-metadata.outputs.markdown_files }}
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # Remove forbidden TOC entries
