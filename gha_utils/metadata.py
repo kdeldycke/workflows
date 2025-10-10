@@ -473,6 +473,10 @@ MYPY_VERSION_MIN: Final = (3, 8)
 """
 
 
+# Silence overly verbose debug messages from py-walk logger.
+logging.getLogger("py_walk").setLevel(logging.WARNING)
+
+
 class JSONMetadata(json.JSONEncoder):
     """Custom JSON encoder for metadata serialization."""
 
