@@ -22,7 +22,9 @@ jobs:
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-24.04
     outputs:
+      is_bot: ${{ steps.project-metadata.outputs.is_bot }}
       python_files: ${{ steps.project-metadata.outputs.python_files }}
+      zsh_files: ${{ steps.project-metadata.outputs.zsh_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
@@ -69,9 +71,11 @@ jobs:
           ${{ needs.project-metadata.outputs.python_files }}
 
   lint-yaml:
+    needs:
+      - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     # Also skip Dependabot PRs which does not heavily alters YAML files.
-    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
+    if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -86,8 +90,13 @@ jobs:
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
-    # Skip linting on prepare-release branch and Dependabot PRs because they do not alter Zsh files.
-    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
+    needs:
+      - project-metadata
+    # Skip linting on prepare-release branch and bots PRs because they do not alter Zsh files.
+    if: >
+      github.head_ref != 'prepare-release'
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && needs.project-metadata.outputs.zsh_files
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -97,11 +106,13 @@ jobs:
           sudo apt install --yes zsh
       - name: Lint
         run: |
-          find . -iname "*.sh" -exec zsh --no-exec "{}" \;
+          for file in ${{ needs.project-metadata.outputs.zsh_files }}; do zsh --no-exec "$file"; done
 
   lint-github-action:
+    needs:
+      - project-metadata
     # Skip linting on prepare-release branch and Dependabot PRs because they do not heavily alters GitHub Actions.
-    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
+    if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -145,6 +156,8 @@ jobs:
           -ignore 'label "windows-11-arm" is unknown. .+'
 
   broken-links:
+    needs:
+      - project-metadata
     # Skip checks on prepare-release branch as it contains commits in changelog and documentation that points to a tag
     # that does not exist yet, rendering URLs artificially broken. Also skips the merge commit of the prepare-release
     # branch, as if the URLs are good, the tag is created asynchronously by release.yaml:git-tag job. And as a
@@ -154,7 +167,7 @@ jobs:
       github.head_ref != 'prepare-release'
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
-      && github.actor != 'dependabot[bot]'
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
     runs-on: ubuntu-24.04
     # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
@@ -282,8 +295,10 @@ jobs:
           npx awesome-lint
 
   check-secrets:
+    needs:
+      - project-metadata
     # Skip secret checks on prepare-release branch and Dependabot PRs.
-    if: github.head_ref != 'prepare-release' && github.actor != 'dependabot[bot]'
+    if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
