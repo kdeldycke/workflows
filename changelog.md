@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `check-runners` job to always verify the architecture of each runner used to compile binaries with Nuitka.
+
 ## [4.20.0 (2025-10-10)](https://github.com/kdeldycke/workflows/compare/v4.19.1...v4.20.0)
 
 - Add new fields to `gha-utils metadata`:

@@ -67,6 +67,7 @@ jobs:
       new_commits_matrix: ${{ steps.project-metadata.outputs.new_commits_matrix }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
       # Export Python project metadata.
+      build_targets: ${{ steps.project-metadata.outputs.build_targets }}
       nuitka_matrix: ${{ steps.project-metadata.outputs.nuitka_matrix }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
@@ -124,6 +125,41 @@ jobs:
           path: ./dist/*
       # TODO: Should we also attest the archive created here? See:
       # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
+
+  check-runners:
+    name: Check ${{ matrix.os }}
+    needs:
+      - project-metadata
+    if: needs.project-metadata.outputs.build_targets
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check architecture - Unix
+        if: runner.os != 'Windows'
+        run: |
+          echo "Runner OS: $RUNNER_OS"
+          echo "Runner ARCH: $RUNNER_ARCH"
+          uname -a
+          lscpu || true
+      - name: Check architecture - Windows
+        if: runner.os == 'Windows'
+        run: |
+          echo "Runner OS: $env:RUNNER_OS"
+          echo "Runner ARCH: $env:RUNNER_ARCH"
+          systeminfo | findstr /B /C:"OS Name" /C:"System Type"
+      - name: Check Python version
+        run: |
+          python --version
+          python -m pip --version
+      - name: Check architecture
+        shell: python
+        run: |
+          import platform
+          arch = platform.machine()
+          print(f"Detected architecture: {arch}")
+          assert arch == "${{ matrix.arch }}"
 
   compile-binaries:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} Build on ${{ matrix.os }}, ${{ matrix.short_sha }}"
