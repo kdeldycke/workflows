@@ -80,14 +80,14 @@ build_targets=[
     },
     {
         "target": "macos-arm64",
-        "os": "macos-15",
+        "os": "macos-26",
         "platform_id": "macos",
         "arch": "arm64",
         "extension": "bin"
     },
     {
         "target": "macos-x64",
-        "os": "macos-13",
+        "os": "macos-15-intel",
         "platform_id": "macos",
         "arch": "x64",
         "extension": "bin"
@@ -111,8 +111,8 @@ nuitka_matrix={
     "os": [
         "ubuntu-24.04-arm",
         "ubuntu-24.04",
-        "macos-15",
-        "macos-13",
+        "macos-26",
+        "macos-15-intel",
         "windows-11-arm",
         "windows-2025"
     ],
@@ -138,14 +138,14 @@ nuitka_matrix={
         },
         {
             "target": "macos-arm64",
-            "os": "macos-15",
+            "os": "macos-26",
             "platform_id": "macos",
             "arch": "arm64",
             "extension": "bin"
         },
         {
             "target": "macos-x64",
-            "os": "macos-13",
+            "os": "macos-15-intel",
             "platform_id": "macos",
             "arch": "x64",
             "extension": "bin"
@@ -206,25 +206,25 @@ nuitka_matrix={
             "bin_name": "mpm-linux-x64-6f27db4.bin"
         },
         {
-            "os": "macos-15",
+            "os": "macos-26",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
             "bin_name": "mpm-macos-arm64-346ce66.bin"
         },
         {
-            "os": "macos-15",
+            "os": "macos-26",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
             "bin_name": "mpm-macos-arm64-6f27db4.bin"
         },
         {
-            "os": "macos-13",
+            "os": "macos-15-intel",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
             "bin_name": "mpm-macos-x64-346ce66.bin"
         },
         {
-            "os": "macos-13",
+            "os": "macos-15-intel",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
             "bin_name": "mpm-macos-x64-6f27db4.bin"
@@ -328,13 +328,13 @@ NUITKA_BUILD_TARGETS = {
         "extension": "bin",
     },
     "macos-arm64": {
-        "os": "macos-15",
+        "os": "macos-26",
         "platform_id": "macos",
         "arch": "arm64",
         "extension": "bin",
     },
     "macos-x64": {
-        "os": "macos-13",
+        "os": "macos-15-intel",
         "platform_id": "macos",
         "arch": "x64",
         "extension": "bin",
@@ -1194,8 +1194,8 @@ class Metadata:
                 "os": [
                     "ubuntu-24.04-arm",
                     "ubuntu-24.04",
-                    "macos-15",
-                    "macos-13",
+                    "macos-26",
+                    "macos-15-intel",
                     "windows-11-arm",
                     "windows-2025",
                 ],
@@ -1223,14 +1223,14 @@ class Metadata:
                     },
                     {
                         "target": "macos-arm64",
-                        "os": "macos-15",
+                        "os": "macos-26",
                         "platform_id": "macos",
                         "arch": "arm64",
                         "extension": "bin",
                     },
                     {
                         "target": "macos-x64",
-                        "os": "macos-13",
+                        "os": "macos-15-intel",
                         "platform_id": "macos",
                         "arch": "x64",
                         "extension": "bin",
@@ -1291,25 +1291,25 @@ class Metadata:
                         "bin_name": "mpm-linux-x64-6f27db4.bin",
                     },
                     {
-                        "os": "macos-15",
+                        "os": "macos-26",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "bin_name": "mpm-macos-arm64-346ce66.bin",
                     },
                     {
-                        "os": "macos-15",
+                        "os": "macos-26",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "bin_name": "mpm-macos-arm64-6f27db4.bin",
                     },
                     {
-                        "os": "macos-13",
+                        "os": "macos-15-intel",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "bin_name": "mpm-macos-x64-346ce66.bin",
                     },
                     {
-                        "os": "macos-13",
+                        "os": "macos-15-intel",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "bin_name": "mpm-macos-x64-6f27db4.bin",
