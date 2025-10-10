@@ -239,9 +239,9 @@ def changelog(ctx, source, changelog_path):
     "--create-if-missing/--skip-if-missing",
     is_flag=True,
     default=True,
-    help="Create the destination mailmap file if it is not found. Or skip the update "
-    "process entirely if if does not already exists in the first place. This option "
-    f"is ignore if the destination is to print the result to {sys.stdout.name}.",
+    help="If not found, either create the missing destination mailmap file, or skip "
+    "the update process entirely. This option is ignored if the destination is to print "
+    f"the result to {sys.stdout.name}.",
 )
 @argument(
     "destination_mailmap",
