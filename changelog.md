@@ -11,6 +11,7 @@
 - Run tests on `macos-28` and `macos-15-intel` runners instead of `macos-15` and `macos-13`.
 - Only parse `.gitignore` file once, when first needed, and cache the matching function.
 - Silence overly verbose debug messages from `py-walk` logger.
+- Pin version of `awesome-lint` to `v2.2.2`.
 
 ## [4.20.0 (2025-10-10)](https://github.com/kdeldycke/workflows/compare/v4.19.1...v4.20.0)
 
