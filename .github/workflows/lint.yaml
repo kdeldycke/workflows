@@ -108,7 +108,7 @@ jobs:
       - name: Install actionlint
         id: install_actionlint
         run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.7
       - name: Install shellcheck
         run: |
           sudo apt update
@@ -117,7 +117,7 @@ jobs:
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
         run: >
           curl -fsSL --output ./.github/labeller-file-based.yaml
-          https://raw.githubusercontent.com/rhysd/actionlint/main/.github/actionlint-matcher.json
+          https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.7/.github/actionlint-matcher.json
       - name: Register problem matcher
         run: |
           echo "::add-matcher::.github/labeller-file-based.yaml"

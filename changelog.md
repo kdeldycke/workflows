@@ -13,6 +13,7 @@
 - Only parse `.gitignore` file once, when first needed, and cache the matching function.
 - Silence overly verbose debug messages from `py-walk` logger.
 - Pin version of `awesome-lint` to `v2.2.2`.
+- Pin version of `actionlint` to `v1.7.7`.
 
 ## [4.20.0 (2025-10-10)](https://github.com/kdeldycke/workflows/compare/v4.19.1...v4.20.0)
 
