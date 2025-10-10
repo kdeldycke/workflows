@@ -136,31 +136,27 @@ jobs:
         include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Install lscpu - Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt --quiet --yes install util-linux
-      - name: Install lscpu - macOS
-        if: runner.os == 'macOS'
-        run: |
-          brew install util-linux
-          echo 'export PATH="/usr/local/opt/util-linux/bin:$PATH"' >> /Users/runner/.bash_profile
-          echo 'export PATH="/usr/local/opt/util-linux/sbin:$PATH"' >> /Users/runner/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/util-linux/bin:$PATH"' >> /Users/runner/.bash_profile
-          echo 'export PATH="/opt/homebrew/opt/util-linux/sbin:$PATH"' >> /Users/runner/.bash_profile
-      - name: System data - Unix
+      - name: System info - Unix
         if: runner.os != 'Windows'
         run: |
           echo "Runner OS: $RUNNER_OS"
           echo "Runner ARCH: $RUNNER_ARCH"
           uname -a
+      - name: CPU info - Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt --quiet --yes install util-linux
           lscpu
-      - name: System data - Windows
+      - name: System info - macOS
+        if: runner.os == 'macOS'
+        run: |
+          sysctl -a
+      - name: System info - Windows
         if: runner.os == 'Windows'
         run: |
           echo "Runner OS: $env:RUNNER_OS"
           echo "Runner ARCH: $env:RUNNER_ARCH"
-          systeminfo | findstr /B /C:"OS Name" /C:"System Type"
+          systeminfo
       - name: Check Python version
         run: |
           python --version
