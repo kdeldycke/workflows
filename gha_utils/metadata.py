@@ -281,13 +281,13 @@ from random import randint
 from re import escape
 from typing import Any, Final, cast
 
-import gitignore_parser
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+from py_walk import get_parser_from_file
 from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
 from pyproject_metadata import ConfigurationError, StandardMetadata
 from wcmatch.glob import (
@@ -882,7 +882,7 @@ class Metadata:
         gitignore = None
         if self.gitignore_exists:
             logging.debug(f"Load {GITIGNORE_PATH} to filter out ignored files.")
-            gitignore = gitignore_parser.parse_gitignore(GITIGNORE_PATH)
+            gitignore = get_parser_from_file(GITIGNORE_PATH)
 
         for file_path in iglob(
             patterns,
@@ -913,7 +913,7 @@ class Metadata:
                 continue
 
             # Skip files that are ignored by .gitignore.
-            if gitignore and gitignore(file_path):
+            if gitignore and gitignore.match(file_path):
                 logging.debug(f"Skip file matching {GITIGNORE_PATH}: {file_path}")
                 continue
 

@@ -13,6 +13,7 @@
   - `json_files` to list all JSON files in the repository.
 - Include `*.pyi`, `*.pyw`, `*.pyx` and `*.ipynb` files in `python_files` field.
 - Include `*.mdown`, `*.mkdn`, `*.mdwn`, `*.mkd`, `*.mdtxt` and `*.mdtext` files in `doc_files` field.
+- Replace `gitignore-parser` dependency by `py-walk` to fix patterns matching both files and directories.
 - Add support for Python 3.14 syntax in blacken-docs.
 - Rename `ghdelimiter_XXXXX` tags in GitHub action multiline text blocks to `GHA_DELIMITER_XXXXX` for better visibility.
 - Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.

@@ -77,10 +77,10 @@ dependencies = [
     # Click Extra 6.0.0 fix an isue with --version option.
     "click-extra ~= 6.0.0",
     "extra-platforms ~= 3.2.0",
-    # In the future, replace gitignore-parser with wcmatch once the latter supports gitignore files:
-    # https://github.com/facelessuser/wcmatch/issues/226
-    "gitignore-parser ~= 0.1.13",
     "packaging ~= 25.0",
+    # In the future, replace py-walk with wcmatch once the latter supports gitignore files:
+    # https://github.com/facelessuser/wcmatch/issues/226
+    "py-walk ~= 0.3.3",
     "PyDriller ~= 2.6",
     "pyproject-metadata ~= 0.9.0",
     "pyyaml ~= 6.0.0",
