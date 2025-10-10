@@ -17,6 +17,8 @@
 - Add support for Python 3.14 syntax in blacken-docs.
 - Rename `ghdelimiter_XXXXX` tags in GitHub action multiline text blocks to `GHA_DELIMITER_XXXXX` for better visibility.
 - Check that `gha-utils` CLI can be run as a Python module and with `uv run` and `uvx`.
+- Add official support of Python 3.14.
+- Run tests on Python 3.15-dev.
 
 ## [4.19.1 (2025-09-25)](https://github.com/kdeldycke/workflows/compare/v4.19.0...v4.19.1)
 
