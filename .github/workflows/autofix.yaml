@@ -227,7 +227,7 @@ jobs:
           mdformat --version
       - name: Auto-format Markdown
         run: |
-          mdformat ${{ needs.project-metadata.outputs.markdown_files }}
+          for file in ${{ needs.project-metadata.outputs.markdown_files }}; do mdformat "$file"; done
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # Remove forbidden TOC entries
