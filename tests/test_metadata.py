@@ -90,6 +90,7 @@ expected = {
     "is_bot": False,
     "new_commits": None,
     "release_commits": None,
+    "mailmap_exists": True,
     "gitignore_exists": True,
     "python_files": [
         "gha_utils\\__init__.py",

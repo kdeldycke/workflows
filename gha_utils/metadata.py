@@ -23,6 +23,7 @@ The following variables are `printed to the environment file
 is_bot=false
 new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5f6c2
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
+mailmap_exists=true
 gitignore_exists=true
 python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 doc_files="changelog.md" "readme.md" "docs/license.md"
@@ -312,6 +313,8 @@ SHORT_SHA_LENGTH = 7
     The `default is subject to change <https://stackoverflow.com/a/21015031>`_ and
     depends on the size of the repository.
 """
+
+MAILMAP_PATH = Path(".mailmap")
 
 GITIGNORE_PATH = Path(".gitignore")
 
@@ -849,6 +852,10 @@ class Metadata:
             if self.release_commits_matrix
             else None
         )
+
+    @cached_property
+    def mailmap_exists(self) -> bool:
+        return MAILMAP_PATH.is_file()
 
     @cached_property
     def gitignore_exists(self) -> bool:
@@ -1522,6 +1529,7 @@ class Metadata:
             "is_bot": self.is_bot,
             "new_commits": self.new_commits_hash,
             "release_commits": self.release_commits_hash,
+            "mailmap_exists": self.mailmap_exists,
             "gitignore_exists": self.gitignore_exists,
             "python_files": self.python_files,
             "json_files": self.json_files,

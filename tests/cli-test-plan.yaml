@@ -48,6 +48,7 @@
     is_bot=false
     new_commits=
     release_commits=
+    mailmap_exists=true
     gitignore_exists=true
     python_files=[\S ]+
     json_files=
