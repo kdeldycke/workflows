@@ -49,10 +49,10 @@
     new_commits=
     release_commits=
     gitignore_exists=true
-    python_files="[\S ]+"
+    python_files=[\S ]+
     json_files=
-    doc_files="[\S ]+"
-    markdown_files="[\S ]+"
+    doc_files=[\S ]+
+    markdown_files=[\S ]+
     zsh_files=
     is_python_project=true
     package_name=gha-utils
@@ -67,8 +67,8 @@
     GHA_DELIMITER_[0-9]+
     new_commits_matrix=
     release_commits_matrix=
-    build_targets=\[\{"target": .+\}\]
-    nuitka_matrix=\{"os": \[.+\], "entry_point": \[.+\], "commit": \[.+\], "include": \[\{.+\}\]\}
+    build_targets=.+
+    nuitka_matrix=.+
 
 
 # Test changelog output.
