@@ -9,6 +9,8 @@
 - Use `macos-28` runner instead of `macos-15` to build binaries for `arm64`.
 - Use `macos-15-intel` runner instead of `macos-13` to build binaries for `x64`.
 - Run tests on `macos-28` and `macos-15-intel` runners instead of `macos-15` and `macos-13`.
+- Only parse `.gitignore` file once, when first needed, and cache the matching function.
+- Silence overly verbose debug messages from `py-walk` logger.
 
 ## [4.20.0 (2025-10-10)](https://github.com/kdeldycke/workflows/compare/v4.19.1...v4.20.0)
 
