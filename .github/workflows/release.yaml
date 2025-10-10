@@ -136,13 +136,21 @@ jobs:
         include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Install lscpu - Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt --quiet --yes install util-linux
+      - name: Install lscpu - macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install util-linux
       - name: Check architecture - Unix
         if: runner.os != 'Windows'
         run: |
           echo "Runner OS: $RUNNER_OS"
           echo "Runner ARCH: $RUNNER_ARCH"
           uname -a
-          lscpu || true
+          lscpu
       - name: Check architecture - Windows
         if: runner.os == 'Windows'
         run: |
@@ -157,9 +165,17 @@ jobs:
         shell: python
         run: |
           import platform
+
           arch = platform.machine()
           print(f"Detected architecture: {arch}")
-          assert arch == "${{ matrix.arch }}"
+
+          matrix_arch = "${{ matrix.arch }}"
+          if matrix_arch == "x64":
+              assert arch.lower() in ("x86_64", "amd64")
+          elif matrix_arch == "arm64":
+              assert arch.lower() in ("aarch64", "arm64")
+          else:
+              raise ValueError(f"Unrecognized architecture in the matrix: {matrix_arch}")
 
   compile-binaries:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} Build on ${{ matrix.os }}, ${{ matrix.short_sha }}"
