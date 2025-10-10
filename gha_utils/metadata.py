@@ -288,6 +288,7 @@ from extra_platforms import is_github_ci
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from py_walk import get_parser_from_file
+from py_walk.models import Parser
 from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
 from pyproject_metadata import ConfigurationError, StandardMetadata
 from wcmatch.glob import (
@@ -849,6 +850,19 @@ class Metadata:
     def gitignore_exists(self) -> bool:
         return GITIGNORE_PATH.is_file()
 
+    @cached_property
+    def gitignore_parser(self) -> Parser | None:
+        """Returns a parser for the ``.gitignore`` file, if it exists."""
+        if self.gitignore_exists:
+            logging.debug(f"Parse {GITIGNORE_PATH}")
+            return get_parser_from_file(GITIGNORE_PATH)
+        return None
+
+    def gitignore_match(self, file_path: Path | str) -> bool:
+        if self.gitignore_parser and self.gitignore_parser.match(file_path):
+            return True
+        return False
+
     def glob_files(self, *patterns: str) -> list[Path]:
         """Return all file path matching the ``patterns``.
 
@@ -877,12 +891,6 @@ class Metadata:
         """
         current_dir = Path.cwd()
         seen = set()
-
-        # If the .gitignore file exists, we parse it to filter out ignored files.
-        gitignore = None
-        if self.gitignore_exists:
-            logging.debug(f"Load {GITIGNORE_PATH} to filter out ignored files.")
-            gitignore = get_parser_from_file(GITIGNORE_PATH)
 
         for file_path in iglob(
             patterns,
@@ -913,7 +921,7 @@ class Metadata:
                 continue
 
             # Skip files that are ignored by .gitignore.
-            if gitignore and gitignore.match(file_path):
+            if self.gitignore_match(file_path):
                 logging.debug(f"Skip file matching {GITIGNORE_PATH}: {file_path}")
                 continue
 
