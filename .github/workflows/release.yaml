@@ -144,14 +144,16 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install util-linux
-      - name: Check architecture - Unix
+          echo 'export PATH="/opt/homebrew/opt/util-linux/bin:$PATH"' >> /Users/runner/.bash_profile
+          echo 'export PATH="/opt/homebrew/opt/util-linux/sbin:$PATH"' >> /Users/runner/.bash_profile
+      - name: System data - Unix
         if: runner.os != 'Windows'
         run: |
           echo "Runner OS: $RUNNER_OS"
           echo "Runner ARCH: $RUNNER_ARCH"
           uname -a
           lscpu
-      - name: Check architecture - Windows
+      - name: System data - Windows
         if: runner.os == 'Windows'
         run: |
           echo "Runner OS: $env:RUNNER_OS"
@@ -161,7 +163,7 @@ jobs:
         run: |
           python --version
           python -m pip --version
-      - name: Check architecture
+      - name: Check architecture is ${{ matrix.arch }}
         shell: python
         run: |
           import platform
