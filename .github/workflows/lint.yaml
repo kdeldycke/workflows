@@ -24,6 +24,9 @@ jobs:
     outputs:
       is_bot: ${{ steps.project-metadata.outputs.is_bot }}
       python_files: ${{ steps.project-metadata.outputs.python_files }}
+      yaml_files: ${{ steps.project-metadata.outputs.yaml_files }}
+      workflow_files: ${{ steps.project-metadata.outputs.workflow_files }}
+      doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       zsh_files: ${{ steps.project-metadata.outputs.zsh_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
@@ -71,7 +74,10 @@ jobs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     # Also skip Dependabot PRs which does not heavily alters YAML files.
-    if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
+    if: >
+      github.head_ref != 'prepare-release'
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && needs.project-metadata.outputs.yaml_files
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -106,7 +112,10 @@ jobs:
     needs:
       - project-metadata
     # Skip linting on prepare-release branch and Dependabot PRs because they do not heavily alters GitHub Actions.
-    if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
+    if: >
+      github.head_ref != 'prepare-release'
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && needs.project-metadata.outputs.workflow_files
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -162,6 +171,7 @@ jobs:
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
       && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-24.04
     # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
@@ -180,7 +190,7 @@ jobs:
             --no-progress
             --include-fragments
             --exclude-all-private
-            './**/*.md' './**/*.html' './**/*.rst'
+            ${{ needs.project-metadata.outputs.doc_files }}
       - name: List open issues
         id: open_issues
         env:

@@ -5,6 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Only runs `lint-yaml` job if there are YAML files in the repository.
+- Only runs `lint-github-action` job if there are workflow files in the repository.
+- Only runs `broken-links` job if there are Markdown or rST files in the repository.
 - Only runs `update-mailmap` job if `.mailmap` file exists.
 
 ## [4.21.0 (2025-10-11)](https://github.com/kdeldycke/workflows/compare/v4.20.0...v4.21.0)
