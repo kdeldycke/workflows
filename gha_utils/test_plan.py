@@ -28,7 +28,11 @@ from typing import Generator, Sequence
 import yaml
 from boltons.iterutils import flatten
 from boltons.strutils import strip_ansi
-from click_extra.testing import args_cleanup, render_cli_run
+from click_extra.testing import (
+    args_cleanup,
+    regex_fullmatch_line_by_line,
+    render_cli_run,
+)
 from extra_platforms import Group, _TNestedReferences, current_os
 
 
@@ -265,9 +269,7 @@ class CLITestCase:
                         raise AssertionError(f"{name} does not match regex {regex}")
 
             elif field_id.endswith("_regex_fullmatch"):
-                regex = field_data
-                if not regex.fullmatch(output):
-                    raise AssertionError(f"{name} does not fully match regex {regex}")
+                regex_fullmatch_line_by_line(field_data, output)
 
 
 DEFAULT_TEST_PLAN: list[CLITestCase] = [
