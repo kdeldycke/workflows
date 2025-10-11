@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.21.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.20.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.21.0 (2025-10-11)](https://github.com/kdeldycke/workflows/compare/v4.20.0...v4.21.0)
 
 - Use `astral-sh/setup-uv@v7.0.0` action to install `uv` instead of manually installing it with `pip`.
 - Remove `requirements/uv.txt` file.
