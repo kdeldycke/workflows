@@ -163,6 +163,9 @@ expected = {
         "changelog.md",
         "readme.md",
     ],
+    "image_files": [
+        "docs/assets/repo-workflow-permissions.png",
+    ],
     "zsh_files": [],
     "is_python_project": True,
     "package_name": "gha-utils",

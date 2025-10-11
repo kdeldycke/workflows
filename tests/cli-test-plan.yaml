@@ -56,6 +56,7 @@
     markdown_files=[\S ]+
     yaml_files=[\S ]+
     workflow_files=[\S ]+
+    image_files=[\S ]+
     zsh_files=
     is_python_project=true
     package_name=gha-utils

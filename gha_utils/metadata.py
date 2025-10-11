@@ -31,6 +31,7 @@ yaml_files="config.yaml" ".github/workflows/lint.yaml" ".github/workflows/test.y
 workflow_files=".github/workflows/lint.yaml" ".github/workflows/test.yaml"
 doc_files="changelog.md" "readme.md" "docs/license.md"
 markdown_files="changelog.md" "readme.md" "docs/license.md"
+image_files=
 zsh_files=
 is_python_project=true
 package_name=click-extra
@@ -1011,6 +1012,15 @@ class Metadata:
         return self.glob_files("**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}")
 
     @cached_property
+    def image_files(self) -> list[Path]:
+        """Returns a list of image files.
+
+        Inspired by the list of image extensions supported by calibre's image-actions:
+        https://github.com/calibreapp/image-actions/blob/f325757/src/constants.ts#L32
+        """
+        return self.glob_files("**/*.{jpeg,jpg,png,webp,avif}")
+
+    @cached_property
     def zsh_files(self) -> list[Path]:
         """Returns a list of Zsh files."""
         return self.glob_files("**/*.{sh,zsh}", "**/.{zshrc,zprofile,zshenv,zlogin}")
@@ -1582,6 +1592,7 @@ class Metadata:
             "workflow_files": self.workflow_files,
             "doc_files": self.doc_files,
             "markdown_files": self.markdown_files,
+            "image_files": self.image_files,
             "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,
