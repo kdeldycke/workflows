@@ -7,7 +7,10 @@
 
 - Use `astral-sh/setup-uv@v7.0.0` action to install `uv` instead of manually installing it with `pip`.
 - Remove `requirements/uv.txt` file.
-- Add new `mailmap_exists` field to `gha-utils metadata`.
+- Add new fields to `gha-utils metadata`:
+  - `yaml_files`
+  - `workflow_files`
+  - `mailmap_exists`
 - Add `check-runners` job to always verify the architecture of each runner used to compile binaries with Nuitka.
 - Use `macos-28` runner instead of `macos-15` to build binaries for `arm64`.
 - Use `macos-15-intel` runner instead of `macos-13` to build binaries for `x64`.

@@ -27,6 +27,8 @@ mailmap_exists=true
 gitignore_exists=true
 python_files=".github/update_mailmap.py" ".github/metadata.py" "setup.py"
 json_files=
+yaml_files="config.yaml" ".github/workflows/lint.yaml" ".github/workflows/test.yaml"
+workflow_files=".github/workflows/lint.yaml" ".github/workflows/test.yaml"
 doc_files="changelog.md" "readme.md" "docs/license.md"
 markdown_files="changelog.md" "readme.md" "docs/license.md"
 zsh_files=
@@ -957,6 +959,16 @@ class Metadata:
         )
 
     @cached_property
+    def yaml_files(self) -> list[Path]:
+        """Returns a list of YAML files."""
+        return self.glob_files("**/*.{yaml,yml}")
+
+    @cached_property
+    def workflow_files(self) -> list[Path]:
+        """Returns a list of GitHub workflow files."""
+        return self.glob_files(".github/workflows/**/*.{yaml,yml}")
+
+    @cached_property
     def doc_files(self) -> list[Path]:
         """Returns a list of doc files."""
         return self.glob_files(
@@ -1536,6 +1548,8 @@ class Metadata:
             "gitignore_exists": self.gitignore_exists,
             "python_files": self.python_files,
             "json_files": self.json_files,
+            "yaml_files": self.yaml_files,
+            "workflow_files": self.workflow_files,
             "doc_files": self.doc_files,
             "markdown_files": self.markdown_files,
             "zsh_files": self.zsh_files,
