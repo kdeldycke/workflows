@@ -25,7 +25,7 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
+          gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
 
   dump-context:
     name: ${{ matrix.os }} info dump
