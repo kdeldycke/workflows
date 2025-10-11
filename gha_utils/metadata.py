@@ -736,7 +736,7 @@ class Metadata:
         return False
 
     @cached_property
-    def commit_range(self) -> tuple[str, str] | None:
+    def commit_range(self) -> tuple[str | None, str] | None:
         """Range of commits bundled within the triggering event.
 
         A workflow run is triggered by a singular event, which might encapsulate one or
@@ -783,7 +783,7 @@ class Metadata:
             end = self.github_context["event"]["pull_request"]["head"]["sha"]
         # Push event.
         else:
-            start = self.github_context["event"]["before"]
+            start = self.github_context["event"].get("before")
             end = os.environ["GITHUB_SHA"]
             assert end
         logging.debug(f"Commit range: {start} -> {end}")
@@ -811,6 +811,8 @@ class Metadata:
         # inclusive), we still need to make sure it exists: PyDriller stills needs to
         # find it to be able to traverse the commit history.
         for commit_id in (start, end):
+            if not commit_id:
+                continue
             try:
                 _ = self.git.get_commit(commit_id)
             except ValueError:
@@ -823,6 +825,11 @@ class Metadata:
                     "Skipping metadata extraction of the range of new commits."
                 )
                 return None
+
+        if not start:
+            logging.warning("No start commit found. Only one commit in range.")
+            assert end
+            return (self.git.get_commit(end),)
 
         commit_list = []
         for index, commit in enumerate(
