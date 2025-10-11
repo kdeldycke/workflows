@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.21.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.21.0...main)
+## [4.22.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.21.0...main)
 
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
