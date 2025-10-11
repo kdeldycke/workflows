@@ -71,11 +71,15 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert isinstance(metadata, dict)
         assert set(metadata) == set(expected)
         for key, value in expected.items():
-            # By convention, keys ending with "_files" are a list of path strings
-            # so they need to be adjusted for Windows.
+            # By convention, keys ending with "_files" are path strings so they need to
+            # be adjusted for Windows.
             if key.endswith("_files") and is_windows():
-                assert isinstance(value, list)
-                value = [v.replace("/", "\\") for v in value]
+                # Path are stored as a list in JSON format.
+                if isinstance(value, list):
+                    value = [v.replace("/", "\\") for v in value]
+                # Path are space-separated and serialized as a string in GitHub format.
+                else:
+                    value = value.replace("/", "\\")
 
             iter_checks(metadata[key], value, metadata)
 
