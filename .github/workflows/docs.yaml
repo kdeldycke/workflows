@@ -102,7 +102,7 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils --verbosity DEBUG mailmap-sync --skip-if-missing ./.mailmap
+          gha-utils mailmap-sync --skip-if-missing ./.mailmap
       - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
