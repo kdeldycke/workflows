@@ -132,27 +132,6 @@ jobs:
         include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - name: System info - Unix
-        if: runner.os != 'Windows'
-        run: |
-          echo "Runner OS: $RUNNER_OS"
-          echo "Runner ARCH: $RUNNER_ARCH"
-          uname -a
-      - name: CPU info - Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt --quiet --yes install util-linux
-          lscpu
-      - name: System info - macOS
-        if: runner.os == 'macOS'
-        run: |
-          sysctl -a
-      - name: System info - Windows
-        if: runner.os == 'Windows'
-        run: |
-          echo "Runner OS: $env:RUNNER_OS"
-          echo "Runner ARCH: $env:RUNNER_ARCH"
-          systeminfo
       - name: Check Python version
         run: |
           python --version
