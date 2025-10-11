@@ -7,5 +7,4 @@
 --requirement ./requirements/nuitka.txt
 --requirement ./requirements/pipdeptree.txt
 --requirement ./requirements/ruff.txt
---requirement ./requirements/uv.txt
 --requirement ./requirements/yamllint.txt

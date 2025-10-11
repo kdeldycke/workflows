@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use `astral-sh/setup-uv@v7.0.0` action to install `uv` instead of manually installing it with `pip`.
+- Remove `requirements/uv.txt` file.
 - Add new `mailmap_exists` field to `gha-utils metadata`.
 - Add `check-runners` job to always verify the architecture of each runner used to compile binaries with Nuitka.
 - Use `macos-28` runner instead of `macos-15` to build binaries for `arm64`.
