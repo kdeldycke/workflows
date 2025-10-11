@@ -13,6 +13,7 @@
 - Only parse `.gitignore` file once, when first needed, and cache the matching function.
 - Run `gha-utils` commands without `--verbosity DEBUG` option in jobs to reduce noise.
 - Silence overly verbose debug messages from `py-walk` logger.
+- Only runs `debug` workflow manually, on demand.
 - Pin version of `awesome-lint` to `v2.2.2`.
 - Pin version of `actionlint` to `v1.7.7`.
 
