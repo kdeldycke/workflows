@@ -79,8 +79,7 @@ dependencies = [
     # v1.1.1 and later have some regressions: see https://github.com/callowayproject/bump-my-version/issues/331
     "bump-my-version >= 0.32.2, < 1.1.1",
     # Click Extra 6.0.2 adds a new regex_fullmatch_line_by_line() function we rely on.
-    #"click-extra ~= 6.0.2",
-    "click-extra @ git+https://github.com/kdeldycke/click-extra.git@main",
+    "click-extra ~= 6.0.2",
     "extra-platforms ~= 3.2.0",
     "packaging ~= 25.0",
     # In the future, replace py-walk with wcmatch once the latter supports gitignore files:
