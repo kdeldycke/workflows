@@ -11,6 +11,7 @@
 - Use `macos-15-intel` runner instead of `macos-13` to build binaries for `x64`.
 - Run tests on `macos-28` and `macos-15-intel` runners instead of `macos-15` and `macos-13`.
 - Only parse `.gitignore` file once, when first needed, and cache the matching function.
+- Run `gha-utils` commands without `--verbosity DEBUG` option in jobs to reduce noise.
 - Silence overly verbose debug messages from `py-walk` logger.
 - Pin version of `awesome-lint` to `v2.2.2`.
 - Pin version of `actionlint` to `v1.7.7`.

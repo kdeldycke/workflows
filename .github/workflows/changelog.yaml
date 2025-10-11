@@ -171,7 +171,7 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils --verbosity DEBUG changelog ./changelog.md
+          gha-utils changelog ./changelog.md
       - name: Version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .

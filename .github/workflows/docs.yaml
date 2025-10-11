@@ -149,7 +149,7 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
   update-deps-graph:
     name: Update dependency graph

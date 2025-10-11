@@ -96,7 +96,7 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils --verbosity DEBUG metadata
+          gha-utils metadata
           ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
           --overwrite "$GITHUB_OUTPUT"
 
