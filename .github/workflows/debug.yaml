@@ -9,7 +9,32 @@ name: Debug
 
 jobs:
 
-  print-context:
+  project-metadata:
+    name: Project metadata
     runs-on: ubuntu-24.04
+    outputs:
+      build_targets: ${{ steps.project-metadata.outputs.build_targets }}
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - uses: astral-sh/setup-uv@v7.0.0
+      - name: Run gha-utils metadata
+        id: project-metadata
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: >
+          uvx
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --
+          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
+
+  dump-context:
+    name: ${{ matrix.os }} info dump
+    needs:
+      - project-metadata
+    if: needs.project-metadata.outputs.build_targets
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
