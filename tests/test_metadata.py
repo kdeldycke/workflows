@@ -71,6 +71,11 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert isinstance(metadata, dict)
         assert set(metadata) == set(expected)
         for key, value in expected.items():
+            # By convention, keys ending with "_files" are space-separated path strings
+            # so they need to be adjusted for Windows.
+            if key.endswith("_files") and is_windows():
+                value = value.replace("/", "\\")
+
             iter_checks(metadata[key], value, metadata)
 
     elif isinstance(expected, list):
@@ -93,22 +98,6 @@ expected = {
     "mailmap_exists": True,
     "gitignore_exists": True,
     "python_files": [
-        "gha_utils\\__init__.py",
-        "gha_utils\\__main__.py",
-        "gha_utils\\changelog.py",
-        "gha_utils\\cli.py",
-        "gha_utils\\mailmap.py",
-        "gha_utils\\matrix.py",
-        "gha_utils\\metadata.py",
-        "gha_utils\\test_plan.py",
-        "tests\\__init__.py",
-        "tests\\test_changelog.py",
-        "tests\\test_mailmap.py",
-        "tests\\test_matrix.py",
-        "tests\\test_metadata.py",
-    ]
-    if is_windows()
-    else [
         "gha_utils/__init__.py",
         "gha_utils/__main__.py",
         "gha_utils/changelog.py",
@@ -125,28 +114,6 @@ expected = {
     ],
     "json_files": [],
     "yaml_files": [
-        ".github\\dependabot.yaml",
-        ".github\\funding.yml",
-        ".github\\labeller-content-based.yaml",
-        ".github\\labeller-file-based.yaml",
-        ".github\\labels-awesome.yaml",
-        ".github\\labels.yaml",
-        ".github\\workflows\\autofix.yaml",
-        ".github\\workflows\\autolock.yaml",
-        ".github\\workflows\\changelog.yaml",
-        ".github\\workflows\\debug.yaml",
-        ".github\\workflows\\docs.yaml",
-        ".github\\workflows\\label-sponsors.yaml",
-        ".github\\workflows\\labeller-content-based.yaml",
-        ".github\\workflows\\labeller-file-based.yaml",
-        ".github\\workflows\\labels.yaml",
-        ".github\\workflows\\lint.yaml",
-        ".github\\workflows\\release.yaml",
-        ".github\\workflows\\tests.yaml",
-        "tests\\cli-test-plan.yaml",
-    ]
-    if is_windows()
-    else [
         ".github/dependabot.yaml",
         ".github/funding.yml",
         ".github/labeller-content-based.yaml",
@@ -168,21 +135,6 @@ expected = {
         "tests/cli-test-plan.yaml",
     ],
     "workflow_files": [
-        ".github\\workflows\\autofix.yaml",
-        ".github\\workflows\\autolock.yaml",
-        ".github\\workflows\\changelog.yaml",
-        ".github\\workflows\\debug.yaml",
-        ".github\\workflows\\docs.yaml",
-        ".github\\workflows\\label-sponsors.yaml",
-        ".github\\workflows\\labeller-content-based.yaml",
-        ".github\\workflows\\labeller-file-based.yaml",
-        ".github\\workflows\\labels.yaml",
-        ".github\\workflows\\lint.yaml",
-        ".github\\workflows\\release.yaml",
-        ".github\\workflows\\tests.yaml",
-    ]
-    if is_windows()
-    else [
         ".github/workflows/autofix.yaml",
         ".github/workflows/autolock.yaml",
         ".github/workflows/changelog.yaml",
@@ -197,23 +149,11 @@ expected = {
         ".github/workflows/tests.yaml",
     ],
     "doc_files": [
-        ".github\\code-of-conduct.md",
-        "changelog.md",
-        "readme.md",
-    ]
-    if is_windows()
-    else [
         ".github/code-of-conduct.md",
         "changelog.md",
         "readme.md",
     ],
     "markdown_files": [
-        ".github\\code-of-conduct.md",
-        "changelog.md",
-        "readme.md",
-    ]
-    if is_windows()
-    else [
         ".github/code-of-conduct.md",
         "changelog.md",
         "readme.md",
