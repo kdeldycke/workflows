@@ -544,10 +544,15 @@ class Metadata:
         logging.debug(json.dumps(context, indent=4))
         return context  # type:ignore[no-any-return]
 
-    def git_stash_count(self, git_repo: Git) -> int:
+    @cached_property
+    def git(self) -> Git:
+        """Return a PyDriller Git object."""
+        return Git(".")
+
+    def git_stash_count(self) -> int:
         """Returns the number of stashes."""
         count = int(
-            git_repo.repo.git.rev_list(
+            self.git.repo.git.rev_list(
                 "--walk-reflogs", "--ignore-missing", "--count", "refs/stash"
             )
         )
@@ -592,8 +597,7 @@ class Metadata:
         if not commits:
             return None
 
-        git = Git(".")
-        current_commit = git.repo.head.commit.hexsha
+        current_commit = self.git.repo.head.commit.hexsha
 
         # Check if we need to get back in time in the Git log and browse past commits.
         if len(commits) == 1:  # type: ignore[arg-type]
@@ -621,17 +625,17 @@ class Metadata:
             # Save the initial commit reference and SHA of the repository. The
             # reference is either the canonical active branch name (i.e. ``main``), or
             # the commit SHA if the current HEAD commit is detached from a branch.
-            if git.repo.head.is_detached:
+            if self.git.repo.head.is_detached:
                 init_ref = current_commit
             else:
-                init_ref = git.repo.active_branch.name
+                init_ref = self.git.repo.active_branch.name
             logging.debug(f"Initial commit reference: {init_ref}")
 
             # Try to stash local changes and check if we'll need to unstash them later.
-            counter_before = self.git_stash_count(git)
+            counter_before = self.git_stash_count()
             logging.debug("Try to stash local changes before our series of checkouts.")
-            git.repo.git.stash()
-            counter_after = self.git_stash_count(git)
+            self.git.repo.git.stash()
+            counter_after = self.git_stash_count()
             logging.debug(
                 "Stash counter changes after 'git stash' command: "
                 f"{counter_before} -> {counter_after}"
@@ -652,7 +656,7 @@ class Metadata:
         for commit in commits:
             if past_commit_lookup:
                 logging.debug(f"Checkout to commit {commit.hash}")
-                git.checkout(commit.hash)
+                self.git.checkout(commit.hash)
 
             commit_metadata = {
                 "commit": commit.hash,
@@ -670,10 +674,10 @@ class Metadata:
         # Restore the repository to its initial state.
         if past_commit_lookup:
             logging.debug(f"Restore repository to {init_ref}.")
-            git.checkout(init_ref)
+            self.git.checkout(init_ref)
             if need_unstash:
                 logging.debug("Unstash local changes that were previously saved.")
-                git.repo.git.stash("pop")
+                self.git.repo.git.stash("pop")
 
         return matrix
 
@@ -801,15 +805,34 @@ class Metadata:
         if not self.commit_range:
             return None
         start, end = self.commit_range
-        # Remove the last commit, as the commit range is inclusive.
-        return tuple(
-            Repository(
-                ".",
-                from_commit=start,
-                to_commit=end,
-                order="reverse",
-            ).traverse_commits(),
-        )[:-1]
+
+        # Sanity check: make sure the start commit exists in the repository.
+        # XXX Even if we skip the start commit later on (because the range is
+        # inclusive), we still need to make sure it exists: PyDriller stills needs to
+        # find it to be able to traverse the commit history.
+        for commit_id in (start, end):
+            try:
+                _ = self.git.get_commit(commit_id)
+            except ValueError:
+                logging.error(
+                    f"Cannot find commit {commit_id} in repository. "
+                    "Repository was probably not checked out with enough depth. "
+                    f"Current depth is {self.git.total_commits()}. "
+                )
+                logging.warning(
+                    "Skipping metadata extraction of the range of new commits."
+                )
+                return None
+
+        commit_list = []
+        for index, commit in enumerate(
+            Repository(".", from_commit=start, to_commit=end).traverse_commits()
+        ):
+            # Skip the first commit because the commit range is inclusive.
+            if index == 0:
+                continue
+            commit_list.append(commit)
+        return tuple(commit_list)
 
     @cached_property
     def new_commits_matrix(self) -> Matrix | None:

@@ -11,6 +11,7 @@
   - `yaml_files`
   - `workflow_files`
   - `mailmap_exists`
+- Check that start and end commit of `commit_range` exist in the repository before trying to traverse commits with PyDriller.
 - Add `check-runners` job to always verify the architecture of each runner used to compile binaries with Nuitka.
 - Use `macos-28` runner instead of `macos-15` to build binaries for `arm64`.
 - Use `macos-15-intel` runner instead of `macos-13` to build binaries for `x64`.
