@@ -122,7 +122,7 @@ jobs:
       - name: Install actionlint
         id: install_actionlint
         run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.7
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.8
       - name: Install shellcheck
         run: |
           sudo apt update
@@ -131,7 +131,7 @@ jobs:
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
         run: >
           curl -fsSL --output ./.github/labeller-file-based.yaml
-          https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.7/.github/actionlint-matcher.json
+          https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.8/.github/actionlint-matcher.json
       - name: Register problem matcher
         run: |
           echo "::add-matcher::.github/labeller-file-based.yaml"
@@ -141,22 +141,10 @@ jobs:
         #   property "workflow_update_github_pat" is not defined in object type {actions_runner_debug: string;
         #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
         # See: https://github.com/rhysd/actionlint/issues/148
-        # XXX actionlint triggers these errors:
-        #   Error: .github/workflows/tests.yaml:XX:XX:
-        #   label "XXXXXXX" is unknown. available labels are ...
-        #   if it is a custom label for self-hosted runner, set list of labels in actionlint.yaml config file
-        #   [runner-label]
-        # Issues have been fixed upstream but we are waiting for a new release of actionlint > 1.7.7:
-        # https://github.com/rhysd/actionlint/issues/533
-        # https://github.com/rhysd/actionlint/issues/571
-        # https://github.com/rhysd/actionlint/issues/570
         run: >
           ${{ steps.install_actionlint.outputs.executable }}
           -color
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
-          -ignore 'label "macos-26" is unknown. .+'
-          -ignore 'label "macos-15-intel" is unknown. .+'
-          -ignore 'label "windows-11-arm" is unknown. .+'
 
   broken-links:
     needs:
