@@ -90,13 +90,17 @@ jobs:
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
+        # Declare macOS 26 as unstable target by default, while we're searching for a solution upstream:
+        # https://github.com/Nuitka/Nuitka/issues/3637
+        # yamllint disable rule:line-length
         run: >
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils metadata
-          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
+          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0},macos-26"', inputs.unstable-targets) || '--unstable-targets "macos-26"' }}
           --overwrite "$GITHUB_OUTPUT"
+        # yamllint enable
 
   package-build:
     name: Build package

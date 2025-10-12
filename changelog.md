@@ -12,6 +12,7 @@
 - Only runs `update-mailmap` job if `.mailmap` file exists.
 - The `gha-utils test-plan` command now reports the detailed line differences when a `*_regex_fullmatch` check fails.
 - Fix `commit_range` field when there is only one commit in the range.
+- Flag `macos-26` as unstable target by default for Nuitka builds while we wait for a solution upstream.
 - Upload Nuitka crash report as artifacts when the build fails.
 
 ## [4.21.0 (2025-10-11)](https://github.com/kdeldycke/workflows/compare/v4.20.0...v4.21.0)
