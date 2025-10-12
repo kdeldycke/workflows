@@ -175,13 +175,8 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: astral-sh/setup-uv@v7.0.0
       - name: Setup venv
-        # XXX Python for Windows ARM64 is available through uv but is not going to be installed by default.
-        # We have to explicitly install it for it to be picked-up by Nuitka.
-        # https://github.com/astral-sh/uv/issues/12906
-        # https://docs.astral.sh/uv/reference/cli/#uv-python
-        # https://github.com/astral-sh/uv/pull/14399
         run: |
-          uv --no-progress venv --python 3.13
+          uv --no-progress venv --python 3.14
       - name: Install Nuitka
         run: >
           uv --no-progress pip install
