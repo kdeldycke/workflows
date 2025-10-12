@@ -126,8 +126,11 @@ jobs:
       # TODO: Should we also attest the archive created here? See:
       # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
 
-  check-runners:
-    name: Check ${{ matrix.os }}
+  validate-arch:
+    # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on
+    # emulation to run the build. See:
+    # https://docs.astral.sh/uv/concepts/python-versions/#transparent-x86_64-emulation-on-aarch64
+    name: Validate ${{ matrix.os }}/${{ matrix.arch }}
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets
