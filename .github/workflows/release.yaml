@@ -130,7 +130,7 @@ jobs:
     # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on
     # emulation to run the build. See:
     # https://docs.astral.sh/uv/concepts/python-versions/#transparent-x86_64-emulation-on-aarch64
-    name: Validate ${{ matrix.os }}/${{ matrix.arch }}
+    name: Validate ${{ matrix.os }} / ${{ matrix.arch }}
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets
@@ -281,7 +281,10 @@ jobs:
                   f"Got: {reported_arch!r}\n"
               )
 
-          print(f"Binary architecture matches expected: {reported_arch!r} for {target} target.")
+          print(
+              f"Binary architecture matches: {expected_substring!r} found in {field!r} "
+              f"for {target} target."
+          )
       - name: Upload binaries
         uses: actions/upload-artifact@v4.6.2
         with:
