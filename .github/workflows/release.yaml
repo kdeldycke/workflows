@@ -181,7 +181,7 @@ jobs:
         # https://docs.astral.sh/uv/reference/cli/#uv-python
         # https://github.com/astral-sh/uv/pull/14399
         run: |
-          uv --no-progress venv --python ${{ matrix.os == 'windows-11-arm' && '3.13-aarch64' || '3.13' }}
+          uv --no-progress venv --python 3.13
       - name: Install Nuitka
         run: >
           uv --no-progress pip install
