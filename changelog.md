@@ -14,6 +14,7 @@
 - Fix `commit_range` field when there is only one commit in the range.
 - Flag `macos-26` as unstable target by default for Nuitka builds while we wait for a solution upstream.
 - Upload Nuitka crash report as artifacts when the build fails.
+- Validate architecture of binaries produced by Nuitka builds.
 
 ## [4.21.0 (2025-10-11)](https://github.com/kdeldycke/workflows/compare/v4.20.0...v4.21.0)
 
