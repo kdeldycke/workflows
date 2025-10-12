@@ -198,7 +198,7 @@ jobs:
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: nuitka-crash-report-${{ matrix.os }}.xml
+          name: nuitka-crash-report-${{ matrix.os }}-${{ matrix.short_sha }}.xml
           if-no-files-found: ignore
           path: nuitka-crash-report.xml
       - if: steps.build-binary.outcome == 'failure'
