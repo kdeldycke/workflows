@@ -51,9 +51,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5.0.0
       - uses: astral-sh/setup-uv@v7.0.0
-      - name: Install project
+      - name: Install Python ${{ matrix.python-version }}
         run: |
           uv --no-progress venv --python ${{ matrix.python-version }}
+      - name: Install project
+        run: |
           uv --no-progress sync --frozen --extra test
       - name: Check launchable modules
         run: |
