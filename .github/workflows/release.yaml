@@ -98,7 +98,7 @@ jobs:
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils metadata
-          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0},macos-26"', inputs.unstable-targets) || '--unstable-targets "macos-26"' }}
+          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0},macos-arm64"', inputs.unstable-targets) || '--unstable-targets "macos-arm64"' }}
           --overwrite "$GITHUB_OUTPUT"
         # yamllint enable
 
