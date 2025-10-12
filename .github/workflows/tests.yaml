@@ -52,7 +52,12 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: astral-sh/setup-uv@v7.0.0
       - name: Install Python ${{ matrix.python-version }}
+        # If UV cannot find the requested Python version, it exits with code 2, which let the job pass unnoticed on
+        # Windows. So we force the shell to bash, even on Windows, and "set -e" to ensure any error in the install
+        # process is caught and fails the job. It works because Windows runners too Git Bash available).
+        shell: bash
         run: |
+          set -e
           uv --no-progress venv --python ${{ matrix.python-version }}
       - name: Install project
         run: |
