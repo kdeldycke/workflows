@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.22.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.21.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.22.0 (2025-10-12)](https://github.com/kdeldycke/workflows/compare/v4.21.0...v4.22.0)
 
 - Add new `image_files` field to `gha-utils metadata`.
 - Only runs `lint-yaml` job if there are YAML files in the repository.
