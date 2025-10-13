@@ -62,6 +62,7 @@ jobs:
       - name: Install project
         run: |
           uv --no-progress sync --frozen --extra test
+
       - name: Check launchable modules
         run: |
           uv run -m gha_utils --version
@@ -70,9 +71,11 @@ jobs:
         run: |
           uvx -- gha-utils --version
           uv run -- gha-utils --version
+
       - name: Unittests
         run: |
           uv --no-progress run --frozen -- pytest
+
       - name: Codecov - coverage
         uses: codecov/codecov-action@v5.5.1
         with:
@@ -82,3 +85,7 @@ jobs:
         uses: codecov/test-results-action@v1.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Self-tests against test plan
+        run: |
+          uv run -- gha-utils test-plan --command "uv run -- gha-utils" --plan-file "./tests/cli-test-plan.yaml"
