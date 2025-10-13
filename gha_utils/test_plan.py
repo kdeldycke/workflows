@@ -194,7 +194,7 @@ class CLITestCase:
             self.timeout = default_timeout
 
         # Separate the command into binary file path and arguments.
-        args: list[str] = []
+        args = []
         if isinstance(command, str):
             args = _split_args(command)
             command = args[0]
@@ -207,15 +207,14 @@ class CLITestCase:
             assert command is not None
 
         # Check the binary exists and is executable.
-        binary = Path(command)
+        binary = Path(command).resolve()
         assert binary.exists()
         assert binary.is_file()
         assert os.access(binary, os.X_OK)
-        binary = str(binary.resolve())
 
         clean_args = args_cleanup(binary, args, self.cli_parameters)
-
         logging.info(f"Run CLI command: {' '.join(clean_args)}")
+
         try:
             result = run(
                 clean_args,
