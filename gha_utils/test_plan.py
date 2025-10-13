@@ -44,6 +44,20 @@ class SkippedTest(Exception):
     pass
 
 
+def _split_args(cli: str) -> list[str]:
+    """Split a string or sequence of strings into a tuple of arguments.
+
+    .. todo::
+        Evaluate better Windows CLI parsing with:
+        `w32lex <https://github.com/maxpat78/w32lex>`_.
+    """
+    if sys.platform == "win32":
+        return cli.split()
+    # For Unix platforms, we have the dedicated shlex module.
+    else:
+        return shlex.split(cli)
+
+
 @dataclass(order=True)
 class CLITestCase:
     cli_parameters: tuple[str, ...] | str = field(default_factory=tuple)
@@ -108,13 +122,7 @@ class CLITestCase:
                         # CLI parameters provided as a long string needs to be split so
                         # that each argument is a separate item in the final tuple.
                         if field_id == "cli_parameters":
-                            # XXX Maybe we should rely on a library to parse them:
-                            # https://github.com/maxpat78/w32lex
-                            if sys.platform == "win32":
-                                field_data = field_data.split()
-                            # For Unix platforms, we have the dedicated shlex module.
-                            else:
-                                field_data = shlex.split(field_data)
+                            field_data = _split_args(field_data)
                         else:
                             field_data = (field_data,)
 
@@ -188,10 +196,7 @@ class CLITestCase:
         # Separate the command into binary file path and arguments.
         args: list[str] = []
         if isinstance(command, str):
-            if sys.platform == "win32":
-                args = command.split()
-            else:
-                args = shlex.split(command)
+            args = _split_args(command)
             command = args[0]
             args = args[1:]
             # Ensure the command to execute is in PATH.
