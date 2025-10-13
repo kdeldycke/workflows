@@ -5,6 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add new `--command` parameter to `gha-utils test-plan` command as an alias to `--binary`.
+- Allow `gha-utils test-plan` to accept a full command line with parameters as input for `--command`/`--binary` option.
+
 ## [4.22.0 (2025-10-12)](https://github.com/kdeldycke/workflows/compare/v4.21.0...v4.22.0)
 
 - Add new `image_files` field to `gha-utils metadata`.

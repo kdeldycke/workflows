@@ -303,11 +303,11 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
 
 @gha_utils.command(short_help="Run a test plan from a file against a binary")
 @option(
+    "--command",
     "--binary",
-    type=file_path(exists=True, executable=True, resolve_path=True),
     required=True,
-    metavar="FILE_PATH",
-    help="Path to the binary file to test.",
+    metavar="COMMAND",
+    help="Path to the binary file to test, or a command line to be executed.",
 )
 @option(
     "-F",
@@ -375,7 +375,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     help="Print per-manager package statistics.",
 )
 def test_plan(
-    binary: Path,
+    command: str,
     plan_file: tuple[Path, ...] | None,
     plan_envvar: tuple[str, ...] | None,
     select_test: tuple[int, ...] | None,
@@ -422,7 +422,9 @@ def test_plan(
         try:
             logging.debug(f"Test case parameters: {test_case}")
             test_case.run_cli_test(
-                binary, additional_skip_platforms=skip_platform, default_timeout=timeout
+                command,
+                additional_skip_platforms=skip_platform,
+                default_timeout=timeout,
             )
         except SkippedTest as ex:
             counter["skipped"] += 1

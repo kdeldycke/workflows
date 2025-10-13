@@ -17,11 +17,13 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 import shlex
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from shutil import which
 from subprocess import TimeoutExpired, run
 from typing import Generator, Sequence
 
@@ -151,11 +153,17 @@ class CLITestCase:
 
     def run_cli_test(
         self,
-        binary: str | Path,
+        command: Path | str,
         additional_skip_platforms: _TNestedReferences | None,
         default_timeout: float | None,
     ):
         """Run a CLI command and check its output against the test case.
+
+        The provided ``command`` can be either:
+
+        - a path to a binary or script to execute;
+        - a command name to be searched in the ``PATH``,
+        - a command line with arguments to be parsed and executed by the shell.
 
         ..todo::
             Add support for environment variables.
@@ -177,7 +185,32 @@ class CLITestCase:
             logging.info(f"Set default test case timeout to {default_timeout} seconds")
             self.timeout = default_timeout
 
-        clean_args = args_cleanup(binary, self.cli_parameters)
+        # Separate the command into binary file path and arguments.
+        args: list[str] = []
+        if isinstance(command, str):
+            if sys.platform == "win32":
+                args = command.split()
+            else:
+                args = shlex.split(command)
+            command = args[0]
+            args = args[1:]
+            # Ensure the command to execute is in PATH.
+            if not which(command):
+                raise FileNotFoundError(f"Command not found in PATH: {command!r}")
+            # Resolve the command to an absolute path.
+            command = which(command)  # type: ignore[assignment]
+            assert command is not None
+
+        # Check the binary exists and is executable.
+        binary = Path(command)
+        assert binary.exists()
+        assert binary.is_file()
+        assert os.access(binary, os.X_OK)
+        binary = str(binary.resolve())
+
+        clean_args = args_cleanup(binary, args, self.cli_parameters)
+
+        logging.info(f"Run CLI command: {' '.join(clean_args)}")
         try:
             result = run(
                 clean_args,
