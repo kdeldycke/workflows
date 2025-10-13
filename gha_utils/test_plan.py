@@ -178,10 +178,10 @@ class CLITestCase:
         - a command name to be searched in the ``PATH``,
         - a command line with arguments to be parsed and executed by the shell.
 
-        ..todo::
+        .. todo::
             Add support for environment variables.
 
-        ..todo::
+        .. todo::
             Add support for proper mixed <stdout>/<stderr> stream as a single,
             intertwined output.
         """
