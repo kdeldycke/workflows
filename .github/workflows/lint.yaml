@@ -37,7 +37,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # We're going to browse all new commits.
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7.0.0
+      - uses: astral-sh/setup-uv@v7.1.0
       - name: Run gha-utils metadata
         id: project-metadata
         env:
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.0.0
+      - uses: astral-sh/setup-uv@v7.1.0
       - name: Install all package dependencies
         run: |
           uv --no-progress sync --frozen --all-extras
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.0.0
+      - uses: astral-sh/setup-uv@v7.1.0
       - name: Run yamllint
         run: >
           uvx
