@@ -279,6 +279,7 @@ import logging
 import os
 import re
 import tomllib
+from collections.abc import Iterable
 from enum import StrEnum
 from functools import cached_property
 from operator import itemgetter
@@ -311,7 +312,7 @@ from .matrix import Matrix
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Any, Final, Iterable, cast
+    from typing import Any, Final
 
 
 SHORT_SHA_LENGTH = 7
@@ -723,7 +724,10 @@ class Metadata:
     def event_sender_type(self) -> str | None:
         """Returns the type of the user that triggered the workflow run."""
         sender_type = self.github_context.get("event", {}).get("sender", {}).get("type")
-        return cast(str | None, sender_type)
+        if not sender_type:
+            return None
+        assert isinstance(sender_type, str)
+        return sender_type
 
     @cached_property
     def is_bot(self) -> bool:
@@ -1576,7 +1580,7 @@ class Metadata:
             else:
                 raise NotImplementedError(f"GitHub formatting for: {value!r}")
 
-        return cast(str, value)
+        return str(value)
 
     def dump(self, dialect: Dialects = Dialects.github) -> str:
         """Returns all metadata in the specified format.

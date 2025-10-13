@@ -21,6 +21,7 @@ import os
 import re
 import shlex
 import sys
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from shutil import which
@@ -38,7 +39,7 @@ from extra_platforms import Group, current_os
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Generator, Sequence
+    from collections.abc import Generator
 
     from extra_platforms import _TNestedReferences
 

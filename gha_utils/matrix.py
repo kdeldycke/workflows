@@ -25,7 +25,7 @@ from boltons.iterutils import unique
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Iterable, Iterator
+    from collections.abc import Iterable, Iterator
 
 
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
