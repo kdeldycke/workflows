@@ -279,7 +279,6 @@ import logging
 import os
 import re
 import tomllib
-from collections.abc import Iterable
 from enum import StrEnum
 from functools import cached_property
 from operator import itemgetter
@@ -312,7 +311,7 @@ from .matrix import Matrix
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Any, Final, cast
+    from typing import Any, Final, Iterable, cast
 
 
 SHORT_SHA_LENGTH = 7
