@@ -8,7 +8,7 @@
   timeout: 20.0
   exit_code: 0
   stdout_contains: ", version"
-  stdout_regex_fullmatch: "\x1b\\[97mgha-utils\x1b\\[0m, version \x1b\\[32mNone\x1b\\[0m\\n"
+  stdout_regex_fullmatch: "\x1b\\[97mgha-utils\x1b\\[0m, version \x1b\\[32m[0-9]+\\.[0-9]+\\.[0-9]+\x1b\\[0m\n"
 
 
 # Test combination of version and verbosity.
@@ -50,13 +50,13 @@
     release_commits=
     mailmap_exists=true
     gitignore_exists=true
-    python_files=[\S ]+
+    python_files="[\S ]+"
     json_files=
-    doc_files=[\S ]+
-    markdown_files=[\S ]+
-    yaml_files=[\S ]+
-    workflow_files=[\S ]+
-    image_files=[\S ]+
+    yaml_files="[\S ]+"
+    workflow_files="[\S ]+"
+    doc_files="[\S ]+"
+    markdown_files="[\S ]+"
+    image_files="[\S ]+"
     zsh_files=
     is_python_project=true
     package_name=gha-utils
@@ -71,8 +71,8 @@
     GHA_DELIMITER_[0-9]+
     new_commits_matrix=
     release_commits_matrix=
-    build_targets=.+
-    nuitka_matrix=.+
+    build_targets=\[\{"target": .+\}\]
+    nuitka_matrix=\{"os": \[.+\], "entry_point": \[.+\], "commit": \[.+\], "include": \[\{.+
 
 
 # Test changelog output.
@@ -125,4 +125,4 @@
     Usage: gha-utils test-plan [OPTIONS]
     Try 'gha-utils test-plan --help' for help.
 
-    Error: Missing option '--binary'.
+    Error: Missing option '--command' / '--binary'.
