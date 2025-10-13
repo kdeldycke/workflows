@@ -25,7 +25,6 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from shutil import which
 from subprocess import TimeoutExpired, run
-from typing import Generator, Sequence
 
 import yaml
 from boltons.iterutils import flatten
@@ -35,7 +34,13 @@ from click_extra.testing import (
     regex_fullmatch_line_by_line,
     render_cli_run,
 )
-from extra_platforms import Group, _TNestedReferences, current_os
+from extra_platforms import Group, current_os
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Generator, Sequence
+
+    from extra_platforms import _TNestedReferences
 
 
 class SkippedTest(Exception):

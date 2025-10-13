@@ -286,7 +286,6 @@ from operator import itemgetter
 from pathlib import Path
 from random import randint
 from re import escape
-from typing import Any, Final, cast
 
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
@@ -310,6 +309,11 @@ from wcmatch.glob import (
 )
 
 from .matrix import Matrix
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any, Final, cast
+
 
 SHORT_SHA_LENGTH = 7
 """Default SHA length hard-coded to ``7``.

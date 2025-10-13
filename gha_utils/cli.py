@@ -23,7 +23,6 @@ import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import IO
 
 from boltons.iterutils import unique
 from click_extra import (
@@ -46,6 +45,10 @@ from .changelog import Changelog
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialects, Metadata
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import IO
 
 
 def is_stdout(filepath: Path) -> bool:

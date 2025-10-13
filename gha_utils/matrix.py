@@ -19,10 +19,14 @@ from __future__ import annotations
 import itertools
 import json
 import logging
-from typing import Iterable, Iterator
 
 from boltons.dictutils import FrozenDict
 from boltons.iterutils import unique
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Iterable, Iterator
+
 
 RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 
