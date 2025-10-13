@@ -432,8 +432,8 @@ def test_plan(
         except Exception as ex:
             counter["failed"] += 1
             logging.error(f"Test {test_name} failed: {ex}")
-            if show_trace_on_error:
-                echo(test_case.execution_trace or "No execution trace available.")
+            if show_trace_on_error and test_case.execution_trace:
+                echo(test_case.execution_trace)
             if exit_on_error:
                 logging.debug("Don't continue testing, a failed test was found.")
                 sys.exit(1)
