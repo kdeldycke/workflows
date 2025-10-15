@@ -8,6 +8,7 @@
 - Add new `--command` parameter to `gha-utils test-plan` command as an alias to `--binary`.
 - Allow `gha-utils test-plan` to accept a full command line with parameters as input for `--command`/`--binary` option.
 - Self-check of `gha-utils test-plan` command in its own test plan.
+- Rely on GitHub-sanctioned `actions/setup-python` to install Python on `macos-arm64` platform for Nuitka builds.
 
 ## [4.22.0 (2025-10-12)](https://github.com/kdeldycke/workflows/compare/v4.21.0...v4.22.0)
 
@@ -24,7 +25,7 @@
 
 ## [4.21.0 (2025-10-11)](https://github.com/kdeldycke/workflows/compare/v4.20.0...v4.21.0)
 
-- Use `astral-sh/setup-uv@v7.0.0` action to install `uv` instead of manually installing it with `pip`.
+- Use `astral-sh/setup-uv` action to install `uv` instead of manually installing it with `pip`.
 - Remove `requirements/uv.txt` file.
 - Add new fields to `gha-utils metadata`:
   - `yaml_files`

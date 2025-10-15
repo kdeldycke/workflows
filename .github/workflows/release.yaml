@@ -90,17 +90,13 @@ jobs:
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-        # Declare macOS 26 as unstable target by default, while we're searching for a solution upstream:
-        # https://github.com/Nuitka/Nuitka/issues/3637
-        # yamllint disable rule:line-length
         run: >
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils metadata
-          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0},macos-arm64"', inputs.unstable-targets) || '--unstable-targets "macos-arm64"' }}
+          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
           --overwrite "$GITHUB_OUTPUT"
-        # yamllint enable
 
   package-build:
     name: Build package
@@ -173,7 +169,15 @@ jobs:
       - uses: actions/checkout@v5.0.0
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.1.0
+      # XXX Use astral-sh/setup-uv for all platforms except macOS arm64, where we will rely on
+      # actions/setup-python because astral-sh/setup-uv seems to have issues on that platform:
+      # https://github.com/Nuitka/Nuitka/issues/3637
+      - if: matrix.target != 'macos-arm64'
+        uses: astral-sh/setup-uv@v7.1.0
+      - if: matrix.target == 'macos-arm64'
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: "3.13"
       - name: Setup venv
         run: |
           uv --no-progress venv --python 3.13
