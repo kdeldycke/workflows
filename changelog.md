@@ -8,6 +8,7 @@
 - Add new `--command` parameter to `gha-utils test-plan` command as an alias to `--binary`.
 - Allow `gha-utils test-plan` to accept a full command line with parameters as input for `--command`/`--binary` option.
 - Self-check of `gha-utils test-plan` command in its own test plan.
+- Only runs `optimize-images` job if there are image files in the repository.
 - Rely on GitHub-sanctioned `actions/setup-python` to install Python on `macos-arm64` platform for Nuitka builds.
 - Move runner architecture validation to `gha-utils`-only job.
 

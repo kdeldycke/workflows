@@ -57,8 +57,34 @@ jobs:
           labels: "📚 documentation"
           branch: autofix-typo
 
+  project-metadata:
+    name: Project metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
+      image_files: ${{ steps.project-metadata.outputs.image_files }}
+      is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
+      package_name: ${{ steps.project-metadata.outputs.package_name }}
+      is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
+      active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - uses: astral-sh/setup-uv@v7.1.0
+      - name: Run gha-utils metadata
+        id: project-metadata
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: >
+          uvx
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --
+          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
+
   optimize-images:
     name: Optimize images
+    needs:
+      - project-metadata
+    if: needs.project-metadata.outputs.image_files
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
@@ -86,28 +112,6 @@ jobs:
             </details>
           labels: "📚 documentation"
           branch: optimize-images
-
-  project-metadata:
-    name: Project metadata
-    runs-on: ubuntu-24.04
-    outputs:
-      mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
-      is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      package_name: ${{ steps.project-metadata.outputs.package_name }}
-      is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
-      active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
-    steps:
-      - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.0
-      - name: Run gha-utils metadata
-        id: project-metadata
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          --
-          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
   update-mailmap:
     name: Update .mailmap
