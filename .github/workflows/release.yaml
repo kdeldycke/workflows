@@ -172,6 +172,7 @@ jobs:
       # XXX Use astral-sh/setup-uv for all platforms except macOS arm64, where we will rely on
       # actions/setup-python because astral-sh/setup-uv seems to have issues on that platform:
       # https://github.com/Nuitka/Nuitka/issues/3637
+      # https://github.com/astral-sh/uv/issues/16312
       - if: matrix.target != 'macos-arm64'
         uses: astral-sh/setup-uv@v7.1.0
       - if: matrix.target == 'macos-arm64'
