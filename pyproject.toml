@@ -94,7 +94,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "coverage [toml] ~= 7.10.0",
+    "coverage [toml] ~= 7.11.0",
     "pytest ~= 8.4.0",
     "pytest-cases ~= 3.9.1",
     "pytest-cov ~= 7.0.0",
