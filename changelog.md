@@ -9,6 +9,7 @@
 - Allow `gha-utils test-plan` to accept a full command line with parameters as input for `--command`/`--binary` option.
 - Self-check of `gha-utils test-plan` command in its own test plan.
 - Rely on GitHub-sanctioned `actions/setup-python` to install Python on `macos-arm64` platform for Nuitka builds.
+- Move runner architecture validation to `gha-utils`-only job.
 
 ## [4.22.0 (2025-10-12)](https://github.com/kdeldycke/workflows/compare/v4.21.0...v4.22.0)
 

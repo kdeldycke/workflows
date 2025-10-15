@@ -122,39 +122,6 @@ jobs:
       # TODO: Should we also attest the archive created here? See:
       # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
 
-  validate-arch:
-    # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on
-    # emulation to run the build. See:
-    # https://docs.astral.sh/uv/concepts/python-versions/#transparent-x86_64-emulation-on-aarch64
-    name: Validate ${{ matrix.os }} / ${{ matrix.arch }}
-    needs:
-      - project-metadata
-    if: needs.project-metadata.outputs.build_targets
-    strategy:
-      matrix:
-        include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Check Python version
-        run: |
-          python --version
-          python -m pip --version
-      - name: Check architecture is ${{ matrix.arch }}
-        shell: python
-        run: |
-          import platform
-
-          arch = platform.machine()
-          print(f"Detected architecture: {arch}")
-
-          matrix_arch = "${{ matrix.arch }}"
-          if matrix_arch == "x64":
-              assert arch.lower() in ("x86_64", "amd64")
-          elif matrix_arch == "arm64":
-              assert arch.lower() in ("aarch64", "arm64")
-          else:
-              raise ValueError(f"Unrecognized architecture in the matrix: {matrix_arch}")
-
   compile-binaries:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} Build on ${{ matrix.os }}, ${{ matrix.short_sha }}"
     needs:
