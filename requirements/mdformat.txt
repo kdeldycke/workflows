@@ -14,7 +14,8 @@ mdformat_gfm_alerts == 2.0.0
 # https://github.com/executablebooks/mdformat-myst/issues/21#issuecomment-3247818021
 mdformat_myst == 0.2.2
 # mdformat-pelican == 0.2.1
-mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
+# XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading.
+# mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
 mdformat_pyproject == 0.0.2
 # Fix URL encoding: https://github.com/hukkin/mdformat/issues/312#issuecomment-3227866895
 mdformat-recover-urls == 0.0.2
