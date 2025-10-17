@@ -11,7 +11,9 @@
 - Only runs `optimize-images` job if there are image files in the repository.
 - Rely on GitHub-sanctioned `actions/setup-python` to install Python on `macos-arm64` platform for Nuitka builds.
 - Move runner architecture validation to `gha-utils`-only job.
+- Remove dependency on `mdformat_tables` plugin which has been merged into `mdformat-gfm`.
 - Deactivate `mdformat-pelican` plugin until its compatibility with latest `mdformat` is restored.
+- Move all typing-related imports behind a hard-coded `TYPE_CHECKING` guard to avoid runtime imports.
 
 ## [4.22.0 (2025-10-12)](https://github.com/kdeldycke/workflows/compare/v4.21.0...v4.22.0)
 
