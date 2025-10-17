@@ -1,27 +1,58 @@
 # https://mdformat.readthedocs.io/en/stable/users/plugins.html
+
 mdformat == 1.0.0
+
 mdformat_admon == 2.1.1
+
 mdformat-config == 0.2.1
-mdformat_deflist == 0.1.3
+
+# XXX mdformat_deflist is not compatible with mdformat 1.0.0. See:
+# https://github.com/executablebooks/mdformat-deflist/issues/7
+# mdformat_deflist == 0.1.3
+
 # XXX mdformat-footnote is stripping trailing comments in footnotes. See:
 # https://github.com/executablebooks/mdformat-footnote/issues/11
-mdformat_footnote == 0.1.1
-mdformat_frontmatter == 2.0.8
+# XXX mdformat_footnote is not compatible with mdformat 1.0.0. See:
+# https://github.com/executablebooks/mdformat-footnote/issues/12
+# mdformat_footnote == 0.1.1
+
+# XXX mdformat_frontmatter is not compatible with mdformat 1.0.0. See:
+# https://github.com/butler54/mdformat-frontmatter/issues/37
+# mdformat_frontmatter == 2.0.8
+
 mdformat-gfm == 1.0.0
+
 mdformat_gfm_alerts == 2.0.0
+
 # XXX Annoying issue with mdformat-myst: it forces colon-delimited parameters in code blocks
 # to be normalized as YAML frontmatter. See:
 # https://github.com/executablebooks/mdformat-myst/issues/21#issuecomment-3247818021
-mdformat_myst == 0.2.2
-# mdformat-pelican == 0.2.1
+
+# XXX mdformat_myst is not compatible with mdformat 1.0.0. See:
+# https://github.com/executablebooks/mdformat-myst/issues/43
+# mdformat_myst == 0.2.2
+
 # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading.
 # mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
-mdformat_pyproject == 0.0.2
+# mdformat-pelican == 0.2.1
+
+# XXX mdformat_pyproject is not compatible with mdformat 1.0.0. See:
+# https://github.com/csala/mdformat-pyproject/issues/18
+# mdformat_pyproject == 0.0.2
+
 # Fix URL encoding: https://github.com/hukkin/mdformat/issues/312#issuecomment-3227866895
 mdformat-recover-urls == 0.0.2
+
 mdformat-ruff == 0.1.3
+
 mdformat-shfmt == 0.2.0
-mdformat_simple_breaks == 0.0.1
+
+# XXX mdformat_simple_breaks is not compatible with mdformat 1.0.0. See:
+# https://github.com/csala/mdformat-simple-breaks/issues/3
+# mdformat_simple_breaks == 0.0.1
+
 mdformat-toc == 0.5.0
+
 mdformat-web == 0.2.0
+
 ruff == 0.14.0
