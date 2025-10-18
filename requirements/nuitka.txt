@@ -1,1 +1,1 @@
-nuitka [onefile] == 2.8.1
+nuitka [onefile] == 2.8.2
