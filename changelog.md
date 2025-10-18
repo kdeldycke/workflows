@@ -9,7 +9,6 @@
 - Allow `gha-utils test-plan` to accept a full command line with parameters as input for `--command`/`--binary` option.
 - Self-check of `gha-utils test-plan` command in its own test plan.
 - Only runs `optimize-images` job if there are image files in the repository.
-- Fix builds on `macos-26`.
 - Move runner architecture validation to `gha-utils`-only job.
 - Remove dependency on `mdformat_tables` plugin which has been merged into `mdformat-gfm`.
 - Deactivate plugins until their compatibility with latest `mdformat` is restored:
@@ -21,6 +20,8 @@
   - `mdformat_pyproject`
   - `mdformat_simple_breaks`
 - Move all typing-related imports behind a hard-coded `TYPE_CHECKING` guard to avoid runtime imports.
+- Fix builds on `macos-26`.
+- Skip tests on intermediate Python versions (`3.12` and `3.13`) to reduce CI load.
 
 ## [4.22.0 (2025-10-12)](https://github.com/kdeldycke/workflows/compare/v4.21.0...v4.22.0)
 
