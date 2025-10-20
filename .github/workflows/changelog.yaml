@@ -34,7 +34,7 @@ jobs:
           - major
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.0
+      - uses: astral-sh/setup-uv@v7.1.1
       - name: Install bump-my-version
         run: >
           uv tool install --with-requirements
@@ -98,7 +98,7 @@ jobs:
     # start to discuss this upstream.
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.0
+      - uses: astral-sh/setup-uv@v7.1.1
       - name: Install bump-my-version
         run: >
           uv tool install --with-requirements
