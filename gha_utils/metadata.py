@@ -291,6 +291,7 @@ from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
+from gitdb.exc import BadName
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from py_walk import get_parser_from_file
@@ -823,11 +824,12 @@ class Metadata:
                 continue
             try:
                 _ = self.git.get_commit(commit_id)
-            except ValueError:
+            except (ValueError, BadName) as ex:
+                logging.error(ex)
                 logging.error(
                     f"Cannot find commit {commit_id} in repository. "
                     "Repository was probably not checked out with enough depth. "
-                    f"Current depth is {self.git.total_commits()}. "
+                    f"Current depth is {self.git.total_commits()}."
                 )
                 logging.warning(
                     "Skipping metadata extraction of the range of new commits."
