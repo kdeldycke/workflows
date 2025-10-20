@@ -16,7 +16,7 @@ jobs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.0
+      - uses: astral-sh/setup-uv@v7.1.1
       - name: Run gha-utils metadata
         id: project-metadata
         env:
