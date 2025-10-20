@@ -6,9 +6,7 @@ mdformat_admon == 2.1.1
 
 mdformat-config == 0.2.1
 
-# XXX mdformat_deflist is not compatible with mdformat 1.0.0. See:
-# https://github.com/executablebooks/mdformat-deflist/issues/7
-# mdformat_deflist == 0.1.3
+mdformat_deflist == 0.1.4
 
 # XXX mdformat-footnote is stripping trailing comments in footnotes. See:
 # https://github.com/executablebooks/mdformat-footnote/issues/11
