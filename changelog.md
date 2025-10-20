@@ -14,7 +14,6 @@
 - Deactivate plugins until their compatibility with latest `mdformat` is restored:
   - `mdformat_frontmatter`
   - `mdformat_myst`
-  - `mdformat-pelican`
   - `mdformat_pyproject`
   - `mdformat_simple_breaks`
 - Move all typing-related imports behind a hard-coded `TYPE_CHECKING` guard to avoid runtime imports.
