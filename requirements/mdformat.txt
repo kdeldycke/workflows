@@ -14,6 +14,7 @@ mdformat_footnote == 0.1.2
 
 # XXX mdformat_frontmatter is not compatible with mdformat 1.0.0. See:
 # https://github.com/butler54/mdformat-frontmatter/issues/37
+# https://github.com/executablebooks/mdformat-myst/issues/45
 # mdformat_frontmatter == 2.0.8
 
 mdformat-gfm == 1.0.0
@@ -24,9 +25,10 @@ mdformat_gfm_alerts == 2.0.0
 # to be normalized as YAML frontmatter. See:
 # https://github.com/executablebooks/mdformat-myst/issues/21#issuecomment-3247818021
 
-# XXX mdformat_myst is not compatible with mdformat 1.0.0. See:
+# XXX mdformat_myst upcoming release (> 0.2.2) fix incompatibility with mdformat 1.0.0. See:
+# https://github.com/executablebooks/mdformat-myst/issues/45
 # https://github.com/executablebooks/mdformat-myst/issues/43
-# mdformat_myst == 0.2.2
+# mdformat_myst @ git+https://github.com/executablebooks/mdformat-myst@master#1bfcdf6497cc0af7456cb1a69cd13e0f41636808
 
 # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading.
 # mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-import
