@@ -10,9 +10,7 @@ mdformat_deflist == 0.1.4
 
 # XXX mdformat-footnote is stripping trailing comments in footnotes. See:
 # https://github.com/executablebooks/mdformat-footnote/issues/11
-# XXX mdformat_footnote is not compatible with mdformat 1.0.0. See:
-# https://github.com/executablebooks/mdformat-footnote/issues/12
-# mdformat_footnote == 0.1.1
+mdformat_footnote == 0.1.2
 
 # XXX mdformat_frontmatter is not compatible with mdformat 1.0.0. See:
 # https://github.com/butler54/mdformat-frontmatter/issues/37

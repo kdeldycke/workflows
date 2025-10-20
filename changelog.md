@@ -12,7 +12,6 @@
 - Move runner architecture validation to `gha-utils`-only job.
 - Remove dependency on `mdformat_tables` plugin which has been merged into `mdformat-gfm`.
 - Deactivate plugins until their compatibility with latest `mdformat` is restored:
-  - `mdformat_footnote`
   - `mdformat_frontmatter`
   - `mdformat_myst`
   - `mdformat-pelican`
