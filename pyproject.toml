@@ -80,7 +80,7 @@ dependencies = [
     "bump-my-version >= 0.32.2, < 1.1.1",
     # Click Extra 6.0.3 fix the regex_fullmatch_line_by_line() function we rely on.
     "click-extra ~= 6.0.3",
-    "extra-platforms ~= 3.2.0",
+    "extra-platforms ~= 4.0.0",
     "packaging ~= 25.0",
     # In the future, replace py-walk with wcmatch once the latter supports gitignore files:
     # https://github.com/facelessuser/wcmatch/issues/226
