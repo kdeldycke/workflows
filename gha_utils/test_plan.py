@@ -41,7 +41,7 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from extra_platforms import _TNestedReferences
+    from extra_platforms._types import _TNestedReferences
 
 
 class SkippedTest(Exception):

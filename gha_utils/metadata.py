@@ -291,7 +291,7 @@ from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
-from gitdb.exc import BadName
+from gitdb.exc import BadName  # type: ignore[import-untyped]
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from py_walk import get_parser_from_file
