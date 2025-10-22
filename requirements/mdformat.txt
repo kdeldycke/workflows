@@ -36,6 +36,7 @@ mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-mdforma
 
 # XXX mdformat_pyproject is not compatible with mdformat 1.0.0. See:
 # https://github.com/csala/mdformat-pyproject/issues/18
+# https://github.com/csala/mdformat-pyproject/pull/19
 mdformat_pyproject @ git+https://github.com/kdeldycke/mdformat-pyproject@fix-mdformat-1.0.0
 
 # Fix URL encoding: https://github.com/hukkin/mdformat/issues/312#issuecomment-3227866895
@@ -47,7 +48,8 @@ mdformat-shfmt == 0.2.0
 
 # XXX mdformat_simple_breaks is not compatible with mdformat 1.0.0. See:
 # https://github.com/csala/mdformat-simple-breaks/issues/3
-# mdformat_simple_breaks == 0.0.1
+# https://github.com/csala/mdformat-simple-breaks/pull/4
+mdformat_simple_breaks @ git+https://github.com/kdeldycke/mdformat-simple-breaks@fix-mdformat-1.0.0
 
 mdformat-toc == 0.5.0
 
