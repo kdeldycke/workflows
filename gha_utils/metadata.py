@@ -1153,6 +1153,7 @@ class Metadata:
         - ``--target-version py311``
         - ``--target-version py312``
         - ``--target-version py313``
+        - ``--target-version py314``
 
         As mentioned in Black usage, you should `include all Python versions that you
         want your code to run under
