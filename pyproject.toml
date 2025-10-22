@@ -70,26 +70,40 @@ classifiers = [
     'Topic :: Utilities',
     'Typing :: Typed',
 ]
+# Semantic versioning works in theory. In practice, it is hard to guarantee.
+# That's why we rely on >= specifier instead of ~= to relax constraints. This gives more freedom to packagers to
+# release hotfixes for security vulnerabilities in the future.
+# See also discussion about upper limits at: https://iscinumpy.dev/post/bound-version-constraints/#tldr
+# All minimal version choice are documented. Reasons to bump a minimal version are:
+# - bug fixes,
+# - security fixes,
+# - new code path we depends on,
+# - aligns minimal Python requirements to ours,
+# - adds new explicit support Python version.
 dependencies = [
-    # Loose version to let click-extra set its own stricter dependency.
-    "boltons >= 24.0.0",
-    # Dependency version is more relaxed on bump-my-version to prevent chicken and egg
-    # while releasing gha-utils itself.
+    # boltons 25.0.0 is the first version to support Python 3.13.
+    "boltons >= 25.0.0",
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     # v1.1.1 and later have some regressions: see https://github.com/callowayproject/bump-my-version/issues/331
     "bump-my-version >= 0.32.2, < 1.1.1",
     # Click Extra 6.0.3 fix the regex_fullmatch_line_by_line() function we rely on.
-    "click-extra ~= 6.0.3",
-    "extra-platforms ~= 3.2.0",
-    "packaging ~= 25.0",
-    # In the future, replace py-walk with wcmatch once the latter supports gitignore files:
+    "click-extra >= 6.0.3",
+    # Extra Platforms 4.0.0 is the first one to support Python 3.14.
+    "extra-platforms >= 4.0.0",
+    # v25.0 is the first version we used when we last changed the requirement.
+    "packaging >= 25.0",
+    # v0.3.3 is the first version we used.
+    # XXX In the future, replace py-walk with wcmatch once the latter supports gitignore files:
     # https://github.com/facelessuser/wcmatch/issues/226
-    "py-walk ~= 0.3.3",
-    "PyDriller ~= 2.6",
-    "pyproject-metadata ~= 0.9.0",
-    "pyyaml ~= 6.0.0",
-    # Loose version to let click-extra set its own stricter dependency.
-    "wcmatch >= 8.5",
+    "py-walk >= 0.3.3",
+    # PyDriller 2.6.0 is the first version we used when we last changed the requirement.
+    "PyDriller >= 2.6",
+    # v0.9.0 supports the latest metadata specifications.
+    "pyproject-metadata >= 0.9.0",
+    # PyYAML 6.0.3 is the first version to support Python 3.14.
+    "pyyaml >= 6.0.3",
+    # wcmatch 10.0 fix some inconsistencies in globbing and symlinks.
+    "wcmatch >= 10.0",
 ]
 
 [project.optional-dependencies]

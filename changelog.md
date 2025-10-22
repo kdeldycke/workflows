@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Remove maximum capped version of all dependencies (relax all `~=` specifiers to `>=`). This gives more freedom to downstream and upstream packagers. Document each minimal version choice.
 - Add new `--command` parameter to `gha-utils test-plan` command as an alias to `--binary`.
 - Allow `gha-utils test-plan` to accept a full command line with parameters as input for `--command`/`--binary` option.
 - Self-check of `gha-utils test-plan` command in its own test plan.
