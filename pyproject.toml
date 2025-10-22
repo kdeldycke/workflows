@@ -85,7 +85,7 @@ dependencies = [
     "boltons >= 25.0.0",
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     # v1.1.1 and later have some regressions: see https://github.com/callowayproject/bump-my-version/issues/331
-    "bump-my-version >= 0.32.2, < 1.1.1",
+    "bump-my-version >= 0.32.2, < 1.2.5",
     # Click Extra 6.0.3 fix the regex_fullmatch_line_by_line() function we rely on.
     "click-extra >= 6.0.3",
     # Extra Platforms 4.0.0 is the first one to support Python 3.14.
