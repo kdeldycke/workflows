@@ -6,20 +6,20 @@ flowchart TD
     bracex["bracex\n2.6"]
     bump-my-version["bump-my-version\n1.1.0"]
     certifi["certifi\n2025.10.5"]
-    charset-normalizer["charset-normalizer\n3.4.3"]
-    click-extra["click-extra\n6.0.2"]
+    charset-normalizer["charset-normalizer\n3.4.4"]
+    click-extra["click-extra\n6.0.3"]
     click_0["click\n8.3.0"]
     cloup["cloup\n3.0.8"]
     deepmerge["deepmerge\n2.0"]
     distro["distro\n1.9.0"]
-    extra-platforms["extra-platforms\n3.2.3"]
-    gha-utils["gha-utils\n4.21.1"]
+    extra-platforms["extra-platforms\n4.1.0"]
+    gha-utils["gha-utils\n4.23.0"]
     gitdb["gitdb\n4.0.12"]
     gitpython["GitPython\n3.1.45"]
     h11["h11\n0.16.0"]
     httpcore["httpcore\n1.0.9"]
     httpx["httpx\n0.28.1"]
-    idna["idna\n3.10"]
+    idna["idna\n3.11"]
     lizard["lizard\n1.18.0"]
     markdown-it-py["markdown-it-py\n4.0.0"]
     mdurl["mdurl\n0.1.2"]
@@ -27,9 +27,9 @@ flowchart TD
     pathspec["pathspec\n0.12.1"]
     prompt-toolkit["prompt_toolkit\n3.0.52"]
     py-walk["py-walk\n0.3.3"]
-    pydantic-core["pydantic_core\n2.41.1"]
+    pydantic-core["pydantic_core\n2.41.4"]
     pydantic-settings["pydantic-settings\n2.11.0"]
-    pydantic["pydantic\n2.12.0"]
+    pydantic["pydantic\n2.12.3"]
     pydriller["PyDriller\n2.9"]
     pygments["Pygments\n2.19.2"]
     pyproject-metadata["pyproject-metadata\n0.9.1"]
@@ -75,18 +75,17 @@ flowchart TD
     click-extra -- ">=6.0.3" --> pyyaml
     click-extra -- ">=8.3.0" --> click_0
     cloup -- ">=8.0,<9.0" --> click_0
-    extra-platforms -- "~=1.9.0" --> distro
-    extra-platforms -- "~=25.0.0" --> boltons
+    extra-platforms -- ">=1.9.0" --> distro
+    gha-utils -- ">=0.3.3" --> py-walk
     gha-utils -- ">=0.32.2,<1.1.1" --> bump-my-version
-    gha-utils -- ">=24.0.0" --> boltons
-    gha-utils -- ">=8.5" --> wcmatch
-    gha-utils -- "~=0.3.3" --> py-walk
-    gha-utils -- "~=0.9.0" --> pyproject-metadata
-    gha-utils -- "~=2.6" --> pydriller
-    gha-utils -- "~=25.0" --> packaging
-    gha-utils -- "~=3.2.0" --> extra-platforms
-    gha-utils -- "~=6.0.0" --> pyyaml
-    gha-utils -- "~=6.0.2" --> click-extra
+    gha-utils -- ">=0.9.0" --> pyproject-metadata
+    gha-utils -- ">=10.0" --> wcmatch
+    gha-utils -- ">=2.6" --> pydriller
+    gha-utils -- ">=25.0" --> packaging
+    gha-utils -- ">=25.0.0" --> boltons
+    gha-utils -- ">=4.0.0" --> extra-platforms
+    gha-utils -- ">=6.0.3" --> click-extra
+    gha-utils -- ">=6.0.3" --> pyyaml
     gitdb -- ">=3.0.1,<6" --> smmap
     gitpython -- ">=4.0.1,<5" --> gitdb
     httpcore -- ">=0.16" --> h11
@@ -100,7 +99,7 @@ flowchart TD
     markdown-it-py -- "~=0.1" --> mdurl
     prompt-toolkit -- "any" --> wcwidth
     py-walk -- "any" --> sly
-    pydantic -- "==2.41.1" --> pydantic-core
+    pydantic -- "==2.41.4" --> pydantic-core
     pydantic -- ">=0.4.2" --> typing-inspection
     pydantic -- ">=0.6.0" --> annotated-types
     pydantic -- ">=4.14.1" --> typing-extensions
