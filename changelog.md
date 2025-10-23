@@ -9,6 +9,7 @@
 - Add new `--command` parameter to `gha-utils test-plan` command as an alias to `--binary`.
 - Allow `gha-utils test-plan` to accept a full command line with parameters as input for `--command`/`--binary` option.
 - Self-check of `gha-utils test-plan` command in its own test plan.
+- Dynamiccaly deepen shallow clones of Git repositories when fetching new commit ranges.
 - Only runs `optimize-images` job if there are image files in the repository.
 - Move runner architecture validation to `gha-utils`-only job.
 - Remove dependency on `mdformat_tables` plugin which has been merged into `mdformat-gfm`.

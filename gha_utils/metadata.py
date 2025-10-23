@@ -565,6 +565,59 @@ class Metadata:
         logging.debug(f"Number of stashes in repository: {count}")
         return count
 
+    def git_deepen(
+        self, commit_hash: str, max_attempts: int = 10, deepen_increment: int = 50
+    ) -> bool:
+        """Deepen a shallow clone until the provided ``commit_hash`` is found.
+
+        Progressively fetches more commits from the current repository until the
+        specified commit is found or max attempts is reached.
+
+        Returns ``True`` if the commit was found, ``False`` otherwise.
+        """
+        for attempt in range(max_attempts):
+            try:
+                _ = self.git.get_commit(commit_hash)
+                if attempt > 0:
+                    logging.info(
+                        f"Found commit {commit_hash} after {attempt} deepen "
+                        "operation(s)."
+                    )
+                return True
+            except (ValueError, BadName) as ex:
+                logging.debug(f"Commit {commit_hash} not found: {ex}")
+
+                current_depth = self.git.total_commits()
+
+                if attempt == max_attempts - 1:
+                    # We've exhausted all attempts
+                    logging.error(
+                        f"Cannot find commit {commit_hash} in repository after "
+                        f"{max_attempts} deepen attempts. "
+                        f"Final depth is {current_depth} commits."
+                    )
+                    return False
+
+                logging.info(
+                    f"Commit {commit_hash} not found at depth {current_depth}."
+                )
+                logging.info(
+                    f"Deepening by {deepen_increment} commits (attempt "
+                    f"{attempt + 1}/{max_attempts})..."
+                )
+
+                try:
+                    self.git.repo.git.fetch(f"--deepen={deepen_increment}")
+                    new_depth = self.git.total_commits()
+                    logging.debug(
+                        f"Repository deepened successfully. New depth: {new_depth}"
+                    )
+                except Exception as ex:
+                    logging.error(f"Failed to deepen repository: {ex}")
+                    return False
+
+        return False
+
     def commit_matrix(self, commits: Iterable[Commit] | None) -> Matrix | None:
         """Pre-compute a matrix of commits.
 
@@ -827,15 +880,8 @@ class Metadata:
         for commit_id in (start, end):
             if not commit_id:
                 continue
-            try:
-                _ = self.git.get_commit(commit_id)
-            except (ValueError, BadName) as ex:
-                logging.error(ex)
-                logging.error(
-                    f"Cannot find commit {commit_id} in repository. "
-                    "Repository was probably not checked out with enough depth. "
-                    f"Current depth is {self.git.total_commits()}."
-                )
+
+            if not self.git_deepen(commit_id):
                 logging.warning(
                     "Skipping metadata extraction of the range of new commits."
                 )
