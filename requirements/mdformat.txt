@@ -55,4 +55,4 @@ mdformat-toc == 0.5.0
 
 mdformat-web == 0.2.0
 
-ruff == 0.14.1
+ruff == 0.14.2
