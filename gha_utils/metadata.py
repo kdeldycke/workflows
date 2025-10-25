@@ -842,7 +842,6 @@ class Metadata:
             assert (
                 self.github_context["event"]["pull_request"]["base"]["ref"] == base_ref
             )
-            full_base_ref = f"origin/{base_ref}"
             base_ref_sha = self.github_context["event"]["pull_request"]["base"]["sha"]
             start = base_ref_sha
             # We need to checkout the HEAD commit instead of the artificial merge
