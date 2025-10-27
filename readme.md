@@ -2,7 +2,7 @@
 
 [![Last release](https://img.shields.io/pypi/v/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
 [![Python versions](https://img.shields.io/pypi/pyversions/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
-[![Type checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+[![Downloads](https://static.pepy.tech/badge/gha_utils/month)](https://pepy.tech/projects/gha_utils)
 [![Unittests status](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml?query=branch%3Amain)
 [![Coverage status](https://codecov.io/gh/kdeldycke/workflows/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/workflows)
 
