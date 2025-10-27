@@ -115,7 +115,7 @@ jobs:
         run: |
           uv --no-progress build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
           path: ./dist/*
@@ -154,7 +154,7 @@ jobs:
           uv --no-progress run --frozen -- nuitka
           --onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
       - name: Upload Nuitka crash report
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: nuitka-crash-report-${{ matrix.os }}-${{ matrix.short_sha }}.xml
           if-no-files-found: ignore
@@ -244,7 +244,7 @@ jobs:
               f"for {target} target."
           )
       - name: Upload binaries
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: ${{ matrix.bin_name }}
           if-no-files-found: warn
