@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix some incompatibilities between `mdformat` plugins.
+
 ## [4.23.0 (2025-10-25)](https://github.com/kdeldycke/workflows/compare/v4.22.0...v4.23.0)
 
 - Remove maximum capped version of all dependencies (relax all `~=` specifiers to `>=`). This gives more freedom to downstream and upstream packagers. Document each minimal version choice.
