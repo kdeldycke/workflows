@@ -34,9 +34,8 @@ mdformat_myst @ git+https://github.com/executablebooks/mdformat-myst@master#1bfc
 # https://github.com/gaige/mdformat-pelican/pull/8
 mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-mdformat-1.0.0
 
-# XXX Waiting for a new mdformat_simple_breaks release compatible with mdformat 1.0.0:
-# https://github.com/csala/mdformat-pyproject/pull/20
-mdformat_pyproject @ git+https://github.com/kdeldycke/mdformat-pyproject@mdformat.toml-precedence
+# XXX Waiting for a new mdformat_pyproject release compatible with mdformat 1.0.0:
+mdformat_pyproject @ git+https://github.com/csala/mdformat-pyproject@master
 
 # Fix URL encoding: https://github.com/hukkin/mdformat/issues/312#issuecomment-3227866895
 mdformat-recover-urls == 0.0.2
