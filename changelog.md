@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.23.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.23.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.23.1 (2025-11-01)](https://github.com/kdeldycke/workflows/compare/v4.23.0...v4.23.1)
 
 - Fix some incompatibilities between `mdformat` plugins.
