@@ -32,7 +32,7 @@ jobs:
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.2
+      - uses: astral-sh/setup-uv@v7.1.3
       - name: Run gha-utils metadata
         id: project-metadata
         env:
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.2
+      - uses: astral-sh/setup-uv@v7.1.3
       - name: Install all package dependencies
         run: |
           uv --no-progress sync --frozen --all-extras
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.2
+      - uses: astral-sh/setup-uv@v7.1.3
       - name: Run yamllint
         run: >
           uvx
