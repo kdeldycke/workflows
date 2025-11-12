@@ -184,7 +184,7 @@ jobs:
         run: >
           uv --no-progress run --frozen -- pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
-          --mermaid > "${{ env.dependency-graph-output }}"
+          --output mermaid > "${{ env.dependency-graph-output }}"
       - uses: peter-evans/create-pull-request@v7.0.8
         with:
           assignees: ${{ github.actor }}
