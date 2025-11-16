@@ -153,33 +153,41 @@ So my policy is: move every repository-specific config in a `pyproject.toml` fil
 
 ### Why all these `requirements/*.txt` files?
 
-Let's look for example at the `lint-yaml` job from [`.github/workflows/lint.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml#L126). Here we only need the `yamllint` CLI. This CLI is [distributed on PyPi](https://pypi.org/project/yamllint/). So before executing it, we could have simply run the following step:
+Let's look for example at the `lint-yaml` job from [`.github/workflows/lint.yaml`](https://github.com/kdeldycke/workflows/blob/72a2e5d5cd6cf4d4c8369a17cee922a43acaa57f/.github/workflows/lint.yaml#L67-L85). Here [we only need to run `yamllint`](https://github.com/kdeldycke/workflows/blob/72a2e5d5cd6cf4d4c8369a17cee922a43acaa57f/.github/workflows/lint.yaml#L85). This CLI is [distributed on PyPi](https://pypi.org/project/yamllint/).
+
+So we could have simply run it with this step:
 
 ```yaml
-  - name: Install yamllint
-    run: |
-      pip install yamllint
+  - run: |
+      uvx -- yamllint
 ```
 
-Instead, we install it via the [`requirements/yamllint.txt` file](https://github.com/kdeldycke/workflows/blob/main/requirements/yamllint.txt).
+Instead, we install it by pointing to the [`requirements/yamllint.txt` file](https://github.com/kdeldycke/workflows/blob/main/requirements/yamllint.txt):
+
+```yaml
+  - run: |
+      uvx --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt -- yamllint
+```
 
 Why? Because I want the version of `yamllint` to be pinned. By pinning it, I make the workflow stable, predictable and reproducible.
 
 So why use a dedicated requirements file? Why don't we simply add the version? Like this:
 
 ```yaml
-  - name: Install yamllint
-    run: |
-      pip install yamllint==1.35.1
+  - run: |
+      uvx -- yamllint==1.37.1
 ```
 
 That would indeed pin the version. But it requires the maintainer (me) to keep track of new release and update manually the version string. That's a lot of work. And I'm lazy. So this should be automated.
 
-To automate that, the only practical way I found was to rely on dependabot. But dependabot cannot update arbitrary versions in `run:` YAML blocks. It [only supports `requirements.txt` and `pyproject.toml`](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file#pip-and-pip-compile) files for Python projects.
+To automate that, the only practical way I found was to rely on dependabot. But dependabot cannot update arbitrary versions in `run:` YAML blocks. It [only supports `requirements.txt` and `pyproject.toml`](https://github.com/dependabot/dependabot-core/blob/c938bbf7cb4da88053d4379dcab297a3eaa8c0a7/python/lib/dependabot/python/file_fetcher.rb#L24-L44) files for Python projects.
 
 So to keep track of new versions of dependencies while keeping them stable, we've hard-coded all Python libraries and CLIs in the `requirements/*.txt` files. All with pinned versions.
 
 And for the case we need to install all dependencies in one go, we have a [`requirements.txt` file at the root](https://github.com/kdeldycke/workflows/blob/main/requirements.txt) that is referencing all files from the `requirements/` subfolder.
+
+> [!NOTE]
+> In the future, we might be able to get rid of this workaround by [relying on Renovate](https://github.com/kdeldycke/workflows/issues/1728).
 
 ### Permissions and token
 
