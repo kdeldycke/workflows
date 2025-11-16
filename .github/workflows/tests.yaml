@@ -106,7 +106,7 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils -vvvvvvvvvv metadata --overwrite "$GITHUB_OUTPUT"
+          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
   validate-arch:
     # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on
