@@ -169,7 +169,6 @@ jobs:
             --hidden
             --suggest
             --insecure
-            --base-url .
             --no-progress
             --include-fragments
             --exclude-all-private

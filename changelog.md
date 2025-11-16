@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix lychee runs in `lint` workflow.
+
 ## [4.23.1 (2025-11-01)](https://github.com/kdeldycke/workflows/compare/v4.23.0...v4.23.1)
 
 - Fix some incompatibilities between `mdformat` plugins.
