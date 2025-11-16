@@ -1,7 +1,7 @@
 # `gha-utils` CLI + reusable workflows
 
-[![Last release](https://img.shields.io/pypi/v/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
-[![Python versions](https://img.shields.io/pypi/pyversions/gha-utils.svg)](https://pypi.python.org/pypi/gha-utils)
+[![Last release](https://img.shields.io/pypi/v/gha-utils.svg)](https://pypi.org/project/gha-utils/)
+[![Python versions](https://img.shields.io/pypi/pyversions/gha-utils.svg)](https://pypi.org/project/gha-utils/)
 [![Downloads](https://static.pepy.tech/badge/gha_utils/month)](https://pepy.tech/projects/gha_utils)
 [![Unittests status](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml?query=branch%3Amain)
 [![Coverage status](https://codecov.io/gh/kdeldycke/workflows/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/workflows)
@@ -107,7 +107,7 @@ gha-utils, version 4.18.2
 
 This repository contains workflows to automate most of the boring tasks.
 
-These workflows are mostly used for Python projects and their documentation, but not only. They're all [reusable GitHub actions workflows](https://docs.github.com/en/actions/learn-github-actions/reusing-workflows).
+These workflows are mostly used for Python projects and their documentation, but not only. They're all [reusable GitHub actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
 
 Reasons for a centralized workflow repository:
 
