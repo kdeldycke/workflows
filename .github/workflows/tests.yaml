@@ -20,6 +20,7 @@ jobs:
 
   tests:
     strategy:
+      # We delegate the failure decision to each job, by the way of the "continue-on-error" flag.
       fail-fast: false
       matrix:
         # Available OS: https://github.com/actions/runner-images#available-images
