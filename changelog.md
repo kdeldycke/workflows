@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Run tests on Python `3.14t` and `3.15t` free-threaded variants.
+
 ## [4.23.2 (2025-11-16)](https://github.com/kdeldycke/workflows/compare/v4.23.1...v4.23.2)
 
 - Fix lychee runs in `lint` workflow.

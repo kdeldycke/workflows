@@ -37,13 +37,17 @@ jobs:
           # - "3.12"
           # - "3.13"
           - "3.14"
+          - "3.14t"
           - "3.15"
+          - "3.15t"
         include:
           # Default all jobs as stable, unless marked otherwise below.
           - state: stable
           # XXX Python 3.15 is still in development.
           - state: unstable
             python-version: "3.15"
+          - state: unstable
+            python-version: "3.15t"
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }} / py${{ matrix.python-version }}"
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
