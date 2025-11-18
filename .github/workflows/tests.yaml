@@ -69,12 +69,16 @@ jobs:
 
       - name: Check launchable modules
         run: |
-          uv run -m gha_utils --version
+          uv run        -m gha_utils --version
           uv run python -m gha_utils --version
-      - name: Check launchable CLI
+      - name: Check launchable stable CLI
         run: |
-          uvx -- gha-utils --version
+          uvx    -- gha-utils --version
           uv run -- gha-utils --version
+      - name: Check launchable dev CLI
+        run: |
+          uvx    --from git+https://github.com/kdeldycke/workflows -- gha-utils --version
+          uv run --with git+https://github.com/kdeldycke/workflows -- gha-utils --version
 
       - name: Unittests
         run: |
