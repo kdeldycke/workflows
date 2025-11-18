@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.23.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.23.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.23.3 (2025-11-18)](https://github.com/kdeldycke/workflows/compare/v4.23.2...v4.23.3)
 
 - Fix usage against last Click Extra release.
 - Run tests on Python `3.14t` and `3.15t` free-threaded variants.
