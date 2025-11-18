@@ -1,1 +1,2 @@
+click-extra < 7.0.0
 gha-utils == 4.23.2
