@@ -24,7 +24,7 @@ from typing import Any
 import pytest
 from extra_platforms import ALL_IDS, is_windows
 
-from gha_utils.metadata import NUITKA_BUILD_TARGETS, Dialects, Metadata
+from gha_utils.metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata
 
 
 @pytest.mark.parametrize("target_id, target_data", NUITKA_BUILD_TARGETS.items())
@@ -341,7 +341,7 @@ expected = {
 
 
 def test_metadata_json_format():
-    metadata = Metadata().dump(Dialects.json)
+    metadata = Metadata().dump(Dialect.json)
     assert isinstance(metadata, str)
 
     iter_checks(json.loads(metadata), expected, metadata)

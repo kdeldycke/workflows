@@ -28,6 +28,7 @@ from boltons.iterutils import unique
 from click_extra import (
     Choice,
     Context,
+    EnumChoice,
     FloatRange,
     IntRange,
     argument,
@@ -43,7 +44,7 @@ from extra_platforms import ALL_IDS, is_github_ci
 from . import __version__
 from .changelog import Changelog
 from .mailmap import Mailmap
-from .metadata import NUITKA_BUILD_TARGETS, Dialects, Metadata
+from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 
 TYPE_CHECKING = False
@@ -119,8 +120,8 @@ def gha_utils():
 )
 @option(
     "--format",
-    type=Choice(Dialects, case_sensitive=False),
-    default=Dialects.github,
+    type=EnumChoice(Dialect),
+    default=Dialect.github,
     help="Rendering format of the metadata.",
 )
 @option(
@@ -193,7 +194,7 @@ def metadata(ctx, unstable_targets, format, overwrite, output_path):
                 " other jobs to consume the produced metadata."
             )
 
-    dialect = Dialects(format)
+    dialect = Dialect(format)
     content = metadata.dump(dialect=dialect)
     echo(content, file=prep_path(output_path))
 

@@ -454,8 +454,8 @@ WorkflowEvent = StrEnum(
 """
 
 
-Dialects = StrEnum("Dialects", ("github", "json"))
-"""Dialects in which metadata can be formatted to."""
+Dialect = StrEnum("Dialect", ("github", "json"))
+"""Dialect in which metadata can be formatted to."""
 
 
 class TargetVersion(StrEnum):
@@ -1635,7 +1635,7 @@ class Metadata:
 
         return str(value)
 
-    def dump(self, dialect: Dialects = Dialects.github) -> str:
+    def dump(self, dialect: Dialect = Dialect.github) -> str:
         """Returns all metadata in the specified format.
 
         Defaults to GitHub dialect.
@@ -1673,7 +1673,7 @@ class Metadata:
         logging.debug(f"Format metadata into {dialect} format.")
 
         content = ""
-        if dialect == Dialects.github:
+        if dialect == Dialect.github:
             for env_name, value in metadata.items():
                 env_value = self.format_github_value(value)
 
@@ -1685,7 +1685,7 @@ class Metadata:
                     delimiter = f"GHA_DELIMITER_{randint(10**8, (10**9) - 1)}"
                     content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
         else:
-            assert dialect == Dialects.json
+            assert dialect == Dialect.json
             content = json.dumps(metadata, cls=JSONMetadata, indent=2)
 
         logging.debug(f"Formatted metadata:\n{content}")
