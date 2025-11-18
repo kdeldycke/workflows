@@ -159,7 +159,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "6.2.0"
+version = "7.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -171,9 +171,9 @@ dependencies = [
     { name = "tabulate", extra = ["widechars"] },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cf/80/64f201612d295e58a0885e5ab8b7c37c7cc307a3cf44714810615e0ae661/click_extra-6.2.0.tar.gz", hash = "sha256:6d2855b02a733b78a94516a2a63f12717302dd1aa9733ac858e2d45335a3d3b9", size = 126643, upload-time = "2025-11-04T06:30:04.023Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f0/52/4bc78706bdede4b0653030b146c78d87a789a7bc19184c63091465cbfe3a/click_extra-7.0.0.tar.gz", hash = "sha256:46ad085ef38c4eae8a973496692793c745877a39c5f2e61f182326aeefa2c001", size = 131881, upload-time = "2025-11-18T10:36:25.484Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f0/b4/5393154b09e2c1e469bbce118c88b44cb20e9ce2412c90bc2d617014ee27/click_extra-6.2.0-py3-none-any.whl", hash = "sha256:63286da615d7a59b6d4acdb67058f1f377177d953a960aadf26b55427c3d422a", size = 91074, upload-time = "2025-11-04T06:30:02.735Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/d7/a52ead7dbe95f76d7cd158988041d91c7c439f3f4ca2adfe2155f129c20e/click_extra-7.0.0-py3-none-any.whl", hash = "sha256:a31427f9dcdb2fcb27920d435ff2c276855f00c881d22375073fd5f323a60bee", size = 96086, upload-time = "2025-11-18T10:36:24.113Z" },
 ]
 
 [[package]]
@@ -333,7 +333,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.23.2"
+version = "4.23.3"
 source = { editable = "." }
 dependencies = [
     { name = "boltons" },
@@ -366,7 +366,7 @@ typing = [
 requires-dist = [
     { name = "boltons", specifier = ">=25.0.0" },
     { name = "bump-my-version", specifier = ">=0.32.2,<1.1.1" },
-    { name = "click-extra", specifier = ">=6.0.3" },
+    { name = "click-extra", specifier = ">=7.0.0" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "~=7.11.0" },
     { name = "extra-platforms", specifier = ">=4.0.0" },
     { name = "packaging", specifier = ">=25.0" },

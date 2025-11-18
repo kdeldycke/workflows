@@ -32,8 +32,8 @@ from click_extra import (
     IntRange,
     argument,
     echo,
-    extra_group,
     file_path,
+    group,
     option,
     pass_context,
 )
@@ -103,7 +103,7 @@ def remove_header(content: str) -> str:
     return headerless_content
 
 
-@extra_group
+@group
 def gha_utils():
     pass
 
