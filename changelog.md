@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Force use of latest Python 3.14 for docs generation.
+
 ## [4.23.3 (2025-11-18)](https://github.com/kdeldycke/workflows/compare/v4.23.2...v4.23.3)
 
 - Fix usage against last Click Extra release.
