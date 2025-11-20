@@ -31,7 +31,7 @@ jobs:
     name: Fix typos
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: crate-ci/typos@v1.39.2
         with:
           write_changes: true
@@ -68,7 +68,7 @@ jobs:
       is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.3
       - name: Run gha-utils metadata
         id: project-metadata
@@ -87,7 +87,7 @@ jobs:
     if: needs.project-metadata.outputs.image_files
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: calibreapp/image-actions@1.4.1
         id: image_actions
         with:
@@ -120,7 +120,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.mailmap_exists)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
@@ -156,7 +156,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.3
       - name: Install pipdeptree
         run: |
@@ -212,7 +212,7 @@ jobs:
       && fromJSON(needs.project-metadata.outputs.active_autodoc)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.3
       - name: Run Sphinx
         run: |
@@ -242,7 +242,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_python_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.3
         with:
           # We rely on recent Python features in some of our {click:run} directives.
@@ -273,7 +273,7 @@ jobs:
     # files from awesome-template.
     steps:
       - name: Initial checkout
-        uses: actions/checkout@v5.0.1
+        uses: actions/checkout@v6.0.0
         with:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
