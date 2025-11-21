@@ -1,0 +1,6 @@
+# ref: https://github.com/lycheeverse/lychee/blob/master/lychee.example.toml
+
+exclude = [
+    # Skip suggesting redirecting generic download links to their binary artefact.
+    "^https://github.com/.+/releases/.+/download/.*$",
+]
