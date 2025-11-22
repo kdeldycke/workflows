@@ -7,13 +7,13 @@ flowchart TD
     bump-my-version["bump-my-version\n1.1.0"]
     certifi["certifi\n2025.11.12"]
     charset-normalizer["charset-normalizer\n3.4.4"]
-    click-extra["click-extra\n6.2.0"]
+    click-extra["click-extra\n7.0.0"]
     click_0["click\n8.3.1"]
     cloup["cloup\n3.0.8"]
     deepmerge["deepmerge\n2.0"]
     distro["distro\n1.9.0"]
     extra-platforms["extra-platforms\n5.0.1"]
-    gha-utils["gha-utils\n4.23.2"]
+    gha-utils["gha-utils\n4.23.5"]
     gitdb["gitdb\n4.0.12"]
     gitpython["GitPython\n3.1.45"]
     h11["h11\n0.16.0"]
@@ -70,7 +70,7 @@ flowchart TD
     click-extra -- ">=25.0.0" --> boltons
     click-extra -- ">=3.0.7" --> cloup
     click-extra -- ">=5.0.0" --> extra-platforms
-    click-extra -- ">=8.3.0" --> click_0
+    click-extra -- ">=8.3.1" --> click_0
     cloup -- ">=8.0,<9.0" --> click_0
     extra-platforms -- ">=1.9.0" --> distro
     gha-utils -- ">=0.3.3" --> py-walk
@@ -81,8 +81,8 @@ flowchart TD
     gha-utils -- ">=25.0" --> packaging
     gha-utils -- ">=25.0.0" --> boltons
     gha-utils -- ">=4.0.0" --> extra-platforms
-    gha-utils -- ">=6.0.3" --> click-extra
     gha-utils -- ">=6.0.3" --> pyyaml
+    gha-utils -- ">=7.0.0" --> click-extra
     gitdb -- ">=3.0.1,<6" --> smmap
     gitpython -- ">=4.0.1,<5" --> gitdb
     httpcore -- ">=0.16" --> h11
