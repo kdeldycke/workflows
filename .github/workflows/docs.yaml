@@ -31,13 +31,13 @@ jobs:
     name: Fix typos
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: crate-ci/typos@v1.39.2
         with:
           write_changes: true
       - name: Remove local typos binary
         run: rm ./typos
-      - uses: peter-evans/create-pull-request@v7.0.8
+      - uses: peter-evans/create-pull-request@v7.0.9
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
@@ -68,7 +68,7 @@ jobs:
       is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Run gha-utils metadata
         id: project-metadata
@@ -88,12 +88,12 @@ jobs:
     # Cannot use "ubuntu-slim" here because calibreapp/image-actions rely on Docker.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: calibreapp/image-actions@1.4.1
         id: image_actions
         with:
           compressOnly: true
-      - uses: peter-evans/create-pull-request@v7.0.8
+      - uses: peter-evans/create-pull-request@v7.0.9
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Optimize images"
@@ -121,7 +121,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.mailmap_exists)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
@@ -132,7 +132,7 @@ jobs:
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils mailmap-sync --skip-if-missing ./.mailmap
-      - uses: peter-evans/create-pull-request@v7.0.8
+      - uses: peter-evans/create-pull-request@v7.0.9
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .mailmap"
@@ -157,7 +157,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Install pipdeptree
         run: |
@@ -186,7 +186,7 @@ jobs:
           uv --no-progress run --frozen -- pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
           --output mermaid > "${{ env.dependency-graph-output }}"
-      - uses: peter-evans/create-pull-request@v7.0.8
+      - uses: peter-evans/create-pull-request@v7.0.9
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate dependency graph"
@@ -213,12 +213,12 @@ jobs:
       && fromJSON(needs.project-metadata.outputs.active_autodoc)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Run Sphinx
         run: |
           uv --no-progress run --frozen --extra docs -- sphinx-apidoc --no-toc --module-first --force -o ./docs .
-      - uses: peter-evans/create-pull-request@v7.0.8
+      - uses: peter-evans/create-pull-request@v7.0.9
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update Sphinx autodoc"
@@ -243,7 +243,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_python_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.4
         with:
           # We rely on recent Python features in some of our {click:run} directives.
@@ -274,7 +274,7 @@ jobs:
     # files from awesome-template.
     steps:
       - name: Initial checkout
-        uses: actions/checkout@v5.0.1
+        uses: actions/checkout@v6.0.0
         with:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0

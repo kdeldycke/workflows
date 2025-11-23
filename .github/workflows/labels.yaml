@@ -25,7 +25,7 @@ jobs:
     # Cannot use "ubuntu-slim" here because julb/action-manage-label rely on Docker.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - name: Sync labels
         uses: julb/action-manage-label@1.0.1
         env:

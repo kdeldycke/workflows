@@ -33,7 +33,7 @@ jobs:
           - minor
           - major
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Install bump-my-version
         run: >
@@ -48,7 +48,7 @@ jobs:
         id: get_version
         run: |
           echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v7.0.8
+      - uses: peter-evans/create-pull-request@v7.0.9
         with:
           assignees: ${{ github.actor }}
           commit-message: >
@@ -97,7 +97,7 @@ jobs:
     # XXX This cannot be done because there is no way to group "replace" actions into a collection. Maybe we should
     # start to discuss this upstream.
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Install bump-my-version
         run: >
@@ -176,7 +176,7 @@ jobs:
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
-      - uses: peter-evans/create-pull-request@v7.0.8
+      - uses: peter-evans/create-pull-request@v7.0.9
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in
           # .github/workflows/*.yaml files.
