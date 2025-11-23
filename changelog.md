@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Keep using `ubuntu-24.04` for Nuitka builds.
+
 ## [4.24.0 (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.23.4...v4.24.0)
 
 - Replace `ubuntu-24.04` runner by `ubuntu-slim` in all jobs not relying on Docker, and in Nuitka build matrix.

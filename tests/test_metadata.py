@@ -198,7 +198,7 @@ expected = {
         },
         {
             "target": "linux-x64",
-            "os": "ubuntu-slim",
+            "os": "ubuntu-24.04",
             "platform_id": "linux",
             "arch": "x64",
             "extension": "bin",
@@ -235,7 +235,7 @@ expected = {
     "nuitka_matrix": {
         "os": [
             "ubuntu-24.04-arm",
-            "ubuntu-slim",
+            "ubuntu-24.04",
             "macos-26",
             "macos-15-intel",
             "windows-11-arm",
@@ -253,7 +253,7 @@ expected = {
             },
             {
                 "target": "linux-x64",
-                "os": "ubuntu-slim",
+                "os": "ubuntu-24.04",
                 "platform_id": "linux",
                 "arch": "x64",
                 "extension": "bin",
@@ -305,7 +305,7 @@ expected = {
                 "bin_name": regex(r"gha-utils-linux-arm64-[a-z0-9]+\.bin"),
             },
             {
-                "os": "ubuntu-slim",
+                "os": "ubuntu-24.04",
                 "entry_point": "gha-utils",
                 "commit": regex(r"[a-z0-9]+"),
                 "bin_name": regex(r"gha-utils-linux-x64-[a-z0-9]+\.bin"),
