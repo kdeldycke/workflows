@@ -22,7 +22,8 @@ jobs:
 
   labels:
     name: Sync labels
-    runs-on: ubuntu-slim
+    # Cannot use "ubuntu-slim" here because julb/action-manage-label rely on Docker.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.1
       - name: Sync labels

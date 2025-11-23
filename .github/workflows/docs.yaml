@@ -85,7 +85,8 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.image_files
-    runs-on: ubuntu-slim
+    # Cannot use "ubuntu-slim" here because calibreapp/image-actions rely on Docker.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: calibreapp/image-actions@1.4.1

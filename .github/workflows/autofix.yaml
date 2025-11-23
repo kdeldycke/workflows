@@ -198,7 +198,8 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.markdown_files
-    runs-on: ubuntu-slim
+    # Cannot use "ubuntu-slim" because shfmt is not available there.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
