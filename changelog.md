@@ -7,6 +7,8 @@
 
 ## [4.24.2 (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.24.1...v4.24.2)
 
+- Fix all issues related to the use of `ubuntu-slim` runners.
+
 ## [4.24.1 (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.24.0...v4.24.1)
 
 - Keep using `ubuntu-24.04` for Nuitka builds.
