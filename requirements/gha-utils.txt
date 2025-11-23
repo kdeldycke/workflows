@@ -1,3 +1,1 @@
-gha-utils == 4.23.4
-# XXX Avoid 7.0.0 due to breaking changes without deprecation cycle.
-click-extra != 7.0.0
+gha-utils == 4.24.0
