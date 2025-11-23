@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.24.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.24.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.24.1 (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.24.0...v4.24.1)
 
 - Keep using `ubuntu-24.04` for Nuitka builds.
