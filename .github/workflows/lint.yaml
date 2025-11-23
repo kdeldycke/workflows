@@ -20,7 +20,7 @@ jobs:
     name: Project metadata
     # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
     if: github.head_ref != 'prepare-release'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       is_bot: ${{ steps.project-metadata.outputs.is_bot }}
       python_files: ${{ steps.project-metadata.outputs.python_files }}
@@ -48,7 +48,7 @@ jobs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -73,7 +73,7 @@ jobs:
       github.head_ref != 'prepare-release'
       && (! fromJson(needs.project-metadata.outputs.is_bot))
       && needs.project-metadata.outputs.yaml_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -92,7 +92,7 @@ jobs:
       github.head_ref != 'prepare-release'
       && (! fromJson(needs.project-metadata.outputs.is_bot))
       && needs.project-metadata.outputs.zsh_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - name: Install Zsh
@@ -111,7 +111,7 @@ jobs:
       github.head_ref != 'prepare-release'
       && (! fromJson(needs.project-metadata.outputs.is_bot))
       && needs.project-metadata.outputs.workflow_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - name: Install actionlint
@@ -155,7 +155,7 @@ jobs:
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
       && (! fromJson(needs.project-metadata.outputs.is_bot))
       && needs.project-metadata.outputs.doc_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
@@ -266,7 +266,7 @@ jobs:
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
       && github.head_ref != 'prepare-release'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
         with:
@@ -285,7 +285,7 @@ jobs:
       - project-metadata
     # Skip secret checks on prepare-release branch and Dependabot PRs.
     if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
         with:

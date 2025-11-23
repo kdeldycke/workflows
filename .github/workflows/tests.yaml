@@ -27,7 +27,7 @@ jobs:
         # Only targets 2 variants per platforms to keep the matrix small.
         os:
           - ubuntu-24.04-arm # arm64
-          - ubuntu-24.04     # x86
+          - ubuntu-slim      # x86
           - macos-26         # arm64
           - macos-15-intel   # x86
           - windows-11-arm   # arm64
@@ -101,7 +101,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
     steps:

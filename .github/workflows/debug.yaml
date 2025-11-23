@@ -11,7 +11,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
     steps:

@@ -29,7 +29,7 @@ jobs:
 
   autofix-typo:
     name: Fix typos
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: crate-ci/typos@v1.39.2
@@ -59,7 +59,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
       image_files: ${{ steps.project-metadata.outputs.image_files }}
@@ -85,7 +85,7 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.image_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: calibreapp/image-actions@1.4.1
@@ -118,7 +118,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.mailmap_exists)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
         with:
@@ -154,7 +154,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -210,7 +210,7 @@ jobs:
     if: >
       fromJSON(needs.project-metadata.outputs.is_python_project)
       && fromJSON(needs.project-metadata.outputs.active_autodoc)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -240,7 +240,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -268,7 +268,7 @@ jobs:
     if: >
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     # We need custom PAT through the whole job so we get workflow permissions to update all the boilerplate .github
     # files from awesome-template.
     steps:

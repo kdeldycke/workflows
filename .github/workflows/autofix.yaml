@@ -42,7 +42,7 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     outputs:
       gitignore_exists: ${{ steps.project-metadata.outputs.gitignore_exists }}
       python_files: ${{ steps.project-metadata.outputs.python_files }}
@@ -69,7 +69,7 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -168,7 +168,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -198,7 +198,7 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.markdown_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - uses: astral-sh/setup-uv@v7.1.4
@@ -249,7 +249,7 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.json_files
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - name: Install ESLint with JSON support
@@ -346,7 +346,7 @@ jobs:
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5.0.1
       - name: Install git-extras
