@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Replace `ubuntu-24.04` runner by `ubuntu-slim` in all jobs not relying on Docker, and in Nuitka build matrix.
+- Bump `actionlint` to `v1.7.9`.
 - Ignore Github links pointing to stable release assets when checking for broken links.
 
 ## [4.23.4 (2025-11-19)](https://github.com/kdeldycke/workflows/compare/v4.23.3...v4.23.4)

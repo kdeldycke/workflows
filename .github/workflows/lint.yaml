@@ -117,7 +117,7 @@ jobs:
       - name: Install actionlint
         id: install_actionlint
         run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.8
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.9
       - name: Install shellcheck
         run: |
           sudo apt update
@@ -126,15 +126,18 @@ jobs:
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
         run: >
           curl -fsSL --output ./.github/labeller-file-based.yaml
-          https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.8/.github/actionlint-matcher.json
+          https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.9/.github/actionlint-matcher.json
       - name: Register problem matcher
         run: |
           echo "::add-matcher::.github/labeller-file-based.yaml"
       - name: Run actionlint
         # XXX actionlint triggers this error:
-        #   Error: .github/workflows/release.yaml:198:27:
-        #   property "workflow_update_github_pat" is not defined in object type {actions_runner_debug: string;
-        #   actions_step_debug: string; github_token: string; pypi_token: string} [expression]
+        # .github/workflows/release.yaml:306:22: property "workflow_update_github_pat" is not defined in object type
+        # {actions_runner_debug: string; actions_step_debug: string; github_token: string; pypi_token: string}
+        # [expression]
+        #     |
+        # 306 | token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+        #     |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # See: https://github.com/rhysd/actionlint/issues/148
         run: >
           ${{ steps.install_actionlint.outputs.executable }}
