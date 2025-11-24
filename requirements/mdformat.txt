@@ -21,10 +21,10 @@ mdformat_gfm_alerts == 2.0.0
 # XXX Annoying issue with mdformat-myst: it forces colon-delimited parameters in code blocks
 # to be normalized as YAML frontmatter. See:
 # https://github.com/executablebooks/mdformat-myst/issues/21#issuecomment-3247818021
-# XXX mdformat_myst upcoming release (> 0.2.2) fix incompatibility with mdformat 1.0.0. See:
+# XXX mdformat_myst should depend on mdformat-front-matters instead of mdformat-frontmatter:
+# https://github.com/executablebooks/mdformat-myst/pull/46
 # https://github.com/executablebooks/mdformat-myst/issues/45
-# https://github.com/executablebooks/mdformat-myst/issues/43
-mdformat_myst @ git+https://github.com/executablebooks/mdformat-myst@master#1bfcdf6497cc0af7456cb1a69cd13e0f41636808
+mdformat_myst @ git+https://github.com/kdeldycke/mdformat-myst@fix-mdformat-frontmatter-dependency#487b64ac6421c2e2c7d7a56ec7caf1e67a2fa2de
 
 # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading:
 # https://github.com/gaige/mdformat-pelican/pull/8
