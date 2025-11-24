@@ -13,7 +13,7 @@ jobs:
     name: Project metadata
     runs-on: ubuntu-slim
     outputs:
-      build_targets: ${{ steps.project-metadata.outputs.build_targets }}
+      build_targets: ${{ steps.extend-matrix.outputs.targets }}
     steps:
       - uses: actions/checkout@v6.0.0
       - uses: astral-sh/setup-uv@v7.1.4
@@ -25,11 +25,12 @@ jobs:
           uvx
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
-          gha-utils -vvvvvvvv metadata --overwrite "$GITHUB_OUTPUT"
-      - name: Extend matrix.os with ubuntu-slim
+          gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+      - name: Extend matrix with ubuntu-slim
+        id: extend-matrix
         run: |
-          matrix=$(echo '${{ steps.project-metadata.outputs.build_targets }}' | jq -c '. + [{"os": "ubuntu-slim"}]')
-          echo "matrix={\"include\": $matrix}" >> $GITHUB_OUTPUT
+          targets=$(echo '${{ steps.project-metadata.outputs.build_targets }}' | jq -c '. + [{"os":"ubuntu-slim"}]')
+          echo "targets=$targets" >> $GITHUB_OUTPUT
 
   dump-context:
     name: ${{ matrix.os }} info dump
@@ -37,7 +38,8 @@ jobs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
+      matrix:
+        include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
