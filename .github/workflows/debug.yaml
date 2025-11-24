@@ -38,3 +38,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
+
+  dump-context-ubuntu-slim:
+    name: ${{ matrix.os }} info dump
+    needs:
+      - project-metadata
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-slim
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: crazy-max/ghaction-dump-context@v2.3.0
