@@ -30,7 +30,7 @@ jobs:
         id: extend-matrix
         run: |
           targets=$(echo '${{ steps.project-metadata.outputs.build_targets }}' | jq -c '. + [{"os":"ubuntu-slim"}]')
-          echo "targets=$targets" >> $GITHUB_OUTPUT
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
 
   dump-context:
     name: ${{ matrix.os }} info dump
