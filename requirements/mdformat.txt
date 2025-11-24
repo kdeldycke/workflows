@@ -12,11 +12,7 @@ mdformat_deflist == 0.1.4
 # https://github.com/executablebooks/mdformat-footnote/issues/11
 mdformat_footnote == 0.1.2
 
-# XXX mdformat_frontmatter is not compatible with mdformat 1.0.0. See:
-# https://github.com/butler54/mdformat-frontmatter/issues/37
-# https://github.com/butler54/mdformat-frontmatter/pull/38
-# https://github.com/executablebooks/mdformat-myst/issues/45
-mdformat_frontmatter @ git+https://github.com/LordFckHelmchen/mdformat-frontmatter@main#b9284b10459ffaef6780a91097b85afd09205e9f
+mdformat-front-matters == 0.1.0
 
 mdformat-gfm == 1.0.0
 

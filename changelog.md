@@ -5,6 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Replace `mdformat_frontmatter` by `mdformat-front-matters` to fix compatibility with `mdformat` v1.0.0.
+- Activate strict front-matter checking in `mdformat` when auto-formatting Markdown files.
+
 ## [4.24.2 (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.24.1...v4.24.2)
 
 - Fix all issues related to the use of `ubuntu-slim` runners.
