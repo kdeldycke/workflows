@@ -26,6 +26,10 @@ jobs:
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils -vvvvvvvv metadata --overwrite "$GITHUB_OUTPUT"
+      - name: Extend matrix.os with ubuntu-slim
+        run: |
+          matrix=$(echo '${{ steps.project-metadata.outputs.build_targets }}' | jq -c '. + [{"os": "ubuntu-slim"}]')
+          echo "matrix={\"include\": $matrix}" >> $GITHUB_OUTPUT
 
   dump-context:
     name: ${{ matrix.os }} info dump
@@ -33,8 +37,7 @@ jobs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets
     strategy:
-      # Extend the matrix with to also targets ubuntu-slim, which is used in other workflows.
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.build_targets || '{"include":[{"os":"ubuntu-slim"}]}') }}
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
