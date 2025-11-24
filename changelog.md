@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.24.4 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.24.3...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.24.3 (2025-11-24)](https://github.com/kdeldycke/workflows/compare/v4.24.2...v4.24.3)
 
 - Replace `mdformat_frontmatter` by `mdformat-front-matters` to fix compatibility with `mdformat` v1.0.0.
