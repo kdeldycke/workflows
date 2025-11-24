@@ -33,9 +33,8 @@ jobs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets
     strategy:
-      matrix:
-        # Extend the matrix with to also targets ubuntu-slim, which is used in other workflows.
-        include: ${{ fromJSON(needs.project-metadata.outputs.build_targets || '[{"os": "ubuntu-slim"}]') }}
+      # Extend the matrix with to also targets ubuntu-slim, which is used in other workflows.
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.build_targets || '{"include":[{"os":"ubuntu-slim"}]}') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
