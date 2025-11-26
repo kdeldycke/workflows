@@ -123,7 +123,7 @@ jobs:
       # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
 
   compile-binaries:
-    name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} Build on ${{ matrix.os }}, ${{ matrix.short_sha }}"
+    name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} build"
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.nuitka_matrix
