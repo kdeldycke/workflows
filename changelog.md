@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.24.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.24.4...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.24.4 (2025-11-27)](https://github.com/kdeldycke/workflows/compare/v4.24.3...v4.24.4)
 
 - Add `ubuntu-slim` to the list of platforms in debug workflows.
