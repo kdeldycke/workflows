@@ -12,7 +12,7 @@ mdformat_deflist == 0.1.4
 # https://github.com/executablebooks/mdformat-footnote/issues/11
 mdformat_footnote == 0.1.2
 
-mdformat-front-matters == 0.1.0
+mdformat-front-matters == 1.0.0
 
 mdformat-gfm == 1.0.0
 
@@ -24,7 +24,7 @@ mdformat_gfm_alerts == 2.0.0
 # XXX mdformat_myst should depend on mdformat-front-matters instead of mdformat-frontmatter:
 # https://github.com/executablebooks/mdformat-myst/pull/46
 # https://github.com/executablebooks/mdformat-myst/issues/45
-mdformat_myst @ git+https://github.com/kdeldycke/mdformat-myst@fix-mdformat-frontmatter-dependency#487b64ac6421c2e2c7d7a56ec7caf1e67a2fa2de
+mdformat_myst @ git+https://github.com/kdeldycke/mdformat-myst@fix-mdformat-frontmatter-dependency#95a49af7251e92cba2daf925d5272df0732ca1dd
 
 # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading:
 # https://github.com/gaige/mdformat-pelican/pull/8
