@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use released versions of `mdformat-myst` plugin.
+
 ## [4.24.4 (2025-11-27)](https://github.com/kdeldycke/workflows/compare/v4.24.3...v4.24.4)
 
 - Add `ubuntu-slim` to the list of platforms in debug workflows.
