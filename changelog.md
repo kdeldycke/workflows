@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.24.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.24.5...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.24.5 (2025-11-28)](https://github.com/kdeldycke/workflows/compare/v4.24.4...v4.24.5)
 
 - Use released versions of `mdformat-myst` plugin.
