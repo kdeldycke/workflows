@@ -151,9 +151,10 @@ jobs:
     # that does not exist yet, rendering URLs artificially broken. Also skips the merge commit of the prepare-release
     # branch, as if the URLs are good, the tag is created asynchronously by release.yaml:git-tag job. And as a
     # precautionary measure, just skip any event that contains a post-release bump commit.
-    # Also skip Dependabot PRs which does not heavily alters URLs.
+    # Also skip all PRs, including Dependabot ones as we're not going to have permissions to create issues.
     if: >
-      github.head_ref != 'prepare-release'
+      github.event_name != 'pull_request'
+      && github.head_ref != 'prepare-release'
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
       && (! fromJson(needs.project-metadata.outputs.is_bot))
