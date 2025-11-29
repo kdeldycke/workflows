@@ -147,17 +147,13 @@ jobs:
   broken-links:
     needs:
       - project-metadata
-    # Skip checks on prepare-release branch as it contains commits in changelog and documentation that points to a tag
-    # that does not exist yet, rendering URLs artificially broken. Also skips the merge commit of the prepare-release
-    # branch, as if the URLs are good, the tag is created asynchronously by release.yaml:git-tag job. And as a
-    # precautionary measure, just skip any event that contains a post-release bump commit.
-    # Also skip all PRs, including Dependabot ones as we're not going to have permissions to create issues.
+    # Skip all PRs as we won't have permissions to create issues.
+    # Skip the prepare-release branch as it contains URLs pointing to tags that don't exist yet.
+    # Skip any push containing a post-release bump commit as a precautionary measure.
     if: >
       github.event_name != 'pull_request'
-      && github.head_ref != 'prepare-release'
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
       && needs.project-metadata.outputs.doc_files
     # Cannot use "ubuntu-slim" here because "shell: python" step cannot find Python interpreter.
     runs-on: ubuntu-24.04
