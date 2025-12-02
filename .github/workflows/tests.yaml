@@ -54,7 +54,7 @@ jobs:
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Install Python ${{ matrix.python-version }}
         # If UV cannot find the requested Python version, it exits with code 2, which let the job pass unnoticed on
@@ -105,7 +105,7 @@ jobs:
     outputs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Run gha-utils metadata
         id: project-metadata
