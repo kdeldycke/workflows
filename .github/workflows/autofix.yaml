@@ -52,7 +52,7 @@ jobs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Run gha-utils metadata
         id: project-metadata
@@ -71,7 +71,7 @@ jobs:
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
@@ -170,7 +170,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Sync uv.lock
         run: |
@@ -201,7 +201,7 @@ jobs:
     # Cannot use "ubuntu-slim" because shfmt is not available there.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Install mdformat
         run: >
@@ -254,7 +254,7 @@ jobs:
     if: needs.project-metadata.outputs.json_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - name: Install ESLint with JSON support
         run: |
           npm --no-progress install --no-save "eslint@9.36.0" "@eslint/json@0.13.2"
@@ -351,7 +351,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
       - name: Install git-extras
         run: |
           sudo apt update
