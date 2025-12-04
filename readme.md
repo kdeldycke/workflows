@@ -460,20 +460,20 @@ Workflows in this repository are **self-referential**, and points to themselves 
 During development, these point to `main`:
 
 ```yaml
---with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+--with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
 ```
 
 The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job rewrites these to the release tag before tagging:
 
 ```yaml
 # Before release commit:
-…/workflows/main/requirements/gha-utils.txt
+…/workflows/main/requirements/yamllint.txt
 
 # In the tagged release commit:
-…/workflows/v4.24.6/requirements/gha-utils.txt
+…/workflows/v4.24.6/requirements/yamllint.txt
 
 # After post-release bump:
-…/workflows/main/requirements/gha-utils.txt
+…/workflows/main/requirements/yamllint.txt
 ```
 
 This ensures released versions reference immutable, tagged URLs while `main` remains editable.
