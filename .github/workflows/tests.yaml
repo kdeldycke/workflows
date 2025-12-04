@@ -33,8 +33,9 @@ jobs:
           - windows-11-arm   # arm64
           - windows-2025     # x86
         python-version:
-          - "3.11"
+          - "3.10"
           # Ignore intermediate versions to reduce CI load.
+          # - "3.11"
           # - "3.12"
           # - "3.13"
           - "3.14"

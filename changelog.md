@@ -13,6 +13,7 @@
 - Remove forcing Python `3.14` in documentation-related jobs.
 - Unlock a CPU core stuck at 100% utilization on `macos-15-intel`.
 - Document all reusable workflows jobs and their requirements.
+- Reintroduce Python 3.10 support.
 
 ## [4.24.6 (2025-11-29)](https://github.com/kdeldycke/workflows/compare/v4.24.5...v4.24.6)
 
