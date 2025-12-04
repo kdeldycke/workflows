@@ -278,7 +278,7 @@ import json
 import logging
 import os
 import re
-import tomllib
+import sys
 from collections.abc import Iterable
 from enum import StrEnum
 from functools import cached_property
@@ -310,6 +310,14 @@ from wcmatch.glob import (
 )
 
 from .matrix import Matrix
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
+    from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:

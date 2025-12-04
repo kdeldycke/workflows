@@ -26,6 +26,15 @@ wheels = [
 ]
 
 [[package]]
+name = "backports-strenum"
+version = "1.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/35/c7/2ed54c32fed313591ffb21edbd48db71e68827d43a61938e5a0bc2b6ec91/backports_strenum-1.3.1.tar.gz", hash = "sha256:77c52407342898497714f0596e86188bb7084f89063226f4ba66863482f42414", size = 7257, upload-time = "2023-12-09T14:36:40.937Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d6/50/56cf20e2ee5127b603b81d5a69580a1a325083e2b921aa8f067da83927c0/backports_strenum-1.3.1-py3-none-any.whl", hash = "sha256:cdcfe36dc897e2615dc793b7d3097f54d359918fc448754a517e6f23044ccf83", size = 8304, upload-time = "2023-12-09T14:36:39.905Z" },
+]
+
+[[package]]
 name = "boltons"
 version = "25.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -378,6 +387,7 @@ name = "gha-utils"
 version = "4.25.0"
 source = { editable = "." }
 dependencies = [
+    { name = "backports-strenum", marker = "python_full_version < '3.11'" },
     { name = "boltons" },
     { name = "bump-my-version" },
     { name = "click-extra" },
@@ -387,6 +397,7 @@ dependencies = [
     { name = "pydriller" },
     { name = "pyproject-metadata" },
     { name = "pyyaml" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
 ]
 
@@ -406,6 +417,7 @@ typing = [
 
 [package.metadata]
 requires-dist = [
+    { name = "backports-strenum", marker = "python_full_version < '3.11'", specifier = ">=1.3.1" },
     { name = "boltons", specifier = ">=25.0.0" },
     { name = "bump-my-version", specifier = ">=0.32.2,<1.1.1" },
     { name = "click-extra", specifier = ">=7.0.0" },
@@ -415,6 +427,7 @@ requires-dist = [
     { name = "pydriller", specifier = ">=2.6" },
     { name = "pyproject-metadata", specifier = ">=0.9.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.3.0" },
     { name = "wcmatch", specifier = ">=10.0" },
 ]
 
