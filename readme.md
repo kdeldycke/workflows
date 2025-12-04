@@ -7,6 +7,7 @@
 [![Coverage status](https://codecov.io/gh/kdeldycke/workflows/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/workflows)
 
 This repository contains:
+
 - a [collection of reusable workflows](#reusable-workflows-collection)
 - a standalone [CLI called `gha-utils`](#gha-utils-cli)
 
@@ -85,13 +86,14 @@ That's the best way to get started with `gha-utils` and experiment with it.
 To ease deployment, standalone executables of `gha-utils`'s latest version are available as direct downloads for several platforms and architectures:
 
 | Platform    | `arm64`                                                                                                                               | `x86_64`                                                                                                                          |
-|:----------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| :---------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | **Linux**   | [Download `gha-utils-linux-arm64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-linux-arm64.bin)     | [Download `gha-utils-linux-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-linux-x64.bin)     |
 | **macOS**   | [Download `gha-utils-macos-arm64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-arm64.bin)     | [Download `gha-utils-macos-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-x64.bin)     |
 | **Windows** | [Download `gha-utils-windows-arm64.exe`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-windows-arm64.exe) | [Download `gha-utils-windows-x64.exe`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-windows-x64.exe) |
 
 > [!NOTE]
 > ABI targets:
+>
 > ```shell-session
 > $ file ./gha-utils-*
 > ./gha-utils-linux-arm64.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=520bfc6f2bb21f48ad568e46752888236552b26a, for GNU/Linux 3.7.0, stripped
@@ -186,6 +188,7 @@ All workflows:
 ### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml)
 
 Some of these jobs requires a `docs` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml` so they can determine the right Sphinx version to install and its dependencies:
+
 ```toml
 [dependency-groups]
 docs = [
@@ -382,12 +385,14 @@ docs = [
 Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extracts contextual information, reconcile and combine them, and expose them for downstream jobs to consume.
 
 This expand the capabilities of GitHub actions, since it allows to:
+
 - Share complex data across jobs (like build matrix)
 - Remove limitations of conditional jobs
 - Allow for runner introspection
 - Fix quirks (like missing environment variables, events/commits mismatch, merge commits, etc.)
 
 This job relies on the [`gha-utils metadata` command](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py) to gather data from multiple sources:
+
 - **Git**: current branch, latest tag, commit messages, changed files
 - **GitHub**: event type, actor, PR labels
 - **Environment**: OS, architecture
@@ -395,6 +400,7 @@ This job relies on the [`gha-utils metadata` command](https://github.com/kdeldyc
 
 > [!IMPORTANT]
 > This flexibility comes at the cost of:
+>
 > - Making the whole workflow a bit more computationally intensive
 > - Introducing a small delay at the beginning of the run
 > - Preventing child jobs to run in parallel before its completion
@@ -407,13 +413,13 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 
 ### Pinning mechanisms
 
-| Mechanism | What it pins | How it's updated |
-|:-----------|:--------------|:------------------|
-| `requirements/*.txt` files | Python CLIs used in workflows | Dependabot PRs |
-| `uv.lock` | Project dependencies | `sync-uv-lock` job |
-| Hard-coded versions in YAML | GitHub Actions, npm packages | Dependabot PRs |
-| `uv --exclude-newer` option | Transitive dependencies | Time-based window |
-| Tagged workflow URLs | Remote workflow references | Release process |
+| Mechanism                   | What it pins                  | How it's updated   |
+| :-------------------------- | :---------------------------- | :----------------- |
+| `requirements/*.txt` files  | Python CLIs used in workflows | Dependabot PRs     |
+| `uv.lock`                   | Project dependencies          | `sync-uv-lock` job |
+| Hard-coded versions in YAML | GitHub Actions, npm packages  | Dependabot PRs     |
+| `uv --exclude-newer` option | Transitive dependencies       | Time-based window  |
+| Tagged workflow URLs        | Remote workflow references    | Release process    |
 
 ### `requirements/*.txt` files
 
@@ -423,10 +429,10 @@ We use these files instead of inline version strings because **Dependabot cannot
 
 ```yaml
 # ❌ Dependabot cannot update this:
-- run: uvx -- yamllint==1.37.1
+  - run: uvx -- yamllint==1.37.1
 
 # ✅ So we use requirements/yamllint.txt as an indirection:
-- run: uvx --with-requirements …/requirements/yamllint.txt -- yamllint
+  - run: uvx --with-requirements …/requirements/yamllint.txt -- yamllint
 ```
 
 A root [`requirements.txt`](https://github.com/kdeldycke/workflows/blob/main/requirements.txt) aggregates all files from the `requirements/` folder for bulk installation.
@@ -436,8 +442,8 @@ A root [`requirements.txt`](https://github.com/kdeldycke/workflows/blob/main/req
 GitHub Actions and npm packages are pinned directly in YAML files:
 
 ```yaml
-- uses: actions/checkout@v6.0.1          # Pinned action
-- run: npm install eslint@9.39.1         # Pinned npm package
+  - uses: actions/checkout@v6.0.1        # Pinned action
+  - run: npm install eslint@9.39.1       # Pinned npm package
 ```
 
 Dependabot's `github-actions` ecosystem handles action updates.
@@ -465,6 +471,7 @@ During development, these point to `main`:
 
 ```yaml
 --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
+...
 ```
 
 The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job rewrites these to the release tag before tagging:
@@ -523,33 +530,36 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
 #### Step 1: Create the token
 
 1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**
-2. Click **Generate new token**
-3. Configure:
-   | Field | Value |
-   |:-------|:-------|
-   | **Token name** | `workflow-self-update` (or similar descriptive name) |
-   | **Expiration** | Choose based on your security policy |
+
+1. Click **Generate new token**
+
+1. Configure:
+
+   | Field                 | Value                                                                                    |
+   | :-------------------- | :--------------------------------------------------------------------------------------- |
+   | **Token name**        | `workflow-self-update` (or similar descriptive name)                                     |
+   | **Expiration**        | Choose based on your security policy                                                     |
    | **Repository access** | Select **Only select repositories** and choose the repos that need workflow self-updates |
 
-4. Click **Add permissions**:
+1. Click **Add permissions**:
 
-   | Permission | Access |
-   |:------------|:--------|
-   | **Contents** | Read and Write |
-   | **Metadata** | Read-only *(mandatory)* |
-   | **Pull requests** | Read and Write |
-   | **Workflows** | Read and Write |
+   | Permission        | Access                  |
+   | :---------------- | :---------------------- |
+   | **Contents**      | Read and Write          |
+   | **Metadata**      | Read-only *(mandatory)* |
+   | **Pull requests** | Read and Write          |
+   | **Workflows**     | Read and Write          |
 
    > [!IMPORTANT]
    > The **Workflows** permission is the key. This is the *only* place where you can grant it—it's not available via the `permissions:` parameter in YAML files.
 
-5. Click **Generate token** and copy the `github_pat_XXXX` value
+1. Click **Generate token** and copy the `github_pat_XXXX` value
 
 #### Step 2: Add the secret to your repository
 
 1. Go to your repository → **Settings → Security → Secrets and variables → Actions**
-2. Click **New repository secret**
-3. Set:
+1. Click **New repository secret**
+1. Set:
    - **Name**: `WORKFLOW_UPDATE_GITHUB_PAT`
    - **Secret**: paste the `github_pat_XXXX` token
 
