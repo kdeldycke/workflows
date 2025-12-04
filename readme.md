@@ -185,6 +185,17 @@ All workflows:
 
 ### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml)
 
+Some of these jobs requires a `docs` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml` so they can determine the right Sphinx version to install and its dependencies:
+```toml
+[dependency-groups]
+docs = [
+    "furo",
+    "myst-parser",
+    "sphinx",
+    …
+]
+```
+
 - **Fix typos** (`autofix-typo`)
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
@@ -212,6 +223,7 @@ All workflows:
   - Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
   - **Requires**:
     - Python package with a `pyproject.toml` file
+    - `docs` dependency group
     - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
 
 - **Deploy Sphinx doc** (`deploy-docs`)
@@ -219,17 +231,8 @@ All workflows:
   - Builds Sphinx-based documentation and publishes it to GitHub Pages using [`sphinx`](https://github.com/sphinx-doc/sphinx) and [`gh-pages`](https://github.com/peaceiris/actions-gh-pages)
   - **Requires**:
     - Python package with a `pyproject.toml` file
+    - `docs` dependency group
     - Sphinx configuration file at `docs/conf.py`
-    - All Sphinx dependencies in a `docs` [extra dependency group](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#dependencies-and-requirements):
-      ```toml
-      [project.optional-dependencies]
-      docs = [
-          "furo",
-          "myst-parser",
-          "sphinx",
-          …
-      ]
-      ```
 
 - **Sync awesome template** (`awesome-template-sync`)
 
@@ -273,6 +276,7 @@ All workflows:
   - Type-checks Python code using [`mypy`](https://github.com/python/mypy)
   - **Requires**:
     - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository
+    - `typing` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml`
   - **Skipped for**:
     - `prepare-release` branch
 

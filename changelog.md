@@ -8,6 +8,9 @@
 - Add cooldown period for dependabot updates: 7 days by default, 29 days for major updates, 11 days for minor updates, 5 days for patch updates.
 - Sets `--exclude-newer` to 7 days ago when syncing `uv.lock` in `autofix` workflow.
 - Merge all label syncing jobs into a single one.
+- Change the `test` and `typing` extra dependency groups into development dependency groups.
+- Make all documentation-related and typing-related jobs depends on the new development dependency groups.
+- Remove forcing Python `3.14` in documentation-related jobs.
 - Unlock a CPU core stuck at 100% utilization on `macos-15-intel`.
 - Document all reusable workflows jobs and their requirements.
 
