@@ -9,6 +9,7 @@
 - Sets `--exclude-newer` to 7 days ago when syncing `uv.lock` in `autofix` workflow.
 - Merge all label syncing jobs into a single one.
 - Unlock a CPU core stuck at 100% utilization on `macos-15-intel`.
+- Document all reusable workflows jobs and their requirements.
 
 ## [4.24.6 (2025-11-29)](https://github.com/kdeldycke/workflows/compare/v4.24.5...v4.24.6)
 
