@@ -402,7 +402,7 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 ### Pinning mechanisms
 
 | Mechanism | What it pins | How it's updated |
-|-----------|--------------|------------------|
+|:-----------|:--------------|:------------------|
 | `requirements/*.txt` files | Python CLIs used in workflows | Dependabot PRs |
 | `uv.lock` | Project dependencies | `sync-uv-lock` job |
 | Hard-coded versions in YAML | GitHub Actions, npm packages | Dependabot PRs |
