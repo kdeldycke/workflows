@@ -522,7 +522,7 @@ error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
 ```
 
 > [!NOTE]
-> The **Settings → Actions → General → Workflow permissions** setting on your repository has no effect on this issue, even with "Read and write permissions" enabled:
+> The **Settings → Actions → General → Workflow permissions** setting on your repository has no effect on this issue. Even with "Read and write permissions" enabled, the default `GITHUB_TOKEN` cannot modify workflow files—that's a hard security boundary enforced by GitHub:
 > ![](docs/assets/repo-workflow-permissions.png)
 
 ### Solution: Fine-grained Personal Access Token
