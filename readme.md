@@ -117,7 +117,7 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 All workflows:
 
-- Are designed to be reusable in other repositories via the `uses:` syntax.
+- Are designed to be reusable in other repositories [via the `uses:` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow).
 - Uses `uv` to install dependencies and CLIs.
 - Have jobs guarded by conditions to skip unnecessary steps when not needed.
 - Rely on pinned versions of actions, tools and CLIs, to ensure stability, reproducibility and security.
@@ -368,6 +368,29 @@ All workflows:
   - Creates a GitHub release with all artifacts attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
   - **Requires**:
     - Successful `git-tag` job
+
+### What is this `project-metadata` job?
+
+Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first and extracts contextual information used to:
+- Control conditional execution of downstream jobs
+- Pre-compute dynamic values passed to child jobs
+
+This job uses the [`gha-utils metadata` command](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py) to gather data from multiple sources:
+- **Git**: current branch, latest tag, commit messages, changed files
+- **GitHub**: event type, actor, PR labels
+- **Environment**: OS, architecture
+- **`pyproject.toml`**: project name, version, entry points
+
+Cons of having this dedicated job:
+- Makes the whole workflow a bit more computationally intensive
+- Introduce a small delay at the beginning of the run
+- Prevents child jobs to run in parallel before its completion
+
+Pros of `project-metadata`:
+- Remove limitation of conditional jobs in GitHub actions
+- Allows to share complex logic and data across jobs
+- Simplifies the code maintenance
+- Centralizes all project metadata extraction in one place
 
 ### Why all these `requirements/*.txt` files?
 
