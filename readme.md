@@ -123,7 +123,7 @@ All workflows:
 - Rely on pinned versions of actions, tools and CLIs, to ensure stability, reproducibility and security.
 - Are run and tested in this repository: we eat our own dog-food.
 
-### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml]
+### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
 - **Format Python** (`format-python`)
 
@@ -156,13 +156,13 @@ All workflows:
   - **Requires**:
     - A `.gitignore` file in the repository
 
-### [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml]
+### [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml)
 
 - **Lock inactive threads** (`lock`)
 
   - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
 
-### [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml]
+### [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml)
 
 - **Version increments** (`version-increments`)
 
@@ -181,7 +181,7 @@ All workflows:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file
 
-### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml]
+### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml)
 
 - **Fix typos** (`autofix-typo`)
 
@@ -236,40 +236,35 @@ All workflows:
     - Repository name starts with `awesome-`
     - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
 
-### [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labels.yaml]
+### [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labels.yaml)
 
-- **Sync labels** (`labels`)
+- **Sync labels** (`sync-labels`)
 
   - Synchronizes repository labels from a YAML definition file using [`action-manage-label`](https://github.com/julb/action-manage-label)
+  - Automatically includes [`labels-awesome.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/labels-awesome.yaml) for `awesome-*` repositories
 
-### [`.github/workflows/labeller-content-based.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labeller-content-based.yaml]
-
-- **Content-based labeller** (`labeller`)
-
-  - Automatically labels issues and PRs based on title and body content using [`issue-labeler`](https://github.com/github/issue-labeler)
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
-
-### [`.github/workflows/labeller-file-based.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labeller-file-based.yaml]
-
-- **File-based labeller** (`labeller`)
+- **File-based PR labeller** (`file-labeller`)
 
   - Automatically labels PRs based on changed file paths using [`labeler`](https://github.com/actions/labeler)
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs
 
-### [`.github/workflows/label-sponsors.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/label-sponsors.yaml]
+- **Content-based labeller** (`content-labeller`)
 
-- **Tag sponsors** (`label-sponsors`)
+  - Automatically labels issues and PRs based on title and body content using [`issue-labeler`](https://github.com/github/issue-labeler)
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+- **Tag sponsors** (`sponsor-labeller`)
 
   - Adds a `💖 sponsors` label to issues and PRs from sponsors using [`is-sponsor-label-action`](https://github.com/JasonEtco/is-sponsor-label-action)
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs
 
-### [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml]
+### [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml)
 
 - **Mypy lint** (`mypy-lint`)
 
@@ -333,7 +328,7 @@ All workflows:
     - `prepare-release` branch
     - Bot-created PRs
 
-### [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml]
+### [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml)
 
 - **Build package** (`package-build`)
 

@@ -4,12 +4,26 @@ name: Labels
   workflow_call:
     inputs:
       extra-label-files:
+        description: 'Additional label definition files to sync'
         required: false
         type: string
-  # Restrict all project-related activities to the main branch.
+      extra-file-rules:
+        description: 'YAML describing additional file-based labelling rules'
+        required: false
+        type: string
+      extra-content-rules:
+        description: 'YAML describing additional content-based labelling rules'
+        required: false
+        type: string
   push:
     branches:
       - main
+  # Trigger labellers and sponsor tagger on PR open only to avoid excessive runs.
+  pull_request:
+    types: [opened]
+  # Trigger labellers and sponsor tagger on issue open only to avoid excessive runs.
+  issues:
+    types: [opened]
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits. Source:
@@ -20,8 +34,10 @@ concurrency:
 
 jobs:
 
-  labels:
+  sync-labels:
     name: Sync labels
+    # Restrict job to the main branch pushes and workflow calls only, as this is a project-management task.
+    if: github.event_name == 'push' || github.event_name == 'workflow_call'
     # Cannot use "ubuntu-slim" here because julb/action-manage-label rely on Docker.
     runs-on: ubuntu-24.04
     steps:
@@ -38,3 +54,93 @@ jobs:
             ${{ ( startsWith(github.event.repository.name, 'awesome-')
             && github.event.repository.name != 'awesome-template' &&
             'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels-awesome.yaml' ) || '' }}
+
+  project-metadata:
+    name: Project metadata
+    # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
+    if: github.head_ref != 'prepare-release'
+    runs-on: ubuntu-slim
+    outputs:
+      is_bot: ${{ steps.project-metadata.outputs.is_bot }}
+    steps:
+      - uses: actions/checkout@v6.0.1
+      - uses: astral-sh/setup-uv@v7.1.4
+      - name: Run gha-utils metadata
+        id: project-metadata
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: >
+          uvx
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --
+          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
+
+  file-labeller:
+    name: File-based PR labeller
+    needs:
+      - project-metadata
+    if: >
+      github.event_name == 'pull_request'
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.1
+      - name: Download default rules
+        run: >
+          curl -fsSL --output ./.github/labeller-file-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
+      - name: Extend default rules
+        if: inputs.extra-file-rules
+        run: |
+          tee -a ./.github/labeller-file-based.yaml <<-EOF
+
+          ${{ inputs.extra-file-rules }}
+          EOF
+      - name: Apply rules
+        uses: actions/labeler@v6.0.1
+        with:
+          configuration-path: ".github/labeller-file-based.yaml"
+          sync-labels: true
+
+  content-labeller:
+    name: Content-based labeller
+    needs:
+      - project-metadata
+    if: >
+      (github.event_name == 'pull_request' || github.event_name == 'issues')
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.1
+      - name: Download default rules
+        run: >
+          curl -fsSL --output ./.github/labeller-content-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-content-based.yaml
+      - name: Extend default rules
+        if: inputs.extra-content-rules
+        run: |
+          tee -a ./.github/labeller-content-based.yaml <<-EOF
+
+          ${{ inputs.extra-content-rules }}
+          EOF
+      - name: Apply rules
+        uses: github/issue-labeler@v3.4
+        with:
+          configuration-path: ".github/labeller-content-based.yaml"
+          enable-versioned-regex: 0
+          include-title: 1
+
+  sponsor-labeller:
+    name: Tag sponsors
+    needs:
+      - project-metadata
+    if: >
+      (github.event_name == 'pull_request' || github.event_name == 'issues')
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
+    runs-on: ubuntu-slim
+    steps:
+      - uses: JasonEtco/is-sponsor-label-action@v2.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          label: 💖 sponsors
