@@ -44,6 +44,7 @@
   skip_platforms: windows
   stderr_contains:
     - "info: Print metadata to <stdout>"
+  # yamllint disable rule:line-length
   stdout_regex_fullmatch: |-
     is_bot=false
     new_commits=
@@ -71,7 +72,7 @@
     release_commits_matrix=
     build_targets=\[\{"target": .+\}\]
     nuitka_matrix=\{"os": \[.+\], "entry_point": \[.+\], "commit": \[.+\], "include": \[\{.+
-
+  # yamllint enable
 
 # Test changelog output.
 - cli_parameters:
