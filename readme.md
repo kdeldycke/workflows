@@ -7,8 +7,8 @@
 [![Coverage status](https://codecov.io/gh/kdeldycke/workflows/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/workflows)
 
 This repository contains:
-- a collection of reusable workflows
-- a standalone CLI called `gha-utils` (which stands for *GitHub action workflows utilities*)
+- a [collection of reusable workflows](#reusable-workflows-collection)
+- a standalone [CLI called `gha-utils`](#gha-utils-cli)
 
 It is designed for `uv`-based Python projects, but can be used for other projects as well. Thanks to this project, I am able to **release Python packages multiple times a day with only 2-clicks**.
 
@@ -33,9 +33,11 @@ Nothing is done behind your back. A PR is created every time a change is propose
 
 ## `gha-utils` CLI
 
-### Ad-hoc execution
+`gha-utils` stands for *GitHub action workflows utilities*.
 
-Thanks to `uv`, you can install and run `gha-utils` in one command, without polluting your system:
+### Try it
+
+Thanks to `uv`, you can run it in one command, without installation or venv:
 
 ```shell-session
 $ uvx -- gha-utils
@@ -88,17 +90,17 @@ To ease deployment, standalone executables of `gha-utils`'s latest version are a
 | **macOS**   | [Download `gha-utils-macos-arm64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-arm64.bin)     | [Download `gha-utils-macos-x64.bin`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-macos-x64.bin)     |
 | **Windows** | [Download `gha-utils-windows-arm64.exe`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-windows-arm64.exe) | [Download `gha-utils-windows-x64.exe`](https://github.com/kdeldycke/workflows/releases/latest/download/gha-utils-windows-x64.exe) |
 
-ABI targets:
-
-```shell-session
-$ file ./gha-utils-*
-./gha-utils-linux-arm64.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=520bfc6f2bb21f48ad568e46752888236552b26a, for GNU/Linux 3.7.0, stripped
-./gha-utils-linux-x64.bin:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=56ba24bccfa917e6ce9009223e4e83924f616d46, for GNU/Linux 3.2.0, stripped
-./gha-utils-macos-arm64.bin:   Mach-O 64-bit executable arm64
-./gha-utils-macos-x64.bin:     Mach-O 64-bit executable x86_64
-./gha-utils-windows-arm64.exe: PE32+ executable (console) Aarch64, for MS Windows
-./gha-utils-windows-x64.exe:   PE32+ executable (console) x86-64, for MS Windows
-```
+> [!NOTE]
+> ABI targets:
+> ```shell-session
+> $ file ./gha-utils-*
+> ./gha-utils-linux-arm64.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=520bfc6f2bb21f48ad568e46752888236552b26a, for GNU/Linux 3.7.0, stripped
+> ./gha-utils-linux-x64.bin:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=56ba24bccfa917e6ce9009223e4e83924f616d46, for GNU/Linux 3.2.0, stripped
+> ./gha-utils-macos-arm64.bin:   Mach-O 64-bit executable arm64
+> ./gha-utils-macos-x64.bin:     Mach-O 64-bit executable x86_64
+> ./gha-utils-windows-arm64.exe: PE32+ executable (console) Aarch64, for MS Windows
+> ./gha-utils-windows-x64.exe:   PE32+ executable (console) x86-64, for MS Windows
+> ```
 
 ### Development version
 
@@ -225,7 +227,7 @@ All workflows:
           "furo",
           "myst-parser",
           "sphinx",
-          ...
+          …
       ]
       ```
 
@@ -476,12 +478,12 @@ This ensures released versions reference immutable, tagged URLs while `main` rem
 
 ## Permissions and token
 
-This repository updates itself via GitHub actions. It particularly updates its own YAML files in `.github/workflows`. That's forbidden by default. So we need extra permissions.
+As [explained above](#tagged-workflow-urls), this repository updates itself via GitHub actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
 
 Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files. It looks like this:
 
 ```yaml
-on: (...)
+on: (…)
 
 jobs:
 
@@ -491,7 +493,7 @@ jobs:
       contents: write
       pull-requests: write
 
-    steps: (...)
+    steps: (…)
 ```
 
 But the `contents: write` permission doesn't allow write access to the workflow files in the `.github` subfolder. There is `actions: write`, but it only covers workflow runs, not their YAML source file. Even a `permissions: write-all` doesn't work. So you cannot use the `permissions` parameter to allow a repository's workflow update its own workflow files.
