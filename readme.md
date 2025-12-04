@@ -6,27 +6,30 @@
 [![Unittests status](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml?query=branch%3Amain)
 [![Coverage status](https://codecov.io/gh/kdeldycke/workflows/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/workflows)
 
-Thanks to this project, I am able to **release Python packages multiple times a day with only 2-clicks**.
+This repository contains:
+- a collection of reusable workflows
+- a standalone CLI called `gha-utils` (which stands for *GitHub action workflows utilities*)
 
-This repository contains a collection of reusable workflows and its companion CLI called `gha-utils` (which stands for *GitHub action workflows utilities*).
-
-It is designed for `uv`-based Python projects (and Awesome List projects as a bonus).
+It is designed for `uv`-based Python projects, but can be used for other projects as well. Thanks to this project, I am able to **release Python packages multiple times a day with only 2-clicks**.
 
 It takes care of:
 
 - Version bumping
+- Changelog management
 - Formatting autofix for: Python, Markdown, JSON, typos
-- Linting: Python types with `mypy`, YAML, `zsh`, GitHub actions, links, Awesome lists, secrets
+- Linting: Python types with `mypy`, YAML, `zsh`, GitHub actions, URLS & redirects, Awesome lists, secrets
 - Compiling of Python binaries for Linux / macOS / Windows on `x86_64` & `arm64`
 - Building of Python packages and upload to PyPi
+- Produce attestations
 - Git version tagging and GitHub release creation
 - Synchronization of: `uv.lock`, `.gitignore`, `.mailmap` and Mermaid dependency graph
 - Auto-locking of inactive closed issues
 - Static image optimization
 - Sphinx documentation building & deployment, and `autodoc` updates
 - Label management, with file-based and content-based rules
+- Awesome list template synchronization
 
-Nothing is done behind your back. A PR is created every time a change is proposed, so you can inspect it, ala dependabot.
+Nothing is done behind your back. A PR is created every time a change is proposed, so you can inspect it before merging it.
 
 ## `gha-utils` CLI
 
