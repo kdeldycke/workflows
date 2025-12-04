@@ -391,46 +391,88 @@ Pros of `project-metadata`:
 - Allows to share complex logic and data across jobs
 - Simplifies the code maintenance
 - Centralizes all project metadata extraction in one place
+## Dependency strategy
 
-### Why all these `requirements/*.txt` files?
+All dependencies in this project are pinned to specific versions to ensure stability, reproducibility, and security. This section explains the mechanisms in place.
 
-Let's look for example at the `lint-yaml` job from [`.github/workflows/lint.yaml`](https://github.com/kdeldycke/workflows/blob/72a2e5d5cd6cf4d4c8369a17cee922a43acaa57f/.github/workflows/lint.yaml#L67-L85). Here [we only need to run `yamllint`](https://github.com/kdeldycke/workflows/blob/72a2e5d5cd6cf4d4c8369a17cee922a43acaa57f/.github/workflows/lint.yaml#L85). This CLI is [distributed on PyPi](https://pypi.org/project/yamllint/).
+### Pinning mechanisms
 
-So we could have simply run it with this step:
+| Mechanism | What it pins | How it's updated |
+|-----------|--------------|------------------|
+| `requirements/*.txt` files | Python CLIs used in workflows | Dependabot PRs |
+| `uv.lock` | Project dependencies | `sync-uv-lock` job |
+| Hard-coded versions in YAML | GitHub Actions, npm packages | Dependabot PRs |
+| `uv --exclude-newer` option | Transitive dependencies | Time-based window |
+| Tagged workflow URLs | Remote workflow references | Release process |
 
-```yaml
-  - run: |
-      uvx -- yamllint
-```
+### `requirements/*.txt` files
 
-Instead, we install it by pointing to the [`requirements/yamllint.txt` file](https://github.com/kdeldycke/workflows/blob/main/requirements/yamllint.txt):
+Each Python CLI used in workflows has its own requirements file (e.g., [`requirements/yamllint.txt`](https://github.com/kdeldycke/workflows/blob/main/requirements/yamllint.txt)). This allows Dependabot to track and update each tool independently.
 
-```yaml
-  - run: |
-      uvx --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt -- yamllint
-```
-
-Why? Because I want the version of `yamllint` to be pinned. By pinning it, I make the workflow stable, predictable and reproducible.
-
-So why use a dedicated requirements file? Why don't we simply add the version? Like this:
+We use these files instead of inline version strings because **Dependabot cannot parse versions in `run:` blocks**—it only supports `requirements.txt` and `pyproject.toml` files for Python projects ([source](https://github.com/dependabot/dependabot-core/blob/c938bbf7cb4da88053d4379dcab297a3eaa8c0a7/python/lib/dependabot/python/file_fetcher.rb#L24-L44)).
 
 ```yaml
-  - run: |
-      uvx -- yamllint==1.37.1
+# ❌ Dependabot cannot update this:
+- run: uvx -- yamllint==1.37.1
+
+# ✅ So we use requirements/yamllint.txt as an indirection:
+- run: uvx --with-requirements …/requirements/yamllint.txt -- yamllint
 ```
 
-That would indeed pin the version. But it requires the maintainer (me) to keep track of new release and update manually the version string. That's a lot of work. And I'm lazy. So this should be automated.
+A root [`requirements.txt`](https://github.com/kdeldycke/workflows/blob/main/requirements.txt) aggregates all files from the `requirements/` folder for bulk installation.
 
-To automate that, the only practical way I found was to rely on dependabot. But dependabot cannot update arbitrary versions in `run:` YAML blocks. It [only supports `requirements.txt` and `pyproject.toml`](https://github.com/dependabot/dependabot-core/blob/c938bbf7cb4da88053d4379dcab297a3eaa8c0a7/python/lib/dependabot/python/file_fetcher.rb#L24-L44) files for Python projects.
+### Hard-coded versions in workflows
 
-So to keep track of new versions of dependencies while keeping them stable, we've hard-coded all Python libraries and CLIs in the `requirements/*.txt` files. All with pinned versions.
+GitHub Actions and npm packages are pinned directly in YAML files:
 
-And for the case we need to install all dependencies in one go, we have a [`requirements.txt` file at the root](https://github.com/kdeldycke/workflows/blob/main/requirements.txt) that is referencing all files from the `requirements/` subfolder.
+```yaml
+- uses: actions/checkout@v6.0.1          # Pinned action
+- run: npm install eslint@9.39.1         # Pinned npm package
+```
 
-> [!NOTE]
-> In the future, we might be able to get rid of this workaround by [relying on Renovate](https://github.com/kdeldycke/workflows/issues/1728).
+Dependabot's `github-actions` ecosystem handles action updates.
 
-### Permissions and token
+> [!WARNING]
+> For npm packages, we pin versions inline since they're used sparingly, and then update them manually when needed.
+
+### Dependabot cooldowns
+
+To avoid update fatigue, [`.github/dependabot.yaml`](https://github.com/g/blob/main/.github/dependabot.yaml) uses cooldown periods (with prime numbers to stagger updates).
+
+This ensures major updates get more scrutiny while patches flow through faster.
+
+### `uv.lock` and `--exclude-newer`
+
+The `uv.lock` file pins all project dependencies, and the [`sync-uv-lock`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml) job keeps it in sync.
+
+The `--exclude-newer` flag ignores packages released in the last 7 days, providing a buffer against freshly-published broken releases.
+
+### Tagged workflow URLs
+
+Workflows in this repository are **self-referential**, and points to themselves via raw GitHub URLs.
+
+During development, these point to `main`:
+
+```yaml
+--with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+```
+
+The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job rewrites these to the release tag before tagging:
+
+```yaml
+# Before release commit:
+…/workflows/main/requirements/gha-utils.txt
+
+# In the tagged release commit:
+…/workflows/v4.24.6/requirements/gha-utils.txt
+
+# After post-release bump:
+…/workflows/main/requirements/gha-utils.txt
+```
+
+This ensures released versions reference immutable, tagged URLs while `main` remains editable.
+
+## Permissions and token
 
 This repository updates itself via GitHub actions. It particularly updates its own YAML files in `.github/workflows`. That's forbidden by default. So we need extra permissions.
 
@@ -485,7 +527,7 @@ To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
 
 Now re-run your actions and they should be able to update the workflow files in `.github` folder without the `refusing to allow a GitHub App to create or update workflow` error.
 
-### Release management
+## Release management
 
 It turns out [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist).
 
