@@ -482,56 +482,82 @@ This ensures released versions reference immutable, tagged URLs while `main` rem
 
 As [explained above](#tagged-workflow-urls), this repository updates itself via GitHub actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
 
-Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files. It looks like this:
+### Why `permissions:` isn't enough
+
+Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files:
 
 ```yaml
 on: (…)
 
 jobs:
-
   my-job:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-
     steps: (…)
 ```
 
-But the `contents: write` permission doesn't allow write access to the workflow files in the `.github` subfolder. There is `actions: write`, but it only covers workflow runs, not their YAML source file. Even a `permissions: write-all` doesn't work. So you cannot use the `permissions` parameter to allow a repository's workflow update its own workflow files.
+But `contents: write` doesn't allow write access to workflow files in `.github/`. The `actions: write` permission only covers workflow *runs*, not their YAML source files. Even `permissions: write-all` doesn't work.
 
-You will always end up with this kind or errors:
+You will always end up with this error:
 
 ```text
-   ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a GitHub App to create or update workflow `.github/workflows/my_workflow.yaml` without `workflows` permission)
+! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a GitHub App to create or update workflow `.github/workflows/my_workflow.yaml` without `workflows` permission)
 
-  error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
+error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
 ```
 
 > [!NOTE]
-> That's also why the Settings > Actions > General > Workflow permissions parameter on your repository has no effect on this issue, even with the `Read and write permissions` set:
+> The **Settings → Actions → General → Workflow permissions** setting on your repository has no effect on this issue, even with "Read and write permissions" enabled:
 > ![](docs/assets/repo-workflow-permissions.png)
 
-To bypass the limitation, we rely on a custom access token. By convention, we call it `WORKFLOW_UPDATE_GITHUB_PAT`. It will be used, [in place of the default `secrets.GITHUB_TOKEN`](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code), in steps in which we need to change the workflow YAML files.
+### Solution: Fine-grained Personal Access Token
 
-To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
+To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_GITHUB_PAT`. It replaces the default `secrets.GITHUB_TOKEN` [in steps that modify workflow files](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code).
 
-- From your GitHub user, go to `Settings` > `Developer Settings` > `Personal Access Tokens` > `Fine-grained tokens`
-- Click on the `Generate new token` button
-- Choose a good token name like `workflow-self-update` to make your intention clear
-- Choose `Only select repositories` and the list the repositories in needs of updating their workflow YAML files
-- In the `Repository permissions` drop-down, sets:
-  - `Contents`: `Access: **Read and Write**`
-  - `Metadata` (mandatory): `Access: **Read-only**`
-  - `Pull Requests`: `Access: **Read and Write**`
-  - `Workflows`: `Access: **Read and Write**`
-    > [!NOTE]
-    > This is the only place where I can have control over the `Workflows` permission, which is not supported by the `permissions:` parameter in YAML files.
-- Now save these parameters and copy the `github_pat_XXXX` secret token
-- Got to your repo > `Settings` > `Security` > `Secrets and variables` > `Actions` > `Secrets` > `Repository secrets` and click `New repository secrets`
-- Name your secret `WORKFLOW_UPDATE_GITHUB_PAT` and copy the `github_pat_XXXX` token in the `Secret` field
+#### Step 1: Create the token
 
-Now re-run your actions and they should be able to update the workflow files in `.github` folder without the `refusing to allow a GitHub App to create or update workflow` error.
+1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**
+2. Click **Generate new token**
+3. Configure:
+   | Field | Value |
+   |:-------|:-------|
+   | **Token name** | `workflow-self-update` (or similar descriptive name) |
+   | **Expiration** | Choose based on your security policy |
+   | **Repository access** | Select **Only select repositories** and choose the repos that need workflow self-updates |
+
+4. Click **Add permissions**:
+
+   | Permission | Access |
+   |:------------|:--------|
+   | **Contents** | Read and Write |
+   | **Metadata** | Read-only *(mandatory)* |
+   | **Pull requests** | Read and Write |
+   | **Workflows** | Read and Write |
+
+   > [!IMPORTANT]
+   > The **Workflows** permission is the key. This is the *only* place where you can grant it—it's not available via the `permissions:` parameter in YAML files.
+
+5. Click **Generate token** and copy the `github_pat_XXXX` value
+
+#### Step 2: Add the secret to your repository
+
+1. Go to your repository → **Settings → Security → Secrets and variables → Actions**
+2. Click **New repository secret**
+3. Set:
+   - **Name**: `WORKFLOW_UPDATE_GITHUB_PAT`
+   - **Secret**: paste the `github_pat_XXXX` token
+
+#### Step 3: Verify it works
+
+Re-run your workflow. It should now update files in `.github/workflows/` without the error.
+
+> [!TIP]
+> **For organizations**: Consider using a [machine user account](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#personal-accounts) or a dedicated service account to own the PAT, rather than tying it to an individual's account.
+
+> [!WARNING]
+> **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token before expiration, or your workflows will fail silently.
 
 ## Used in
 
