@@ -443,7 +443,7 @@ Dependabot's `github-actions` ecosystem handles action updates.
 
 ### Dependabot cooldowns
 
-To avoid update fatigue, [`.github/dependabot.yaml`](https://github.com/g/blob/main/.github/dependabot.yaml) uses cooldown periods (with prime numbers to stagger updates).
+To avoid update fatigue, and [mitigate supply chain attacks](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns), [`.github/dependabot.yaml`](https://github.com/g/blob/main/.github/dependabot.yaml) uses cooldown periods (with prime numbers to stagger updates).
 
 This ensures major updates get more scrutiny while patches flow through faster.
 
