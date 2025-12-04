@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add cooldown period for dependabot updates: 7 days by default, 29 days for major updates, 11 days for minor updates, 5 days for patch updates.
 - Unlock a CPU core stuck at 100% utilization on `macos-15-intel`.
 
 ## [4.24.6 (2025-11-29)](https://github.com/kdeldycke/workflows/compare/v4.24.5...v4.24.6)
