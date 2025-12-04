@@ -371,26 +371,28 @@ All workflows:
 
 ### What is this `project-metadata` job?
 
-Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first and extracts contextual information used to:
-- Control conditional execution of downstream jobs
-- Pre-compute dynamic values passed to child jobs
+Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extracts contextual information, reconcile and combine them, and expose them for downstream jobs to consume.
 
-This job uses the [`gha-utils metadata` command](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py) to gather data from multiple sources:
+This expand the capabilities of GitHub actions, since it allows to:
+- Share complex data across jobs (like build matrix)
+- Remove limitations of conditional jobs
+- Allow for runner introspection
+- Fix quirks (like missing environment variables, events/commits mismatch, merge commits, etc.)
+
+This job relies on the [`gha-utils metadata` command](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py) to gather data from multiple sources:
 - **Git**: current branch, latest tag, commit messages, changed files
 - **GitHub**: event type, actor, PR labels
 - **Environment**: OS, architecture
 - **`pyproject.toml`**: project name, version, entry points
 
-Cons of having this dedicated job:
-- Makes the whole workflow a bit more computationally intensive
-- Introduce a small delay at the beginning of the run
-- Prevents child jobs to run in parallel before its completion
+> [!IMPORTANT]
+> This flexibility comes at the cost of:
+> - Making the whole workflow a bit more computationally intensive
+> - Introducing a small delay at the beginning of the run
+> - Preventing child jobs to run in parallel before its completion
+>
+> But is worth it given how GitHub actions can be frustrating.
 
-Pros of `project-metadata`:
-- Remove limitation of conditional jobs in GitHub actions
-- Allows to share complex logic and data across jobs
-- Simplifies the code maintenance
-- Centralizes all project metadata extraction in one place
 ## Dependency strategy
 
 All dependencies in this project are pinned to specific versions to ensure stability, reproducibility, and security. This section explains the mechanisms in place.
