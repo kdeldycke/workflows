@@ -176,7 +176,7 @@ All workflows:
 
 - **Prepare release** (`prepare-release`)
 
-  - Creates a release PR with changelog updates and version tagging using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
+  - Creates a release PR with changelog updates and version tagging using [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`gha-utils changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file
