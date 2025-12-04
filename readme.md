@@ -105,51 +105,268 @@ gha-utils, version 4.18.2
 
 ## Reusable workflows collection
 
-This repository contains workflows to automate most of the boring tasks.
-
-These workflows are mostly used for Python projects and their documentation, but not only. They're all [reusable GitHub actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
-
-Reasons for a centralized workflow repository:
-
-- reusability of course: no need to update dozens of repository where 95% of workflows are the same
-- centralize all dependencies pertaining to automation: think of the point-release of an action that triggers dependabot upgrade to all your repositories depending on it
+This repository contains workflows to automate most of the boring tasks in the form of [reusable GitHub actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
 
 ### Guidelines
 
-I don't want to copy-n-past, keep in sync and maintain another `N`th CI/CD file at the root of my repositories.
+All workflows:
 
-So my policy is: move every repository-specific config in a `pyproject.toml` file, or hide the gory details in a reused workflow.
+- Are designed to be reusable in other repositories via the `uses:` syntax.
+- Uses `uv` to install dependencies and CLIs.
+- Have jobs guarded by conditions to skip unnecessary steps when not needed.
+- Rely on pinned versions of actions, tools and CLIs, to ensure stability, reproducibility and security.
+- Are run and tested in this repository: we eat our own dog-food.
 
-### `.github/workflows/docs.yaml` jobs
+### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml]
 
-- Autofix typos
+- **Format Python** (`format-python`)
 
-- Optimize images
+  - Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8), [`ruff`](https://github.com/astral-sh/ruff), and [`blacken-docs`](https://github.com/adamchainz/blacken-docs)
+  - **Requires**:
+    - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository, or
+    - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}`)
 
-- Keep `.mailmap` up to date
+- **Sync `uv.lock`** (`sync-uv-lock`)
 
-- Update dependency graph of Python projects
-
+  - Keeps `uv.lock` file up to date with dependencies using [`uv`](https://github.com/astral-sh/uv)
   - **Requires**:
     - Python package with a `pyproject.toml` file
 
-- Build Sphinx-based documentation and publish it to GitHub Pages
+- **Format Markdown** (`format-markdown`)
 
+  - Auto-formats Markdown files using [`mdformat`](https://github.com/hukkin/mdformat)
+  - **Requires**:
+    - Markdown files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}`) in the repository
+
+- **Format JSON** (`format-json`)
+
+  - Auto-formats JSON, JSONC, and JSON5 files using [ESLint](https://github.com/eslint/eslint) with [`@eslint/json`](https://github.com/eslint/json) plugin
+  - **Requires**:
+    - JSON files (`**/*.{json,jsonc,json5}`, `**/.code-workspace`, `!**/package-lock.json`) in the repository
+
+- **Update .gitignore** (`update-gitignore`)
+
+  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`git-extras`](https://github.com/tj/git-extras)
+  - **Requires**:
+    - A `.gitignore` file in the repository
+
+### [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml]
+
+- **Lock inactive threads** (`lock`)
+
+  - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
+
+### [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml]
+
+- **Version increments** (`version-increments`)
+
+  - Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
+  - **Requires**:
+    - `bump-my-version` configuration in `pyproject.toml`
+    - A `changelog.md` file
+  - **Skipped for**:
+    - Schedule events
+    - Release commits (starting with `[changelog] Release v`)
+
+- **Prepare release** (`prepare-release`)
+
+  - Creates a release PR with changelog updates and version tagging using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
+  - **Requires**:
+    - `bump-my-version` configuration in `pyproject.toml`
+    - A `changelog.md` file
+
+### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml]
+
+- **Fix typos** (`autofix-typo`)
+
+  - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
+
+- **Optimize images** (`optimize-images`)
+
+  - Compresses images in the repository using [`image-actions`](https://github.com/calibreapp/image-actions)
+  - **Requires**:
+    - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
+
+- **Update `.mailmap`** (`update-mailmap`)
+
+  - Keeps `.mailmap` file up to date with contributors using [`gha-utils mailmap-sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/mailmap.py)
+  - **Requires**:
+    - A `.mailmap` file in the repository root
+
+- **Update dependency graph** (`update-deps-graph`)
+
+  - Generates a Mermaid dependency graph of the Python project using [`pipdeptree`](https://github.com/tox-dev/pipdeptree)
   - **Requires**:
     - Python package with a `pyproject.toml` file
+
+- **Update autodoc** (`update-autodoc`)
+
+  - Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
+  - **Requires**:
+    - Python package with a `pyproject.toml` file
+    - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
+
+- **Deploy Sphinx doc** (`deploy-docs`)
+
+  - Builds Sphinx-based documentation and publishes it to GitHub Pages using [`sphinx`](https://github.com/sphinx-doc/sphinx) and [`gh-pages`](https://github.com/peaceiris/actions-gh-pages)
+  - **Requires**:
+    - Python package with a `pyproject.toml` file
+    - Sphinx configuration file at `docs/conf.py`
     - All Sphinx dependencies in a `docs` [extra dependency group](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#dependencies-and-requirements):
       ```toml
       [project.optional-dependencies]
       docs = [
-          "furo == 2024.1.29",
-          "myst-parser ~= 3.0.0",
-          "sphinx >= 6",
+          "furo",
+          "myst-parser",
+          "sphinx",
           ...
       ]
       ```
-    - Sphinx configuration file at `docs/conf.py`
 
-- Sync awesome projects from `awesome-template` repository
+- **Sync awesome template** (`awesome-template-sync`)
+
+  - Syncs awesome list projects from the [`awesome-template`](https://github.com/kdeldycke/awesome-template) repository using [`actions-template-sync`](https://github.com/AndreasAugustin/actions-template-sync)
+  - **Requires**:
+    - Repository name starts with `awesome-`
+    - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
+
+### [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labels.yaml]
+
+- **Sync labels** (`labels`)
+
+  - Synchronizes repository labels from a YAML definition file using [`action-manage-label`](https://github.com/julb/action-manage-label)
+
+### [`.github/workflows/labeller-content-based.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labeller-content-based.yaml]
+
+- **Content-based labeller** (`labeller`)
+
+  - Automatically labels issues and PRs based on title and body content using [`issue-labeler`](https://github.com/github/issue-labeler)
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+### [`.github/workflows/labeller-file-based.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labeller-file-based.yaml]
+
+- **File-based labeller** (`labeller`)
+
+  - Automatically labels PRs based on changed file paths using [`labeler`](https://github.com/actions/labeler)
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+### [`.github/workflows/label-sponsors.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/label-sponsors.yaml]
+
+- **Tag sponsors** (`label-sponsors`)
+
+  - Adds a `💖 sponsors` label to issues and PRs from sponsors using [`is-sponsor-label-action`](https://github.com/JasonEtco/is-sponsor-label-action)
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+### [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml]
+
+- **Mypy lint** (`mypy-lint`)
+
+  - Type-checks Python code using [`mypy`](https://github.com/python/mypy)
+  - **Requires**:
+    - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository
+  - **Skipped for**:
+    - `prepare-release` branch
+
+- **Lint YAML** (`lint-yaml`)
+
+  - Lints YAML files using [`yamllint`](https://github.com/adrienverge/yamllint)
+  - **Requires**:
+    - YAML files (`**/*.{yaml,yml}`) in the repository
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+- **Lint Zsh** (`lint-zsh`)
+
+  - Syntax-checks Zsh scripts using `zsh --no-exec`
+  - **Requires**:
+    - Zsh files (`**/*.zsh`) in the repository
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+- **Lint GitHub Actions** (`lint-github-action`)
+
+  - Lints workflow files using [`actionlint`](https://github.com/rhysd/actionlint) and [`shellcheck`](https://github.com/koalaman/shellcheck)
+  - **Requires**:
+    - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+- **Broken links** (`broken-links`)
+
+  - Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
+  - Creates/updates issues for broken links found
+  - **Requires**:
+    - Documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}`) in the repository
+  - **Skipped for**:
+    - All PRs (only runs on push to main)
+    - `prepare-release` branch
+    - Post-release bump commits
+
+- **Lint Awesome list** (`lint-awesome`)
+
+  - Lints awesome lists using [`awesome-lint`](https://github.com/sindresorhus/awesome-lint)
+  - **Requires**:
+    - Repository name starts with `awesome-`
+    - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
+  - **Skipped for**:
+    - `prepare-release` branch
+
+- **Check secrets** (`check-secrets`)
+
+  - Scans for leaked secrets using [`gitleaks`](https://github.com/gitleaks/gitleaks)
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+### [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml]
+
+- **Build package** (`package-build`)
+
+  - Builds Python wheel and sdist packages using [`uv build`](https://github.com/astral-sh/uv)
+  - **Requires**:
+    - Python package with a `pyproject.toml` file
+
+- **Compile binaries** (`compile-binaries`)
+
+  - Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
+  - **Requires**:
+    - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
+
+- **Test binaries** (`test-binaries`)
+
+  - Runs test plans against compiled binaries using [`gha-utils test-plan`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/test_plan.py)
+  - **Requires**:
+    - Compiled binaries from `compile-binaries` job
+    - Test plan file (default: `./tests/cli-test-plan.yaml`)
+
+- **Git tag** (`git-tag`)
+
+  - Creates a Git tag for the release version
+  - **Requires**:
+    - Push to `main` branch
+    - Release commits matrix from [`gha-utils metadata`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py)
+
+- **Publish to PyPi** (`pypi-publish`)
+
+  - Uploads packages to PyPi with attestations using [`uv publish`](https://github.com/astral-sh/uv)
+  - **Requires**:
+    - `PYPI_TOKEN` secret
+    - Built packages from `package-build` job
+
+- **GitHub release** (`github-release`)
+
+  - Creates a GitHub release with all artifacts attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
+  - **Requires**:
+    - Successful `git-tag` job
 
 ### Why all these `requirements/*.txt` files?
 
