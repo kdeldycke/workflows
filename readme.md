@@ -332,6 +332,8 @@ All workflows:
 
 ### [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml)
 
+[Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist) that nobody wants to deal with. This workflow automates most of it for Python projects.
+
 - **Build package** (`package-build`)
 
   - Builds Python wheel and sdist packages using [`uv build`](https://github.com/astral-sh/uv)
@@ -530,28 +532,6 @@ To create this custom `WORKFLOW_UPDATE_GITHUB_PAT`:
 - Name your secret `WORKFLOW_UPDATE_GITHUB_PAT` and copy the `github_pat_XXXX` token in the `Secret` field
 
 Now re-run your actions and they should be able to update the workflow files in `.github` folder without the `refusing to allow a GitHub App to create or update workflow` error.
-
-## Release management
-
-It turns out [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist).
-
-Things have improved a lot in the Python ecosystem with `uv`. But there are still a lot of manual steps to do to release.
-
-So I made up this [`release.yaml` workflow](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml), which:
-
-1. Extracts project metadata from `pyproject.toml`
-1. Generates a build matrix of all commits / os / arch / CLI entry points
-1. Builds Python wheels with `uv`
-1. Compiles binaries of all CLI with Nuitka
-1. Tag the release commit in Git
-1. Produces attestations of released artefacts
-1. Publish new version to PyPi
-1. Publish a GitHub release
-1. Attach and rename build artifacts to the GitHub release
-
-## Changelog
-
-A [detailed changelog](changelog.md) is available.
 
 ## Used in
 
