@@ -136,11 +136,6 @@ typing = ["types-boltons ~= 25.0.0.20250822", "types-PyYAML ~= 6.0.12.9"]
 [project.scripts]
 gha-utils = "gha_utils.__main__:main"
 
-[tool.uv]
-package = true
-# 0.9.0 is the snapshot version we used when we migrated from requirements/uv.txt to pyproject.toml.
-required-version = ">= 0.9.0"
-
 [tool.mypy]
 warn_unused_configs = true
 warn_redundant_casts = true
@@ -202,3 +197,7 @@ filename = "./citation.cff"
 regex = true
 search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
 replace = "date-released: {utcnow:%Y-%m-%d}"
+
+[build-system]
+requires = ["uv_build >= 0.9.15"]
+build-backend = "uv_build"
