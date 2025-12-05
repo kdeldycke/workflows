@@ -174,8 +174,9 @@ jobs:
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Sync uv.lock
         # Source: https://github.com/astral-sh/uv/issues/14992#issuecomment-3140466661
+        # Produce a stable date with a 00:00:00Z time to avoid uv.lock changes at every run.
         run: |
-          uv --no-progress sync --upgrade --exclude-newer "$(date --utc -d '7 days ago' '+%Y-%m-%dT%H:%M:%SZ')"
+          uv --no-progress sync --upgrade --exclude-newer "$(date --utc -d '7 days ago' '+%Y-%m-%dT00:00:00Z')"
       - uses: peter-evans/create-pull-request@v7.0.9
         with:
           assignees: ${{ github.actor }}
