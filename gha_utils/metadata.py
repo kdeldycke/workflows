@@ -280,7 +280,6 @@ import os
 import re
 import sys
 from collections.abc import Iterable
-from enum import StrEnum
 from functools import cached_property
 from operator import itemgetter
 from pathlib import Path
@@ -414,56 +413,56 @@ FLAT_BUILD_TARGETS = [
 """List of build targets in a flat format, suitable for matrix inclusion."""
 
 
-WorkflowEvent = StrEnum(
-    "WorkflowEvent",
-    (
-        "branch_protection_rule",
-        "check_run",
-        "check_suite",
-        "create",
-        "delete",
-        "deployment",
-        "deployment_status",
-        "discussion",
-        "discussion_comment",
-        "fork",
-        "gollum",
-        "issue_comment",
-        "issues",
-        "label",
-        "merge_group",
-        "milestone",
-        "page_build",
-        "project",
-        "project_card",
-        "project_column",
-        "public",
-        "pull_request",
-        "pull_request_comment",
-        "pull_request_review",
-        "pull_request_review_comment",
-        "pull_request_target",
-        "push",
-        "registry_package",
-        "release",
-        "repository_dispatch",
-        "schedule",
-        "status",
-        "watch",
-        "workflow_call",
-        "workflow_dispatch",
-        "workflow_run",
-    ),
-)
-"""Workflow events that cause a workflow to run.
+class WorkflowEvent(StrEnum):
+    """Workflow events that cause a workflow to run.
 
-`List of events
-<https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
-"""
+    `List of events
+    <https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
+    """
+
+    branch_protection_rule = "branch_protection_rule"
+    check_run = "check_run"
+    check_suite = "check_suite"
+    create = "create"
+    delete = "delete"
+    deployment = "deployment"
+    deployment_status = "deployment_status"
+    discussion = "discussion"
+    discussion_comment = "discussion_comment"
+    fork = "fork"
+    gollum = "gollum"
+    issue_comment = "issue_comment"
+    issues = "issues"
+    label = "label"
+    merge_group = "merge_group"
+    milestone = "milestone"
+    page_build = "page_build"
+    project = "project"
+    project_card = "project_card"
+    project_column = "project_column"
+    public = "public"
+    pull_request = "pull_request"
+    pull_request_comment = "pull_request_comment"
+    pull_request_review = "pull_request_review"
+    pull_request_review_comment = "pull_request_review_comment"
+    pull_request_target = "pull_request_target"
+    push = "push"
+    registry_package = "registry_package"
+    release = "release"
+    repository_dispatch = "repository_dispatch"
+    schedule = "schedule"
+    status = "status"
+    watch = "watch"
+    workflow_call = "workflow_call"
+    workflow_dispatch = "workflow_dispatch"
+    workflow_run = "workflow_run"
 
 
-Dialect = StrEnum("Dialect", ("github", "json"))
-"""Dialect in which metadata can be formatted to."""
+class Dialect(StrEnum):
+    """Dialect in which metadata can be formatted to."""
+
+    github = "github"
+    json = "json"
 
 
 class TargetVersion(StrEnum):
@@ -749,7 +748,7 @@ class Metadata:
         return matrix
 
     @cached_property
-    def event_type(self) -> WorkflowEvent | None:
+    def event_type(self) -> "WorkflowEvent | None":
         """Returns the type of event that triggered the workflow run.
 
         .. caution::
@@ -774,8 +773,8 @@ class Metadata:
             return None
 
         if bool(os.environ.get("GITHUB_BASE_REF")):
-            return WorkflowEvent.pull_request
-        return WorkflowEvent.push
+            return WorkflowEvent.pull_request  # type: ignore[return-value]
+        return WorkflowEvent.push  # type: ignore[return-value]
 
     @cached_property
     def event_actor(self) -> str | None:
@@ -881,8 +880,8 @@ class Metadata:
         start, end = self.commit_range
 
         # Sanity check: make sure the start commit exists in the repository.
-        # XXX Even if we skip the start commit later on (because the range is
-        # inclusive), we still need to make sure it exists: PyDriller stills needs to
+        # XXX Even if we skip the start commit later on (because the range is inclusive),
+        # we still need to make sure it exists: PyDriller stills needs to
         # find it to be able to traverse the commit history.
         for commit_id in (start, end):
             if not commit_id:
@@ -1643,7 +1642,7 @@ class Metadata:
 
         return str(value)
 
-    def dump(self, dialect: Dialect = Dialect.github) -> str:
+    def dump(self, dialect: "Dialect" = Dialect.github) -> str:  # type: ignore[assignment]
         """Returns all metadata in the specified format.
 
         Defaults to GitHub dialect.
