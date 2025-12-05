@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.25.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.25.0...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [4.25.0 (2025-12-05)](https://github.com/kdeldycke/workflows/compare/v4.24.6...v4.25.0)
 
 - Add cooldown period for dependabot updates: 7 days by default, 29 days for major updates, 11 days for minor updates, 5 days for patch updates.
