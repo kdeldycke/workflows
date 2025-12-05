@@ -53,9 +53,10 @@ jobs:
       - uses: actions/checkout@v6.0.1
       - uses: astral-sh/setup-uv@v7.1.4
       - name: Install all package dependencies
-        # Install --all-extras so typing can be checked on everything.
+        # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
+        # those related to optional features, tests, development and documentation.
         run: |
-          uv --no-progress sync --frozen --all-extras --group typing
+          uv --no-progress sync --frozen --all-extras --all-groups
       - name: Run Mypy
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >

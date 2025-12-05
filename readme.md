@@ -281,7 +281,6 @@ docs = [
   - Type-checks Python code using [`mypy`](https://github.com/python/mypy)
   - **Requires**:
     - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository
-    - `typing` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml`
   - **Skipped for**:
     - `prepare-release` branch
 
