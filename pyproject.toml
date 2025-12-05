@@ -136,6 +136,14 @@ typing = ["types-boltons ~= 25.0.0.20250822", "types-PyYAML ~= 6.0.12.9"]
 [project.scripts]
 gha-utils = "gha_utils.__main__:main"
 
+[build-system]
+requires = ["uv_build >= 0.9.15"]
+build-backend = "uv_build"
+
+[tool.uv_build]
+# Package is at root level, not in "./src/".
+module-root = ""
+
 [tool.mypy]
 warn_unused_configs = true
 warn_redundant_casts = true
@@ -197,7 +205,3 @@ filename = "./citation.cff"
 regex = true
 search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
 replace = "date-released: {utcnow:%Y-%m-%d}"
-
-[build-system]
-requires = ["uv_build >= 0.9.15"]
-build-backend = "uv_build"
