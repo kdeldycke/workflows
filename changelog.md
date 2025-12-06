@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.25.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.25.1...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.25.2 (2025-12-06)](https://github.com/kdeldycke/workflows/compare/v4.25.1...v4.25.2)
 
 - Use uncap dependencies everywhere.
 
