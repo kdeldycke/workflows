@@ -112,20 +112,26 @@ dependencies = [
 # Package referenced above and also featured in [project.optional-dependencies] or [dependency-groups]
 # will be set without version specifier as they are already constrained.
 
-# Runtime extra dependency groups, also relying on >= specifiers as explained above.
+# Runtime extra dependency groups.
 [project.optional-dependencies]
 
-# Non-runtime development dependency groups, using the ~= specifier to reduce randomness.
+# Non-runtime development dependency groups.
 [dependency-groups]
 test = [
-    "coverage [toml] ~= 7.12.0",
-    "pytest ~= 9.0.0",
-    "pytest-cases ~= 3.9.1",
-    "pytest-cov ~= 7.0.0",
-    "pytest-github-actions-annotate-failures ~= 0.3.0",
-    "pytest-randomly ~= 4.0.0",
+    # coverage 7.11.0 is the first version to drop support for Python 3.9.
+    "coverage [toml] >= 7.11.0",
+    # Pytest 9.0.0 introduce support for native TOML configuration files.
+    "pytest >= 9.0.0",
+    # pytest-cases 3.9.0 is the first version to support Python 3.14.
+    "pytest-cases >= 3.9.0",
+    # pytest-cov 7.0.0 is the first version to be repackaged with pyproject-metadata.
+    "pytest-cov >= 7.0.0",
+    # pytest-github-actions-annotate-failures 0.3.0 is the first version to support Python 3.13.
+    "pytest-github-actions-annotate-failures >= 0.3.0",
+    # pytest-randomly 4.0.0 is the first version to support Python 3.14.
+    "pytest-randomly >= 4.0.0",
 ]
-typing = ["types-boltons ~= 25.0.0.20250822", "types-PyYAML ~= 6.0.12.9"]
+typing = ["types-boltons >= 25.0.0.20250822", "types-PyYAML >= 6.0.12.9"]
 
 [project.urls]
 "Homepage" = 'https://github.com/kdeldycke/workflows'

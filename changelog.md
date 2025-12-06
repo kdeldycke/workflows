@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Use uncap dependencies everywhere.
+
 ## [4.25.1 (2025-12-06)](https://github.com/kdeldycke/workflows/compare/v4.25.0...v4.25.1)
 
 - Replace `tool.uv` section by `build-system`.

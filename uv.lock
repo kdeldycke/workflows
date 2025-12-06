@@ -384,7 +384,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.25.1"
+version = "4.25.2"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -433,16 +433,16 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 test = [
-    { name = "coverage", extras = ["toml"], specifier = "~=7.12.0" },
-    { name = "pytest", specifier = "~=9.0.0" },
-    { name = "pytest-cases", specifier = "~=3.9.1" },
-    { name = "pytest-cov", specifier = "~=7.0.0" },
-    { name = "pytest-github-actions-annotate-failures", specifier = "~=0.3.0" },
-    { name = "pytest-randomly", specifier = "~=4.0.0" },
+    { name = "coverage", extras = ["toml"], specifier = ">=7.11.0" },
+    { name = "pytest", specifier = ">=9.0.0" },
+    { name = "pytest-cases", specifier = ">=3.9.0" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
+    { name = "pytest-randomly", specifier = ">=4.0.0" },
 ]
 typing = [
-    { name = "types-boltons", specifier = "~=25.0.0.20250822" },
-    { name = "types-pyyaml", specifier = "~=6.0.12.9" },
+    { name = "types-boltons", specifier = ">=25.0.0.20250822" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.9" },
 ]
 
 [[package]]
