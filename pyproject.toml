@@ -136,10 +136,13 @@ typing = ["types-boltons ~= 25.0.0.20250822", "types-PyYAML ~= 6.0.12.9"]
 [project.scripts]
 gha-utils = "gha_utils.__main__:main"
 
-[tool.uv]
-package = true
-# 0.9.0 is the snapshot version we used when we migrated from requirements/uv.txt to pyproject.toml.
-required-version = ">= 0.9.0"
+[build-system]
+requires = ["uv_build >= 0.9.15"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# Package is at root level, not in "./src/".
+module-root = ""
 
 [tool.mypy]
 warn_unused_configs = true
