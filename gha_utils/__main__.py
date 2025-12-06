@@ -22,6 +22,8 @@
 
 from __future__ import annotations
 
+from gha_utils.cli import gha_utils
+
 
 def main():
     """Execute the CLI but force its name to not let Click defaults to:
@@ -40,8 +42,6 @@ def main():
 
     That way we can deduce all three cases from the entry point.
     """
-    from gha_utils.cli import gha_utils
-
     gha_utils(prog_name=gha_utils.name)
 
 
