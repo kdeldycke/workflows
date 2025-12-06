@@ -92,7 +92,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.2/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils metadata
           ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
@@ -149,7 +149,7 @@ jobs:
       - name: Install Nuitka
         run: >
           uv --no-progress pip install
-          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.2/requirements/nuitka.txt
+          --requirement https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/nuitka.txt
       - name: Nuitka + compilers versions
         run: |
           uv --no-progress run --frozen -- nuitka --version
@@ -284,7 +284,7 @@ jobs:
       - name: Run test plan for binary
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.2/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils test-plan
           ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) || '' }}
