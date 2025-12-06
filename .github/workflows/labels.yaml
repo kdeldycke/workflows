@@ -49,11 +49,11 @@ jobs:
         with:
           skip_delete: true
           from: |
-            https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/.github/labels.yaml
+            https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.yaml
             ${{ inputs.extra-label-files }}
             ${{ ( startsWith(github.event.repository.name, 'awesome-')
             && github.event.repository.name != 'awesome-template' &&
-            'https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/.github/labels-awesome.yaml' ) || '' }}
+            'https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels-awesome.yaml' ) || '' }}
 
   project-metadata:
     name: Project metadata
@@ -71,7 +71,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
@@ -88,7 +88,7 @@ jobs:
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-file-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/.github/labeller-file-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
       - name: Extend default rules
         if: inputs.extra-file-rules
         run: |
@@ -115,7 +115,7 @@ jobs:
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-content-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/.github/labeller-content-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-content-based.yaml
       - name: Extend default rules
         if: inputs.extra-content-rules
         run: |

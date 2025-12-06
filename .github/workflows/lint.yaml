@@ -39,7 +39,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
@@ -61,7 +61,7 @@ jobs:
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
           uv --no-progress run --frozen
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/requirements/mypy.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mypy.txt
           --
           mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
           ${{ needs.project-metadata.outputs.python_files }}
@@ -82,7 +82,7 @@ jobs:
       - name: Run yamllint
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v4.25.1/requirements/yamllint.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/yamllint.txt
           --
           yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
