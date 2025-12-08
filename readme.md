@@ -128,9 +128,13 @@ This repository contains workflows to automate most of the boring tasks in the f
     my-job:
       uses: kdeldycke/workflows/.github/workflows/autofix.yaml@v4.25.1
   ```
+
 - `uv` is used everywhere to install dependencies and CLIs.
+
 - Jobs are guarded by conditions to skip unnecessary steps when not needed.
+
 - Versions are pinned for actions, tools and CLIs, to ensure stability, reproducibility and security.
+
 - We eat our own dog-food: this repository uses these workflows for itself.
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
