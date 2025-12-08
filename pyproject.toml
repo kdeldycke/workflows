@@ -134,11 +134,12 @@ test = [
 typing = ["types-boltons >= 25.0.0.20250822", "types-PyYAML >= 6.0.12.9"]
 
 [project.urls]
-"Homepage" = 'https://github.com/kdeldycke/workflows'
-"Repository" = 'https://github.com/kdeldycke/workflows'
-"Funding" = "https://github.com/sponsors/kdeldycke"
-"Issues" = "https://github.com/kdeldycke/workflows/issues"
+"Homepage" = "https://github.com/kdeldycke/workflows"
+"Download" = "https://github.com/kdeldycke/workflows/releases/tag/v4.25.3"
 "Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
+"Issues" = "https://github.com/kdeldycke/workflows/issues"
+"Repository" = "https://github.com/kdeldycke/workflows"
+"Funding" = "https://github.com/sponsors/kdeldycke"
 
 [project.scripts]
 gha-utils = "gha_utils.__main__:main"
@@ -189,10 +190,16 @@ glob = "./**/__init__.py"
 ignore_missing_version = true
 
 [[tool.bumpversion.files]]
-# Update version in project section.
+# Update version in [project] section.
 filename = "./pyproject.toml"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+# Update version in download URL.
+filename = "./pyproject.toml"
+search = 'releases/tag/v{current_version}'
+replace = 'releases/tag/v{new_version}'
 
 [[tool.bumpversion.files]]
 # Update the version in Markdown changelog.
