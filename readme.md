@@ -414,7 +414,7 @@ This job relies on the [`gha-utils metadata` command](https://github.com/kdeldyc
 > - Introducing a small delay at the beginning of the run
 > - Preventing child jobs to run in parallel before its completion
 >
-> But is worth it given how GitHub actions can be frustrating.
+> But is worth it given how [GitHub actions can be frustrating](https://nesbitt.io/2025/12/06/github-actions-package-manager.html).
 
 ## Dependency strategy
 
