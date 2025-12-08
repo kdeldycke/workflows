@@ -123,7 +123,13 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 All workflows:
 
-- Are designed to be reusable in other repositories [via the `uses:` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow).
+- Are designed to be reusable in other repositories [via the `uses:` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow):
+
+  ```yaml
+  jobs:
+    my-job:
+      uses: kdeldycke/workflows/.github/workflows/autofix.yaml@v4.25.1
+  ```
 - Uses `uv` to install dependencies and CLIs.
 - Have jobs guarded by conditions to skip unnecessary steps when not needed.
 - Rely on pinned versions of actions, tools and CLIs, to ensure stability, reproducibility and security.
