@@ -48,7 +48,7 @@ jobs:
         id: get_version
         run: |
           echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v7.0.9
+      - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: >
@@ -176,7 +176,7 @@ jobs:
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
-      - uses: peter-evans/create-pull-request@v7.0.9
+      - uses: peter-evans/create-pull-request@v8.0.0
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in
           # .github/workflows/*.yaml files.
