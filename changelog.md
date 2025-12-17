@@ -7,6 +7,7 @@
 
 - Add Download link to project metadata.
 - Include license file in package.
+- Remove utilization workaround for `macos-15-intel`.
 
 ## [4.25.2 (2025-12-06)](https://github.com/kdeldycke/workflows/compare/v4.25.1...v4.25.2)
 
