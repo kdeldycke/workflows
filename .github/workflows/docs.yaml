@@ -37,7 +37,7 @@ jobs:
           write_changes: true
       - name: Remove local typos binary
         run: rm ./typos
-      - uses: peter-evans/create-pull-request@v7.0.9
+      - uses: peter-evans/create-pull-request@v8.0.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
@@ -93,7 +93,7 @@ jobs:
         id: image_actions
         with:
           compressOnly: true
-      - uses: peter-evans/create-pull-request@v7.0.9
+      - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Optimize images"
@@ -132,7 +132,7 @@ jobs:
           --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils mailmap-sync --skip-if-missing ./.mailmap
-      - uses: peter-evans/create-pull-request@v7.0.9
+      - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .mailmap"
@@ -186,7 +186,7 @@ jobs:
           uv --no-progress run --frozen -- pipdeptree ${{ needs.project-metadata.outputs.package_name
           && format('--packages {0}', needs.project-metadata.outputs.package_name)}}
           --output mermaid > "${{ env.dependency-graph-output }}"
-      - uses: peter-evans/create-pull-request@v7.0.9
+      - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate dependency graph"
@@ -218,7 +218,7 @@ jobs:
       - name: Run Sphinx
         run: |
           uv --no-progress run --frozen --group docs -- sphinx-apidoc --no-toc --module-first --force -o ./docs .
-      - uses: peter-evans/create-pull-request@v7.0.9
+      - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update Sphinx autodoc"
