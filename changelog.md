@@ -1,9 +1,6 @@
 # Changelog
 
-## [4.25.3 (unreleased)](https://github.com/kdeldycke/workflows/compare/v4.25.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [4.25.3 (2025-12-19)](https://github.com/kdeldycke/workflows/compare/v4.25.2...v4.25.3)
 
 - Add Download link to project metadata.
 - Include license file in package.
