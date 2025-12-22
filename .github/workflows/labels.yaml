@@ -64,7 +64,7 @@ jobs:
       is_bot: ${{ steps.project-metadata.outputs.is_bot }}
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.4
+      - uses: astral-sh/setup-uv@v7.1.6
       - name: Run gha-utils metadata
         id: project-metadata
         env:
