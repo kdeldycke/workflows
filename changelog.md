@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Replace deprecated `codecov/test-results-action` by `codecov/codecov-action`.
+
 ## [4.25.3 (2025-12-19)](https://github.com/kdeldycke/workflows/compare/v4.25.2...v4.25.3)
 
 - Add Download link to project metadata.
