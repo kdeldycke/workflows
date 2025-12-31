@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Move auto-lock time from 8:43 to 4:43.
 - Replace deprecated `codecov/test-results-action` by `codecov/codecov-action`.
 
 ## [4.25.3 (2025-12-19)](https://github.com/kdeldycke/workflows/compare/v4.25.2...v4.25.3)

@@ -4,8 +4,8 @@ name: Autolock
 "on":
   workflow_call:
   schedule:
-    # Run weekly, every Monday at 8:43.
-    - cron: "43 8 * * 1"
+    # Run weekly, every Monday at 4:43.
+    - cron: "43 4 * * 1"
 
 jobs:
 
