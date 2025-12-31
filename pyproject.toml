@@ -153,6 +153,10 @@ build-backend = "uv_build"
 # Package is at root level, not in "./src/".
 module-root = ""
 
+[tool.uv]
+# Cooldown period.
+exclude-newer = "1 week"
+
 [tool.mypy]
 warn_unused_configs = true
 warn_redundant_casts = true
