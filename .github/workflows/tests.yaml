@@ -93,7 +93,6 @@ jobs:
           report_type: coverage
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Codecov - test results
-        if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v5.5.2
         with:
           report_type: test_results
