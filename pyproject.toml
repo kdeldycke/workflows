@@ -88,7 +88,7 @@ dependencies = [
     "boltons >= 25.0.0",
     # v0.32.2 is the first fixing an issue preventing compilation with Nuitka.
     # v1.1.1 and later have some regressions: see https://github.com/callowayproject/bump-my-version/issues/331
-    "bump-my-version >= 0.32.2, < 1.1.1",
+    "bump-my-version >= 0.32.2, < 1.2.6",
     # Click Extra 7.0.0 renames several internals.
     "click-extra >= 7.0.0",
     # We depends on some internals changed in extra-platforms 6.0.0.
