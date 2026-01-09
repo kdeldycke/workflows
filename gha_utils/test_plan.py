@@ -140,7 +140,7 @@ class CLITestCase:
 
             # Normalize any mishmash of platform and group IDs into a set of platforms.
             if field_id.endswith("_platforms") and field_data:
-                field_data = frozenset(Group._extract_platforms(field_data))
+                field_data = frozenset(Group._extract_members(field_data))
 
             # Validates fields containing one or more regexes.
             if "_regex_" in field_id and field_data:
@@ -190,7 +190,7 @@ class CLITestCase:
             if current_os() not in self.only_platforms:  # type: ignore[operator]
                 raise SkippedTest(f"Test case only runs on platform: {current_os()}")
 
-        if current_os() in Group._extract_platforms(
+        if current_os() in Group._extract_members(
             self.skip_platforms, additional_skip_platforms
         ):
             raise SkippedTest(f"Skipping test case on platform: {current_os()}")
