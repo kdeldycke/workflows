@@ -91,8 +91,8 @@ dependencies = [
     "bump-my-version >= 0.32.2, < 1.1.1",
     # Click Extra 7.0.0 renames several internals.
     "click-extra >= 7.0.0",
-    # Extra Platforms 4.0.0 is the first one to support Python 3.14.
-    "extra-platforms >= 4.0.0",
+    # We depends on some internals changed in extra-platforms 6.0.0.
+    "extra-platforms >= 6.0.0",
     # v25.0 is the first version we used when we last changed the requirement.
     "packaging >= 25.0",
     # v0.3.3 is the first version we used.
