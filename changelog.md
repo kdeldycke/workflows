@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix call to deprecated `extra-platforms` method.
+
 ## [4.25.4 (2025-12-31)](https://github.com/kdeldycke/workflows/compare/v4.25.3...v4.25.4)
 
 - Move auto-lock time from 8:43 to 4:43.
