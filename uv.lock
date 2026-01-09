@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2025-12-29T07:02:42.439927558Z"
+exclude-newer = "2026-01-02T11:04:18.774730949Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -376,14 +376,14 @@ wheels = [
 
 [[package]]
 name = "extra-platforms"
-version = "5.1.0"
+version = "6.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "distro" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4b/87/594306b0ce79517405b2886bca0e390819ead2c17f66d6d8a013bf767bc2/extra_platforms-5.1.0.tar.gz", hash = "sha256:53c11441c8e7552e70d351fe225222dbcc8d6addcfafaf10b72501d22f36394b", size = 31882, upload-time = "2025-12-06T15:30:19.501Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/df/73e313d4ecca7b703b6f369d9ed0c2c0d4d8a149e1c675e9915f8426a513/extra_platforms-6.0.0.tar.gz", hash = "sha256:ff0d392e390d2447183af4b300dd4569d2dbf760adf1e30c2b0cefb30ee58488", size = 45977, upload-time = "2026-01-02T09:15:41.019Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e4/43/9c871fe567f8e22e0f9d9e32f99a7d50b8faf92963a8360476f897134d96/extra_platforms-5.1.0-py3-none-any.whl", hash = "sha256:9b76fc1eb55078f9fbf6b051282a238fb141018452958e2d956d9967a94dcf0a", size = 34244, upload-time = "2025-12-06T15:30:18.388Z" },
+    { url = "https://files.pythonhosted.org/packages/99/13/0a6a20bd85679d30d8e85d4e63397f8deabe2e9614d6a656ad3e02a76fb7/extra_platforms-6.0.0-py3-none-any.whl", hash = "sha256:732619d1f7db602e12189a66a7de7d8492607452c2d1b5444952174e92864ed0", size = 53001, upload-time = "2026-01-02T09:15:42.193Z" },
 ]
 
 [[package]]
@@ -463,14 +463,14 @@ wheels = [
 
 [[package]]
 name = "gitpython"
-version = "3.1.45"
+version = "3.1.46"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "gitdb" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9a/c8/dd58967d119baab745caec2f9d853297cec1989ec1d63f677d3880632b88/gitpython-3.1.45.tar.gz", hash = "sha256:85b0ee964ceddf211c41b9f27a49086010a190fd8132a24e21f362a4b36a791c", size = 215076, upload-time = "2025-07-24T03:45:54.871Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/df/b5/59d16470a1f0dfe8c793f9ef56fd3826093fc52b3bd96d6b9d6c26c7e27b/gitpython-3.1.46.tar.gz", hash = "sha256:400124c7d0ef4ea03f7310ac2fbf7151e09ff97f2a3288d64a440c584a29c37f", size = 215371, upload-time = "2026-01-01T15:37:32.073Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/61/d4b89fec821f72385526e1b9d9a3a0385dda4a72b206d28049e2c7cd39b8/gitpython-3.1.45-py3-none-any.whl", hash = "sha256:8908cb2e02fb3b93b7eb0f2827125cb699869470432cc885f019b8fd0fccff77", size = 208168, upload-time = "2025-07-24T03:45:52.517Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/09/e21df6aef1e1ffc0c816f0522ddc3f6dcded766c3261813131c78a704470/gitpython-3.1.46-py3-none-any.whl", hash = "sha256:79812ed143d9d25b6d176a10bb511de0f9c67b1fa641d82097b0ab90398a2058", size = 208620, upload-time = "2026-01-01T15:37:30.574Z" },
 ]
 
 [[package]]
