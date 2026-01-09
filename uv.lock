@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-01-02T11:50:40.029636408Z"
+exclude-newer = "2026-01-02T12:35:12.317912909Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -388,7 +388,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.25.5"
+version = "4.25.6"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
