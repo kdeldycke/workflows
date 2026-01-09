@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-01-02T11:40:44.806853Z"
+exclude-newer = "2026-01-02T11:50:40.029636408Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -425,7 +425,7 @@ requires-dist = [
     { name = "boltons", specifier = ">=25.0.0" },
     { name = "bump-my-version", specifier = ">=0.32.2,<1.1.1" },
     { name = "click-extra", specifier = ">=7.0.0" },
-    { name = "extra-platforms", specifier = ">=4.0.0" },
+    { name = "extra-platforms", specifier = ">=6.0.0" },
     { name = "packaging", specifier = ">=25.0" },
     { name = "py-walk", specifier = ">=0.3.3" },
     { name = "pydriller", specifier = ">=2.6" },
