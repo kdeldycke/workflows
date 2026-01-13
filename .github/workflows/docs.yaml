@@ -69,7 +69,7 @@ jobs:
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Run gha-utils metadata
         id: project-metadata
         env:
@@ -125,7 +125,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Generate .mailmap
         run: >
           uvx
@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Install pipdeptree
         run: |
           uv --no-progress venv
@@ -214,7 +214,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Run Sphinx
         run: |
           uv --no-progress run --frozen --group docs -- sphinx-apidoc --no-toc --module-first --force -o ./docs .
@@ -244,7 +244,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html

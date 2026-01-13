@@ -32,7 +32,7 @@ jobs:
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Run gha-utils metadata
         id: project-metadata
         env:
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Install all package dependencies
         # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
         # those related to optional features, tests, development and documentation.
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.1.6
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Run yamllint
         run: >
           uvx
