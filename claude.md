@@ -7,7 +7,7 @@ This file provides guidance to [Claude Code](https://claude.ai/code) when workin
 This repository contains two main components:
 
 1. **`gha-utils` CLI** - A command-line utility for GitHub Actions workflows
-2. **Reusable GitHub workflows** - A collection of automated workflows for CI/CD
+1. **Reusable GitHub workflows** - A collection of automated workflows for CI/CD
 
 The CLI provides tools for:
 
@@ -76,15 +76,15 @@ workflows/
 
 ### Module layout
 
-| Module | Purpose |
-|--------|---------|
-| `__main__.py` | Entry point for the `gha-utils` CLI |
-| `cli.py` | Click-based command-line interface definitions |
-| `changelog.py` | Changelog parsing, updating, and version management |
-| `mailmap.py` | Git `.mailmap` file synchronization with contributors |
-| `metadata.py` | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
-| `test_plan.py` | Run YAML-based test plans against compiled binaries |
-| `matrix.py` | Generate build matrices for GitHub Actions |
+| Module         | Purpose                                                             |
+| -------------- | ------------------------------------------------------------------- |
+| `__main__.py`  | Entry point for the `gha-utils` CLI                                 |
+| `cli.py`       | Click-based command-line interface definitions                      |
+| `changelog.py` | Changelog parsing, updating, and version management                 |
+| `mailmap.py`   | Git `.mailmap` file synchronization with contributors               |
+| `metadata.py`  | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
+| `test_plan.py` | Run YAML-based test plans against compiled binaries                 |
+| `matrix.py`    | Generate build matrices for GitHub Actions                          |
 
 ### Workflows organization
 
