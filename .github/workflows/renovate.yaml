@@ -3,15 +3,9 @@ name: Renovate
 "on":
   workflow_call:
   schedule:
-    # Run weekly on Monday at midnight UTC.
-    - cron: "0 0 * * 1"
+    # Run daily at midnight UTC.
+    - cron: "0 0 * * *"
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/renovate.yaml"
-      - "renovate.json5"
 
 concurrency:
   # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits. Source:
