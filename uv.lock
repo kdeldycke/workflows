@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-01-13T06:21:15.589778Z"
+exclude-newer = "2026-01-14T11:42:46.471102578Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -388,7 +388,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "4.25.6"
+version = "4.26.0"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -530,15 +530,15 @@ wheels = [
 
 [[package]]
 name = "lizard"
-version = "1.19.0"
+version = "1.20.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pathspec" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1e/fc/3da7cf04de5de4a1416b8a4084679e95932684bae7d7ba1dcb0e68bbdde7/lizard-1.19.0.tar.gz", hash = "sha256:3e26336ac876bdd2491dbb4afa0d20fe615af11cb59784b8b0ca39b21559ed5c", size = 86131, upload-time = "2025-11-03T08:11:30.17Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/5c/091de55d1baa3b13e6d2c8ca2ff33f12b28c2a90b3b6b199a83156f4ac53/lizard-1.20.0.tar.gz", hash = "sha256:81280ba1b5f54fd6d0ac444eed67ade9a237703034d82e81b14d8bb3b2a76466", size = 88133, upload-time = "2026-01-13T09:20:16.146Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/e7/ddeecbfd0b28d9f01b4ea9eef0055bae30a0181b16ae3eaaae44f4e19e04/lizard-1.19.0-py2.py3-none-any.whl", hash = "sha256:47ce752610c567b9ce427ac2cb4662a0a7631f0791e5ebafdc3572874ea8004f", size = 94142, upload-time = "2025-11-03T08:11:28.137Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/d0/e4c7f12924824fddf194b4aacbe767ab36a50c0b6be0bc2a200afc673c3e/lizard-1.20.0-py2.py3-none-any.whl", hash = "sha256:7c03c6731838b156cc098154a8554fc3a13dc77ebdf4e0d37ff9c2da5a17d573", size = 97144, upload-time = "2026-01-13T09:20:14.376Z" },
 ]
 
 [[package]]
