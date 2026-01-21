@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `toml_files` field to `gha-utils metadata` output.
 - Replace `julb/action-manage-label` by `labelmaker` for label management. Closes #1914.
 - Add Rust-related entries to `.gitignore` file.
 
