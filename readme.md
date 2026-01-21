@@ -170,6 +170,14 @@ This repository contains workflows to automate most of the boring tasks in the f
   - **Requires**:
     - A `.gitignore` file in the repository
 
+- **Check Dependabot configuration** (`check-dependabot-config`)
+
+  - Validates that Dependabot is properly configured for use with Renovate
+  - **Checks**:
+    - ❌ No `.github/dependabot.yaml` file (version updates disabled)
+    - ✅ Dependabot alerts enabled (Renovate reads these)
+    - ❌ Dependabot security updates disabled (Renovate handles this)
+
 ### [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml)
 
 - **Lock inactive threads** (`lock`)
