@@ -41,6 +41,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
+      - uses: actions-rust-lang/setup-rust-toolchain@v1.15.2
       - name: Install labelmaker
         uses: taiki-e/install-action@v2.67.2
         with:
