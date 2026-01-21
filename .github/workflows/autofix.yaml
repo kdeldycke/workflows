@@ -374,6 +374,7 @@ jobs:
           node
           nohup
           python
+          rust
           ssh
           vim
           virtualenv
