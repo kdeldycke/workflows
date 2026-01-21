@@ -117,9 +117,10 @@ expected = {
         "tests/test_matrix.py",
         "tests/test_metadata.py",
     ],
-    "json_files": [],
+    "json_files": [
+        "renovate.json5",
+    ],
     "yaml_files": [
-        ".github/dependabot.yaml",
         ".github/funding.yml",
         ".github/labeller-content-based.yaml",
         ".github/labeller-file-based.yaml",
@@ -131,6 +132,7 @@ expected = {
         ".github/workflows/labels.yaml",
         ".github/workflows/lint.yaml",
         ".github/workflows/release.yaml",
+        ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
         "tests/cli-test-plan.yaml",
     ],
@@ -147,6 +149,7 @@ expected = {
         ".github/workflows/labels.yaml",
         ".github/workflows/lint.yaml",
         ".github/workflows/release.yaml",
+        ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
     ],
     "doc_files": [

@@ -797,9 +797,11 @@ class Metadata:
         This is useful to only run some jobs on human-triggered events. Or skip jobs
         triggered by bots to avoid infinite loops.
         """
+        # XXX replace by self.event_sender_type != "User"?
         if self.event_sender_type == "Bot" or self.event_actor in (
             "dependabot[bot]",
             "dependabot-preview[bot]",
+            "renovate[bot]",
         ):
             return True
         return False

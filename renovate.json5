@@ -1,0 +1,42 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+
+  // PR settings.
+  labels: ["📦 dependencies"],
+  assignees: ["kdeldycke"],
+
+  // Schedule settings.
+  timezone: "UTC",
+  schedule: ["at any time"],
+
+  // Stabilization periods use prime numbers to stagger updates.
+  minimumReleaseAge: "7 days",
+  packageRules: [
+    {
+      description: "Major updates have a longer stabilization period.",
+      matchUpdateTypes: ["major"],
+      minimumReleaseAge: "29 days",
+    },
+    {
+      description: "Minor updates have a moderate stabilization period.",
+      matchUpdateTypes: ["minor"],
+      minimumReleaseAge: "11 days",
+    },
+    {
+      description: "Patch updates have a shorter stabilization period.",
+      matchUpdateTypes: ["patch"],
+      minimumReleaseAge: "5 days",
+    },
+  ],
+
+  // Python dependencies in requirements/*.txt files.
+  pip_requirements: {
+    fileMatch: ["requirements/.+\\.txt$"],
+  },
+
+  // uv.lock and pyproject.toml support.
+  uv: {
+    enabled: true,
+  },
+}

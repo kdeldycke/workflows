@@ -25,8 +25,6 @@ description = "Continuous integration, tests, automation and management of the p
 name = "📦 dependencies"
 color = "AAA666"
 description = "Update of dependencies"
-# Automatically rename Dependabot's default labels to this one.
-rename-from = ["dependencies", "python:uv", "github-actions"]
 
 [[profiles.default.labels]]
 name = "📚 documentation"

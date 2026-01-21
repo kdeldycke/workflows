@@ -1,0 +1,40 @@
+---
+name: Renovate
+"on":
+  workflow_call:
+  schedule:
+    # Run hourly.
+    - cron: "0 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/renovate.yaml"
+      - "renovate.json5"
+
+concurrency:
+  # Group workflow jobs so new commits cancels in-progress execution triggered by previous commits. Source:
+  # https://mail.python.org/archives/list/pypa-committers@python.org/thread/PCBCQMJF64JGRBOX7E2EE4YLKHT4DI55/
+  # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+
+  renovate:
+    name: Renovate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6.0.1
+      - uses: renovatebot/github-action@v44.2.4
+        with:
+          # We need custom PAT with workflows permission to update GitHub Actions versions in
+          # .github/workflows/*.yaml files.
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+        env:
+          # Self-hosted configuration.
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          # Skip onboarding PR since we already have renovate.json.
+          RENOVATE_ONBOARDING: "false"
+          LOG_LEVEL: "info"

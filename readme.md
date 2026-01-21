@@ -284,12 +284,6 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
-- **Fix Dependabot labels** (`fix-dependabot-labels`)
-
-  - Replaces Dependabot's default labels (`dependencies`, `python:uv`, `github-actions`) with the custom `📦 dependencies` label
-  - Runs only on Dependabot PRs
-  - Uses `gh` CLI to manage labels
-
 ### [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml)
 
 - **Mypy lint** (`mypy-lint`)
@@ -430,22 +424,22 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 
 ### Pinning mechanisms
 
-| Mechanism                   | What it pins                  | How it's updated   |
-| :-------------------------- | :---------------------------- | :----------------- |
-| `requirements/*.txt` files  | Python CLIs used in workflows | Dependabot PRs     |
-| `uv.lock`                   | Project dependencies          | `sync-uv-lock` job |
-| Hard-coded versions in YAML | GitHub Actions, npm packages  | Dependabot PRs     |
-| `uv --exclude-newer` option | Transitive dependencies       | Time-based window  |
-| Tagged workflow URLs        | Remote workflow references    | Release process    |
+| Mechanism                   | What it pins                  | How it's updated  |
+| :-------------------------- | :---------------------------- | :---------------- |
+| `requirements/*.txt` files  | Python CLIs used in workflows | Renovate PRs      |
+| `uv.lock`                   | Project dependencies          | Renovate PRs      |
+| Hard-coded versions in YAML | GitHub Actions, npm packages  | Renovate PRs      |
+| `uv --exclude-newer` option | Transitive dependencies       | Time-based window |
+| Tagged workflow URLs        | Remote workflow references    | Release process   |
 
 ### `requirements/*.txt` files
 
-Each Python CLI used in workflows has its own requirements file (e.g., [`requirements/yamllint.txt`](https://github.com/kdeldycke/workflows/blob/main/requirements/yamllint.txt)). This allows Dependabot to track and update each tool independently.
+Each Python CLI used in workflows has its own requirements file (e.g., [`requirements/yamllint.txt`](https://github.com/kdeldycke/workflows/blob/main/requirements/yamllint.txt)). This allows Renovate to track and update each tool independently.
 
-We use these files instead of inline version strings because **Dependabot cannot parse versions in `run:` blocks**—it only supports `requirements.txt` and `pyproject.toml` files for Python projects ([source](https://github.com/dependabot/dependabot-core/blob/c938bbf7cb4da88053d4379dcab297a3eaa8c0a7/python/lib/dependabot/python/file_fetcher.rb#L24-L44)).
+We use these files instead of inline version strings because dependency update bots work better with standard `requirements.txt` files than parsing versions in `run:` blocks.
 
 ```yaml
-# ❌ Dependabot cannot update this:
+# ❌ Harder to update automatically:
   - run: uvx -- yamllint==1.37.1
 
 # ✅ So we use requirements/yamllint.txt as an indirection:
@@ -463,20 +457,20 @@ GitHub Actions and npm packages are pinned directly in YAML files:
   - run: npm install eslint@9.39.1       # Pinned npm package
 ```
 
-Dependabot's `github-actions` ecosystem handles action updates.
+Renovate's `github-actions` manager handles action updates.
 
 > [!WARNING]
 > For npm packages, we pin versions inline since they're used sparingly, and then update them manually when needed.
 
-### Dependabot cooldowns
+### Renovate cooldowns
 
-To avoid update fatigue, and [mitigate supply chain attacks](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns), [`.github/dependabot.yaml`](https://github.com/g/blob/main/.github/dependabot.yaml) uses cooldown periods (with prime numbers to stagger updates).
+To avoid update fatigue, and [mitigate supply chain attacks](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns), [`renovate.json5`](https://github.com/kdeldycke/workflows/blob/main/renovate.json5) uses stabilization periods (with prime numbers to stagger updates).
 
 This ensures major updates get more scrutiny while patches flow through faster.
 
 ### `uv.lock` and `--exclude-newer`
 
-The `uv.lock` file pins all project dependencies, and the [`sync-uv-lock`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml) job keeps it in sync.
+The `uv.lock` file pins all project dependencies, and Renovate keeps it in sync.
 
 The `--exclude-newer` flag ignores packages released in the last 7 days, providing a buffer against freshly-published broken releases.
 

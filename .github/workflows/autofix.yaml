@@ -161,38 +161,6 @@ jobs:
           labels: "🤖 ci"
           branch: format-python
 
-  sync-uv-lock:
-    # XXX Dependabot does not support uv.lock files yet, so this job is doing it.
-    # See: https://github.com/astral-sh/uv/issues/2512
-    name: Sync uv.lock
-    needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.1
-      - uses: astral-sh/setup-uv@v7.2.0
-      - name: Sync uv.lock
-        run: |
-          uv --no-progress sync --upgrade
-      - uses: peter-evans/create-pull-request@v8.0.0
-        with:
-          assignees: ${{ github.actor }}
-          commit-message: "[autofix] Sync uv.lock"
-          title: "[autofix] Sync `uv.lock`"
-          body: >
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
-          labels: "📦 dependencies"
-          branch: sync-uv-lock
-
   format-markdown:
     name: Format Markdown
     needs:

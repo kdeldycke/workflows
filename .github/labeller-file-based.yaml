@@ -17,7 +17,7 @@
 "📦 dependencies":
   - changed-files:
     - any-glob-to-any-file:
-      - .github/dependabot.yaml
+      - renovate.json5
       - "*.lock"
       - "**/pyproject.toml"
       - "*requirements.txt"

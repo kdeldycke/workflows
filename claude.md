@@ -138,9 +138,9 @@ if TYPE_CHECKING:
 
 All dependencies are pinned to specific versions for stability and reproducibility:
 
-- Python CLIs in `requirements/*.txt` files (updated by Dependabot)
-- GitHub Actions versions in YAML files (updated by Dependabot)
-- Project dependencies in `uv.lock` (updated by `sync-uv-lock` workflow)
+- Python CLIs in `requirements/*.txt` files (updated by Renovate)
+- GitHub Actions versions in YAML files (updated by Renovate)
+- Project dependencies in `uv.lock` (updated by Renovate)
 - 7-day cooldown via `uv --exclude-newer` option
 
 ### Self-referential workflows

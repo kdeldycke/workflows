@@ -70,7 +70,7 @@ jobs:
     needs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    # Also skip Dependabot PRs which does not heavily alters YAML files.
+    # Also skip dependency update PRs which do not heavily alter YAML files.
     if: >
       github.head_ref != 'prepare-release'
       && (! fromJson(needs.project-metadata.outputs.is_bot))
@@ -108,7 +108,7 @@ jobs:
   lint-github-action:
     needs:
       - project-metadata
-    # Skip linting on prepare-release branch and Dependabot PRs because they do not heavily alters GitHub Actions.
+    # Skip linting on prepare-release branch and dependency update PRs because they do not heavily alter GitHub Actions.
     if: >
       github.head_ref != 'prepare-release'
       && (! fromJson(needs.project-metadata.outputs.is_bot))
@@ -286,7 +286,7 @@ jobs:
   check-secrets:
     needs:
       - project-metadata
-    # Skip secret checks on prepare-release branch and Dependabot PRs.
+    # Skip secret checks on prepare-release branch and dependency update PRs.
     if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
     runs-on: ubuntu-slim
     steps:

@@ -20,7 +20,7 @@
   - "gitignore"
 
 "📦 dependencies":
-  - "dependabot"
+  - "renovate"
   - ".lock"
   - "pyproject.toml"
   - "requirements.txt"
