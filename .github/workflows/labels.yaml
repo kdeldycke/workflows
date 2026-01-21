@@ -67,12 +67,12 @@ jobs:
         # https://github.com/jwodder/labelmaker/issues/125
         run: |
           # Apply default profile to all repositories.
-          labelmaker apply -f labels.toml --profile default "${{ github.repository }}"
+          labelmaker apply labels.toml --profile default "${{ github.repository }}"
 
           # Apply awesome profile for awesome-* repositories.
           if [[ "${{ github.event.repository.name }}" == awesome-* ]] && \
              [[ "${{ github.event.repository.name }}" != "awesome-template" ]]; then
-            labelmaker apply -f labels.toml --profile awesome "${{ github.repository }}"
+            labelmaker apply labels.toml --profile awesome "${{ github.repository }}"
           fi
 
           # Apply extra label files if provided.
@@ -81,7 +81,7 @@ jobs:
               if [ -n "$url" ]; then
                 filename=$(basename "$url")
                 if [ -f "$filename" ]; then
-                  labelmaker apply -f "$filename" "${{ github.repository }}"
+                  labelmaker apply "$filename" "${{ github.repository }}"
                 fi
               fi
             done
