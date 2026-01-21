@@ -35,7 +35,11 @@ jobs:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         env:
           # Self-hosted configuration.
+          RENOVATE_PLATFORM: "github"
+          RENOVATE_AUTODISCOVER: "false"
           RENOVATE_REPOSITORIES: ${{ github.repository }}
-          # Skip onboarding PR since we already have renovate.json.
+          # Skip onboarding PR since we already have renovate.json5.
           RENOVATE_ONBOARDING: "false"
+          # Require a configuration file to be present.
+          RENOVATE_REQUIRE_CONFIG: "required"
           LOG_LEVEL: "info"
