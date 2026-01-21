@@ -24,7 +24,8 @@ jobs:
 
   renovate:
     name: Renovate
-    runs-on: ubuntu-slim
+    # Cannot use "ubuntu-slim" here because renovatebot/github-action relies on Docker.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.1
       - uses: renovatebot/github-action@v44.2.4
