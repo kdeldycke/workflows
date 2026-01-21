@@ -170,14 +170,6 @@ This repository contains workflows to automate most of the boring tasks in the f
   - **Requires**:
     - A `.gitignore` file in the repository
 
-- **Check Dependabot configuration** (`check-dependabot-config`)
-
-  - Validates that Dependabot is properly configured for use with Renovate
-  - **Checks**:
-    - ❌ No `.github/dependabot.yaml` file (version updates disabled)
-    - ✅ Dependabot alerts enabled (Renovate reads these)
-    - ❌ Dependabot security updates disabled (Renovate handles this)
-
 ### [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml)
 
 - **Lock inactive threads** (`lock`)
@@ -398,6 +390,24 @@ docs = [
   - Creates a GitHub release with all artifacts attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
   - **Requires**:
     - Successful `git-tag` job
+
+### [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
+
+- **Check Dependabot configuration** (`check-dependabot-config`)
+
+  - Validates that Dependabot settings are properly configured for use with Renovate
+  - **Checks**:
+    - ❌ No `.github/dependabot.yaml` file (version updates disabled)
+    - ✅ Dependabot alerts enabled (Renovate reads these)
+    - ❌ Dependabot security updates disabled (Renovate handles this)
+
+- **Renovate** (`renovate`)
+
+  - Runs self-hosted [Renovate](https://github.com/renovatebot/renovate) to update dependencies
+  - Creates PRs for outdated dependencies with stabilization periods
+  - Handles security vulnerabilities via `vulnerabilityAlerts`
+  - **Requires**:
+    - `WORKFLOW_UPDATE_GITHUB_PAT` secret with Dependabot alerts permission
 
 ### What is this `project-metadata` job?
 

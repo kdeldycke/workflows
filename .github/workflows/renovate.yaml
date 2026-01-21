@@ -22,8 +22,48 @@ concurrency:
 
 jobs:
 
+  check-dependabot-config:
+    name: Check Dependabot configuration
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.1
+      # Dependabot version updates are configured via .github/dependabot.yaml file.
+      # If no file exists, version updates are disabled (Renovate handles this).
+      - name: Check Dependabot version updates disabled
+        run: |
+          if [ -f ".github/dependabot.yaml" ] || [ -f ".github/dependabot.yml" ]; then
+            echo "::error::Dependabot version updates are enabled. Remove .github/dependabot.yaml or .github/dependabot.yml and use Renovate instead."
+            exit 1
+          fi
+          echo "✓ Dependabot version updates: disabled (no config file)"
+      # Dependabot alerts must be enabled so Renovate can read them via the API.
+      # Note: GITHUB_TOKEN cannot access vulnerability alerts API, so we use WORKFLOW_UPDATE_GITHUB_PAT.
+      # See: https://github.com/orgs/community/discussions/60612
+      - name: Check Dependabot alerts enabled
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          if gh api "repos/${{ github.repository }}/vulnerability-alerts" --silent 2>/dev/null; then
+            echo "✓ Dependabot alerts: enabled (Renovate can read vulnerabilities)"
+          else
+            echo "::warning::Cannot verify Dependabot alerts status. Ensure they are enabled in Settings > Advanced Security > Dependabot > Dependabot alerts."
+          fi
+      # Dependabot security updates must be disabled (Renovate creates security PRs instead).
+      - name: Check Dependabot security updates disabled
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          status=$(gh api "repos/${{ github.repository }}" --jq '.security_and_analysis.dependabot_security_updates.status // "disabled"')
+          if [ "$status" = "enabled" ]; then
+            echo "::error::Dependabot security updates are enabled. Disable them in Settings > Advanced Security > Dependabot > Dependabot security updates."
+            exit 1
+          fi
+          echo "✓ Dependabot security updates: disabled (Renovate handles security PRs)"
+
   renovate:
     name: Renovate
+    needs:
+      - check-dependabot-config
     # Cannot use "ubuntu-slim" here because renovatebot/github-action relies on Docker.
     runs-on: ubuntu-24.04
     steps:
