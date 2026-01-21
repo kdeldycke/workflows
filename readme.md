@@ -554,15 +554,18 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
 
 1. Click **Add permissions**:
 
-   | Permission        | Access                  |
-   | :---------------- | :---------------------- |
-   | **Contents**      | Read and Write          |
-   | **Metadata**      | Read-only *(mandatory)* |
-   | **Pull requests** | Read and Write          |
-   | **Workflows**     | Read and Write          |
+   | Permission            | Access                  |
+   | :-------------------- | :---------------------- |
+   | **Contents**          | Read and Write          |
+   | **Dependabot alerts** | Read-only               |
+   | **Metadata**          | Read-only *(mandatory)* |
+   | **Pull requests**     | Read and Write          |
+   | **Workflows**         | Read and Write          |
 
    > [!IMPORTANT]
    > The **Workflows** permission is the key. This is the *only* place where you can grant it—it's not available via the `permissions:` parameter in YAML files.
+   >
+   > The **Dependabot alerts** permission allows Renovate to read vulnerability alerts and create security update PRs, replacing Dependabot security updates.
 
 1. Click **Generate token** and copy the `github_pat_XXXX` value
 
@@ -574,7 +577,22 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
    - **Name**: `WORKFLOW_UPDATE_GITHUB_PAT`
    - **Secret**: paste the `github_pat_XXXX` token
 
-#### Step 3: Verify it works
+#### Step 3: Configure Dependabot settings
+
+Go to your repository → **Settings → Advanced Security → Dependabot** and configure:
+
+| Setting                          | Status       | Reason                                                |
+| :------------------------------- | :----------- | :---------------------------------------------------- |
+| **Dependabot alerts**            | ✅ Enabled   | Renovate reads these alerts to detect vulnerabilities |
+| **Dependabot security updates**  | ❌ Disabled  | Renovate creates security PRs instead                 |
+| **Grouped security updates**     | ❌ Disabled  | Not needed when security updates are disabled         |
+| **Dependabot version updates**   | ❌ Disabled  | Renovate handles all version updates                  |
+
+> [!WARNING]
+> Keep **Dependabot alerts** enabled—these are passive notifications that Renovate reads via the API.
+> Disable all other Dependabot features since Renovate handles both security and version updates.
+
+#### Step 4: Verify it works
 
 Re-run your workflow. It should now update files in `.github/workflows/` without the error.
 

@@ -36,4 +36,11 @@
     fileMatch: ["requirements/.+\\.txt$"],
   },
 
+  // Security updates: raise PRs immediately when vulnerabilities are detected.
+  // Requires "Dependabot alerts" read permission on the token.
+  vulnerabilityAlerts: {
+    enabled: true,
+    labels: ["📦 dependencies", "💣 security"],
+  },
 }
+

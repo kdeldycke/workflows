@@ -373,25 +373,39 @@ jobs:
           labels: "🤖 ci"
           branch: update-gitignore
 
-  check-dependabot-disabled:
-    name: Check Dependabot disabled
+  check-dependabot-config:
+    name: Check Dependabot configuration
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
-      - name: Check for Dependabot configuration file
+      # Dependabot version updates are configured via .github/dependabot.yaml file.
+      # If no file exists, version updates are disabled (Renovate handles this).
+      - name: Check Dependabot version updates disabled
         run: |
           if [ -f ".github/dependabot.yaml" ] || [ -f ".github/dependabot.yml" ]; then
-            echo "::error::Dependabot configuration found. Please remove .github/dependabot.yaml or .github/dependabot.yml and use Renovate instead."
+            echo "::error::Dependabot version updates are enabled. Remove .github/dependabot.yaml or .github/dependabot.yml and use Renovate instead."
             exit 1
           fi
-          echo "No Dependabot configuration file found."
-      - name: Check Dependabot security updates setting
+          echo "✓ Dependabot version updates: disabled (no config file)"
+      # Dependabot alerts must be enabled so Renovate can read them via the API.
+      - name: Check Dependabot alerts enabled
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh api "repos/${{ github.repository }}/vulnerability-alerts" --silent 2>/dev/null; then
+            echo "✓ Dependabot alerts: enabled (Renovate can read vulnerabilities)"
+          else
+            echo "::error::Dependabot alerts are disabled. Enable them in Settings > Advanced Security > Dependabot > Dependabot alerts. Renovate needs to read these alerts."
+            exit 1
+          fi
+      # Dependabot security updates must be disabled (Renovate creates security PRs instead).
+      - name: Check Dependabot security updates disabled
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           status=$(gh api "repos/${{ github.repository }}" --jq '.security_and_analysis.dependabot_security_updates.status // "disabled"')
           if [ "$status" = "enabled" ]; then
-            echo "::warning::Dependabot security updates are enabled in repository settings. Consider disabling them in Settings > Code security and analysis if using Renovate for all dependency updates."
-          else
-            echo "Dependabot security updates are disabled."
+            echo "::error::Dependabot security updates are enabled. Disable them in Settings > Advanced Security > Dependabot > Dependabot security updates."
+            exit 1
           fi
+          echo "✓ Dependabot security updates: disabled (Renovate handles security PRs)"
