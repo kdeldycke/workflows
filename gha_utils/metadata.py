@@ -1061,6 +1061,11 @@ class Metadata:
         return self.glob_files("**/*.{yaml,yml}")
 
     @cached_property
+    def toml_files(self) -> list[Path]:
+        """Returns a list of TOML files."""
+        return self.glob_files("**/*.toml")
+
+    @cached_property
     def workflow_files(self) -> list[Path]:
         """Returns a list of GitHub workflow files."""
         return self.glob_files(".github/workflows/**/*.{yaml,yml}")
@@ -1659,6 +1664,7 @@ class Metadata:
             "python_files": self.python_files,
             "json_files": self.json_files,
             "yaml_files": self.yaml_files,
+            "toml_files": self.toml_files,
             "workflow_files": self.workflow_files,
             "doc_files": self.doc_files,
             "markdown_files": self.markdown_files,

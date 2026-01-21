@@ -123,8 +123,6 @@ expected = {
         ".github/funding.yml",
         ".github/labeller-content-based.yaml",
         ".github/labeller-file-based.yaml",
-        ".github/labels-awesome.yaml",
-        ".github/labels.yaml",
         ".github/workflows/autofix.yaml",
         ".github/workflows/autolock.yaml",
         ".github/workflows/changelog.yaml",
@@ -135,6 +133,10 @@ expected = {
         ".github/workflows/release.yaml",
         ".github/workflows/tests.yaml",
         "tests/cli-test-plan.yaml",
+    ],
+    "toml_files": [
+        ".github/labels.toml",
+        "pyproject.toml",
     ],
     "workflow_files": [
         ".github/workflows/autofix.yaml",

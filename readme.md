@@ -258,8 +258,10 @@ docs = [
 
 - **Sync labels** (`sync-labels`)
 
-  - Synchronizes repository labels from a YAML definition file using [`action-manage-label`](https://github.com/julb/action-manage-label)
-  - Automatically includes [`labels-awesome.yaml`](https://github.com/kdeldycke/workflows/blob/main/.github/labels-awesome.yaml) for `awesome-*` repositories
+  - Synchronizes repository labels using [`labelmaker`](https://github.com/jwodder/labelmaker)
+  - Uses [`labels.toml`](https://github.com/kdeldycke/workflows/blob/main/.github/labels.toml) with multiple profiles:
+    - `default` profile applied to all repositories
+    - `awesome` profile additionally applied to `awesome-*` repositories
 
 - **File-based PR labeller** (`file-labeller`)
 
