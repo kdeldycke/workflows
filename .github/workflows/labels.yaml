@@ -68,14 +68,15 @@ jobs:
         #
         # labelmaker does not support merging labels: https://github.com/jwodder/labelmaker/issues/8
         # So we make it explicitely raise an error so we get a signal that manual intervention is needed.
+        # Unfortunately --on-rename-clash is not accepted: https://github.com/jwodder/labelmaker/issues/126
         run: |
           # Apply default profile to all repositories.
-          labelmaker --on-rename-clash error apply labels.toml --profile default "${{ github.repository }}"
+          labelmaker apply labels.toml --profile default "${{ github.repository }}"
 
           # Apply awesome profile for awesome-* repositories.
           if [[ "${{ github.event.repository.name }}" == awesome-* ]] && \
              [[ "${{ github.event.repository.name }}" != "awesome-template" ]]; then
-            labelmaker --on-rename-clash error apply labels.toml --profile awesome "${{ github.repository }}"
+            labelmaker apply labels.toml --profile awesome "${{ github.repository }}"
           fi
 
           # Apply extra label files if provided.
@@ -84,7 +85,7 @@ jobs:
               if [ -n "$url" ]; then
                 filename=$(basename "$url")
                 if [ -f "$filename" ]; then
-                  labelmaker --on-rename-clash error apply "$filename" "${{ github.repository }}"
+                  labelmaker apply "$filename" "${{ github.repository }}"
                 fi
               fi
             done
