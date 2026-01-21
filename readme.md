@@ -284,6 +284,12 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
+- **Fix Dependabot labels** (`fix-dependabot-labels`)
+
+  - Replaces Dependabot's default labels (`dependencies`, `python:uv`, `github-actions`) with the custom `📦 dependencies` label
+  - Runs only on Dependabot PRs
+  - Uses `gh` CLI to manage labels
+
 ### [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml)
 
 - **Mypy lint** (`mypy-lint`)

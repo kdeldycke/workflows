@@ -172,3 +172,36 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           label: 💖 sponsors
+
+  # According to
+  # https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+  # the labels configuration should replace default labels.Our dependabot.yaml already has the correct configuration,
+  # yet Dependabot is still creating default labels. This is a known timing issue where Dependabot creates labels when
+  # opening PRs, before the label sync workflow runs.
+  #
+  # This job ensures that even if Dependabot creates unwanted labels, they'll be automatically removed and replaced
+  # with your custom label within seconds of the PR being opened.
+  #
+  # Sources:
+  # - https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+  # - https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates
+  fix-dependabot-labels:
+    name: Fix Dependabot labels
+    if: >
+      github.event_name == 'pull_request'
+      && github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-slim
+    steps:
+      - name: Replace default labels with custom ones
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Remove Dependabot's default labels if they exist.
+          for label in "dependencies" "python:uv" "github-actions"; do
+            gh pr edit "${{ github.event.pull_request.number }}" \
+              --remove-label "$label" 2>/dev/null || true
+          done
+
+          # Ensure our custom label is present.
+          gh pr edit "${{ github.event.pull_request.number }}" \
+            --add-label "📦 dependencies"
