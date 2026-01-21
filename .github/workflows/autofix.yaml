@@ -372,3 +372,26 @@ jobs:
             </details>
           labels: "🤖 ci"
           branch: update-gitignore
+
+  check-dependabot-disabled:
+    name: Check Dependabot disabled
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.1
+      - name: Check for Dependabot configuration file
+        run: |
+          if [ -f ".github/dependabot.yaml" ] || [ -f ".github/dependabot.yml" ]; then
+            echo "::error::Dependabot configuration found. Please remove .github/dependabot.yaml or .github/dependabot.yml and use Renovate instead."
+            exit 1
+          fi
+          echo "No Dependabot configuration file found."
+      - name: Check Dependabot security updates setting
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          status=$(gh api "repos/${{ github.repository }}" --jq '.security_and_analysis.dependabot_security_updates.status // "disabled"')
+          if [ "$status" = "enabled" ]; then
+            echo "::warning::Dependabot security updates are enabled in repository settings. Consider disabling them in Settings > Code security and analysis if using Renovate for all dependency updates."
+          else
+            echo "Dependabot security updates are disabled."
+          fi
