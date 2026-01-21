@@ -113,9 +113,6 @@ dependencies = [
 # Package referenced above and also featured in [project.optional-dependencies] or [dependency-groups]
 # will be set without version specifier as they are already constrained.
 
-# Runtime extra dependency groups.
-[project.optional-dependencies]
-
 # Non-runtime development dependency groups.
 [dependency-groups]
 test = [
