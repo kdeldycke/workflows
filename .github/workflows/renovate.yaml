@@ -3,8 +3,8 @@ name: Renovate
 "on":
   workflow_call:
   schedule:
-    # Run hourly.
-    - cron: "0 * * * *"
+    # Run weekly on Monday at midnight UTC.
+    - cron: "0 0 * * 1"
   workflow_dispatch:
   push:
     branches:
@@ -24,7 +24,7 @@ jobs:
 
   renovate:
     name: Renovate
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
       - uses: renovatebot/github-action@v44.2.4

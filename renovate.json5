@@ -2,8 +2,9 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:recommended"],
 
-  // PR settings.
+  // PR and issue settings.
   labels: ["📦 dependencies"],
+  dependencyDashboardLabels: ["📦 dependencies"],
   assignees: ["kdeldycke"],
 
   // Schedule settings.
@@ -35,8 +36,4 @@
     fileMatch: ["requirements/.+\\.txt$"],
   },
 
-  // uv.lock and pyproject.toml support.
-  uv: {
-    enabled: true,
-  },
 }
