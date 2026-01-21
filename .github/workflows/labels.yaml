@@ -61,6 +61,8 @@ jobs:
       - name: Apply labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Multiple file support for labelmaker apply is being discussed upstream at:
+        # https://github.com/jwodder/labelmaker/issues/125
         run: |
           # Apply default profile to all repositories.
           labelmaker apply -f labels.toml --profile default "${{ github.repository }}"
