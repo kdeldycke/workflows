@@ -33,6 +33,7 @@ name = "📦 dependencies"
 color = "AAA666"
 description = "Dependencies changes"
 rename-from = ["dependencies", "python:uv", "github-actions"]
+on-rename-clash = 'error'
 
 [[profiles.default.labels]]
 name = "📚 documentation"
