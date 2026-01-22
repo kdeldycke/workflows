@@ -38,15 +38,12 @@ jobs:
     name: Sync labels
     # Restrict job to the main branch pushes and workflow calls only, as this is a project-management task.
     if: github.event_name == 'push' || github.event_name == 'workflow_call'
-    # Do no use ubuntu-slim here so we get a ready-to-use Rust toolchain.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
-      # In the future, we can bypass compilation once the project provides binaries:
-      # https://github.com/jwodder/labelmaker/issues/63
       - name: Install labelmaker
         uses: taiki-e/install-action@v2.67.2
         with:
-          tool: labelmaker
+          tool: labelmaker@0.6.4
       - name: Download labels
         run: >
           curl -fsSL --output ./labels.toml
