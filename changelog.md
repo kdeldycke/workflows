@@ -6,10 +6,10 @@
 > This version is not released yet and is under active development.
 
 - Replace Dependabot by Renovate for dependency updates. Closes #1728.
-- Check that dependabot is disabled in repository settings.
 - Flag abandoned dependencies with `⚠️ stale dependency` label.
+- Check repository settings requirements for Renovate.
 - Use Renovate to sync `uv.lock` files. Remove `sync-uv-lock` job.
-- Increase aggressiveness of jobs cancelling in-progress runs on new commits.
+- Cancel in-progress jobs more aggressively on new commits.
 - Add `toml_files` field to `gha-utils metadata` output.
 - Replace `julb/action-manage-label` by `labelmaker` for label management. Closes #1914.
 - Add Rust-related entries to `.gitignore` file.
