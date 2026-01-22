@@ -29,7 +29,8 @@ jobs:
       - name: Check Dependabot version updates disabled
         run: |
           if [ -f ".github/dependabot.yaml" ] || [ -f ".github/dependabot.yml" ]; then
-            echo "::error::Dependabot version updates are enabled. Remove .github/dependabot.yaml or .github/dependabot.yml and use Renovate instead."
+            echo "::error::Dependabot version updates are enabled. Remove .github/dependabot.yaml" \
+              "or .github/dependabot.yml and use Renovate instead."
             exit 1
           fi
           echo "✓ Dependabot version updates: disabled (no config file)"
@@ -43,9 +44,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          status=$(gh api "repos/${{ github.repository }}" --jq '.security_and_analysis.dependabot_security_updates.status // "disabled"')
+          status=$(gh api "repos/${{ github.repository }}" \
+            --jq '.security_and_analysis.dependabot_security_updates.status // "disabled"')
           if [ "$status" = "enabled" ]; then
-            echo "::error::Dependabot security updates are enabled. Disable them in Settings > Advanced Security > Dependabot > Dependabot security updates."
+            echo "::error::Dependabot security updates are enabled. Disable them in" \
+              "Settings > Advanced Security > Dependabot > Dependabot security updates."
             exit 1
           fi
           echo "✓ Dependabot security updates: disabled (Renovate handles security PRs)"
@@ -58,7 +61,8 @@ jobs:
           if gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/statuses" --silent 2>/dev/null; then
             echo "✓ Commit statuses: token has access"
           else
-            echo "::warning::Cannot verify commit statuses permission. Ensure the token has 'Commit statuses: Read and Write' permission."
+            echo "::warning::Cannot verify commit statuses permission." \
+              "Ensure the token has 'Commit statuses: Read and Write' permission."
           fi
 
   renovate:
