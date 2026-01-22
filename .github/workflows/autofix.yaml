@@ -18,6 +18,9 @@ name: Autofix
         type: string
         default: |
           junit.xml
+
+          # Claude Code
+          .claude/
   push:
     branches:
       - main
@@ -28,7 +31,11 @@ env:
   gitignore-location: >-
     ${{ inputs.gitignore-location == null && './.gitignore' || inputs.gitignore-location }}
   gitignore-extra-content: >-
-    ${{ inputs.gitignore-extra-content == null && 'junit.xml' || inputs.gitignore-extra-content }}
+    ${{ inputs.gitignore-extra-content == null && 'junit.xml
+
+    # Claude Code
+
+    .claude/' || inputs.gitignore-extra-content }}
 
 
 concurrency:
