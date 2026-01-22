@@ -65,7 +65,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.0/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
           --
           gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
@@ -87,14 +87,14 @@ jobs:
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.0/requirements/autopep8.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/autopep8.txt
           --
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Install Ruff
         run: >
           uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.0/requirements/ruff.txt ruff
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/ruff.txt ruff
       # --fix : Automatically fix issues that can be fixed.
       # --unsafe-fixes : Include fixes that may not retain the original intent of the code.
       #   See: https://docs.astral.sh/ruff/linter/#fix-safety
@@ -141,7 +141,7 @@ jobs:
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.0/requirements/blacken-docs.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/blacken-docs.txt
           --
           blacken-docs
           --line-length 88
@@ -179,7 +179,7 @@ jobs:
       - name: Install mdformat
         run: >
           uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.0/requirements/mdformat.txt mdformat
+          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mdformat.txt mdformat
       - name: Install shfmt
         run: |
           sudo apt install --yes shfmt
