@@ -8,7 +8,7 @@
     enabled: true,
     schedule: ["at any time"],
     semanticCommits: "disabled",
-    commitMessagePrefix: "[autofix]",
+    commitMessagePrefix: "[deps]",
     commitMessageAction: "Sync `uv.lock`",
   },
 
@@ -20,6 +20,11 @@
   // Schedule settings.
   timezone: "UTC",
   schedule: ["at any time"],
+
+  // Commit message format: "[deps] Update click to <8.4".
+  semanticCommits: "disabled",
+  commitMessagePrefix: "[deps]",
+  commitMessageTopic: "{{{depName}}}",
 
   // Stabilization periods use prime numbers to stagger updates.
   minimumReleaseAge: "7 days",
