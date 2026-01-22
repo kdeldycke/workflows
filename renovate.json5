@@ -62,5 +62,52 @@
     enabled: true,
     labels: ["📦 dependencies", "💣 security"],
   },
+
+  // Custom managers for hard-coded versions in workflow files.
+  customManagers: [
+    {
+      description: "Update npm packages in workflow install commands.",
+      customType: "regex",
+      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      matchStrings: [
+        // Matches: npm install package@version or "package@version"
+        "npm.+install.+?\"?(?<depName>@?[a-z0-9-]+(/[a-z0-9-]+)?)@(?<currentValue>[0-9.]+)\"?",
+      ],
+      datasourceTemplate: "npm",
+    },
+    {
+      description: "Update actionlint version in download script.",
+      customType: "regex",
+      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      matchStrings: [
+        // Matches: download-actionlint.bash) 1.7.9
+        "download-actionlint\\.bash\\)\\s+(?<currentValue>[0-9.]+)",
+      ],
+      depNameTemplate: "rhysd/actionlint",
+      datasourceTemplate: "github-releases",
+    },
+    {
+      description: "Update actionlint version in matcher URL.",
+      customType: "regex",
+      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      matchStrings: [
+        // Matches: actionlint/refs/tags/v1.7.9/
+        "actionlint/refs/tags/v(?<currentValue>[0-9.]+)/",
+      ],
+      depNameTemplate: "rhysd/actionlint",
+      datasourceTemplate: "github-releases",
+    },
+    {
+      description: "Update labelmaker version in taiki-e/install-action.",
+      customType: "regex",
+      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      matchStrings: [
+        // Matches: tool: labelmaker@0.6.4
+        "tool:\\s+labelmaker@(?<currentValue>[0-9.]+)",
+      ],
+      depNameTemplate: "jwodder/labelmaker",
+      datasourceTemplate: "github-releases",
+    },
+  ],
 }
 
