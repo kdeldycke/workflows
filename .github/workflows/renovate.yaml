@@ -3,8 +3,8 @@ name: Renovate
 "on":
   workflow_call:
   schedule:
-    # Run hourly.
-    - cron: "0 * * * *"
+    # Run weekly.
+    - cron: "3 17 * * 1"
   workflow_dispatch:
   push:
     branches:
