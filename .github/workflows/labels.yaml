@@ -62,10 +62,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # Multiple file support for labelmaker apply is being discussed upstream at:
         # https://github.com/jwodder/labelmaker/issues/125
-        #
-        # labelmaker does not support merging labels: https://github.com/jwodder/labelmaker/issues/8
-        # So we make it explicitely raise an error so we get a signal that manual intervention is needed.
-        # Unfortunately --on-rename-clash is not accepted: https://github.com/jwodder/labelmaker/issues/126
         run: |
           # Apply default profile to all repositories.
           labelmaker apply labels.toml --profile default "${{ github.repository }}"
