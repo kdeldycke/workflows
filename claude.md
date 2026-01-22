@@ -1,6 +1,4 @@
-# CLAUDE.md
-
-This file provides guidance to [Claude Code](https://claude.ai) when working with code in this repository.
+# `claude.md`
 
 ## Project overview
 
