@@ -131,6 +131,52 @@ test = [
 ]
 typing = ["types-boltons >= 25.0.0.20250822", "types-PyYAML >= 6.0.12.9"]
 
+# Workflow tool extras (pinned for reproducibility).
+# These are consumed via: uvx --from 'gha-utils[extra]' <tool>
+[project.optional-dependencies]
+autopep8 = ["autopep8 == 2.3.2"]
+blacken-docs = ["black == 25.12.0", "blacken-docs == 1.20.0"]
+# Note: The original requirements file included "click < 8.3" to prevent potential
+# issues with breaking Click releases (see https://github.com/callowayproject/bump-my-version/pull/371).
+# However, this constraint conflicts with click-extra's requirements. When using this extra
+# via `uvx --from 'gha-utils[bump-my-version]'`, the tool is installed in isolation and
+# the Click version will be determined by bump-my-version's own constraints.
+bump-my-version = ["bump-my-version == 1.1.0"]
+# https://mdformat.readthedocs.io/en/stable/users/plugins.html
+mdformat = [
+    "mdformat == 1.0.0",
+    "mdformat_admon == 2.1.1",
+    "mdformat-config == 0.2.1",
+    "mdformat_deflist == 0.1.4",
+    # XXX mdformat-footnote is stripping trailing comments in footnotes. See:
+    # https://github.com/executablebooks/mdformat-footnote/issues/11
+    "mdformat_footnote == 0.1.2",
+    "mdformat-front-matters == 2.0.0",
+    "mdformat-gfm == 1.0.0",
+    "mdformat_gfm_alerts == 2.0.0",
+    # XXX Annoying issue with mdformat-myst: it forces colon-delimited parameters in code blocks
+    # to be normalized as YAML frontmatter. See:
+    # https://github.com/executablebooks/mdformat-myst/issues/21#issuecomment-3247818021
+    "mdformat_myst == 0.3.0",
+    # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading:
+    # https://github.com/gaige/mdformat-pelican/pull/8
+    "mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-mdformat-1.0.0",
+    "mdformat_pyproject == 0.1.1",
+    # Fix URL encoding: https://github.com/hukkin/mdformat/issues/312#issuecomment-3227866895
+    "mdformat-recover-urls == 0.0.2",
+    "mdformat-ruff == 0.1.3",
+    "mdformat-shfmt == 0.2.0",
+    "mdformat_simple_breaks == 0.1.0",
+    "mdformat-toc == 0.5.0",
+    "mdformat-web == 0.2.0",
+    "ruff == 0.14.9",
+]
+mypy = ["mypy == 1.19.1"]
+nuitka = ["nuitka [onefile] == 2.8.9"]
+pipdeptree = ["pipdeptree == 2.30.0"]
+ruff = ["ruff == 0.14.9"]
+yamllint = ["yamllint == 1.37.1"]
+
 [project.urls]
 "Homepage" = "https://github.com/kdeldycke/workflows"
 "Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.0.0"

@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Move workflow dependencies from `requirements/*.txt` files to `gha-utils` package extra dependencies.
 - Replace Dependabot by Renovate for dependency updates. Closes #1728.
 - Flag abandoned dependencies with `⚠️ stale dependency` label.
 - Check repository settings requirements for Renovate.
