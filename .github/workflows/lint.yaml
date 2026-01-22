@@ -28,7 +28,7 @@ jobs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run gha-utils metadata
         id: project-metadata
@@ -47,7 +47,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Install all package dependencies
         # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
@@ -74,7 +74,7 @@ jobs:
       && needs.project-metadata.outputs.yaml_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run yamllint
         run: >
@@ -93,7 +93,7 @@ jobs:
       && needs.project-metadata.outputs.zsh_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Install Zsh
         run: |
           sudo apt update
@@ -112,7 +112,7 @@ jobs:
       && needs.project-metadata.outputs.workflow_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Install actionlint
         id: install_actionlint
         run: |
@@ -160,7 +160,7 @@ jobs:
     # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
     # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: lycheeverse/lychee-action@v2.7.0
         id: lychee_run
         with:
@@ -268,7 +268,7 @@ jobs:
       && github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           # Fetch all history to please linter's age checks.
           fetch-depth: 0
@@ -287,7 +287,7 @@ jobs:
     if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2.3.9
