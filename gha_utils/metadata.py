@@ -16,6 +16,20 @@
 
 """Extract metadata from repository and Python projects to be used by GitHub workflows.
 
+This module solves a fundamental limitation of GitHub Actions: a workflow run is
+triggered by a singular event, which might encapsulate **multiple commits**. GitHub only
+exposes ``github.event.head_commit`` (the most recent commit), but workflows often need
+to process all commits in the push event.
+
+This is critical for releases, where two commits are pushed together:
+
+1. ``[changelog] Release vX.Y.Z`` — the release commit to be tagged and published
+2. ``[changelog] Post-release version bump`` — bumps version for the next dev cycle
+
+Since ``github.event.head_commit`` only sees the post-release bump, this module extracts
+the full commit range from the push event and identifies release commits that need
+special handling (tagging, PyPI publishing, GitHub release creation).
+
 The following variables are `printed to the environment file
 <https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files>`_:
 
@@ -813,16 +827,24 @@ class Metadata:
 
         A workflow run is triggered by a singular event, which might encapsulate one or
         more commits. This means the workflow will only run once on the last commit,
-        even if multiple new commits where pushed.
+        even if multiple new commits were pushed.
 
-        This is annoying when we want to keep a carefully constructed commit history,
-        and want to run the workflow on each commit. The typical example is a pull
+        This is critical for releases where two commits are pushed together:
+
+        1. ``[changelog] Release vX.Y.Z`` — the release commit
+        2. ``[changelog] Post-release version bump`` — the post-release bump
+
+        Without extracting the full commit range, the release commit would be missed
+        since ``github.event.head_commit`` only exposes the post-release bump.
+
+        This property also enables processing each commit individually when we want to
+        keep a carefully constructed commit history. The typical example is a pull
         request that is merged upstream but we'd like to produce artifacts (builds,
         packages, etc.) for each individual commit.
 
         The default ``GITHUB_SHA`` environment variable is not enough as it only points
         to the last commit. We need to inspect the commit history to find all new ones.
-        New commits needs to be fetched differently in ``push`` and ``pull_requests``
+        New commits need to be fetched differently in ``push`` and ``pull_request``
         events.
 
         .. seealso::
@@ -877,7 +899,14 @@ class Metadata:
 
     @cached_property
     def new_commits(self) -> tuple[Commit, ...] | None:
-        """Returns list of ``Commit`` objects bundled within the triggering event."""
+        """Returns list of all ``Commit`` objects bundled within the triggering event.
+
+        This extracts **all commits** from the push event, not just ``head_commit``.
+        For releases, this typically includes both the release commit and the post-release
+        bump commit, allowing downstream jobs to process each one appropriately.
+
+        Commits are returned in chronological order (oldest first, most recent last).
+        """
         if not self.commit_range:
             return None
         start, end = self.commit_range
@@ -925,13 +954,22 @@ class Metadata:
     def release_commits(self) -> tuple[Commit, ...] | None:
         """Returns list of ``Commit`` objects to be tagged within the triggering event.
 
-        We cannot identify a release commit based the presence of a ``vX.Y.Z`` tag
-        alone. That's because it is not present in the ``prepare-release`` pull request
-        produced by the ``changelog.yaml`` workflow. The tag is produced later on by
-        the ``release.yaml`` workflow, when the pull request is merged to ``main``.
+        This filters ``new_commits`` to find release commits that need special handling:
+        tagging, PyPI publishing, and GitHub release creation.
 
-        Our best second option is to identify a release based on the full commit
-        message, based on the template used in the ``changelog.yaml`` workflow.
+        This is essential because when a release is pushed, ``github.event.head_commit``
+        only exposes the post-release bump commit, not the release commit. By extracting
+        all commits from the event (via ``new_commits``) and filtering for release
+        commits here, we ensure the release workflow can properly identify and process
+        the ``[changelog] Release vX.Y.Z`` commit.
+
+        We cannot identify a release commit based on the presence of a ``vX.Y.Z`` tag
+        alone. That's because the tag is not present in the ``prepare-release`` pull
+        request produced by the ``changelog.yaml`` workflow. The tag is created later
+        by the ``release.yaml`` workflow, when the pull request is merged to ``main``.
+
+        Our best option is to identify a release based on the full commit message,
+        using the template from the ``changelog.yaml`` workflow.
         """
         if not self.new_commits:
             return None
@@ -1275,10 +1313,14 @@ class Metadata:
 
         Current version is fetched from the ``bump-my-version`` configuration file.
 
-        During a release we get two commits bundled into a single event. The first one
-        is the release commit itself freezing the version to the release number. The
-        second one is the commit that bumps the version to the next one. In this
-        situation, the current version returned is the one from the most recent commit.
+        During a release, two commits are bundled into a single push event:
+
+        1. ``[changelog] Release vX.Y.Z`` — freezes the version to the release number
+        2. ``[changelog] Post-release version bump`` — bumps to the next dev version
+
+        In this situation, the current version returned is the one from the most recent
+        commit (the post-release bump), which represents the next development version.
+        Use ``released_version`` to get the version from the release commit.
         """
         version = None
         if self.new_commits_matrix:
@@ -1291,7 +1333,15 @@ class Metadata:
 
     @cached_property
     def released_version(self) -> str | None:
-        """Returns the version of the release commit."""
+        """Returns the version of the release commit.
+
+        During a release push event, this extracts the version from the
+        ``[changelog] Release vX.Y.Z`` commit, which is distinct from ``current_version``
+        (the post-release bump version). This is used for tagging, PyPI publishing, and
+        GitHub release creation.
+
+        Returns ``None`` if no release commit is found in the current event.
+        """
         version = None
         if self.release_commits_matrix:
             details = self.release_commits_matrix.include

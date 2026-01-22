@@ -48,7 +48,13 @@ env:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
+  # Protect both release commits and post-release bump commits from cancellation.
+  # When a release is pushed, the event contains two commits bundled together:
+  # 1. "[changelog] Release vX.Y.Z" - the release commit
+  # 2. "[changelog] Post-release version bump" - the post-release bump (head_commit)
+  # Since head_commit is the post-release bump, we must protect both patterns to ensure
+  # the release jobs (git-tag, pypi-publish, github-release) run to completion.
+  cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') && !startsWith(github.event.head_commit.message, '[changelog] Post-release') }}
 
 jobs:
 

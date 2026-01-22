@@ -648,24 +648,30 @@ concurrency:
 Release commits must run to completion to ensure proper tagging, PyPI publishing, and GitHub release creation. The `cancel-in-progress` directive is conditional:
 
 ```yaml
-cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
+cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') && !startsWith(github.event.head_commit.message, '[changelog] Post-release') }}
 ```
 
 | Commit Message | `cancel-in-progress` | Behavior |
 | :------------- | :------------------- | :------- |
 | `[changelog] Release v4.26.0` | `false` | **Protected** — runs to completion |
-| `[changelog] Post-release version bump` | `true` | Cancellable |
+| `[changelog] Post-release version bump` | `false` | **Protected** — runs to completion |
 | Any other commit | `true` | Cancellable |
 
-> [!NOTE]
-> The post-release version bump commit (`[changelog] Post-release version bump`) is cancellable. This is intentional: it only updates the version number for the next development cycle and doesn't trigger publishing jobs. If cancelled, the next push will include the same changes.
+> [!IMPORTANT]
+> When a release is pushed, the event contains **two commits bundled together**:
+>
+> 1. `[changelog] Release vX.Y.Z` — the release commit
+> 2. `[changelog] Post-release version bump` — bumps version for next development cycle
+>
+> Since `github.event.head_commit` refers to the most recent commit (the post-release bump), both commit patterns must be protected. Otherwise, the workflow would be cancelled before the release jobs (`git-tag`, `pypi-publish`, `github-release`) complete.
 
 ### Event-specific behavior
 
 | Event | `github.event.head_commit` | Concurrency Group | Cancel Behavior |
 | :---- | :------------------------- | :---------------- | :-------------- |
 | `push` to `main` | Set | `{workflow}-refs/heads/main` | Based on commit message |
-| `push` (release commit) | Starts with `[changelog] Release` | `{workflow}-refs/heads/main` | **Never cancelled** |
+| `push` (release) | Starts with `[changelog] Release` | `{workflow}-refs/heads/main` | **Never cancelled** |
+| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-refs/heads/main` | **Never cancelled** |
 | `pull_request` | `null` | `{workflow}-{pr-number}` | Always cancellable |
 | `workflow_call` | Inherited or `null` | Inherited from caller | Usually cancellable |
 | `schedule` | `null` | `{workflow}-refs/heads/main` | Always cancellable |
