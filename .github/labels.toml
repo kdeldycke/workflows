@@ -8,7 +8,7 @@
 
 [[profiles.default.labels]]
 name = "🐛 bug"
-color = "FDC705"
+color = "fbca04"
 description = "Something isn't working, or a fix is proposed"
 
 [[profiles.default.labels]]
@@ -18,7 +18,7 @@ description = "Root cause not from project"
 
 [[profiles.default.labels]]
 name = "🆙 changelog"
-color = "C2E0C6"
+color = "c2e0c6"
 description = "Keep track of changes"
 
 [[profiles.default.labels]]
@@ -43,12 +43,12 @@ description = "This issue or pull request already exists"
 
 [[profiles.default.labels]]
 name = "✨ enhancement"
-color = "1870E3"
+color = "1d76db"
 description = "Improvement or change to an existing feature"
 
 [[profiles.default.labels]]
 name = "🎁 feature request"
-color = "84b6eb"
+color = "0052cc"
 description = "Not existing yet and need to be implemented"
 
 [[profiles.default.labels]]
@@ -63,7 +63,7 @@ description = "I can't do this alone and need contributors"
 
 [[profiles.default.labels]]
 name = "❔ question"
-color = "d876e3"
+color = "d4c5f9"
 description = "Further information is requested"
 
 [[profiles.default.labels]]
@@ -73,7 +73,7 @@ description = "Exploit, token leaks, …"
 
 [[profiles.default.labels]]
 name = "💖 sponsor"
-color = "D3B3F2"
+color = "5319e7"
 description = "A sponsor is involved"
 
 [[profiles.default.labels]]
@@ -86,12 +86,12 @@ description = "This will not be worked on"
 
 [[profiles.awesome.labels]]
 name = "⚖️ curation"
-color = "d73a4a"
+color = "f9d0c4"
 description = "Links or structure needs to be refined"
 
 [[profiles.awesome.labels]]
 name = "🆕 new link"
-color = "fbca04"
+color = "bfd4f2"
 description = "A link worth adding to the list"
 
 [[profiles.awesome.labels]]
