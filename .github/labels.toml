@@ -1,12 +1,10 @@
-# Hint: whenever you use a "rename-from" parameter in labelmaker, add a
-# "on-rename-clash = 'error'" setting alongside it, so that we get an explicit
-# signal that manual intervention is needed. That beause:
-# - labelmaker does not support merging: https://github.com/jwodder/labelmaker/issues/8
-# - the CLI does not accept a global --on-rename-clash parameter: https://github.com/jwodder/labelmaker/issues/126
+# Hint: whenever you use a "rename-from" parameter in labelmaker, add a "on-rename-clash = 'error'" setting alongside
+# it, so we get an explicit signal that manual intervention is needed to clean-up labels. That beause labelmaker:
+# - does not support merging: https://github.com/jwodder/labelmaker/issues/8
+# - does not accept a global on-rename-clash parameter: https://github.com/jwodder/labelmaker/issues/126#issuecomment-3783237878
 
 # Default labels for all repositories.
 [profiles.default]
-on-rename-clash = 'error'
 
 [[profiles.default.labels]]
 name = "🐛 bug"
@@ -32,8 +30,6 @@ description = "Continuous integration, tests, automation and management of the p
 name = "📦 dependencies"
 color = "AAA666"
 description = "Dependencies changes"
-rename-from = ["dependencies", "python:uv", "github-actions"]
-on-rename-clash = 'error'
 
 [[profiles.default.labels]]
 name = "📚 documentation"
@@ -87,7 +83,6 @@ description = "This will not be worked on"
 
 # Additional labels for awesome-* repositories.
 [profiles.awesome]
-on-rename-clash = 'error'
 
 [[profiles.awesome.labels]]
 name = "⚖️ curation"
