@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.0.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.0.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.0.1 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)
 
 - Fix publishing to PyPi by removing URL-based dependency on `mdformat-pelican`.
 - Protect both release commits and post-release bump commits from cancellation.

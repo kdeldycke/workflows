@@ -44,7 +44,7 @@ jobs:
       - name: Download labels
         run: >
           curl -fsSL --output ./labels.toml
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.toml
+          https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.1/.github/labels.toml
       - name: Download extra label files
         if: inputs.extra-label-files
         run: |
@@ -98,7 +98,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
           uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
+          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.1/requirements/gha-utils.txt
           --
           gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
@@ -115,7 +115,7 @@ jobs:
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-file-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.1/.github/labeller-file-based.yaml
       - name: Extend default rules
         if: inputs.extra-file-rules
         run: |
@@ -141,7 +141,7 @@ jobs:
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-content-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-content-based.yaml
+          https://raw.githubusercontent.com/kdeldycke/workflows/v5.0.1/.github/labeller-content-based.yaml
       - name: Extend default rules
         if: inputs.extra-content-rules
         run: |
