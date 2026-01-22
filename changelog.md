@@ -12,6 +12,7 @@
 - Cancel in-progress jobs more aggressively on new commits.
 - Add `toml_files` and `project_description` fields to `gha-utils metadata` output.
 - Replace `julb/action-manage-label` by `labelmaker` for label management. Closes #1914.
+- Do not let `actions/labeler` remove labels that don't strictly match its file-based rules.
 - Add Rust-related entries to `.gitignore` file.
 - Sync GitHub repository description from `pyproject.toml` file.
 - Document workflow concurrency.
