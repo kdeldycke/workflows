@@ -126,7 +126,6 @@ jobs:
         uses: actions/labeler@v6.0.1
         with:
           configuration-path: ".github/labeller-file-based.yaml"
-          sync-labels: true
 
   content-labeller:
     name: Content-based labeller
