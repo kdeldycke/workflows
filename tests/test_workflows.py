@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -64,11 +65,12 @@ WORKFLOWS_WITH_CONCURRENCY = tuple(
 )
 
 
-def load_workflow(workflow_name: str) -> dict:
+def load_workflow(workflow_name: str) -> dict[str, Any]:
     """Load and parse a workflow YAML file."""
     workflow_path = WORKFLOWS_DIR / workflow_name
     with workflow_path.open() as f:
-        return yaml.safe_load(f)
+        result: dict[str, Any] = yaml.safe_load(f)
+        return result
 
 
 @pytest.mark.parametrize("workflow_name", WORKFLOWS_WITH_CONCURRENCY)
