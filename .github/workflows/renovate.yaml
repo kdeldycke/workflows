@@ -76,4 +76,7 @@ jobs:
           RENOVATE_ONBOARDING: "false"
           # Require a configuration file to be present.
           RENOVATE_REQUIRE_CONFIG: "required"
+          # Fetch all PRs, not just those created by the current bot.
+          # Useful for migrating between bot accounts or taking over existing PRs.
+          RENOVATE_IGNORE_PR_AUTHOR: "true"
           LOG_LEVEL: "info"
