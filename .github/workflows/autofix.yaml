@@ -380,9 +380,6 @@ jobs:
       fromJSON(needs.project-metadata.outputs.is_python_project)
       && needs.project-metadata.outputs.project_description
     runs-on: ubuntu-slim
-    permissions:
-      # Required by gh repo edit.
-      metadata: write
     steps:
       - name: Update repository description
         env:
