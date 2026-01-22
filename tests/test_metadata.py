@@ -172,7 +172,7 @@ expected = {
     "zsh_files": [],
     "is_python_project": True,
     "package_name": "gha-utils",
-    "project_description": "⚙️ CLI helpers for GitHub Actions + reuseable workflows",
+    "project_description": "⚙️ CLI helpers for GitHub Actions + reusable workflows",
     "blacken_docs_params": (
         "--target-version py310 "
         "--target-version py311 "
