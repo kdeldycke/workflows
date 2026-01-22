@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-01-15T16:44:03.79958Z"
+exclude-newer = "2026-01-15T18:25:59.419791Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -493,7 +493,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "5.0.0"
+version = "5.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -531,7 +531,6 @@ mdformat = [
     { name = "mdformat-gfm" },
     { name = "mdformat-gfm-alerts" },
     { name = "mdformat-myst" },
-    { name = "mdformat-pelican" },
     { name = "mdformat-pyproject" },
     { name = "mdformat-recover-urls" },
     { name = "mdformat-ruff" },
@@ -591,7 +590,6 @@ requires-dist = [
     { name = "mdformat-gfm", marker = "extra == 'mdformat'", specifier = "==1.0.0" },
     { name = "mdformat-gfm-alerts", marker = "extra == 'mdformat'", specifier = "==2.0.0" },
     { name = "mdformat-myst", marker = "extra == 'mdformat'", specifier = "==0.3.0" },
-    { name = "mdformat-pelican", marker = "extra == 'mdformat'", git = "https://github.com/kdeldycke/mdformat-pelican?rev=fix-mdformat-1.0.0" },
     { name = "mdformat-pyproject", marker = "extra == 'mdformat'", specifier = "==0.1.1" },
     { name = "mdformat-recover-urls", marker = "extra == 'mdformat'", specifier = "==0.0.2" },
     { name = "mdformat-ruff", marker = "extra == 'mdformat'", specifier = "==0.1.3" },
@@ -952,14 +950,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a8/e1/e41d0a8acb2485c9da0fb194545c9827ce1399534110a5e45c465221318f/mdformat_myst-0.3.0.tar.gz", hash = "sha256:8195dec075683cac689c5586a5e4c6700ec8d6df0f9bc34a1e2f3514d5e745b0", size = 30032, upload-time = "2025-11-27T18:52:26.466Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d0/7b/2e8b6fa15fc47f5a512ebbe4bba4e2d5dfc988092269fc1cd3d22c9dad45/mdformat_myst-0.3.0-py3-none-any.whl", hash = "sha256:45e305cb1e742e712c0a8410315c351f3ab43e702d979d4f0eea9d9831245adc", size = 7088, upload-time = "2025-11-27T18:52:25.618Z" },
-]
-
-[[package]]
-name = "mdformat-pelican"
-version = "1.0.0"
-source = { git = "https://github.com/kdeldycke/mdformat-pelican?rev=fix-mdformat-1.0.0#d7a7864182bcb3bd200709266b04f7d3d837ee5c" }
-dependencies = [
-    { name = "mdformat" },
 ]
 
 [[package]]

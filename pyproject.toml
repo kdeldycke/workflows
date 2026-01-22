@@ -140,9 +140,9 @@ mdformat = [
     # to be normalized as YAML frontmatter. See:
     # https://github.com/executablebooks/mdformat-myst/issues/21#issuecomment-3247818021
     "mdformat_myst == 0.3.0",
-    # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading:
-    # https://github.com/gaige/mdformat-pelican/pull/8
-    "mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-mdformat-1.0.0",
+    # XXX mdformat-pelican is capped at mdformat<0.8.0 so it blocks the whole ecosystem from upgrading.
+    # Waiting for upstream fix: https://github.com/gaige/mdformat-pelican/pull/8
+    # Until then, install manually: pip install git+https://github.com/kdeldycke/mdformat-pelican@fix-mdformat-1.0.0
     "mdformat_pyproject == 0.1.1",
     # Fix URL encoding: https://github.com/hukkin/mdformat/issues/312#issuecomment-3227866895
     "mdformat-recover-urls == 0.0.2",
