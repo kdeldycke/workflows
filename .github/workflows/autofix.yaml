@@ -64,10 +64,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          --
-          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
+          uvx --from 'gha-utils' -- gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
   format-python:
     name: Format Python
@@ -86,15 +83,12 @@ jobs:
         #  - --aggressive is requires to force autopep8 to consider comments.
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/autopep8.txt
-          --
+          uvx --from 'gha-utils[autopep8]' --
           autopep8 --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Install Ruff
         run: >
-          uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/ruff.txt ruff
+          uv tool install --from 'gha-utils[ruff]' ruff
       # --fix : Automatically fix issues that can be fixed.
       # --unsafe-fixes : Include fixes that may not retain the original intent of the code.
       #   See: https://docs.astral.sh/ruff/linter/#fix-safety
@@ -140,9 +134,7 @@ jobs:
         # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/blacken-docs.txt
-          --
+          uvx --from 'gha-utils[blacken-docs]' --
           blacken-docs
           --line-length 88
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
@@ -178,8 +170,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Install mdformat
         run: >
-          uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/mdformat.txt mdformat
+          uv tool install --from 'gha-utils[mdformat]' mdformat
       - name: Install shfmt
         run: |
           sudo apt install --yes shfmt

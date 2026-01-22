@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Switch from from `requirements/*.txt` files to `gha-utils` extra dependencies to install workflow tools.
+
 ## [5.0.1 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)
 
 - Fix publishing to PyPi by removing URL-based dependency on `mdformat-pelican`.
@@ -12,7 +14,7 @@
 
 ## [5.0.0 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v4.25.5...v5.0.0)
 
-- Move workflow dependencies from `requirements/*.txt` files to `gha-utils` package extra dependencies.
+- Duplicate workflow dependencies from `requirements/*.txt` files to `gha-utils` package as extra dependencies.
 - Replace Dependabot by Renovate for dependency updates. Closes #1728.
 - Flag abandoned dependencies with `⚠️ stale dependency` label.
 - Check repository settings requirements for Renovate.

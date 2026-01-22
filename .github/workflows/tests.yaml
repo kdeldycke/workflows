@@ -111,10 +111,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          --
-          gha-utils metadata --overwrite "$GITHUB_OUTPUT"
+          uvx --from 'gha-utils' -- gha-utils metadata --overwrite "$GITHUB_OUTPUT"
 
   validate-arch:
     # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on

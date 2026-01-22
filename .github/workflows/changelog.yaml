@@ -8,8 +8,6 @@ name: Changelog & versions
     paths:
       - changelog.md
       - "**/pyproject.toml"
-      - "*requirements.txt"
-      - "requirements/*.txt"
       # Trigger on any workflow change to make sure version gets hard-coded everywhere.
       - .github/workflows/*.yaml
 
@@ -34,8 +32,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Install bump-my-version
         run: >
-          uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/bump-my-version.txt bump-my-version
+          uv tool install --from 'gha-utils[bump-my-version]' bump-my-version
       - name: ${{ matrix.part }} version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
@@ -98,8 +95,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Install bump-my-version
         run: >
-          uv tool install --with-requirements
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/bump-my-version.txt bump-my-version
+          uv tool install --from 'gha-utils[bump-my-version]' bump-my-version
       - name: Extract version
         id: get_version
         run: |
@@ -115,6 +111,21 @@ jobs:
           bump-my-version replace --no-configured-files --ignore-missing-version
           --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
           --replace "/workflows/v{current_version}/"
+          ./.github/workflows/*.yaml
+      - name: Hard-code version in gha-utils extras
+        # This step is only used in the original repository to pin gha-utils extras to the release version.
+        if: github.repository == 'kdeldycke/workflows'
+        # Add version to all gha-utils extras patterns:
+        #   gha-utils[extra]  →  gha-utils[extra]=={version}
+        #   gha-utils'        →  gha-utils=={version}'
+        run: >
+          bump-my-version replace --no-configured-files --ignore-missing-version
+          --regex --search "gha-utils(\[[^\]]+\])'"
+          --replace "gha-utils\1=={current_version}'"
+          ./.github/workflows/*.yaml &&
+          bump-my-version replace --no-configured-files --ignore-missing-version
+          --regex --search "'gha-utils'"
+          --replace "'gha-utils=={current_version}'"
           ./.github/workflows/*.yaml
       - name: Set release date in changelog
         run: >
@@ -159,12 +170,24 @@ jobs:
           --search "/workflows/v{current_version}/"
           --replace "/workflows/$RELEASE_DEFAULT_BRANCH/"
           ./.github/workflows/*.yaml
+      - name: Remove version from gha-utils extras
+        # This step is only used in the original repository to unpin gha-utils extras for development.
+        if: github.repository == 'kdeldycke/workflows'
+        # Remove version from all gha-utils extras patterns:
+        #   gha-utils[extra]=={version}  →  gha-utils[extra]
+        #   gha-utils=={version}'        →  gha-utils'
+        run: >
+          bump-my-version replace --no-configured-files --ignore-missing-version
+          --regex --search "gha-utils(\[[^\]]+\])=={current_version}'"
+          --replace "gha-utils\1'"
+          ./.github/workflows/*.yaml &&
+          bump-my-version replace --no-configured-files --ignore-missing-version
+          --regex --search "'gha-utils=={current_version}'"
+          --replace "'gha-utils'"
+          ./.github/workflows/*.yaml
       - name: Add new changelog entry
         run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          --
-          gha-utils changelog ./changelog.md
+          uvx --from 'gha-utils' -- gha-utils changelog ./changelog.md
       - name: Version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
