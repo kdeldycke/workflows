@@ -17,10 +17,17 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
 import yaml
+
+# Self-referential URL base for this repository.
+SELF_REF_URL_BASE = "https://raw.githubusercontent.com/kdeldycke/workflows"
+
+# Branch used in self-referential URLs during development.
+SELF_REF_BRANCH = "main"
 
 # Common prefix for all changelog-related commits.
 CHANGELOG_COMMIT_PREFIX = "[changelog]"
@@ -263,3 +270,140 @@ def test_broken_links_skips_post_release_commits() -> None:
         f"broken-links job must skip commits containing "
         f"'{POST_RELEASE_COMMIT_MESSAGE}'. Found condition: {condition}"
     )
+
+
+# --- Action version pinning tests ---
+
+
+def iter_workflow_actions(workflow: dict):
+    """Yield all action references (uses: statements) from a workflow."""
+    for job_name, job in workflow.get("jobs", {}).items():
+        for step in job.get("steps", []):
+            if "uses" in step:
+                yield job_name, step.get("name", "unnamed"), step["uses"]
+
+
+def iter_all_actions():
+    """Yield all action references from all workflow files."""
+    for workflow_path in WORKFLOWS_DIR.glob("*.yaml"):
+        workflow = load_workflow(workflow_path.name)
+        for job_name, step_name, action in iter_workflow_actions(workflow):
+            yield workflow_path.name, job_name, step_name, action
+
+
+# Regex to match action references with pinned versions.
+# Accepts: vX.Y.Z, vX.Y, X.Y.Z (some actions don't use v prefix).
+# Rejects: vX (major-only).
+ACTION_VERSION_PATTERN = re.compile(r"^[^/]+/[^@]+@v?\d+\.\d+(\.\d+)?$")
+
+
+@pytest.mark.parametrize(
+    ("workflow_name", "job_name", "step_name", "action"),
+    list(iter_all_actions()),
+    ids=lambda x: x if isinstance(x, str) and "/" in x else None,
+)
+def test_action_uses_full_semantic_version(
+    workflow_name: str, job_name: str, step_name: str, action: str
+) -> None:
+    """Verify that all actions use full semantic versions (vX.Y.Z), not major-only."""
+    # Skip local actions (e.g., ./.github/actions/foo).
+    if action.startswith("./"):
+        pytest.skip("Local action")
+
+    # Skip Docker actions (e.g., docker://image:tag).
+    if action.startswith("docker://"):
+        pytest.skip("Docker action")
+
+    assert ACTION_VERSION_PATTERN.match(action), (
+        f"{workflow_name} ({job_name}/{step_name}): Action '{action}' must use "
+        "pinned version (vX.Y.Z or vX.Y), not major-only (vX)"
+    )
+
+
+# --- Self-referential URL tests ---
+
+
+def get_workflow_content(workflow_name: str) -> str:
+    """Get raw content of a workflow file."""
+    workflow_path = WORKFLOWS_DIR / workflow_name
+    return workflow_path.read_text()
+
+
+ALL_WORKFLOWS = tuple(sorted(p.name for p in WORKFLOWS_DIR.glob("*.yaml")))
+
+
+@pytest.mark.parametrize("workflow_name", ALL_WORKFLOWS)
+def test_self_referential_urls_use_main_branch(workflow_name: str) -> None:
+    """Verify that self-referential URLs point to main branch."""
+    content = get_workflow_content(workflow_name)
+
+    # Find all self-referential URLs.
+    url_pattern = re.compile(
+        rf"{re.escape(SELF_REF_URL_BASE)}/([^/\s\"']+)/requirements/"
+    )
+    matches = url_pattern.findall(content)
+
+    for branch in matches:
+        # During development, all URLs should point to main.
+        # The release process temporarily changes these to tagged versions.
+        assert branch == SELF_REF_BRANCH, (
+            f"{workflow_name}: Self-referential URL uses '{branch}' instead of "
+            f"'{SELF_REF_BRANCH}'. URLs should point to main during development."
+        )
+
+
+# --- Runner image convention tests ---
+
+
+# Jobs that require ubuntu-24.04 instead of ubuntu-slim.
+# Each entry documents the reason for the exception.
+UBUNTU_2404_EXCEPTIONS = {
+    # Format: (workflow_name, job_name): "reason"
+    ("autofix.yaml", "format-markdown"): "shfmt is not available on ubuntu-slim",
+    ("docs.yaml", "optimize-images"): "calibreapp/image-actions requires Docker",
+    ("lint.yaml", "broken-links"): "shell: python cannot find Python interpreter",
+    ("lint.yaml", "github-archived-repo-check"): "shell: python cannot find interpreter",
+    ("release.yaml", "github-release"): "shell: python cannot find Python interpreter",
+    ("renovate.yaml", "renovate"): "renovatebot/github-action requires Docker",
+}
+
+
+def iter_jobs_with_runners():
+    """Yield all jobs with their runner configurations."""
+    for workflow_path in WORKFLOWS_DIR.glob("*.yaml"):
+        workflow = load_workflow(workflow_path.name)
+        for job_name, job in workflow.get("jobs", {}).items():
+            runs_on = job.get("runs-on", "")
+            # Skip matrix-based runners.
+            if isinstance(runs_on, str) and not runs_on.startswith("${{"):
+                yield workflow_path.name, job_name, runs_on
+
+
+@pytest.mark.parametrize(
+    ("workflow_name", "job_name", "runs_on"),
+    list(iter_jobs_with_runners()),
+    ids=lambda x: f"{x[0]}:{x[1]}" if isinstance(x, tuple) else None,
+)
+def test_runner_uses_ubuntu_slim_by_default(
+    workflow_name: str, job_name: str, runs_on: str
+) -> None:
+    """Verify that jobs use ubuntu-slim unless there's a documented exception."""
+    if runs_on == "ubuntu-slim":
+        return  # Correct default.
+
+    if runs_on == "ubuntu-24.04":
+        exception_key = (workflow_name, job_name)
+        assert exception_key in UBUNTU_2404_EXCEPTIONS, (
+            f"{workflow_name} ({job_name}): Uses 'ubuntu-24.04' but is not in "
+            "UBUNTU_2404_EXCEPTIONS. Either use 'ubuntu-slim' or document the "
+            "exception with a reason."
+        )
+        return
+
+    # Other runners (macos, windows) are allowed for cross-platform testing.
+    if any(
+        platform in runs_on for platform in ("macos", "windows", "ubuntu-24.04-arm")
+    ):
+        return
+
+    pytest.fail(f"{workflow_name} ({job_name}): Unknown runner '{runs_on}'")
