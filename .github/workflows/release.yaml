@@ -54,7 +54,11 @@ concurrency:
   # 2. "[changelog] Post-release version bump" - the post-release bump (head_commit)
   # Since head_commit is the post-release bump, we must protect both patterns to ensure
   # the release jobs (git-tag, pypi-publish, github-release) run to completion.
-  cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') && !startsWith(github.event.head_commit.message, '[changelog] Post-release') }}
+  cancel-in-progress: >-
+    ${{
+      !startsWith(github.event.head_commit.message, '[changelog] Release')
+      && !startsWith(github.event.head_commit.message, '[changelog] Post-release')
+    }}
 
 jobs:
 
