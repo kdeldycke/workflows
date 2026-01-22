@@ -10,4 +10,6 @@ exclude = [
     "^https://doi.org/.+/zenodo.*$",
     # Allow redirects to the official pip documentation.
     "^https://pip.pypa.io/.*$",
+    # GitHub issue comment fragments are dynamically loaded and can't be verified.
+    "^https://github.com/.+/issues/[0-9]+#issuecomment-.*$",
 ]
