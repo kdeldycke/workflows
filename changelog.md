@@ -8,9 +8,12 @@
 - Replace Dependabot by Renovate for dependency updates. Closes #1728.
 - Check that dependabot is disabled in repository settings.
 - Use Renovate to sync `uv.lock` files. Remove `sync-uv-lock` job.
+- Increase aggressiveness of jobs cancelling in-progress runs on new commits.
 - Add `toml_files` field to `gha-utils metadata` output.
 - Replace `julb/action-manage-label` by `labelmaker` for label management. Closes #1914.
 - Add Rust-related entries to `.gitignore` file.
+- Document workflow concurrency.
+- Add unittests for workflow content.
 
 ## [4.25.5 (2026-01-09)](https://github.com/kdeldycke/workflows/compare/v4.25.4...v4.25.5)
 

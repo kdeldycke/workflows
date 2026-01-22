@@ -137,6 +137,8 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 - We eat our own dog-food: this repository uses these workflows for itself.
 
+- Concurrency and cancellation are configured to [prevent redundant runs and save CI resources](#concurrency-and-cancellation).
+
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
 - **Format Python** (`format-python`)
@@ -623,6 +625,51 @@ Re-run your workflow. It should now update files in `.github/workflows/` without
 
 > [!WARNING]
 > **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token before expiration, or your workflows will fail silently.
+
+## Concurrency and cancellation
+
+All workflows use a `concurrency` directive to prevent redundant runs and save CI resources. When a new commit is pushed, any in-progress workflow runs for the same branch or PR are automatically cancelled.
+
+### Concurrency grouping
+
+Workflows are grouped by:
+
+- **Pull requests**: `{workflow-name}-{pr-number}` — Multiple commits to the same PR cancel previous runs
+- **Branch pushes**: `{workflow-name}-{branch-ref}` — Multiple pushes to the same branch cancel previous runs
+
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: …
+```
+
+### Release commit protection
+
+Release commits must run to completion to ensure proper tagging, PyPI publishing, and GitHub release creation. The `cancel-in-progress` directive is conditional:
+
+```yaml
+cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
+```
+
+| Commit Message | `cancel-in-progress` | Behavior |
+| :------------- | :------------------- | :------- |
+| `[changelog] Release v4.26.0` | `false` | **Protected** — runs to completion |
+| `[changelog] Post-release version bump` | `true` | Cancellable |
+| Any other commit | `true` | Cancellable |
+
+> [!NOTE]
+> The post-release version bump commit (`[changelog] Post-release version bump`) is cancellable. This is intentional: it only updates the version number for the next development cycle and doesn't trigger publishing jobs. If cancelled, the next push will include the same changes.
+
+### Event-specific behavior
+
+| Event | `github.event.head_commit` | Concurrency Group | Cancel Behavior |
+| :---- | :------------------------- | :---------------- | :-------------- |
+| `push` to `main` | Set | `{workflow}-refs/heads/main` | Based on commit message |
+| `push` (release commit) | Starts with `[changelog] Release` | `{workflow}-refs/heads/main` | **Never cancelled** |
+| `pull_request` | `null` | `{workflow}-{pr-number}` | Always cancellable |
+| `workflow_call` | Inherited or `null` | Inherited from caller | Usually cancellable |
+| `schedule` | `null` | `{workflow}-refs/heads/main` | Always cancellable |
+| `issues` / `opened` | `null` | `{workflow}-{issue-ref}` | Always cancellable |
 
 ## Used in
 
