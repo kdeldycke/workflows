@@ -1,6 +1,6 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended"],
+  extends: ["config:recommended", "abandonments:recommended"],
 
   // PR and issue settings.
   labels: ["📦 dependencies"],
@@ -28,6 +28,11 @@
       description: "Patch updates have a shorter stabilization period.",
       matchUpdateTypes: ["patch"],
       minimumReleaseAge: "5 days",
+    },
+    {
+      description: "Flag abandoned dependencies.",
+      matchIsAbandoned: true,
+      addLabels: ["⚠️ stale dependency"],
     },
   ],
 

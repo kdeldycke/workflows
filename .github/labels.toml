@@ -32,6 +32,11 @@ color = "AAA666"
 description = "Dependencies changes"
 
 [[profiles.default.labels]]
+name = "⚠️ stale dependency"
+color = "E4A12C"
+description = "Dependency appears abandoned"
+
+[[profiles.default.labels]]
 name = "📚 documentation"
 color = "006b75"
 description = "Update to non-code (readme, docstrings, typos, …)"

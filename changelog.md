@@ -7,6 +7,7 @@
 
 - Replace Dependabot by Renovate for dependency updates. Closes #1728.
 - Check that dependabot is disabled in repository settings.
+- Flag abandoned dependencies with `⚠️ stale dependency` label.
 - Use Renovate to sync `uv.lock` files. Remove `sync-uv-lock` job.
 - Increase aggressiveness of jobs cancelling in-progress runs on new commits.
 - Add `toml_files` field to `gha-utils metadata` output.
