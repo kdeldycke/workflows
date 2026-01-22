@@ -33,18 +33,11 @@ jobs:
             exit 1
           fi
           echo "✓ Dependabot version updates: disabled (no config file)"
-      # Dependabot alerts must be enabled so Renovate can read them via the API.
-      # Note: GITHUB_TOKEN cannot access vulnerability alerts API, so we use WORKFLOW_UPDATE_GITHUB_PAT.
-      # See: https://github.com/orgs/community/discussions/60612
-      - name: Check Dependabot alerts enabled
-        env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: |
-          if gh api "repos/${{ github.repository }}/vulnerability-alerts" --silent 2>/dev/null; then
-            echo "✓ Dependabot alerts: enabled (Renovate can read vulnerabilities)"
-          else
-            echo "::warning::Cannot verify Dependabot alerts status. Ensure they are enabled in Settings > Advanced Security > Dependabot > Dependabot alerts."
-          fi
+      # Note: We don't verify if Dependabot alerts are enabled because the API endpoint
+      # (GET /repos/{owner}/{repo}/vulnerability-alerts) requires "Administration" permission,
+      # which is too powerful to grant. Renovate only needs "Dependabot alerts" (read) permission
+      # to read alerts - if the feature is disabled, Renovate simply sees zero alerts.
+      # Users should manually verify Dependabot alerts are enabled in Settings > Code security.
       # Dependabot security updates must be disabled (Renovate creates security PRs instead).
       - name: Check Dependabot security updates disabled
         env:
