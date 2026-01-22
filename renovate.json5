@@ -2,6 +2,11 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:recommended", "abandonments:recommended"],
 
+  // Keep lock files up-to-date, including transitive dependencies.
+  lockFileMaintenance: {
+    enabled: true,
+  },
+
   // PR and issue settings.
   labels: ["📦 dependencies"],
   dependencyDashboardLabels: ["📦 dependencies"],
