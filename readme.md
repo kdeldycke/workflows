@@ -393,13 +393,14 @@ docs = [
 
 ### [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
 
-- **Check Dependabot configuration** (`check-dependabot-config`)
+- **Check Renovate prerequisites** (`check-renovate-prereqs`)
 
-  - Validates that Dependabot settings are properly configured for use with Renovate
+  - Validates that repository and token settings are properly configured for Renovate
   - **Checks**:
     - ❌ No `.github/dependabot.yaml` file (version updates disabled)
     - ✅ Dependabot alerts enabled (Renovate reads these)
     - ❌ Dependabot security updates disabled (Renovate handles this)
+    - ✅ Token has commit statuses permission (for stability status checks)
 
 - **Renovate** (`renovate`)
 
@@ -574,6 +575,7 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
 
    | Permission            | Access                  |
    | :-------------------- | :---------------------- |
+   | **Commit statuses**   | Read and Write          |
    | **Contents**          | Read and Write          |
    | **Dependabot alerts** | Read-only               |
    | **Metadata**          | Read-only *(mandatory)* |
@@ -582,6 +584,8 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
 
    > [!IMPORTANT]
    > The **Workflows** permission is the key. This is the *only* place where you can grant it—it's not available via the `permissions:` parameter in YAML files.
+   >
+   > The **Commit statuses** permission is required by Renovate to set status checks (e.g., `renovate/stability-days`) on commits.
    >
    > The **Dependabot alerts** permission allows Renovate to read vulnerability alerts and create security update PRs, replacing Dependabot security updates.
 

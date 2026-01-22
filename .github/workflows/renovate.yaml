@@ -22,8 +22,8 @@ concurrency:
 
 jobs:
 
-  check-dependabot-config:
-    name: Check Dependabot configuration
+  check-renovate-prereqs:
+    name: Check Renovate prerequisites
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.1
@@ -59,11 +59,22 @@ jobs:
             exit 1
           fi
           echo "✓ Dependabot security updates: disabled (Renovate handles security PRs)"
+      # Token must have commit statuses permission for Renovate to set stability-days status checks.
+      - name: Check commit statuses permission
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          # Try to read commit statuses to verify permission.
+          if gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/statuses" --silent 2>/dev/null; then
+            echo "✓ Commit statuses: token has access"
+          else
+            echo "::warning::Cannot verify commit statuses permission. Ensure the token has 'Commit statuses: Read and Write' permission."
+          fi
 
   renovate:
     name: Renovate
     needs:
-      - check-dependabot-config
+      - check-renovate-prereqs
     # Cannot use "ubuntu-slim" here because renovatebot/github-action relies on Docker.
     runs-on: ubuntu-24.04
     steps:
