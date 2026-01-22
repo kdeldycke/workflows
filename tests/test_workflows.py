@@ -328,7 +328,7 @@ def test_action_uses_full_semantic_version(
 def get_workflow_content(workflow_name: str) -> str:
     """Get raw content of a workflow file."""
     workflow_path = WORKFLOWS_DIR / workflow_name
-    return workflow_path.read_text()
+    return workflow_path.read_text(encoding="utf-8")
 
 
 ALL_WORKFLOWS = tuple(sorted(p.name for p in WORKFLOWS_DIR.glob("*.yaml")))
