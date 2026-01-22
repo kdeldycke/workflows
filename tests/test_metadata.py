@@ -116,6 +116,7 @@ expected = {
         "tests/test_mailmap.py",
         "tests/test_matrix.py",
         "tests/test_metadata.py",
+        "tests/test_workflows.py",
     ],
     "json_files": [
         "renovate.json5",
@@ -138,6 +139,7 @@ expected = {
     ],
     "toml_files": [
         ".github/labels.toml",
+        "lychee.toml",
         "pyproject.toml",
     ],
     "workflow_files": [
@@ -155,11 +157,13 @@ expected = {
     "doc_files": [
         ".github/code-of-conduct.md",
         "changelog.md",
+        "claude.md",
         "readme.md",
     ],
     "markdown_files": [
         ".github/code-of-conduct.md",
         "changelog.md",
+        "claude.md",
         "readme.md",
     ],
     "image_files": [
