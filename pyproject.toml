@@ -113,24 +113,6 @@ dependencies = [
 # Package referenced above and also featured in [project.optional-dependencies] or [dependency-groups]
 # will be set without version specifier as they are already constrained.
 
-# Non-runtime development dependency groups.
-[dependency-groups]
-test = [
-    # coverage 7.11.0 is the first version to drop support for Python 3.9.
-    "coverage [toml] >= 7.11.0",
-    # Pytest 9.0.0 introduce support for native TOML configuration files.
-    "pytest >= 9.0.0",
-    # pytest-cases 3.9.0 is the first version to support Python 3.14.
-    "pytest-cases >= 3.9.0",
-    # pytest-cov 7.0.0 is the first version to be repackaged with pyproject-metadata.
-    "pytest-cov >= 7.0.0",
-    # pytest-github-actions-annotate-failures 0.3.0 is the first version to support Python 3.13.
-    "pytest-github-actions-annotate-failures >= 0.3.0",
-    # pytest-randomly 4.0.0 is the first version to support Python 3.14.
-    "pytest-randomly >= 4.0.0",
-]
-typing = ["types-boltons >= 25.0.0.20250822", "types-PyYAML >= 6.0.12.9"]
-
 # Workflow tool extras (pinned for reproducibility).
 # These are consumed via: uvx --from 'gha-utils[extra]' <tool>
 [project.optional-dependencies]
@@ -176,6 +158,24 @@ nuitka = ["nuitka [onefile] == 2.8.9"]
 pipdeptree = ["pipdeptree == 2.30.0"]
 ruff = ["ruff == 0.14.9"]
 yamllint = ["yamllint == 1.37.1"]
+
+# Non-runtime development dependency groups.
+[dependency-groups]
+test = [
+    # coverage 7.11.0 is the first version to drop support for Python 3.9.
+    "coverage [toml] >= 7.11.0",
+    # Pytest 9.0.0 introduce support for native TOML configuration files.
+    "pytest >= 9.0.0",
+    # pytest-cases 3.9.0 is the first version to support Python 3.14.
+    "pytest-cases >= 3.9.0",
+    # pytest-cov 7.0.0 is the first version to be repackaged with pyproject-metadata.
+    "pytest-cov >= 7.0.0",
+    # pytest-github-actions-annotate-failures 0.3.0 is the first version to support Python 3.13.
+    "pytest-github-actions-annotate-failures >= 0.3.0",
+    # pytest-randomly 4.0.0 is the first version to support Python 3.14.
+    "pytest-randomly >= 4.0.0",
+]
+typing = ["types-boltons >= 25.0.0.20250822", "types-PyYAML >= 6.0.12.9"]
 
 [project.urls]
 "Homepage" = "https://github.com/kdeldycke/workflows"
