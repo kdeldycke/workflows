@@ -3,8 +3,10 @@
   extends: ["config:recommended", "abandonments:recommended"],
 
   // Keep lock files up-to-date, including transitive dependencies.
+  // Runs on every Renovate execution rather than the default weekly schedule.
   lockFileMaintenance: {
     enabled: true,
+    schedule: ["at any time"],
   },
 
   // PR and issue settings.
