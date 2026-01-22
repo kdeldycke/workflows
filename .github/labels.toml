@@ -31,7 +31,8 @@ description = "Continuous integration, tests, automation and management of the p
 [[profiles.default.labels]]
 name = "📦 dependencies"
 color = "AAA666"
-description = "Update of dependencies"
+description = "Dependencies changes"
+rename-from = ["dependencies", "python:uv", "github-actions"]
 
 [[profiles.default.labels]]
 name = "📚 documentation"
