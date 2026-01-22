@@ -10,9 +10,10 @@
 - Check repository settings requirements for Renovate.
 - Use Renovate to sync `uv.lock` files. Remove `sync-uv-lock` job.
 - Cancel in-progress jobs more aggressively on new commits.
-- Add `toml_files` field to `gha-utils metadata` output.
+- Add `toml_files` and `project_description` fields to `gha-utils metadata` output.
 - Replace `julb/action-manage-label` by `labelmaker` for label management. Closes #1914.
 - Add Rust-related entries to `.gitignore` file.
+- Sync GitHub repository description from `pyproject.toml` file.
 - Document workflow concurrency.
 - Add unittests for workflow content.
 

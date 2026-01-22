@@ -35,6 +35,7 @@ image_files=
 zsh_files=
 is_python_project=true
 package_name=click-extra
+project_description=📦 Extra colorful clickable helpers for the CLI.
 blacken_docs_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
 current_version=2.0.1
@@ -1137,6 +1138,13 @@ class Metadata:
         return None
 
     @cached_property
+    def project_description(self) -> str | None:
+        """Returns project description from pyproject.toml."""
+        if self.pyproject and self.pyproject.description:
+            return self.pyproject.description
+        return None
+
+    @cached_property
     def script_entries(self) -> list[tuple[str, str, str]]:
         """Returns a list of tuples containing the script name, its module and
         callable.
@@ -1674,6 +1682,7 @@ class Metadata:
             "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,
+            "project_description": self.project_description,
             "blacken_docs_params": self.blacken_docs_params,
             "mypy_params": self.mypy_params,
             "current_version": self.current_version,
