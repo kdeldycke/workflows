@@ -86,4 +86,3 @@ jobs:
           # Fetch all PRs, not just those created by the current bot.
           # Useful for migrating between bot accounts or taking over existing PRs.
           RENOVATE_IGNORE_PR_AUTHOR: "true"
-          LOG_LEVEL: "debug"
