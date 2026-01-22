@@ -7,6 +7,9 @@
   lockFileMaintenance: {
     enabled: true,
     schedule: ["at any time"],
+    semanticCommits: "disabled",
+    commitMessagePrefix: "[autofix]",
+    commitMessageAction: "Sync `uv.lock`",
   },
 
   // PR and issue settings.
