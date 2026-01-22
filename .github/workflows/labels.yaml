@@ -64,6 +64,7 @@ jobs:
           labelmaker apply labels.toml --profile default "${{ github.repository }}"
 
           # Apply awesome profile for awesome-* repositories.
+          # shellcheck disable=SC2193 # False positive: shellcheck doesn't understand ${{ }} templating.
           if [[ "${{ github.event.repository.name }}" == awesome-* ]] && \
              [[ "${{ github.event.repository.name }}" != "awesome-template" ]]; then
             labelmaker apply labels.toml --profile awesome "${{ github.repository }}"
