@@ -90,7 +90,7 @@ jobs:
     outputs:
       is_bot: ${{ steps.project-metadata.outputs.is_bot }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run gha-utils metadata
         id: project-metadata
@@ -111,7 +111,7 @@ jobs:
       && (! fromJson(needs.project-metadata.outputs.is_bot))
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-file-based.yaml
@@ -137,7 +137,7 @@ jobs:
       && (! fromJson(needs.project-metadata.outputs.is_bot))
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Download default rules
         run: >
           curl -fsSL --output ./.github/labeller-content-based.yaml

@@ -23,7 +23,7 @@ jobs:
     name: Check Renovate prerequisites
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       # Dependabot version updates are configured via .github/dependabot.yaml file.
       # If no file exists, version updates are disabled (Renovate handles this).
       - name: Check Dependabot version updates disabled
@@ -72,7 +72,7 @@ jobs:
     # Cannot use "ubuntu-slim" here because renovatebot/github-action relies on Docker.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: renovatebot/github-action@v44.2.4
         with:
           # We need custom PAT with workflows permission to update GitHub Actions versions in

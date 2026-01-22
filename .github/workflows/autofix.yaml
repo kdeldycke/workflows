@@ -57,7 +57,7 @@ jobs:
       project_description: ${{ steps.project-metadata.outputs.project_description }}
       blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run gha-utils metadata
         id: project-metadata
@@ -76,7 +76,7 @@ jobs:
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
@@ -174,7 +174,7 @@ jobs:
     # Cannot use "ubuntu-slim" because shfmt is not available there.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Install mdformat
         run: >
@@ -227,7 +227,7 @@ jobs:
     if: needs.project-metadata.outputs.json_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Install ESLint with JSON support
         run: |
           npm --no-progress install --no-save "eslint@9.39.2" "@eslint/json@0.14.0"
@@ -324,7 +324,7 @@ jobs:
     if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - name: Install git-extras
         run: |
           sudo apt update
