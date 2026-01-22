@@ -30,8 +30,8 @@
       minimumReleaseAge: "5 days",
     },
     {
-      description: "Flag abandoned dependencies.",
-      matchIsAbandoned: true,
+      description: "Flag dependencies with no recent releases.",
+      matchCurrentAge: "> 1 year",
       addLabels: ["⚠️ stale dependency"],
     },
   ],
