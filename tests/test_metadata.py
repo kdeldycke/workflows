@@ -117,6 +117,7 @@ expected = {
         "tests/test_mailmap.py",
         "tests/test_matrix.py",
         "tests/test_metadata.py",
+        "tests/test_release_prep.py",
         "tests/test_workflows.py",
     ],
     "json_files": [
