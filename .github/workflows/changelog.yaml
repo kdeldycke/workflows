@@ -2,6 +2,9 @@
 name: Changelog & versions
 "on":
   workflow_call:
+  schedule:
+    # Run daily at 6:00 UTC for version-increments job.
+    - cron: "0 6 * * *"
   push:
     branches:
       - main
@@ -18,9 +21,9 @@ concurrency:
 jobs:
 
   version-increments:
-    # This job is not time-sensitive: do not let it to be triggered by schedule event.
+    # Only run on schedule to avoid multiple PR updates per day.
     # Also skip release commits (during which bump-my-version cannot find "unreleased" string in changelog.md).
-    if: github.event_name != 'schedule' && !startsWith(github.event.head_commit.message, '[changelog] Release v')
+    if: github.event_name == 'schedule' && !startsWith(github.event.head_commit.message, '[changelog] Release v')
     runs-on: ubuntu-slim
     strategy:
       matrix:
