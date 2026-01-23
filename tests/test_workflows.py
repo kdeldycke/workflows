@@ -366,7 +366,10 @@ UBUNTU_2404_EXCEPTIONS = {
     ("autofix.yaml", "format-markdown"): "shfmt is not available on ubuntu-slim",
     ("docs.yaml", "optimize-images"): "calibreapp/image-actions requires Docker",
     ("lint.yaml", "broken-links"): "shell: python cannot find Python interpreter",
-    ("lint.yaml", "github-archived-repo-check"): "shell: python cannot find interpreter",
+    (
+        "lint.yaml",
+        "github-archived-repo-check",
+    ): "shell: python cannot find interpreter",
     ("release.yaml", "github-release"): "shell: python cannot find Python interpreter",
     ("renovate.yaml", "renovate"): "renovatebot/github-action requires Docker",
 }
