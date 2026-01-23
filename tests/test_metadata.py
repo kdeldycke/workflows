@@ -23,7 +23,6 @@ from typing import Any
 
 import pytest
 from extra_platforms import ALL_IDS, is_windows
-
 from packaging.version import Version
 
 from gha_utils.metadata import (
@@ -458,7 +457,7 @@ def test_is_version_bump_allowed_returns_bool():
 def test_is_version_bump_allowed_invalid_part():
     """Test that is_version_bump_allowed raises for invalid parts."""
     with pytest.raises(ValueError, match="Invalid version part"):
-        is_version_bump_allowed("patch")  # type: ignore[arg-type]
+        is_version_bump_allowed("patch")
 
 
 def test_is_version_bump_allowed_current_repo():
@@ -479,9 +478,8 @@ def test_is_version_bump_allowed_current_repo():
     major_allowed = is_version_bump_allowed("major")
 
     # Expected: minor bump blocked if minor already ahead (within same major).
-    expected_minor_blocked = (
-        current.major > latest_tag.major
-        or (current.major == latest_tag.major and current.minor > latest_tag.minor)
+    expected_minor_blocked = current.major > latest_tag.major or (
+        current.major == latest_tag.major and current.minor > latest_tag.minor
     )
     assert minor_allowed == (not expected_minor_blocked)
 
