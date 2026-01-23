@@ -9,6 +9,7 @@
 - Check consistency between project and repository metadata. Don't fix them automatically.
 - Use fixed `exclude-newer` date instead of relative `1 week` to prevent `uv.lock` timestamp churn.
 - Reduce frequency of version increment jobs to once a day.
+- Only update dependency graph on release. Closes #176.
 - Only bump citation date on a release.
 
 ## [5.0.1 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)

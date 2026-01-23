@@ -64,6 +64,7 @@ jobs:
       package_name: ${{ steps.project-metadata.outputs.package_name }}
       is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
+      release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
@@ -145,7 +146,10 @@ jobs:
     name: Update dependency graph
     needs:
       - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_python_project)
+    # Only update dependency graph on release to avoid noise from transitive dependency changes.
+    if: >
+      fromJSON(needs.project-metadata.outputs.is_python_project)
+      && needs.project-metadata.outputs.release_commits_matrix
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
