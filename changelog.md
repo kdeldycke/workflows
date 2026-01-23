@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.2.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.1.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.2.0 (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.1.0...v5.2.0)
 
 - Add `gha-utils labels` command to dump bundled label configuration files.
 - Add `gha-utils workflows` command to dump bundled workflow templates for inspection and bootstrapping.
