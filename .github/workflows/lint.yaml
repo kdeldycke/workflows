@@ -29,6 +29,7 @@ jobs:
       package_name: ${{ steps.project-metadata.outputs.package_name }}
       is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
+      project_description: ${{ steps.project-metadata.outputs.project_description }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
@@ -43,10 +44,11 @@ jobs:
     name: Check repo metadata
     needs:
       - project-metadata
-    # Only check Python projects that have a package name or Sphinx docs.
+    # Only check Python projects that have a package name, Sphinx docs, or description.
     if: >
       fromJSON(needs.project-metadata.outputs.is_python_project)
-      && (needs.project-metadata.outputs.package_name || fromJSON(needs.project-metadata.outputs.is_sphinx))
+      && (needs.project-metadata.outputs.package_name || fromJSON(needs.project-metadata.outputs.is_sphinx)
+      || needs.project-metadata.outputs.project_description)
     runs-on: ubuntu-slim
     steps:
       - name: Check package name vs repository name
@@ -67,6 +69,17 @@ jobs:
           HOMEPAGE=$(gh repo view --json homepageUrl --jq '.homepageUrl')
           if [ -z "$HOMEPAGE" ]; then
             echo "::warning::Sphinx documentation detected but repository website field is not set."
+          fi
+      - name: Check repo description matches project
+        if: needs.project-metadata.outputs.project_description
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PROJECT_DESCRIPTION: ${{ needs.project-metadata.outputs.project_description }}
+        run: |
+          REPO_DESCRIPTION=$(gh repo view --json description --jq '.description')
+          if [ "$PROJECT_DESCRIPTION" != "$REPO_DESCRIPTION" ]; then
+            echo "::warning::Repository description '$REPO_DESCRIPTION' differs from project description '$PROJECT_DESCRIPTION'."
           fi
 
   mypy-lint:

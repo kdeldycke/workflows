@@ -6,7 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Switch from from `requirements/*.txt` files to hard-coding version dependencies for workflow tools.
-- Check consistency between project and repository metadata.
+- Check consistency between project and repository metadata. Don't fix them automatically.
 - Use fixed `exclude-newer` date instead of relative `1 week` to prevent `uv.lock` timestamp churn.
 - Reduce frequency of version increment jobs to once a day.
 - Only bump citation date on a release.

@@ -54,7 +54,6 @@ jobs:
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       markdown_files: ${{ steps.project-metadata.outputs.markdown_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      project_description: ${{ steps.project-metadata.outputs.project_description }}
       blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
     steps:
       - uses: actions/checkout@v6.0.2
@@ -387,21 +386,3 @@ jobs:
             </details>
           labels: "🤖 ci"
           branch: update-gitignore
-
-  sync-repo-description:
-    name: Sync repo description
-    needs:
-      - project-metadata
-    # Only sync description for Python projects that have a description defined.
-    if: >
-      fromJSON(needs.project-metadata.outputs.is_python_project)
-      && needs.project-metadata.outputs.project_description
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - name: Update repository description
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          gh repo edit --description "${{ needs.project-metadata.outputs.project_description }}"
