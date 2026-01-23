@@ -131,7 +131,9 @@ def test_cancel_in_progress_protects_releases(workflow_name: str) -> None:
     )
 
     # Must negate the condition (release commits should NOT be cancelled).
-    assert cancel_in_progress.startswith("${{ !"), (
+    # Handle multiline YAML expressions where whitespace may appear after ${{.
+    normalized = " ".join(cancel_in_progress.split())
+    assert normalized.startswith("${{ !"), (
         f"{workflow_name}: cancel-in-progress must negate the condition "
         "to protect release commits from cancellation"
     )
