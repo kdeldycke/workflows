@@ -45,6 +45,7 @@ from . import __version__
 from .changelog import Changelog
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata
+from .release_prep import ReleasePrep
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 
 TYPE_CHECKING = False
@@ -229,6 +230,103 @@ def changelog(ctx, source, changelog_path):
     else:
         logging.info(f"Save updated results to {changelog_path}")
     echo(content, file=prep_path(changelog_path))
+
+
+@gha_utils.command(short_help="Prepare files for a release")
+@option(
+    "--changelog",
+    "changelog_path",
+    type=file_path(exists=True, readable=True, writable=True, resolve_path=True),
+    default="changelog.md",
+    help="Path to the changelog file.",
+)
+@option(
+    "--citation",
+    "citation_path",
+    type=file_path(readable=True, writable=True, resolve_path=True),
+    default="citation.cff",
+    help="Path to the citation file.",
+)
+@option(
+    "--workflow-dir",
+    default=".github/workflows",
+    help="Path to the GitHub workflows directory.",
+)
+@option(
+    "--default-branch",
+    default="main",
+    help="Name of the default branch for workflow URL updates.",
+)
+@option(
+    "--update-workflows/--no-update-workflows",
+    default=False,
+    help="Update workflow URLs to use versioned tag instead of default branch.",
+)
+@option(
+    "--post-release",
+    is_flag=True,
+    default=False,
+    help="Run post-release steps (retarget workflow URLs to default branch).",
+)
+@pass_context
+def release_prep(
+    ctx,
+    changelog_path,
+    citation_path,
+    workflow_dir,
+    default_branch,
+    update_workflows,
+    post_release,
+):
+    """Prepare files for a release or post-release version bump.
+
+    This command consolidates all release preparation steps:
+
+    \b
+    - Set release date in changelog (replaces "(unreleased)" with today's date).
+    - Set release date in citation.cff.
+    - Update changelog comparison URL from "...main" to "...v{version}".
+    - Remove the "[!IMPORTANT]" warning block from changelog.
+    - Optionally update workflow URLs to use versioned tag.
+
+    For post-release (after the release commit), use --post-release to retarget
+    workflow URLs back to the default branch.
+
+    Examples:
+
+    \b
+        # Prepare release (changelog + citation)
+        gha-utils release-prep
+
+    \b
+        # Prepare release including workflow URL updates
+        gha-utils release-prep --update-workflows
+
+    \b
+        # Post-release: retarget workflows to main branch
+        gha-utils release-prep --post-release --update-workflows
+    """
+    workflow_dir_path = Path(workflow_dir).resolve() if workflow_dir else None
+    prep = ReleasePrep(
+        changelog_path=changelog_path,
+        citation_path=citation_path if citation_path.exists() else None,
+        workflow_dir=workflow_dir_path,
+        default_branch=default_branch,
+    )
+
+    if post_release:
+        modified = prep.post_release(update_workflows=update_workflows)
+        action = "Post-release"
+    else:
+        modified = prep.prepare_release(update_workflows=update_workflows)
+        action = "Release preparation"
+
+    if modified:
+        logging.info(f"{action} complete. Modified {len(modified)} file(s):")
+        for path in modified:
+            echo(f"  {path}")
+    else:
+        logging.warning(f"{action}: no files were modified.")
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")

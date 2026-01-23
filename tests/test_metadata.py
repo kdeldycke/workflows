@@ -110,6 +110,7 @@ expected = {
         "gha_utils/mailmap.py",
         "gha_utils/matrix.py",
         "gha_utils/metadata.py",
+        "gha_utils/release_prep.py",
         "gha_utils/test_plan.py",
         "tests/__init__.py",
         "tests/test_changelog.py",
