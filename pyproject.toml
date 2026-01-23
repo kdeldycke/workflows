@@ -110,6 +110,7 @@ dependencies = [
     # wcmatch 10.0 fix some inconsistencies in globbing and symlinks.
     "wcmatch >= 10.0",
 ]
+
 # Non-runtime development dependency groups.
 [dependency-groups]
 test = [
