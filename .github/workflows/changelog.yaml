@@ -103,9 +103,6 @@ jobs:
     # TODO: add complex time-based trigger condition to only update the changelog once a day on main branch activity to
     # keep the release date in sync.
     runs-on: ubuntu-slim
-    # TODO: Use the collection of search and replace patterns from bump-my-version's TOML configuration file.
-    # XXX This cannot be done because there is no way to group "replace" actions into a collection. Maybe we should
-    # start to discuss this upstream.
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
@@ -116,46 +113,11 @@ jobs:
         id: get_version
         run: |
           echo "current_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
-      - name: Hard-code version in workflows
-        # This step is only used in the original repository to automate remote URL tagging.
-        if: github.repository == 'kdeldycke/workflows'
-        # XXX Default branch is set in a variable as a hack to prevent bump-my-version to modify its own invocation.
-        # This hack could be removed if we manage to encode these search and replace patterns into bump-my-version's
-        # TOML.
-        run: >
-          RELEASE_DEFAULT_BRANCH="main" &&
-          bump-my-version replace --no-configured-files --ignore-missing-version
-          --search "/workflows/$RELEASE_DEFAULT_BRANCH/"
-          --replace "/workflows/v{current_version}/"
-          ./.github/workflows/*.yaml
-      - name: Set release date in changelog
-        run: >
-          bump-my-version replace --no-configured-files --ignore-missing-version
-          --search " (unreleased)"
-          --replace " ({utcnow:%Y-%m-%d})"
-          ./changelog.md
-      - name: Set release date in citation
-        if: hashFiles('./citation.cff') != ''
-        run: >
-          bump-my-version replace --no-configured-files --ignore-missing-version
-          --regex --search "date-released: \\d{4}-\\d{2}-\\d{2}"
-          --replace "date-released: {utcnow:%Y-%m-%d}"
-          ./citation.cff
-      - name: Update comparison URL in changelog
-        run: >
-          bump-my-version replace --no-configured-files --ignore-missing-version
-          --search "...main"
-          --replace "...v{current_version}"
-          ./changelog.md
-      - name: Remove first warning message in changelog
-        # Matches first occurrence of a multi-line important GFM alert:
-        #   > [!IMPORTANT]
-        #   > ...
-        run: >
-          bump-my-version replace --no-configured-files --ignore-missing-version
-          --regex --search "^> \[\!IMPORTANT\].+?\\n\\n"
-          --replace ""
-          ./changelog.md
+      - name: Prepare release
+        # Updates changelog and citation dates, comparison URL, and removes warning.
+        # Also hard-codes version in workflow URLs for kdeldycke/workflows repository.
+        run: |
+          uvx 'gha-utils==5.1.0' release-prep ${{ github.repository == 'kdeldycke/workflows' && '--update-workflows' || '' }}
       - name: Setup Git
         run: |
           git config --global user.name "${{ github.actor }}"
@@ -169,15 +131,8 @@ jobs:
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        # XXX Default branch is set in a variable as a hack to prevent bump-my-version to modify its own invocation.
-        # This hack could be removed if we manage to encode these search and replace patterns into bump-my-version's
-        # TOML.
-        run: >
-          RELEASE_DEFAULT_BRANCH="main" &&
-          bump-my-version replace --no-configured-files --ignore-missing-version
-          --search "/workflows/v{current_version}/"
-          --replace "/workflows/$RELEASE_DEFAULT_BRANCH/"
-          ./.github/workflows/*.yaml
+        run: |
+          uvx 'gha-utils==5.1.0' release-prep --post-release --update-workflows
       - name: Add new changelog entry
         run: |
           uvx 'gha-utils==5.0.1' changelog ./changelog.md
