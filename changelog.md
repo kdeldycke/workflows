@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.1.1 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.1.0...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [5.1.0 (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.0.1...v5.1.0)
 
 - Add new `gha-utils release-prep` command to consolidate all release preparation steps.
