@@ -6,7 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Switch from from `requirements/*.txt` files to hard-coding version dependencies for workflow tools.
-- Check consistency between project and repository metadata. Don't fix them automatically.
+- Check consistency between project and repository metadata. Don't fix them automatically. Refs #93.
 - Use fixed `exclude-newer` date instead of relative `1 week` to prevent `uv.lock` timestamp churn.
 - Reduce frequency of version increment jobs to once a day.
 - Only update dependency graph on release. Closes #176.
@@ -29,7 +29,7 @@
 - Replace `julb/action-manage-label` by `labelmaker` for label management. Closes #1914.
 - Do not let `actions/labeler` remove labels that don't strictly match its file-based rules.
 - Add Rust-related entries to `.gitignore` file.
-- Sync GitHub repository description from `pyproject.toml` file.
+- Sync GitHub repository description from `pyproject.toml` file. Closes #93.
 - Document workflow concurrency.
 - Add unittests for workflow content.
 
