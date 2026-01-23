@@ -34,8 +34,8 @@ jobs:
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: >
-          uvx --from 'gha-utils' -- gha-utils metadata --overwrite "$GITHUB_OUTPUT"
+        run: |
+          uvx 'gha-utils==5.0.1' metadata --overwrite "$GITHUB_OUTPUT"
 
   mypy-lint:
     needs:
@@ -54,7 +54,7 @@ jobs:
       - name: Run Mypy
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
-          uv --no-progress run --frozen --with 'gha-utils[mypy]' --
+          uv --no-progress run --frozen --with 'mypy==1.19.1' --
           mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
           ${{ needs.project-metadata.outputs.python_files }}
 
@@ -72,9 +72,8 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run yamllint
-        run: >
-          uvx --from 'gha-utils[yamllint]' --
-          yamllint --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
+        run: |
+          uvx 'yamllint==1.37.1' --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
     needs:

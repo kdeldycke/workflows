@@ -98,8 +98,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: >
-          uvx --from 'gha-utils' --
-          gha-utils metadata
+          uvx 'gha-utils==5.0.1' metadata
           ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
           --overwrite "$GITHUB_OUTPUT"
 
@@ -146,8 +145,8 @@ jobs:
         run: |
           uv --no-progress venv --python 3.13
       - name: Install Nuitka
-        run: >
-          uv --no-progress pip install 'gha-utils[nuitka]'
+        run: |
+          uv --no-progress pip install 'nuitka[onefile]==2.8.9'
       - name: Nuitka + compilers versions
         run: |
           uv --no-progress run --frozen -- nuitka --version
@@ -281,8 +280,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run test plan for binary
         run: >
-          uvx --from 'gha-utils' --
-          gha-utils test-plan
+          uvx 'gha-utils==5.0.1' test-plan
           ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) || '' }}
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
           --plan-file "${{ env.test-plan-file }}"

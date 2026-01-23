@@ -5,7 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Switch from from `requirements/*.txt` files to `gha-utils` extra dependencies to install workflow tools.
+- Switch from from `requirements/*.txt` files to hard-coding version dependencies for workflow tools.
 
 ## [5.0.1 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)
 

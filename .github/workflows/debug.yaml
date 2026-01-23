@@ -21,11 +21,8 @@ jobs:
         id: project-metadata
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: >
-          uvx
-          --with-requirements https://raw.githubusercontent.com/kdeldycke/workflows/main/requirements/gha-utils.txt
-          --
-          gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+        run: |
+          uvx 'gha-utils==5.0.1' --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
       - name: Extend matrix with ubuntu-slim
         id: extend-matrix
         run: |
