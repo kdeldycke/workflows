@@ -55,12 +55,28 @@ WORKFLOWS_WITHOUT_CONCURRENCY = frozenset((
     "debug.yaml",  # Debug-only workflow, not for production use.
 ))
 
+# Workflows that protect releases using unique concurrency groups (github.sha) instead of
+# conditional cancel-in-progress. This is necessary when cancel-in-progress is evaluated
+# on the NEW workflow, which would cancel running releases.
+WORKFLOWS_WITH_UNIQUE_GROUPS = frozenset((
+    "release.yaml",  # Uses github.sha in group for release/post-release commits.
+))
+
 # Workflows that must have concurrency configured (all except exempted ones).
 WORKFLOWS_WITH_CONCURRENCY = tuple(
     sorted(
         p.name
         for p in WORKFLOWS_DIR.glob("*.yaml")
         if p.name not in WORKFLOWS_WITHOUT_CONCURRENCY
+    )
+)
+
+# Workflows that must use conditional cancel-in-progress (excludes unique group workflows).
+WORKFLOWS_WITH_CONDITIONAL_CANCEL = tuple(
+    sorted(
+        name
+        for name in WORKFLOWS_WITH_CONCURRENCY
+        if name not in WORKFLOWS_WITH_UNIQUE_GROUPS
     )
 )
 
@@ -99,7 +115,7 @@ def test_concurrency_group_format(workflow_name: str) -> None:
     )
 
 
-@pytest.mark.parametrize("workflow_name", WORKFLOWS_WITH_CONCURRENCY)
+@pytest.mark.parametrize("workflow_name", WORKFLOWS_WITH_CONDITIONAL_CANCEL)
 def test_cancel_in_progress_protects_releases(workflow_name: str) -> None:
     """Verify that cancel-in-progress protects release commits."""
     workflow = load_workflow(workflow_name)
@@ -139,6 +155,26 @@ def test_cancel_in_progress_protects_releases(workflow_name: str) -> None:
     )
 
 
+@pytest.mark.parametrize("workflow_name", WORKFLOWS_WITH_UNIQUE_GROUPS)
+def test_unique_group_protects_releases(workflow_name: str) -> None:
+    """Verify that workflows using unique groups protect release commits via github.sha."""
+    workflow = load_workflow(workflow_name)
+    concurrency = workflow.get("concurrency", {})
+    group = concurrency.get("group", "")
+
+    # Must use github.sha to create unique groups for release commits.
+    assert "github.sha" in group, (
+        f"{workflow_name}: concurrency group must include github.sha "
+        "to create unique groups for release commits"
+    )
+
+    # Must check for release commit prefix to conditionally use github.sha.
+    assert RELEASE_COMMIT_PREFIX in group, (
+        f"{workflow_name}: concurrency group must check for "
+        f"'{RELEASE_COMMIT_PREFIX}' to identify release commits"
+    )
+
+
 @pytest.mark.parametrize("workflow_name", WORKFLOWS_WITHOUT_CONCURRENCY)
 def test_exempt_workflows_no_concurrency(workflow_name: str) -> None:
     """Verify that exempt workflows do not have concurrency configured."""
@@ -159,10 +195,23 @@ def test_all_workflows_discovered() -> None:
         "Remove them from WORKFLOWS_WITHOUT_CONCURRENCY."
     )
 
+    # Verify unique group workflows exist.
+    missing_unique = WORKFLOWS_WITH_UNIQUE_GROUPS - all_workflows
+    assert not missing_unique, (
+        f"Unique group workflows not found: {missing_unique}. "
+        "Remove them from WORKFLOWS_WITH_UNIQUE_GROUPS."
+    )
+
+    # Verify unique group workflows are a subset of concurrency workflows.
+    not_in_concurrency = WORKFLOWS_WITH_UNIQUE_GROUPS - set(WORKFLOWS_WITH_CONCURRENCY)
+    assert not not_in_concurrency, (
+        f"Unique group workflows must have concurrency: {not_in_concurrency}"
+    )
+
     # Verify dynamic discovery found workflows.
     assert WORKFLOWS_WITH_CONCURRENCY, "No workflows discovered for concurrency testing"
 
-    # Verify no overlap between categories.
+    # Verify no overlap between exempt and concurrency categories.
     overlap = set(WORKFLOWS_WITH_CONCURRENCY) & WORKFLOWS_WITHOUT_CONCURRENCY
     assert not overlap, f"Workflows in both categories: {overlap}"
 
