@@ -2,6 +2,7 @@
 name: Changelog & versions
 "on":
   workflow_call:
+  workflow_dispatch:
   schedule:
     # Run daily at 6:00 UTC for version-increments job.
     - cron: "0 6 * * *"
@@ -21,10 +22,11 @@ concurrency:
 jobs:
 
   version-increments:
-    # Run on schedule (daily) or immediately after a post-release version bump.
+    # Run on schedule (daily), manual dispatch, or immediately after a post-release version bump.
     # Skip release commits (during which bump-my-version cannot find "unreleased" string in changelog.md).
     if: >
       (github.event_name == 'schedule' ||
+       github.event_name == 'workflow_dispatch' ||
        startsWith(github.event.head_commit.message, '[changelog] Post-release version bump'))
       && !startsWith(github.event.head_commit.message, '[changelog] Release v')
     runs-on: ubuntu-slim
