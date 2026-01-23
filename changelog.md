@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Add new `gha-utils release-prep` command to consolidate all release preparation steps.
+- Add new `gha-utils version-check` command to prevent double version increments within a development cycle.
 - Switch from from `requirements/*.txt` files to hard-coding version dependencies for workflow tools.
 - Check consistency between project and repository metadata. Don't fix them automatically. Refs #93.
 - Use fixed `exclude-newer` date instead of relative `1 week` to prevent `uv.lock` timestamp churn.

@@ -24,7 +24,15 @@ from typing import Any
 import pytest
 from extra_platforms import ALL_IDS, is_windows
 
-from gha_utils.metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata
+from packaging.version import Version
+
+from gha_utils.metadata import (
+    NUITKA_BUILD_TARGETS,
+    Dialect,
+    Metadata,
+    get_latest_tag_version,
+    is_version_bump_allowed,
+)
 
 
 @pytest.mark.parametrize("target_id, target_data", NUITKA_BUILD_TARGETS.items())
@@ -422,3 +430,61 @@ def test_metadata_github_format():
         github_format_expected[key] = new_value
 
     iter_checks(metadata, github_format_expected, raw_metadata)
+
+
+def test_get_latest_tag_version():
+    """Test that we can retrieve the latest Git tag version."""
+    latest = get_latest_tag_version()
+    # This repository should have at least one release tag.
+    assert latest is not None
+    assert isinstance(latest, Version)
+    # Sanity check: version should be a reasonable semver.
+    assert latest.major >= 0
+    assert latest.minor >= 0
+    assert latest.micro >= 0
+
+
+def test_is_version_bump_allowed_returns_bool():
+    """Test that is_version_bump_allowed returns a boolean."""
+    # Test minor check.
+    result = is_version_bump_allowed("minor")
+    assert isinstance(result, bool)
+
+    # Test major check.
+    result = is_version_bump_allowed("major")
+    assert isinstance(result, bool)
+
+
+def test_is_version_bump_allowed_invalid_part():
+    """Test that is_version_bump_allowed raises for invalid parts."""
+    with pytest.raises(ValueError, match="Invalid version part"):
+        is_version_bump_allowed("patch")  # type: ignore[arg-type]
+
+
+def test_is_version_bump_allowed_current_repo():
+    """Test the version bump check logic against the current repository state.
+
+    This test verifies the correct behavior based on comparing current version
+    in pyproject.toml against the latest Git tag.
+    """
+    current_version_str = Metadata.get_current_version()
+    assert current_version_str is not None
+    current = Version(current_version_str)
+
+    latest_tag = get_latest_tag_version()
+    assert latest_tag is not None
+
+    # Verify the logic matches what the function should return.
+    minor_allowed = is_version_bump_allowed("minor")
+    major_allowed = is_version_bump_allowed("major")
+
+    # Expected: minor bump blocked if minor already ahead (within same major).
+    expected_minor_blocked = (
+        current.major > latest_tag.major
+        or (current.major == latest_tag.major and current.minor > latest_tag.minor)
+    )
+    assert minor_allowed == (not expected_minor_blocked)
+
+    # Expected: major bump blocked if major already ahead.
+    expected_major_blocked = current.major > latest_tag.major
+    assert major_allowed == (not expected_major_blocked)

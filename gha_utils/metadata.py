@@ -335,7 +335,7 @@ else:
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Any, Final
+    from typing import Any, Final, Literal
 
 
 SHORT_SHA_LENGTH = 7
@@ -426,6 +426,89 @@ FLAT_BUILD_TARGETS = [
     for target_id, target_data in NUITKA_BUILD_TARGETS.items()
 ]
 """List of build targets in a flat format, suitable for matrix inclusion."""
+
+
+def get_latest_tag_version() -> Version | None:
+    """Returns the latest release version from Git tags.
+
+    Looks for tags matching the pattern ``vX.Y.Z`` and returns the highest version.
+    Returns ``None`` if no matching tags are found.
+    """
+    git = Git(".")
+    # Get all tags matching the version pattern.
+    tags = git.repo.git.tag("--list", "v[0-9]*.[0-9]*.[0-9]*").splitlines()
+
+    if not tags:
+        logging.debug("No version tags found in repository.")
+        return None
+
+    # Parse and find the highest version.
+    versions = []
+    for tag in tags:
+        # Strip the 'v' prefix and parse.
+        version = Version(tag.lstrip("v"))
+        versions.append(version)
+
+    latest = max(versions)
+    logging.debug(f"Latest tag version: {latest}")
+    return latest
+
+
+def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
+    """Check if a version bump of the specified part is allowed.
+
+    This prevents double version increments within a development cycle. A bump is
+    blocked if the version has already been bumped (but not released) since the last
+    tagged release.
+
+    For example:
+    - Last release: v5.0.1, current version: 5.0.2 → minor bump allowed
+    - Last release: v5.0.1, current version: 5.1.0 → minor bump NOT allowed (already bumped)
+    - Last release: v5.0.1, current version: 6.0.0 → major bump NOT allowed (already bumped)
+
+    :param part: The version part to check (``minor`` or ``major``).
+    :return: ``True`` if the bump should proceed, ``False`` if it should be skipped.
+    """
+    current_version_str = Metadata.get_current_version()
+    if not current_version_str:
+        logging.warning("Cannot determine current version. Allowing bump.")
+        return True
+
+    latest_tag = get_latest_tag_version()
+    if not latest_tag:
+        logging.warning("No release tags found. Allowing bump.")
+        return True
+
+    current = Version(current_version_str)
+    logging.info(f"Current version: {current}, Latest tag: {latest_tag}")
+
+    if part == "major":
+        # Block if major version is already ahead of the latest tag.
+        if current.major > latest_tag.major:
+            logging.info(
+                f"Major version already bumped ({current.major} > {latest_tag.major}). "
+                "Skipping bump."
+            )
+            return False
+    elif part == "minor":
+        # Block if major is ahead, or if minor is ahead within the same major.
+        if current.major > latest_tag.major:
+            logging.info(
+                f"Major version already bumped ({current.major} > {latest_tag.major}). "
+                "Skipping minor bump."
+            )
+            return False
+        if current.major == latest_tag.major and current.minor > latest_tag.minor:
+            logging.info(
+                f"Minor version already bumped ({current.minor} > {latest_tag.minor}). "
+                "Skipping bump."
+            )
+            return False
+    else:
+        raise ValueError(f"Invalid version part: {part!r}. Must be 'minor' or 'major'.")
+
+    logging.info(f"Version bump for {part} is allowed.")
+    return True
 
 
 class WorkflowEvent(StrEnum):

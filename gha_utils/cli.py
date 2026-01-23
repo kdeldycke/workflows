@@ -44,7 +44,7 @@ from extra_platforms import ALL_IDS, is_github_ci
 from . import __version__
 from .changelog import Changelog
 from .mailmap import Mailmap
-from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata
+from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
 from .release_prep import ReleasePrep
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 
@@ -327,6 +327,44 @@ def release_prep(
             echo(f"  {path}")
     else:
         logging.warning(f"{action}: no files were modified.")
+
+
+@gha_utils.command(short_help="Check if a version bump is allowed")
+@option(
+    "--part",
+    type=Choice(["minor", "major"], case_sensitive=False),
+    required=True,
+    help="The version part to check for bump eligibility.",
+)
+def version_check(part: str) -> None:
+    """Check if a version bump is allowed for the specified part.
+
+    This command prevents double version increments within a development cycle.
+    It compares the current version from pyproject.toml against the latest Git tag
+    to determine if a bump has already been applied but not released.
+
+    \b
+    Examples:
+        # Check if minor version bump is allowed
+        gha-utils version-check --part minor
+
+        # Check if major version bump is allowed
+        gha-utils version-check --part major
+
+    \b
+    Output:
+        - Prints "true" if the bump is allowed
+        - Prints "false" if a bump of this type was already applied
+
+    \b
+    Use in GitHub Actions:
+        allowed=$( gha-utils version-check --part minor )
+        if [ "$allowed" = "true" ]; then
+            bump-my-version bump minor
+        fi
+    """
+    allowed = is_version_bump_allowed(part)  # type: ignore[arg-type]
+    echo("true" if allowed else "false")
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
