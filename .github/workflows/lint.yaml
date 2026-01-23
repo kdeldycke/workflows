@@ -51,6 +51,7 @@ jobs:
       || needs.project-metadata.outputs.project_description)
     runs-on: ubuntu-slim
     steps:
+      - uses: actions/checkout@v6.0.2
       - name: Check package name vs repository name
         if: needs.project-metadata.outputs.package_name
         env:
@@ -79,7 +80,7 @@ jobs:
         run: |
           REPO_DESCRIPTION=$(gh repo view --json description --jq '.description')
           if [ "$PROJECT_DESCRIPTION" != "$REPO_DESCRIPTION" ]; then
-            echo "::warning::Repository description '$REPO_DESCRIPTION' differs from project description '$PROJECT_DESCRIPTION'."
+            echo "::warning::Repo description '$REPO_DESCRIPTION' != project '$PROJECT_DESCRIPTION'."
           fi
 
   mypy-lint:

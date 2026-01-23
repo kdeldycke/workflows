@@ -132,6 +132,7 @@ jobs:
           --replace " ({utcnow:%Y-%m-%d})"
           ./changelog.md
       - name: Set release date in citation
+        if: hashFiles('./citation.cff') != ''
         run: >
           bump-my-version replace --no-configured-files --ignore-missing-version
           --regex --search "date-released: \\d{4}-\\d{2}-\\d{2}"
