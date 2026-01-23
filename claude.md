@@ -64,6 +64,7 @@ workflows/
 │   ├── __main__.py        # CLI entry point
 │   ├── cli.py             # Click-based CLI definitions
 │   ├── changelog.py       # Changelog management
+│   ├── labels.py          # Bundled label configuration access
 │   ├── mailmap.py         # .mailmap synchronization
 │   ├── metadata.py        # Project metadata extraction
 │   ├── release_prep.py    # Release preparation
@@ -83,6 +84,7 @@ workflows/
 | `mailmap.py`      | Git `.mailmap` file synchronization with contributors               |
 | `metadata.py`     | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `release_prep.py` | Prepare files for release (dates, URLs, warnings)                   |
+| `labels.py`       | Access bundled label configuration files                            |
 | `test_plan.py`    | Run YAML-based test plans against compiled binaries                 |
 | `matrix.py`       | Generate build matrices for GitHub Actions                          |
 

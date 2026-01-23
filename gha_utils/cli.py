@@ -43,6 +43,7 @@ from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
 from .changelog import Changelog
+from .labels import get_content_labeller_rules, get_file_labeller_rules, get_labels_content
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
 from .release_prep import ReleasePrep
@@ -365,6 +366,79 @@ def version_check(part: str) -> None:
     """
     allowed = is_version_bump_allowed(part)  # type: ignore[arg-type]
     echo("true" if allowed else "false")
+
+
+@gha_utils.command(short_help="Dump bundled label configuration files")
+@option(
+    "--labels/--no-labels",
+    default=False,
+    help="Dump label definitions (labels.toml).",
+)
+@option(
+    "--file-labeller/--no-file-labeller",
+    default=False,
+    help="Dump file-based labeller rules (labeller-file-based.yaml).",
+)
+@option(
+    "--content-labeller/--no-content-labeller",
+    default=False,
+    help="Dump content-based labeller rules (labeller-content-based.yaml).",
+)
+@argument(
+    "output_path",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+)
+def labels(labels, file_labeller, content_labeller, output_path):
+    """Dump bundled label configuration files.
+
+    This command outputs label definitions and labeller rules that are bundled
+    with gha-utils. These files are versioned with the package, ensuring
+    consistent label management across releases.
+
+    By default, outputs to stdout. Specify an output path to write to a file.
+
+    \b
+    Examples:
+        # Dump label definitions to stdout
+        gha-utils labels --labels
+
+    \b
+        # Dump label definitions to a file
+        gha-utils labels --labels ./labels.toml
+
+    \b
+        # Dump file-based labeller rules
+        gha-utils labels --file-labeller ./labeller-file-based.yaml
+
+    \b
+        # Dump content-based labeller rules
+        gha-utils labels --content-labeller ./labeller-content-based.yaml
+    """
+    # Count how many options are selected.
+    selected = sum([labels, file_labeller, content_labeller])
+
+    if selected == 0:
+        logging.error("Must specify at least one of: --labels, --file-labeller, --content-labeller")
+        raise SystemExit(1)
+
+    if selected > 1:
+        logging.error("Can only dump one file type at a time.")
+        raise SystemExit(1)
+
+    if labels:
+        content = get_labels_content()
+    elif file_labeller:
+        content = get_file_labeller_rules()
+    else:
+        content = get_content_labeller_rules()
+
+    if is_stdout(output_path):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output_path}")
+
+    echo(content.rstrip(), file=prep_path(output_path))
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
