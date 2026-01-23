@@ -37,14 +37,14 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_call'
     runs-on: ubuntu-slim
     steps:
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Install labelmaker
         uses: taiki-e/install-action@v2.67.2
         with:
           tool: labelmaker@0.6.4
-      - name: Download labels
-        run: >
-          curl -fsSL --output ./labels.toml
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labels.toml
+      - name: Dump labels
+        run: |
+          uvx 'gha-utils==5.2.0' labels --labels ./labels.toml
       - name: Download extra label files
         if: inputs.extra-label-files
         run: |
@@ -109,10 +109,10 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Download default rules
-        run: >
-          curl -fsSL --output ./.github/labeller-file-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-file-based.yaml
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Dump default rules
+        run: |
+          uvx 'gha-utils==5.2.0' labels --file-labeller ./.github/labeller-file-based.yaml
       - name: Extend default rules
         if: inputs.extra-file-rules
         run: |
@@ -135,10 +135,10 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Download default rules
-        run: >
-          curl -fsSL --output ./.github/labeller-content-based.yaml
-          https://raw.githubusercontent.com/kdeldycke/workflows/main/.github/labeller-content-based.yaml
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Dump default rules
+        run: |
+          uvx 'gha-utils==5.2.0' labels --content-labeller ./.github/labeller-content-based.yaml
       - name: Extend default rules
         if: inputs.extra-content-rules
         run: |
