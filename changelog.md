@@ -11,6 +11,7 @@
 - Reduce frequency of version increment jobs to once a day.
 - Only update dependency graph on release. Closes #176.
 - Only bump citation date on a release.
+- Unfreeze `bump-my-version` from 1.1.0.
 
 ## [5.0.1 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)
 
