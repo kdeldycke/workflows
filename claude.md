@@ -68,6 +68,7 @@ workflows/
 │   ├── mailmap.py         # .mailmap synchronization
 │   ├── metadata.py        # Project metadata extraction
 │   ├── release_prep.py    # Release preparation
+│   ├── workflows.py       # Bundled workflow templates access
 │   ├── test_plan.py       # Test plan execution
 │   └── matrix.py          # Build matrix generation
 ├── requirements/          # Pinned dependencies for workflows
@@ -85,6 +86,7 @@ workflows/
 | `metadata.py`     | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `release_prep.py` | Prepare files for release (dates, URLs, warnings)                   |
 | `labels.py`       | Access bundled label configuration files                            |
+| `workflows.py`    | Access bundled workflow templates                                   |
 | `test_plan.py`    | Run YAML-based test plans against compiled binaries                 |
 | `matrix.py`       | Generate build matrices for GitHub Actions                          |
 

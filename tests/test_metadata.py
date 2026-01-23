@@ -121,6 +121,7 @@ expected = {
         "gha_utils/metadata.py",
         "gha_utils/release_prep.py",
         "gha_utils/test_plan.py",
+        "gha_utils/workflows.py",
         "tests/__init__.py",
         "tests/test_changelog.py",
         "tests/test_mailmap.py",

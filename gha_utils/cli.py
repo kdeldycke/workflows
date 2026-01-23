@@ -44,6 +44,7 @@ from extra_platforms import ALL_IDS, is_github_ci
 from . import __version__
 from .changelog import Changelog
 from .labels import get_content_labeller_rules, get_file_labeller_rules, get_labels_content
+from .workflows import WORKFLOW_FILES, get_workflow_content, list_workflows
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
 from .release_prep import ReleasePrep
@@ -432,6 +433,72 @@ def labels(labels, file_labeller, content_labeller, output_path):
         content = get_file_labeller_rules()
     else:
         content = get_content_labeller_rules()
+
+    if is_stdout(output_path):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output_path}")
+
+    echo(content.rstrip(), file=prep_path(output_path))
+
+
+@gha_utils.command(short_help="Dump bundled workflow templates")
+@option(
+    "--list",
+    "list_only",
+    is_flag=True,
+    default=False,
+    help="List available workflow templates without dumping.",
+)
+@argument(
+    "workflow",
+    required=False,
+    type=Choice(WORKFLOW_FILES, case_sensitive=False),
+)
+@argument(
+    "output_path",
+    required=False,
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+)
+def workflows(list_only, workflow, output_path):
+    """Dump bundled GitHub Actions workflow templates.
+
+    This command outputs reusable workflow templates that are bundled with
+    gha-utils. These can be used to bootstrap new repositories or inspect
+    the workflow implementations.
+
+    By default, outputs to stdout. Specify an output path to write to a file.
+
+    \b
+    Examples:
+        # List available workflows
+        gha-utils workflows --list
+
+    \b
+        # Dump a workflow to stdout
+        gha-utils workflows release.yaml
+
+    \b
+        # Dump a workflow to a file
+        gha-utils workflows release.yaml ./.github/workflows/release.yaml
+
+    \b
+        # Dump tests workflow
+        gha-utils workflows tests.yaml ./.github/workflows/tests.yaml
+    """
+    if list_only:
+        echo("Available workflow templates:")
+        for wf in list_workflows():
+            echo(f"  {wf}")
+        return
+
+    if not workflow:
+        logging.error("Must specify a workflow name or use --list.")
+        echo(f"Available workflows: {', '.join(WORKFLOW_FILES)}")
+        raise SystemExit(1)
+
+    content = get_workflow_content(workflow)
 
     if is_stdout(output_path):
         logging.info(f"Print to {sys.stdout.name}")

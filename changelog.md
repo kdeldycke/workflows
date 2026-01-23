@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Add `gha-utils labels` command to dump bundled label configuration files.
+- Add `gha-utils workflows` command to dump bundled workflow templates for inspection and bootstrapping.
 - Rely on `gha-utils release-prep` for release preparation steps.
 - Protect the release commit from cancellation by giving it its own concurrency group.
 - Fix metadata extraction failing on tag push events due to null SHA.
