@@ -186,8 +186,10 @@ This repository contains workflows to automate most of the boring tasks in the f
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file
+  - **Runs on**:
+    - Schedule (daily at 6:00 UTC)
+    - Post-release version bump commits (starting with `[changelog] Post-release version bump`)
   - **Skipped for**:
-    - Schedule events
     - Release commits (starting with `[changelog] Release v`)
 
 - **Prepare release** (`prepare-release`)

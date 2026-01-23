@@ -21,9 +21,12 @@ concurrency:
 jobs:
 
   version-increments:
-    # Only run on schedule to avoid multiple PR updates per day.
-    # Also skip release commits (during which bump-my-version cannot find "unreleased" string in changelog.md).
-    if: github.event_name == 'schedule' && !startsWith(github.event.head_commit.message, '[changelog] Release v')
+    # Run on schedule (daily) or immediately after a post-release version bump.
+    # Skip release commits (during which bump-my-version cannot find "unreleased" string in changelog.md).
+    if: >
+      (github.event_name == 'schedule' ||
+       startsWith(github.event.head_commit.message, '[changelog] Post-release version bump'))
+      && !startsWith(github.event.head_commit.message, '[changelog] Release v')
     runs-on: ubuntu-slim
     strategy:
       matrix:
