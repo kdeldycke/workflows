@@ -1,0 +1,27 @@
+[tool.bumpversion]
+current_version = "0.0.0"
+allow_dirty = true
+ignore_missing_files = true
+
+[[tool.bumpversion.files]]
+# Update Python package version in any __init__.py file.
+glob = "./**/__init__.py"
+ignore_missing_version = true
+
+[[tool.bumpversion.files]]
+# Update version in [project] section.
+filename = "./pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+# Update the version in Markdown changelog.
+filename = "./changelog.md"
+search = "## [{current_version} (unreleased)]("
+replace = "## [{new_version} (unreleased)]("
+
+[[tool.bumpversion.files]]
+# Update the version in the citation file.
+filename = "./citation.cff"
+search = "version: {current_version}"
+replace = "version: {new_version}"

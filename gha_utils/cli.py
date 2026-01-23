@@ -43,6 +43,7 @@ from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
 from .changelog import Changelog
+from .bumpversion import get_bumpversion_content
 from .labels import get_content_labeller_rules, get_file_labeller_rules, get_labels_content
 from .workflows import WORKFLOW_FILES, get_workflow_content, list_workflows
 from .mailmap import Mailmap
@@ -499,6 +500,44 @@ def workflows(list_only, workflow, output_path):
         raise SystemExit(1)
 
     content = get_workflow_content(workflow)
+
+    if is_stdout(output_path):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output_path}")
+
+    echo(content.rstrip(), file=prep_path(output_path))
+
+
+@gha_utils.command(short_help="Dump bundled bumpversion configuration")
+@argument(
+    "output_path",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+)
+def bumpversion(output_path):
+    """Dump bundled bump-my-version configuration for pyproject.toml.
+
+    This command outputs a default ``[tool.bumpversion]`` configuration that can
+    be appended to your ``pyproject.toml``. The configuration covers common
+    version update patterns for Python projects.
+
+    By default, outputs to stdout. Specify an output path to write to a file.
+
+    \b
+    Examples:
+        # Dump configuration to stdout
+        gha-utils bumpversion
+
+    \b
+        # Dump configuration to a file
+        gha-utils bumpversion ./bumpversion.toml
+
+    \b
+        # Append to pyproject.toml (manually or via shell)
+        gha-utils bumpversion >> pyproject.toml
+    """
+    content = get_bumpversion_content()
 
     if is_stdout(output_path):
         logging.info(f"Print to {sys.stdout.name}")

@@ -151,6 +151,8 @@ module-root = ""
 # This keeps source files in .github/ for linting/formatting, while making
 # them available at runtime via importlib.resources.
 [tool.uv.build-backend.force-include]
+# Bumpversion configuration template.
+".github/bumpversion.toml" = "gha_utils/data/bumpversion.toml"
 # Label configuration files.
 ".github/labels.toml" = "gha_utils/data/labels.toml"
 ".github/labeller-file-based.yaml" = "gha_utils/data/labeller-file-based.yaml"
