@@ -379,6 +379,7 @@ jobs:
       && needs.project-metadata.outputs.project_description
     runs-on: ubuntu-slim
     steps:
+      - uses: actions/checkout@v6.0.2
       - name: Update repository description
         env:
           GH_TOKEN: ${{ github.token }}
