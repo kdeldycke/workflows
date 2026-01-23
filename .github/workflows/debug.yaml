@@ -22,7 +22,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uvx 'gha-utils==5.0.1' --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
+          uvx 'gha-utils==5.2.0' --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
       - name: Extend matrix with ubuntu-slim
         id: extend-matrix
         run: |
