@@ -445,13 +445,13 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 
 ### Pinning mechanisms
 
-| Mechanism                      | What it pins                  | How it's updated  |
-| :----------------------------- | :---------------------------- | :---------------- |
-| `[project.optional-dependencies]` | Python CLIs used in workflows | Renovate PRs   |
-| `uv.lock`                      | Project dependencies          | Renovate PRs      |
-| Hard-coded versions in YAML    | GitHub Actions, npm packages  | Renovate PRs      |
-| `uv --exclude-newer` option    | Transitive dependencies       | Time-based window |
-| Tagged workflow URLs           | Remote workflow references    | Release process   |
+| Mechanism                         | What it pins                  | How it's updated  |
+| :-------------------------------- | :---------------------------- | :---------------- |
+| `[project.optional-dependencies]` | Python CLIs used in workflows | Renovate PRs      |
+| `uv.lock`                         | Project dependencies          | Renovate PRs      |
+| Hard-coded versions in YAML       | GitHub Actions, npm packages  | Renovate PRs      |
+| `uv --exclude-newer` option       | Transitive dependencies       | Time-based window |
+| Tagged workflow URLs              | Remote workflow references    | Release process   |
 
 ### Optional dependencies (extras)
 
@@ -595,12 +595,12 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
 
 Go to your repository → **Settings → Advanced Security → Dependabot** and configure:
 
-| Setting                          | Status       | Reason                                                |
-| :------------------------------- | :----------- | :---------------------------------------------------- |
-| **Dependabot alerts**            | ✅ Enabled   | Renovate reads these alerts to detect vulnerabilities |
-| **Dependabot security updates**  | ❌ Disabled  | Renovate creates security PRs instead                 |
-| **Grouped security updates**     | ❌ Disabled  | Not needed when security updates are disabled         |
-| **Dependabot version updates**   | ❌ Disabled  | Renovate handles all version updates                  |
+| Setting                         | Status      | Reason                                                |
+| :------------------------------ | :---------- | :---------------------------------------------------- |
+| **Dependabot alerts**           | ✅ Enabled  | Renovate reads these alerts to detect vulnerabilities |
+| **Dependabot security updates** | ❌ Disabled | Renovate creates security PRs instead                 |
+| **Grouped security updates**    | ❌ Disabled | Not needed when security updates are disabled         |
+| **Dependabot version updates**  | ❌ Disabled | Renovate handles all version updates                  |
 
 > [!WARNING]
 > Keep **Dependabot alerts** enabled—these are passive notifications that Renovate reads via the API.
@@ -629,7 +629,8 @@ Workflows are grouped by:
 
 ```yaml
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || 
+    github.ref }}
   cancel-in-progress: …
 ```
 
@@ -638,34 +639,36 @@ concurrency:
 Release commits must run to completion to ensure proper tagging, PyPI publishing, and GitHub release creation. The `cancel-in-progress` directive is conditional:
 
 ```yaml
-cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') && !startsWith(github.event.head_commit.message, '[changelog] Post-release') }}
+cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, 
+  '[changelog] Release') && !startsWith(github.event.head_commit.message, 
+  '[changelog] Post-release') }}
 ```
 
-| Commit Message | `cancel-in-progress` | Behavior |
-| :------------- | :------------------- | :------- |
-| `[changelog] Release v4.26.0` | `false` | **Protected** — runs to completion |
-| `[changelog] Post-release version bump` | `false` | **Protected** — runs to completion |
-| Any other commit | `true` | Cancellable |
+| Commit Message                          | `cancel-in-progress` | Behavior                           |
+| :-------------------------------------- | :------------------- | :--------------------------------- |
+| `[changelog] Release v4.26.0`           | `false`              | **Protected** — runs to completion |
+| `[changelog] Post-release version bump` | `false`              | **Protected** — runs to completion |
+| Any other commit                        | `true`               | Cancellable                        |
 
 > [!IMPORTANT]
 > When a release is pushed, the event contains **two commits bundled together**:
 >
 > 1. `[changelog] Release vX.Y.Z` — the release commit
-> 2. `[changelog] Post-release version bump` — bumps version for next development cycle
+> 1. `[changelog] Post-release version bump` — bumps version for next development cycle
 >
 > Since `github.event.head_commit` refers to the most recent commit (the post-release bump), both commit patterns must be protected. Otherwise, the workflow would be cancelled before the release jobs (`git-tag`, `pypi-publish`, `github-release`) complete.
 
 ### Event-specific behavior
 
-| Event | `github.event.head_commit` | Concurrency Group | Cancel Behavior |
-| :---- | :------------------------- | :---------------- | :-------------- |
-| `push` to `main` | Set | `{workflow}-refs/heads/main` | Based on commit message |
-| `push` (release) | Starts with `[changelog] Release` | `{workflow}-refs/heads/main` | **Never cancelled** |
-| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-refs/heads/main` | **Never cancelled** |
-| `pull_request` | `null` | `{workflow}-{pr-number}` | Always cancellable |
-| `workflow_call` | Inherited or `null` | Inherited from caller | Usually cancellable |
-| `schedule` | `null` | `{workflow}-refs/heads/main` | Always cancellable |
-| `issues` / `opened` | `null` | `{workflow}-{issue-ref}` | Always cancellable |
+| Event                 | `github.event.head_commit`             | Concurrency Group            | Cancel Behavior         |
+| :-------------------- | :------------------------------------- | :--------------------------- | :---------------------- |
+| `push` to `main`      | Set                                    | `{workflow}-refs/heads/main` | Based on commit message |
+| `push` (release)      | Starts with `[changelog] Release`      | `{workflow}-refs/heads/main` | **Never cancelled**     |
+| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-refs/heads/main` | **Never cancelled**     |
+| `pull_request`        | `null`                                 | `{workflow}-{pr-number}`     | Always cancellable      |
+| `workflow_call`       | Inherited or `null`                    | Inherited from caller        | Usually cancellable     |
+| `schedule`            | `null`                                 | `{workflow}-refs/heads/main` | Always cancellable      |
+| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`     | Always cancellable      |
 
 ## Used in
 
