@@ -626,29 +626,36 @@ Workflows are grouped by:
 
 - **Pull requests**: `{workflow-name}-{pr-number}` — Multiple commits to the same PR cancel previous runs
 - **Branch pushes**: `{workflow-name}-{branch-ref}` — Multiple pushes to the same branch cancel previous runs
+- **Release commits**: `{workflow-name}-{commit-sha}` — Each release gets a unique group, so it can never be cancelled
 
 ```yaml
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || 
-    github.ref }}
-  cancel-in-progress: …
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event.pull_request.number
+      || (
+        (startsWith(github.event.head_commit.message, '[changelog] Release')
+        || startsWith(github.event.head_commit.message, '[changelog] Post-release'))
+        && github.sha
+      )
+      || github.ref
+    }}
+  cancel-in-progress: true
 ```
 
 ### Release commit protection
 
-Release commits must run to completion to ensure proper tagging, PyPI publishing, and GitHub release creation. The `cancel-in-progress` directive is conditional:
+Release commits must run to completion to ensure proper tagging, PyPI publishing, and GitHub release creation. Rather than using conditional `cancel-in-progress`, release workflows are protected by placing them in **unique concurrency groups**.
 
-```yaml
-cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, 
-  '[changelog] Release') && !startsWith(github.event.head_commit.message, 
-  '[changelog] Post-release') }}
-```
+The problem with conditional `cancel-in-progress` is that it's evaluated on the *new* workflow, not the old one. If a regular commit is pushed while a release workflow is running, the new workflow would cancel the release—even if the release workflow had `cancel-in-progress: false`—because they share the same concurrency group.
 
-| Commit Message                          | `cancel-in-progress` | Behavior                           |
-| :-------------------------------------- | :------------------- | :--------------------------------- |
-| `[changelog] Release v4.26.0`           | `false`              | **Protected** — runs to completion |
-| `[changelog] Post-release version bump` | `false`              | **Protected** — runs to completion |
-| Any other commit                        | `true`               | Cancellable                        |
+The solution is to give each release workflow its own unique group (using the commit SHA), so subsequent pushes cannot cancel it:
+
+| Commit Message                          | Concurrency Group                 | Behavior                           |
+| :-------------------------------------- | :-------------------------------- | :--------------------------------- |
+| `[changelog] Release v4.26.0`           | `{workflow}-{sha}`                | **Protected** — unique group       |
+| `[changelog] Post-release version bump` | `{workflow}-{sha}`                | **Protected** — unique group       |
+| Any other commit                        | `{workflow}-refs/heads/main`      | Cancellable by newer commits       |
 
 > [!IMPORTANT]
 > When a release is pushed, the event contains **two commits bundled together**:
@@ -656,19 +663,19 @@ cancel-in-progress: ${{ !startsWith(github.event.head_commit.message,
 > 1. `[changelog] Release vX.Y.Z` — the release commit
 > 1. `[changelog] Post-release version bump` — bumps version for next development cycle
 >
-> Since `github.event.head_commit` refers to the most recent commit (the post-release bump), both commit patterns must be protected. Otherwise, the workflow would be cancelled before the release jobs (`git-tag`, `pypi-publish`, `github-release`) complete.
+> Since `github.event.head_commit` refers to the most recent commit (the post-release bump), both commit patterns must be matched to ensure the release workflow gets its own unique group.
 
 ### Event-specific behavior
 
-| Event                 | `github.event.head_commit`             | Concurrency Group            | Cancel Behavior         |
-| :-------------------- | :------------------------------------- | :--------------------------- | :---------------------- |
-| `push` to `main`      | Set                                    | `{workflow}-refs/heads/main` | Based on commit message |
-| `push` (release)      | Starts with `[changelog] Release`      | `{workflow}-refs/heads/main` | **Never cancelled**     |
-| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-refs/heads/main` | **Never cancelled**     |
-| `pull_request`        | `null`                                 | `{workflow}-{pr-number}`     | Always cancellable      |
-| `workflow_call`       | Inherited or `null`                    | Inherited from caller        | Usually cancellable     |
-| `schedule`            | `null`                                 | `{workflow}-refs/heads/main` | Always cancellable      |
-| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`     | Always cancellable      |
+| Event                 | `github.event.head_commit`             | Concurrency Group              | Cancel Behavior           |
+| :-------------------- | :------------------------------------- | :----------------------------- | :------------------------ |
+| `push` to `main`      | Set                                    | `{workflow}-refs/heads/main`   | Cancellable               |
+| `push` (release)      | Starts with `[changelog] Release`      | `{workflow}-{sha}` *(unique)*  | **Never cancelled**       |
+| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-{sha}` *(unique)*  | **Never cancelled**       |
+| `pull_request`        | `null`                                 | `{workflow}-{pr-number}`       | Cancellable within same PR |
+| `workflow_call`       | Inherited or `null`                    | Inherited from caller          | Usually cancellable       |
+| `schedule`            | `null`                                 | `{workflow}-refs/heads/main`   | Cancellable               |
+| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`       | Cancellable               |
 
 ## Used in
 

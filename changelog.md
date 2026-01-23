@@ -7,6 +7,7 @@
 
 - Add `gha-utils labels` command to dump bundled label configuration files.
 - Rely on `gha-utils release-prep` for release preparation steps.
+- Protect the release commit from cancellation by giving it its own concurrency group.
 - Fix metadata extraction failing on tag push events due to null SHA.
 
 ## [5.1.0 (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.0.1...v5.1.0)
