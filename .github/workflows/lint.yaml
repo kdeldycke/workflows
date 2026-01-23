@@ -26,6 +26,8 @@ jobs:
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       zsh_files: ${{ steps.project-metadata.outputs.zsh_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
+      package_name: ${{ steps.project-metadata.outputs.package_name }}
+      is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
     steps:
       - uses: actions/checkout@v6.0.2
@@ -36,6 +38,36 @@ jobs:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
           uvx 'gha-utils==5.0.1' metadata --overwrite "$GITHUB_OUTPUT"
+
+  repo-metadata-check:
+    name: Check repo metadata
+    needs:
+      - project-metadata
+    # Only check Python projects that have a package name or Sphinx docs.
+    if: >
+      fromJSON(needs.project-metadata.outputs.is_python_project)
+      && (needs.project-metadata.outputs.package_name || fromJSON(needs.project-metadata.outputs.is_sphinx))
+    runs-on: ubuntu-slim
+    steps:
+      - name: Check package name vs repository name
+        if: needs.project-metadata.outputs.package_name
+        env:
+          PACKAGE_NAME: ${{ needs.project-metadata.outputs.package_name }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          if [ "$PACKAGE_NAME" != "$REPO_NAME" ]; then
+            echo "::warning::Package name '$PACKAGE_NAME' differs from repository name '$REPO_NAME'."
+          fi
+      - name: Check website field for Sphinx docs
+        if: fromJSON(needs.project-metadata.outputs.is_sphinx)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          HOMEPAGE=$(gh repo view --json homepageUrl --jq '.homepageUrl')
+          if [ -z "$HOMEPAGE" ]; then
+            echo "::warning::Sphinx documentation detected but repository website field is not set."
+          fi
 
   mypy-lint:
     needs:
