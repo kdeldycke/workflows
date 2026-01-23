@@ -7,6 +7,7 @@
 
 - Switch from from `requirements/*.txt` files to hard-coding version dependencies for workflow tools.
 - Check consistency between project and repository metadata.
+- Use fixed `exclude-newer` date instead of relative `1 week` to prevent `uv.lock` timestamp churn.
 
 ## [5.0.1 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)
 

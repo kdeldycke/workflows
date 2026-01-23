@@ -149,8 +149,10 @@ build-backend = "uv_build"
 module-root = ""
 
 [tool.uv]
-# Cooldown period.
-exclude-newer = "1 week"
+# Cooldown period: 7-day buffer before using newly released packages.
+# Use a fixed date (not relative like "1 week") to prevent uv.lock timestamp churn.
+# This date is auto-updated by the autofix workflow when it becomes stale.
+exclude-newer = "2026-01-16T00:00:00Z"
 
 [tool.mypy]
 warn_unused_configs = true

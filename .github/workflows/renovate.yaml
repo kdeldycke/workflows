@@ -73,6 +73,37 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
+      - name: Update exclude-newer date if stale
+        # Updates the exclude-newer date in pyproject.toml when it's older than 7 days.
+        # Uses a fixed date (not relative) to prevent uv.lock timestamp churn on every sync.
+        # Runs before Renovate so changes are picked up in lock file maintenance.
+        run: |
+          if [ ! -f pyproject.toml ]; then
+            echo "No pyproject.toml found, skipping"
+            exit 0
+          fi
+
+          # Calculate target date: 7 days ago, truncated to midnight UTC.
+          target_date=$(date -u -d "7 days ago" +%Y-%m-%d)
+
+          # Extract current date from pyproject.toml (just the YYYY-MM-DD part).
+          current_date=$(grep -oP '(?<=exclude-newer = ")[0-9-]+(?=T)' pyproject.toml || echo "")
+
+          echo "Current exclude-newer date: $current_date"
+          echo "Target date (7 days ago): $target_date"
+
+          # Update if current date is older than target.
+          if [[ -n "$current_date" && "$current_date" < "$target_date" ]]; then
+            echo "Date is stale, updating to $target_date"
+            sed -i "s/exclude-newer = \"[^\"]*\"/exclude-newer = \"${target_date}T00:00:00Z\"/" pyproject.toml
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add pyproject.toml
+            git commit -m "[deps] Update exclude-newer date to $target_date"
+            git push
+          else
+            echo "Date is still fresh, no update needed"
+          fi
       - uses: renovatebot/github-action@v44.2.4
         with:
           # We need custom PAT with workflows permission to update GitHub Actions versions in
