@@ -347,6 +347,13 @@ SHORT_SHA_LENGTH = 7
     depends on the size of the repository.
 """
 
+NULL_SHA = "0" * 40
+"""The null SHA used by Git to represent a non-existent commit.
+
+GitHub sends this value as the ``before`` SHA when a tag is created, since there is no
+previous commit to compare against.
+"""
+
 MAILMAP_PATH = Path(".mailmap")
 
 GITIGNORE_PATH = Path(".gitignore")
@@ -995,6 +1002,14 @@ class Metadata:
         if not self.commit_range:
             return None
         start, end = self.commit_range
+
+        # Treat the null SHA as no start commit. GitHub sends this value when a tag is
+        # created, since there is no previous commit to compare against.
+        if start == NULL_SHA:
+            logging.info(
+                f"Start commit is null SHA ({NULL_SHA}), treating as no start commit."
+            )
+            start = None
 
         # Sanity check: make sure the start commit exists in the repository.
         # XXX Even if we skip the start commit later on (because the range is inclusive),

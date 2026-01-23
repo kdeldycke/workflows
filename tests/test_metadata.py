@@ -27,6 +27,7 @@ from packaging.version import Version
 
 from gha_utils.metadata import (
     NUITKA_BUILD_TARGETS,
+    NULL_SHA,
     Dialect,
     Metadata,
     get_latest_tag_version,
@@ -490,3 +491,16 @@ def test_is_version_bump_allowed_current_repo():
     # Expected: major bump blocked if major already ahead.
     expected_major_blocked = current.major > latest_tag.major
     assert major_allowed == (not expected_major_blocked)
+
+
+def test_null_sha_constant():
+    """Test that NULL_SHA is a valid 40-character string of zeros.
+
+    This constant is used to detect when GitHub sends a null SHA as the "before"
+    commit when a tag is created (since there is no previous commit).
+    """
+    assert isinstance(NULL_SHA, str)
+    assert len(NULL_SHA) == 40
+    assert NULL_SHA == "0" * 40
+    # Verify it's truthy (important for the fix: we can't just check `if not sha`).
+    assert bool(NULL_SHA) is True
