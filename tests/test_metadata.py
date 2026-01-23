@@ -434,8 +434,9 @@ def test_metadata_github_format():
 def test_get_latest_tag_version():
     """Test that we can retrieve the latest Git tag version."""
     latest = get_latest_tag_version()
-    # This repository should have at least one release tag.
-    assert latest is not None
+    # In CI environments with shallow clones, tags may not be available.
+    if latest is None:
+        pytest.skip("No release tags available (shallow clone in CI).")
     assert isinstance(latest, Version)
     # Sanity check: version should be a reasonable semver.
     assert latest.major >= 0
@@ -471,7 +472,9 @@ def test_is_version_bump_allowed_current_repo():
     current = Version(current_version_str)
 
     latest_tag = get_latest_tag_version()
-    assert latest_tag is not None
+    # In CI environments with shallow clones, tags may not be available.
+    if latest_tag is None:
+        pytest.skip("No release tags available (shallow clone in CI).")
 
     # Verify the logic matches what the function should return.
     minor_allowed = is_version_bump_allowed("minor")

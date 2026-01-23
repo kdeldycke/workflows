@@ -469,6 +469,10 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
     :param part: The version part to check (``minor`` or ``major``).
     :return: ``True`` if the bump should proceed, ``False`` if it should be skipped.
     """
+    # Validate part argument early.
+    if part not in ("minor", "major"):
+        raise ValueError(f"Invalid version part: {part!r}. Must be 'minor' or 'major'.")
+
     current_version_str = Metadata.get_current_version()
     if not current_version_str:
         logging.warning("Cannot determine current version. Allowing bump.")
@@ -504,8 +508,6 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
                 "Skipping bump."
             )
             return False
-    else:
-        raise ValueError(f"Invalid version part: {part!r}. Must be 'minor' or 'major'.")
 
     logging.info(f"Version bump for {part} is allowed.")
     return True
