@@ -1,30 +1,30 @@
 flowchart TD
     classDef missing stroke-dasharray: 5
     annotated-types["annotated-types\n0.7.0"]
-    anyio["anyio\n4.12.0"]
+    anyio["anyio\n4.12.1"]
     boltons["boltons\n25.0.0"]
     bracex["bracex\n2.6"]
     bump-my-version["bump-my-version\n1.1.0"]
-    certifi["certifi\n2025.11.12"]
+    certifi["certifi\n2026.1.4"]
     charset-normalizer["charset-normalizer\n3.4.4"]
     click-extra["click-extra\n7.4.0"]
     click_0["click\n8.3.1"]
     cloup["cloup\n3.0.8"]
     deepmerge["deepmerge\n2.0"]
     distro["distro\n1.9.0"]
-    extra-platforms["extra-platforms\n5.1.0"]
-    gha-utils["gha-utils\n4.25.4"]
+    extra-platforms["extra-platforms\n6.0.0"]
+    gha-utils["gha-utils\n5.0.2"]
     gitdb["gitdb\n4.0.12"]
-    gitpython["GitPython\n3.1.45"]
+    gitpython["GitPython\n3.1.46"]
     h11["h11\n0.16.0"]
     httpcore["httpcore\n1.0.9"]
     httpx["httpx\n0.28.1"]
     idna["idna\n3.11"]
-    lizard["lizard\n1.19.0"]
+    lizard["lizard\n1.20.0"]
     markdown-it-py["markdown-it-py\n4.0.0"]
     mdurl["mdurl\n0.1.2"]
     packaging["packaging\n25.0"]
-    pathspec["pathspec\n0.12.1"]
+    pathspec["pathspec\n1.0.3"]
     prompt-toolkit["prompt_toolkit\n3.0.52"]
     py-walk["py-walk\n0.3.3"]
     pydantic-core["pydantic_core\n2.41.5"]
@@ -38,16 +38,16 @@ flowchart TD
     pyyaml["PyYAML\n6.0.3"]
     questionary["questionary\n2.1.1"]
     requests["requests\n2.32.5"]
-    rich-click["rich-click\n1.9.4"]
+    rich-click["rich-click\n1.9.5"]
     rich["rich\n14.2.0"]
     sly["sly\n0.5"]
     smmap["smmap\n5.0.2"]
     tabulate["tabulate\n0.9.0"]
-    tomlkit["tomlkit\n0.13.3"]
+    tomlkit["tomlkit\n0.14.0"]
     types-pytz["types-pytz\n2025.2.0.20251108"]
     typing-extensions["typing_extensions\n4.15.0"]
     typing-inspection["typing-inspection\n0.4.2"]
-    urllib3["urllib3\n2.6.2"]
+    urllib3["urllib3\n2.6.3"]
     wcmatch["wcmatch\n10.1"]
     wcwidth["wcwidth\n0.2.14"]
     anyio -- ">=2.8" --> idna
@@ -78,7 +78,7 @@ flowchart TD
     gha-utils -- ">=2.6" --> pydriller
     gha-utils -- ">=25.0" --> packaging
     gha-utils -- ">=25.0.0" --> boltons
-    gha-utils -- ">=4.0.0" --> extra-platforms
+    gha-utils -- ">=6.0.0" --> extra-platforms
     gha-utils -- ">=6.0.3" --> pyyaml
     gha-utils -- ">=7.0.0" --> click-extra
     gitdb -- ">=3.0.1,<6" --> smmap
