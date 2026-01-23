@@ -128,6 +128,12 @@ jobs:
           --search " (unreleased)"
           --replace " ({utcnow:%Y-%m-%d})"
           ./changelog.md
+      - name: Set release date in citation
+        run: >
+          bump-my-version replace --no-configured-files --ignore-missing-version
+          --regex --search "date-released: \\d{4}-\\d{2}-\\d{2}"
+          --replace "date-released: {utcnow:%Y-%m-%d}"
+          ./citation.cff
       - name: Update comparison URL in changelog
         run: >
           bump-my-version replace --no-configured-files
