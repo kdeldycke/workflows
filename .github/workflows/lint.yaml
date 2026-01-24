@@ -40,8 +40,7 @@ jobs:
         run: |
           uvx 'gha-utils==5.0.1' metadata --overwrite "$GITHUB_OUTPUT"
 
-  repo-metadata-check:
-    name: Check repo metadata
+  repo-lint:
     needs:
       - project-metadata
     # Only check Python projects that have a package name, Sphinx docs, or description.
