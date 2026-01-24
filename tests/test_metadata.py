@@ -28,6 +28,7 @@ from packaging.version import Version
 from gha_utils.metadata import (
     NUITKA_BUILD_TARGETS,
     NULL_SHA,
+    SKIP_BINARY_BUILD_BRANCHES,
     Dialect,
     Metadata,
     get_latest_tag_version,
@@ -106,6 +107,7 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
 
 expected = {
     "is_bot": False,
+    "skip_binary_build": False,
     "new_commits": None,
     "release_commits": None,
     "mailmap_exists": True,
@@ -524,3 +526,25 @@ def test_null_sha_constant():
     assert NULL_SHA == "0" * 40
     # Verify it's truthy (important for the fix: we can't just check `if not sha`).
     assert bool(NULL_SHA) is True
+
+
+def test_skip_binary_build_branches_constant():
+    """Test that SKIP_BINARY_BUILD_BRANCHES contains expected branch names."""
+    assert isinstance(SKIP_BINARY_BUILD_BRANCHES, frozenset)
+    # Verify the list contains expected branches for non-code changes.
+    assert "update-mailmap" in SKIP_BINARY_BUILD_BRANCHES
+    assert "format-markdown" in SKIP_BINARY_BUILD_BRANCHES
+    assert "optimize-images" in SKIP_BINARY_BUILD_BRANCHES
+    assert "update-gitignore" in SKIP_BINARY_BUILD_BRANCHES
+    # Verify branches that affect code are NOT in the list.
+    assert "format-python" not in SKIP_BINARY_BUILD_BRANCHES
+    assert "prepare-release" not in SKIP_BINARY_BUILD_BRANCHES
+    assert "main" not in SKIP_BINARY_BUILD_BRANCHES
+
+
+def test_skip_binary_build_property_false_by_default():
+    """Test that skip_binary_build is False when not in a PR context."""
+    metadata = Metadata()
+    # Outside of PR context (GITHUB_HEAD_REF not set), skip_binary_build is False.
+    assert isinstance(metadata.skip_binary_build, bool)
+    assert metadata.skip_binary_build is False

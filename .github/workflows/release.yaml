@@ -85,6 +85,7 @@ jobs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
       release_notes: ${{ steps.project-metadata.outputs.release_notes }}
+      skip_binary_build: ${{ steps.project-metadata.outputs.skip_binary_build }}
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -136,7 +137,10 @@ jobs:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} build"
     needs:
       - project-metadata
-    if: needs.project-metadata.outputs.nuitka_matrix
+    # Skip binary compilation for branches that don't affect code (e.g., update-mailmap, format-markdown).
+    if: >
+      needs.project-metadata.outputs.nuitka_matrix
+      && !fromJSON(needs.project-metadata.outputs.skip_binary_build)
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
@@ -264,7 +268,10 @@ jobs:
     needs:
       - project-metadata
       - compile-binaries
-    if: needs.project-metadata.outputs.nuitka_matrix
+    # Skip binary tests for branches that don't affect code (e.g., update-mailmap, format-markdown).
+    if: >
+      needs.project-metadata.outputs.nuitka_matrix
+      && !fromJSON(needs.project-metadata.outputs.skip_binary_build)
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}

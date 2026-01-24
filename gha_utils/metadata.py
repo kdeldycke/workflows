@@ -354,6 +354,28 @@ GitHub sends this value as the ``before`` SHA when a tag is created, since there
 previous commit to compare against.
 """
 
+SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
+    # Autofix branches from docs.yaml that don't affect code.
+    "update-mailmap",
+    "optimize-images",
+    "update-deps-graph",
+    # Autofix branches from autofix.yaml that don't affect code.
+    "format-markdown",
+    "format-json",
+    "update-gitignore",
+))
+"""Branch names for which binary builds should be skipped.
+
+These branches contain changes that do not affect compiled binaries:
+
+- ``.mailmap`` updates only affect contributor attribution
+- Documentation and image changes don't affect code
+- ``.gitignore`` and JSON config changes don't affect binaries
+
+This allows workflows to skip expensive Nuitka compilation jobs for PRs that cannot
+possibly change the binary output.
+"""
+
 MAILMAP_PATH = Path(".mailmap")
 
 GITIGNORE_PATH = Path(".gitignore")
@@ -910,6 +932,41 @@ class Metadata:
             "dependabot-preview[bot]",
             "renovate[bot]",
         ):
+            return True
+        return False
+
+    @cached_property
+    def head_branch(self) -> str | None:
+        """Returns the head branch name for pull request events.
+
+        For pull request events, this is the source branch name (e.g., ``update-mailmap``).
+        For push events, returns ``None`` since there's no head branch concept.
+
+        The branch name is extracted from the ``GITHUB_HEAD_REF`` environment variable,
+        which is `only set for pull request events
+        <https://docs.github.com/en/actions/learn-github-actions/variables>`_.
+        """
+        head_ref = os.environ.get("GITHUB_HEAD_REF")
+        if head_ref:
+            return head_ref
+        return None
+
+    @cached_property
+    def skip_binary_build(self) -> bool:
+        """Returns ``True`` if binary builds should be skipped for this event.
+
+        Binary builds are expensive and time-consuming. This property identifies contexts
+        where the changes cannot possibly affect compiled binaries, allowing workflows to
+        skip Nuitka compilation jobs.
+
+        Currently checks if the PR's head branch is in the list of known branches that
+        only contain non-code changes (documentation, ``.mailmap``, ``.gitignore``, etc.).
+        """
+        if self.head_branch and self.head_branch in SKIP_BINARY_BUILD_BRANCHES:
+            logging.info(
+                f"Branch {self.head_branch!r} is in SKIP_BINARY_BUILD_BRANCHES. "
+                "Binary build will be skipped."
+            )
             return True
         return False
 
@@ -1833,6 +1890,7 @@ class Metadata:
         """
         metadata: dict[str, Any] = {
             "is_bot": self.is_bot,
+            "skip_binary_build": self.skip_binary_build,
             "new_commits": self.new_commits_hash,
             "release_commits": self.release_commits_hash,
             "mailmap_exists": self.mailmap_exists,

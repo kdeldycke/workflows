@@ -10,6 +10,7 @@
 - Sync bumpversion config in the `autofix` workflow.
 - Sync `uv.lock` file on version increment and post-release bump commits.
 - Fail job on project description mismatch.
+- Skip binary compilation for branches that don't affect code (`.mailmap`, docs, images, `.gitignore`, JSON, Markdown).
 
 ## [5.2.0 (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.1.0...v5.2.0)
 

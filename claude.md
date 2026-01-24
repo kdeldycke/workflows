@@ -103,6 +103,54 @@ Reusable workflows are organized by purpose:
 - `release.yaml` - Package building, binary compilation, and publishing
 - `tests.yaml` - Test execution
 
+## Documentation requirements
+
+### Changelog and readme updates
+
+Always update documentation when making changes:
+
+- **`changelog.md`**: Add a bullet point describing user-facing changes (new features, bug fixes, behavior changes).
+- **`readme.md`**: Update relevant sections when adding/modifying workflow jobs, CLI commands, or configuration options.
+
+### Documenting code decisions
+
+Document design decisions, trade-offs, and non-obvious implementation choices directly in the code:
+
+- Use **docstring admonitions** for important notes in module/class/function docstrings:
+
+  ```python
+  """Extract metadata from repository.
+
+  .. warning::
+      This method temporarily modifies repository state during execution.
+
+  .. note::
+      The commit range is inclusive on both ends.
+
+  .. caution::
+      The default SHA length is subject to change based on repository size.
+  """
+  ```
+
+- Use **inline comments** for explaining specific code blocks:
+
+  ```python
+  # We use a frozenset for O(1) lookups and immutability.
+  SKIP_BRANCHES: Final[frozenset[str]] = frozenset(("branch-a", "branch-b"))
+  ```
+
+- Use **module-level docstrings** for constants that need context:
+
+  ```python
+  SOME_CONSTANT = 42
+  """Why this value was chosen and how it's used.
+
+  Additional context about edge cases or related constants.
+  """
+  ```
+
+This ensures future maintainers (including Claude) understand the reasoning behind implementation choices.
+
 ## Code style
 
 ### Comments and docstrings

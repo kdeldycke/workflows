@@ -380,6 +380,13 @@ docs = [
   - Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
   - **Requires**:
     - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
+  - **Skipped for** branches that don't affect code:
+    - `update-mailmap` (`.mailmap` changes)
+    - `format-markdown` (documentation formatting)
+    - `format-json` (JSON formatting)
+    - `update-gitignore` (`.gitignore` updates)
+    - `optimize-images` (image optimization)
+    - `update-deps-graph` (dependency graph docs)
 
 - **Test binaries** (`test-binaries`)
 
@@ -387,6 +394,8 @@ docs = [
   - **Requires**:
     - Compiled binaries from `compile-binaries` job
     - Test plan file (default: `./tests/cli-test-plan.yaml`)
+  - **Skipped for**:
+    - Same branches as `compile-binaries`
 
 - **Git tag** (`git-tag`)
 
