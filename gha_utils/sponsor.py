@@ -1,0 +1,250 @@
+# Copyright Kevin Deldycke <kevin@deldycke.com> and contributors.
+#
+# This program is Free Software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+"""Check if a GitHub user is a sponsor of another user or organization.
+
+Uses the GitHub GraphQL API via the ``gh`` CLI to query sponsorship data.
+Supports both user and organization owners, with pagination for accounts
+that have more than 100 sponsors.
+
+When run in GitHub Actions, defaults are read from environment variables:
+
+- ``GITHUB_REPOSITORY_OWNER`` for the owner
+- ``GITHUB_REPOSITORY`` for the repository
+- ``GITHUB_EVENT_PATH`` for the author and issue/PR number
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+from pathlib import Path
+from subprocess import run
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from typing import Any
+
+
+def get_github_event() -> dict[str, Any]:
+    """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
+
+    :return: The parsed event payload, or empty dict if not available.
+    """
+    event_path = os.environ.get("GITHUB_EVENT_PATH")
+    if not event_path:
+        return {}
+    event_file = Path(event_path)
+    if not event_file.exists():
+        logging.warning(f"Event file not found: {event_path}")
+        return {}
+    return json.loads(event_file.read_text())  # type: ignore[no-any-return]
+
+
+def get_default_owner() -> str | None:
+    """Get the repository owner from ``GITHUB_REPOSITORY_OWNER``."""
+    return os.environ.get("GITHUB_REPOSITORY_OWNER")
+
+
+def get_default_repo() -> str | None:
+    """Get the repository from ``GITHUB_REPOSITORY``."""
+    return os.environ.get("GITHUB_REPOSITORY")
+
+
+def get_default_author() -> str | None:
+    """Get the issue/PR author from the GitHub event payload."""
+    event = get_github_event()
+    # Try PR first, then issue.
+    pr = event.get("pull_request", {})
+    if pr:
+        login = pr.get("user", {}).get("login")
+        return str(login) if login else None
+    issue = event.get("issue", {})
+    if issue:
+        login = issue.get("user", {}).get("login")
+        return str(login) if login else None
+    return None
+
+
+def get_default_number() -> int | None:
+    """Get the issue/PR number from the GitHub event payload."""
+    event = get_github_event()
+    # Try PR first, then issue.
+    pr = event.get("pull_request", {})
+    if pr:
+        number = pr.get("number")
+        return int(number) if number else None
+    issue = event.get("issue", {})
+    if issue:
+        number = issue.get("number")
+        return int(number) if number else None
+    return None
+
+
+def is_pull_request() -> bool:
+    """Check if the current event is a pull request."""
+    event = get_github_event()
+    return "pull_request" in event
+
+
+# GraphQL query for user sponsors.
+USER_SPONSORS_QUERY = """
+query($owner: String!, $cursor: String) {
+  user(login: $owner) {
+    sponsorshipsAsMaintainer(first: 100, after: $cursor, includePrivate: true) {
+      pageInfo { hasNextPage endCursor }
+      nodes { sponsorEntity { ... on User { login } ... on Organization { login } } }
+    }
+  }
+}
+"""
+
+# GraphQL query for organization sponsors.
+ORG_SPONSORS_QUERY = """
+query($owner: String!, $cursor: String) {
+  organization(login: $owner) {
+    sponsorshipsAsMaintainer(first: 100, after: $cursor, includePrivate: true) {
+      pageInfo { hasNextPage endCursor }
+      nodes { sponsorEntity { ... on User { login } ... on Organization { login } } }
+    }
+  }
+}
+"""
+
+
+def _run_graphql_query(query: str, owner: str, cursor: str | None = None) -> Any:
+    """Execute a GraphQL query using the gh CLI.
+
+    :param query: The GraphQL query string.
+    :param owner: The owner (user or org) to query.
+    :param cursor: Optional pagination cursor.
+    :return: Parsed JSON response from the API.
+    :raises RuntimeError: If the gh CLI command fails.
+    """
+    cmd = ["gh", "api", "graphql", "-f", f"query={query}", "-f", f"owner={owner}"]
+    if cursor:
+        cmd.extend(["-f", f"cursor={cursor}"])
+
+    logging.debug(f"Running: {' '.join(cmd)}")
+    process = run(cmd, capture_output=True, encoding="UTF-8")
+
+    if process.returncode:
+        logging.debug(f"GraphQL query failed: {process.stderr}")
+        raise RuntimeError(process.stderr)
+
+    return json.loads(process.stdout)
+
+
+def _iter_sponsors(owner: str, query: str, data_path: str) -> Iterator[str]:
+    """Iterate over all sponsors using pagination.
+
+    :param owner: The owner (user or org) to query.
+    :param query: The GraphQL query to use.
+    :param data_path: The path to the data in the response (e.g., "user" or "organization").
+    :yields: Login names of sponsors.
+    """
+    cursor = None
+
+    while True:
+        response = _run_graphql_query(query, owner, cursor)
+        data = response.get("data", {}).get(data_path, {})
+        sponsorships = data.get("sponsorshipsAsMaintainer", {})
+
+        for node in sponsorships.get("nodes", []):
+            entity = node.get("sponsorEntity", {})
+            login = entity.get("login")
+            if login:
+                yield login
+
+        page_info = sponsorships.get("pageInfo", {})
+        if not page_info.get("hasNextPage"):
+            break
+        cursor = page_info.get("endCursor")
+
+
+def get_sponsors(owner: str) -> set[str]:
+    """Get all sponsors for a user or organization.
+
+    Tries the user query first, then falls back to organization query.
+
+    :param owner: The GitHub username or organization name.
+    :return: Set of sponsor login names.
+    """
+    sponsors: set[str] = set()
+
+    # Try user query first.
+    try:
+        for login in _iter_sponsors(owner, USER_SPONSORS_QUERY, "user"):
+            sponsors.add(login)
+        logging.debug(f"Found {len(sponsors)} sponsors for user {owner}")
+        return sponsors
+    except RuntimeError:
+        logging.debug(f"User query failed for {owner}, trying organization query")
+
+    # Fall back to organization query.
+    try:
+        for login in _iter_sponsors(owner, ORG_SPONSORS_QUERY, "organization"):
+            sponsors.add(login)
+        logging.debug(f"Found {len(sponsors)} sponsors for organization {owner}")
+    except RuntimeError:
+        logging.debug(f"Organization query also failed for {owner}")
+
+    return sponsors
+
+
+def is_sponsor(owner: str, user: str) -> bool:
+    """Check if a user is a sponsor of an owner.
+
+    :param owner: The GitHub username or organization to check sponsorship for.
+    :param user: The GitHub username to check if they are a sponsor.
+    :return: True if user is a sponsor of owner, False otherwise.
+    """
+    sponsors = get_sponsors(owner)
+    result = user in sponsors
+    logging.info(
+        f"User {user!r} {'is' if result else 'is not'} a sponsor of {owner!r}"
+    )
+    return result
+
+
+def add_sponsor_label(
+    repo: str,
+    number: int,
+    label: str,
+    is_pr: bool = False,
+) -> bool:
+    """Add a label to an issue or PR.
+
+    :param repo: The repository in "owner/repo" format.
+    :param number: The issue or PR number.
+    :param label: The label to add.
+    :param is_pr: True if this is a PR, False for an issue.
+    :return: True if label was added successfully, False otherwise.
+    """
+    resource = "pr" if is_pr else "issue"
+    cmd = ["gh", resource, "edit", str(number), "--add-label", label, "--repo", repo]
+
+    logging.debug(f"Running: {' '.join(cmd)}")
+    process = run(cmd, capture_output=True, encoding="UTF-8")
+
+    if process.returncode:
+        logging.error(f"Failed to add label: {process.stderr}")
+        return False
+
+    logging.info(f"Added {label!r} label to {resource} #{number} in {repo}")
+    return True

@@ -68,6 +68,7 @@ workflows/
 │   ├── mailmap.py         # .mailmap synchronization
 │   ├── metadata.py        # Project metadata extraction
 │   ├── release_prep.py    # Release preparation
+│   ├── sponsor.py         # GitHub sponsor detection
 │   ├── workflows.py       # Bundled workflow templates access
 │   ├── test_plan.py       # Test plan execution
 │   └── matrix.py          # Build matrix generation
@@ -85,6 +86,7 @@ workflows/
 | `mailmap.py`      | Git `.mailmap` file synchronization with contributors               |
 | `metadata.py`     | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `release_prep.py` | Prepare files for release (dates, URLs, warnings)                   |
+| `sponsor.py`      | Check GitHub sponsorship and label issues/PRs from sponsors         |
 | `labels.py`       | Access bundled label configuration files                            |
 | `workflows.py`    | Access bundled workflow templates                                   |
 | `test_plan.py`    | Run YAML-based test plans against compiled binaries                 |

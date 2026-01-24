@@ -296,7 +296,7 @@ docs = [
 
 - **Tag sponsors** (`sponsor-labeller`)
 
-  - Adds a `💖 sponsors` label to issues and PRs from sponsors using [`is-sponsor-label-action`](https://github.com/JasonEtco/is-sponsor-label-action)
+  - Adds a `💖 sponsors` label to issues and PRs from sponsors using the GitHub GraphQL API
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs

@@ -51,6 +51,15 @@ from .labels import (
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
 from .release_prep import ReleasePrep
+from .sponsor import (
+    add_sponsor_label,
+    get_default_author,
+    get_default_number,
+    get_default_owner,
+    get_default_repo,
+    is_pull_request,
+    is_sponsor,
+)
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 from .version_config import get_bumpversion_content, merge_bumpversion_config
 from .workflows import WORKFLOW_FILES, get_workflow_content, list_workflows
@@ -799,3 +808,113 @@ def test_plan(
 
     if counter["failed"]:
         sys.exit(1)
+
+
+@gha_utils.command(short_help="Label issues/PRs from GitHub sponsors")
+@option(
+    "--owner",
+    help="GitHub username or organization to check sponsorship for. "
+    "Defaults to $GITHUB_REPOSITORY_OWNER.",
+)
+@option(
+    "--author",
+    help="GitHub username of the issue/PR author to check. "
+    "Defaults to author from $GITHUB_EVENT_PATH.",
+)
+@option(
+    "--repo",
+    help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
+)
+@option(
+    "--number",
+    type=int,
+    help="Issue or PR number. Defaults to number from $GITHUB_EVENT_PATH.",
+)
+@option(
+    "--label",
+    default="💖 sponsors",
+    help="Label to add if author is a sponsor.",
+)
+@option(
+    "--pr/--issue",
+    "is_pr",
+    default=None,
+    help="Specify issue or pull request. Auto-detected from $GITHUB_EVENT_PATH.",
+)
+@pass_context
+def sponsor_label(
+    ctx: Context,
+    owner: str | None,
+    author: str | None,
+    repo: str | None,
+    number: int | None,
+    label: str,
+    is_pr: bool | None,
+) -> None:
+    """Add a label to issues or PRs from GitHub sponsors.
+
+    Checks if the author of an issue or PR is a sponsor of the repository owner.
+    If they are, adds the specified label.
+
+    This command requires the ``gh`` CLI to be installed and authenticated.
+
+    When run in GitHub Actions, all parameters are auto-detected from environment
+    variables ($GITHUB_REPOSITORY_OWNER, $GITHUB_REPOSITORY) and the event payload
+    ($GITHUB_EVENT_PATH). You can override any auto-detected value by passing it
+    explicitly.
+
+    \b
+    Examples:
+        # In GitHub Actions (all defaults auto-detected)
+        gha-utils sponsor-label
+
+    \b
+        # Override specific values
+        gha-utils sponsor-label --label "sponsor"
+
+    \b
+        # Manual invocation with all values
+        gha-utils sponsor-label --owner kdeldycke --author some-user \\
+            --repo kdeldycke/workflows --number 123 --issue
+    """
+    # Apply defaults from GitHub Actions environment.
+    if owner is None:
+        owner = get_default_owner()
+    if author is None:
+        author = get_default_author()
+    if repo is None:
+        repo = get_default_repo()
+    if number is None:
+        number = get_default_number()
+    if is_pr is None:
+        is_pr = is_pull_request()
+
+    # Validate required parameters.
+    missing = []
+    if not owner:
+        missing.append("--owner")
+    if not author:
+        missing.append("--author")
+    if not repo:
+        missing.append("--repo")
+    if not number:
+        missing.append("--number")
+
+    if missing:
+        logging.error(
+            f"Missing required parameters: {', '.join(missing)}. "
+            "These could not be auto-detected from the environment."
+        )
+        ctx.exit(1)
+
+    # Type narrowing for mypy.
+    assert owner and author and repo and number
+
+    if is_sponsor(owner, author):
+        if add_sponsor_label(repo, number, label, is_pr=is_pr):
+            echo(f"Added {label!r} label to {'PR' if is_pr else 'issue'} #{number}")
+        else:
+            logging.error("Failed to add sponsor label")
+            ctx.exit(1)
+    else:
+        echo(f"Author {author!r} is not a sponsor of {owner!r}")

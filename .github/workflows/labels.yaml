@@ -160,8 +160,9 @@ jobs:
       && (! fromJson(needs.project-metadata.outputs.is_bot))
     runs-on: ubuntu-slim
     steps:
-      - uses: JasonEtco/is-sponsor-label-action@v2.0.0
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Add sponsor label
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          label: 💖 sponsors
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uvx 'gha-utils==5.4.0' sponsor-label

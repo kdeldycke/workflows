@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `gha-utils sponsor-label` command to label issues/PRs from GitHub sponsors.
+- Replace unmaintained `JasonEtco/is-sponsor-label-action` with `gha-utils sponsor-label`.
 - Fix `labels`, `workflows` and `bumpversion` commands fetching of `gha_utils/data/` content.
 
 ## [5.3.0 (2026-01-24)](https://github.com/kdeldycke/workflows/compare/v5.2.0...v5.3.0)

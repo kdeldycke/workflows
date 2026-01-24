@@ -238,6 +238,7 @@ expected = {
         "gha_utils/matrix.py",
         "gha_utils/metadata.py",
         "gha_utils/release_prep.py",
+        "gha_utils/sponsor.py",
         "gha_utils/test_plan.py",
         "gha_utils/version_config.py",
         "gha_utils/workflows.py",
