@@ -140,7 +140,7 @@ jobs:
     # Skip binary compilation for branches that don't affect code (e.g., update-mailmap, format-markdown).
     if: >
       needs.project-metadata.outputs.nuitka_matrix
-      && !fromJSON(needs.project-metadata.outputs.skip_binary_build)
+      && !fromJSON(needs.project-metadata.outputs.skip_binary_build || 'false')
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
@@ -271,7 +271,7 @@ jobs:
     # Skip binary tests for branches that don't affect code (e.g., update-mailmap, format-markdown).
     if: >
       needs.project-metadata.outputs.nuitka_matrix
-      && !fromJSON(needs.project-metadata.outputs.skip_binary_build)
+      && !fromJSON(needs.project-metadata.outputs.skip_binary_build || 'false')
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
     runs-on: ${{ matrix.os }}
