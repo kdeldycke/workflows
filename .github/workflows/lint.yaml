@@ -40,7 +40,7 @@ jobs:
         run: |
           uvx 'gha-utils==5.0.1' metadata --overwrite "$GITHUB_OUTPUT"
 
-  repo-lint:
+  lint-repo:
     needs:
       - project-metadata
     # Only check Python projects that have a package name, Sphinx docs, or description.
@@ -83,7 +83,7 @@ jobs:
             exit 1
           fi
 
-  mypy-lint:
+  lint-mypy:
     needs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
@@ -296,7 +296,6 @@ jobs:
           labels: ${{ steps.get_label.outputs.label }}
 
   lint-awesome:
-    name: Lint Awesome list
     # Lint only "awesome-*" repositories except "awesome-template".
     # Skip linting on prepare-release branch to align the condition with other jobs, even if it does not really matter
     # here as "awesome-*" repositories don't trigger the release workflow.
