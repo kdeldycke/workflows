@@ -119,7 +119,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run yamllint
         run: |
-          uvx 'yamllint==1.37.1' --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
+          uvx 'yamllint==1.38.0' --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
     needs:
