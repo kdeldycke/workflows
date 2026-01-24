@@ -194,6 +194,7 @@ This repository contains workflows to automate most of the boring tasks in the f
 - **Version increments** (`version-increments`)
 
   - Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
+  - Syncs `uv.lock` to include the new version in the same commit
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file
@@ -206,6 +207,7 @@ This repository contains workflows to automate most of the boring tasks in the f
 - **Prepare release** (`prepare-release`)
 
   - Creates a release PR with changelog updates and version tagging using [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`gha-utils changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
+  - Syncs `uv.lock` after post-release version bump
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file

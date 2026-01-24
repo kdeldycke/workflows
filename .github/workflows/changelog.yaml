@@ -57,6 +57,10 @@ jobs:
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
           bump-my-version bump --verbose ${{ matrix.part }}
+      - name: Sync uv.lock
+        if: steps.check_bump.outputs.allowed == 'true'
+        run: |
+          uv --no-progress sync
       - name: Extract version
         if: steps.check_bump.outputs.allowed == 'true'
         id: get_version
@@ -147,6 +151,9 @@ jobs:
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
           bump-my-version bump --verbose patch
+      - name: Sync uv.lock
+        run: |
+          uv --no-progress sync
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
