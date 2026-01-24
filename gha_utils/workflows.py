@@ -36,14 +36,8 @@ Available workflows:
 
 from __future__ import annotations
 
-import sys
+from importlib.resources import as_file, files
 from pathlib import Path
-
-if sys.version_info >= (3, 9):
-    from importlib.resources import as_file, files
-else:
-    from importlib_resources import as_file, files  # type: ignore[import-not-found]
-
 
 # All available workflow templates.
 WORKFLOW_FILES = (

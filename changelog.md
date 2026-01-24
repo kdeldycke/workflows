@@ -6,6 +6,8 @@
 > This version is not released yet and is under active development.
 
 - Rely on `gha-utils labels` to dump label configuration files for inspection and bootstrapping.
+- Enhance `gha-utils bumpversion` command to sync the template directly into `pyproject.toml`.
+- Sync bumpversion config in the `autofix` workflow.
 
 ## [5.2.0 (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.1.0...v5.2.0)
 

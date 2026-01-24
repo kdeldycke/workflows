@@ -386,3 +386,30 @@ jobs:
             </details>
           labels: "🤖 ci"
           branch: update-gitignore
+
+  sync-bumpversion:
+    name: Sync bumpversion config
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Update pyproject.toml
+        run: |
+          uvx 'gha-utils==5.3.0' bumpversion pyproject.toml
+      - uses: peter-evans/create-pull-request@v8.0.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Sync bumpversion config"
+          title: "[autofix] Sync bumpversion config"
+          body: >
+            <details><summary><code>Workflow metadata</code></summary>
+
+
+            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
+            github.run_id }}) by `${{ github.job }}` job from [`autofix.yaml`](${{ github.event.repository.html_url
+            }}/blob/${{ github.sha }}/.github/workflows/autofix.yaml) workflow.
+
+
+            </details>
+          labels: "🤖 ci"
+          branch: sync-bumpversion

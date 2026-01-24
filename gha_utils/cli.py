@@ -43,13 +43,17 @@ from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
 from .changelog import Changelog
-from .bumpversion import get_bumpversion_content
-from .labels import get_content_labeller_rules, get_file_labeller_rules, get_labels_content
-from .workflows import WORKFLOW_FILES, get_workflow_content, list_workflows
+from .labels import (
+    get_content_labeller_rules,
+    get_file_labeller_rules,
+    get_labels_content,
+)
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
 from .release_prep import ReleasePrep
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
+from .version_config import get_bumpversion_content, merge_bumpversion_config
+from .workflows import WORKFLOW_FILES, get_workflow_content, list_workflows
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -421,7 +425,9 @@ def labels(labels, file_labeller, content_labeller, output_path):
     selected = sum([labels, file_labeller, content_labeller])
 
     if selected == 0:
-        logging.error("Must specify at least one of: --labels, --file-labeller, --content-labeller")
+        logging.error(
+            "Must specify at least one of: --labels, --file-labeller, --content-labeller"
+        )
         raise SystemExit(1)
 
     if selected > 1:
@@ -509,42 +515,69 @@ def workflows(list_only, workflow, output_path):
     echo(content.rstrip(), file=prep_path(output_path))
 
 
-@gha_utils.command(short_help="Dump bundled bumpversion configuration")
+@gha_utils.command(short_help="Sync bumpversion configuration to pyproject.toml")
+@option(
+    "--source",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    default="pyproject.toml",
+    help="Path to the pyproject.toml file to update.",
+)
+@option(
+    "--template-only",
+    is_flag=True,
+    default=False,
+    help="Only output the raw template without merging into pyproject.toml.",
+)
 @argument(
     "output_path",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default="-",
 )
-def bumpversion(output_path):
-    """Dump bundled bump-my-version configuration for pyproject.toml.
+@pass_context
+def bumpversion(ctx, source, template_only, output_path):
+    """Sync bump-my-version configuration to pyproject.toml.
 
-    This command outputs a default ``[tool.bumpversion]`` configuration that can
-    be appended to your ``pyproject.toml``. The configuration covers common
-    version update patterns for Python projects.
+    This command reads your ``pyproject.toml``, checks if a ``[tool.bumpversion]``
+    section already exists, and if not, inserts the bundled template at the
+    appropriate location (after ``[tool.pytest]``, before ``[tool.typos]``).
 
-    By default, outputs to stdout. Specify an output path to write to a file.
+    By default, outputs the merged result to stdout. To update the file in-place,
+    specify the same path as both source and output.
 
     \b
     Examples:
-        # Dump configuration to stdout
+        # Preview merged configuration (dry-run)
         gha-utils bumpversion
 
     \b
-        # Dump configuration to a file
-        gha-utils bumpversion ./bumpversion.toml
+        # Update pyproject.toml in-place
+        gha-utils bumpversion pyproject.toml
 
     \b
-        # Append to pyproject.toml (manually or via shell)
-        gha-utils bumpversion >> pyproject.toml
+        # Use a different source file
+        gha-utils bumpversion --source ./other/pyproject.toml
+
+    \b
+        # Output raw template only (for manual merging)
+        gha-utils bumpversion --template-only
     """
-    content = get_bumpversion_content()
+    if template_only:
+        content = get_bumpversion_content()
+        echo(content.rstrip(), file=prep_path(output_path))
+        return
+
+    merged = merge_bumpversion_config(source)
+
+    if merged is None:
+        logging.warning("No changes needed. Bumpversion config already exists.")
+        ctx.exit()
 
     if is_stdout(output_path):
-        logging.info(f"Print to {sys.stdout.name}")
+        logging.info(f"Print merged result to {sys.stdout.name}")
     else:
-        logging.info(f"Write to {output_path}")
+        logging.info(f"Write merged result to {output_path}")
 
-    echo(content.rstrip(), file=prep_path(output_path))
+    echo(merged.rstrip(), file=prep_path(output_path))
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")

@@ -113,7 +113,6 @@ expected = {
     "python_files": [
         "gha_utils/__init__.py",
         "gha_utils/__main__.py",
-        "gha_utils/bumpversion.py",
         "gha_utils/changelog.py",
         "gha_utils/cli.py",
         "gha_utils/labels.py",
@@ -122,6 +121,7 @@ expected = {
         "gha_utils/metadata.py",
         "gha_utils/release_prep.py",
         "gha_utils/test_plan.py",
+        "gha_utils/version_config.py",
         "gha_utils/workflows.py",
         "tests/__init__.py",
         "tests/test_bumpversion.py",

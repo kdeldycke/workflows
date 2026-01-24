@@ -21,12 +21,12 @@ import sys
 
 import pytest
 
-from gha_utils.bumpversion import get_bumpversion_content
+from gha_utils.version_config import get_bumpversion_content
 
 if sys.version_info >= (3, 11):
     import tomllib
 else:
-    import tomli as tomllib
+    import tomli as tomllib  # type: ignore[import-not-found]
 
 
 def test_get_bumpversion_content_returns_string() -> None:
