@@ -235,3 +235,13 @@ The CLI uses Click Extra for:
 - Automatic config file loading
 - Colored output and table formatting
 - Consistent parameter handling across commands
+
+### Command-line options
+
+Always prefer long-form options over short-form for readability when invoking commands:
+
+- Use `--output` instead of `-o`.
+- Use `--verbose` instead of `-v`.
+- Use `--recursive` instead of `-r`.
+
+The `gha-utils` CLI defines both short and long-form options for convenience, but workflow files and scripts should use long-form options for clarity.
