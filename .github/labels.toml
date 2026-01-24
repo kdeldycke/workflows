@@ -79,7 +79,7 @@ description = "Exploit, token leaks, …"
 
 [[profiles.default.labels]]
 name = "💖 sponsor"
-color = "5319e7"
+color = "f9d0c4"
 description = "A sponsor is involved"
 
 [[profiles.default.labels]]
