@@ -35,10 +35,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run gha-utils metadata
         id: project-metadata
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: |
-          uvx 'gha-utils==5.0.1' metadata --overwrite "$GITHUB_OUTPUT"
+          uvx 'gha-utils==5.3.0' metadata --overwrite "$GITHUB_OUTPUT"
 
   lint-repo:
     needs:
