@@ -357,6 +357,10 @@ expected = {
             {"state": "stable"},
         ],
     },
+    # Bump allowed values depend on comparing current version vs latest git tag.
+    # In normal development (after release, before bump), both should be True.
+    "minor_bump_allowed": True,
+    "major_bump_allowed": True,
 }
 
 
@@ -495,6 +499,18 @@ def test_is_version_bump_allowed_current_repo():
     # Expected: major bump blocked if major already ahead.
     expected_major_blocked = current.major > latest_tag.major
     assert major_allowed == (not expected_major_blocked)
+
+
+def test_minor_bump_allowed_property() -> None:
+    """Test that minor_bump_allowed property returns a boolean."""
+    metadata = Metadata()
+    assert isinstance(metadata.minor_bump_allowed, bool)
+
+
+def test_major_bump_allowed_property() -> None:
+    """Test that major_bump_allowed property returns a boolean."""
+    metadata = Metadata()
+    assert isinstance(metadata.major_bump_allowed, bool)
 
 
 def test_null_sha_constant():

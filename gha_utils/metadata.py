@@ -1459,6 +1459,22 @@ class Metadata:
         return self.sphinx_conf_path.exists() and self.sphinx_conf_path.is_file()
 
     @cached_property
+    def minor_bump_allowed(self) -> bool:
+        """Check if a minor version bump is allowed.
+
+        This prevents double version increments within a development cycle.
+        """
+        return is_version_bump_allowed("minor")
+
+    @cached_property
+    def major_bump_allowed(self) -> bool:
+        """Check if a major version bump is allowed.
+
+        This prevents double version increments within a development cycle.
+        """
+        return is_version_bump_allowed("major")
+
+    @cached_property
     def active_autodoc(self) -> bool:
         """Returns ``True`` if there are active Sphinx extensions."""
         if self.is_sphinx:
@@ -1844,6 +1860,8 @@ class Metadata:
             "release_commits_matrix": self.release_commits_matrix,
             "build_targets": FLAT_BUILD_TARGETS,
             "nuitka_matrix": self.nuitka_matrix,
+            "minor_bump_allowed": self.minor_bump_allowed,
+            "major_bump_allowed": self.major_bump_allowed,
         }
 
         logging.debug(f"Raw metadata: {metadata!r}")

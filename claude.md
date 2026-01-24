@@ -163,6 +163,21 @@ The `project-metadata` job runs first in most workflows to:
 - Share complex data across jobs (like build matrices)
 - Fix GitHub Actions quirks and limitations
 
+### Metadata-driven workflow conditions
+
+GitHub Actions lacks conditional step groups—you cannot conditionally skip multiple
+steps with a single condition. Rather than duplicating `if:` conditions on every step,
+augment the `gha-utils metadata` subcommand to compute the condition once and reference
+it from workflow steps.
+
+**Why:** Python code in `gha_utils` is simpler to maintain, test, and debug than
+complex GitHub Actions workflow logic. Moving conditional checks into metadata
+extraction centralizes logic in one place.
+
+Example: Instead of a separate "check" step followed by multiple steps with
+`if: steps.check.outputs.allowed == 'true'`, add the check to metadata output
+and reference `steps.metadata.outputs.some_check == 'true'`.
+
 ### CLI design
 
 The CLI uses Click Extra for:
