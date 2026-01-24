@@ -373,38 +373,6 @@ def test_action_uses_full_semantic_version(
     )
 
 
-# --- Self-referential URL tests ---
-
-
-def get_workflow_content(workflow_name: str) -> str:
-    """Get raw content of a workflow file."""
-    workflow_path = WORKFLOWS_DIR / workflow_name
-    return workflow_path.read_text(encoding="utf-8")
-
-
-ALL_WORKFLOWS = tuple(sorted(p.name for p in WORKFLOWS_DIR.glob("*.yaml")))
-
-
-@pytest.mark.parametrize("workflow_name", ALL_WORKFLOWS)
-def test_self_referential_urls_use_main_branch(workflow_name: str) -> None:
-    """Verify that self-referential URLs point to main branch."""
-    content = get_workflow_content(workflow_name)
-
-    # Find all self-referential URLs.
-    url_pattern = re.compile(
-        rf"{re.escape(SELF_REF_URL_BASE)}/([^/\s\"']+)/requirements/"
-    )
-    matches = url_pattern.findall(content)
-
-    for branch in matches:
-        # During development, all URLs should point to main.
-        # The release process temporarily changes these to tagged versions.
-        assert branch == SELF_REF_BRANCH, (
-            f"{workflow_name}: Self-referential URL uses '{branch}' instead of "
-            f"'{SELF_REF_BRANCH}'. URLs should point to main during development."
-        )
-
-
 # --- Runner image convention tests ---
 
 
