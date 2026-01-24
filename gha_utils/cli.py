@@ -149,33 +149,34 @@ def gha_utils():
     default=False,
     help="Allow output target file to be silently wiped out if it already exists.",
 )
-@argument(
-    "output_path",
+@option(
+    "-o",
+    "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default="-",
+    help="Output file path. Defaults to stdout.",
 )
 @pass_context
-def metadata(ctx, unstable_targets, format, overwrite, output_path):
+def metadata(ctx, unstable_targets, format, overwrite, output):
     """Dump project metadata to a file.
 
     By default the metadata produced are displayed directly to the console output.
-    So `gha-utils metadata` is the same as a call to `gha-utils metadata -`. To have
-    the results written in a file on disk, specify the output file like so:
-    `gha-utils metadata dump.txt`.
+    To have the results written in a file on disk, specify the output file like so:
+    `gha-utils metadata --output dump.txt`.
 
     For GitHub you want to output to the standard environment file pointed to by the
     `$GITHUB_OUTPUT` variable. I.e.:
 
-        $ gha-utils metadata --format github "$GITHUB_OUTPUT"
+        $ gha-utils metadata --output "$GITHUB_OUTPUT"
     """
-    if is_stdout(output_path):
+    if is_stdout(output):
         if overwrite:
             logging.warning("Ignore the --overwrite/--force/--replace option.")
         logging.info(f"Print metadata to {sys.stdout.name}")
     else:
-        logging.info(f"Dump all metadata to {output_path}")
+        logging.info(f"Dump all metadata to {output}")
 
-        if output_path.exists():
+        if output.exists():
             msg = "Target file exist and will be overwritten."
             if overwrite:
                 logging.warning(msg)
@@ -204,7 +205,7 @@ def metadata(ctx, unstable_targets, format, overwrite, output_path):
     # Output a warning in GitHub runners if metadata are not saved to $GITHUB_OUTPUT.
     if is_github_ci():
         env_file = os.getenv("GITHUB_OUTPUT")
-        if env_file and Path(env_file) != output_path:
+        if env_file and Path(env_file) != output:
             logging.warning(
                 "Output path is not the same as $GITHUB_OUTPUT environment variable,"
                 " which is generally what we're looking to do in GitHub CI runners for"
@@ -213,7 +214,7 @@ def metadata(ctx, unstable_targets, format, overwrite, output_path):
 
     dialect = Dialect(format)
     content = metadata.dump(dialect=dialect)
-    echo(content, file=prep_path(output_path))
+    echo(content, file=prep_path(output))
 
 
 @gha_utils.command(short_help="Maintain a Markdown-formatted changelog")
