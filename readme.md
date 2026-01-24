@@ -594,6 +594,7 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
    | **Commit statuses**   | Read and Write          |
    | **Contents**          | Read and Write          |
    | **Dependabot alerts** | Read-only               |
+   | **Issues**            | Read and Write          |
    | **Metadata**          | Read-only *(mandatory)* |
    | **Pull requests**     | Read and Write          |
    | **Workflows**         | Read and Write          |
@@ -604,6 +605,8 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
    > The **Commit statuses** permission is required by Renovate to set status checks (e.g., `renovate/stability-days`) on commits.
    >
    > The **Dependabot alerts** permission allows Renovate to read vulnerability alerts and create security update PRs, replacing Dependabot security updates.
+   >
+   > The **Issues** permission is required by Renovate to create and update the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) issue.
 
 1. Click **Generate token** and copy the `github_pat_XXXX` value
 

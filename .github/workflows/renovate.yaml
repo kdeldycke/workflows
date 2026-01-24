@@ -106,8 +106,8 @@ jobs:
           fi
       - uses: renovatebot/github-action@v44.2.4
         with:
-          # We need custom PAT with workflows permission to update GitHub Actions versions in
-          # .github/workflows/*.yaml files.
+          # Custom PAT required for Renovate to function fully.
+          # See readme.md for full list of required permissions.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         env:
           # Self-hosted configuration.
