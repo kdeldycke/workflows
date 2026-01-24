@@ -104,7 +104,7 @@ jobs:
           else
             echo "Date is still fresh, no update needed"
           fi
-      - uses: renovatebot/github-action@v44.2.4
+      - uses: renovatebot/github-action@v44.2.5
         with:
           # Custom PAT required for Renovate to function fully.
           # See readme.md for full list of required permissions.
