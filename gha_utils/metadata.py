@@ -483,6 +483,33 @@ def get_latest_tag_version() -> Version | None:
     return latest
 
 
+def get_release_version_from_commits(max_count: int = 10) -> Version | None:
+    """Extract release version from recent commit messages.
+
+    Searches recent commits for messages matching the pattern
+    ``[changelog] Release vX.Y.Z`` and returns the version from the most recent match.
+
+    This provides a fallback when tags haven't been pushed yet due to race conditions
+    between workflows. The release commit message contains the version information
+    before the tag is created.
+
+    :param max_count: Maximum number of commits to search.
+    :return: The version from the most recent release commit, or ``None`` if not found.
+    """
+    git = Git(".")
+    release_pattern = re.compile(r"^\[changelog\] Release v(\d+\.\d+\.\d+)")
+
+    for commit in git.repo.iter_commits("HEAD", max_count=max_count):
+        match = release_pattern.match(commit.message)
+        if match:
+            version = Version(match.group(1))
+            logging.debug(f"Found release version {version} in commit {commit.hexsha}")
+            return version
+
+    logging.debug("No release commit found in recent history.")
+    return None
+
+
 def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
     """Check if a version bump of the specified part is allowed.
 
@@ -494,6 +521,10 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
     - Last release: v5.0.1, current version: 5.0.2 → minor bump allowed
     - Last release: v5.0.1, current version: 5.1.0 → minor bump NOT allowed (already bumped)
     - Last release: v5.0.1, current version: 6.0.0 → major bump NOT allowed (already bumped)
+
+    .. note::
+        When tags are not available (e.g., due to race conditions between workflows),
+        this function falls back to parsing version from recent commit messages.
 
     :param part: The version part to check (``minor`` or ``major``).
     :return: ``True`` if the bump should proceed, ``False`` if it should be skipped.
@@ -507,33 +538,41 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
         logging.warning("Cannot determine current version. Allowing bump.")
         return True
 
-    latest_tag = get_latest_tag_version()
-    if not latest_tag:
-        logging.warning("No release tags found. Allowing bump.")
+    # Try to get the latest release version from tags first.
+    latest_release = get_latest_tag_version()
+
+    # Fallback to commit message parsing if tag not found.
+    # This handles race conditions where the release workflow hasn't pushed the tag yet.
+    if not latest_release:
+        logging.info("No tags found, falling back to commit message parsing.")
+        latest_release = get_release_version_from_commits()
+
+    if not latest_release:
+        logging.warning("No release version found from tags or commits. Allowing bump.")
         return True
 
     current = Version(current_version_str)
-    logging.info(f"Current version: {current}, Latest tag: {latest_tag}")
+    logging.info(f"Current version: {current}, Latest release: {latest_release}")
 
     if part == "major":
-        # Block if major version is already ahead of the latest tag.
-        if current.major > latest_tag.major:
+        # Block if major version is already ahead of the latest release.
+        if current.major > latest_release.major:
             logging.info(
-                f"Major version already bumped ({current.major} > {latest_tag.major}). "
+                f"Major version already bumped ({current.major} > {latest_release.major}). "
                 "Skipping bump."
             )
             return False
     elif part == "minor":
         # Block if major is ahead, or if minor is ahead within the same major.
-        if current.major > latest_tag.major:
+        if current.major > latest_release.major:
             logging.info(
-                f"Major version already bumped ({current.major} > {latest_tag.major}). "
+                f"Major version already bumped ({current.major} > {latest_release.major}). "
                 "Skipping minor bump."
             )
             return False
-        if current.major == latest_tag.major and current.minor > latest_tag.minor:
+        if current.major == latest_release.major and current.minor > latest_release.minor:
             logging.info(
-                f"Minor version already bumped ({current.minor} > {latest_tag.minor}). "
+                f"Minor version already bumped ({current.minor} > {latest_release.minor}). "
                 "Skipping bump."
             )
             return False

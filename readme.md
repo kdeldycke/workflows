@@ -195,14 +195,14 @@ This repository contains workflows to automate most of the boring tasks in the f
 
   - Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
   - Syncs `uv.lock` to include the new version in the same commit
+  - Uses commit message parsing as fallback when tags aren't available yet
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file
   - **Runs on**:
     - Schedule (daily at 6:00 UTC)
-    - Post-release version bump commits (starting with `[changelog] Post-release version bump`)
-  - **Skipped for**:
-    - Release commits (starting with `[changelog] Release v`)
+    - Manual dispatch
+    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger)
 
 - **Prepare release** (`prepare-release`)
 

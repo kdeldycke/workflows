@@ -8,6 +8,9 @@
 - Add `gha-utils sponsor-label` command to label issues/PRs from GitHub sponsors.
 - Replace unmaintained `JasonEtco/is-sponsor-label-action` with `gha-utils sponsor-label`.
 - Fix `labels`, `workflows` and `bumpversion` commands fetching of `gha_utils/data/` content.
+- Fix race condition where `version-increments` job would skip due to missing tags.
+- Fallback to getting version from commits when tags aren't available yet.
+- Replace push-based post-release trigger with `workflow_run` trigger for version increments.
 
 ## [5.3.0 (2026-01-24)](https://github.com/kdeldycke/workflows/compare/v5.2.0...v5.3.0)
 

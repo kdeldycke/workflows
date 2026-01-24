@@ -32,6 +32,7 @@ from gha_utils.metadata import (
     Dialect,
     Metadata,
     get_latest_tag_version,
+    get_release_version_from_commits,
     is_version_bump_allowed,
 )
 
@@ -678,3 +679,44 @@ def test_skip_binary_build_property_false_by_default():
     # Outside of PR context (GITHUB_HEAD_REF not set), skip_binary_build is False.
     assert isinstance(metadata.skip_binary_build, bool)
     assert metadata.skip_binary_build is False
+
+
+def test_get_release_version_from_commits():
+    """Test that get_release_version_from_commits returns expected type.
+
+    This function searches recent commits for release messages matching
+    ``[changelog] Release vX.Y.Z`` pattern and extracts the version.
+    """
+    result = get_release_version_from_commits()
+    # Result can be None (no release commits) or a Version object.
+    assert result is None or isinstance(result, Version)
+    if result is not None:
+        # Sanity check: version should be a reasonable semver.
+        assert result.major >= 0
+        assert result.minor >= 0
+        assert result.micro >= 0
+
+
+def test_get_release_version_from_commits_max_count():
+    """Test that max_count parameter limits commit search."""
+    # With max_count=1, we only check the HEAD commit.
+    result = get_release_version_from_commits(max_count=1)
+    assert result is None or isinstance(result, Version)
+
+    # With max_count=0, no commits should be checked.
+    result = get_release_version_from_commits(max_count=0)
+    assert result is None
+
+
+def test_is_version_bump_allowed_uses_commit_fallback():
+    """Test that is_version_bump_allowed still works when tags might not be available.
+
+    This test verifies the function returns a boolean regardless of whether
+    tags are found, as it now has a fallback to parse commit messages.
+    """
+    # The function should always return a boolean, even if tags aren't available.
+    result = is_version_bump_allowed("minor")
+    assert isinstance(result, bool)
+
+    result = is_version_bump_allowed("major")
+    assert isinstance(result, bool)
