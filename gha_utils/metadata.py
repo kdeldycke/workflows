@@ -654,37 +654,24 @@ class Metadata:
     sphinx_conf_path = Path() / "docs" / "conf.py"
 
     @cached_property
-    def github_context(self) -> dict[str, Any]:
-        """Load GitHub context from the environment.
+    def github_event(self) -> dict[str, Any]:
+        """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
 
-        Expect ``GITHUB_CONTEXT`` to be set as part of the environment. I.e., adds the
-        following as part of your job step calling this script:
-
-        .. code-block:: yaml
-
-            - name: Project metadata
-              id: project-metadata
-              env:
-                GITHUB_CONTEXT: ${{ toJSON(github) }}
-              run: |
-                gha-utils --verbosity DEBUG metadata --overwrite "$GITHUB_OUTPUT"
-
-        .. todo::
-            Try to remove reliance on GitHub context entirely so we can eliminate the
-            JSON/env hack above.
+        GitHub Actions automatically sets ``GITHUB_EVENT_PATH`` to a JSON file containing
+        the complete webhook event payload.
         """
-        if "GITHUB_CONTEXT" not in os.environ:
+        event_path = os.environ.get("GITHUB_EVENT_PATH")
+        if not event_path:
             if is_github_ci():
-                message = (
-                    "Missing GitHub context in environment. "
-                    "Did you forget to set GITHUB_CONTEXT?"
-                )
-                logging.warning(message)
+                logging.warning("GITHUB_EVENT_PATH not set in environment.")
             return {}
-        context = json.loads(os.environ["GITHUB_CONTEXT"])
-        logging.debug("--- GitHub context ---")
-        logging.debug(json.dumps(context, indent=4))
-        return context  # type:ignore[no-any-return]
+        event_file = Path(event_path)
+        if not event_file.exists():
+            raise FileNotFoundError(f"Event file not found: {event_path}")
+        event = json.loads(event_file.read_text())
+        logging.debug("--- GitHub event payload ---")
+        logging.debug(json.dumps(event, indent=4))
+        return event  # type:ignore[no-any-return]
 
     @cached_property
     def git(self) -> Git:
@@ -908,12 +895,12 @@ class Metadata:
     @cached_property
     def event_actor(self) -> str | None:
         """Returns the GitHub login of the user that triggered the workflow run."""
-        return self.github_context.get("actor")
+        return os.environ.get("GITHUB_ACTOR")
 
     @cached_property
     def event_sender_type(self) -> str | None:
         """Returns the type of the user that triggered the workflow run."""
-        sender_type = self.github_context.get("event", {}).get("sender", {}).get("type")
+        sender_type = self.github_event.get("sender", {}).get("type")
         if not sender_type:
             return None
         assert isinstance(sender_type, str)
@@ -1005,35 +992,26 @@ class Metadata:
             Pull request events on GitHub are a bit complex, see: `The Many SHAs of a
             GitHub Pull Request
             <https://www.kenmuse.com/blog/the-many-shas-of-a-github-pull-request/>`_.
-
-        .. todo::
-            Refactor so we can get rid of ``self.github_context``. Maybe there's enough
-            metadata lying around in the environment variables that we can inspect the
-            git history and find the commit range.
         """
-        if not self.github_context or not self.event_type:
+        if not self.github_event or not self.event_type:
             return None
         # Pull request event.
         if self.event_type in (
             WorkflowEvent.pull_request,
             WorkflowEvent.pull_request_target,
         ):
-            base_ref = os.environ["GITHUB_BASE_REF"]
-            assert base_ref
-            assert (
-                self.github_context["event"]["pull_request"]["base"]["ref"] == base_ref
-            )
-            base_ref_sha = self.github_context["event"]["pull_request"]["base"]["sha"]
-            start = base_ref_sha
+            pr_data = self.github_event.get("pull_request", {})
+            start = pr_data.get("base", {}).get("sha")
             # We need to checkout the HEAD commit instead of the artificial merge
             # commit introduced by the pull request.
-            end = self.github_context["event"]["pull_request"]["head"]["sha"]
+            end = pr_data.get("head", {}).get("sha")
         # Push event.
         else:
-            start = self.github_context["event"].get("before")
-            end = os.environ["GITHUB_SHA"]
-            assert end
+            start = self.github_event.get("before")
+            end = os.environ.get("GITHUB_SHA")
         logging.debug(f"Commit range: {start} -> {end}")
+        if not start or not end:
+            logging.warning(f"Incomplete commit range: {start} -> {end}")
         return start, end
 
     @cached_property
