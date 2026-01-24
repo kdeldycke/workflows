@@ -69,8 +69,6 @@ jobs:
           uv tool install 'bump-my-version==1.2.6'
       - name: ${{ matrix.part }} version bump
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
-        # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
           bump-my-version bump --verbose ${{ matrix.part }}
       - name: Sync uv.lock
