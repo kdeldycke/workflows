@@ -49,32 +49,41 @@ jobs:
   version-increments:
     needs:
       - project-metadata
-    if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
     runs-on: ubuntu-slim
     strategy:
       matrix:
         part:
           - minor
           - major
+    # The condition must be repeated on each step because:
+    # 1. Job-level `if:` is evaluated before matrix expansion, so `matrix.*` isn't available there
+    # 2. GitHub Actions lacks conditional step groups to skip multiple steps with one condition
     steps:
       - uses: actions/checkout@v6.0.2
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
       - uses: astral-sh/setup-uv@v7.2.0
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
       - name: Install bump-my-version
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         run: |
           uv tool install 'bump-my-version==1.2.6'
       - name: ${{ matrix.part }} version bump
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
           bump-my-version bump --verbose ${{ matrix.part }}
       - name: Sync uv.lock
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         run: |
           uv --no-progress sync
       - name: Extract version
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         id: get_version
         run: |
           echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.0.0
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         with:
           assignees: ${{ github.actor }}
           commit-message: >
