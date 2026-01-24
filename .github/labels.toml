@@ -1,7 +1,7 @@
-# Hint: whenever you use a "rename-from" parameter in labelmaker, add a "on-rename-clash = 'error'" setting alongside
-# it, so we get an explicit signal that manual intervention is needed to clean-up labels. That beause labelmaker:
-# - does not support merging: https://github.com/jwodder/labelmaker/issues/8
-# - does not accept a global on-rename-clash parameter: https://github.com/jwodder/labelmaker/issues/126#issuecomment-3783237878
+[defaults]
+# Get an explicit signal that manual intervention is needed to clean-up labels. See:
+# https://github.com/jwodder/labelmaker/issues/126#issuecomment-3791695032
+on-rename-clash = "error"
 
 # Default labels for all repositories.
 [profiles.default]
@@ -30,6 +30,7 @@ description = "Continuous integration, tests, automation and management of the p
 name = "📦 dependencies"
 color = "AAA666"
 description = "Dependencies changes"
+rename-from = ["dependencies", "python:uv", "github-actions"]
 
 [[profiles.default.labels]]
 name = "⚠️ stale dependency"
