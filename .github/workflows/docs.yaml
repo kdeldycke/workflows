@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: crate-ci/typos@v1.42.0
+      - uses: crate-ci/typos@v1.42.1
         with:
           write_changes: true
       - name: Remove local typos binary
