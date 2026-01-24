@@ -49,6 +49,8 @@ jobs:
   version-increments:
     needs:
       - project-metadata
+    # Skip release commits to avoid double processing during prepare-release flow.
+    if: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
     runs-on: ubuntu-slim
     strategy:
       matrix:

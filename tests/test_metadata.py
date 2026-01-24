@@ -67,6 +67,42 @@ def regex(pattern: str) -> re.Pattern:
     return re.compile(pattern, re.DOTALL)
 
 
+class OptionalList:
+    """Matcher for values that can be None or a list matching a pattern.
+
+    Used for fields like ``new_commits`` that are ``None`` outside GitHub Actions
+    but contain commit SHAs when running in CI with event data.
+    """
+
+    def __init__(self, item_pattern: re.Pattern) -> None:
+        self.item_pattern = item_pattern
+
+
+class OptionalString:
+    """Matcher for GitHub format values that can be empty or space-separated items.
+
+    GitHub Actions format converts None to empty string and lists to space-separated
+    quoted strings. This class matches either case.
+    """
+
+    def __init__(self, item_pattern: re.Pattern) -> None:
+        self.item_pattern = item_pattern
+
+
+class AnyBool:
+    """Matcher that accepts either True or False.
+
+    Used for fields that depend on repository state and can vary between test runs.
+    """
+
+
+class AnyBoolString:
+    """Matcher that accepts either 'true' or 'false' string.
+
+    Used for GitHub format booleans that depend on repository state.
+    """
+
+
 def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
     """Recursively iterate over expected content and check it matches in metadata."""
 
@@ -74,6 +110,44 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert isinstance(metadata, str)
         assert re.fullmatch(expected, metadata) is not None, (
             f"{metadata!r} does not match {expected.pattern!r} in {context!r}"
+        )
+
+    elif isinstance(expected, OptionalList):
+        # Allow None or a list of items matching the pattern.
+        if metadata is None:
+            return
+        assert isinstance(metadata, list), (
+            f"{metadata!r} should be None or a list in {context!r}"
+        )
+        for item in metadata:
+            assert isinstance(item, str), f"{item!r} should be a string in {context!r}"
+            assert re.fullmatch(expected.item_pattern, item) is not None, (
+                f"{item!r} does not match {expected.item_pattern.pattern!r} in {context!r}"
+            )
+
+    elif isinstance(expected, OptionalString):
+        # Allow empty string or space-separated quoted items matching the pattern.
+        assert isinstance(metadata, str), (
+            f"{metadata!r} should be a string in {context!r}"
+        )
+        if metadata == "":
+            return
+        # Parse space-separated items: "sha1" "sha2" -> ["sha1", "sha2"].
+        for item in metadata.split():
+            assert re.fullmatch(expected.item_pattern, item) is not None, (
+                f"{item!r} does not match {expected.item_pattern.pattern!r} in {context!r}"
+            )
+
+    elif isinstance(expected, AnyBool):
+        # Accept either True or False.
+        assert isinstance(metadata, bool), (
+            f"{metadata!r} should be a boolean in {context!r}"
+        )
+
+    elif isinstance(expected, AnyBoolString):
+        # Accept either 'true' or 'false' string.
+        assert metadata in ("true", "false"), (
+            f"{metadata!r} should be 'true' or 'false' in {context!r}"
         )
 
     elif isinstance(expected, dict):
@@ -108,8 +182,12 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
 expected = {
     "is_bot": False,
     "skip_binary_build": False,
-    "new_commits": None,
-    "release_commits": None,
+    # new_commits is None when running outside GitHub Actions (no event data).
+    # In CI, it contains commit SHAs extracted from the push event payload.
+    "new_commits": OptionalList(regex(r"[a-f0-9]{40}")),
+    # release_commits is None when there are no release commits in the event.
+    # It contains SHAs only when a "[changelog] Release vX.Y.Z" commit is present.
+    "release_commits": OptionalList(regex(r"[a-f0-9]{40}")),
     "mailmap_exists": True,
     "gitignore_exists": True,
     "python_files": [
@@ -360,9 +438,9 @@ expected = {
         ],
     },
     # Bump allowed values depend on comparing current version vs latest git tag.
-    # In normal development (after release, before bump), both should be True.
-    "minor_bump_allowed": True,
-    "major_bump_allowed": True,
+    # These can be True or False depending on the current development cycle state.
+    "minor_bump_allowed": AnyBool(),
+    "major_bump_allowed": AnyBool(),
 }
 
 
@@ -436,6 +514,12 @@ def test_metadata_github_format():
             new_value = ""
         elif isinstance(value, bool):
             new_value = str(value).lower()
+        elif isinstance(value, OptionalList):
+            # Convert OptionalList to OptionalString for GitHub format.
+            new_value = OptionalString(value.item_pattern)
+        elif isinstance(value, AnyBool):
+            # Convert AnyBool to AnyBoolString for GitHub format.
+            new_value = AnyBoolString()
         elif isinstance(value, list) and all(isinstance(i, str) for i in value):
             new_value = " ".join(f'"{i}"' for i in value)
         github_format_expected[key] = new_value
