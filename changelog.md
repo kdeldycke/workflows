@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.3.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.2.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.3.0 (2026-01-24)](https://github.com/kdeldycke/workflows/compare/v5.2.0...v5.3.0)
 
 - Rely on `gha-utils labels` to dump label configuration files for inspection and bootstrapping.
 - Enhance `gha-utils bumpversion` command to sync the template directly into `pyproject.toml`.
