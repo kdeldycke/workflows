@@ -53,7 +53,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx 'gha-utils==5.3.0' metadata --overwrite "$GITHUB_OUTPUT"
+          uvx 'gha-utils==5.3.1' metadata --output "$GITHUB_OUTPUT"
 
   version-increments:
     needs:
@@ -153,7 +153,7 @@ jobs:
         # Updates changelog and citation dates, comparison URL, and removes warning.
         # Also hard-codes version in workflow URLs for kdeldycke/workflows repository.
         run: >-
-          uvx 'gha-utils==5.3.0' release-prep
+          uvx 'gha-utils==5.3.1' release-prep
           ${{ github.repository == 'kdeldycke/workflows' && '--update-workflows' || '' }}
       - name: Setup Git
         run: |
@@ -169,10 +169,10 @@ jobs:
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
         run: |
-          uvx 'gha-utils==5.3.0' release-prep --post-release --update-workflows
+          uvx 'gha-utils==5.3.1' release-prep --post-release --update-workflows
       - name: Add new changelog entry
         run: |
-          uvx 'gha-utils==5.3.0' changelog ./changelog.md
+          uvx 'gha-utils==5.3.1' changelog ./changelog.md
       - name: Version bump
         # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
         # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
