@@ -142,12 +142,11 @@ def gha_utils():
     help="Rendering format of the metadata.",
 )
 @option(
-    "--overwrite",
-    "--force",
-    "--replace",
-    is_flag=True,
-    default=False,
-    help="Allow output target file to be silently wiped out if it already exists.",
+    "--overwrite/--no-overwrite",
+    "--force/--no-force",
+    "--replace/--no-replace",
+    default=True,
+    help="Overwrite output file if it already exists.",
 )
 @option(
     "-o",
