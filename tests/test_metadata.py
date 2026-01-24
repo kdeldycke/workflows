@@ -103,6 +103,21 @@ class AnyBoolString:
     """
 
 
+class OptionalMatrix:
+    """Matcher for values that can be None or a matrix dict with commit data.
+
+    Used for fields like ``new_commits_matrix`` that are ``None`` outside GitHub Actions
+    but contain a matrix dict when running in CI with event data.
+    """
+
+
+class OptionalMatrixOrEmptyString:
+    """Matcher for GitHub format values that can be empty string or a matrix dict.
+
+    GitHub Actions format converts None to empty string. In CI, the value is a dict.
+    """
+
+
 def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
     """Recursively iterate over expected content and check it matches in metadata."""
 
@@ -149,6 +164,28 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert metadata in ("true", "false"), (
             f"{metadata!r} should be 'true' or 'false' in {context!r}"
         )
+
+    elif isinstance(expected, OptionalMatrix):
+        # Allow None or a matrix dict with commit data.
+        if metadata is None:
+            return
+        assert isinstance(metadata, dict), (
+            f"{metadata!r} should be None or a dict in {context!r}"
+        )
+        # Validate basic matrix structure if present.
+        if "commit" in metadata:
+            assert isinstance(metadata["commit"], list)
+
+    elif isinstance(expected, OptionalMatrixOrEmptyString):
+        # Allow empty string or a matrix dict.
+        if metadata == "":
+            return
+        assert isinstance(metadata, dict), (
+            f"{metadata!r} should be '' or a dict in {context!r}"
+        )
+        # Validate basic matrix structure if present.
+        if "commit" in metadata:
+            assert isinstance(metadata["commit"], list)
 
     elif isinstance(expected, dict):
         assert isinstance(metadata, dict)
@@ -286,8 +323,12 @@ expected = {
         r"> This version is not released yet and is under active development\.\n\n"
         r".+"
     ),
-    "new_commits_matrix": None,
-    "release_commits_matrix": None,
+    # new_commits_matrix is None when running outside GitHub Actions.
+    # In CI, it contains a matrix dict with commit data.
+    "new_commits_matrix": OptionalMatrix(),
+    # release_commits_matrix is None when there are no release commits.
+    # It contains a matrix dict only when a "[changelog] Release vX.Y.Z" commit is present.
+    "release_commits_matrix": OptionalMatrix(),
     "build_targets": [
         {
             "target": "linux-arm64",
@@ -520,6 +561,9 @@ def test_metadata_github_format():
         elif isinstance(value, AnyBool):
             # Convert AnyBool to AnyBoolString for GitHub format.
             new_value = AnyBoolString()
+        elif isinstance(value, OptionalMatrix):
+            # Convert OptionalMatrix to OptionalMatrixOrEmptyString for GitHub format.
+            new_value = OptionalMatrixOrEmptyString()
         elif isinstance(value, list) and all(isinstance(i, str) for i in value):
             new_value = " ".join(f'"{i}"' for i in value)
         github_format_expected[key] = new_value
