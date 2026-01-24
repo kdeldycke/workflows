@@ -9,6 +9,7 @@
 - Enhance `gha-utils bumpversion` command to sync the template directly into `pyproject.toml`.
 - Sync bumpversion config in the `autofix` workflow.
 - Sync `uv.lock` file on version increment and post-release bump commits.
+- Fail job on project description mismatch.
 
 ## [5.2.0 (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.1.0...v5.2.0)
 
