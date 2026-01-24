@@ -80,7 +80,8 @@ jobs:
         run: |
           REPO_DESCRIPTION=$(gh repo view --json description --jq '.description')
           if [ "$PROJECT_DESCRIPTION" != "$REPO_DESCRIPTION" ]; then
-            echo "::warning::Repo description '$REPO_DESCRIPTION' != project '$PROJECT_DESCRIPTION'."
+            echo "::error::Repo description '$REPO_DESCRIPTION' != project '$PROJECT_DESCRIPTION'."
+            exit 1
           fi
 
   mypy-lint:
