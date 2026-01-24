@@ -33,13 +33,13 @@ from importlib.resources import as_file, files
 from pathlib import Path
 
 
-def _get_data_path(filename: str) -> Path:
-    """Get the path to a bundled data file.
+def _get_data_content(filename: str) -> str:
+    """Get the content of a bundled data file.
 
     During development (editable install), falls back to reading from ``.github/``.
 
     :param filename: Name of the file to retrieve.
-    :return: Path to the file.
+    :return: Content of the file as a string.
     :raises FileNotFoundError: If the file doesn't exist.
     """
     # Try to get from package data first (installed package).
@@ -47,7 +47,8 @@ def _get_data_path(filename: str) -> Path:
         data_files = files("gha_utils.data")
         with as_file(data_files.joinpath(filename)) as path:
             if path.exists():
-                return path
+                # Read inside context manager before path becomes invalid.
+                return path.read_text(encoding="UTF-8")
     except (ModuleNotFoundError, TypeError):
         pass
 
@@ -65,7 +66,7 @@ def _get_data_path(filename: str) -> Path:
         for _ in range(5):  # Limit search depth.
             candidate = current / github_mapping[filename]
             if candidate.exists():
-                return candidate
+                return candidate.read_text(encoding="UTF-8")
             current = current.parent
 
     msg = f"Data file not found: {filename}"
@@ -77,7 +78,7 @@ def get_labels_content() -> str:
 
     :return: Content of labels.toml as a string.
     """
-    return _get_data_path("labels.toml").read_text(encoding="UTF-8")
+    return _get_data_content("labels.toml")
 
 
 def get_file_labeller_rules() -> str:
@@ -85,7 +86,7 @@ def get_file_labeller_rules() -> str:
 
     :return: Content of labeller-file-based.yaml as a string.
     """
-    return _get_data_path("labeller-file-based.yaml").read_text(encoding="UTF-8")
+    return _get_data_content("labeller-file-based.yaml")
 
 
 def get_content_labeller_rules() -> str:
@@ -93,4 +94,4 @@ def get_content_labeller_rules() -> str:
 
     :return: Content of labeller-content-based.yaml as a string.
     """
-    return _get_data_path("labeller-content-based.yaml").read_text(encoding="UTF-8")
+    return _get_data_content("labeller-content-based.yaml")

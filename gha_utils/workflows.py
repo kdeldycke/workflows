@@ -54,14 +54,14 @@ WORKFLOW_FILES = (
 )
 
 
-def _get_workflow_path(filename: str) -> Path:
-    """Get the path to a bundled workflow file.
+def _get_workflow_content(filename: str) -> str:
+    """Get the content of a bundled workflow file.
 
     During development (editable install), falls back to reading from
     ``.github/workflows/``.
 
     :param filename: Name of the workflow file to retrieve.
-    :return: Path to the file.
+    :return: Content of the workflow file as a string.
     :raises FileNotFoundError: If the file doesn't exist.
     """
     if filename not in WORKFLOW_FILES:
@@ -73,7 +73,8 @@ def _get_workflow_path(filename: str) -> Path:
         data_files = files("gha_utils.data.workflows")
         with as_file(data_files.joinpath(filename)) as path:
             if path.exists():
-                return path
+                # Read inside context manager before path becomes invalid.
+                return path.read_text(encoding="UTF-8")
     except (ModuleNotFoundError, TypeError):
         pass
 
@@ -82,7 +83,7 @@ def _get_workflow_path(filename: str) -> Path:
     for _ in range(5):  # Limit search depth.
         candidate = current / ".github" / "workflows" / filename
         if candidate.exists():
-            return candidate
+            return candidate.read_text(encoding="UTF-8")
         current = current.parent
 
     msg = f"Workflow file not found: {filename}"
@@ -104,4 +105,4 @@ def get_workflow_content(filename: str) -> str:
     :return: Content of the workflow file as a string.
     :raises FileNotFoundError: If the workflow doesn't exist.
     """
-    return _get_workflow_path(filename).read_text(encoding="UTF-8")
+    return _get_workflow_content(filename)
