@@ -675,11 +675,11 @@ The problem with conditional `cancel-in-progress` is that it's evaluated on the 
 
 The solution is to give each release workflow its own unique group (using the commit SHA), so subsequent pushes cannot cancel it:
 
-| Commit Message                          | Concurrency Group                 | Behavior                           |
-| :-------------------------------------- | :-------------------------------- | :--------------------------------- |
-| `[changelog] Release v4.26.0`           | `{workflow}-{sha}`                | **Protected** — unique group       |
-| `[changelog] Post-release version bump` | `{workflow}-{sha}`                | **Protected** — unique group       |
-| Any other commit                        | `{workflow}-refs/heads/main`      | Cancellable by newer commits       |
+| Commit Message                          | Concurrency Group            | Behavior                     |
+| :-------------------------------------- | :--------------------------- | :--------------------------- |
+| `[changelog] Release v4.26.0`           | `{workflow}-{sha}`           | **Protected** — unique group |
+| `[changelog] Post-release version bump` | `{workflow}-{sha}`           | **Protected** — unique group |
+| Any other commit                        | `{workflow}-refs/heads/main` | Cancellable by newer commits |
 
 > [!IMPORTANT]
 > When a release is pushed, the event contains **two commits bundled together**:
@@ -691,15 +691,15 @@ The solution is to give each release workflow its own unique group (using the co
 
 ### Event-specific behavior
 
-| Event                 | `github.event.head_commit`             | Concurrency Group              | Cancel Behavior           |
-| :-------------------- | :------------------------------------- | :----------------------------- | :------------------------ |
-| `push` to `main`      | Set                                    | `{workflow}-refs/heads/main`   | Cancellable               |
-| `push` (release)      | Starts with `[changelog] Release`      | `{workflow}-{sha}` *(unique)*  | **Never cancelled**       |
-| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-{sha}` *(unique)*  | **Never cancelled**       |
-| `pull_request`        | `null`                                 | `{workflow}-{pr-number}`       | Cancellable within same PR |
-| `workflow_call`       | Inherited or `null`                    | Inherited from caller          | Usually cancellable       |
-| `schedule`            | `null`                                 | `{workflow}-refs/heads/main`   | Cancellable               |
-| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`       | Cancellable               |
+| Event                 | `github.event.head_commit`             | Concurrency Group             | Cancel Behavior            |
+| :-------------------- | :------------------------------------- | :---------------------------- | :------------------------- |
+| `push` to `main`      | Set                                    | `{workflow}-refs/heads/main`  | Cancellable                |
+| `push` (release)      | Starts with `[changelog] Release`      | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
+| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
+| `pull_request`        | `null`                                 | `{workflow}-{pr-number}`      | Cancellable within same PR |
+| `workflow_call`       | Inherited or `null`                    | Inherited from caller         | Usually cancellable        |
+| `schedule`            | `null`                                 | `{workflow}-refs/heads/main`  | Cancellable                |
+| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`      | Cancellable                |
 
 ## Used in
 
