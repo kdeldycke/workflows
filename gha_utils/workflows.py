@@ -70,7 +70,7 @@ def _get_workflow_content(filename: str) -> str:
 
     # Try to get from package data first (installed package).
     try:
-        data_files = files("gha_utils.data.workflows")
+        data_files = files("gha_utils.data")
         with as_file(data_files.joinpath(filename)) as path:
             if path.exists():
                 # Read inside context manager before path becomes invalid.

@@ -232,6 +232,7 @@ expected = {
         "gha_utils/__main__.py",
         "gha_utils/changelog.py",
         "gha_utils/cli.py",
+        "gha_utils/data/__init__.py",
         "gha_utils/labels.py",
         "gha_utils/mailmap.py",
         "gha_utils/matrix.py",
