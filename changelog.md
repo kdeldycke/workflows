@@ -5,8 +5,10 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add bundled mypy configuration template (`[tool.mypy]`).
-- Add bundled pytest configuration template (`[tool.pytest]`).
+- Consolidate all bundled files under `gha-utils config export <filename>` command.
+- Add bundled mypy and pytest configuration templates.
+- Use actual filenames with extensions as type IDs (e.g., `labels.toml`, `labeller-file-based.yaml`).
+- Add smart default output paths for each file type (shown with `--list`).
 
 ## [5.4.0 (2026-01-25)](https://github.com/kdeldycke/workflows/compare/v5.3.1...v5.4.0)
 

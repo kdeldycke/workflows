@@ -71,36 +71,53 @@ class InitConfig:
     """Human-readable description for help text."""
 
 
-# Registry of all exportable files: maps CLI type ID to filename.
-EXPORTABLE_FILES: dict[str, str] = {
-    # pyproject.toml config templates.
-    "ruff": "ruff.toml",
-    "bumpversion": "bumpversion.toml",
+# Registry of all exportable files: maps filename to default output path.
+# None means stdout (for pyproject.toml templates that need merging).
+EXPORTABLE_FILES: dict[str, str | None] = {
+    # pyproject.toml config templates (no default path, output to stdout for merging).
+    "mypy.toml": None,
+    "ruff.toml": None,
+    "pytest.toml": None,
+    "bumpversion.toml": None,
     # Label configuration files.
-    "labels": "labels.toml",
-    "labeller-file-based": "labeller-file-based.yaml",
-    "labeller-content-based": "labeller-content-based.yaml",
-    # Workflow templates (use filename as ID).
-    "autofix.yaml": "autofix.yaml",
-    "autolock.yaml": "autolock.yaml",
-    "changelog.yaml": "changelog.yaml",
-    "debug.yaml": "debug.yaml",
-    "docs.yaml": "docs.yaml",
-    "labels.yaml": "labels.yaml",
-    "lint.yaml": "lint.yaml",
-    "release.yaml": "release.yaml",
-    "renovate.yaml": "renovate.yaml",
-    "tests.yaml": "tests.yaml",
+    "labels.toml": "./labels.toml",
+    "labeller-file-based.yaml": "./.github/labeller-file-based.yaml",
+    "labeller-content-based.yaml": "./.github/labeller-content-based.yaml",
+    # Workflow templates.
+    "autofix.yaml": "./.github/workflows/autofix.yaml",
+    "autolock.yaml": "./.github/workflows/autolock.yaml",
+    "changelog.yaml": "./.github/workflows/changelog.yaml",
+    "debug.yaml": "./.github/workflows/debug.yaml",
+    "docs.yaml": "./.github/workflows/docs.yaml",
+    "labels.yaml": "./.github/workflows/labels.yaml",
+    "lint.yaml": "./.github/workflows/lint.yaml",
+    "release.yaml": "./.github/workflows/release.yaml",
+    "renovate.yaml": "./.github/workflows/renovate.yaml",
+    "tests.yaml": "./.github/workflows/tests.yaml",
 }
 
 # Registry of configs that support `init` (merging into pyproject.toml).
 INIT_CONFIGS: dict[str, InitConfig] = {
+    "mypy": InitConfig(
+        filename="mypy.toml",
+        tool_section="tool.mypy",
+        insert_after=("tool.uv",),
+        insert_before=("tool.ruff", "tool.pytest"),
+        description="Mypy type checking configuration",
+    ),
     "ruff": InitConfig(
         filename="ruff.toml",
         tool_section="tool.ruff",
         insert_after=("tool.mypy", "tool.mypy.overrides"),
         insert_before=("tool.pytest",),
         description="Ruff linter/formatter configuration",
+    ),
+    "pytest": InitConfig(
+        filename="pytest.toml",
+        tool_section="tool.pytest",
+        insert_after=("tool.ruff", "tool.ruff.format"),
+        insert_before=("tool.bumpversion",),
+        description="Pytest test configuration",
     ),
     "bumpversion": InitConfig(
         filename="bumpversion.toml",
@@ -133,35 +150,35 @@ def get_data_content(filename: str) -> str:
     raise FileNotFoundError(msg)
 
 
-def export_content(file_type: str) -> str:
+def export_content(filename: str) -> str:
     """Get the content of any exportable bundled file.
 
-    :param file_type: The file type ID (e.g., "ruff", "labels", "release.yaml").
+    :param filename: The filename (e.g., "ruff.toml", "labels.toml", "release.yaml").
     :return: Content of the file as a string.
-    :raises ValueError: If the file type is not supported.
+    :raises ValueError: If the file is not in the registry.
     :raises FileNotFoundError: If the file doesn't exist.
     """
-    if file_type not in EXPORTABLE_FILES:
+    if filename not in EXPORTABLE_FILES:
         supported = ", ".join(EXPORTABLE_FILES.keys())
-        msg = f"Unknown file type: {file_type!r}. Supported: {supported}"
+        msg = f"Unknown file: {filename!r}. Supported: {supported}"
         raise ValueError(msg)
 
-    filename = EXPORTABLE_FILES[file_type]
     return get_data_content(filename)
 
 
-def get_config_content(config_type: str) -> str:
-    """Get the content of a bundled configuration template.
+def get_default_output_path(filename: str) -> str | None:
+    """Get the default output path for an exportable file.
 
-    .. deprecated::
-        Use ``export_content(config_type)`` instead.
-
-    :param config_type: The configuration type (e.g., "ruff", "bumpversion").
-    :return: Content of the template as a string.
-    :raises ValueError: If the config type is not supported.
-    :raises FileNotFoundError: If the template file doesn't exist.
+    :param filename: The filename (e.g., "labels.toml", "release.yaml").
+    :return: Default output path, or None if stdout is the default.
+    :raises ValueError: If the file is not in the registry.
     """
-    return export_content(config_type)
+    if filename not in EXPORTABLE_FILES:
+        supported = ", ".join(EXPORTABLE_FILES.keys())
+        msg = f"Unknown file: {filename!r}. Supported: {supported}"
+        raise ValueError(msg)
+
+    return EXPORTABLE_FILES[filename]
 
 
 def init_config(config_type: str, pyproject_path: Path | None = None) -> str | None:
@@ -177,12 +194,12 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     :return: The modified pyproject.toml content, or ``None`` if no changes needed.
     :raises ValueError: If the config type is not supported.
     """
-    if config_type not in CONFIG_TYPES:
-        supported = ", ".join(CONFIG_TYPES.keys())
+    if config_type not in INIT_CONFIGS:
+        supported = ", ".join(INIT_CONFIGS.keys())
         msg = f"Unknown config type: {config_type!r}. Supported: {supported}"
         raise ValueError(msg)
 
-    config = CONFIG_TYPES[config_type]
+    config = INIT_CONFIGS[config_type]
 
     if pyproject_path is None:
         pyproject_path = Path("pyproject.toml")
@@ -201,8 +218,8 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
         )
         return None
 
-    # Get the template content.
-    template = get_config_content(config_type)
+    # Get the template content using the filename from the config.
+    template = export_content(config.filename)
 
     # Find insertion point using the config's preferences.
     insertion_index = _find_insertion_point(content, config)
@@ -219,7 +236,7 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     return new_content
 
 
-def _find_insertion_point(content: str, config: ConfigType) -> int:
+def _find_insertion_point(content: str, config: InitConfig) -> int:
     """Find the best insertion point for a config section.
 
     :param content: The pyproject.toml content.
@@ -256,16 +273,18 @@ def _find_insertion_point(content: str, config: ConfigType) -> int:
     return len(content)
 
 
-# Backwards compatibility aliases for existing code.
+# ---------------------------------------------------------------------------
+# Backwards compatibility aliases (deprecated)
+# ---------------------------------------------------------------------------
+
+
 def get_bumpversion_content() -> str:
     """Get the content of the bumpversion.toml file.
 
     .. deprecated::
-        Use ``get_config_content("bumpversion")`` instead.
-
-    :return: Content of bumpversion.toml as a string.
+        Use ``export_content("bumpversion.toml")`` instead.
     """
-    return get_config_content("bumpversion")
+    return export_content("bumpversion.toml")
 
 
 def merge_bumpversion_config(pyproject_path: Path | None = None) -> str | None:
@@ -273,9 +292,6 @@ def merge_bumpversion_config(pyproject_path: Path | None = None) -> str | None:
 
     .. deprecated::
         Use ``init_config("bumpversion", pyproject_path)`` instead.
-
-    :param pyproject_path: Path to pyproject.toml. Defaults to ``./pyproject.toml``.
-    :return: The modified pyproject.toml content, or ``None`` if no changes needed.
     """
     return init_config("bumpversion", pyproject_path)
 
@@ -284,65 +300,58 @@ def get_ruff_config_content() -> str:
     """Get the content of the ruff.toml file.
 
     .. deprecated::
-        Use ``get_config_content("ruff")`` instead.
-
-    :return: Content of ruff.toml as a string.
+        Use ``export_content("ruff.toml")`` instead.
     """
-    return get_config_content("ruff")
-
-
-# ---------------------------------------------------------------------------
-# Label configuration files
-# ---------------------------------------------------------------------------
+    return export_content("ruff.toml")
 
 
 def get_labels_content() -> str:
     """Get the content of the labels.toml file.
 
-    :return: Content of labels.toml as a string.
+    .. deprecated::
+        Use ``export_content("labels.toml")`` instead.
     """
-    return get_data_content("labels.toml")
+    return export_content("labels.toml")
 
 
 def get_file_labeller_rules() -> str:
     """Get the content of the file-based labeller rules.
 
-    :return: Content of labeller-file-based.yaml as a string.
+    .. deprecated::
+        Use ``export_content("labeller-file-based.yaml")`` instead.
     """
-    return get_data_content("labeller-file-based.yaml")
+    return export_content("labeller-file-based.yaml")
 
 
 def get_content_labeller_rules() -> str:
     """Get the content of the content-based labeller rules.
 
-    :return: Content of labeller-content-based.yaml as a string.
+    .. deprecated::
+        Use ``export_content("labeller-content-based.yaml")`` instead.
     """
-    return get_data_content("labeller-content-based.yaml")
+    return export_content("labeller-content-based.yaml")
 
 
-# ---------------------------------------------------------------------------
-# Workflow templates
-# ---------------------------------------------------------------------------
+def get_config_content(config_type: str) -> str:
+    """Get the content of a bundled configuration template.
 
-# All available workflow templates.
-WORKFLOW_FILES = (
-    "autofix.yaml",
-    "autolock.yaml",
-    "changelog.yaml",
-    "debug.yaml",
-    "docs.yaml",
-    "labels.yaml",
-    "lint.yaml",
-    "release.yaml",
-    "renovate.yaml",
-    "tests.yaml",
-)
+    .. deprecated::
+        Use ``export_content(f"{config_type}.toml")`` instead.
+    """
+    # Map old-style names to new filenames.
+    filename = f"{config_type}.toml"
+    return export_content(filename)
+
+
+# Workflow files constant for backwards compatibility.
+WORKFLOW_FILES = tuple(k for k in EXPORTABLE_FILES if k.endswith(".yaml"))
 
 
 def list_workflows() -> tuple[str, ...]:
     """List all available workflow templates.
 
-    :return: Tuple of workflow filenames.
+    .. deprecated::
+        Use ``EXPORTABLE_FILES`` and filter for .yaml files instead.
     """
     return WORKFLOW_FILES
 
@@ -350,12 +359,7 @@ def list_workflows() -> tuple[str, ...]:
 def get_workflow_content(filename: str) -> str:
     """Get the content of a workflow template.
 
-    :param filename: Name of the workflow file (e.g., "release.yaml").
-    :return: Content of the workflow file as a string.
-    :raises FileNotFoundError: If the workflow doesn't exist.
+    .. deprecated::
+        Use ``export_content(filename)`` instead.
     """
-    if filename not in WORKFLOW_FILES:
-        msg = f"Unknown workflow: {filename}. Available: {', '.join(WORKFLOW_FILES)}"
-        raise FileNotFoundError(msg)
-
-    return get_data_content(filename)
+    return export_content(filename)

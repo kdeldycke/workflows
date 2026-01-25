@@ -46,7 +46,6 @@ class TestConfigRegistry:
     def test_config_type_has_required_fields(self) -> None:
         """Verify that each config type has all required fields."""
         for name, config in CONFIG_TYPES.items():
-            assert config.name == name
             assert config.filename
             assert config.tool_section
             assert config.description
@@ -83,7 +82,7 @@ class TestGetConfigContent:
 
     def test_unknown_config_type_raises_error(self) -> None:
         """Verify that an unknown config type raises ValueError."""
-        with pytest.raises(ValueError, match="Unknown config type"):
+        with pytest.raises(ValueError, match="Unknown file"):
             get_config_content("nonexistent")
 
 
