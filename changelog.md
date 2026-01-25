@@ -9,9 +9,7 @@
 - Add bundled mypy and pytest configuration templates.
 - Use actual filenames with extensions as type IDs (e.g., `labels.toml`, `labeller-file-based.yaml`).
 - Add smart default output paths for each file type (shown with `--list`).
-- Add `gha-utils config lint` command to validate `[tool.*]` section ordering in `pyproject.toml`.
-- Add `lint-pyproject` job to `lint.yaml` workflow to enforce tool section ordering.
-- Define canonical tool section ordering: `tool.uv` → `tool.ruff` → `tool.pytest` → `tool.mypy` → `tool.nuitka` → `tool.bumpversion` → `tool.typos`.
+- Format `pyproject.toml` file with `pyproject-fmt`.
 
 ## [5.4.0 (2026-01-25)](https://github.com/kdeldycke/workflows/compare/v5.3.1...v5.4.0)
 
