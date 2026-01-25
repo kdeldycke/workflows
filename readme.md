@@ -469,12 +469,12 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 
 ### Pinning mechanisms
 
-| Mechanism                   | What it pins                 | How it's updated  |
-| :-------------------------- | :--------------------------- | :---------------- |
-| `uv.lock`                   | Project dependencies         | Renovate PRs      |
-| Hard-coded versions in YAML | GitHub Actions, npm, Python  | Renovate PRs      |
-| `uv --exclude-newer` option | Transitive dependencies      | Time-based window |
-| Tagged workflow URLs        | Remote workflow references   | Release process   |
+| Mechanism                   | What it pins                | How it's updated  |
+| :-------------------------- | :-------------------------- | :---------------- |
+| `uv.lock`                   | Project dependencies        | Renovate PRs      |
+| Hard-coded versions in YAML | GitHub Actions, npm, Python | Renovate PRs      |
+| `uv --exclude-newer` option | Transitive dependencies     | Time-based window |
+| Tagged workflow URLs        | Remote workflow references  | Release process   |
 
 ### Hard-coded versions in workflows
 
