@@ -105,7 +105,7 @@ jobs:
         run: >
           uvx 'gha-utils==5.3.1' metadata
           ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
-          --overwrite "$GITHUB_OUTPUT"
+          --output "$GITHUB_OUTPUT"
 
   package-build:
     name: Build package
