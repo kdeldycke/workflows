@@ -115,6 +115,19 @@ class AnyLengthList:
         self.item_pattern = item_pattern
 
 
+class PartialIncludeList:
+    """Matcher for include lists where required items must be present.
+
+    The nuitka_matrix ``include`` list contains per-commit entries that multiply
+    when multiple commits are pushed together. This matcher validates that all
+    required items (build targets, entry point info, state) are present, while
+    allowing additional commit-specific items.
+    """
+
+    def __init__(self, required_items: list[dict]) -> None:
+        self.required_items = required_items
+
+
 class OptionalMatrix:
     """Matcher for values that can be None or a matrix dict with commit data.
 
@@ -128,6 +141,28 @@ class OptionalMatrixOrEmptyString:
 
     GitHub Actions format converts None to empty string. In CI, the value is a dict.
     """
+
+
+def _matches_pattern(item: Any, pattern: dict) -> bool:
+    """Check if an item matches a pattern dict.
+
+    Returns True if item is a dict with all keys from pattern, and each value
+    matches (either exact match or regex match for Pattern objects).
+    """
+    if not isinstance(item, dict):
+        return False
+    if not set(pattern.keys()).issubset(set(item.keys())):
+        return False
+    for key, expected_value in pattern.items():
+        actual_value = item[key]
+        if isinstance(expected_value, re.Pattern):
+            if not isinstance(actual_value, str):
+                return False
+            if re.fullmatch(expected_value, actual_value) is None:
+                return False
+        elif actual_value != expected_value:
+            return False
+    return True
 
 
 def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
@@ -187,6 +222,25 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
             assert isinstance(item, str), f"{item!r} should be a string in {context!r}"
             assert re.fullmatch(expected.item_pattern, item) is not None, (
                 f"{item!r} does not match {expected.item_pattern.pattern!r} in {context!r}"
+            )
+
+    elif isinstance(expected, PartialIncludeList):
+        # Accept a list where all required items are present, allowing extras.
+        assert isinstance(metadata, list), (
+            f"{metadata!r} should be a list in {context!r}"
+        )
+        assert len(metadata) >= len(expected.required_items), (
+            f"list should have at least {len(expected.required_items)} items in {context!r}"
+        )
+        # Check each required item has at least one match in metadata.
+        for required in expected.required_items:
+            found = False
+            for item in metadata:
+                if _matches_pattern(item, required):
+                    found = True
+                    break
+            assert found, (
+                f"required item {required!r} not found in metadata list in {context!r}"
             )
 
     elif isinstance(expected, OptionalMatrix):
@@ -411,7 +465,11 @@ expected = {
         ],
         "entry_point": ["gha-utils"],
         "commit": AnyLengthList(regex(r"[a-z0-9]+")),
-        "include": [
+        # The include list contains per-commit entries that multiply with more commits.
+        # We validate that required fixed items are present (build targets, entry point,
+        # state) plus at least one commit info and one bin_name entry.
+        "include": PartialIncludeList([
+            # Build targets (fixed, one per platform).
             {
                 "target": "linux-arm64",
                 "os": "ubuntu-24.04-arm",
@@ -454,6 +512,7 @@ expected = {
                 "arch": "x64",
                 "extension": "exe",
             },
+            # Entry point info (fixed, one per entry point).
             {
                 "entry_point": "gha-utils",
                 "cli_id": "gha-utils",
@@ -461,11 +520,15 @@ expected = {
                 "callable_id": "main",
                 "module_path": regex(r"gha_utils(/|\\)__main__\.py"),
             },
+            # State (fixed).
+            {"state": "stable"},
+            # At least one commit info entry (varies by commit count).
             {
                 "commit": regex(r"[a-z0-9]+"),
                 "short_sha": regex(r"[a-z0-9]+"),
                 "current_version": regex(r"[0-9\.]+"),
             },
+            # At least one bin_name entry per OS (varies by commit count).
             {
                 "os": "ubuntu-24.04-arm",
                 "entry_point": "gha-utils",
@@ -502,8 +565,7 @@ expected = {
                 "commit": regex(r"[a-z0-9]+"),
                 "bin_name": regex(r"gha-utils-windows-x64-[a-z0-9]+\.exe"),
             },
-            {"state": "stable"},
-        ],
+        ]),
     },
     # Bump allowed values depend on comparing current version vs latest git tag.
     # These can be True or False depending on the current development cycle state.
