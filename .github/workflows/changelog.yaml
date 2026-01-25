@@ -136,8 +136,6 @@ jobs:
           draft: always-true
 
   prepare-release:
-    # TODO: add complex time-based trigger condition to only update the changelog once a day on main branch activity to
-    # keep the release date in sync.
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -174,8 +172,6 @@ jobs:
         run: |
           uvx 'gha-utils==5.3.1' changelog ./changelog.md
       - name: Version bump
-        # TODO: get configuration URL once https://github.com/callowayproject/bump-my-version/issues/148 is addressed,
-        # so we can factorize projects' pyproject.toml files to kdeldycke/workflow/pyproject.toml .
         run: |
           bump-my-version bump --verbose patch
       - name: Sync uv.lock
