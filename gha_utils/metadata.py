@@ -707,7 +707,7 @@ class Metadata:
         event_file = Path(event_path)
         if not event_file.exists():
             raise FileNotFoundError(f"Event file not found: {event_path}")
-        event = json.loads(event_file.read_text())
+        event = json.loads(event_file.read_text(encoding="utf-8"))
         logging.debug("--- GitHub event payload ---")
         logging.debug(json.dumps(event, indent=4))
         return event  # type:ignore[no-any-return]
