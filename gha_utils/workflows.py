@@ -17,8 +17,7 @@
 """Access bundled workflow templates.
 
 This module provides access to reusable GitHub Actions workflow templates that
-are bundled with the package. The source files live in ``.github/workflows/``
-for linting and formatting, but are copied into the package at build time.
+are bundled with the package in ``gha_utils/data/``.
 
 Available workflows:
 
@@ -37,7 +36,6 @@ Available workflows:
 from __future__ import annotations
 
 from importlib.resources import as_file, files
-from pathlib import Path
 
 # All available workflow templates.
 WORKFLOW_FILES = (
@@ -57,9 +55,6 @@ WORKFLOW_FILES = (
 def _get_workflow_content(filename: str) -> str:
     """Get the content of a bundled workflow file.
 
-    During development (editable install), falls back to reading from
-    ``.github/workflows/``.
-
     :param filename: Name of the workflow file to retrieve.
     :return: Content of the workflow file as a string.
     :raises FileNotFoundError: If the file doesn't exist.
@@ -68,23 +63,11 @@ def _get_workflow_content(filename: str) -> str:
         msg = f"Unknown workflow: {filename}. Available: {', '.join(WORKFLOW_FILES)}"
         raise FileNotFoundError(msg)
 
-    # Try to get from package data first (installed package).
-    try:
-        data_files = files("gha_utils.data")
-        with as_file(data_files.joinpath(filename)) as path:
-            if path.exists():
-                # Read inside context manager before path becomes invalid.
-                return path.read_text(encoding="UTF-8")
-    except (ModuleNotFoundError, TypeError):
-        pass
-
-    # Fall back to .github/workflows/ directory (development/editable install).
-    current = Path(__file__).resolve().parent
-    for _ in range(5):  # Limit search depth.
-        candidate = current / ".github" / "workflows" / filename
-        if candidate.exists():
-            return candidate.read_text(encoding="UTF-8")
-        current = current.parent
+    data_files = files("gha_utils.data")
+    with as_file(data_files.joinpath(filename)) as path:
+        if path.exists():
+            # Read inside context manager before path becomes invalid.
+            return path.read_text(encoding="UTF-8")
 
     msg = f"Workflow file not found: {filename}"
     raise FileNotFoundError(msg)

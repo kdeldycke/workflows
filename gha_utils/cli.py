@@ -61,7 +61,7 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
-from .version_config import get_bumpversion_content, merge_bumpversion_config
+from .bundled_config import CONFIG_TYPES, get_config_content, init_config
 from .workflows import WORKFLOW_FILES, get_workflow_content, list_workflows
 
 TYPE_CHECKING = False
@@ -524,18 +524,47 @@ def workflows(list_only, workflow, output_path):
     echo(content.rstrip(), file=prep_path(output_path))
 
 
-@gha_utils.command(short_help="Sync bumpversion configuration to pyproject.toml")
+@gha_utils.group(short_help="Manage bundled configuration templates")
+def config():
+    """Manage bundled configuration templates for pyproject.toml.
+
+    This command group provides tools to export and initialize bundled
+    configuration templates. Each template contains recommended settings
+    that can be merged into your project's pyproject.toml.
+
+    \b
+    Supported configuration types:
+        ruff        - Ruff linter/formatter settings ([tool.ruff])
+        bumpversion - bump-my-version settings ([tool.bumpversion])
+
+    \b
+    Actions:
+        init   - Merge config into pyproject.toml if section doesn't exist
+        export - Dump raw template to stdout or file
+
+    \b
+    Examples:
+        # Initialize ruff config in pyproject.toml
+        gha-utils config init ruff pyproject.toml
+
+        # Export bumpversion template to stdout
+        gha-utils config export bumpversion
+
+        # Preview what init would add (dry-run)
+        gha-utils config init ruff
+    """
+
+
+@config.command(short_help="Initialize config in pyproject.toml")
+@argument(
+    "config_type",
+    type=Choice(list(CONFIG_TYPES.keys()), case_sensitive=False),
+)
 @option(
     "--source",
     type=file_path(exists=True, readable=True, resolve_path=True),
     default="pyproject.toml",
     help="Path to the pyproject.toml file to update.",
-)
-@option(
-    "--template-only",
-    is_flag=True,
-    default=False,
-    help="Only output the raw template without merging into pyproject.toml.",
 )
 @argument(
     "output_path",
@@ -543,42 +572,35 @@ def workflows(list_only, workflow, output_path):
     default="-",
 )
 @pass_context
-def bumpversion(ctx, source, template_only, output_path):
-    """Sync bump-my-version configuration to pyproject.toml.
+def init(ctx, config_type, source, output_path):
+    """Initialize a configuration by merging it into pyproject.toml.
 
-    This command reads your ``pyproject.toml``, checks if a ``[tool.bumpversion]``
-    section already exists, and if not, inserts the bundled template at the
-    appropriate location (after ``[tool.pytest]``, before ``[tool.typos]``).
+    Reads pyproject.toml, checks if the [tool.X] section already exists,
+    and if not, inserts the bundled template at the appropriate location.
 
-    By default, outputs the merged result to stdout. To update the file in-place,
-    specify the same path as both source and output.
+    By default, outputs the merged result to stdout for preview. To update
+    the file in-place, specify pyproject.toml as the output path.
 
     \b
     Examples:
         # Preview merged configuration (dry-run)
-        gha-utils bumpversion
+        gha-utils config init ruff
 
     \b
         # Update pyproject.toml in-place
-        gha-utils bumpversion pyproject.toml
+        gha-utils config init ruff pyproject.toml
 
     \b
-        # Use a different source file
-        gha-utils bumpversion --source ./other/pyproject.toml
-
-    \b
-        # Output raw template only (for manual merging)
-        gha-utils bumpversion --template-only
+        # Initialize bumpversion config
+        gha-utils config init bumpversion pyproject.toml
     """
-    if template_only:
-        content = get_bumpversion_content()
-        echo(content.rstrip(), file=prep_path(output_path))
-        return
-
-    merged = merge_bumpversion_config(source)
+    merged = init_config(config_type, source)
 
     if merged is None:
-        logging.warning("No changes needed. Bumpversion config already exists.")
+        config = CONFIG_TYPES[config_type]
+        logging.warning(
+            f"No changes needed. [{config.tool_section}] already exists."
+        )
         ctx.exit()
 
     if is_stdout(output_path):
@@ -587,6 +609,45 @@ def bumpversion(ctx, source, template_only, output_path):
         logging.info(f"Write merged result to {output_path}")
 
     echo(merged.rstrip(), file=prep_path(output_path))
+
+
+@config.command(short_help="Export raw configuration template")
+@argument(
+    "config_type",
+    type=Choice(list(CONFIG_TYPES.keys()), case_sensitive=False),
+)
+@argument(
+    "output_path",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+)
+def export(config_type, output_path):
+    """Export a raw configuration template.
+
+    Dumps the bundled template to stdout or a file for inspection or
+    manual integration.
+
+    \b
+    Examples:
+        # Export ruff config to stdout
+        gha-utils config export ruff
+
+    \b
+        # Export to a file
+        gha-utils config export ruff .ruff.toml
+
+    \b
+        # Export bumpversion template
+        gha-utils config export bumpversion
+    """
+    content = get_config_content(config_type)
+
+    if is_stdout(output_path):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output_path}")
+
+    echo(content.rstrip(), file=prep_path(output_path))
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")

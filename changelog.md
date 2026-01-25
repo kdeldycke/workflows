@@ -5,6 +5,11 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add unified `gha-utils config` command group with explicit `init` and `export` actions.
+- Merge `ruff_config` and `version_config` modules into unified `bundled_config` module.
+- Add bundled Ruff configuration template (`[tool.ruff]`). Closes #659.
+- Fix data files not being included in published package. Data files are now stored directly in `gha_utils/data/`.
+
 ## [5.3.1 (2026-01-24)](https://github.com/kdeldycke/workflows/compare/v5.3.0...v5.3.1)
 
 - Add `gha-utils sponsor-label` command to label issues/PRs from GitHub sponsors.

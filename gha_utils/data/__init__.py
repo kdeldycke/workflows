@@ -17,9 +17,11 @@
 """Bundled data files for gha-utils.
 
 This package contains label configurations, labeller rules, bumpversion template,
-and workflow templates that are copied from ``.github/`` at build time via the
-``[tool.uv.build-backend.force-include]`` configuration in ``pyproject.toml``.
+Ruff configuration, and workflow templates.
 
-The source files live in ``.github/`` for linting and formatting, but are
-bundled here at package build time to be accessible via ``importlib.resources``.
+Configuration files (labels, labellers, bumpversion, ruff) are stored directly
+in this directory. Workflow templates are symlinked from ``.github/workflows/``
+to maintain a single source of truth while still being bundled in the package.
+
+All files are accessible at runtime via ``importlib.resources``.
 """
