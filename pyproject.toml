@@ -173,7 +173,7 @@ module-root = ""
 # Cooldown period: 7-day buffer before using newly released packages.
 # Use a fixed date (not relative like "1 week") to prevent uv.lock timestamp churn.
 # This date is auto-updated by the autofix workflow when it becomes stale.
-exclude-newer = "2026-01-17T00:00:00Z"
+exclude-newer = "2026-01-18T00:00:00Z"
 
 [tool.mypy]
 warn_unused_configs = true
