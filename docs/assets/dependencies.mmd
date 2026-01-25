@@ -4,7 +4,7 @@ flowchart TD
     anyio["anyio\n4.12.1"]
     boltons["boltons\n25.0.0"]
     bracex["bracex\n2.6"]
-    bump-my-version["bump-my-version\n1.1.0"]
+    bump-my-version["bump-my-version\n1.2.6"]
     certifi["certifi\n2026.1.4"]
     charset-normalizer["charset-normalizer\n3.4.4"]
     click-extra["click-extra\n7.4.0"]
@@ -13,7 +13,7 @@ flowchart TD
     deepmerge["deepmerge\n2.0"]
     distro["distro\n1.9.0"]
     extra-platforms["extra-platforms\n6.0.0"]
-    gha-utils["gha-utils\n5.0.2"]
+    gha-utils["gha-utils\n5.4.1"]
     gitdb["gitdb\n4.0.12"]
     gitpython["GitPython\n3.1.46"]
     h11["h11\n0.16.0"]
@@ -52,10 +52,10 @@ flowchart TD
     wcwidth["wcwidth\n0.2.14"]
     anyio -- ">=2.8" --> idna
     anyio -- ">=4.5" --> typing-extensions
+    bump-my-version -- "<8.4" --> click_0
     bump-my-version -- ">=0.28.1" --> httpx
     bump-my-version -- ">=2.0.0" --> pydantic
     bump-my-version -- ">=8.5.1" --> wcmatch
-    bump-my-version -- "any" --> click_0
     bump-my-version -- "any" --> pydantic-settings
     bump-my-version -- "any" --> questionary
     bump-my-version -- "any" --> rich
@@ -72,8 +72,8 @@ flowchart TD
     cloup -- ">=8.0,<9.0" --> click_0
     extra-platforms -- ">=1.9.0" --> distro
     gha-utils -- ">=0.3.3" --> py-walk
-    gha-utils -- ">=0.32.2,<1.1.1" --> bump-my-version
     gha-utils -- ">=0.9.0" --> pyproject-metadata
+    gha-utils -- ">=1.2.6" --> bump-my-version
     gha-utils -- ">=10.0" --> wcmatch
     gha-utils -- ">=2.6" --> pydriller
     gha-utils -- ">=25.0" --> packaging
