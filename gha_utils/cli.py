@@ -46,9 +46,11 @@ from .changelog import Changelog
 from .bundled_config import (
     EXPORTABLE_FILES,
     INIT_CONFIGS,
+    TOOL_SECTION_ORDER,
     export_content,
     get_default_output_path,
     init_config,
+    validate_tool_section_order,
 )
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
@@ -549,6 +551,67 @@ def init(ctx, config_type, source, output_path):
         logging.info(f"Write merged result to {output_path}")
 
     echo(merged.rstrip(), file=prep_path(output_path))
+
+
+@config.command(short_help="Lint pyproject.toml for tool section ordering")
+@option(
+    "--source",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    default="pyproject.toml",
+    help="Path to the pyproject.toml file to lint.",
+)
+@option(
+    "--show-order",
+    is_flag=True,
+    default=False,
+    help="Show the expected canonical ordering of tool sections.",
+)
+@pass_context
+def lint(ctx, source, show_order):
+    """Lint pyproject.toml for tool section ordering.
+
+    Checks that [tool.*] sections follow the canonical ordering:
+
+    \b
+        tool.uv → tool.ruff → tool.pytest → tool.mypy →
+        tool.nuitka → tool.bumpversion → tool.typos
+
+    Only sections present in the file are validated. Sections not in the
+    canonical list are ignored.
+
+    \b
+    Examples:
+        # Lint pyproject.toml in current directory
+        gha-utils config lint
+
+    \b
+        # Lint a specific file
+        gha-utils config lint --source ./path/to/pyproject.toml
+
+    \b
+        # Show expected ordering
+        gha-utils config lint --show-order
+    """
+    if show_order:
+        echo("Expected tool section ordering:")
+        for i, section in enumerate(TOOL_SECTION_ORDER, 1):
+            echo(f"  {i}. [{section}]")
+        return
+
+    violations = validate_tool_section_order(source)
+
+    if not violations:
+        logging.info(f"Tool section ordering in {source.name} is correct.")
+        return
+
+    logging.error(f"Found {len(violations)} tool section ordering violation(s):")
+    for violation in violations:
+        echo(f"  {violation}", err=True)
+    echo(
+        f"\nExpected order: {' → '.join(f'[{s}]' for s in TOOL_SECTION_ORDER)}",
+        err=True,
+    )
+    ctx.exit(1)
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")

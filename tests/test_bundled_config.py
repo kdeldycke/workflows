@@ -25,10 +25,12 @@ import pytest
 
 from gha_utils.bundled_config import (
     CONFIG_TYPES,
+    TOOL_SECTION_ORDER,
     _to_pyproject_format,
     export_content,
     get_config_content,
     init_config,
+    validate_tool_section_order,
 )
 
 if sys.version_info >= (3, 11):
@@ -336,3 +338,205 @@ class TestBackwardsCompatibility:
         content = get_config_content("ruff")
         assert isinstance(content, str)
         assert len(content) > 0
+
+
+class TestToolSectionOrder:
+    """Tests for TOOL_SECTION_ORDER constant."""
+
+    def test_has_expected_sections(self) -> None:
+        """Verify that expected sections are in the order list."""
+        assert "tool.uv" in TOOL_SECTION_ORDER
+        assert "tool.ruff" in TOOL_SECTION_ORDER
+        assert "tool.pytest" in TOOL_SECTION_ORDER
+        assert "tool.mypy" in TOOL_SECTION_ORDER
+        assert "tool.nuitka" in TOOL_SECTION_ORDER
+        assert "tool.bumpversion" in TOOL_SECTION_ORDER
+        assert "tool.typos" in TOOL_SECTION_ORDER
+
+    def test_order_is_correct(self) -> None:
+        """Verify that sections are in the expected order."""
+        expected = (
+            "tool.uv",
+            "tool.ruff",
+            "tool.pytest",
+            "tool.mypy",
+            "tool.nuitka",
+            "tool.bumpversion",
+            "tool.typos",
+        )
+        assert TOOL_SECTION_ORDER == expected
+
+
+class TestValidateToolSectionOrder:
+    """Tests for validate_tool_section_order function."""
+
+    def test_correct_order_returns_empty_list(self) -> None:
+        """Verify that a correctly ordered file returns no violations."""
+        content = """[project]
+name = "test"
+
+[tool.uv]
+exclude-newer = "2026-01-01T00:00:00Z"
+
+[tool.ruff]
+preview = true
+
+[tool.pytest]
+xfail_strict = true
+
+[tool.mypy]
+warn_unused_configs = true
+
+[tool.bumpversion]
+current_version = "1.0.0"
+"""
+        with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(content)
+            f.flush()
+            path = Path(f.name)
+
+        try:
+            violations = validate_tool_section_order(path)
+            assert violations == []
+        finally:
+            path.unlink()
+
+    def test_incorrect_order_returns_violations(self) -> None:
+        """Verify that incorrectly ordered sections return violations."""
+        content = """[project]
+name = "test"
+
+[tool.mypy]
+warn_unused_configs = true
+
+[tool.ruff]
+preview = true
+
+[tool.uv]
+exclude-newer = "2026-01-01T00:00:00Z"
+"""
+        with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(content)
+            f.flush()
+            path = Path(f.name)
+
+        try:
+            violations = validate_tool_section_order(path)
+            assert len(violations) > 0
+            # tool.ruff appears after tool.mypy but should come before it.
+            violation_sections = [v.section for v in violations]
+            assert "tool.ruff" in violation_sections
+            assert "tool.uv" in violation_sections
+        finally:
+            path.unlink()
+
+    def test_ignores_unknown_sections(self) -> None:
+        """Verify that sections not in TOOL_SECTION_ORDER are ignored."""
+        content = """[project]
+name = "test"
+
+[tool.unknown]
+key = true
+
+[tool.uv]
+exclude-newer = "2026-01-01T00:00:00Z"
+
+[tool.another_unknown]
+key = false
+"""
+        with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(content)
+            f.flush()
+            path = Path(f.name)
+
+        try:
+            violations = validate_tool_section_order(path)
+            assert violations == []
+        finally:
+            path.unlink()
+
+    def test_handles_subsections(self) -> None:
+        """Verify that subsections are grouped with their parent section."""
+        content = """[project]
+name = "test"
+
+[tool.ruff]
+preview = true
+
+[tool.ruff.lint]
+future-annotations = true
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.pytest]
+xfail_strict = true
+"""
+        with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(content)
+            f.flush()
+            path = Path(f.name)
+
+        try:
+            violations = validate_tool_section_order(path)
+            assert violations == []
+        finally:
+            path.unlink()
+
+    def test_missing_file_returns_empty_list(self) -> None:
+        """Verify that a missing file returns an empty list."""
+        violations = validate_tool_section_order(Path("/nonexistent/path/pyproject.toml"))
+        assert violations == []
+
+    def test_violation_includes_line_number(self) -> None:
+        """Verify that violations include line numbers."""
+        content = """[project]
+name = "test"
+
+[tool.mypy]
+warn_unused_configs = true
+
+[tool.ruff]
+preview = true
+"""
+        with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(content)
+            f.flush()
+            path = Path(f.name)
+
+        try:
+            violations = validate_tool_section_order(path)
+            assert len(violations) > 0
+            # Line numbers should be present.
+            for v in violations:
+                assert v.line_number is not None
+                assert v.line_number > 0
+        finally:
+            path.unlink()
+
+    def test_violation_str_representation(self) -> None:
+        """Verify that violations have a readable string representation."""
+        content = """[project]
+name = "test"
+
+[tool.mypy]
+warn_unused_configs = true
+
+[tool.ruff]
+preview = true
+"""
+        with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(content)
+            f.flush()
+            path = Path(f.name)
+
+        try:
+            violations = validate_tool_section_order(path)
+            assert len(violations) > 0
+            for v in violations:
+                msg = str(v)
+                assert "[" in msg
+                assert "]" in msg
+                assert "should appear after" in msg
+        finally:
+            path.unlink()

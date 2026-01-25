@@ -71,6 +71,19 @@ class InitConfig:
     """Human-readable description for help text."""
 
 
+# Canonical ordering of [tool.*] sections in pyproject.toml.
+# This ordering is enforced by the `gha-utils config lint` command.
+TOOL_SECTION_ORDER: tuple[str, ...] = (
+    "tool.uv",
+    "tool.ruff",
+    "tool.pytest",
+    "tool.mypy",
+    "tool.nuitka",
+    "tool.bumpversion",
+    "tool.typos",
+)
+
+
 # Registry of all exportable files: maps filename to default output path.
 # None means stdout (for pyproject.toml templates that need merging).
 EXPORTABLE_FILES: dict[str, str | None] = {
@@ -97,18 +110,12 @@ EXPORTABLE_FILES: dict[str, str | None] = {
 }
 
 # Registry of configs that support `init` (merging into pyproject.toml).
+# The insert_after/insert_before values follow TOOL_SECTION_ORDER.
 INIT_CONFIGS: dict[str, InitConfig] = {
-    "mypy": InitConfig(
-        filename="mypy.toml",
-        tool_section="tool.mypy",
-        insert_after=("tool.uv",),
-        insert_before=("tool.ruff", "tool.pytest"),
-        description="Mypy type checking configuration",
-    ),
     "ruff": InitConfig(
         filename="ruff.toml",
         tool_section="tool.ruff",
-        insert_after=("tool.mypy", "tool.mypy.overrides"),
+        insert_after=("tool.uv", "tool.uv.build-backend"),
         insert_before=("tool.pytest",),
         description="Ruff linter/formatter configuration",
     ),
@@ -116,13 +123,20 @@ INIT_CONFIGS: dict[str, InitConfig] = {
         filename="pytest.toml",
         tool_section="tool.pytest",
         insert_after=("tool.ruff", "tool.ruff.format"),
-        insert_before=("tool.bumpversion",),
+        insert_before=("tool.mypy",),
         description="Pytest test configuration",
+    ),
+    "mypy": InitConfig(
+        filename="mypy.toml",
+        tool_section="tool.mypy",
+        insert_after=("tool.pytest",),
+        insert_before=("tool.nuitka", "tool.bumpversion"),
+        description="Mypy type checking configuration",
     ),
     "bumpversion": InitConfig(
         filename="bumpversion.toml",
         tool_section="tool.bumpversion",
-        insert_after=("tool.pytest",),
+        insert_after=("tool.nuitka", "tool.mypy"),
         insert_before=("tool.typos",),
         description="bump-my-version configuration",
     ),
@@ -311,6 +325,107 @@ def _find_insertion_point(content: str, config: InitConfig) -> int:
 
     # Strategy 3: Append at the end.
     return len(content)
+
+
+def _get_tool_section_name(section: str) -> str | None:
+    """Extract the base tool section name from a section header.
+
+    :param section: The full section name (e.g., "tool.ruff.lint").
+    :return: The base tool section (e.g., "tool.ruff"), or None if not a tool section.
+    """
+    if not section.startswith("tool."):
+        return None
+    parts = section.split(".")
+    if len(parts) >= 2:
+        return f"{parts[0]}.{parts[1]}"
+    return None
+
+
+@dataclass
+class ToolOrderViolation:
+    """Represents a tool section ordering violation."""
+
+    section: str
+    """The section that is out of order."""
+
+    expected_after: str
+    """The section it should appear after."""
+
+    line_number: int | None = None
+    """Line number where the section appears (1-indexed)."""
+
+    def __str__(self) -> str:
+        """Return a human-readable description of the violation."""
+        loc = f" (line {self.line_number})" if self.line_number else ""
+        return f"[{self.section}]{loc} should appear after [{self.expected_after}]"
+
+
+def validate_tool_section_order(
+    pyproject_path: Path | None = None,
+) -> list[ToolOrderViolation]:
+    """Validate that [tool.*] sections follow the canonical order.
+
+    Checks that tool sections in pyproject.toml appear in the order defined
+    by ``TOOL_SECTION_ORDER``. Only sections present in the file are checked.
+
+    :param pyproject_path: Path to pyproject.toml. Defaults to ``./pyproject.toml``.
+    :return: List of violations found, empty if order is correct.
+    """
+    if pyproject_path is None:
+        pyproject_path = Path("pyproject.toml")
+
+    if not pyproject_path.exists():
+        logging.error(f"File not found: {pyproject_path}")
+        return []
+
+    content = pyproject_path.read_text(encoding="UTF-8")
+
+    # Find all tool sections and their positions.
+    tool_section_pattern = re.compile(r"^\[+(tool\.[^\]]+)\]+", re.MULTILINE)
+
+    # Collect unique base tool sections in order of appearance.
+    seen_sections: list[tuple[str, int]] = []
+    for match in tool_section_pattern.finditer(content):
+        section_name = match.group(1)
+        base_section = _get_tool_section_name(section_name)
+        if base_section:
+            # Only track the first occurrence of each base section.
+            if not any(s[0] == base_section for s in seen_sections):
+                # Calculate line number.
+                line_number = content[: match.start()].count("\n") + 1
+                seen_sections.append((base_section, line_number))
+
+    # Build a map of section name to its position in TOOL_SECTION_ORDER.
+    order_map = {s: i for i, s in enumerate(TOOL_SECTION_ORDER)}
+
+    violations: list[ToolOrderViolation] = []
+
+    # Check ordering: for each section, verify it comes after all sections
+    # that should precede it according to TOOL_SECTION_ORDER.
+    for i, (section, line_num) in enumerate(seen_sections):
+        if section not in order_map:
+            # Section not in our canonical order, skip it.
+            continue
+
+        expected_order_index = order_map[section]
+
+        # Check all previous sections in the file.
+        for prev_section, _ in seen_sections[:i]:
+            if prev_section not in order_map:
+                continue
+            prev_order_index = order_map[prev_section]
+            # If a previous section in the file should come after this one,
+            # that's a violation.
+            if prev_order_index > expected_order_index:
+                violations.append(
+                    ToolOrderViolation(
+                        section=section,
+                        expected_after=prev_section,
+                        line_number=line_num,
+                    )
+                )
+
+    return violations
 
 
 # ---------------------------------------------------------------------------
