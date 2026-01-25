@@ -5,8 +5,10 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add unified `gha-utils config` command group with explicit `init` and `export` actions.
-- Merge `ruff_config` and `version_config` modules into unified `bundled_config` module.
+- Add unified `gha-utils config` command group with `init`, `export`, `labels`, and `workflows` subcommands.
+- Move `gha-utils labels` to `gha-utils config labels` subcommand.
+- Move `gha-utils workflows` to `gha-utils config workflows` subcommand.
+- Merge all configuration modules (`labels.py`, `workflows.py`) into unified `bundled_config` module.
 - Add bundled Ruff configuration template (`[tool.ruff]`). Closes #659.
 - Fix data files not being included in published package. Data files are now stored directly in `gha_utils/data/`.
 

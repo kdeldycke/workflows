@@ -14,32 +14,34 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Bundled configuration templates for pyproject.toml.
+"""Bundled data files and configuration templates.
 
-This module provides a unified interface for accessing and merging bundled
-configuration templates into ``pyproject.toml``. Each configuration type
-(ruff, bumpversion, etc.) follows the same pattern:
+This module provides a unified interface for accessing bundled data files
+from ``gha_utils/data/``, including:
 
-1. **Export**: Dump the raw template to stdout or a file for inspection.
-2. **Init**: Merge the template into ``pyproject.toml`` if the section doesn't exist.
+- **Configuration templates** for ``pyproject.toml`` (ruff, bumpversion)
+- **Label definitions** and labeller rules for GitHub
+- **Workflow templates** for GitHub Actions
 
-The templates are stored in ``gha_utils/data/`` as TOML files with ``[tool.X]``
-sections ready for direct insertion into ``pyproject.toml``.
+Configuration templates can be exported or merged into ``pyproject.toml``.
+Label and workflow files can be dumped for use in repositories.
 
 Supported configuration types:
 
 - ``ruff`` - Ruff linter/formatter configuration (``[tool.ruff]``)
 - ``bumpversion`` - bump-my-version configuration (``[tool.bumpversion]``)
 
-CLI usage::
+Label files:
 
-    # Export raw template
-    gha-utils config export ruff
-    gha-utils config export bumpversion
+- ``labels.toml`` - Label definitions for labelmaker
+- ``labeller-file-based.yaml`` - Rules for actions/labeler
+- ``labeller-content-based.yaml`` - Rules for github/issue-labeler
 
-    # Initialize/merge into pyproject.toml
-    gha-utils config init ruff pyproject.toml
-    gha-utils config init bumpversion pyproject.toml
+Workflow templates:
+
+- ``autofix.yaml``, ``autolock.yaml``, ``changelog.yaml``, ``debug.yaml``
+- ``docs.yaml``, ``labels.yaml``, ``lint.yaml``, ``release.yaml``
+- ``renovate.yaml``, ``tests.yaml``
 """
 
 from __future__ import annotations
@@ -99,6 +101,24 @@ CONFIG_TYPES: dict[str, ConfigType] = {
 }
 
 
+def get_data_content(filename: str) -> str:
+    """Get the content of a bundled data file.
+
+    This is the low-level function for reading any file from ``gha_utils/data/``.
+
+    :param filename: Name of the file to retrieve (e.g., "labels.toml").
+    :return: Content of the file as a string.
+    :raises FileNotFoundError: If the file doesn't exist.
+    """
+    data_files = files("gha_utils.data")
+    with as_file(data_files.joinpath(filename)) as path:
+        if path.exists():
+            return path.read_text(encoding="UTF-8")
+
+    msg = f"Data file not found: {filename}"
+    raise FileNotFoundError(msg)
+
+
 def get_config_content(config_type: str) -> str:
     """Get the content of a bundled configuration template.
 
@@ -113,9 +133,7 @@ def get_config_content(config_type: str) -> str:
         raise ValueError(msg)
 
     config = CONFIG_TYPES[config_type]
-    data_files = files("gha_utils.data")
-    with as_file(data_files.joinpath(config.filename)) as path:
-        return path.read_text(encoding="UTF-8")
+    return get_data_content(config.filename)
 
 
 def init_config(config_type: str, pyproject_path: Path | None = None) -> str | None:
@@ -243,3 +261,73 @@ def get_ruff_config_content() -> str:
     :return: Content of ruff.toml as a string.
     """
     return get_config_content("ruff")
+
+
+# ---------------------------------------------------------------------------
+# Label configuration files
+# ---------------------------------------------------------------------------
+
+
+def get_labels_content() -> str:
+    """Get the content of the labels.toml file.
+
+    :return: Content of labels.toml as a string.
+    """
+    return get_data_content("labels.toml")
+
+
+def get_file_labeller_rules() -> str:
+    """Get the content of the file-based labeller rules.
+
+    :return: Content of labeller-file-based.yaml as a string.
+    """
+    return get_data_content("labeller-file-based.yaml")
+
+
+def get_content_labeller_rules() -> str:
+    """Get the content of the content-based labeller rules.
+
+    :return: Content of labeller-content-based.yaml as a string.
+    """
+    return get_data_content("labeller-content-based.yaml")
+
+
+# ---------------------------------------------------------------------------
+# Workflow templates
+# ---------------------------------------------------------------------------
+
+# All available workflow templates.
+WORKFLOW_FILES = (
+    "autofix.yaml",
+    "autolock.yaml",
+    "changelog.yaml",
+    "debug.yaml",
+    "docs.yaml",
+    "labels.yaml",
+    "lint.yaml",
+    "release.yaml",
+    "renovate.yaml",
+    "tests.yaml",
+)
+
+
+def list_workflows() -> tuple[str, ...]:
+    """List all available workflow templates.
+
+    :return: Tuple of workflow filenames.
+    """
+    return WORKFLOW_FILES
+
+
+def get_workflow_content(filename: str) -> str:
+    """Get the content of a workflow template.
+
+    :param filename: Name of the workflow file (e.g., "release.yaml").
+    :return: Content of the workflow file as a string.
+    :raises FileNotFoundError: If the workflow doesn't exist.
+    """
+    if filename not in WORKFLOW_FILES:
+        msg = f"Unknown workflow: {filename}. Available: {', '.join(WORKFLOW_FILES)}"
+        raise FileNotFoundError(msg)
+
+    return get_data_content(filename)

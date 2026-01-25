@@ -43,10 +43,16 @@ from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
 from .changelog import Changelog
-from .labels import (
+from .bundled_config import (
+    CONFIG_TYPES,
+    WORKFLOW_FILES,
+    get_config_content,
     get_content_labeller_rules,
     get_file_labeller_rules,
     get_labels_content,
+    get_workflow_content,
+    init_config,
+    list_workflows,
 )
 from .mailmap import Mailmap
 from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
@@ -61,8 +67,6 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
-from .bundled_config import CONFIG_TYPES, get_config_content, init_config
-from .workflows import WORKFLOW_FILES, get_workflow_content, list_workflows
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -383,164 +387,24 @@ def version_check(part: str) -> None:
     echo("true" if allowed else "false")
 
 
-@gha_utils.command(short_help="Dump bundled label configuration files")
-@option(
-    "--labels/--no-labels",
-    default=False,
-    help="Dump label definitions (labels.toml).",
-)
-@option(
-    "--file-labeller/--no-file-labeller",
-    default=False,
-    help="Dump file-based labeller rules (labeller-file-based.yaml).",
-)
-@option(
-    "--content-labeller/--no-content-labeller",
-    default=False,
-    help="Dump content-based labeller rules (labeller-content-based.yaml).",
-)
-@argument(
-    "output_path",
-    type=file_path(writable=True, resolve_path=True, allow_dash=True),
-    default="-",
-)
-def labels(labels, file_labeller, content_labeller, output_path):
-    """Dump bundled label configuration files.
-
-    This command outputs label definitions and labeller rules that are bundled
-    with gha-utils. These files are versioned with the package, ensuring
-    consistent label management across releases.
-
-    By default, outputs to stdout. Specify an output path to write to a file.
-
-    \b
-    Examples:
-        # Dump label definitions to stdout
-        gha-utils labels --labels
-
-    \b
-        # Dump label definitions to a file
-        gha-utils labels --labels ./labels.toml
-
-    \b
-        # Dump file-based labeller rules
-        gha-utils labels --file-labeller ./labeller-file-based.yaml
-
-    \b
-        # Dump content-based labeller rules
-        gha-utils labels --content-labeller ./labeller-content-based.yaml
-    """
-    # Count how many options are selected.
-    selected = sum([labels, file_labeller, content_labeller])
-
-    if selected == 0:
-        logging.error(
-            "Must specify at least one of: --labels, --file-labeller, --content-labeller"
-        )
-        raise SystemExit(1)
-
-    if selected > 1:
-        logging.error("Can only dump one file type at a time.")
-        raise SystemExit(1)
-
-    if labels:
-        content = get_labels_content()
-    elif file_labeller:
-        content = get_file_labeller_rules()
-    else:
-        content = get_content_labeller_rules()
-
-    if is_stdout(output_path):
-        logging.info(f"Print to {sys.stdout.name}")
-    else:
-        logging.info(f"Write to {output_path}")
-
-    echo(content.rstrip(), file=prep_path(output_path))
-
-
-@gha_utils.command(short_help="Dump bundled workflow templates")
-@option(
-    "--list",
-    "list_only",
-    is_flag=True,
-    default=False,
-    help="List available workflow templates without dumping.",
-)
-@argument(
-    "workflow",
-    required=False,
-    type=Choice(WORKFLOW_FILES, case_sensitive=False),
-)
-@argument(
-    "output_path",
-    required=False,
-    type=file_path(writable=True, resolve_path=True, allow_dash=True),
-    default="-",
-)
-def workflows(list_only, workflow, output_path):
-    """Dump bundled GitHub Actions workflow templates.
-
-    This command outputs reusable workflow templates that are bundled with
-    gha-utils. These can be used to bootstrap new repositories or inspect
-    the workflow implementations.
-
-    By default, outputs to stdout. Specify an output path to write to a file.
-
-    \b
-    Examples:
-        # List available workflows
-        gha-utils workflows --list
-
-    \b
-        # Dump a workflow to stdout
-        gha-utils workflows release.yaml
-
-    \b
-        # Dump a workflow to a file
-        gha-utils workflows release.yaml ./.github/workflows/release.yaml
-
-    \b
-        # Dump tests workflow
-        gha-utils workflows tests.yaml ./.github/workflows/tests.yaml
-    """
-    if list_only:
-        echo("Available workflow templates:")
-        for wf in list_workflows():
-            echo(f"  {wf}")
-        return
-
-    if not workflow:
-        logging.error("Must specify a workflow name or use --list.")
-        echo(f"Available workflows: {', '.join(WORKFLOW_FILES)}")
-        raise SystemExit(1)
-
-    content = get_workflow_content(workflow)
-
-    if is_stdout(output_path):
-        logging.info(f"Print to {sys.stdout.name}")
-    else:
-        logging.info(f"Write to {output_path}")
-
-    echo(content.rstrip(), file=prep_path(output_path))
-
-
-@gha_utils.group(short_help="Manage bundled configuration templates")
+@gha_utils.group(short_help="Manage bundled configuration and templates")
 def config():
-    """Manage bundled configuration templates for pyproject.toml.
+    """Manage bundled configuration files and templates.
 
-    This command group provides tools to export and initialize bundled
-    configuration templates. Each template contains recommended settings
-    that can be merged into your project's pyproject.toml.
+    This command group provides access to all bundled configuration files:
+    pyproject.toml templates, label definitions, and workflow templates.
 
     \b
-    Supported configuration types:
+    Subcommands:
+        init      - Merge config into pyproject.toml if section doesn't exist
+        export    - Export raw pyproject.toml template to stdout or file
+        labels    - Export label definitions and labeller rules
+        workflows - Export GitHub Actions workflow templates
+
+    \b
+    Configuration types for init/export:
         ruff        - Ruff linter/formatter settings ([tool.ruff])
         bumpversion - bump-my-version settings ([tool.bumpversion])
-
-    \b
-    Actions:
-        init   - Merge config into pyproject.toml if section doesn't exist
-        export - Dump raw template to stdout or file
 
     \b
     Examples:
@@ -550,8 +414,14 @@ def config():
         # Export bumpversion template to stdout
         gha-utils config export bumpversion
 
-        # Preview what init would add (dry-run)
-        gha-utils config init ruff
+        # Export label definitions
+        gha-utils config labels --labels
+
+        # List available workflow templates
+        gha-utils config workflows --list
+
+        # Export a workflow template
+        gha-utils config workflows release.yaml
     """
 
 
@@ -641,6 +511,133 @@ def export(config_type, output_path):
         gha-utils config export bumpversion
     """
     content = get_config_content(config_type)
+
+    if is_stdout(output_path):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output_path}")
+
+    echo(content.rstrip(), file=prep_path(output_path))
+
+
+# Label file choices for the labels subcommand.
+LABEL_FILE_CHOICES = ("labels", "file-labeller", "content-labeller")
+
+
+@config.command(short_help="Export label definitions and labeller rules")
+@argument(
+    "label_type",
+    type=Choice(LABEL_FILE_CHOICES, case_sensitive=False),
+)
+@argument(
+    "output_path",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+)
+def labels(label_type, output_path):
+    """Export bundled label configuration files.
+
+    This command outputs label definitions and labeller rules that are bundled
+    with gha-utils. These files are versioned with the package, ensuring
+    consistent label management across releases.
+
+    \b
+    Available label types:
+        labels           - Label definitions (labels.toml)
+        file-labeller    - File-based labeller rules (labeller-file-based.yaml)
+        content-labeller - Content-based labeller rules (labeller-content-based.yaml)
+
+    By default, outputs to stdout. Specify an output path to write to a file.
+
+    \b
+    Examples:
+        # Export label definitions to stdout
+        gha-utils config labels labels
+
+    \b
+        # Export label definitions to a file
+        gha-utils config labels labels ./labels.toml
+
+    \b
+        # Export file-based labeller rules
+        gha-utils config labels file-labeller ./labeller-file-based.yaml
+
+    \b
+        # Export content-based labeller rules
+        gha-utils config labels content-labeller ./labeller-content-based.yaml
+    """
+    if label_type == "labels":
+        content = get_labels_content()
+    elif label_type == "file-labeller":
+        content = get_file_labeller_rules()
+    else:
+        content = get_content_labeller_rules()
+
+    if is_stdout(output_path):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output_path}")
+
+    echo(content.rstrip(), file=prep_path(output_path))
+
+
+@config.command(short_help="Export GitHub Actions workflow templates")
+@option(
+    "--list",
+    "list_only",
+    is_flag=True,
+    default=False,
+    help="List available workflow templates without dumping.",
+)
+@argument(
+    "workflow",
+    required=False,
+    type=Choice(WORKFLOW_FILES, case_sensitive=False),
+)
+@argument(
+    "output_path",
+    required=False,
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+)
+def workflows(list_only, workflow, output_path):
+    """Export bundled GitHub Actions workflow templates.
+
+    This command outputs reusable workflow templates that are bundled with
+    gha-utils. These can be used to bootstrap new repositories or inspect
+    the workflow implementations.
+
+    By default, outputs to stdout. Specify an output path to write to a file.
+
+    \b
+    Examples:
+        # List available workflows
+        gha-utils config workflows --list
+
+    \b
+        # Export a workflow to stdout
+        gha-utils config workflows release.yaml
+
+    \b
+        # Export a workflow to a file
+        gha-utils config workflows release.yaml ./.github/workflows/release.yaml
+
+    \b
+        # Export tests workflow
+        gha-utils config workflows tests.yaml ./.github/workflows/tests.yaml
+    """
+    if list_only:
+        echo("Available workflow templates:")
+        for wf in list_workflows():
+            echo(f"  {wf}")
+        return
+
+    if not workflow:
+        logging.error("Must specify a workflow name or use --list.")
+        echo(f"Available workflows: {', '.join(WORKFLOW_FILES)}")
+        raise SystemExit(1)
+
+    content = get_workflow_content(workflow)
 
     if is_stdout(output_path):
         logging.info(f"Print to {sys.stdout.name}")
