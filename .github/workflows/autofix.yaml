@@ -61,7 +61,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx 'gha-utils==5.3.1' metadata --output "$GITHUB_OUTPUT"
+          uvx 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
 
   format-python:
     name: Format Python
@@ -85,45 +85,19 @@ jobs:
       - name: Install Ruff
         run: |
           uv tool install 'ruff==0.14.13'
-      # --fix : Automatically fix issues that can be fixed.
-      # --unsafe-fixes : Include fixes that may not retain the original intent of the code.
-      #   See: https://docs.astral.sh/ruff/linter/#fix-safety
-      # --show-fixes : Enumerate all fixed violations.
-      # --preview : Enable preview mode; checks will include unstable rules and fixes.
-      #   See: https://astral.sh/blog/ruff-v0.1.0#introducing-preview-mode
-      # D400 : First line should end with a period.
-      #   Allows docstrings to end up with any punctuation, not just a period.
-      #   See: https://github.com/astral-sh/ruff/issues/1858#issuecomment-1382640623
-      # ERA001 : Found commented-out code.
-      #   Do not remove commented code, as it might be used for documentation.
-      #   See: https://docs.astral.sh/ruff/rules/#eradicate-era
+      - name: Initialize Ruff config
+        # Initialize [tool.ruff] in pyproject.toml if it doesn't exist.
+        # Projects with existing ruff config will keep their settings.
+        run: |
+          uvx 'gha-utils==5.4.0' config init ruff pyproject.toml
+      # XXX Ruff is planning to support linting and formatting in one unified command at one point.
+      #     See: https://github.com/astral-sh/ruff/issues/8232
       - name: Run Ruff check
-        run: >
-          ruff check
-          --fix
-          --unsafe-fixes
-          --show-fixes
-          --output-format github
-          --preview
-          --ignore D400,ERA001
+        run: |
+          ruff check --output-format github
       - name: Run Ruff format
-        # Additional configuration compared to the "ruff check" step above:
-        # future-annotations : Whether to allow rules to add from __future__ import annotations in cases where
-        #   this would simplify a fix or enable a new diagnostic.
-        #   https://docs.astral.sh/ruff/settings/#lint_future-annotations
-        # format.docstring-code-format : Enable reformatting of code snippets in docstrings.
-        #   https://docs.astral.sh/ruff/formatter/#docstring-formatting
-        # XXX Ruff is planning to support linting and formatting in one unified command at one point.
-        #     See: https://github.com/astral-sh/ruff/issues/8232
-        run: >
-          ruff format
-          --config "fix = true"
-          --config "unsafe-fixes = true"
-          --config "show-fixes = true"
-          --output-format github
-          --preview
-          --config "lint.future-annotations = true"
-          --config "format.docstring-code-format = true"
+        run: |
+          ruff format --output-format github
       - name: Run blacken-docs
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
         # https://github.com/adamchainz/blacken-docs/blob/79ef671/blacken_docs.py#L207-L211
@@ -393,7 +367,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Initialize bumpversion config
         run: |
-          uvx 'gha-utils==5.3.1' config init bumpversion pyproject.toml
+          uvx 'gha-utils==5.4.0' config init bumpversion pyproject.toml
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}

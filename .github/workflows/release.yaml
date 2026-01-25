@@ -103,7 +103,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: >
-          uvx 'gha-utils==5.3.1' metadata
+          uvx 'gha-utils==5.4.0' metadata
           ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
           --output "$GITHUB_OUTPUT"
 
@@ -291,7 +291,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run test plan for binary
         run: >
-          uvx 'gha-utils==5.3.1' test-plan
+          uvx 'gha-utils==5.4.0' test-plan
           ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) || '' }}
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
           --plan-file "${{ env.test-plan-file }}"

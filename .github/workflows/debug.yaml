@@ -20,7 +20,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx 'gha-utils==5.3.1' --verbosity DEBUG metadata --output "$GITHUB_OUTPUT"
+          uvx 'gha-utils==5.4.0' --verbosity DEBUG metadata --output "$GITHUB_OUTPUT"
       - name: Extend matrix with ubuntu-slim
         id: extend-matrix
         run: |
