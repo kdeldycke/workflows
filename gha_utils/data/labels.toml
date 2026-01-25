@@ -30,7 +30,6 @@ description = "Continuous integration, tests, automation and management of the p
 name = "📦 dependencies"
 color = "AAA666"
 description = "Dependencies changes"
-rename-from = ["dependencies", "python:uv", "github-actions"]
 
 [[profiles.default.labels]]
 name = "⚠️ stale dependency"
