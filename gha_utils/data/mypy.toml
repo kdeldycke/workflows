@@ -1,12 +1,9 @@
 # Mypy type checking configuration for Python projects.
 #
-# This configuration can be injected into pyproject.toml via:
-#   gha-utils config init mypy pyproject.toml
-#
-# Or exported as a standalone file:
-#   gha-utils config export mypy
+# Native format - can be used standalone as mypy.toml or .mypy.ini.
+# When merged into pyproject.toml via `gha-utils config init mypy`,
+# the [tool.mypy] prefix is added automatically.
 
-[tool.mypy]
 # Warn about unused '[mypy-*]' config sections.
 warn_unused_configs = true
 # Warn about casts that do nothing.

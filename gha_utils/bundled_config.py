@@ -181,11 +181,50 @@ def get_default_output_path(filename: str) -> str | None:
     return EXPORTABLE_FILES[filename]
 
 
+def _to_pyproject_format(template: str, tool_section: str) -> str:
+    """Transform native config format to pyproject.toml format.
+
+    Adds the [tool.X] prefix to all sections in the template.
+
+    :param template: The native format template content.
+    :param tool_section: The tool section name (e.g., "tool.ruff").
+    :return: The transformed content with [tool.X] prefixes.
+    """
+    lines = template.splitlines()
+    result = []
+    has_root_section = False
+
+    for line in lines:
+        # Match section headers: [section] or [[section]].
+        section_match = re.match(r"^(\[+)([^\]]+)(\]+)\s*$", line)
+        if section_match:
+            brackets_open = section_match.group(1)
+            section_name = section_match.group(2)
+            brackets_close = section_match.group(3)
+
+            # Transform section name to include tool prefix.
+            new_section = f"{tool_section}.{section_name}"
+            result.append(f"{brackets_open}{new_section}{brackets_close}")
+        else:
+            # Non-section line: check if we need to add root section first.
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#") and not has_root_section:
+                # First non-comment, non-empty line - add root section.
+                result.append(f"[{tool_section}]")
+                has_root_section = True
+            result.append(line)
+
+    return "\n".join(result)
+
+
 def init_config(config_type: str, pyproject_path: Path | None = None) -> str | None:
     """Initialize a configuration by merging it into pyproject.toml.
 
     Reads the pyproject.toml file, checks if the tool section already exists,
     and if not, inserts the bundled template at the appropriate location.
+
+    The template is stored in native format (without [tool.X] prefix) and is
+    transformed to pyproject.toml format during insertion.
 
     This function works with the file as text to preserve comments and formatting.
 
@@ -218,8 +257,9 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
         )
         return None
 
-    # Get the template content using the filename from the config.
-    template = export_content(config.filename)
+    # Get the template content and transform to pyproject.toml format.
+    native_template = export_content(config.filename)
+    template = _to_pyproject_format(native_template, config.tool_section)
 
     # Find insertion point using the config's preferences.
     insertion_index = _find_insertion_point(content, config)

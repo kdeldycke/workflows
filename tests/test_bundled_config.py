@@ -25,6 +25,8 @@ import pytest
 
 from gha_utils.bundled_config import (
     CONFIG_TYPES,
+    _to_pyproject_format,
+    export_content,
     get_config_content,
     init_config,
 )
@@ -40,7 +42,9 @@ class TestConfigRegistry:
 
     def test_supported_config_types(self) -> None:
         """Verify that expected config types are registered."""
+        assert "mypy" in CONFIG_TYPES
         assert "ruff" in CONFIG_TYPES
+        assert "pytest" in CONFIG_TYPES
         assert "bumpversion" in CONFIG_TYPES
 
     def test_config_type_has_required_fields(self) -> None:
@@ -51,69 +55,106 @@ class TestConfigRegistry:
             assert config.description
 
 
-class TestGetConfigContent:
-    """Tests for get_config_content function."""
+class TestExportContent:
+    """Tests for export_content function (native format)."""
 
     @pytest.mark.parametrize("config_type", list(CONFIG_TYPES.keys()))
     def test_returns_non_empty_string(self, config_type: str) -> None:
-        """Verify that get_config_content returns a non-empty string."""
-        content = get_config_content(config_type)
+        """Verify that export_content returns a non-empty string."""
+        config = CONFIG_TYPES[config_type]
+        content = export_content(config.filename)
         assert isinstance(content, str)
         assert len(content) > 0
 
     @pytest.mark.parametrize("config_type", list(CONFIG_TYPES.keys()))
     def test_returns_valid_toml(self, config_type: str) -> None:
         """Verify that the returned content is valid TOML."""
-        content = get_config_content(config_type)
+        config = CONFIG_TYPES[config_type]
+        content = export_content(config.filename)
         parsed = tomllib.loads(content)
         assert isinstance(parsed, dict)
 
     @pytest.mark.parametrize("config_type", list(CONFIG_TYPES.keys()))
-    def test_has_tool_section(self, config_type: str) -> None:
-        """Verify that the config has the expected [tool.X] section."""
-        content = get_config_content(config_type)
-        parsed = tomllib.loads(content)
+    def test_native_format_no_tool_prefix(self, config_type: str) -> None:
+        """Verify that native format does not have [tool.X] prefix."""
         config = CONFIG_TYPES[config_type]
+        content = export_content(config.filename)
+        parsed = tomllib.loads(content)
+        # Native format should NOT have a "tool" key at the root.
+        assert "tool" not in parsed
+
+    def test_unknown_file_raises_error(self) -> None:
+        """Verify that an unknown file raises ValueError."""
+        with pytest.raises(ValueError, match="Unknown file"):
+            export_content("nonexistent.toml")
+
+
+class TestToPyprojectFormat:
+    """Tests for the _to_pyproject_format transformation."""
+
+    def test_adds_root_section(self) -> None:
+        """Verify that root section is added before first key."""
+        native = "key = true\n"
+        result = _to_pyproject_format(native, "tool.mypy")
+        assert "[tool.mypy]" in result
+        assert result.index("[tool.mypy]") < result.index("key = true")
+
+    def test_transforms_subsections(self) -> None:
+        """Verify that subsections get the tool prefix."""
+        native = "[lint]\nrule = true\n"
+        result = _to_pyproject_format(native, "tool.ruff")
+        assert "[tool.ruff.lint]" in result
+
+    def test_transforms_array_sections(self) -> None:
+        """Verify that array sections get the tool prefix."""
+        native = "[[files]]\nfilename = 'test.py'\n"
+        result = _to_pyproject_format(native, "tool.bumpversion")
+        assert "[[tool.bumpversion.files]]" in result
+
+    def test_preserves_comments(self) -> None:
+        """Verify that comments are preserved."""
+        native = "# This is a comment\nkey = true\n"
+        result = _to_pyproject_format(native, "tool.mypy")
+        assert "# This is a comment" in result
+
+    def test_full_ruff_transform(self) -> None:
+        """Verify full transformation of ruff config."""
+        native = export_content("ruff.toml")
+        result = _to_pyproject_format(native, "tool.ruff")
+        parsed = tomllib.loads(result)
 
         assert "tool" in parsed
-        # Extract the tool name from "tool.ruff" -> "ruff".
-        tool_name = config.tool_section.split(".", 1)[1]
-        assert tool_name in parsed["tool"]
-
-    def test_unknown_config_type_raises_error(self) -> None:
-        """Verify that an unknown config type raises ValueError."""
-        with pytest.raises(ValueError, match="Unknown file"):
-            get_config_content("nonexistent")
+        assert "ruff" in parsed["tool"]
+        assert parsed["tool"]["ruff"].get("preview") is True
+        assert "lint" in parsed["tool"]["ruff"]
+        assert "format" in parsed["tool"]["ruff"]
 
 
 class TestRuffConfig:
-    """Tests specific to the Ruff configuration."""
+    """Tests specific to the Ruff configuration (native format)."""
 
     def test_has_preview_enabled(self) -> None:
         """Verify that preview mode is enabled."""
-        content = get_config_content("ruff")
+        content = export_content("ruff.toml")
         parsed = tomllib.loads(content)
-        ruff = parsed["tool"]["ruff"]
-        assert ruff.get("preview") is True
+        assert parsed.get("preview") is True
 
     def test_has_fix_settings(self) -> None:
         """Verify that fix settings are configured."""
-        content = get_config_content("ruff")
+        content = export_content("ruff.toml")
         parsed = tomllib.loads(content)
-        ruff = parsed["tool"]["ruff"]
 
-        assert ruff.get("fix") is True
-        assert ruff.get("unsafe-fixes") is True
-        assert ruff.get("show-fixes") is True
+        assert parsed.get("fix") is True
+        assert parsed.get("unsafe-fixes") is True
+        assert parsed.get("show-fixes") is True
 
     def test_has_lint_section(self) -> None:
         """Verify that the lint section exists with expected settings."""
-        content = get_config_content("ruff")
+        content = export_content("ruff.toml")
         parsed = tomllib.loads(content)
-        ruff = parsed["tool"]["ruff"]
 
-        assert "lint" in ruff
-        lint = ruff["lint"]
+        assert "lint" in parsed
+        lint = parsed["lint"]
         assert lint.get("future-annotations") is True
         assert "ignore" in lint
         assert isinstance(lint["ignore"], list)
@@ -121,23 +162,22 @@ class TestRuffConfig:
     @pytest.mark.parametrize("expected_ignore", ["D400", "ERA001"])
     def test_has_expected_ignore_rules(self, expected_ignore: str) -> None:
         """Verify that expected rules are in the ignore list."""
-        content = get_config_content("ruff")
+        content = export_content("ruff.toml")
         parsed = tomllib.loads(content)
-        ignore = parsed["tool"]["ruff"]["lint"]["ignore"]
+        ignore = parsed["lint"]["ignore"]
         assert expected_ignore in ignore
 
     def test_has_format_section(self) -> None:
         """Verify that the format section exists with docstring formatting enabled."""
-        content = get_config_content("ruff")
+        content = export_content("ruff.toml")
         parsed = tomllib.loads(content)
-        ruff = parsed["tool"]["ruff"]
 
-        assert "format" in ruff
-        assert ruff["format"].get("docstring-code-format") is True
+        assert "format" in parsed
+        assert parsed["format"].get("docstring-code-format") is True
 
 
 class TestMypyConfig:
-    """Tests specific to the mypy configuration."""
+    """Tests specific to the mypy configuration (native format)."""
 
     @pytest.mark.parametrize(
         "setting",
@@ -152,25 +192,23 @@ class TestMypyConfig:
     )
     def test_has_expected_settings(self, setting: str) -> None:
         """Verify that expected settings are present."""
-        content = get_config_content("mypy")
+        content = export_content("mypy.toml")
         parsed = tomllib.loads(content)
-        mypy = parsed["tool"]["mypy"]
-        assert setting in mypy
-        assert mypy[setting] is True
+        assert setting in parsed
+        assert parsed[setting] is True
 
 
 class TestPytestConfig:
-    """Tests specific to the pytest configuration."""
+    """Tests specific to the pytest configuration (native format)."""
 
     def test_has_addopts(self) -> None:
         """Verify that addopts list is present."""
-        content = get_config_content("pytest")
+        content = export_content("pytest.toml")
         parsed = tomllib.loads(content)
-        pytest_config = parsed["tool"]["pytest"]
 
-        assert "addopts" in pytest_config
-        assert isinstance(pytest_config["addopts"], list)
-        assert len(pytest_config["addopts"]) > 0
+        assert "addopts" in parsed
+        assert isinstance(parsed["addopts"], list)
+        assert len(parsed["addopts"]) > 0
 
     @pytest.mark.parametrize(
         "expected_opt",
@@ -184,41 +222,38 @@ class TestPytestConfig:
     )
     def test_has_expected_addopts(self, expected_opt: str) -> None:
         """Verify that expected options are in addopts."""
-        content = get_config_content("pytest")
+        content = export_content("pytest.toml")
         parsed = tomllib.loads(content)
-        addopts = parsed["tool"]["pytest"]["addopts"]
+        addopts = parsed["addopts"]
         assert expected_opt in addopts
 
     def test_has_xfail_strict(self) -> None:
         """Verify that xfail_strict is enabled."""
-        content = get_config_content("pytest")
+        content = export_content("pytest.toml")
         parsed = tomllib.loads(content)
-        pytest_config = parsed["tool"]["pytest"]
-        assert pytest_config.get("xfail_strict") is True
+        assert parsed.get("xfail_strict") is True
 
 
 class TestBumpversionConfig:
-    """Tests specific to the bumpversion configuration."""
+    """Tests specific to the bumpversion configuration (native format)."""
 
     def test_has_required_settings(self) -> None:
         """Verify that the configuration has required bumpversion settings."""
-        content = get_config_content("bumpversion")
+        content = export_content("bumpversion.toml")
         parsed = tomllib.loads(content)
-        bumpversion = parsed["tool"]["bumpversion"]
 
-        assert "current_version" in bumpversion
-        assert "allow_dirty" in bumpversion
-        assert "ignore_missing_files" in bumpversion
+        assert "current_version" in parsed
+        assert "allow_dirty" in parsed
+        assert "ignore_missing_files" in parsed
 
     def test_has_files_section(self) -> None:
         """Verify that the configuration has file patterns defined."""
-        content = get_config_content("bumpversion")
+        content = export_content("bumpversion.toml")
         parsed = tomllib.loads(content)
-        bumpversion = parsed["tool"]["bumpversion"]
 
-        assert "files" in bumpversion
-        assert isinstance(bumpversion["files"], list)
-        assert len(bumpversion["files"]) > 0
+        assert "files" in parsed
+        assert isinstance(parsed["files"], list)
+        assert len(parsed["files"]) > 0
 
 
 class TestInitConfig:
@@ -236,6 +271,24 @@ class TestInitConfig:
             assert result is not None
             assert "[tool.ruff]" in result
             assert "preview = true" in result
+            # Verify subsections are transformed.
+            assert "[tool.ruff.lint]" in result
+            assert "[tool.ruff.format]" in result
+        finally:
+            path.unlink()
+
+    def test_adds_bumpversion_with_array_sections(self) -> None:
+        """Verify that bumpversion [[files]] sections are transformed."""
+        with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write('[project]\nname = "test"\n')
+            f.flush()
+            path = Path(f.name)
+
+        try:
+            result = init_config("bumpversion", path)
+            assert result is not None
+            assert "[tool.bumpversion]" in result
+            assert "[[tool.bumpversion.files]]" in result
         finally:
             path.unlink()
 
@@ -261,11 +314,11 @@ class TestInitConfig:
             path = Path(f.name)
 
         try:
-            result = init_config("bumpversion", path)
+            result = init_config("mypy", path)
             assert result is not None
             assert 'name = "test"' in result
             assert 'version = "1.0.0"' in result
-            assert "[tool.bumpversion]" in result
+            assert "[tool.mypy]" in result
         finally:
             path.unlink()
 
@@ -273,3 +326,13 @@ class TestInitConfig:
         """Verify that an unknown config type raises ValueError."""
         with pytest.raises(ValueError, match="Unknown config type"):
             init_config("nonexistent", Path("pyproject.toml"))
+
+
+class TestBackwardsCompatibility:
+    """Tests for backwards compatibility aliases."""
+
+    def test_get_config_content_alias(self) -> None:
+        """Verify get_config_content works as alias."""
+        content = get_config_content("ruff")
+        assert isinstance(content, str)
+        assert len(content) > 0

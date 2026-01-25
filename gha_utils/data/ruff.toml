@@ -1,18 +1,15 @@
-# Base Ruff configuration for Python projects using gha-utils workflows.
+# Ruff linter/formatter configuration for Python projects.
 #
-# This configuration can be injected into pyproject.toml via:
-#   gha-utils config init ruff pyproject.toml
-#
-# Or exported as a standalone file:
-#   gha-utils config export ruff .ruff.toml
+# Native format - can be used standalone as ruff.toml or .ruff.toml.
+# When merged into pyproject.toml via `gha-utils config init ruff`,
+# the [tool.ruff] prefix is added automatically.
 
-[tool.ruff]
 preview = true
 fix = true
 unsafe-fixes = true
 show-fixes = true
 
-[tool.ruff.lint]
+[lint]
 # Allow rules to add `from __future__ import annotations` in cases where
 # this would simplify a fix or enable a new diagnostic.
 # https://docs.astral.sh/ruff/settings/#lint_future-annotations
@@ -26,7 +23,7 @@ future-annotations = true
 #   See: https://docs.astral.sh/ruff/rules/#eradicate-era
 ignore = ["D400", "ERA001"]
 
-[tool.ruff.format]
+[format]
 # Enable reformatting of code snippets in docstrings.
 # https://docs.astral.sh/ruff/formatter/#docstring-formatting
 docstring-code-format = true

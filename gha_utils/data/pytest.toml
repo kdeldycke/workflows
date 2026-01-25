@@ -1,14 +1,11 @@
 # Pytest configuration for Python projects.
 #
-# This configuration can be injected into pyproject.toml via:
-#   gha-utils config init pytest pyproject.toml
-#
-# Or exported as a standalone file:
-#   gha-utils config export pytest
+# Native format - can be used standalone as pytest.ini.
+# When merged into pyproject.toml via `gha-utils config init pytest`,
+# the [tool.pytest] prefix is added automatically.
 #
 # Note: You should customize --cov=<package_name> to match your project.
 
-[tool.pytest]
 # https://docs.pytest.org/en/latest/customize.html#pyproject-toml
 addopts = [
     # Show the N slowest tests.
