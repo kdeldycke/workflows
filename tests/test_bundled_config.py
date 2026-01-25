@@ -137,6 +137,67 @@ class TestRuffConfig:
         assert ruff["format"].get("docstring-code-format") is True
 
 
+class TestMypyConfig:
+    """Tests specific to the mypy configuration."""
+
+    @pytest.mark.parametrize(
+        "setting",
+        [
+            "warn_unused_configs",
+            "warn_redundant_casts",
+            "warn_unused_ignores",
+            "warn_return_any",
+            "warn_unreachable",
+            "pretty",
+        ],
+    )
+    def test_has_expected_settings(self, setting: str) -> None:
+        """Verify that expected settings are present."""
+        content = get_config_content("mypy")
+        parsed = tomllib.loads(content)
+        mypy = parsed["tool"]["mypy"]
+        assert setting in mypy
+        assert mypy[setting] is True
+
+
+class TestPytestConfig:
+    """Tests specific to the pytest configuration."""
+
+    def test_has_addopts(self) -> None:
+        """Verify that addopts list is present."""
+        content = get_config_content("pytest")
+        parsed = tomllib.loads(content)
+        pytest_config = parsed["tool"]["pytest"]
+
+        assert "addopts" in pytest_config
+        assert isinstance(pytest_config["addopts"], list)
+        assert len(pytest_config["addopts"]) > 0
+
+    @pytest.mark.parametrize(
+        "expected_opt",
+        [
+            "--durations=10",
+            "--cov-branch",
+            "--cov-report=term",
+            "--cov-report=xml",
+            "--junitxml=junit.xml",
+        ],
+    )
+    def test_has_expected_addopts(self, expected_opt: str) -> None:
+        """Verify that expected options are in addopts."""
+        content = get_config_content("pytest")
+        parsed = tomllib.loads(content)
+        addopts = parsed["tool"]["pytest"]["addopts"]
+        assert expected_opt in addopts
+
+    def test_has_xfail_strict(self) -> None:
+        """Verify that xfail_strict is enabled."""
+        content = get_config_content("pytest")
+        parsed = tomllib.loads(content)
+        pytest_config = parsed["tool"]["pytest"]
+        assert pytest_config.get("xfail_strict") is True
+
+
 class TestBumpversionConfig:
     """Tests specific to the bumpversion configuration."""
 

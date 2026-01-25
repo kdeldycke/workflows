@@ -17,31 +17,25 @@
 """Bundled data files and configuration templates.
 
 This module provides a unified interface for accessing bundled data files
-from ``gha_utils/data/``, including:
+from ``gha_utils/data/``. All files can be exported via ``gha-utils config export``.
 
-- **Configuration templates** for ``pyproject.toml`` (ruff, bumpversion)
-- **Label definitions** and labeller rules for GitHub
-- **Workflow templates** for GitHub Actions
+Exportable files (``gha-utils config export <type>``):
 
-Configuration templates can be exported or merged into ``pyproject.toml``.
-Label and workflow files can be dumped for use in repositories.
+- ``ruff`` - Ruff linter/formatter configuration
+- ``bumpversion`` - bump-my-version configuration
+- ``labels`` - Label definitions for labelmaker
+- ``labeller-file-based`` - Rules for actions/labeler
+- ``labeller-content-based`` - Rules for github/issue-labeler
+- ``autofix.yaml``, ``autolock.yaml``, ``changelog.yaml``, ``debug.yaml``,
+  ``docs.yaml``, ``labels.yaml``, ``lint.yaml``, ``release.yaml``,
+  ``renovate.yaml``, ``tests.yaml`` - GitHub Actions workflow templates
 
-Supported configuration types:
+Initializable configs (``gha-utils config init <type>``):
 
-- ``ruff`` - Ruff linter/formatter configuration (``[tool.ruff]``)
-- ``bumpversion`` - bump-my-version configuration (``[tool.bumpversion]``)
+Only pyproject.toml-mergeable configs support ``init``:
 
-Label files:
-
-- ``labels.toml`` - Label definitions for labelmaker
-- ``labeller-file-based.yaml`` - Rules for actions/labeler
-- ``labeller-content-based.yaml`` - Rules for github/issue-labeler
-
-Workflow templates:
-
-- ``autofix.yaml``, ``autolock.yaml``, ``changelog.yaml``, ``debug.yaml``
-- ``docs.yaml``, ``labels.yaml``, ``lint.yaml``, ``release.yaml``
-- ``renovate.yaml``, ``tests.yaml``
+- ``ruff`` - Merges ``[tool.ruff]`` section
+- ``bumpversion`` - Merges ``[tool.bumpversion]`` section
 """
 
 from __future__ import annotations
@@ -58,11 +52,8 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class ConfigType:
-    """Metadata for a bundled configuration type."""
-
-    name: str
-    """Short identifier used in CLI commands."""
+class InitConfig:
+    """Metadata for configs that can be merged into pyproject.toml."""
 
     filename: str
     """Filename in gha_utils/data/ directory."""
@@ -80,18 +71,38 @@ class ConfigType:
     """Human-readable description for help text."""
 
 
-# Registry of supported configuration types.
-CONFIG_TYPES: dict[str, ConfigType] = {
-    "ruff": ConfigType(
-        name="ruff",
+# Registry of all exportable files: maps CLI type ID to filename.
+EXPORTABLE_FILES: dict[str, str] = {
+    # pyproject.toml config templates.
+    "ruff": "ruff.toml",
+    "bumpversion": "bumpversion.toml",
+    # Label configuration files.
+    "labels": "labels.toml",
+    "labeller-file-based": "labeller-file-based.yaml",
+    "labeller-content-based": "labeller-content-based.yaml",
+    # Workflow templates (use filename as ID).
+    "autofix.yaml": "autofix.yaml",
+    "autolock.yaml": "autolock.yaml",
+    "changelog.yaml": "changelog.yaml",
+    "debug.yaml": "debug.yaml",
+    "docs.yaml": "docs.yaml",
+    "labels.yaml": "labels.yaml",
+    "lint.yaml": "lint.yaml",
+    "release.yaml": "release.yaml",
+    "renovate.yaml": "renovate.yaml",
+    "tests.yaml": "tests.yaml",
+}
+
+# Registry of configs that support `init` (merging into pyproject.toml).
+INIT_CONFIGS: dict[str, InitConfig] = {
+    "ruff": InitConfig(
         filename="ruff.toml",
         tool_section="tool.ruff",
         insert_after=("tool.mypy", "tool.mypy.overrides"),
         insert_before=("tool.pytest",),
         description="Ruff linter/formatter configuration",
     ),
-    "bumpversion": ConfigType(
-        name="bumpversion",
+    "bumpversion": InitConfig(
         filename="bumpversion.toml",
         tool_section="tool.bumpversion",
         insert_after=("tool.pytest",),
@@ -99,6 +110,9 @@ CONFIG_TYPES: dict[str, ConfigType] = {
         description="bump-my-version configuration",
     ),
 }
+
+# Backwards compatibility alias.
+CONFIG_TYPES = INIT_CONFIGS
 
 
 def get_data_content(filename: str) -> str:
@@ -119,21 +133,35 @@ def get_data_content(filename: str) -> str:
     raise FileNotFoundError(msg)
 
 
+def export_content(file_type: str) -> str:
+    """Get the content of any exportable bundled file.
+
+    :param file_type: The file type ID (e.g., "ruff", "labels", "release.yaml").
+    :return: Content of the file as a string.
+    :raises ValueError: If the file type is not supported.
+    :raises FileNotFoundError: If the file doesn't exist.
+    """
+    if file_type not in EXPORTABLE_FILES:
+        supported = ", ".join(EXPORTABLE_FILES.keys())
+        msg = f"Unknown file type: {file_type!r}. Supported: {supported}"
+        raise ValueError(msg)
+
+    filename = EXPORTABLE_FILES[file_type]
+    return get_data_content(filename)
+
+
 def get_config_content(config_type: str) -> str:
     """Get the content of a bundled configuration template.
+
+    .. deprecated::
+        Use ``export_content(config_type)`` instead.
 
     :param config_type: The configuration type (e.g., "ruff", "bumpversion").
     :return: Content of the template as a string.
     :raises ValueError: If the config type is not supported.
     :raises FileNotFoundError: If the template file doesn't exist.
     """
-    if config_type not in CONFIG_TYPES:
-        supported = ", ".join(CONFIG_TYPES.keys())
-        msg = f"Unknown config type: {config_type!r}. Supported: {supported}"
-        raise ValueError(msg)
-
-    config = CONFIG_TYPES[config_type]
-    return get_data_content(config.filename)
+    return export_content(config_type)
 
 
 def init_config(config_type: str, pyproject_path: Path | None = None) -> str | None:

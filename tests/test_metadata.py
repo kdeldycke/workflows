@@ -272,6 +272,8 @@ expected = {
     "toml_files": [
         "gha_utils/data/bumpversion.toml",
         "gha_utils/data/labels.toml",
+        "gha_utils/data/mypy.toml",
+        "gha_utils/data/pytest.toml",
         "gha_utils/data/ruff.toml",
         "lychee.toml",
         "pyproject.toml",

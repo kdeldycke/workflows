@@ -1,0 +1,21 @@
+# Mypy type checking configuration for Python projects.
+#
+# This configuration can be injected into pyproject.toml via:
+#   gha-utils config init mypy pyproject.toml
+#
+# Or exported as a standalone file:
+#   gha-utils config export mypy
+
+[tool.mypy]
+# Warn about unused '[mypy-*]' config sections.
+warn_unused_configs = true
+# Warn about casts that do nothing.
+warn_redundant_casts = true
+# Warn about '# type: ignore' comments that are not needed.
+warn_unused_ignores = true
+# Warn about returning Any from functions with non-Any return type.
+warn_return_any = true
+# Warn about unreachable code.
+warn_unreachable = true
+# Use visually nicer output in error messages.
+pretty = true
