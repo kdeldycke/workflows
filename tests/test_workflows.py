@@ -243,18 +243,39 @@ def test_release_commit_prefix_in_changelog_workflow() -> None:
     )
 
 
-def test_release_commit_prefix_in_version_increments_skip() -> None:
-    """Verify that version-increments job skips release commits correctly."""
+def test_version_increments_skips_push_events() -> None:
+    """Verify that version-increments job indirectly skips release commits.
+
+    Release commits come from push events. The version-increments job depends on
+    project-metadata, which only runs for schedule, workflow_dispatch, or
+    workflow_run events. This ensures version-increments never runs for push events
+    (including release commits) without needing a job-level if condition.
+    """
     workflow = load_workflow("changelog.yaml")
-
     jobs = workflow.get("jobs", {})
-    version_increments = jobs.get("version-increments", {})
-    condition = version_increments.get("if", "")
 
-    # The job should skip release commits.
-    assert RELEASE_COMMIT_PREFIX in condition, (
-        f"version-increments job must skip commits starting with "
-        f"'{RELEASE_COMMIT_PREFIX}'. Found condition: {condition}"
+    # Verify version-increments depends on project-metadata.
+    version_increments = jobs.get("version-increments", {})
+    needs = version_increments.get("needs", [])
+    assert "project-metadata" in needs, (
+        "version-increments job must depend on project-metadata"
+    )
+
+    # Verify project-metadata excludes push events (the event type for release commits).
+    project_metadata = jobs.get("project-metadata", {})
+    condition = project_metadata.get("if", "")
+    assert "push" not in condition.lower(), (
+        "project-metadata should not run on push events"
+    )
+    # Verify it runs on expected events.
+    assert "schedule" in condition, (
+        "project-metadata should run on schedule events"
+    )
+    assert "workflow_dispatch" in condition, (
+        "project-metadata should run on workflow_dispatch events"
+    )
+    assert "workflow_run" in condition, (
+        "project-metadata should run on workflow_run events"
     )
 
 

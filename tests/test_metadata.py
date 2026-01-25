@@ -104,6 +104,17 @@ class AnyBoolString:
     """
 
 
+class AnyLengthList:
+    """Matcher for lists where each item matches a pattern, regardless of length.
+
+    Used for matrix fields like ``commit`` where the number of commits can vary
+    depending on how many are pushed together.
+    """
+
+    def __init__(self, item_pattern: re.Pattern) -> None:
+        self.item_pattern = item_pattern
+
+
 class OptionalMatrix:
     """Matcher for values that can be None or a matrix dict with commit data.
 
@@ -165,6 +176,18 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert metadata in ("true", "false"), (
             f"{metadata!r} should be 'true' or 'false' in {context!r}"
         )
+
+    elif isinstance(expected, AnyLengthList):
+        # Accept a list of any length where each item matches the pattern.
+        assert isinstance(metadata, list), (
+            f"{metadata!r} should be a list in {context!r}"
+        )
+        assert len(metadata) >= 1, f"list should have at least one item in {context!r}"
+        for item in metadata:
+            assert isinstance(item, str), f"{item!r} should be a string in {context!r}"
+            assert re.fullmatch(expected.item_pattern, item) is not None, (
+                f"{item!r} does not match {expected.item_pattern.pattern!r} in {context!r}"
+            )
 
     elif isinstance(expected, OptionalMatrix):
         # Allow None or a matrix dict with commit data.
@@ -387,7 +410,7 @@ expected = {
             "windows-2025",
         ],
         "entry_point": ["gha-utils"],
-        "commit": [regex(r"[a-z0-9]+")],
+        "commit": AnyLengthList(regex(r"[a-z0-9]+")),
         "include": [
             {
                 "target": "linux-arm64",
