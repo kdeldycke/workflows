@@ -469,28 +469,12 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 
 ### Pinning mechanisms
 
-| Mechanism                         | What it pins                  | How it's updated  |
-| :-------------------------------- | :---------------------------- | :---------------- |
-| `[project.optional-dependencies]` | Python CLIs used in workflows | Renovate PRs      |
-| `uv.lock`                         | Project dependencies          | Renovate PRs      |
-| Hard-coded versions in YAML       | GitHub Actions, npm packages  | Renovate PRs      |
-| `uv --exclude-newer` option       | Transitive dependencies       | Time-based window |
-| Tagged workflow URLs              | Remote workflow references    | Release process   |
-
-### Optional dependencies (extras)
-
-Python CLIs used in workflows are pinned as [optional dependencies](https://packaging.python.org/en/latest/specifications/pyproject-toml/#dependencies-optional-dependencies) in `pyproject.toml`. This allows:
-
-- Renovate to track and update each tool independently via the `pep621` manager
-- Consumers to install pinned tool versions via `uvx --from 'gha-utils[extra]'`
-- The package to be published to PyPI with all extras available
-
-```yaml
-# Workflows use gha-utils extras to install pinned tool versions:
-  - run: uvx --from 'gha-utils[yamllint]' -- yamllint --version
-```
-
-During development, workflows use unversioned extras (e.g., `gha-utils[yamllint]`). The release process pins them to the release version (e.g., `gha-utils[yamllint]==4.26.0`).
+| Mechanism                   | What it pins                 | How it's updated  |
+| :-------------------------- | :--------------------------- | :---------------- |
+| `uv.lock`                   | Project dependencies         | Renovate PRs      |
+| Hard-coded versions in YAML | GitHub Actions, npm, Python  | Renovate PRs      |
+| `uv --exclude-newer` option | Transitive dependencies      | Time-based window |
+| Tagged workflow URLs        | Remote workflow references   | Release process   |
 
 ### Hard-coded versions in workflows
 
@@ -518,26 +502,13 @@ The `uv.lock` file pins all project dependencies, and Renovate keeps it in sync.
 
 The `--exclude-newer` flag ignores packages released in the last 7 days, providing a buffer against freshly-published broken releases.
 
-### Tagged workflow URLs and versioned extras
+### Tagged workflow URLs
 
-Workflows in this repository are **self-referential**. The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job rewrites references to pin them to the release version:
-
-```yaml
-# Before release commit (development):
-uvx --from 'gha-utils[yamllint]' -- yamllint
-
-# In the tagged release commit:
-uvx --from 'gha-utils[yamllint]==4.26.0' -- yamllint
-
-# After post-release bump (back to development):
-uvx --from 'gha-utils[yamllint]' -- yamllint
-```
-
-This ensures released versions reference immutable, versioned packages while `main` remains editable.
+Workflows in this repository are **self-referential**. The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job rewrites workflow URL references from `main` to the release tag, ensuring released versions reference immutable URLs.
 
 ## Permissions and token
 
-As [explained above](#tagged-workflow-urls-and-versioned-extras), this repository updates itself via GitHub actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
+As [explained above](#tagged-workflow-urls), this repository updates itself via GitHub actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
 
 ### Why `permissions:` isn't enough
 
