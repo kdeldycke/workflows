@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.4.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.3.1...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.4.0 (2026-01-25)](https://github.com/kdeldycke/workflows/compare/v5.3.1...v5.4.0)
 
 - Add unified `gha-utils config` command group with `init`, `export`, `labels`, and `workflows` subcommands.
 - Move `gha-utils labels` to `gha-utils config labels` subcommand.
