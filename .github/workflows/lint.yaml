@@ -160,11 +160,11 @@ jobs:
       - name: Install problem matcher
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
         run: >
-          curl -fsSL --output ./.github/labeller-file-based.yaml
+          curl -fsSL --output ./.github/actionlint-matcher.json
           https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.10/.github/actionlint-matcher.json
       - name: Register problem matcher
         run: |
-          echo "::add-matcher::.github/labeller-file-based.yaml"
+          echo "::add-matcher::.github/actionlint-matcher.json"
       - name: Run actionlint
         # XXX actionlint triggers this error:
         # .github/workflows/release.yaml:306:22: property "workflow_update_github_pat" is not defined in object type
