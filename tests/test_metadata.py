@@ -143,6 +143,56 @@ class OptionalMatrixOrEmptyString:
     """
 
 
+class OptionalVersionString:
+    """Matcher for values that can be None or a version string.
+
+    Used for ``released_version`` which is ``None`` during development but contains
+    a version string like ``"5.5.0"`` on release branches.
+    """
+
+    def __init__(self, version_pattern: re.Pattern) -> None:
+        self.version_pattern = version_pattern
+
+
+class OptionalVersionOrEmptyString:
+    """Matcher for GitHub format values that can be empty string or a version string.
+
+    GitHub Actions format converts None to empty string. On release branches,
+    the value is a version string.
+    """
+
+    def __init__(self, version_pattern: re.Pattern) -> None:
+        self.version_pattern = version_pattern
+
+
+class AnyReleaseNotes:
+    """Matcher for release notes that vary based on development vs release state.
+
+    During development, release notes contain a warning that the version is not
+    released yet. On release branches, the notes contain actual release content.
+    """
+
+    def __init__(
+        self, dev_pattern: re.Pattern, release_pattern: re.Pattern
+    ) -> None:
+        self.dev_pattern = dev_pattern
+        self.release_pattern = release_pattern
+
+
+class AnyReleaseNotesOrEmptyString:
+    """Matcher for GitHub format release notes.
+
+    Can be empty string (when no version), or match either development or release
+    notes patterns.
+    """
+
+    def __init__(
+        self, dev_pattern: re.Pattern, release_pattern: re.Pattern
+    ) -> None:
+        self.dev_pattern = dev_pattern
+        self.release_pattern = release_pattern
+
+
 def _matches_pattern(item: Any, pattern: dict) -> bool:
     """Check if an item matches a pattern dict.
 
@@ -264,6 +314,54 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         # Validate basic matrix structure if present.
         if "commit" in metadata:
             assert isinstance(metadata["commit"], list)
+
+    elif isinstance(expected, OptionalVersionString):
+        # Allow None or a version string matching the pattern.
+        if metadata is None:
+            return
+        assert isinstance(metadata, str), (
+            f"{metadata!r} should be None or a string in {context!r}"
+        )
+        assert re.fullmatch(expected.version_pattern, metadata) is not None, (
+            f"{metadata!r} does not match {expected.version_pattern.pattern!r} in {context!r}"
+        )
+
+    elif isinstance(expected, OptionalVersionOrEmptyString):
+        # Allow empty string or a version string matching the pattern.
+        if metadata == "":
+            return
+        assert isinstance(metadata, str), (
+            f"{metadata!r} should be '' or a string in {context!r}"
+        )
+        assert re.fullmatch(expected.version_pattern, metadata) is not None, (
+            f"{metadata!r} does not match {expected.version_pattern.pattern!r} in {context!r}"
+        )
+
+    elif isinstance(expected, AnyReleaseNotes):
+        # Allow release notes matching either development or release pattern.
+        assert isinstance(metadata, str), (
+            f"{metadata!r} should be a string in {context!r}"
+        )
+        dev_match = re.fullmatch(expected.dev_pattern, metadata) is not None
+        release_match = re.fullmatch(expected.release_pattern, metadata) is not None
+        assert dev_match or release_match, (
+            f"{metadata!r} does not match dev pattern {expected.dev_pattern.pattern!r} "
+            f"or release pattern {expected.release_pattern.pattern!r} in {context!r}"
+        )
+
+    elif isinstance(expected, AnyReleaseNotesOrEmptyString):
+        # Allow empty string or release notes matching either pattern.
+        if metadata == "":
+            return
+        assert isinstance(metadata, str), (
+            f"{metadata!r} should be '' or a string in {context!r}"
+        )
+        dev_match = re.fullmatch(expected.dev_pattern, metadata) is not None
+        release_match = re.fullmatch(expected.release_pattern, metadata) is not None
+        assert dev_match or release_match, (
+            f"{metadata!r} does not match dev pattern {expected.dev_pattern.pattern!r} "
+            f"or release pattern {expected.release_pattern.pattern!r} in {context!r}"
+        )
 
     elif isinstance(expected, dict):
         assert isinstance(metadata, dict)
@@ -395,14 +493,26 @@ expected = {
     ),
     "mypy_params": "--python-version 3.10",
     "current_version": regex(r"[0-9\.]+"),
-    "released_version": None,
+    # released_version is None during development, but contains a version string
+    # on release branches (e.g., "5.5.0" when a "[changelog] Release v5.5.0" commit exists).
+    "released_version": OptionalVersionString(regex(r"[0-9]+\.[0-9]+\.[0-9]+")),
     "is_sphinx": False,
     "active_autodoc": False,
-    "release_notes": regex(
-        r"### Changes\n\n"
-        r"> \[\!IMPORTANT\]\n"
-        r"> This version is not released yet and is under active development\.\n\n"
-        r".+"
+    # Release notes vary based on development vs release state.
+    # Development: contains "not released yet" warning.
+    # Release: contains actual changelog content and PyPi link.
+    "release_notes": AnyReleaseNotes(
+        dev_pattern=regex(
+            r"### Changes\n\n"
+            r"> \[\!IMPORTANT\]\n"
+            r"> This version is not released yet and is under active development\.\n\n"
+            r".+"
+        ),
+        release_pattern=regex(
+            r"### Changes\n\n"
+            r"(?!> \[\!IMPORTANT\])"  # Not starting with the warning.
+            r".+"
+        ),
     ),
     # new_commits_matrix is None when running outside GitHub Actions.
     # In CI, it contains a matrix dict with commit data.
@@ -653,6 +763,12 @@ def test_metadata_github_format():
         elif isinstance(value, OptionalMatrix):
             # Convert OptionalMatrix to OptionalMatrixOrEmptyString for GitHub format.
             new_value = OptionalMatrixOrEmptyString()
+        elif isinstance(value, OptionalVersionString):
+            # Convert OptionalVersionString to OptionalVersionOrEmptyString for GitHub format.
+            new_value = OptionalVersionOrEmptyString(value.version_pattern)
+        elif isinstance(value, AnyReleaseNotes):
+            # Convert AnyReleaseNotes to AnyReleaseNotesOrEmptyString for GitHub format.
+            new_value = AnyReleaseNotesOrEmptyString(value.dev_pattern, value.release_pattern)
         elif isinstance(value, list) and all(isinstance(i, str) for i in value):
             new_value = " ".join(f'"{i}"' for i in value)
         github_format_expected[key] = new_value
