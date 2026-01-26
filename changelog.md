@@ -9,6 +9,7 @@
 - Add bundled mypy and pytest configuration templates.
 - Use actual filenames with extensions as type IDs (e.g., `labels.toml`, `labeller-file-based.yaml`).
 - Add smart default output paths for each file type (shown with `--list`).
+- Replace `eslint` with `biome` for JSON formatting.
 - Format `pyproject.toml` file with `pyproject-fmt`.
 
 ## [5.4.0 (2026-01-25)](https://github.com/kdeldycke/workflows/compare/v5.3.1...v5.4.0)

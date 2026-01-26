@@ -242,77 +242,18 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Install ESLint with JSON support
-        run: |
-          npm --no-progress install --no-save "eslint@9.39.2" "@eslint/json@0.14.0"
-      - name: Generate ESLint config
-        # To debug config, run:
-        #   $ npx --no-progress --yes -- eslint --inspect-config
-        run: |
-          tee -a ./eslint.config.mjs <<-EOF
-          // Source: https://github.com/eslint/eslint/blob/main/docs/src/use/configure/configuration-files.md
-          import json from "@eslint/json";
-          import { defineConfig, globalIgnores } from "eslint/config";
-
-          // VS Code JSON configuration files allow comments but have a ``.json`` extension.
-          // https://github.com/microsoft/vscode/blob/8a42946/extensions/configuration-editing/package.json#L41-L59
-          const vscodeFiles = [
-              ".vscode/*.json",
-              ".code-workspace",
-              "**/Library/Application Support/Code/**/*.json"
-          ];
-
-          export default defineConfig([
-              // Reduce noise from common files
-              globalIgnores([
-                  "package-lock.json",
-                  "node_modules/**"
-              ]),
-
-              // Lint JSON files
-              {
-                  files: ["**/*.json"],
-                  ignores: vscodeFiles,
-                  language: "json/json",
-                  plugins: { json },
-                  extends: ["json/recommended"],
-              },
-
-              // Lint JSONC files
-              {
-                  files: ["**/*.jsonc"].concat(vscodeFiles),
-                  language: "json/jsonc",
-                  languageOptions: {
-                      allowTrailingCommas: true,
-                  },
-                  plugins: { json },
-                  extends: ["json/recommended"],
-              },
-
-              // Lint JSON5 files
-              {
-                  files: ["**/*.json5"],
-                  language: "json/json5",
-                  plugins: { json },
-                  extends: ["json/recommended"],
-              },
-          ]);
-          EOF
-      - name: ESLint version
-        run: |
-          npx -- eslint --env-info
-      - name: Lint
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2.7.0
+        with:
+          version: 2.3.12
+      - name: Format JSON
+        # Allow comments and trailing commas for JSONC files.
+        # Biome auto-detects well-known JSONC files (tsconfig.json, etc.).
         run: >
-          npx -- eslint
-          --config ./eslint.config.mjs
-          --stats
-          --no-error-on-unmatched-pattern
-          --fix
+          biome format --write
+          --json-parser-allow-comments=true
+          --json-parser-allow-trailing-commas=true
           ${{ needs.project-metadata.outputs.json_files }}
-      - name: Remove temporary ESLint config and node modules
-        run: |
-          rm ./eslint.config.mjs
-          rm -r ./node_modules/
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}

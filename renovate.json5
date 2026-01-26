@@ -115,6 +115,17 @@
       ],
       datasourceTemplate: "pypi",
     },
+    {
+      description: "Update Biome version in setup-biome action.",
+      customType: "regex",
+      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      matchStrings: [
+        // Matches: uses: biomejs/setup-biome@... followed by version: X.Y.Z
+        "uses:\\s+biomejs/setup-biome@[^\\n]+\\n\\s+with:\\n\\s+version:\\s+(?<currentValue>[0-9.]+)",
+      ],
+      depNameTemplate: "biomejs/biome",
+      datasourceTemplate: "github-releases",
+    },
   ],
 }
 
