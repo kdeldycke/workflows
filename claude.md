@@ -62,35 +62,34 @@ workflows/
 ├── .github/workflows/     # Reusable GitHub Actions workflows
 ├── gha_utils/             # Python CLI package
 │   ├── __main__.py        # CLI entry point
-│   ├── cli.py             # Click-based CLI definitions
+│   ├── bundled_config.py  # Bundled config, labels, and workflow templates
 │   ├── changelog.py       # Changelog management
-│   ├── labels.py          # Bundled label configuration access
+│   ├── cli.py             # Click-based CLI definitions
 │   ├── mailmap.py         # .mailmap synchronization
+│   ├── matrix.py          # Build matrix generation
 │   ├── metadata.py        # Project metadata extraction
 │   ├── release_prep.py    # Release preparation
 │   ├── sponsor.py         # GitHub sponsor detection
-│   ├── workflows.py       # Bundled workflow templates access
 │   ├── test_plan.py       # Test plan execution
-│   └── matrix.py          # Build matrix generation
+│   └── data/              # Bundled configuration files
 ├── requirements/          # Pinned dependencies for workflows
 └── tests/                 # Test suite
 ```
 
 ### Module layout
 
-| Module            | Purpose                                                             |
-| ----------------- | ------------------------------------------------------------------- |
-| `__main__.py`     | Entry point for the `gha-utils` CLI                                 |
-| `cli.py`          | Click-based command-line interface definitions                      |
-| `changelog.py`    | Changelog parsing, updating, and version management                 |
-| `mailmap.py`      | Git `.mailmap` file synchronization with contributors               |
-| `metadata.py`     | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
-| `release_prep.py` | Prepare files for release (dates, URLs, warnings)                   |
-| `sponsor.py`      | Check GitHub sponsorship and label issues/PRs from sponsors         |
-| `labels.py`       | Access bundled label configuration files                            |
-| `workflows.py`    | Access bundled workflow templates                                   |
-| `test_plan.py`    | Run YAML-based test plans against compiled binaries                 |
-| `matrix.py`       | Generate build matrices for GitHub Actions                          |
+| Module              | Purpose                                                             |
+| ------------------- | ------------------------------------------------------------------- |
+| `__main__.py`       | Entry point for the `gha-utils` CLI                                 |
+| `bundled_config.py` | Access bundled config templates, labels, and workflow files         |
+| `changelog.py`      | Changelog parsing, updating, and version management                 |
+| `cli.py`            | Click-based command-line interface definitions                      |
+| `mailmap.py`        | Git `.mailmap` file synchronization with contributors               |
+| `matrix.py`         | Generate build matrices for GitHub Actions                          |
+| `metadata.py`       | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
+| `release_prep.py`   | Prepare files for release (dates, URLs, warnings)                   |
+| `sponsor.py`        | Check GitHub sponsorship and label issues/PRs from sponsors         |
+| `test_plan.py`      | Run YAML-based test plans against compiled binaries                 |
 
 ### Workflows organization
 
@@ -99,10 +98,12 @@ Reusable workflows are organized by purpose:
 - `autofix.yaml` - Auto-formatting and dependency syncing
 - `autolock.yaml` - Auto-locking inactive issues
 - `changelog.yaml` - Version bumping and release preparation
+- `debug.yaml` - Debugging utilities
 - `docs.yaml` - Documentation building and deployment
 - `labels.yaml` - Label management and PR auto-labeling
 - `lint.yaml` - Linting and type checking
 - `release.yaml` - Package building, binary compilation, and publishing
+- `renovate.yaml` - Dependency update automation
 - `tests.yaml` - Test execution
 
 ## Documentation requirements

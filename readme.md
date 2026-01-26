@@ -68,20 +68,19 @@ Options:
   -h, --help            Show this message and exit.
 
 Commands:
-  bumpversion    Sync bumpversion configuration to pyproject.toml
   changelog      Maintain a Markdown-formatted changelog
-  labels         Dump bundled label configuration files
+  config         Manage bundled configuration and templates
   mailmap-sync   Update Git's .mailmap file with missing contributors
   metadata       Output project metadata
   release-prep   Prepare files for a release
+  sponsor-label  Label issues/PRs from GitHub sponsors
   test-plan      Run a test plan from a file against a binary
   version-check  Check if a version bump is allowed
-  workflows      Dump bundled workflow templates
 ```
 
 ```shell-session
 $ uvx -- gha-utils --version
-gha-utils, version 5.2.1
+gha-utils, version 5.5.0
 ```
 
 That's the best way to get started with `gha-utils` and experiment with it.
@@ -117,7 +116,7 @@ To play with the latest development version of `gha-utils`, you can run it direc
 
 ```shell-session
 $ uvx --from git+https://github.com/kdeldycke/workflows -- gha-utils --version
-gha-utils, version 5.2.1
+gha-utils, version 5.5.0
 ```
 
 ## Reusable workflows collection
@@ -179,7 +178,7 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 - **Sync bumpversion config** (`sync-bumpversion`)
 
-  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/version_config.py)
+  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils config init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/bundled_config.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
 
