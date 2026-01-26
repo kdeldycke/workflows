@@ -206,15 +206,16 @@ jobs:
           done
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
-        # Remove forbidden TOC entries
-        #     See: https://github.com/sindresorhus/awesome-lint/blob/v0.18.0/rules/toc.js#L15-L18
-        #     Also remove the title of the section containing the TOC (i.e. "Contents") to fix the following error:
-        #       ✖  26:1  ToC item "Contents" does not match corresponding heading "Meta"  remark-lint:awesome-toc
+        # Remove forbidden TOC entries: https://github.com/sindresorhus/awesome-lint/blob/v2.2.2/rules/toc.js#L14-L18
+        # Also remove the title of the section containing the TOC (i.e. "Contents") to fix the following error:
+        # ✖  26:1  ToC item "Contents" does not match corresponding heading "Meta"  remark-lint:awesome-toc
         #
-        # TODO: contribute these fixes to mdformat-toc as configurable options.
+        # mdformat-toc has pending PRs to support this feature:
+        # https://github.com/hukkin/mdformat-toc/issues/17
+        # https://github.com/hukkin/mdformat-toc/pull/20
         run: >
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
-          -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes)\]\(#.+\)$/{print}' "{}" \;
+          -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes|Related Lists)\]\(#.+\)$/{print}' "{}" \;
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
