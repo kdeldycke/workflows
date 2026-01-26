@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-01-18T00:00:00Z"
+exclude-newer = "2026-01-19T00:00:00Z"
 
 [[package]]
 name = "annotated-types"
@@ -375,14 +375,14 @@ wheels = [
 
 [[package]]
 name = "extra-platforms"
-version = "6.0.0"
+version = "7.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "distro" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fb/df/73e313d4ecca7b703b6f369d9ed0c2c0d4d8a149e1c675e9915f8426a513/extra_platforms-6.0.0.tar.gz", hash = "sha256:ff0d392e390d2447183af4b300dd4569d2dbf760adf1e30c2b0cefb30ee58488", size = 45977, upload-time = "2026-01-02T09:15:41.019Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/36/1cf59977458a824a759a38b8279c7d5e41d8de12368f3685d188a5cc3ce4/extra_platforms-7.0.0.tar.gz", hash = "sha256:e45d539ae667e59711d3d4c25bba36bf0a45af7d444a64f6d22466cec3826965", size = 51724, upload-time = "2026-01-18T10:09:09.575Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/13/0a6a20bd85679d30d8e85d4e63397f8deabe2e9614d6a656ad3e02a76fb7/extra_platforms-6.0.0-py3-none-any.whl", hash = "sha256:732619d1f7db602e12189a66a7de7d8492607452c2d1b5444952174e92864ed0", size = 53001, upload-time = "2026-01-02T09:15:42.193Z" },
+    { url = "https://files.pythonhosted.org/packages/30/dd/08ec26f75da946428fd1a440c6a8a57da961fb1d677ce3ca94ad1887c0ef/extra_platforms-7.0.0-py3-none-any.whl", hash = "sha256:8c1316ff93a339f7a929ffddb169d4e075de6a2c5e2a55b6590eef21d46274ce", size = 56711, upload-time = "2026-01-18T10:09:10.484Z" },
 ]
 
 [[package]]
