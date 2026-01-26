@@ -120,9 +120,10 @@ urls."Funding" = "https://github.com/sponsors/kdeldycke"
 urls."Homepage" = "https://github.com/kdeldycke/workflows"
 urls."Issues" = "https://github.com/kdeldycke/workflows/issues"
 urls."Repository" = "https://github.com/kdeldycke/workflows"
-# Non-runtime development dependency groups.
+
 scripts.gha-utils = "gha_utils.__main__:main"
 
+# Non-runtime development dependency groups.
 [dependency-groups]
 test = [
   # coverage 7.11.0 is the first version to drop support for Python 3.9.
