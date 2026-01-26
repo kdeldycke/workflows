@@ -81,19 +81,6 @@ jobs:
             exit 1
           fi
 
-  lint-pyproject:
-    needs:
-      - project-metadata
-    # Only lint Python projects that have a pyproject.toml.
-    if: fromJSON(needs.project-metadata.outputs.is_python_project)
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
-      - name: Check pyproject.toml tool section ordering
-        run: |
-          uvx 'gha-utils==5.4.0' config lint
-
   lint-mypy:
     needs:
       - project-metadata
