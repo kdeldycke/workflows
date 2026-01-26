@@ -1263,9 +1263,13 @@ class Metadata:
 
     @cached_property
     def json_files(self) -> list[Path]:
-        """Returns a list of JSON files."""
+        """Returns a list of JSON files.
+
+        .. note::
+            JSON5 files are excluded because Biome doesn't support them.
+        """
         return self.glob_files(
-            "**/*.{json,jsonc,json5}",
+            "**/*.{json,jsonc}",
             "**/.code-workspace",
             "!**/package-lock.json",
         )

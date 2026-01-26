@@ -425,9 +425,7 @@ expected = {
         "tests/test_release_prep.py",
         "tests/test_workflows.py",
     ],
-    "json_files": [
-        "renovate.json5",
-    ],
+    "json_files": [],
     "yaml_files": [
         ".github/funding.yml",
         ".github/workflows/autofix.yaml",
