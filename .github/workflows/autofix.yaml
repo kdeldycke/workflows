@@ -251,8 +251,8 @@ jobs:
         # Biome auto-detects well-known JSONC files (tsconfig.json, etc.).
         run: >
           biome format --write
-          --json-parser-allow-comments=true
-          --json-parser-allow-trailing-commas=true
+          --json-parse-allow-comments=true
+          --json-parse-allow-trailing-commas=true
           ${{ needs.project-metadata.outputs.json_files }}
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
