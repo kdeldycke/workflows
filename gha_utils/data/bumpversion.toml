@@ -1,7 +1,7 @@
 # bump-my-version configuration for Python projects.
 #
 # Native format - can be used standalone as .bumpversion.toml.
-# When merged into pyproject.toml via `gha-utils config init bumpversion`,
+# When merged into pyproject.toml via `gha-utils bundled init bumpversion`,
 # the [tool.bumpversion] prefix is added automatically.
 
 current_version = "0.0.0"

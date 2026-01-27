@@ -179,7 +179,7 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 - **Sync bumpversion config** (`sync-bumpversion`)
 
-  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils config init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/bundled_config.py)
+  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils bundled init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/bundled_config.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
 

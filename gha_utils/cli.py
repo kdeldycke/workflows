@@ -63,6 +63,11 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
+from .deps_graph import (
+    generate_dependency_graph,
+    get_available_extras,
+    get_available_groups,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -384,7 +389,7 @@ def version_check(part: str) -> None:
 
 
 @gha_utils.group(short_help="Manage bundled configuration and templates")
-def config():
+def bundled():
     """Manage bundled configuration files and templates.
 
     This command group provides unified access to all bundled files:
@@ -396,7 +401,7 @@ def config():
         init   - Merge config into pyproject.toml
 
     \b
-    Exportable files (gha-utils config export <filename>):
+    Exportable files (gha-utils bundled export <filename>):
         ruff.toml, bumpversion.toml, ...      - pyproject.toml templates
         labels.toml                           - Label definitions
         labeller-file-based.yaml              - File-based labeller rules
@@ -406,22 +411,22 @@ def config():
     \b
     Examples:
         # Export with default output path
-        gha-utils config export labels.toml
-        gha-utils config export labeller-file-based.yaml
-        gha-utils config export release.yaml
+        gha-utils bundled export labels.toml
+        gha-utils bundled export labeller-file-based.yaml
+        gha-utils bundled export release.yaml
 
         # Export to custom path
-        gha-utils config export labels.toml ./custom/labels.toml
+        gha-utils bundled export labels.toml ./custom/labels.toml
 
         # Initialize config in pyproject.toml
-        gha-utils config init ruff pyproject.toml
+        gha-utils bundled init ruff pyproject.toml
 
         # List all exportable files
-        gha-utils config export --list
+        gha-utils bundled export --list
     """
 
 
-@config.command(short_help="Export any bundled file")
+@bundled.command(short_help="Export any bundled file")
 @option(
     "--list",
     "list_only",
@@ -448,21 +453,21 @@ def export(list_only, filename, output_path):
     \b
     Examples:
         # List all available files with default paths
-        gha-utils config export --list
+        gha-utils bundled export --list
 
     \b
         # Export to default location
-        gha-utils config export labels.toml
-        gha-utils config export labeller-file-based.yaml
-        gha-utils config export release.yaml
+        gha-utils bundled export labels.toml
+        gha-utils bundled export labeller-file-based.yaml
+        gha-utils bundled export release.yaml
 
     \b
         # Export to custom location
-        gha-utils config export labels.toml ./custom/labels.toml
+        gha-utils bundled export labels.toml ./custom/labels.toml
 
     \b
         # Export to stdout (for pyproject.toml templates)
-        gha-utils config export ruff.toml
+        gha-utils bundled export ruff.toml
     """
     if list_only:
         echo("Available files (with default output paths):")
@@ -493,7 +498,7 @@ def export(list_only, filename, output_path):
     echo(content.rstrip(), file=prep_path(output_path))
 
 
-@config.command(short_help="Initialize config in pyproject.toml")
+@bundled.command(short_help="Initialize config in pyproject.toml")
 @argument(
     "config_type",
     type=Choice(list(INIT_CONFIGS.keys()), case_sensitive=False),
@@ -524,15 +529,15 @@ def init(ctx, config_type, source, output_path):
     \b
     Examples:
         # Preview merged configuration (dry-run)
-        gha-utils config init ruff
+        gha-utils bundled init ruff
 
     \b
         # Update pyproject.toml in-place
-        gha-utils config init ruff pyproject.toml
+        gha-utils bundled init ruff pyproject.toml
 
     \b
         # Initialize bumpversion config
-        gha-utils config init bumpversion pyproject.toml
+        gha-utils bundled init bumpversion pyproject.toml
     """
     merged = init_config(config_type, source)
 

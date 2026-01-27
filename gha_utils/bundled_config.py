@@ -17,9 +17,9 @@
 """Bundled data files and configuration templates.
 
 This module provides a unified interface for accessing bundled data files
-from ``gha_utils/data/``. All files can be exported via ``gha-utils config export``.
+from ``gha_utils/data/``. All files can be exported via ``gha-utils bundled export``.
 
-Exportable files (``gha-utils config export <type>``):
+Exportable files (``gha-utils bundled export <type>``):
 
 - ``ruff`` - Ruff linter/formatter configuration
 - ``bumpversion`` - bump-my-version configuration
@@ -30,7 +30,7 @@ Exportable files (``gha-utils config export <type>``):
   ``docs.yaml``, ``labels.yaml``, ``lint.yaml``, ``release.yaml``,
   ``renovate.yaml``, ``tests.yaml`` - GitHub Actions workflow templates
 
-Initializable configs (``gha-utils config init <type>``):
+Initializable configs (``gha-utils bundled init <type>``):
 
 Only pyproject.toml-mergeable configs support ``init``:
 

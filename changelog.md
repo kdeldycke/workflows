@@ -7,7 +7,7 @@
 
 - Add `gha-utils deps-graph` command to generate Mermaid dependency graphs from uv lockfile.
 - Replace `pipdeptree` with `uv export --format cyclonedx1.5` for dependency graph generation.
-- Consolidate all bundled files under `gha-utils config export <filename>` command.
+- Consolidate all bundled files under `gha-utils bundled export <filename>` command.
 - Add bundled mypy and pytest configuration templates.
 - Use actual filenames with extensions as type IDs (e.g., `labels.toml`, `labeller-file-based.yaml`).
 - Add smart default output paths for each file type (shown with `--list`).
