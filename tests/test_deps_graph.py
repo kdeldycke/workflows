@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from gha_utils.deps_graph import (
@@ -359,8 +361,8 @@ def test_render_mermaid_primary_deps_ordering() -> None:
     output = render_mermaid(root_name, nodes, edges)
     # requests (subtree=2) should appear before click (subtree=0).
     lines = output.splitlines()
-    requests_idx = next(i for i, l in enumerate(lines) if 'requests{{' in l)
-    click_idx = next(i for i, l in enumerate(lines) if 'click_0{{' in l)
+    requests_idx = next(i for i, line in enumerate(lines) if 'requests{{' in line)
+    click_idx = next(i for i, line in enumerate(lines) if 'click_0{{' in line)
     assert requests_idx < click_idx
 
 
@@ -370,21 +372,21 @@ def test_render_mermaid_edge_ordering() -> None:
     output = render_mermaid(root_name, nodes, edges)
     lines = output.splitlines()
     # Find edge lines (contain ==> or -->).
-    edge_lines = [l.strip() for l in lines if "==>" in l or "-->" in l]
+    edge_lines = [line.strip() for line in lines if "==>" in line or "-->" in line]
     # Root edges (my_project ==>) should come before transitive edges.
     root_edge_indices = [
-        i for i, l in enumerate(edge_lines) if l.startswith("my_project")
+        i for i, line in enumerate(edge_lines) if line.startswith("my_project")
     ]
     transitive_edge_indices = [
-        i for i, l in enumerate(edge_lines) if not l.startswith("my_project")
+        i for i, line in enumerate(edge_lines) if not line.startswith("my_project")
     ]
     if root_edge_indices and transitive_edge_indices:
         assert max(root_edge_indices) < min(transitive_edge_indices)
 
     # Among root edges, requests (degree=3) should come before click (degree=1).
     root_edges = [edge_lines[i] for i in root_edge_indices]
-    requests_edge = next(i for i, l in enumerate(root_edges) if "requests" in l)
-    click_edge = next(i for i, l in enumerate(root_edges) if "click_0" in l)
+    requests_edge = next(i for i, line in enumerate(root_edges) if "requests" in line)
+    click_edge = next(i for i, line in enumerate(root_edges) if "click_0" in line)
     assert requests_edge < click_edge
 
 
@@ -396,10 +398,16 @@ def test_get_available_groups() -> None:
     assert "typing" in groups
 
 
-def test_get_available_extras() -> None:
-    # Test against the actual pyproject.toml in the repo.
-    extras = get_available_extras()
-    # Should discover the defined extras.
+def test_get_available_extras(tmp_path: Path) -> None:
+    # Use a temporary pyproject.toml with known extras.
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project.optional-dependencies]\n'
+        'xml = ["click-extra [xml]"]\n'
+        'yaml = ["click-extra [yaml]"]\n'
+        'json5 = ["click-extra [json5]"]\n'
+    )
+    extras = get_available_extras(pyproject)
     assert "xml" in extras
     assert "yaml" in extras
     assert "json5" in extras

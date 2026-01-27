@@ -26,12 +26,13 @@ import json
 import logging
 import re
 import subprocess
+import sys
 from pathlib import Path
 
-try:
+if sys.version_info >= (3, 11):
     import tomllib
-except ImportError:
-    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
