@@ -65,6 +65,7 @@ workflows/
 │   ├── bundled_config.py  # Bundled config, labels, and workflow templates
 │   ├── changelog.py       # Changelog management
 │   ├── cli.py             # Click-based CLI definitions
+│   ├── deps_graph.py      # Dependency graph generation
 │   ├── mailmap.py         # .mailmap synchronization
 │   ├── matrix.py          # Build matrix generation
 │   ├── metadata.py        # Project metadata extraction
@@ -84,6 +85,7 @@ workflows/
 | `bundled_config.py` | Access bundled config templates, labels, and workflow files         |
 | `changelog.py`      | Changelog parsing, updating, and version management                 |
 | `cli.py`            | Click-based command-line interface definitions                      |
+| `deps_graph.py`     | Generate Mermaid dependency graphs from uv lockfiles                |
 | `mailmap.py`        | Git `.mailmap` file synchronization with contributors               |
 | `matrix.py`         | Generate build matrices for GitHub Actions                          |
 | `metadata.py`       | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |

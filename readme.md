@@ -70,6 +70,7 @@ Options:
 Commands:
   changelog      Maintain a Markdown-formatted changelog
   config         Manage bundled configuration and templates
+  deps-graph     Generate dependency graph from uv lockfile
   mailmap-sync   Update Git's .mailmap file with missing contributors
   metadata       Output project metadata
   release-prep   Prepare files for a release
@@ -243,9 +244,9 @@ docs = [
 
 - **Update dependency graph** (`update-deps-graph`)
 
-  - Generates a Mermaid dependency graph of the Python project using [`pipdeptree`](https://github.com/tox-dev/pipdeptree)
+  - Generates a Mermaid dependency graph of the Python project using [`gha-utils deps-graph`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/deps_graph.py)
   - **Requires**:
-    - Python package with a `pyproject.toml` file
+    - Python package with a `uv.lock` file
 
 - **Update autodoc** (`update-autodoc`)
 

@@ -880,3 +880,125 @@ def sponsor_label(
             ctx.exit(1)
     else:
         echo(f"Author {author!r} is not a sponsor of {owner!r}")
+
+
+@gha_utils.command(short_help="Generate dependency graph from uv lockfile")
+@option(
+    "-p",
+    "--package",
+    help="Focus on a specific package's dependency tree.",
+)
+@option(
+    "-g",
+    "--group",
+    "groups",
+    multiple=True,
+    help="Include dependencies from the specified group (e.g., test, typing). "
+    "Can be repeated.",
+)
+@option(
+    "--all-groups",
+    is_flag=True,
+    default=False,
+    help="Include all dependency groups from pyproject.toml.",
+)
+@option(
+    "-e",
+    "--extra",
+    "extras",
+    multiple=True,
+    help="Include dependencies from the specified extra (e.g., xml, json5). "
+    "Can be repeated.",
+)
+@option(
+    "--all-extras",
+    is_flag=True,
+    default=False,
+    help="Include all optional extras from pyproject.toml.",
+)
+@option(
+    "--frozen/--no-frozen",
+    default=True,
+    help="Use --frozen to skip lock file updates.",
+)
+@option(
+    "-l",
+    "--level",
+    type=int,
+    default=None,
+    help="Maximum depth of the dependency graph. "
+    "1 = primary deps only, 2 = primary + their deps, etc.",
+)
+@option(
+    "-o",
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+    help="Output file path. Defaults to stdout.",
+)
+def deps_graph(
+    package: str | None,
+    groups: tuple[str, ...],
+    all_groups: bool,
+    extras: tuple[str, ...],
+    all_extras: bool,
+    frozen: bool,
+    level: int | None,
+    output: Path,
+) -> None:
+    """Generate a Mermaid dependency graph from the project's uv lockfile.
+
+    Parses the CycloneDX SBOM export from uv and renders it as a Mermaid
+    flowchart for documentation. Version specifiers from uv.lock are shown
+    as edge labels.
+
+    \b
+    Examples:
+        # Generate Mermaid graph
+        gha-utils deps-graph
+
+    \b
+        # Include test dependencies
+        gha-utils deps-graph --group test
+
+    \b
+        # Include all groups and extras
+        gha-utils deps-graph --all-groups --all-extras
+
+    \b
+        # Focus on a specific package
+        gha-utils deps-graph --package click-extra
+
+    \b
+        # Limit graph depth to 2 levels
+        gha-utils deps-graph --level 2
+
+    \b
+        # Save to file
+        gha-utils deps-graph --output docs/dependency-graph.md
+    """
+    # Resolve --all-groups and --all-extras flags.
+    resolved_groups: tuple[str, ...] | None = groups if groups else None
+    if all_groups:
+        resolved_groups = get_available_groups()
+        logging.info(f"Discovered groups: {', '.join(resolved_groups)}")
+
+    resolved_extras: tuple[str, ...] | None = extras if extras else None
+    if all_extras:
+        resolved_extras = get_available_extras()
+        logging.info(f"Discovered extras: {', '.join(resolved_extras)}")
+
+    graph = generate_dependency_graph(
+        package=package,
+        groups=resolved_groups,
+        extras=resolved_extras,
+        frozen=frozen,
+        depth=level,
+    )
+
+    if is_stdout(output):
+        logging.info(f"Print graph to {sys.stdout.name}")
+    else:
+        logging.info(f"Write graph to {output}")
+
+    echo(graph, file=prep_path(output))
