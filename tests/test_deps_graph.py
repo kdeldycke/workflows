@@ -19,6 +19,9 @@ from __future__ import annotations
 import pytest
 
 from gha_utils.deps_graph import (
+    _compute_node_degrees,
+    _compute_node_depths,
+    _compute_subtree_sizes,
     build_dependency_graph,
     filter_graph_to_package,
     get_available_extras,
@@ -188,12 +191,12 @@ def test_render_mermaid() -> None:
     # "click" is a reserved Mermaid keyword, so it gets "_0" suffix.
     # Primary deps use hexagon shape with markdown backticks.
     assert 'click_0{{"`click`"}}' in output
-    # Root uses round shape.
-    assert 'my_project("`my-project`")' in output
+    # Root uses subprocess (subroutine) shape.
+    assert 'my_project[["`my-project`"]]' in output
     # Versions are not included in node labels.
     assert "v8.0.0" not in output
     # Primary dependencies are in a subgraph for vertical alignment.
-    assert "subgraph primary-deps [&nbsp;]" in output
+    assert "subgraph primary-deps [Primary dependencies]" in output
     # Primary dependencies use thick arrows.
     assert "my_project ==> click_0" in output
     assert "my_project ==> requests" in output
@@ -214,10 +217,10 @@ def test_render_mermaid_with_specifiers() -> None:
     output = render_mermaid(root_name, nodes, edges, specifiers=specifiers)
 
     # Check edge labels with specifiers.
-    assert 'my_project ==>|">=8.0"| click_0' in output
-    assert 'my_project ==>|">=2.28"| requests' in output
-    assert 'requests -->|">=1.26,<2"| urllib3' in output
-    assert 'requests -->|">=2022"| certifi' in output
+    assert 'my_project ==>|" >=8.0 "| click_0' in output
+    assert 'my_project ==>|" >=2.28 "| requests' in output
+    assert 'requests -->|" >=1.26,<2 "| urllib3' in output
+    assert 'requests -->|" >=2022 "| certifi' in output
 
 
 def test_render_mermaid_with_groups() -> None:
@@ -231,10 +234,10 @@ def test_render_mermaid_with_groups() -> None:
 
     output = render_mermaid(root_name, extended_nodes, extended_edges, group_packages)
 
-    # Group subgraph title is prefixed with --group.
-    assert "subgraph test [--group test]" in output
+    # Group subgraph ID is prefixed to avoid collision with node IDs.
+    assert "subgraph grp_test [--group test]" in output
     # Root uses dashed arrow to group subgraph.
-    assert "my_project -.-> test" in output
+    assert "my_project -.-> grp_test" in output
 
 
 def test_render_mermaid_with_subgraph_specifiers() -> None:
@@ -291,7 +294,7 @@ def test_render_mermaid_primary_deps_in_subgraph() -> None:
     assert 'pytest{{"`pytest >=9`"}}' in output
     assert 'pytest_cov{{"`pytest-cov >=7`"}}' in output
     # Transitive dep uses round shape.
-    assert 'iniconfig("`iniconfig`")' in output
+    assert 'iniconfig(["`iniconfig`"])' in output
     # Arrow pointing to a primary dep uses thick style.
     assert "pytest_cov ==> pytest" in output
     # Arrow pointing to a transitive dep uses normal style.
@@ -311,10 +314,78 @@ def test_render_mermaid_with_extras() -> None:
         root_name, extended_nodes, extended_edges, extra_packages=extra_packages
     )
 
-    # Extra subgraph title is prefixed with --extra.
-    assert "subgraph xml [--extra xml]" in output
+    # Extra subgraph ID is prefixed to avoid collision with node IDs.
+    assert "subgraph ext_xml [--extra xml]" in output
     # Root uses dashed arrow to extra subgraph.
-    assert "my_project -.-> xml" in output
+    assert "my_project -.-> ext_xml" in output
+
+
+def test_compute_node_degrees() -> None:
+    _, _, edges = build_dependency_graph(SAMPLE_SBOM)
+    degrees = _compute_node_degrees(edges)
+    # requests: 1 out (from root) + 2 out (urllib3, certifi) = degree 3.
+    assert degrees["requests"] == 3
+    # click: 1 in (from root) = degree 1.
+    assert degrees["click"] == 1
+    # root: 2 out (click, requests) = degree 2.
+    assert degrees["my-project"] == 2
+
+
+def test_compute_subtree_sizes() -> None:
+    _, _, edges = build_dependency_graph(SAMPLE_SBOM)
+    subtree = _compute_subtree_sizes(edges)
+    # requests has 2 descendants: urllib3 and certifi.
+    assert subtree["requests"] == 2
+    # click has 0 descendants.
+    assert subtree["click"] == 0
+    # Leaf nodes have 0 descendants.
+    assert subtree["urllib3"] == 0
+    assert subtree["certifi"] == 0
+
+
+def test_compute_node_depths() -> None:
+    root_name, _, edges = build_dependency_graph(SAMPLE_SBOM)
+    depths = _compute_node_depths(root_name, edges)
+    assert depths["my-project"] == 0
+    assert depths["click"] == 1
+    assert depths["requests"] == 1
+    assert depths["urllib3"] == 2
+    assert depths["certifi"] == 2
+
+
+def test_render_mermaid_primary_deps_ordering() -> None:
+    """Primary deps with larger subtrees should be declared first."""
+    root_name, nodes, edges = build_dependency_graph(SAMPLE_SBOM)
+    output = render_mermaid(root_name, nodes, edges)
+    # requests (subtree=2) should appear before click (subtree=0).
+    lines = output.splitlines()
+    requests_idx = next(i for i, l in enumerate(lines) if 'requests{{' in l)
+    click_idx = next(i for i, l in enumerate(lines) if 'click_0{{' in l)
+    assert requests_idx < click_idx
+
+
+def test_render_mermaid_edge_ordering() -> None:
+    """Root edges should come before transitive edges."""
+    root_name, nodes, edges = build_dependency_graph(SAMPLE_SBOM)
+    output = render_mermaid(root_name, nodes, edges)
+    lines = output.splitlines()
+    # Find edge lines (contain ==> or -->).
+    edge_lines = [l.strip() for l in lines if "==>" in l or "-->" in l]
+    # Root edges (my_project ==>) should come before transitive edges.
+    root_edge_indices = [
+        i for i, l in enumerate(edge_lines) if l.startswith("my_project")
+    ]
+    transitive_edge_indices = [
+        i for i, l in enumerate(edge_lines) if not l.startswith("my_project")
+    ]
+    if root_edge_indices and transitive_edge_indices:
+        assert max(root_edge_indices) < min(transitive_edge_indices)
+
+    # Among root edges, requests (degree=3) should come before click (degree=1).
+    root_edges = [edge_lines[i] for i in root_edge_indices]
+    requests_edge = next(i for i, l in enumerate(root_edges) if "requests" in l)
+    click_edge = next(i for i, l in enumerate(root_edges) if "click_0" in l)
+    assert requests_edge < click_edge
 
 
 def test_get_available_groups() -> None:

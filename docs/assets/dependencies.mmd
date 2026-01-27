@@ -1,200 +1,204 @@
 flowchart LR
-    gha_utils("`gha-utils`")
+    gha_utils[["`gha-utils`"]]
 
-    subgraph primary-deps [&nbsp;]
-        backports_strenum{{"`backports-strenum`"}}
-        boltons{{"`boltons`"}}
+    subgraph primary-deps [Primary dependencies]
         bump_my_version{{"`bump-my-version`"}}
         click_extra{{"`click-extra`"}}
-        extra_platforms{{"`extra-platforms`"}}
-        packaging{{"`packaging`"}}
-        py_walk{{"`py-walk`"}}
         pydriller{{"`pydriller`"}}
-        pyproject_metadata{{"`pyproject-metadata`"}}
-        pyyaml{{"`pyyaml`"}}
-        tomli{{"`tomli`"}}
         wcmatch{{"`wcmatch`"}}
+        extra_platforms{{"`extra-platforms`"}}
+        py_walk{{"`py-walk`"}}
+        pyproject_metadata{{"`pyproject-metadata`"}}
+        packaging{{"`packaging`"}}
+        tomli{{"`tomli`"}}
+        boltons{{"`boltons`"}}
+        pyyaml{{"`pyyaml`"}}
+        backports_strenum{{"`backports-strenum`"}}
     end
 
-    annotated_types("`annotated-types`")
-    anyio("`anyio`")
-    bracex("`bracex`")
-    certifi("`certifi`")
-    charset_normalizer("`charset-normalizer`")
-    click_0("`click`")
-    cloup("`cloup`")
-    colorama("`colorama`")
-    deepmerge("`deepmerge`")
-    distro("`distro`")
-    exceptiongroup("`exceptiongroup`")
-    gitdb("`gitdb`")
-    gitpython("`gitpython`")
-    h11("`h11`")
-    httpcore("`httpcore`")
-    httpx("`httpx`")
-    idna("`idna`")
-    lizard("`lizard`")
-    markdown_it_py("`markdown-it-py`")
-    mdurl("`mdurl`")
-    pathspec("`pathspec`")
-    prompt_toolkit("`prompt-toolkit`")
-    pydantic("`pydantic`")
-    pydantic_core("`pydantic-core`")
-    pydantic_settings("`pydantic-settings`")
-    pygments("`pygments`")
-    python_dotenv("`python-dotenv`")
-    pytz("`pytz`")
-    questionary("`questionary`")
-    requests("`requests`")
-    rich("`rich`")
-    rich_click("`rich-click`")
-    sly("`sly`")
-    smmap("`smmap`")
-    tabulate("`tabulate`")
-    tomlkit("`tomlkit`")
-    types_pytz("`types-pytz`")
-    typing_extensions("`typing-extensions`")
-    typing_inspection("`typing-inspection`")
-    urllib3("`urllib3`")
-    wcwidth("`wcwidth`")
+    typing_extensions(["`typing-extensions`"])
+    pydantic(["`pydantic`"])
+    click_0(["`click`"])
+    httpx(["`httpx`"])
+    requests(["`requests`"])
+    rich_click(["`rich-click`"])
+    anyio(["`anyio`"])
+    pydantic_settings(["`pydantic-settings`"])
+    rich(["`rich`"])
+    certifi(["`certifi`"])
+    cloup(["`cloup`"])
+    colorama(["`colorama`"])
+    exceptiongroup(["`exceptiongroup`"])
+    httpcore(["`httpcore`"])
+    idna(["`idna`"])
+    lizard(["`lizard`"])
+    pygments(["`pygments`"])
+    typing_inspection(["`typing-inspection`"])
+    gitdb(["`gitdb`"])
+    gitpython(["`gitpython`"])
+    markdown_it_py(["`markdown-it-py`"])
+    prompt_toolkit(["`prompt-toolkit`"])
+    pydantic_core(["`pydantic-core`"])
+    questionary(["`questionary`"])
+    tabulate(["`tabulate`"])
+    wcwidth(["`wcwidth`"])
+    annotated_types(["`annotated-types`"])
+    bracex(["`bracex`"])
+    charset_normalizer(["`charset-normalizer`"])
+    deepmerge(["`deepmerge`"])
+    distro(["`distro`"])
+    h11(["`h11`"])
+    mdurl(["`mdurl`"])
+    pathspec(["`pathspec`"])
+    python_dotenv(["`python-dotenv`"])
+    pytz(["`pytz`"])
+    sly(["`sly`"])
+    smmap(["`smmap`"])
+    tomlkit(["`tomlkit`"])
+    types_pytz(["`types-pytz`"])
+    urllib3(["`urllib3`"])
 
-    subgraph test [--group test]
-        coverage{{"`coverage >=7.11`"}}
-        decopatch("`decopatch`")
-        iniconfig("`iniconfig`")
-        makefun("`makefun`")
-        pluggy("`pluggy`")
+    subgraph ext_hjson [--extra hjson]
+        hjson(["`hjson`"])
+    end
+
+    subgraph ext_json5 [--extra json5]
+        json5(["`json5`"])
+    end
+
+    subgraph ext_jsonc [--extra jsonc]
+        json_with_comments(["`json-with-comments`"])
+    end
+
+    subgraph ext_xml [--extra xml]
+        xmltodict(["`xmltodict`"])
+    end
+
+    subgraph grp_test [--group test]
         pytest{{"`pytest >=9`"}}
         pytest_cases{{"`pytest-cases >=3.9`"}}
         pytest_cov{{"`pytest-cov >=7`"}}
+        coverage{{"`coverage >=7.11`"}}
+        decopatch(["`decopatch`"])
+        makefun(["`makefun`"])
+        pluggy(["`pluggy`"])
         pytest_github_actions_annotate_failures{{"`pytest-github-actions-annotate-failures >=0.3`"}}
         pytest_randomly{{"`pytest-randomly >=4`"}}
+        iniconfig(["`iniconfig`"])
     end
 
-    subgraph typing [--group typing]
+    subgraph grp_typing [--group typing]
         types_boltons{{"`types-boltons >=25.0.0.20250822`"}}
         types_pyyaml{{"`types-pyyaml >=6.0.12.9`"}}
     end
 
-    subgraph hjson [--extra hjson]
-        hjson("`hjson`")
-    end
-
-    subgraph json5 [--extra json5]
-        json5("`json5`")
-    end
-
-    subgraph jsonc [--extra jsonc]
-        json_with_comments("`json-with-comments`")
-    end
-
-    subgraph xml [--extra xml]
-        xmltodict("`xmltodict`")
-    end
-
-    anyio --> exceptiongroup
-    anyio --> idna
-    anyio --> typing_extensions
-    bump_my_version --> click_0
-    bump_my_version --> httpx
-    bump_my_version --> pydantic
-    bump_my_version --> pydantic_settings
-    bump_my_version --> questionary
-    bump_my_version --> rich
-    bump_my_version --> rich_click
-    bump_my_version --> tomlkit
-    bump_my_version ==> wcmatch
-    click_0 --> colorama
-    click_extra ==> boltons
+    gha_utils ==>|" >=7 "| click_extra
+    gha_utils ==>|" >=1.2.6 "| bump_my_version
+    gha_utils ==>|" >=2.6 "| pydriller
+    gha_utils ==>|" >=25 "| packaging
+    gha_utils ==>|" >=2.3 "| tomli
+    gha_utils ==>|" >=10 "| wcmatch
+    gha_utils ==>|" >=6 "| extra_platforms
+    gha_utils ==>|" >=25 "| boltons
+    gha_utils ==>|" >=0.3.3 "| py_walk
+    gha_utils ==>|" >=0.9 "| pyproject_metadata
+    gha_utils ==>|" >=6.0.3 "| pyyaml
+    gha_utils ==>|" >=1.3.1 "| backports_strenum
     click_extra --> click_0
+    click_extra --> requests
+    click_extra ==> tomli
+    click_extra ==> wcmatch
     click_extra --> cloup
-    click_extra --> deepmerge
     click_extra ==> extra_platforms
+    click_extra ==> boltons
     click_extra --> hjson
     click_extra --> json_with_comments
     click_extra --> json5
     click_extra ==> pyyaml
-    click_extra --> requests
     click_extra --> tabulate
-    click_extra ==> tomli
-    click_extra ==> wcmatch
     click_extra --> xmltodict
-    cloup --> click_0
-    cloup --> typing_extensions
+    click_extra --> deepmerge
+    pytest ==> packaging
+    pytest ==> tomli
+    pytest --> colorama
+    pytest --> exceptiongroup
+    pytest --> pygments
+    pytest --> pluggy
+    pytest --> iniconfig
+    bump_my_version --> pydantic
+    bump_my_version --> click_0
+    bump_my_version --> httpx
+    bump_my_version --> rich_click
+    bump_my_version --> pydantic_settings
+    bump_my_version --> rich
+    bump_my_version ==> wcmatch
+    bump_my_version --> questionary
+    bump_my_version --> tomlkit
+    pydriller --> lizard
+    pydriller --> gitpython
+    pydriller --> pytz
+    pydriller --> types_pytz
+    pytest_cases ==> pytest
+    pytest_cases ==> packaging
+    pytest_cases --> decopatch
+    pytest_cases --> makefun
+    pytest_cov ==> pytest
+    pytest_cov ==> coverage
+    pytest_cov --> pluggy
+    wcmatch --> bracex
     coverage ==> tomli
-    decopatch --> makefun
-    exceptiongroup --> typing_extensions
     extra_platforms --> distro
-    gha_utils ==>|">=1.3.1"| backports_strenum
-    gha_utils ==>|">=25"| boltons
-    gha_utils ==>|">=1.2.6"| bump_my_version
-    gha_utils ==>|">=7"| click_extra
-    gha_utils ==>|">=6"| extra_platforms
-    gha_utils ==>|">=25"| packaging
-    gha_utils ==>|">=0.3.3"| py_walk
-    gha_utils ==>|">=2.6"| pydriller
-    gha_utils ==>|">=0.9"| pyproject_metadata
-    gha_utils ==>|">=6.0.3"| pyyaml
-    gha_utils ==>|">=2.3"| tomli
-    gha_utils ==>|">=10"| wcmatch
-    gitdb --> smmap
-    gitpython --> gitdb
-    httpcore --> certifi
-    httpcore --> h11
+    py_walk --> sly
+    pyproject_metadata ==> packaging
+    pytest_github_actions_annotate_failures ==> pytest
+    pytest_randomly ==> pytest
+    pydantic --> typing_extensions
+    pydantic --> typing_inspection
+    pydantic --> pydantic_core
+    pydantic --> annotated_types
+    click_0 --> colorama
     httpx --> anyio
     httpx --> certifi
     httpx --> httpcore
     httpx --> idna
-    lizard --> pathspec
+    requests --> certifi
+    requests --> idna
+    requests --> charset_normalizer
+    requests --> urllib3
+    rich_click --> typing_extensions
+    rich_click --> click_0
+    rich_click --> rich
+    rich_click --> colorama
+    pydantic_settings --> pydantic
+    pydantic_settings --> typing_inspection
+    pydantic_settings --> python_dotenv
+    rich --> pygments
+    rich --> markdown_it_py
+    cloup --> typing_extensions
+    cloup --> click_0
+    exceptiongroup --> typing_extensions
     lizard --> pygments
+    lizard --> pathspec
+    decopatch --> makefun
+    gitpython --> gitdb
+    questionary --> prompt_toolkit
+    tabulate --> wcwidth
+    anyio --> typing_extensions
+    anyio --> exceptiongroup
+    anyio --> idna
+    httpcore --> certifi
+    httpcore --> h11
+    typing_inspection --> typing_extensions
+    gitdb --> smmap
     markdown_it_py --> mdurl
     prompt_toolkit --> wcwidth
-    py_walk --> sly
-    pydantic --> annotated_types
-    pydantic --> pydantic_core
-    pydantic --> typing_extensions
-    pydantic --> typing_inspection
     pydantic_core --> typing_extensions
-    pydantic_settings --> pydantic
-    pydantic_settings --> python_dotenv
-    pydantic_settings --> typing_inspection
-    pydriller --> gitpython
-    pydriller --> lizard
-    pydriller --> pytz
-    pydriller --> types_pytz
-    pyproject_metadata ==> packaging
-    pytest --> colorama
-    pytest --> exceptiongroup
-    pytest --> iniconfig
-    pytest ==> packaging
-    pytest --> pluggy
-    pytest --> pygments
-    pytest ==> tomli
-    pytest_cases --> decopatch
-    pytest_cases --> makefun
-    pytest_cases ==> packaging
-    pytest_cases ==> pytest
-    pytest_cov ==> coverage
-    pytest_cov --> pluggy
-    pytest_cov ==> pytest
-    pytest_github_actions_annotate_failures ==> pytest
-    pytest_randomly ==> pytest
-    questionary --> prompt_toolkit
-    requests --> certifi
-    requests --> charset_normalizer
-    requests --> idna
-    requests --> urllib3
-    rich --> markdown_it_py
-    rich --> pygments
-    rich_click --> click_0
-    rich_click --> colorama
-    rich_click --> rich
-    rich_click --> typing_extensions
-    tabulate --> wcwidth
-    typing_inspection --> typing_extensions
-    wcmatch --> bracex
-    gha_utils -.-> test
-    gha_utils -.-> typing
+    gha_utils -.-> ext_hjson
+    gha_utils -.-> ext_json5
+    gha_utils -.-> ext_jsonc
+    gha_utils -.-> ext_xml
+    gha_utils -.-> grp_test
+    gha_utils -.-> grp_typing
 
     click annotated_types "https://pypi.org/project/annotated-types/" _blank
     click anyio "https://pypi.org/project/anyio/" _blank
@@ -267,10 +271,32 @@ flowchart LR
     click wcwidth "https://pypi.org/project/wcwidth/" _blank
     click xmltodict "https://pypi.org/project/xmltodict/" _blank
 
-    style primary-deps fill:#EEE,stroke:#CCC
-    style test fill:#FFF3E0,stroke:#FF9800
-    style typing fill:#FFF3E0,stroke:#FF9800
-    style hjson fill:#E8F5E9,stroke:#4CAF50
-    style json5 fill:#E8F5E9,stroke:#4CAF50
-    style jsonc fill:#E8F5E9,stroke:#4CAF50
-    style xml fill:#E8F5E9,stroke:#4CAF50
+    style gha_utils stroke-width:3px
+    style backports_strenum stroke-width:3px
+    style boltons stroke-width:3px
+    style bump_my_version stroke-width:3px
+    style click_extra stroke-width:3px
+    style coverage stroke-width:3px
+    style extra_platforms stroke-width:3px
+    style packaging stroke-width:3px
+    style py_walk stroke-width:3px
+    style pydriller stroke-width:3px
+    style pyproject_metadata stroke-width:3px
+    style pytest stroke-width:3px
+    style pytest_cases stroke-width:3px
+    style pytest_cov stroke-width:3px
+    style pytest_github_actions_annotate_failures stroke-width:3px
+    style pytest_randomly stroke-width:3px
+    style pyyaml stroke-width:3px
+    style tomli stroke-width:3px
+    style types_boltons stroke-width:3px
+    style types_pyyaml stroke-width:3px
+    style wcmatch stroke-width:3px
+
+    style primary-deps fill:#1565C020,stroke:#42A5F5
+    style ext_hjson fill:#7B1FA220,stroke:#BA68C8
+    style ext_json5 fill:#7B1FA220,stroke:#BA68C8
+    style ext_jsonc fill:#7B1FA220,stroke:#BA68C8
+    style ext_xml fill:#7B1FA220,stroke:#BA68C8
+    style grp_test fill:#546E7A20,stroke:#90A4AE
+    style grp_typing fill:#546E7A20,stroke:#90A4AE

@@ -38,6 +38,31 @@ if TYPE_CHECKING:
     from typing import Any
 
 
+STYLE_PRIMARY_DEPS_SUBGRAPH: str = "fill:#1565C020,stroke:#42A5F5"
+"""Mermaid style for the primary dependencies subgraph box.
+
+Uses semi-transparent fill (8-digit hex) so the tint adapts to both
+light and dark page backgrounds.
+"""
+
+STYLE_EXTRA_SUBGRAPH: str = "fill:#7B1FA220,stroke:#BA68C8"
+"""Mermaid style for extra dependency subgraph boxes.
+
+Uses semi-transparent fill (8-digit hex) so the tint adapts to both
+light and dark page backgrounds.
+"""
+
+STYLE_GROUP_SUBGRAPH: str = "fill:#546E7A20,stroke:#90A4AE"
+"""Mermaid style for group dependency subgraph boxes.
+
+Uses semi-transparent fill (8-digit hex) so the tint adapts to both
+light and dark page backgrounds.
+"""
+
+STYLE_PRIMARY_NODE: str = "stroke-width:3px"
+"""Mermaid style for root and primary dependency nodes (thick border)."""
+
+
 MERMAID_RESERVED_KEYWORDS: frozenset[str] = frozenset((
     "C4Component",
     "C4Container",
@@ -474,6 +499,88 @@ def trim_graph_to_depth(
     return filtered_nodes, filtered_edges
 
 
+def _compute_node_degrees(edges: list[tuple[str, str]]) -> dict[str, int]:
+    """Compute total degree (in + out) for each node in the edge list.
+
+    Nodes with more connections are more central to the graph and benefit
+    from being declared earlier, which helps dagre allocate better positions.
+
+    :param edges: List of (from_name, to_name) edge tuples.
+    :return: Dict mapping node name to total degree.
+    """
+    degrees: dict[str, int] = {}
+    for from_name, to_name in edges:
+        degrees[from_name] = degrees.get(from_name, 0) + 1
+        degrees[to_name] = degrees.get(to_name, 0) + 1
+    return degrees
+
+
+def _compute_subtree_sizes(edges: list[tuple[str, str]]) -> dict[str, int]:
+    """Compute the transitive descendant count for each node.
+
+    Nodes with larger subtrees should be declared first so dagre allocates
+    space for their dependency chains.
+
+    :param edges: List of (from_name, to_name) edge tuples.
+    :return: Dict mapping node name to number of reachable descendants.
+    """
+    # Build adjacency list.
+    children: dict[str, list[str]] = {}
+    all_nodes: set[str] = set()
+    for from_name, to_name in edges:
+        children.setdefault(from_name, []).append(to_name)
+        all_nodes.add(from_name)
+        all_nodes.add(to_name)
+
+    cache: dict[str, int] = {}
+
+    def _dfs(node: str, visited: set[str]) -> set[str]:
+        """Return the set of all reachable descendants of ``node``."""
+        if node in visited:
+            return set()
+        visited.add(node)
+        reachable: set[str] = set()
+        for child in children.get(node, []):
+            reachable.add(child)
+            reachable.update(_dfs(child, visited))
+        return reachable
+
+    for node in all_nodes:
+        if node not in cache:
+            cache[node] = len(_dfs(node, set()))
+    return cache
+
+
+def _compute_node_depths(
+    root_name: str,
+    edges: list[tuple[str, str]],
+) -> dict[str, int]:
+    """Compute BFS depth from root for each node.
+
+    Edges from shallower sources should be declared first to establish
+    a natural left-to-right flow in the dagre layout.
+
+    :param root_name: The root package name.
+    :param edges: List of (from_name, to_name) edge tuples.
+    :return: Dict mapping node name to BFS depth from root.
+    """
+    adjacency: dict[str, list[str]] = {}
+    for from_name, to_name in edges:
+        adjacency.setdefault(from_name, []).append(to_name)
+
+    depths: dict[str, int] = {root_name: 0}
+    frontier = [root_name]
+    while frontier:
+        next_frontier: list[str] = []
+        for node in frontier:
+            for neighbor in adjacency.get(node, []):
+                if neighbor not in depths:
+                    depths[neighbor] = depths[node] + 1
+                    next_frontier.append(neighbor)
+        frontier = next_frontier
+    return depths
+
+
 def render_mermaid(
     root_name: str,
     nodes: dict[str, tuple[str, str]],
@@ -512,15 +619,17 @@ def render_mermaid(
         packages.add(to_name)
 
     # Determine which packages belong to which group or extra.
+    # Subgraph IDs are prefixed with ``grp_`` / ``ext_`` to avoid collisions
+    # with node IDs (e.g., the ``json5`` package inside a ``json5`` extra).
     package_to_subgraph: dict[str, str] = {}
     if group_packages:
         for group_name, pkg_names in group_packages.items():
             for pkg_name in pkg_names:
-                package_to_subgraph[pkg_name] = group_name
+                package_to_subgraph[pkg_name] = f"grp_{group_name}"
     if extra_packages:
         for extra_name, pkg_names in extra_packages.items():
             for pkg_name in pkg_names:
-                package_to_subgraph[pkg_name] = extra_name
+                package_to_subgraph[pkg_name] = f"ext_{extra_name}"
 
     # Identify primary dependencies (explicitly declared in pyproject.toml) from root.
     primary_deps: set[str] = set()
@@ -534,6 +643,14 @@ def render_mermaid(
         for sg_deps in subgraph_specifiers.values():
             all_primary_deps.update(sg_deps.keys())
 
+    # Pre-compute graph metrics for smarter declaration ordering.
+    # Dagre uses declaration order as a heuristic for node positioning,
+    # so ordering by connectivity produces fewer edge crossings.
+    unique_edges = list(set(edges))
+    degree = _compute_node_degrees(unique_edges)
+    subtree = _compute_subtree_sizes(unique_edges)
+    depth = _compute_node_depths(root_name, unique_edges)
+
     # Separate packages into: root, primary deps, other, and subgraph-specific.
     other_main_packages = {
         name
@@ -546,14 +663,17 @@ def render_mermaid(
     # Define root node first.
     if root_name in packages:
         root_id = normalize_package_name(root_name)
-        lines.append(f'    {root_id}("`{root_name}`")')
+        lines.append(f'    {root_id}[["`{root_name}`"]]')
 
     # Define primary dependencies in a subgraph to align them vertically.
     # Primary deps use hexagon shape to distinguish them from transitive deps.
     if primary_deps:
         lines.append("")
-        lines.append("    subgraph primary-deps [&nbsp;]")
-        for name in sorted(primary_deps):
+        lines.append("    subgraph primary-deps [Primary dependencies]")
+        for name in sorted(
+            primary_deps,
+            key=lambda n: (-subtree.get(n, 0), -degree.get(n, 0), n),
+        ):
             node_id = normalize_package_name(name)
             lines.append(f'        {node_id}{{{{"`{name}`"}}}}')
         lines.append("    end")
@@ -561,33 +681,14 @@ def render_mermaid(
     # Define other main nodes (transitive dependencies).
     if other_main_packages:
         lines.append("")
-        for name in sorted(other_main_packages):
+        for name in sorted(
+            other_main_packages,
+            key=lambda n: (-degree.get(n, 0), n),
+        ):
             node_id = normalize_package_name(name)
-            lines.append(f'    {node_id}("`{name}`")')
+            lines.append(f'    {node_id}(["`{name}`"])')
 
-    # Define group subgraphs.
-    if group_packages:
-        for group_name in sorted(group_packages.keys()):
-            group_pkg_names = group_packages[group_name]
-            if not group_pkg_names:
-                continue
-            sg_specs = (subgraph_specifiers or {}).get(group_name, {})
-            lines.append("")
-            lines.append(f"    subgraph {group_name} [--group {group_name}]")
-            for name in sorted(group_pkg_names):
-                if name not in packages:
-                    continue
-                node_id = normalize_package_name(name)
-                spec = sg_specs.get(name, "")
-                label = f"{name} {spec}" if spec else name
-                # Primary deps use hexagon shape.
-                if name in all_primary_deps:
-                    lines.append(f'        {node_id}{{{{"`{label}`"}}}}')
-                else:
-                    lines.append(f'        {node_id}("`{label}`")')
-            lines.append("    end")
-
-    # Define extra subgraphs.
+    # Define extra subgraphs (before groups so they appear closer to main deps).
     if extra_packages:
         for extra_name in sorted(extra_packages.keys()):
             extra_pkg_names = extra_packages[extra_name]
@@ -595,8 +696,11 @@ def render_mermaid(
                 continue
             sg_specs = (subgraph_specifiers or {}).get(extra_name, {})
             lines.append("")
-            lines.append(f"    subgraph {extra_name} [--extra {extra_name}]")
-            for name in sorted(extra_pkg_names):
+            lines.append(f"    subgraph ext_{extra_name} [--extra {extra_name}]")
+            for name in sorted(
+                extra_pkg_names,
+                key=lambda n: (-degree.get(n, 0), n),
+            ):
                 if name not in packages:
                     continue
                 node_id = normalize_package_name(name)
@@ -606,7 +710,32 @@ def render_mermaid(
                 if name in all_primary_deps:
                     lines.append(f'        {node_id}{{{{"`{label}`"}}}}')
                 else:
-                    lines.append(f'        {node_id}("`{label}`")')
+                    lines.append(f'        {node_id}(["`{label}`"])')
+            lines.append("    end")
+
+    # Define group subgraphs (after extras, further from main deps).
+    if group_packages:
+        for group_name in sorted(group_packages.keys()):
+            group_pkg_names = group_packages[group_name]
+            if not group_pkg_names:
+                continue
+            sg_specs = (subgraph_specifiers or {}).get(group_name, {})
+            lines.append("")
+            lines.append(f"    subgraph grp_{group_name} [--group {group_name}]")
+            for name in sorted(
+                group_pkg_names,
+                key=lambda n: (-degree.get(n, 0), n),
+            ):
+                if name not in packages:
+                    continue
+                node_id = normalize_package_name(name)
+                spec = sg_specs.get(name, "")
+                label = f"{name} {spec}" if spec else name
+                # Primary deps use hexagon shape.
+                if name in all_primary_deps:
+                    lines.append(f'        {node_id}{{{{"`{label}`"}}}}')
+                else:
+                    lines.append(f'        {node_id}(["`{label}`"])')
             lines.append("    end")
 
     # Add edges. Use thick arrows for edges from root or pointing to primary deps.
@@ -616,7 +745,16 @@ def render_mermaid(
     # Track which subgraphs have edges from root.
     root_to_subgraphs: set[str] = set()
 
-    for from_name, to_name in sorted(set(edges)):
+    for from_name, to_name in sorted(
+        set(edges),
+        key=lambda e: (
+            depth.get(e[0], 0),
+            -degree.get(e[0], 0),
+            e[0],
+            -degree.get(e[1], 0),
+            e[1],
+        ),
+    ):
         # Check if target is in a subgraph and source is root.
         if from_name == root_name and to_name in package_to_subgraph:
             # Track that we need a link to this subgraph.
@@ -637,7 +775,7 @@ def render_mermaid(
         if specifiers and from_name in specifiers:
             spec = specifiers[from_name].get(to_name, "")
         if spec:
-            lines.append(f'    {from_id} {arrow}|"{spec}"| {to_id}')
+            lines.append(f'    {from_id} {arrow}|" {spec} "| {to_id}')
         else:
             lines.append(f"    {from_id} {arrow} {to_id}")
 
@@ -653,18 +791,29 @@ def render_mermaid(
         pypi_url = f"https://pypi.org/project/{name}/"
         lines.append(f'    click {node_id} "{pypi_url}" _blank')
 
+    # Style root and primary dependency nodes with thick borders.
+    lines.append("")
+    if root_name in packages:
+        root_id = normalize_package_name(root_name)
+        lines.append(f"    style {root_id} {STYLE_PRIMARY_NODE}")
+    if all_primary_deps:
+        for name in sorted(all_primary_deps):
+            if name in packages:
+                node_id = normalize_package_name(name)
+                lines.append(f"    style {node_id} {STYLE_PRIMARY_NODE}")
+
     # Style subgraphs with different colors.
     lines.append("")
     if primary_deps:
-        lines.append("    style primary-deps fill:#EEE,stroke:#CCC")
-    if group_packages:
-        for group_name, pkg_names in sorted(group_packages.items()):
-            if pkg_names:
-                lines.append(f"    style {group_name} fill:#FFF3E0,stroke:#FF9800")
+        lines.append(f"    style primary-deps {STYLE_PRIMARY_DEPS_SUBGRAPH}")
     if extra_packages:
         for extra_name, pkg_names in sorted(extra_packages.items()):
             if pkg_names:
-                lines.append(f"    style {extra_name} fill:#E8F5E9,stroke:#4CAF50")
+                lines.append(f"    style ext_{extra_name} {STYLE_EXTRA_SUBGRAPH}")
+    if group_packages:
+        for group_name, pkg_names in sorted(group_packages.items()):
+            if pkg_names:
+                lines.append(f"    style grp_{group_name} {STYLE_GROUP_SUBGRAPH}")
 
     return "\n".join(lines)
 
@@ -724,6 +873,17 @@ def generate_dependency_graph(
             unique_to_extra = extra_all_packages - base_packages - seen_in_subgraphs
             extra_packages[extra] = unique_to_extra
             seen_in_subgraphs.update(unique_to_extra)
+
+    # Add synthetic edges from root to extra-unique packages.
+    # CycloneDX SBOMs don't include direct edges from root to packages
+    # activated by extras (they appear as transitive deps of the parent
+    # package, e.g. click-extra -> xmltodict). Adding synthetic edges
+    # ensures extras are treated as depth-1 dependencies and get dashed
+    # arrows from root to their subgraphs.
+    if extra_packages:
+        for extra_pkgs in extra_packages.values():
+            for pkg in extra_pkgs:
+                edges.append((root_name, pkg))
 
     # Filter to specific package if requested.
     if package:
