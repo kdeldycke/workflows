@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-01-19T00:00:00Z"
+exclude-newer = "2026-01-20T00:00:00Z"
 
 [[package]]
 name = "annotated-types"
@@ -421,27 +421,27 @@ typing = [
 [package.metadata]
 requires-dist = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'", specifier = ">=1.3.1" },
-    { name = "boltons", specifier = ">=25.0.0" },
+    { name = "boltons", specifier = ">=25" },
     { name = "bump-my-version", specifier = ">=1.2.6" },
-    { name = "click-extra", specifier = ">=7.0.0" },
-    { name = "extra-platforms", specifier = ">=6.0.0" },
-    { name = "packaging", specifier = ">=25.0" },
+    { name = "click-extra", specifier = ">=7" },
+    { name = "extra-platforms", specifier = ">=6" },
+    { name = "packaging", specifier = ">=25" },
     { name = "py-walk", specifier = ">=0.3.3" },
     { name = "pydriller", specifier = ">=2.6" },
-    { name = "pyproject-metadata", specifier = ">=0.9.0" },
+    { name = "pyproject-metadata", specifier = ">=0.9" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.3.0" },
-    { name = "wcmatch", specifier = ">=10.0" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.3" },
+    { name = "wcmatch", specifier = ">=10" },
 ]
 
 [package.metadata.requires-dev]
 test = [
-    { name = "coverage", extras = ["toml"], specifier = ">=7.11.0" },
-    { name = "pytest", specifier = ">=9.0.0" },
-    { name = "pytest-cases", specifier = ">=3.9.0" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
-    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
-    { name = "pytest-randomly", specifier = ">=4.0.0" },
+    { name = "coverage", extras = ["toml"], specifier = ">=7.11" },
+    { name = "pytest", specifier = ">=9" },
+    { name = "pytest-cases", specifier = ">=3.9" },
+    { name = "pytest-cov", specifier = ">=7" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3" },
+    { name = "pytest-randomly", specifier = ">=4" },
 ]
 typing = [
     { name = "types-boltons", specifier = ">=25.0.0.20250822" },
