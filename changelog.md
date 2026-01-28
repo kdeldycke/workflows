@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `gha-utils broken-links` command to manage broken link issue lifecycle.
 - Add `gha-utils deps-graph` command to generate Mermaid dependency graphs from uv lockfile.
 - Replace `pipdeptree` with `uv export --format cyclonedx1.5` for dependency graph generation.
 - Consolidate all bundled files under `gha-utils bundled export <filename>` command.

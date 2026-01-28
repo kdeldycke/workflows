@@ -406,6 +406,7 @@ expected = {
     "python_files": [
         "gha_utils/__init__.py",
         "gha_utils/__main__.py",
+        "gha_utils/broken_links.py",
         "gha_utils/bundled_config.py",
         "gha_utils/changelog.py",
         "gha_utils/cli.py",
@@ -418,6 +419,7 @@ expected = {
         "gha_utils/sponsor.py",
         "gha_utils/test_plan.py",
         "tests/__init__.py",
+        "tests/test_broken_links.py",
         "tests/test_bundled_config.py",
         "tests/test_changelog.py",
         "tests/test_deps_graph.py",

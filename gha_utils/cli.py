@@ -68,6 +68,7 @@ from .deps_graph import (
     get_available_extras,
     get_available_groups,
 )
+from .broken_links import manage_broken_links_issue
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -1007,3 +1008,53 @@ def deps_graph(
         logging.info(f"Write graph to {output}")
 
     echo(graph, file=prep_path(output))
+
+
+@gha_utils.command(short_help="Manage broken links issue lifecycle")
+@option(
+    "--lychee-exit-code",
+    type=int,
+    required=True,
+    help="Exit code from lychee (0=no broken links, 2=broken links found).",
+)
+@option(
+    "--body-file",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    required=True,
+    help="Path to the issue body file (lychee output).",
+)
+@option(
+    "--repo-name",
+    required=True,
+    help="Repository name (for label selection).",
+)
+def broken_links(lychee_exit_code: int, body_file: Path, repo_name: str) -> None:
+    """Manage the broken links issue lifecycle.
+
+    This command consolidates the entire broken links workflow into a single call:
+
+    \b
+    1. Validates the lychee exit code (error if not 0 or 2).
+    2. Lists open issues by github-actions[bot].
+    3. Triages matching "Broken links" issues (keep newest, close duplicates).
+    4. Closes duplicate/obsolete issues.
+    5. Creates or updates the main issue.
+
+    This command requires the ``gh`` CLI to be installed and authenticated.
+
+    \b
+    Examples:
+        # Run after lychee check (broken links found)
+        gha-utils broken-links \\
+            --lychee-exit-code 2 \\
+            --body-file ./lychee/out.md \\
+            --repo-name "my-repo"
+
+    \b
+        # Run after lychee check (no broken links)
+        gha-utils broken-links \\
+            --lychee-exit-code 0 \\
+            --body-file ./lychee/out.md \\
+            --repo-name "my-repo"
+    """
+    manage_broken_links_issue(lychee_exit_code, body_file, repo_name)
