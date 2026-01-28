@@ -5,6 +5,10 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `gha-utils update-exclude-newer` command to update the exclude-newer date in pyproject.toml.
+- Add `gha-utils check-renovate-prereqs` command to validate Renovate prerequisites.
+- Add `gha-utils lint-repo` command to run repository consistency checks.
+- Add `gha-utils git-tag` command for idempotent Git tag creation and pushing.
 - Add `gha-utils verify-binary` command to verify compiled binary architectures using exiftool.
 - Add `gha-utils collect-artifacts` command to collect and rename artifacts for GitHub releases.
 - Add `gha-utils broken-links` command to manage broken link issue lifecycle.

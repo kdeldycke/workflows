@@ -17,12 +17,25 @@
 """GitHub Actions utilities.
 
 This module provides utilities for working with GitHub Actions, including
-output formatting for ``$GITHUB_OUTPUT``.
+output formatting for ``$GITHUB_OUTPUT`` and workflow annotations.
 """
 
 from __future__ import annotations
 
+from enum import Enum
 from random import randint
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Literal
+
+
+class AnnotationLevel(Enum):
+    """Annotation levels for GitHub Actions workflow commands."""
+
+    ERROR = "error"
+    WARNING = "warning"
+    NOTICE = "notice"
 
 
 def generate_delimiter() -> str:
@@ -61,3 +74,23 @@ def format_multiline_output(name: str, value: str) -> str:
     """
     delimiter = generate_delimiter()
     return f"{name}<<{delimiter}\n{value}\n{delimiter}"
+
+
+def emit_annotation(
+    level: AnnotationLevel | Literal["error", "warning", "notice"],
+    message: str,
+) -> None:
+    """Emit a GitHub Actions workflow annotation.
+
+    Prints a workflow command that creates an annotation visible in the GitHub
+    Actions UI and PR checks.
+
+    :param level: The annotation level (error, warning, or notice).
+    :param message: The annotation message.
+
+    .. seealso::
+        https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-error-message
+    """
+    if isinstance(level, str):
+        level = AnnotationLevel(level)
+    print(f"::{level.value}::{message}")

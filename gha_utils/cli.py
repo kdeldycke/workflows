@@ -76,6 +76,14 @@ from .binary import (
     format_github_output,
     verify_binary_arch,
 )
+from .git_ops import create_and_push_tag
+from .renovate import (
+    calculate_target_date,
+    parse_exclude_newer_date,
+    run_renovate_prereq_checks,
+    update_exclude_newer_in_file,
+)
+from .lint_repo import run_repo_lint
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -1169,3 +1177,271 @@ def collect_artifacts(
         logging.info(f"Write to {output}")
 
     echo(github_output, file=prep_path(output))
+
+
+@gha_utils.command(short_help="Update exclude-newer date in pyproject.toml")
+@option(
+    "--pyproject",
+    type=file_path(resolve_path=True),
+    default="pyproject.toml",
+    help="Path to pyproject.toml file.",
+)
+@option(
+    "--days",
+    type=IntRange(min=1),
+    default=7,
+    help="Number of days in the past for the target date.",
+)
+@option(
+    "-o",
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default=None,
+    help="Output file for modified=true/false (e.g., $GITHUB_OUTPUT).",
+)
+def update_exclude_newer(
+    pyproject: Path,
+    days: int,
+    output: Path | None,
+) -> None:
+    """Update the exclude-newer date in pyproject.toml when stale.
+
+    Uses a fixed date (not relative) to prevent uv.lock timestamp churn on
+    every sync. Only updates if the current date is older than the target.
+
+    \b
+    Examples:
+        # Check and update pyproject.toml
+        gha-utils update-exclude-newer
+
+    \b
+        # Output result for GitHub Actions
+        gha-utils update-exclude-newer --output "$GITHUB_OUTPUT"
+
+    \b
+        # Use a different cooldown period
+        gha-utils update-exclude-newer --days 14
+    """
+    if not pyproject.exists():
+        logging.info(f"No {pyproject} found, skipping.")
+        if output:
+            echo("modified=false", file=prep_path(output))
+        return
+
+    current_date = parse_exclude_newer_date(pyproject)
+    target_date = calculate_target_date(days)
+
+    logging.info(f"Current exclude-newer date: {current_date}")
+    logging.info(f"Target date ({days} days ago): {target_date}")
+
+    modified = False
+    if current_date is not None and current_date < target_date:
+        modified = update_exclude_newer_in_file(pyproject, target_date)
+
+    if output:
+        echo(f"modified={'true' if modified else 'false'}", file=prep_path(output))
+
+
+@gha_utils.command(short_help="Check Renovate prerequisites")
+@option(
+    "--repo",
+    default=None,
+    help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
+)
+@option(
+    "--sha",
+    default=None,
+    help="Commit SHA for permission checks. Defaults to $GITHUB_SHA.",
+)
+@pass_context
+def check_renovate_prereqs(ctx: Context, repo: str | None, sha: str | None) -> None:
+    """Check prerequisites for running Renovate.
+
+    Validates that:
+    - No Dependabot version updates config exists (.github/dependabot.yaml).
+    - Dependabot security updates are disabled.
+    - Token has commit statuses permission (non-fatal).
+
+    \b
+    Examples:
+        # In GitHub Actions (all defaults auto-detected)
+        gha-utils check-renovate-prereqs
+
+    \b
+        # Manual invocation
+        gha-utils check-renovate-prereqs --repo owner/repo --sha abc123
+    """
+    # Apply defaults from environment.
+    if repo is None:
+        repo = os.getenv("GITHUB_REPOSITORY", "")
+    if sha is None:
+        sha = os.getenv("GITHUB_SHA", "")
+
+    if not repo:
+        logging.error("No repository specified. Set --repo or $GITHUB_REPOSITORY.")
+        ctx.exit(1)
+    if not sha:
+        logging.error("No SHA specified. Set --sha or $GITHUB_SHA.")
+        ctx.exit(1)
+
+    exit_code = run_renovate_prereq_checks(repo, sha)
+    ctx.exit(exit_code)
+
+
+@gha_utils.command(short_help="Run repository consistency checks")
+@option(
+    "--package-name",
+    default=None,
+    help="Python package name from pyproject.toml.",
+)
+@option(
+    "--repo-name",
+    default=None,
+    help="Repository name. Defaults to $GITHUB_REPOSITORY name component.",
+)
+@option(
+    "--is-sphinx/--no-sphinx",
+    default=False,
+    help="Whether the project uses Sphinx documentation.",
+)
+@option(
+    "--project-description",
+    default=None,
+    help="Project description from pyproject.toml.",
+)
+@option(
+    "--repo",
+    default=None,
+    help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
+)
+@pass_context
+def lint_repo(
+    ctx: Context,
+    package_name: str | None,
+    repo_name: str | None,
+    is_sphinx: bool,
+    project_description: str | None,
+    repo: str | None,
+) -> None:
+    """Run consistency checks on repository metadata.
+
+    Checks:
+    - Package name vs repository name (warning).
+    - Website field set for Sphinx projects (warning).
+    - Repository description matches project description (error).
+
+    \b
+    Examples:
+        # In GitHub Actions with metadata from previous job
+        gha-utils lint-repo \\
+            --package-name my-package \\
+            --repo-name my-package \\
+            --is-sphinx \\
+            --project-description "A cool package."
+
+    \b
+        # Just check description
+        gha-utils lint-repo --project-description "A cool package."
+    """
+    # Apply defaults from environment.
+    if repo is None:
+        repo = os.getenv("GITHUB_REPOSITORY", "")
+    if repo_name is None and repo:
+        # Extract repo name from owner/repo format.
+        repo_name = repo.split("/")[-1] if "/" in repo else repo
+
+    exit_code = run_repo_lint(
+        package_name=package_name,
+        repo_name=repo_name,
+        is_sphinx=is_sphinx,
+        project_description=project_description,
+        repo=repo if repo else None,
+    )
+    ctx.exit(exit_code)
+
+
+@gha_utils.command(short_help="Create and push a Git tag")
+@option(
+    "--tag",
+    required=True,
+    help="Tag name to create (e.g., v1.2.3).",
+)
+@option(
+    "--commit",
+    default=None,
+    help="Commit to tag. Defaults to HEAD.",
+)
+@option(
+    "--push/--no-push",
+    default=True,
+    help="Push the tag to remote after creation.",
+)
+@option(
+    "--skip-existing/--error-existing",
+    default=True,
+    help="Skip silently if tag exists, or fail with an error.",
+)
+@option(
+    "-o",
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default=None,
+    help="Output file for created=true/false (e.g., $GITHUB_OUTPUT).",
+)
+@pass_context
+def git_tag(
+    ctx: Context,
+    tag: str,
+    commit: str | None,
+    push: bool,
+    skip_existing: bool,
+    output: Path | None,
+) -> None:
+    """Create and optionally push a Git tag.
+
+    This command is idempotent: if the tag already exists and --skip-existing
+    is used, it exits successfully without making changes. This allows safe
+    re-runs of workflows interrupted after tag creation.
+
+    \b
+    Examples:
+        # Create and push a tag
+        gha-utils git-tag --tag v1.2.3
+
+    \b
+        # Tag a specific commit
+        gha-utils git-tag --tag v1.2.3 --commit abc123def
+
+    \b
+        # Create tag without pushing
+        gha-utils git-tag --tag v1.2.3 --no-push
+
+    \b
+        # Fail if tag exists
+        gha-utils git-tag --tag v1.2.3 --error-existing
+
+    \b
+        # Output result for GitHub Actions
+        gha-utils git-tag --tag v1.2.3 --output "$GITHUB_OUTPUT"
+    """
+    try:
+        created = create_and_push_tag(
+            tag=tag,
+            commit=commit,
+            push=push,
+            skip_existing=skip_existing,
+        )
+        if created:
+            echo(f"Created{'and pushed ' if push else ' '}tag {tag!r}")
+        else:
+            echo(f"Tag {tag!r} already exists, skipped.")
+
+        if output:
+            echo(f"created={'true' if created else 'false'}", file=prep_path(output))
+
+    except ValueError as e:
+        logging.error(str(e))
+        ctx.exit(1)
+    except Exception as e:
+        logging.error(f"Failed to create/push tag: {e}")
+        ctx.exit(1)
