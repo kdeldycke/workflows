@@ -298,7 +298,7 @@ from collections.abc import Iterable
 from functools import cached_property
 from operator import itemgetter
 from pathlib import Path
-from random import randint
+from .github import generate_delimiter
 from re import escape
 
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
@@ -1955,8 +1955,8 @@ class Metadata:
                 if not is_multiline:
                     content += f"{env_name}={env_value}\n"
                 else:
-                    # Use a random unique delimiter to encode multiline value:
-                    delimiter = f"GHA_DELIMITER_{randint(10**8, (10**9) - 1)}"
+                    # Use a random unique delimiter to encode multiline value.
+                    delimiter = generate_delimiter()
                     content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
         else:
             assert dialect == Dialect.json

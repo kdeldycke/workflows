@@ -246,7 +246,7 @@ class TestFormatGithubOutput:
     def test_empty_list(self):
         """Empty artifact list produces valid output."""
         result = format_github_output([])
-        assert result.startswith("artifacts_path<<ghadelimiter_")
+        assert result.startswith("artifacts_path<<GHA_DELIMITER_")
         assert result.endswith(result.split("<<")[1].split("\n")[0])
 
     def test_single_artifact(self, tmp_path):
@@ -256,9 +256,9 @@ class TestFormatGithubOutput:
 
         # Check structure.
         lines = result.split("\n")
-        assert lines[0].startswith("artifacts_path<<ghadelimiter_")
+        assert lines[0].startswith("artifacts_path<<GHA_DELIMITER_")
         assert lines[1] == str(artifact)
-        assert lines[2].startswith("ghadelimiter_")
+        assert lines[2].startswith("GHA_DELIMITER_")
 
     def test_multiple_artifacts(self, tmp_path):
         """Multiple artifact paths are formatted correctly."""
@@ -274,7 +274,7 @@ class TestFormatGithubOutput:
     def test_delimiter_format(self):
         """Delimiter follows expected format."""
         result = format_github_output([])
-        delimiter_match = re.search(r"ghadelimiter_(\d+)", result)
+        delimiter_match = re.search(r"GHA_DELIMITER_(\d+)", result)
         assert delimiter_match
         # Delimiter is 9 digits.
         assert 10**8 <= int(delimiter_match.group(1)) < 10**9

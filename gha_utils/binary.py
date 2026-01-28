@@ -28,7 +28,8 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from random import randint
+
+from .github import format_multiline_output
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -177,21 +178,15 @@ def collect_and_rename_artifacts(
 def format_github_output(artifacts: list[Path]) -> str:
     """Format artifact paths for GitHub Actions multiline output.
 
-    Produces output in the format:
-        artifacts_path<<ghadelimiter_NNNNNNNN
+    Produces output in the format::
+
+        artifacts_path<<GHA_DELIMITER_NNNNNNNNN
         /path/to/artifact1
         /path/to/artifact2
-        ghadelimiter_NNNNNNNN
+        GHA_DELIMITER_NNNNNNNNN
 
     :param artifacts: List of artifact paths.
-    :return: Formatted string for GITHUB_OUTPUT.
+    :return: Formatted string for ``$GITHUB_OUTPUT``.
     """
-    # Produce a unique delimiter to feed multiline content to GITHUB_OUTPUT.
-    # See: https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
-    delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
-
-    output = f"artifacts_path<<{delimiter}\n"
-    output += "\n".join(str(p) for p in artifacts)
-    output += f"\n{delimiter}"
-
-    return output
+    value = "\n".join(str(p) for p in artifacts)
+    return format_multiline_output("artifacts_path", value)
