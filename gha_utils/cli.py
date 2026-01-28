@@ -32,6 +32,7 @@ from click_extra import (
     FloatRange,
     IntRange,
     argument,
+    dir_path,
     echo,
     file_path,
     group,
@@ -69,6 +70,12 @@ from .deps_graph import (
     get_available_groups,
 )
 from .broken_links import manage_broken_links_issue
+from .binary import (
+    BINARY_ARCH_MAPPINGS,
+    collect_and_rename_artifacts,
+    format_github_output,
+    verify_binary_arch,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -1058,3 +1065,107 @@ def broken_links(lychee_exit_code: int, body_file: Path, repo_name: str) -> None
             --repo-name "my-repo"
     """
     manage_broken_links_issue(lychee_exit_code, body_file, repo_name)
+
+
+@gha_utils.command(short_help="Verify binary architecture using exiftool")
+@option(
+    "--target",
+    type=Choice(sorted(BINARY_ARCH_MAPPINGS.keys()), case_sensitive=False),
+    required=True,
+    help="Target platform (e.g., linux-arm64, macos-x64, windows-x64).",
+)
+@option(
+    "--binary",
+    "binary_path",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    required=True,
+    help="Path to the binary file to verify.",
+)
+def verify_binary(target: str, binary_path: Path) -> None:
+    """Verify that a compiled binary matches the expected architecture.
+
+    Uses exiftool to inspect the binary and validates that its architecture
+    matches what is expected for the specified target platform.
+
+    Requires exiftool to be installed and available in PATH.
+
+    \b
+    Examples:
+        # Verify a Linux ARM64 binary
+        gha-utils verify-binary --target linux-arm64 --binary ./mpm-linux-arm64.bin
+
+    \b
+        # Verify a Windows x64 binary
+        gha-utils verify-binary --target windows-x64 --binary ./mpm-windows-x64.exe
+    """
+    verify_binary_arch(target, binary_path)
+    echo(f"Binary architecture verified for {target}: {binary_path}")
+
+
+@gha_utils.command(short_help="Collect and rename artifacts for release")
+@option(
+    "--download-folder",
+    type=dir_path(exists=True, resolve_path=True),
+    required=True,
+    help="Folder containing downloaded artifacts.",
+)
+@option(
+    "--short-sha",
+    required=True,
+    help="SHA suffix to strip from binary filenames.",
+)
+@option(
+    "--nuitka-matrix",
+    default=None,
+    help="JSON string of the nuitka matrix (to identify binaries).",
+)
+@option(
+    "-o",
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+    help="Output file path for GITHUB_OUTPUT format. Defaults to stdout.",
+)
+def collect_artifacts(
+    download_folder: Path,
+    short_sha: str,
+    nuitka_matrix: str | None,
+    output: Path,
+) -> None:
+    """Collect artifacts and rename binaries for GitHub release.
+
+    Processes all files in the download folder:
+    - Binaries (identified via nuitka-matrix) are renamed to strip the SHA suffix.
+    - Other artifacts are collected as-is.
+
+    Outputs artifact paths in GITHUB_OUTPUT multiline format.
+
+    \b
+    Examples:
+        # Collect artifacts and write to GITHUB_OUTPUT
+        gha-utils collect-artifacts \\
+            --download-folder ./release_artifact \\
+            --short-sha 346ce66 \\
+            --nuitka-matrix '{"include": [...]}' \\
+            --output "$GITHUB_OUTPUT"
+
+    \b
+        # Preview artifact collection (output to stdout)
+        gha-utils collect-artifacts \\
+            --download-folder ./release_artifact \\
+            --short-sha abc1234
+    """
+    artifacts = collect_and_rename_artifacts(
+        download_folder=download_folder,
+        short_sha=short_sha,
+        nuitka_matrix_json=nuitka_matrix,
+    )
+
+    github_output = format_github_output(artifacts)
+
+    if is_stdout(output):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output}")
+
+    echo(github_output, file=prep_path(output))
