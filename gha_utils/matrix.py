@@ -108,9 +108,16 @@ class Matrix:
         self, *new_dicts: dict[str, str]
     ) -> tuple[dict[str, str], ...]:
         self._check_ids(*(k for d in new_dicts for k in d))
-        return tuple(
-            dict(items) for items in unique((tuple(d.items()) for d in new_dicts))
-        )
+        # Use a set to track seen dicts by their sorted items tuple.
+        # This avoids repeated tuple/dict conversions in the inner loop.
+        seen: set[tuple[tuple[str, str], ...]] = set()
+        result: list[dict[str, str]] = []
+        for d in new_dicts:
+            items_tuple = tuple(sorted(d.items()))
+            if items_tuple not in seen:
+                seen.add(items_tuple)
+                result.append(d)
+        return tuple(result)
 
     def add_includes(self, *new_includes: dict[str, str]) -> None:
         """Add one or more ``include`` special directives to the matrix."""

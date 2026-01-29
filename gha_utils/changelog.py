@@ -29,6 +29,17 @@ else:
     import tomli as tomllib  # type: ignore[import-not-found]
 
 
+# Pre-compiled regex patterns for changelog parsing.
+DATE_PATTERN = re.compile(r"\d{4}\-\d{2}\-\d{2}")
+"""Pattern matching release dates in YYYY-MM-DD format."""
+
+VERSION_COMPARE_PATTERN = re.compile(r"v(\d+\.\d+\.\d+)\.\.\.v(\d+\.\d+\.\d+)")
+"""Pattern matching GitHub comparison URLs like ``v1.0.0...v1.0.1``."""
+
+CHANGELOG_BODY_PATTERN = re.compile(r"\n\n.*", re.MULTILINE | re.DOTALL)
+"""Pattern matching the changelog entry body (everything after the header)."""
+
+
 class Changelog:
     """Helpers to manipulate changelog files written in Markdown."""
 
@@ -117,15 +128,11 @@ class Changelog:
         past_entries = f"{SECTION_START}{sections[2]}" if len(sections) > 2 else ""
 
         # Derive the release template from the last entry.
-        DATE_REGEX = r"\d{4}\-\d{2}\-\d{2}"
-        VERSION_REGEX = r"\d+\.\d+\.\d+"
-
         # Replace the release date with the unreleased tag.
-        new_entry = re.sub(DATE_REGEX, "unreleased", current_entry, count=1)
+        new_entry = DATE_PATTERN.sub("unreleased", current_entry, count=1)
 
         # Update GitHub's comparison URL to target the main branch.
-        new_entry = re.sub(
-            rf"v{VERSION_REGEX}\.\.\.v{VERSION_REGEX}",
+        new_entry = VERSION_COMPARE_PATTERN.sub(
             f"v{self.current_version}...main",
             new_entry,
             count=1,
@@ -134,13 +141,11 @@ class Changelog:
         # Replace the whole paragraph of changes by a notice message. The paragraph is
         # identified as starting by a blank line, at which point everything gets
         # replaced.
-        new_entry = re.sub(
-            r"\n\n.*",
+        new_entry = CHANGELOG_BODY_PATTERN.sub(
             "\n\n"
             "> [!IMPORTANT]\n"
             "> This version is not released yet and is under active development.\n\n",
             new_entry,
-            flags=re.MULTILINE | re.DOTALL,
         )
         logging.info("New generated section:\n" + indent(new_entry, " " * 2))
 

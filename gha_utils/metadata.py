@@ -347,6 +347,9 @@ SHORT_SHA_LENGTH = 7
     depends on the size of the repository.
 """
 
+RELEASE_COMMIT_PATTERN = re.compile(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$")
+"""Pre-compiled regex pattern for identifying release commits."""
+
 NULL_SHA = "0" * 40
 """The null SHA used by Git to represent a non-existent commit.
 
@@ -752,6 +755,9 @@ class Metadata:
 
         Returns ``True`` if the commit was found, ``False`` otherwise.
         """
+        # Cache the current depth to avoid repeated subprocess calls.
+        current_depth: int | None = None
+
         for attempt in range(max_attempts):
             try:
                 _ = self.git.get_commit(commit_hash)
@@ -764,10 +770,12 @@ class Metadata:
             except (ValueError, BadName) as ex:
                 logging.debug(f"Commit {commit_hash} not found: {ex}")
 
-                current_depth = self.git.total_commits()
+                # Only compute depth if not cached yet.
+                if current_depth is None:
+                    current_depth = self.git.total_commits()
 
                 if attempt == max_attempts - 1:
-                    # We've exhausted all attempts
+                    # We've exhausted all attempts.
                     logging.error(
                         f"Cannot find commit {commit_hash} in repository after "
                         f"{max_attempts} deepen attempts. "
@@ -785,9 +793,10 @@ class Metadata:
 
                 try:
                     self.git.repo.git.fetch(f"--deepen={deepen_increment}")
-                    new_depth = self.git.total_commits()
+                    # Update cached depth after successful fetch.
+                    current_depth = self.git.total_commits()
                     logging.debug(
-                        f"Repository deepened successfully. New depth: {new_depth}"
+                        f"Repository deepened successfully. New depth: {current_depth}"
                     )
                 except Exception as ex:
                     logging.error(f"Failed to deepen repository: {ex}")
@@ -1165,10 +1174,7 @@ class Metadata:
         return tuple(
             commit
             for commit in self.new_commits
-            if re.fullmatch(
-                r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$",
-                commit.msg,
-            )
+            if RELEASE_COMMIT_PATTERN.fullmatch(commit.msg)
         )
 
     @cached_property

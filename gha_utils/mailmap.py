@@ -34,11 +34,19 @@ class Record:
     canonical: str = ""
     aliases: set[str] = field(default_factory=set)
     pre_comment: str = ""
+    # Pre-computed lowercase versions for efficient case-insensitive matching.
+    _canonical_lower: str = field(init=False, repr=False, compare=False, default="")
+    _aliases_lower: frozenset[str] = field(
+        init=False, repr=False, compare=False, default_factory=frozenset
+    )
 
     def __post_init__(self) -> None:
-        """Empty pre-comment are normalized to empty string, even if they are multi-lines."""
+        """Normalize pre-comment and pre-compute lowercase identities for fast lookup."""
         if self.pre_comment.strip() == "":
             self.pre_comment = ""
+        # Pre-compute lowercase versions to avoid repeated conversions in find().
+        self._canonical_lower = self.canonical.lower()
+        self._aliases_lower = frozenset(a.lower() for a in self.aliases)
 
     def __str__(self) -> str:
         """Render the record with pre-comments first, followed by the identity mapping.
@@ -122,7 +130,11 @@ class Mailmap:
         for record in self.records:
             # Identity matching is case insensitive:
             # https://git-scm.com/docs/gitmailmap#_syntax
-            if identity_token in map(str.lower, (record.canonical, *record.aliases)):
+            # Use pre-computed lowercase values for O(1) lookup.
+            if (
+                identity_token == record._canonical_lower
+                or identity_token in record._aliases_lower
+            ):
                 return True
         return False
 

@@ -27,6 +27,7 @@ import logging
 import re
 import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 if sys.version_info >= (3, 11):
@@ -37,6 +38,42 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any
+
+
+@lru_cache(maxsize=16)
+def _get_cyclonedx_sbom_cached(
+    package: str | None = None,
+    groups: tuple[str, ...] | None = None,
+    extras: tuple[str, ...] | None = None,
+    frozen: bool = True,
+) -> str:
+    """Cached wrapper around uv export command.
+
+    Returns the raw JSON string to allow caching (dicts are not hashable).
+    """
+    cmd = [
+        "uv",
+        "export",
+        "--format",
+        "cyclonedx1.5",
+        "--no-hashes",
+        "--preview-features",
+        "sbom-export",
+    ]
+    if frozen:
+        cmd.append("--frozen")
+    if package:
+        cmd.extend(["--package", package])
+    if groups:
+        for group in groups:
+            cmd.extend(["--group", group])
+    if extras:
+        for extra in extras:
+            cmd.extend(["--extra", extra])
+
+    logging.debug(f"Running: {' '.join(cmd)}")
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    return result.stdout
 
 
 STYLE_PRIMARY_DEPS_SUBGRAPH: str = "fill:#1565C020,stroke:#42A5F5"
@@ -179,6 +216,8 @@ def get_cyclonedx_sbom(
 ) -> dict[str, Any]:
     """Run uv export and return the CycloneDX SBOM as a dictionary.
 
+    Results are cached to avoid redundant subprocess calls within the same process.
+
     :param package: Optional package name to focus the export on.
     :param groups: Optional dependency groups to include (e.g., "test", "typing").
     :param extras: Optional extras to include (e.g., "xml", "json5").
@@ -187,29 +226,10 @@ def get_cyclonedx_sbom(
     :raises subprocess.CalledProcessError: If uv command fails.
     :raises json.JSONDecodeError: If output is not valid JSON.
     """
-    cmd = [
-        "uv",
-        "export",
-        "--format",
-        "cyclonedx1.5",
-        "--no-hashes",
-        "--preview-features",
-        "sbom-export",
-    ]
-    if frozen:
-        cmd.append("--frozen")
-    if package:
-        cmd.extend(["--package", package])
-    if groups:
-        for group in groups:
-            cmd.extend(["--group", group])
-    if extras:
-        for extra in extras:
-            cmd.extend(["--extra", extra])
-
-    logging.debug(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    sbom: dict[str, Any] = json.loads(result.stdout)
+    raw_json = _get_cyclonedx_sbom_cached(
+        package=package, groups=groups, extras=extras, frozen=frozen
+    )
+    sbom: dict[str, Any] = json.loads(raw_json)
     return sbom
 
 

@@ -32,6 +32,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from functools import lru_cache
 from pathlib import Path
 from subprocess import run
 
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
     from typing import Any
 
 
+@lru_cache(maxsize=1)
 def get_github_event() -> dict[str, Any]:
     """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
 
@@ -177,13 +179,16 @@ def _iter_sponsors(owner: str, query: str, data_path: str) -> Iterator[str]:
         cursor = page_info.get("endCursor")
 
 
-def get_sponsors(owner: str) -> set[str]:
+@lru_cache(maxsize=32)
+def get_sponsors(owner: str) -> frozenset[str]:
     """Get all sponsors for a user or organization.
 
     Tries the user query first, then falls back to organization query.
 
+    Results are cached to avoid redundant API calls within the same process.
+
     :param owner: The GitHub username or organization name.
-    :return: Set of sponsor login names.
+    :return: Frozenset of sponsor login names.
     """
     sponsors: set[str] = set()
 
@@ -192,7 +197,7 @@ def get_sponsors(owner: str) -> set[str]:
         for login in _iter_sponsors(owner, USER_SPONSORS_QUERY, "user"):
             sponsors.add(login)
         logging.debug(f"Found {len(sponsors)} sponsors for user {owner}")
-        return sponsors
+        return frozenset(sponsors)
     except RuntimeError:
         logging.debug(f"User query failed for {owner}, trying organization query")
 
@@ -204,7 +209,7 @@ def get_sponsors(owner: str) -> set[str]:
     except RuntimeError:
         logging.debug(f"Organization query also failed for {owner}")
 
-    return sponsors
+    return frozenset(sponsors)
 
 
 def is_sponsor(owner: str, user: str) -> bool:
