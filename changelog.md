@@ -9,6 +9,8 @@
 - Add `pr-metadata` composite action to deduplicate PR body metadata across workflows.
 - Increase Renovate `minimumReleaseAge` for patches from 5 to 8 days to avoid proposing updates blocked by uv's `exclude-newer` setting.
 - Enhance `gha-utils update-exclude-newer` to add missing `exclude-newer` when `[tool.uv]` section exists.
+- Add `renovate.json5` to bundled exports for Dependabot-to-Renovate migration.
+- Add Dependabot config check to `lint-repo` command with migration guidance.
 
 ## [5.5.0 (2026-01-29)](https://github.com/kdeldycke/workflows/compare/v5.4.0...v5.5.0)
 

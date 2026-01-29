@@ -23,6 +23,7 @@ Exportable files (``gha-utils bundled export <type>``):
 
 - ``ruff`` - Ruff linter/formatter configuration
 - ``bumpversion`` - bump-my-version configuration
+- ``renovate.json5`` - Renovate dependency update configuration
 - ``labels`` - Label definitions for labelmaker
 - ``labeller-file-based`` - Rules for actions/labeler
 - ``labeller-content-based`` - Rules for github/issue-labeler
@@ -79,6 +80,8 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "ruff.toml": None,
     "pytest.toml": None,
     "bumpversion.toml": None,
+    # Renovate configuration.
+    "renovate.json5": "./renovate.json5",
     # Label configuration files.
     "labels.toml": "./labels.toml",
     "labeller-file-based.yaml": "./.github/labeller-file-based.yaml",
@@ -151,6 +154,35 @@ def get_data_content(filename: str) -> str:
     raise FileNotFoundError(msg)
 
 
+def _get_renovate_config() -> str:
+    """Get Renovate config from root file, stripped of repo-specific settings.
+
+    Reads the root ``renovate.json5`` and removes:
+    - ``customManagers`` (specific to this repo's workflow files)
+    - ``assignees`` (specific to this repo's maintainer)
+
+    :return: The stripped Renovate configuration content.
+    """
+    root_path = Path(__file__).parent.parent / "renovate.json5"
+    content = root_path.read_text(encoding="UTF-8")
+
+    # Remove assignees line.
+    content = re.sub(r'\s*assignees:\s*\[[^\]]*\],?\n', "\n", content)
+
+    # Remove customManagers section and its preceding comment.
+    # Find where customManagers starts (including its comment).
+    cm_match = re.search(r'\n\s*//[^\n]*[Cc]ustom [Mm]anagers[^\n]*\n\s*customManagers:', content)
+    if cm_match:
+        # Find the closing of vulnerabilityAlerts (the section before customManagers).
+        # Keep everything up to and including that closing brace and comma.
+        va_end = re.search(r'(vulnerabilityAlerts:\s*\{[^}]*\},?\s*)\n', content)
+        if va_end:
+            # Keep content up to end of vulnerabilityAlerts, then close the object.
+            content = content[:va_end.end()].rstrip().rstrip(',') + "\n}\n"
+
+    return content
+
+
 def export_content(filename: str) -> str:
     """Get the content of any exportable bundled file.
 
@@ -163,6 +195,10 @@ def export_content(filename: str) -> str:
         supported = ", ".join(EXPORTABLE_FILES.keys())
         msg = f"Unknown file: {filename!r}. Supported: {supported}"
         raise ValueError(msg)
+
+    # Special handling for renovate.json5: read from root and strip repo-specific settings.
+    if filename == "renovate.json5":
+        return _get_renovate_config()
 
     return get_data_content(filename)
 

@@ -27,6 +27,7 @@ import logging
 import subprocess
 
 from .github import AnnotationLevel, emit_annotation
+from .renovate import check_dependabot_config_absent
 
 
 def get_repo_metadata(repo: str) -> dict[str, str | None]:
@@ -153,6 +154,15 @@ def run_repo_lint(
     """
     fatal_error = False
 
+    # Check 1: Dependabot config file (fatal).
+    passed, msg = check_dependabot_config_absent()
+    if passed:
+        print(f"✓ {msg}")
+    else:
+        emit_annotation(AnnotationLevel.ERROR, msg)
+        print(f"✗ {msg}")
+        fatal_error = True
+
     # Fetch repo metadata once if we need it.
     repo_metadata: dict[str, str | None] | None = None
     if is_sphinx or project_description:
@@ -162,14 +172,14 @@ def run_repo_lint(
             logging.warning("No repo specified, skipping API-based checks.")
             repo_metadata = {"homepageUrl": None, "description": None}
 
-    # Check 1: Package name vs repo name.
+    # Check 2: Package name vs repo name.
     if package_name and repo_name:
         warning, msg = check_package_name_vs_repo(package_name, repo_name)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 2: Website for Sphinx projects.
+    # Check 3: Website for Sphinx projects.
     if is_sphinx:
         homepage_url = repo_metadata.get("homepageUrl") if repo_metadata else None
         warning, msg = check_website_for_sphinx(repo or "", is_sphinx, homepage_url)
@@ -177,7 +187,7 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 3: Description matches (fatal).
+    # Check 4: Description matches (fatal).
     if project_description:
         repo_description = repo_metadata.get("description") if repo_metadata else None
         error, msg = check_description_matches(

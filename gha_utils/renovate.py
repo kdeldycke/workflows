@@ -205,8 +205,10 @@ def check_dependabot_config_absent() -> tuple[bool, str]:
     for filename in (".github/dependabot.yaml", ".github/dependabot.yml"):
         if Path(filename).exists():
             msg = (
-                f"Dependabot version updates are enabled. Remove {filename} "
-                "and use Renovate instead."
+                f"Dependabot config found at {filename}. "
+                "Remove it and migrate to Renovate: "
+                "run `gha-utils bundled export renovate.json5` to get a starter config, "
+                "then use the reusable renovate.yaml workflow."
             )
             return False, msg
 
