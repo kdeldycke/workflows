@@ -51,9 +51,15 @@ SAMPLE_SBOM = {
         {"bom-ref": "certifi-5@2022.0", "name": "certifi", "version": "2022.0"},
     ],
     "dependencies": [
-        {"ref": "my-project-1@1.0.0", "dependsOn": ["click-2@8.0.0", "requests-3@2.28.0"]},
+        {
+            "ref": "my-project-1@1.0.0",
+            "dependsOn": ["click-2@8.0.0", "requests-3@2.28.0"],
+        },
         {"ref": "click-2@8.0.0", "dependsOn": []},
-        {"ref": "requests-3@2.28.0", "dependsOn": ["urllib3-4@1.26.0", "certifi-5@2022.0"]},
+        {
+            "ref": "requests-3@2.28.0",
+            "dependsOn": ["urllib3-4@1.26.0", "certifi-5@2022.0"],
+        },
         {"ref": "urllib3-4@1.26.0", "dependsOn": []},
         {"ref": "certifi-5@2022.0", "dependsOn": []},
     ],
@@ -249,7 +255,10 @@ def test_render_mermaid_with_subgraph_specifiers() -> None:
     extended_nodes = dict(nodes)
     extended_nodes["pytest-6@7.0.0"] = ("pytest", "7.0.0")
     extended_nodes["coverage-7@7.0.0"] = ("coverage", "7.0.0")
-    extended_edges = list(edges) + [("my-project", "pytest"), ("my-project", "coverage")]
+    extended_edges = list(edges) + [
+        ("my-project", "pytest"),
+        ("my-project", "coverage"),
+    ]
     # Specifiers for primary deps in the test group.
     subgraph_specifiers = {"test": {"pytest": ">=9", "coverage": ">=7.11"}}
 
@@ -361,8 +370,8 @@ def test_render_mermaid_primary_deps_ordering() -> None:
     output = render_mermaid(root_name, nodes, edges)
     # requests (subtree=2) should appear before click (subtree=0).
     lines = output.splitlines()
-    requests_idx = next(i for i, line in enumerate(lines) if 'requests{{' in line)
-    click_idx = next(i for i, line in enumerate(lines) if 'click_0{{' in line)
+    requests_idx = next(i for i, line in enumerate(lines) if "requests{{" in line)
+    click_idx = next(i for i, line in enumerate(lines) if "click_0{{" in line)
     assert requests_idx < click_idx
 
 
@@ -402,7 +411,7 @@ def test_get_available_extras(tmp_path: Path) -> None:
     # Use a temporary pyproject.toml with known extras.
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project.optional-dependencies]\n'
+        "[project.optional-dependencies]\n"
         'xml = ["click-extra [xml]"]\n'
         'yaml = ["click-extra [yaml]"]\n'
         'json5 = ["click-extra [json5]"]\n'

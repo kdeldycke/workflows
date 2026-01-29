@@ -20,10 +20,8 @@ from __future__ import annotations
 
 import subprocess
 from datetime import date, timedelta
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from gha_utils.renovate import (
     calculate_target_date,
@@ -42,18 +40,14 @@ class TestParseExcludeNewerDate:
     def test_valid_date(self, tmp_path):
         """Parse valid exclude-newer date."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            '[tool.uv]\nexclude-newer = "2025-01-15T00:00:00Z"\n'
-        )
+        pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-15T00:00:00Z"\n')
         result = parse_exclude_newer_date(pyproject)
         assert result == date(2025, 1, 15)
 
     def test_date_in_pip_section(self, tmp_path):
         """Parse date from tool.uv.pip section."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            '[tool.uv.pip]\nexclude-newer = "2025-01-20T00:00:00Z"\n'
-        )
+        pyproject.write_text('[tool.uv.pip]\nexclude-newer = "2025-01-20T00:00:00Z"\n')
         result = parse_exclude_newer_date(pyproject)
         assert result == date(2025, 1, 20)
 
@@ -105,9 +99,7 @@ class TestUpdateExcludeNewerInFile:
     def test_update_date(self, tmp_path):
         """Update exclude-newer date."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            '[tool.uv]\nexclude-newer = "2025-01-01T00:00:00Z"\n'
-        )
+        pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-01T00:00:00Z"\n')
         result = update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
         assert result is True
         content = pyproject.read_text()
@@ -116,9 +108,7 @@ class TestUpdateExcludeNewerInFile:
     def test_no_change_needed(self, tmp_path):
         """Return False when date is already correct."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            '[tool.uv]\nexclude-newer = "2025-01-20T00:00:00Z"\n'
-        )
+        pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-20T00:00:00Z"\n')
         result = update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
         assert result is False
 

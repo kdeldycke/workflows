@@ -172,9 +172,7 @@ class AnyReleaseNotes:
     released yet. On release branches, the notes contain actual release content.
     """
 
-    def __init__(
-        self, dev_pattern: re.Pattern, release_pattern: re.Pattern
-    ) -> None:
+    def __init__(self, dev_pattern: re.Pattern, release_pattern: re.Pattern) -> None:
         self.dev_pattern = dev_pattern
         self.release_pattern = release_pattern
 
@@ -186,9 +184,7 @@ class AnyReleaseNotesOrEmptyString:
     notes patterns.
     """
 
-    def __init__(
-        self, dev_pattern: re.Pattern, release_pattern: re.Pattern
-    ) -> None:
+    def __init__(self, dev_pattern: re.Pattern, release_pattern: re.Pattern) -> None:
         self.dev_pattern = dev_pattern
         self.release_pattern = release_pattern
 
@@ -279,9 +275,11 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert isinstance(metadata, list), (
             f"{metadata!r} should be a list in {context!r}"
         )
-        assert len(metadata) >= len(expected.required_items), (
-            f"list should have at least {len(expected.required_items)} items in {context!r}"
-        )
+        assert len(metadata) >= len(
+            expected.required_items
+        ), f"list should have at least {len(expected.required_items)} items in {
+            context!r
+        }"
         # Check each required item has at least one match in metadata.
         for required in expected.required_items:
             found = False
@@ -505,7 +503,8 @@ expected = {
     "mypy_params": "--python-version 3.10",
     "current_version": regex(r"[0-9\.]+"),
     # released_version is None during development, but contains a version string
-    # on release branches (e.g., "5.5.0" when a "[changelog] Release v5.5.0" commit exists).
+    # on release branches (e.g., "5.5.0" when a "[changelog] Release v5.5.0"
+    # commit exists).
     "released_version": OptionalVersionString(regex(r"[0-9]+\.[0-9]+\.[0-9]+")),
     "is_sphinx": False,
     "active_autodoc": False,
@@ -529,7 +528,8 @@ expected = {
     # In CI, it contains a matrix dict with commit data.
     "new_commits_matrix": OptionalMatrix(),
     # release_commits_matrix is None when there are no release commits.
-    # It contains a matrix dict only when a "[changelog] Release vX.Y.Z" commit is present.
+    # It contains a matrix dict only when a "[changelog] Release vX.Y.Z"
+    # commit is present.
     "release_commits_matrix": OptionalMatrix(),
     "build_targets": [
         {
@@ -775,11 +775,14 @@ def test_metadata_github_format():
             # Convert OptionalMatrix to OptionalMatrixOrEmptyString for GitHub format.
             new_value = OptionalMatrixOrEmptyString()
         elif isinstance(value, OptionalVersionString):
-            # Convert OptionalVersionString to OptionalVersionOrEmptyString for GitHub format.
+            # Convert OptionalVersionString to OptionalVersionOrEmptyString for GitHub
+            # format.
             new_value = OptionalVersionOrEmptyString(value.version_pattern)
         elif isinstance(value, AnyReleaseNotes):
             # Convert AnyReleaseNotes to AnyReleaseNotesOrEmptyString for GitHub format.
-            new_value = AnyReleaseNotesOrEmptyString(value.dev_pattern, value.release_pattern)
+            new_value = AnyReleaseNotesOrEmptyString(
+                value.dev_pattern, value.release_pattern
+            )
         elif isinstance(value, list) and all(isinstance(i, str) for i in value):
             new_value = " ".join(f'"{i}"' for i in value)
         github_format_expected[key] = new_value

@@ -22,7 +22,6 @@ updating the ``exclude-newer`` date in ``pyproject.toml`` files.
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 import subprocess

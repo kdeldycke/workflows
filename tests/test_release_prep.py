@@ -271,7 +271,8 @@ class TestReleasePrep:
         )
         modified = prep.prepare_release(update_workflows=True)
 
-        # Changelog is modified 3 times (date, URL, warning), citation once, 2 workflows.
+        # Changelog is modified 3 times (date, URL, warning), citation once, 2
+        # workflows.
         assert len(modified) == 6
         # Unique files: changelog, citation, 2 workflows.
         assert len(set(modified)) == 4

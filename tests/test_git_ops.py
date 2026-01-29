@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 import subprocess
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -138,7 +138,7 @@ class TestCreateAndPushTag:
         """Create tag at specific commit."""
         with patch("gha_utils.git_ops.tag_exists", return_value=False):
             with patch("gha_utils.git_ops.create_tag") as mock_create:
-                with patch("gha_utils.git_ops.push_tag") as mock_push:
+                with patch("gha_utils.git_ops.push_tag"):
                     result = create_and_push_tag("v1.0.0", commit="abc123")
                     assert result is True
                     mock_create.assert_called_once_with("v1.0.0", "abc123")

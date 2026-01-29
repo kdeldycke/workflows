@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -190,9 +189,7 @@ class TestCollectAndRenameArtifacts:
         (tmp_path / "app-linux-arm64-abc1234.bin").touch()
 
         matrix = {"include": [{"bin_name": "app-linux-arm64-abc1234.bin"}]}
-        result = collect_and_rename_artifacts(
-            tmp_path, "abc1234", json.dumps(matrix)
-        )
+        result = collect_and_rename_artifacts(tmp_path, "abc1234", json.dumps(matrix))
 
         assert len(result) == 1
         assert result[0].name == "app-linux-arm64.bin"
@@ -210,9 +207,7 @@ class TestCollectAndRenameArtifacts:
                 {"bin_name": "app-windows-x64-abc1234.exe"},
             ]
         }
-        result = collect_and_rename_artifacts(
-            tmp_path, "abc1234", json.dumps(matrix)
-        )
+        result = collect_and_rename_artifacts(tmp_path, "abc1234", json.dumps(matrix))
 
         names = {p.name for p in result}
         assert names == {
@@ -281,6 +276,8 @@ class TestFormatGithubOutput:
 
     def test_delimiter_uniqueness(self):
         """Delimiters vary between calls."""
-        results = {format_github_output([]).split("<<")[1].split("\n")[0] for _ in range(10)}
+        results = {
+            format_github_output([]).split("<<")[1].split("\n")[0] for _ in range(10)
+        }
         # With random generation, we expect some variation.
         assert len(results) > 1

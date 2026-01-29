@@ -75,7 +75,9 @@ def check_package_name_vs_repo(
         return None, "Package name check: skipped (no package name provided)"
 
     if package_name != repo_name:
-        msg = f"Package name '{package_name}' differs from repository name '{repo_name}'."
+        msg = (
+            f"Package name '{package_name}' differs from repository name '{repo_name}'."
+        )
         return msg, msg
     return None, f"Package name '{package_name}' matches repository name."
 
