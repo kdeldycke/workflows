@@ -558,20 +558,16 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
         # Block if major version is already ahead of the latest release.
         if current.major > latest_release.major:
             logging.info(
-                f"Major version already bumped ({current.major} > {
-                    latest_release.major
-                }). "
-                "Skipping bump."
+                "Major version already bumped "
+                f"({current.major} > {latest_release.major}). Skipping bump."
             )
             return False
     elif part == "minor":
         # Block if major is ahead, or if minor is ahead within the same major.
         if current.major > latest_release.major:
             logging.info(
-                f"Major version already bumped ({current.major} > {
-                    latest_release.major
-                }). "
-                "Skipping minor bump."
+                "Major version already bumped "
+                f"({current.major} > {latest_release.major}). Skipping minor bump."
             )
             return False
         if (
@@ -579,10 +575,8 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
             and current.minor > latest_release.minor
         ):
             logging.info(
-                f"Minor version already bumped ({current.minor} > {
-                    latest_release.minor
-                }). "
-                "Skipping bump."
+                "Minor version already bumped "
+                f"({current.minor} > {latest_release.minor}). Skipping bump."
             )
             return False
 
