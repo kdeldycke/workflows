@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.5.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.4.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.5.0 (2026-01-29)](https://github.com/kdeldycke/workflows/compare/v5.4.0...v5.5.0)
 
 - Add `gha-utils update-exclude-newer` command to update the exclude-newer date in pyproject.toml.
 - Add `gha-utils check-renovate-prereqs` command to validate Renovate prerequisites.
