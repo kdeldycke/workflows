@@ -387,6 +387,11 @@ def test_action_uses_full_semantic_version(
     if action.startswith("docker://"):
         pytest.skip("Docker action")
 
+    # Skip self-references to kdeldycke/workflows actions.
+    # These use @main in development and get rewritten to @vX.Y.Z during release.
+    if action.startswith("kdeldycke/workflows/") and action.endswith("@main"):
+        pytest.skip("Self-reference uses @main in development, rewritten on release")
+
     assert ACTION_VERSION_PATTERN.match(action), (
         f"{workflow_name} ({job_name}/{step_name}): Action '{action}' must use "
         "pinned version (vX.Y.Z or vX.Y), not major-only (vX)"

@@ -100,6 +100,31 @@ def temp_workflows(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def temp_workflows_with_actions(tmp_path: Path) -> Path:
+    """Create workflows with composite action references."""
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+
+    (workflow_dir / "autofix.yaml").write_text(
+        dedent("""\
+            name: Autofix
+            on: push
+            jobs:
+              format:
+                steps:
+                  - id: pr-metadata
+                    uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+                  - uses: peter-evans/create-pull-request@v8
+                    with:
+                      body: ${{ steps.pr-metadata.outputs.body }}
+            """),
+        encoding="UTF-8",
+    )
+
+    return workflow_dir
+
+
+@pytest.fixture
 def temp_pyproject(tmp_path: Path) -> Path:
     """Create a temporary pyproject.toml with bumpversion config."""
     pyproject = tmp_path / "pyproject.toml"
@@ -356,3 +381,56 @@ class TestReleasePrep:
         prep = ReleasePrep()
 
         assert prep.current_version == "1.2.3"
+
+    def test_hardcode_action_reference(
+        self,
+        tmp_path: Path,
+        temp_workflows_with_actions: Path,
+        temp_pyproject: Path,
+        monkeypatch,
+    ) -> None:
+        """Test that composite action references are updated to versioned tag."""
+        monkeypatch.chdir(tmp_path)
+
+        prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
+        count = prep.hardcode_workflow_version()
+
+        assert count == 1
+        content = (temp_workflows_with_actions / "autofix.yaml").read_text(
+            encoding="UTF-8"
+        )
+        assert "@main" not in content
+        assert "@v1.2.3" in content
+        assert "kdeldycke/workflows/.github/actions/pr-metadata@v1.2.3" in content
+
+    def test_retarget_action_reference(
+        self,
+        tmp_path: Path,
+        temp_workflows_with_actions: Path,
+        temp_pyproject: Path,
+        monkeypatch,
+    ) -> None:
+        """Test that composite action references are retargeted to default branch."""
+        monkeypatch.chdir(tmp_path)
+
+        # First hardcode the version.
+        prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
+        prep.hardcode_workflow_version()
+
+        # Verify version is hardcoded.
+        content = (temp_workflows_with_actions / "autofix.yaml").read_text(
+            encoding="UTF-8"
+        )
+        assert "@v1.2.3" in content
+
+        # Then retarget to main.
+        del prep.__dict__["current_version"]
+        count = prep.retarget_workflow_branch()
+
+        assert count == 1
+        content = (temp_workflows_with_actions / "autofix.yaml").read_text(
+            encoding="UTF-8"
+        )
+        assert "@v1.2.3" not in content
+        assert "@main" in content
+        assert "kdeldycke/workflows/.github/actions/pr-metadata@main" in content

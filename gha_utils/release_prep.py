@@ -164,7 +164,8 @@ class ReleasePrep:
         """Replace workflow URLs from default branch to versioned tag.
 
         Replaces ``/workflows/{default_branch}/`` with ``/workflows/v{version}/``
-        in all workflow YAML files.
+        and ``/workflows/.github/actions/...@{default_branch}`` with
+        ``/workflows/.github/actions/...@v{version}`` in all workflow YAML files.
 
         :return: Number of files modified.
         """
@@ -173,12 +174,17 @@ class ReleasePrep:
             return 0
 
         count = 0
-        search = f"/workflows/{self.default_branch}/"
-        replace = f"/workflows/v{self.current_version}/"
+        # URL pattern: /workflows/main/ -> /workflows/v1.2.3/
+        url_search = f"/workflows/{self.default_branch}/"
+        url_replace = f"/workflows/v{self.current_version}/"
+        # Action reference pattern: /workflows/.github/...@main -> @v1.2.3
+        action_search = f"/workflows/.github/actions/pr-metadata@{self.default_branch}"
+        action_replace = f"/workflows/.github/actions/pr-metadata@v{self.current_version}"
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
-            content = original.replace(search, replace)
+            content = original.replace(url_search, url_replace)
+            content = content.replace(action_search, action_replace)
             if self._update_file(workflow_file, content, original):
                 count += 1
 
@@ -188,8 +194,9 @@ class ReleasePrep:
         """Replace workflow URLs from versioned tag back to default branch.
 
         Replaces ``/workflows/v{version}/`` with ``/workflows/{default_branch}/``
-        in all workflow YAML files. This is used after the release commit to
-        prepare for the next development cycle.
+        and ``/workflows/.github/actions/...@v{version}`` with
+        ``/workflows/.github/actions/...@{default_branch}`` in all workflow YAML files.
+        This is used after the release commit to prepare for the next development cycle.
 
         :return: Number of files modified.
         """
@@ -198,12 +205,17 @@ class ReleasePrep:
             return 0
 
         count = 0
-        search = f"/workflows/v{self.current_version}/"
-        replace = f"/workflows/{self.default_branch}/"
+        # URL pattern: /workflows/v1.2.3/ -> /workflows/main/
+        url_search = f"/workflows/v{self.current_version}/"
+        url_replace = f"/workflows/{self.default_branch}/"
+        # Action reference pattern: @v1.2.3 -> @main
+        action_search = f"/workflows/.github/actions/pr-metadata@v{self.current_version}"
+        action_replace = f"/workflows/.github/actions/pr-metadata@{self.default_branch}"
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
-            content = original.replace(search, replace)
+            content = original.replace(url_search, url_replace)
+            content = content.replace(action_search, action_replace)
             if self._update_file(workflow_file, content, original):
                 count += 1
 

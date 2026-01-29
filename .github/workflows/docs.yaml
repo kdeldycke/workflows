@@ -35,7 +35,7 @@ jobs:
       - name: Remove local typos binary
         run: rm ./typos
       - id: pr-metadata
-        uses: ./.github/actions/pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
@@ -80,7 +80,7 @@ jobs:
         with:
           compressOnly: true
       - id: pr-metadata
-        uses: ./.github/actions/pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
         with:
           prefix: ${{ steps.image_actions.outputs.markdown }}
       - uses: peter-evans/create-pull-request@v8.0.0
@@ -108,7 +108,7 @@ jobs:
         run: |
           uvx 'gha-utils==5.4.0' mailmap-sync --skip-if-missing ./.mailmap
       - id: pr-metadata
-        uses: ./.github/actions/pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
@@ -142,7 +142,7 @@ jobs:
           --all-groups --all-extras
           --output "${{ env.dependency-graph-output }}"
       - id: pr-metadata
-        uses: ./.github/actions/pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
@@ -168,7 +168,7 @@ jobs:
           uv --no-progress run --frozen --group docs -- \
             sphinx-apidoc --no-toc --module-first --force --output-dir ./docs .
       - id: pr-metadata
-        uses: ./.github/actions/pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
@@ -219,7 +219,7 @@ jobs:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       - id: pr-metadata
-        uses: ./.github/actions/pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
         with:
           # Template variables are substituted by the template-sync action.
           prefix: |
