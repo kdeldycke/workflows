@@ -49,37 +49,16 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Check package name vs repository name
-        if: needs.project-metadata.outputs.package_name
-        env:
-          PACKAGE_NAME: ${{ needs.project-metadata.outputs.package_name }}
-          REPO_NAME: ${{ github.event.repository.name }}
-        run: |
-          if [ "$PACKAGE_NAME" != "$REPO_NAME" ]; then
-            echo "::warning::Package name '$PACKAGE_NAME' differs from repository name '$REPO_NAME'."
-          fi
-      - name: Check website field for Sphinx docs
-        if: fromJSON(needs.project-metadata.outputs.is_sphinx)
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          HOMEPAGE=$(gh repo view --json homepageUrl --jq '.homepageUrl')
-          if [ -z "$HOMEPAGE" ]; then
-            echo "::warning::Sphinx documentation detected but repository website field is not set."
-          fi
-      - name: Check repo description matches project
-        if: needs.project-metadata.outputs.project_description
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          PROJECT_DESCRIPTION: ${{ needs.project-metadata.outputs.project_description }}
-        run: |
-          REPO_DESCRIPTION=$(gh repo view --json description --jq '.description')
-          if [ "$PROJECT_DESCRIPTION" != "$REPO_DESCRIPTION" ]; then
-            echo "::error::Repo description '$REPO_DESCRIPTION' != project '$PROJECT_DESCRIPTION'."
-            exit 1
-          fi
+        run: >
+          uvx 'gha-utils==5.5.0' lint-repo
+          ${{ needs.project-metadata.outputs.package_name && format('--package-name "{0}"', needs.project-metadata.outputs.package_name) || '' }}
+          --repo-name "${{ github.event.repository.name }}"
+          ${{ fromJSON(needs.project-metadata.outputs.is_sphinx) && '--is-sphinx' || '--no-sphinx' }}
+          ${{ needs.project-metadata.outputs.project_description && format('--project-description "{0}"', needs.project-metadata.outputs.project_description) || '' }}
 
   lint-mypy:
     needs:
@@ -149,21 +128,17 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Install actionlint
+      - name: Install actionlint and shellcheck
         id: install_actionlint
         run: |
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.10
-      - name: Install shellcheck
-        run: |
           sudo apt update
           sudo apt install --yes shellcheck
-      - name: Install problem matcher
+      - name: Setup problem matcher
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
-        run: >
-          curl -fsSL --output ./.github/actionlint-matcher.json
-          https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.10/.github/actionlint-matcher.json
-      - name: Register problem matcher
         run: |
+          curl -fsSL --output ./.github/actionlint-matcher.json \
+            https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.10/.github/actionlint-matcher.json
           echo "::add-matcher::.github/actionlint-matcher.json"
       - name: Run actionlint
         # XXX actionlint triggers this error:
@@ -190,13 +165,10 @@ jobs:
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
       && needs.project-metadata.outputs.doc_files
-    # Cannot use "ubuntu-slim" here because "shell: python" step cannot find Python interpreter.
-    runs-on: ubuntu-24.04
-    # XXX We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
-    # action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
-    # This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
       - uses: lycheeverse/lychee-action@v2.7.0
         id: lychee_run
         with:
@@ -209,89 +181,14 @@ jobs:
             --include-fragments
             --exclude-all-private
             ${{ needs.project-metadata.outputs.doc_files }}
-      - name: List open issues
-        id: open_issues
+      - name: Manage broken links issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          echo "issues=$(
-          gh issue list
-          --state open
-          --author 'github-actions[bot]'
-          --json number,title,createdAt )" | tee -a "$GITHUB_OUTPUT"
-      - name: Filter issues
-        id: issue_groups
-        shell: python
-        run: |
-          import json
-          import os
-          from operator import itemgetter
-          from pathlib import Path
-
-          raw_exit_code = """${{ steps.lychee_run.outputs.exit_code }}"""
-          print(f"Lychee exit code: {raw_exit_code!r}")
-          exit_code = int(raw_exit_code)
-          broken_links_found = False
-          if exit_code == 0:
-              print("No broken link found: close all open issues.")
-          elif exit_code == 2:
-              print("Broken links found: create a new issue or update the existing one.")
-              broken_links_found = True
-          else:
-              raise RuntimeError(f"Unexpected Lychee exit code: {exit_code!r}")
-
-          open_issues = json.loads("""${{ steps.open_issues.outputs.issues }}""")
-          issue_to_update: int | None = None
-          issues_to_close: set[int] = set()
-
-          for issue in sorted(open_issues, key=itemgetter("createdAt"), reverse=True):
-              print(f"Processing {issue!r} ...")
-              if issue["title"] != "Broken links":
-                  print(f"{issue!r} is not a broken links issue, skip it.")
-                  continue
-              if broken_links_found and not issue_to_update:
-                  print(f"{issue!r} is the most recent open issue.")
-                  issue_to_update = issue["number"]
-              else:
-                  print(f"{issue!r} is an old open issue we have to close.")
-                  issues_to_close.add(issue["number"])
-
-          output = f"broken_links_found={str(broken_links_found).lower()}\n"
-          output += f"issue_to_update={issue_to_update}\n"
-          output += f"issues_to_close={' '.join(map(str, issues_to_close))}\n"
-
-          env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(output)
-      - name: Print issue groups
-        run: |
-          echo "Broken links found: ${{ steps.issue_groups.outputs.broken_links_found }}"
-          echo "Issue to update: ${{ steps.issue_groups.outputs.issue_to_update }}"
-          echo "Issues to close: ${{ steps.issue_groups.outputs.issues_to_close }}"
-      - name: Close old issues
-        if: steps.issue_groups.outputs.issues_to_close
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          NUMBER_LIST="${{ steps.issue_groups.outputs.issues_to_close }}";
-          for number in $NUMBER_LIST; do
-              gh issue close "$number" --comment "${{ steps.issue_groups.outputs.issue_to_update
-              && format('Superseded by #{0}.', steps.issue_groups.outputs.issue_to_update)
-              || 'No more broken links.' }}";
-          done
-      - name: Get label
-        if: fromJSON(steps.issue_groups.outputs.broken_links_found)
-        id: get_label
-        run: >
-          echo "label=${{ startsWith(github.event.repository.name, 'awesome-')
-          && '🩹 fix link' || '📚 documentation' }}" | tee -a "$GITHUB_OUTPUT"
-      - name: Create or update issue
-        if: fromJSON(steps.issue_groups.outputs.broken_links_found)
-        uses: peter-evans/create-issue-from-file@v6.0.0
-        with:
-          title: "Broken links"
-          issue-number: ${{ steps.issue_groups.outputs.issue_to_update }}
-          content-filepath: ./lychee/out.md
-          labels: ${{ steps.get_label.outputs.label }}
+          uvx 'gha-utils==5.5.0' broken-links
+          --lychee-exit-code ${{ steps.lychee_run.outputs.exit_code }}
+          --body-file ./lychee/out.md
+          --repo-name "${{ github.event.repository.name }}"
 
   lint-awesome:
     # Lint only "awesome-*" repositories except "awesome-template".

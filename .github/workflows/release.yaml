@@ -186,74 +186,9 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install exiftool --no-progress --yes --retry-count=3
-      - name: Binary metadata
-        shell: python
+      - name: Verify binary architecture
         run: |
-          import json
-          import subprocess
-          from pathlib import Path
-
-          # Get matrix architecture.
-          target = "${{ matrix.target }}"
-          platform_id = "${{ matrix.platform_id }}"
-          arch = "${{ matrix.arch }}"
-          bin_name = Path("${{ matrix.bin_name }}").resolve()
-
-          # Run "exiftool -json -MachineType -CPUType <binary_file>".
-          result = subprocess.run(
-              [
-                "exiftool.exe" if platform_id == "windows" else "exiftool",
-                "-json",
-                "-CPUType",
-                "-MachineType",
-                str(bin_name),
-              ],
-              capture_output=True,
-              text=True,
-              check=True,
-          )
-
-          print("ExifTool output:")
-          print(result.stdout)
-
-          # Parse output.
-          output = json.loads(result.stdout)
-
-          # Map each target to their exiftool architecture strings.
-          # Ubuntu:
-          #   CPU Type      : Arm 64-bits (Armv8/AArch64)
-          #   CPU Type      : AMD x86-64
-          # macOS:
-          #   CPU Type      : ARM 64-bit
-          #   CPU Type      : x86 64-bit
-          # Windows
-          #   Machine Type  : ARM64 little endian
-          #   Machine Type  : AMD AMD64
-          arch_mappings = {
-              "linux-arm64": ("CPUType", "Arm 64-bits"),
-              "linux-x64": ("CPUType", "AMD x86-64"),
-              "macos-arm64": ("CPUType", "ARM 64-bit"),
-              "macos-x64": ("CPUType", "x86 64-bit"),
-              "windows-arm64": ("MachineType", "ARM64"),
-              "windows-x64": ("MachineType", "AMD64"),
-          }
-
-          if target not in arch_mappings:
-              raise ValueError(f"Unknown target: {target}")
-
-          field, expected_substring = arch_mappings[target]
-          reported_arch = output[0][field]
-          if expected_substring not in reported_arch:
-              raise AssertionError(
-                  "Binary architecture mismatch!\n"
-                  f"Expected: {expected_substring!r} in field {field}\n"
-                  f"Got: {reported_arch!r}\n"
-              )
-
-          print(
-              f"Binary architecture matches: {expected_substring!r} found in {field!r} "
-              f"for {target} target."
-          )
+          uvx 'gha-utils==5.5.0' verify-binary --target "${{ matrix.target }}" --binary "${{ matrix.bin_name }}"
       - name: Upload binaries
         uses: actions/upload-artifact@v6.0.0
         with:
@@ -315,18 +250,15 @@ jobs:
           # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
           # https://github.com/orgs/community/discussions/27028
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-      - name: Check if tag exists
-        id: tag_exists
-        run: |
-          echo "tag_exists=$(git show-ref --tags "v${{ matrix.current_version }}" --quiet )" | tee -a "$GITHUB_OUTPUT"
-      - name: Push tag
-        # Skip the tag creation if it already exists instead of failing flat. This allows us to re-run the workflow if
-        # it was interrupted the first time. Which is really useful if the tagging fails during a release: we can
-        # simply push the new tag by hand and re-launch the workflow run.
-        if: ${{ ! steps.tag_exists.outputs.tag_exists }}
-        run: |
-          git tag "v${{ matrix.current_version }}" "${{ matrix.commit }}"
-          git push origin "v${{ matrix.current_version }}"
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Create and push tag
+        # Idempotent: skips if tag already exists instead of failing. This allows re-running
+        # workflows interrupted after tag creation.
+        run: >
+          uvx 'gha-utils==5.5.0' git-tag
+          --tag "v${{ matrix.current_version }}"
+          --commit "${{ matrix.commit }}"
+          --skip-existing
 
   pypi-publish:
     name: Publish to PyPi
@@ -370,8 +302,7 @@ jobs:
     if: always() && needs.git-tag.result == 'success'
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
-    # Cannot use "ubuntu-slim" here because "shell: python" step cannot find Python interpreter.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       # Allow GitHub's OIDC provider to create a JSON Web Token:
       # https://github.blog/changelog/2023-06-15-github-actions-securing-openid-connect-oidc-token-permissions-in-reusable-workflows/
@@ -391,57 +322,19 @@ jobs:
           # Only consider artifacts produced by the release commit.
           pattern: "*-${{ matrix.short_sha }}*"
           merge-multiple: true
-      - name: Collect all artefacts, rename binaries
+      - uses: astral-sh/setup-uv@v7.2.0
+        # Only set up uv if we have artifacts to process.
+        if: steps.artifacts.outputs.download-path
+      - name: Collect and rename artifacts
         # Do not try to rename artifacts if none have been downloaded.
         if: steps.artifacts.outputs.download-path
         id: collect_artifacts
-        shell: python
-        run: |
-          import json
-          import os
-          from pathlib import Path
-          from random import randint
-
-          download_folder = Path("""${{ steps.artifacts.outputs.download-path }}""")
-
-          nuitka_matrix_json = """${{ needs.project-metadata.outputs.nuitka_matrix }}"""
-          binaries = {}
-          if nuitka_matrix_json:
-              nuitka_matrix = json.loads(nuitka_matrix_json)
-              binaries = {entry["bin_name"] for entry in nuitka_matrix["include"] if "bin_name" in entry}
-
-          artifacts_path = []
-
-          for artifact in download_folder.glob("*"):
-              print(f"Processing {artifact} ...")
-              assert artifact.is_file()
-
-              # Rename binary artifacts to remove the build ID.
-              if artifact.name in binaries:
-                  new_name = f'{artifact.stem.split("""-${{ matrix.short_sha }}""", 1)[0]}{artifact.suffix}'
-                  new_path = artifact.with_name(new_name)
-
-                  print(f"Renaming {artifact} to {new_path} ...")
-                  assert not new_path.exists()
-
-                  artifact.rename(new_path)
-                  artifacts_path.append(new_path)
-
-              # Collect other artifacts as-is.
-              else:
-                  print(f"Collecting {artifact} ...")
-                  artifacts_path.append(artifact)
-
-          # Produce a unique delimiter to feed multiline content to GITHUB_OUTPUT:
-          # https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
-          delimiter = f"ghadelimiter_{randint(10**8, (10**9) - 1)}"
-
-          output = f"artifacts_path<<{delimiter}\n"
-          output += "\n".join(str(p) for p in artifacts_path)
-          output += f"\n{delimiter}"
-
-          env_file = Path(os.getenv("GITHUB_OUTPUT"))
-          env_file.write_text(output)
+        run: >
+          uvx 'gha-utils==5.5.0' collect-artifacts
+          --download-folder "${{ steps.artifacts.outputs.download-path }}"
+          --short-sha "${{ matrix.short_sha }}"
+          --nuitka-matrix '${{ needs.project-metadata.outputs.nuitka_matrix }}'
+          --output "$GITHUB_OUTPUT"
       - name: Generate attestations
         # Do not try to attest artifacts if none have been produced.
         if: steps.collect_artifacts.outputs.artifacts_path

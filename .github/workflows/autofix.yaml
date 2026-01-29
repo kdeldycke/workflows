@@ -82,21 +82,17 @@ jobs:
         run: >
           uvx 'autopep8==2.3.2' --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
-      - name: Install Ruff
-        run: |
-          uv tool install 'ruff==0.14.13'
-      - name: Initialize Ruff config
+      - name: Install Ruff and init config
         # Initialize [tool.ruff] in pyproject.toml if it doesn't exist.
         # Projects with existing ruff config will keep their settings.
         run: |
-          uvx 'gha-utils==5.4.0' config init ruff pyproject.toml
+          uv tool install 'ruff==0.14.13'
+          uvx 'gha-utils==5.5.0' bundled init ruff pyproject.toml
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
-      - name: Run Ruff check
+      - name: Run Ruff
         run: |
           ruff check --output-format github
-      - name: Run Ruff format
-        run: |
           ruff format --output-format github
       - name: Run blacken-docs
         # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
@@ -281,15 +277,13 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Install git-extras
-        run: |
-          sudo apt update
-          sudo apt install --yes git-extras
-      - name: Fetch category definitions
+      - name: Install git ignore-io
         # Update the list manually so the first call below will not introduce these extra log messages:
         #   -----Initial gitignore.io list----
         #   -----Save to /home/runner/.gi_list-----
         run: |
+          sudo apt update
+          sudo apt install --yes git-extras
           git ignore-io --update-list
       - name: Generate .gitignore
         run: >
@@ -342,7 +336,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Initialize bumpversion config
         run: |
-          uvx 'gha-utils==5.4.0' config init bumpversion pyproject.toml
+          uvx 'gha-utils==5.5.0' bundled init bumpversion pyproject.toml
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}

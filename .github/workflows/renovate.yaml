@@ -24,46 +24,12 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      # Dependabot version updates are configured via .github/dependabot.yaml file.
-      # If no file exists, version updates are disabled (Renovate handles this).
-      - name: Check Dependabot version updates disabled
-        run: |
-          if [ -f ".github/dependabot.yaml" ] || [ -f ".github/dependabot.yml" ]; then
-            echo "::error::Dependabot version updates are enabled. Remove .github/dependabot.yaml" \
-              "or .github/dependabot.yml and use Renovate instead."
-            exit 1
-          fi
-          echo "✓ Dependabot version updates: disabled (no config file)"
-      # Note: We don't verify if Dependabot alerts are enabled because the API endpoint
-      # (GET /repos/{owner}/{repo}/vulnerability-alerts) requires "Administration" permission,
-      # which is too powerful to grant. Renovate only needs "Dependabot alerts" (read) permission
-      # to read alerts - if the feature is disabled, Renovate simply sees zero alerts.
-      # Users should manually verify Dependabot alerts are enabled in Settings > Code security.
-      # Dependabot security updates must be disabled (Renovate creates security PRs instead).
-      - name: Check Dependabot security updates disabled
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          status=$(gh api "repos/${{ github.repository }}" \
-            --jq '.security_and_analysis.dependabot_security_updates.status // "disabled"')
-          if [ "$status" = "enabled" ]; then
-            echo "::error::Dependabot security updates are enabled. Disable them in" \
-              "Settings > Advanced Security > Dependabot > Dependabot security updates."
-            exit 1
-          fi
-          echo "✓ Dependabot security updates: disabled (Renovate handles security PRs)"
-      # Token must have commit statuses permission for Renovate to set stability-days status checks.
-      - name: Check commit statuses permission
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Check Renovate prerequisites
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: |
-          # Try to read commit statuses to verify permission.
-          if gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/statuses" --silent 2>/dev/null; then
-            echo "✓ Commit statuses: token has access"
-          else
-            echo "::warning::Cannot verify commit statuses permission." \
-              "Ensure the token has 'Commit statuses: Read and Write' permission."
-          fi
+          uvx 'gha-utils==5.5.0' check-renovate-prereqs
 
   renovate:
     name: Renovate
@@ -73,37 +39,22 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
       - name: Update exclude-newer date if stale
+        id: update_date
         # Updates the exclude-newer date in pyproject.toml when it's older than 7 days.
         # Uses a fixed date (not relative) to prevent uv.lock timestamp churn on every sync.
         # Runs before Renovate so changes are picked up in lock file maintenance.
         run: |
-          if [ ! -f pyproject.toml ]; then
-            echo "No pyproject.toml found, skipping"
-            exit 0
-          fi
-
-          # Calculate target date: 7 days ago, truncated to midnight UTC.
-          target_date=$(date -u -d "7 days ago" +%Y-%m-%d)
-
-          # Extract current date from pyproject.toml (just the YYYY-MM-DD part).
-          current_date=$(grep -oP '(?<=exclude-newer = ")[0-9-]+(?=T)' pyproject.toml || echo "")
-
-          echo "Current exclude-newer date: $current_date"
-          echo "Target date (7 days ago): $target_date"
-
-          # Update if current date is older than target.
-          if [[ -n "$current_date" && "$current_date" < "$target_date" ]]; then
-            echo "Date is stale, updating to $target_date"
-            sed -i "s/exclude-newer = \"[^\"]*\"/exclude-newer = \"${target_date}T00:00:00Z\"/" pyproject.toml
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add pyproject.toml
-            git commit -m "[deps] Update exclude-newer date to $target_date"
-            git push
-          else
-            echo "Date is still fresh, no update needed"
-          fi
+          uvx 'gha-utils==5.5.0' update-exclude-newer --output "$GITHUB_OUTPUT"
+      - name: Commit and push if modified
+        if: steps.update_date.outputs.modified == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "[deps] Update exclude-newer date"
+          git push
       - uses: renovatebot/github-action@v44.2.5
         with:
           # Custom PAT required for Renovate to function fully.

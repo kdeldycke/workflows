@@ -153,12 +153,10 @@ jobs:
         run: >-
           uvx 'gha-utils==5.4.0' release-prep
           ${{ github.repository == 'kdeldycke/workflows' && '--update-workflows' || '' }}
-      - name: Setup Git
+      - name: Prepare repository
         run: |
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-      - name: Remove untracked directories and files
-        run: |
           git clean -fd
       - name: Create release commit
         run: |

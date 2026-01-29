@@ -44,7 +44,7 @@ jobs:
           tool: labelmaker@0.6.4
       - name: Dump labels
         run: |
-          uvx 'gha-utils==5.4.0' config labels labels ./labels.toml
+          uvx 'gha-utils==5.5.0' bundled export labels.toml
       - name: Download extra label files
         if: inputs.extra-label-files
         run: |
@@ -110,7 +110,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Dump default rules
         run: |
-          uvx 'gha-utils==5.4.0' config labels file-labeller ./.github/labeller-file-based.yaml
+          uvx 'gha-utils==5.5.0' bundled export labeller-file-based.yaml
       - name: Extend default rules
         if: inputs.extra-file-rules
         run: |
@@ -136,7 +136,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Dump default rules
         run: |
-          uvx 'gha-utils==5.4.0' config labels content-labeller ./.github/labeller-content-based.yaml
+          uvx 'gha-utils==5.5.0' bundled export labeller-content-based.yaml
       - name: Extend default rules
         if: inputs.extra-content-rules
         run: |
