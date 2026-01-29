@@ -8,6 +8,7 @@
 - Replace workflow shell scripts with CLI commands.
 - Add `pr-metadata` composite action to deduplicate PR body metadata across workflows.
 - Increase Renovate `minimumReleaseAge` for patches from 5 to 8 days to avoid proposing updates blocked by uv's `exclude-newer` setting.
+- Enhance `gha-utils update-exclude-newer` to add missing `exclude-newer` when `[tool.uv]` section exists.
 
 ## [5.5.0 (2026-01-29)](https://github.com/kdeldycke/workflows/compare/v5.4.0...v5.5.0)
 

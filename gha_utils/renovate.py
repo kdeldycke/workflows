@@ -86,6 +86,79 @@ def calculate_target_date(days_ago: int = 7) -> DateType:
     return date.today() - timedelta(days=days_ago)
 
 
+def has_tool_uv_section(pyproject_path: Path) -> bool:
+    """Check if pyproject.toml has a [tool.uv] section.
+
+    :param pyproject_path: Path to the pyproject.toml file.
+    :return: True if [tool.uv] section exists, False otherwise.
+    """
+    if not pyproject_path.exists():
+        return False
+
+    content = pyproject_path.read_text(encoding="utf-8")
+    try:
+        data = tomllib.loads(content)
+    except tomllib.TOMLDecodeError:
+        return False
+
+    return "uv" in data.get("tool", {})
+
+
+def add_exclude_newer_to_file(pyproject_path: Path, target_date: DateType) -> bool:
+    """Add exclude-newer to [tool.uv] section if missing.
+
+    Inserts the exclude-newer setting right after the [tool.uv] header line.
+    Only works if [tool.uv] section exists but exclude-newer is not set.
+
+    :param pyproject_path: Path to the pyproject.toml file.
+    :param target_date: The date to set.
+    :return: True if the file was modified, False otherwise.
+    """
+    if not pyproject_path.exists():
+        logging.info(f"{pyproject_path} does not exist.")
+        return False
+
+    content = pyproject_path.read_text(encoding="utf-8")
+
+    # Check if [tool.uv] exists.
+    if not re.search(r"^\[tool\.uv\]", content, re.MULTILINE):
+        logging.info("No [tool.uv] section found.")
+        return False
+
+    # Check if exclude-newer already exists.
+    if re.search(r"^exclude-newer\s*=", content, re.MULTILINE):
+        logging.debug("exclude-newer already exists.")
+        return False
+
+    new_timestamp = f"{target_date.isoformat()}T00:00:00Z"
+
+    # Insert exclude-newer after [tool.uv] line.
+    # The setting is added with a comment explaining its purpose.
+    exclude_newer_block = (
+        "# Cooldown period: 7-day buffer before using newly released packages.\n"
+        "# Use a fixed date (not relative like \"1 week\") to prevent uv.lock "
+        "timestamp churn.\n"
+        "# This date is auto-updated by the autofix workflow when it becomes stale.\n"
+        f'exclude-newer = "{new_timestamp}"\n'
+    )
+
+    new_content = re.sub(
+        r"^(\[tool\.uv\]\n)",
+        rf"\g<1>{exclude_newer_block}",
+        content,
+        count=1,
+        flags=re.MULTILINE,
+    )
+
+    if new_content == content:
+        logging.warning("Failed to insert exclude-newer.")
+        return False
+
+    pyproject_path.write_text(new_content, encoding="utf-8")
+    logging.info(f"Added exclude-newer = {new_timestamp}")
+    return True
+
+
 def update_exclude_newer_in_file(pyproject_path: Path, target_date: DateType) -> bool:
     """Update the exclude-newer date in pyproject.toml.
 

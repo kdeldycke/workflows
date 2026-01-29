@@ -24,10 +24,12 @@ from unittest.mock import MagicMock, patch
 
 
 from gha_utils.renovate import (
+    add_exclude_newer_to_file,
     calculate_target_date,
     check_commit_statuses_permission,
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
+    has_tool_uv_section,
     parse_exclude_newer_date,
     run_renovate_prereq_checks,
     update_exclude_newer_in_file,
@@ -77,6 +79,76 @@ class TestParseExcludeNewerDate:
         pyproject.write_text("this is not valid TOML [[[")
         result = parse_exclude_newer_date(pyproject)
         assert result is None
+
+
+class TestHasToolUvSection:
+    """Tests for has_tool_uv_section function."""
+
+    def test_has_section(self, tmp_path):
+        """Return True when [tool.uv] exists."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
+        assert has_tool_uv_section(pyproject) is True
+
+    def test_no_section(self, tmp_path):
+        """Return False when [tool.uv] doesn't exist."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[project]\nname = \"test\"\n")
+        assert has_tool_uv_section(pyproject) is False
+
+    def test_file_not_exists(self, tmp_path):
+        """Return False when file doesn't exist."""
+        pyproject = tmp_path / "pyproject.toml"
+        assert has_tool_uv_section(pyproject) is False
+
+    def test_invalid_toml(self, tmp_path):
+        """Return False for invalid TOML."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("this is not valid TOML [[[")
+        assert has_tool_uv_section(pyproject) is False
+
+
+class TestAddExcludeNewerToFile:
+    """Tests for add_exclude_newer_to_file function."""
+
+    def test_add_to_existing_section(self, tmp_path):
+        """Add exclude-newer to existing [tool.uv] section."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
+        result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
+        assert result is True
+        content = pyproject.read_text()
+        assert 'exclude-newer = "2025-01-20T00:00:00Z"' in content
+        assert "dev-dependencies = []" in content
+
+    def test_no_tool_uv_section(self, tmp_path):
+        """Return False when no [tool.uv] section."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[project]\nname = \"test\"\n")
+        result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
+        assert result is False
+
+    def test_exclude_newer_already_exists(self, tmp_path):
+        """Return False when exclude-newer already exists."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-01T00:00:00Z"\n')
+        result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
+        assert result is False
+
+    def test_file_not_exists(self, tmp_path):
+        """Return False when file doesn't exist."""
+        pyproject = tmp_path / "pyproject.toml"
+        result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
+        assert result is False
+
+    def test_adds_comment_block(self, tmp_path):
+        """Adds explanatory comments with the setting."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
+        add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
+        content = pyproject.read_text()
+        assert "Cooldown period" in content
+        assert "auto-updated by the autofix workflow" in content
 
 
 class TestCalculateTargetDate:

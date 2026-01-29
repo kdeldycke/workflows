@@ -78,7 +78,9 @@ from .binary import (
 )
 from .git_ops import create_and_push_tag
 from .renovate import (
+    add_exclude_newer_to_file,
     calculate_target_date,
+    has_tool_uv_section,
     parse_exclude_newer_date,
     run_renovate_prereq_checks,
     update_exclude_newer_in_file,
@@ -1202,10 +1204,14 @@ def update_exclude_newer(
     days: int,
     output: Path | None,
 ) -> None:
-    """Update the exclude-newer date in pyproject.toml when stale.
+    """Update or add exclude-newer date in pyproject.toml.
+
+    If [tool.uv] exists but exclude-newer is missing, adds it with a default
+    value. If exclude-newer exists and is stale, updates it.
 
     Uses a fixed date (not relative) to prevent uv.lock timestamp churn on
-    every sync. Only updates if the current date is older than the target.
+    every sync. This ensures Renovate's minimumReleaseAge and uv's
+    exclude-newer stay synchronized.
 
     \b
     Examples:
@@ -1226,14 +1232,23 @@ def update_exclude_newer(
             echo("modified=false", file=prep_path(output))
         return
 
-    current_date = parse_exclude_newer_date(pyproject)
     target_date = calculate_target_date(days)
+    current_date = parse_exclude_newer_date(pyproject)
 
     logging.info(f"Current exclude-newer date: {current_date}")
     logging.info(f"Target date ({days} days ago): {target_date}")
 
     modified = False
-    if current_date is not None and current_date < target_date:
+
+    if current_date is None:
+        # No exclude-newer found. Add it if [tool.uv] section exists.
+        if has_tool_uv_section(pyproject):
+            logging.info("Adding missing exclude-newer to [tool.uv] section.")
+            modified = add_exclude_newer_to_file(pyproject, target_date)
+        else:
+            logging.info("No [tool.uv] section found, skipping.")
+    elif current_date < target_date:
+        # exclude-newer exists but is stale.
         modified = update_exclude_newer_in_file(pyproject, target_date)
 
     if output:
