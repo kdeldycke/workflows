@@ -44,9 +44,9 @@ runs:
             printf '%s\n\n\n' "${{ inputs.prefix }}"
           fi
           printf '<details><summary><code>Workflow metadata</code></summary>\n\n\n'
-          printf '> [Auto-generated on run \`#%s\`](%s/%s/actions/runs/%s) ' \
+          printf '> [Auto-generated on run `#%s`](%s/%s/actions/runs/%s) ' \
             "${GITHUB_RUN_ID}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}"
-          printf 'by \`%s\` job from [\`%s\`](%s/%s/blob/%s/.github/workflows/%s) workflow.\n\n\n' \
+          printf 'by `%s` job from [`%s`](%s/%s/blob/%s/.github/workflows/%s) workflow.\n\n\n' \
             "${GITHUB_JOB}" "${workflow_file}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" \
             "${GITHUB_SHA}" "${workflow_file}"
           printf '</details>\n'
