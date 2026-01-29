@@ -559,9 +559,7 @@ def init(ctx, config_type, source, output_path):
 
     if merged is None:
         cfg = INIT_CONFIGS[config_type]
-        logging.warning(
-            f"No changes needed. [{cfg.tool_section}] already exists."
-        )
+        logging.warning(f"No changes needed. [{cfg.tool_section}] already exists.")
         ctx.exit()
 
     if is_stdout(output_path):

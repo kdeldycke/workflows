@@ -216,9 +216,7 @@ def is_sponsor(owner: str, user: str) -> bool:
     """
     sponsors = get_sponsors(owner)
     result = user in sponsors
-    logging.info(
-        f"User {user!r} {'is' if result else 'is not'} a sponsor of {owner!r}"
-    )
+    logging.info(f"User {user!r} {'is' if result else 'is not'} a sponsor of {owner!r}")
     return result
 
 

@@ -232,7 +232,9 @@ def get_package_names_from_sbom(sbom: dict[str, Any]) -> set[str]:
     return names
 
 
-def parse_uv_lock_specifiers(lock_path: Path | None = None) -> dict[str, dict[str, str]]:
+def parse_uv_lock_specifiers(
+    lock_path: Path | None = None,
+) -> dict[str, dict[str, str]]:
     """Parse uv.lock to extract dependency specifiers.
 
     Specifiers are found in ``[package.metadata].requires-dist`` for main
@@ -766,9 +768,7 @@ def render_mermaid(
         to_id = normalize_package_name(to_name)
         # Thick arrows for edges from root or pointing to any primary dependency.
         arrow = (
-            "==>"
-            if from_name == root_name or to_name in all_primary_deps
-            else "-->"
+            "==>" if from_name == root_name or to_name in all_primary_deps else "-->"
         )
 
         # Add specifier as edge label if available.

@@ -253,9 +253,7 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     # Check if the config section already exists.
     section_pattern = rf"^\[{re.escape(config.tool_section)}\]"
     if re.search(section_pattern, content, re.MULTILINE):
-        logging.info(
-            f"[{config.tool_section}] already exists in {pyproject_path.name}"
-        )
+        logging.info(f"[{config.tool_section}] already exists in {pyproject_path.name}")
         return None
 
     # Get the template content and transform to pyproject.toml format.

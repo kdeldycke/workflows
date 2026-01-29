@@ -18,11 +18,9 @@
 
 from __future__ import annotations
 
-import json
 import subprocess
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from gha_utils.lint_repo import (
     check_description_matches,

@@ -71,7 +71,8 @@ WORKFLOWS_WITH_CONCURRENCY = tuple(
     )
 )
 
-# Workflows that must use conditional cancel-in-progress (excludes unique group workflows).
+# Workflows that must use conditional cancel-in-progress (excludes unique
+# group workflows).
 WORKFLOWS_WITH_CONDITIONAL_CANCEL = tuple(
     sorted(
         name
@@ -268,9 +269,7 @@ def test_version_increments_skips_push_events() -> None:
         "project-metadata should not run on push events"
     )
     # Verify it runs on expected events.
-    assert "schedule" in condition, (
-        "project-metadata should run on schedule events"
-    )
+    assert "schedule" in condition, "project-metadata should run on schedule events"
     assert "workflow_dispatch" in condition, (
         "project-metadata should run on workflow_dispatch events"
     )
