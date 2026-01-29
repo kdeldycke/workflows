@@ -277,9 +277,10 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         )
         assert len(metadata) >= len(
             expected.required_items
-        ), f"list should have at least {len(expected.required_items)} items in {
-            context!r
-        }"
+        ), (
+            f"list should have at least {len(expected.required_items)} items in "
+            f"{context!r}"
+        )
         # Check each required item has at least one match in metadata.
         for required in expected.required_items:
             found = False
