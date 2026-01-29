@@ -93,6 +93,23 @@ jobs:
         id: get_version
         run: |
           echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
+      - id: pr-metadata
+        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        uses: ./.github/actions/pr-metadata
+        with:
+          prefix: |
+            ### Description
+
+            Ready to be merged into `main` branch, at the discretion of the maintainers, to bump the ${{ matrix.part }}
+            part of the version number.
+
+            ### To bump version to v${{ steps.get_version.outputs.new_version }}
+
+            1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
+
+            1. **click `Rebase and merge`** button below
+
+            ---
       - uses: peter-evans/create-pull-request@v8.0.0
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         with:
@@ -101,34 +118,7 @@ jobs:
             [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}
           title: >
             Bump ${{ matrix.part }} version to `v${{ steps.get_version.outputs.new_version }}`
-          body: >
-            ### Description
-
-
-            Ready to be merged into `main` branch, at the discretion of the maintainers, to bump the ${{ matrix.part }}
-            part of the version number.
-
-
-            ### To bump version to v${{ steps.get_version.outputs.new_version }}
-
-
-            1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
-
-            1. **click `Rebase and merge`** button below
-
-
-            ---
-
-
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`changelog.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/changelog.yaml) workflow.
-
-
-            </details>
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🆙 changelog"
           base: main
           branch: ${{ matrix.part }}-version-increment
@@ -178,6 +168,35 @@ jobs:
       - name: Commit post-release version bump
         run: |
           git commit --all --message="[changelog] Post-release version bump"
+      - id: pr-metadata
+        uses: ./.github/actions/pr-metadata
+        with:
+          prefix: |
+            ### Description
+
+            This PR is ready to be merged. The merge event will trigger[^1] the:
+
+            1. creation of a `v${{ steps.get_version.outputs.current_version }}` tag on [`main`](${{ github.event.repository.html_url }}/tree/main) branch
+
+            1. build and release of the Python package to [PyPi](https://pypi.org)
+
+            1. compilation of the project's binaries with Nuitka (if entry points are defined)
+
+            1. publication of a [GitHub release](${{ github.event.repository.html_url }}/releases) with all artifacts above attached
+
+            [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{ github.sha }}/.github/workflows/release.yaml).
+
+            ### How-to release v${{ steps.get_version.outputs.current_version }}
+
+            1. **click `Re-run all jobs`** from the [workflow run](${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}), to refresh the release date to today
+
+            1. wait for the re-run to complete and check the result in diff view
+
+            1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
+
+            1. **click `Rebase and merge`** button below (do not ~`Squash and merge`~: the auto-tagging job needs the 2 distinct commits in this PR)
+
+            ---
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in
@@ -186,53 +205,7 @@ jobs:
           assignees: ${{ github.actor }}
           title: >
             Release `v${{ steps.get_version.outputs.current_version }}`
-          body: >
-            ### Description
-
-
-            This PR is ready to be merged. The merge event will trigger[^1] the:
-
-
-            1. creation of a `v${{ steps.get_version.outputs.current_version }}` tag on [`main`](${{
-            github.event.repository.html_url }}/tree/main) branch
-
-            1. build and release of the Python package to [PyPi](https://pypi.org)
-
-            1. compilation of the project's binaries with Nuitka (if entry points are defined)
-
-            1. publication of a [GitHub release](${{ github.event.repository.html_url }}/releases) with all artifacts
-            above attached
-
-
-            [^1]: as [defined by `release.yaml`](${{ github.event.repository.html_url }}/blob/${{
-            github.sha }}/.github/workflows/release.yaml).
-
-
-            ### How-to release v${{ steps.get_version.outputs.current_version }}
-
-            1. **click `Re-run all jobs`** from the [workflow run](${{ github.event.repository.html_url
-            }}/actions/runs/${{ github.run_id }}), to refresh the release date to today
-
-            1. wait for the re-run to complete and check the result in diff view
-
-            1. **click `Ready for review`** button below, to get this PR out of `Draft` mode
-
-            1. **click `Rebase and merge`** button below (‼️ do not ~`Squash and merge`~: the auto-tagging job needs
-            the 2 distinct commits in this PR)
-
-
-            ---
-
-
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url
-            }}/actions/runs/${{ github.run_id }}) by `${{ github.job }}` job from [`changelog.yaml`](${{
-            github.event.repository.html_url }}/blob/${{ github.sha }}/.github/workflows/changelog.yaml) workflow.
-
-
-            </details>
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🆙 changelog"
           base: main
           branch: prepare-release

@@ -34,6 +34,8 @@ jobs:
           write_changes: true
       - name: Remove local typos binary
         run: rm ./typos
+      - id: pr-metadata
+        uses: ./.github/actions/pr-metadata
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
@@ -41,16 +43,7 @@ jobs:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Typo"
           title: "[autofix] Typo"
-          body: >
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: autofix-typo
 
@@ -86,24 +79,16 @@ jobs:
         id: image_actions
         with:
           compressOnly: true
+      - id: pr-metadata
+        uses: ./.github/actions/pr-metadata
+        with:
+          prefix: ${{ steps.image_actions.outputs.markdown }}
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Optimize images"
           title: "[autofix] Optimize images"
-          body: >
-            ${{ steps.image_actions.outputs.markdown }}
-
-
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: optimize-images
 
@@ -122,21 +107,14 @@ jobs:
       - name: Generate .mailmap
         run: |
           uvx 'gha-utils==5.4.0' mailmap-sync --skip-if-missing ./.mailmap
+      - id: pr-metadata
+        uses: ./.github/actions/pr-metadata
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update .mailmap"
           title: "[autofix] Update `.mailmap`"
-          body: >
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-mailmap
 
@@ -163,21 +141,14 @@ jobs:
           && format('--package {0}', needs.project-metadata.outputs.package_name)}}
           --all-groups --all-extras
           --output "${{ env.dependency-graph-output }}"
+      - id: pr-metadata
+        uses: ./.github/actions/pr-metadata
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Regenerate dependency graph"
           title: "[autofix] Regenerate dependency graph"
-          body: >
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-deps-graph
 
@@ -196,21 +167,14 @@ jobs:
         run: |
           uv --no-progress run --frozen --group docs -- \
             sphinx-apidoc --no-toc --module-first --force --output-dir ./docs .
+      - id: pr-metadata
+        uses: ./.github/actions/pr-metadata
       - uses: peter-evans/create-pull-request@v8.0.0
         with:
           assignees: ${{ github.actor }}
           commit-message: "[autofix] Update Sphinx autodoc"
           title: "[autofix] Update Sphinx autodoc"
-          body: >
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-autodoc
 
@@ -254,6 +218,13 @@ jobs:
         with:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+      - id: pr-metadata
+        uses: ./.github/actions/pr-metadata
+        with:
+          # Template variables are substituted by the template-sync action.
+          prefix: |
+            Files synced from [`kdeldycke/awesome-template@${TEMPLATE_GIT_HASH}`
+            repository](${SOURCE_REPO}/tree/${TEMPLATE_GIT_HASH}).
       - name: Sync from template repo
         id: template_sync
         uses: AndreasAugustin/actions-template-sync@v2.5.2
@@ -274,18 +245,5 @@ jobs:
           pr_title: "[sync] Updates from `awesome-template`"
           pr_commit_msg: "[sync] Updates from awesome-template"
           pr_branch_name_prefix: "sync-awesome-template"
-          pr_body: >
-            Files synced from [`kdeldycke/awesome-template@${TEMPLATE_GIT_HASH}`
-            repository](${SOURCE_REPO}/tree/${TEMPLATE_GIT_HASH}).
-
-
-            <details><summary><code>Workflow metadata</code></summary>
-
-
-            > [Auto-generated on run `#${{ github.run_id }}`](${{ github.event.repository.html_url }}/actions/runs/${{
-            github.run_id }}) by `${{ github.job }}` job from [`docs.yaml`](${{ github.event.repository.html_url
-            }}/blob/${{ github.sha }}/.github/workflows/docs.yaml) workflow.
-
-
-            </details>
+          pr_body: ${{ steps.pr-metadata.outputs.body }}
           pr_labels: "📚 documentation"
