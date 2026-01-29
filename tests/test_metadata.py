@@ -275,9 +275,7 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert isinstance(metadata, list), (
             f"{metadata!r} should be a list in {context!r}"
         )
-        assert len(metadata) >= len(
-            expected.required_items
-        ), (
+        assert len(metadata) >= len(expected.required_items), (
             f"list should have at least {len(expected.required_items)} items in "
             f"{context!r}"
         )
