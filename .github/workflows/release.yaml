@@ -185,7 +185,7 @@ jobs:
       - name: Install exiftool - Windows
         if: runner.os == 'Windows'
         run: |
-          choco install exiftool --no-progress --yes
+          choco install exiftool --no-progress --yes --retry-count=3
       - name: Binary metadata
         shell: python
         run: |
