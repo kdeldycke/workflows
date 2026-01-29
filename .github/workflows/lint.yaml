@@ -55,10 +55,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: >
           uvx 'gha-utils==5.5.0' lint-repo
-          ${{ needs.project-metadata.outputs.package_name && format('--package-name "{0}"', needs.project-metadata.outputs.package_name) || '' }}
+          ${{ needs.project-metadata.outputs.package_name &&
+          format('--package-name "{0}"', needs.project-metadata.outputs.package_name) || '' }}
           --repo-name "${{ github.event.repository.name }}"
           ${{ fromJSON(needs.project-metadata.outputs.is_sphinx) && '--is-sphinx' || '--no-sphinx' }}
-          ${{ needs.project-metadata.outputs.project_description && format('--project-description "{0}"', needs.project-metadata.outputs.project_description) || '' }}
+          ${{ needs.project-metadata.outputs.project_description &&
+          format('--project-description "{0}"', needs.project-metadata.outputs.project_description) || '' }}
 
   lint-mypy:
     needs:
