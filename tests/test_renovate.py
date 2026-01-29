@@ -93,7 +93,7 @@ class TestHasToolUvSection:
     def test_no_section(self, tmp_path):
         """Return False when [tool.uv] doesn't exist."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("[project]\nname = \"test\"\n")
+        pyproject.write_text('[project]\nname = "test"\n')
         assert has_tool_uv_section(pyproject) is False
 
     def test_file_not_exists(self, tmp_path):
@@ -124,7 +124,7 @@ class TestAddExcludeNewerToFile:
     def test_no_tool_uv_section(self, tmp_path):
         """Return False when no [tool.uv] section."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("[project]\nname = \"test\"\n")
+        pyproject.write_text('[project]\nname = "test"\n')
         result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
         assert result is False
 

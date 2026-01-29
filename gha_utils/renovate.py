@@ -136,7 +136,7 @@ def add_exclude_newer_to_file(pyproject_path: Path, target_date: DateType) -> bo
     # The setting is added with a comment explaining its purpose.
     exclude_newer_block = (
         "# Cooldown period: 7-day buffer before using newly released packages.\n"
-        "# Use a fixed date (not relative like \"1 week\") to prevent uv.lock "
+        '# Use a fixed date (not relative like "1 week") to prevent uv.lock '
         "timestamp churn.\n"
         "# This date is auto-updated by the autofix workflow when it becomes stale.\n"
         f'exclude-newer = "{new_timestamp}"\n'

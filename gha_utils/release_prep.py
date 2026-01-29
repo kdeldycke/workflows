@@ -179,7 +179,9 @@ class ReleasePrep:
         url_replace = f"/workflows/v{self.current_version}/"
         # Action reference pattern: /workflows/.github/...@main -> @v1.2.3
         action_search = f"/workflows/.github/actions/pr-metadata@{self.default_branch}"
-        action_replace = f"/workflows/.github/actions/pr-metadata@v{self.current_version}"
+        action_replace = (
+            f"/workflows/.github/actions/pr-metadata@v{self.current_version}"
+        )
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
@@ -209,7 +211,9 @@ class ReleasePrep:
         url_search = f"/workflows/v{self.current_version}/"
         url_replace = f"/workflows/{self.default_branch}/"
         # Action reference pattern: @v1.2.3 -> @main
-        action_search = f"/workflows/.github/actions/pr-metadata@v{self.current_version}"
+        action_search = (
+            f"/workflows/.github/actions/pr-metadata@v{self.current_version}"
+        )
         action_replace = f"/workflows/.github/actions/pr-metadata@{self.default_branch}"
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):

@@ -167,18 +167,20 @@ def _get_renovate_config() -> str:
     content = root_path.read_text(encoding="UTF-8")
 
     # Remove assignees line.
-    content = re.sub(r'\s*assignees:\s*\[[^\]]*\],?\n', "\n", content)
+    content = re.sub(r"\s*assignees:\s*\[[^\]]*\],?\n", "\n", content)
 
     # Remove customManagers section and its preceding comment.
     # Find where customManagers starts (including its comment).
-    cm_match = re.search(r'\n\s*//[^\n]*[Cc]ustom [Mm]anagers[^\n]*\n\s*customManagers:', content)
+    cm_match = re.search(
+        r"\n\s*//[^\n]*[Cc]ustom [Mm]anagers[^\n]*\n\s*customManagers:", content
+    )
     if cm_match:
         # Find the closing of vulnerabilityAlerts (the section before customManagers).
         # Keep everything up to and including that closing brace and comma.
-        va_end = re.search(r'(vulnerabilityAlerts:\s*\{[^}]*\},?\s*)\n', content)
+        va_end = re.search(r"(vulnerabilityAlerts:\s*\{[^}]*\},?\s*)\n", content)
         if va_end:
             # Keep content up to end of vulnerabilityAlerts, then close the object.
-            content = content[:va_end.end()].rstrip().rstrip(',') + "\n}\n"
+            content = content[: va_end.end()].rstrip().rstrip(",") + "\n}\n"
 
     return content
 
@@ -196,7 +198,8 @@ def export_content(filename: str) -> str:
         msg = f"Unknown file: {filename!r}. Supported: {supported}"
         raise ValueError(msg)
 
-    # Special handling for renovate.json5: read from root and strip repo-specific settings.
+    # Special handling for renovate.json5: read from root and strip
+    # repo-specific settings.
     if filename == "renovate.json5":
         return _get_renovate_config()
 
