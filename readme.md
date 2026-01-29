@@ -124,37 +124,47 @@ gha-utils, version 5.5.0
 
 This repository contains workflows to automate most of the boring tasks in the form of [reusable GitHub actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
 
-### Guidelines
+### Example usage
 
-- Workflows are designed to be reusable in other repositories [via the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow).
+Workflows are designed to be reusable in other repositories [via the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow).
 
-- Here is a minimal example to call reusable workflows from a new repository:
+Here is a minimal example to call the [reusable `lint.yaml` workflow](#githubworkflowslintyaml-jobs) from a new repository, by creating a `.github/workflows/lint.yaml` file containing:
 
-  ```yaml
-  # .github/workflows/lint.yaml
-  ---
-  name: Lint
-  "on":
-    push:
-    pull_request:
+```yaml
+name: Lint
+on:
+  push:
+  pull_request:
 
-  jobs:
-    lint:
-      uses: kdeldycke/workflows/.github/workflows/lint.yaml@v5.5.0
-  ```
+jobs:
+  lint:
+    uses: kdeldycke/workflows/.github/workflows/lint.yaml@v5.5.0
+```
 
-  > [!IMPORTANT]
-  > Concurrency is already configured in the reusable workflows—you don't need to re-specify it in your calling workflow. The `${{ github.workflow }}` variable in the concurrency group evaluates to your caller workflow's name, so each repository gets its own isolated concurrency group.
+> [!IMPORTANT]
+> [Concurrency is already configured](#concurrency-and-cancellation) in the reusable workflows—you don't need to re-specify it in your calling workflow.
 
-- `uv` is used everywhere to install dependencies and CLIs.
+### Design
 
-- Jobs are guarded by conditions to skip unnecessary steps when not needed.
+- **`uv` everywhere** — All Python dependencies and CLIs are installed via [`uv`](https://github.com/astral-sh/uv) for speed and reproducibility.
 
-- Versions are pinned for actions, tools and CLIs, to ensure stability, reproducibility and security.
+- **Smart job skipping** — Jobs are guarded by conditions to skip unnecessary steps: file type detection (only lint Python if `.py` files exist), branch filtering (`prepare-release` skipped for most linting), and bot detection.
 
-- We eat our own dog-food: this repository uses these workflows for itself.
+- **Versions pinned** — All actions, tools, and CLIs have pinned versions for stability, reproducibility, and security. See [Dependency strategy](#dependency-strategy).
 
-- Concurrency and cancellation are configured to [prevent redundant runs and save CI resources](#concurrency-and-cancellation).
+- **Transparency via PRs** — Autofix workflows never commit directly; they create PRs so you can review changes before merging.
+
+- **Shared metadata job** — A [`project-metadata`](#what-is-this-project-metadata-job) job runs first to extract context (files, project type, build matrices) and feed downstream jobs.
+
+- **Configurable with sensible defaults** — Workflows accept `inputs` for customization while providing defaults that work out of the box.
+
+- **Idempotent operations** — Safe to re-run: tag creation skips if already exists, version bumps have eligibility checks, PRs update existing branches.
+
+- **Graceful degradation** — Fallback tokens (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`) and `continue-on-error` for unstable targets.
+
+- **Dogfooding** — This repository uses these workflows for itself.
+
+- **Concurrency configured** — All workflows use concurrency groups to [prevent redundant runs and save CI resources](#concurrency-and-cancellation).
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
@@ -380,6 +390,8 @@ docs = [
 ### [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml)
 
 [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist) that nobody wants to deal with. This workflow automates most of it for Python projects.
+
+**Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms.
 
 - **Build package** (`package-build`)
 
