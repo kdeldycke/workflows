@@ -376,6 +376,18 @@ This allows workflows to skip expensive Nuitka compilation jobs for PRs that can
 possibly change the binary output.
 """
 
+HEREDOC_FIELDS: Final[frozenset[str]] = frozenset((
+    # Contains markdown with brackets, parentheses, and emojis that can break parsing.
+    "release_notes",
+))
+"""Metadata fields that should always use heredoc format in GitHub Actions output.
+
+Some fields may contain special characters (brackets, parentheses, emojis, or potential
+newlines) that can break GitHub Actions parsing when using simple ``key=value`` format.
+These fields will use the heredoc delimiter format regardless of whether they currently
+contain multiple lines.
+"""
+
 MAILMAP_PATH = Path(".mailmap")
 
 GITIGNORE_PATH = Path(".gitignore")
@@ -1954,8 +1966,11 @@ class Metadata:
             for env_name, value in metadata.items():
                 env_value = self.format_github_value(value)
 
-                is_multiline = bool(len(env_value.splitlines()) > 1)
-                if not is_multiline:
+                # Use heredoc format for multiline values or fields with special chars.
+                use_heredoc = (
+                    len(env_value.splitlines()) > 1 or env_name in HEREDOC_FIELDS
+                )
+                if not use_heredoc:
                     content += f"{env_name}={env_value}\n"
                 else:
                     # Use a random unique delimiter to encode multiline value.
