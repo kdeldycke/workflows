@@ -126,13 +126,25 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 ### Guidelines
 
-- Workflows are designed to be reusable in other repositories [via the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow):
+- Workflows are designed to be reusable in other repositories [via the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow).
+
+- Here is a minimal example to call reusable workflows from a new repository:
 
   ```yaml
+  # .github/workflows/lint.yaml
+  ---
+  name: Lint
+  "on":
+    push:
+    pull_request:
+
   jobs:
-    my-job:
-      uses: kdeldycke/workflows/.github/workflows/autofix.yaml@v4.25.1
+    lint:
+      uses: kdeldycke/workflows/.github/workflows/lint.yaml@v5.5.0
   ```
+
+  > [!IMPORTANT]
+  > Concurrency is already configured in the reusable workflows—you don't need to re-specify it in your calling workflow. The `${{ github.workflow }}` variable in the concurrency group evaluates to your caller workflow's name, so each repository gets its own isolated concurrency group.
 
 - `uv` is used everywhere to install dependencies and CLIs.
 
