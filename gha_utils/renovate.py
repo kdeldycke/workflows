@@ -26,8 +26,13 @@ import json
 import logging
 import re
 import subprocess
-import tomllib
+import sys
 from datetime import date, timedelta
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
 from pathlib import Path
 
 from .github import AnnotationLevel, emit_annotation
