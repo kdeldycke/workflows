@@ -12,8 +12,8 @@ flowchart LR
         packaging{{"`packaging`"}}
         tomli{{"`tomli`"}}
         boltons{{"`boltons`"}}
-        pyyaml{{"`pyyaml`"}}
         backports_strenum{{"`backports-strenum`"}}
+        pyyaml{{"`pyyaml`"}}
     end
 
     typing_extensions(["`typing-extensions`"])
@@ -58,22 +58,6 @@ flowchart LR
     types_pytz(["`types-pytz`"])
     urllib3(["`urllib3`"])
 
-    subgraph ext_hjson [--extra hjson]
-        hjson(["`hjson`"])
-    end
-
-    subgraph ext_json5 [--extra json5]
-        json5(["`json5`"])
-    end
-
-    subgraph ext_jsonc [--extra jsonc]
-        json_with_comments(["`json-with-comments`"])
-    end
-
-    subgraph ext_xml [--extra xml]
-        xmltodict(["`xmltodict`"])
-    end
-
     subgraph grp_test [--group test]
         pytest{{"`pytest >=9`"}}
         pytest_cases{{"`pytest-cases >=3.9`"}}
@@ -92,8 +76,8 @@ flowchart LR
         types_pyyaml{{"`types-pyyaml >=6.0.12.9`"}}
     end
 
-    gha_utils ==>|" >=7 "| click_extra
     gha_utils ==>|" >=1.2.6 "| bump_my_version
+    gha_utils ==>|" >=7 "| click_extra
     gha_utils ==>|" >=2.6 "| pydriller
     gha_utils ==>|" >=25 "| packaging
     gha_utils ==>|" >=2.3 "| tomli
@@ -102,22 +86,8 @@ flowchart LR
     gha_utils ==>|" >=25 "| boltons
     gha_utils ==>|" >=0.3.3 "| py_walk
     gha_utils ==>|" >=0.9 "| pyproject_metadata
-    gha_utils ==>|" >=6.0.3 "| pyyaml
     gha_utils ==>|" >=1.3.1 "| backports_strenum
-    click_extra --> click_0
-    click_extra --> requests
-    click_extra ==> tomli
-    click_extra ==> wcmatch
-    click_extra --> cloup
-    click_extra ==> extra_platforms
-    click_extra ==> boltons
-    click_extra --> hjson
-    click_extra --> json_with_comments
-    click_extra --> json5
-    click_extra ==> pyyaml
-    click_extra --> tabulate
-    click_extra --> xmltodict
-    click_extra --> deepmerge
+    gha_utils ==>|" >=6.0.3 "| pyyaml
     pytest ==> packaging
     pytest ==> tomli
     pytest --> colorama
@@ -134,6 +104,15 @@ flowchart LR
     bump_my_version ==> wcmatch
     bump_my_version --> questionary
     bump_my_version --> tomlkit
+    click_extra --> click_0
+    click_extra --> requests
+    click_extra ==> tomli
+    click_extra ==> wcmatch
+    click_extra --> cloup
+    click_extra ==> extra_platforms
+    click_extra ==> boltons
+    click_extra --> tabulate
+    click_extra --> deepmerge
     pydriller --> lizard
     pydriller --> gitpython
     pydriller --> pytz
@@ -193,10 +172,6 @@ flowchart LR
     markdown_it_py --> mdurl
     prompt_toolkit --> wcwidth
     pydantic_core --> typing_extensions
-    gha_utils -.-> ext_hjson
-    gha_utils -.-> ext_json5
-    gha_utils -.-> ext_jsonc
-    gha_utils -.-> ext_xml
     gha_utils -.-> grp_test
     gha_utils -.-> grp_typing
 
@@ -222,13 +197,10 @@ flowchart LR
     click gitdb "https://pypi.org/project/gitdb/" _blank
     click gitpython "https://pypi.org/project/gitpython/" _blank
     click h11 "https://pypi.org/project/h11/" _blank
-    click hjson "https://pypi.org/project/hjson/" _blank
     click httpcore "https://pypi.org/project/httpcore/" _blank
     click httpx "https://pypi.org/project/httpx/" _blank
     click idna "https://pypi.org/project/idna/" _blank
     click iniconfig "https://pypi.org/project/iniconfig/" _blank
-    click json_with_comments "https://pypi.org/project/json-with-comments/" _blank
-    click json5 "https://pypi.org/project/json5/" _blank
     click lizard "https://pypi.org/project/lizard/" _blank
     click makefun "https://pypi.org/project/makefun/" _blank
     click markdown_it_py "https://pypi.org/project/markdown-it-py/" _blank
@@ -269,7 +241,6 @@ flowchart LR
     click urllib3 "https://pypi.org/project/urllib3/" _blank
     click wcmatch "https://pypi.org/project/wcmatch/" _blank
     click wcwidth "https://pypi.org/project/wcwidth/" _blank
-    click xmltodict "https://pypi.org/project/xmltodict/" _blank
 
     style gha_utils stroke-width:3px
     style backports_strenum stroke-width:3px
@@ -294,9 +265,5 @@ flowchart LR
     style wcmatch stroke-width:3px
 
     style primary-deps fill:#1565C020,stroke:#42A5F5
-    style ext_hjson fill:#7B1FA220,stroke:#BA68C8
-    style ext_json5 fill:#7B1FA220,stroke:#BA68C8
-    style ext_jsonc fill:#7B1FA220,stroke:#BA68C8
-    style ext_xml fill:#7B1FA220,stroke:#BA68C8
     style grp_test fill:#546E7A20,stroke:#90A4AE
     style grp_typing fill:#546E7A20,stroke:#90A4AE
