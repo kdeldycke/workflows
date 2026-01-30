@@ -533,9 +533,9 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
     tagged release.
 
     For example:
-    - Last release: v5.0.1, current version: 5.0.2 → minor bump allowed
-    - Last release: v5.0.1, current version: 5.1.0 → minor bump NOT allowed (already bumped)
-    - Last release: v5.0.1, current version: 6.0.0 → major bump NOT allowed (already bumped)
+    - Last release: v5.0.1, current: 5.0.2 → minor bump allowed
+    - Last release: v5.0.1, current: 5.1.0 → minor bump NOT allowed (bumped)
+    - Last release: v5.0.1, current: 6.0.0 → major bump NOT allowed (bumped)
 
     .. note::
         When tags are not available (e.g., due to race conditions between workflows),
@@ -714,8 +714,8 @@ class Metadata:
     def github_event(self) -> dict[str, Any]:
         """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
 
-        GitHub Actions automatically sets ``GITHUB_EVENT_PATH`` to a JSON file containing
-        the complete webhook event payload.
+        GitHub Actions automatically sets ``GITHUB_EVENT_PATH`` to a JSON file
+        containing the complete webhook event payload.
         """
         event_path = os.environ.get("GITHUB_EVENT_PATH")
         if not event_path:
@@ -989,8 +989,9 @@ class Metadata:
     def head_branch(self) -> str | None:
         """Returns the head branch name for pull request events.
 
-        For pull request events, this is the source branch name (e.g., ``update-mailmap``).
-        For push events, returns ``None`` since there's no head branch concept.
+        For pull request events, this is the source branch name
+        (e.g., ``update-mailmap``). For push events, returns ``None`` since
+        there's no head branch concept.
 
         The branch name is extracted from the ``GITHUB_HEAD_REF`` environment variable,
         which is `only set for pull request events
@@ -1005,12 +1006,13 @@ class Metadata:
     def skip_binary_build(self) -> bool:
         """Returns ``True`` if binary builds should be skipped for this event.
 
-        Binary builds are expensive and time-consuming. This property identifies contexts
-        where the changes cannot possibly affect compiled binaries, allowing workflows to
-        skip Nuitka compilation jobs.
+        Binary builds are expensive and time-consuming. This property identifies
+        contexts where the changes cannot possibly affect compiled binaries,
+        allowing workflows to skip Nuitka compilation jobs.
 
-        Currently checks if the PR's head branch is in the list of known branches that
-        only contain non-code changes (documentation, ``.mailmap``, ``.gitignore``, etc.).
+        Currently checks if the PR's head branch is in the list of known
+        branches that only contain non-code changes (documentation,
+        ``.mailmap``, ``.gitignore``, etc.).
         """
         if self.head_branch and self.head_branch in SKIP_BINARY_BUILD_BRANCHES:
             logging.info(
@@ -1092,8 +1094,8 @@ class Metadata:
         """Returns list of all ``Commit`` objects bundled within the triggering event.
 
         This extracts **all commits** from the push event, not just ``head_commit``.
-        For releases, this typically includes both the release commit and the post-release
-        bump commit, allowing downstream jobs to process each one appropriately.
+        For releases, this typically includes both the release commit and the
+        post-release bump commit, allowing downstream jobs to process each one.
 
         Commits are returned in chronological order (oldest first, most recent last).
         """
@@ -1110,7 +1112,7 @@ class Metadata:
             start = None
 
         # Sanity check: make sure the start commit exists in the repository.
-        # XXX Even if we skip the start commit later on (because the range is inclusive),
+        # XXX Even if we skip the start commit later on (range is inclusive),
         # we still need to make sure it exists: PyDriller stills needs to
         # find it to be able to traverse the commit history.
         for commit_id in (start, end):
@@ -1535,9 +1537,9 @@ class Metadata:
         """Returns the version of the release commit.
 
         During a release push event, this extracts the version from the
-        ``[changelog] Release vX.Y.Z`` commit, which is distinct from ``current_version``
-        (the post-release bump version). This is used for tagging, PyPI publishing, and
-        GitHub release creation.
+        ``[changelog] Release vX.Y.Z`` commit, which is distinct from
+        ``current_version`` (the post-release bump version). This is used for
+        tagging, PyPI publishing, and GitHub release creation.
 
         Returns ``None`` if no release commit is found in the current event.
         """

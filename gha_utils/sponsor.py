@@ -157,7 +157,7 @@ def _iter_sponsors(owner: str, query: str, data_path: str) -> Iterator[str]:
 
     :param owner: The owner (user or org) to query.
     :param query: The GraphQL query to use.
-    :param data_path: The path to the data in the response (e.g., "user" or "organization").
+    :param data_path: Path to the data in the response (e.g., ``"user"``).
     :yields: Login names of sponsors.
     """
     cursor = None

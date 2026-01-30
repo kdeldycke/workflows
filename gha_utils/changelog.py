@@ -63,10 +63,11 @@ class Changelog:
     def update(self) -> str:
         r"""Adds a new empty entry at the top of the changelog.
 
-        Will return the same content as the current changelog if it has already been updated.
+        Will return the same content as the current changelog if it has already
+        been updated.
 
-        This is designed to be used just after a new release has been tagged. And before a
-        post-release version increment is applied with a call to:
+        This is designed to be used just after a new release has been tagged.
+        And before a post-release version increment is applied with a call to:
 
         ```shell-session
         $ bump-my-version bump --verbose patch

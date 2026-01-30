@@ -41,7 +41,7 @@ class Record:
     )
 
     def __post_init__(self) -> None:
-        """Normalize pre-comment and pre-compute lowercase identities for fast lookup."""
+        """Normalize pre-comment and pre-compute lowercase identities."""
         if self.pre_comment.strip() == "":
             self.pre_comment = ""
         # Pre-compute lowercase versions to avoid repeated conversions in find().

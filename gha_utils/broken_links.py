@@ -22,9 +22,12 @@ creating or updating the main issue.
 
 Uses the GitHub CLI (``gh``) to interact with issues.
 
-We need to manually manage the life-cycle of issues created in this job because the create-issue-from-file
-action blindly creates issues ad-nauseam. See: https://github.com/peter-evans/create-issue-from-file/issues/298 .
-This was also discussed at: https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
+We need to manually manage the life-cycle of issues created in this job because the
+``create-issue-from-file`` action blindly creates issues ad-nauseam.
+
+See:
+- https://github.com/peter-evans/create-issue-from-file/issues/298
+- https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
 """
 
 from __future__ import annotations
