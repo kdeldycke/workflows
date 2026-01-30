@@ -22,6 +22,24 @@ The reusable workflows automate:
 - Label management and auto-locking
 - Binary compilation for multiple platforms
 
+## Downstream repositories
+
+This repository serves as the **canonical reference** for conventions and best
+practices. When Claude is used in any repository that reuses workflows from
+[`kdeldycke/workflows`](https://github.com/kdeldycke/workflows), it should follow
+the same conventions defined here—including the structure and guidelines of this
+`claude.md` file itself.
+
+In other words, downstream repositories should mirror the patterns established
+here for code style, documentation, testing, and design principles.
+
+**Contributing upstream:** If Claude spots inefficiencies, potential improvements,
+performance bottlenecks, missing features, or opportunities for better adaptability
+in the reusable workflows, `gha-utils` CLI, or this `claude.md` file itself, it
+should propose these changes upstream via a pull request or issue at
+[`kdeldycke/workflows`](https://github.com/kdeldycke/workflows/issues). This
+benefits all downstream repositories.
+
 ## Commands
 
 ### Testing
