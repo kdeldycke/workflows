@@ -642,62 +642,16 @@ Re-run your workflow. It should now update files in `.github/workflows/` without
 
 All workflows use a `concurrency` directive to prevent redundant runs and save CI resources. When a new commit is pushed, any in-progress workflow runs for the same branch or PR are automatically cancelled.
 
-### Concurrency grouping
-
 Workflows are grouped by:
 
 - **Pull requests**: `{workflow-name}-{pr-number}` — Multiple commits to the same PR cancel previous runs
 - **Branch pushes**: `{workflow-name}-{branch-ref}` — Multiple pushes to the same branch cancel previous runs
 - **Release commits**: `{workflow-name}-{commit-sha}` — Each release gets a unique group, so it can never be cancelled
 
-```yaml
-concurrency:
-  group: >-
-    ${{ github.workflow }}-${{
-      github.event.pull_request.number
-      || (
-        (startsWith(github.event.head_commit.message, '[changelog] Release')
-        || startsWith(github.event.head_commit.message, '[changelog] Post-release'))
-        && github.sha
-      )
-      || github.ref
-    }}
-  cancel-in-progress: true
-```
+Release commits are protected from cancellation to ensure proper tagging, PyPI publishing, and GitHub release creation complete successfully.
 
-### Release commit protection
-
-Release commits must run to completion to ensure proper tagging, PyPI publishing, and GitHub release creation. Rather than using conditional `cancel-in-progress`, release workflows are protected by placing them in **unique concurrency groups**.
-
-The problem with conditional `cancel-in-progress` is that it's evaluated on the *new* workflow, not the old one. If a regular commit is pushed while a release workflow is running, the new workflow would cancel the release—even if the release workflow had `cancel-in-progress: false`—because they share the same concurrency group.
-
-The solution is to give each release workflow its own unique group (using the commit SHA), so subsequent pushes cannot cancel it:
-
-| Commit Message                          | Concurrency Group            | Behavior                     |
-| :-------------------------------------- | :--------------------------- | :--------------------------- |
-| `[changelog] Release v4.26.0`           | `{workflow}-{sha}`           | **Protected** — unique group |
-| `[changelog] Post-release version bump` | `{workflow}-{sha}`           | **Protected** — unique group |
-| Any other commit                        | `{workflow}-refs/heads/main` | Cancellable by newer commits |
-
-> [!IMPORTANT]
-> When a release is pushed, the event contains **two commits bundled together**:
->
-> 1. `[changelog] Release vX.Y.Z` — the release commit
-> 1. `[changelog] Post-release version bump` — bumps version for next development cycle
->
-> Since `github.event.head_commit` refers to the most recent commit (the post-release bump), both commit patterns must be matched to ensure the release workflow gets its own unique group.
-
-### Event-specific behavior
-
-| Event                 | `github.event.head_commit`             | Concurrency Group             | Cancel Behavior            |
-| :-------------------- | :------------------------------------- | :---------------------------- | :------------------------- |
-| `push` to `main`      | Set                                    | `{workflow}-refs/heads/main`  | Cancellable                |
-| `push` (release)      | Starts with `[changelog] Release`      | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
-| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
-| `pull_request`        | `null`                                 | `{workflow}-{pr-number}`      | Cancellable within same PR |
-| `workflow_call`       | Inherited or `null`                    | Inherited from caller         | Usually cancellable        |
-| `schedule`            | `null`                                 | `{workflow}-refs/heads/main`  | Cancellable                |
-| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`      | Cancellable                |
+> [!TIP]
+> For implementation details on how concurrency groups are computed and why release commits need special handling, see [`claude.md` § Concurrency implementation](claude.md#concurrency-implementation).
 
 ## Used in
 
@@ -718,4 +672,4 @@ Feel free to send a PR to add your project in this list if you are relying on th
 
 ## Development
 
-[Development guidelines](https://kdeldycke.github.io/meta-package-manager/development.html) are the same as the [Meta Package Manager](https://github.com/kdeldycke/meta-package-manager) project.
+See [`claude.md`](claude.md) for development commands, code style, testing guidelines, and design principles.

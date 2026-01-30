@@ -110,6 +110,13 @@ Reusable workflows are organized by purpose:
 
 ## Documentation requirements
 
+### Scope of `claude.md` vs `readme.md`
+
+- **`claude.md`**: Contributor and Claude-focused directives—code style, testing guidelines, design principles, and internal development guidance.
+- **`readme.md`**: User-facing documentation for the reusable workflows and `gha-utils` CLI—installation, usage, configuration, and workflow job descriptions.
+
+When adding new content, consider whether it benefits end users (`readme.md`) or contributors/Claude working on the codebase (`claude.md`).
+
 ### Changelog and readme updates
 
 Always update documentation when making changes:
@@ -163,7 +170,7 @@ This ensures future maintainers (including Claude) understand the reasoning behi
 - All comments in Python files must end with a period.
 - Docstrings use reStructuredText format (vanilla style, not Google/NumPy).
 - Documentation in `./docs/` uses MyST markdown format where possible. Fallback to reStructuredText if necessary.
-- Keep lines within 88 characters.
+- Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit.
 - Titles in markdown use sentence case.
 
 ### Type checking
@@ -191,6 +198,16 @@ if TYPE_CHECKING:
 
 ## Design principles
 
+### Philosophy
+
+1. Create something that works (to provide business value).
+2. Create something that's beautiful (to lower maintenance costs).
+3. Work on performance.
+
+### Linting and formatting
+
+[Linting](readme.md#githubworkflowslintyaml-jobs) and [formatting](readme.md#githubworkflowsautofixyyaml-jobs) are automated via GitHub workflows. Developers don't need to run these manually during development, but are still expected to do best effort. Push your changes and the workflows will catch any issues and perform the nitpicking.
+
 ### Metadata-driven workflow conditions
 
 GitHub Actions lacks conditional step groups—you cannot conditionally skip multiple
@@ -205,6 +222,61 @@ extraction centralizes logic in one place.
 Example: Instead of a separate "check" step followed by multiple steps with
 `if: steps.check.outputs.allowed == 'true'`, add the check to metadata output
 and reference `steps.metadata.outputs.some_check == 'true'`.
+
+### Concurrency implementation
+
+> [!NOTE]
+> For user-facing documentation, see [`readme.md` § Concurrency and cancellation](readme.md#concurrency-and-cancellation).
+
+All workflows use this concurrency group expression:
+
+```yaml
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event.pull_request.number
+      || (
+        (startsWith(github.event.head_commit.message, '[changelog] Release')
+        || startsWith(github.event.head_commit.message, '[changelog] Post-release'))
+        && github.sha
+      )
+      || github.ref
+    }}
+  cancel-in-progress: true
+```
+
+#### Why release commits need unique groups
+
+Release commits must run to completion for tagging, PyPI publishing, and GitHub release creation. Using conditional `cancel-in-progress: false` doesn't work because it's evaluated on the *new* workflow, not the old one. If a regular commit is pushed while a release workflow is running, the new workflow would cancel the release because they share the same concurrency group.
+
+The solution is to give each release workflow its own unique group using the commit SHA:
+
+| Commit Message                          | Concurrency Group            | Behavior                     |
+| :-------------------------------------- | :--------------------------- | :--------------------------- |
+| `[changelog] Release v4.26.0`           | `{workflow}-{sha}`           | **Protected** — unique group |
+| `[changelog] Post-release version bump` | `{workflow}-{sha}`           | **Protected** — unique group |
+| Any other commit                        | `{workflow}-refs/heads/main` | Cancellable by newer commits |
+
+#### Two-commit release push
+
+When a release is pushed, the event contains **two commits bundled together**:
+
+1. `[changelog] Release vX.Y.Z` — the release commit
+1. `[changelog] Post-release version bump` — bumps version for next development cycle
+
+Since `github.event.head_commit` refers to the most recent commit (the post-release bump), both commit patterns must be matched to ensure the release workflow gets its own unique group.
+
+#### Event-specific behavior
+
+| Event                 | `github.event.head_commit`             | Concurrency Group             | Cancel Behavior            |
+| :-------------------- | :------------------------------------- | :---------------------------- | :------------------------- |
+| `push` to `main`      | Set                                    | `{workflow}-refs/heads/main`  | Cancellable                |
+| `push` (release)      | Starts with `[changelog] Release`      | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
+| `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
+| `pull_request`        | `null`                                 | `{workflow}-{pr-number}`      | Cancellable within same PR |
+| `workflow_call`       | Inherited or `null`                    | Inherited from caller         | Usually cancellable        |
+| `schedule`            | `null`                                 | `{workflow}-refs/heads/main`  | Cancellable                |
+| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`      | Cancellable                |
 
 ### CLI design
 
