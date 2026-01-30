@@ -219,8 +219,8 @@ if TYPE_CHECKING:
 ### Philosophy
 
 1. Create something that works (to provide business value).
-2. Create something that's beautiful (to lower maintenance costs).
-3. Work on performance.
+1. Create something that's beautiful (to lower maintenance costs).
+1. Work on performance.
 
 ### Linting and formatting
 
