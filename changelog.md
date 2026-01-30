@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.5.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.5.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [5.5.1 (2026-01-30)](https://github.com/kdeldycke/workflows/compare/v5.5.0...v5.5.1)
 
 - Replace workflow shell scripts with CLI commands.
