@@ -191,31 +191,6 @@ if TYPE_CHECKING:
 
 ## Design principles
 
-### Dependency pinning
-
-All dependencies are pinned to specific versions for stability and reproducibility:
-
-- Python CLIs in `requirements/*.txt` files (updated by Renovate)
-- GitHub Actions versions in YAML files (updated by Renovate)
-- Project dependencies in `uv.lock` (updated by Renovate)
-- 7-day cooldown via `uv --exclude-newer` option
-
-### Self-referential workflows
-
-Workflows reference themselves via GitHub URLs:
-
-- Development: points to `main` branch
-- Released: points to tagged version (e.g., `v4.25.6`)
-- The `prepare-release` job rewrites URLs from `main` to the release tag
-
-### Metadata extraction
-
-The `project-metadata` job runs first in most workflows to:
-
-- Extract and combine data from Git, GitHub, and `pyproject.toml`
-- Share complex data across jobs (like build matrices)
-- Fix GitHub Actions quirks and limitations
-
 ### Metadata-driven workflow conditions
 
 GitHub Actions lacks conditional step groups—you cannot conditionally skip multiple
