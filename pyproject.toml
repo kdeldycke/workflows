@@ -133,6 +133,7 @@ test = [
   # pytest-cases 3.9.0 is the first version to support Python 3.14.
   "pytest-cases>=3.9",
   # pytest-cov 7.0.0 is the first version to be repackaged with pyproject-metadata.
+  "pytest-codspeed==4.2.0",
   "pytest-cov>=7",
   # pytest-github-actions-annotate-failures 0.3.0 is the first version to support Python 3.13.
   "pytest-github-actions-annotate-failures>=0.3",

@@ -1,0 +1,50 @@
+---
+name: CodSpeed
+"on":
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event.pull_request.number
+      || (
+        (startsWith(github.event.head_commit.message, '[changelog] Release')
+        || startsWith(github.event.head_commit.message, '[changelog] Post-release'))
+        && github.sha
+      )
+      || github.ref
+    }}
+  cancel-in-progress: true
+
+jobs:
+
+  benchmarks:
+    name: Run benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
+
+      - name: Install Python 3.14
+        shell: bash
+        run: |
+          set -e
+          uv --no-progress venv --python 3.14
+
+      - name: Install project with test dependencies
+        run: |
+          uv --no-progress sync --frozen --group test
+
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@v4.10.2
+        with:
+          mode: simulation
+          run: uv run pytest tests/test_benchmarks.py --codspeed
