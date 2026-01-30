@@ -83,10 +83,15 @@ jobs:
         run: |
           uv --no-progress run --frozen -- pytest
 
-      - name: Upload to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.5.2
         with:
-          report_type: coverage,test_results
+          report_type: coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload test results to Codecov
+        uses: codecov/codecov-action@v5.5.2
+        with:
+          report_type: test_results
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Self-tests against test plan

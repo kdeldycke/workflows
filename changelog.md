@@ -11,6 +11,7 @@
 - Enhance `gha-utils update-exclude-newer` to add missing `exclude-newer` when `[tool.uv]` section exists.
 - Add `renovate.json5` to bundled exports for Dependabot-to-Renovate migration.
 - Add Dependabot config check to `lint-repo` command with migration guidance.
+- Fix Codecov upload by splitting `report_type` into separate action calls.
 
 ## [5.5.0 (2026-01-29)](https://github.com/kdeldycke/workflows/compare/v5.4.0...v5.5.0)
 
