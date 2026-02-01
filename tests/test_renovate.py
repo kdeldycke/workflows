@@ -73,6 +73,27 @@ class TestParseExcludeNewerDate:
         result = parse_exclude_newer_date(pyproject)
         assert result is None
 
+    def test_relative_date_1_week(self, tmp_path):
+        """Return date.min for relative date '1 week' to trigger update."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[tool.uv]\nexclude-newer = "1 week"\n')
+        result = parse_exclude_newer_date(pyproject)
+        assert result == date.min
+
+    def test_relative_date_2_weeks(self, tmp_path):
+        """Return date.min for relative date '2 weeks' to trigger update."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[tool.uv]\nexclude-newer = "2 weeks"\n')
+        result = parse_exclude_newer_date(pyproject)
+        assert result == date.min
+
+    def test_relative_date_7_days(self, tmp_path):
+        """Return date.min for relative date '7 days' to trigger update."""
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[tool.uv]\nexclude-newer = "7 days"\n')
+        result = parse_exclude_newer_date(pyproject)
+        assert result == date.min
+
     def test_invalid_toml(self, tmp_path):
         """Return None for invalid TOML."""
         pyproject = tmp_path / "pyproject.toml"

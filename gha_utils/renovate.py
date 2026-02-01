@@ -45,7 +45,9 @@ def parse_exclude_newer_date(pyproject_path: Path) -> DateType | None:
     """Parse the exclude-newer date from pyproject.toml.
 
     :param pyproject_path: Path to the pyproject.toml file.
-    :return: The date if found, None otherwise.
+    :return: The date if found, None otherwise. Returns ``date.min`` for relative
+        date strings (e.g., "1 week") to signal they should be replaced with
+        fixed dates.
     """
     if not pyproject_path.exists():
         logging.debug(f"{pyproject_path} does not exist.")
@@ -71,6 +73,15 @@ def parse_exclude_newer_date(pyproject_path: Path) -> DateType | None:
     # Extract just the date part (YYYY-MM-DD) from the ISO timestamp.
     match = re.match(r"(\d{4}-\d{2}-\d{2})", exclude_newer)
     if not match:
+        # Check if this is a relative date string (e.g., "1 week", "2 weeks").
+        # uv supports these, but we want to replace them with fixed dates to
+        # prevent uv.lock timestamp churn on every sync.
+        if re.match(r"^\d+\s+(day|week|month|year)s?$", exclude_newer):
+            logging.info(
+                f"Found relative date {exclude_newer!r}, will convert to fixed date."
+            )
+            # Return date.min to signal this needs updating.
+            return date.min
         logging.warning(f"Could not parse date from {exclude_newer!r}")
         return None
 
