@@ -129,7 +129,7 @@ jobs:
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
         run: |
-          uvx 'pyproject-fmt==2.11.1' pyproject.toml || true
+          uvx 'pyproject-fmt==2.12.1' pyproject.toml || true
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.0.0
