@@ -136,7 +136,7 @@ jobs:
       - name: Generate graph
         # Include all dependency groups in the graph with subgraphs.
         run: >
-          uv --no-progress run --frozen -- gha-utils deps-graph
+          uvx --no-progress 'gha-utils==5.6.1' deps-graph
           ${{ needs.project-metadata.outputs.package_name
           && format('--package {0}', needs.project-metadata.outputs.package_name)}}
           --all-groups --all-extras
