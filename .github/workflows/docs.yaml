@@ -152,8 +152,8 @@ jobs:
           labels: "📚 documentation"
           branch: update-deps-graph
 
-  update-autodoc:
-    name: Update autodoc
+  update-docs:
+    name: Update docs
     needs:
       - project-metadata
     if: >
@@ -163,20 +163,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
-      - name: Run Sphinx
+      - name: Regenerate Sphinx autodoc
         run: |
           uv --no-progress run --frozen --group docs -- \
             sphinx-apidoc --no-toc --module-first --force --output-dir ./docs .
+      - name: Run docs update script
+        # Run docs/docs_update.py if present to generate dynamic content (tables, diagrams, directives).
+        run: |
+          if [ -f docs/docs_update.py ]; then
+            uv --no-progress run --frozen --group docs -- python docs/docs_update.py
+          fi
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Update Sphinx autodoc"
-          title: "[autofix] Update Sphinx autodoc"
+          commit-message: "[autofix] Update docs"
+          title: "[autofix] Update docs"
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
-          branch: update-autodoc
+          branch: update-docs
 
   deploy-docs:
     name: Deploy Sphinx doc

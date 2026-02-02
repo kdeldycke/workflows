@@ -270,9 +270,10 @@ docs = [
   - **Requires**:
     - Python package with a `uv.lock` file
 
-- **Update autodoc** (`update-autodoc`)
+- **Update docs** (`update-docs`)
 
   - Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
+  - Runs `docs/docs_update.py` if present to generate dynamic content (tables, diagrams, Sphinx directives)
   - **Requires**:
     - Python package with a `pyproject.toml` file
     - `docs` dependency group
