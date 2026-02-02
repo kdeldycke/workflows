@@ -12,12 +12,38 @@ name: Renovate
     paths:
       - ".github/workflows/renovate.yaml"
       - "renovate.json5"
+      - "gha_utils/data/renovate.json5"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
 
 jobs:
+
+  sync-bundled-config:
+    name: Sync bundled renovate.json5
+    # Only runs in the workflows repo where the bundled config lives.
+    if: github.repository == 'kdeldycke/workflows'
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
+
+      - name: Regenerate bundled renovate.json5
+        run: |
+          uv run gha-utils bundled export renovate.json5 - > gha_utils/data/renovate.json5
+
+      - uses: peter-evans/create-pull-request@v8.0.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Sync bundled renovate.json5"
+          title: "[autofix] Sync bundled renovate.json5"
+          body: |
+            Auto-generated PR to sync `gha_utils/data/renovate.json5` with root `renovate.json5`.
+
+            The bundled file is used when `gha-utils` is installed as a package.
+          labels: "🤖 ci"
+          branch: sync-bundled-renovate-config
 
   migrate-to-renovate:
     name: Migrate to Renovate

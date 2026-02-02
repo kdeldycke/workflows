@@ -5,6 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add missing `renovate.json5` template file from the bundled Python package.
+- Keep bundled `renovate.json5` configuration in sync with root file from this repository.
+
 ## [5.6.0 (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.5.1...v5.6.0)
 
 - Add `migrate-to-renovate` job to `renovate.yaml` workflow that creates a PR that create a `renovate.json5` and remove Dependabot config.

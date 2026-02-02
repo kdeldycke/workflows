@@ -155,15 +155,23 @@ def get_data_content(filename: str) -> str:
 
 
 def _get_renovate_config() -> str:
-    """Get Renovate config from root file, stripped of repo-specific settings.
+    """Get Renovate config, with repo-specific settings stripped.
 
-    Reads the root ``renovate.json5`` and removes:
-    - ``customManagers`` (specific to this repo's workflow files)
-    - ``assignees`` (specific to this repo's maintainer)
+    When running from the source repository, reads the root ``renovate.json5``
+    and removes repo-specific settings (``customManagers``, ``assignees``).
 
-    :return: The stripped Renovate configuration content.
+    When installed as a package, falls back to the pre-processed bundled file
+    in ``gha_utils/data/renovate.json5``.
+
+    :return: The clean Renovate configuration content.
     """
     root_path = Path(__file__).parent.parent / "renovate.json5"
+
+    # When installed as a package, the root file won't exist.
+    # Fall back to the bundled pre-processed version.
+    if not root_path.exists():
+        return get_data_content("renovate.json5")
+
     content = root_path.read_text(encoding="UTF-8")
 
     # Remove assignees line.
