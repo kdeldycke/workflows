@@ -7,6 +7,8 @@
 
 - Add missing `renovate.json5` template file from the bundled Python package.
 - Keep bundled `renovate.json5` configuration in sync with root file from this repository.
+- Add `--no-progress` to all `uvx` commands in workflows for cleaner CI logs.
+- Add `--frozen --no-progress` to `uv run` commands in workflows for reproducible builds.
 
 ## [5.6.0 (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.5.1...v5.6.0)
 

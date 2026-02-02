@@ -36,7 +36,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
 
   lint-repo:
     needs:
@@ -54,7 +54,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          uvx 'gha-utils==5.5.0' lint-repo
+          uvx --no-progress 'gha-utils==5.5.0' lint-repo
           ${{ needs.project-metadata.outputs.package_name &&
           format('--package-name "{0}"', needs.project-metadata.outputs.package_name) || '' }}
           --repo-name "${{ github.event.repository.name }}"
@@ -98,7 +98,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run yamllint
         run: |
-          uvx 'yamllint==1.38.0' --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
+          uvx --no-progress 'yamllint==1.38.0' --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
 
   lint-zsh:
     needs:
@@ -187,7 +187,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          uvx 'gha-utils==5.5.0' broken-links
+          uvx --no-progress 'gha-utils==5.5.0' broken-links
           --lychee-exit-code ${{ steps.lychee_run.outputs.exit_code }}
           --body-file ./lychee/out.md
           --repo-name "${{ github.event.repository.name }}"

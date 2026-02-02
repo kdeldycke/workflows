@@ -96,7 +96,7 @@ jobs:
 
       - name: Self-tests against test plan
         run: |
-          uv run -- gha-utils test-plan --command "uv run -- gha-utils" --plan-file "./tests/cli-test-plan.yaml"
+          uv run --frozen --no-progress -- gha-utils test-plan --command "uv run -- gha-utils" --plan-file "./tests/cli-test-plan.yaml"
 
   project-metadata:
     name: Project metadata
@@ -109,7 +109,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
 
   validate-arch:
     # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on

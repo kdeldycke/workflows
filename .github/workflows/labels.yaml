@@ -44,7 +44,7 @@ jobs:
           tool: labelmaker@0.6.4
       - name: Dump labels
         run: |
-          uvx 'gha-utils==5.5.0' bundled export labels.toml
+          uvx --no-progress 'gha-utils==5.5.0' bundled export labels.toml
       - name: Download extra label files
         if: inputs.extra-label-files
         run: |
@@ -95,7 +95,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
 
   file-labeller:
     name: File-based PR labeller
@@ -110,7 +110,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Dump default rules
         run: |
-          uvx 'gha-utils==5.5.0' bundled export labeller-file-based.yaml
+          uvx --no-progress 'gha-utils==5.5.0' bundled export labeller-file-based.yaml
       - name: Extend default rules
         if: inputs.extra-file-rules
         run: |
@@ -136,7 +136,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Dump default rules
         run: |
-          uvx 'gha-utils==5.5.0' bundled export labeller-content-based.yaml
+          uvx --no-progress 'gha-utils==5.5.0' bundled export labeller-content-based.yaml
       - name: Extend default rules
         if: inputs.extra-content-rules
         run: |
@@ -165,4 +165,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          uvx 'gha-utils==5.4.0' sponsor-label
+          uvx --no-progress 'gha-utils==5.4.0' sponsor-label

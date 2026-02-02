@@ -61,7 +61,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
 
   format-python:
     name: Format Python
@@ -80,14 +80,14 @@ jobs:
         #  - --aggressive is requires to force autopep8 to consider comments.
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
-          uvx 'autopep8==2.3.2' --recursive --in-place --max-line-length 88 --select E501 --aggressive
+          uvx --no-progress 'autopep8==2.3.2' --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
       - name: Install Ruff and init config
         # Initialize [tool.ruff] in pyproject.toml if it doesn't exist.
         # Projects with existing ruff config will keep their settings.
         run: |
           uv tool install 'ruff==0.14.14'
-          uvx 'gha-utils==5.5.0' bundled init ruff pyproject.toml
+          uvx --no-progress 'gha-utils==5.5.0' bundled init ruff pyproject.toml
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
       - name: Run Ruff
@@ -100,7 +100,7 @@ jobs:
         # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
         # https://github.com/astral-sh/ruff/issues/3792
         run: >
-          uvx --with 'black==25.12.0' 'blacken-docs==1.20.0'
+          uvx --no-progress --with 'black==25.12.0' 'blacken-docs==1.20.0'
           --line-length 88
           ${{ needs.project-metadata.outputs.blacken_docs_params }}
           ${{ needs.project-metadata.outputs.doc_files }}
@@ -129,7 +129,7 @@ jobs:
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
         run: |
-          uvx 'pyproject-fmt==2.12.1' pyproject.toml || true
+          uvx --no-progress 'pyproject-fmt==2.12.1' pyproject.toml || true
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.0.0
@@ -301,7 +301,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Initialize bumpversion config
         run: |
-          uvx 'gha-utils==5.5.0' bundled init bumpversion pyproject.toml
+          uvx --no-progress 'gha-utils==5.5.0' bundled init bumpversion pyproject.toml
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.0.0

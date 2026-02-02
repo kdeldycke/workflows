@@ -313,3 +313,53 @@ Always prefer long-form options over short-form for readability when invoking co
 - Use `--recursive` instead of `-r`.
 
 The `gha-utils` CLI defines both short and long-form options for convenience, but workflow files and scripts should use long-form options for clarity.
+
+### uv flags in CI workflows
+
+When invoking `uv` and `uvx` commands in GitHub Actions workflows, use specific flags to ensure reproducible builds and clean logs.
+
+#### `--no-progress` for all CI commands
+
+Always use `--no-progress` in CI environments:
+
+```yaml
+# For uvx
+uvx --no-progress 'package==1.0.0' command
+
+# For uv subcommands
+uv --no-progress sync
+uv --no-progress build
+```
+
+**Why:** Progress bars and spinners render poorly in CI logs, producing ANSI escape sequences and fragmented output. Suppressing them results in cleaner, more readable logs.
+
+#### `--frozen` for `uv run` commands
+
+Use `--frozen` with `uv run` to prevent lockfile modifications:
+
+```yaml
+uv run --frozen --no-progress -- pytest
+uv run --frozen --no-progress -- mypy src/
+```
+
+**Why:** In CI, the lockfile should be treated as immutable. If dependencies drift from `pyproject.toml`, the workflow should fail early rather than silently resolving different versions. This ensures reproducible builds across runs.
+
+#### When NOT to add these flags
+
+- **`uvx` with pinned versions:** `--frozen` is unnecessary for `uvx 'pkg==1.0.0'` since there's no project lockfile involved—the version is already explicit.
+- **`uv tool install`:** Tool installation commands don't use these flags.
+- **CLI invocability tests:** When testing that the CLI can be invoked by end users (e.g., `uvx -- gha-utils --version`), omit the flags to test the actual user experience.
+- **Local development examples:** Documentation showing local development commands should omit `--frozen` to avoid friction when dependencies change.
+
+#### Flag placement
+
+Place uv-level flags (`--no-progress`) before the subcommand, and run-level flags (`--frozen`) after `run`:
+
+```yaml
+# Correct
+uv --no-progress run --frozen -- command
+uvx --no-progress 'package==1.0.0' command
+
+# Incorrect
+uv run --no-progress --frozen -- command  # --no-progress is a uv flag, not a run flag
+```
