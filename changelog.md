@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.6.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.6.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [5.6.1 (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.6.0...v5.6.1)
 
 - Add missing `renovate.json5` template file from the bundled Python package.
