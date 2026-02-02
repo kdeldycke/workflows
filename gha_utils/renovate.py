@@ -77,12 +77,10 @@ class RenovateCheckResult:
         lines = [
             f"renovate_config_exists={str(self.renovate_config_exists).lower()}",
             f"dependabot_config_path={self.dependabot_config_path}",
-            f"dependabot_security_disabled={
-                str(self.dependabot_security_disabled).lower()
-            }",
-            f"commit_statuses_permission={
-                str(self.commit_statuses_permission).lower()
-            }",
+            "dependabot_security_disabled="
+            f"{str(self.dependabot_security_disabled).lower()}",
+            "commit_statuses_permission="
+            f"{str(self.commit_statuses_permission).lower()}",
             f"pr_body<<EOF\n{self.to_pr_body()}\nEOF",
         ]
         return "\n".join(lines)

@@ -207,6 +207,29 @@ if TYPE_CHECKING:
 - Import from the root package (`from gha_utils import cli`), not submodules when possible.
 - Place imports at the top of the file, unless avoiding circular imports.
 
+### Python 3.10 compatibility
+
+This project supports Python 3.10+. Be aware of syntax features that are **not** available in Python 3.10:
+
+- **Multi-line f-string expressions (Python 3.12+):** You cannot break an f-string after the `{` character and continue the expression on the next line.
+
+  ```python
+  # ❌ Fails on Python 3.10 (only works in Python 3.12+)
+  message = f"value={
+      some_long_expression
+  }"
+
+  # ✅ Works on Python 3.10+: split into concatenated strings.
+  message = (
+      "value="
+      f"{some_long_expression}"
+  )
+  ```
+
+- **Exception groups and `except*` (Python 3.11+).**
+- **`Self` type hint (Python 3.11+):** Use `from typing_extensions import Self` instead.
+- **`tomllib` (Python 3.11+):** Use the `tomli` fallback pattern shown in the codebase.
+
 ### YAML workflows
 
 When writing `run:` blocks in GitHub Actions workflows, use the folded block scalar (`>`) to split long commands across multiple lines:
