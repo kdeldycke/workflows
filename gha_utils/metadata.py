@@ -975,6 +975,9 @@ class Metadata:
 
         This is useful to only run some jobs on human-triggered events. Or skip jobs
         triggered by bots to avoid infinite loops.
+
+        Also detects Renovate PRs by branch name pattern (``renovate/*``), which handles
+        cases where Renovate runs as a user account rather than the ``renovate[bot]`` app.
         """
         # XXX replace by self.event_sender_type != "User"?
         if self.event_sender_type == "Bot" or self.event_actor in (
@@ -982,6 +985,10 @@ class Metadata:
             "dependabot-preview[bot]",
             "renovate[bot]",
         ):
+            return True
+        # Detect Renovate PRs by branch name pattern. This handles self-hosted Renovate
+        # or cases where Renovate runs as a user account.
+        if self.head_branch and self.head_branch.startswith("renovate/"):
             return True
         return False
 

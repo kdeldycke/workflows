@@ -897,6 +897,28 @@ def test_skip_binary_build_property_false_by_default():
     assert metadata.skip_binary_build is False
 
 
+def test_is_bot_false_by_default():
+    """Test that is_bot is False when not in a bot context."""
+    metadata = Metadata()
+    # Outside of bot context (no bot actor or renovate branch), is_bot is False.
+    assert isinstance(metadata.is_bot, bool)
+    assert metadata.is_bot is False
+
+
+def test_is_bot_detects_renovate_branch(monkeypatch):
+    """Test that is_bot returns True for Renovate branch patterns."""
+    monkeypatch.setenv("GITHUB_HEAD_REF", "renovate/taiki-e-install-action-2.x")
+    metadata = Metadata()
+    assert metadata.is_bot is True
+
+
+def test_is_bot_ignores_non_renovate_branch(monkeypatch):
+    """Test that is_bot returns False for non-Renovate branches."""
+    monkeypatch.setenv("GITHUB_HEAD_REF", "feature/add-new-feature")
+    metadata = Metadata()
+    assert metadata.is_bot is False
+
+
 def test_get_release_version_from_commits():
     """Test that get_release_version_from_commits returns expected type.
 
