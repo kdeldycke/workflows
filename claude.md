@@ -240,14 +240,14 @@ When writing `run:` blocks in GitHub Actions workflows, use the folded block sca
 # ✅ Preferred: folded block scalar joins lines with spaces.
 - name: Run linter
   run: >
-    uvx --no-progress 'yamllint==1.38.0'
-    --strict --format github --config-data "{rules: {line-length: {max: 120}}}" .
+    uvx --no-progress 'yamllint==1.38.0' --strict --format github
+    --config-data "{rules: {line-length: {max: 120}}}" .
 
 # ❌ Avoid: literal block scalar with backslash continuations.
 - name: Run linter
   run: |
-    uvx --no-progress 'yamllint==1.38.0' \
-      --strict --format github --config-data "{rules: {line-length: {max: 120}}}" .
+    uvx --no-progress 'yamllint==1.38.0' --strict --format github \
+      --config-data "{rules: {line-length: {max: 120}}}" .
 ```
 
 **Why:** The `>` scalar folds newlines into spaces, producing a single command without needing backslash escapes. This is cleaner and avoids issues with trailing whitespace after `\`.
