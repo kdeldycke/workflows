@@ -16,29 +16,137 @@
 
 """Renovate-related utilities for GitHub Actions workflows.
 
-This module provides utilities for managing Renovate prerequisites and
-updating the ``exclude-newer`` date in ``pyproject.toml`` files.
+This module provides utilities for managing Renovate prerequisites,
+migrating from Dependabot to Renovate, and updating the ``exclude-newer``
+date in ``pyproject.toml`` files.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import subprocess
 import sys
+from dataclasses import asdict, dataclass
 from datetime import date, timedelta
+from pathlib import Path
+
+from click_extra import TableFormat, render_table
+
+from .github import AnnotationLevel, emit_annotation
 
 if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
-from pathlib import Path
-
-from .github import AnnotationLevel, emit_annotation
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from datetime import date as DateType
+
+
+@dataclass
+class RenovateCheckResult:
+    """Result of all Renovate prerequisite checks.
+
+    This dataclass holds the results of each check, allowing workflows to
+    consume the data and build dynamic PR bodies or conditional logic.
+    """
+
+    renovate_config_exists: bool
+    """Whether renovate.json5 exists in the repository."""
+
+    dependabot_config_path: str
+    """Path to Dependabot config file, or empty string if not found."""
+
+    dependabot_security_disabled: bool
+    """Whether Dependabot security updates are disabled."""
+
+    commit_statuses_permission: bool
+    """Whether the token has commit statuses permission."""
+
+    repo: str = ""
+    """Repository in 'owner/repo' format, used for generating settings links."""
+
+    def to_github_output(self) -> str:
+        """Format results for GitHub Actions output.
+
+        :return: Multi-line string in key=value format for $GITHUB_OUTPUT.
+        """
+        lines = [
+            f"renovate_config_exists={str(self.renovate_config_exists).lower()}",
+            f"dependabot_config_path={self.dependabot_config_path}",
+            f"dependabot_security_disabled={str(self.dependabot_security_disabled).lower()}",
+            f"commit_statuses_permission={str(self.commit_statuses_permission).lower()}",
+            f"pr_body<<EOF\n{self.to_pr_body()}\nEOF",
+        ]
+        return "\n".join(lines)
+
+    def to_json(self) -> str:
+        """Format results as JSON.
+
+        :return: JSON string representation of the check results.
+        """
+        return json.dumps(asdict(self), indent=2)
+
+    def to_pr_body(self) -> str:
+        """Generate PR body for the migration PR.
+
+        :return: Markdown-formatted PR body with changes and prerequisites table.
+        """
+        lines = ["Migrate from Dependabot to Renovate.", ""]
+
+        # Changes section.
+        lines.append("## Changes")
+        if not self.renovate_config_exists:
+            lines.append("- Export `renovate.json5` configuration file")
+        if self.dependabot_config_path:
+            lines.append(f"- Remove `{self.dependabot_config_path}`")
+        if self.renovate_config_exists and not self.dependabot_config_path:
+            lines.append("- No changes needed")
+        lines.append("")
+
+        # Prerequisites status table.
+        lines.append("## Prerequisites Status")
+        lines.append("")
+
+        # Build table rows.
+        settings_url = f"https://github.com/{self.repo}/settings/security_analysis"
+        docs_url = "https://github.com/kdeldycke/workflows#permissions-and-token"
+
+        table_data = [
+            [
+                "`renovate.json5` exists",
+                "✅ Already exists" if self.renovate_config_exists else "🔧 Created by this PR",
+                "—",
+            ],
+            [
+                "Dependabot config removed",
+                "✅ Not present" if not self.dependabot_config_path else "🔧 Removed by this PR",
+                "—",
+            ],
+            [
+                "Dependabot security updates",
+                "✅ Disabled" if self.dependabot_security_disabled else "⚠️ Enabled",
+                "—" if self.dependabot_security_disabled else f"[Disable in Settings]({settings_url})",
+            ],
+            [
+                "Commit statuses permission",
+                "✅ Token has access" if self.commit_statuses_permission else "⚠️ Cannot verify",
+                "—" if self.commit_statuses_permission else f"[Check PAT permissions]({docs_url})",
+            ],
+        ]
+
+        lines.append(render_table(table_data, headers=["Check", "Status", "Action"], table_format=TableFormat.GITHUB))
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        lines.append(
+            "🤖 Generated with [gha-utils](https://github.com/kdeldycke/workflows)"
+        )
+
+        return "\n".join(lines)
 
 
 def parse_exclude_newer_date(pyproject_path: Path) -> DateType | None:
@@ -315,6 +423,113 @@ def run_renovate_prereq_checks(repo: str, sha: str) -> int:
         fatal_error = True
 
     # Check 3: Commit statuses permission (non-fatal).
+    passed, msg = check_commit_statuses_permission(repo, sha)
+    if passed:
+        print(f"✓ {msg}")
+    else:
+        emit_annotation(AnnotationLevel.WARNING, msg)
+
+    return 1 if fatal_error else 0
+
+
+def check_renovate_config_exists() -> tuple[bool, str]:
+    """Check if renovate.json5 configuration file exists.
+
+    :return: Tuple of (exists, message).
+    """
+    if Path("renovate.json5").exists():
+        return True, "Renovate config: renovate.json5 exists"
+
+    msg = (
+        "renovate.json5 not found. "
+        "Run `gha-utils bundled export renovate.json5` to create it."
+    )
+    return False, msg
+
+
+def get_dependabot_config_path() -> Path | None:
+    """Get the path to the Dependabot configuration file if it exists.
+
+    :return: Path to the Dependabot config file, or None if not found.
+    """
+    for filename in (".github/dependabot.yaml", ".github/dependabot.yml"):
+        path = Path(filename)
+        if path.exists():
+            return path
+    return None
+
+
+def collect_check_results(repo: str, sha: str) -> RenovateCheckResult:
+    """Collect all Renovate prerequisite check results.
+
+    Runs all checks and returns structured results that can be formatted
+    as JSON or GitHub Actions output.
+
+    :param repo: Repository in 'owner/repo' format.
+    :param sha: Commit SHA for permission checks.
+    :return: RenovateCheckResult with all check outcomes.
+    """
+    # Check 1: Renovate config exists.
+    renovate_exists, _ = check_renovate_config_exists()
+
+    # Check 2: Dependabot config path.
+    dependabot_path = get_dependabot_config_path()
+
+    # Check 3: Dependabot security updates disabled.
+    security_disabled, _ = check_dependabot_security_disabled(repo)
+
+    # Check 4: Commit statuses permission.
+    statuses_permission, _ = check_commit_statuses_permission(repo, sha)
+
+    return RenovateCheckResult(
+        renovate_config_exists=renovate_exists,
+        dependabot_config_path=str(dependabot_path) if dependabot_path else "",
+        dependabot_security_disabled=security_disabled,
+        commit_statuses_permission=statuses_permission,
+        repo=repo,
+    )
+
+
+def run_migration_checks(repo: str, sha: str) -> int:
+    """Run Renovate migration prerequisite checks with console output.
+
+    Checks for:
+    - Missing renovate.json5 configuration
+    - Existing Dependabot configuration
+    - Dependabot security updates enabled
+    - Token commit statuses permission
+
+    :param repo: Repository in 'owner/repo' format.
+    :param sha: Commit SHA for permission checks.
+    :return: Exit code (0 for success, 1 for fatal errors).
+    """
+    fatal_error = False
+
+    # Check 1: Renovate config exists.
+    renovate_exists, renovate_msg = check_renovate_config_exists()
+    if renovate_exists:
+        print(f"✓ {renovate_msg}")
+    else:
+        emit_annotation(AnnotationLevel.ERROR, renovate_msg)
+        fatal_error = True
+
+    # Check 2: Dependabot config absent.
+    passed, msg = check_dependabot_config_absent()
+    if passed:
+        print(f"✓ {msg}")
+    else:
+        emit_annotation(AnnotationLevel.ERROR, msg)
+        fatal_error = True
+
+    # Check 3: Dependabot security updates disabled.
+    passed, msg = check_dependabot_security_disabled(repo)
+    if passed:
+        print(f"✓ {msg}")
+    else:
+        emit_annotation(AnnotationLevel.ERROR, msg)
+        fatal_error = True
+
+    # Check 4: Commit statuses permission (non-fatal).
     passed, msg = check_commit_statuses_permission(repo, sha)
     if passed:
         print(f"✓ {msg}")

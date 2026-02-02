@@ -23,15 +23,21 @@ from datetime import date, timedelta
 from unittest.mock import MagicMock, patch
 
 
+import json
+
 from gha_utils.renovate import (
+    RenovateCheckResult,
     add_exclude_newer_to_file,
     calculate_target_date,
     check_commit_statuses_permission,
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
+    check_renovate_config_exists,
+    collect_check_results,
+    get_dependabot_config_path,
     has_tool_uv_section,
     parse_exclude_newer_date,
-    run_renovate_prereq_checks,
+    run_migration_checks,
     update_exclude_newer_in_file,
 )
 
@@ -314,11 +320,25 @@ class TestCheckCommitStatusesPermission:
             assert "permission" in msg.lower()
 
 
-class TestRunRenovatePrereqChecks:
-    """Tests for run_renovate_prereq_checks function."""
+class TestRunMigrationChecks:
+    """Tests for run_migration_checks function."""
 
     def test_all_checks_pass(self, tmp_path, monkeypatch, capsys):
         """Return 0 when all checks pass."""
+        monkeypatch.chdir(tmp_path)
+        # Create renovate.json5 so that check passes.
+        (tmp_path / "renovate.json5").touch()
+        with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
+            with patch(
+                "gha_utils.renovate.check_commit_statuses_permission"
+            ) as mock_perm:
+                mock_sec.return_value = (True, "Disabled")
+                mock_perm.return_value = (True, "Has access")
+                exit_code = run_migration_checks("owner/repo", "abc123")
+                assert exit_code == 0
+
+    def test_renovate_config_missing(self, tmp_path, monkeypatch, capsys):
+        """Return 1 when renovate.json5 is missing."""
         monkeypatch.chdir(tmp_path)
         with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
             with patch(
@@ -326,12 +346,16 @@ class TestRunRenovatePrereqChecks:
             ) as mock_perm:
                 mock_sec.return_value = (True, "Disabled")
                 mock_perm.return_value = (True, "Has access")
-                exit_code = run_renovate_prereq_checks("owner/repo", "abc123")
-                assert exit_code == 0
+                exit_code = run_migration_checks("owner/repo", "abc123")
+                assert exit_code == 1
+                captured = capsys.readouterr()
+                assert "::error::" in captured.out
 
     def test_dependabot_config_exists(self, tmp_path, monkeypatch, capsys):
         """Return 1 when Dependabot config exists."""
         monkeypatch.chdir(tmp_path)
+        # Create renovate.json5 so that check passes.
+        (tmp_path / "renovate.json5").touch()
         (tmp_path / ".github").mkdir()
         (tmp_path / ".github" / "dependabot.yaml").touch()
         with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
@@ -340,7 +364,7 @@ class TestRunRenovatePrereqChecks:
             ) as mock_perm:
                 mock_sec.return_value = (True, "Disabled")
                 mock_perm.return_value = (True, "Has access")
-                exit_code = run_renovate_prereq_checks("owner/repo", "abc123")
+                exit_code = run_migration_checks("owner/repo", "abc123")
                 assert exit_code == 1
                 captured = capsys.readouterr()
                 assert "::error::" in captured.out
@@ -348,13 +372,191 @@ class TestRunRenovatePrereqChecks:
     def test_security_updates_enabled(self, tmp_path, monkeypatch, capsys):
         """Return 1 when Dependabot security updates are enabled."""
         monkeypatch.chdir(tmp_path)
+        # Create renovate.json5 so that check passes.
+        (tmp_path / "renovate.json5").touch()
         with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
             with patch(
                 "gha_utils.renovate.check_commit_statuses_permission"
             ) as mock_perm:
                 mock_sec.return_value = (False, "Security updates enabled")
                 mock_perm.return_value = (True, "Has access")
-                exit_code = run_renovate_prereq_checks("owner/repo", "abc123")
+                exit_code = run_migration_checks("owner/repo", "abc123")
                 assert exit_code == 1
                 captured = capsys.readouterr()
                 assert "::error::" in captured.out
+
+
+class TestCheckRenovateConfigExists:
+    """Tests for check_renovate_config_exists function."""
+
+    def test_config_exists(self, tmp_path, monkeypatch):
+        """Pass when renovate.json5 exists."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "renovate.json5").touch()
+        exists, msg = check_renovate_config_exists()
+        assert exists is True
+        assert "exists" in msg
+
+    def test_config_missing(self, tmp_path, monkeypatch):
+        """Fail when renovate.json5 is missing."""
+        monkeypatch.chdir(tmp_path)
+        exists, msg = check_renovate_config_exists()
+        assert exists is False
+        assert "not found" in msg
+
+
+class TestGetDependabotConfigPath:
+    """Tests for get_dependabot_config_path function."""
+
+    def test_yaml_exists(self, tmp_path, monkeypatch):
+        """Return path when .github/dependabot.yaml exists."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / ".github").mkdir()
+        (tmp_path / ".github" / "dependabot.yaml").touch()
+        path = get_dependabot_config_path()
+        assert path is not None
+        assert path.name == "dependabot.yaml"
+
+    def test_yml_exists(self, tmp_path, monkeypatch):
+        """Return path when .github/dependabot.yml exists."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / ".github").mkdir()
+        (tmp_path / ".github" / "dependabot.yml").touch()
+        path = get_dependabot_config_path()
+        assert path is not None
+        assert path.name == "dependabot.yml"
+
+    def test_no_config(self, tmp_path, monkeypatch):
+        """Return None when no Dependabot config exists."""
+        monkeypatch.chdir(tmp_path)
+        path = get_dependabot_config_path()
+        assert path is None
+
+
+class TestRenovateCheckResult:
+    """Tests for RenovateCheckResult dataclass."""
+
+    def test_to_github_output(self):
+        """Format results for GitHub Actions output."""
+        result = RenovateCheckResult(
+            renovate_config_exists=True,
+            dependabot_config_path=".github/dependabot.yaml",
+            dependabot_security_disabled=False,
+            commit_statuses_permission=True,
+            repo="owner/repo",
+        )
+        output = result.to_github_output()
+        assert "renovate_config_exists=true" in output
+        assert "dependabot_config_path=.github/dependabot.yaml" in output
+        assert "dependabot_security_disabled=false" in output
+        assert "commit_statuses_permission=true" in output
+        assert "pr_body<<EOF" in output
+
+    def test_to_github_output_empty_path(self):
+        """Empty dependabot_config_path is preserved in output."""
+        result = RenovateCheckResult(
+            renovate_config_exists=True,
+            dependabot_config_path="",
+            dependabot_security_disabled=True,
+            commit_statuses_permission=True,
+            repo="owner/repo",
+        )
+        output = result.to_github_output()
+        assert "dependabot_config_path=" in output
+
+    def test_to_json(self):
+        """Format results as JSON."""
+        result = RenovateCheckResult(
+            renovate_config_exists=True,
+            dependabot_config_path=".github/dependabot.yaml",
+            dependabot_security_disabled=False,
+            commit_statuses_permission=True,
+            repo="owner/repo",
+        )
+        json_str = result.to_json()
+        data = json.loads(json_str)
+        assert data["renovate_config_exists"] is True
+        assert data["dependabot_config_path"] == ".github/dependabot.yaml"
+        assert data["dependabot_security_disabled"] is False
+        assert data["commit_statuses_permission"] is True
+
+    def test_to_pr_body_needs_migration(self):
+        """Generate PR body when migration is needed."""
+        result = RenovateCheckResult(
+            renovate_config_exists=False,
+            dependabot_config_path=".github/dependabot.yaml",
+            dependabot_security_disabled=False,
+            commit_statuses_permission=True,
+            repo="owner/repo",
+        )
+        body = result.to_pr_body()
+        assert "Migrate from Dependabot to Renovate" in body
+        assert "Export `renovate.json5`" in body
+        assert "Remove `.github/dependabot.yaml`" in body
+        assert "🔧 Created by this PR" in body
+        assert "🔧 Removed by this PR" in body
+        assert "⚠️ Enabled" in body
+        assert "https://github.com/owner/repo/settings/security_analysis" in body
+
+    def test_to_pr_body_already_migrated(self):
+        """Generate PR body when already migrated."""
+        result = RenovateCheckResult(
+            renovate_config_exists=True,
+            dependabot_config_path="",
+            dependabot_security_disabled=True,
+            commit_statuses_permission=True,
+            repo="owner/repo",
+        )
+        body = result.to_pr_body()
+        assert "No changes needed" in body
+        assert "✅ Already exists" in body
+        assert "✅ Not present" in body
+        assert "✅ Disabled" in body
+        assert "✅ Token has access" in body
+
+
+class TestCollectCheckResults:
+    """Tests for collect_check_results function."""
+
+    def test_all_checks_pass(self, tmp_path, monkeypatch):
+        """Collect results when all checks pass."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "renovate.json5").touch()
+        with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
+            with patch(
+                "gha_utils.renovate.check_commit_statuses_permission"
+            ) as mock_perm:
+                mock_sec.return_value = (True, "Disabled")
+                mock_perm.return_value = (True, "Has access")
+                result = collect_check_results("owner/repo", "abc123")
+                assert result.renovate_config_exists is True
+                assert result.dependabot_config_path == ""
+                assert result.dependabot_security_disabled is True
+                assert result.commit_statuses_permission is True
+
+    def test_with_dependabot_config(self, tmp_path, monkeypatch):
+        """Collect results when Dependabot config exists."""
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "renovate.json5").touch()
+        (tmp_path / ".github").mkdir()
+        (tmp_path / ".github" / "dependabot.yaml").touch()
+        with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
+            with patch(
+                "gha_utils.renovate.check_commit_statuses_permission"
+            ) as mock_perm:
+                mock_sec.return_value = (True, "Disabled")
+                mock_perm.return_value = (True, "Has access")
+                result = collect_check_results("owner/repo", "abc123")
+                assert result.dependabot_config_path == ".github/dependabot.yaml"
+
+    def test_missing_renovate_config(self, tmp_path, monkeypatch):
+        """Collect results when renovate.json5 is missing."""
+        monkeypatch.chdir(tmp_path)
+        with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
+            with patch(
+                "gha_utils.renovate.check_commit_statuses_permission"
+            ) as mock_perm:
+                mock_sec.return_value = (True, "Disabled")
+                mock_perm.return_value = (True, "Has access")
+                result = collect_check_results("owner/repo", "abc123")
+                assert result.renovate_config_exists is False

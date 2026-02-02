@@ -80,9 +80,10 @@ from .git_ops import create_and_push_tag
 from .renovate import (
     add_exclude_newer_to_file,
     calculate_target_date,
+    collect_check_results,
     has_tool_uv_section,
     parse_exclude_newer_date,
-    run_renovate_prereq_checks,
+    run_migration_checks,
     update_exclude_newer_in_file,
 )
 from .lint_repo import run_repo_lint
@@ -1255,7 +1256,7 @@ def update_exclude_newer(
         echo(f"modified={'true' if modified else 'false'}", file=prep_path(output))
 
 
-@gha_utils.command(short_help="Check Renovate prerequisites")
+@gha_utils.command(short_help="Check Renovate migration prerequisites")
 @option(
     "--repo",
     default=None,
@@ -1266,23 +1267,58 @@ def update_exclude_newer(
     default=None,
     help="Commit SHA for permission checks. Defaults to $GITHUB_SHA.",
 )
+@option(
+    "--format",
+    "output_format",
+    type=Choice(["text", "json", "github"], case_sensitive=False),
+    default="text",
+    help="Output format: text (human-readable), json (structured), "
+    "or github (for $GITHUB_OUTPUT).",
+)
+@option(
+    "-o",
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+    help="Output file path. Defaults to stdout.",
+)
 @pass_context
-def check_renovate_prereqs(ctx: Context, repo: str | None, sha: str | None) -> None:
-    """Check prerequisites for running Renovate.
+def check_renovate(
+    ctx: Context,
+    repo: str | None,
+    sha: str | None,
+    output_format: str,
+    output: Path,
+) -> None:
+    """Check prerequisites for Renovate migration.
 
     Validates that:
-    - No Dependabot version updates config exists (.github/dependabot.yaml).
-    - Dependabot security updates are disabled.
-    - Token has commit statuses permission (non-fatal).
+
+    \b
+    - renovate.json5 configuration exists
+    - No Dependabot version updates config exists (.github/dependabot.yaml)
+    - Dependabot security updates are disabled
+    - Token has commit statuses permission
+
+    Use --format=github to output results for $GITHUB_OUTPUT, allowing
+    workflows to use the values in conditional steps.
 
     \b
     Examples:
-        # In GitHub Actions (all defaults auto-detected)
-        gha-utils check-renovate-prereqs
+        # Human-readable output (default)
+        gha-utils check-renovate
+
+    \b
+        # JSON output for parsing
+        gha-utils check-renovate --format=json
+
+    \b
+        # GitHub Actions output format
+        gha-utils check-renovate --format=github --output "$GITHUB_OUTPUT"
 
     \b
         # Manual invocation
-        gha-utils check-renovate-prereqs --repo owner/repo --sha abc123
+        gha-utils check-renovate --repo owner/repo --sha abc123
     """
     # Apply defaults from environment.
     if repo is None:
@@ -1297,8 +1333,20 @@ def check_renovate_prereqs(ctx: Context, repo: str | None, sha: str | None) -> N
         logging.error("No SHA specified. Set --sha or $GITHUB_SHA.")
         ctx.exit(1)
 
-    exit_code = run_renovate_prereq_checks(repo, sha)
-    ctx.exit(exit_code)
+    # For text format, use the original function with console output.
+    if output_format == "text":
+        exit_code = run_migration_checks(repo, sha)
+        ctx.exit(exit_code)
+
+    # For json/github formats, collect results and output structured data.
+    results = collect_check_results(repo, sha)
+
+    if output_format == "json":
+        content = results.to_json()
+    else:  # github format
+        content = results.to_github_output()
+
+    echo(content, file=prep_path(output))
 
 
 @gha_utils.command(short_help="Run repository consistency checks")

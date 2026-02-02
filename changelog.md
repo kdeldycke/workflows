@@ -5,6 +5,11 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `migrate-to-renovate` job to `renovate.yaml` workflow that creates a PR that create a `renovate.json5` and remove Dependabot config.
+- Add dynamic prerequisites status table to migration PR body with links to settings pages.
+- Add `--format` option to `gha-utils check-renovate` for JSON and GitHub Actions output formats.
+- Move prerequisite validation to `renovate` job to fail fast if requirements aren't met.
+- Rename `gha-utils check-renovate-prereqs` to `gha-utils check-renovate`.
 - Fix `gha-utils update-exclude-newer` to handle relative date strings.
 
 ## [5.5.1 (2026-01-30)](https://github.com/kdeldycke/workflows/compare/v5.5.0...v5.5.1)

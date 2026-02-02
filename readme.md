@@ -443,17 +443,25 @@ docs = [
 
 ### [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
 
-- **Check Renovate prerequisites** (`check-renovate-prereqs`)
+- **Migrate to Renovate** (`migrate-to-renovate`)
 
-  - Validates that repository and token settings are properly configured for Renovate
-  - **Checks**:
-    - ❌ No `.github/dependabot.yaml` file (version updates disabled)
-    - ✅ Dependabot alerts enabled (Renovate reads these)
-    - ❌ Dependabot security updates disabled (Renovate handles this)
-    - ✅ Token has commit statuses permission (for stability status checks)
+  - Automatically migrates from Dependabot to Renovate by creating a PR that:
+    - Exports `renovate.json5` configuration file (if missing)
+    - Removes `.github/dependabot.yaml` or `.github/dependabot.yml` (if present)
+  - PR body includes a prerequisites status table showing:
+    - What this PR fixes (config file creation, Dependabot removal)
+    - What needs manual action (security updates settings, token permissions)
+    - Links to relevant settings pages for easy access
+  - Uses [`peter-evans/create-pull-request`](https://github.com/peter-evans/create-pull-request) for consistent PR creation
+  - **Skipped if**:
+    - No changes needed (`renovate.json5` already exists and no Dependabot config is present)
 
 - **Renovate** (`renovate`)
 
+  - Validates prerequisites before running (fails if not met):
+    - `renovate.json5` configuration exists
+    - No Dependabot config file present
+    - Dependabot security updates disabled
   - Runs self-hosted [Renovate](https://github.com/renovatebot/renovate) to update dependencies
   - Creates PRs for outdated dependencies with stabilization periods
   - Handles security vulnerabilities via `vulnerabilityAlerts`
