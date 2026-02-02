@@ -214,6 +214,7 @@ This project supports Python 3.10+. Be aware of syntax features that are **not**
 - **Multi-line f-string expressions (Python 3.12+):** You cannot break an f-string after the `{` character and continue the expression on the next line.
 
   ```python
+  # fmt: off
   # ❌ Fails on Python 3.10 (only works in Python 3.12+)
   message = f"value={
       some_long_expression
@@ -224,6 +225,7 @@ This project supports Python 3.10+. Be aware of syntax features that are **not**
       "value="
       f"{some_long_expression}"
   )
+  # fmt: on
   ```
 
 - **Exception groups and `except*` (Python 3.11+).**
