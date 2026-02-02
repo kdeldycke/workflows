@@ -154,7 +154,7 @@ jobs:
           uv --no-progress venv --python 3.13
       - name: Install Nuitka
         run: |
-          uv --no-progress pip install 'nuitka[onefile]==2.8.9'
+          uv --no-progress pip install 'nuitka[onefile]==2.8.10'
       - name: Nuitka + compilers versions
         run: |
           uv --no-progress run --frozen -- nuitka --version
