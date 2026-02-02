@@ -483,7 +483,7 @@ def collect_check_results(repo: str, sha: str) -> RenovateCheckResult:
 
     return RenovateCheckResult(
         renovate_config_exists=renovate_exists,
-        dependabot_config_path=str(dependabot_path) if dependabot_path else "",
+        dependabot_config_path=dependabot_path.as_posix() if dependabot_path else "",
         dependabot_security_disabled=security_disabled,
         commit_statuses_permission=statuses_permission,
         repo=repo,
