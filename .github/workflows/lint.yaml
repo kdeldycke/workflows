@@ -97,8 +97,9 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
       - name: Run yamllint
-        run: |
-          uvx --no-progress 'yamllint==1.38.0' --strict --config-data "{rules: {line-length: {max: 120}}}" --format github .
+        run: >
+          uvx --no-progress 'yamllint==1.38.0'
+          --strict --format github --config-data "{rules: {line-length: {max: 120}}}" .
 
   lint-zsh:
     needs:

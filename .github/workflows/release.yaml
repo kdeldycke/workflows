@@ -187,8 +187,9 @@ jobs:
         run: |
           choco install exiftool --no-progress --yes --retry-count=3
       - name: Verify binary architecture
-        run: |
-          uvx --no-progress 'gha-utils==5.5.0' verify-binary --target "${{ matrix.target }}" --binary "${{ matrix.bin_name }}"
+        run: >
+          uvx --no-progress 'gha-utils==5.5.0'
+          verify-binary --target "${{ matrix.target }}" --binary "${{ matrix.bin_name }}"
       - name: Upload binaries
         uses: actions/upload-artifact@v6.0.0
         with:

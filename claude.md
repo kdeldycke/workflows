@@ -207,6 +207,28 @@ if TYPE_CHECKING:
 - Import from the root package (`from gha_utils import cli`), not submodules when possible.
 - Place imports at the top of the file, unless avoiding circular imports.
 
+### YAML workflows
+
+When writing `run:` blocks in GitHub Actions workflows, use the folded block scalar (`>`) to split long commands across multiple lines:
+
+```yaml
+# ✅ Preferred: folded block scalar joins lines with spaces.
+- name: Run linter
+  run: >
+    uvx --no-progress 'yamllint==1.38.0'
+    --strict --format github --config-data "{rules: {line-length: {max: 120}}}" .
+
+# ❌ Avoid: literal block scalar with backslash continuations.
+- name: Run linter
+  run: |
+    uvx --no-progress 'yamllint==1.38.0' \
+      --strict --format github --config-data "{rules: {line-length: {max: 120}}}" .
+```
+
+**Why:** The `>` scalar folds newlines into spaces, producing a single command without needing backslash escapes. This is cleaner and avoids issues with trailing whitespace after `\`.
+
+**When to use `|`:** Use literal block scalar (`|`) only when the command requires preserved newlines (e.g., multi-statement scripts, heredocs).
+
 ## Testing guidelines
 
 - Use `@pytest.mark.parametrize` when testing the same logic for multiple inputs.
