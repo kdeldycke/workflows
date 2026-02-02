@@ -24,21 +24,11 @@ The reusable workflows automate:
 
 ## Downstream repositories
 
-This repository serves as the **canonical reference** for conventions and best
-practices. When Claude is used in any repository that reuses workflows from
-[`kdeldycke/workflows`](https://github.com/kdeldycke/workflows), it should follow
-the same conventions defined here—including the structure and guidelines of this
-`claude.md` file itself.
+This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that reuses workflows from [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
 
-In other words, downstream repositories should mirror the patterns established
-here for code style, documentation, testing, and design principles.
+In other words, downstream repositories should mirror the patterns established here for code style, documentation, testing, and design principles.
 
-**Contributing upstream:** If Claude spots inefficiencies, potential improvements,
-performance bottlenecks, missing features, or opportunities for better adaptability
-in the reusable workflows, `gha-utils` CLI, or this `claude.md` file itself, it
-should propose these changes upstream via a pull request or issue at
-[`kdeldycke/workflows`](https://github.com/kdeldycke/workflows/issues). This
-benefits all downstream repositories.
+**Contributing upstream:** If Claude spots inefficiencies, potential improvements, performance bottlenecks, missing features, or opportunities for better adaptability in the reusable workflows, `gha-utils` CLI, or this `claude.md` file itself, it should propose these changes upstream via a pull request or issue at [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows/issues). This benefits all downstream repositories.
 
 ## Commands
 
@@ -275,18 +265,11 @@ When writing `run:` blocks in GitHub Actions workflows, use the folded block sca
 
 ### Metadata-driven workflow conditions
 
-GitHub Actions lacks conditional step groups—you cannot conditionally skip multiple
-steps with a single condition. Rather than duplicating `if:` conditions on every step,
-augment the `gha-utils metadata` subcommand to compute the condition once and reference
-it from workflow steps.
+GitHub Actions lacks conditional step groups—you cannot conditionally skip multiple steps with a single condition. Rather than duplicating `if:` conditions on every step, augment the `gha-utils metadata` subcommand to compute the condition once and reference it from workflow steps.
 
-**Why:** Python code in `gha_utils` is simpler to maintain, test, and debug than
-complex GitHub Actions workflow logic. Moving conditional checks into metadata
-extraction centralizes logic in one place.
+**Why:** Python code in `gha_utils` is simpler to maintain, test, and debug than complex GitHub Actions workflow logic. Moving conditional checks into metadata extraction centralizes logic in one place.
 
-Example: Instead of a separate "check" step followed by multiple steps with
-`if: steps.check.outputs.allowed == 'true'`, add the check to metadata output
-and reference `steps.metadata.outputs.some_check == 'true'`.
+Example: Instead of a separate "check" step followed by multiple steps with `if: steps.check.outputs.allowed == 'true'`, add the check to metadata output and reference `steps.metadata.outputs.some_check == 'true'`.
 
 ### Concurrency implementation
 
@@ -369,13 +352,13 @@ When invoking `uv` and `uvx` commands in GitHub Actions workflows, use specific 
 
 Always use `--no-progress` in CI environments:
 
-```yaml
+```shell-session
 # For uvx
-uvx --no-progress 'package==1.0.0' command
+$ uvx --no-progress 'package==1.0.0' command
 
 # For uv subcommands
-uv --no-progress sync
-uv --no-progress build
+$ uv --no-progress sync
+$ uv --no-progress build
 ```
 
 **Why:** Progress bars and spinners render poorly in CI logs, producing ANSI escape sequences and fragmented output. Suppressing them results in cleaner, more readable logs.
@@ -384,9 +367,9 @@ uv --no-progress build
 
 Use `--frozen` with `uv run` to prevent lockfile modifications:
 
-```yaml
-uv run --frozen --no-progress -- pytest
-uv run --frozen --no-progress -- mypy src/
+```shell-session
+$ uv run --frozen --no-progress -- pytest
+$ uv run --frozen --no-progress -- mypy src/
 ```
 
 **Why:** In CI, the lockfile should be treated as immutable. If dependencies drift from `pyproject.toml`, the workflow should fail early rather than silently resolving different versions. This ensures reproducible builds across runs.
@@ -402,13 +385,13 @@ uv run --frozen --no-progress -- mypy src/
 
 Place uv-level flags (`--no-progress`) before the subcommand, and run-level flags (`--frozen`) after `run`:
 
-```yaml
+```shell-session
 # Correct
-uv --no-progress run --frozen -- command
-uvx --no-progress 'package==1.0.0' command
+$ uv --no-progress run --frozen -- command
+$ uvx --no-progress 'package==1.0.0' command
 
 # Incorrect
-uv run --no-progress --frozen -- command  # --no-progress is a uv flag, not a run flag
+$ uv run --no-progress --frozen -- command  # --no-progress is a uv flag, not a run flag
 ```
 
 #### Why explicit flags over environment variables
@@ -418,14 +401,10 @@ these flags globally. We intentionally avoid them in favor of explicit flags.
 
 **Reasons to prefer explicit flags:**
 
-- **Self-documenting:** Anyone reading the workflow immediately understands the behavior
-  without needing to search for environment variable definitions.
-- **Visible in logs:** The exact command with all flags appears in CI output, making
-  debugging easier.
-- **No conflicts:** `UV_FROZEN` conflicts with `--locked` in some commands, requiring
-  workarounds like `env -u UV_FROZEN uv lock --check`.
-- **Consistent with long-form option principle:** Explicit flags align with our preference
-  for readable, long-form options over terse shortcuts.
+- **Self-documenting:** Anyone reading the workflow immediately understands the behavior without needing to search for environment variable definitions.
+- **Visible in logs:** The exact command with all flags appears in CI output, making debugging easier.
+- **No conflicts:** `UV_FROZEN` conflicts with `--locked` in some commands, requiring workarounds like `env -u UV_FROZEN uv lock --check`.
+- **Consistent with long-form option principle:** Explicit flags align with our preference for readable, long-form options over terse shortcuts.
 
 Environment variables create "action at a distance"—behavior changes without visible
 cause at the point of execution. The verbosity of explicit flags is a feature, not a bug.
