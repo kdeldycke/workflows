@@ -363,3 +363,22 @@ uvx --no-progress 'package==1.0.0' command
 # Incorrect
 uv run --no-progress --frozen -- command  # --no-progress is a uv flag, not a run flag
 ```
+
+#### Why explicit flags over environment variables
+
+uv supports environment variables (`UV_NO_PROGRESS=1`, `UV_FROZEN=1`) that could replace
+these flags globally. We intentionally avoid them in favor of explicit flags.
+
+**Reasons to prefer explicit flags:**
+
+- **Self-documenting:** Anyone reading the workflow immediately understands the behavior
+  without needing to search for environment variable definitions.
+- **Visible in logs:** The exact command with all flags appears in CI output, making
+  debugging easier.
+- **No conflicts:** `UV_FROZEN` conflicts with `--locked` in some commands, requiring
+  workarounds like `env -u UV_FROZEN uv lock --check`.
+- **Consistent with long-form option principle:** Explicit flags align with our preference
+  for readable, long-form options over terse shortcuts.
+
+Environment variables create "action at a distance"—behavior changes without visible
+cause at the point of execution. The verbosity of explicit flags is a feature, not a bug.
