@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Auto-update `gha-utils==X.Y.Z` CLI version pins in workflow files during release.
+
 ## [5.6.1 (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.6.0...v5.6.1)
 
 - Add missing `renovate.json5` template file from the bundled Python package.

@@ -125,6 +125,41 @@ def temp_workflows_with_actions(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def temp_workflows_with_cli_pins(tmp_path: Path) -> Path:
+    """Create workflows with gha-utils CLI version pins."""
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+
+    (workflow_dir / "changelog.yaml").write_text(
+        dedent("""\
+            name: Changelog
+            on: push
+            jobs:
+              metadata:
+                steps:
+                  - run: uvx --no-progress 'gha-utils==5.4.0' metadata
+                  - run: uvx --no-progress 'gha-utils==5.5.0' release-prep
+            """),
+        encoding="UTF-8",
+    )
+
+    (workflow_dir / "lint.yaml").write_text(
+        dedent("""\
+            name: Lint
+            on: push
+            jobs:
+              lint:
+                steps:
+                  - run: uvx --no-progress 'gha-utils==5.4.0' metadata
+                  - run: uvx --no-progress 'gha-utils==5.6.0' lint-repo
+            """),
+        encoding="UTF-8",
+    )
+
+    return workflow_dir
+
+
+@pytest.fixture
 def temp_pyproject(tmp_path: Path) -> Path:
     """Create a temporary pyproject.toml with bumpversion config."""
     pyproject = tmp_path / "pyproject.toml"
@@ -434,3 +469,49 @@ class TestReleasePrep:
         assert "@v1.2.3" not in content
         assert "@main" in content
         assert "kdeldycke/workflows/.github/actions/pr-metadata@main" in content
+
+    def test_update_cli_version_pins(
+        self,
+        tmp_path: Path,
+        temp_workflows_with_cli_pins: Path,
+        temp_pyproject: Path,
+        monkeypatch,
+    ) -> None:
+        """Test that gha-utils CLI version pins are updated to current version."""
+        monkeypatch.chdir(tmp_path)
+
+        prep = ReleasePrep(workflow_dir=temp_workflows_with_cli_pins)
+        count = prep.update_cli_version_pins()
+
+        assert count == 2
+        for workflow_file in temp_workflows_with_cli_pins.glob("*.yaml"):
+            content = workflow_file.read_text(encoding="UTF-8")
+            # All old versions should be replaced.
+            assert "gha-utils==5.4.0" not in content
+            assert "gha-utils==5.5.0" not in content
+            assert "gha-utils==5.6.0" not in content
+            # All should now use current version.
+            assert "gha-utils==1.2.3" in content
+
+    def test_update_cli_version_pins_in_prepare_release(
+        self,
+        tmp_path: Path,
+        temp_changelog: Path,
+        temp_workflows_with_cli_pins: Path,
+        temp_pyproject: Path,
+        monkeypatch,
+    ) -> None:
+        """Test that CLI version pins are updated during prepare_release."""
+        monkeypatch.chdir(tmp_path)
+
+        prep = ReleasePrep(
+            changelog_path=temp_changelog,
+            workflow_dir=temp_workflows_with_cli_pins,
+        )
+        prep.prepare_release(update_workflows=True)
+
+        # Verify CLI version pins are updated.
+        for workflow_file in temp_workflows_with_cli_pins.glob("*.yaml"):
+            content = workflow_file.read_text(encoding="UTF-8")
+            assert "gha-utils==1.2.3" in content
+            assert "gha-utils==5.4.0" not in content
