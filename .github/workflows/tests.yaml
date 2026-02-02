@@ -110,7 +110,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx --no-progress 'gha-utils==5.4.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.6.1' metadata --output "$GITHUB_OUTPUT"
 
   validate-arch:
     # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on
