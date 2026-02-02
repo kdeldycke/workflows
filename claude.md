@@ -181,7 +181,7 @@ This ensures future maintainers (including Claude) understand the reasoning behi
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit.
 - Titles in markdown use sentence case.
 
-### Type checking
+### `TYPE_CHECKING` block
 
 Place a module-level `TYPE_CHECKING` block immediately after the module docstring:
 
