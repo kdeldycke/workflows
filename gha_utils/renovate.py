@@ -77,8 +77,12 @@ class RenovateCheckResult:
         lines = [
             f"renovate_config_exists={str(self.renovate_config_exists).lower()}",
             f"dependabot_config_path={self.dependabot_config_path}",
-            f"dependabot_security_disabled={str(self.dependabot_security_disabled).lower()}",
-            f"commit_statuses_permission={str(self.commit_statuses_permission).lower()}",
+            f"dependabot_security_disabled={
+                str(self.dependabot_security_disabled).lower()
+            }",
+            f"commit_statuses_permission={
+                str(self.commit_statuses_permission).lower()
+            }",
             f"pr_body<<EOF\n{self.to_pr_body()}\nEOF",
         ]
         return "\n".join(lines)
@@ -118,27 +122,43 @@ class RenovateCheckResult:
         table_data = [
             [
                 "`renovate.json5` exists",
-                "✅ Already exists" if self.renovate_config_exists else "🔧 Created by this PR",
+                "✅ Already exists"
+                if self.renovate_config_exists
+                else "🔧 Created by this PR",
                 "—",
             ],
             [
                 "Dependabot config removed",
-                "✅ Not present" if not self.dependabot_config_path else "🔧 Removed by this PR",
+                "✅ Not present"
+                if not self.dependabot_config_path
+                else "🔧 Removed by this PR",
                 "—",
             ],
             [
                 "Dependabot security updates",
                 "✅ Disabled" if self.dependabot_security_disabled else "⚠️ Enabled",
-                "—" if self.dependabot_security_disabled else f"[Disable in Settings]({settings_url})",
+                "—"
+                if self.dependabot_security_disabled
+                else f"[Disable in Settings]({settings_url})",
             ],
             [
                 "Commit statuses permission",
-                "✅ Token has access" if self.commit_statuses_permission else "⚠️ Cannot verify",
-                "—" if self.commit_statuses_permission else f"[Check PAT permissions]({docs_url})",
+                "✅ Token has access"
+                if self.commit_statuses_permission
+                else "⚠️ Cannot verify",
+                "—"
+                if self.commit_statuses_permission
+                else f"[Check PAT permissions]({docs_url})",
             ],
         ]
 
-        lines.append(render_table(table_data, headers=["Check", "Status", "Action"], table_format=TableFormat.GITHUB))
+        lines.append(
+            render_table(
+                table_data,
+                headers=["Check", "Status", "Action"],
+                table_format=TableFormat.GITHUB,
+            )
+        )
         lines.append("")
         lines.append("---")
         lines.append("")
