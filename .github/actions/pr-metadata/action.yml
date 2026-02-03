@@ -33,6 +33,9 @@ runs:
   steps:
     - id: generate
       shell: bash
+      # Use environment variable to avoid backticks being interpreted as command substitution.
+      env:
+        PREFIX: ${{ inputs.prefix }}
       run: |
         # Extract workflow filename from GITHUB_WORKFLOW_REF.
         # Format: owner/repo/.github/workflows/name.yaml@refs/heads/branch
@@ -40,8 +43,8 @@ runs:
 
         {
           echo 'body<<EOF'
-          if [[ -n "${{ inputs.prefix }}" ]]; then
-            printf '%s\n\n\n' "${{ inputs.prefix }}"
+          if [[ -n "${PREFIX}" ]]; then
+            printf '%s\n\n\n' "${PREFIX}"
           fi
           printf '<details><summary><code>Workflow metadata</code></summary>\n\n\n'
           printf '> [Auto-generated on run `#%s`](%s/%s/actions/runs/%s) ' \
