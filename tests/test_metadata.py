@@ -510,7 +510,7 @@ expected = {
     "active_autodoc": False,
     # Release notes vary based on development vs release state.
     # Development: contains "not released yet" warning.
-    # Release: contains actual changelog content and PyPi link.
+    # Release: contains actual changelog content and PyPI link.
     "release_notes": AnyReleaseNotes(
         dev_pattern=regex(
             r"### Changes\n\n"
