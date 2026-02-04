@@ -56,7 +56,7 @@ current_version=2.0.1
 released_version=2.0.0
 is_sphinx=true
 active_autodoc=true
-release_notes=[🐍 Available on PyPi](https://pypi.org/project/click-extra/2.21.3).
+release_notes=[🐍 Available on PyPI](https://pypi.org/project/click-extra/2.21.3).
 new_commits_matrix={
     "commit": [
         "346ce664f055fbd042a25ee0b7e96702e95",
@@ -1378,7 +1378,7 @@ class Metadata:
 
     @cached_property
     def package_name(self) -> str | None:
-        """Returns package name as published on PyPi."""
+        """Returns package name as published on PyPI."""
         if self.pyproject and self.pyproject.canonical_name:
             return self.pyproject.canonical_name
         return None
@@ -1865,11 +1865,11 @@ class Metadata:
             if changes:
                 changes = "### Changes\n\n" + changes
 
-        # Generate a link to the version of the package published on PyPi.
+        # Generate a link to the version of the package published on PyPI.
         pypi_link = ""
         if self.package_name:
             pypi_link = (
-                "[🐍 Available on PyPi](https://pypi.org/project/"
+                "[🐍 Available on PyPI](https://pypi.org/project/"
                 + self.package_name
                 + "/"
                 + version
