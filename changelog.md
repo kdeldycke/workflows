@@ -112,7 +112,7 @@
 
 ## [5.0.1 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)
 
-- Fix publishing to PyPi by removing URL-based dependency on `mdformat-pelican`.
+- Fix publishing to PyPI by removing URL-based dependency on `mdformat-pelican`.
 - Protect both release commits and post-release bump commits from cancellation.
 
 ## [5.0.0 (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v4.25.5...v5.0.0)
@@ -546,7 +546,7 @@
 
 ## [4.7.1 (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.7.0...v4.7.1)
 
-- Fix upload to PyPi on release.
+- Fix upload to PyPI on release.
 - Remove unused `uv_requirement_params` in metadata.
 
 ## [4.7.0 (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.6.1...v4.7.0)
@@ -697,7 +697,7 @@
 
 ## [4.0.1 (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v4.0.0...v4.0.1)
 
-- Re-release to register PyPi project.
+- Re-release to register PyPI project.
 
 ## [4.0.0 (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v3.5.11...v4.0.0)
 
@@ -1079,7 +1079,7 @@
 
 ## [2.14.0 (2023-05-04)](https://github.com/kdeldycke/workflows/compare/v2.13.5...v2.14.0)
 
-- Publish packages to PyPi with OIDC workflow for trusted publishing.
+- Publish packages to PyPI with OIDC workflow for trusted publishing.
 
 ## [2.13.5 (2023-05-02)](https://github.com/kdeldycke/workflows/compare/v2.13.4...v2.13.5)
 
@@ -1174,7 +1174,7 @@
 
 ## [2.7.4 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.3...v2.7.4)
 
-- Update artifact name to add `-poetry-` suffix for those to be published on PyPi.
+- Update artifact name to add `-poetry-` suffix for those to be published on PyPI.
 - Fix collection of artifact files from their folder.
 
 ## [2.7.3 (2023-02-12)](https://github.com/kdeldycke/workflows/compare/v2.7.2...v2.7.3)
