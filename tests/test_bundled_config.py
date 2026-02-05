@@ -273,9 +273,9 @@ class TestInitConfig:
             assert result is not None
             assert "[tool.ruff]" in result
             assert "preview = true" in result
-            # Verify subsections are transformed.
-            assert "[tool.ruff.lint]" in result
-            assert "[tool.ruff.format]" in result
+            # Verify dotted keys are preserved (ruff.toml uses dotted keys, not sections).
+            assert "lint.ignore" in result
+            assert "format.docstring-code-format" in result
         finally:
             path.unlink()
 
