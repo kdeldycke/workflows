@@ -6,7 +6,7 @@ requires = [ "uv-build>=0.9" ]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
 version = "5.7.0"
-description = "⚙️ CLI helpers for GitHub Actions + reusable workflows"
+description = "🧩 CLI helpers for GitHub Actions + reusable workflows"
 readme = "readme.md"
 keywords = [
   "build-automation",
