@@ -54,7 +54,6 @@ jobs:
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       markdown_files: ${{ steps.project-metadata.outputs.markdown_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      blacken_docs_params: ${{ steps.project-metadata.outputs.blacken_docs_params }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
@@ -67,6 +66,7 @@ jobs:
     name: Format Python
     needs:
       - project-metadata
+    # Ruff can format code in both Python and Markdown files.
     if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-slim
     steps:
@@ -86,7 +86,7 @@ jobs:
         # Initialize [tool.ruff] in pyproject.toml if it doesn't exist.
         # Projects with existing ruff config will keep their settings.
         run: |
-          uv tool install 'ruff==0.14.14'
+          uv tool install 'ruff==0.15.0'
           uvx --no-progress 'gha-utils==5.6.1' bundled init ruff pyproject.toml
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
@@ -94,17 +94,6 @@ jobs:
         run: |
           ruff check --output-format github
           ruff format --output-format github
-      - name: Run blacken-docs
-        # Ignore failing command: blacken-docs returns 1 if it finds a file that needs to be reformatted:
-        # https://github.com/adamchainz/blacken-docs/blob/79ef671/blacken_docs.py#L207-L211
-        # TODO: replace blacken-docs by ruff. See: https://github.com/astral-sh/ruff/issues/8237
-        # https://github.com/astral-sh/ruff/issues/3792
-        run: >
-          uvx --no-progress --with 'black==25.12.0' 'blacken-docs==1.20.0'
-          --line-length 88
-          ${{ needs.project-metadata.outputs.blacken_docs_params }}
-          ${{ needs.project-metadata.outputs.doc_files }}
-          || true
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -173,7 +162,7 @@ jobs:
           --with 'mdformat_simple_breaks==0.1.0'
           --with 'mdformat-toc==0.5.0'
           --with 'mdformat-web==0.2.0'
-          --with 'ruff==0.14.14'
+          --with 'ruff==0.15.0'
           'mdformat==1.0.0'
       - name: Install shfmt
         run: |

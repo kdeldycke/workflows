@@ -50,7 +50,6 @@ zsh_files=
 is_python_project=true
 package_name=click-extra
 project_description=📦 Extra colorful clickable helpers for the CLI.
-blacken_docs_params=--target-version py37 --target-version py38
 mypy_params=--python-version 3.7
 current_version=2.0.1
 released_version=2.0.0
@@ -298,7 +297,6 @@ from collections.abc import Iterable
 from functools import cached_property
 from operator import itemgetter
 from pathlib import Path
-from .github import generate_delimiter
 from re import escape
 
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
@@ -323,6 +321,7 @@ from wcmatch.glob import (
     iglob,
 )
 
+from .github import generate_delimiter
 from .matrix import Matrix
 
 if sys.version_info >= (3, 11):
@@ -649,27 +648,6 @@ class Dialect(StrEnum):
 
     github = "github"
     json = "json"
-
-
-class TargetVersion(StrEnum):
-    """List of Python 3 minor versions supported by Black.
-
-    `Mirrors official implementation from black.mode.TargetVersion
-    <https://github.com/psf/black/blob/main/src/black/mode.py>`_.
-    """
-
-    PY33 = "3.3"
-    PY34 = "3.4"
-    PY35 = "3.5"
-    PY36 = "3.6"
-    PY37 = "3.7"
-    PY38 = "3.8"
-    PY39 = "3.9"
-    PY310 = "3.10"
-    PY311 = "3.11"
-    PY312 = "3.12"
-    PY313 = "3.13"
-    PY314 = "3.14"
 
 
 MYPY_VERSION_MIN: Final = (3, 8)
@@ -1422,82 +1400,31 @@ class Metadata:
         return entries
 
     @cached_property
-    def py_target_versions(self) -> tuple[Version, ...] | None:
-        """Generates the list of Python target versions.
-
-        Only takes ``major.minor`` variations into account. Smaller version dimensions
-        are ignored, so a package depending on ``3.8.6`` will keep ``3.8`` as a Python
-        target.
-        """
-        if self.pyproject and self.pyproject.requires_python:
-            # Dumb down specifiers' lower bounds to their major.minor version.
-            spec_list = []
-            for spec in self.pyproject.requires_python:
-                if spec.operator in (">=", ">"):
-                    release = Version(spec.version).release
-                    new_spec = f"{spec.operator}{release[0]}.{release[1]}"
-                else:
-                    new_spec = str(spec)
-                spec_list.append(new_spec)
-            relaxed_specs = SpecifierSet(",".join(spec_list))
-            logging.debug(
-                "Relax Python requirements from "
-                f"{self.pyproject.requires_python} to {relaxed_specs}."
-            )
-
-            # Iterate through Python version support.
-            return tuple(
-                Version(target)
-                for target in tuple(TargetVersion)
-                if relaxed_specs.contains(target)
-            )
-        return None
-
-    @cached_property
-    def blacken_docs_params(self) -> str | None:
-        """Generates ``blacken-docs`` parameters.
-
-        `Blacken-docs reuses Black's --target-version pyXY parameters
-        <https://github.com/adamchainz/blacken-docs/blob/cd4e60f/src/blacken_docs/__init__.py#L263-L271>`_,
-        and needs to be fed with a subset of these:
-        - ``--target-version py33``
-        - ``--target-version py34``
-        - ``--target-version py35``
-        - ``--target-version py36``
-        - ``--target-version py37``
-        - ``--target-version py38``
-        - ``--target-version py39``
-        - ``--target-version py310``
-        - ``--target-version py311``
-        - ``--target-version py312``
-        - ``--target-version py313``
-        - ``--target-version py314``
-
-        As mentioned in Black usage, you should `include all Python versions that you
-        want your code to run under
-        <https://github.com/psf/black/issues/751#issuecomment-473066811>`_.
-        """
-        if self.py_target_versions:
-            return " ".join(
-                f"--target-version py{version.major}{version.minor}"
-                for version in self.py_target_versions
-            )
-        return None
-
-    @cached_property
     def mypy_params(self) -> str | None:
-        """Generates `mypy` parameters.
+        """Generates ``mypy`` parameters.
 
         Mypy needs to be fed with this parameter: ``--python-version 3.x``.
+
+        Extracts the minimum Python version from the project's ``requires-python``
+        specifier. Only takes ``major.minor`` into account.
         """
-        if self.py_target_versions:
-            # Compare to Mypy's lowest supported version of Python dialect.
-            major, minor = max(
-                MYPY_VERSION_MIN,
-                min((v.major, v.minor) for v in self.py_target_versions),
-            )
-            return f"--python-version {major}.{minor}"
-        return None
+        if not self.pyproject or not self.pyproject.requires_python:
+            return None
+
+        # Find the lower bound from the requires-python specifier.
+        min_version = None
+        for spec in self.pyproject.requires_python:
+            if spec.operator in (">=", ">"):
+                release = Version(spec.version).release
+                min_version = (release[0], release[1])
+                break
+
+        if not min_version:
+            return None
+
+        # Compare to Mypy's lowest supported version of Python dialect.
+        major, minor = max(MYPY_VERSION_MIN, min_version)
+        return f"--python-version {major}.{minor}"
 
     @staticmethod
     def get_current_version() -> str | None:
@@ -1958,7 +1885,6 @@ class Metadata:
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,
             "project_description": self.project_description,
-            "blacken_docs_params": self.blacken_docs_params,
             "mypy_params": self.mypy_params,
             "current_version": self.current_version,
             "released_version": self.released_version,

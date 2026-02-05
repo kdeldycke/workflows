@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Replace `blacken-docs` by `ruff` for Markdown code formatting.
+- Remove `blacken_docs_params` from `gha-utils metadata` output.
 - Fix `update-deps-graph` job.
 - Fix `pr-metadata` action stripping backticks from PR body.
 

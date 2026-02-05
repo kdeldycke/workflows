@@ -493,13 +493,6 @@ expected = {
     "is_python_project": True,
     "package_name": "gha-utils",
     "project_description": "🧩 CLI helpers for GitHub Actions + reusable workflows",
-    "blacken_docs_params": (
-        "--target-version py310 "
-        "--target-version py311 "
-        "--target-version py312 "
-        "--target-version py313 "
-        "--target-version py314"
-    ),
     "mypy_params": "--python-version 3.10",
     "current_version": regex(r"[0-9\.]+"),
     # released_version is None during development, but contains a version string

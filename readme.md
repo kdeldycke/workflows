@@ -170,7 +170,7 @@ jobs:
 
 - **Format Python** (`format-python`)
 
-  - Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8), [`ruff`](https://github.com/astral-sh/ruff), and [`blacken-docs`](https://github.com/adamchainz/blacken-docs)
+  - Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8) and [`ruff`](https://github.com/astral-sh/ruff)
   - **Requires**:
     - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository, or
     - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}`)
