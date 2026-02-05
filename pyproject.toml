@@ -92,10 +92,10 @@ dependencies = [
   "boltons>=25",
   # v1.2.6 fix Click compatibility issues.
   "bump-my-version>=1.2.6",
-  # Click Extra 7.0.0 renames several internals.
-  "click-extra>=7",
-  # We depends on some internals changed in extra-platforms 6.0.0.
-  "extra-platforms>=6",
+  # Click Extra 7.5.0 is the first version we used when we last changed the requirement.
+  "click-extra>=7.5",
+  # We depends on new plublic methods exposed in extra-platforms 8.0.0.
+  "extra-platforms>=8",
   # v25.0 is the first version we used when we last changed the requirement.
   "packaging>=25",
   # v0.3.3 is the first version we used.
@@ -146,6 +146,8 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # Use a fixed date (not relative like "1 week") to prevent uv.lock timestamp churn.
 # This date is auto-updated by the autofix workflow when it becomes stale.
 exclude-newer = "2026-01-26T00:00:00Z"
+# XXX Disable exclusion of brand new extra-platforms and click-extra releases.
+exclude-newer-package = { extra-platforms = "0 day", "click-extra" = "0 day" }
 
 [tool.uv.build-backend]
 # Package is at root level, not in "./src/".

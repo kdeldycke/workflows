@@ -35,7 +35,7 @@ from click_extra.testing import (
     regex_fullmatch_line_by_line,
     render_cli_run,
 )
-from extra_platforms import Group, current_os
+from extra_platforms import Group, current_platform, extract_members
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -187,13 +187,15 @@ class CLITestCase:
             intertwined output.
         """
         if self.only_platforms:
-            if current_os() not in self.only_platforms:  # type: ignore[operator]
-                raise SkippedTest(f"Test case only runs on platform: {current_os()}")
+            if current_platform() not in self.only_platforms:  # type: ignore[operator]
+                raise SkippedTest(
+                    f"Test case only runs on platform: {current_platform()}"
+                )
 
-        if current_os() in Group._extract_members(
+        if current_platform() in extract_members(
             self.skip_platforms, additional_skip_platforms
         ):
-            raise SkippedTest(f"Skipping test case on platform: {current_os()}")
+            raise SkippedTest(f"Skipping test case on platform: {current_platform()}")
 
         if self.timeout is None and default_timeout is not None:
             logging.info(f"Set default test case timeout to {default_timeout} seconds")
