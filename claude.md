@@ -173,6 +173,17 @@ This ensures future maintainers (including Claude) understand the reasoning behi
 
 ## Code style
 
+### Terminology and spelling
+
+Use correct capitalization for proper nouns and trademarked names:
+
+- **PyPI** (not ~~PyPi~~) — the Python Package Index. The "I" is capitalized because it stands for "Index". See [PyPI trademark guidelines](https://pypi.org/trademarks/).
+- **GitHub** (not ~~Github~~)
+- **JavaScript** (not ~~Javascript~~)
+- **TypeScript** (not ~~Typescript~~)
+- **macOS** (not ~~MacOS~~ or ~~macos~~)
+- **iOS** (not ~~IOS~~ or ~~ios~~)
+
 ### Comments and docstrings
 
 - All comments in Python files must end with a period.
