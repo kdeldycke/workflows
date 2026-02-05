@@ -20,7 +20,7 @@ It takes care of:
 - Formatting autofix for: Python, Markdown, JSON, typos
 - Linting: Python types with `mypy`, YAML, `zsh`, GitHub actions, URLS & redirects, Awesome lists, secrets
 - Compiling of Python binaries for Linux / macOS / Windows on `x86_64` & `arm64`
-- Building of Python packages and upload to PyPi
+- Building of Python packages and upload to PyPI
 - Produce attestations
 - Git version tagging and GitHub release creation
 - Synchronization of: `uv.lock`, `.gitignore`, `.mailmap` and Mermaid dependency graph
@@ -429,9 +429,9 @@ docs = [
     - Push to `main` branch
     - Release commits matrix from [`gha-utils metadata`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py)
 
-- **Publish to PyPi** (`pypi-publish`)
+- **Publish to PyPI** (`pypi-publish`)
 
-  - Uploads packages to PyPi with attestations using [`uv publish`](https://github.com/astral-sh/uv)
+  - Uploads packages to PyPI with attestations using [`uv publish`](https://github.com/astral-sh/uv)
   - **Requires**:
     - `PYPI_TOKEN` secret
     - Built packages from `package-build` job

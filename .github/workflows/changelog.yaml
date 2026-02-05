@@ -179,7 +179,7 @@ jobs:
             1. creation of a `v${{ steps.get_version.outputs.current_version }}` tag on
             [`main`](${{ github.event.repository.html_url }}/tree/main) branch
 
-            1. build and release of the Python package to [PyPi](https://pypi.org)
+            1. build and release of the Python package to [PyPI](https://pypi.org)
 
             1. compilation of the project's binaries with Nuitka (if entry points are defined)
 

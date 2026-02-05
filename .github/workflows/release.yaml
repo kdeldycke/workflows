@@ -262,7 +262,7 @@ jobs:
           --skip-existing
 
   pypi-publish:
-    name: Publish to PyPi
+    name: Publish to PyPI
     needs:
       - project-metadata
       - package-build
@@ -288,7 +288,7 @@ jobs:
         uses: actions/attest-build-provenance@v3.1.0
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
-      - name: Push to PyPi
+      - name: Push to PyPI
         run: |
           uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}/*"
 
