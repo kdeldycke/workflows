@@ -81,14 +81,16 @@ def parse_output_json(output_json: Path) -> list[LinkcheckResult]:
         if not stripped:
             continue
         entry = json.loads(stripped)
-        results.append(LinkcheckResult(
-            filename=entry["filename"],
-            lineno=entry["lineno"],
-            status=entry["status"],
-            code=entry["code"],
-            uri=entry["uri"],
-            info=entry.get("info", ""),
-        ))
+        results.append(
+            LinkcheckResult(
+                filename=entry["filename"],
+                lineno=entry["lineno"],
+                status=entry["status"],
+                code=entry["code"],
+                uri=entry["uri"],
+                info=entry.get("info", ""),
+            )
+        )
     logging.info(f"Parsed {len(results)} linkcheck entries from {output_json}")
     return results
 
@@ -115,9 +117,7 @@ def generate_markdown_report(broken: list[LinkcheckResult]) -> str:
 
     lines: list[str] = []
     lines.append("# Broken documentation links\n")
-    lines.append(
-        "The following broken links were found by Sphinx linkcheck:\n"
-    )
+    lines.append("The following broken links were found by Sphinx linkcheck:\n")
 
     # Group by filename, sorted alphabetically.
     sorted_results = sorted(broken, key=attrgetter("filename", "lineno"))
@@ -130,10 +130,7 @@ def generate_markdown_report(broken: list[LinkcheckResult]) -> str:
             # Escape pipe characters in info to avoid breaking the table.
             escaped_info = result.info.replace("|", "\\|")
             lines.append(
-                f"| {result.lineno} "
-                f"| {result.uri} "
-                f"| {result.status} "
-                f"| {escaped_info} |"
+                f"| {result.lineno} | {result.uri} | {result.status} | {escaped_info} |"
             )
         lines.append("")
 
