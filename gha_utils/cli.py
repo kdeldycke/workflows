@@ -102,10 +102,14 @@ def is_stdout(filepath: Path) -> bool:
     return str(filepath) == "-"
 
 
-def prep_path(filepath: Path) -> IO | None:
-    """Prepare the output file parameter for Click's echo function."""
+def prep_path(filepath: Path) -> IO:
+    """Prepare the output file parameter for Click's echo function.
+
+    Always returns a UTF-8 encoded file object, including for stdout. This avoids
+    ``UnicodeEncodeError`` on Windows where the default stdout encoding is ``cp1252``.
+    """
     if is_stdout(filepath):
-        return None
+        return open(sys.stdout.fileno(), "w", encoding="UTF-8", closefd=False)
     return filepath.open("w", encoding="UTF-8")
 
 
