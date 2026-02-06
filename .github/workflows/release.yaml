@@ -152,6 +152,7 @@ jobs:
       - name: Setup venv
         run: |
           uv --no-progress venv --python 3.14
+          uv --no-progress pip install pip
       - name: Install Nuitka
         # XXX Cannot run "uv --no-progress pip install 'nuitka[onefile]==4.0.0'", see:
         # https://github.com/Nuitka/Nuitka/issues/3749
