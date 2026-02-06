@@ -210,6 +210,43 @@ jobs:
           publish_dir: ./docs/html
           force_orphan: true
 
+  sphinx-linkcheck:
+    name: Sphinx linkcheck
+    needs:
+      - project-metadata
+    # Skip all PRs as we won't have permissions to create issues.
+    # Skip the prepare-release branch as it contains URLs pointing to tags that don't exist yet.
+    # Skip any push containing a post-release bump commit as a precautionary measure.
+    if: >
+      github.event_name != 'pull_request'
+      && github.ref != 'refs/heads/prepare-release'
+      && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
+      && fromJSON(needs.project-metadata.outputs.is_python_project)
+      && fromJSON(needs.project-metadata.outputs.is_sphinx)
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Install Graphviz
+        # So we can use the sphinx.ext.graphviz plugin.
+        # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
+        run: |
+          sudo apt update
+          sudo apt install --yes graphviz
+      - name: Run Sphinx linkcheck
+        # Do not use -W: we parse output.json directly instead of relying on exit codes.
+        run: >
+          uv --no-progress run --frozen --all-extras --group docs --
+          sphinx-build -b linkcheck ./docs ./docs/linkcheck
+        continue-on-error: true
+      - name: Manage Sphinx linkcheck issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          uvx --no-progress 'gha-utils==5.6.1' sphinx-linkcheck
+          --output-json ./docs/linkcheck/output.json
+          --repo-name "${{ github.event.repository.name }}"
+
   awesome-template-sync:
     name: Sync awesome template
     if: >

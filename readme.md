@@ -287,6 +287,19 @@ docs = [
     - `docs` dependency group
     - Sphinx configuration file at `docs/conf.py`
 
+- **Sphinx linkcheck** (`sphinx-linkcheck`)
+
+  - Runs Sphinx's built-in [`linkcheck`](https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.linkcheck.CheckExternalLinksBuilder) builder to detect broken auto-generated links (intersphinx, autodoc, type annotations) that Lychee cannot see
+  - Creates/updates issues for broken documentation links found
+  - **Requires**:
+    - Python package with a `pyproject.toml` file
+    - `docs` dependency group
+    - Sphinx configuration file at `docs/conf.py`
+  - **Skipped for**:
+    - Pull requests
+    - `prepare-release` branch
+    - Post-release version bump commits
+
 - **Sync awesome template** (`awesome-template-sync`)
 
   - Syncs awesome list projects from the [`awesome-template`](https://github.com/kdeldycke/awesome-template) repository using [`actions-template-sync`](https://github.com/AndreasAugustin/actions-template-sync)

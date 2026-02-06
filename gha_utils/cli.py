@@ -70,6 +70,7 @@ from .deps_graph import (
     get_available_groups,
 )
 from .broken_links import manage_broken_links_issue
+from .sphinx_linkcheck import manage_sphinx_linkcheck_issue
 from .binary import (
     BINARY_ARCH_MAPPINGS,
     collect_and_rename_artifacts,
@@ -1074,6 +1075,40 @@ def broken_links(lychee_exit_code: int, body_file: Path, repo_name: str) -> None
             --repo-name "my-repo"
     """
     manage_broken_links_issue(lychee_exit_code, body_file, repo_name)
+
+
+@gha_utils.command(short_help="Manage Sphinx linkcheck issue lifecycle")
+@option(
+    "--output-json",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    required=True,
+    help="Path to Sphinx linkcheck output.json file.",
+)
+@option(
+    "--repo-name",
+    required=True,
+    help="Repository name (for label selection).",
+)
+def sphinx_linkcheck(output_json: Path, repo_name: str) -> None:
+    """Manage the Sphinx linkcheck issue lifecycle.
+
+    Parses the Sphinx linkcheck ``output.json`` file, identifies broken
+    or timed-out links, and creates or updates a GitHub issue.
+
+    This catches broken auto-generated links (intersphinx, autodoc, type
+    annotations) that Lychee cannot see because they only exist in the
+    rendered HTML output.
+
+    This command requires the ``gh`` CLI to be installed and authenticated.
+
+    \b
+    Examples:
+        # Run after Sphinx linkcheck build
+        gha-utils sphinx-linkcheck \\
+            --output-json ./docs/linkcheck/output.json \\
+            --repo-name "my-repo"
+    """
+    manage_sphinx_linkcheck_issue(output_json, repo_name)
 
 
 @gha_utils.command(short_help="Verify binary architecture using exiftool")

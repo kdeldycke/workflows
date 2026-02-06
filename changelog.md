@@ -9,6 +9,8 @@
 - Remove `blacken_docs_params` from `gha-utils metadata` output.
 - Fix `update-deps-graph` job.
 - Fix `pr-metadata` action stripping backticks from PR body.
+- Add `gha-utils sphinx-linkcheck` command to manage Sphinx linkcheck issue lifecycle.
+- Add `sphinx-linkcheck` job to `docs.yaml` workflow to detect broken auto-generated links.
 
 ## [5.6.2 (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.6.1...v5.6.2)
 

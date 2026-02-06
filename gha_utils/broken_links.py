@@ -100,18 +100,21 @@ def close_issue(number: int, comment: str) -> None:
     logging.info(f"Closed issue #{number}")
 
 
-def create_issue(body_file: Path, labels: list[str]) -> int:
+def create_issue(
+    body_file: Path, labels: list[str], title: str = ISSUE_TITLE
+) -> int:
     """Create a new issue.
 
     :param body_file: Path to the file containing the issue body.
     :param labels: List of labels to apply.
+    :param title: Issue title. Defaults to ``ISSUE_TITLE``.
     :return: The created issue number.
     """
     args = [
         "issue",
         "create",
         "--title",
-        ISSUE_TITLE,
+        title,
         "--body-file",
         str(body_file),
     ]
@@ -190,6 +193,55 @@ def triage_issues(
     return needed, issue_to_update, issues_to_close
 
 
+def manage_issue_lifecycle(
+    has_broken_links: bool,
+    body_file: Path,
+    repo_name: str,
+    title: str,
+    no_broken_links_comment: str = "No more broken links.",
+) -> None:
+    """Manage the generic issue lifecycle for broken link checkers.
+
+    This function handles:
+    1. Listing open issues via ``gh issue list``.
+    2. Triaging matching issues (keep newest if needed, close duplicates).
+    3. Closing duplicate issues via ``gh issue close``.
+    4. Creating or updating the main issue via ``gh issue create`` or
+       ``gh issue edit``.
+
+    :param has_broken_links: Whether broken links were found.
+    :param body_file: Path to the file containing the issue body.
+    :param repo_name: Repository name (for label selection).
+    :param title: Issue title to match and create.
+    :param no_broken_links_comment: Comment to add when closing issues because
+        no broken links remain.
+    """
+    # List open issues.
+    issues = list_open_issues()
+    logging.info(f"Found {len(issues)} open issues by {ISSUE_AUTHOR}")
+
+    # Triage issues.
+    _, issue_to_update, issues_to_close = triage_issues(
+        issues, title, has_broken_links
+    )
+
+    # Close duplicate/obsolete issues.
+    for issue_number in issues_to_close:
+        if issue_to_update:
+            comment = f"Superseded by #{issue_to_update}."
+        else:
+            comment = no_broken_links_comment
+        close_issue(issue_number, comment)
+
+    # Create or update issue if needed.
+    if has_broken_links:
+        label = get_label(repo_name)
+        if issue_to_update:
+            update_issue(issue_to_update, body_file)
+        else:
+            create_issue(body_file, [label], title=title)
+
+
 def manage_broken_links_issue(
     lychee_exit_code: int,
     body_file: Path,
@@ -197,12 +249,8 @@ def manage_broken_links_issue(
 ) -> None:
     """Manage the full broken links issue lifecycle.
 
-    This function handles:
-    1. Validating the lychee exit code (error if not 0 or 2).
-    2. Listing open issues via ``gh issue list``.
-    3. Triaging matching issues (keep newest if needed, close duplicates).
-    4. Closing duplicate issues via ``gh issue close``.
-    5. Creating or updating the main issue via ``gh issue create`` or ``gh issue edit``.
+    Validates the lychee exit code, then delegates to
+    :func:`manage_issue_lifecycle` for issue management.
 
     :param lychee_exit_code: Exit code from lychee (0=no broken links, 2=broken links).
     :param body_file: Path to the issue body file (lychee output).
@@ -215,33 +263,15 @@ def manage_broken_links_issue(
         raise ValueError(msg)
 
     # Determine if an issue is needed (exit code 2 means broken links found).
-    issue_needed = lychee_exit_code == 2
+    has_broken_links = lychee_exit_code == 2
     logging.info(
         f"Lychee exit code {lychee_exit_code}: "
-        f"{'broken links found' if issue_needed else 'no broken links'}"
+        f"{'broken links found' if has_broken_links else 'no broken links'}"
     )
 
-    # List open issues.
-    issues = list_open_issues()
-    logging.info(f"Found {len(issues)} open issues by {ISSUE_AUTHOR}")
-
-    # Triage issues.
-    _, issue_to_update, issues_to_close = triage_issues(
-        issues, ISSUE_TITLE, issue_needed
+    manage_issue_lifecycle(
+        has_broken_links=has_broken_links,
+        body_file=body_file,
+        repo_name=repo_name,
+        title=ISSUE_TITLE,
     )
-
-    # Close duplicate/obsolete issues.
-    for issue_number in issues_to_close:
-        if issue_to_update:
-            comment = f"Superseded by #{issue_to_update}."
-        else:
-            comment = "No more broken links."
-        close_issue(issue_number, comment)
-
-    # Create or update issue if needed.
-    if issue_needed:
-        label = get_label(repo_name)
-        if issue_to_update:
-            update_issue(issue_to_update, body_file)
-        else:
-            create_issue(body_file, [label])

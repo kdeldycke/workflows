@@ -78,6 +78,7 @@ workflows/
 │   ├── matrix.py          # Build matrix generation
 │   ├── metadata.py        # Project metadata extraction
 │   ├── release_prep.py    # Release preparation
+│   ├── sphinx_linkcheck.py # Sphinx linkcheck issue management
 │   ├── sponsor.py         # GitHub sponsor detection
 │   ├── test_plan.py       # Test plan execution
 │   └── data/              # Bundled configuration files
@@ -98,6 +99,7 @@ workflows/
 | `matrix.py`         | Generate build matrices for GitHub Actions                          |
 | `metadata.py`       | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `release_prep.py`   | Prepare files for release (dates, URLs, warnings)                   |
+| `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues |
 | `sponsor.py`        | Check GitHub sponsorship and label issues/PRs from sponsors         |
 | `test_plan.py`      | Run YAML-based test plans against compiled binaries                 |
 
