@@ -100,9 +100,7 @@ def close_issue(number: int, comment: str) -> None:
     logging.info(f"Closed issue #{number}")
 
 
-def create_issue(
-    body_file: Path, labels: list[str], title: str = ISSUE_TITLE
-) -> int:
+def create_issue(body_file: Path, labels: list[str], title: str = ISSUE_TITLE) -> int:
     """Create a new issue.
 
     :param body_file: Path to the file containing the issue body.
@@ -221,9 +219,7 @@ def manage_issue_lifecycle(
     logging.info(f"Found {len(issues)} open issues by {ISSUE_AUTHOR}")
 
     # Triage issues.
-    _, issue_to_update, issues_to_close = triage_issues(
-        issues, title, has_broken_links
-    )
+    _, issue_to_update, issues_to_close = triage_issues(issues, title, has_broken_links)
 
     # Close duplicate/obsolete issues.
     for issue_number in issues_to_close:
