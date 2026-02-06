@@ -31,7 +31,7 @@ keywords = [
   "workflow-reusable",
   "yaml",
 ]
-license = "GPL-2.0-or-later"
+license = "GPL-2.0-OR-later"
 license-files = [ "license" ]
 authors = [ { name = "Kevin Deldycke", email = "kevin@deldycke.com" } ]
 # Python versions and their status: https://devguide.python.org/versions/
@@ -121,9 +121,9 @@ urls."Homepage" = "https://github.com/kdeldycke/workflows"
 urls."Issues" = "https://github.com/kdeldycke/workflows/issues"
 urls."Repository" = "https://github.com/kdeldycke/workflows"
 
+# Non-runtime development dependency groups.
 scripts.gha-utils = "gha_utils.__main__:main"
 
-# Non-runtime development dependency groups.
 [dependency-groups]
 test = [
   # coverage 7.11.0 is the first version to drop support for Python 3.9.
@@ -154,13 +154,13 @@ exclude-newer-package = { extra-platforms = "0 day", "click-extra" = "0 day" }
 module-root = ""
 
 [tool.ruff]
+# Enable formatting of Python code blocks in Markdown files.
+# https://docs.astral.sh/ruff/formatter/#markdown-code-formatting
+extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}" ]
 preview = true
 fix = true
 unsafe-fixes = true
 show-fixes = true
-# Enable formatting of Python code blocks in Markdown files.
-# https://docs.astral.sh/ruff/formatter/#markdown-code-formatting
-extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}" ]
 # Enable reformatting of code snippets in docstrings.
 # https://docs.astral.sh/ruff/formatter/#docstring-formatting
 format.docstring-code-format = true
