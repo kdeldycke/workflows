@@ -165,7 +165,7 @@ jobs:
         id: build-binary
         continue-on-error: true
         run: >
-          uv --no-progress run --frozen -- nuitka --project
+          uv --no-progress run --frozen -- nuitka --no-project
           --mode=onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v6.0.0
