@@ -237,32 +237,11 @@ class CLITestCase:
                 clean_args,
                 capture_output=True,
                 timeout=self.timeout,  # type: ignore[arg-type]
-                # XXX Do not force encoding to let CLIs figure out by
-                # themselves the contextual encoding to use. This avoid
-                # UnicodeDecodeError on output in Window's console which still
-                # defaults to legacy encoding (e.g. cp1252, cp932, etc...):
-                #
-                #   Traceback (most recent call last):
-                #     File "…\__main__.py", line 49, in <module>
-                #     File "…\__main__.py", line 45, in main
-                #     File "…\click\core.py", line 1157, in __call__
-                #     File "…\click_extra\commands.py", line 347, in main
-                #     File "…\click\core.py", line 1078, in main
-                #     File "…\click_extra\commands.py", line 377, in invoke
-                #     File "…\click\core.py", line 1688, in invoke
-                #     File "…\click_extra\commands.py", line 377, in invoke
-                #     File "…\click\core.py", line 1434, in invoke
-                #     File "…\click\core.py", line 783, in invoke
-                #     File "…\cloup\_context.py", line 47, in new_func
-                #     File "…\mpm\cli.py", line 570, in managers
-                #     File "…\mpm\output.py", line 187, in print_table
-                #     File "…\click_extra\tabulate.py", line 97, in render_csv
-                #     File "encodings\cp1252.py", line 19, in encode
-                #   UnicodeEncodeError: 'charmap' codec can't encode character
-                #   '\u2713' in position 128: character maps to <undefined>
-                #
-                # encoding="utf-8",
-                text=True,
+                # Force UTF-8 decoding of subprocess output. The encoding parameter
+                # only affects parent-side decoding and does not change child process
+                # behavior. Without this, Windows defaults to cp1252, causing
+                # UnicodeDecodeError on non-ASCII output (e.g. contributor names).
+                encoding="utf-8",
             )
         except TimeoutExpired:
             raise TimeoutError(
