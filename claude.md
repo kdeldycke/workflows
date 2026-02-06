@@ -88,20 +88,20 @@ workflows/
 
 ### Module layout
 
-| Module              | Purpose                                                             |
-| ------------------- | ------------------------------------------------------------------- |
-| `__main__.py`       | Entry point for the `gha-utils` CLI                                 |
-| `bundled_config.py` | Access bundled config templates, labels, and workflow files         |
-| `changelog.py`      | Changelog parsing, updating, and version management                 |
-| `cli.py`            | Click-based command-line interface definitions                      |
-| `deps_graph.py`     | Generate Mermaid dependency graphs from uv lockfiles                |
-| `mailmap.py`        | Git `.mailmap` file synchronization with contributors               |
-| `matrix.py`         | Generate build matrices for GitHub Actions                          |
-| `metadata.py`       | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
-| `release_prep.py`   | Prepare files for release (dates, URLs, warnings)                   |
-| `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues |
-| `sponsor.py`        | Check GitHub sponsorship and label issues/PRs from sponsors         |
-| `test_plan.py`      | Run YAML-based test plans against compiled binaries                 |
+| Module                | Purpose                                                             |
+| --------------------- | ------------------------------------------------------------------- |
+| `__main__.py`         | Entry point for the `gha-utils` CLI                                 |
+| `bundled_config.py`   | Access bundled config templates, labels, and workflow files         |
+| `changelog.py`        | Changelog parsing, updating, and version management                 |
+| `cli.py`              | Click-based command-line interface definitions                      |
+| `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
+| `mailmap.py`          | Git `.mailmap` file synchronization with contributors               |
+| `matrix.py`           | Generate build matrices for GitHub Actions                          |
+| `metadata.py`         | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
+| `release_prep.py`     | Prepare files for release (dates, URLs, warnings)                   |
+| `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
+| `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |
+| `test_plan.py`        | Run YAML-based test plans against compiled binaries                 |
 
 ### Workflows organization
 
