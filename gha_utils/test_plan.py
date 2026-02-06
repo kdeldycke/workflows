@@ -22,7 +22,7 @@ import re
 import shlex
 import sys
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from shutil import which
 from subprocess import TimeoutExpired, run
@@ -94,8 +94,17 @@ class CLITestCase:
     """User-friendly rendering of the CLI command execution and its output."""
 
     def __post_init__(self) -> None:
-        """Normalize all fields."""
-        for field_id, field_data in asdict(self).items():
+        """Normalize all fields.
+
+        .. note::
+            We iterate with ``fields()`` + ``getattr()`` instead of ``asdict()``
+            because ``asdict()`` deep-copies field values via ``copy.deepcopy()``,
+            which fails on Python < 3.13 for ``MappingProxyType`` objects (used
+            internally by ``extra_platforms``).
+        """
+        for f in fields(self):
+            field_id = f.name
+            field_data = getattr(self, field_id)
             # Validates and normalize integer properties.
             if field_id == "exit_code":
                 if isinstance(field_data, str):
@@ -265,7 +274,9 @@ class CLITestCase:
         for line in self.execution_trace.splitlines():
             logging.info(line)
 
-        for field_id, field_data in asdict(self).items():
+        for f in fields(self):
+            field_id = f.name
+            field_data = getattr(self, field_id)
             if field_id == "exit_code":
                 if field_data is not None:
                     logging.info(f"Test exit code, expecting: {field_data}")
