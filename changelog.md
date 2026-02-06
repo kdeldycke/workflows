@@ -5,13 +5,12 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `gha-utils sphinx-linkcheck` command to detect broken auto-generated links.
 - Replace `blacken-docs` by `ruff` for Markdown code formatting.
 - Remove `blacken_docs_params` from `gha-utils metadata` output.
 - Fix `update-deps-graph` job.
 - Fix `pr-metadata` action stripping backticks from PR body.
-- Add `gha-utils sphinx-linkcheck` command to manage Sphinx linkcheck issue lifecycle.
-- Add `sphinx-linkcheck` job to `docs.yaml` workflow to detect broken auto-generated links.
-- Fix `cannot pickle 'mappingproxy' object` error in test plan execution on Python < 3.13.
+- Fix `mappingproxy` object pickling error in test plan execution on Python < 3.13.
 - Fix `UnicodeEncodeError` on Windows for `mailmap-sync` command and test plan execution.
 
 ## [5.6.2 (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.6.1...v5.6.2)
