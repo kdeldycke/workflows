@@ -95,7 +95,7 @@ jobs:
           ruff check --output-format github
           ruff format --output-format github
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -120,7 +120,7 @@ jobs:
         run: |
           uvx --no-progress 'pyproject-fmt==2.12.1' pyproject.toml || true
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -188,7 +188,7 @@ jobs:
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes|Related Lists)\]\(#.+\)$/{print}' "{}" \;
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -220,7 +220,7 @@ jobs:
           --json-parse-allow-trailing-commas=true
           ${{ needs.project-metadata.outputs.json_files }}
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -272,7 +272,7 @@ jobs:
           ${{ env.gitignore-extra-content }}
           EOF
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -292,7 +292,7 @@ jobs:
         run: |
           uvx --no-progress 'gha-utils==5.6.1' bundled init bumpversion pyproject.toml
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
