@@ -210,6 +210,12 @@ if TYPE_CHECKING:
 - Import from the root package (`from gha_utils import cli`), not submodules when possible.
 - Place imports at the top of the file, unless avoiding circular imports.
 
+### Modern `typing` practices
+
+Do not import types from `typing` when a modern equivalent exists in the standard library. Since Python 3.9, built-in types like `list`, `dict`, and `tuple` support subscripting directly, and abstract types like `Iterable` and `Sequence` should come from `collections.abc` instead of `typing`. Since Python 3.10, use `X | Y` instead of `typing.Union` and `X | None` instead of `typing.Optional`. For example, use `from collections.abc import Iterator` not `from typing import Iterator`.
+
+New modules should include `from __future__ import annotations` to enable postponed evaluation of annotations ([PEP 563](https://peps.python.org/pep-0563/)). This allows using the latest annotation syntax (e.g., `X | Y`) regardless of the runtime Python version and avoids unnecessary imports of types only needed for annotations.
+
 ### Python 3.10 compatibility
 
 This project supports Python 3.10+. Be aware of syntax features that are **not** available in Python 3.10:
