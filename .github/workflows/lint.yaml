@@ -32,7 +32,7 @@ jobs:
       project_description: ${{ steps.project-metadata.outputs.project_description }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ github.token }}
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Install all package dependencies
         # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
         # those related to optional features, tests, development and documentation.
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run yamllint
         run: >
           uvx --no-progress 'yamllint==1.38.0'
