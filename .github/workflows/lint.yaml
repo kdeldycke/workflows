@@ -24,7 +24,6 @@ jobs:
       python_files: ${{ steps.project-metadata.outputs.python_files }}
       yaml_files: ${{ steps.project-metadata.outputs.yaml_files }}
       workflow_files: ${{ steps.project-metadata.outputs.workflow_files }}
-      doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       zsh_files: ${{ steps.project-metadata.outputs.zsh_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
@@ -157,42 +156,6 @@ jobs:
           ${{ steps.install_actionlint.outputs.executable }}
           -color
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
-
-  broken-links:
-    needs:
-      - project-metadata
-    # Skip all PRs as we won't have permissions to create issues.
-    # Skip the prepare-release branch as it contains URLs pointing to tags that don't exist yet.
-    # Skip any push containing a post-release bump commit as a precautionary measure.
-    if: >
-      github.event_name != 'pull_request'
-      && github.ref != 'refs/heads/prepare-release'
-      && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
-      && needs.project-metadata.outputs.doc_files
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
-      - uses: lycheeverse/lychee-action@v2.7.0
-        id: lychee_run
-        with:
-          fail: false
-          args: >
-            --hidden
-            --suggest
-            --insecure
-            --no-progress
-            --include-fragments
-            --exclude-all-private
-            ${{ needs.project-metadata.outputs.doc_files }}
-      - name: Manage broken links issue
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          uvx --no-progress 'gha-utils==5.6.1' broken-links
-          --lychee-exit-code ${{ steps.lychee_run.outputs.exit_code }}
-          --body-file ./lychee/out.md
-          --repo-name "${{ github.event.repository.name }}"
 
   lint-awesome:
     # Lint only "awesome-*" repositories except "awesome-template".

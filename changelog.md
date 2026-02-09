@@ -8,6 +8,8 @@
 - Add build provenance attestation to `package-build` job for defense-in-depth supply chain security.
 - Add `.mdx` to recognized Markdown file extensions for ruff formatting and file discovery.
 - Preserve `[project.entry-points]` table format in `format-pyproject` autofix job.
+- Move 6 autofix jobs (`autofix-typo`, `optimize-images`, `update-mailmap`, `update-deps-graph`, `update-docs`, `awesome-template-sync`) from `docs.yaml` to `autofix.yaml`.
+- Move `broken-links` job from `lint.yaml` to `docs.yaml`.
 
 ## [5.7.0 (2026-02-09)](https://github.com/kdeldycke/workflows/compare/v5.6.2...v5.7.0)
 

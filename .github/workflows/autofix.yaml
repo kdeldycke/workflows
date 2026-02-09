@@ -21,6 +21,11 @@ name: Autofix
 
           # Claude Code
           .claude/
+      dependency-graph-output:
+        description: 'Location in the repository of the dependency graph image.'
+        required: false
+        type: string
+        default: ./docs/assets/dependencies.mmd
   workflow_dispatch:
   push:
     branches:
@@ -37,6 +42,8 @@ env:
     # Claude Code
 
     .claude/' || inputs.gitignore-extra-content }}
+  dependency-graph-output: >-
+    ${{ inputs.dependency-graph-output == null && './docs/assets/dependencies.mmd' || inputs.dependency-graph-output }}
 
 
 concurrency:
@@ -55,6 +62,11 @@ jobs:
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
       markdown_files: ${{ steps.project-metadata.outputs.markdown_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
+      mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
+      image_files: ${{ steps.project-metadata.outputs.image_files }}
+      package_name: ${{ steps.project-metadata.outputs.package_name }}
+      active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
+      release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.0
@@ -62,6 +74,8 @@ jobs:
         id: project-metadata
         run: |
           uvx --no-progress 'gha-utils==5.6.1' metadata --output "$GITHUB_OUTPUT"
+
+  # --- Formatters: rewrite files to enforce canonical style. ---
 
   format-python:
     name: Format Python
@@ -233,6 +247,59 @@ jobs:
           labels: "🤖 ci"
           branch: format-json
 
+  # --- Fixers: correct or improve existing content in-place. ---
+
+  autofix-typo:
+    name: Fix typos
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: crate-ci/typos@v1.42.1
+        with:
+          write_changes: true
+      - name: Remove local typos binary
+        run: rm ./typos
+      - id: pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Typo"
+          title: "[autofix] Typo"
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "📚 documentation"
+          branch: autofix-typo
+
+  optimize-images:
+    name: Optimize images
+    needs:
+      - project-metadata
+    if: needs.project-metadata.outputs.image_files
+    # Cannot use "ubuntu-slim" here because calibreapp/image-actions rely on Docker.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: calibreapp/image-actions@1.4.1
+        id: image_actions
+        with:
+          compressOnly: true
+      - id: pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        with:
+          prefix: ${{ steps.image_actions.outputs.markdown }}
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Optimize images"
+          title: "[autofix] Optimize images"
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "📚 documentation"
+          branch: optimize-images
+
+  # --- Syncers: regenerate files from external sources or project state. ---
+
   update-gitignore:
     name: Update .gitignore
     needs:
@@ -304,3 +371,139 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-bumpversion
+
+  update-mailmap:
+    name: Update .mailmap
+    needs:
+      - project-metadata
+    if: fromJSON(needs.project-metadata.outputs.mailmap_exists)
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          # Fetch all history to extract all contributors.
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Generate .mailmap
+        run: |
+          uvx --no-progress 'gha-utils==5.6.1' mailmap-sync --skip-if-missing ./.mailmap
+      - id: pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Update .mailmap"
+          title: "[autofix] Update `.mailmap`"
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "📚 documentation"
+          branch: update-mailmap
+
+  update-deps-graph:
+    name: Update dependency graph
+    needs:
+      - project-metadata
+    # Only update dependency graph on release to avoid noise from transitive dependency changes.
+    if: >
+      fromJSON(needs.project-metadata.outputs.is_python_project)
+      && needs.project-metadata.outputs.release_commits_matrix
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Create dir structure
+        run: |
+          mkdir -p "$(dirname "${{ env.dependency-graph-output }}")"
+      - name: Generate graph
+        # Include all dependency groups in the graph with subgraphs.
+        run: >
+          uvx --no-progress 'gha-utils==5.6.1' deps-graph
+          ${{ needs.project-metadata.outputs.package_name
+          && format('--package {0}', needs.project-metadata.outputs.package_name)}}
+          --all-groups --all-extras
+          --output "${{ env.dependency-graph-output }}"
+      - id: pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Regenerate dependency graph"
+          title: "[autofix] Regenerate dependency graph"
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "📚 documentation"
+          branch: update-deps-graph
+
+  update-docs:
+    name: Update docs
+    needs:
+      - project-metadata
+    if: >
+      fromJSON(needs.project-metadata.outputs.is_python_project)
+      && fromJSON(needs.project-metadata.outputs.active_autodoc)
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.0
+      - name: Regenerate Sphinx autodoc
+        run: |
+          uv --no-progress run --frozen --group docs -- \
+            sphinx-apidoc --no-toc --module-first --force --output-dir ./docs .
+      - name: Run docs update script
+        # Run docs/docs_update.py if present to generate dynamic content (tables, diagrams, directives).
+        run: |
+          if [ -f docs/docs_update.py ]; then
+            uv --no-progress run --frozen --group docs -- python docs/docs_update.py
+          fi
+      - id: pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: "[autofix] Update docs"
+          title: "[autofix] Update docs"
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "📚 documentation"
+          branch: update-docs
+
+  awesome-template-sync:
+    name: Sync awesome template
+    if: >
+      startsWith(github.event.repository.name, 'awesome-')
+      && github.event.repository.name != 'awesome-template'
+    runs-on: ubuntu-slim
+    # We need custom PAT through the whole job so we get workflow permissions to update all the boilerplate .github
+    # files from awesome-template.
+    steps:
+      - name: Initial checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - id: pr-metadata
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        with:
+          # Template variables are substituted by the template-sync action.
+          prefix: |
+            Files synced from [`kdeldycke/awesome-template@${TEMPLATE_GIT_HASH}`
+            repository](${SOURCE_REPO}/tree/${TEMPLATE_GIT_HASH}).
+      - name: Sync from template repo
+        id: template_sync
+        uses: AndreasAugustin/actions-template-sync@v2.5.2
+        with:
+          github_token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          source_repo_path: kdeldycke/awesome-template
+          # Action will update PR only if there is file changes. is_force_push_pr also force the PR to be updated
+          # only if metadata changes.
+          is_force_push_pr: true
+          is_allow_hooks: true
+          is_pr_cleanup: true
+          # Replace "/kdeldycke/awesome-template/" in URLs by "/kdeldycke/awesome-<repo_id>/".
+          hooks: >
+            precommit:
+              commands:
+                - find ./.github/ -type f -iregex ".*\.\(md\|yaml\)$" -print -exec sed -i
+                  "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
+          pr_title: "[sync] Updates from `awesome-template`"
+          pr_commit_msg: "[sync] Updates from awesome-template"
+          pr_branch_name_prefix: "sync-awesome-template"
+          pr_body: ${{ steps.pr-metadata.outputs.body }}
+          pr_labels: "📚 documentation"

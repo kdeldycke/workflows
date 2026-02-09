@@ -168,6 +168,8 @@ jobs:
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
+*Formatters* — rewrite files to enforce canonical style:
+
 - **Format Python** (`format-python`)
 
   - Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8) and [`ruff`](https://github.com/astral-sh/ruff)
@@ -175,9 +177,9 @@ jobs:
     - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository, or
     - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`)
 
-- **Sync `uv.lock`** (`sync-uv-lock`)
+- **Format `pyproject.toml`** (`format-pyproject`)
 
-  - Keeps `uv.lock` file up to date with dependencies using [`uv`](https://github.com/astral-sh/uv)
+  - Auto-formats `pyproject.toml` using [`pyproject-fmt`](https://github.com/tox-dev/pyproject-fmt)
   - **Requires**:
     - Python package with a `pyproject.toml` file
 
@@ -189,9 +191,23 @@ jobs:
 
 - **Format JSON** (`format-json`)
 
-  - Auto-formats JSON, JSONC, and JSON5 files using [ESLint](https://github.com/eslint/eslint) with [`@eslint/json`](https://github.com/eslint/json) plugin
+  - Auto-formats JSON, JSONC, and JSON5 files using [Biome](https://github.com/biomejs/biome)
   - **Requires**:
     - JSON files (`**/*.{json,jsonc,json5}`, `**/.code-workspace`, `!**/package-lock.json`) in the repository
+
+*Fixers* — correct or improve existing content in-place:
+
+- **Fix typos** (`autofix-typo`)
+
+  - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
+
+- **Optimize images** (`optimize-images`)
+
+  - Compresses images in the repository using [`image-actions`](https://github.com/calibreapp/image-actions)
+  - **Requires**:
+    - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
+
+*Syncers* — regenerate files from external sources or project state:
 
 - **Update .gitignore** (`update-gitignore`)
 
@@ -204,6 +220,34 @@ jobs:
   - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils bundled init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/bundled_config.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
+
+- **Update `.mailmap`** (`update-mailmap`)
+
+  - Keeps `.mailmap` file up to date with contributors using [`gha-utils mailmap-sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/mailmap.py)
+  - **Requires**:
+    - A `.mailmap` file in the repository root
+
+- **Update dependency graph** (`update-deps-graph`)
+
+  - Generates a Mermaid dependency graph of the Python project using [`gha-utils deps-graph`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/deps_graph.py)
+  - **Requires**:
+    - Python package with a `uv.lock` file
+
+- **Update docs** (`update-docs`)
+
+  - Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
+  - Runs `docs/docs_update.py` if present to generate dynamic content (tables, diagrams, Sphinx directives)
+  - **Requires**:
+    - Python package with a `pyproject.toml` file
+    - `docs` dependency group
+    - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
+
+- **Sync awesome template** (`awesome-template-sync`)
+
+  - Syncs awesome list projects from the [`awesome-template`](https://github.com/kdeldycke/awesome-template) repository using [`actions-template-sync`](https://github.com/AndreasAugustin/actions-template-sync)
+  - **Requires**:
+    - Repository name starts with `awesome-`
+    - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
 
 ### [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml)
 
@@ -240,7 +284,7 @@ jobs:
 
 ### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml)
 
-Some of these jobs requires a `docs` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml` so they can determine the right Sphinx version to install and its dependencies:
+These jobs require a `docs` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml` so they can determine the right Sphinx version to install and its dependencies:
 
 ```toml
 [dependency-groups]
@@ -251,37 +295,6 @@ docs = [
     …
 ]
 ```
-
-- **Fix typos** (`autofix-typo`)
-
-  - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
-
-- **Optimize images** (`optimize-images`)
-
-  - Compresses images in the repository using [`image-actions`](https://github.com/calibreapp/image-actions)
-  - **Requires**:
-    - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
-
-- **Update `.mailmap`** (`update-mailmap`)
-
-  - Keeps `.mailmap` file up to date with contributors using [`gha-utils mailmap-sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/mailmap.py)
-  - **Requires**:
-    - A `.mailmap` file in the repository root
-
-- **Update dependency graph** (`update-deps-graph`)
-
-  - Generates a Mermaid dependency graph of the Python project using [`gha-utils deps-graph`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/deps_graph.py)
-  - **Requires**:
-    - Python package with a `uv.lock` file
-
-- **Update docs** (`update-docs`)
-
-  - Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
-  - Runs `docs/docs_update.py` if present to generate dynamic content (tables, diagrams, Sphinx directives)
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
-    - `docs` dependency group
-    - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
 
 - **Deploy Sphinx doc** (`deploy-docs`)
 
@@ -304,12 +317,16 @@ docs = [
     - `prepare-release` branch
     - Post-release version bump commits
 
-- **Sync awesome template** (`awesome-template-sync`)
+- **Broken links** (`broken-links`)
 
-  - Syncs awesome list projects from the [`awesome-template`](https://github.com/kdeldycke/awesome-template) repository using [`actions-template-sync`](https://github.com/AndreasAugustin/actions-template-sync)
+  - Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
+  - Creates/updates issues for broken links found
   - **Requires**:
-    - Repository name starts with `awesome-`
-    - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
+    - Documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`) in the repository
+  - **Skipped for**:
+    - All PRs (only runs on push to main)
+    - `prepare-release` branch
+    - Post-release bump commits
 
 ### [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labels.yaml)
 
@@ -343,7 +360,13 @@ docs = [
 
 ### [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml)
 
-- **Mypy lint** (`mypy-lint`)
+- **Lint repository metadata** (`lint-repo`)
+
+  - Validates repository metadata (package name, Sphinx docs, project description) using [`gha-utils lint-repo`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
+  - **Requires**:
+    - Python package with a package name, Sphinx docs, or project description
+
+- **Lint Mypy** (`lint-mypy`)
 
   - Type-checks Python code using [`mypy`](https://github.com/python/mypy)
   - **Requires**:
@@ -377,17 +400,6 @@ docs = [
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs
-
-- **Broken links** (`broken-links`)
-
-  - Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
-  - Creates/updates issues for broken links found
-  - **Requires**:
-    - Documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`) in the repository
-  - **Skipped for**:
-    - All PRs (only runs on push to main)
-    - `prepare-release` branch
-    - Post-release bump commits
 
 - **Lint Awesome list** (`lint-awesome`)
 
@@ -460,6 +472,12 @@ docs = [
     - Successful `git-tag` job
 
 ### [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
+
+- **Sync bundled config** (`sync-bundled-config`)
+
+  - Keeps the bundled `gha_utils/data/renovate.json5` in sync with the root `renovate.json5`
+  - **Only runs in**:
+    - The `kdeldycke/workflows` repository
 
 - **Migrate to Renovate** (`migrate-to-renovate`)
 
