@@ -9,7 +9,7 @@ unsafe-fixes = true
 show-fixes = true
 # Enable formatting of Python code blocks in Markdown files.
 # https://docs.astral.sh/ruff/formatter/#markdown-code-formatting
-extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}" ]
+extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}" ]
 # Enable reformatting of code snippets in docstrings.
 # https://docs.astral.sh/ruff/formatter/#docstring-formatting
 format.docstring-code-format = true

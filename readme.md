@@ -173,7 +173,7 @@ jobs:
   - Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8) and [`ruff`](https://github.com/astral-sh/ruff)
   - **Requires**:
     - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository, or
-    - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}`)
+    - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`)
 
 - **Sync `uv.lock`** (`sync-uv-lock`)
 
@@ -185,7 +185,7 @@ jobs:
 
   - Auto-formats Markdown files using [`mdformat`](https://github.com/hukkin/mdformat)
   - **Requires**:
-    - Markdown files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}`) in the repository
+    - Markdown files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}`) in the repository
 
 - **Format JSON** (`format-json`)
 
@@ -383,7 +383,7 @@ docs = [
   - Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
   - Creates/updates issues for broken links found
   - **Requires**:
-    - Documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,rst,tex}`) in the repository
+    - Documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`) in the repository
   - **Skipped for**:
     - All PRs (only runs on push to main)
     - `prepare-release` branch
