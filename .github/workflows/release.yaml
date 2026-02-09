@@ -115,6 +115,9 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-slim
+    permissions:
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -123,13 +126,15 @@ jobs:
       - name: Build package
         run: |
           uv --no-progress build
+      - name: Generate build attestations
+        uses: actions/attest-build-provenance@v3.1.0
+        with:
+          subject-path: ./dist/*
       - name: Upload artifacts
         uses: actions/upload-artifact@v6.0.0
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
           path: ./dist/*
-      # TODO: Should we also attest the archive created here? See:
-      # https://github.com/actions/attest-build-provenance?tab=readme-ov-file#integration-with-actionsupload-artifact
 
   compile-binaries:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} build"

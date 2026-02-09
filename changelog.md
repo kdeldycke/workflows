@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add build provenance attestation to `package-build` job for defense-in-depth supply chain security.
+
 ## [5.7.0 (2026-02-09)](https://github.com/kdeldycke/workflows/compare/v5.6.2...v5.7.0)
 
 - Add `gha-utils sphinx-linkcheck` command to detect broken auto-generated links.
