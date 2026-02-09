@@ -38,7 +38,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_call'
     runs-on: ubuntu-slim
     steps:
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Install labelmaker
         uses: taiki-e/install-action@v2.67.10
         with:
@@ -92,7 +92,7 @@ jobs:
       is_bot: ${{ steps.project-metadata.outputs.is_bot }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Dump default rules
         run: |
           uvx --no-progress 'gha-utils==5.6.1' bundled export labeller-file-based.yaml
@@ -134,7 +134,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Dump default rules
         run: |
           uvx --no-progress 'gha-utils==5.6.1' bundled export labeller-content-based.yaml
@@ -161,7 +161,7 @@ jobs:
       && (! fromJson(needs.project-metadata.outputs.is_bot))
     runs-on: ubuntu-slim
     steps:
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Add sponsor label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

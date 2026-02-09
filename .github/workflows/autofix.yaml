@@ -69,7 +69,7 @@ jobs:
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run pyproject-fmt
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       # https://mdformat.readthedocs.io/en/stable/users/plugins.html
       - name: Install mdformat
         # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading:
@@ -357,7 +357,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Initialize bumpversion config
         run: |
           uvx --no-progress 'gha-utils==5.6.1' bundled init bumpversion pyproject.toml
@@ -383,7 +383,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Generate .mailmap
         run: |
           uvx --no-progress 'gha-utils==5.6.1' mailmap-sync --skip-if-missing ./.mailmap
@@ -409,7 +409,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Create dir structure
         run: |
           mkdir -p "$(dirname "${{ env.dependency-graph-output }}")"
@@ -442,7 +442,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Regenerate Sphinx autodoc
         run: |
           uv --no-progress run --frozen --group docs -- \

@@ -99,7 +99,7 @@ jobs:
       - name: List all commits
         run: |
           git log --decorate=full --oneline
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
         run: >
@@ -122,7 +122,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Build package
         run: |
           uv --no-progress build
@@ -153,7 +153,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Setup venv
         run: |
           uv --no-progress venv --python 3.13
@@ -232,7 +232,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           chmod +x ${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Run test plan for binary
         run: >
           uvx --no-progress 'gha-utils==5.6.1' test-plan
@@ -259,7 +259,7 @@ jobs:
           # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
           # https://github.com/orgs/community/discussions/27028
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Create and push tag
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
@@ -286,7 +286,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Download build artifacts
         uses: actions/download-artifact@v7.0.0
         id: download
@@ -331,7 +331,7 @@ jobs:
           # Only consider artifacts produced by the release commit.
           pattern: "*-${{ matrix.short_sha }}*"
           merge-multiple: true
-      - uses: astral-sh/setup-uv@v7.2.0
+      - uses: astral-sh/setup-uv@v7.2.1
         # Only set up uv if we have artifacts to process.
         if: steps.artifacts.outputs.download-path
       - name: Collect and rename artifacts
