@@ -182,9 +182,7 @@ lint.future-annotations = true
 # https://docs.pytest.org/en/latest/customize.html#pyproject-toml
 addopts = [
   "--durations=10",
-  "--cov=gha_utils",
-  "--cov-branch",
-  "--cov-precision=2",
+  "--cov",
   "--cov-report=term",
   "--cov-report=xml",
   # Codecov.io's test analytics requires a JUnit XML file:
@@ -194,6 +192,14 @@ addopts = [
 ]
 # Make sure tests that are expected to fail do not resurrect and start working all of a sudden.
 xfail_strict = true
+
+[tool.coverage.run]
+# https://coverage.readthedocs.io/en/latest/config.html
+source = ["gha_utils"]
+branch = true
+
+[tool.coverage.report]
+precision = 2
 
 [tool.bumpversion]
 current_version = "5.7.1"
