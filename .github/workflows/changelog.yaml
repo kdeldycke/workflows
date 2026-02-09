@@ -95,7 +95,7 @@ jobs:
           echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
       - id: pr-metadata
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
         with:
           prefix: |
             ### Description
@@ -172,7 +172,7 @@ jobs:
         run: |
           git commit --all --message="[changelog] Post-release version bump"
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.0
         with:
           prefix: |
             ### Description
