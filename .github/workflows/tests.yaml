@@ -5,7 +5,19 @@ name: Tests
   push:
     branches:
       - main
+    paths:
+      - gha_utils/**
+      - tests/**
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/tests.yaml
   pull_request:
+    paths:
+      - gha_utils/**
+      - tests/**
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/tests.yaml
   schedule:
     # Run tests monthly to catch regressions from dependency or environment changes.
     - cron: "17 9 1 * *"
