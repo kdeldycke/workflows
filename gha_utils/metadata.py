@@ -1306,7 +1306,9 @@ class Metadata:
     @cached_property
     def markdown_files(self) -> list[Path]:
         """Returns a list of Markdown files."""
-        return self.glob_files("**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}")
+        return self.glob_files(
+            "**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}"
+        )
 
     @cached_property
     def image_files(self) -> list[Path]:
