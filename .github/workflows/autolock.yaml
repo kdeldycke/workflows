@@ -3,6 +3,7 @@
 name: Autolock
 "on":
   workflow_call:
+  workflow_dispatch:
   schedule:
     # Run weekly, every Monday at 00:43.
     - cron: "43 0 * * 1"

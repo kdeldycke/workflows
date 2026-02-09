@@ -224,7 +224,7 @@ jobs:
   - **Runs on**:
     - Schedule (daily at 6:00 UTC)
     - Manual dispatch
-    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger)
+    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger, to ensure tags exist before checking bump eligibility)
 
 - **Prepare release** (`prepare-release`)
 
@@ -233,6 +233,10 @@ jobs:
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file
+  - **Runs on**:
+    - Push to `main` (when `changelog.md`, `pyproject.toml`, or workflow files change)
+    - Manual dispatch
+    - `workflow_call` from downstream repositories
 
 ### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml)
 
@@ -668,12 +672,11 @@ Workflows are grouped by:
 
 - **Pull requests**: `{workflow-name}-{pr-number}` — Multiple commits to the same PR cancel previous runs
 - **Branch pushes**: `{workflow-name}-{branch-ref}` — Multiple pushes to the same branch cancel previous runs
-- **Release commits**: `{workflow-name}-{commit-sha}` — Each release gets a unique group, so it can never be cancelled
 
-Release commits are protected from cancellation to ensure proper tagging, PyPI publishing, and GitHub release creation complete successfully.
+`release.yaml` uses a stronger protection: release commits get a **unique concurrency group** based on the commit SHA, so they can never be cancelled. This ensures tagging, PyPI publishing, and GitHub release creation complete successfully.
 
 > [!TIP]
-> For implementation details on how concurrency groups are computed and why release commits need special handling, see [`claude.md` § Concurrency implementation](claude.md#concurrency-implementation).
+> For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see [`claude.md` § Concurrency implementation](claude.md#concurrency-implementation).
 
 ## Used in
 

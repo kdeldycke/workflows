@@ -15,6 +15,7 @@ name: Labels
         description: 'YAML describing additional content-based labelling rules'
         required: false
         type: string
+  workflow_dispatch:
   push:
     branches:
       - main

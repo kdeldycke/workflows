@@ -12,6 +12,9 @@
 - Fix `pr-metadata` action stripping backticks from PR body.
 - Fix `mappingproxy` object pickling error in test plan execution on Python < 3.13.
 - Fix `UnicodeEncodeError` on Windows for `mailmap-sync` command and test plan execution.
+- Simplify `changelog.yaml` concurrency to be always-cancellable.
+- Prevent redundant `prepare-release` double-runs on every push to `main`.
+- Add `workflow_dispatch` trigger to all workflows except `release.yaml` for manual re-runs from the Actions UI.
 
 ## [5.6.2 (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.6.1...v5.6.2)
 

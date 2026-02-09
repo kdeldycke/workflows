@@ -8,6 +8,7 @@ name: Docs
         required: false
         type: string
         default: ./docs/assets/dependencies.mmd
+  workflow_dispatch:
   push:
     branches:
       - main

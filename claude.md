@@ -286,12 +286,29 @@ GitHub Actions lacks conditional step groups—you cannot conditionally skip mul
 
 Example: Instead of a separate "check" step followed by multiple steps with `if: steps.check.outputs.allowed == 'true'`, add the check to metadata output and reference `steps.metadata.outputs.some_check == 'true'`.
 
+### Defensive workflow design
+
+GitHub Actions workflows run in an environment where race conditions, eventual consistency, and partial failures are common. Prefer a **belt-and-suspenders** approach: use multiple independent mechanisms to ensure correctness rather than relying on a single guarantee.
+
+For example, `changelog.yaml`'s `version-increments` job needs to know the latest released version. Rather than trusting that git tags are always available:
+
+1. **Belt** — The `workflow_run` trigger ensures the job runs *after* the release workflow completes, so tags exist by then.
+1. **Suspenders** — The `is_version_bump_allowed()` function falls back to commit message parsing (`[changelog] Release vX.Y.Z`) when tags aren't found.
+
+Apply the same philosophy elsewhere: avoid single points of failure in workflow logic. If a job depends on external state (tags, published packages, API availability), add a fallback or a graceful default. When possible, make operations idempotent (e.g., `--skip-existing` on tag creation) so re-runs are safe.
+
 ### Concurrency implementation
 
 > [!NOTE]
 > For user-facing documentation, see [`readme.md` § Concurrency and cancellation](readme.md#concurrency-and-cancellation).
 
-All workflows use this concurrency group expression:
+Workflows use two concurrency strategies depending on whether they perform critical release operations.
+
+#### `release.yaml` — SHA-based unique groups
+
+`release.yaml` handles tagging, PyPI publishing, and GitHub release creation. These operations must run to completion. Using conditional `cancel-in-progress: false` doesn't work because it's evaluated on the *new* workflow, not the old one. If a regular commit is pushed while a release workflow is running, the new workflow would cancel the release because they share the same concurrency group.
+
+The solution is to give each release run its own unique group using the commit SHA:
 
 ```yaml
 concurrency:
@@ -308,28 +325,43 @@ concurrency:
   cancel-in-progress: true
 ```
 
-#### Why release commits need unique groups
-
-Release commits must run to completion for tagging, PyPI publishing, and GitHub release creation. Using conditional `cancel-in-progress: false` doesn't work because it's evaluated on the *new* workflow, not the old one. If a regular commit is pushed while a release workflow is running, the new workflow would cancel the release because they share the same concurrency group.
-
-The solution is to give each release workflow its own unique group using the commit SHA:
-
 | Commit Message                          | Concurrency Group            | Behavior                     |
 | :-------------------------------------- | :--------------------------- | :--------------------------- |
 | `[changelog] Release v4.26.0`           | `{workflow}-{sha}`           | **Protected** — unique group |
 | `[changelog] Post-release version bump` | `{workflow}-{sha}`           | **Protected** — unique group |
 | Any other commit                        | `{workflow}-refs/heads/main` | Cancellable by newer commits |
 
-#### Two-commit release push
+Both `[changelog] Release` and `[changelog] Post-release` patterns must be matched because when a release is pushed, the event contains **two commits bundled together** and `github.event.head_commit` refers to the most recent one (the post-release bump).
 
-When a release is pushed, the event contains **two commits bundled together**:
+#### Other workflows — simple groups
 
-1. `[changelog] Release vX.Y.Z` — the release commit
-1. `[changelog] Post-release version bump` — bumps version for next development cycle
+All other workflows (`lint.yaml`, `autofix.yaml`, `docs.yaml`, `labels.yaml`, `tests.yaml`, `renovate.yaml`) use a simpler pattern. They don't perform irreversible release operations, so a conditional `cancel-in-progress` is sufficient:
 
-Since `github.event.head_commit` refers to the most recent commit (the post-release bump), both commit patterns must be matched to ensure the release workflow gets its own unique group.
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
+```
 
-#### Event-specific behavior
+This pauses cancellation when a release commit triggers the workflow. While this approach has the theoretical flaw of being evaluated on the new workflow, in practice these workflows run fast enough that it's not an issue.
+
+#### `changelog.yaml` — always cancellable
+
+`changelog.yaml` uses the simplest concurrency strategy:
+
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+This is safe because:
+
+- The only job that runs on `push` events is `prepare-release`, which is idempotent (it regenerates the release branch via `peter-evans/create-pull-request`).
+- The `version-increments` pipeline only runs on `schedule`, `workflow_dispatch`, and `workflow_run` events — never on `push`.
+- There is no `pull_request` trigger, so `github.event.pull_request.number` is omitted from the group expression.
+
+#### Event-specific behavior for `release.yaml`
 
 | Event                 | `github.event.head_commit`             | Concurrency Group             | Cancel Behavior            |
 | :-------------------- | :------------------------------------- | :---------------------------- | :------------------------- |
@@ -338,8 +370,6 @@ Since `github.event.head_commit` refers to the most recent commit (the post-rele
 | `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
 | `pull_request`        | `null`                                 | `{workflow}-{pr-number}`      | Cancellable within same PR |
 | `workflow_call`       | Inherited or `null`                    | Inherited from caller         | Usually cancellable        |
-| `schedule`            | `null`                                 | `{workflow}-refs/heads/main`  | Cancellable                |
-| `issues` / `opened`   | `null`                                 | `{workflow}-{issue-ref}`      | Cancellable                |
 
 ### CLI design
 

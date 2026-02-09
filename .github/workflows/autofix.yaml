@@ -21,6 +21,7 @@ name: Autofix
 
           # Claude Code
           .claude/
+  workflow_dispatch:
   push:
     branches:
       - main

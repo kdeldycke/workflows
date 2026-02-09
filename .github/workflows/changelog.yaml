@@ -25,8 +25,8 @@ name: Changelog & versions
       - main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
@@ -126,6 +126,9 @@ jobs:
           draft: always-true
 
   prepare-release:
+    # Skip schedule (exists for version-increments only) and workflow_run (would double-run
+    # on every push to main, since push already triggers this job directly).
+    if: github.event_name != 'schedule' && github.event_name != 'workflow_run'
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
