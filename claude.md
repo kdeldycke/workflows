@@ -296,7 +296,7 @@ Example: Instead of a separate "check" step followed by multiple steps with `if:
 
 GitHub Actions workflows run in an environment where race conditions, eventual consistency, and partial failures are common. Prefer a **belt-and-suspenders** approach: use multiple independent mechanisms to ensure correctness rather than relying on a single guarantee.
 
-For example, `changelog.yaml`'s `version-increments` job needs to know the latest released version. Rather than trusting that git tags are always available:
+For example, `changelog.yaml`'s `bump-versions` job needs to know the latest released version. Rather than trusting that git tags are always available:
 
 1. **Belt** — The `workflow_run` trigger ensures the job runs *after* the release workflow completes, so tags exist by then.
 1. **Suspenders** — The `is_version_bump_allowed()` function falls back to commit message parsing (`[changelog] Release vX.Y.Z`) when tags aren't found.
@@ -370,7 +370,7 @@ concurrency:
 This is safe because:
 
 - The only job that runs on `push` events is `prepare-release`, which is idempotent (it regenerates the release branch via `peter-evans/create-pull-request`).
-- The `version-increments` pipeline only runs on `schedule`, `workflow_dispatch`, and `workflow_run` events — never on `push`.
+- The `bump-versions` pipeline only runs on `schedule`, `workflow_dispatch`, and `workflow_run` events — never on `push`.
 - There is no `pull_request` trigger, so `github.event.pull_request.number` is omitted from the group expression.
 
 #### Event-specific behavior for `release.yaml`

@@ -54,7 +54,7 @@ jobs:
           publish_dir: ./docs/html
           force_orphan: true
 
-  sphinx-linkcheck:
+  check-sphinx-links:
     name: Sphinx linkcheck
     needs:
       - project-metadata
@@ -91,7 +91,7 @@ jobs:
           --output-json ./docs/linkcheck/output.json
           --repo-name "${{ github.event.repository.name }}"
 
-  broken-links:
+  check-broken-links:
     needs:
       - project-metadata
     # Skip all PRs as we won't have permissions to create issues.

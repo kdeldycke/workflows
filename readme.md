@@ -197,7 +197,7 @@ jobs:
 
 *Fixers* — correct or improve existing content in-place:
 
-- **Fix typos** (`autofix-typo`)
+- **Fix typos** (`fix-typos`)
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
@@ -242,7 +242,7 @@ jobs:
     - `docs` dependency group
     - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
 
-- **Sync awesome template** (`awesome-template-sync`)
+- **Sync awesome template** (`sync-awesome-template`)
 
   - Syncs awesome list projects from the [`awesome-template`](https://github.com/kdeldycke/awesome-template) repository using [`actions-template-sync`](https://github.com/AndreasAugustin/actions-template-sync)
   - **Requires**:
@@ -257,7 +257,7 @@ jobs:
 
 ### [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml)
 
-- **Version increments** (`version-increments`)
+- **Bump versions** (`bump-versions`)
 
   - Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
   - Syncs `uv.lock` to include the new version in the same commit
@@ -304,7 +304,7 @@ docs = [
     - `docs` dependency group
     - Sphinx configuration file at `docs/conf.py`
 
-- **Sphinx linkcheck** (`sphinx-linkcheck`)
+- **Sphinx linkcheck** (`check-sphinx-links`)
 
   - Runs Sphinx's built-in [`linkcheck`](https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.linkcheck.CheckExternalLinksBuilder) builder to detect broken auto-generated links (intersphinx, autodoc, type annotations) that Lychee cannot see
   - Creates/updates issues for broken documentation links found
@@ -317,7 +317,7 @@ docs = [
     - `prepare-release` branch
     - Post-release version bump commits
 
-- **Broken links** (`broken-links`)
+- **Check broken links** (`check-broken-links`)
 
   - Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
   - Creates/updates issues for broken links found
@@ -366,7 +366,7 @@ docs = [
   - **Requires**:
     - Python package with a package name, Sphinx docs, or project description
 
-- **Lint Mypy** (`lint-mypy`)
+- **Lint types** (`lint-types`)
 
   - Type-checks Python code using [`mypy`](https://github.com/python/mypy)
   - **Requires**:
@@ -392,7 +392,7 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
-- **Lint GitHub Actions** (`lint-github-action`)
+- **Lint GitHub Actions** (`lint-github-actions`)
 
   - Lints workflow files using [`actionlint`](https://github.com/rhysd/actionlint) and [`shellcheck`](https://github.com/koalaman/shellcheck)
   - **Requires**:
@@ -410,7 +410,7 @@ docs = [
   - **Skipped for**:
     - `prepare-release` branch
 
-- **Check secrets** (`check-secrets`)
+- **Lint secrets** (`lint-secrets`)
 
   - Scans for leaked secrets using [`gitleaks`](https://github.com/gitleaks/gitleaks)
   - **Skipped for**:
@@ -423,7 +423,7 @@ docs = [
 
 **Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms.
 
-- **Build package** (`package-build`)
+- **Build package** (`build-package`)
 
   - Builds Python wheel and sdist packages using [`uv build`](https://github.com/astral-sh/uv)
   - **Requires**:
@@ -451,25 +451,25 @@ docs = [
   - **Skipped for**:
     - Same branches as `compile-binaries`
 
-- **Git tag** (`git-tag`)
+- **Create tag** (`create-tag`)
 
   - Creates a Git tag for the release version
   - **Requires**:
     - Push to `main` branch
     - Release commits matrix from [`gha-utils metadata`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py)
 
-- **Publish to PyPI** (`pypi-publish`)
+- **Publish to PyPI** (`publish-pypi`)
 
   - Uploads packages to PyPI with attestations using [`uv publish`](https://github.com/astral-sh/uv)
   - **Requires**:
     - `PYPI_TOKEN` secret
-    - Built packages from `package-build` job
+    - Built packages from `build-package` job
 
-- **GitHub release** (`github-release`)
+- **Create release** (`create-release`)
 
   - Creates a GitHub release with all artifacts attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
   - **Requires**:
-    - Successful `git-tag` job
+    - Successful `create-tag` job
 
 ### [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
 

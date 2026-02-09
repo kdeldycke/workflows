@@ -107,7 +107,7 @@ jobs:
           ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
           --output "$GITHUB_OUTPUT"
 
-  package-build:
+  build-package:
     name: Build package
     needs:
       - project-metadata
@@ -241,7 +241,7 @@ jobs:
           --plan-file "${{ env.test-plan-file }}"
           ${{ env.test-plan != null && '--plan-envvar test-plan' || '' }}
 
-  git-tag:
+  create-tag:
     name: Tag release
     needs:
       - project-metadata
@@ -269,12 +269,12 @@ jobs:
           --commit "${{ matrix.commit }}"
           --skip-existing
 
-  pypi-publish:
+  publish-pypi:
     name: Publish to PyPI
     needs:
       - project-metadata
-      - package-build
-      - git-tag
+      - build-package
+      - create-tag
     if: needs.project-metadata.outputs.package_name
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
@@ -300,15 +300,15 @@ jobs:
         run: |
           uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}/*"
 
-  github-release:
+  create-release:
     name: Publish GitHub release
     needs:
       - project-metadata
-      - package-build
+      - build-package
       - compile-binaries
-      - git-tag
-    # Make sure this job always starts if git-tag ran and succeeded.
-    if: always() && needs.git-tag.result == 'success'
+      - create-tag
+    # Make sure this job always starts if create-tag ran and succeeded.
+    if: always() && needs.create-tag.result == 'success'
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
     runs-on: ubuntu-slim
@@ -323,7 +323,7 @@ jobs:
     steps:
       - name: Download all artifacts
         # Do not fetch build artifacts if all jobs producing them were skipped.
-        if: needs.package-build.result != 'skipped' || needs.compile-binaries.result != 'skipped'
+        if: needs.build-package.result != 'skipped' || needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@v7.0.0
         id: artifacts
         with:

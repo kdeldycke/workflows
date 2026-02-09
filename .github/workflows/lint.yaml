@@ -62,7 +62,7 @@ jobs:
           ${{ needs.project-metadata.outputs.project_description &&
           format('--project-description "{0}"', needs.project-metadata.outputs.project_description) || '' }}
 
-  lint-mypy:
+  lint-types:
     needs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
@@ -120,7 +120,7 @@ jobs:
         run: |
           for file in ${{ needs.project-metadata.outputs.zsh_files }}; do zsh --no-exec "$file"; done
 
-  lint-github-action:
+  lint-github-actions:
     needs:
       - project-metadata
     # Skip linting on prepare-release branch and dependency update PRs because they do not heavily alter GitHub Actions.
@@ -179,7 +179,7 @@ jobs:
         run: |
           npx awesome-lint
 
-  check-secrets:
+  lint-secrets:
     needs:
       - project-metadata
     # Skip secret checks on prepare-release branch and dependency update PRs.

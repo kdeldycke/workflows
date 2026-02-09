@@ -5,11 +5,12 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add build provenance attestation to `package-build` job for defense-in-depth supply chain security.
+- Add build provenance attestation to `build-package` job for defense-in-depth supply chain security.
 - Add `.mdx` to recognized Markdown file extensions for ruff formatting and file discovery.
 - Preserve `[project.entry-points]` table format in `format-pyproject` autofix job.
-- Move 6 autofix jobs (`autofix-typo`, `optimize-images`, `update-mailmap`, `update-deps-graph`, `update-docs`, `awesome-template-sync`) from `docs.yaml` to `autofix.yaml`.
-- Move `broken-links` job from `lint.yaml` to `docs.yaml`.
+- Move 6 autofix jobs (`fix-typos`, `optimize-images`, `update-mailmap`, `update-deps-graph`, `update-docs`, `sync-awesome-template`) from `docs.yaml` to `autofix.yaml`.
+- Move `check-broken-links` job from `lint.yaml` to `docs.yaml`.
+- Harmonize job IDs to consistent `verb-target` naming: `autofix-typo` to `fix-typos`, `awesome-template-sync` to `sync-awesome-template`, `lint-mypy` to `lint-types`, `lint-github-action` to `lint-github-actions`, `check-secrets` to `lint-secrets`, `package-build` to `build-package`, `pypi-publish` to `publish-pypi`, `github-release` to `create-release`, `git-tag` to `create-tag`, `version-increments` to `bump-versions`, `sphinx-linkcheck` to `check-sphinx-links`, `broken-links` to `check-broken-links`.
 
 ## [5.7.0 (2026-02-09)](https://github.com/kdeldycke/workflows/compare/v5.6.2...v5.7.0)
 

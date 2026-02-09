@@ -249,7 +249,7 @@ jobs:
 
   # --- Fixers: correct or improve existing content in-place. ---
 
-  autofix-typo:
+  fix-typos:
     name: Fix typos
     runs-on: ubuntu-slim
     steps:
@@ -464,7 +464,7 @@ jobs:
           labels: "📚 documentation"
           branch: update-docs
 
-  awesome-template-sync:
+  sync-awesome-template:
     name: Sync awesome template
     if: >
       startsWith(github.event.repository.name, 'awesome-')
