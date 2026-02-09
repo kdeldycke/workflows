@@ -173,7 +173,7 @@ jobs:
           fetch-depth: 0
       - name: Install awesome-lint
         run: |
-          npm install awesome-lint@2.2.2
+          npm install awesome-lint@2.2.3
           npx awesome-lint --version
       - name: Run awesome-lint
         run: |
