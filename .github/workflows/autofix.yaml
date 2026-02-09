@@ -120,7 +120,7 @@ jobs:
         # We ignore this since changes are expected in an autofix workflow.
         run: >
           uvx --no-progress 'pyproject-fmt==2.12.1'
-          --expand-tables project.optional-dependencies,project.urls,project.scripts
+          --expand-tables project.entry-points,project.optional-dependencies,project.urls,project.scripts
           pyproject.toml || true
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
