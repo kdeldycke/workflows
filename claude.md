@@ -339,8 +339,14 @@ All other workflows (`lint.yaml`, `autofix.yaml`, `docs.yaml`, `labels.yaml`, `t
 
 ```yaml
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event.pull_request.number
+      || github.ref
+    }}
+  cancel-in-progress: >-
+    ${{ !startsWith(github.event.head_commit.message,
+      '[changelog] Release') }}
 ```
 
 This pauses cancellation when a release commit triggers the workflow. While this approach has the theoretical flaw of being evaluated on the new workflow, in practice these workflows run fast enough that it's not an issue.
