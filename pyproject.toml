@@ -114,14 +114,16 @@ dependencies = [
   "wcmatch>=10",
 ]
 
-urls."Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
-urls."Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.7.0"
-urls."Funding" = "https://github.com/sponsors/kdeldycke"
-urls."Homepage" = "https://github.com/kdeldycke/workflows"
-urls."Issues" = "https://github.com/kdeldycke/workflows/issues"
-urls."Repository" = "https://github.com/kdeldycke/workflows"
+[project.scripts]
+gha-utils = "gha_utils.__main__:main"
 
-scripts.gha-utils = "gha_utils.__main__:main"
+[project.urls]
+"Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
+"Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.7.0"
+"Funding" = "https://github.com/sponsors/kdeldycke"
+"Homepage" = "https://github.com/kdeldycke/workflows"
+"Issues" = "https://github.com/kdeldycke/workflows/issues"
+"Repository" = "https://github.com/kdeldycke/workflows"
 
 # Non-runtime development dependency groups.
 [dependency-groups]
@@ -154,13 +156,13 @@ exclude-newer-package = { extra-platforms = "0 day", "click-extra" = "0 day" }
 module-root = ""
 
 [tool.ruff]
+# Enable formatting of Python code blocks in Markdown files.
+# https://docs.astral.sh/ruff/formatter/#markdown-code-formatting
+extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}" ]
 preview = true
 fix = true
 unsafe-fixes = true
 show-fixes = true
-# Enable formatting of Python code blocks in Markdown files.
-# https://docs.astral.sh/ruff/formatter/#markdown-code-formatting
-extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext}" ]
 # Enable reformatting of code snippets in docstrings.
 # https://docs.astral.sh/ruff/formatter/#docstring-formatting
 format.docstring-code-format = true
