@@ -166,7 +166,7 @@ jobs:
           --with 'mdformat_admon==2.1.1'
           --with 'mdformat-config==0.2.1'
           --with 'mdformat_deflist==0.1.4'
-          --with 'mdformat_footnote==0.1.2'
+          --with 'mdformat_footnote==0.1.3'
           --with 'mdformat-front-matters==2.0.0'
           --with 'mdformat-gfm==1.0.0'
           --with 'mdformat_gfm_alerts==2.0.0'
