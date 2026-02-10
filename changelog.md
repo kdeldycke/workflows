@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix `changelog.yaml` concurrency race where `workflow_run` events from fast-completing "Build & release" cancel `push`-triggered `prepare-release` jobs before they finish.
 - Replace `taiki-e/install-action` with direct `curl` download for `labelmaker` binary in `labels.yaml` to reduce noisy Renovate PRs.
 
 ## [5.7.1 (2026-02-10)](https://github.com/kdeldycke/workflows/compare/v5.7.0...v5.7.1)

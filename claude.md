@@ -368,20 +368,23 @@ concurrency:
 
 This pauses cancellation when a release commit triggers the workflow. While this approach has the theoretical flaw of being evaluated on the new workflow, in practice these workflows run fast enough that it's not an issue.
 
-#### `changelog.yaml` — always cancellable
+#### `changelog.yaml` — event-scoped groups
 
-`changelog.yaml` uses the simplest concurrency strategy:
+`changelog.yaml` includes `github.event_name` in its concurrency group to prevent cross-event cancellation:
 
 ```yaml
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 ```
 
-This is safe because:
+**Why `event_name` is required:** `changelog.yaml` has both `push` and `workflow_run` triggers. The `workflow_run` fires when "Build & release" completes. For non-release commits, "Build & release" finishes quickly (most jobs are skipped), firing `workflow_run` before `prepare-release` completes. Without `event_name` in the group, the `workflow_run` event cancels the `push` event's `prepare-release` job — but then skips `prepare-release` itself (due to `if: github.event_name != 'workflow_run'`). The net effect is that `prepare-release` never runs.
 
-- The only job that runs on `push` events is `prepare-release`, which is idempotent (it regenerates the release branch via `peter-evans/create-pull-request`).
-- The `bump-versions` pipeline only runs on `schedule`, `workflow_dispatch`, and `workflow_run` events — never on `push`.
+Adding `event_name` ensures:
+
+- Push events only cancel other push events (same-event deduplication).
+- `workflow_run` events only cancel other `workflow_run` events.
+- `prepare-release` (push-triggered) runs to completion uninterrupted.
 - There is no `pull_request` trigger, so `github.event.pull_request.number` is omitted from the group expression.
 
 #### Event-specific behavior for `release.yaml`
