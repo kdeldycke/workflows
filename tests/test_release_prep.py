@@ -519,4 +519,8 @@ class TestReleasePrep:
         for workflow_file in temp_workflows_with_cli_pins.glob("*.yaml"):
             content = workflow_file.read_text(encoding="UTF-8")
             assert "gha-utils==1.2.3" not in content
-            assert "gha-utils==5.4.0" in content or "gha-utils==5.5.0" in content or "gha-utils==5.6.0" in content
+            assert (
+                "gha-utils==5.4.0" in content
+                or "gha-utils==5.5.0" in content
+                or "gha-utils==5.6.0" in content
+            )
