@@ -63,6 +63,15 @@ WORKFLOWS_WITH_UNIQUE_GROUPS = frozenset((
     "release.yaml",  # Uses github.sha in group for release/post-release commits.
 ))
 
+# Workflows that use event-scoped concurrency groups (github.event_name in group)
+# with always-cancellable cancel-in-progress. This prevents cross-event
+# cancellation without needing conditional cancel-in-progress.
+WORKFLOWS_WITH_EVENT_SCOPED_GROUPS = frozenset((
+    # workflow_run events from "Build & release" cancel push-triggered runs
+    # without event_name in the group.
+    "changelog.yaml",
+))
+
 # Workflows that must have concurrency configured (all except exempted ones).
 WORKFLOWS_WITH_CONCURRENCY = tuple(
     sorted(
@@ -73,12 +82,13 @@ WORKFLOWS_WITH_CONCURRENCY = tuple(
 )
 
 # Workflows that must use conditional cancel-in-progress (excludes unique
-# group workflows).
+# group and event-scoped workflows).
 WORKFLOWS_WITH_CONDITIONAL_CANCEL = tuple(
     sorted(
         name
         for name in WORKFLOWS_WITH_CONCURRENCY
         if name not in WORKFLOWS_WITH_UNIQUE_GROUPS
+        and name not in WORKFLOWS_WITH_EVENT_SCOPED_GROUPS
     )
 )
 
@@ -109,9 +119,15 @@ def test_concurrency_group_format(workflow_name: str) -> None:
     assert "github.workflow" in group, (
         f"{workflow_name}: concurrency group must include github.workflow"
     )
-    assert "github.event.pull_request.number" in group, (
-        f"{workflow_name}: concurrency group must include PR number for PR events"
-    )
+
+    # Only require PR number in group if the workflow has a pull_request trigger.
+    triggers = workflow.get(True, {})
+    has_pr_trigger = "pull_request" in triggers or "pull_request_target" in triggers
+    if has_pr_trigger:
+        assert "github.event.pull_request.number" in group, (
+            f"{workflow_name}: concurrency group must include PR number for PR events"
+        )
+
     assert "github.ref" in group, (
         f"{workflow_name}: concurrency group must include github.ref for push events"
     )
@@ -154,6 +170,26 @@ def test_cancel_in_progress_protects_releases(workflow_name: str) -> None:
     assert normalized.startswith("${{ !"), (
         f"{workflow_name}: cancel-in-progress must negate the condition "
         "to protect release commits from cancellation"
+    )
+
+
+@pytest.mark.parametrize("workflow_name", sorted(WORKFLOWS_WITH_EVENT_SCOPED_GROUPS))
+def test_event_scoped_group_isolates_events(workflow_name: str) -> None:
+    """Verify that event-scoped workflows include event_name in the group."""
+    workflow = load_workflow(workflow_name)
+    concurrency = workflow.get("concurrency", {})
+    group = concurrency.get("group", "")
+
+    assert "github.event_name" in group, (
+        f"{workflow_name}: concurrency group must include github.event_name "
+        "to prevent cross-event cancellation"
+    )
+
+    # cancel-in-progress should be static true (event isolation handles safety).
+    cancel_in_progress = concurrency.get("cancel-in-progress", "")
+    assert cancel_in_progress is True, (
+        f"{workflow_name}: cancel-in-progress should be true "
+        "(event-scoped groups handle release protection)"
     )
 
 
@@ -210,6 +246,27 @@ def test_all_workflows_discovered() -> None:
         f"Unique group workflows must have concurrency: {not_in_concurrency}"
     )
 
+    # Verify event-scoped workflows exist.
+    missing_event_scoped = WORKFLOWS_WITH_EVENT_SCOPED_GROUPS - all_workflows
+    assert not missing_event_scoped, (
+        f"Event-scoped workflows not found: {missing_event_scoped}. "
+        "Remove them from WORKFLOWS_WITH_EVENT_SCOPED_GROUPS."
+    )
+
+    # Verify event-scoped workflows are a subset of concurrency workflows.
+    not_in_concurrency = WORKFLOWS_WITH_EVENT_SCOPED_GROUPS - set(
+        WORKFLOWS_WITH_CONCURRENCY
+    )
+    assert not not_in_concurrency, (
+        f"Event-scoped workflows must have concurrency: {not_in_concurrency}"
+    )
+
+    # Verify no overlap between unique groups and event-scoped groups.
+    overlap_strategies = WORKFLOWS_WITH_UNIQUE_GROUPS & WORKFLOWS_WITH_EVENT_SCOPED_GROUPS
+    assert not overlap_strategies, (
+        f"Workflows in both unique and event-scoped categories: {overlap_strategies}"
+    )
+
     # Verify dynamic discovery found workflows.
     assert WORKFLOWS_WITH_CONCURRENCY, "No workflows discovered for concurrency testing"
 
@@ -227,15 +284,15 @@ def test_release_commit_prefix_in_changelog_workflow() -> None:
     prepare_release = jobs.get("prepare-release", {})
     steps = prepare_release.get("steps", [])
 
-    # Look for the step that creates the release commit.
+    # Look for the step that creates the freeze commit.
     release_commit_step = None
     for step in steps:
-        if step.get("name") == "Create release commit":
+        if step.get("name") == "Create freeze commit":
             release_commit_step = step
             break
 
     assert release_commit_step is not None, (
-        "changelog.yaml must have a 'Create release commit' step"
+        "changelog.yaml must have a 'Create freeze commit' step"
     )
 
     run_command = release_commit_step.get("run", "")
@@ -246,21 +303,21 @@ def test_release_commit_prefix_in_changelog_workflow() -> None:
 
 
 def test_version_increments_skips_push_events() -> None:
-    """Verify that version-increments job indirectly skips release commits.
+    """Verify that bump-versions job indirectly skips release commits.
 
-    Release commits come from push events. The version-increments job depends on
+    Release commits come from push events. The bump-versions job depends on
     project-metadata, which only runs for schedule, workflow_dispatch, or
-    workflow_run events. This ensures version-increments never runs for push events
+    workflow_run events. This ensures bump-versions never runs for push events
     (including release commits) without needing a job-level if condition.
     """
     workflow = load_workflow("changelog.yaml")
     jobs = workflow.get("jobs", {})
 
-    # Verify version-increments depends on project-metadata.
-    version_increments = jobs.get("version-increments", {})
+    # Verify bump-versions depends on project-metadata.
+    version_increments = jobs.get("bump-versions", {})
     needs = version_increments.get("needs", [])
     assert "project-metadata" in needs, (
-        "version-increments job must depend on project-metadata"
+        "bump-versions job must depend on project-metadata"
     )
 
     # Verify project-metadata excludes push events (the event type for release commits).
@@ -310,7 +367,7 @@ def test_version_bump_commit_in_changelog_workflow() -> None:
     workflow = load_workflow("changelog.yaml")
 
     jobs = workflow.get("jobs", {})
-    version_increments = jobs.get("version-increments", {})
+    version_increments = jobs.get("bump-versions", {})
     steps = version_increments.get("steps", [])
 
     # Look for the create-pull-request step which contains the commit message.
@@ -321,12 +378,12 @@ def test_version_bump_commit_in_changelog_workflow() -> None:
             break
 
     assert create_pr_step is not None, (
-        "changelog.yaml version-increments job must have a create-pull-request step"
+        "changelog.yaml bump-versions job must have a create-pull-request step"
     )
 
     commit_message = create_pr_step.get("with", {}).get("commit-message", "")
     assert VERSION_BUMP_COMMIT_PREFIX in commit_message, (
-        f"version-increments commit message must use '{VERSION_BUMP_COMMIT_PREFIX}'. "
+        f"bump-versions commit message must use '{VERSION_BUMP_COMMIT_PREFIX}'. "
         f"Found: {commit_message}"
     )
 
@@ -407,7 +464,7 @@ def test_action_uses_full_semantic_version(
 UBUNTU_2404_EXCEPTIONS = {
     # Format: (workflow_name, job_name): "reason"
     ("autofix.yaml", "format-markdown"): "shfmt is not available on ubuntu-slim",
-    ("docs.yaml", "optimize-images"): "calibreapp/image-actions requires Docker",
+    ("autofix.yaml", "optimize-images"): "calibreapp/image-actions requires Docker",
     ("lint.yaml", "broken-links"): "shell: python cannot find Python interpreter",
     (
         "lint.yaml",
