@@ -9,6 +9,7 @@
 - Fix `update-cli-pins` job failing due to shallow clone.
 - Fix `changelog.yaml` concurrency race from fast-completing `release.yaml`.
 - Include version numbers in post-release commit message (e.g. `[changelog] Post-release bump v5.7.1 → v5.7.2`).
+- Only run `debug.yaml` workflow manually and once a month.
 - Document the freeze/unfreeze release commit vocabulary.
 - Document the ✅/⁉️ convention for stable vs. unstable jobs.
 
