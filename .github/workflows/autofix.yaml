@@ -73,7 +73,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx --no-progress 'gha-utils==5.7.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
 
   # --- Formatters: rewrite files to enforce canonical style. ---
 
@@ -102,7 +102,7 @@ jobs:
         # Projects with existing ruff config will keep their settings.
         run: |
           uv tool install 'ruff==0.15.0'
-          uvx --no-progress 'gha-utils==5.7.0' bundled init ruff pyproject.toml
+          uvx --no-progress 'gha-utils==5.7.1' bundled init ruff pyproject.toml
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
       - name: Run Ruff
@@ -360,7 +360,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Initialize bumpversion config
         run: |
-          uvx --no-progress 'gha-utils==5.7.0' bundled init bumpversion pyproject.toml
+          uvx --no-progress 'gha-utils==5.7.1' bundled init bumpversion pyproject.toml
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -386,7 +386,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Generate .mailmap
         run: |
-          uvx --no-progress 'gha-utils==5.7.0' mailmap-sync --skip-if-missing ./.mailmap
+          uvx --no-progress 'gha-utils==5.7.1' mailmap-sync --skip-if-missing ./.mailmap
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -416,7 +416,7 @@ jobs:
       - name: Generate graph
         # Include all dependency groups in the graph with subgraphs.
         run: >
-          uvx --no-progress 'gha-utils==5.7.0' deps-graph
+          uvx --no-progress 'gha-utils==5.7.1' deps-graph
           ${{ needs.project-metadata.outputs.package_name
           && format('--package {0}', needs.project-metadata.outputs.package_name)}}
           --all-groups --all-extras

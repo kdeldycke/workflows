@@ -53,7 +53,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx --no-progress 'gha-utils==5.7.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
 
   bump-versions:
     needs:
@@ -144,7 +144,7 @@ jobs:
         # Updates changelog and citation dates, comparison URL, and removes warning.
         # Also hard-codes version in workflow URLs for kdeldycke/workflows repository.
         run: >-
-          uvx --no-progress 'gha-utils==5.7.0' release-prep
+          uvx --no-progress 'gha-utils==5.7.1' release-prep
           ${{ github.repository == 'kdeldycke/workflows' && '--update-workflows' || '' }}
       - name: Prepare repository
         run: |
@@ -158,10 +158,10 @@ jobs:
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
         run: |
-          uvx --no-progress 'gha-utils==5.7.0' release-prep --post-release --update-workflows
+          uvx --no-progress 'gha-utils==5.7.1' release-prep --post-release --update-workflows
       - name: Add new changelog entry
         run: |
-          uvx --no-progress 'gha-utils==5.7.0' changelog ./changelog.md
+          uvx --no-progress 'gha-utils==5.7.1' changelog ./changelog.md
       - name: Version bump
         run: |
           bump-my-version bump --verbose patch
