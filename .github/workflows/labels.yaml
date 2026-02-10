@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Install labelmaker
-        uses: taiki-e/install-action@v2.67.10
+        uses: taiki-e/install-action@v2.67.18
         with:
           tool: labelmaker@0.6.4
       - name: Dump labels
