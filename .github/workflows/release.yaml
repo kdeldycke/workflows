@@ -128,7 +128,7 @@ jobs:
         run: |
           uv --no-progress build
       - name: Generate build attestations
-        uses: actions/attest-build-provenance@v3.1.0
+        uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: ./dist/*
       - name: Upload artifacts
@@ -294,7 +294,7 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
       - name: Generate attestations
-        uses: actions/attest-build-provenance@v3.1.0
+        uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPI
@@ -348,7 +348,7 @@ jobs:
       - name: Generate attestations
         # Do not try to attest artifacts if none have been produced.
         if: steps.collect_artifacts.outputs.artifacts_path
-        uses: actions/attest-build-provenance@v3.1.0
+        uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: ${{ steps.collect_artifacts.outputs.artifacts_path }}
       - name: Create GitHub release
