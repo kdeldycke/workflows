@@ -334,7 +334,7 @@ concurrency:
 | Commit Message                          | Concurrency Group            | Behavior                     |
 | :-------------------------------------- | :--------------------------- | :--------------------------- |
 | `[changelog] Release v4.26.0`           | `{workflow}-{sha}`           | **Protected** — unique group |
-| `[changelog] Post-release version bump` | `{workflow}-{sha}`           | **Protected** — unique group |
+| `[changelog] Post-release bump vX.Y.Z → vX.Y.Z` | `{workflow}-{sha}`           | **Protected** — unique group |
 | Any other commit                        | `{workflow}-refs/heads/main` | Cancellable by newer commits |
 
 Both `[changelog] Release` and `[changelog] Post-release` patterns must be matched because when a release is pushed, the event contains **two commits bundled together** and `github.event.head_commit` refers to the most recent one (the post-release bump).
@@ -344,7 +344,7 @@ Both `[changelog] Release` and `[changelog] Post-release` patterns must be match
 The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two commits** that must be merged via "Rebase and merge" (never squash):
 
 1. **Freeze commit** (`[changelog] Release vX.Y.Z`) — Freezes everything to the release version: finalizes the changelog date and comparison URL, removes the "unreleased" warning, and pins workflow action references to `@vX.Y.Z`.
-1. **Unfreeze commit** (`[changelog] Post-release version bump`) — Unfreezes for the next development cycle: reverts action references back to `@main`, adds a new unreleased changelog section, and bumps the version to the next patch.
+1. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.Z`) — Unfreezes for the next development cycle: reverts action references back to `@main`, adds a new unreleased changelog section, and bumps the version to the next patch.
 
 The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
 

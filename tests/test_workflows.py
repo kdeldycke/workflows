@@ -37,8 +37,8 @@ CHANGELOG_COMMIT_PREFIX = "[changelog]"
 # from cancellation to ensure proper tagging, PyPI publishing, and GitHub releases.
 RELEASE_COMMIT_PREFIX = f"{CHANGELOG_COMMIT_PREFIX} Release"
 
-# Commit message for post-release version bump.
-POST_RELEASE_COMMIT_MESSAGE = f"{CHANGELOG_COMMIT_PREFIX} Post-release version bump"
+# Commit message prefix for post-release version bump.
+POST_RELEASE_COMMIT_PREFIX = f"{CHANGELOG_COMMIT_PREFIX} Post-release bump"
 
 # Commit message prefix for version bump PRs.
 VERSION_BUMP_COMMIT_PREFIX = f"{CHANGELOG_COMMIT_PREFIX} Bump"
@@ -290,17 +290,17 @@ def test_post_release_commit_in_changelog_workflow() -> None:
     # Look for the step that creates the post-release commit.
     post_release_step = None
     for step in steps:
-        if step.get("name") == "Commit post-release version bump":
+        if step.get("name") == "Create unfreeze commit":
             post_release_step = step
             break
 
     assert post_release_step is not None, (
-        "changelog.yaml must have a 'Commit post-release version bump' step"
+        "changelog.yaml must have a 'Create unfreeze commit' step"
     )
 
     run_command = post_release_step.get("run", "")
-    assert POST_RELEASE_COMMIT_MESSAGE in run_command, (
-        f"changelog.yaml post-release commit must use '{POST_RELEASE_COMMIT_MESSAGE}'. "
+    assert POST_RELEASE_COMMIT_PREFIX in run_command, (
+        f"changelog.yaml post-release commit must use '{POST_RELEASE_COMMIT_PREFIX}'. "
         f"Found: {run_command}"
     )
 
@@ -333,16 +333,16 @@ def test_version_bump_commit_in_changelog_workflow() -> None:
 
 def test_broken_links_skips_post_release_commits() -> None:
     """Verify that broken-links job skips post-release version bump commits."""
-    workflow = load_workflow("lint.yaml")
+    workflow = load_workflow("docs.yaml")
 
     jobs = workflow.get("jobs", {})
-    broken_links = jobs.get("broken-links", {})
+    broken_links = jobs.get("check-broken-links", {})
     condition = broken_links.get("if", "")
 
     # The job should skip post-release commits.
-    assert POST_RELEASE_COMMIT_MESSAGE in condition, (
-        f"broken-links job must skip commits containing "
-        f"'{POST_RELEASE_COMMIT_MESSAGE}'. Found condition: {condition}"
+    assert POST_RELEASE_COMMIT_PREFIX in condition, (
+        f"check-broken-links job must skip commits containing "
+        f"'{POST_RELEASE_COMMIT_PREFIX}'. Found condition: {condition}"
     )
 
 

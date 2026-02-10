@@ -64,7 +64,7 @@ jobs:
     if: >
       github.event_name != 'pull_request'
       && github.ref != 'refs/heads/prepare-release'
-      && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
+      && (! contains(toJSON(github.event.commits.*.message), '[changelog] Post-release bump'))
       && fromJSON(needs.project-metadata.outputs.is_python_project)
       && fromJSON(needs.project-metadata.outputs.is_sphinx)
     runs-on: ubuntu-slim
@@ -100,7 +100,7 @@ jobs:
     if: >
       github.event_name != 'pull_request'
       && github.ref != 'refs/heads/prepare-release'
-      && (! contains(github.event.commits.*.message, '[changelog] Post-release version bump'))
+      && (! contains(toJSON(github.event.commits.*.message), '[changelog] Post-release bump'))
       && needs.project-metadata.outputs.doc_files
     runs-on: ubuntu-slim
     steps:

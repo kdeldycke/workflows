@@ -176,7 +176,7 @@ jobs:
           uv --no-progress sync
       - name: Create unfreeze commit
         run: |
-          git commit --all --message="[changelog] Post-release version bump"
+          git commit --all --message="[changelog] Post-release bump v${{ steps.get_version.outputs.current_version }} → v$(bump-my-version show current_version)"
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
         with:

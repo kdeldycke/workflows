@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Include version numbers in post-release commit message (e.g. `[changelog] Post-release bump v5.7.1 → v5.7.2`) for easier identification in git log.
 - Fix `changelog.yaml` concurrency race where `workflow_run` events from fast-completing "Build & release" cancel `push`-triggered `prepare-release` jobs before they finish.
 - Replace `taiki-e/install-action` with direct `curl` download for `labelmaker` binary in `labels.yaml` to reduce noisy Renovate PRs.
 

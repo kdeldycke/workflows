@@ -24,7 +24,7 @@ to process all commits in the push event.
 This is critical for releases, where two commits are pushed together:
 
 1. ``[changelog] Release vX.Y.Z`` — the release commit to be tagged and published
-2. ``[changelog] Post-release version bump`` — bumps version for the next dev cycle
+2. ``[changelog] Post-release bump vX.Y.Z → vX.Y.Z`` — bumps version for the next dev cycle
 
 Since ``github.event.head_commit`` only sees the post-release bump, this module extracts
 the full commit range from the push event and identifies release commits that need
@@ -1017,7 +1017,7 @@ class Metadata:
         This is critical for releases where two commits are pushed together:
 
         1. ``[changelog] Release vX.Y.Z`` — the release commit
-        2. ``[changelog] Post-release version bump`` — the post-release bump
+        2. ``[changelog] Post-release bump vX.Y.Z → vX.Y.Z`` — the post-release bump
 
         Without extracting the full commit range, the release commit would be missed
         since ``github.event.head_commit`` only exposes the post-release bump.
@@ -1452,7 +1452,7 @@ class Metadata:
         During a release, two commits are bundled into a single push event:
 
         1. ``[changelog] Release vX.Y.Z`` — freezes the version to the release number
-        2. ``[changelog] Post-release version bump`` — bumps to the next dev version
+        2. ``[changelog] Post-release bump vX.Y.Z → vX.Y.Z`` — bumps to the next dev version
 
         In this situation, the current version returned is the one from the most recent
         commit (the post-release bump), which represents the next development version.
