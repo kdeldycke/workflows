@@ -192,8 +192,8 @@ addopts = [
 xfail_strict = true
 
 [tool.coverage]
-run.branch = true
 # https://coverage.readthedocs.io/en/latest/config.html
+run.branch = true
 run.source = [ "gha_utils" ]
 report.precision = 2
 
