@@ -36,7 +36,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx --no-progress 'gha-utils==5.7.0' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==' metadata --output "$GITHUB_OUTPUT"
 
   lint-repo:
     needs:
@@ -54,7 +54,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          uvx --no-progress 'gha-utils==5.7.0' lint-repo
+          uvx --no-progress 'gha-utils==' lint-repo
           ${{ needs.project-metadata.outputs.package_name &&
           format('--package-name "{0}"', needs.project-metadata.outputs.package_name) || '' }}
           --repo-name "${{ github.event.repository.name }}"
