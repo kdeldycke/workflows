@@ -31,7 +31,7 @@ keywords = [
   "workflow-reusable",
   "yaml",
 ]
-license = "GPL-2.0-OR-later"
+license = "GPL-2.0-or-later"
 license-files = [ "license" ]
 authors = [ { name = "Kevin Deldycke", email = "kevin@deldycke.com" } ]
 # Python versions and their status: https://devguide.python.org/versions/
