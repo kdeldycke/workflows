@@ -26,7 +26,7 @@ jobs:
       - name: Run gha-utils metadata
         id: project-metadata
         run: |
-          uvx --no-progress 'gha-utils==5.6.1' metadata --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.7.0' metadata --output "$GITHUB_OUTPUT"
 
   deploy-docs:
     name: Deploy Sphinx doc
@@ -87,7 +87,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          uvx --no-progress 'gha-utils==5.6.1' sphinx-linkcheck
+          uvx --no-progress 'gha-utils==5.7.0' sphinx-linkcheck
           --output-json ./docs/linkcheck/output.json
           --repo-name "${{ github.event.repository.name }}"
 
@@ -122,7 +122,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          uvx --no-progress 'gha-utils==5.6.1' broken-links
+          uvx --no-progress 'gha-utils==5.7.0' broken-links
           --lychee-exit-code ${{ steps.lychee_run.outputs.exit_code }}
           --body-file ./lychee/out.md
           --repo-name "${{ github.event.repository.name }}"

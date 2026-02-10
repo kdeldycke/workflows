@@ -493,7 +493,7 @@ class TestReleasePrep:
             # All should now use current version.
             assert "gha-utils==1.2.3" in content
 
-    def test_update_cli_version_pins_in_prepare_release(
+    def test_update_cli_version_pins_not_in_prepare_release(
         self,
         tmp_path: Path,
         temp_changelog: Path,
@@ -501,7 +501,12 @@ class TestReleasePrep:
         temp_pyproject: Path,
         monkeypatch,
     ) -> None:
-        """Test that CLI version pins are updated during prepare_release."""
+        """Test that CLI version pins are NOT updated during prepare_release.
+
+        Pins must reference an already-published PyPI version. Since
+        ``prepare_release()`` runs before the new version is published,
+        updating pins here would break workflows.
+        """
         monkeypatch.chdir(tmp_path)
 
         prep = ReleasePrep(
@@ -510,8 +515,8 @@ class TestReleasePrep:
         )
         prep.prepare_release(update_workflows=True)
 
-        # Verify CLI version pins are updated.
+        # Verify CLI version pins are NOT updated (old pins remain).
         for workflow_file in temp_workflows_with_cli_pins.glob("*.yaml"):
             content = workflow_file.read_text(encoding="UTF-8")
-            assert "gha-utils==1.2.3" in content
-            assert "gha-utils==5.4.0" not in content
+            assert "gha-utils==1.2.3" not in content
+            assert "gha-utils==5.4.0" in content or "gha-utils==5.5.0" in content or "gha-utils==5.6.0" in content

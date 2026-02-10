@@ -24,7 +24,6 @@ It handles:
 - Updating GitHub comparison URLs from ``main`` to the release tag.
 - Removing the "unreleased" warning from the changelog.
 - Hard-coding version numbers in workflow URLs (for kdeldycke/workflows).
-- Updating ``gha-utils`` CLI version pins in workflow files.
 """
 
 from __future__ import annotations
@@ -266,7 +265,6 @@ class ReleasePrep:
 
         if update_workflows:
             self.hardcode_workflow_version()
-            self.update_cli_version_pins()
 
         return self.modified_files
 
