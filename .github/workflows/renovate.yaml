@@ -111,7 +111,7 @@ jobs:
           git commit -m "[deps] Update exclude-newer date"
           git push
 
-      - uses: renovatebot/github-action@v44.2.5
+      - uses: renovatebot/github-action@v44.2.6
         with:
           # Custom PAT required for Renovate to function fully.
           # See readme.md for full list of required permissions.
