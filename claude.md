@@ -339,6 +339,17 @@ concurrency:
 
 Both `[changelog] Release` and `[changelog] Post-release` patterns must be matched because when a release is pushed, the event contains **two commits bundled together** and `github.event.head_commit` refers to the most recent one (the post-release bump).
 
+#### Release PR: freeze and unfreeze commits
+
+The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two commits** that must be merged via "Rebase and merge" (never squash):
+
+1. **Freeze commit** (`[changelog] Release vX.Y.Z`) — Freezes everything to the release version: finalizes the changelog date and comparison URL, removes the "unreleased" warning, and pins workflow action references to `@vX.Y.Z`.
+1. **Unfreeze commit** (`[changelog] Post-release version bump`) — Unfreezes for the next development cycle: reverts action references back to `@main`, adds a new unreleased changelog section, and bumps the version to the next patch.
+
+The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
+
+**CLI version pins** (`gha-utils==X.Y.Z`) are intentionally **not** updated in either commit. They stay at the previous release version so the release workflow can install `gha-utils` from PyPI during the build. After publishing succeeds, the `update-cli-pins` job creates a follow-up PR to bump the pins. This avoids a chicken-and-egg problem where the release workflow would try to install a version that hasn't been published yet.
+
 #### Other workflows — simple groups
 
 All other workflows (`lint.yaml`, `autofix.yaml`, `docs.yaml`, `labels.yaml`, `tests.yaml`, `renovate.yaml`) use a simpler pattern. They don't perform irreversible release operations, so a conditional `cancel-in-progress` is sufficient:

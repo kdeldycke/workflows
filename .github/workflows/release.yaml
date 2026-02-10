@@ -52,8 +52,9 @@ concurrency:
   # If a regular commit is pushed while a release workflow is running, the new workflow
   # would cancel the release (since they share the same group and the new commit doesn't
   # match the release pattern).
-  # Solution: Release commits get a unique group (using SHA), so they can never be
-  # cancelled by subsequent pushes. Regular pushes share a group and cancel each other.
+  # Solution: Release commits (freeze and unfreeze) get a unique group (using SHA), so
+  # they can never be cancelled by subsequent pushes. Regular pushes share a group and
+  # cancel each other.
   group: >-
     ${{ github.workflow }}-${{
       github.event.pull_request.number

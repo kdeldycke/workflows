@@ -140,6 +140,7 @@ jobs:
         id: get_version
         run: |
           echo "current_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
+      # --- Freeze commit: pin everything to the release version. ---
       - name: Prepare release
         # Updates changelog and citation dates, comparison URL, and removes warning.
         # Also hard-codes version in workflow URLs for kdeldycke/workflows repository.
@@ -151,9 +152,10 @@ jobs:
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
           git clean -fd
-      - name: Create release commit
+      - name: Create freeze commit
         run: |
           git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
+      # --- Unfreeze commit: revert to development references. ---
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
@@ -168,7 +170,7 @@ jobs:
       - name: Sync uv.lock
         run: |
           uv --no-progress sync
-      - name: Commit post-release version bump
+      - name: Create unfreeze commit
         run: |
           git commit --all --message="[changelog] Post-release version bump"
       - id: pr-metadata

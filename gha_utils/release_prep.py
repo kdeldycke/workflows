@@ -163,6 +163,9 @@ class ReleasePrep:
     def hardcode_workflow_version(self) -> int:
         """Replace workflow URLs from default branch to versioned tag.
 
+        This is part of the **freeze** step: it pins workflow references to the
+        release tag so released versions reference immutable URLs.
+
         Replaces ``/workflows/{default_branch}/`` with ``/workflows/v{version}/``
         and ``/workflows/.github/actions/...@{default_branch}`` with
         ``/workflows/.github/actions/...@v{version}`` in all workflow YAML files.
@@ -195,10 +198,12 @@ class ReleasePrep:
     def retarget_workflow_branch(self) -> int:
         """Replace workflow URLs from versioned tag back to default branch.
 
+        This is part of the **unfreeze** step: it reverts workflow references back
+        to the default branch for the next development cycle.
+
         Replaces ``/workflows/v{version}/`` with ``/workflows/{default_branch}/``
         and ``/workflows/.github/actions/...@v{version}`` with
         ``/workflows/.github/actions/...@{default_branch}`` in all workflow YAML files.
-        This is used after the release commit to prepare for the next development cycle.
 
         :return: Number of files modified.
         """
@@ -251,9 +256,9 @@ class ReleasePrep:
         return count
 
     def prepare_release(self, update_workflows: bool = False) -> list[Path]:
-        """Run all release preparation steps.
+        """Run all freeze steps to prepare the release commit.
 
-        :param update_workflows: If True, also update workflow URLs to versioned tag.
+        :param update_workflows: If True, also pin workflow URLs to versioned tag.
         :return: List of modified files.
         """
         self.modified_files = []
@@ -269,9 +274,9 @@ class ReleasePrep:
         return self.modified_files
 
     def post_release(self, update_workflows: bool = False) -> list[Path]:
-        """Run post-release steps to retarget workflow URLs.
+        """Run all unfreeze steps to prepare the post-release commit.
 
-        :param update_workflows: If True, retarget workflow URLs to default branch.
+        :param update_workflows: If True, revert workflow URLs to default branch.
         :return: List of modified files.
         """
         self.modified_files = []

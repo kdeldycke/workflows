@@ -160,7 +160,7 @@ jobs:
 
 - **Idempotent operations** — Safe to re-run: tag creation skips if already exists, version bumps have eligibility checks, PRs update existing branches.
 
-- **Graceful degradation** — Fallback tokens (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`) and `continue-on-error` for unstable targets.
+- **Graceful degradation** — Fallback tokens (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`) and `continue-on-error` for unstable targets. Job names use emoji prefixes for at-a-glance status: **✅** for stable jobs that must pass, **⁉️** for unstable jobs (e.g., experimental Python versions, unreleased platforms) that are expected to fail and won't block the workflow.
 
 - **Dogfooding** — This repository uses these workflows for itself.
 
@@ -272,8 +272,9 @@ jobs:
 
 - **Prepare release** (`prepare-release`)
 
-  - Creates a release PR with changelog updates and version tagging using [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`gha-utils changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
-  - Syncs `uv.lock` after post-release version bump
+  - Creates a release PR with two commits: a **freeze commit** that pins everything to the release version, and an **unfreeze commit** that reverts to development references and bumps the patch version
+  - Uses [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`gha-utils changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
+  - Must be merged with "Rebase and merge" (not squash) — the auto-tagging job needs both commits separate
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
     - A `changelog.md` file
@@ -421,7 +422,7 @@ docs = [
 
 [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist) that nobody wants to deal with. This workflow automates most of it for Python projects.
 
-**Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms.
+**Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms. Job names are prefixed with ✅ (stable, must pass) or ⁉️ (unstable, allowed to fail) for quick visual triage in the GitHub Actions UI.
 
 - **Build package** (`build-package`)
 
@@ -580,7 +581,7 @@ The `--exclude-newer` flag ignores packages released in the last 7 days, providi
 
 ### Tagged workflow URLs
 
-Workflows in this repository are **self-referential**. The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job rewrites workflow URL references from `main` to the release tag, ensuring released versions reference immutable URLs.
+Workflows in this repository are **self-referential**. The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job's freeze commit rewrites workflow URL references from `main` to the release tag, ensuring released versions reference immutable URLs. The unfreeze commit reverts them back to `main` for development.
 
 ## Permissions and token
 
