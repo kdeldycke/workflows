@@ -5,7 +5,7 @@ requires = [ "uv-build>=0.9" ]
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
-version = "5.7.1"
+version = "5.7.2"
 description = "🧩 CLI for GitHub Actions + reusable workflows"
 readme = "readme.md"
 keywords = [
@@ -118,7 +118,7 @@ gha-utils = "gha_utils.__main__:main"
 
 [project.urls]
 "Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
-"Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.7.1"
+"Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.7.2"
 "Funding" = "https://github.com/sponsors/kdeldycke"
 "Homepage" = "https://github.com/kdeldycke/workflows"
 "Issues" = "https://github.com/kdeldycke/workflows/issues"
@@ -201,7 +201,7 @@ source = [ "gha_utils" ]
 branch = true
 
 [tool.bumpversion]
-current_version = "5.7.1"
+current_version = "5.7.2"
 allow_dirty = true
 ignore_missing_files = true
 
