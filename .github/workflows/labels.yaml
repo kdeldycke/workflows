@@ -40,9 +40,10 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Install labelmaker
-        uses: taiki-e/install-action@v2.67.10
-        with:
-          tool: labelmaker@0.6.4
+        run: >
+          curl -fsSL
+          "https://github.com/jwodder/labelmaker/releases/download/v0.6.4/labelmaker-x86_64-unknown-linux-gnu.tar.xz"
+          | tar xJ --directory=/usr/local/bin
       - name: Dump labels
         run: |
           uvx --no-progress 'gha-utils==5.7.1' bundled export labels.toml

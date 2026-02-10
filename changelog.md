@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Replace `taiki-e/install-action` with direct `curl` download for `labelmaker` binary in `labels.yaml` to reduce noisy Renovate PRs.
+
 ## [5.7.1 (2026-02-10)](https://github.com/kdeldycke/workflows/compare/v5.7.0...v5.7.1)
 
 - Fix `gha-utils` CLI version pins stuck at `5.6.1` by moving pin updates to a post-release `update-cli-pins` job in `release.yaml` that runs after the new version is published to PyPI.

@@ -94,12 +94,12 @@
       datasourceTemplate: "github-releases",
     },
     {
-      description: "Update labelmaker version in taiki-e/install-action.",
+      description: "Update labelmaker version in download URL.",
       customType: "regex",
       fileMatch: ["\\.github/workflows/.+\\.yaml$"],
       matchStrings: [
-        // Matches: tool: labelmaker@0.6.4
-        "tool:\\s+labelmaker@(?<currentValue>[0-9.]+)",
+        // Matches: labelmaker/releases/download/v0.6.4/
+        "labelmaker/releases/download/v(?<currentValue>[0-9.]+)/",
       ],
       depNameTemplate: "jwodder/labelmaker",
       datasourceTemplate: "github-releases",
