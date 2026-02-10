@@ -110,7 +110,7 @@ jobs:
           ruff check --output-format github
           ruff format --output-format github
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -137,7 +137,7 @@ jobs:
           --expand-tables project.entry-points,project.optional-dependencies,project.urls,project.scripts
           pyproject.toml || true
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -205,7 +205,7 @@ jobs:
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes|Related Lists)\]\(#.+\)$/{print}' "{}" \;
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -237,7 +237,7 @@ jobs:
           --json-parse-allow-trailing-commas=true
           ${{ needs.project-metadata.outputs.json_files }}
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -260,7 +260,7 @@ jobs:
       - name: Remove local typos binary
         run: rm ./typos
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
@@ -286,7 +286,7 @@ jobs:
         with:
           compressOnly: true
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
         with:
           prefix: ${{ steps.image_actions.outputs.markdown }}
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -342,7 +342,7 @@ jobs:
           ${{ env.gitignore-extra-content }}
           EOF
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -362,7 +362,7 @@ jobs:
         run: |
           uvx --no-progress 'gha-utils==5.7.0' bundled init bumpversion pyproject.toml
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -388,7 +388,7 @@ jobs:
         run: |
           uvx --no-progress 'gha-utils==5.7.0' mailmap-sync --skip-if-missing ./.mailmap
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -422,7 +422,7 @@ jobs:
           --all-groups --all-extras
           --output "${{ env.dependency-graph-output }}"
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -454,7 +454,7 @@ jobs:
             uv --no-progress run --frozen --group docs -- python docs/docs_update.py
           fi
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -479,7 +479,7 @@ jobs:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.1
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
         with:
           # Template variables are substituted by the template-sync action.
           prefix: |
