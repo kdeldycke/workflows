@@ -43,7 +43,7 @@ jobs:
         run: >
           curl -fsSL
           "https://github.com/jwodder/labelmaker/releases/download/v0.6.4/labelmaker-x86_64-unknown-linux-gnu.tar.xz"
-          | tar xJ --directory=/usr/local/bin
+          | tar xJ --strip-components=1 --directory=/usr/local/bin
       - name: Dump labels
         run: |
           uvx --no-progress 'gha-utils==5.7.1' bundled export labels.toml
