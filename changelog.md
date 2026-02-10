@@ -5,9 +5,12 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Include version numbers in post-release commit message (e.g. `[changelog] Post-release bump v5.7.1 → v5.7.2`) for easier identification in git log.
-- Fix `changelog.yaml` concurrency race where `workflow_run` events from fast-completing "Build & release" cancel `push`-triggered `prepare-release` jobs before they finish.
-- Replace `taiki-e/install-action` with direct `curl` download for `labelmaker` binary in `labels.yaml` to reduce noisy Renovate PRs.
+- Replace `taiki-e/install-action` with direct `curl` download for `labelmaker` binary.
+- Fix `update-cli-pins` job failing due to shallow clone.
+- Fix `changelog.yaml` concurrency race from fast-completing `release.yaml`.
+- Include version numbers in post-release commit message (e.g. `[changelog] Post-release bump v5.7.1 → v5.7.2`).
+- Document the freeze/unfreeze release commit vocabulary.
+- Document the ✅/⁉️ convention for stable vs. unstable jobs.
 
 ## [5.7.1 (2026-02-10)](https://github.com/kdeldycke/workflows/compare/v5.7.0...v5.7.1)
 
