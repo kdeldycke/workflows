@@ -113,6 +113,7 @@ dependencies = [
   # wcmatch 10.0 fix some inconsistencies in globbing and symlinks.
   "wcmatch>=10",
 ]
+
 [project.scripts]
 gha-utils = "gha_utils.__main__:main"
 
@@ -149,10 +150,8 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 exclude-newer = "2026-02-03T00:00:00Z"
 # XXX Disable exclusion of brand new extra-platforms and click-extra releases.
 exclude-newer-package = { extra-platforms = "0 day", "click-extra" = "0 day" }
-
-[tool.uv.build-backend]
 # Package is at root level, not in "./src/".
-module-root = ""
+build-backend.module-root = ""
 
 [tool.ruff]
 # Enable formatting of Python code blocks in Markdown files.
@@ -192,13 +191,11 @@ addopts = [
 # Make sure tests that are expected to fail do not resurrect and start working all of a sudden.
 xfail_strict = true
 
-[tool.coverage.report]
-precision = 2
-
-[tool.coverage.run]
+[tool.coverage]
+run.branch = true
 # https://coverage.readthedocs.io/en/latest/config.html
-source = [ "gha_utils" ]
-branch = true
+run.source = [ "gha_utils" ]
+report.precision = 2
 
 [tool.bumpversion]
 current_version = "5.7.2"
@@ -219,8 +216,8 @@ replace = 'version = "{new_version}"'
 [[tool.bumpversion.files]]
 # Update version in download URL.
 filename = "./pyproject.toml"
-search = 'releases/tag/v{current_version}'
-replace = 'releases/tag/v{new_version}'
+search = "releases/tag/v{current_version}"
+replace = "releases/tag/v{new_version}"
 
 [[tool.bumpversion.files]]
 # Update the version in Markdown changelog.
@@ -241,7 +238,4 @@ warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
 pretty = true
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = [ "py_walk.*" ]
+overrides = [ { ignore_missing_imports = true, module = [ "py_walk.*" ] } ]
