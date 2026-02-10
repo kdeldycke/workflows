@@ -121,7 +121,7 @@ def test_concurrency_group_format(workflow_name: str) -> None:
     )
 
     # Only require PR number in group if the workflow has a pull_request trigger.
-    triggers = workflow.get(True, {})
+    triggers = workflow.get("on", {})
     has_pr_trigger = "pull_request" in triggers or "pull_request_target" in triggers
     if has_pr_trigger:
         assert "github.event.pull_request.number" in group, (
@@ -465,12 +465,6 @@ UBUNTU_2404_EXCEPTIONS = {
     # Format: (workflow_name, job_name): "reason"
     ("autofix.yaml", "format-markdown"): "shfmt is not available on ubuntu-slim",
     ("autofix.yaml", "optimize-images"): "calibreapp/image-actions requires Docker",
-    ("lint.yaml", "broken-links"): "shell: python cannot find Python interpreter",
-    (
-        "lint.yaml",
-        "github-archived-repo-check",
-    ): "shell: python cannot find interpreter",
-    ("release.yaml", "github-release"): "shell: python cannot find Python interpreter",
     ("renovate.yaml", "renovate"): "renovatebot/github-action requires Docker",
 }
 
