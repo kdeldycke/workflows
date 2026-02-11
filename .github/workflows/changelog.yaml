@@ -49,8 +49,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
         with:
-          # For workflow_run, checkout the commit from the triggering workflow.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # github.sha resolves correctly for all trigger types: push (pushed commit),
+          # schedule/workflow_dispatch/workflow_run (latest commit on default branch).
+          # Do NOT use workflow_run.head_sha — it points to the commit that triggered
+          # "Build & release", which may be stale after the release cycle adds commits.
+          ref: ${{ github.sha }}
           # Fetch all tags so we can compare against the latest release.
           fetch-tags: true
       - uses: astral-sh/setup-uv@v7.2.1
@@ -76,8 +79,11 @@ jobs:
       - uses: actions/checkout@v6.0.2
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         with:
-          # For workflow_run, checkout the commit from the triggering workflow.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # github.sha resolves correctly for all trigger types: push (pushed commit),
+          # schedule/workflow_dispatch/workflow_run (latest commit on default branch).
+          # Do NOT use workflow_run.head_sha — it points to the commit that triggered
+          # "Build & release", which may be stale after the release cycle adds commits.
+          ref: ${{ github.sha }}
       - uses: astral-sh/setup-uv@v7.2.1
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
       - name: Install bump-my-version

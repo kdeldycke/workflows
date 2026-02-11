@@ -277,7 +277,7 @@ jobs:
   - **Runs on**:
     - Schedule (daily at 6:00 UTC)
     - Manual dispatch
-    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger, to ensure tags exist before checking bump eligibility)
+    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger, to ensure tags exist before checking bump eligibility). Checks out the latest `main` HEAD, not the triggering workflow's commit.
 
 - **Prepare release** (`prepare-release`)
 

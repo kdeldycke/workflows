@@ -301,6 +301,12 @@ For example, `changelog.yaml`'s `bump-versions` job needs to know the latest rel
 
 Apply the same philosophy elsewhere: avoid single points of failure in workflow logic. If a job depends on external state (tags, published packages, API availability), add a fallback or a graceful default. When possible, make operations idempotent (e.g., `--skip-existing` on tag creation) so re-runs are safe.
 
+#### `workflow_run` checkout pitfall
+
+When `workflow_run` fires, `github.event.workflow_run.head_sha` points to the commit that *triggered* the upstream workflow — not the latest commit on `main`. If the release cycle added commits after that trigger (freeze + unfreeze), checking out `head_sha` produces a stale tree and the resulting PR will conflict with current `main`.
+
+**Fix:** Use `github.sha` instead, which for `workflow_run` events resolves to the latest commit on the default branch. The `workflow_run` trigger's purpose is *timing* (ensuring tags exist), not pinning to a specific commit. This applies to any job that needs the current state of `main` after an upstream workflow completes.
+
 ### Concurrency implementation
 
 > [!NOTE]

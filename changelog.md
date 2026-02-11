@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix stale checkout in `bump-versions` causing merge conflicts after releases.
 - Add `cancel-runs.yaml` workflow to cancel in-progress and queued runs when a PR is closed.
 - Add `gha-utils pr-body` subcommand to generate PR body with workflow metadata.
 - Remove the `pr-metadata` composite action.
