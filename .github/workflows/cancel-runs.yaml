@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: Cancel in-progress runs for PR branch
-        uses: actions/github-script@v7.0.1
+        uses: actions/github-script@v7.1.0
         with:
           script: |
             const owner = context.repo.owner;
