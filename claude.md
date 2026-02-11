@@ -345,7 +345,7 @@ The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two co
 
 The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
 
-**CLI version pins** (`gha-utils==X.Y.Z`) are intentionally **not** updated in either commit. They stay at the previous release version so the release workflow can install `gha-utils` from PyPI during the build. After publishing succeeds, the `update-cli-pins` job creates a follow-up PR to bump the pins. This avoids a chicken-and-egg problem where the release workflow would try to install a version that hasn't been published yet.
+**CLI version pins** (`gha-utils==X.Y.Z`) are **not** updated in either commit. They stay at the previous release version because the release workflow needs to install `gha-utils` from PyPI before the new version is published. Renovate handles updating the pins after the new version is available on PyPI, via the `customManagers` regex rule in `renovate.json5` that matches `'package==version'` patterns in workflow files.
 
 #### Other workflows — simple groups
 

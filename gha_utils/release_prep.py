@@ -230,31 +230,6 @@ class ReleasePrep:
 
         return count
 
-    def update_cli_version_pins(self) -> int:
-        """Update all ``gha-utils==X.Y.Z`` version pins to the current version.
-
-        Replaces any ``gha-utils==<version>`` pattern with ``gha-utils=={current_version}``
-        in all workflow YAML files. This ensures workflows use the newly released CLI.
-
-        :return: Number of files modified.
-        """
-        if not self.workflow_dir.exists():
-            logging.debug(f"Workflow directory not found: {self.workflow_dir}")
-            return 0
-
-        count = 0
-        # Match gha-utils==X.Y.Z where X.Y.Z is any semver-like version.
-        pattern = re.compile(r"gha-utils==[\d.]+")
-        replacement = f"gha-utils=={self.current_version}"
-
-        for workflow_file in self.workflow_dir.glob("*.yaml"):
-            original = workflow_file.read_text(encoding="UTF-8")
-            content = pattern.sub(replacement, original)
-            if self._update_file(workflow_file, content, original):
-                count += 1
-
-        return count
-
     def prepare_release(self, update_workflows: bool = False) -> list[Path]:
         """Run all freeze steps to prepare the release commit.
 

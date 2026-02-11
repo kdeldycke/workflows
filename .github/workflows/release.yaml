@@ -71,8 +71,6 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    # All jobs depending on project-metadata in this workflow are skipped on automated branches.
-    if: github.head_ref != 'update-cli-pins'
     runs-on: ubuntu-slim
     outputs:
       # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins
@@ -366,45 +364,3 @@ jobs:
           target_commitish: ${{ matrix.commit }}
           files: ${{ steps.collect_artifacts.outputs.artifacts_path }}
           body: ${{ needs.project-metadata.outputs.release_notes }}
-
-  update-cli-pins:
-    name: Update CLI version pins
-    needs:
-      - publish-pypi
-    # Only update pins after a successful PyPI publish on the main branch.
-    if: always() && needs.publish-pypi.result == 'success'
-    runs-on: ubuntu-slim
-    # This job explicitly relies on barebone git/sed CLIs to avoid a chicken-and-egg
-    # problem: we cannot use gha-utils to update its own version pins.
-    steps:
-      - uses: actions/checkout@v6.0.2
-        with:
-          ref: ${{ github.sha }}
-          # Depth 2 so git-describe can reach the freeze commit's tag from the
-          # unfreeze commit (they are adjacent in the rebase-merged PR).
-          fetch-depth: 2
-          fetch-tags: true
-      - name: Get latest release version
-        id: version
-        run: |
-          echo "version=$(git describe --tags --abbrev=0 | sed 's/^v//')" | tee -a "$GITHUB_OUTPUT"
-      - name: Update gha-utils version pins
-        run: >
-          sed -i -E
-          "s/gha-utils==[0-9.]+/gha-utils==${{ steps.version.outputs.version }}/g"
-          .github/workflows/*.yaml
-      - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
-      - uses: peter-evans/create-pull-request@v8.1.0
-        with:
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-          assignees: ${{ github.actor }}
-          commit-message: >
-            [autofix] Update gha-utils to v${{ steps.version.outputs.version }}
-          title: >
-            Update `gha-utils` to `v${{ steps.version.outputs.version }}`
-          body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "🆙 changelog"
-          base: main
-          branch: update-cli-pins
-          delete-branch: true

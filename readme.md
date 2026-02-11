@@ -472,13 +472,6 @@ docs = [
   - **Requires**:
     - Successful `create-tag` job
 
-- **Update CLI version pins** (`update-cli-pins`)
-
-  - Updates all `gha-utils==X.Y.Z` pins in workflow files to the newly published version and creates a PR
-  - Relies on barebone `git`/`sed` CLIs to avoid a chicken-and-egg problem: `gha-utils` cannot update its own version pins
-  - **Requires**:
-    - Successful `publish-pypi` job
-
 ### [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
 
 - **Sync bundled config** (`sync-bundled-config`)

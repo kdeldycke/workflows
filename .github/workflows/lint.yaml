@@ -16,8 +16,8 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    # All jobs depending on project-metadata in this workflow are skipped on automated branches.
-    if: github.head_ref != 'prepare-release' && github.head_ref != 'update-cli-pins'
+    # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
+    if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
     outputs:
       is_bot: ${{ steps.project-metadata.outputs.is_bot }}
