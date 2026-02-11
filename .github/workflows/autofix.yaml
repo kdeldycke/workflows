@@ -72,8 +72,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
 
   # --- Formatters: rewrite files to enforce canonical style. ---
 
@@ -182,11 +181,9 @@ jobs:
           --with 'ruff==0.15.0'
           'mdformat==1.0.0'
       - name: Install shfmt
-        run: |
-          sudo apt install --yes shfmt
+        run: sudo apt install --yes shfmt
       - name: mdformat --version
-        run: |
-          mdformat --version
+        run: mdformat --version
       - name: Auto-format Markdown
         run: >
           for file in ${{ needs.project-metadata.outputs.markdown_files }}; do
@@ -359,8 +356,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Initialize bumpversion config
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' bundled init bumpversion pyproject.toml
+        run: uvx --no-progress 'gha-utils==5.7.1' bundled init bumpversion pyproject.toml
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.2
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -385,8 +381,7 @@ jobs:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Generate .mailmap
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' mailmap-sync --skip-if-missing ./.mailmap
+        run: uvx --no-progress 'gha-utils==5.7.1' mailmap-sync --skip-if-missing ./.mailmap
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.2
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -411,8 +406,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Create dir structure
-        run: |
-          mkdir -p "$(dirname "${{ env.dependency-graph-output }}")"
+        run: mkdir -p "$(dirname "${{ env.dependency-graph-output }}")"
       - name: Generate graph
         # Include all dependency groups in the graph with subgraphs.
         run: >

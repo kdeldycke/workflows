@@ -243,10 +243,18 @@ This project supports Python 3.10+. Be aware of syntax features that are **not**
 
 ### YAML workflows
 
-When writing `run:` blocks in GitHub Actions workflows, use the folded block scalar (`>`) to split long commands across multiple lines:
+For single-line commands that fit on one line, use plain inline `run:` without any block scalar indicator:
 
 ```yaml
-# ✅ Preferred: folded block scalar joins lines with spaces.
+# ✅ Preferred for short commands: plain inline.
+  - name: Check out repository
+    run: git checkout main
+```
+
+When a command is too long for a single line, use the folded block scalar (`>`) to split it across multiple lines:
+
+```yaml
+# ✅ Preferred for long commands: folded block scalar joins lines with spaces.
   - name: Run linter
     run: >
       uvx --no-progress 'yamllint==1.38.0' --strict --format github

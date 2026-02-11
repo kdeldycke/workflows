@@ -59,8 +59,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
 
   bump-versions:
     needs:
@@ -88,21 +87,17 @@ jobs:
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
       - name: Install bump-my-version
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        run: |
-          uv tool install 'bump-my-version==1.2.6'
+        run: uv tool install 'bump-my-version==1.2.6'
       - name: ${{ matrix.part }} version bump
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        run: |
-          bump-my-version bump --verbose ${{ matrix.part }}
+        run: bump-my-version bump --verbose ${{ matrix.part }}
       - name: Sync uv.lock
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        run: |
-          uv --no-progress sync
+        run: uv --no-progress sync
       - name: Extract version
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         id: get_version
-        run: |
-          echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
+        run: echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
       - id: pr-metadata
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.2
@@ -144,12 +139,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Install bump-my-version
-        run: |
-          uv tool install 'bump-my-version==1.2.6'
+        run: uv tool install 'bump-my-version==1.2.6'
       - name: Extract version
         id: get_version
-        run: |
-          echo "current_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
+        run: echo "current_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
       # --- Freeze commit: pin everything to the release version. ---
       - name: Prepare release
         # Updates changelog and citation dates, comparison URL, and removes warning.
@@ -163,23 +156,18 @@ jobs:
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
           git clean -fd
       - name: Create freeze commit
-        run: |
-          git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
+        run: git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
       # --- Unfreeze commit: revert to development references. ---
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' release-prep --post-release --update-workflows
+        run: uvx --no-progress 'gha-utils==5.7.1' release-prep --post-release --update-workflows
       - name: Add new changelog entry
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' changelog ./changelog.md
+        run: uvx --no-progress 'gha-utils==5.7.1' changelog ./changelog.md
       - name: Version bump
-        run: |
-          bump-my-version bump --verbose patch
+        run: bump-my-version bump --verbose patch
       - name: Sync uv.lock
-        run: |
-          uv --no-progress sync
+        run: uv --no-progress sync
       - name: Create unfreeze commit
         run: >
           git commit --all

@@ -35,8 +35,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
 
   lint-repo:
     needs:
@@ -74,8 +73,7 @@ jobs:
       - name: Install all package dependencies
         # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
         # those related to optional features, tests, development and documentation.
-        run: |
-          uv --no-progress sync --frozen --all-extras --all-groups
+        run: uv --no-progress sync --frozen --all-extras --all-groups
       - name: Run Mypy
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
@@ -117,8 +115,7 @@ jobs:
           sudo apt update
           sudo apt install --yes zsh
       - name: Lint
-        run: |
-          for file in ${{ needs.project-metadata.outputs.zsh_files }}; do zsh --no-exec "$file"; done
+        run: for file in ${{ needs.project-metadata.outputs.zsh_files }}; do zsh --no-exec "$file"; done
 
   lint-github-actions:
     needs:
@@ -176,8 +173,7 @@ jobs:
           npm install awesome-lint@2.2.3
           npx awesome-lint --version
       - name: Run awesome-lint
-        run: |
-          npx awesome-lint
+        run: npx awesome-lint
 
   lint-secrets:
     needs:

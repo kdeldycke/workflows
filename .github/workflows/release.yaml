@@ -95,11 +95,9 @@ jobs:
           # We're going to browse all new commits.
           fetch-depth: 0
       - name: List all branches
-        run: |
-          git branch --all
+        run: git branch --all
       - name: List all commits
-        run: |
-          git log --decorate=full --oneline
+        run: git log --decorate=full --oneline
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
@@ -125,8 +123,7 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Build package
-        run: |
-          uv --no-progress build
+        run: uv --no-progress build
       - name: Generate build attestations
         uses: actions/attest-build-provenance@v3.2.0
         with:
@@ -156,17 +153,14 @@ jobs:
           ref: ${{ matrix.commit }}
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Setup venv
-        run: |
-          uv --no-progress venv --python 3.13
+        run: uv --no-progress venv --python 3.13
       # XXX Cannot bump to Nuitka 4.0.0 see:
       # https://github.com/Nuitka/Nuitka/issues/3749
       # https://github.com/Nuitka/Nuitka/issues/3750
       - name: Install Nuitka
-        run: |
-          uv --no-progress pip install 'nuitka[onefile]==2.8.10'
+        run: uv --no-progress pip install 'nuitka[onefile]==2.8.10'
       - name: Nuitka + compilers versions
-        run: |
-          uv --no-progress run --frozen -- nuitka --version
+        run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
         id: build-binary
         continue-on-error: true
@@ -185,16 +179,13 @@ jobs:
           exit 1
       - name: Install exiftool - Linux
         if: runner.os == 'Linux'
-        run: |
-          sudo apt --quiet --yes install exiftool
+        run: sudo apt --quiet --yes install exiftool
       - name: Install exiftool - macOS
         if: runner.os == 'macOS'
-        run: |
-          brew install exiftool
+        run: brew install exiftool
       - name: Install exiftool - Windows
         if: runner.os == 'Windows'
-        run: |
-          choco install exiftool --no-progress --yes --retry-count=3
+        run: choco install exiftool --no-progress --yes --retry-count=3
       - name: Verify binary architecture
         run: >
           uvx --no-progress 'gha-utils==5.7.1'
@@ -231,8 +222,7 @@ jobs:
           name: ${{ matrix.bin_name }}
       - name: Set binary permissions
         if: runner.os != 'Windows'
-        run: |
-          chmod +x ${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}
+        run: chmod +x ${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run test plan for binary
         run: >
@@ -298,8 +288,7 @@ jobs:
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPI
-        run: |
-          uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}/*"
+        run: uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}/*"
 
   create-release:
     name: Publish GitHub release

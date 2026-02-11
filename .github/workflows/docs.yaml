@@ -25,8 +25,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: |
-          uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
 
   deploy-docs:
     name: Deploy Sphinx doc
@@ -45,8 +44,7 @@ jobs:
           sudo apt install --yes graphviz
       - name: Build documentation
         # Install --all-extras so documentation can covers all features of the project, including the optional ones.
-        run: |
-          uv --no-progress run --frozen --all-extras --group docs -- sphinx-build -b html ./docs ./docs/html
+        run: uv --no-progress run --frozen --all-extras --group docs -- sphinx-build -b html ./docs ./docs/html
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4.0.0
         with:
