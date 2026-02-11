@@ -203,7 +203,7 @@ jobs:
             1. **Click `Ready for review`** button below, to get this PR out of `Draft` mode
 
             1. **Click `Rebase and merge`** button below (do not ~`Squash and merge`~:
-            [we needs the 2 distinct commits](https://github.com/kdeldycke/workflows/blob/main/claude.md#release-pr-freeze-and-unfreeze-commits) in this PR)
+            [we need the 2 distinct commits](https://github.com/kdeldycke/workflows/blob/main/claude.md#release-pr-freeze-and-unfreeze-commits) in this PR)
 
             > [!TIP]
             > If you suspect that PR content to be outdated (like if the release date is not in sync),
