@@ -392,7 +392,7 @@ jobs:
           "s/gha-utils==[0-9.]+/gha-utils==${{ steps.version.outputs.version }}/g"
           .github/workflows/*.yaml
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@v5.7.2
+        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
