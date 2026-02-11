@@ -27,8 +27,8 @@ Exportable files (``gha-utils bundled export <type>``):
 - ``labels`` - Label definitions for labelmaker
 - ``labeller-file-based`` - Rules for actions/labeler
 - ``labeller-content-based`` - Rules for github/issue-labeler
-- ``autofix.yaml``, ``autolock.yaml``, ``changelog.yaml``, ``debug.yaml``,
-  ``docs.yaml``, ``labels.yaml``, ``lint.yaml``, ``release.yaml``,
+- ``autofix.yaml``, ``autolock.yaml``, ``cancel-runs.yaml``, ``changelog.yaml``,
+  ``debug.yaml``, ``docs.yaml``, ``labels.yaml``, ``lint.yaml``, ``release.yaml``,
   ``renovate.yaml``, ``tests.yaml`` - GitHub Actions workflow templates
 
 Initializable configs (``gha-utils bundled init <type>``):
@@ -89,6 +89,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     # Workflow templates.
     "autofix.yaml": "./.github/workflows/autofix.yaml",
     "autolock.yaml": "./.github/workflows/autolock.yaml",
+    "cancel-runs.yaml": "./.github/workflows/cancel-runs.yaml",
     "changelog.yaml": "./.github/workflows/changelog.yaml",
     "debug.yaml": "./.github/workflows/debug.yaml",
     "docs.yaml": "./.github/workflows/docs.yaml",

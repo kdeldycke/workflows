@@ -52,6 +52,7 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # Workflows that are exempt from concurrency requirements.
 WORKFLOWS_WITHOUT_CONCURRENCY = frozenset((
     "autolock.yaml",  # Scheduled only, no concurrent execution possible.
+    "cancel-runs.yaml",  # Fires on PR close, must always run to completion.
     "debug.yaml",  # Debug-only workflow, not for production use.
 ))
 
@@ -508,3 +509,45 @@ def test_runner_uses_ubuntu_slim_by_default(
         return
 
     pytest.fail(f"{workflow_name} ({job_name}): Unknown runner '{runs_on}'")
+
+
+# --- Bundled data symlink consistency tests ---
+
+# Path to the bundled data directory.
+DATA_DIR = REPO_ROOT / "gha_utils" / "data"
+
+
+def test_all_workflows_have_symlinks_in_data() -> None:
+    """Verify that every workflow in .github/workflows/ has a symlink in gha_utils/data/."""
+    workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
+    symlinks = {p.name for p in DATA_DIR.iterdir() if p.is_symlink()}
+
+    missing = workflows - symlinks
+    assert not missing, (
+        f"Workflows missing symlinks in gha_utils/data/: {sorted(missing)}. "
+        "Create them with: ln -s ../../.github/workflows/<name> gha_utils/data/<name>"
+    )
+
+
+def test_only_workflows_are_symlinks_in_data() -> None:
+    """Verify that only workflow files are symlinks in gha_utils/data/."""
+    workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
+    symlinks = {p.name for p in DATA_DIR.iterdir() if p.is_symlink()}
+
+    extra = symlinks - workflows
+    assert not extra, (
+        f"Unexpected symlinks in gha_utils/data/: {sorted(extra)}. "
+        "Only workflow files should be symlinked."
+    )
+
+
+def test_workflow_symlinks_resolve_correctly() -> None:
+    """Verify that workflow symlinks in gha_utils/data/ point to the correct targets."""
+    for symlink in sorted(DATA_DIR.iterdir()):
+        if not symlink.is_symlink():
+            continue
+        target = symlink.resolve()
+        expected = (WORKFLOWS_DIR / symlink.name).resolve()
+        assert target == expected, (
+            f"Symlink {symlink.name} points to {target}, expected {expected}"
+        )
