@@ -441,7 +441,6 @@ expected = {
     ],
     "json_files": [],
     "yaml_files": [
-        ".github/actions/pr-metadata/action.yml",
         ".github/funding.yml",
         ".github/workflows/autofix.yaml",
         ".github/workflows/autolock.yaml",
