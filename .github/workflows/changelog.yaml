@@ -216,10 +216,8 @@ jobs:
 
               > [!TIP]
               > If you suspect that PR content to be outdated (like if the
-              > release date is not in sync), **[click `Run workflow`](${{
-              > github.event.repository.html_url
-              > }}/actions/workflows/changelog.yaml)** to refresh this PR
-              > manually before merging.
+              > release date is not in sync), **[click `Run workflow`](${{ github.event.repository.html_url }}/actions/workflows/changelog.yaml)**
+              > to refresh this PR manually before merging.
 
             ---
       - uses: peter-evans/create-pull-request@v8.1.0
