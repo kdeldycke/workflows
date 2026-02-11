@@ -263,7 +263,9 @@ def test_all_workflows_discovered() -> None:
     )
 
     # Verify no overlap between unique groups and event-scoped groups.
-    overlap_strategies = WORKFLOWS_WITH_UNIQUE_GROUPS & WORKFLOWS_WITH_EVENT_SCOPED_GROUPS
+    overlap_strategies = (
+        WORKFLOWS_WITH_UNIQUE_GROUPS & WORKFLOWS_WITH_EVENT_SCOPED_GROUPS
+    )
     assert not overlap_strategies, (
         f"Workflows in both unique and event-scoped categories: {overlap_strategies}"
     )

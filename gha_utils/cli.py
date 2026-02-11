@@ -1594,7 +1594,11 @@ def pr_body(prefix: str, output: Path) -> None:
     body = build_pr_body(prefix, metadata_block)
 
     github_output_path = os.getenv("GITHUB_OUTPUT", "")
-    if not is_stdout(output) and github_output_path and str(output) == github_output_path:
+    if (
+        not is_stdout(output)
+        and github_output_path
+        and str(output) == github_output_path
+    ):
         # Write in heredoc format for $GITHUB_OUTPUT.
         content = format_multiline_output("body", body)
     else:

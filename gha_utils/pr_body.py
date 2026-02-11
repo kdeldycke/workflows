@@ -70,8 +70,7 @@ def generate_pr_metadata_block() -> str:
     workflow_file = extract_workflow_filename(workflow_ref)
     run_url = f"{server_url}/{repository}/actions/runs/{run_id}"
     workflow_url = (
-        f"{server_url}/{repository}/blob/{sha}"
-        f"/.github/workflows/{workflow_file}"
+        f"{server_url}/{repository}/blob/{sha}/.github/workflows/{workflow_file}"
     )
 
     rows = [
@@ -82,10 +81,7 @@ def generate_pr_metadata_block() -> str:
         rows.append(f"| **Re-run by** | @{triggering_actor} |")
     rows += [
         f"| **Ref** | `{ref_name}` |",
-        (
-            f"| **Commit** |"
-            f" [`{sha[:8]}`]({server_url}/{repository}/commit/{sha}) |"
-        ),
+        (f"| **Commit** | [`{sha[:8]}`]({server_url}/{repository}/commit/{sha}) |"),
         f"| **Job** | `{job}` |",
         f"| **Workflow** | [`{workflow_file}`]({workflow_url}) |",
         f"| **Run** | [#{run_number}.{run_attempt}]({run_url}) |",
