@@ -67,38 +67,35 @@ $ uvx -- gha-utils --help
 
 ```
 workflows/
-├── .github/workflows/     # Reusable GitHub Actions workflows
-├── gha_utils/             # Python CLI package
-│   ├── __main__.py        # CLI entry point
-│   ├── bundled_config.py  # Bundled config, labels, and workflow templates
-│   ├── changelog.py       # Changelog management
-│   ├── cli.py             # Click-based CLI definitions
-│   ├── deps_graph.py      # Dependency graph generation
-│   ├── mailmap.py         # .mailmap synchronization
-│   ├── matrix.py          # Build matrix generation
-│   ├── metadata.py        # Project metadata extraction
-│   ├── release_prep.py    # Release preparation
-│   ├── sphinx_linkcheck.py # Sphinx linkcheck issue management
-│   ├── sponsor.py         # GitHub sponsor detection
-│   ├── test_plan.py       # Test plan execution
-│   └── data/              # Bundled configuration files
-├── requirements/          # Pinned dependencies for workflows
-└── tests/                 # Test suite
+├── .github/
+│   ├── actions/       # Composite actions (pr-metadata)
+│   └── workflows/     # Reusable GitHub Actions workflows
+├── docs/              # Assets (images, Mermaid diagrams)
+├── gha_utils/         # Python CLI package (see module table below)
+│   └── data/          # Bundled configuration files
+└── tests/             # Test suite
 ```
 
-### Module layout
+### `gha_utils` modules
 
 | Module                | Purpose                                                             |
 | --------------------- | ------------------------------------------------------------------- |
+| `__init__.py`         | Package-wide exports                                                |
 | `__main__.py`         | Entry point for the `gha-utils` CLI                                 |
-| `bundled_config.py`   | Access bundled config templates, labels, and workflow files         |
+| `binary.py`           | Binary verification and artifact collection                         |
+| `broken_links.py`     | Broken links issue lifecycle management                             |
+| `bundled_config.py`   | Access bundled config templates, labels, and workflow files          |
 | `changelog.py`        | Changelog parsing, updating, and version management                 |
 | `cli.py`              | Click-based command-line interface definitions                      |
 | `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
+| `git_ops.py`          | Idempotent Git operations for CI/CD contexts                        |
+| `github.py`           | GitHub Actions output formatting and workflow annotations            |
+| `lint_repo.py`        | Repository metadata consistency checks                              |
 | `mailmap.py`          | Git `.mailmap` file synchronization with contributors               |
 | `matrix.py`           | Generate build matrices for GitHub Actions                          |
 | `metadata.py`         | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `release_prep.py`     | Prepare files for release (dates, URLs, warnings)                   |
+| `renovate.py`         | Renovate prerequisites, migration, and `exclude-newer` updates      |
 | `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
 | `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |
 | `test_plan.py`        | Run YAML-based test plans against compiled binaries                 |
