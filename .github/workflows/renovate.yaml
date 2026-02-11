@@ -57,12 +57,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: |
-          uvx --no-progress 'gha-utils==5.7.1' check-renovate --format=github --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.7.2' check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       - name: Export renovate.json5 if missing
         if: steps.checks.outputs.renovate_config_exists == 'false'
         run: |
-          uvx --no-progress 'gha-utils==5.7.1' bundled export renovate.json5
+          uvx --no-progress 'gha-utils==5.7.2' bundled export renovate.json5
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''
@@ -92,7 +92,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: |
-          uvx --no-progress 'gha-utils==5.7.1' check-renovate
+          uvx --no-progress 'gha-utils==5.7.2' check-renovate
 
       - name: Update exclude-newer date if stale
         id: update_date
@@ -100,7 +100,7 @@ jobs:
         # Uses a fixed date (not relative) to prevent uv.lock timestamp churn on every sync.
         # Runs before Renovate so changes are picked up in lock file maintenance.
         run: |
-          uvx --no-progress 'gha-utils==5.7.1' update-exclude-newer --output "$GITHUB_OUTPUT"
+          uvx --no-progress 'gha-utils==5.7.2' update-exclude-newer --output "$GITHUB_OUTPUT"
 
       - name: Commit and push if modified
         if: steps.update_date.outputs.modified == 'true'
