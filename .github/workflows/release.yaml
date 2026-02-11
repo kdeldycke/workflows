@@ -71,6 +71,8 @@ jobs:
 
   project-metadata:
     name: Project metadata
+    # All jobs depending on project-metadata in this workflow are skipped on automated branches.
+    if: github.head_ref != 'update-cli-pins'
     runs-on: ubuntu-slim
     outputs:
       # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins

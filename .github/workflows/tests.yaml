@@ -114,6 +114,8 @@ jobs:
 
   project-metadata:
     name: Project metadata
+    # All jobs depending on project-metadata in this workflow are skipped on automated branches.
+    if: github.head_ref != 'update-cli-pins'
     runs-on: ubuntu-slim
     outputs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
