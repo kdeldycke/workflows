@@ -288,7 +288,9 @@ jobs:
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPI
-        run: uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}" "${{ steps.download.outputs.download-path }}/*"
+        run: >
+          uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}"
+          "${{ steps.download.outputs.download-path }}/*"
 
   create-release:
     name: Publish GitHub release
