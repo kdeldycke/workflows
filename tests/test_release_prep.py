@@ -434,4 +434,3 @@ class TestReleasePrep:
         assert "@v1.2.3" not in content
         assert "@main" in content
         assert "kdeldycke/workflows/.github/actions/pr-metadata@main" in content
-
