@@ -1,0 +1,60 @@
+# Cancels in-progress and queued workflow runs when a PR is closed.
+#
+# GitHub Actions does not cancel PR-triggered runs on PR close. The concurrency mechanism only
+# cancels runs when a *new* run enters the same group, and closing a PR doesn't fire a new
+# pull_request event for workflows using default activity types (opened, synchronize, reopened).
+# This wastes CI resources, especially for long-running jobs like Nuitka binary builds.
+---
+name: Cancel runs
+"on":
+  workflow_call:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+
+  cancel-runs:
+    name: Cancel PR runs
+    if: github.event.pull_request.number
+    runs-on: ubuntu-slim
+    steps:
+      - name: Cancel in-progress runs for PR branch
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const branch = context.payload.pull_request.head.ref;
+
+            // List all workflow runs for the PR branch.
+            const {data: {workflow_runs}} = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              branch,
+              status: 'in_progress',
+            });
+
+            // Also fetch queued runs.
+            const {data: {workflow_runs: queuedRuns}} = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              branch,
+              status: 'queued',
+            });
+
+            const allRuns = [...workflow_runs, ...queuedRuns];
+
+            // Do not cancel ourselves.
+            const runsToCancel = allRuns.filter(run => run.id !== context.runId);
+
+            for (const run of runsToCancel) {
+              core.info(`Cancelling run #${run.id} (${run.name}, status: ${run.status})`);
+              await github.rest.actions.cancelWorkflowRun({
+                owner,
+                repo,
+                run_id: run.id,
+              });
+            }
+
+            core.info(`Cancelled ${runsToCancel.length} run(s) for branch '${branch}'.`);

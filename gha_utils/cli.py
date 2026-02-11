@@ -87,7 +87,9 @@ from .renovate import (
     run_migration_checks,
     update_exclude_newer_in_file,
 )
+from .github import format_multiline_output
 from .lint_repo import run_repo_lint
+from .pr_body import build_pr_body, generate_pr_metadata_block
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -1545,3 +1547,62 @@ def git_tag(
     except Exception as e:
         logging.error(f"Failed to create/push tag: {e}")
         ctx.exit(1)
+
+
+@gha_utils.command(short_help="Generate PR body with workflow metadata")
+@option(
+    "--prefix",
+    envvar="GHA_PR_BODY_PREFIX",
+    default="",
+    help="Content to prepend before the metadata details block. "
+    "Can also be set via the GHA_PR_BODY_PREFIX environment variable.",
+)
+@option(
+    "-o",
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+    help="Output file path. Defaults to stdout.",
+)
+def pr_body(prefix: str, output: Path) -> None:
+    """Generate a PR body with a collapsible workflow metadata block.
+
+    Reads ``GITHUB_*`` environment variables to produce a ``<details>`` block
+    containing a metadata table (trigger, actor, ref, commit, job, workflow, run).
+
+    When ``--output`` points to ``$GITHUB_OUTPUT``, the body is written in the
+    heredoc format required by GitHub Actions multiline outputs.
+
+    The ``--prefix`` option accepts content to prepend before the metadata block.
+    Use the ``GHA_PR_BODY_PREFIX`` environment variable to pass the prefix without
+    shell escaping issues (Click reads it automatically via ``envvar``).
+
+    \b
+    Examples:
+        # Preview metadata block locally
+        gha-utils pr-body
+
+    \b
+        # Write to $GITHUB_OUTPUT for use in a workflow
+        gha-utils pr-body --output "$GITHUB_OUTPUT"
+
+    \b
+        # With a prefix via environment variable
+        GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
+    """
+    metadata_block = generate_pr_metadata_block()
+    body = build_pr_body(prefix, metadata_block)
+
+    github_output_path = os.getenv("GITHUB_OUTPUT", "")
+    if not is_stdout(output) and github_output_path and str(output) == github_output_path:
+        # Write in heredoc format for $GITHUB_OUTPUT.
+        content = format_multiline_output("body", body)
+    else:
+        content = body
+
+    if is_stdout(output):
+        logging.info(f"Print PR body to {sys.stdout.name}")
+    else:
+        logging.info(f"Write PR body to {output}")
+
+    echo(content, file=prep_path(output))

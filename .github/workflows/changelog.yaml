@@ -99,9 +99,8 @@ jobs:
           echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
       - id: pr-metadata
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
-        with:
-          prefix: |
+        env:
+          GHA_PR_BODY_PREFIX: |
             ### Description
 
             Ready to be merged into `main` branch, at the discretion of the maintainers, to bump the ${{ matrix.part }}
@@ -114,6 +113,8 @@ jobs:
             1. **click `Rebase and merge`** button below
 
             ---
+        run: |
+          uvx --no-progress 'gha-utils==5.7.1' pr-body --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         with:
@@ -181,9 +182,8 @@ jobs:
           v${{ steps.get_version.outputs.current_version }}
           → v$(bump-my-version show current_version)"
       - id: pr-metadata
-        uses: kdeldycke/workflows/.github/actions/pr-metadata@main
-        with:
-          prefix: >
+        env:
+          GHA_PR_BODY_PREFIX: >
             ### Description
 
             This PR is ready to be merged. The [merge event will
@@ -220,6 +220,8 @@ jobs:
               > to refresh this PR manually before merging.
 
             ---
+        run: |
+          uvx --no-progress 'gha-utils==5.7.1' pr-body --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in

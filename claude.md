@@ -68,7 +68,6 @@ $ uvx -- gha-utils --help
 ```
 workflows/
 ├── .github/
-│   ├── actions/       # Composite actions (pr-metadata)
 │   └── workflows/     # Reusable GitHub Actions workflows
 ├── docs/              # Assets (images, Mermaid diagrams)
 ├── gha_utils/         # Python CLI package (see module table below)
@@ -94,6 +93,7 @@ workflows/
 | `mailmap.py`          | Git `.mailmap` file synchronization with contributors               |
 | `matrix.py`           | Generate build matrices for GitHub Actions                          |
 | `metadata.py`         | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
+| `pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
 | `release_prep.py`     | Prepare files for release (dates, URLs, warnings)                   |
 | `renovate.py`         | Renovate prerequisites, migration, and `exclude-newer` updates      |
 | `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
@@ -106,6 +106,7 @@ Reusable workflows are organized by purpose:
 
 - `autofix.yaml` - Auto-formatting and dependency syncing
 - `autolock.yaml` - Auto-locking inactive issues
+- `cancel-runs.yaml` - Cancelling workflow runs on PR close
 - `changelog.yaml` - Version bumping and release preparation
 - `debug.yaml` - Debugging utilities
 - `docs.yaml` - Documentation building and deployment
@@ -393,6 +394,14 @@ Adding `event_name` ensures:
 | `push` (post-release) | Starts with `[changelog] Post-release` | `{workflow}-{sha}` *(unique)* | **Never cancelled**        |
 | `pull_request`        | `null`                                 | `{workflow}-{pr-number}`      | Cancellable within same PR |
 | `workflow_call`       | Inherited or `null`                    | Inherited from caller         | Usually cancellable        |
+
+#### `cancel-runs.yaml` — active cancellation on PR close
+
+Passive concurrency groups only cancel runs when a *new* run enters the same group. Closing a PR doesn't fire a new `pull_request` event (for workflows using default activity types: `opened`, `synchronize`, `reopened`), so in-progress and queued runs continue wasting CI resources.
+
+`cancel-runs.yaml` fills this gap with **active cancellation**: it triggers on `pull_request: closed` and uses the GitHub API to cancel all in-progress and queued workflow runs for the PR's branch. This is especially valuable for long-running jobs like Nuitka binary builds (~20 min each across 6 platforms).
+
+The workflow uses `actions/github-script` to list runs by branch and status, then cancels each one. It filters out its own run ID to avoid self-cancellation.
 
 ### CLI design
 

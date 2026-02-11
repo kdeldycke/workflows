@@ -5,6 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Add `cancel-runs.yaml` workflow to cancel in-progress and queued runs when a PR is closed.
+- Add `gha-utils pr-body` subcommand to generate PR body with workflow metadata.
+- Remove the `pr-metadata` composite action.
 - Remove `update-cli-pins` job from `release.yaml`. Renovate already handles updating `gha-utils` version.
 
 ## [5.7.2 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.1...v5.7.2)

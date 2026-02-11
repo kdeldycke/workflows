@@ -29,6 +29,7 @@ It takes care of:
 - Sphinx documentation building & deployment, and `autodoc` updates
 - Label management, with file-based and content-based rules
 - Awesome list template synchronization
+- Address [GitHub Actions limitations](#GitHub-Actions-limitations)
 
 Nothing is done behind your back. A PR is created every time a change is proposed, so you can inspect it before merging it.
 
@@ -254,6 +255,14 @@ jobs:
 - **Lock inactive threads** (`lock`)
 
   - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
+
+### [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/cancel-runs.yaml)
+
+- **Cancel PR runs** (`cancel-runs`)
+
+  - Cancels all in-progress and queued workflow runs for a PR's branch when the PR is closed
+  - Prevents wasted CI resources from long-running jobs (e.g. Nuitka binary builds) that continue after a PR is closed
+  - GitHub Actions does not natively cancel runs on PR close — the `concurrency` mechanism only triggers cancellation when a *new* run enters the same group
 
 ### [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml)
 
@@ -684,6 +693,28 @@ Re-run your workflow. It should now update files in `.github/workflows/` without
 > [!WARNING]
 > **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token before expiration, or your workflows will fail silently.
 
+## GitHub Actions limitations
+
+GitHub Actions has several design limitations. This repository works around most of them:
+
+| Limitation                                                  | Status              | Addressed by                                                                                                                                             |
+| :---------------------------------------------------------- | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No conditional step groups                                  | ✅ Addressed        | `project-metadata` job + `gha-utils metadata`                                                                                                            |
+| Workflow inputs only accept strings                         | ✅ Addressed        | String parsing in `gha-utils`                                                                                                                            |
+| Matrix outputs not cumulative                               | ✅ Addressed        | `project-metadata` pre-computes matrices                                                                                                                 |
+| `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed        | SHA-based concurrency groups in `release.yaml`                                                                                                           |
+| Cross-event concurrency cancellation                        | ✅ Addressed        | `event_name` in `changelog.yaml` concurrency group                                                                                                       |
+| PR close doesn't cancel runs                                | ✅ Addressed        | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                              |
+| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed        | `WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT                                                                                                            |
+| Tag pushes from Actions don't trigger workflows             | ✅ Addressed        | Custom PAT for tag operations                                                                                                                            |
+| Default input values not propagated across events           | ✅ Addressed        | Manual defaults in `env:` section                                                                                                                        |
+| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed        | `gha-utils metadata` extracts full commit range                                                                                                          |
+| `actions/checkout` uses merge commit for PRs                | ✅ Addressed        | Explicit `ref: github.event.pull_request.head.sha`                                                                                                       |
+| Multiline output encoding fragile                           | ✅ Addressed        | Random delimiters in `gha_utils/github.py`                                                                                                               |
+| Branch deletion doesn't cancel runs                         | ❌ Not addressed    | Same root cause as PR close; partially mitigated by `cancel-runs.yaml` since branch deletion typically follows PR closure                                |
+| No native way to depend on all matrix jobs completing       | ❌ Not addressed    | GitHub limitation; use `needs:` with a summary job as workaround                                                                                         |
+| `actionlint` false positives for runtime env vars           | 🚫 Not addressable  | Linter limitation, not GitHub's                                                                                                                          |
+
 ## Concurrency and cancellation
 
 All workflows use a `concurrency` directive to prevent redundant runs and save CI resources. When a new commit is pushed, any in-progress workflow runs for the same branch or PR are automatically cancelled.
@@ -694,6 +725,8 @@ Workflows are grouped by:
 - **Branch pushes**: `{workflow-name}-{branch-ref}` — Multiple pushes to the same branch cancel previous runs
 
 `release.yaml` uses a stronger protection: release commits get a **unique concurrency group** based on the commit SHA, so they can never be cancelled. This ensures tagging, PyPI publishing, and GitHub release creation complete successfully.
+
+Additionally, [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) actively cancels in-progress and queued runs when a PR is closed. This complements passive concurrency groups, which only trigger cancellation when a *new* run enters the same group — closing a PR doesn't produce such an event.
 
 > [!TIP]
 > For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see [`claude.md` § Concurrency implementation](claude.md#concurrency-implementation).
