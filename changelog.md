@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.7.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.7.1...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.7.2 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.1...v5.7.2)
 
 - Replace `taiki-e/install-action` with direct `curl` download for `labelmaker` binary.
 - Fix `update-cli-pins` job failing due to shallow clone.
