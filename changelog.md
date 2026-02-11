@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.8.0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.7.2...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.8.0 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 
 - Fix stale checkout in `bump-versions` causing merge conflicts after releases.
 - Add `cancel-runs.yaml` workflow to cancel in-progress and queued runs when a PR is closed.
