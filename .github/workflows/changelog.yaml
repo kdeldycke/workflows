@@ -183,32 +183,43 @@ jobs:
       - id: pr-metadata
         uses: kdeldycke/workflows/.github/actions/pr-metadata@main
         with:
-          prefix: |
+          prefix: >
             ### Description
 
-            This PR is ready to be merged. The [merge event will trigger](https://github.com/kdeldycke/workflows?tab=readme-ov-file#githubworkflowsreleaseyaml-jobs) the:
+            This PR is ready to be merged. The [merge event will
+            trigger](https://github.com/kdeldycke/workflows?tab=readme-ov-file#githubworkflowsreleaseyaml-jobs)
+            the:
 
-            1. Creation of a [`v${{ steps.get_version.outputs.current_version }}` tag on
-            `main`](${{ github.event.repository.html_url }}/tree/v${{ steps.get_version.outputs.current_version }}) branch
+            1. Creation of a [`v${{ steps.get_version.outputs.current_version }}`
+            tag on `main`](${{ github.event.repository.html_url
+            }}/tree/v${{ steps.get_version.outputs.current_version }}) branch
 
-            1. Build and release of the Python package to [PyPI](https://pypi.org)
+            1. Build and release of the Python package to
+            [PyPI](https://pypi.org)
 
             1. Compilation of the project's binaries
 
-            1. Publication of a [GitHub `v${{ steps.get_version.outputs.current_version }}` release](${{ github.event.repository.html_url }}/releases/tag/v${{ steps.get_version.outputs.current_version }})
+            1. Publication of a [GitHub `v${{
+            steps.get_version.outputs.current_version }}` release](${{
+            github.event.repository.html_url }}/releases/tag/v${{
+            steps.get_version.outputs.current_version }})
             with all artifacts above attached
 
             ### How-to release `v${{ steps.get_version.outputs.current_version }}`
 
-            1. **Click `Ready for review`** button below, to get this PR out of `Draft` mode
+            1. **Click `Ready for review`** button below, to get this PR
+            out of `Draft` mode
 
-            1. **Click `Rebase and merge`** button below (do not ~`Squash and merge`~:
-            [we need the 2 distinct commits](https://github.com/kdeldycke/workflows/blob/main/claude.md#release-pr-freeze-and-unfreeze-commits) in this PR)
+            1. **Click `Rebase and merge`** button below (do not
+            ~`Squash and merge`~: [we need the 2 distinct commits](https://github.com/kdeldycke/workflows/blob/main/claude.md#release-pr-freeze-and-unfreeze-commits)
+            in this PR)
 
-            > [!TIP]
-            > If you suspect that PR content to be outdated (like if the release date is not in sync),
-            > **[click `Run workflow`](${{github.event.repository.html_url }}/workflows/changelog.yaml)** to
-            > refresh this PR manually before merging.
+              > [!TIP]
+              > If you suspect that PR content to be outdated (like if the
+              > release date is not in sync), **[click `Run workflow`](${{
+              > github.event.repository.html_url
+              > }}/actions/workflows/changelog.yaml)** to refresh this PR
+              > manually before merging.
 
             ---
       - uses: peter-evans/create-pull-request@v8.1.0
