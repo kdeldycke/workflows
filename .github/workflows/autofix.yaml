@@ -220,6 +220,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Setup Biome
         uses: biomejs/setup-biome@v2.7.0
         with:
@@ -251,6 +252,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.1
       - uses: crate-ci/typos@v1.42.3
         with:
           write_changes: true
@@ -278,6 +280,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.1
       - uses: calibreapp/image-actions@1.4.1
         id: image_actions
         with:
@@ -305,6 +308,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.1
       - name: Install git ignore-io
         # Update the list manually so the first call below will not introduce these extra log messages:
         #   -----Initial gitignore.io list----
@@ -472,6 +476,7 @@ jobs:
         with:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7.2.1
       - id: pr-metadata
         # Template variables are substituted by the template-sync action.
         env:

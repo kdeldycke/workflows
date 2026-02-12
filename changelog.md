@@ -5,11 +5,13 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand.
+
 ## [5.8.0 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 
 - Fix stale checkout in `bump-versions` causing merge conflicts after releases.
 - Add `cancel-runs.yaml` workflow to cancel in-progress and queued runs when a PR is closed.
-- Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand to generate PR body with workflow metadata.
+- Add `gha-utils pr-body` subcommand to generate PR body with workflow metadata.
 - Remove `update-cli-pins` job from `release.yaml`. Renovate already handles updating `gha-utils` version.
 
 ## [5.7.2 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.1...v5.7.2)
