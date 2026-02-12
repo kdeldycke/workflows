@@ -142,295 +142,299 @@ def temp_pyproject(tmp_path: Path) -> Path:
     return pyproject
 
 
-class TestReleasePrep:
-    """Tests for ReleasePrep class."""
+def test_set_changelog_release_date(
+    tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that release date is set in changelog."""
+    monkeypatch.chdir(tmp_path)
 
-    def test_set_changelog_release_date(
-        self, tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that release date is set in changelog."""
-        monkeypatch.chdir(tmp_path)
+    prep = ReleasePrep(changelog_path=temp_changelog)
+    result = prep.set_changelog_release_date()
 
-        prep = ReleasePrep(changelog_path=temp_changelog)
-        result = prep.set_changelog_release_date()
+    assert result is True
+    content = temp_changelog.read_text(encoding="UTF-8")
+    assert "(unreleased)" not in content
+    assert f"({prep.release_date})" in content
+    # Only first occurrence should be replaced.
+    assert content.count(prep.release_date) == 1
 
-        assert result is True
-        content = temp_changelog.read_text(encoding="UTF-8")
-        assert "(unreleased)" not in content
-        assert f"({prep.release_date})" in content
-        # Only first occurrence should be replaced.
-        assert content.count(prep.release_date) == 1
 
-    def test_set_changelog_release_date_already_released(
-        self, tmp_path: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that nothing changes if changelog has no unreleased marker."""
-        monkeypatch.chdir(tmp_path)
+def test_set_changelog_release_date_already_released(
+    tmp_path: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that nothing changes if changelog has no unreleased marker."""
+    monkeypatch.chdir(tmp_path)
 
-        changelog = tmp_path / "changelog.md"
-        changelog.write_text(
-            "# Changelog\n\n## [1.0.0 (2024-01-01)](https://example.com)\n",
-            encoding="UTF-8",
-        )
+    changelog = tmp_path / "changelog.md"
+    changelog.write_text(
+        "# Changelog\n\n## [1.0.0 (2024-01-01)](https://example.com)\n",
+        encoding="UTF-8",
+    )
 
-        prep = ReleasePrep(changelog_path=changelog)
-        result = prep.set_changelog_release_date()
+    prep = ReleasePrep(changelog_path=changelog)
+    result = prep.set_changelog_release_date()
 
-        assert result is False
+    assert result is False
 
-    def test_set_citation_release_date(
-        self, tmp_path: Path, temp_citation: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that release date is set in citation file."""
-        monkeypatch.chdir(tmp_path)
 
-        prep = ReleasePrep(citation_path=temp_citation)
-        result = prep.set_citation_release_date()
+def test_set_citation_release_date(
+    tmp_path: Path, temp_citation: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that release date is set in citation file."""
+    monkeypatch.chdir(tmp_path)
 
-        assert result is True
-        content = temp_citation.read_text(encoding="UTF-8")
-        assert "date-released: 2024-01-01" not in content
-        assert f"date-released: {prep.release_date}" in content
+    prep = ReleasePrep(citation_path=temp_citation)
+    result = prep.set_citation_release_date()
 
-    def test_set_citation_release_date_missing_file(
-        self, tmp_path: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that missing citation file is handled gracefully."""
-        monkeypatch.chdir(tmp_path)
+    assert result is True
+    content = temp_citation.read_text(encoding="UTF-8")
+    assert "date-released: 2024-01-01" not in content
+    assert f"date-released: {prep.release_date}" in content
 
-        prep = ReleasePrep(citation_path=tmp_path / "nonexistent.cff")
-        result = prep.set_citation_release_date()
 
-        assert result is False
+def test_set_citation_release_date_missing_file(
+    tmp_path: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that missing citation file is handled gracefully."""
+    monkeypatch.chdir(tmp_path)
 
-    def test_update_changelog_comparison_url(
-        self, tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that comparison URL is updated from main to version tag."""
-        monkeypatch.chdir(tmp_path)
+    prep = ReleasePrep(citation_path=tmp_path / "nonexistent.cff")
+    result = prep.set_citation_release_date()
 
-        prep = ReleasePrep(changelog_path=temp_changelog)
-        result = prep.update_changelog_comparison_url()
+    assert result is False
 
-        assert result is True
-        content = temp_changelog.read_text(encoding="UTF-8")
-        assert "...main)" not in content
-        assert "...v1.2.3)" in content
 
-    def test_remove_changelog_warning(
-        self, tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that IMPORTANT warning block is removed from changelog."""
-        monkeypatch.chdir(tmp_path)
+def test_update_changelog_comparison_url(
+    tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that comparison URL is updated from main to version tag."""
+    monkeypatch.chdir(tmp_path)
 
-        prep = ReleasePrep(changelog_path=temp_changelog)
-        result = prep.remove_changelog_warning()
+    prep = ReleasePrep(changelog_path=temp_changelog)
+    result = prep.update_changelog_comparison_url()
 
-        assert result is True
-        content = temp_changelog.read_text(encoding="UTF-8")
-        assert "[!IMPORTANT]" not in content
-        assert "not released yet" not in content
-        # Content after the warning should remain.
-        assert "- Add new feature." in content
+    assert result is True
+    content = temp_changelog.read_text(encoding="UTF-8")
+    assert "...main)" not in content
+    assert "...v1.2.3)" in content
 
-    def test_hardcode_workflow_version(
-        self,
-        tmp_path: Path,
-        temp_workflows: Path,
-        temp_pyproject: Path,
-        monkeypatch,
-    ) -> None:
-        """Test that workflow URLs are updated to versioned tag."""
-        monkeypatch.chdir(tmp_path)
 
-        prep = ReleasePrep(workflow_dir=temp_workflows)
-        count = prep.hardcode_workflow_version()
+def test_remove_changelog_warning(
+    tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that IMPORTANT warning block is removed from changelog."""
+    monkeypatch.chdir(tmp_path)
 
-        assert count == 2
-        for workflow_file in temp_workflows.glob("*.yaml"):
-            content = workflow_file.read_text(encoding="UTF-8")
-            assert "/workflows/main/" not in content
-            assert "/workflows/v1.2.3/" in content
+    prep = ReleasePrep(changelog_path=temp_changelog)
+    result = prep.remove_changelog_warning()
 
-    def test_retarget_workflow_branch(
-        self,
-        tmp_path: Path,
-        temp_workflows: Path,
-        temp_pyproject: Path,
-        monkeypatch,
-    ) -> None:
-        """Test that workflow URLs are retargeted back to default branch."""
-        monkeypatch.chdir(tmp_path)
+    assert result is True
+    content = temp_changelog.read_text(encoding="UTF-8")
+    assert "[!IMPORTANT]" not in content
+    assert "not released yet" not in content
+    # Content after the warning should remain.
+    assert "- Add new feature." in content
 
-        # First hardcode the version.
-        prep = ReleasePrep(workflow_dir=temp_workflows)
-        prep.hardcode_workflow_version()
 
-        # Then retarget to main.
-        # Need to clear cached property to re-read version.
-        del prep.__dict__["current_version"]
-        count = prep.retarget_workflow_branch()
+def test_hardcode_workflow_version(
+    tmp_path: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that workflow URLs are updated to versioned tag."""
+    monkeypatch.chdir(tmp_path)
 
-        assert count == 2
-        for workflow_file in temp_workflows.glob("*.yaml"):
-            content = workflow_file.read_text(encoding="UTF-8")
-            assert "/workflows/v1.2.3/" not in content
-            assert "/workflows/main/" in content
+    prep = ReleasePrep(workflow_dir=temp_workflows)
+    count = prep.hardcode_workflow_version()
 
-    def test_prepare_release_full(
-        self,
-        tmp_path: Path,
-        temp_changelog: Path,
-        temp_citation: Path,
-        temp_workflows: Path,
-        temp_pyproject: Path,
-        monkeypatch,
-    ) -> None:
-        """Test full release preparation with all options."""
-        monkeypatch.chdir(tmp_path)
+    assert count == 2
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/main/" not in content
+        assert "/workflows/v1.2.3/" in content
 
-        prep = ReleasePrep(
-            changelog_path=temp_changelog,
-            citation_path=temp_citation,
-            workflow_dir=temp_workflows,
-        )
-        modified = prep.prepare_release(update_workflows=True)
 
-        # Changelog is modified 3 times (date, URL, warning), citation once, 2
-        # workflows.
-        assert len(modified) == 6
-        # Unique files: changelog, citation, 2 workflows.
-        assert len(set(modified)) == 4
+def test_retarget_workflow_branch(
+    tmp_path: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that workflow URLs are retargeted back to default branch."""
+    monkeypatch.chdir(tmp_path)
 
-        # Verify changelog changes.
-        changelog_content = temp_changelog.read_text(encoding="UTF-8")
-        assert "(unreleased)" not in changelog_content
-        assert "...main)" not in changelog_content
-        assert "[!IMPORTANT]" not in changelog_content
+    # First hardcode the version.
+    prep = ReleasePrep(workflow_dir=temp_workflows)
+    prep.hardcode_workflow_version()
 
-        # Verify citation changes.
-        citation_content = temp_citation.read_text(encoding="UTF-8")
-        assert f"date-released: {prep.release_date}" in citation_content
+    # Then retarget to main.
+    # Need to clear cached property to re-read version.
+    del prep.__dict__["current_version"]
+    count = prep.retarget_workflow_branch()
 
-        # Verify workflow changes.
-        for workflow_file in temp_workflows.glob("*.yaml"):
-            content = workflow_file.read_text(encoding="UTF-8")
-            assert "/workflows/v1.2.3/" in content
+    assert count == 2
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/v1.2.3/" not in content
+        assert "/workflows/main/" in content
 
-    def test_prepare_release_without_workflows(
-        self,
-        tmp_path: Path,
-        temp_changelog: Path,
-        temp_citation: Path,
-        temp_pyproject: Path,
-        monkeypatch,
-    ) -> None:
-        """Test release preparation without workflow updates."""
-        monkeypatch.chdir(tmp_path)
 
-        prep = ReleasePrep(
-            changelog_path=temp_changelog,
-            citation_path=temp_citation,
-        )
-        modified = prep.prepare_release(update_workflows=False)
+def test_prepare_release_full(
+    tmp_path: Path,
+    temp_changelog: Path,
+    temp_citation: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test full release preparation with all options."""
+    monkeypatch.chdir(tmp_path)
 
-        # Changelog is modified 3 times, citation once.
-        assert len(modified) == 4
-        # Unique files: changelog and citation only.
-        assert len(set(modified)) == 2
+    prep = ReleasePrep(
+        changelog_path=temp_changelog,
+        citation_path=temp_citation,
+        workflow_dir=temp_workflows,
+    )
+    modified = prep.prepare_release(update_workflows=True)
 
-    def test_post_release(
-        self,
-        tmp_path: Path,
-        temp_workflows: Path,
-        temp_pyproject: Path,
-        monkeypatch,
-    ) -> None:
-        """Test post-release workflow retargeting."""
-        monkeypatch.chdir(tmp_path)
+    # Changelog is modified 3 times (date, URL, warning), citation once, 2
+    # workflows.
+    assert len(modified) == 6
+    # Unique files: changelog, citation, 2 workflows.
+    assert len(set(modified)) == 4
 
-        # First prepare release.
-        prep = ReleasePrep(workflow_dir=temp_workflows)
-        prep.hardcode_workflow_version()
+    # Verify changelog changes.
+    changelog_content = temp_changelog.read_text(encoding="UTF-8")
+    assert "(unreleased)" not in changelog_content
+    assert "...main)" not in changelog_content
+    assert "[!IMPORTANT]" not in changelog_content
 
-        # Then run post-release.
-        modified = prep.post_release(update_workflows=True)
+    # Verify citation changes.
+    citation_content = temp_citation.read_text(encoding="UTF-8")
+    assert f"date-released: {prep.release_date}" in citation_content
 
-        assert len(modified) == 2
-        for workflow_file in temp_workflows.glob("*.yaml"):
-            content = workflow_file.read_text(encoding="UTF-8")
-            assert "/workflows/main/" in content
+    # Verify workflow changes.
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/v1.2.3/" in content
 
-    def test_release_date_format(
-        self, tmp_path: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that release date is in correct format."""
-        monkeypatch.chdir(tmp_path)
 
-        prep = ReleasePrep()
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+def test_prepare_release_without_workflows(
+    tmp_path: Path,
+    temp_changelog: Path,
+    temp_citation: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test release preparation without workflow updates."""
+    monkeypatch.chdir(tmp_path)
 
-        assert prep.release_date == today
+    prep = ReleasePrep(
+        changelog_path=temp_changelog,
+        citation_path=temp_citation,
+    )
+    modified = prep.prepare_release(update_workflows=False)
 
-    def test_current_version_from_pyproject(
-        self, tmp_path: Path, temp_pyproject: Path, monkeypatch
-    ) -> None:
-        """Test that current version is read from pyproject.toml."""
-        monkeypatch.chdir(tmp_path)
+    # Changelog is modified 3 times, citation once.
+    assert len(modified) == 4
+    # Unique files: changelog and citation only.
+    assert len(set(modified)) == 2
 
-        prep = ReleasePrep()
 
-        assert prep.current_version == "1.2.3"
+def test_post_release(
+    tmp_path: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test post-release workflow retargeting."""
+    monkeypatch.chdir(tmp_path)
 
-    def test_hardcode_action_reference(
-        self,
-        tmp_path: Path,
-        temp_workflows_with_actions: Path,
-        temp_pyproject: Path,
-        monkeypatch,
-    ) -> None:
-        """Test that composite action references are updated to versioned tag."""
-        monkeypatch.chdir(tmp_path)
+    # First prepare release.
+    prep = ReleasePrep(workflow_dir=temp_workflows)
+    prep.hardcode_workflow_version()
 
-        prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
-        count = prep.hardcode_workflow_version()
+    # Then run post-release.
+    modified = prep.post_release(update_workflows=True)
 
-        assert count == 1
-        content = (temp_workflows_with_actions / "autofix.yaml").read_text(
-            encoding="UTF-8"
-        )
-        assert "@main" not in content
-        assert "@v1.2.3" in content
-        assert "kdeldycke/workflows/.github/actions/pr-metadata@v1.2.3" in content
+    assert len(modified) == 2
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/main/" in content
 
-    def test_retarget_action_reference(
-        self,
-        tmp_path: Path,
-        temp_workflows_with_actions: Path,
-        temp_pyproject: Path,
-        monkeypatch,
-    ) -> None:
-        """Test that composite action references are retargeted to default branch."""
-        monkeypatch.chdir(tmp_path)
 
-        # First hardcode the version.
-        prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
-        prep.hardcode_workflow_version()
+def test_release_date_format(
+    tmp_path: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that release date is in correct format."""
+    monkeypatch.chdir(tmp_path)
 
-        # Verify version is hardcoded.
-        content = (temp_workflows_with_actions / "autofix.yaml").read_text(
-            encoding="UTF-8"
-        )
-        assert "@v1.2.3" in content
+    prep = ReleasePrep()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-        # Then retarget to main.
-        del prep.__dict__["current_version"]
-        count = prep.retarget_workflow_branch()
+    assert prep.release_date == today
 
-        assert count == 1
-        content = (temp_workflows_with_actions / "autofix.yaml").read_text(
-            encoding="UTF-8"
-        )
-        assert "@v1.2.3" not in content
-        assert "@main" in content
-        assert "kdeldycke/workflows/.github/actions/pr-metadata@main" in content
+
+def test_current_version_from_pyproject(
+    tmp_path: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that current version is read from pyproject.toml."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep()
+
+    assert prep.current_version == "1.2.3"
+
+
+def test_hardcode_action_reference(
+    tmp_path: Path,
+    temp_workflows_with_actions: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that composite action references are updated to versioned tag."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
+    count = prep.hardcode_workflow_version()
+
+    assert count == 1
+    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
+        encoding="UTF-8"
+    )
+    assert "@main" not in content
+    assert "@v1.2.3" in content
+    assert "kdeldycke/workflows/.github/actions/pr-metadata@v1.2.3" in content
+
+
+def test_retarget_action_reference(
+    tmp_path: Path,
+    temp_workflows_with_actions: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that composite action references are retargeted to default branch."""
+    monkeypatch.chdir(tmp_path)
+
+    # First hardcode the version.
+    prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
+    prep.hardcode_workflow_version()
+
+    # Verify version is hardcoded.
+    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
+        encoding="UTF-8"
+    )
+    assert "@v1.2.3" in content
+
+    # Then retarget to main.
+    del prep.__dict__["current_version"]
+    count = prep.retarget_workflow_branch()
+
+    assert count == 1
+    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
+        encoding="UTF-8"
+    )
+    assert "@v1.2.3" not in content
+    assert "@main" in content
+    assert "kdeldycke/workflows/.github/actions/pr-metadata@main" in content

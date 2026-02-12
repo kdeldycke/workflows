@@ -31,205 +31,205 @@ from gha_utils.lint_repo import (
 )
 
 
-class TestGetRepoMetadata:
-    """Tests for get_repo_metadata function."""
-
-    def test_successful_fetch(self):
-        """Fetch and parse repo metadata."""
-        with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(
-                stdout='{"homepageUrl": "https://example.com", "description": "A package"}',
-                returncode=0,
-            )
-            result = get_repo_metadata("owner/repo")
-            assert result == {
-                "homepageUrl": "https://example.com",
-                "description": "A package",
-            }
-
-    def test_empty_fields(self):
-        """Handle empty fields."""
-        with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(
-                stdout='{"homepageUrl": "", "description": ""}',
-                returncode=0,
-            )
-            result = get_repo_metadata("owner/repo")
-            assert result == {"homepageUrl": None, "description": None}
-
-    def test_api_failure(self):
-        """Handle API failure."""
-        with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
-            mock_run.side_effect = subprocess.CalledProcessError(1, "gh")
-            result = get_repo_metadata("owner/repo")
-            assert result == {"homepageUrl": None, "description": None}
-
-    def test_json_parse_error(self):
-        """Handle JSON parse error."""
-        with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(stdout="not json", returncode=0)
-            result = get_repo_metadata("owner/repo")
-            assert result == {"homepageUrl": None, "description": None}
-
-
-class TestCheckPackageNameVsRepo:
-    """Tests for check_package_name_vs_repo function."""
-
-    def test_names_match(self):
-        """No warning when names match."""
-        warning, msg = check_package_name_vs_repo("my-package", "my-package")
-        assert warning is None
-        assert "matches" in msg
-
-    def test_names_differ(self):
-        """Warning when names differ."""
-        warning, msg = check_package_name_vs_repo("my-package", "my-repo")
-        assert warning is not None
-        assert "differs" in warning
-        assert "my-package" in warning
-        assert "my-repo" in warning
-
-    def test_no_package_name(self):
-        """Skip when no package name."""
-        warning, msg = check_package_name_vs_repo(None, "my-repo")
-        assert warning is None
-        assert "skipped" in msg
-
-
-class TestCheckWebsiteForSphinx:
-    """Tests for check_website_for_sphinx function."""
-
-    def test_not_sphinx(self):
-        """Skip when not a Sphinx project."""
-        warning, msg = check_website_for_sphinx("owner/repo", is_sphinx=False)
-        assert warning is None
-        assert "skipped" in msg
-
-    def test_sphinx_with_website(self):
-        """No warning when Sphinx project has website."""
-        warning, msg = check_website_for_sphinx(
-            "owner/repo", is_sphinx=True, homepage_url="https://docs.example.com"
+def test_successful_fetch():
+    """Fetch and parse repo metadata."""
+    with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(
+            stdout='{"homepageUrl": "https://example.com", "description": "A package"}',
+            returncode=0,
         )
-        assert warning is None
-        assert "https://docs.example.com" in msg
+        result = get_repo_metadata("owner/repo")
+        assert result == {
+            "homepageUrl": "https://example.com",
+            "description": "A package",
+        }
 
-    def test_sphinx_without_website(self):
-        """Warning when Sphinx project has no website."""
-        warning, msg = check_website_for_sphinx(
-            "owner/repo", is_sphinx=True, homepage_url=None
+
+def test_empty_fields():
+    """Handle empty fields."""
+    with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(
+            stdout='{"homepageUrl": "", "description": ""}',
+            returncode=0,
         )
-        assert warning is not None
-        assert "Sphinx" in warning
-        assert "not set" in warning
-
-    def test_sphinx_fetches_metadata(self):
-        """Fetch metadata when homepage_url not provided."""
-        with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
-            mock_get.return_value = {"homepageUrl": "https://example.com"}
-            warning, msg = check_website_for_sphinx("owner/repo", is_sphinx=True)
-            assert warning is None
-            mock_get.assert_called_once_with("owner/repo")
+        result = get_repo_metadata("owner/repo")
+        assert result == {"homepageUrl": None, "description": None}
 
 
-class TestCheckDescriptionMatches:
-    """Tests for check_description_matches function."""
+def test_api_failure():
+    """Handle API failure."""
+    with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
+        mock_run.side_effect = subprocess.CalledProcessError(1, "gh")
+        result = get_repo_metadata("owner/repo")
+        assert result == {"homepageUrl": None, "description": None}
 
-    def test_descriptions_match(self):
-        """No error when descriptions match."""
+
+def test_json_parse_error():
+    """Handle JSON parse error."""
+    with patch("gha_utils.lint_repo.subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(stdout="not json", returncode=0)
+        result = get_repo_metadata("owner/repo")
+        assert result == {"homepageUrl": None, "description": None}
+
+
+def test_names_match():
+    """No warning when names match."""
+    warning, msg = check_package_name_vs_repo("my-package", "my-package")
+    assert warning is None
+    assert "matches" in msg
+
+
+def test_names_differ():
+    """Warning when names differ."""
+    warning, msg = check_package_name_vs_repo("my-package", "my-repo")
+    assert warning is not None
+    assert "differs" in warning
+    assert "my-package" in warning
+    assert "my-repo" in warning
+
+
+def test_no_package_name():
+    """Skip when no package name."""
+    warning, msg = check_package_name_vs_repo(None, "my-repo")
+    assert warning is None
+    assert "skipped" in msg
+
+
+def test_not_sphinx():
+    """Skip when not a Sphinx project."""
+    warning, msg = check_website_for_sphinx("owner/repo", is_sphinx=False)
+    assert warning is None
+    assert "skipped" in msg
+
+
+def test_sphinx_with_website():
+    """No warning when Sphinx project has website."""
+    warning, msg = check_website_for_sphinx(
+        "owner/repo", is_sphinx=True, homepage_url="https://docs.example.com"
+    )
+    assert warning is None
+    assert "https://docs.example.com" in msg
+
+
+def test_sphinx_without_website():
+    """Warning when Sphinx project has no website."""
+    warning, msg = check_website_for_sphinx(
+        "owner/repo", is_sphinx=True, homepage_url=None
+    )
+    assert warning is not None
+    assert "Sphinx" in warning
+    assert "not set" in warning
+
+
+def test_sphinx_fetches_metadata():
+    """Fetch metadata when homepage_url not provided."""
+    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+        mock_get.return_value = {"homepageUrl": "https://example.com"}
+        warning, msg = check_website_for_sphinx("owner/repo", is_sphinx=True)
+        assert warning is None
+        mock_get.assert_called_once_with("owner/repo")
+
+
+def test_descriptions_match():
+    """No error when descriptions match."""
+    error, msg = check_description_matches(
+        "owner/repo",
+        project_description="A cool package",
+        repo_description="A cool package",
+    )
+    assert error is None
+    assert "matches" in msg
+
+
+def test_descriptions_differ():
+    """Error when descriptions differ."""
+    error, msg = check_description_matches(
+        "owner/repo",
+        project_description="A cool package",
+        repo_description="Different description",
+    )
+    assert error is not None
+    assert "!=" in error
+
+
+def test_no_project_description():
+    """Skip when no project description."""
+    error, msg = check_description_matches(
+        "owner/repo", project_description=None, repo_description="Something"
+    )
+    assert error is None
+    assert "skipped" in msg
+
+
+def test_fetches_metadata():
+    """Fetch metadata when repo_description not provided."""
+    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+        mock_get.return_value = {"description": "A cool package"}
         error, msg = check_description_matches(
-            "owner/repo",
-            project_description="A cool package",
-            repo_description="A cool package",
+            "owner/repo", project_description="A cool package"
         )
         assert error is None
-        assert "matches" in msg
-
-    def test_descriptions_differ(self):
-        """Error when descriptions differ."""
-        error, msg = check_description_matches(
-            "owner/repo",
-            project_description="A cool package",
-            repo_description="Different description",
-        )
-        assert error is not None
-        assert "!=" in error
-
-    def test_no_project_description(self):
-        """Skip when no project description."""
-        error, msg = check_description_matches(
-            "owner/repo", project_description=None, repo_description="Something"
-        )
-        assert error is None
-        assert "skipped" in msg
-
-    def test_fetches_metadata(self):
-        """Fetch metadata when repo_description not provided."""
-        with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
-            mock_get.return_value = {"description": "A cool package"}
-            error, msg = check_description_matches(
-                "owner/repo", project_description="A cool package"
-            )
-            assert error is None
-            mock_get.assert_called_once_with("owner/repo")
+        mock_get.assert_called_once_with("owner/repo")
 
 
-class TestRunRepoLint:
-    """Tests for run_repo_lint function."""
-
-    def test_all_checks_pass(self, capsys):
-        """Return 0 when all checks pass."""
-        with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
-            mock_get.return_value = {
-                "homepageUrl": "https://example.com",
-                "description": "A cool package",
-            }
-            exit_code = run_repo_lint(
-                package_name="my-package",
-                repo_name="my-package",
-                is_sphinx=True,
-                project_description="A cool package",
-                repo="owner/repo",
-            )
-            assert exit_code == 0
-
-    def test_description_mismatch(self, capsys):
-        """Return 1 when description mismatches."""
-        with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
-            mock_get.return_value = {
-                "homepageUrl": None,
-                "description": "Different description",
-            }
-            exit_code = run_repo_lint(
-                project_description="A cool package",
-                repo="owner/repo",
-            )
-            assert exit_code == 1
-            captured = capsys.readouterr()
-            assert "::error::" in captured.out
-
-    def test_package_name_warning(self, capsys):
-        """Emit warning for package name mismatch but still pass."""
+def test_all_checks_pass(capsys):
+    """Return 0 when all checks pass."""
+    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+        mock_get.return_value = {
+            "homepageUrl": "https://example.com",
+            "description": "A cool package",
+        }
         exit_code = run_repo_lint(
             package_name="my-package",
-            repo_name="different-repo",
+            repo_name="my-package",
+            is_sphinx=True,
+            project_description="A cool package",
+            repo="owner/repo",
+        )
+        assert exit_code == 0
+
+
+def test_description_mismatch(capsys):
+    """Return 1 when description mismatches."""
+    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+        mock_get.return_value = {
+            "homepageUrl": None,
+            "description": "Different description",
+        }
+        exit_code = run_repo_lint(
+            project_description="A cool package",
+            repo="owner/repo",
+        )
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "::error::" in captured.out
+
+
+def test_package_name_warning(capsys):
+    """Emit warning for package name mismatch but still pass."""
+    exit_code = run_repo_lint(
+        package_name="my-package",
+        repo_name="different-repo",
+    )
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    assert "::warning::" in captured.out
+
+
+def test_website_warning(capsys):
+    """Emit warning for missing website but still pass."""
+    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+        mock_get.return_value = {"homepageUrl": None, "description": None}
+        exit_code = run_repo_lint(
+            is_sphinx=True,
+            repo="owner/repo",
         )
         assert exit_code == 0
         captured = capsys.readouterr()
         assert "::warning::" in captured.out
 
-    def test_website_warning(self, capsys):
-        """Emit warning for missing website but still pass."""
-        with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
-            mock_get.return_value = {"homepageUrl": None, "description": None}
-            exit_code = run_repo_lint(
-                is_sphinx=True,
-                repo="owner/repo",
-            )
-            assert exit_code == 0
-            captured = capsys.readouterr()
-            assert "::warning::" in captured.out
 
-    def test_minimal_run(self, capsys):
-        """Run with no checks enabled."""
-        exit_code = run_repo_lint()
-        assert exit_code == 0
+def test_minimal_run(capsys):
+    """Run with no checks enabled."""
+    exit_code = run_repo_lint()
+    assert exit_code == 0

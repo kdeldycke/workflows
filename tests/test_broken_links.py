@@ -99,21 +99,21 @@ def test_mixed_titles():
     assert triage_issues(issues, TITLE, needed=True) == (True, 42, {10})
 
 
-class TestGetLabel:
-    """Tests for get_label function."""
+def test_awesome_repo():
+    """Awesome repos get the fix link label."""
+    assert get_label("awesome-falsehood") == "🩹 fix link"
 
-    def test_awesome_repo(self):
-        """Awesome repos get the fix link label."""
-        assert get_label("awesome-falsehood") == "🩹 fix link"
 
-    def test_awesome_repo_prefix_only(self):
-        """Only repos starting with awesome- get the fix link label."""
-        assert get_label("awesome-") == "🩹 fix link"
+def test_awesome_repo_prefix_only():
+    """Only repos starting with awesome- get the fix link label."""
+    assert get_label("awesome-") == "🩹 fix link"
 
-    def test_regular_repo(self):
-        """Regular repos get the documentation label."""
-        assert get_label("workflows") == "📚 documentation"
 
-    def test_repo_containing_awesome(self):
-        """Repos containing but not starting with awesome get documentation label."""
-        assert get_label("my-awesome-repo") == "📚 documentation"
+def test_regular_repo():
+    """Regular repos get the documentation label."""
+    assert get_label("workflows") == "📚 documentation"
+
+
+def test_repo_containing_awesome():
+    """Repos containing but not starting with awesome get documentation label."""
+    assert get_label("my-awesome-repo") == "📚 documentation"

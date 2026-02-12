@@ -278,6 +278,7 @@ When a command is too long for a single line, use the folded block scalar (`>`) 
 - Keep test logic simple with straightforward asserts.
 - Tests should be sorted logically and alphabetically where applicable.
 - Test coverage is tracked with `pytest-cov` and reported to Codecov.
+- Do not use classes for grouping tests. Write test functions as top-level module functions. Only use test classes when they provide shared fixtures, setup/teardown methods, or class-level state.
 
 ## Design principles
 
