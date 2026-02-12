@@ -1,0 +1,734 @@
+# Copyright Kevin Deldycke <kevin@deldycke.com> and contributors.
+#
+# This program is Free Software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+"""Thin-caller generation, sync, and lint for downstream workflows.
+
+Downstream repositories consuming reusable workflows from ``kdeldycke/workflows``
+manually write thin caller workflows that often miss triggers like
+``workflow_dispatch``. This module provides tools to generate, synchronize, and
+lint those callers by parsing the canonical reusable workflow definitions.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import yaml
+
+from .bundled_config import export_content, get_data_content
+from .github import AnnotationLevel, emit_annotation
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum  # type: ignore[import-not-found]
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any, Final
+
+
+class WorkflowFormat(StrEnum):
+    """Output format for generated workflow files."""
+
+    THIN_CALLER = "thin-caller"
+    FULL_COPY = "full-copy"
+    SYMLINK = "symlink"
+
+
+DEFAULT_REPO: Final[str] = "kdeldycke/workflows"
+"""Default upstream repository for reusable workflows."""
+
+DEFAULT_VERSION: Final[str] = "main"
+"""Default version reference for upstream workflows."""
+
+NON_REUSABLE_WORKFLOWS: Final[frozenset[str]] = frozenset(("tests.yaml",))
+"""Workflows without ``workflow_call`` that cannot be used as thin callers."""
+
+REUSABLE_WORKFLOWS: Final[tuple[str, ...]] = tuple(sorted((
+    "autofix.yaml",
+    "autolock.yaml",
+    "cancel-runs.yaml",
+    "changelog.yaml",
+    "debug.yaml",
+    "docs.yaml",
+    "labels.yaml",
+    "lint.yaml",
+    "release.yaml",
+    "renovate.yaml",
+)))
+"""Workflow filenames that support ``workflow_call`` triggers."""
+
+ALL_WORKFLOW_FILES: Final[tuple[str, ...]] = tuple(
+    sorted(set(REUSABLE_WORKFLOWS) | NON_REUSABLE_WORKFLOWS)
+)
+"""All workflow filenames (reusable and non-reusable)."""
+
+
+@dataclass(frozen=True)
+class WorkflowTriggerInfo:
+    """Parsed trigger information from a canonical workflow."""
+
+    name: str
+    """Workflow display name from the ``name:`` field."""
+
+    filename: str
+    """Workflow filename (e.g., ``release.yaml``)."""
+
+    non_call_triggers: dict[str, Any]
+    """All triggers except ``workflow_call``, preserving their configuration."""
+
+    call_inputs: dict[str, Any]
+    """Inputs defined under ``workflow_call.inputs``."""
+
+    call_secrets: dict[str, Any]
+    """Secrets defined under ``workflow_call.secrets``."""
+
+    has_workflow_call: bool
+    """Whether the workflow defines a ``workflow_call`` trigger."""
+
+
+@dataclass
+class LintResult:
+    """Result of a single lint check."""
+
+    message: str
+    """Human-readable description of the finding."""
+
+    is_issue: bool
+    """Whether this result represents a problem."""
+
+    level: AnnotationLevel = field(default=AnnotationLevel.WARNING)
+    """Severity level for GitHub Actions annotations."""
+
+
+def extract_trigger_info(filename: str) -> WorkflowTriggerInfo:
+    """Extract trigger information from a bundled canonical workflow.
+
+    Parses the workflow YAML and separates ``workflow_call`` configuration from
+    other triggers.
+
+    :param filename: Workflow filename (e.g., ``release.yaml``).
+    :return: Parsed trigger information.
+    :raises FileNotFoundError: If the workflow file is not bundled.
+    """
+    content = get_data_content(filename)
+    data = yaml.safe_load(content)
+
+    name = data.get("name", filename)
+
+    # Handle YAML parsing of bare ``on`` keyword: PyYAML reads bare ``on`` as
+    # boolean ``True``, while quoted ``"on"`` is a string key.
+    triggers: dict[str, Any] = {}
+    if True in data:
+        triggers = data[True] or {}
+    elif "on" in data:
+        triggers = data["on"] or {}
+
+    has_workflow_call = "workflow_call" in triggers
+    call_config = triggers.get("workflow_call") or {}
+    call_inputs = call_config.get("inputs") or {}
+    call_secrets = call_config.get("secrets") or {}
+
+    # Collect all non-workflow_call triggers.
+    non_call_triggers: dict[str, Any] = {}
+    for trigger_name, trigger_config in triggers.items():
+        if trigger_name != "workflow_call":
+            non_call_triggers[trigger_name] = trigger_config
+
+    return WorkflowTriggerInfo(
+        name=name,
+        filename=filename,
+        non_call_triggers=non_call_triggers,
+        call_inputs=call_inputs,
+        call_secrets=call_secrets,
+        has_workflow_call=has_workflow_call,
+    )
+
+
+def _render_trigger_value(value: Any, indent: int) -> str:
+    """Render a single trigger's configuration value as YAML text.
+
+    :param value: The trigger configuration (None for empty, dict, list, etc.).
+    :param indent: Current indentation level in spaces.
+    :return: YAML fragment for this trigger value.
+    """
+    prefix = " " * indent
+    if value is None:
+        return ""
+
+    if isinstance(value, list):
+        lines = []
+        for item in value:
+            if isinstance(item, dict):
+                # Inline dict items like ``{cron: "..."}`` rendered as mapping.
+                first = True
+                for k, v in item.items():
+                    if first:
+                        lines.append(f"{prefix}- {k}: {_quote_yaml_value(v)}")
+                        first = False
+                    else:
+                        lines.append(f"{prefix}  {k}: {_quote_yaml_value(v)}")
+            else:
+                lines.append(f"{prefix}- {_quote_yaml_list_item(item)}")
+        return "\n".join(lines)
+
+    if isinstance(value, dict):
+        lines = []
+        for k, v in value.items():
+            if v is None:
+                lines.append(f"{prefix}{k}:")
+            elif isinstance(v, list):
+                lines.append(f"{prefix}{k}:")
+                for item in v:
+                    if isinstance(item, dict):
+                        first = True
+                        for dk, dv in item.items():
+                            if first:
+                                lines.append(
+                                    f"{prefix}  - {dk}:"
+                                    f" {_quote_yaml_value(dv)}"
+                                )
+                                first = False
+                            else:
+                                lines.append(
+                                    f"{prefix}    {dk}:"
+                                    f" {_quote_yaml_value(dv)}"
+                                )
+                    else:
+                        lines.append(
+                            f"{prefix}  - {_quote_yaml_list_item(item)}"
+                        )
+            elif isinstance(v, dict):
+                lines.append(f"{prefix}{k}:")
+                for sk, sv in v.items():
+                    if sv is None:
+                        lines.append(f"{prefix}  {sk}:")
+                    elif isinstance(sv, list):
+                        lines.append(f"{prefix}  {sk}:")
+                        for item in sv:
+                            lines.append(
+                                f"{prefix}    - "
+                                f"{_quote_yaml_list_item(item)}"
+                            )
+                    else:
+                        lines.append(f"{prefix}  {sk}: {_quote_yaml_value(sv)}")
+            else:
+                lines.append(f"{prefix}{k}: {_quote_yaml_value(v)}")
+        return "\n".join(lines)
+
+    return f"{prefix}{value}"
+
+
+def _quote_yaml_value(value: Any) -> str:
+    """Quote a YAML value if it needs quoting.
+
+    :param value: A scalar YAML value.
+    :return: String representation, quoted if necessary.
+    """
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, str):
+        # Quote strings that contain special YAML characters.
+        if any(c in value for c in ":#{}[]|>&*!%@`"):
+            return f'"{value}"'
+    return str(value)
+
+
+def _quote_yaml_list_item(value: Any) -> str:
+    """Quote a YAML list item if it needs quoting.
+
+    :param value: A scalar YAML value used as a list item.
+    :return: String representation, quoted if necessary.
+    """
+    if isinstance(value, str):
+        # Quote strings that start with or contain YAML-special characters.
+        if any(c in value for c in "*&!%@`#{}[]|>"):
+            return f'"{value}"'
+    return str(value)
+
+
+def _render_triggers(triggers: dict[str, Any]) -> str:
+    """Render the complete trigger block for a thin caller workflow.
+
+    :param triggers: Dictionary of trigger names to their configurations.
+    :return: YAML text for the ``"on":`` block.
+    """
+    lines = ['"on":']
+    for trigger_name, trigger_config in triggers.items():
+        if trigger_config is None:
+            lines.append(f"  {trigger_name}:")
+        else:
+            rendered = _render_trigger_value(trigger_config, indent=4)
+            if rendered:
+                lines.append(f"  {trigger_name}:")
+                lines.append(rendered)
+            else:
+                lines.append(f"  {trigger_name}:")
+    return "\n".join(lines)
+
+
+def generate_thin_caller(
+    filename: str,
+    repo: str = DEFAULT_REPO,
+    version: str = DEFAULT_VERSION,
+) -> str:
+    """Generate a thin caller workflow for a reusable canonical workflow.
+
+    The generated caller includes all non-``workflow_call`` triggers from the
+    canonical workflow, always ensures ``workflow_dispatch`` is present, and
+    delegates to the upstream workflow via ``uses:``.
+
+    :param filename: Canonical workflow filename (e.g., ``release.yaml``).
+    :param repo: Upstream repository (default: ``kdeldycke/workflows``).
+    :param version: Version reference (default: ``main``).
+    :return: Complete YAML content for the thin caller workflow.
+    :raises ValueError: If the workflow does not support ``workflow_call``.
+    """
+    info = extract_trigger_info(filename)
+
+    if not info.has_workflow_call:
+        msg = (
+            f"{filename} does not define a workflow_call trigger "
+            "and cannot be used as a thin caller target."
+        )
+        raise ValueError(msg)
+
+    # Build trigger dict, ensuring workflow_dispatch is present.
+    triggers: dict[str, Any] = {}
+    for trigger_name, trigger_config in info.non_call_triggers.items():
+        triggers[trigger_name] = trigger_config
+    if "workflow_dispatch" not in triggers:
+        triggers["workflow_dispatch"] = None
+
+    # Build the YAML content programmatically.
+    lines = [
+        "---",
+        f"name: {info.name}",
+        _render_triggers(triggers),
+        "",
+        "jobs:",
+        "",
+        f"  {filename.removesuffix('.yaml')}:",
+        f"    uses: {repo}/.github/workflows/{filename}@{version}",
+    ]
+
+    # Add secrets: inherit when the canonical workflow defines secrets.
+    if info.call_secrets:
+        lines.append("    secrets: inherit")
+
+    # Trailing newline.
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+def identify_canonical_workflow(
+    workflow_path: Path,
+    repo: str = DEFAULT_REPO,
+) -> str | None:
+    """Identify if a workflow is a thin caller for a canonical upstream workflow.
+
+    Scans jobs for a ``uses:`` reference matching the upstream repository pattern.
+
+    :param workflow_path: Path to the workflow file.
+    :param repo: Upstream repository to match against.
+    :return: Canonical workflow filename, or ``None`` if not a thin caller.
+    """
+    try:
+        content = workflow_path.read_text(encoding="UTF-8")
+        data = yaml.safe_load(content)
+    except (OSError, yaml.YAMLError):
+        return None
+
+    if not isinstance(data, dict):
+        return None
+
+    jobs = data.get("jobs")
+    if not isinstance(jobs, dict):
+        return None
+
+    pattern = re.compile(
+        rf"^{re.escape(repo)}/\.github/workflows/([^@]+)@.+$"
+    )
+
+    for job_config in jobs.values():
+        if not isinstance(job_config, dict):
+            continue
+        uses = job_config.get("uses", "")
+        match = pattern.match(uses)
+        if match:
+            return match.group(1)
+
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Lint checks
+# ---------------------------------------------------------------------------
+
+
+def check_has_workflow_dispatch(workflow_path: Path) -> LintResult:
+    """Check that a workflow has a ``workflow_dispatch`` trigger.
+
+    :param workflow_path: Path to the workflow file.
+    :return: Lint result.
+    """
+    try:
+        content = workflow_path.read_text(encoding="UTF-8")
+        data = yaml.safe_load(content)
+    except (OSError, yaml.YAMLError) as e:
+        return LintResult(
+            message=f"{workflow_path.name}: failed to parse: {e}",
+            is_issue=True,
+            level=AnnotationLevel.ERROR,
+        )
+
+    triggers: dict[str, Any] = {}
+    if isinstance(data, dict):
+        if True in data:
+            triggers = data[True] or {}
+        elif "on" in data:
+            triggers = data["on"] or {}
+
+    if "workflow_dispatch" not in triggers:
+        return LintResult(
+            message=(
+                f"{workflow_path.name}: missing workflow_dispatch trigger."
+            ),
+            is_issue=True,
+            level=AnnotationLevel.WARNING,
+        )
+
+    return LintResult(
+        message=f"{workflow_path.name}: has workflow_dispatch trigger.",
+        is_issue=False,
+    )
+
+
+def check_version_pinned(
+    workflow_path: Path,
+    repo: str = DEFAULT_REPO,
+) -> LintResult:
+    """Check that a thin caller pins to a version tag, not ``@main``.
+
+    :param workflow_path: Path to the workflow file.
+    :param repo: Upstream repository to match against.
+    :return: Lint result.
+    """
+    try:
+        content = workflow_path.read_text(encoding="UTF-8")
+    except OSError as e:
+        return LintResult(
+            message=f"{workflow_path.name}: failed to read: {e}",
+            is_issue=True,
+            level=AnnotationLevel.ERROR,
+        )
+
+    pattern = re.compile(
+        rf"{re.escape(repo)}/\.github/workflows/[^@]+@main"
+    )
+
+    if pattern.search(content):
+        return LintResult(
+            message=(
+                f"{workflow_path.name}: uses @main instead of a version tag."
+            ),
+            is_issue=True,
+            level=AnnotationLevel.WARNING,
+        )
+
+    return LintResult(
+        message=f"{workflow_path.name}: version is pinned.",
+        is_issue=False,
+    )
+
+
+def check_triggers_match(
+    workflow_path: Path,
+    canonical_filename: str,
+) -> LintResult:
+    """Check that a thin caller's triggers match the canonical workflow.
+
+    Verifies that the caller includes all non-``workflow_call`` triggers
+    defined in the canonical workflow.
+
+    :param workflow_path: Path to the caller workflow file.
+    :param canonical_filename: Filename of the canonical upstream workflow.
+    :return: Lint result.
+    """
+    try:
+        content = workflow_path.read_text(encoding="UTF-8")
+        data = yaml.safe_load(content)
+    except (OSError, yaml.YAMLError) as e:
+        return LintResult(
+            message=f"{workflow_path.name}: failed to parse: {e}",
+            is_issue=True,
+            level=AnnotationLevel.ERROR,
+        )
+
+    caller_triggers: set[str] = set()
+    if isinstance(data, dict):
+        raw = data.get(True) or data.get("on") or {}
+        caller_triggers = set(raw.keys()) if isinstance(raw, dict) else set()
+
+    info = extract_trigger_info(canonical_filename)
+    expected = set(info.non_call_triggers.keys()) | {"workflow_dispatch"}
+
+    missing = expected - caller_triggers
+    if missing:
+        return LintResult(
+            message=(
+                f"{workflow_path.name}: missing triggers vs canonical"
+                f" {canonical_filename}: {', '.join(sorted(missing))}."
+            ),
+            is_issue=True,
+            level=AnnotationLevel.WARNING,
+        )
+
+    return LintResult(
+        message=f"{workflow_path.name}: triggers match canonical.",
+        is_issue=False,
+    )
+
+
+def check_secrets_inherit(
+    workflow_path: Path,
+    canonical_filename: str,
+) -> LintResult:
+    """Check that a thin caller uses ``secrets: inherit`` when needed.
+
+    :param workflow_path: Path to the caller workflow file.
+    :param canonical_filename: Filename of the canonical upstream workflow.
+    :return: Lint result.
+    """
+    info = extract_trigger_info(canonical_filename)
+
+    if not info.call_secrets:
+        return LintResult(
+            message=(
+                f"{workflow_path.name}: no secrets required by"
+                f" {canonical_filename}."
+            ),
+            is_issue=False,
+        )
+
+    try:
+        content = workflow_path.read_text(encoding="UTF-8")
+        data = yaml.safe_load(content)
+    except (OSError, yaml.YAMLError) as e:
+        return LintResult(
+            message=f"{workflow_path.name}: failed to parse: {e}",
+            is_issue=True,
+            level=AnnotationLevel.ERROR,
+        )
+
+    if not isinstance(data, dict):
+        return LintResult(
+            message=f"{workflow_path.name}: invalid workflow structure.",
+            is_issue=True,
+            level=AnnotationLevel.ERROR,
+        )
+
+    jobs = data.get("jobs") or {}
+    for job_config in jobs.values():
+        if not isinstance(job_config, dict):
+            continue
+        if job_config.get("secrets") == "inherit":
+            return LintResult(
+                message=f"{workflow_path.name}: secrets: inherit is set.",
+                is_issue=False,
+            )
+
+    return LintResult(
+        message=(
+            f"{workflow_path.name}: missing 'secrets: inherit' but"
+            f" {canonical_filename} defines secrets."
+        ),
+        is_issue=True,
+        level=AnnotationLevel.WARNING,
+    )
+
+
+def run_workflow_lint(
+    workflow_dir: Path,
+    repo: str = DEFAULT_REPO,
+    fatal: bool = False,
+) -> int:
+    """Lint all workflow files in a directory.
+
+    Runs ``check_has_workflow_dispatch`` on all YAML files, and caller-specific
+    checks on files identified as thin callers.
+
+    :param workflow_dir: Directory containing workflow YAML files.
+    :param repo: Upstream repository to match against.
+    :param fatal: If ``True``, return exit code 1 when issues are found.
+    :return: Exit code (0 for clean, 1 if fatal and issues found).
+    """
+    if not workflow_dir.is_dir():
+        logging.error(f"Workflow directory not found: {workflow_dir}")
+        return 1
+
+    yaml_files = sorted(workflow_dir.glob("*.yaml"))
+    if not yaml_files:
+        logging.warning(f"No YAML files found in {workflow_dir}")
+        return 0
+
+    issues_found = False
+
+    for wf_path in yaml_files:
+        # Check 1: workflow_dispatch presence.
+        result = check_has_workflow_dispatch(wf_path)
+        _emit_lint_result(result)
+        if result.is_issue:
+            issues_found = True
+
+        # Identify if this is a thin caller.
+        canonical = identify_canonical_workflow(wf_path, repo)
+        if canonical is None:
+            continue
+
+        # Check 2: version pinning.
+        result = check_version_pinned(wf_path, repo)
+        _emit_lint_result(result)
+        if result.is_issue:
+            issues_found = True
+
+        # Check 3: trigger match.
+        result = check_triggers_match(wf_path, canonical)
+        _emit_lint_result(result)
+        if result.is_issue:
+            issues_found = True
+
+        # Check 4: secrets inherit.
+        result = check_secrets_inherit(wf_path, canonical)
+        _emit_lint_result(result)
+        if result.is_issue:
+            issues_found = True
+
+    if issues_found and fatal:
+        return 1
+    return 0
+
+
+def _emit_lint_result(result: LintResult) -> None:
+    """Print a lint result and emit a GitHub Actions annotation if needed.
+
+    :param result: The lint result to emit.
+    """
+    if result.is_issue:
+        emit_annotation(result.level, result.message)
+        prefix = "⚠" if result.level == AnnotationLevel.WARNING else "✗"
+        print(f"{prefix} {result.message}")
+    else:
+        logging.info(f"✓ {result.message}")
+
+
+def generate_workflows(
+    names: tuple[str, ...],
+    output_format: WorkflowFormat,
+    version: str,
+    repo: str,
+    output_dir: Path,
+    overwrite: bool,
+) -> int:
+    """Generate workflow files in the specified format.
+
+    Shared logic for the ``create`` and ``sync`` subcommands.
+
+    :param names: Workflow filenames to generate. Empty tuple means all.
+    :param output_format: Output format (thin-caller, full-copy, symlink).
+    :param version: Version reference for thin callers.
+    :param repo: Upstream repository.
+    :param output_dir: Directory to write files to.
+    :param overwrite: Whether to overwrite existing files.
+    :return: Exit code (0 for success, 1 for errors).
+    """
+    # Default to all reusable workflows for thin-caller, all for other modes.
+    if not names:
+        if output_format == WorkflowFormat.THIN_CALLER:
+            names = REUSABLE_WORKFLOWS
+        else:
+            names = ALL_WORKFLOW_FILES
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    errors = 0
+
+    for filename in names:
+        target = output_dir / filename
+
+        if not overwrite and target.exists():
+            logging.error(f"{target} already exists. Use sync to overwrite.")
+            errors += 1
+            continue
+
+        if output_format == WorkflowFormat.THIN_CALLER:
+            if filename in NON_REUSABLE_WORKFLOWS:
+                logging.warning(
+                    f"Skipping {filename}: no workflow_call trigger"
+                    " (not reusable). Use full-copy or symlink mode instead."
+                )
+                continue
+
+            try:
+                content = generate_thin_caller(filename, repo, version)
+            except ValueError as e:
+                logging.error(str(e))
+                errors += 1
+                continue
+
+            target.write_text(content, encoding="UTF-8")
+            logging.info(f"Generated thin caller: {target}")
+
+        elif output_format == WorkflowFormat.FULL_COPY:
+            try:
+                content = export_content(filename)
+            except (ValueError, FileNotFoundError) as e:
+                logging.error(f"Failed to export {filename}: {e}")
+                errors += 1
+                continue
+
+            target.write_text(content, encoding="UTF-8")
+            logging.info(f"Exported full copy: {target}")
+
+        elif output_format == WorkflowFormat.SYMLINK:
+            try:
+                # Resolve the bundled data path.
+                from importlib.resources import as_file, files
+
+                data_files = files("gha_utils.data")
+                with as_file(data_files.joinpath(filename)) as source:
+                    if not source.exists():
+                        logging.error(f"Bundled file not found: {filename}")
+                        errors += 1
+                        continue
+                    source_resolved = source.resolve()
+
+                if target.exists() or target.is_symlink():
+                    target.unlink()
+                target.symlink_to(source_resolved)
+                logging.info(f"Created symlink: {target} -> {source_resolved}")
+            except Exception as e:
+                logging.error(f"Failed to create symlink for {filename}: {e}")
+                errors += 1
+                continue
+
+    return 1 if errors else 0

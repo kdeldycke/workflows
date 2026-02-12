@@ -99,6 +99,7 @@ workflows/
 | `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
 | `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |
 | `test_plan.py`        | Run YAML-based test plans against compiled binaries                 |
+| `workflow_sync.py`    | Thin-caller generation, sync, and lint for downstream workflows     |
 
 ### Workflows organization
 

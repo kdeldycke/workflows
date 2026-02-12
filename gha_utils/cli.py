@@ -90,6 +90,14 @@ from .renovate import (
 from .github import format_multiline_output
 from .lint_repo import run_repo_lint
 from .pr_body import build_pr_body, generate_pr_metadata_block
+from .workflow_sync import (
+    DEFAULT_REPO,
+    DEFAULT_VERSION,
+    REUSABLE_WORKFLOWS,
+    WorkflowFormat,
+    generate_workflows,
+    run_workflow_lint,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -578,6 +586,191 @@ def init(ctx, config_type, source, output_path):
         logging.info(f"Write merged result to {output_path}")
 
     echo(merged.rstrip(), file=prep_path(output_path))
+
+
+@gha_utils.group(short_help="Manage downstream workflow caller files")
+def workflow():
+    """Manage downstream workflow caller files.
+
+    Generate, synchronize, and lint thin caller workflows that delegate to
+    the canonical reusable workflows in ``kdeldycke/workflows``.
+
+    \b
+    Subcommands:
+        create - Generate new workflow files (errors if file exists)
+        sync   - Generate or overwrite workflow files
+        lint   - Check existing workflow files for common issues
+    """
+
+
+@workflow.command(short_help="Generate new workflow caller files")
+@option(
+    "--format",
+    "output_format",
+    type=EnumChoice(WorkflowFormat),
+    default=WorkflowFormat.THIN_CALLER,
+    help="Output format for generated workflows.",
+)
+@option(
+    "--version",
+    default=DEFAULT_VERSION,
+    help="Version reference for the upstream workflows (tag or branch).",
+)
+@option(
+    "--repo",
+    default=DEFAULT_REPO,
+    help="Upstream repository containing reusable workflows.",
+)
+@option(
+    "--output-dir",
+    type=dir_path(resolve_path=True),
+    default=".github/workflows",
+    help="Directory to write workflow files to.",
+)
+@argument(
+    "workflow_names",
+    nargs=-1,
+)
+@pass_context
+def create(ctx, output_format, version, repo, output_dir, workflow_names):
+    """Generate new workflow caller files.
+
+    Creates workflow files in the specified format. Errors if a target file
+    already exists. Use ``sync`` to overwrite existing files.
+
+    WORKFLOW_NAMES are optional filenames to generate. If omitted, generates
+    all reusable workflows.
+
+    \b
+    Examples:
+        # Generate all thin caller workflows
+        gha-utils workflow create
+
+    \b
+        # Generate specific workflows
+        gha-utils workflow create release.yaml lint.yaml
+
+    \b
+        # Generate with a pinned version
+        gha-utils workflow create --version v5.8.0
+
+    \b
+        # Full copy mode
+        gha-utils workflow create --format full-copy
+    """
+    exit_code = generate_workflows(
+        names=workflow_names,
+        output_format=WorkflowFormat(output_format),
+        version=version,
+        repo=repo,
+        output_dir=output_dir,
+        overwrite=False,
+    )
+    ctx.exit(exit_code)
+
+
+@workflow.command(short_help="Sync workflow caller files (overwrites existing)")
+@option(
+    "--format",
+    "output_format",
+    type=EnumChoice(WorkflowFormat),
+    default=WorkflowFormat.THIN_CALLER,
+    help="Output format for generated workflows.",
+)
+@option(
+    "--version",
+    default=DEFAULT_VERSION,
+    help="Version reference for the upstream workflows (tag or branch).",
+)
+@option(
+    "--repo",
+    default=DEFAULT_REPO,
+    help="Upstream repository containing reusable workflows.",
+)
+@option(
+    "--output-dir",
+    type=dir_path(resolve_path=True),
+    default=".github/workflows",
+    help="Directory to write workflow files to.",
+)
+@argument(
+    "workflow_names",
+    nargs=-1,
+)
+@pass_context
+def sync(ctx, output_format, version, repo, output_dir, workflow_names):
+    """Sync workflow caller files, overwriting existing files.
+
+    Same as ``create`` but overwrites existing files instead of erroring.
+
+    \b
+    Examples:
+        # Update all thin caller workflows to latest version
+        gha-utils workflow sync --version v5.9.0
+
+    \b
+        # Sync specific workflows
+        gha-utils workflow sync release.yaml lint.yaml
+    """
+    exit_code = generate_workflows(
+        names=workflow_names,
+        output_format=WorkflowFormat(output_format),
+        version=version,
+        repo=repo,
+        output_dir=output_dir,
+        overwrite=True,
+    )
+    ctx.exit(exit_code)
+
+
+@workflow.command(short_help="Lint workflow files for common issues")
+@option(
+    "--workflow-dir",
+    type=dir_path(exists=True, resolve_path=True),
+    default=".github/workflows",
+    help="Directory containing workflow YAML files.",
+)
+@option(
+    "--repo",
+    default=DEFAULT_REPO,
+    help="Upstream repository to match thin callers against.",
+)
+@option(
+    "--fatal/--warning",
+    default=False,
+    help="Exit with code 1 if issues are found (default: warning only).",
+)
+@pass_context
+def lint(ctx, workflow_dir, repo, fatal):
+    """Lint workflow files for common issues.
+
+    Checks all YAML files in the workflow directory for:
+
+    \b
+    - Missing ``workflow_dispatch`` trigger.
+    - Thin callers using ``@main`` instead of a version tag.
+    - Thin callers with mismatched triggers vs canonical workflows.
+    - Thin callers missing ``secrets: inherit`` when required.
+
+    \b
+    Examples:
+        # Lint workflows in default location
+        gha-utils workflow lint
+
+    \b
+        # Lint with fatal mode (exit 1 on issues)
+        gha-utils workflow lint --fatal
+
+    \b
+        # Lint a custom directory
+        gha-utils workflow lint --workflow-dir ./my-workflows
+    """
+    exit_code = run_workflow_lint(
+        workflow_dir=workflow_dir,
+        repo=repo,
+        fatal=fatal,
+    )
+    ctx.exit(exit_code)
 
 
 @gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
