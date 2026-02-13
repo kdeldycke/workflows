@@ -106,13 +106,6 @@ def test_release_has_secrets() -> None:
     assert "PYPI_TOKEN" in info.call_secrets
 
 
-def test_autofix_has_inputs() -> None:
-    """Verify autofix.yaml defines inputs."""
-    info = extract_trigger_info("autofix.yaml")
-    assert len(info.call_inputs) > 0
-    assert "gitignore-location" in info.call_inputs
-
-
 def test_labels_has_inputs() -> None:
     """Verify labels.yaml defines inputs."""
     info = extract_trigger_info("labels.yaml")

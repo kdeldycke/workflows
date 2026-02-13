@@ -294,10 +294,12 @@ import os
 import re
 import sys
 from collections.abc import Iterable
+from dataclasses import dataclass, field, fields
 from functools import cached_property
 from operator import itemgetter
 from pathlib import Path
 from re import escape
+from textwrap import dedent
 
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
@@ -334,6 +336,142 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any, Final, Literal
+
+
+@dataclass
+class Config:
+    """Configuration schema for ``[tool.gha-utils]`` in ``pyproject.toml``.
+
+    This dataclass defines the structure and default values for gha-utils configuration.
+    Each field has a docstring explaining its purpose.
+    """
+
+    nuitka: bool = True
+    """Whether Nuitka binary compilation is enabled for this project.
+
+    Projects with ``[project.scripts]`` entries that are not intended to produce
+    standalone binaries (e.g., libraries with convenience CLI wrappers) can set this
+    to ``false`` to opt out of Nuitka compilation.
+    """
+
+    unstable_targets: list[str] = field(default_factory=list)
+    """Nuitka build targets allowed to fail without blocking the release.
+
+    List of target names (e.g., ``["linux-arm64", "windows-x64"]``) that are marked as
+    unstable. Jobs for these targets will be allowed to fail without preventing the
+    release workflow from succeeding.
+    """
+
+    test_plan_file: str = "./tests/cli-test-plan.yaml"
+    """Path to the YAML test plan file for binary testing.
+
+    The test plan file defines a list of test cases to run against compiled binaries.
+    Each test case specifies command-line arguments and expected output patterns.
+    """
+
+    timeout: int | None = None
+    """Timeout in seconds for each binary test.
+
+    If set, each test command will be terminated after this duration. ``None`` means no
+    timeout (tests can run indefinitely).
+    """
+
+    test_plan: str | None = None
+    """Inline YAML test plan for binaries.
+
+    Alternative to ``test_plan_file``. Allows specifying the test plan directly in
+    ``pyproject.toml`` instead of a separate file.
+    """
+
+    gitignore_location: str = "./.gitignore"
+    """File path of the ``.gitignore`` to update, relative to the root of the repository.
+    """
+
+    gitignore_extra_categories: list[str] = field(default_factory=list)
+    """Additional gitignore template categories to fetch from gitignore.io.
+
+    List of template names (e.g., ``["Python", "Node", "Terraform"]``) to combine
+    with the generated ``.gitignore`` content.
+    """
+
+    gitignore_extra_content: str = field(
+        default_factory=lambda: dedent(
+            """
+            junit.xml
+
+            # Claude Code
+            .claude/
+            """
+        ).strip()
+    )
+    """Additional content to append at the end of the generated ``.gitignore`` file.
+    """
+
+    dependency_graph_output: str = "./docs/assets/dependencies.mmd"
+    """Path where the dependency graph Mermaid diagram should be written.
+
+    The dependency graph visualizes the project's dependency tree in Mermaid format.
+    """
+
+
+SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
+    "test_plan_file",
+    "timeout",
+    "test_plan",
+    "dependency_graph_output",
+))
+"""Config fields consumed directly by subcommands, not needed as metadata outputs.
+
+The ``test-plan`` and ``deps-graph`` subcommands now read these values directly from
+``[tool.gha-utils]`` in ``pyproject.toml``, so they no longer need to be passed through
+workflow metadata outputs.
+"""
+
+
+def load_gha_utils_config(
+    pyproject_data: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Load ``[tool.gha-utils]`` config merged with ``Config`` defaults.
+
+    :param pyproject_data: Pre-parsed ``pyproject.toml`` dict. If ``None``,
+        reads and parses ``pyproject.toml`` from the current working directory.
+    """
+    if pyproject_data is None:
+        pyproject_path = Path() / "pyproject.toml"
+        if pyproject_path.exists() and pyproject_path.is_file():
+            pyproject_data = tomllib.loads(
+                pyproject_path.read_text(encoding="UTF-8")
+            )
+        else:
+            pyproject_data = {}
+
+    user_config: dict[str, Any] = pyproject_data.get("tool", {}).get(
+        "gha-utils", {}
+    )
+    schema = Config()
+    config = {
+        f.name.replace("_", "-"): getattr(schema, f.name)
+        for f in fields(Config)
+    }
+    config.update(user_config)
+    return config
+
+
+def get_project_name(
+    pyproject_data: dict[str, Any] | None = None,
+) -> str | None:
+    """Read the project name from ``pyproject.toml``.
+
+    :param pyproject_data: Pre-parsed dict. If ``None``, reads from CWD.
+    """
+    if pyproject_data is None:
+        pyproject_path = Path() / "pyproject.toml"
+        if not (pyproject_path.exists() and pyproject_path.is_file()):
+            return None
+        pyproject_data = tomllib.loads(
+            pyproject_path.read_text(encoding="UTF-8")
+        )
+    return pyproject_data.get("project", {}).get("name")
 
 
 SHORT_SHA_LENGTH = 7
@@ -677,12 +815,8 @@ class JSONMetadata(json.JSONEncoder):
 class Metadata:
     """Metadata class."""
 
-    def __init__(self, unstable_targets: Iterable[str] | None = None) -> None:
+    def __init__(self) -> None:
         """Initialize internal variables."""
-        self.unstable_targets = set()
-        if unstable_targets:
-            self.unstable_targets = set(unstable_targets)
-            assert self.unstable_targets.issubset(NUITKA_BUILD_TARGETS)
 
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
@@ -1364,18 +1498,30 @@ class Metadata:
         return None
 
     @cached_property
-    def nuitka_enabled(self) -> bool:
-        """Whether Nuitka binary compilation is enabled for this project.
+    def config(self) -> dict[str, Any]:
+        """Returns the ``[tool.gha-utils]`` section from ``pyproject.toml``.
 
-        Reads ``[tool.gha-utils].nuitka`` from ``pyproject.toml``. Defaults to ``True``
-        for backward compatibility.
-
-        Projects with ``[project.scripts]`` entries that are not intended to produce
-        standalone binaries (e.g., libraries with convenience CLI wrappers) can set this
-        to ``false`` to opt out of Nuitka compilation.
+        Merges user configuration with defaults from ``Config``.
         """
-        gha_utils_config = self.pyproject_toml.get("tool", {}).get("gha-utils", {})
-        return gha_utils_config.get("nuitka", True)
+        return load_gha_utils_config(self.pyproject_toml)
+
+    @cached_property
+    def unstable_targets(self) -> set[str]:
+        """Nuitka build targets allowed to fail without blocking the release.
+
+        Reads ``[tool.gha-utils].unstable-targets`` from ``pyproject.toml``. Defaults
+        to an empty set.
+
+        Unrecognized target names are logged as warnings and discarded.
+        """
+        raw = self.config["unstable-targets"]
+        targets = set(raw)
+        if targets:
+            unknown = targets - set(NUITKA_BUILD_TARGETS)
+            if unknown:
+                logging.warning(f"Unrecognized unstable targets: {unknown}")
+            targets &= set(NUITKA_BUILD_TARGETS)
+        return targets
 
     @cached_property
     def package_name(self) -> str | None:
@@ -1729,10 +1875,9 @@ class Metadata:
             return None
 
         # Allow projects to opt out of Nuitka compilation via pyproject.toml.
-        if not self.nuitka_enabled:
+        if not self.config["nuitka"]:
             logging.info(
-                "[tool.gha-utils] nuitka is disabled. "
-                "Skipping binary compilation."
+                "[tool.gha-utils] nuitka is disabled. Skipping binary compilation."
             )
             return None
 
@@ -1862,6 +2007,9 @@ class Metadata:
             elif isinstance(value, bool):
                 value = str(value).lower()
 
+            elif isinstance(value, int):
+                value = str(value)
+
             elif isinstance(value, dict):
                 raise NotImplementedError
 
@@ -1914,7 +2062,6 @@ class Metadata:
             "image_files": self.image_files,
             "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
-            "nuitka_enabled": self.nuitka_enabled,
             "package_name": self.package_name,
             "project_description": self.project_description,
             "mypy_params": self.mypy_params,
@@ -1930,6 +2077,18 @@ class Metadata:
             "minor_bump_allowed": self.minor_bump_allowed,
             "major_bump_allowed": self.major_bump_allowed,
         }
+
+        # Add config from [tool.gha-utils] in pyproject.toml.
+        # Convert kebab-case config keys to snake_case metadata keys.
+        # Exclude unstable-targets (dedicated property with validation logic) and
+        # subcommand config fields (read directly by test-plan and deps-graph).
+        for f in fields(Config):
+            if (
+                f.name != "unstable_targets"
+                and f.name not in SUBCOMMAND_CONFIG_FIELDS
+            ):
+                config_key = f.name.replace("_", "-")
+                metadata[f.name] = self.config[config_key]
 
         logging.debug(f"Raw metadata: {metadata!r}")
         logging.debug(f"Format metadata into {dialect} format.")

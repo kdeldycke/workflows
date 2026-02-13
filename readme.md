@@ -174,11 +174,27 @@ Downstream projects can customize workflow behavior by adding a `[tool.gha-utils
 ```toml
 [tool.gha-utils]
 nuitka = false
+unstable-targets = ["linux-arm64", "windows-arm64"]
+test-plan-file = "./tests/cli-test-plan.yaml"
+timeout = 120
+test-plan = "- args: --version"
+gitignore-location = "./.gitignore"
+gitignore-extra-categories = ["terraform", "go"]
+gitignore-extra-content = "junit.xml\n\n# Claude Code\n.claude/"
+dependency-graph-output = "./docs/assets/dependencies.mmd"
 ```
 
-| Option   | Type | Default | Description                                                                                                     |
-| :------- | :--- | :------ | :-------------------------------------------------------------------------------------------------------------- |
-| `nuitka` | bool | `true`  | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries. |
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `nuitka` | bool | `true` | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries. |
+| `unstable-targets` | list\[str\] | `[]` | Nuitka build targets allowed to fail without blocking the release (e.g., `["linux-arm64"]`). |
+| `test-plan-file` | str | `"./tests/cli-test-plan.yaml"` | Path to the YAML test plan file for binary testing. Read directly by `test-plan` subcommand; CLI args override. |
+| `timeout` | int | *(none)* | Timeout in seconds for each binary test. Read directly by `test-plan` subcommand; CLI `--timeout` overrides. |
+| `test-plan` | str | *(none)* | Inline YAML test plan for binary testing. Read directly by `test-plan` subcommand; CLI `--plan-file`/`--plan-envvar` override. |
+| `gitignore-location` | str | `"./.gitignore"` | File path of the `.gitignore` to update. |
+| `gitignore-extra-categories` | list\[str\] | `[]` | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`). |
+| `gitignore-extra-content` | str | `"junit.xml\n\n# Claude Code\n.claude/"` | Additional content to append to the generated `.gitignore`. |
+| `dependency-graph-output` | str | `"./docs/assets/dependencies.mmd"` | Location of the generated dependency graph file. Read directly by `deps-graph` subcommand; CLI `--output` overrides. |
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 

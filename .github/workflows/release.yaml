@@ -6,28 +6,6 @@ name: Build & release
     secrets:
       PYPI_TOKEN:
         required: false
-    inputs:
-      unstable-targets:
-        description: List of unstable targets on which the build should be attempted but not fatal
-        required: false
-        # XXX This has to be a string because workflow inputs are not allowed to be complex types.
-        # Still, thanks to gha-utils resilience, we can pass a list of targets as a string, separated
-        # by arbitrary sepatarators.
-        type: string
-      timeout:
-        description: Timeout in seconds for each binary test
-        required: false
-        type: number
-      test-plan-file:
-        description: YAML file containing the full test plan for binaries
-        required: false
-        type: string
-        default: ./tests/cli-test-plan.yaml
-      test-plan:
-        description: Test plan for binaries
-        required: false
-        # XXX This has to be a string because workflow inputs are not allowed to be complex types.
-        type: string
     outputs:
       nuitka_matrix:
         description: Nuitka build matrix
@@ -38,13 +16,6 @@ name: Build & release
     branches:
       - main
   pull_request:
-
-# Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
-# We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
-env:
-  test-plan-file: >-
-    ${{ inputs.test-plan-file == null && './tests/cli-test-plan.yaml' || inputs.test-plan-file }}
-  test-plan: ${{ inputs.test-plan }}
 
 concurrency:
   # Protect release workflows by giving them unique concurrency groups.
@@ -101,10 +72,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: >
-          uvx --no-progress 'gha-utils==5.7.1' metadata
-          ${{ inputs.unstable-targets != null && format('--unstable-targets "{0}"', inputs.unstable-targets) || '' }}
-          --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.7.1' metadata --output "$GITHUB_OUTPUT"
 
   build-package:
     name: Build package
@@ -224,10 +192,7 @@ jobs:
       - name: Run test plan for binary
         run: >
           uvx --no-progress 'gha-utils==5.7.1' test-plan
-          ${{ inputs.timeout != null && format('--timeout {0}', inputs.timeout) || '' }}
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
-          --plan-file "${{ env.test-plan-file }}"
-          ${{ env.test-plan != null && '--plan-envvar test-plan' || '' }}
 
   create-tag:
     name: Tag release

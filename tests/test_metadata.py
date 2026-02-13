@@ -29,11 +29,14 @@ from gha_utils.metadata import (
     NUITKA_BUILD_TARGETS,
     NULL_SHA,
     SKIP_BINARY_BUILD_BRANCHES,
+    Config,
     Dialect,
     Metadata,
     get_latest_tag_version,
+    get_project_name,
     get_release_version_from_commits,
     is_version_bump_allowed,
+    load_gha_utils_config,
 )
 
 
@@ -498,7 +501,7 @@ expected = {
     ],
     "zsh_files": [],
     "is_python_project": True,
-    "nuitka_enabled": True,
+    "nuitka": True,
     "package_name": "gha-utils",
     "project_description": "🧩 CLI for GitHub Actions + reusable workflows",
     "mypy_params": "--python-version 3.10",
@@ -693,6 +696,10 @@ expected = {
     # These can be True or False depending on the current development cycle state.
     "minor_bump_allowed": AnyBool(),
     "major_bump_allowed": AnyBool(),
+    # Config from [tool.gha-utils] in pyproject.toml.
+    "gitignore_location": "./.gitignore",
+    "gitignore_extra_categories": [],
+    "gitignore_extra_content": "junit.xml\n\n# Claude Code\n.claude/",
 }
 
 
@@ -899,9 +906,9 @@ def test_skip_binary_build_property_false_by_default():
 
 
 def test_nuitka_enabled_default():
-    """Test that nuitka_enabled defaults to True."""
+    """Test that nuitka config defaults to True."""
     metadata = Metadata()
-    assert metadata.nuitka_enabled is True
+    assert metadata.config["nuitka"] is True
 
 
 def test_nuitka_disabled_skips_matrix(tmp_path, monkeypatch):
@@ -924,7 +931,7 @@ nuitka = false
     monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
 
     metadata = Metadata()
-    assert metadata.nuitka_enabled is False
+    assert metadata.config["nuitka"] is False
     assert metadata.nuitka_matrix is None
 
 
@@ -989,3 +996,167 @@ def test_is_version_bump_allowed_uses_commit_fallback():
 
     result = is_version_bump_allowed("major")
     assert isinstance(result, bool)
+
+
+def test_gha_utils_config_defaults():
+    """Test that [tool.gha-utils] config properties return sensible defaults."""
+    metadata = Metadata()
+    assert metadata.config["test-plan-file"] == "./tests/cli-test-plan.yaml"
+    assert metadata.config["timeout"] is None
+    assert metadata.config["test-plan"] is None
+    assert metadata.config["gitignore-location"] == "./.gitignore"
+    assert metadata.config["gitignore-extra-categories"] == []
+    assert (
+        metadata.config["gitignore-extra-content"]
+        == "junit.xml\n\n# Claude Code\n.claude/"
+    )
+    assert (
+        metadata.config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
+    )
+
+
+def test_gha_utils_config_custom_values(tmp_path, monkeypatch):
+    """Test that [tool.gha-utils] config properties read from pyproject.toml."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.gha-utils]
+test-plan-file = "./custom/test-plan.yaml"
+timeout = 120
+test-plan = "- args: --version"
+gitignore-location = "./custom/.gitignore"
+gitignore-extra-categories = ["terraform", "go"]
+gitignore-extra-content = "custom-content"
+dependency-graph-output = "./custom/deps.mmd"
+unstable-targets = ["linux-arm64", "windows-x64"]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    assert metadata.config["test-plan-file"] == "./custom/test-plan.yaml"
+    assert metadata.config["timeout"] == 120
+    assert metadata.config["test-plan"] == "- args: --version"
+    assert metadata.config["gitignore-location"] == "./custom/.gitignore"
+    assert metadata.config["gitignore-extra-categories"] == [
+        "terraform",
+        "go",
+    ]
+    assert metadata.config["gitignore-extra-content"] == "custom-content"
+    assert metadata.config["dependency-graph-output"] == "./custom/deps.mmd"
+    assert metadata.unstable_targets == {"linux-arm64", "windows-x64"}
+
+
+def test_unstable_targets_default():
+    """Test that unstable_targets defaults to an empty set."""
+    metadata = Metadata()
+    assert metadata.unstable_targets == set()
+
+
+def test_unstable_targets_ignores_unknown(tmp_path, monkeypatch):
+    """Test that unrecognized unstable targets are discarded with a warning."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.gha-utils]
+unstable-targets = ["linux-arm64", "unknown-target"]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    # Only known targets are kept.
+    assert metadata.unstable_targets == {"linux-arm64"}
+
+
+def test_load_gha_utils_config_defaults(tmp_path, monkeypatch):
+    """Test that load_gha_utils_config returns defaults when no pyproject.toml."""
+    monkeypatch.chdir(tmp_path)
+    config = load_gha_utils_config()
+    # All Config dataclass fields should be present with defaults.
+    from dataclasses import fields as dc_fields
+
+    for f in dc_fields(Config):
+        key = f.name.replace("_", "-")
+        assert key in config, f"Missing config key: {key}"
+    assert config["test-plan-file"] == "./tests/cli-test-plan.yaml"
+    assert config["timeout"] is None
+    assert config["test-plan"] is None
+    assert config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
+    assert config["nuitka"] is True
+
+
+def test_load_gha_utils_config_custom_values(tmp_path, monkeypatch):
+    """Test that load_gha_utils_config reads custom values from pyproject.toml."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.gha-utils]
+timeout = 120
+test-plan-file = "./custom/test-plan.yaml"
+dependency-graph-output = "./custom/deps.mmd"
+nuitka = false
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    config = load_gha_utils_config()
+    assert config["timeout"] == 120
+    assert config["test-plan-file"] == "./custom/test-plan.yaml"
+    assert config["dependency-graph-output"] == "./custom/deps.mmd"
+    assert config["nuitka"] is False
+
+
+def test_load_gha_utils_config_with_preloaded_data():
+    """Test that load_gha_utils_config accepts pre-parsed pyproject data."""
+    data = {
+        "tool": {
+            "gha-utils": {
+                "timeout": 60,
+            },
+        },
+    }
+    config = load_gha_utils_config(data)
+    assert config["timeout"] == 60
+    # Other defaults are still present.
+    assert config["test-plan-file"] == "./tests/cli-test-plan.yaml"
+
+
+def test_get_project_name_from_cwd(tmp_path, monkeypatch):
+    """Test that get_project_name reads from pyproject.toml in CWD."""
+    pyproject_content = """\
+[project]
+name = "my-package"
+version = "1.0.0"
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    assert get_project_name() == "my-package"
+
+
+def test_get_project_name_missing_pyproject(tmp_path, monkeypatch):
+    """Test that get_project_name returns None when no pyproject.toml."""
+    monkeypatch.chdir(tmp_path)
+    assert get_project_name() is None
+
+
+def test_get_project_name_no_project_section(tmp_path, monkeypatch):
+    """Test that get_project_name returns None when no [project] section."""
+    (tmp_path / "pyproject.toml").write_text("[tool.ruff]\n")
+    monkeypatch.chdir(tmp_path)
+    assert get_project_name() is None
+
+
+def test_get_project_name_with_preloaded_data():
+    """Test that get_project_name accepts pre-parsed pyproject data."""
+    data = {"project": {"name": "preloaded-pkg"}}
+    assert get_project_name(data) == "preloaded-pkg"

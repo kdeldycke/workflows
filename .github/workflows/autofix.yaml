@@ -2,49 +2,10 @@
 name: Autofix
 "on":
   workflow_call:
-    inputs:
-      gitignore-location:
-        description: 'File path of the .gitignore to update, relative to the root of the repository.'
-        required: false
-        type: string
-        default: ./.gitignore
-      gitignore-extra-categories:
-        description: 'List of additional categories to add to .gitignore file.'
-        type: string
-        required: false
-      gitignore-extra-content:
-        description: 'Additional content to append at the end of the generated .gitignore file.'
-        required: false
-        type: string
-        default: |
-          junit.xml
-
-          # Claude Code
-          .claude/
-      dependency-graph-output:
-        description: 'Location in the repository of the dependency graph image.'
-        required: false
-        type: string
-        default: ./docs/assets/dependencies.mmd
   workflow_dispatch:
   push:
     branches:
       - main
-
-# Defaults sets in workflow_call.inputs or workflow_dispatch.inputs are not propagated to other events.
-# We have to manually manage them: https://github.com/orgs/community/discussions/39357#discussioncomment-7500641
-env:
-  gitignore-location: >-
-    ${{ inputs.gitignore-location == null && './.gitignore' || inputs.gitignore-location }}
-  gitignore-extra-content: >-
-    ${{ inputs.gitignore-extra-content == null && 'junit.xml
-
-    # Claude Code
-
-    .claude/' || inputs.gitignore-extra-content }}
-  dependency-graph-output: >-
-    ${{ inputs.dependency-graph-output == null && './docs/assets/dependencies.mmd' || inputs.dependency-graph-output }}
-
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -64,9 +25,11 @@ jobs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
       image_files: ${{ steps.project-metadata.outputs.image_files }}
-      package_name: ${{ steps.project-metadata.outputs.package_name }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
+      gitignore_location: ${{ steps.project-metadata.outputs.gitignore_location }}
+      gitignore_extra_categories: ${{ steps.project-metadata.outputs.gitignore_extra_categories }}
+      gitignore_extra_content: ${{ steps.project-metadata.outputs.gitignore_extra_content }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
@@ -319,7 +282,7 @@ jobs:
           git ignore-io --update-list
       - name: Generate .gitignore
         run: >
-          git ignore-io ${{ inputs.gitignore-extra-categories }}
+          git ignore-io ${{ needs.project-metadata.outputs.gitignore_extra_categories }}
           certificates
           emacs
           git
@@ -334,13 +297,13 @@ jobs:
           vim
           virtualenv
           visualstudiocode
-          windows > "${{ env.gitignore-location }}"
+          windows > "${{ needs.project-metadata.outputs.gitignore_location }}"
       - name: Append extra content to .gitignore
-        if: env.gitignore-extra-content
+        if: needs.project-metadata.outputs.gitignore_extra_content
         run: |
-          tee -a "${{ env.gitignore-location }}" <<-EOF
+          tee -a "${{ needs.project-metadata.outputs.gitignore_location }}" <<-EOF
 
-          ${{ env.gitignore-extra-content }}
+          ${{ needs.project-metadata.outputs.gitignore_extra_content }}
           EOF
       - id: pr-metadata
         run: uvx --no-progress 'gha-utils==5.8.0' pr-body --output "$GITHUB_OUTPUT"
@@ -409,16 +372,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
-      - name: Create dir structure
-        run: mkdir -p "$(dirname "${{ env.dependency-graph-output }}")"
       - name: Generate graph
-        # Include all dependency groups in the graph with subgraphs.
-        run: >
-          uvx --no-progress 'gha-utils==5.7.1' deps-graph
-          ${{ needs.project-metadata.outputs.package_name
-          && format('--package {0}', needs.project-metadata.outputs.package_name)}}
-          --all-groups --all-extras
-          --output "${{ env.dependency-graph-output }}"
+        # Package name and output path are auto-detected from pyproject.toml.
+        run: uvx --no-progress 'gha-utils==5.7.1' deps-graph --all-groups --all-extras
       - id: pr-metadata
         run: uvx --no-progress 'gha-utils==5.8.0' pr-body --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0

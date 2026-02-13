@@ -5,11 +5,13 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add `gha-utils workflow` command group with `create`, `sync`, and `lint` subcommands for managing downstream caller workflows.
-- Add `[tool.gha-utils] nuitka` option in `pyproject.toml` to opt out of Nuitka binary compilation.
-- Improve Sphinx linkcheck reporting. Add new `--source-url` option.
+- Add `gha-utils workflow` command group with `create`, `sync`, and `lint` subcommands.
+- Add `[tool.gha-utils] nuitka` option to opt out of Nuitka binary compilation.
+- Move `release.yaml` and `autofix.yaml` workflow inputs to `[tool.gha-utils]` in `pyproject.toml`.
+- Add `--source-url` option to `gha-utils sphinx-linkcheck`.
 - Include actual output in test-plan assertion error messages.
 - Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand.
+- Have `test-plan` and `deps-graph` read `[tool.gha-utils]` config directly from `pyproject.toml`.
 
 ## [5.8.0 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 

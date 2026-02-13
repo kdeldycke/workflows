@@ -130,7 +130,7 @@ When adding new content, consider whether it benefits end users (`readme.md`) or
 
 Always update documentation when making changes:
 
-- **`changelog.md`**: Add a bullet point describing user-facing changes (new features, bug fixes, behavior changes).
+- **`changelog.md`**: Add a bullet point describing **what** changed (new features, bug fixes, behavior changes), not **why**. Keep entries concise and actionable. Justifications and rationale belong in documentation (`readme.md`, Sphinx docs) or code comments, not in the changelog.
 - **`readme.md`**: Update relevant sections when adding/modifying workflow jobs, CLI commands, or configuration options.
 
 ### Documenting code decisions

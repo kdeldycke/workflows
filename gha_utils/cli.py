@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import logging
 import os
-import re
 import sys
 from collections import Counter
 from datetime import datetime
@@ -52,7 +51,13 @@ from .bundled_config import (
     init_config,
 )
 from .mailmap import Mailmap
-from .metadata import NUITKA_BUILD_TARGETS, Dialect, Metadata, is_version_bump_allowed
+from .metadata import (
+    Dialect,
+    Metadata,
+    get_project_name,
+    is_version_bump_allowed,
+    load_gha_utils_config,
+)
 from .release_prep import ReleasePrep
 from .sponsor import (
     add_sponsor_label,
@@ -117,9 +122,13 @@ def prep_path(filepath: Path) -> IO:
 
     Always returns a UTF-8 encoded file object, including for stdout. This avoids
     ``UnicodeEncodeError`` on Windows where the default stdout encoding is ``cp1252``.
+
+    For non-stdout paths, parent directories are created automatically if they don't
+    exist. This absorbs the ``mkdir -p`` step that workflows previously had to do.
     """
     if is_stdout(filepath):
         return open(sys.stdout.fileno(), "w", encoding="UTF-8", closefd=False)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
     return filepath.open("w", encoding="UTF-8")
 
 
@@ -167,14 +176,6 @@ def gha_utils():
 
 @gha_utils.command(short_help="Output project metadata")
 @option(
-    "-u",
-    "--unstable-targets",
-    help="Build targets for which Nuitka is allowed to fail without comprimising the "
-    " release workflow. This option accepts a mangled string with multiple targets "
-    "separated by arbitrary separators. Recognized targets are: "
-    f"{', '.join(NUITKA_BUILD_TARGETS)}.",
-)
-@option(
     "--format",
     type=EnumChoice(Dialect),
     default=Dialect.github,
@@ -195,7 +196,7 @@ def gha_utils():
     help="Output file path. Defaults to stdout.",
 )
 @pass_context
-def metadata(ctx, unstable_targets, format, overwrite, output):
+def metadata(ctx, format, overwrite, output):
     """Dump project metadata to a file.
 
     By default the metadata produced are displayed directly to the console output.
@@ -222,23 +223,7 @@ def metadata(ctx, unstable_targets, format, overwrite, output):
                 logging.critical(msg)
                 ctx.exit(2)
 
-    # Extract targets from the raw string provided by the user.
-    valid_targets = set()
-    if unstable_targets:
-        for target in re.split(r"[^a-z0-9\-]", unstable_targets.lower()):
-            if target:
-                if target not in NUITKA_BUILD_TARGETS:
-                    logging.fatal(
-                        f"Unrecognized {target!r} target. "
-                        f"Must be one of {', '.join(NUITKA_BUILD_TARGETS)}."
-                    )
-                    sys.exit(1)
-                valid_targets.add(target)
-        logging.debug(
-            f"Parsed {unstable_targets!r} string into {valid_targets} targets."
-        )
-
-    metadata = Metadata(valid_targets)
+    metadata = Metadata()
 
     # Output a warning in GitHub runners if metadata are not saved to $GITHUB_OUTPUT.
     if is_github_ci():
@@ -931,9 +916,13 @@ def test_plan(
     show_trace_on_error: bool,
     stats: bool,
 ) -> None:
-    # Load test plan from workflow input, or use a default one.
+    # Load [tool.gha-utils] config for fallback values.
+    config = load_gha_utils_config()
+
+    # Load test plan: CLI args > pyproject.toml config > DEFAULT_TEST_PLAN.
     test_list = []
     if plan_file or plan_envvar:
+        # CLI-provided sources take precedence.
         for file in unique(plan_file):
             logging.info(f"Get test plan from {file} file")
             tests = list(parse_test_plan(file.read_text(encoding="UTF-8")))
@@ -946,11 +935,38 @@ def test_plan(
             test_list.extend(tests)
 
     else:
-        logging.warning(
-            "No test plan provided through --plan-file/-F or --plan-envvar/-E options:"
-            " use default test plan."
-        )
-        test_list = DEFAULT_TEST_PLAN
+        # Fall back to [tool.gha-utils] config.
+        config_test_plan = config.get("test-plan")
+        if config_test_plan:
+            logging.info("Get test plan from [tool.gha-utils] test-plan config.")
+            tests = list(parse_test_plan(config_test_plan))
+            logging.info(f"{len(tests)} test cases found.")
+            test_list.extend(tests)
+
+        config_plan_file = config.get("test-plan-file")
+        if config_plan_file:
+            plan_path = Path(config_plan_file)
+            if plan_path.exists():
+                logging.info(f"Get test plan from config path: {plan_path}")
+                tests = list(parse_test_plan(
+                    plan_path.read_text(encoding="UTF-8")
+                ))
+                logging.info(f"{len(tests)} test cases found.")
+                test_list.extend(tests)
+
+        if not test_list:
+            logging.warning(
+                "No test plan provided through CLI options or"
+                " [tool.gha-utils] config: use default test plan."
+            )
+            test_list = DEFAULT_TEST_PLAN
+
+    # Fall back to config timeout if not provided via CLI.
+    if timeout is None:
+        config_timeout = config.get("timeout")
+        if config_timeout is not None:
+            timeout = float(config_timeout)
+
     logging.debug(f"Test plan: {test_list}")
 
     counter = Counter(total=len(test_list), skipped=0, failed=0)
@@ -1155,8 +1171,8 @@ def sponsor_label(
     "-o",
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
-    default="-",
-    help="Output file path. Defaults to stdout.",
+    default=None,
+    help="Output file path. Defaults to [tool.gha-utils] config or stdout.",
 )
 def deps_graph(
     package: str | None,
@@ -1166,7 +1182,7 @@ def deps_graph(
     all_extras: bool,
     frozen: bool,
     level: int | None,
-    output: Path,
+    output: Path | None,
 ) -> None:
     """Generate a Mermaid dependency graph from the project's uv lockfile.
 
@@ -1199,6 +1215,25 @@ def deps_graph(
         # Save to file
         gha-utils deps-graph --output docs/dependency-graph.md
     """
+    config = load_gha_utils_config()
+
+    # Auto-detect package name from [project].name.
+    if package is None:
+        package = get_project_name()
+        if package:
+            logging.info(
+                "Auto-detected package from pyproject.toml:"
+                f" {package}"
+            )
+
+    # Resolve output: CLI > config > stdout.
+    if output is None:
+        config_output = config.get("dependency-graph-output")
+        if config_output:
+            output = Path(config_output).resolve()
+        else:
+            output = Path("-")
+
     # Resolve --all-groups and --all-extras flags.
     resolved_groups: tuple[str, ...] | None = groups if groups else None
     if all_groups:
