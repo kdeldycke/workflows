@@ -178,7 +178,7 @@ nuitka = false
 
 | Option   | Type | Default | Description                                                                                                     |
 | :------- | :--- | :------ | :-------------------------------------------------------------------------------------------------------------- |
-| `nuitka` | bool | `true`  | Enable Nuitka binary compilation. Set to `false` for projects with `[project.scripts]` that don't need binaries. |
+| `nuitka` | bool | `true`  | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries. |
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
