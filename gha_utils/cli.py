@@ -43,7 +43,13 @@ from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
-from .changelog import Changelog
+from .binary import (
+    BINARY_ARCH_MAPPINGS,
+    collect_and_rename_artifacts,
+    format_github_output,
+    verify_binary_arch,
+)
+from .broken_links import manage_broken_links_issue
 from .bundled_config import (
     EXPORTABLE_FILES,
     INIT_CONFIGS,
@@ -51,6 +57,15 @@ from .bundled_config import (
     get_default_output_path,
     init_config,
 )
+from .changelog import Changelog
+from .deps_graph import (
+    generate_dependency_graph,
+    get_available_extras,
+    get_available_groups,
+)
+from .git_ops import create_and_push_tag
+from .github import format_multiline_output
+from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
     Dialect,
@@ -59,7 +74,18 @@ from .metadata import (
     is_version_bump_allowed,
     load_gha_utils_config,
 )
+from .pr_body import build_pr_body, generate_pr_metadata_block
 from .release_prep import ReleasePrep
+from .renovate import (
+    add_exclude_newer_to_file,
+    calculate_target_date,
+    collect_check_results,
+    has_tool_uv_section,
+    parse_exclude_newer_date,
+    run_migration_checks,
+    update_exclude_newer_in_file,
+)
+from .sphinx_linkcheck import manage_sphinx_linkcheck_issue
 from .sponsor import (
     add_sponsor_label,
     get_default_author,
@@ -70,32 +96,6 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
-from .deps_graph import (
-    generate_dependency_graph,
-    get_available_extras,
-    get_available_groups,
-)
-from .broken_links import manage_broken_links_issue
-from .sphinx_linkcheck import manage_sphinx_linkcheck_issue
-from .binary import (
-    BINARY_ARCH_MAPPINGS,
-    collect_and_rename_artifacts,
-    format_github_output,
-    verify_binary_arch,
-)
-from .git_ops import create_and_push_tag
-from .renovate import (
-    add_exclude_newer_to_file,
-    calculate_target_date,
-    collect_check_results,
-    has_tool_uv_section,
-    parse_exclude_newer_date,
-    run_migration_checks,
-    update_exclude_newer_in_file,
-)
-from .github import format_multiline_output
-from .lint_repo import run_repo_lint
-from .pr_body import build_pr_body, generate_pr_metadata_block
 from .workflow_sync import (
     DEFAULT_REPO,
     DEFAULT_VERSION,
@@ -648,9 +648,7 @@ GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
     "output_path",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default=None,
-    help=(
-        "Output path. Defaults to gitignore-location from [tool.gha-utils] config."
-    ),
+    help=("Output path. Defaults to gitignore-location from [tool.gha-utils] config."),
 )
 def update_gitignore(output_path: Path | None) -> None:
     """Generate a ``.gitignore`` file from gitignore.io templates.
@@ -1349,10 +1347,7 @@ def deps_graph(
     if package is None:
         package = get_project_name()
         if package:
-            logging.info(
-                "Auto-detected package from pyproject.toml:"
-                f" {package}"
-            )
+            logging.info(f"Auto-detected package from pyproject.toml: {package}")
 
     # Resolve output: CLI > config > stdout.
     if output is None:
