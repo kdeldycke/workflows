@@ -1288,7 +1288,17 @@ def broken_links(lychee_exit_code: int, body_file: Path, repo_name: str) -> None
     required=True,
     help="Repository name (for label selection).",
 )
-def sphinx_linkcheck(output_json: Path, repo_name: str) -> None:
+@option(
+    "--source-url",
+    default=None,
+    help="Base URL for linking filenames and line numbers in the report. "
+    "Example: https://github.com/owner/repo/blob/<sha>/docs",
+)
+def sphinx_linkcheck(
+    output_json: Path,
+    repo_name: str,
+    source_url: str | None,
+) -> None:
     """Manage the Sphinx linkcheck issue lifecycle.
 
     Parses the Sphinx linkcheck ``output.json`` file, identifies broken
@@ -1306,8 +1316,15 @@ def sphinx_linkcheck(output_json: Path, repo_name: str) -> None:
         gha-utils sphinx-linkcheck \\
             --output-json ./docs/linkcheck/output.json \\
             --repo-name "my-repo"
+
+    \b
+        # With source URL for linked filenames and line numbers
+        gha-utils sphinx-linkcheck \\
+            --output-json ./docs/linkcheck/output.json \\
+            --repo-name "my-repo" \\
+            --source-url "https://github.com/owner/repo/blob/abc123/docs"
     """
-    manage_sphinx_linkcheck_issue(output_json, repo_name)
+    manage_sphinx_linkcheck_issue(output_json, repo_name, source_url=source_url)
 
 
 @gha_utils.command(short_help="Verify binary architecture using exiftool")

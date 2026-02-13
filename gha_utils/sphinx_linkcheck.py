@@ -106,10 +106,16 @@ def filter_broken(results: Iterable[LinkcheckResult]) -> list[LinkcheckResult]:
     return broken
 
 
-def generate_markdown_report(broken: list[LinkcheckResult]) -> str:
+def generate_markdown_report(
+    broken: list[LinkcheckResult],
+    source_url: str | None = None,
+) -> str:
     """Generate a Markdown report of broken links grouped by source file.
 
     :param broken: List of broken linkcheck results.
+    :param source_url: Base URL for linking filenames and line numbers. When
+        provided, file headers become clickable links and line numbers deep-link
+        to the specific line.
     :return: Markdown-formatted report string.
     """
     if not broken:
@@ -123,21 +129,36 @@ def generate_markdown_report(broken: list[LinkcheckResult]) -> str:
     sorted_results = sorted(broken, key=attrgetter("filename", "lineno"))
     for filename, group_iter in groupby(sorted_results, key=attrgetter("filename")):
         group_list = list(group_iter)
-        lines.append(f"## `{filename}`\n")
-        lines.append("| Line | URI | Status | Info |")
-        lines.append("| ---: | --- | ------ | ---- |")
+
+        if source_url:
+            file_url = f"{source_url}/{filename}"
+            lines.append(f"## [`{filename}`]({file_url})\n")
+        else:
+            lines.append(f"## `{filename}`\n")
+
+        lines.append("| Line | URI | Info |")
+        lines.append("| ---: | --- | ---- |")
         for result in group_list:
             # Escape pipe characters in info to avoid breaking the table.
             escaped_info = result.info.replace("|", "\\|")
+            if source_url:
+                file_url = f"{source_url}/{result.filename}"
+                line_cell = f"[{result.lineno}]({file_url}#L{result.lineno})"
+            else:
+                line_cell = str(result.lineno)
             lines.append(
-                f"| {result.lineno} | {result.uri} | {result.status} | {escaped_info} |"
+                f"| {line_cell} | {result.uri} | {escaped_info} |"
             )
         lines.append("")
 
     return "\n".join(lines)
 
 
-def manage_sphinx_linkcheck_issue(output_json: Path, repo_name: str) -> None:
+def manage_sphinx_linkcheck_issue(
+    output_json: Path,
+    repo_name: str,
+    source_url: str | None = None,
+) -> None:
     """Orchestrate Sphinx linkcheck issue management.
 
     Parses the ``output.json`` file, generates a Markdown report, and delegates
@@ -146,13 +167,15 @@ def manage_sphinx_linkcheck_issue(output_json: Path, repo_name: str) -> None:
 
     :param output_json: Path to the Sphinx linkcheck ``output.json`` file.
     :param repo_name: Repository name (for label selection).
+    :param source_url: Base URL for linking filenames and line numbers in the
+        report.
     """
     results = parse_output_json(output_json)
     broken = filter_broken(results)
     has_broken_links = len(broken) > 0
 
     if has_broken_links:
-        report = generate_markdown_report(broken)
+        report = generate_markdown_report(broken, source_url=source_url)
     else:
         report = ""
         logging.info("No broken documentation links found.")

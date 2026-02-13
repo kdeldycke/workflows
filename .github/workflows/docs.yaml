@@ -88,6 +88,7 @@ jobs:
           uvx --no-progress 'gha-utils==5.7.1' sphinx-linkcheck
           --output-json ./docs/linkcheck/output.json
           --repo-name "${{ github.event.repository.name }}"
+          --source-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/docs"
 
   check-broken-links:
     needs:

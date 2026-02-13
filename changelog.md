@@ -5,9 +5,10 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand.
 - Add `gha-utils workflow` command group with `create`, `sync`, and `lint` subcommands for managing downstream caller workflows.
+- Improve Sphinx linkcheck reporting. Add new `--source-url` option.
 - Include actual output in test-plan assertion error messages.
+- Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand.
 
 ## [5.8.0 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 

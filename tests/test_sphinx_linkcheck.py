@@ -186,8 +186,10 @@ def test_single_broken_link():
     report = generate_markdown_report(broken)
     assert "# Broken documentation links" in report
     assert "## `index.rst`" in report
-    assert "https://example.com/missing" in report
-    assert "404 Not Found" in report
+    assert "| Line | URI | Info |" in report
+    assert "| 10 | https://example.com/missing | 404 Not Found |" in report
+    # Status column should not be present.
+    assert "Status" not in report
 
 
 def test_groups_by_file_alphabetically():
@@ -217,3 +219,53 @@ def test_escapes_pipe_chars_in_info():
     ]
     report = generate_markdown_report(broken)
     assert "Error \\| Details" in report
+
+
+def test_source_url_links_filenames_and_lines():
+    """When source_url is provided, filenames and line numbers are linked."""
+    broken = [
+        LinkcheckResult(
+            filename="architectures.md",
+            lineno=4,
+            status="broken",
+            code=404,
+            uri="https://example.com/missing",
+            info="404 Not Found",
+        ),
+    ]
+    source_url = "https://github.com/owner/repo/blob/abc123/docs"
+    report = generate_markdown_report(broken, source_url=source_url)
+
+    # File header should be a link.
+    assert (
+        "## [`architectures.md`]"
+        "(https://github.com/owner/repo/blob/abc123/docs/architectures.md)"
+    ) in report
+
+    # Line number should be a deep link.
+    assert (
+        "[4](https://github.com/owner/repo/blob/abc123/docs/architectures.md#L4)"
+    ) in report
+
+
+def test_no_source_url_plain_text():
+    """Without source_url, filenames and line numbers are plain text."""
+    broken = [
+        LinkcheckResult(
+            filename="architectures.md",
+            lineno=4,
+            status="broken",
+            code=404,
+            uri="https://example.com/missing",
+            info="404 Not Found",
+        ),
+    ]
+    report = generate_markdown_report(broken)
+
+    # File header should be plain text.
+    assert "## `architectures.md`" in report
+    assert "## [`architectures.md`](" not in report
+
+    # Line number should be plain text.
+    assert "| 4 |" in report
+    assert "[4](" not in report
