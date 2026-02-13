@@ -14,6 +14,8 @@ name: Changelog & versions
       - "**/pyproject.toml"
       # Trigger on any workflow change to make sure version gets hard-coded everywhere.
       - .github/workflows/*.yaml
+      # Trigger on lockfile changes so bump-versions recreates its PRs before they conflict.
+      - uv.lock
   # Trigger after release workflow completes to ensure tags exist before bump-versions.
   # This avoids race conditions where changelog workflow checks for tags before they're pushed.
   workflow_run:
@@ -36,10 +38,12 @@ jobs:
 
   project-metadata:
     name: Project metadata
-    # Run on schedule (daily), manual dispatch, or after release workflow completes successfully.
+    # Run on schedule, manual dispatch, push, or after release workflow completes successfully.
+    # Push events keep bump-version PRs conflict-free by recreating them on every main change.
     if: >
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-slim
     outputs:
