@@ -23,6 +23,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from gha_utils.github import AnnotationLevel
 from gha_utils.workflow_sync import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,
@@ -41,7 +42,6 @@ from gha_utils.workflow_sync import (
     identify_canonical_workflow,
     run_workflow_lint,
 )
-from gha_utils.github import AnnotationLevel
 
 
 def test_reusable_workflows_sorted() -> None:
@@ -71,9 +71,7 @@ def test_no_overlap() -> None:
 
 def test_union_is_all() -> None:
     """Verify union of reusable and non-reusable equals all."""
-    assert set(REUSABLE_WORKFLOWS) | NON_REUSABLE_WORKFLOWS == set(
-        ALL_WORKFLOW_FILES
-    )
+    assert set(REUSABLE_WORKFLOWS) | NON_REUSABLE_WORKFLOWS == set(ALL_WORKFLOW_FILES)
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
@@ -189,9 +187,7 @@ def test_custom_version() -> None:
 
 def test_custom_repo() -> None:
     """Verify custom repo in uses reference."""
-    content = generate_thin_caller(
-        "lint.yaml", repo="myorg/myworkflows"
-    )
+    content = generate_thin_caller("lint.yaml", repo="myorg/myworkflows")
     assert "myorg/myworkflows/.github/workflows/lint.yaml@main" in content
 
 
@@ -549,7 +545,5 @@ def test_default_level() -> None:
 
 def test_custom_level() -> None:
     """Verify custom annotation level."""
-    result = LintResult(
-        message="test", is_issue=True, level=AnnotationLevel.ERROR
-    )
+    result = LintResult(message="test", is_issue=True, level=AnnotationLevel.ERROR)
     assert result.level == AnnotationLevel.ERROR
