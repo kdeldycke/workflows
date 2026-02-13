@@ -167,6 +167,19 @@ jobs:
 
 - **Concurrency configured** — All workflows use concurrency groups to [prevent redundant runs and save CI resources](#concurrency-and-cancellation).
 
+### `[tool.gha-utils]` configuration
+
+Downstream projects can customize workflow behavior by adding a `[tool.gha-utils]` section in their `pyproject.toml`:
+
+```toml
+[tool.gha-utils]
+nuitka = false
+```
+
+| Option   | Type | Default | Description                                                                                                     |
+| :------- | :--- | :------ | :-------------------------------------------------------------------------------------------------------------- |
+| `nuitka` | bool | `true`  | Enable Nuitka binary compilation. Set to `false` for projects with `[project.scripts]` that don't need binaries. |
+
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
 *Formatters* — rewrite files to enforce canonical style:
@@ -444,6 +457,7 @@ docs = [
   - Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
   - **Requires**:
     - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
+  - **Skipped if** `[tool.gha-utils] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
   - **Skipped for** branches that don't affect code:
     - `update-mailmap` (`.mailmap` changes)
     - `format-markdown` (documentation formatting)

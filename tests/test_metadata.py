@@ -422,6 +422,7 @@ expected = {
         "gha_utils/sphinx_linkcheck.py",
         "gha_utils/sponsor.py",
         "gha_utils/test_plan.py",
+        "gha_utils/workflow_sync.py",
         "tests/__init__.py",
         "tests/test_binary.py",
         "tests/test_broken_links.py",
@@ -437,6 +438,7 @@ expected = {
         "tests/test_release_prep.py",
         "tests/test_renovate.py",
         "tests/test_sphinx_linkcheck.py",
+        "tests/test_workflow_sync.py",
         "tests/test_workflows.py",
     ],
     "json_files": [],
@@ -496,6 +498,7 @@ expected = {
     ],
     "zsh_files": [],
     "is_python_project": True,
+    "nuitka_enabled": True,
     "package_name": "gha-utils",
     "project_description": "🧩 CLI for GitHub Actions + reusable workflows",
     "mypy_params": "--python-version 3.10",
@@ -893,6 +896,36 @@ def test_skip_binary_build_property_false_by_default():
     # Outside of PR context (GITHUB_HEAD_REF not set), skip_binary_build is False.
     assert isinstance(metadata.skip_binary_build, bool)
     assert metadata.skip_binary_build is False
+
+
+def test_nuitka_enabled_default():
+    """Test that nuitka_enabled defaults to True."""
+    metadata = Metadata()
+    assert metadata.nuitka_enabled is True
+
+
+def test_nuitka_disabled_skips_matrix(tmp_path, monkeypatch):
+    """Test that nuitka_matrix returns None when nuitka is disabled in pyproject.toml."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.scripts]
+my-cli = "my_package.__main__:main"
+
+[tool.gha-utils]
+nuitka = false
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+
+    # Override the pyproject path to point to our temporary file.
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    assert metadata.nuitka_enabled is False
+    assert metadata.nuitka_matrix is None
 
 
 def test_is_bot_false_by_default():

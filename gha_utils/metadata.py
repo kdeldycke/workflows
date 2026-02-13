@@ -1334,6 +1334,16 @@ class Metadata:
         return False if self.pyproject is None else True
 
     @cached_property
+    def pyproject_toml(self) -> dict[str, Any]:
+        """Returns the raw parsed content of ``pyproject.toml``.
+
+        Returns an empty dict if the file does not exist.
+        """
+        if self.pyproject_path.exists() and self.pyproject_path.is_file():
+            return tomllib.loads(self.pyproject_path.read_text(encoding="UTF-8"))
+        return {}
+
+    @cached_property
     def pyproject(self) -> StandardMetadata | None:
         """Returns metadata stored in the ``pyproject.toml`` file.
 
@@ -1345,15 +1355,27 @@ class Metadata:
             ``pyproject.toml`` file, but that does not means the project is a Python
             one. For that, the ``pyproject.toml`` needs to respect the PEPs.
         """
-        if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            toml = tomllib.loads(self.pyproject_path.read_text(encoding="UTF-8"))
+        toml = self.pyproject_toml
+        if toml:
             try:
-                metadata = StandardMetadata.from_pyproject(toml)
-                return metadata
+                return StandardMetadata.from_pyproject(toml)
             except ConfigurationError:
                 pass
-
         return None
+
+    @cached_property
+    def nuitka_enabled(self) -> bool:
+        """Whether Nuitka binary compilation is enabled for this project.
+
+        Reads ``[tool.gha-utils].nuitka`` from ``pyproject.toml``. Defaults to ``True``
+        for backward compatibility.
+
+        Projects with ``[project.scripts]`` entries that are not intended to produce
+        standalone binaries (e.g., libraries with convenience CLI wrappers) can set this
+        to ``false`` to opt out of Nuitka compilation.
+        """
+        gha_utils_config = self.pyproject_toml.get("tool", {}).get("gha-utils", {})
+        return gha_utils_config.get("nuitka", True)
 
     @cached_property
     def package_name(self) -> str | None:
@@ -1706,6 +1728,14 @@ class Metadata:
         if not self.script_entries:
             return None
 
+        # Allow projects to opt out of Nuitka compilation via pyproject.toml.
+        if not self.nuitka_enabled:
+            logging.info(
+                "[tool.gha-utils] nuitka is disabled. "
+                "Skipping binary compilation."
+            )
+            return None
+
         matrix = Matrix()
 
         # Register all runners on which we want to run Nuitka builds.
@@ -1884,6 +1914,7 @@ class Metadata:
             "image_files": self.image_files,
             "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
+            "nuitka_enabled": self.nuitka_enabled,
             "package_name": self.package_name,
             "project_description": self.project_description,
             "mypy_params": self.mypy_params,

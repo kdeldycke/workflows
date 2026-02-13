@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Add `gha-utils workflow` command group with `create`, `sync`, and `lint` subcommands for managing downstream caller workflows.
+- Add `[tool.gha-utils] nuitka` option in `pyproject.toml` to opt out of Nuitka binary compilation.
 - Improve Sphinx linkcheck reporting. Add new `--source-url` option.
 - Include actual output in test-plan assertion error messages.
 - Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand.
