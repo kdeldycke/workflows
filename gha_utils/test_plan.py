@@ -295,13 +295,19 @@ class CLITestCase:
                 for sub_string in field_data:
                     logging.info(f"Check if {name} contains {sub_string!r}")
                     if sub_string not in output:
-                        raise AssertionError(f"{name} does not contain {sub_string!r}")
+                        raise AssertionError(
+                            f"{name} does not contain {sub_string!r}\n"
+                            f"  Actual {name}: {output!r}"
+                        )
 
             elif field_id.endswith("_regex_matches"):
                 for regex in field_data:
                     logging.info(f"Check if {name} matches {regex!r}")
                     if not regex.search(output):
-                        raise AssertionError(f"{name} does not match regex {regex}")
+                        raise AssertionError(
+                            f"{name} does not match regex {regex}\n"
+                            f"  Actual {name}: {output!r}"
+                        )
 
             elif field_id.endswith("_regex_fullmatch"):
                 regex_fullmatch_line_by_line(field_data, output)
