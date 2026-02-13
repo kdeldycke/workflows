@@ -104,10 +104,18 @@ def test_release_has_secrets() -> None:
     assert "PYPI_TOKEN" in info.call_secrets
 
 
-def test_labels_has_inputs() -> None:
-    """Verify labels.yaml defines inputs."""
-    info = extract_trigger_info("labels.yaml")
-    assert "extra-label-files" in info.call_inputs
+@pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
+def test_no_workflow_call_inputs(filename: str) -> None:
+    """Verify no reusable workflow defines ``workflow_call`` inputs.
+
+    All configurable options live in ``[tool.gha-utils]`` in ``pyproject.toml``.
+    Workflows read config via ``gha-utils`` CLI instead of accepting inputs.
+    """
+    info = extract_trigger_info(filename)
+    assert len(info.call_inputs) == 0, (
+        f"{filename} still defines workflow_call inputs: "
+        f"{sorted(info.call_inputs)}"
+    )
 
 
 def test_changelog_has_workflow_run() -> None:

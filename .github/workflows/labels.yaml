@@ -2,19 +2,6 @@
 name: Labels
 "on":
   workflow_call:
-    inputs:
-      extra-label-files:
-        description: 'Additional label definition files in JSON, JSON5, TOML or YAML'
-        required: false
-        type: string
-      extra-file-rules:
-        description: 'YAML describing additional file-based labelling rules'
-        required: false
-        type: string
-      extra-content-rules:
-        description: 'YAML describing additional content-based labelling rules'
-        required: false
-        type: string
   workflow_dispatch:
   push:
     branches:
@@ -38,6 +25,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_call'
     runs-on: ubuntu-slim
     steps:
+      - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Install labelmaker
         run: >
@@ -47,14 +35,7 @@ jobs:
       - name: Dump labels
         run: uvx --no-progress 'gha-utils==5.7.1' bundled export labels.toml
       - name: Download extra label files
-        if: inputs.extra-label-files
-        run: |
-          echo "${{ inputs.extra-label-files }}" | while IFS= read -r url; do
-            if [ -n "$url" ]; then
-              filename=$(basename "$url")
-              curl -fsSL --output "./$filename" "$url"
-            fi
-          done
+        run: uvx --no-progress 'gha-utils==5.7.1' bundled fetch-extra-labels
       - name: Apply labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,17 +52,10 @@ jobs:
             labelmaker apply labels.toml --profile awesome "${{ github.repository }}"
           fi
 
-          # Apply extra label files if provided.
-          if [ -n "${{ inputs.extra-label-files }}" ]; then
-            echo "${{ inputs.extra-label-files }}" | while IFS= read -r url; do
-              if [ -n "$url" ]; then
-                filename=$(basename "$url")
-                if [ -f "$filename" ]; then
-                  labelmaker apply "$filename" "${{ github.repository }}"
-                fi
-              fi
-            done
-          fi
+          # Apply extra label files.
+          for f in extra-labels/*; do
+            [ -f "$f" ] && labelmaker apply "$f" "${{ github.repository }}"
+          done
 
   project-metadata:
     name: Project metadata
@@ -110,13 +84,6 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Dump default rules
         run: uvx --no-progress 'gha-utils==5.7.1' bundled export labeller-file-based.yaml
-      - name: Extend default rules
-        if: inputs.extra-file-rules
-        run: |
-          tee -a ./.github/labeller-file-based.yaml <<-EOF
-
-          ${{ inputs.extra-file-rules }}
-          EOF
       - name: Apply rules
         uses: actions/labeler@v6.0.1
         with:
@@ -135,13 +102,6 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Dump default rules
         run: uvx --no-progress 'gha-utils==5.7.1' bundled export labeller-content-based.yaml
-      - name: Extend default rules
-        if: inputs.extra-content-rules
-        run: |
-          tee -a ./.github/labeller-content-based.yaml <<-EOF
-
-          ${{ inputs.extra-content-rules }}
-          EOF
       - name: Apply rules
         uses: github/issue-labeler@v3.4
         with:

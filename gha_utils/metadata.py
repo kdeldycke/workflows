@@ -413,12 +413,33 @@ class Config:
     The dependency graph visualizes the project's dependency tree in Mermaid format.
     """
 
+    extra_label_files: list[str] = field(default_factory=list)
+    """URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
+
+    Each URL is downloaded and applied separately by ``labelmaker``.
+    """
+
+    extra_file_rules: str = ""
+    """Additional YAML rules appended to the file-based labeller configuration.
+
+    Appended to the bundled ``labeller-file-based.yaml`` during export.
+    """
+
+    extra_content_rules: str = ""
+    """Additional YAML rules appended to the content-based labeller configuration.
+
+    Appended to the bundled ``labeller-content-based.yaml`` during export.
+    """
+
 
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "test_plan_file",
     "timeout",
     "test_plan",
     "dependency_graph_output",
+    "extra_label_files",
+    "extra_file_rules",
+    "extra_content_rules",
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.
 

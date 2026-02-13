@@ -7,7 +7,7 @@
 
 - Add `gha-utils workflow` command group with `create`, `sync`, and `lint` subcommands.
 - Add `[tool.gha-utils] nuitka` option to opt out of Nuitka binary compilation.
-- Move `release.yaml` and `autofix.yaml` workflow inputs to `[tool.gha-utils]` in `pyproject.toml`.
+- Move `release.yaml`, `autofix.yaml`, and `labels.yaml` workflow inputs to `[tool.gha-utils]` in `pyproject.toml`.
 - Add `--source-url` option to `gha-utils sphinx-linkcheck`.
 - Include actual output in test-plan assertion error messages.
 - Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand.

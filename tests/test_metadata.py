@@ -1013,6 +1013,9 @@ def test_gha_utils_config_defaults():
     assert (
         metadata.config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
     )
+    assert metadata.config["extra-label-files"] == []
+    assert metadata.config["extra-file-rules"] == ""
+    assert metadata.config["extra-content-rules"] == ""
 
 
 def test_gha_utils_config_custom_values(tmp_path, monkeypatch):
@@ -1031,6 +1034,9 @@ gitignore-extra-categories = ["terraform", "go"]
 gitignore-extra-content = "custom-content"
 dependency-graph-output = "./custom/deps.mmd"
 unstable-targets = ["linux-arm64", "windows-x64"]
+extra-label-files = ["https://example.com/labels.toml"]
+extra-file-rules = "docs:\\n  - docs/**"
+extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1048,6 +1054,11 @@ unstable-targets = ["linux-arm64", "windows-x64"]
     assert metadata.config["gitignore-extra-content"] == "custom-content"
     assert metadata.config["dependency-graph-output"] == "./custom/deps.mmd"
     assert metadata.unstable_targets == {"linux-arm64", "windows-x64"}
+    assert metadata.config["extra-label-files"] == [
+        "https://example.com/labels.toml",
+    ]
+    assert metadata.config["extra-file-rules"] == "docs:\n  - docs/**"
+    assert metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
 
 
 def test_unstable_targets_default():
@@ -1090,6 +1101,9 @@ def test_load_gha_utils_config_defaults(tmp_path, monkeypatch):
     assert config["test-plan"] is None
     assert config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
     assert config["nuitka"] is True
+    assert config["extra-label-files"] == []
+    assert config["extra-file-rules"] == ""
+    assert config["extra-content-rules"] == ""
 
 
 def test_load_gha_utils_config_custom_values(tmp_path, monkeypatch):

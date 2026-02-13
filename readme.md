@@ -182,6 +182,9 @@ gitignore-location = "./.gitignore"
 gitignore-extra-categories = ["terraform", "go"]
 gitignore-extra-content = "junit.xml\n\n# Claude Code\n.claude/"
 dependency-graph-output = "./docs/assets/dependencies.mmd"
+extra-label-files = ["https://example.com/my-labels.toml"]
+extra-file-rules = "docs:\n  - docs/**"
+extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 ```
 
 | Option | Type | Default | Description |
@@ -195,6 +198,9 @@ dependency-graph-output = "./docs/assets/dependencies.mmd"
 | `gitignore-extra-categories` | list\[str\] | `[]` | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`). |
 | `gitignore-extra-content` | str | `"junit.xml\n\n# Claude Code\n.claude/"` | Additional content to append to the generated `.gitignore`. |
 | `dependency-graph-output` | str | `"./docs/assets/dependencies.mmd"` | Location of the generated dependency graph file. Read directly by `deps-graph` subcommand; CLI `--output` overrides. |
+| `extra-label-files` | list\[str\] | `[]` | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`. |
+| `extra-file-rules` | str | `""` | Additional YAML rules appended to the bundled file-based labeller configuration. |
+| `extra-content-rules` | str | `""` | Additional YAML rules appended to the bundled content-based labeller configuration. |
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 

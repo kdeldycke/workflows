@@ -5,6 +5,9 @@ requires-python = ">=3.10"
 [options]
 exclude-newer = "2026-02-04T00:00:00Z"
 
+[options.exclude-newer-package]
+nuitka = { timestamp = "2026-02-13T17:08:40.371957Z", span = "PT0S" }
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"

@@ -416,8 +416,9 @@ def bundled():
 
     \b
     Subcommands:
-        export - Export any bundled file (with smart default output paths)
-        init   - Merge config into pyproject.toml
+        export             - Export any bundled file (with smart default output paths)
+        init               - Merge config into pyproject.toml
+        fetch-extra-labels - Download extra label files from config
 
     \b
     Exportable files (gha-utils bundled export <filename>):
@@ -501,6 +502,17 @@ def export(list_only, filename, output_path):
 
     content = export_content(filename)
 
+    # Auto-append extra rules from [tool.gha-utils] config.
+    if filename in ("labeller-file-based.yaml", "labeller-content-based.yaml"):
+        config = load_gha_utils_config()
+        config_key = {
+            "labeller-file-based.yaml": "extra-file-rules",
+            "labeller-content-based.yaml": "extra-content-rules",
+        }[filename]
+        extra = config.get(config_key, "")
+        if extra:
+            content += "\n" + extra
+
     # Use provided path, or fall back to default, or stdout.
     if output_path is None:
         default_path = get_default_output_path(filename)
@@ -571,6 +583,35 @@ def init(ctx, config_type, source, output_path):
         logging.info(f"Write merged result to {output_path}")
 
     echo(merged.rstrip(), file=prep_path(output_path))
+
+
+@bundled.command(short_help="Download extra label files from config")
+def fetch_extra_labels():
+    """Download extra label definition files from ``[tool.gha-utils]`` config.
+
+    Reads ``extra-label-files`` URLs and downloads each file to an
+    ``extra-labels/`` subdirectory in the current directory.
+    Does nothing if no URLs are configured.
+    """
+    config = load_gha_utils_config()
+    urls = config.get("extra-label-files", [])
+    if not urls:
+        logging.info("No extra-label-files configured.")
+        return
+
+    from pathlib import PurePosixPath
+    from urllib.request import urlretrieve
+
+    target_dir = Path("extra-labels")
+    target_dir.mkdir(exist_ok=True)
+    for url in urls:
+        url = url.strip()
+        if not url:
+            continue
+        filename = PurePosixPath(url).name
+        target = target_dir / filename
+        logging.info(f"Downloading {url} -> {target}")
+        urlretrieve(url, target)  # noqa: S310
 
 
 @gha_utils.group(short_help="Manage downstream workflow caller files")
