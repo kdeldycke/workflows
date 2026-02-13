@@ -470,6 +470,70 @@ FLAT_BUILD_TARGETS = [
 """List of build targets in a flat format, suitable for matrix inclusion."""
 
 
+class WorkflowEvent(StrEnum):
+    """Workflow events that cause a workflow to run.
+
+    `List of events
+    <https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
+    """
+
+    branch_protection_rule = "branch_protection_rule"
+    check_run = "check_run"
+    check_suite = "check_suite"
+    create = "create"
+    delete = "delete"
+    deployment = "deployment"
+    deployment_status = "deployment_status"
+    discussion = "discussion"
+    discussion_comment = "discussion_comment"
+    fork = "fork"
+    gollum = "gollum"
+    issue_comment = "issue_comment"
+    issues = "issues"
+    label = "label"
+    merge_group = "merge_group"
+    milestone = "milestone"
+    page_build = "page_build"
+    project = "project"
+    project_card = "project_card"
+    project_column = "project_column"
+    public = "public"
+    pull_request = "pull_request"
+    pull_request_comment = "pull_request_comment"
+    pull_request_review = "pull_request_review"
+    pull_request_review_comment = "pull_request_review_comment"
+    pull_request_target = "pull_request_target"
+    push = "push"
+    registry_package = "registry_package"
+    release = "release"
+    repository_dispatch = "repository_dispatch"
+    schedule = "schedule"
+    status = "status"
+    watch = "watch"
+    workflow_call = "workflow_call"
+    workflow_dispatch = "workflow_dispatch"
+    workflow_run = "workflow_run"
+
+
+class Dialect(StrEnum):
+    """Dialect in which metadata can be formatted to."""
+
+    github = "github"
+    json = "json"
+
+
+MYPY_VERSION_MIN: Final = (3, 8)
+"""Earliest version supported by Mypy's ``--python-version 3.x`` parameter.
+
+`Sourced from Mypy original implementation
+<https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
+"""
+
+
+# Silence overly verbose debug messages from py-walk logger.
+logging.getLogger("py_walk").setLevel(logging.WARNING)
+
+
 def get_latest_tag_version() -> Version | None:
     """Returns the latest release version from Git tags.
 
@@ -595,70 +659,6 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
 
     logging.info(f"Version bump for {part} is allowed.")
     return True
-
-
-class WorkflowEvent(StrEnum):
-    """Workflow events that cause a workflow to run.
-
-    `List of events
-    <https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
-    """
-
-    branch_protection_rule = "branch_protection_rule"
-    check_run = "check_run"
-    check_suite = "check_suite"
-    create = "create"
-    delete = "delete"
-    deployment = "deployment"
-    deployment_status = "deployment_status"
-    discussion = "discussion"
-    discussion_comment = "discussion_comment"
-    fork = "fork"
-    gollum = "gollum"
-    issue_comment = "issue_comment"
-    issues = "issues"
-    label = "label"
-    merge_group = "merge_group"
-    milestone = "milestone"
-    page_build = "page_build"
-    project = "project"
-    project_card = "project_card"
-    project_column = "project_column"
-    public = "public"
-    pull_request = "pull_request"
-    pull_request_comment = "pull_request_comment"
-    pull_request_review = "pull_request_review"
-    pull_request_review_comment = "pull_request_review_comment"
-    pull_request_target = "pull_request_target"
-    push = "push"
-    registry_package = "registry_package"
-    release = "release"
-    repository_dispatch = "repository_dispatch"
-    schedule = "schedule"
-    status = "status"
-    watch = "watch"
-    workflow_call = "workflow_call"
-    workflow_dispatch = "workflow_dispatch"
-    workflow_run = "workflow_run"
-
-
-class Dialect(StrEnum):
-    """Dialect in which metadata can be formatted to."""
-
-    github = "github"
-    json = "json"
-
-
-MYPY_VERSION_MIN: Final = (3, 8)
-"""Earliest version supported by Mypy's ``--python-version 3.x`` parameter.
-
-`Sourced from Mypy original implementation
-<https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
-"""
-
-
-# Silence overly verbose debug messages from py-walk logger.
-logging.getLogger("py_walk").setLevel(logging.WARNING)
 
 
 class JSONMetadata(json.JSONEncoder):
