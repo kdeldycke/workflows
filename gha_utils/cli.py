@@ -22,6 +22,7 @@ import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 from boltons.iterutils import unique
 from click_extra import (
@@ -672,13 +673,11 @@ def update_gitignore(output_path: Path | None) -> None:
         # Preview on stdout
         gha-utils update-gitignore --output -
     """
-    from urllib.request import Request, urlopen
-
     config = load_gha_utils_config()
 
-    # Combine base and extra categories.
+    # Combine base and extra categories, preserving order and deduplicating.
     extra = config.get("gitignore-extra-categories", [])
-    all_categories = list(GITIGNORE_BASE_CATEGORIES) + extra
+    all_categories = list(dict.fromkeys((*GITIGNORE_BASE_CATEGORIES, *extra)))
 
     # Fetch from gitignore.io API.
     url = f"{GITIGNORE_IO_URL}/{','.join(all_categories)}"
@@ -1079,9 +1078,7 @@ def test_plan(
             plan_path = Path(config_plan_file)
             if plan_path.exists():
                 logging.info(f"Get test plan from config path: {plan_path}")
-                tests = list(parse_test_plan(
-                    plan_path.read_text(encoding="UTF-8")
-                ))
+                tests = list(parse_test_plan(plan_path.read_text(encoding="UTF-8")))
                 logging.info(f"{len(tests)} test cases found.")
                 test_list.extend(tests)
 
