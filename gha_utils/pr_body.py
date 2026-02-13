@@ -24,7 +24,6 @@ block containing a metadata table. This replaces the bash ``printf`` chain in th
 from __future__ import annotations
 
 import os
-import textwrap
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -88,15 +87,15 @@ def generate_pr_metadata_block() -> str:
     ]
     table = "\n".join(rows)
 
-    return textwrap.dedent(f"""\
-        <details><summary><code>Workflow metadata</code></summary>
-
-        | Field | Value |
-        |---|---|
-        {table}
-
-        </details>
-    """)
+    return (
+        "<details><summary><code>Workflow metadata</code></summary>\n"
+        "\n"
+        "| Field | Value |\n"
+        "|---|---|\n"
+        f"{table}\n"
+        "\n"
+        "</details>\n"
+    )
 
 
 def build_pr_body(prefix: str, metadata_block: str) -> str:
