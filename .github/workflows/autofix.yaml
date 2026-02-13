@@ -27,9 +27,6 @@ jobs:
       image_files: ${{ steps.project-metadata.outputs.image_files }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
-      gitignore_location: ${{ steps.project-metadata.outputs.gitignore_location }}
-      gitignore_extra_categories: ${{ steps.project-metadata.outputs.gitignore_extra_categories }}
-      gitignore_extra_content: ${{ steps.project-metadata.outputs.gitignore_extra_content }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
@@ -272,39 +269,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
-      - name: Install git ignore-io
-        # Update the list manually so the first call below will not introduce these extra log messages:
-        #   -----Initial gitignore.io list----
-        #   -----Save to /home/runner/.gi_list-----
-        run: |
-          sudo apt update
-          sudo apt install --yes git-extras
-          git ignore-io --update-list
       - name: Generate .gitignore
-        run: >
-          git ignore-io ${{ needs.project-metadata.outputs.gitignore_extra_categories }}
-          certificates
-          emacs
-          git
-          gpg
-          linux
-          macos
-          node
-          nohup
-          python
-          rust
-          ssh
-          vim
-          virtualenv
-          visualstudiocode
-          windows > "${{ needs.project-metadata.outputs.gitignore_location }}"
-      - name: Append extra content to .gitignore
-        if: needs.project-metadata.outputs.gitignore_extra_content
-        run: |
-          tee -a "${{ needs.project-metadata.outputs.gitignore_location }}" <<-EOF
-
-          ${{ needs.project-metadata.outputs.gitignore_extra_content }}
-          EOF
+        run: uvx --no-progress 'gha-utils==5.7.1' update-gitignore
       - id: pr-metadata
         run: uvx --no-progress 'gha-utils==5.8.0' pr-body --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0

@@ -696,10 +696,6 @@ expected = {
     # These can be True or False depending on the current development cycle state.
     "minor_bump_allowed": AnyBool(),
     "major_bump_allowed": AnyBool(),
-    # Config from [tool.gha-utils] in pyproject.toml.
-    "gitignore_location": "./.gitignore",
-    "gitignore_extra_categories": [],
-    "gitignore_extra_content": "junit.xml\n\n# Claude Code\n.claude/",
 }
 
 

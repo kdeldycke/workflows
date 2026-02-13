@@ -247,7 +247,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
 - **Update .gitignore** (`update-gitignore`)
 
-  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`git-extras`](https://github.com/tj/git-extras)
+  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`gha-utils update-gitignore`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
   - **Requires**:
     - A `.gitignore` file in the repository
 
@@ -407,9 +407,9 @@ docs = [
 
 - **Lint repository metadata** (`lint-repo`)
 
-  - Validates repository metadata (package name, Sphinx docs, project description) using [`gha-utils lint-repo`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
+  - Validates repository metadata (package name, Sphinx docs, project description) using [`gha-utils lint-repo`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py). Reads `pyproject.toml` directly.
   - **Requires**:
-    - Python package with a package name, Sphinx docs, or project description
+    - Python package (with a `pyproject.toml` file)
 
 - **Lint types** (`lint-types`)
 

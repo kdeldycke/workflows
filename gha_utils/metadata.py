@@ -440,6 +440,9 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "extra_label_files",
     "extra_file_rules",
     "extra_content_rules",
+    "gitignore_location",
+    "gitignore_extra_categories",
+    "gitignore_extra_content",
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.
 

@@ -26,10 +26,7 @@ jobs:
       workflow_files: ${{ steps.project-metadata.outputs.workflow_files }}
       zsh_files: ${{ steps.project-metadata.outputs.zsh_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      package_name: ${{ steps.project-metadata.outputs.package_name }}
-      is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
       mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
-      project_description: ${{ steps.project-metadata.outputs.project_description }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
@@ -40,11 +37,7 @@ jobs:
   lint-repo:
     needs:
       - project-metadata
-    # Only check Python projects that have a package name, Sphinx docs, or description.
-    if: >
-      fromJSON(needs.project-metadata.outputs.is_python_project)
-      && (needs.project-metadata.outputs.package_name || fromJSON(needs.project-metadata.outputs.is_sphinx)
-      || needs.project-metadata.outputs.project_description)
+    if: fromJSON(needs.project-metadata.outputs.is_python_project)
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -52,14 +45,7 @@ jobs:
       - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          uvx --no-progress 'gha-utils==5.7.1' lint-repo
-          ${{ needs.project-metadata.outputs.package_name &&
-          format('--package-name "{0}"', needs.project-metadata.outputs.package_name) || '' }}
-          --repo-name "${{ github.event.repository.name }}"
-          ${{ fromJSON(needs.project-metadata.outputs.is_sphinx) && '--is-sphinx' || '--no-sphinx' }}
-          ${{ needs.project-metadata.outputs.project_description &&
-          format('--project-description "{0}"', needs.project-metadata.outputs.project_description) || '' }}
+        run: uvx --no-progress 'gha-utils==5.7.1' lint-repo --repo-name "${{ github.event.repository.name }}"
 
   lint-types:
     needs:

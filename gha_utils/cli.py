@@ -614,6 +614,97 @@ def fetch_extra_labels():
         urlretrieve(url, target)  # noqa: S310
 
 
+GITIGNORE_BASE_CATEGORIES: tuple[str, ...] = (
+    "certificates",
+    "emacs",
+    "git",
+    "gpg",
+    "linux",
+    "macos",
+    "node",
+    "nohup",
+    "python",
+    "rust",
+    "ssh",
+    "vim",
+    "virtualenv",
+    "visualstudiocode",
+    "windows",
+)
+"""Base gitignore.io template categories included in every generated ``.gitignore``.
+
+These cover common development environments, operating systems, and tools.
+Downstream projects can add more via ``gitignore-extra-categories`` in
+``[tool.gha-utils]``.
+"""
+
+GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
+"""gitignore.io API endpoint for fetching ``.gitignore`` templates."""
+
+
+@gha_utils.command(short_help="Generate .gitignore from gitignore.io templates")
+@option(
+    "--output",
+    "output_path",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default=None,
+    help=(
+        "Output path. Defaults to gitignore-location from [tool.gha-utils] config."
+    ),
+)
+def update_gitignore(output_path: Path | None) -> None:
+    """Generate a ``.gitignore`` file from gitignore.io templates.
+
+    Fetches templates for a base set of categories plus any extras from
+    ``[tool.gha-utils]`` config, then appends ``gitignore-extra-content``.
+    Writes to the path specified by ``gitignore-location`` (default
+    ``./.gitignore``).
+
+    \b
+    Examples:
+        # Generate .gitignore using config from pyproject.toml
+        gha-utils update-gitignore
+
+    \b
+        # Write to custom location
+        gha-utils update-gitignore --output ./custom/.gitignore
+
+    \b
+        # Preview on stdout
+        gha-utils update-gitignore --output -
+    """
+    from urllib.request import Request, urlopen
+
+    config = load_gha_utils_config()
+
+    # Combine base and extra categories.
+    extra = config.get("gitignore-extra-categories", [])
+    all_categories = list(GITIGNORE_BASE_CATEGORIES) + extra
+
+    # Fetch from gitignore.io API.
+    url = f"{GITIGNORE_IO_URL}/{','.join(all_categories)}"
+    logging.info(f"Fetching {url}")
+    request = Request(url, headers={"User-Agent": f"gha-utils/{__version__}"})  # noqa: S310
+    with urlopen(request) as response:  # noqa: S310
+        content = response.read().decode("UTF-8")
+
+    # Append extra content.
+    extra_content = config.get("gitignore-extra-content", "")
+    if extra_content:
+        content += "\n" + extra_content + "\n"
+
+    # Resolve output path.
+    if output_path is None:
+        output_path = Path(config.get("gitignore-location", "./.gitignore"))
+
+    if is_stdout(output_path):
+        logging.info(f"Print to {sys.stdout.name}")
+    else:
+        logging.info(f"Write to {output_path}")
+
+    echo(content.rstrip(), file=prep_path(output_path))
+
+
 @gha_utils.group(short_help="Manage downstream workflow caller files")
 def workflow():
     """Manage downstream workflow caller files.
@@ -1678,24 +1769,9 @@ def check_renovate(
 
 @gha_utils.command(short_help="Run repository consistency checks")
 @option(
-    "--package-name",
-    default=None,
-    help="Python package name from pyproject.toml.",
-)
-@option(
     "--repo-name",
     default=None,
     help="Repository name. Defaults to $GITHUB_REPOSITORY name component.",
-)
-@option(
-    "--is-sphinx/--no-sphinx",
-    default=False,
-    help="Whether the project uses Sphinx documentation.",
-)
-@option(
-    "--project-description",
-    default=None,
-    help="Project description from pyproject.toml.",
 )
 @option(
     "--repo",
@@ -1705,13 +1781,13 @@ def check_renovate(
 @pass_context
 def lint_repo(
     ctx: Context,
-    package_name: str | None,
     repo_name: str | None,
-    is_sphinx: bool,
-    project_description: str | None,
     repo: str | None,
 ) -> None:
     """Run consistency checks on repository metadata.
+
+    Reads ``package_name``, ``is_sphinx``, and ``project_description`` directly
+    from ``pyproject.toml`` in the current directory.
 
     Checks:
     - Package name vs repository name (warning).
@@ -1720,16 +1796,12 @@ def lint_repo(
 
     \b
     Examples:
-        # In GitHub Actions with metadata from previous job
-        gha-utils lint-repo \\
-            --package-name my-package \\
-            --repo-name my-package \\
-            --is-sphinx \\
-            --project-description "A cool package."
+        # In GitHub Actions (reads pyproject.toml automatically)
+        gha-utils lint-repo --repo-name my-package
 
     \b
-        # Just check description
-        gha-utils lint-repo --project-description "A cool package."
+        # Local run (derives repo from $GITHUB_REPOSITORY or --repo)
+        gha-utils lint-repo --repo owner/repo
     """
     # Apply defaults from environment.
     if repo is None:
@@ -1737,6 +1809,12 @@ def lint_repo(
     if repo_name is None and repo:
         # Extract repo name from owner/repo format.
         repo_name = repo.split("/")[-1] if "/" in repo else repo
+
+    # Derive package_name, is_sphinx, project_description from pyproject.toml.
+    metadata = Metadata()
+    package_name = get_project_name()
+    is_sphinx = metadata.is_sphinx
+    project_description = metadata.project_description
 
     exit_code = run_repo_lint(
         package_name=package_name,
