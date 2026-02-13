@@ -495,7 +495,8 @@ def get_project_name(
         pyproject_data = tomllib.loads(
             pyproject_path.read_text(encoding="UTF-8")
         )
-    return pyproject_data.get("project", {}).get("name")
+    name: str | None = pyproject_data.get("project", {}).get("name")
+    return name
 
 
 SHORT_SHA_LENGTH = 7
@@ -1498,7 +1499,10 @@ class Metadata:
         Returns an empty dict if the file does not exist.
         """
         if self.pyproject_path.exists() and self.pyproject_path.is_file():
-            return tomllib.loads(self.pyproject_path.read_text(encoding="UTF-8"))
+            data: dict[str, Any] = tomllib.loads(
+                self.pyproject_path.read_text(encoding="UTF-8")
+            )
+            return data
         return {}
 
     @cached_property

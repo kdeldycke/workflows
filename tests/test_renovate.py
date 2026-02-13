@@ -127,13 +127,13 @@ def test_no_section(tmp_path):
     assert has_tool_uv_section(pyproject) is False
 
 
-def test_file_not_exists(tmp_path):
+def test_no_file_has_tool_uv(tmp_path):
     """Return False when file doesn't exist."""
     pyproject = tmp_path / "pyproject.toml"
     assert has_tool_uv_section(pyproject) is False
 
 
-def test_invalid_toml(tmp_path):
+def test_invalid_toml_has_tool_uv(tmp_path):
     """Return False for invalid TOML."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text("this is not valid TOML [[[")
@@ -167,7 +167,7 @@ def test_exclude_newer_already_exists(tmp_path):
     assert result is False
 
 
-def test_file_not_exists(tmp_path):
+def test_add_exclude_newer_no_file(tmp_path):
     """Return False when file doesn't exist."""
     pyproject = tmp_path / "pyproject.toml"
     result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
@@ -214,7 +214,7 @@ def test_no_change_needed(tmp_path):
     assert result is False
 
 
-def test_file_not_exists(tmp_path):
+def test_update_exclude_newer_no_file(tmp_path):
     """Return False when file doesn't exist."""
     pyproject = tmp_path / "pyproject.toml"
     result = update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
@@ -404,7 +404,7 @@ def test_config_missing(tmp_path, monkeypatch):
     assert "not found" in msg
 
 
-def test_yaml_exists(tmp_path, monkeypatch):
+def test_dependabot_yaml_config_path(tmp_path, monkeypatch):
     """Return path when .github/dependabot.yaml exists."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / ".github").mkdir()
@@ -414,7 +414,7 @@ def test_yaml_exists(tmp_path, monkeypatch):
     assert path.name == "dependabot.yaml"
 
 
-def test_yml_exists(tmp_path, monkeypatch):
+def test_dependabot_yml_config_path(tmp_path, monkeypatch):
     """Return path when .github/dependabot.yml exists."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / ".github").mkdir()
@@ -514,7 +514,7 @@ def test_to_pr_body_already_migrated():
     assert "✅ Token has access" in body
 
 
-def test_all_checks_pass(tmp_path, monkeypatch):
+def test_collect_results_all_pass(tmp_path, monkeypatch):
     """Collect results when all checks pass."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "renovate.json5").touch()

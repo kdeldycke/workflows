@@ -258,7 +258,7 @@ def test_returns_none_for_missing_file(tmp_path: Path) -> None:
     assert result is None
 
 
-def test_custom_repo(tmp_path: Path) -> None:
+def test_identify_custom_repo(tmp_path: Path) -> None:
     """Match with custom repo."""
     wf = tmp_path / "lint.yaml"
     wf.write_text(
@@ -428,7 +428,7 @@ def test_create_thin_callers(tmp_path: Path) -> None:
     """Generate thin callers for all reusable workflows."""
     exit_code = generate_workflows(
         names=(),
-        output_format=WorkflowFormat.THIN_CALLER,
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -443,7 +443,7 @@ def test_create_specific_workflow(tmp_path: Path) -> None:
     """Generate a single thin caller."""
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         version="v5.8.0",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -460,7 +460,7 @@ def test_create_errors_if_exists(tmp_path: Path) -> None:
     (tmp_path / "lint.yaml").write_text("existing", encoding="UTF-8")
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -474,7 +474,7 @@ def test_sync_overwrites(tmp_path: Path) -> None:
     (tmp_path / "lint.yaml").write_text("old content", encoding="UTF-8")
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -489,7 +489,7 @@ def test_skip_non_reusable_thin_caller(tmp_path: Path) -> None:
     """Skip non-reusable workflows in thin-caller mode."""
     exit_code = generate_workflows(
         names=("tests.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -503,7 +503,7 @@ def test_full_copy(tmp_path: Path) -> None:
     """Generate full copy of a workflow."""
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.FULL_COPY,
+        output_format=WorkflowFormat.FULL_COPY,  # type: ignore[arg-type]
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -521,7 +521,7 @@ def test_creates_output_dir(tmp_path: Path) -> None:
     output_dir = tmp_path / "sub" / "dir"
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         version="main",
         repo=DEFAULT_REPO,
         output_dir=output_dir,

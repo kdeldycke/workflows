@@ -128,8 +128,8 @@ def test_create_new_tag():
                 mock_push.assert_called_once_with("v1.0.0")
 
 
-def test_create_tag_at_commit():
-    """Create tag at specific commit."""
+def test_create_and_push_tag_at_commit():
+    """Create and push tag at specific commit."""
     with patch("gha_utils.git_ops.tag_exists", return_value=False):
         with patch("gha_utils.git_ops.create_tag") as mock_create:
             with patch("gha_utils.git_ops.push_tag"):
