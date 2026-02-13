@@ -364,9 +364,9 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Regenerate Sphinx autodoc
-        run: |
-          uv --no-progress run --frozen --group docs -- \
-            sphinx-apidoc --no-toc --module-first --force --output-dir ./docs .
+        # Omit --force so existing RST files (often with custom modifications produced by the next step) are preserved.
+        # Only new module stubs are created, and deleted ones are left for manual removal by the maintainers.
+        run: uv --no-progress run --frozen --group docs -- sphinx-apidoc --no-toc --module-first --output-dir ./docs .
       - name: Run docs update script
         # Run docs/docs_update.py if present to generate dynamic content (tables, diagrams, directives).
         run: |

@@ -14,6 +14,8 @@
 - Include actual output in test-plan assertion error messages.
 - Replace `pr-metadata` composite action with `gha-utils pr-body` subcommand.
 - Have `test-plan` and `deps-graph` read `[tool.gha-utils]` config directly from `pyproject.toml`.
+- Drop `--force` from `sphinx-apidoc` in `update-docs` job to preserve downstream RST customizations.
+- Recreate version bump PRs on every push to `main` to prevent merge conflicts.
 
 ## [5.8.0 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 
