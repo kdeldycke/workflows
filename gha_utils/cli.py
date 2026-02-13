@@ -74,7 +74,7 @@ from .metadata import (
     is_version_bump_allowed,
     load_gha_utils_config,
 )
-from .pr_body import build_pr_body, generate_pr_metadata_block
+from .pr_body import TEMPLATES, build_pr_body, generate_pr_metadata_block
 from .release_prep import ReleasePrep
 from .renovate import (
     add_exclude_newer_to_file,
@@ -1913,13 +1913,36 @@ def git_tag(
     "Can also be set via the GHA_PR_BODY_PREFIX environment variable.",
 )
 @option(
+    "--template",
+    type=Choice(sorted(TEMPLATES), case_sensitive=False),
+    default=None,
+    help="Use a built-in prefix template instead of --prefix.",
+)
+@option(
+    "--version",
+    "version",
+    default=None,
+    help="Version string passed to the template (e.g. 1.2.0).",
+)
+@option(
+    "--part",
+    default=None,
+    help="Version part passed to bump-version template (e.g. minor, major).",
+)
+@option(
     "-o",
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default="-",
     help="Output file path. Defaults to stdout.",
 )
-def pr_body(prefix: str, output: Path) -> None:
+def pr_body(
+    prefix: str,
+    template: str | None,
+    version: str | None,
+    part: str | None,
+    output: Path,
+) -> None:
     """Generate a PR body with a collapsible workflow metadata block.
 
     Reads ``GITHUB_*`` environment variables to produce a ``<details>`` block
@@ -1928,9 +1951,9 @@ def pr_body(prefix: str, output: Path) -> None:
     When ``--output`` points to ``$GITHUB_OUTPUT``, the body is written in the
     heredoc format required by GitHub Actions multiline outputs.
 
-    The ``--prefix`` option accepts content to prepend before the metadata block.
-    Use the ``GHA_PR_BODY_PREFIX`` environment variable to pass the prefix without
-    shell escaping issues (Click reads it automatically via ``envvar``).
+    The prefix can be set via ``--template`` (built-in templates) or ``--prefix``
+    (arbitrary content, also via ``GHA_PR_BODY_PREFIX`` env var). If both are
+    given, ``--template`` takes precedence.
 
     \b
     Examples:
@@ -1942,9 +1965,31 @@ def pr_body(prefix: str, output: Path) -> None:
         gha-utils pr-body --output "$GITHUB_OUTPUT"
 
     \b
+        # Use a built-in template
+        gha-utils pr-body --template bump-version --version 1.2.0 --part minor
+
+    \b
         # With a prefix via environment variable
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
+    if template:
+        template_fn = TEMPLATES[template]
+        import inspect
+
+        params = inspect.signature(template_fn).parameters
+        kwargs: dict[str, str] = {}
+        if "version" in params:
+            if not version:
+                msg = f"--version is required for template '{template}'"
+                raise SystemExit(msg)
+            kwargs["version"] = version
+        if "part" in params:
+            if not part:
+                msg = f"--part is required for template '{template}'"
+                raise SystemExit(msg)
+            kwargs["part"] = part
+        prefix = template_fn(**kwargs)
+
     metadata_block = generate_pr_metadata_block()
     body = build_pr_body(prefix, metadata_block)
 

@@ -17,6 +17,9 @@
 - Drop `--force` from `sphinx-apidoc` in `update-docs` job to preserve downstream RST customizations.
 - Recreate version bump PRs on every push to `main` to prevent merge conflicts.
 - Fix `<details>` tag in PR body rendered as code block due to indentation.
+- Deduplicate `gitignore-extra-categories` with base categories while preserving order.
+- Add `--template` option to `gha-utils pr-body` with built-in `bump-version` and `prepare-release` templates.
+- Add refresh tip admonition to all auto-created PR bodies.
 
 ## [5.8.0 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 
