@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.8.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.8.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [5.8.1 (2026-02-13)](https://github.com/kdeldycke/workflows/compare/v5.8.0...v5.8.1)
 
 - Add `gha-utils workflow` command group with `create`, `sync`, and `lint` subcommands.
