@@ -3,10 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-02-04T00:00:00Z"
-
-[options.exclude-newer-package]
-nuitka = { timestamp = "2026-02-13T17:08:40.371957Z", span = "PT0S" }
+exclude-newer = "2026-02-07T00:00:00Z"
 
 [[package]]
 name = "annotated-types"
@@ -190,7 +187,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.5.0"
+version = "7.5.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -203,9 +200,9 @@ dependencies = [
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ef/04/a56c9840217b015aa66d1c4390e946c3dffd8c54bc78ac0d32ceab10fb97/click_extra-7.5.0.tar.gz", hash = "sha256:eef123b7af6a036a17176f4a0865171b4ae8167ff73885204652e737eebbc20e", size = 94943, upload-time = "2026-02-03T10:21:51.347Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/9f/b12162e9da04f4d26bf9f1f055c597f3620ebbfd041d6c9a06c2a13dd293/click_extra-7.5.1.tar.gz", hash = "sha256:df11522e33a3c5a7e9418d8b5b8882d92107c8ce7539fd0d7450b86f6ab7b7c5", size = 95312, upload-time = "2026-02-05T19:27:40.583Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/c4/d936654baa075360e28ad4b48ea1a4a86639e1bed4842b9531c2242f812d/click_extra-7.5.0-py3-none-any.whl", hash = "sha256:4e442bdd81404a7e77227476717bcf492d2531915916a240fad87d8db037233a", size = 111199, upload-time = "2026-02-03T10:21:52.331Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/7c/2d32bf570107407f088913a9f3b4286a0822b21bc20059bf53489435d47d/click_extra-7.5.1-py3-none-any.whl", hash = "sha256:0fadd72638174682c16f2de4480ca9e9d9b4a3b1c97653a718e4b0eb1d0a4ced", size = 111585, upload-time = "2026-02-05T19:27:41.953Z" },
 ]
 
 [[package]]
@@ -1180,9 +1177,9 @@ wheels = [
 
 [[package]]
 name = "wcwidth"
-version = "0.5.3"
+version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c2/62/a7c072fbfefb2980a00f99ca994279cb9ecf310cb2e6b2a4d2a28fe192b3/wcwidth-0.5.3.tar.gz", hash = "sha256:53123b7af053c74e9fe2e92ac810301f6139e64379031f7124574212fb3b4091", size = 157587, upload-time = "2026-01-31T03:52:10.92Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/35/a2/8e3becb46433538a38726c948d3399905a4c7cabd0df578ede5dc51f0ec2/wcwidth-0.6.0.tar.gz", hash = "sha256:cdc4e4262d6ef9a1a57e018384cbeb1208d8abbc64176027e2c2455c81313159", size = 159684, upload-time = "2026-02-06T19:19:40.919Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3c/c1/d73f12f8cdb1891334a2ccf7389eed244d3941e74d80dd220badb937f3fb/wcwidth-0.5.3-py3-none-any.whl", hash = "sha256:d584eff31cd4753e1e5ff6c12e1edfdb324c995713f75d26c29807bb84bf649e", size = 92981, upload-time = "2026-01-31T03:52:09.14Z" },
+    { url = "https://files.pythonhosted.org/packages/68/5a/199c59e0a824a3db2b89c5d2dade7ab5f9624dbf6448dc291b46d5ec94d3/wcwidth-0.6.0-py3-none-any.whl", hash = "sha256:1a3a1e510b553315f8e146c54764f4fb6264ffad731b3d78088cdb1478ffbdad", size = 94189, upload-time = "2026-02-06T19:19:39.646Z" },
 ]
