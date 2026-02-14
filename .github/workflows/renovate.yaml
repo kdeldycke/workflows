@@ -55,11 +55,11 @@ jobs:
         id: checks
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress 'gha-utils==5.9.1' check-renovate --format=github --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . gha-utils check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       - name: Export renovate.json5 if missing
         if: steps.checks.outputs.renovate_config_exists == 'false'
-        run: uvx --no-progress 'gha-utils==5.9.1' bundled export renovate.json5
+        run: uvx --no-progress --from . gha-utils bundled export renovate.json5
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''
@@ -87,14 +87,14 @@ jobs:
       - name: Validate Renovate prerequisites
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress 'gha-utils==5.9.1' check-renovate
+        run: uvx --no-progress --from . gha-utils check-renovate
 
       - name: Update exclude-newer date if stale
         id: update_date
         # Updates the exclude-newer date in pyproject.toml when it's older than 7 days.
         # Uses a fixed date (not relative) to prevent uv.lock timestamp churn on every sync.
         # Runs before Renovate so changes are picked up in lock file maintenance.
-        run: uvx --no-progress 'gha-utils==5.9.1' update-exclude-newer --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . gha-utils update-exclude-newer --output "$GITHUB_OUTPUT"
 
       - name: Commit and push if modified
         if: steps.update_date.outputs.modified == 'true'

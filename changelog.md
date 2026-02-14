@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.9.2 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.9.1...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [5.9.1 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)
 
 - Refactor PR body templates from Python literals to markdown files with YAML frontmatter for metadata (titles, commit messages). The `pr-body` CLI now outputs `title` and `commit_message` alongside `body`.
