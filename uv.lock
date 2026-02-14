@@ -5,6 +5,9 @@ requires-python = ">=3.10"
 [options]
 exclude-newer = "2026-02-07T00:00:00Z"
 
+[options.exclude-newer-package]
+gha-utils = { timestamp = "2026-02-14T11:03:48.169676Z", span = "PT0S" }
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
