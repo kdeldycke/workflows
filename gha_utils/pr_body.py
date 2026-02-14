@@ -171,9 +171,45 @@ def generate_prepare_release_prefix(version: str) -> str:
     )
 
 
+def generate_update_gitignore_prefix() -> str:
+    """Generate the PR body prefix for a ``.gitignore`` update PR.
+
+    :return: A markdown string describing the PR and available
+        ``pyproject.toml`` configuration options.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Regenerates `.gitignore` from"
+        " [gitignore.io](https://github.com/toptal/gitignore.io)"
+        " templates. See the [`update-gitignore` job documentation]"
+        "(https://github.com/kdeldycke/workflows"
+        "?tab=readme-ov-file"
+        "#githubworkflowsautofixyyaml-jobs) for details.\n"
+        "\n"
+        "### Configuration\n"
+        "\n"
+        "Customize `.gitignore` generation in your"
+        " `pyproject.toml`:\n"
+        "\n"
+        "```toml\n"
+        "[tool.gha-utils]\n"
+        'gitignore-location = "./.gitignore"'
+        "          # File path (default)\n"
+        'gitignore-extra-categories = ["terraform", "go"]'
+        "  # Extra gitignore.io categories\n"
+        'gitignore-extra-content = "my-file.txt"'
+        "            # Content appended at the end\n"
+        "```\n"
+        "\n"
+        "---"
+    )
+
+
 TEMPLATES = {
     "bump-version": generate_bump_version_prefix,
     "prepare-release": generate_prepare_release_prefix,
+    "update-gitignore": generate_update_gitignore_prefix,
 }
 """Available PR body templates.
 

@@ -272,7 +272,10 @@ jobs:
       - name: Generate .gitignore
         run: uvx --no-progress 'gha-utils==5.9.0' update-gitignore
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template update-gitignore
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}

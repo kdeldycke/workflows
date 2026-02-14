@@ -80,6 +80,7 @@ from .pr_body import (
     generate_bump_version_prefix,
     generate_pr_metadata_block,
     generate_prepare_release_prefix,
+    generate_update_gitignore_prefix,
 )
 from .release_prep import ReleasePrep
 from .renovate import (
@@ -1979,10 +1980,12 @@ def pr_body(
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
     if template:
-        if not version:
+        if template == "update-gitignore":
+            prefix = generate_update_gitignore_prefix()
+        elif not version:
             msg = f"--version is required for template '{template}'"
             raise SystemExit(msg)
-        if template == "bump-version":
+        elif template == "bump-version":
             if not part:
                 msg = f"--part is required for template '{template}'"
                 raise SystemExit(msg)

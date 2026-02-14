@@ -27,6 +27,7 @@ from gha_utils.pr_body import (
     generate_pr_metadata_block,
     generate_prepare_release_prefix,
     generate_refresh_tip,
+    generate_update_gitignore_prefix,
 )
 
 
@@ -157,6 +158,20 @@ def test_generate_prepare_release_prefix(monkeypatch):
     assert "[!CAUTION]" in prefix
     assert "Squash and merge" in prefix
     assert "PyPI" in prefix
+
+
+def test_generate_update_gitignore_prefix():
+    """Update gitignore prefix includes description, config options, and docs link."""
+    prefix = generate_update_gitignore_prefix()
+
+    assert "### Description" in prefix
+    assert "gitignore.io" in prefix
+    assert "update-gitignore" in prefix
+    assert "### Configuration" in prefix
+    assert "gitignore-extra-categories" in prefix
+    assert "gitignore-extra-content" in prefix
+    assert "gitignore-location" in prefix
+    assert "[tool.gha-utils]" in prefix
 
 
 def test_build_pr_body_with_prefix(monkeypatch):
