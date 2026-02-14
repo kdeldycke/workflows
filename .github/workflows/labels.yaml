@@ -54,7 +54,8 @@ jobs:
 
           # Apply extra label files.
           for f in extra-labels/*; do
-            [ -f "$f" ] && labelmaker apply "$f" "${{ github.repository }}"
+            [ -f "$f" ] || continue
+            labelmaker apply "$f" "${{ github.repository }}"
           done
 
   project-metadata:
