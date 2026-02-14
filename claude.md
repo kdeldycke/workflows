@@ -387,7 +387,7 @@ The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two co
 
 The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
 
-On `main`, workflows use `--from . gha-utils` to run the CLI from local source (dogfooding). The freeze commit freezes these to `'gha-utils==X.Y.Z'` (the latest PyPI version) so tagged releases reference a published package. The unfreeze commit reverts them back to `--from . gha-utils` for the next development cycle.
+On `main`, workflows use `--from . gha-utils` to run the CLI from local source (dogfooding). The freeze commit freezes these to `'gha-utils==X.Y.Z'` (the version being released) so tagged releases reference a published package. This is safe because `release.yaml` runs from the unfreeze commit (HEAD after rebase merge), which has `--from . gha-utils`, and by the time downstream repos use the tagged freeze commit, `publish-pypi` has already published the version. The unfreeze commit reverts them back to `--from . gha-utils` for the next development cycle.
 
 #### Other workflows — simple groups
 

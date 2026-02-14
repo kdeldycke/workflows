@@ -29,14 +29,12 @@ handles:
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 import sys
 from datetime import datetime, timezone
 from functools import cached_property
 from pathlib import Path
-from urllib.request import Request, urlopen
 
 from .changelog import Changelog
 
@@ -141,23 +139,6 @@ class ReleasePrep:
 
         return count
 
-    @staticmethod
-    def _get_latest_pypi_version(package: str) -> str:
-        """Fetch the latest published version of a package from PyPI.
-
-        :param package: The PyPI package name.
-        :return: The latest version string.
-        :raises RuntimeError: If the PyPI API request fails.
-        """
-        url = f"https://pypi.org/pypi/{package}/json"
-        request = Request(url, headers={"Accept": "application/json"})
-        logging.info(f"Fetching latest version of {package} from PyPI")
-        with urlopen(request) as response:  # noqa: S310
-            data = json.loads(response.read())
-        version: str = data["info"]["version"]
-        logging.info(f"Latest PyPI version of {package}: {version}")
-        return version
-
     def freeze_cli_version(self, version: str) -> int:
         """Replace local source CLI invocations with a frozen PyPI version.
 
@@ -256,7 +237,7 @@ class ReleasePrep:
         """Run all freeze steps to prepare the release commit.
 
         :param update_workflows: If True, also freeze workflow URLs to versioned tag
-            and freeze CLI invocations to the latest PyPI version.
+            and freeze CLI invocations to the current version.
         :return: List of modified files.
         """
         self.modified_files = []
@@ -273,8 +254,7 @@ class ReleasePrep:
 
         if update_workflows:
             self.freeze_workflow_urls()
-            pypi_version = self._get_latest_pypi_version("gha-utils")
-            self.freeze_cli_version(pypi_version)
+            self.freeze_cli_version(self.current_version)
 
         return self.modified_files
 

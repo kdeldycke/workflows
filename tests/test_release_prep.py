@@ -19,7 +19,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import dedent
-from unittest.mock import patch
 
 import pytest
 
@@ -305,9 +304,7 @@ def test_post_release_unfreezes_cli(
         assert "--from . gha-utils" in content
 
 
-@patch.object(ReleasePrep, "_get_latest_pypi_version", return_value="1.0.0")
 def test_prepare_release_full(
-    mock_pypi,
     tmp_path: Path,
     temp_changelog: Path,
     temp_citation: Path,
@@ -346,9 +343,7 @@ def test_prepare_release_full(
         assert "/workflows/v1.2.3/" in content
 
 
-@patch.object(ReleasePrep, "_get_latest_pypi_version", return_value="2.0.0")
 def test_prepare_release_freezes_cli(
-    mock_pypi,
     tmp_path: Path,
     temp_changelog: Path,
     temp_citation: Path,
@@ -356,7 +351,7 @@ def test_prepare_release_freezes_cli(
     temp_pyproject: Path,
     monkeypatch,
 ) -> None:
-    """Test that prepare_release freezes CLI invocations to PyPI version."""
+    """Test that prepare_release freezes CLI invocations to current version."""
     monkeypatch.chdir(tmp_path)
 
     prep = ReleasePrep(
@@ -366,11 +361,10 @@ def test_prepare_release_freezes_cli(
     )
     prep.prepare_release(update_workflows=True)
 
-    mock_pypi.assert_called_once_with("gha-utils")
     for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
         assert "--from . gha-utils" not in content
-        assert "'gha-utils==2.0.0'" in content
+        assert "'gha-utils==1.2.3'" in content
 
 
 def test_prepare_release_without_workflows(
