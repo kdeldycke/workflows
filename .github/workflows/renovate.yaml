@@ -102,7 +102,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pyproject.toml
-          git commit -m "Update `exclude-newer` date"
+          git commit -m 'Update `exclude-newer` date'
           git push
 
       - uses: renovatebot/github-action@v44.2.6
