@@ -381,8 +381,9 @@ def test_version_bump_commit_in_changelog_workflow() -> None:
     )
 
     commit_message = create_pr_step.get("with", {}).get("commit-message", "")
-    assert VERSION_BUMP_COMMIT_PREFIX in commit_message, (
-        f"bump-versions commit message must use '{VERSION_BUMP_COMMIT_PREFIX}'. "
+    # The commit message is now sourced from the pr-metadata step output.
+    assert "pr-metadata.outputs.commit_message" in commit_message, (
+        "bump-versions commit message must reference pr-metadata output. "
         f"Found: {commit_message}"
     )
 
