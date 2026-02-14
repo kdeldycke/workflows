@@ -10,6 +10,7 @@
 - Dogfood `gha-utils` from local source on `main` branch via `uvx --from . gha-utils`. During release freeze, CLI invocations are frozen back to a PyPI version for downstream compatibility.
 - Add fallback jobs to `release.yaml` to detect and auto-reverts squash-merged release PRs.
 - Rebase lock file maintenance PR whenever `main` advances, not just on conflicts.
+- Remove `--insecure` flag and redirect-suppression excludes from lychee configuration.
 
 ## [5.9.0 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.8.0...v5.9.0)
 
