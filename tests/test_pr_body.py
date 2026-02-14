@@ -473,7 +473,6 @@ def test_template_file_policy(filename, name):
     )
 
 
-
 def test_templates_match_workflow_references():
     """Every template must be referenced by ``--template`` in a workflow file."""
     template_names = set(get_template_names())

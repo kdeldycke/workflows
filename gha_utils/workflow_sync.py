@@ -62,18 +62,20 @@ DEFAULT_VERSION: Final[str] = "main"
 NON_REUSABLE_WORKFLOWS: Final[frozenset[str]] = frozenset(("tests.yaml",))
 """Workflows without ``workflow_call`` that cannot be used as thin callers."""
 
-REUSABLE_WORKFLOWS: Final[tuple[str, ...]] = tuple(sorted((
-    "autofix.yaml",
-    "autolock.yaml",
-    "cancel-runs.yaml",
-    "changelog.yaml",
-    "debug.yaml",
-    "docs.yaml",
-    "labels.yaml",
-    "lint.yaml",
-    "release.yaml",
-    "renovate.yaml",
-)))
+REUSABLE_WORKFLOWS: Final[tuple[str, ...]] = tuple(
+    sorted((
+        "autofix.yaml",
+        "autolock.yaml",
+        "cancel-runs.yaml",
+        "changelog.yaml",
+        "debug.yaml",
+        "docs.yaml",
+        "labels.yaml",
+        "lint.yaml",
+        "release.yaml",
+        "renovate.yaml",
+    ))
+)
 """Workflow filenames that support ``workflow_call`` triggers."""
 
 ALL_WORKFLOW_FILES: Final[tuple[str, ...]] = tuple(
@@ -203,19 +205,15 @@ def _render_trigger_value(value: Any, indent: int) -> str:
                         for dk, dv in item.items():
                             if first:
                                 lines.append(
-                                    f"{prefix}  - {dk}:"
-                                    f" {_quote_yaml_value(dv)}"
+                                    f"{prefix}  - {dk}: {_quote_yaml_value(dv)}"
                                 )
                                 first = False
                             else:
                                 lines.append(
-                                    f"{prefix}    {dk}:"
-                                    f" {_quote_yaml_value(dv)}"
+                                    f"{prefix}    {dk}: {_quote_yaml_value(dv)}"
                                 )
                     else:
-                        lines.append(
-                            f"{prefix}  - {_quote_yaml_list_item(item)}"
-                        )
+                        lines.append(f"{prefix}  - {_quote_yaml_list_item(item)}")
             elif isinstance(v, dict):
                 lines.append(f"{prefix}{k}:")
                 for sk, sv in v.items():
@@ -224,10 +222,7 @@ def _render_trigger_value(value: Any, indent: int) -> str:
                     elif isinstance(sv, list):
                         lines.append(f"{prefix}  {sk}:")
                         for item in sv:
-                            lines.append(
-                                f"{prefix}    - "
-                                f"{_quote_yaml_list_item(item)}"
-                            )
+                            lines.append(f"{prefix}    - {_quote_yaml_list_item(item)}")
                     else:
                         lines.append(f"{prefix}  {sk}: {_quote_yaml_value(sv)}")
             else:
@@ -365,9 +360,7 @@ def identify_canonical_workflow(
     if not isinstance(jobs, dict):
         return None
 
-    pattern = re.compile(
-        rf"^{re.escape(repo)}/\.github/workflows/([^@]+)@.+$"
-    )
+    pattern = re.compile(rf"^{re.escape(repo)}/\.github/workflows/([^@]+)@.+$")
 
     for job_config in jobs.values():
         if not isinstance(job_config, dict):
@@ -410,9 +403,7 @@ def check_has_workflow_dispatch(workflow_path: Path) -> LintResult:
 
     if "workflow_dispatch" not in triggers:
         return LintResult(
-            message=(
-                f"{workflow_path.name}: missing workflow_dispatch trigger."
-            ),
+            message=(f"{workflow_path.name}: missing workflow_dispatch trigger."),
             is_issue=True,
             level=AnnotationLevel.WARNING,
         )
@@ -442,15 +433,11 @@ def check_version_pinned(
             level=AnnotationLevel.ERROR,
         )
 
-    pattern = re.compile(
-        rf"{re.escape(repo)}/\.github/workflows/[^@]+@main"
-    )
+    pattern = re.compile(rf"{re.escape(repo)}/\.github/workflows/[^@]+@main")
 
     if pattern.search(content):
         return LintResult(
-            message=(
-                f"{workflow_path.name}: uses @main instead of a version tag."
-            ),
+            message=(f"{workflow_path.name}: uses @main instead of a version tag."),
             is_issue=True,
             level=AnnotationLevel.WARNING,
         )
@@ -524,8 +511,7 @@ def check_secrets_inherit(
     if not info.call_secrets:
         return LintResult(
             message=(
-                f"{workflow_path.name}: no secrets required by"
-                f" {canonical_filename}."
+                f"{workflow_path.name}: no secrets required by {canonical_filename}."
             ),
             is_issue=False,
         )

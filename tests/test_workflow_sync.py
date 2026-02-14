@@ -113,8 +113,7 @@ def test_no_workflow_call_inputs(filename: str) -> None:
     """
     info = extract_trigger_info(filename)
     assert len(info.call_inputs) == 0, (
-        f"{filename} still defines workflow_call inputs: "
-        f"{sorted(info.call_inputs)}"
+        f"{filename} still defines workflow_call inputs: {sorted(info.call_inputs)}"
     )
 
 

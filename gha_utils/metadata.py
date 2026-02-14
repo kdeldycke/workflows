@@ -298,7 +298,6 @@ from dataclasses import dataclass, field, fields
 from functools import cached_property
 from operator import itemgetter
 from pathlib import Path
-from re import escape
 from textwrap import dedent
 
 from bumpversion.config import get_configuration  # type: ignore[import-untyped]
@@ -464,20 +463,13 @@ def load_gha_utils_config(
     if pyproject_data is None:
         pyproject_path = Path() / "pyproject.toml"
         if pyproject_path.exists() and pyproject_path.is_file():
-            pyproject_data = tomllib.loads(
-                pyproject_path.read_text(encoding="UTF-8")
-            )
+            pyproject_data = tomllib.loads(pyproject_path.read_text(encoding="UTF-8"))
         else:
             pyproject_data = {}
 
-    user_config: dict[str, Any] = pyproject_data.get("tool", {}).get(
-        "gha-utils", {}
-    )
+    user_config: dict[str, Any] = pyproject_data.get("tool", {}).get("gha-utils", {})
     schema = Config()
-    config = {
-        f.name.replace("_", "-"): getattr(schema, f.name)
-        for f in fields(Config)
-    }
+    config = {f.name.replace("_", "-"): getattr(schema, f.name) for f in fields(Config)}
     config.update(user_config)
     return config
 
@@ -493,9 +485,7 @@ def get_project_name(
         pyproject_path = Path() / "pyproject.toml"
         if not (pyproject_path.exists() and pyproject_path.is_file()):
             return None
-        pyproject_data = tomllib.loads(
-            pyproject_path.read_text(encoding="UTF-8")
-        )
+        pyproject_data = tomllib.loads(pyproject_path.read_text(encoding="UTF-8"))
     name: str | None = pyproject_data.get("project", {}).get("name")
     return name
 
@@ -2109,10 +2099,7 @@ class Metadata:
         # Exclude unstable-targets (dedicated property with validation logic) and
         # subcommand config fields (read directly by test-plan and deps-graph).
         for f in fields(Config):
-            if (
-                f.name != "unstable_targets"
-                and f.name not in SUBCOMMAND_CONFIG_FIELDS
-            ):
+            if f.name != "unstable_targets" and f.name not in SUBCOMMAND_CONFIG_FIELDS:
                 config_key = f.name.replace("_", "-")
                 metadata[f.name] = self.config[config_key]
 
