@@ -75,12 +75,12 @@ from .metadata import (
     load_gha_utils_config,
 )
 from .pr_body import (
-    NO_ARG_TEMPLATES,
-    TEMPLATES,
+    _repo_url,
     build_pr_body,
-    generate_bump_version_prefix,
     generate_pr_metadata_block,
-    generate_prepare_release_prefix,
+    get_template_names,
+    render_template,
+    template_args,
 )
 from .release_prep import ReleasePrep
 from .renovate import (
@@ -1921,7 +1921,7 @@ def git_tag(
 )
 @option(
     "--template",
-    type=Choice(sorted(TEMPLATES), case_sensitive=False),
+    type=Choice(get_template_names(), case_sensitive=False),
     default=None,
     help="Use a built-in prefix template instead of --prefix.",
 )
@@ -1979,19 +1979,24 @@ def pr_body(
         # With a prefix via environment variable
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
+    # Map argument names to their values or callables.
+    arg_sources = {
+        "version": version,
+        "part": part,
+        "repo_url": _repo_url,  # Callable, will be invoked if needed.
+    }
+
     if template:
-        if template in NO_ARG_TEMPLATES:
-            prefix = TEMPLATES[template]()
-        elif not version:
-            msg = f"--version is required for template '{template}'"
-            raise SystemExit(msg)
-        elif template == "bump-version":
-            if not part:
-                msg = f"--part is required for template '{template}'"
+        kwargs: dict[str, str] = {}
+        for arg in template_args(template):
+            value = arg_sources.get(arg)
+            if value is None:
+                msg = f"--{arg} is required for template '{template}'"
                 raise SystemExit(msg)
-            prefix = generate_bump_version_prefix(version, part)
-        else:
-            prefix = generate_prepare_release_prefix(version)
+            # Call if callable, otherwise use the value directly.
+            kwargs[arg] = value() if callable(value) else value
+
+        prefix = render_template(template, **kwargs)
 
     metadata_block = generate_pr_metadata_block()
     body = build_pr_body(prefix, metadata_block)

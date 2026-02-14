@@ -18,27 +18,22 @@
 
 from __future__ import annotations
 
+import re
+from importlib.resources import files
+from pathlib import Path
+
 import pytest
 
 from gha_utils.pr_body import (
     build_pr_body,
     extract_workflow_filename,
-    generate_bump_version_prefix,
-    generate_fix_typos_prefix,
-    generate_format_json_prefix,
-    generate_format_markdown_prefix,
-    generate_format_pyproject_prefix,
-    generate_format_python_prefix,
     generate_pr_metadata_block,
-    generate_prepare_release_prefix,
     generate_refresh_tip,
-    generate_sync_bumpversion_prefix,
-    generate_update_deps_graph_prefix,
-    generate_update_docs_prefix,
-    generate_update_gitignore_prefix,
-    generate_update_mailmap_prefix,
+    get_template_names,
+    load_template,
+    render_template,
+    template_args,
 )
-
 
 # Full set of GITHUB_* environment variables for testing.
 GITHUB_ENV_VARS = {
@@ -144,144 +139,186 @@ def test_generate_refresh_tip_without_workflow_ref(monkeypatch):
     assert generate_refresh_tip() == ""
 
 
-def test_generate_bump_version_prefix():
-    """Bump version prefix includes part, version, merge instructions, and docs link."""
-    prefix = generate_bump_version_prefix("1.2.0", "minor")
+def test_get_template_names():
+    """All expected template names are discovered."""
+    names = get_template_names()
 
-    assert "bump the minor part" in prefix
-    assert "### To bump version to v1.2.0" in prefix
-    assert "Ready for review" in prefix
-    assert "Rebase and merge" in prefix
-    assert "bump-versions" in prefix
-    assert "changelogyaml-jobs" in prefix
+    assert "bump-version" in names
+    assert "prepare-release" in names
+    assert "fix-typos" in names
+    assert "format-json" in names
+    assert "format-markdown" in names
+    assert "format-pyproject" in names
+    assert "format-python" in names
+    assert "sync-bumpversion" in names
+    assert "update-deps-graph" in names
+    assert "update-docs" in names
+    assert "update-gitignore" in names
+    assert "update-mailmap" in names
+    assert len(names) == 12
 
 
-def test_generate_prepare_release_prefix(monkeypatch):
-    """Prepare release prefix includes version, links, and caution admonition."""
+def test_load_template_frontmatter():
+    """Frontmatter is parsed correctly from a parameterized template."""
+    meta, body = load_template("bump-version")
+
+    assert meta["args"] == ["version", "part"]
+    assert body.startswith("### Description")
+
+
+def test_load_template_no_frontmatter():
+    """Static templates have no frontmatter and empty metadata."""
+    meta, body = load_template("fix-typos")
+
+    assert meta == {}
+    assert body.startswith("### Description")
+
+
+def test_template_args_parameterized():
+    """Parameterized templates report their required arguments."""
+    assert template_args("bump-version") == ["version", "part"]
+    assert template_args("prepare-release") == ["version", "repo_url"]
+
+
+def test_template_args_static():
+    """Static templates report no required arguments."""
+    assert template_args("fix-typos") == []
+    assert template_args("format-json") == []
+
+
+def test_render_bump_version():
+    """Bump version template includes part, version, and merge instructions."""
+    result = render_template("bump-version", version="1.2.0", part="minor")
+
+    assert "bump the minor part" in result
+    assert "### To bump version to v1.2.0" in result
+    assert "Ready for review" in result
+    assert "Rebase and merge" in result
+    assert "bump-versions" in result
+    assert "changelogyaml-jobs" in result
+
+
+def test_render_prepare_release(monkeypatch):
+    """Prepare release template includes version, links, and caution admonition."""
     for key, value in GITHUB_ENV_VARS.items():
         monkeypatch.setenv(key, value)
 
-    prefix = generate_prepare_release_prefix("5.8.1")
+    result = render_template(
+        "prepare-release",
+        version="5.8.1",
+        repo_url="https://github.com/owner/repo",
+    )
 
-    assert "### How-to release `v5.8.1`" in prefix
-    assert "https://github.com/owner/repo/tree/v5.8.1" in prefix
-    assert "https://github.com/owner/repo/releases/tag/v5.8.1" in prefix
-    assert "[!CAUTION]" in prefix
-    assert "Squash and merge" in prefix
-    assert "PyPI" in prefix
-    assert "prepare-release" in prefix
-    assert "changelogyaml-jobs" in prefix
-    assert "releaseyaml-jobs" in prefix
-
-
-def test_generate_update_gitignore_prefix():
-    """Update gitignore prefix includes description, config options, and docs link."""
-    prefix = generate_update_gitignore_prefix()
-
-    assert "### Description" in prefix
-    assert "gitignore.io" in prefix
-    assert "update-gitignore" in prefix
-    assert "### Configuration" in prefix
-    assert "gitignore-extra-categories" in prefix
-    assert "gitignore-extra-content" in prefix
-    assert "gitignore-location" in prefix
-    assert "[tool.gha-utils]" in prefix
+    assert "### How-to release `v5.8.1`" in result
+    assert "https://github.com/owner/repo/tree/v5.8.1" in result
+    assert "https://github.com/owner/repo/releases/tag/v5.8.1" in result
+    assert "[!CAUTION]" in result
+    assert "Squash and merge" in result
+    assert "PyPI" in result
+    assert "prepare-release" in result
+    assert "changelogyaml-jobs" in result
+    assert "releaseyaml-jobs" in result
 
 
-def test_generate_fix_typos_prefix():
-    """Fix typos prefix includes description and docs link."""
-    prefix = generate_fix_typos_prefix()
+def test_render_update_gitignore():
+    """Update gitignore template includes description, config options, and docs link."""
+    result = render_template("update-gitignore")
 
-    assert "### Description" in prefix
-    assert "typos" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
-
-
-def test_generate_format_json_prefix():
-    """Format JSON prefix includes description and docs link."""
-    prefix = generate_format_json_prefix()
-
-    assert "### Description" in prefix
-    assert "Biome" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
+    assert "### Description" in result
+    assert "gitignore.io" in result
+    assert "update-gitignore" in result
+    assert "### Configuration" in result
+    assert "gitignore-extra-categories" in result
+    assert "gitignore-extra-content" in result
+    assert "gitignore-location" in result
+    assert "[tool.gha-utils]" in result
 
 
-def test_generate_format_markdown_prefix():
-    """Format Markdown prefix includes description and docs link."""
-    prefix = generate_format_markdown_prefix()
+def test_render_fix_typos():
+    """Fix typos template includes description and docs link."""
+    result = render_template("fix-typos")
 
-    assert "### Description" in prefix
-    assert "mdformat" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
-
-
-def test_generate_format_pyproject_prefix():
-    """Format pyproject prefix includes description and docs link."""
-    prefix = generate_format_pyproject_prefix()
-
-    assert "### Description" in prefix
-    assert "pyproject-fmt" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
+    assert "### Description" in result
+    assert "typos" in result
+    assert "autofixyaml-jobs" in result
 
 
-def test_generate_format_python_prefix():
-    """Format Python prefix includes description, tools, and docs link."""
-    prefix = generate_format_python_prefix()
+def test_render_format_json():
+    """Format JSON template includes description and docs link."""
+    result = render_template("format-json")
 
-    assert "### Description" in prefix
-    assert "autopep8" in prefix
-    assert "Ruff" in prefix
-    assert "[tool.ruff]" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
+    assert "### Description" in result
+    assert "Biome" in result
+    assert "autofixyaml-jobs" in result
 
 
-def test_generate_sync_bumpversion_prefix():
-    """Sync bumpversion prefix includes description and docs link."""
-    prefix = generate_sync_bumpversion_prefix()
+def test_render_format_markdown():
+    """Format Markdown template includes description and docs link."""
+    result = render_template("format-markdown")
 
-    assert "### Description" in prefix
-    assert "bumpversion" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
-
-
-def test_generate_update_deps_graph_prefix():
-    """Update deps graph prefix includes description, config options, and docs link."""
-    prefix = generate_update_deps_graph_prefix()
-
-    assert "### Description" in prefix
-    assert "Mermaid" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "### Configuration" in prefix
-    assert "dependency-graph-output" in prefix
-    assert "[tool.gha-utils]" in prefix
-    assert "---" in prefix
+    assert "### Description" in result
+    assert "mdformat" in result
+    assert "autofixyaml-jobs" in result
 
 
-def test_generate_update_docs_prefix():
-    """Update docs prefix includes description and docs link."""
-    prefix = generate_update_docs_prefix()
+def test_render_format_pyproject():
+    """Format pyproject template includes description and docs link."""
+    result = render_template("format-pyproject")
 
-    assert "### Description" in prefix
-    assert "sphinx-apidoc" in prefix
-    assert "docs_update.py" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
+    assert "### Description" in result
+    assert "pyproject-fmt" in result
+    assert "autofixyaml-jobs" in result
 
 
-def test_generate_update_mailmap_prefix():
-    """Update mailmap prefix includes description and docs link."""
-    prefix = generate_update_mailmap_prefix()
+def test_render_format_python():
+    """Format Python template includes description, tools, and docs link."""
+    result = render_template("format-python")
 
-    assert "### Description" in prefix
-    assert ".mailmap" in prefix
-    assert "autofixyaml-jobs" in prefix
-    assert "---" in prefix
+    assert "### Description" in result
+    assert "autopep8" in result
+    assert "Ruff" in result
+    assert "[tool.ruff]" in result
+    assert "autofixyaml-jobs" in result
+
+
+def test_render_sync_bumpversion():
+    """Sync bumpversion template includes description and docs link."""
+    result = render_template("sync-bumpversion")
+
+    assert "### Description" in result
+    assert "bumpversion" in result
+    assert "autofixyaml-jobs" in result
+
+
+def test_render_update_deps_graph():
+    """Update deps graph template includes description, config options, and docs link."""
+    result = render_template("update-deps-graph")
+
+    assert "### Description" in result
+    assert "Mermaid" in result
+    assert "autofixyaml-jobs" in result
+    assert "### Configuration" in result
+    assert "dependency-graph-output" in result
+    assert "[tool.gha-utils]" in result
+
+
+def test_render_update_docs():
+    """Update docs template includes description and docs link."""
+    result = render_template("update-docs")
+
+    assert "### Description" in result
+    assert "sphinx-apidoc" in result
+    assert "docs_update.py" in result
+    assert "autofixyaml-jobs" in result
+
+
+def test_render_update_mailmap():
+    """Update mailmap template includes description and docs link."""
+    result = render_template("update-mailmap")
+
+    assert "### Description" in result
+    assert ".mailmap" in result
+    assert "autofixyaml-jobs" in result
 
 
 def test_build_pr_body_with_prefix(monkeypatch):
@@ -319,3 +356,84 @@ def test_build_pr_body_empty_prefix(monkeypatch):
     result = build_pr_body("", metadata)
 
     assert result == metadata
+
+
+# ---------------------------------------------------------------------------
+# Template file policy validation
+# ---------------------------------------------------------------------------
+
+REFERENCE_WORKFLOWS = (
+    ".github/workflows/autofix.yaml",
+    ".github/workflows/changelog.yaml",
+)
+"""Workflow files that reference PR body templates via ``--template``."""
+
+
+def _collect_template_references() -> set[str]:
+    """Scan reference workflows for all ``--template <name>`` arguments."""
+    repo_root = Path(__file__).resolve().parent.parent
+    pattern = re.compile(r"--template\s+([\w-]+)")
+    refs: set[str] = set()
+    for rel_path in REFERENCE_WORKFLOWS:
+        content = (repo_root / rel_path).read_text(encoding="UTF-8")
+        refs.update(pattern.findall(content))
+    return refs
+
+
+def _template_package_items() -> list[tuple[str, str]]:
+    """Return ``(filename, name)`` pairs for every file in the templates package."""
+    items = []
+    for item in files("gha_utils.templates").iterdir():
+        filename = getattr(item, "name", str(item))
+        if filename.startswith("__"):
+            continue
+        name = filename.removesuffix(".md") if filename.endswith(".md") else filename
+        items.append((filename, name))
+    return sorted(items)
+
+
+@pytest.mark.parametrize(
+    ("filename", "name"),
+    _template_package_items(),
+    ids=[pair[1] for pair in _template_package_items()],
+)
+def test_template_file_policy(filename, name):
+    """Each template file must be a valid ``.md`` file with correct frontmatter."""
+    # Must be a markdown file.
+    assert filename.endswith(".md"), f"Template file {filename!r} is not a .md file"
+
+    # Must parse without errors.
+    meta, body = load_template(name)
+
+    # If frontmatter has 'args', it must be a list with matching $variables in body.
+    if "args" in meta:
+        assert isinstance(meta["args"], list), (
+            f"Template {name!r} 'args' must be a list, got {type(meta['args'])}"
+        )
+        for arg in meta["args"]:
+            assert f"${arg}" in body, (
+                f"Template {name!r} declares arg {arg!r} but body has no ${arg}"
+            )
+
+    # Body must start with a markdown heading.
+    assert body.startswith("###"), (
+        f"Template {name!r} body must start with a '###' heading"
+    )
+
+
+
+def test_templates_match_workflow_references():
+    """Every template must be referenced by ``--template`` in a workflow file."""
+    template_names = set(get_template_names())
+    workflow_refs = _collect_template_references()
+
+    unreferenced = template_names - workflow_refs
+    assert not unreferenced, "Templates not referenced in any workflow: " + ", ".join(
+        sorted(unreferenced)
+    )
+
+    missing_templates = workflow_refs - template_names
+    assert not missing_templates, (
+        "Workflow --template references with no template file: "
+        + ", ".join(sorted(missing_templates))
+    )
