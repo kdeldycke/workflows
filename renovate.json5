@@ -117,6 +117,18 @@
       datasourceTemplate: "pypi",
     },
     {
+      description: "Update lychee binary version in lychee-action.",
+      customType: "regex",
+      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      matchStrings: [
+        // Matches: lycheeVersion: v0.21.0
+        "lycheeVersion:\\s+v(?<currentValue>[0-9.]+)",
+      ],
+      depNameTemplate: "lycheeverse/lychee",
+      datasourceTemplate: "github-releases",
+      extractVersionTemplate: "^lychee-v(?<version>.*)$",
+    },
+    {
       description: "Update Biome version in setup-biome action.",
       customType: "regex",
       fileMatch: ["\\.github/workflows/.+\\.yaml$"],

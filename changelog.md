@@ -20,6 +20,7 @@
 - Deduplicate `gitignore-extra-categories` with base categories while preserving order.
 - Add `--template` option to `gha-utils pr-body` with built-in `bump-version` and `prepare-release` templates.
 - Add refresh tip admonition to all auto-created PR bodies.
+- Pin lychee binary version in `docs.yaml` and add Renovate custom manager for updates.
 
 ## [5.8.0 (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 

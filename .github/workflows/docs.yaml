@@ -108,6 +108,7 @@ jobs:
       - uses: lycheeverse/lychee-action@v2.7.0
         id: lychee_run
         with:
+          lycheeVersion: v0.23.0
           fail: false
           args: >
             --hidden
