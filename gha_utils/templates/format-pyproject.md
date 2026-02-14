@@ -1,6 +1,5 @@
 ---
-title: "[autofix] Format `pyproject.toml`"
-commit_message: "[autofix] Format pyproject.toml"
+title: Format `pyproject.toml`
 ---
 ### Description
 

@@ -1,5 +1,5 @@
 ---
-title: "[autofix] Format JSON"
+title: Format JSON
 ---
 ### Description
 

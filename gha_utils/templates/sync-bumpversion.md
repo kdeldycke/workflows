@@ -1,5 +1,5 @@
 ---
-title: "[autofix] Sync bumpversion config"
+title: Sync `bump-my-version` config
 ---
 ### Description
 

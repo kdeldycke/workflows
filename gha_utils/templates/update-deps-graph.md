@@ -1,5 +1,5 @@
 ---
-title: "[autofix] Regenerate dependency graph"
+title: Regenerate dependency graph
 ---
 ### Description
 

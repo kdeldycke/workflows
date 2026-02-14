@@ -191,8 +191,8 @@ def test_template_args_static():
 
 def test_render_title_static():
     """Static templates have a literal title."""
-    assert render_title("fix-typos") == "[autofix] Typo"
-    assert render_title("format-python") == "[autofix] Format Python"
+    assert render_title("fix-typos") == "Typo"
+    assert render_title("format-python") == "Format Python"
 
 
 def test_render_title_parameterized():
@@ -206,28 +206,28 @@ def test_render_title_parameterized():
 
 def test_render_commit_message_falls_back_to_title():
     """Templates without explicit commit_message fall back to title."""
-    assert render_commit_message("fix-typos") == "[autofix] Typo"
-    assert render_commit_message("format-markdown") == "[autofix] Format Markdown"
+    assert render_commit_message("fix-typos") == "Typo"
+    assert render_commit_message("format-markdown") == "Format Markdown"
 
 
 def test_render_commit_message_explicit():
-    """Templates with explicit commit_message use it instead of title."""
+    """Templates without explicit commit_message fall back to title with backticks."""
     msg = render_commit_message("format-pyproject")
-    assert msg == "[autofix] Format pyproject.toml"
+    assert msg == "Format `pyproject.toml`"
 
     msg = render_commit_message("update-gitignore")
-    assert msg == "[autofix] Update .gitignore"
+    assert msg == "Update `.gitignore`"
 
 
 def test_render_commit_message_parameterized():
     """Parameterized templates substitute variables in commit_message."""
     msg = render_commit_message("bump-version", version="1.2.0", part="minor")
-    assert msg == "[changelog] Bump minor version to v1.2.0"
+    assert msg == "Bump minor version to `v1.2.0`"
 
     msg = render_commit_message(
         "prepare-release", version="5.8.1", repo_url="https://x"
     )
-    assert msg == "[changelog] Release v5.8.1"
+    assert msg == "Release `v5.8.1`"
 
 
 def test_render_bump_version():

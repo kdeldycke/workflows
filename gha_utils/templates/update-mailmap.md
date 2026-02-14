@@ -1,6 +1,5 @@
 ---
-title: "[autofix] Update `.mailmap`"
-commit_message: "[autofix] Update .mailmap"
+title: Update `.mailmap`
 ---
 ### Description
 

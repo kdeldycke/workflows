@@ -1,5 +1,5 @@
 ---
-title: "[autofix] Format Python"
+title: Format Python
 ---
 ### Description
 

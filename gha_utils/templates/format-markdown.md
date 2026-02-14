@@ -1,5 +1,5 @@
 ---
-title: "[autofix] Format Markdown"
+title: Format Markdown
 ---
 ### Description
 

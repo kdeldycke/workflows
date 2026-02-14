@@ -1,10 +1,9 @@
 ---
-title: "[autofix] Update `.gitignore`"
-commit_message: "[autofix] Update .gitignore"
+title: Update `.gitignore`
 ---
 ### Description
 
-Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates. See the [`update-gitignore` job documentation](https://github.com/kdeldycke/workflows?tab=readme-ov-file#githubworkflowsautofixyyaml-jobs) for details.
+Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates. See the [`update-gitignore` job documentation](https://github.com/kdeldycke/workflows?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
 
 ### Configuration
 
@@ -12,7 +11,7 @@ Customize `.gitignore` generation in your `pyproject.toml`:
 
 ```toml
 [tool.gha-utils]
-gitignore-location = "./.gitignore"          # File path (default)
+gitignore-location = "./.gitignore"               # File path (default)
 gitignore-extra-categories = ["terraform", "go"]  # Extra gitignore.io categories
-gitignore-extra-content = "my-file.txt"            # Content appended at the end
+gitignore-extra-content = "my-file.txt"           # Content appended at the end
 ```

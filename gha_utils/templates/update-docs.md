@@ -1,5 +1,5 @@
 ---
-title: "[autofix] Update docs"
+title: Update docs
 ---
 ### Description
 
