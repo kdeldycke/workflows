@@ -6,6 +6,9 @@
   // Runs on every Renovate execution rather than the default weekly schedule.
   lockFileMaintenance: {
     enabled: true,
+    // Rebase whenever main advances, not just on conflicts. A lock file maintenance
+    // PR computed against a stale uv.lock baseline is outdated by definition.
+    rebaseWhen: "behind-base-branch",
     schedule: ["at any time"],
     semanticCommits: "disabled",
     commitMessagePrefix: "[deps]",
