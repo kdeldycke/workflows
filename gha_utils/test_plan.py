@@ -35,7 +35,7 @@ from click_extra.testing import (
     regex_fullmatch_line_by_line,
     render_cli_run,
 )
-from extra_platforms import Group, current_platform, extract_members
+from extra_platforms import current_platform, extract_members
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -149,7 +149,7 @@ class CLITestCase:
 
             # Normalize any mishmash of platform and group IDs into a set of platforms.
             if field_id.endswith("_platforms") and field_data:
-                field_data = frozenset(Group._extract_members(field_data))
+                field_data = frozenset(extract_members(field_data))
 
             # Validates fields containing one or more regexes.
             if "_regex_" in field_id and field_data:
