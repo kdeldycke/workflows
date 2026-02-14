@@ -74,7 +74,13 @@ from .metadata import (
     is_version_bump_allowed,
     load_gha_utils_config,
 )
-from .pr_body import TEMPLATES, build_pr_body, generate_pr_metadata_block
+from .pr_body import (
+    TEMPLATES,
+    build_pr_body,
+    generate_bump_version_prefix,
+    generate_pr_metadata_block,
+    generate_prepare_release_prefix,
+)
 from .release_prep import ReleasePrep
 from .renovate import (
     add_exclude_newer_to_file,
@@ -1973,22 +1979,16 @@ def pr_body(
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
     if template:
-        template_fn = TEMPLATES[template]
-        import inspect
-
-        params = inspect.signature(template_fn).parameters
-        kwargs: dict[str, str] = {}
-        if "version" in params:
-            if not version:
-                msg = f"--version is required for template '{template}'"
-                raise SystemExit(msg)
-            kwargs["version"] = version
-        if "part" in params:
+        if not version:
+            msg = f"--version is required for template '{template}'"
+            raise SystemExit(msg)
+        if template == "bump-version":
             if not part:
                 msg = f"--part is required for template '{template}'"
                 raise SystemExit(msg)
-            kwargs["part"] = part
-        prefix = template_fn(**kwargs)
+            prefix = generate_bump_version_prefix(version, part)
+        else:
+            prefix = generate_prepare_release_prefix(version)
 
     metadata_block = generate_pr_metadata_block()
     body = build_pr_body(prefix, metadata_block)

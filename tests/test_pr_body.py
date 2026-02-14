@@ -159,8 +159,11 @@ def test_generate_prepare_release_prefix(monkeypatch):
     assert "PyPI" in prefix
 
 
-def test_build_pr_body_with_prefix():
+def test_build_pr_body_with_prefix(monkeypatch):
     """Prefix is prepended with triple newline separator."""
+    for key in GITHUB_ENV_VARS:
+        monkeypatch.delenv(key, raising=False)
+
     metadata = "<details>metadata</details>"
     result = build_pr_body("Fix formatting issues.", metadata)
 
@@ -182,8 +185,11 @@ def test_build_pr_body_with_tip(monkeypatch):
     assert result.index("[!TIP]") < result.index("<details>")
 
 
-def test_build_pr_body_empty_prefix():
-    """Empty prefix returns just the metadata block."""
+def test_build_pr_body_empty_prefix(monkeypatch):
+    """Empty prefix without tip returns just the metadata block."""
+    for key in GITHUB_ENV_VARS:
+        monkeypatch.delenv(key, raising=False)
+
     metadata = "<details>metadata</details>"
     result = build_pr_body("", metadata)
 
