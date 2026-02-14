@@ -378,7 +378,7 @@ docs = [
 - **Sync labels** (`sync-labels`)
 
   - Synchronizes repository labels using [`labelmaker`](https://github.com/jwodder/labelmaker)
-  - Uses [`labels.toml`](https://github.com/kdeldycke/workflows/blob/main/.github/labels.toml) with multiple profiles:
+  - Uses [`labels.toml`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/data/labels.toml) with multiple profiles:
     - `default` profile applied to all repositories
     - `awesome` profile additionally applied to `awesome-*` repositories
 

@@ -1,4 +1,4 @@
-# `claude.md`
+# Development guide
 
 ## Project overview
 
@@ -84,7 +84,7 @@ workflows/
 | `binary.py`           | Binary verification and artifact collection                         |
 | `broken_links.py`     | Broken links issue lifecycle management                             |
 | `bundled_config.py`   | Access bundled config templates, labels, and workflow files          |
-| `changelog.py`        | Changelog parsing, updating, and version management                 |
+| `changelog.py`        | Changelog parsing, updating, and release lifecycle management       |
 | `cli.py`              | Click-based command-line interface definitions                      |
 | `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
 | `git_ops.py`          | Idempotent Git operations for CI/CD contexts                        |
@@ -94,7 +94,7 @@ workflows/
 | `matrix.py`           | Generate build matrices for GitHub Actions                          |
 | `metadata.py`         | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
-| `release_prep.py`     | Prepare files for release (dates, URLs, warnings)                   |
+| `release_prep.py`     | Orchestrate release preparation across citation and workflow files   |
 | `renovate.py`         | Renovate prerequisites, migration, and `exclude-newer` updates      |
 | `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
 | `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |
@@ -193,21 +193,37 @@ Use correct capitalization for proper nouns and trademarked names:
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit.
 - Titles in markdown use sentence case.
 
-### `TYPE_CHECKING` block
-
-Place a module-level `TYPE_CHECKING` block immediately after the module docstring:
-
-```python
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from ._types import _T, _TNestedReferences
-```
-
 ### Imports
 
 - Import from the root package (`from gha_utils import cli`), not submodules when possible.
 - Place imports at the top of the file, unless avoiding circular imports.
+- **Version-dependent imports** (e.g., `tomllib` fallback for Python 3.10) should be placed **after all normal imports** but **before the `TYPE_CHECKING` block**. This allows ruff to freely sort and organize the normal imports above without interference.
+
+### `TYPE_CHECKING` block
+
+Place a module-level `TYPE_CHECKING` block after all imports (including version-dependent conditional imports):
+
+```python
+"""Module docstring."""
+
+from __future__ import annotations
+
+import logging
+import sys
+from pathlib import Path
+
+# Version-dependent imports come after normal imports.
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
+
+# TYPE_CHECKING block comes last in the import section.
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from ._types import _T
+```
 
 ### Modern `typing` practices
 
@@ -240,7 +256,16 @@ This project supports Python 3.10+. Be aware of syntax features that are **not**
 
 - **`Self` type hint (Python 3.11+):** Use `from typing_extensions import Self` instead.
 
-- **`tomllib` (Python 3.11+):** Use the `tomli` fallback pattern shown in the codebase.
+- **`tomllib` (Python 3.11+):** Use the `tomli` fallback pattern:
+
+  ```python
+  if sys.version_info >= (3, 11):
+      import tomllib
+  else:
+      import tomli as tomllib  # type: ignore[import-not-found]
+  ```
+
+  Place this conditional import **after all normal imports** and **before the `TYPE_CHECKING` block** to allow ruff to sort the normal imports freely.
 
 ### YAML workflows
 
@@ -290,7 +315,7 @@ When a command is too long for a single line, use the folded block scalar (`>`) 
 
 ### Linting and formatting
 
-[Linting](readme.md#githubworkflowslintyaml-jobs) and [formatting](readme.md#githubworkflowsautofixyyaml-jobs) are automated via GitHub workflows. Developers don't need to run these manually during development, but are still expected to do best effort. Push your changes and the workflows will catch any issues and perform the nitpicking.
+[Linting](readme.md#githubworkflowslintyaml-jobs) and [formatting](readme.md#githubworkflowsautofixyaml-jobs) are automated via GitHub workflows. Developers don't need to run these manually during development, but are still expected to do best effort. Push your changes and the workflows will catch any issues and perform the nitpicking.
 
 ### Metadata-driven workflow conditions
 

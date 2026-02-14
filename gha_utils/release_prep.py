@@ -16,13 +16,12 @@
 
 """Prepare a release by updating changelog, citation, and workflow files.
 
-This module consolidates all release preparation logic that was previously
-scattered across multiple bump-my-version ``replace`` commands in the workflow.
-It handles:
+This module orchestrates the full release preparation across multiple file
+types, delegating changelog operations to :mod:`gha_utils.changelog`. It
+handles:
 
-- Setting the release date in changelog and citation files.
-- Updating GitHub comparison URLs from ``main`` to the release tag.
-- Removing the "unreleased" warning from the changelog.
+- Changelog freeze via :meth:`Changelog.freeze() <gha_utils.changelog.Changelog.freeze>`.
+- Setting the release date in ``citation.cff``.
 - Hard-coding version numbers in workflow URLs (for kdeldycke/workflows).
 """
 
@@ -34,6 +33,8 @@ import sys
 from datetime import datetime, timezone
 from functools import cached_property
 from pathlib import Path
+
+from .changelog import Changelog
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -82,21 +83,6 @@ class ReleasePrep:
         logging.debug(f"No changes to {path}")
         return False
 
-    def set_changelog_release_date(self) -> bool:
-        """Replace `` (unreleased)`` with the release date in changelog.
-
-        :return: True if the file was modified.
-        """
-        if not self.changelog_path.exists():
-            logging.warning(f"Changelog not found: {self.changelog_path}")
-            return False
-
-        original = self.changelog_path.read_text(encoding="UTF-8")
-        # Only replace the first occurrence (the current release section).
-        content = original.replace(" (unreleased)", f" ({self.release_date})", 1)
-
-        return self._update_file(self.changelog_path, content, original)
-
     def set_citation_release_date(self) -> bool:
         """Update the ``date-released`` field in citation.cff.
 
@@ -115,50 +101,6 @@ class ReleasePrep:
         )
 
         return self._update_file(self.citation_path, content, original)
-
-    def update_changelog_comparison_url(self) -> bool:
-        """Update the GitHub comparison URL from ``...main`` to ``...v{version}``.
-
-        :return: True if the file was modified.
-        """
-        if not self.changelog_path.exists():
-            logging.warning(f"Changelog not found: {self.changelog_path}")
-            return False
-
-        original = self.changelog_path.read_text(encoding="UTF-8")
-        # Only replace the first occurrence (the current release section).
-        content = original.replace(
-            f"...{self.default_branch})",
-            f"...v{self.current_version})",
-            1,
-        )
-
-        return self._update_file(self.changelog_path, content, original)
-
-    def remove_changelog_warning(self) -> bool:
-        """Remove the first ``[!IMPORTANT]`` GFM alert from changelog.
-
-        :return: True if the file was modified.
-        """
-        if not self.changelog_path.exists():
-            logging.warning(f"Changelog not found: {self.changelog_path}")
-            return False
-
-        original = self.changelog_path.read_text(encoding="UTF-8")
-        # Match the first multi-line important GFM alert block.
-        # The pattern matches:
-        #   > [!IMPORTANT]
-        #   > ...any content...
-        #   <blank line>
-        content = re.sub(
-            r"^> \[!IMPORTANT\].+?\n\n",
-            "",
-            original,
-            count=1,
-            flags=re.MULTILINE | re.DOTALL,
-        )
-
-        return self._update_file(self.changelog_path, content, original)
 
     def hardcode_workflow_version(self) -> int:
         """Replace workflow URLs from default branch to versioned tag.
@@ -238,10 +180,15 @@ class ReleasePrep:
         """
         self.modified_files = []
 
-        self.set_changelog_release_date()
+        if Changelog.freeze_file(
+            self.changelog_path,
+            version=self.current_version,
+            release_date=self.release_date,
+            default_branch=self.default_branch,
+        ):
+            self.modified_files.append(self.changelog_path)
+
         self.set_citation_release_date()
-        self.update_changelog_comparison_url()
-        self.remove_changelog_warning()
 
         if update_workflows:
             self.hardcode_workflow_version()

@@ -22,6 +22,7 @@ import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 from boltons.iterutils import unique
 from click_extra import (
@@ -42,7 +43,13 @@ from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
-from .changelog import Changelog
+from .binary import (
+    BINARY_ARCH_MAPPINGS,
+    collect_and_rename_artifacts,
+    format_github_output,
+    verify_binary_arch,
+)
+from .broken_links import manage_broken_links_issue
 from .bundled_config import (
     EXPORTABLE_FILES,
     INIT_CONFIGS,
@@ -50,6 +57,15 @@ from .bundled_config import (
     get_default_output_path,
     init_config,
 )
+from .changelog import Changelog
+from .deps_graph import (
+    generate_dependency_graph,
+    get_available_extras,
+    get_available_groups,
+)
+from .git_ops import create_and_push_tag
+from .github import format_multiline_output
+from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
     Dialect,
@@ -58,7 +74,24 @@ from .metadata import (
     is_version_bump_allowed,
     load_gha_utils_config,
 )
+from .pr_body import (
+    TEMPLATES,
+    build_pr_body,
+    generate_bump_version_prefix,
+    generate_pr_metadata_block,
+    generate_prepare_release_prefix,
+)
 from .release_prep import ReleasePrep
+from .renovate import (
+    add_exclude_newer_to_file,
+    calculate_target_date,
+    collect_check_results,
+    has_tool_uv_section,
+    parse_exclude_newer_date,
+    run_migration_checks,
+    update_exclude_newer_in_file,
+)
+from .sphinx_linkcheck import manage_sphinx_linkcheck_issue
 from .sponsor import (
     add_sponsor_label,
     get_default_author,
@@ -69,32 +102,6 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
-from .deps_graph import (
-    generate_dependency_graph,
-    get_available_extras,
-    get_available_groups,
-)
-from .broken_links import manage_broken_links_issue
-from .sphinx_linkcheck import manage_sphinx_linkcheck_issue
-from .binary import (
-    BINARY_ARCH_MAPPINGS,
-    collect_and_rename_artifacts,
-    format_github_output,
-    verify_binary_arch,
-)
-from .git_ops import create_and_push_tag
-from .renovate import (
-    add_exclude_newer_to_file,
-    calculate_target_date,
-    collect_check_results,
-    has_tool_uv_section,
-    parse_exclude_newer_date,
-    run_migration_checks,
-    update_exclude_newer_in_file,
-)
-from .github import format_multiline_output
-from .lint_repo import run_repo_lint
-from .pr_body import build_pr_body, generate_pr_metadata_block
 from .workflow_sync import (
     DEFAULT_REPO,
     DEFAULT_VERSION,
@@ -258,7 +265,7 @@ def changelog(ctx, source, changelog_path):
         logging.info(f"Read initial changelog from {source}")
         initial_content = source.read_text(encoding="UTF-8")
 
-    changelog = Changelog(initial_content)
+    changelog = Changelog(initial_content, Metadata.get_current_version())
     content = changelog.update()
     if content == initial_content:
         logging.warning("Changelog already up to date. Do nothing.")
@@ -647,9 +654,7 @@ GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
     "output_path",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default=None,
-    help=(
-        "Output path. Defaults to gitignore-location from [tool.gha-utils] config."
-    ),
+    help=("Output path. Defaults to gitignore-location from [tool.gha-utils] config."),
 )
 def update_gitignore(output_path: Path | None) -> None:
     """Generate a ``.gitignore`` file from gitignore.io templates.
@@ -672,13 +677,11 @@ def update_gitignore(output_path: Path | None) -> None:
         # Preview on stdout
         gha-utils update-gitignore --output -
     """
-    from urllib.request import Request, urlopen
-
     config = load_gha_utils_config()
 
-    # Combine base and extra categories.
+    # Combine base and extra categories, preserving order and deduplicating.
     extra = config.get("gitignore-extra-categories", [])
-    all_categories = list(GITIGNORE_BASE_CATEGORIES) + extra
+    all_categories = list(dict.fromkeys((*GITIGNORE_BASE_CATEGORIES, *extra)))
 
     # Fetch from gitignore.io API.
     url = f"{GITIGNORE_IO_URL}/{','.join(all_categories)}"
@@ -1079,9 +1082,7 @@ def test_plan(
             plan_path = Path(config_plan_file)
             if plan_path.exists():
                 logging.info(f"Get test plan from config path: {plan_path}")
-                tests = list(parse_test_plan(
-                    plan_path.read_text(encoding="UTF-8")
-                ))
+                tests = list(parse_test_plan(plan_path.read_text(encoding="UTF-8")))
                 logging.info(f"{len(tests)} test cases found.")
                 test_list.extend(tests)
 
@@ -1352,10 +1353,7 @@ def deps_graph(
     if package is None:
         package = get_project_name()
         if package:
-            logging.info(
-                "Auto-detected package from pyproject.toml:"
-                f" {package}"
-            )
+            logging.info(f"Auto-detected package from pyproject.toml: {package}")
 
     # Resolve output: CLI > config > stdout.
     if output is None:
@@ -1921,13 +1919,36 @@ def git_tag(
     "Can also be set via the GHA_PR_BODY_PREFIX environment variable.",
 )
 @option(
+    "--template",
+    type=Choice(sorted(TEMPLATES), case_sensitive=False),
+    default=None,
+    help="Use a built-in prefix template instead of --prefix.",
+)
+@option(
+    "--version",
+    "version",
+    default=None,
+    help="Version string passed to the template (e.g. 1.2.0).",
+)
+@option(
+    "--part",
+    default=None,
+    help="Version part passed to bump-version template (e.g. minor, major).",
+)
+@option(
     "-o",
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default="-",
     help="Output file path. Defaults to stdout.",
 )
-def pr_body(prefix: str, output: Path) -> None:
+def pr_body(
+    prefix: str,
+    template: str | None,
+    version: str | None,
+    part: str | None,
+    output: Path,
+) -> None:
     """Generate a PR body with a collapsible workflow metadata block.
 
     Reads ``GITHUB_*`` environment variables to produce a ``<details>`` block
@@ -1936,9 +1957,9 @@ def pr_body(prefix: str, output: Path) -> None:
     When ``--output`` points to ``$GITHUB_OUTPUT``, the body is written in the
     heredoc format required by GitHub Actions multiline outputs.
 
-    The ``--prefix`` option accepts content to prepend before the metadata block.
-    Use the ``GHA_PR_BODY_PREFIX`` environment variable to pass the prefix without
-    shell escaping issues (Click reads it automatically via ``envvar``).
+    The prefix can be set via ``--template`` (built-in templates) or ``--prefix``
+    (arbitrary content, also via ``GHA_PR_BODY_PREFIX`` env var). If both are
+    given, ``--template`` takes precedence.
 
     \b
     Examples:
@@ -1950,9 +1971,25 @@ def pr_body(prefix: str, output: Path) -> None:
         gha-utils pr-body --output "$GITHUB_OUTPUT"
 
     \b
+        # Use a built-in template
+        gha-utils pr-body --template bump-version --version 1.2.0 --part minor
+
+    \b
         # With a prefix via environment variable
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
+    if template:
+        if not version:
+            msg = f"--version is required for template '{template}'"
+            raise SystemExit(msg)
+        if template == "bump-version":
+            if not part:
+                msg = f"--part is required for template '{template}'"
+                raise SystemExit(msg)
+            prefix = generate_bump_version_prefix(version, part)
+        else:
+            prefix = generate_prepare_release_prefix(version)
+
     metadata_block = generate_pr_metadata_block()
     body = build_pr_body(prefix, metadata_block)
 

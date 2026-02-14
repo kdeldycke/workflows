@@ -23,7 +23,10 @@ import pytest
 from gha_utils.pr_body import (
     build_pr_body,
     extract_workflow_filename,
+    generate_bump_version_prefix,
     generate_pr_metadata_block,
+    generate_prepare_release_prefix,
+    generate_refresh_tip,
 )
 
 
@@ -111,8 +114,56 @@ def test_generate_metadata_block_minimal_vars(monkeypatch):
     assert "| **Trigger** | `` |" in block
 
 
-def test_build_pr_body_with_prefix():
+def test_generate_refresh_tip_with_workflow_ref(monkeypatch):
+    """Tip includes workflow dispatch URL when env vars are set."""
+    for key, value in GITHUB_ENV_VARS.items():
+        monkeypatch.setenv(key, value)
+
+    tip = generate_refresh_tip()
+
+    assert "> [!TIP]" in tip
+    assert "Run workflow" in tip
+    assert "https://github.com/owner/repo/actions/workflows/autofix.yaml" in tip
+
+
+def test_generate_refresh_tip_without_workflow_ref(monkeypatch):
+    """Tip is empty when workflow ref is unavailable."""
+    for key in GITHUB_ENV_VARS:
+        monkeypatch.delenv(key, raising=False)
+
+    assert generate_refresh_tip() == ""
+
+
+def test_generate_bump_version_prefix():
+    """Bump version prefix includes part, version, and merge instructions."""
+    prefix = generate_bump_version_prefix("1.2.0", "minor")
+
+    assert "bump the minor part" in prefix
+    assert "### To bump version to v1.2.0" in prefix
+    assert "Ready for review" in prefix
+    assert "Rebase and merge" in prefix
+
+
+def test_generate_prepare_release_prefix(monkeypatch):
+    """Prepare release prefix includes version, links, and caution admonition."""
+    for key, value in GITHUB_ENV_VARS.items():
+        monkeypatch.setenv(key, value)
+
+    prefix = generate_prepare_release_prefix("5.8.1")
+
+    assert "### How-to release `v5.8.1`" in prefix
+    assert "https://github.com/owner/repo/tree/v5.8.1" in prefix
+    assert "https://github.com/owner/repo/releases/tag/v5.8.1" in prefix
+    assert "[!CAUTION]" in prefix
+    assert "Squash and merge" in prefix
+    assert "PyPI" in prefix
+
+
+def test_build_pr_body_with_prefix(monkeypatch):
     """Prefix is prepended with triple newline separator."""
+    for key in GITHUB_ENV_VARS:
+        monkeypatch.delenv(key, raising=False)
+
     metadata = "<details>metadata</details>"
     result = build_pr_body("Fix formatting issues.", metadata)
 
@@ -120,8 +171,25 @@ def test_build_pr_body_with_prefix():
     assert "\n\n\n<details>metadata</details>" in result
 
 
-def test_build_pr_body_empty_prefix():
-    """Empty prefix returns just the metadata block."""
+def test_build_pr_body_with_tip(monkeypatch):
+    """Tip is inserted between prefix and metadata when env vars are set."""
+    for key, value in GITHUB_ENV_VARS.items():
+        monkeypatch.setenv(key, value)
+
+    metadata = "<details>metadata</details>"
+    result = build_pr_body("Description.", metadata)
+
+    assert result.startswith("Description.")
+    assert "> [!TIP]" in result
+    assert result.index("Description.") < result.index("[!TIP]")
+    assert result.index("[!TIP]") < result.index("<details>")
+
+
+def test_build_pr_body_empty_prefix(monkeypatch):
+    """Empty prefix without tip returns just the metadata block."""
+    for key in GITHUB_ENV_VARS:
+        monkeypatch.delenv(key, raising=False)
+
     metadata = "<details>metadata</details>"
     result = build_pr_body("", metadata)
 

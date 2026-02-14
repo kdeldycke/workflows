@@ -142,41 +142,6 @@ def temp_pyproject(tmp_path: Path) -> Path:
     return pyproject
 
 
-def test_set_changelog_release_date(
-    tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
-) -> None:
-    """Test that release date is set in changelog."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep(changelog_path=temp_changelog)
-    result = prep.set_changelog_release_date()
-
-    assert result is True
-    content = temp_changelog.read_text(encoding="UTF-8")
-    assert "(unreleased)" not in content
-    assert f"({prep.release_date})" in content
-    # Only first occurrence should be replaced.
-    assert content.count(prep.release_date) == 1
-
-
-def test_set_changelog_release_date_already_released(
-    tmp_path: Path, temp_pyproject: Path, monkeypatch
-) -> None:
-    """Test that nothing changes if changelog has no unreleased marker."""
-    monkeypatch.chdir(tmp_path)
-
-    changelog = tmp_path / "changelog.md"
-    changelog.write_text(
-        "# Changelog\n\n## [1.0.0 (2024-01-01)](https://example.com)\n",
-        encoding="UTF-8",
-    )
-
-    prep = ReleasePrep(changelog_path=changelog)
-    result = prep.set_changelog_release_date()
-
-    assert result is False
-
-
 def test_set_citation_release_date(
     tmp_path: Path, temp_citation: Path, temp_pyproject: Path, monkeypatch
 ) -> None:
@@ -202,38 +167,6 @@ def test_set_citation_release_date_missing_file(
     result = prep.set_citation_release_date()
 
     assert result is False
-
-
-def test_update_changelog_comparison_url(
-    tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
-) -> None:
-    """Test that comparison URL is updated from main to version tag."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep(changelog_path=temp_changelog)
-    result = prep.update_changelog_comparison_url()
-
-    assert result is True
-    content = temp_changelog.read_text(encoding="UTF-8")
-    assert "...main)" not in content
-    assert "...v1.2.3)" in content
-
-
-def test_remove_changelog_warning(
-    tmp_path: Path, temp_changelog: Path, temp_pyproject: Path, monkeypatch
-) -> None:
-    """Test that IMPORTANT warning block is removed from changelog."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep(changelog_path=temp_changelog)
-    result = prep.remove_changelog_warning()
-
-    assert result is True
-    content = temp_changelog.read_text(encoding="UTF-8")
-    assert "[!IMPORTANT]" not in content
-    assert "not released yet" not in content
-    # Content after the warning should remain.
-    assert "- Add new feature." in content
 
 
 def test_hardcode_workflow_version(
@@ -298,10 +231,8 @@ def test_prepare_release_full(
     )
     modified = prep.prepare_release(update_workflows=True)
 
-    # Changelog is modified 3 times (date, URL, warning), citation once, 2
-    # workflows.
-    assert len(modified) == 6
-    # Unique files: changelog, citation, 2 workflows.
+    # Changelog once, citation once, 2 workflows.
+    assert len(modified) == 4
     assert len(set(modified)) == 4
 
     # Verify changelog changes.
@@ -336,9 +267,8 @@ def test_prepare_release_without_workflows(
     )
     modified = prep.prepare_release(update_workflows=False)
 
-    # Changelog is modified 3 times, citation once.
-    assert len(modified) == 4
-    # Unique files: changelog and citation only.
+    # Changelog once, citation once.
+    assert len(modified) == 2
     assert len(set(modified)) == 2
 
 
