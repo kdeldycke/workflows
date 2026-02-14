@@ -5,6 +5,7 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Dogfood `gha-utils` from local source on `main` branch via `uvx --from . gha-utils`. During release freeze, CLI invocations are frozen back to a PyPI version for downstream compatibility.
 - Refactor PR body templates from Python literals to markdown files with YAML frontmatter for metadata (titles, commit messages). The `pr-body` CLI now outputs `title` and `commit_message` alongside `body`.
 - Add and enrich PR templates for all autofix jobs, version bumps, release preparation, and `.gitignore` updates.
 

@@ -63,7 +63,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   bump-versions:
     needs:
@@ -105,7 +105,7 @@ jobs:
       - id: pr-metadata
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         run: >
-          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          uvx --no-progress --from . gha-utils pr-body
           --template bump-version
           --version "${{ steps.get_version.outputs.new_version }}"
           --part "${{ matrix.part }}"
@@ -136,12 +136,12 @@ jobs:
       - name: Extract version
         id: get_version
         run: echo "current_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
-      # --- Freeze commit: pin everything to the release version. ---
+      # --- Freeze commit: freeze everything to the release version. ---
       - name: Prepare release
         # Updates changelog and citation dates, comparison URL, and removes warning.
         # Also hard-codes version in workflow URLs for kdeldycke/workflows repository.
         run: >-
-          uvx --no-progress 'gha-utils==5.9.0' release-prep
+          uvx --no-progress --from . gha-utils release-prep
           ${{ github.repository == 'kdeldycke/workflows' && '--update-workflows' || '' }}
       - name: Prepare repository
         run: |
@@ -154,9 +154,9 @@ jobs:
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        run: uvx --no-progress 'gha-utils==5.9.0' release-prep --post-release --update-workflows
+        run: uvx --no-progress --from . gha-utils release-prep --post-release --update-workflows
       - name: Add new changelog entry
-        run: uvx --no-progress 'gha-utils==5.9.0' changelog ./changelog.md
+        run: uvx --no-progress --from . gha-utils changelog ./changelog.md
       - name: Version bump
         run: bump-my-version bump --verbose patch
       - name: Sync uv.lock
@@ -167,7 +167,7 @@ jobs:
           v${{ steps.get_version.outputs.current_version }} → v$(bump-my-version show current_version)"
       - id: pr-metadata
         run: >
-          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          uvx --no-progress --from . gha-utils pr-body
           --template prepare-release
           --version "${{ steps.get_version.outputs.current_version }}"
           --output "$GITHUB_OUTPUT"

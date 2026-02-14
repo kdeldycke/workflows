@@ -316,7 +316,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
 - **Prepare release** (`prepare-release`)
 
-  - Creates a release PR with two commits: a **freeze commit** that pins everything to the release version, and an **unfreeze commit** that reverts to development references and bumps the patch version
+  - Creates a release PR with two commits: a **freeze commit** that freezes everything to the release version, and an **unfreeze commit** that reverts to development references and bumps the patch version
   - Uses [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`gha-utils changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
   - Must be merged with "Rebase and merge" (not squash) — the auto-tagging job needs both commits separate
   - **Requires**:
@@ -589,7 +589,7 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 | Hard-coded versions in YAML | GitHub Actions, npm, Python | Renovate PRs      |
 | `uv --exclude-newer` option | Transitive dependencies     | Time-based window |
 | Tagged workflow URLs        | Remote workflow references  | Release process   |
-| `gha-utils==X.Y.Z` pins     | CLI version in workflows    | Post-release PR   |
+| `--from . gha-utils`        | CLI from local source       | Release freeze    |
 
 ### Hard-coded versions in workflows
 

@@ -382,12 +382,12 @@ Both `[changelog] Release` and `[changelog] Post-release` patterns must be match
 
 The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two commits** that must be merged via "Rebase and merge" (never squash):
 
-1. **Freeze commit** (`[changelog] Release vX.Y.Z`) — Freezes everything to the release version: finalizes the changelog date and comparison URL, removes the "unreleased" warning, and pins workflow action references to `@vX.Y.Z`.
-1. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.Z`) — Unfreezes for the next development cycle: reverts action references back to `@main`, adds a new unreleased changelog section, and bumps the version to the next patch.
+1. **Freeze commit** (`[changelog] Release vX.Y.Z`) — Freezes everything to the release version: finalizes the changelog date and comparison URL, removes the "unreleased" warning, freezes workflow action references to `@vX.Y.Z`, and freezes CLI invocations to a PyPI version.
+1. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.Z`) — Unfreezes for the next development cycle: reverts action references back to `@main`, reverts CLI invocations back to local source (`--from . gha-utils`), adds a new unreleased changelog section, and bumps the version to the next patch.
 
 The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
 
-**CLI version pins** (`gha-utils==X.Y.Z`) are **not** updated in either commit. They stay at the previous release version because the release workflow needs to install `gha-utils` from PyPI before the new version is published. Renovate handles updating the pins after the new version is available on PyPI, via the `customManagers` regex rule in `renovate.json5` that matches `'package==version'` patterns in workflow files.
+On `main`, workflows use `--from . gha-utils` to run the CLI from local source (dogfooding). The freeze commit freezes these to `'gha-utils==X.Y.Z'` (the latest PyPI version) so tagged releases reference a published package. The unfreeze commit reverts them back to `--from . gha-utils` for the next development cycle.
 
 #### Other workflows — simple groups
 

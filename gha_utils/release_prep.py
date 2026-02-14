@@ -22,17 +22,21 @@ handles:
 
 - Changelog freeze via :meth:`Changelog.freeze() <gha_utils.changelog.Changelog.freeze>`.
 - Setting the release date in ``citation.cff``.
-- Hard-coding version numbers in workflow URLs (for kdeldycke/workflows).
+- Freezing workflow URLs to versioned tags (for `kdeldycke/workflows`).
+- Freezing ``gha-utils`` CLI invocations to PyPI versions, unfreezing back to
+  local source (``--from . gha-utils``).
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import sys
 from datetime import datetime, timezone
 from functools import cached_property
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 from .changelog import Changelog
 
@@ -102,11 +106,11 @@ class ReleasePrep:
 
         return self._update_file(self.citation_path, content, original)
 
-    def hardcode_workflow_version(self) -> int:
+    def freeze_workflow_urls(self) -> int:
         """Replace workflow URLs from default branch to versioned tag.
 
-        This is part of the **freeze** step: it pins workflow references to the
-        release tag so released versions reference immutable URLs.
+        This is part of the **freeze** step: it freezes workflow references to
+        the release tag so released versions reference immutable URLs.
 
         Replaces ``/workflows/{default_branch}/`` with ``/workflows/v{version}/``
         and ``/workflows/.github/actions/...@{default_branch}`` with
@@ -137,7 +141,83 @@ class ReleasePrep:
 
         return count
 
-    def retarget_workflow_branch(self) -> int:
+    @staticmethod
+    def _get_latest_pypi_version(package: str) -> str:
+        """Fetch the latest published version of a package from PyPI.
+
+        :param package: The PyPI package name.
+        :return: The latest version string.
+        :raises RuntimeError: If the PyPI API request fails.
+        """
+        url = f"https://pypi.org/pypi/{package}/json"
+        request = Request(url, headers={"Accept": "application/json"})
+        logging.info(f"Fetching latest version of {package} from PyPI")
+        with urlopen(request) as response:  # noqa: S310
+            data = json.loads(response.read())
+        version: str = data["info"]["version"]
+        logging.info(f"Latest PyPI version of {package}: {version}")
+        return version
+
+    def freeze_cli_version(self, version: str) -> int:
+        """Replace local source CLI invocations with a frozen PyPI version.
+
+        This is part of the **freeze** step: it freezes ``gha-utils``
+        invocations to a specific PyPI version so the released workflow files
+        reference a published package. Downstream repos that check out a tagged
+        release will install from PyPI rather than expecting a local source
+        tree.
+
+        Replaces ``--from . gha-utils`` with ``'gha-utils=={version}'`` in all
+        workflow YAML files.
+
+        :param version: The PyPI version to freeze to.
+        :return: Number of files modified.
+        """
+        if not self.workflow_dir.exists():
+            logging.debug(f"Workflow directory not found: {self.workflow_dir}")
+            return 0
+
+        count = 0
+        search = "--from . gha-utils"
+        replace = f"'gha-utils=={version}'"
+
+        for workflow_file in self.workflow_dir.glob("*.yaml"):
+            original = workflow_file.read_text(encoding="UTF-8")
+            content = original.replace(search, replace)
+            if self._update_file(workflow_file, content, original):
+                count += 1
+
+        return count
+
+    def unfreeze_cli_version(self) -> int:
+        """Replace frozen PyPI CLI invocations with local source.
+
+        This is part of the **unfreeze** step: it reverts ``gha-utils``
+        invocations back to local source (``--from . gha-utils``) for the next
+        development cycle on ``main``.
+
+        Replaces ``'gha-utils==X.Y.Z'`` with ``--from . gha-utils`` in all
+        workflow YAML files.
+
+        :return: Number of files modified.
+        """
+        if not self.workflow_dir.exists():
+            logging.debug(f"Workflow directory not found: {self.workflow_dir}")
+            return 0
+
+        count = 0
+        pattern = re.compile(r"'gha-utils==[\d.]+'")
+        replace = "--from . gha-utils"
+
+        for workflow_file in self.workflow_dir.glob("*.yaml"):
+            original = workflow_file.read_text(encoding="UTF-8")
+            content = pattern.sub(replace, original)
+            if self._update_file(workflow_file, content, original):
+                count += 1
+
+        return count
+
+    def unfreeze_workflow_urls(self) -> int:
         """Replace workflow URLs from versioned tag back to default branch.
 
         This is part of the **unfreeze** step: it reverts workflow references back
@@ -175,7 +255,8 @@ class ReleasePrep:
     def prepare_release(self, update_workflows: bool = False) -> list[Path]:
         """Run all freeze steps to prepare the release commit.
 
-        :param update_workflows: If True, also pin workflow URLs to versioned tag.
+        :param update_workflows: If True, also freeze workflow URLs to versioned tag
+            and freeze CLI invocations to the latest PyPI version.
         :return: List of modified files.
         """
         self.modified_files = []
@@ -191,19 +272,23 @@ class ReleasePrep:
         self.set_citation_release_date()
 
         if update_workflows:
-            self.hardcode_workflow_version()
+            self.freeze_workflow_urls()
+            pypi_version = self._get_latest_pypi_version("gha-utils")
+            self.freeze_cli_version(pypi_version)
 
         return self.modified_files
 
     def post_release(self, update_workflows: bool = False) -> list[Path]:
         """Run all unfreeze steps to prepare the post-release commit.
 
-        :param update_workflows: If True, revert workflow URLs to default branch.
+        :param update_workflows: If True, unfreeze workflow URLs back to default
+            branch and unfreeze CLI invocations back to local source.
         :return: List of modified files.
         """
         self.modified_files = []
 
         if update_workflows:
-            self.retarget_workflow_branch()
+            self.unfreeze_workflow_urls()
+            self.unfreeze_cli_version()
 
         return self.modified_files

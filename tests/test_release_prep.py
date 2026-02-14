@@ -19,6 +19,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import dedent
+from unittest.mock import patch
 
 import pytest
 
@@ -125,6 +126,49 @@ def temp_workflows_with_actions(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def temp_workflows_with_cli(tmp_path: Path) -> Path:
+    """Create workflows with ``--from . gha-utils`` CLI invocations."""
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+
+    (workflow_dir / "lint.yaml").write_text(
+        dedent("""\
+            name: Lint
+            on: push
+            jobs:
+              metadata:
+                steps:
+                  - run: >
+                      uvx --no-progress --from . gha-utils
+                      metadata --output "$GITHUB_OUTPUT"
+              lint:
+                steps:
+                  - run: >
+                      uvx --no-progress --from . gha-utils
+                      lint-repo --repo-name "test"
+            """),
+        encoding="UTF-8",
+    )
+
+    (workflow_dir / "autofix.yaml").write_text(
+        dedent("""\
+            name: Autofix
+            on: push
+            jobs:
+              format:
+                steps:
+                  - run: >
+                      uvx --no-progress --from . gha-utils
+                      metadata --output "$GITHUB_OUTPUT"
+                  - run: uvx --no-progress --from . gha-utils pr-body
+            """),
+        encoding="UTF-8",
+    )
+
+    return workflow_dir
+
+
+@pytest.fixture
 def temp_pyproject(tmp_path: Path) -> Path:
     """Create a temporary pyproject.toml with bumpversion config."""
     pyproject = tmp_path / "pyproject.toml"
@@ -140,6 +184,226 @@ def temp_pyproject(tmp_path: Path) -> Path:
         encoding="UTF-8",
     )
     return pyproject
+
+
+def test_current_version_from_pyproject(
+    tmp_path: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that current version is read from pyproject.toml."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep()
+
+    assert prep.current_version == "1.2.3"
+
+
+def test_freeze_action_reference(
+    tmp_path: Path,
+    temp_workflows_with_actions: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that composite action references are frozen to versioned tag."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
+    count = prep.freeze_workflow_urls()
+
+    assert count == 1
+    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
+        encoding="UTF-8"
+    )
+    assert "@main" not in content
+    assert "@v1.2.3" in content
+    assert "kdeldycke/workflows/.github/actions/pr-metadata@v1.2.3" in content
+
+
+def test_freeze_cli_version(
+    tmp_path: Path,
+    temp_workflows_with_cli: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that ``--from . gha-utils`` is frozen to a PyPI version."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(workflow_dir=temp_workflows_with_cli)
+    count = prep.freeze_cli_version("1.0.0")
+
+    assert count == 2
+    for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "--from . gha-utils" not in content
+        assert "'gha-utils==1.0.0'" in content
+
+
+def test_freeze_workflow_urls(
+    tmp_path: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that workflow URLs are frozen to versioned tag."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(workflow_dir=temp_workflows)
+    count = prep.freeze_workflow_urls()
+
+    assert count == 2
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/main/" not in content
+        assert "/workflows/v1.2.3/" in content
+
+
+def test_post_release(
+    tmp_path: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test post-release workflow unfreezing."""
+    monkeypatch.chdir(tmp_path)
+
+    # First freeze for release.
+    prep = ReleasePrep(workflow_dir=temp_workflows)
+    prep.freeze_workflow_urls()
+
+    # Then run post-release.
+    modified = prep.post_release(update_workflows=True)
+
+    assert len(modified) == 2
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/main/" in content
+
+
+def test_post_release_unfreezes_cli(
+    tmp_path: Path,
+    temp_workflows_with_cli: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that post-release unfreezes CLI invocations back to local source."""
+    monkeypatch.chdir(tmp_path)
+
+    # First freeze CLI.
+    prep = ReleasePrep(workflow_dir=temp_workflows_with_cli)
+    prep.freeze_cli_version("1.0.0")
+    for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "'gha-utils==1.0.0'" in content
+
+    # Then run post-release.
+    prep.modified_files = []
+    modified = prep.post_release(update_workflows=True)
+
+    assert len(modified) == 2
+    for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "'gha-utils==" not in content
+        assert "--from . gha-utils" in content
+
+
+@patch.object(ReleasePrep, "_get_latest_pypi_version", return_value="1.0.0")
+def test_prepare_release_full(
+    mock_pypi,
+    tmp_path: Path,
+    temp_changelog: Path,
+    temp_citation: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test full release preparation with all options."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(
+        changelog_path=temp_changelog,
+        citation_path=temp_citation,
+        workflow_dir=temp_workflows,
+    )
+    modified = prep.prepare_release(update_workflows=True)
+
+    # Changelog once, citation once, 2 workflows for URLs.
+    # CLI freeze doesn't match (no --from . gha-utils in temp_workflows).
+    assert len(modified) == 4
+    assert len(set(modified)) == 4
+
+    # Verify changelog changes.
+    changelog_content = temp_changelog.read_text(encoding="UTF-8")
+    assert "(unreleased)" not in changelog_content
+    assert "...main)" not in changelog_content
+    assert "[!IMPORTANT]" not in changelog_content
+
+    # Verify citation changes.
+    citation_content = temp_citation.read_text(encoding="UTF-8")
+    assert f"date-released: {prep.release_date}" in citation_content
+
+    # Verify workflow changes.
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/v1.2.3/" in content
+
+
+@patch.object(ReleasePrep, "_get_latest_pypi_version", return_value="2.0.0")
+def test_prepare_release_freezes_cli(
+    mock_pypi,
+    tmp_path: Path,
+    temp_changelog: Path,
+    temp_citation: Path,
+    temp_workflows_with_cli: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that prepare_release freezes CLI invocations to PyPI version."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(
+        changelog_path=temp_changelog,
+        citation_path=temp_citation,
+        workflow_dir=temp_workflows_with_cli,
+    )
+    prep.prepare_release(update_workflows=True)
+
+    mock_pypi.assert_called_once_with("gha-utils")
+    for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "--from . gha-utils" not in content
+        assert "'gha-utils==2.0.0'" in content
+
+
+def test_prepare_release_without_workflows(
+    tmp_path: Path,
+    temp_changelog: Path,
+    temp_citation: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test release preparation without workflow updates."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(
+        changelog_path=temp_changelog,
+        citation_path=temp_citation,
+    )
+    modified = prep.prepare_release(update_workflows=False)
+
+    # Changelog once, citation once.
+    assert len(modified) == 2
+    assert len(set(modified)) == 2
+
+
+def test_release_date_format(
+    tmp_path: Path, temp_pyproject: Path, monkeypatch
+) -> None:
+    """Test that release date is in correct format."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    assert prep.release_date == today
 
 
 def test_set_citation_release_date(
@@ -169,197 +433,28 @@ def test_set_citation_release_date_missing_file(
     assert result is False
 
 
-def test_hardcode_workflow_version(
-    tmp_path: Path,
-    temp_workflows: Path,
-    temp_pyproject: Path,
-    monkeypatch,
-) -> None:
-    """Test that workflow URLs are updated to versioned tag."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep(workflow_dir=temp_workflows)
-    count = prep.hardcode_workflow_version()
-
-    assert count == 2
-    for workflow_file in temp_workflows.glob("*.yaml"):
-        content = workflow_file.read_text(encoding="UTF-8")
-        assert "/workflows/main/" not in content
-        assert "/workflows/v1.2.3/" in content
-
-
-def test_retarget_workflow_branch(
-    tmp_path: Path,
-    temp_workflows: Path,
-    temp_pyproject: Path,
-    monkeypatch,
-) -> None:
-    """Test that workflow URLs are retargeted back to default branch."""
-    monkeypatch.chdir(tmp_path)
-
-    # First hardcode the version.
-    prep = ReleasePrep(workflow_dir=temp_workflows)
-    prep.hardcode_workflow_version()
-
-    # Then retarget to main.
-    # Need to clear cached property to re-read version.
-    del prep.__dict__["current_version"]
-    count = prep.retarget_workflow_branch()
-
-    assert count == 2
-    for workflow_file in temp_workflows.glob("*.yaml"):
-        content = workflow_file.read_text(encoding="UTF-8")
-        assert "/workflows/v1.2.3/" not in content
-        assert "/workflows/main/" in content
-
-
-def test_prepare_release_full(
-    tmp_path: Path,
-    temp_changelog: Path,
-    temp_citation: Path,
-    temp_workflows: Path,
-    temp_pyproject: Path,
-    monkeypatch,
-) -> None:
-    """Test full release preparation with all options."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep(
-        changelog_path=temp_changelog,
-        citation_path=temp_citation,
-        workflow_dir=temp_workflows,
-    )
-    modified = prep.prepare_release(update_workflows=True)
-
-    # Changelog once, citation once, 2 workflows.
-    assert len(modified) == 4
-    assert len(set(modified)) == 4
-
-    # Verify changelog changes.
-    changelog_content = temp_changelog.read_text(encoding="UTF-8")
-    assert "(unreleased)" not in changelog_content
-    assert "...main)" not in changelog_content
-    assert "[!IMPORTANT]" not in changelog_content
-
-    # Verify citation changes.
-    citation_content = temp_citation.read_text(encoding="UTF-8")
-    assert f"date-released: {prep.release_date}" in citation_content
-
-    # Verify workflow changes.
-    for workflow_file in temp_workflows.glob("*.yaml"):
-        content = workflow_file.read_text(encoding="UTF-8")
-        assert "/workflows/v1.2.3/" in content
-
-
-def test_prepare_release_without_workflows(
-    tmp_path: Path,
-    temp_changelog: Path,
-    temp_citation: Path,
-    temp_pyproject: Path,
-    monkeypatch,
-) -> None:
-    """Test release preparation without workflow updates."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep(
-        changelog_path=temp_changelog,
-        citation_path=temp_citation,
-    )
-    modified = prep.prepare_release(update_workflows=False)
-
-    # Changelog once, citation once.
-    assert len(modified) == 2
-    assert len(set(modified)) == 2
-
-
-def test_post_release(
-    tmp_path: Path,
-    temp_workflows: Path,
-    temp_pyproject: Path,
-    monkeypatch,
-) -> None:
-    """Test post-release workflow retargeting."""
-    monkeypatch.chdir(tmp_path)
-
-    # First prepare release.
-    prep = ReleasePrep(workflow_dir=temp_workflows)
-    prep.hardcode_workflow_version()
-
-    # Then run post-release.
-    modified = prep.post_release(update_workflows=True)
-
-    assert len(modified) == 2
-    for workflow_file in temp_workflows.glob("*.yaml"):
-        content = workflow_file.read_text(encoding="UTF-8")
-        assert "/workflows/main/" in content
-
-
-def test_release_date_format(
-    tmp_path: Path, temp_pyproject: Path, monkeypatch
-) -> None:
-    """Test that release date is in correct format."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep()
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    assert prep.release_date == today
-
-
-def test_current_version_from_pyproject(
-    tmp_path: Path, temp_pyproject: Path, monkeypatch
-) -> None:
-    """Test that current version is read from pyproject.toml."""
-    monkeypatch.chdir(tmp_path)
-
-    prep = ReleasePrep()
-
-    assert prep.current_version == "1.2.3"
-
-
-def test_hardcode_action_reference(
+def test_unfreeze_action_reference(
     tmp_path: Path,
     temp_workflows_with_actions: Path,
     temp_pyproject: Path,
     monkeypatch,
 ) -> None:
-    """Test that composite action references are updated to versioned tag."""
+    """Test that composite action references are unfrozen to default branch."""
     monkeypatch.chdir(tmp_path)
 
+    # First freeze the version.
     prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
-    count = prep.hardcode_workflow_version()
+    prep.freeze_workflow_urls()
 
-    assert count == 1
-    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
-        encoding="UTF-8"
-    )
-    assert "@main" not in content
-    assert "@v1.2.3" in content
-    assert "kdeldycke/workflows/.github/actions/pr-metadata@v1.2.3" in content
-
-
-def test_retarget_action_reference(
-    tmp_path: Path,
-    temp_workflows_with_actions: Path,
-    temp_pyproject: Path,
-    monkeypatch,
-) -> None:
-    """Test that composite action references are retargeted to default branch."""
-    monkeypatch.chdir(tmp_path)
-
-    # First hardcode the version.
-    prep = ReleasePrep(workflow_dir=temp_workflows_with_actions)
-    prep.hardcode_workflow_version()
-
-    # Verify version is hardcoded.
+    # Verify version is frozen.
     content = (temp_workflows_with_actions / "autofix.yaml").read_text(
         encoding="UTF-8"
     )
     assert "@v1.2.3" in content
 
-    # Then retarget to main.
+    # Then unfreeze to main.
     del prep.__dict__["current_version"]
-    count = prep.retarget_workflow_branch()
+    count = prep.unfreeze_workflow_urls()
 
     assert count == 1
     content = (temp_workflows_with_actions / "autofix.yaml").read_text(
@@ -368,3 +463,55 @@ def test_retarget_action_reference(
     assert "@v1.2.3" not in content
     assert "@main" in content
     assert "kdeldycke/workflows/.github/actions/pr-metadata@main" in content
+
+
+def test_unfreeze_cli_version(
+    tmp_path: Path,
+    temp_workflows_with_cli: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that frozen PyPI version is unfrozen back to local source."""
+    monkeypatch.chdir(tmp_path)
+
+    # First freeze CLI.
+    prep = ReleasePrep(workflow_dir=temp_workflows_with_cli)
+    prep.freeze_cli_version("1.0.0")
+    for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "'gha-utils==1.0.0'" in content
+
+    # Then unfreeze.
+    prep.modified_files = []
+    count = prep.unfreeze_cli_version()
+
+    assert count == 2
+    for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "'gha-utils==" not in content
+        assert "--from . gha-utils" in content
+
+
+def test_unfreeze_workflow_urls(
+    tmp_path: Path,
+    temp_workflows: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that workflow URLs are unfrozen back to default branch."""
+    monkeypatch.chdir(tmp_path)
+
+    # First freeze the version.
+    prep = ReleasePrep(workflow_dir=temp_workflows)
+    prep.freeze_workflow_urls()
+
+    # Then unfreeze to main.
+    # Need to clear cached property to re-read version.
+    del prep.__dict__["current_version"]
+    count = prep.unfreeze_workflow_urls()
+
+    assert count == 2
+    for workflow_file in temp_workflows.glob("*.yaml"):
+        content = workflow_file.read_text(encoding="UTF-8")
+        assert "/workflows/v1.2.3/" not in content
+        assert "/workflows/main/" in content

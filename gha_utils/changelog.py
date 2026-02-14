@@ -30,7 +30,7 @@ decisions and operations. It handles two phases of the release cycle:
 **Release preparation (freeze)** — :meth:`Changelog.freeze`:
 
 1. Replace ``(unreleased)`` with today's date (``YYYY-MM-DD``).
-2. Pin the comparison URL from ``...main`` to ``...vX.Y.Z``.
+2. Freeze the comparison URL from ``...main`` to ``...vX.Y.Z``.
 3. Remove the ``[!IMPORTANT]`` development warning.
 
 Both operations are idempotent: re-running them produces the same result.
@@ -70,7 +70,7 @@ noisy and don't account for back-and-forth during development.
 <https://github.com/nedbat/scriv>`_) avoid merge conflicts by using
 per-change files, but handle none of the release orchestration:
 comparison URL management, GFM warning lifecycle, workflow action
-reference pinning, or the two-commit freeze/unfreeze release cycle.
+reference freezing, or the two-commit freeze/unfreeze release cycle.
 The multiplication of files across the repo adds complexity, and
 there is no 1:1 mapping between fragments and changelog entries.
 
@@ -83,7 +83,7 @@ Specific gaps across all evaluated tools:
   ``[!IMPORTANT]`` GFM alert warning that the version is under
   active development, inserting it post-release and removing it at
   release time.
-- **No workflow action reference pinning.** None handle the
+- **No workflow action reference freezing.** None handle the
   freeze/unfreeze cycle for ``@main`` ↔ ``@vX.Y.Z`` references
   in workflow files.
 - **No two-commit release workflow.** None support the freeze
@@ -269,7 +269,7 @@ class Changelog:
         return True
 
     def update_comparison_url(self, default_branch: str = "main") -> bool:
-        """Pin the comparison URL to the release tag.
+        """Freeze the comparison URL to the release tag.
 
         Replaces ``...{branch})`` with ``...vX.Y.Z)`` for the first
         occurrence (the current release section).
