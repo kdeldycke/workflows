@@ -1,4 +1,4 @@
-# `claude.md`
+# Development guide
 
 ## Project overview
 
