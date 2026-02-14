@@ -24,10 +24,19 @@ from gha_utils.pr_body import (
     build_pr_body,
     extract_workflow_filename,
     generate_bump_version_prefix,
+    generate_fix_typos_prefix,
+    generate_format_json_prefix,
+    generate_format_markdown_prefix,
+    generate_format_pyproject_prefix,
+    generate_format_python_prefix,
     generate_pr_metadata_block,
     generate_prepare_release_prefix,
     generate_refresh_tip,
+    generate_sync_bumpversion_prefix,
+    generate_update_deps_graph_prefix,
+    generate_update_docs_prefix,
     generate_update_gitignore_prefix,
+    generate_update_mailmap_prefix,
 )
 
 
@@ -136,13 +145,15 @@ def test_generate_refresh_tip_without_workflow_ref(monkeypatch):
 
 
 def test_generate_bump_version_prefix():
-    """Bump version prefix includes part, version, and merge instructions."""
+    """Bump version prefix includes part, version, merge instructions, and docs link."""
     prefix = generate_bump_version_prefix("1.2.0", "minor")
 
     assert "bump the minor part" in prefix
     assert "### To bump version to v1.2.0" in prefix
     assert "Ready for review" in prefix
     assert "Rebase and merge" in prefix
+    assert "bump-versions" in prefix
+    assert "changelogyaml-jobs" in prefix
 
 
 def test_generate_prepare_release_prefix(monkeypatch):
@@ -158,6 +169,9 @@ def test_generate_prepare_release_prefix(monkeypatch):
     assert "[!CAUTION]" in prefix
     assert "Squash and merge" in prefix
     assert "PyPI" in prefix
+    assert "prepare-release" in prefix
+    assert "changelogyaml-jobs" in prefix
+    assert "releaseyaml-jobs" in prefix
 
 
 def test_generate_update_gitignore_prefix():
@@ -172,6 +186,102 @@ def test_generate_update_gitignore_prefix():
     assert "gitignore-extra-content" in prefix
     assert "gitignore-location" in prefix
     assert "[tool.gha-utils]" in prefix
+
+
+def test_generate_fix_typos_prefix():
+    """Fix typos prefix includes description and docs link."""
+    prefix = generate_fix_typos_prefix()
+
+    assert "### Description" in prefix
+    assert "typos" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
+
+
+def test_generate_format_json_prefix():
+    """Format JSON prefix includes description and docs link."""
+    prefix = generate_format_json_prefix()
+
+    assert "### Description" in prefix
+    assert "Biome" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
+
+
+def test_generate_format_markdown_prefix():
+    """Format Markdown prefix includes description and docs link."""
+    prefix = generate_format_markdown_prefix()
+
+    assert "### Description" in prefix
+    assert "mdformat" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
+
+
+def test_generate_format_pyproject_prefix():
+    """Format pyproject prefix includes description and docs link."""
+    prefix = generate_format_pyproject_prefix()
+
+    assert "### Description" in prefix
+    assert "pyproject-fmt" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
+
+
+def test_generate_format_python_prefix():
+    """Format Python prefix includes description, tools, and docs link."""
+    prefix = generate_format_python_prefix()
+
+    assert "### Description" in prefix
+    assert "autopep8" in prefix
+    assert "Ruff" in prefix
+    assert "[tool.ruff]" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
+
+
+def test_generate_sync_bumpversion_prefix():
+    """Sync bumpversion prefix includes description and docs link."""
+    prefix = generate_sync_bumpversion_prefix()
+
+    assert "### Description" in prefix
+    assert "bumpversion" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
+
+
+def test_generate_update_deps_graph_prefix():
+    """Update deps graph prefix includes description, config options, and docs link."""
+    prefix = generate_update_deps_graph_prefix()
+
+    assert "### Description" in prefix
+    assert "Mermaid" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "### Configuration" in prefix
+    assert "dependency-graph-output" in prefix
+    assert "[tool.gha-utils]" in prefix
+    assert "---" in prefix
+
+
+def test_generate_update_docs_prefix():
+    """Update docs prefix includes description and docs link."""
+    prefix = generate_update_docs_prefix()
+
+    assert "### Description" in prefix
+    assert "sphinx-apidoc" in prefix
+    assert "docs_update.py" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
+
+
+def test_generate_update_mailmap_prefix():
+    """Update mailmap prefix includes description and docs link."""
+    prefix = generate_update_mailmap_prefix()
+
+    assert "### Description" in prefix
+    assert ".mailmap" in prefix
+    assert "autofixyaml-jobs" in prefix
+    assert "---" in prefix
 
 
 def test_build_pr_body_with_prefix(monkeypatch):

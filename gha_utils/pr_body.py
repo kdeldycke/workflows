@@ -116,7 +116,12 @@ def generate_bump_version_prefix(version: str, part: str) -> str:
         "### Description\n"
         "\n"
         "Ready to be merged into `main` branch, at the discretion of the"
-        f" maintainers, to bump the {part} part of the version number.\n"
+        f" maintainers, to bump the {part} part of the version number."
+        " Version bumps are scheduled daily and also triggered after"
+        " releases. See the [`bump-versions` job documentation]"
+        "(https://github.com/kdeldycke/workflows"
+        "?tab=readme-ov-file"
+        "#githubworkflowschangelogyaml-jobs) for details.\n"
         "\n"
         f"### To bump version to v{version}\n"
         "\n"
@@ -139,7 +144,12 @@ def generate_prepare_release_prefix(version: str) -> str:
     return (
         "### Description\n"
         "\n"
-        "This PR is ready to be merged. The [merge event will trigger]"
+        "This PR is ready to be merged. See the"
+        " [`prepare-release` job documentation]"
+        "(https://github.com/kdeldycke/workflows"
+        "?tab=readme-ov-file"
+        "#githubworkflowschangelogyaml-jobs) for details."
+        " The [merge event will trigger]"
         "(https://github.com/kdeldycke/workflows"
         "?tab=readme-ov-file#githubworkflowsreleaseyaml-jobs) the:\n"
         "\n"
@@ -206,10 +216,212 @@ def generate_update_gitignore_prefix() -> str:
     )
 
 
+_AUTOFIX_DOCS_URL = (
+    "https://github.com/kdeldycke/workflows"
+    "?tab=readme-ov-file"
+    "#githubworkflowsautofixyaml-jobs"
+)
+"""Base URL for the ``autofix.yaml`` job documentation in the readme."""
+
+
+def generate_format_python_prefix() -> str:
+    """Generate the PR body prefix for a Python formatting PR.
+
+    :return: A markdown string describing the formatting tools used.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Auto-formats Python files with"
+        " [autopep8](https://github.com/hhatto/autopep8) (comment wrapping)"
+        " and [Ruff](https://docs.astral.sh/ruff/) (linting and formatting)."
+        " A `[tool.ruff]` section is auto-initialized in `pyproject.toml`"
+        " if missing. See the [`format-python` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_format_pyproject_prefix() -> str:
+    """Generate the PR body prefix for a ``pyproject.toml`` formatting PR.
+
+    :return: A markdown string describing the formatting tool used.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Auto-formats `pyproject.toml` with"
+        " [pyproject-fmt](https://github.com/tox-dev/pyproject-fmt)."
+        " See the [`format-pyproject` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_format_markdown_prefix() -> str:
+    """Generate the PR body prefix for a Markdown formatting PR.
+
+    :return: A markdown string describing the formatting tool used.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Auto-formats Markdown files with"
+        " [mdformat](https://github.com/hukkin/mdformat)"
+        " and its plugins."
+        " See the [`format-markdown` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_format_json_prefix() -> str:
+    """Generate the PR body prefix for a JSON formatting PR.
+
+    :return: A markdown string describing the formatting tool used.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Auto-formats JSON files with"
+        " [Biome](https://biomejs.dev/)."
+        " See the [`format-json` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_fix_typos_prefix() -> str:
+    """Generate the PR body prefix for a typo-fixing PR.
+
+    :return: A markdown string describing the typo-checking tool used.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Fixes typos detected by"
+        " [typos](https://github.com/crate-ci/typos)."
+        " See the [`fix-typos` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_sync_bumpversion_prefix() -> str:
+    """Generate the PR body prefix for a bumpversion config sync PR.
+
+    :return: A markdown string describing the sync operation.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Initializes the `[tool.bumpversion]` configuration in"
+        " `pyproject.toml` from the bundled template."
+        " See the [`sync-bumpversion` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_update_mailmap_prefix() -> str:
+    """Generate the PR body prefix for a ``.mailmap`` update PR.
+
+    :return: A markdown string describing the mailmap sync operation.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Synchronizes the `.mailmap` file with the project's Git"
+        " contributors."
+        " See the [`update-mailmap` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_update_deps_graph_prefix() -> str:
+    """Generate the PR body prefix for a dependency graph update PR.
+
+    :return: A markdown string describing the graph generation and
+        available ``pyproject.toml`` configuration options.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Regenerates the Mermaid dependency graph from the `uv` lockfile."
+        " See the [`update-deps-graph` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "### Configuration\n"
+        "\n"
+        "Customize dependency graph generation in your"
+        " `pyproject.toml`:\n"
+        "\n"
+        "```toml\n"
+        "[tool.gha-utils]\n"
+        'dependency-graph-output = "docs/dependency-graph.md"'
+        "  # Output file path\n"
+        "```\n"
+        "\n"
+        "---"
+    )
+
+
+def generate_update_docs_prefix() -> str:
+    """Generate the PR body prefix for a documentation update PR.
+
+    :return: A markdown string describing the docs generation tools.
+    """
+    return (
+        "### Description\n"
+        "\n"
+        "Regenerates API documentation with"
+        " [sphinx-apidoc](https://www.sphinx-doc.org/en/master/"
+        "man/sphinx-apidoc.html) and runs the project's"
+        " `docs/docs_update.py` script if present."
+        " See the [`update-docs` job documentation]"
+        f"({_AUTOFIX_DOCS_URL}) for details.\n"
+        "\n"
+        "---"
+    )
+
+
+# No-arg templates that can be dispatched without additional CLI options.
+NO_ARG_TEMPLATES = frozenset((
+    "format-json",
+    "format-markdown",
+    "format-pyproject",
+    "format-python",
+    "fix-typos",
+    "sync-bumpversion",
+    "update-deps-graph",
+    "update-docs",
+    "update-gitignore",
+    "update-mailmap",
+))
+"""Template names that require no extra CLI arguments (``--version``, ``--part``)."""
+
+
 TEMPLATES = {
     "bump-version": generate_bump_version_prefix,
+    "fix-typos": generate_fix_typos_prefix,
+    "format-json": generate_format_json_prefix,
+    "format-markdown": generate_format_markdown_prefix,
+    "format-pyproject": generate_format_pyproject_prefix,
+    "format-python": generate_format_python_prefix,
     "prepare-release": generate_prepare_release_prefix,
+    "sync-bumpversion": generate_sync_bumpversion_prefix,
+    "update-deps-graph": generate_update_deps_graph_prefix,
+    "update-docs": generate_update_docs_prefix,
     "update-gitignore": generate_update_gitignore_prefix,
+    "update-mailmap": generate_update_mailmap_prefix,
 }
 """Available PR body templates.
 

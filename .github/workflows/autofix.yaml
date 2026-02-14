@@ -69,7 +69,10 @@ jobs:
           ruff check --output-format github
           ruff format --output-format github
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template format-python
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -96,7 +99,10 @@ jobs:
           --expand-tables project.entry-points,project.optional-dependencies,project.urls,project.scripts
           pyproject.toml || true
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template format-pyproject
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -162,7 +168,10 @@ jobs:
           find ./ -type f \( -name 'readme.md' -or -name 'readme.*.md' \) -print
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes|Related Lists)\]\(#.+\)$/{print}' "{}" \;
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template format-markdown
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -195,7 +204,10 @@ jobs:
           --json-parse-allow-trailing-commas=true
           ${{ needs.project-metadata.outputs.json_files }}
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template format-json
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -219,7 +231,10 @@ jobs:
       - name: Remove local typos binary
         run: rm ./typos
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template fix-typos
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
@@ -294,7 +309,10 @@ jobs:
       - name: Initialize bumpversion config
         run: uvx --no-progress 'gha-utils==5.9.0' bundled init bumpversion pyproject.toml
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template sync-bumpversion
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -319,7 +337,10 @@ jobs:
       - name: Generate .mailmap
         run: uvx --no-progress 'gha-utils==5.9.0' mailmap-sync --skip-if-missing ./.mailmap
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template update-mailmap
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -345,7 +366,10 @@ jobs:
         # Package name and output path are auto-detected from pyproject.toml.
         run: uvx --no-progress 'gha-utils==5.9.0' deps-graph --all-groups --all-extras
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template update-deps-graph
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
@@ -377,7 +401,10 @@ jobs:
             uv --no-progress run --frozen --group docs -- python docs/docs_update.py
           fi
       - id: pr-metadata
-        run: uvx --no-progress 'gha-utils==5.9.0' pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress 'gha-utils==5.9.0' pr-body
+          --template update-docs
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}

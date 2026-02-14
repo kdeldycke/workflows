@@ -75,12 +75,12 @@ from .metadata import (
     load_gha_utils_config,
 )
 from .pr_body import (
+    NO_ARG_TEMPLATES,
     TEMPLATES,
     build_pr_body,
     generate_bump_version_prefix,
     generate_pr_metadata_block,
     generate_prepare_release_prefix,
-    generate_update_gitignore_prefix,
 )
 from .release_prep import ReleasePrep
 from .renovate import (
@@ -1980,8 +1980,8 @@ def pr_body(
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
     if template:
-        if template == "update-gitignore":
-            prefix = generate_update_gitignore_prefix()
+        if template in NO_ARG_TEMPLATES:
+            prefix = TEMPLATES[template]()
         elif not version:
             msg = f"--version is required for template '{template}'"
             raise SystemExit(msg)
