@@ -35,8 +35,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Sync bundled renovate.json5"
-          title: "[autofix] Sync bundled renovate.json5"
+          commit-message: Sync bundled `renovate.json5`
+          title: Sync bundled `renovate.json5`
           body: |
             Auto-generated PR to sync `gha_utils/data/renovate.json5` with root `renovate.json5`.
 
@@ -68,8 +68,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[deps] Migrate from Dependabot to Renovate"
-          title: "[deps] Migrate from Dependabot to Renovate"
+          commit-message: Migrate from Dependabot to Renovate
+          title: Migrate from Dependabot to Renovate
           body: ${{ steps.checks.outputs.pr_body }}
           labels: "📦 dependencies"
           branch: migrate-to-renovate
@@ -102,7 +102,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pyproject.toml
-          git commit -m "[deps] Update exclude-newer date"
+          git commit -m "Update `exclude-newer` date"
           git push
 
       - uses: renovatebot/github-action@v44.2.6

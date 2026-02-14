@@ -267,8 +267,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Optimize images"
-          title: "[autofix] Optimize images"
+          commit-message: Optimize images
+          title: Optimize images
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: optimize-images
@@ -453,8 +453,8 @@ jobs:
               commands:
                 - find ./.github/ -type f -iregex ".*\.\(md\|yaml\)$" -print -exec sed -i
                   "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
-          pr_title: "[sync] Updates from `awesome-template`"
-          pr_commit_msg: "[sync] Updates from awesome-template"
+          pr_title: Sync from `awesome-template`
+          pr_commit_msg: Sync from `awesome-template`
           pr_branch_name_prefix: "sync-awesome-template"
           pr_body: ${{ steps.pr-metadata.outputs.body }}
           pr_labels: "📚 documentation"
