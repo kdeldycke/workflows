@@ -83,18 +83,18 @@ workflows/
 | `__main__.py`         | Entry point for the `gha-utils` CLI                                 |
 | `binary.py`           | Binary verification and artifact collection                         |
 | `broken_links.py`     | Broken links issue lifecycle management                             |
-| `bundled_config.py`   | Access bundled config templates, labels, and workflow files          |
+| `bundled_config.py`   | Access bundled config templates, labels, and workflow files         |
 | `changelog.py`        | Changelog parsing, updating, and release lifecycle management       |
 | `cli.py`              | Click-based command-line interface definitions                      |
 | `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
 | `git_ops.py`          | Idempotent Git operations for CI/CD contexts                        |
-| `github.py`           | GitHub Actions output formatting and workflow annotations            |
+| `github.py`           | GitHub Actions output formatting and workflow annotations           |
 | `lint_repo.py`        | Repository metadata consistency checks                              |
 | `mailmap.py`          | Git `.mailmap` file synchronization with contributors               |
 | `matrix.py`           | Generate build matrices for GitHub Actions                          |
 | `metadata.py`         | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
-| `release_prep.py`     | Orchestrate release preparation across citation and workflow files   |
+| `release_prep.py`     | Orchestrate release preparation across citation and workflow files  |
 | `renovate.py`         | Renovate prerequisites, migration, and `exclude-newer` updates      |
 | `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
 | `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |
@@ -370,11 +370,11 @@ concurrency:
   cancel-in-progress: true
 ```
 
-| Commit Message                          | Concurrency Group            | Behavior                     |
-| :-------------------------------------- | :--------------------------- | :--------------------------- |
-| `[changelog] Release v4.26.0`           | `{workflow}-{sha}`           | **Protected** — unique group |
+| Commit Message                                  | Concurrency Group            | Behavior                     |
+| :---------------------------------------------- | :--------------------------- | :--------------------------- |
+| `[changelog] Release v4.26.0`                   | `{workflow}-{sha}`           | **Protected** — unique group |
 | `[changelog] Post-release bump vX.Y.Z → vX.Y.Z` | `{workflow}-{sha}`           | **Protected** — unique group |
-| Any other commit                        | `{workflow}-refs/heads/main` | Cancellable by newer commits |
+| Any other commit                                | `{workflow}-refs/heads/main` | Cancellable by newer commits |
 
 Both `[changelog] Release` and `[changelog] Post-release` patterns must be matched because when a release is pushed, the event contains **two commits bundled together** and `github.event.head_commit` refers to the most recent one (the post-release bump).
 

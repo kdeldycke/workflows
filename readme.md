@@ -192,20 +192,20 @@ extra-file-rules = "docs:\n  - docs/**"
 extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 ```
 
-| Option | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `nuitka` | bool | `true` | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries. |
-| `unstable-targets` | list\[str\] | `[]` | Nuitka build targets allowed to fail without blocking the release (e.g., `["linux-arm64"]`). |
-| `test-plan-file` | str | `"./tests/cli-test-plan.yaml"` | Path to the YAML test plan file for binary testing. Read directly by `test-plan` subcommand; CLI args override. |
-| `timeout` | int | *(none)* | Timeout in seconds for each binary test. Read directly by `test-plan` subcommand; CLI `--timeout` overrides. |
-| `test-plan` | str | *(none)* | Inline YAML test plan for binary testing. Read directly by `test-plan` subcommand; CLI `--plan-file`/`--plan-envvar` override. |
-| `gitignore-location` | str | `"./.gitignore"` | File path of the `.gitignore` to update. |
-| `gitignore-extra-categories` | list\[str\] | `[]` | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`). |
-| `gitignore-extra-content` | str | See [example above](#toolgha-utils-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`). |
-| `dependency-graph-output` | str | `"./docs/assets/dependencies.mmd"` | Location of the generated dependency graph file. Read directly by `deps-graph` subcommand; CLI `--output` overrides. |
-| `extra-label-files` | list\[str\] | `[]` | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`. |
-| `extra-file-rules` | str | `""` | Additional YAML rules appended to the bundled file-based labeller configuration. |
-| `extra-content-rules` | str | `""` | Additional YAML rules appended to the bundled content-based labeller configuration. |
+| Option                       | Type      | Default                                           | Description                                                                                                                                          |
+| :--------------------------- | :-------- | :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nuitka`                     | bool      | `true`                                            | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries. |
+| `unstable-targets`           | list[str] | `[]`                                              | Nuitka build targets allowed to fail without blocking the release (e.g., `["linux-arm64"]`).                                                         |
+| `test-plan-file`             | str       | `"./tests/cli-test-plan.yaml"`                    | Path to the YAML test plan file for binary testing. Read directly by `test-plan` subcommand; CLI args override.                                      |
+| `timeout`                    | int       | *(none)*                                          | Timeout in seconds for each binary test. Read directly by `test-plan` subcommand; CLI `--timeout` overrides.                                         |
+| `test-plan`                  | str       | *(none)*                                          | Inline YAML test plan for binary testing. Read directly by `test-plan` subcommand; CLI `--plan-file`/`--plan-envvar` override.                       |
+| `gitignore-location`         | str       | `"./.gitignore"`                                  | File path of the `.gitignore` to update.                                                                                                             |
+| `gitignore-extra-categories` | list[str] | `[]`                                              | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`).                                                                 |
+| `gitignore-extra-content`    | str       | See [example above](#toolgha-utils-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`).                                  |
+| `dependency-graph-output`    | str       | `"./docs/assets/dependencies.mmd"`                | Location of the generated dependency graph file. Read directly by `deps-graph` subcommand; CLI `--output` overrides.                                 |
+| `extra-label-files`          | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                       |
+| `extra-file-rules`           | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                     |
+| `extra-content-rules`        | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
@@ -738,23 +738,23 @@ Re-run your workflow. It should now update files in `.github/workflows/` without
 
 GitHub Actions has several design limitations. This repository works around most of them:
 
-| Limitation                                                  | Status              | Addressed by                                                                                                                                             |
-| :---------------------------------------------------------- | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No conditional step groups                                  | ✅ Addressed        | `project-metadata` job + `gha-utils metadata`                                                                                                            |
-| Workflow inputs only accept strings                         | ✅ Addressed        | String parsing in `gha-utils`                                                                                                                            |
-| Matrix outputs not cumulative                               | ✅ Addressed        | `project-metadata` pre-computes matrices                                                                                                                 |
-| `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed        | SHA-based concurrency groups in `release.yaml`                                                                                                           |
-| Cross-event concurrency cancellation                        | ✅ Addressed        | `event_name` in `changelog.yaml` concurrency group                                                                                                       |
-| PR close doesn't cancel runs                                | ✅ Addressed        | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                              |
-| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed        | `WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT                                                                                                            |
-| Tag pushes from Actions don't trigger workflows             | ✅ Addressed        | Custom PAT for tag operations                                                                                                                            |
-| Default input values not propagated across events           | ✅ Addressed        | Manual defaults in `env:` section                                                                                                                        |
-| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed        | `gha-utils metadata` extracts full commit range                                                                                                          |
-| `actions/checkout` uses merge commit for PRs                | ✅ Addressed        | Explicit `ref: github.event.pull_request.head.sha`                                                                                                       |
-| Multiline output encoding fragile                           | ✅ Addressed        | Random delimiters in `gha_utils/github.py`                                                                                                               |
-| Branch deletion doesn't cancel runs                         | ❌ Not addressed    | Same root cause as PR close; partially mitigated by `cancel-runs.yaml` since branch deletion typically follows PR closure                                |
-| No native way to depend on all matrix jobs completing       | ❌ Not addressed    | GitHub limitation; use `needs:` with a summary job as workaround                                                                                         |
-| `actionlint` false positives for runtime env vars           | 🚫 Not addressable  | Linter limitation, not GitHub's                                                                                                                          |
+| Limitation                                                  | Status             | Addressed by                                                                                                              |
+| :---------------------------------------------------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| No conditional step groups                                  | ✅ Addressed       | `project-metadata` job + `gha-utils metadata`                                                                             |
+| Workflow inputs only accept strings                         | ✅ Addressed       | String parsing in `gha-utils`                                                                                             |
+| Matrix outputs not cumulative                               | ✅ Addressed       | `project-metadata` pre-computes matrices                                                                                  |
+| `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed       | SHA-based concurrency groups in `release.yaml`                                                                            |
+| Cross-event concurrency cancellation                        | ✅ Addressed       | `event_name` in `changelog.yaml` concurrency group                                                                        |
+| PR close doesn't cancel runs                                | ✅ Addressed       | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                |
+| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | `WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT                                                                             |
+| Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | Custom PAT for tag operations                                                                                             |
+| Default input values not propagated across events           | ✅ Addressed       | Manual defaults in `env:` section                                                                                         |
+| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | `gha-utils metadata` extracts full commit range                                                                           |
+| `actions/checkout` uses merge commit for PRs                | ✅ Addressed       | Explicit `ref: github.event.pull_request.head.sha`                                                                        |
+| Multiline output encoding fragile                           | ✅ Addressed       | Random delimiters in `gha_utils/github.py`                                                                                |
+| Branch deletion doesn't cancel runs                         | ❌ Not addressed   | Same root cause as PR close; partially mitigated by `cancel-runs.yaml` since branch deletion typically follows PR closure |
+| No native way to depend on all matrix jobs completing       | ❌ Not addressed   | GitHub limitation; use `needs:` with a summary job as workaround                                                          |
+| `actionlint` false positives for runtime env vars           | 🚫 Not addressable | Linter limitation, not GitHub's                                                                                           |
 
 ## Concurrency and cancellation
 

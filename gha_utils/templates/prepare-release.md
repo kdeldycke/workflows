@@ -2,6 +2,7 @@
 args: [version]
 title: Release `v$version`
 ---
+
 ### Description
 
 This PR is ready to be merged. See the [`prepare-release` job documentation](https://github.com/kdeldycke/workflows?tab=readme-ov-file#githubworkflowschangelogyaml-jobs) for details. The [merge event will trigger](https://github.com/kdeldycke/workflows?tab=readme-ov-file#githubworkflowsreleaseyaml-jobs) the:
