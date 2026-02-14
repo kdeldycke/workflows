@@ -33,6 +33,18 @@ if TYPE_CHECKING:
     pass
 
 
+def _unescape_dollars(text: str) -> str:
+    r"""Replace ``\$`` with ``$`` in template text.
+
+    .. caution::
+        Workaround for mdformat escaping ``$`` characters in markdown files.
+        Templates use ``string.Template`` (``$variable`` syntax), but mdformat
+        rewrites ``$var`` as ``\$var``. We undo this at load time so that
+        ``string.Template.substitute()`` sees the original placeholders.
+    """
+    return text.replace(r"\$", "$")
+
+
 def _parse_frontmatter(raw: str) -> tuple[dict[str, object], str]:
     """Split a template file into YAML frontmatter and markdown body.
 
@@ -40,12 +52,12 @@ def _parse_frontmatter(raw: str) -> tuple[dict[str, object], str]:
     :return: A tuple of (frontmatter dict, body string).
     """
     if not raw.startswith("---"):
-        return {}, raw
+        return {}, _unescape_dollars(raw)
 
     # Find the closing --- delimiter.
     end = raw.index("---", 3)
     yaml_block = raw[3:end].strip()
-    body = raw[end + 3 :].lstrip("\n")
+    body = _unescape_dollars(raw[end + 3 :].lstrip("\n"))
 
     # Minimal YAML parsing: supports ``key: value`` and ``key: [items]``.
     meta: dict[str, object] = {}

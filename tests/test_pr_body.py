@@ -25,6 +25,8 @@ from pathlib import Path
 import pytest
 
 from gha_utils.pr_body import (
+    _parse_frontmatter,
+    _unescape_dollars,
     build_pr_body,
     extract_workflow_filename,
     generate_pr_metadata_block,
@@ -72,6 +74,36 @@ GITHUB_ENV_VARS = {
 def test_extract_workflow_filename(workflow_ref, expected):
     """Extract workflow filename from various reference formats."""
     assert extract_workflow_filename(workflow_ref) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (r"no dollars here", "no dollars here"),
+        (r"\$var", "$var"),
+        (r"prefix \$x and \$y suffix", "prefix $x and $y suffix"),
+        (r"already $fine", "already $fine"),
+        (r"double \\$x", r"double \$x"),
+    ],
+)
+def test_unescape_dollars(text, expected):
+    r"""``\$`` sequences are converted back to ``$``."""
+    assert _unescape_dollars(text) == expected
+
+
+def test_parse_frontmatter_unescapes_body():
+    r"""Body ``\$`` placeholders are unescaped at parse time."""
+    raw = "---\ntitle: Test\n---\nHello \\$name"
+    meta, body = _parse_frontmatter(raw)
+    assert "$name" in body
+    assert r"\$" not in body
+
+
+def test_parse_frontmatter_unescapes_no_frontmatter():
+    r"""Templates without frontmatter also get ``\$`` unescaped."""
+    raw = "Hello \\$world"
+    _meta, body = _parse_frontmatter(raw)
+    assert body == "Hello $world"
 
 
 def test_generate_metadata_block_all_vars(monkeypatch):
