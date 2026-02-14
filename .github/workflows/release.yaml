@@ -105,7 +105,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.9.1' metadata --output "$GITHUB_OUTPUT"
 
   build-package:
     name: Build package
@@ -186,7 +186,7 @@ jobs:
         run: choco install exiftool --no-progress --yes --retry-count=3
       - name: Verify binary architecture
         run: >
-          uvx --no-progress --from . gha-utils
+          uvx --no-progress 'gha-utils==5.9.1'
           verify-binary --target "${{ matrix.target }}" --binary "${{ matrix.bin_name }}"
       - name: Upload binaries
         uses: actions/upload-artifact@v6.0.0
@@ -224,7 +224,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run test plan for binary
         run: >
-          uvx --no-progress --from . gha-utils test-plan
+          uvx --no-progress 'gha-utils==5.9.1' test-plan
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
 
   create-tag:
@@ -250,7 +250,7 @@ jobs:
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
         run: >
-          uvx --no-progress --from . gha-utils git-tag
+          uvx --no-progress 'gha-utils==5.9.1' git-tag
           --tag "v${{ matrix.current_version }}"
           --commit "${{ matrix.commit }}"
           --skip-existing
@@ -326,7 +326,7 @@ jobs:
         if: steps.artifacts.outputs.download-path
         id: collect_artifacts
         run: >
-          uvx --no-progress --from . gha-utils collect-artifacts
+          uvx --no-progress 'gha-utils==5.9.1' collect-artifacts
           --download-folder "${{ steps.artifacts.outputs.download-path }}"
           --short-sha "${{ matrix.short_sha }}"
           --nuitka-matrix '${{ needs.project-metadata.outputs.nuitka_matrix }}'
