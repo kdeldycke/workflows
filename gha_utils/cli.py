@@ -265,7 +265,7 @@ def changelog(ctx, source, changelog_path):
         logging.info(f"Read initial changelog from {source}")
         initial_content = source.read_text(encoding="UTF-8")
 
-    changelog = Changelog(initial_content)
+    changelog = Changelog(initial_content, Metadata.get_current_version())
     content = changelog.update()
     if content == initial_content:
         logging.warning("Changelog already up to date. Do nothing.")

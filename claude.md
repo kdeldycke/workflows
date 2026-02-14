@@ -84,7 +84,7 @@ workflows/
 | `binary.py`           | Binary verification and artifact collection                         |
 | `broken_links.py`     | Broken links issue lifecycle management                             |
 | `bundled_config.py`   | Access bundled config templates, labels, and workflow files          |
-| `changelog.py`        | Changelog parsing, updating, and version management                 |
+| `changelog.py`        | Changelog parsing, updating, and release lifecycle management       |
 | `cli.py`              | Click-based command-line interface definitions                      |
 | `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
 | `git_ops.py`          | Idempotent Git operations for CI/CD contexts                        |
@@ -94,7 +94,7 @@ workflows/
 | `matrix.py`           | Generate build matrices for GitHub Actions                          |
 | `metadata.py`         | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
 | `pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
-| `release_prep.py`     | Prepare files for release (dates, URLs, warnings)                   |
+| `release_prep.py`     | Orchestrate release preparation across citation and workflow files   |
 | `renovate.py`         | Renovate prerequisites, migration, and `exclude-newer` updates      |
 | `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
 | `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |

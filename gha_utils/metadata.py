@@ -322,6 +322,7 @@ from wcmatch.glob import (
     iglob,
 )
 
+from .changelog import Changelog
 from .github import generate_delimiter
 from .matrix import Matrix
 
@@ -1982,17 +1983,14 @@ class Metadata:
         if not version:
             return None
 
-        # Extract the changelog entry corresponding to the release version, and located
-        # between the first two `##` second-level markdown titles.
+        # Extract the changelog entry for this version.
         changes = ""
-        match = re.search(
-            rf"^##(?P<title>.+{escape(version)} .+?)\n(?P<changes>.*?)\n##",
-            Path("./changelog.md").read_text(encoding="UTF-8"),
-            flags=re.MULTILINE | re.DOTALL,
-        )
-        if match:
-            changes = match.groupdict().get("changes", "").strip()
-            # Add a title.
+        changelog_path = Path("./changelog.md")
+        if changelog_path.exists():
+            changelog = Changelog(
+                changelog_path.read_text(encoding="UTF-8"),
+            )
+            changes = changelog.extract_version_notes(version)
             if changes:
                 changes = "### Changes\n\n" + changes
 
