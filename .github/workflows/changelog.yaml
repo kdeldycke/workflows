@@ -114,10 +114,8 @@ jobs:
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         with:
           assignees: ${{ github.actor }}
-          commit-message: >
-            [changelog] Bump ${{ matrix.part }} version to v${{ steps.get_version.outputs.new_version }}
-          title: >
-            Bump ${{ matrix.part }} version to `v${{ steps.get_version.outputs.new_version }}`
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🆙 changelog"
           base: main
@@ -179,8 +177,8 @@ jobs:
           # .github/workflows/*.yaml files.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
-          title: >
-            Release `v${{ steps.get_version.outputs.current_version }}`
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🆙 changelog"
           base: main

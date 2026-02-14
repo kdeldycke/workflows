@@ -62,6 +62,9 @@ def _parse_frontmatter(raw: str) -> tuple[dict[str, object], str]:
                 else []
             )
         else:
+            # Strip surrounding quotes from YAML string values.
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+                value = value[1:-1]
             meta[key.strip()] = value
 
     return meta, body
@@ -80,6 +83,13 @@ def load_template(name: str) -> tuple[dict[str, object], str]:
     return _parse_frontmatter(raw)
 
 
+def _substitute(text: str, kwargs: dict[str, str]) -> str:
+    """Apply ``string.Template`` substitution if kwargs are provided."""
+    if kwargs:
+        return Template(text).substitute(kwargs)
+    return text
+
+
 def render_template(name: str, **kwargs: str) -> str:
     """Load and render a PR body template with variable substitution.
 
@@ -92,9 +102,40 @@ def render_template(name: str, **kwargs: str) -> str:
     :return: The rendered markdown string.
     """
     _meta, body = load_template(name)
-    if kwargs:
-        return Template(body).substitute(kwargs)
-    return body
+    return _substitute(body, kwargs)
+
+
+def render_title(name: str, **kwargs: str) -> str:
+    """Load and render a template's PR title with variable substitution.
+
+    :param name: Template name without ``.md`` extension.
+    :param kwargs: Variables to substitute into the title.
+    :return: The rendered title string.
+    :raises KeyError: If the template has no ``title`` in its frontmatter.
+    """
+    meta, _body = load_template(name)
+    title = meta.get("title")
+    if not title or not isinstance(title, str):
+        msg = f"Template {name!r} has no 'title' in frontmatter"
+        raise KeyError(msg)
+    return _substitute(title, kwargs)
+
+
+def render_commit_message(name: str, **kwargs: str) -> str:
+    """Load and render a template's commit message with variable substitution.
+
+    Falls back to the ``title`` if no ``commit_message`` is defined.
+
+    :param name: Template name without ``.md`` extension.
+    :param kwargs: Variables to substitute into the commit message.
+    :return: The rendered commit message string.
+    """
+    meta, _body = load_template(name)
+    commit_msg = meta.get("commit_message")
+    if commit_msg and isinstance(commit_msg, str):
+        return _substitute(commit_msg, kwargs)
+    # Fall back to title.
+    return render_title(name, **kwargs)
 
 
 def template_args(name: str) -> list[str]:

@@ -1,5 +1,7 @@
 ---
 args: [version, part]
+title: Bump $part version to `v$version`
+commit_message: "[changelog] Bump $part version to v$version"
 ---
 ### Description
 

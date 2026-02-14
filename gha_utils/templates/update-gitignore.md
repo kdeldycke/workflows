@@ -1,3 +1,7 @@
+---
+title: "[autofix] Update `.gitignore`"
+commit_message: "[autofix] Update .gitignore"
+---
 ### Description
 
 Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates. See the [`update-gitignore` job documentation](https://github.com/kdeldycke/workflows?tab=readme-ov-file#githubworkflowsautofixyyaml-jobs) for details.

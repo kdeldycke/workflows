@@ -76,8 +76,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Format Python"
-          title: "[autofix] Format Python"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: format-python
@@ -106,8 +106,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Format pyproject.toml"
-          title: "[autofix] Format `pyproject.toml`"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: format-pyproject
@@ -175,8 +175,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Format Markdown"
-          title: "[autofix] Format Markdown"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: format-markdown
@@ -211,8 +211,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Format JSON"
-          title: "[autofix] Format JSON"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: format-json
@@ -240,8 +240,8 @@ jobs:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Typo"
-          title: "[autofix] Typo"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: autofix-typo
@@ -294,8 +294,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Update .gitignore"
-          title: "[autofix] Update `.gitignore`"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: update-gitignore
@@ -316,8 +316,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Sync bumpversion config"
-          title: "[autofix] Sync bumpversion config"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-bumpversion
@@ -344,8 +344,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Update .mailmap"
-          title: "[autofix] Update `.mailmap`"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-mailmap
@@ -373,8 +373,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Regenerate dependency graph"
-          title: "[autofix] Regenerate dependency graph"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-deps-graph
@@ -408,8 +408,8 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: "[autofix] Update docs"
-          title: "[autofix] Update docs"
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-docs

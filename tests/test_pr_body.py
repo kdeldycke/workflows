@@ -31,7 +31,9 @@ from gha_utils.pr_body import (
     generate_refresh_tip,
     get_template_names,
     load_template,
+    render_commit_message,
     render_template,
+    render_title,
     template_args,
 )
 
@@ -166,11 +168,12 @@ def test_load_template_frontmatter():
     assert body.startswith("### Description")
 
 
-def test_load_template_no_frontmatter():
-    """Static templates have no frontmatter and empty metadata."""
+def test_load_template_title_only_frontmatter():
+    """Static templates have frontmatter with title but no args."""
     meta, body = load_template("fix-typos")
 
-    assert meta == {}
+    assert "title" in meta
+    assert "args" not in meta
     assert body.startswith("### Description")
 
 
@@ -184,6 +187,47 @@ def test_template_args_static():
     """Static templates report no required arguments."""
     assert template_args("fix-typos") == []
     assert template_args("format-json") == []
+
+
+def test_render_title_static():
+    """Static templates have a literal title."""
+    assert render_title("fix-typos") == "[autofix] Typo"
+    assert render_title("format-python") == "[autofix] Format Python"
+
+
+def test_render_title_parameterized():
+    """Parameterized templates substitute variables in the title."""
+    title = render_title("bump-version", version="1.2.0", part="minor")
+    assert title == "Bump minor version to `v1.2.0`"
+
+    title = render_title("prepare-release", version="5.8.1", repo_url="https://x")
+    assert title == "Release `v5.8.1`"
+
+
+def test_render_commit_message_falls_back_to_title():
+    """Templates without explicit commit_message fall back to title."""
+    assert render_commit_message("fix-typos") == "[autofix] Typo"
+    assert render_commit_message("format-markdown") == "[autofix] Format Markdown"
+
+
+def test_render_commit_message_explicit():
+    """Templates with explicit commit_message use it instead of title."""
+    msg = render_commit_message("format-pyproject")
+    assert msg == "[autofix] Format pyproject.toml"
+
+    msg = render_commit_message("update-gitignore")
+    assert msg == "[autofix] Update .gitignore"
+
+
+def test_render_commit_message_parameterized():
+    """Parameterized templates substitute variables in commit_message."""
+    msg = render_commit_message("bump-version", version="1.2.0", part="minor")
+    assert msg == "[changelog] Bump minor version to v1.2.0"
+
+    msg = render_commit_message(
+        "prepare-release", version="5.8.1", repo_url="https://x"
+    )
+    assert msg == "[changelog] Release v5.8.1"
 
 
 def test_render_bump_version():
@@ -405,14 +449,25 @@ def test_template_file_policy(filename, name):
     # Must parse without errors.
     meta, body = load_template(name)
 
-    # If frontmatter has 'args', it must be a list with matching $variables in body.
+    # Frontmatter must have a non-empty 'title'.
+    assert "title" in meta, f"Template {name!r} is missing 'title' in frontmatter"
+    assert meta["title"], f"Template {name!r} has an empty 'title'"
+
+    # If frontmatter has 'args', it must be a list with matching $variables in body
+    # or any other frontmatter field.
     if "args" in meta:
         assert isinstance(meta["args"], list), (
             f"Template {name!r} 'args' must be a list, got {type(meta['args'])}"
         )
+        # Collect all string-valued frontmatter fields for variable reference checks.
+        frontmatter_text = " ".join(
+            v for k, v in meta.items() if k != "args" and isinstance(v, str)
+        )
         for arg in meta["args"]:
-            assert f"${arg}" in body, (
-                f"Template {name!r} declares arg {arg!r} but body has no ${arg}"
+            marker = f"${arg}"
+            assert marker in body or marker in frontmatter_text, (
+                f"Template {name!r} declares arg {arg!r}"
+                f" but neither body nor frontmatter contains {marker}"
             )
 
     # Body must start with a markdown heading.

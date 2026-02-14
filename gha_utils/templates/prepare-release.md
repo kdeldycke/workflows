@@ -1,5 +1,7 @@
 ---
 args: [version, repo_url]
+title: Release `v$version`
+commit_message: "[changelog] Release v$version"
 ---
 ### Description
 

@@ -79,7 +79,9 @@ from .pr_body import (
     build_pr_body,
     generate_pr_metadata_block,
     get_template_names,
+    render_commit_message,
     render_template,
+    render_title,
     template_args,
 )
 from .release_prep import ReleasePrep
@@ -1986,6 +1988,9 @@ def pr_body(
         "repo_url": _repo_url,  # Callable, will be invoked if needed.
     }
 
+    title_str = ""
+    commit_msg_str = ""
+
     if template:
         kwargs: dict[str, str] = {}
         for arg in template_args(template):
@@ -1997,18 +2002,27 @@ def pr_body(
             kwargs[arg] = value() if callable(value) else value
 
         prefix = render_template(template, **kwargs)
+        title_str = render_title(template, **kwargs)
+        commit_msg_str = render_commit_message(template, **kwargs)
 
     metadata_block = generate_pr_metadata_block()
     body = build_pr_body(prefix, metadata_block)
 
     github_output_path = os.getenv("GITHUB_OUTPUT", "")
-    if (
+    is_github_output = (
         not is_stdout(output)
         and github_output_path
         and str(output) == github_output_path
-    ):
+    )
+
+    if is_github_output:
         # Write in heredoc format for $GITHUB_OUTPUT.
-        content = format_multiline_output("body", body)
+        parts = [format_multiline_output("body", body)]
+        if title_str:
+            parts.append(f"title={title_str}")
+        if commit_msg_str:
+            parts.append(f"commit_message={commit_msg_str}")
+        content = "\n".join(parts)
     else:
         content = body
 

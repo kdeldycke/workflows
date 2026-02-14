@@ -5,10 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add `update-gitignore` template to `gha-utils pr-body` for `.gitignore` update PRs.
-- Add PR body templates for all autofix jobs with descriptions and documentation links.
-- Enrich `bump-version` and `prepare-release` PR body templates with `changelog.yaml` documentation links.
-- Move PR body templates from Python string literals to markdown files in `gha_utils/templates/` with YAML frontmatter metadata.
+- Refactor PR body templates from Python literals to markdown files with YAML frontmatter for metadata (titles, commit messages). The `pr-body` CLI now outputs `title` and `commit_message` alongside `body`.
+- Add and enrich PR templates for all autofix jobs, version bumps, release preparation, and `.gitignore` updates.
 
 ## [5.9.0 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.8.0...v5.9.0)
 
