@@ -193,21 +193,37 @@ Use correct capitalization for proper nouns and trademarked names:
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit.
 - Titles in markdown use sentence case.
 
-### `TYPE_CHECKING` block
-
-Place a module-level `TYPE_CHECKING` block immediately after the module docstring:
-
-```python
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from ._types import _T, _TNestedReferences
-```
-
 ### Imports
 
 - Import from the root package (`from gha_utils import cli`), not submodules when possible.
 - Place imports at the top of the file, unless avoiding circular imports.
+- **Version-dependent imports** (e.g., `tomllib` fallback for Python 3.10) should be placed **after all normal imports** but **before the `TYPE_CHECKING` block**. This allows ruff to freely sort and organize the normal imports above without interference.
+
+### `TYPE_CHECKING` block
+
+Place a module-level `TYPE_CHECKING` block after all imports (including version-dependent conditional imports):
+
+```python
+"""Module docstring."""
+
+from __future__ import annotations
+
+import logging
+import sys
+from pathlib import Path
+
+# Version-dependent imports come after normal imports.
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
+
+# TYPE_CHECKING block comes last in the import section.
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from ._types import _T
+```
 
 ### Modern `typing` practices
 
@@ -240,7 +256,16 @@ This project supports Python 3.10+. Be aware of syntax features that are **not**
 
 - **`Self` type hint (Python 3.11+):** Use `from typing_extensions import Self` instead.
 
-- **`tomllib` (Python 3.11+):** Use the `tomli` fallback pattern shown in the codebase.
+- **`tomllib` (Python 3.11+):** Use the `tomli` fallback pattern:
+
+  ```python
+  if sys.version_info >= (3, 11):
+      import tomllib
+  else:
+      import tomli as tomllib  # type: ignore[import-not-found]
+  ```
+
+  Place this conditional import **after all normal imports** and **before the `TYPE_CHECKING` block** to allow ruff to sort the normal imports freely.
 
 ### YAML workflows
 
