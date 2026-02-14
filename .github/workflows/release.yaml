@@ -40,6 +40,39 @@ concurrency:
 
 jobs:
 
+  merge-method-notice:
+    # This job name is the user-visible reminder on the PR checks tab.
+    name: "⚠️ Merge with: Rebase and merge"
+    if: github.event_name == 'pull_request' && github.head_ref == 'prepare-release'
+    runs-on: ubuntu-slim
+    steps:
+      - name: Reminder
+        run: |
+          echo "::warning::This PR must be merged with 'Rebase and merge', not 'Squash and merge'."
+          echo "The two separate commits (freeze + unfreeze) are required for the release process."
+
+  revert-squash-merge:
+    name: Revert squash merge of release PR
+    # A rebase merge produces commits starting with "[changelog] Release v" and
+    # "[changelog] Post-release bump v". A squash merge uses the PR title instead:
+    # "Release `vX.Y.Z` (#NNN)". Detect the squash pattern and revert it so that
+    # prepare-release can recreate the PR with the correct two-commit structure.
+    if: >-
+      github.event_name == 'push'
+      && startsWith(github.event.head_commit.message, 'Release `v')
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          # We need a PAT to push the revert commit so it triggers downstream workflows.
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+      - name: Revert squash merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git revert --no-edit HEAD
+          git push origin main
+
   project-metadata:
     name: Project metadata
     runs-on: ubuntu-slim
