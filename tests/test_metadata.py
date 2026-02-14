@@ -1087,7 +1087,9 @@ extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
         "https://example.com/labels.toml",
     ]
     assert metadata.config["extra-file-rules"] == "docs:\n  - docs/**"
-    assert metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
+    assert (
+        metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
+    )
 
 
 def test_unstable_targets_default():

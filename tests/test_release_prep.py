@@ -209,9 +209,7 @@ def test_freeze_action_reference(
     count = prep.freeze_workflow_urls()
 
     assert count == 1
-    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
-        encoding="UTF-8"
-    )
+    content = (temp_workflows_with_actions / "autofix.yaml").read_text(encoding="UTF-8")
     assert "@main" not in content
     assert "@v1.2.3" in content
     assert "kdeldycke/workflows/.github/actions/pr-metadata@v1.2.3" in content
@@ -388,9 +386,7 @@ def test_prepare_release_without_workflows(
     assert len(set(modified)) == 2
 
 
-def test_release_date_format(
-    tmp_path: Path, temp_pyproject: Path, monkeypatch
-) -> None:
+def test_release_date_format(tmp_path: Path, temp_pyproject: Path, monkeypatch) -> None:
     """Test that release date is in correct format."""
     monkeypatch.chdir(tmp_path)
 
@@ -441,9 +437,7 @@ def test_unfreeze_action_reference(
     prep.freeze_workflow_urls()
 
     # Verify version is frozen.
-    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
-        encoding="UTF-8"
-    )
+    content = (temp_workflows_with_actions / "autofix.yaml").read_text(encoding="UTF-8")
     assert "@v1.2.3" in content
 
     # Then unfreeze to main.
@@ -451,9 +445,7 @@ def test_unfreeze_action_reference(
     count = prep.unfreeze_workflow_urls()
 
     assert count == 1
-    content = (temp_workflows_with_actions / "autofix.yaml").read_text(
-        encoding="UTF-8"
-    )
+    content = (temp_workflows_with_actions / "autofix.yaml").read_text(encoding="UTF-8")
     assert "@v1.2.3" not in content
     assert "@main" in content
     assert "kdeldycke/workflows/.github/actions/pr-metadata@main" in content

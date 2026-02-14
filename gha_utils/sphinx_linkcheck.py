@@ -146,9 +146,7 @@ def generate_markdown_report(
                 line_cell = f"[{result.lineno}]({file_url}#L{result.lineno})"
             else:
                 line_cell = str(result.lineno)
-            lines.append(
-                f"| {line_cell} | {result.uri} | {escaped_info} |"
-            )
+            lines.append(f"| {line_cell} | {result.uri} | {escaped_info} |")
         lines.append("")
 
     return "\n".join(lines)

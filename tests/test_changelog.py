@@ -122,10 +122,7 @@ def test_set_release_date():
 
 def test_set_release_date_already_released():
     """Test that nothing changes if no unreleased marker exists."""
-    content = (
-        "# Changelog\n\n"
-        "## [1.0.0 (2024-01-01)](https://example.com)\n"
-    )
+    content = "# Changelog\n\n## [1.0.0 (2024-01-01)](https://example.com)\n"
     changelog = Changelog(content)
     result = changelog.set_release_date("2026-02-14")
 
@@ -209,9 +206,7 @@ def test_freeze_file(tmp_path):
     path = tmp_path / "changelog.md"
     path.write_text(SAMPLE_CHANGELOG, encoding="UTF-8")
 
-    result = Changelog.freeze_file(
-        path, version="1.2.3", release_date="2026-02-14"
-    )
+    result = Changelog.freeze_file(path, version="1.2.3", release_date="2026-02-14")
 
     assert result is True
     content = path.read_text(encoding="UTF-8")
@@ -226,15 +221,10 @@ def test_freeze_file(tmp_path):
 def test_freeze_file_already_released(tmp_path):
     """Test that freeze_file is a no-op for released changelogs."""
     path = tmp_path / "changelog.md"
-    content = (
-        "# Changelog\n\n"
-        "## [1.0.0 (2024-01-01)](https://example.com)\n"
-    )
+    content = "# Changelog\n\n## [1.0.0 (2024-01-01)](https://example.com)\n"
     path.write_text(content, encoding="UTF-8")
 
-    result = Changelog.freeze_file(
-        path, version="1.0.0", release_date="2026-02-14"
-    )
+    result = Changelog.freeze_file(path, version="1.0.0", release_date="2026-02-14")
 
     assert result is False
     assert path.read_text(encoding="UTF-8") == content
@@ -243,9 +233,7 @@ def test_freeze_file_already_released(tmp_path):
 def test_freeze_file_missing(tmp_path):
     """Test that freeze_file handles missing files gracefully."""
     path = tmp_path / "nonexistent.md"
-    result = Changelog.freeze_file(
-        path, version="1.0.0", release_date="2026-02-14"
-    )
+    result = Changelog.freeze_file(path, version="1.0.0", release_date="2026-02-14")
     assert result is False
 
 

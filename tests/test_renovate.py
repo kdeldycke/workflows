@@ -327,9 +327,7 @@ def test_all_checks_pass(tmp_path, monkeypatch, capsys):
     # Create renovate.json5 so that check passes.
     (tmp_path / "renovate.json5").touch()
     with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch(
-            "gha_utils.renovate.check_commit_statuses_permission"
-        ) as mock_perm:
+        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -340,9 +338,7 @@ def test_renovate_config_missing(tmp_path, monkeypatch, capsys):
     """Return 1 when renovate.json5 is missing."""
     monkeypatch.chdir(tmp_path)
     with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch(
-            "gha_utils.renovate.check_commit_statuses_permission"
-        ) as mock_perm:
+        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -359,9 +355,7 @@ def test_dependabot_config_exists(tmp_path, monkeypatch, capsys):
     (tmp_path / ".github").mkdir()
     (tmp_path / ".github" / "dependabot.yaml").touch()
     with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch(
-            "gha_utils.renovate.check_commit_statuses_permission"
-        ) as mock_perm:
+        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -376,9 +370,7 @@ def test_security_updates_enabled(tmp_path, monkeypatch, capsys):
     # Create renovate.json5 so that check passes.
     (tmp_path / "renovate.json5").touch()
     with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch(
-            "gha_utils.renovate.check_commit_statuses_permission"
-        ) as mock_perm:
+        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (False, "Security updates enabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -519,9 +511,7 @@ def test_collect_results_all_pass(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     (tmp_path / "renovate.json5").touch()
     with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch(
-            "gha_utils.renovate.check_commit_statuses_permission"
-        ) as mock_perm:
+        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             result = collect_check_results("owner/repo", "abc123")
@@ -538,9 +528,7 @@ def test_with_dependabot_config(tmp_path, monkeypatch):
     (tmp_path / ".github").mkdir()
     (tmp_path / ".github" / "dependabot.yaml").touch()
     with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch(
-            "gha_utils.renovate.check_commit_statuses_permission"
-        ) as mock_perm:
+        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             result = collect_check_results("owner/repo", "abc123")
@@ -551,9 +539,7 @@ def test_missing_renovate_config(tmp_path, monkeypatch):
     """Collect results when renovate.json5 is missing."""
     monkeypatch.chdir(tmp_path)
     with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch(
-            "gha_utils.renovate.check_commit_statuses_permission"
-        ) as mock_perm:
+        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             result = collect_check_results("owner/repo", "abc123")
