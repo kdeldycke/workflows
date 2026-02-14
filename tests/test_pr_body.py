@@ -180,7 +180,7 @@ def test_load_template_title_only_frontmatter():
 def test_template_args_parameterized():
     """Parameterized templates report their required arguments."""
     assert template_args("bump-version") == ["version", "part"]
-    assert template_args("prepare-release") == ["version", "repo_url"]
+    assert template_args("prepare-release") == ["version"]
 
 
 def test_template_args_static():
@@ -200,7 +200,7 @@ def test_render_title_parameterized():
     title = render_title("bump-version", version="1.2.0", part="minor")
     assert title == "Bump minor version to `v1.2.0`"
 
-    title = render_title("prepare-release", version="5.8.1", repo_url="https://x")
+    title = render_title("prepare-release", version="5.8.1")
     assert title == "Release `v5.8.1`"
 
 
@@ -224,9 +224,7 @@ def test_render_commit_message_parameterized():
     msg = render_commit_message("bump-version", version="1.2.0", part="minor")
     assert msg == "Bump minor version to `v1.2.0`"
 
-    msg = render_commit_message(
-        "prepare-release", version="5.8.1", repo_url="https://x"
-    )
+    msg = render_commit_message("prepare-release", version="5.8.1")
     assert msg == "Release `v5.8.1`"
 
 
@@ -250,12 +248,11 @@ def test_render_prepare_release(monkeypatch):
     result = render_template(
         "prepare-release",
         version="5.8.1",
-        repo_url="https://github.com/owner/repo",
     )
 
     assert "### How-to release `v5.8.1`" in result
-    assert "https://github.com/owner/repo/tree/v5.8.1" in result
-    assert "https://github.com/owner/repo/releases/tag/v5.8.1" in result
+    assert "`v5.8.1` tag on `main`" in result
+    assert "`v5.8.1` release" in result
     assert "[!CAUTION]" in result
     assert "Squash and merge" in result
     assert "PyPI" in result
