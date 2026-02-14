@@ -180,7 +180,12 @@ timeout = 120
 test-plan = "- args: --version"
 gitignore-location = "./.gitignore"
 gitignore-extra-categories = ["terraform", "go"]
-gitignore-extra-content = "junit.xml\n\n# Claude Code\n.claude/"
+gitignore-extra-content = '''
+junit.xml
+
+# Claude Code
+.claude/
+'''
 dependency-graph-output = "./docs/assets/dependencies.mmd"
 extra-label-files = ["https://example.com/my-labels.toml"]
 extra-file-rules = "docs:\n  - docs/**"
@@ -196,7 +201,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 | `test-plan` | str | *(none)* | Inline YAML test plan for binary testing. Read directly by `test-plan` subcommand; CLI `--plan-file`/`--plan-envvar` override. |
 | `gitignore-location` | str | `"./.gitignore"` | File path of the `.gitignore` to update. |
 | `gitignore-extra-categories` | list\[str\] | `[]` | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`). |
-| `gitignore-extra-content` | str | `"junit.xml\n\n# Claude Code\n.claude/"` | Additional content to append to the generated `.gitignore`. |
+| `gitignore-extra-content` | str | See [example above](#configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`). |
 | `dependency-graph-output` | str | `"./docs/assets/dependencies.mmd"` | Location of the generated dependency graph file. Read directly by `deps-graph` subcommand; CLI `--output` overrides. |
 | `extra-label-files` | list\[str\] | `[]` | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`. |
 | `extra-file-rules` | str | `""` | Additional YAML rules appended to the bundled file-based labeller configuration. |

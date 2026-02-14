@@ -1052,7 +1052,12 @@ timeout = 120
 test-plan = "- args: --version"
 gitignore-location = "./custom/.gitignore"
 gitignore-extra-categories = ["terraform", "go"]
-gitignore-extra-content = "custom-content"
+gitignore-extra-content = '''
+junit.xml
+
+# Claude Code
+.claude/
+'''
 dependency-graph-output = "./custom/deps.mmd"
 unstable-targets = ["linux-arm64", "windows-x64"]
 extra-label-files = ["https://example.com/labels.toml"]
@@ -1072,7 +1077,10 @@ extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
         "terraform",
         "go",
     ]
-    assert metadata.config["gitignore-extra-content"] == "custom-content"
+    assert (
+        metadata.config["gitignore-extra-content"]
+        == "junit.xml\n\n# Claude Code\n.claude/\n"
+    )
     assert metadata.config["dependency-graph-output"] == "./custom/deps.mmd"
     assert metadata.unstable_targets == {"linux-arm64", "windows-x64"}
     assert metadata.config["extra-label-files"] == [

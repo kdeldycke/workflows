@@ -13,5 +13,10 @@ Customize `.gitignore` generation in your `pyproject.toml`:
 [tool.gha-utils]
 gitignore-location = "./.gitignore"               # File path (default)
 gitignore-extra-categories = ["terraform", "go"]  # Extra gitignore.io categories
-gitignore-extra-content = "my-file.txt"           # Content appended at the end
+gitignore-extra-content = '''
+junit.xml
+
+# Claude Code
+.claude/
+'''
 ```
