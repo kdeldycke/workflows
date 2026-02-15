@@ -98,19 +98,11 @@ jobs:
       - name: Sync uv.lock
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         run: uv --no-progress sync
-      - name: Extract version
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        id: get_version
-        run: >
-          echo "new_version=$(
-          bump-my-version show current_version | sed 's/\.dev[0-9]*$//'
-          )" | tee -a "$GITHUB_OUTPUT"
       - id: pr-metadata
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         run: >
           uvx --no-progress --from . gha-utils pr-body
           --template bump-version
-          --version "${{ steps.get_version.outputs.new_version }}"
           --part "${{ matrix.part }}"
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -175,7 +167,6 @@ jobs:
         run: >
           uvx --no-progress --from . gha-utils pr-body
           --template prepare-release
-          --version "${{ steps.get_version.outputs.current_version }}"
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:

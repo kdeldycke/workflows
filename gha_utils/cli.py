@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import sys
 from collections import Counter
 from datetime import datetime
@@ -115,6 +116,7 @@ from .workflow_sync import (
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import IO
 
 
@@ -1981,9 +1983,19 @@ def pr_body(
         # With a prefix via environment variable
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
+    def _auto_version() -> str:
+        """Read current_version from bumpversion config and strip .dev suffix."""
+        ver = Metadata.get_current_version()
+        if not ver:
+            msg = "Cannot auto-detect version: no bumpversion config found."
+            raise SystemExit(msg)
+        ver = re.sub(r"\.dev\d*$", "", ver)
+        logging.info(f"Auto-detected version: {ver}")
+        return ver
+
     # Map argument names to their values or callables.
-    arg_sources = {
-        "version": version,
+    arg_sources: dict[str, str | None | Callable[[], str]] = {
+        "version": version if version is not None else _auto_version,
         "part": part,
         "repo_url": _repo_url,  # Callable, will be invoked if needed.
     }

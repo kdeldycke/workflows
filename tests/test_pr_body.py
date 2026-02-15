@@ -505,6 +505,21 @@ def test_template_file_policy(filename, name):
     )
 
 
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [
+        ("1.2.3", "1.2.3"),
+        ("1.2.3.dev0", "1.2.3"),
+        ("5.9.2.dev0", "5.9.2"),
+        ("0.1.0.dev42", "0.1.0"),
+    ],
+)
+def test_version_dev_suffix_stripping(version, expected):
+    """The .dev suffix is stripped from auto-detected versions."""
+    result = re.sub(r"\.dev\d*$", "", version)
+    assert result == expected
+
+
 def test_templates_match_workflow_references():
     """Every template must be referenced by ``--template`` in a workflow file."""
     template_names = set(get_template_names())
