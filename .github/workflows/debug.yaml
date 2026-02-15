@@ -1,6 +1,11 @@
 ---
 name: Debug
 "on":
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/debug.yaml
   workflow_call:
   workflow_dispatch:
   schedule:
