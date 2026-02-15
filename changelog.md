@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.10.1.dev0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.10.0...main)
+
+> [!IMPORTANT]
+> This version is not released yet and is under active development.
+
 ## [5.10.0 (2026-02-15)](https://github.com/kdeldycke/workflows/compare/v5.9.1...v5.10.0)
 
 - Add `.dev0` suffix to development versions per PEP 440. Closes #169.
