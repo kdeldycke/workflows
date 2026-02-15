@@ -10,7 +10,7 @@
 - Auto-detect version in `pr-body` from `[tool.bumpversion]` in `pyproject.toml` when `--version` is not provided. The `.dev0` suffix is stripped automatically.
 - Fix creation of GitHub release in `create-release` job.
 - Add `Full Changelog` comparison URL link to GitHub release notes.
-- Move release notes assembly from inline f-strings to a markdown template in `gha_utils/templates/`.
+- Move release notes, PR metadata block, and refresh tip to markdown templates in `gha_utils/templates/`.
 - Display auto-detected environment from extra-platforms in `debug.yaml` workflow.
 - Remove `merge-method-notice` job.
 - Experiment with Claude agents.

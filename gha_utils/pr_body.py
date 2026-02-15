@@ -241,15 +241,7 @@ def generate_pr_metadata_block() -> str:
     ]
     table = "\n".join(rows)
 
-    return (
-        "<details><summary><code>Workflow metadata</code></summary>\n"
-        "\n"
-        "| Field | Value |\n"
-        "|---|---|\n"
-        f"{table}\n"
-        "\n"
-        "</details>\n"
-    )
+    return render_template("pr-metadata", table=table)
 
 
 def _repo_url() -> str:
@@ -277,12 +269,7 @@ def generate_refresh_tip() -> str:
     workflow_dispatch_url = (
         f"{server_url}/{repository}/actions/workflows/{workflow_file}"
     )
-    return (
-        "> [!TIP]\n"
-        "> If you suspect the PR content is outdated, "
-        f"**[click `Run workflow`]({workflow_dispatch_url})** "
-        "to refresh it manually before merging."
-    )
+    return render_template("refresh-tip", workflow_dispatch_url=workflow_dispatch_url)
 
 
 def build_pr_body(prefix: str, metadata_block: str) -> str:

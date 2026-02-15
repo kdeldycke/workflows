@@ -191,7 +191,9 @@ def test_get_template_names():
     assert "update-mailmap" in names
     assert "sync-workflows" in names
     assert "release-notes" in names
-    assert len(names) == 14
+    assert "pr-metadata" in names
+    assert "refresh-tip" in names
+    assert len(names) == 16
 
 
 def test_load_template_frontmatter():
@@ -443,7 +445,7 @@ REFERENCE_WORKFLOWS = (
 )
 """Workflow files that reference PR body templates via ``--template``."""
 
-PROGRAMMATIC_TEMPLATES = frozenset({"release-notes"})
+PROGRAMMATIC_TEMPLATES = frozenset({"pr-metadata", "refresh-tip", "release-notes"})
 """Templates rendered from Python code, not via the ``--template`` CLI flag."""
 
 
