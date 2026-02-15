@@ -134,6 +134,17 @@ Always update documentation when making changes:
 - **`changelog.md`**: Add a bullet point describing **what** changed (new features, bug fixes, behavior changes), not **why**. Keep entries concise and actionable. Justifications and rationale belong in documentation (`readme.md`, Sphinx docs) or code comments, not in the changelog.
 - **`readme.md`**: Update relevant sections when adding/modifying workflow jobs, CLI commands, or configuration options.
 
+### Documentation sync
+
+The following documentation artifacts must stay in sync with the code. When changing any of these, update the others:
+
+- **CLI output in `readme.md`**: The inline `uvx -- gha-utils` help block, `--version` output, and development version output must match actual CLI output. Re-run the commands and update the pasted text.
+- **Version references in `readme.md`**: The `--version` examples and example workflow `@vX.Y.Z` reference must reflect the latest released version.
+- **Module table in `claude.md`**: The `gha_utils` modules table must list every `.py` file in `gha_utils/` with an accurate purpose description.
+- **Workflow job descriptions in `readme.md`**: Each `.github/workflows/*.yaml` workflow section must document all jobs by their actual job ID, with accurate descriptions of what they do, their requirements, and skip conditions.
+- **`[tool.gha-utils]` configuration table in `readme.md`**: The options table must match what the code actually reads from `pyproject.toml`. Search `gha_utils/` for config key references to verify.
+- **Project structure in `claude.md`**: The directory tree must reflect actual subdirectories (e.g., `gha_utils/data/`, `gha_utils/templates/`).
+
 ### Documenting code decisions
 
 Document design decisions, trade-offs, and non-obvious implementation choices directly in the code:
@@ -297,6 +308,25 @@ When a command is too long for a single line, use the folded block scalar (`>`) 
 **Why:** The `>` scalar folds newlines into spaces, producing a single command without needing backslash escapes. This is cleaner and avoids issues with trailing whitespace after `\`.
 
 **When to use `|`:** Use literal block scalar (`|`) only when the command requires preserved newlines (e.g., multi-statement scripts, heredocs).
+
+### Ordering conventions
+
+Keep definitions sorted for readability and to minimize merge conflicts:
+
+- **Workflow jobs**: Ordered by execution dependency (upstream jobs first), then alphabetically within the same dependency level.
+- **Python module-level constants and variables**: Alphabetically, unless there is a logical grouping or dependency order.
+- **YAML configuration keys**: Alphabetically within each mapping level.
+- **Documentation lists and tables**: Alphabetically, unless a logical order (e.g., chronological in changelog) takes precedence.
+
+## Release checklist
+
+A complete release consists of all of the following. If any are missing, the release is incomplete:
+
+- **Git tag** (`vX.Y.Z`) created on the freeze commit
+- **GitHub release** with non-empty release notes matching the `changelog.md` entry for that version
+- **Binaries attached** to the GitHub release for all 6 platform/architecture combinations (linux-arm64, linux-x64, macos-arm64, macos-x64, windows-arm64, windows-x64)
+- **PyPI package** published at the matching version
+- **`changelog.md`** entry with the release date and comparison URL finalized
 
 ## Testing guidelines
 

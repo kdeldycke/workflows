@@ -398,9 +398,6 @@ class Config:
         default_factory=lambda: dedent(
             """
             junit.xml
-
-            # Claude Code
-            .claude/
             """
         ).strip()
     )
