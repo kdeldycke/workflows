@@ -5,8 +5,9 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Experiment with Claude agents.
+- Display auto-detected environment from extra-platforms in `debug.yaml` workflow.
 - Remove `merge-method-notice` job.
+- Experiment with Claude agents.
 
 ## [5.9.1 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)
 

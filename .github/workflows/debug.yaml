@@ -37,3 +37,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
+      - uses: astral-sh/setup-uv@v7.2.1
+      - name: Dump extra-platforms info
+        run: >
+          uvx --no-progress
+          --from 'extra-platforms @ git+https://github.com/kdeldycke/extra-platforms.git'
+          extra-platforms
