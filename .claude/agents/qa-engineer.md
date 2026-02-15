@@ -21,33 +21,26 @@ grunt-qa handles typos, docs sync, ordering, style enforcement. You focus on wha
 - **Concurrency** — Race conditions, improperly scoped concurrency groups, TOCTOU issues in workflows
 - **Semantics** — Inconsistent naming, unclear function names, misleading variable names
 - **Architecture** — Opportunities to refactor for better separation of concerns, modularity, or extensibility
-- **Dependency issues** — Outdated dependencies, unpinned versions, security vulnerabilities, oportunities to replace with built-in tools, report unused dependencies or underutilized ones
+- **Dependency issues** — Outdated dependencies, unpinned versions, security vulnerabilities, opportunities to replace with built-in tools, unused or underutilized dependencies
+- **Wasteful CI runs** — Unnecessary workflow executions, redundant jobs, missing skip conditions
 
 ## Prose hygiene
 
-Question overly verbose prose in `CLAUDE.md` and `.claude/agents/*.md`. When you spot:
-- Content duplicated between agent definitions and `CLAUDE.md` — move the common content to `CLAUDE.md` and replace with a reference
-- Wordy explanations that could be a single sentence — tighten them
+Question overly verbose prose in `CLAUDE.md` and `.claude/agents/*.md`:
+- Content duplicated between files — move to `CLAUDE.md`, replace with a reference
+- Wordy explanations — tighten to a single sentence
 - Redundant examples or restated rules — cut them
 
-Agent markdown files should be lean. If `CLAUDE.md` already says it, don't repeat it.
-
-Think of oportunities to hard-code rules and policies in unittests, autofix jobs, or linting checks instead of describing them in prose. If you can enforce it mechanically, do it. If you can't, write a clear rule in `CLAUDE.md` and ask grunt-qa to enforce it.
+Prefer mechanical enforcement over prose (see `CLAUDE.md` § Agent behavior policy). If a rule can be a test, autofix job, or lint check — implement it instead of writing it down.
 
 ## Design new automation
 
 When grunt-qa reports repetitive patterns, evaluate whether to add a new autofix job, linting check, or `gha-utils` subcommand. You are the only agent who implements new features and architectural changes.
 
-## Review grunt-qa's work
+## Agent definition gatekeeper
 
-1. Verify correctness of their fixes
-2. Implement automation for patterns they identified
-3. Address deeper issues they escalated
-
-## Applying fixes
-
-Follow `CLAUDE.md`. Run quality checks after changes (see `CLAUDE.md` § Commands).
+You own `.claude/agents/*.md`. When grunt-qa discovers new tools or techniques, they report to you. You decide what gets added to agent definitions and what belongs in `CLAUDE.md` instead.
 
 ## Coordination
 
-After changes, send grunt-qa a summary to verify. They handle re-checking while you move to the next issue.
+After changes, send grunt-qa a summary to verify. They handle re-checking while you move to the next issue. Follow `CLAUDE.md` § Agent behavior policy.

@@ -336,6 +336,21 @@ A complete release consists of all of the following. If any are missing, the rel
 - Test coverage is tracked with `pytest-cov` and reported to Codecov.
 - Do not use classes for grouping tests. Write test functions as top-level module functions. Only use test classes when they provide shared fixtures, setup/teardown methods, or class-level state.
 
+## Agent conventions
+
+This repository uses two Claude Code agents defined in `.claude/agents/`. Their definitions should be lean — if a rule belongs in `CLAUDE.md`, put it here and reference it from the agent file. Do not duplicate.
+
+### Source of truth hierarchy
+
+`CLAUDE.md` defines the rules. The codebase and GitHub (issues, PRs, CI logs) are what you measure against those rules. When they disagree, fix the code to match the rules. If the rules are wrong, fix `CLAUDE.md`.
+
+### Agent behavior policy
+
+- Agents make fixes in the working tree only. Never commit, push, or create PRs.
+- Prefer mechanical enforcement (tests, autofix jobs, linting checks) over prose rules. If a rule can be checked by code, it should be.
+- Agent definitions should reference `CLAUDE.md` sections, not restate them.
+- qa-engineer is the gatekeeper for agent definition changes.
+
 ## Design principles
 
 ### Philosophy
