@@ -324,6 +324,7 @@ from wcmatch.glob import (
 from .changelog import Changelog
 from .github import generate_delimiter
 from .matrix import Matrix
+from .pr_body import render_template
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -1999,8 +2000,14 @@ class Metadata:
             if url:
                 changelog_link = f"**Full Changelog**: {url}"
 
-        # Assemble the release notes.
-        return f"{changes}\n\n{pypi_link}\n\n{changelog_link}".strip()
+        # Assemble the release notes from the template.
+        notes = render_template(
+            "release-notes",
+            changes_section=changes,
+            pypi_link=pypi_link,
+            changelog_link=changelog_link,
+        )
+        return notes or None
 
     @staticmethod
     def format_github_value(value: Any) -> str:

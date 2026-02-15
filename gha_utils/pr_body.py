@@ -25,6 +25,7 @@ templates that require arguments.
 from __future__ import annotations
 
 import os
+import re
 from importlib.resources import as_file, files
 from string import Template
 
@@ -109,12 +110,18 @@ def render_template(name: str, **kwargs: str) -> str:
     Dynamic templates use ``string.Template`` (``$variable`` syntax) to avoid
     conflicts with markdown braces like ``[tool.gha-utils]``.
 
+    Consecutive blank lines left by empty variables are collapsed to a single
+    blank line.
+
     :param name: Template name without ``.md`` extension.
     :param kwargs: Variables to substitute into the template.
     :return: The rendered markdown string.
     """
     _meta, body = load_template(name)
-    return _substitute(body, kwargs)
+    result = _substitute(body, kwargs)
+    # Collapse runs of 3+ newlines (from empty variable substitutions) into
+    # a single blank line, and strip leading/trailing whitespace.
+    return re.sub(r"\n{3,}", "\n\n", result).strip()
 
 
 def render_title(name: str, **kwargs: str) -> str:

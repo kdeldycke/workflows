@@ -190,7 +190,8 @@ def test_get_template_names():
     assert "update-gitignore" in names
     assert "update-mailmap" in names
     assert "sync-workflows" in names
-    assert len(names) == 13
+    assert "release-notes" in names
+    assert len(names) == 14
 
 
 def test_load_template_frontmatter():
@@ -442,6 +443,9 @@ REFERENCE_WORKFLOWS = (
 )
 """Workflow files that reference PR body templates via ``--template``."""
 
+PROGRAMMATIC_TEMPLATES = frozenset({"release-notes"})
+"""Templates rendered from Python code, not via the ``--template`` CLI flag."""
+
 
 def _collect_template_references() -> set[str]:
     """Scan reference workflows for all ``--template <name>`` arguments."""
@@ -454,25 +458,32 @@ def _collect_template_references() -> set[str]:
     return refs
 
 
-def _template_package_items() -> list[tuple[str, str]]:
-    """Return ``(filename, name)`` pairs for every file in the templates package."""
+def _template_package_items(
+    *, exclude: frozenset[str] = frozenset(),
+) -> list[tuple[str, str]]:
+    """Return ``(filename, name)`` pairs for every file in the templates package.
+
+    :param exclude: Template names to skip.
+    """
     items = []
     for item in files("gha_utils.templates").iterdir():
         filename = getattr(item, "name", str(item))
         if filename.startswith("__"):
             continue
         name = filename.removesuffix(".md") if filename.endswith(".md") else filename
+        if name in exclude:
+            continue
         items.append((filename, name))
     return sorted(items)
 
 
 @pytest.mark.parametrize(
     ("filename", "name"),
-    _template_package_items(),
-    ids=[pair[1] for pair in _template_package_items()],
+    _template_package_items(exclude=PROGRAMMATIC_TEMPLATES),
+    ids=[pair[1] for pair in _template_package_items(exclude=PROGRAMMATIC_TEMPLATES)],
 )
 def test_template_file_policy(filename, name):
-    """Each template file must be a valid ``.md`` file with correct frontmatter."""
+    """Each PR template file must be a valid ``.md`` file with correct frontmatter."""
     # Must be a markdown file.
     assert filename.endswith(".md"), f"Template file {filename!r} is not a .md file"
 
@@ -522,8 +533,8 @@ def test_version_dev_suffix_stripping(version, expected):
 
 
 def test_templates_match_workflow_references():
-    """Every template must be referenced by ``--template`` in a workflow file."""
-    template_names = set(get_template_names())
+    """Every CLI template must be referenced by ``--template`` in a workflow file."""
+    template_names = set(get_template_names()) - PROGRAMMATIC_TEMPLATES
     workflow_refs = _collect_template_references()
 
     unreferenced = template_names - workflow_refs
