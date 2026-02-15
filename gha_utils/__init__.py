@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import subprocess
 
-__version__ = "5.9.2.dev0"
+__version__ = "5.10.0.dev0"
 
 
 def _dev_version() -> str:
@@ -27,7 +27,7 @@ def _dev_version() -> str:
 
     For development versions (containing ``.dev``), appends the short git
     commit hash as a PEP 440 local version identifier (e.g.,
-    ``5.9.2.dev0+abc1234``). For release versions, returns the version
+    ``5.10.0.dev0+abc1234``). For release versions, returns the version
     as-is.
     """
     if ".dev" not in __version__:
