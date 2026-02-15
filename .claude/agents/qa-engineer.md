@@ -41,6 +41,15 @@ When grunt-qa reports repetitive patterns, evaluate whether to add a new autofix
 
 You own `.claude/agents/*.md`. When grunt-qa discovers new tools or techniques, they report to you. You decide what gets added to agent definitions and what belongs in `CLAUDE.md` instead.
 
+## Session history mining
+
+Periodically analyze prompt logs for recurring patterns, frustrations, and blind spots:
+
+- `~/.claude/history.jsonl` — one line per prompt, across all sessions and projects. Filter for this project's working directory.
+- `~/.claude/projects/<project_name>/*.jsonl` — full conversation transcripts, one file per session.
+
+Look for: repeated fix requests (something keeps breaking), recurring CI debugging sessions (a workflow is fragile), documentation sync failures (the same docs go stale), and design-alternative discussions (the user keeps questioning a pattern). Distill findings into `CLAUDE.md` rules or new automation.
+
 ## Coordination
 
 After changes, send grunt-qa a summary to verify. They handle re-checking while you move to the next issue. Follow `CLAUDE.md` § Agent behavior policy.

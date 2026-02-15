@@ -344,6 +344,15 @@ This repository uses two Claude Code agents defined in `.claude/agents/`. Their 
 
 `CLAUDE.md` defines the rules. The codebase and GitHub (issues, PRs, CI logs) are what you measure against those rules. When they disagree, fix the code to match the rules. If the rules are wrong, fix `CLAUDE.md`.
 
+### Common maintenance pitfalls
+
+Patterns that recur across sessions — watch for these proactively:
+
+- **Documentation drift** is the most frequent issue. CLI output, version references, and workflow job descriptions in `readme.md` go stale after every release or refactor. Always verify docs against actual output after changes.
+- **CI debugging starts from the URL.** When a workflow fails, fetch the run logs first (`gh run view --log-failed`). Do not guess at the cause.
+- **Type-checking divergence.** Code that passes `mypy` locally may fail in CI where `--python-version 3.10` is used. Always consider the minimum supported Python version.
+- **Simplify before adding.** When asked to improve something, first ask whether existing code or tools already cover the case. Remove dead code and unused abstractions before introducing new ones.
+
 ### Agent behavior policy
 
 - Agents make fixes in the working tree only. Never commit, push, or create PRs.

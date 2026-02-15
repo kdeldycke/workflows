@@ -31,6 +31,16 @@ Work beyond the local repository: check issues, PRs, and CI runs on GitHub. Fix 
 6. **CI/CD failures** — Review recent failed runs, distinguish systematic from one-off
 7. **Workflow CLI references** — Verify all `gha-utils` invocations in workflows use valid subcommands and flags
 
+## High-frequency lapses
+
+These issues recur across sessions — check them every pass:
+
+- CLI help output in `readme.md` stale after new subcommands or option changes
+- Version references (`@vX.Y.Z`, `--version` examples) not bumped after releases
+- `GitHub Actions` miscapitalized as "GitHub actions" or "Github Actions"
+- Workflow job descriptions missing or outdated after job renames/additions
+- Grammar errors in CLI help strings (`"does not exists"`, missing periods)
+
 ## What you report to qa-engineer
 
 - Repetitive patterns that could be automated as a new autofix or lint job
