@@ -1992,8 +1992,15 @@ class Metadata:
                 + ")."
             )
 
+        # Generate a "Full Changelog" link from the changelog heading URL.
+        changelog_link = ""
+        if changelog_path.exists():
+            url = changelog.extract_version_url(version)
+            if url:
+                changelog_link = f"**Full Changelog**: {url}"
+
         # Assemble the release notes.
-        return f"{changes}\n\n{pypi_link}".strip()
+        return f"{changes}\n\n{pypi_link}\n\n{changelog_link}".strip()
 
     @staticmethod
     def format_github_value(value: Any) -> str:

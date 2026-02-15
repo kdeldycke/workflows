@@ -358,6 +358,23 @@ class Changelog:
         logging.info(f"Updated {path}")
         return True
 
+    def extract_version_url(self, version: str) -> str:
+        """Extract the URL from the changelog heading for a specific version.
+
+        :param version: Version string to look for (e.g. ``1.2.3``).
+        :return: The URL from the heading, or empty string if not found.
+        """
+        match = re.search(
+            rf"^{SECTION_START}"
+            rf"\s*\[.*{re.escape(version)}.+?\]"
+            rf"\((?P<url>[^)]+)\)",
+            self.content,
+            flags=re.MULTILINE,
+        )
+        if not match:
+            return ""
+        return match.group("url")
+
     def extract_version_notes(self, version: str) -> str:
         """Extract the changelog entry for a specific version.
 

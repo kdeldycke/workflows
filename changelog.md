@@ -9,6 +9,7 @@
 - Add `sync-workflows` job to `autofix.yaml` for downstream repos to keep their thin-caller workflow files in sync.
 - Auto-detect version in `pr-body` from `[tool.bumpversion]` in `pyproject.toml` when `--version` is not provided. The `.dev0` suffix is stripped automatically.
 - Fix creation of GitHub release in `create-release` job.
+- Add `Full Changelog` comparison URL link to GitHub release notes.
 - Display auto-detected environment from extra-platforms in `debug.yaml` workflow.
 - Remove `merge-method-notice` job.
 - Experiment with Claude agents.

@@ -237,6 +237,30 @@ def test_freeze_file_missing(tmp_path):
     assert result is False
 
 
+def test_extract_version_url():
+    """Test extracting URL for a specific released version."""
+    changelog = Changelog(SAMPLE_CHANGELOG)
+    url = changelog.extract_version_url("1.2.2")
+
+    assert url == "https://github.com/user/repo/compare/v1.2.1...v1.2.2"
+
+
+def test_extract_version_url_unreleased():
+    """Test extracting URL for the unreleased version."""
+    changelog = Changelog(SAMPLE_CHANGELOG)
+    url = changelog.extract_version_url("1.2.3")
+
+    assert url == "https://github.com/user/repo/compare/v1.2.2...main"
+
+
+def test_extract_version_url_missing():
+    """Test that missing version returns empty string."""
+    changelog = Changelog(SAMPLE_CHANGELOG)
+    url = changelog.extract_version_url("9.9.9")
+
+    assert url == ""
+
+
 def test_extract_version_notes():
     """Test extracting notes for a specific released version."""
     changelog = Changelog(SAMPLE_CHANGELOG)
