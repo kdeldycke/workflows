@@ -276,6 +276,12 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
 
+- **Sync workflows** (`sync-workflows`)
+
+  - Syncs thin-caller workflow files from the upstream [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) repository using [`gha-utils workflow sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/workflow_sync.py)
+  - **Skipped if**:
+    - Repository is [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) itself (the upstream source)
+
 - **Update `.mailmap`** (`update-mailmap`)
 
   - Keeps `.mailmap` file up to date with contributors using [`gha-utils mailmap-sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/mailmap.py)

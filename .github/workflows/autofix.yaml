@@ -414,6 +414,31 @@ jobs:
           labels: "📚 documentation"
           branch: update-docs
 
+  sync-workflows:
+    name: Sync workflows
+    if: github.repository != 'kdeldycke/workflows'
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.1
+      - name: Sync workflow files
+        run: uvx --no-progress --from . gha-utils workflow sync
+      - id: pr-metadata
+        run: >
+          uvx --no-progress --from . gha-utils pr-body
+          --template sync-workflows
+          --output "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          # We need custom PAT with workflows permissions to update .github/workflows/*.yaml files.
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          assignees: ${{ github.actor }}
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "🤖 ci"
+          branch: sync-workflows
+
   sync-awesome-template:
     name: Sync awesome template
     if: >

@@ -189,7 +189,8 @@ def test_get_template_names():
     assert "update-docs" in names
     assert "update-gitignore" in names
     assert "update-mailmap" in names
-    assert len(names) == 12
+    assert "sync-workflows" in names
+    assert len(names) == 13
 
 
 def test_load_template_frontmatter():
