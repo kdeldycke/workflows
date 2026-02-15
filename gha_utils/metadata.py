@@ -1079,8 +1079,8 @@ class Metadata:
             return None
 
         if bool(os.environ.get("GITHUB_BASE_REF")):
-            return WorkflowEvent.pull_request  # type: ignore[return-value]
-        return WorkflowEvent.push  # type: ignore[return-value]
+            return WorkflowEvent.pull_request
+        return WorkflowEvent.push
 
     @cached_property
     def event_actor(self) -> str | None:
@@ -2055,7 +2055,7 @@ class Metadata:
 
     def dump(
         self,
-        dialect: "Dialect" = Dialect.github,  # type: ignore[assignment]
+        dialect: "Dialect" = Dialect.github,
     ) -> str:
         """Returns all metadata in the specified format.
 

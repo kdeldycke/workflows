@@ -71,7 +71,8 @@ workflows/
 │   └── workflows/     # Reusable GitHub Actions workflows
 ├── docs/              # Assets (images, Mermaid diagrams)
 ├── gha_utils/         # Python CLI package (see module table below)
-│   └── data/          # Bundled configuration files
+│   ├── data/          # Bundled configuration files
+│   └── templates/     # PR body markdown templates
 └── tests/             # Test suite
 ```
 

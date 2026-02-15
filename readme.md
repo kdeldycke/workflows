@@ -18,7 +18,7 @@ It takes care of:
 - Version bumping
 - Changelog management
 - Formatting autofix for: Python, Markdown, JSON, typos
-- Linting: Python types with `mypy`, YAML, `zsh`, GitHub actions, URLS & redirects, Awesome lists, secrets
+- Linting: Python types with `mypy`, YAML, `zsh`, GitHub Actions, URLS & redirects, Awesome lists, secrets
 - Compiling of Python binaries for Linux / macOS / Windows on `x86_64` & `arm64`
 - Building of Python packages and upload to PyPI
 - Produce attestations
@@ -35,7 +35,7 @@ Nothing is done behind your back. A PR is created every time a change is propose
 
 ## `gha-utils` CLI
 
-`gha-utils` stands for *GitHub action workflows utilities*.
+`gha-utils` stands for *GitHub Actions workflows utilities*.
 
 ### Try it
 
@@ -46,8 +46,8 @@ $ uvx -- gha-utils
 Usage: gha-utils [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  --time / --no-time    Measure and print elapsed execution time.  [default: no-
-                        time]
+  --time / --no-time    Measure and print elapsed execution time.  [default:
+                        no-time]
   --color, --ansi / --no-color, --no-ansi
                         Strip out all colors and all ANSI codes from output.
                         [default: color]
@@ -55,34 +55,45 @@ Options:
                         with glob patterns or remote URL.  [default:
                         ~/Library/Application Support/gha-
                         utils/*.toml|*.yaml|*.yml|*.json|*.ini]
-  --no-config           Ignore all configuration files and only use command line
-                        parameters and environment variables.
+  --no-config           Ignore all configuration files and only use command
+                        line parameters and environment variables.
   --show-params         Show all CLI parameters, their provenance, defaults and
                         value, then exit.
-  --table-format [asciidoc|csv|csv-excel|csv-excel-tab|csv-unix|double-grid|double-outline|fancy-grid|fancy-outline|github|grid|heavy-grid|heavy-outline|html|jira|latex|latex-booktabs|latex-longtable|latex-raw|mediawiki|mixed-grid|mixed-outline|moinmoin|orgtbl|outline|pipe|plain|presto|pretty|psql|rounded-grid|rounded-outline|rst|simple|simple-grid|simple-outline|textile|tsv|unsafehtml|vertical|youtrack]
+  --table-format [aligned|asciidoc|csv|csv-excel|csv-excel-tab|csv-unix|double-grid|double-outline|fancy-grid|fancy-outline|github|grid|heavy-grid|heavy-outline|html|jira|latex|latex-booktabs|latex-longtable|latex-raw|mediawiki|mixed-grid|mixed-outline|moinmoin|orgtbl|outline|pipe|plain|presto|pretty|psql|rounded-grid|rounded-outline|rst|simple|simple-grid|simple-outline|textile|tsv|unsafehtml|vertical|youtrack]
                         Rendering style of tables.  [default: rounded-outline]
-  --verbosity LEVEL     Either CRITICAL, ERROR, WARNING, INFO, DEBUG.  [default:
-                        WARNING]
+  --verbosity LEVEL     Either CRITICAL, ERROR, WARNING, INFO, DEBUG.
+                        [default: WARNING]
   -v, --verbose         Increase the default WARNING verbosity by one level for
                         each additional repetition of the option.  [default: 0]
   --version             Show the version and exit.
   -h, --help            Show this message and exit.
 
 Commands:
-  changelog      Maintain a Markdown-formatted changelog
-  config         Manage bundled configuration and templates
-  deps-graph     Generate dependency graph from uv lockfile
-  mailmap-sync   Update Git's .mailmap file with missing contributors
-  metadata       Output project metadata
-  release-prep   Prepare files for a release
-  sponsor-label  Label issues/PRs from GitHub sponsors
-  test-plan      Run a test plan from a file against a binary
-  version-check  Check if a version bump is allowed
+  broken-links          Manage broken links issue lifecycle
+  bundled               Manage bundled configuration and templates
+  changelog             Maintain a Markdown-formatted changelog
+  check-renovate        Check Renovate migration prerequisites
+  collect-artifacts     Collect and rename artifacts for release
+  deps-graph            Generate dependency graph from uv lockfile
+  git-tag               Create and push a Git tag
+  lint-repo             Run repository consistency checks
+  mailmap-sync          Update Git's .mailmap file with missing contributors
+  metadata              Output project metadata
+  pr-body               Generate PR body with workflow metadata
+  release-prep          Prepare files for a release
+  sphinx-linkcheck      Manage Sphinx linkcheck issue lifecycle
+  sponsor-label         Label issues/PRs from GitHub sponsors
+  test-plan             Run a test plan from a file against a binary
+  update-exclude-newer  Update exclude-newer date in pyproject.toml
+  update-gitignore      Generate .gitignore from gitignore.io templates
+  verify-binary         Verify binary architecture using exiftool
+  version-check         Check if a version bump is allowed
+  workflow              Manage downstream workflow caller files
 ```
 
 ```shell-session
 $ uvx -- gha-utils --version
-gha-utils, version 5.5.0
+gha-utils, version 5.9.1
 ```
 
 That's the best way to get started with `gha-utils` and experiment with it.
@@ -118,12 +129,12 @@ To play with the latest development version of `gha-utils`, you can run it direc
 
 ```shell-session
 $ uvx --from git+https://github.com/kdeldycke/workflows -- gha-utils --version
-gha-utils, version 5.5.0
+gha-utils, version 5.9.1
 ```
 
 ## Reusable workflows collection
 
-This repository contains workflows to automate most of the boring tasks in the form of [reusable GitHub actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
+This repository contains workflows to automate most of the boring tasks in the form of [reusable GitHub Actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
 
 ### Example usage
 
@@ -139,7 +150,7 @@ on:
 
 jobs:
   lint:
-    uses: kdeldycke/workflows/.github/workflows/lint.yaml@v5.5.0
+    uses: kdeldycke/workflows/.github/workflows/lint.yaml@v5.9.1
 ```
 
 > [!IMPORTANT]
@@ -473,6 +484,13 @@ docs = [
 
 **Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms. Job names are prefixed with ✅ (stable, must pass) or ⁉️ (unstable, allowed to fail) for quick visual triage in the GitHub Actions UI.
 
+- **Revert squash merge** (`revert-squash-merge`)
+
+  - Detects squash-merged release PRs and automatically reverts them so `prepare-release` can recreate the PR with the correct two-commit structure
+  - Identifies squash merges by checking if the head commit message starts with `` Release `v `` (the PR title pattern) rather than `[changelog] Release v` (the canonical freeze commit pattern)
+  - **Runs on**:
+    - Push to `main` only
+
 - **Build package** (`build-package`)
 
   - Builds Python wheel and sdist packages using [`uv build`](https://github.com/astral-sh/uv)
@@ -557,9 +575,9 @@ docs = [
 
 ### What is this `project-metadata` job?
 
-Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extracts contextual information, reconcile and combine them, and expose them for downstream jobs to consume.
+Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extract contextual information, reconcile and combine it, and expose it for downstream jobs to consume.
 
-This expand the capabilities of GitHub actions, since it allows to:
+This expands the capabilities of GitHub Actions, since it allows to:
 
 - Share complex data across jobs (like build matrix)
 - Remove limitations of conditional jobs
@@ -580,7 +598,7 @@ This job relies on the [`gha-utils metadata` command](https://github.com/kdeldyc
 > - Introducing a small delay at the beginning of the run
 > - Preventing child jobs to run in parallel before its completion
 >
-> But is worth it given how [GitHub actions can be frustrating](https://nesbitt.io/2025/12/06/github-actions-package-manager.html).
+> But is worth it given how [GitHub Actions can be frustrating](https://nesbitt.io/2025/12/06/github-actions-package-manager.html).
 
 ## Dependency strategy
 
@@ -628,7 +646,7 @@ Workflows in this repository are **self-referential**. The [`prepare-release`](h
 
 ## Permissions and token
 
-As [explained above](#tagged-workflow-urls), this repository updates itself via GitHub actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
+As [explained above](#tagged-workflow-urls), this repository updates itself via GitHub Actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
 
 ### Why `permissions:` isn't enough
 

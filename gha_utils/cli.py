@@ -225,7 +225,7 @@ def metadata(ctx, format, overwrite, output):
         logging.info(f"Dump all metadata to {output}")
 
         if output.exists():
-            msg = "Target file exist and will be overwritten."
+            msg = "Target file exists and will be overwritten."
             if overwrite:
                 logging.warning(msg)
             else:
@@ -934,7 +934,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     `gha-utils mailmap-sync .mailmap`.
 
     The updated results are sorted. But no attempts are made at regrouping new
-    contributors. SO you have to edit entries by hand to regroup them
+    contributors. So you have to edit entries by hand to regroup them.
     """
     mailmap = Mailmap()
 
@@ -943,7 +943,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
         content = remove_header(source.read_text(encoding="UTF-8"))
         mailmap.parse(content)
     else:
-        logging.debug(f"Mailmap source file {source} does not exists.")
+        logging.debug(f"Mailmap source file {source} does not exist.")
 
     mailmap.update_from_git()
     new_content = mailmap.render()
@@ -959,7 +959,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
         logging.info(f"Save updated results to {destination_mailmap}")
         if not create_if_missing and not destination_mailmap.exists():
             logging.warning(
-                f"{destination_mailmap} does not exists, stop the sync process."
+                f"{destination_mailmap} does not exist, stop the sync process."
             )
             ctx.exit()
         if content == new_content:
@@ -1024,7 +1024,7 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     "-T",
     "--timeout",
     # Timeout passed to subprocess.run() is a float that is silently clamped to
-    # 0.0 is negative values are provided, so we mimic this behavior here:
+    # 0.0 if negative values are provided, so we mimic this behavior here:
     # https://github.com/python/cpython/blob/5740b95076b57feb6293cda4f5504f706a7d622d/Lib/subprocess.py#L1596-L1597
     type=FloatRange(min=0, clamp=True),
     metavar="SECONDS",
@@ -1898,7 +1898,7 @@ def git_tag(
             skip_existing=skip_existing,
         )
         if created:
-            echo(f"Created{'and pushed ' if push else ' '}tag {tag!r}")
+            echo(f"Created{' and pushed' if push else ''} tag {tag!r}")
         else:
             echo(f"Tag {tag!r} already exists, skipped.")
 
