@@ -1983,6 +1983,7 @@ def pr_body(
         # With a prefix via environment variable
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
+
     def _auto_version() -> str:
         """Read current_version from bumpversion config and strip .dev suffix."""
         ver = Metadata.get_current_version()
