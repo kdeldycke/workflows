@@ -101,7 +101,10 @@ jobs:
       - name: Extract version
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         id: get_version
-        run: echo "new_version=$( bump-my-version show current_version )" | tee -a "$GITHUB_OUTPUT"
+        run: >
+          echo "new_version=$(
+          bump-my-version show current_version | sed 's/\.dev[0-9]*$//'
+          )" | tee -a "$GITHUB_OUTPUT"
       - id: pr-metadata
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         run: >
