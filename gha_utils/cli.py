@@ -42,7 +42,7 @@ from click_extra import (
 from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS, is_github_ci
 
-from . import __version__
+from . import __version__, _dev_version
 from .binary import (
     BINARY_ARCH_MAPPINGS,
     collect_and_rename_artifacts,
@@ -178,7 +178,7 @@ def remove_header(content: str) -> str:
     return headerless_content
 
 
-@group
+@group(version=_dev_version())
 def gha_utils():
     pass
 

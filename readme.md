@@ -98,6 +98,9 @@ gha-utils, version 5.9.1
 
 That's the best way to get started with `gha-utils` and experiment with it.
 
+> [!TIP]
+> Development versions use a `.devN` suffix per [PEP 440](https://peps.python.org/pep-0440/#developmental-releases). When running from a Git clone, the short commit hash is appended as a local version identifier (e.g., `5.9.2.dev0+abc1234`).
+
 ### Executables
 
 To ease deployment, standalone executables of `gha-utils`'s latest version are available as direct downloads for several platforms and architectures:
@@ -129,7 +132,7 @@ To play with the latest development version of `gha-utils`, you can run it direc
 
 ```shell-session
 $ uvx --from git+https://github.com/kdeldycke/workflows -- gha-utils --version
-gha-utils, version 5.9.1
+gha-utils, version 5.9.2.dev0+3eb8894
 ```
 
 ## Reusable workflows collection
