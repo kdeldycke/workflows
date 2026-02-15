@@ -307,6 +307,9 @@ jobs:
           # Only consider artifacts produced by the release commit.
           pattern: "*-${{ matrix.short_sha }}*"
           merge-multiple: true
+      - uses: actions/checkout@v6.0.2
+        # Only check out if we have artifacts to process.
+        if: steps.artifacts.outputs.download-path
       - uses: astral-sh/setup-uv@v7.2.1
         # Only set up uv if we have artifacts to process.
         if: steps.artifacts.outputs.download-path

@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Add `.dev0` suffix to development versions per PEP 440. Unreleased versions on `main` now show `X.Y.Z.dev0` instead of a bare `X.Y.Z`. The `--version` flag also appends the short git commit hash for dev versions (e.g., `5.9.2.dev0+abc1234`). Closes #169.
+- Fix creation of GitHub release in `create-release` job.
 - Display auto-detected environment from extra-platforms in `debug.yaml` workflow.
 - Remove `merge-method-notice` job.
 - Experiment with Claude agents.
