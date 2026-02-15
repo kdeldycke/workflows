@@ -40,17 +40,6 @@ concurrency:
 
 jobs:
 
-  merge-method-notice:
-    # This job name is the user-visible reminder on the PR checks tab.
-    name: "⚠️ Merge with: Rebase and merge"
-    if: github.event_name == 'pull_request' && github.head_ref == 'prepare-release'
-    runs-on: ubuntu-slim
-    steps:
-      - name: Reminder
-        run: |
-          echo "::warning::This PR must be merged with 'Rebase and merge', not 'Squash and merge'."
-          echo "The two separate commits (freeze + unfreeze) are required for the release process."
-
   revert-squash-merge:
     name: Revert squash merge of release PR
     # A rebase merge produces commits starting with "[changelog] Release v" and

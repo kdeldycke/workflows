@@ -387,10 +387,7 @@ The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two co
 
 The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
 
-**Squash merge safeguards:** Two mechanisms in `release.yaml` protect against accidental squash merges:
-
-1. **`merge-method-notice` job** — Runs on `pull_request` events when `head_ref == 'prepare-release'`. The job name (`⚠️ Merge with: Rebase and merge`) appears as a visible reminder in the PR checks tab.
-1. **`revert-squash-merge` job** — Runs on `push` to `main`. Detects squash merges by checking if the head commit message starts with `` Release `v `` (the PR title pattern) rather than `[changelog] Release v` (the canonical freeze commit pattern). When detected, it automatically reverts the squash commit. The resulting push to `main` re-triggers `prepare-release`, which recreates the release PR with the correct two-commit structure.
+**Squash merge safeguard:** The `revert-squash-merge` job in `release.yaml` runs on `push` to `main`. It detects squash merges by checking if the head commit message starts with `` Release `v `` (the PR title pattern) rather than `[changelog] Release v` (the canonical freeze commit pattern). When detected, it automatically reverts the squash commit. The resulting push to `main` re-triggers `prepare-release`, which recreates the release PR with the correct two-commit structure.
 
 On `main`, workflows use `--from . gha-utils` to run the CLI from local source (dogfooding). The freeze commit freezes these to `'gha-utils==X.Y.Z'` (the version being released) so tagged releases reference a published package. This is safe because `release.yaml` runs from the unfreeze commit (HEAD after rebase merge), which has `--from . gha-utils`, and by the time downstream repos use the tagged freeze commit, `publish-pypi` has already published the version. The unfreeze commit reverts them back to `--from . gha-utils` for the next development cycle.
 
