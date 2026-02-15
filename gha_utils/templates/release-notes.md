@@ -2,8 +2,8 @@
 args: [changes_section, pypi_link, changelog_link]
 ---
 
-$changes_section
+\$changes_section
 
-$pypi_link
+\$pypi_link
 
-$changelog_link
+\$changelog_link

@@ -24,12 +24,12 @@ Work beyond the local repository: check issues, PRs, and CI runs on GitHub. Fix 
 ## Checks
 
 1. **`CLAUDE.md` compliance** — Read it, then grep the codebase for violations. Fix all of: typos, grammar, stale references, ordering violations, style issues, documentation sync issues.
-2. **CLI health** — Run every subcommand's `--help`; fix docs if output diverges
-3. **Documentation sync** — Per `CLAUDE.md` § Documentation sync
-4. **Quality checks** — Per `CLAUDE.md` § Commands; fix simple issues, escalate complex ones
-5. **Release alignment** — Per `CLAUDE.md` § Release checklist
-6. **CI/CD failures** — Review recent failed runs, distinguish systematic from one-off
-7. **Workflow CLI references** — Verify all `gha-utils` invocations in workflows use valid subcommands and flags
+1. **CLI health** — Run every subcommand's `--help`; fix docs if output diverges
+1. **Documentation sync** — Per `CLAUDE.md` § Documentation sync
+1. **Quality checks** — Per `CLAUDE.md` § Commands; fix simple issues, escalate complex ones
+1. **Release alignment** — Per `CLAUDE.md` § Release checklist
+1. **CI/CD failures** — Review recent failed runs, distinguish systematic from one-off
+1. **Workflow CLI references** — Verify all `gha-utils` invocations in workflows use valid subcommands and flags
 
 ## High-frequency lapses
 
