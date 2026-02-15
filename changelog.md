@@ -5,9 +5,10 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add `.dev0` suffix to development versions per PEP 440. Unreleased versions on `main` now show `X.Y.Z.dev0` instead of a bare `X.Y.Z`. The `--version` flag also appends the short git commit hash for dev versions (e.g., `5.9.2.dev0+abc1234`). Closes #169.
+- Add `.dev0` suffix to development versions per PEP 440. Closes #169.
+- `--version` flag appends the short git commit hash for dev versions (e.g., `5.9.2.dev0+abc1234`).
 - Add `sync-workflows` job to `autofix.yaml` for downstream repos to keep their thin-caller workflow files in sync.
-- Auto-detect version in `pr-body` from `[tool.bumpversion]` in `pyproject.toml` when `--version` is not provided. The `.dev0` suffix is stripped automatically.
+- Auto-detect version in `pr-body` from `[tool.bumpversion]` in `pyproject.toml`.
 - Fix creation of GitHub release in `create-release` job.
 - Add `Full Changelog` comparison URL link to GitHub release notes.
 - Move release notes, PR metadata block, and refresh tip to markdown templates in `gha_utils/templates/`.
