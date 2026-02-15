@@ -167,6 +167,7 @@ jobs:
         run: >
           uvx --no-progress --from . gha-utils pr-body
           --template prepare-release
+          --version "${{ steps.get_version.outputs.current_version }}"
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
