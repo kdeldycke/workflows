@@ -328,12 +328,21 @@ from .github.pr_body import render_template
 
 if sys.version_info >= (3, 11):
     import tomllib
+    from enum import StrEnum
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
+    from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any, Final, Literal
+
+
+class Dialect(StrEnum):
+    """Output dialect for metadata serialization."""
+
+    github = "github"
+    json = "json"
 
 
 @dataclass

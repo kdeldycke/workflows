@@ -14,15 +14,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Tests for broken links issue management, Sphinx linkcheck parsing, and report
-generation.
+"""Tests for issue lifecycle management (triage, broken links, setup guide) and
+Sphinx linkcheck parsing and report generation.
 """
 
 from __future__ import annotations
 
 import json
+from unittest.mock import patch
 
 import pytest
+from click.testing import CliRunner
 
 from gha_utils.broken_links import (
     LinkcheckResult,
@@ -31,6 +33,7 @@ from gha_utils.broken_links import (
     get_label,
     parse_output_json,
 )
+from gha_utils.cli import setup_guide
 from gha_utils.github.issue import triage_issues
 
 
@@ -45,14 +48,19 @@ TITLE = "Broken links"
 @pytest.mark.parametrize(
     ("needed", "expected"),
     [
-        (True, (True, None, set())),
-        (False, (False, None, set())),
+        (True, (True, None, None, set())),
+        (False, (False, None, None, set())),
     ],
 )
 def test_no_matching_issues(needed, expected):
     """No issues match the title."""
     issues = [
-        {"number": 1, "title": "Other issue", "createdAt": "2025-01-01T00:00:00Z"},
+        {
+            "number": 1,
+            "title": "Other issue",
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
     ]
     assert triage_issues(issues, TITLE, needed) == expected
 
@@ -60,8 +68,8 @@ def test_no_matching_issues(needed, expected):
 @pytest.mark.parametrize(
     ("needed", "expected"),
     [
-        (True, (True, None, set())),
-        (False, (False, None, set())),
+        (True, (True, None, None, set())),
+        (False, (False, None, None, set())),
     ],
 )
 def test_empty_issues(needed, expected):
@@ -70,49 +78,157 @@ def test_empty_issues(needed, expected):
 
 
 def test_one_match_needed():
-    """Single matching issue is kept when needed."""
+    """Single matching open issue is kept when needed."""
     issues = [
-        {"number": 42, "title": TITLE, "createdAt": "2025-01-01T00:00:00Z"},
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
     ]
-    assert triage_issues(issues, TITLE, needed=True) == (True, 42, set())
+    assert triage_issues(issues, TITLE, needed=True) == (True, 42, "OPEN", set())
 
 
 def test_one_match_not_needed():
-    """Single matching issue is closed when not needed."""
+    """Single matching open issue is closed when not needed."""
     issues = [
-        {"number": 42, "title": TITLE, "createdAt": "2025-01-01T00:00:00Z"},
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
     ]
-    assert triage_issues(issues, TITLE, needed=False) == (False, None, {42})
+    assert triage_issues(issues, TITLE, needed=False) == (False, None, None, {42})
+
+
+def test_one_closed_match_needed():
+    """Single matching closed issue is returned for reopening when needed."""
+    issues = [
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "CLOSED",
+        },
+    ]
+    assert triage_issues(issues, TITLE, needed=True) == (True, 42, "CLOSED", set())
+
+
+def test_one_closed_match_not_needed():
+    """Single matching closed issue is skipped when not needed."""
+    issues = [
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "CLOSED",
+        },
+    ]
+    assert triage_issues(issues, TITLE, needed=False) == (False, None, None, set())
 
 
 def test_multiple_matches_needed():
-    """Most recent issue is kept, older ones are closed."""
+    """Most recent issue is kept, older open ones are closed."""
     issues = [
-        {"number": 10, "title": TITLE, "createdAt": "2024-06-01T00:00:00Z"},
-        {"number": 42, "title": TITLE, "createdAt": "2025-01-01T00:00:00Z"},
-        {"number": 5, "title": TITLE, "createdAt": "2024-01-01T00:00:00Z"},
+        {
+            "number": 10,
+            "title": TITLE,
+            "createdAt": "2024-06-01T00:00:00Z",
+            "state": "OPEN",
+        },
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
+        {
+            "number": 5,
+            "title": TITLE,
+            "createdAt": "2024-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
     ]
-    assert triage_issues(issues, TITLE, needed=True) == (True, 42, {10, 5})
+    assert triage_issues(issues, TITLE, needed=True) == (True, 42, "OPEN", {10, 5})
 
 
 def test_multiple_matches_not_needed():
-    """All matching issues are closed when not needed."""
+    """All open matching issues are closed when not needed."""
     issues = [
-        {"number": 10, "title": TITLE, "createdAt": "2024-06-01T00:00:00Z"},
-        {"number": 42, "title": TITLE, "createdAt": "2025-01-01T00:00:00Z"},
+        {
+            "number": 10,
+            "title": TITLE,
+            "createdAt": "2024-06-01T00:00:00Z",
+            "state": "OPEN",
+        },
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
     ]
-    assert triage_issues(issues, TITLE, needed=False) == (False, None, {10, 42})
+    assert triage_issues(issues, TITLE, needed=False) == (False, None, None, {10, 42})
+
+
+def test_multiple_matches_closed_not_needed():
+    """Already-closed issues are skipped when not needed."""
+    issues = [
+        {
+            "number": 10,
+            "title": TITLE,
+            "createdAt": "2024-06-01T00:00:00Z",
+            "state": "CLOSED",
+        },
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
+    ]
+    assert triage_issues(issues, TITLE, needed=False) == (False, None, None, {42})
 
 
 def test_mixed_titles():
     """Non-matching issues are ignored."""
     issues = [
-        {"number": 1, "title": "Other issue", "createdAt": "2025-06-01T00:00:00Z"},
-        {"number": 42, "title": TITLE, "createdAt": "2025-01-01T00:00:00Z"},
-        {"number": 10, "title": TITLE, "createdAt": "2024-06-01T00:00:00Z"},
-        {"number": 2, "title": "Another issue", "createdAt": "2025-03-01T00:00:00Z"},
+        {
+            "number": 1,
+            "title": "Other issue",
+            "createdAt": "2025-06-01T00:00:00Z",
+            "state": "OPEN",
+        },
+        {
+            "number": 42,
+            "title": TITLE,
+            "createdAt": "2025-01-01T00:00:00Z",
+            "state": "OPEN",
+        },
+        {
+            "number": 10,
+            "title": TITLE,
+            "createdAt": "2024-06-01T00:00:00Z",
+            "state": "OPEN",
+        },
+        {
+            "number": 2,
+            "title": "Another issue",
+            "createdAt": "2025-03-01T00:00:00Z",
+            "state": "OPEN",
+        },
     ]
-    assert triage_issues(issues, TITLE, needed=True) == (True, 42, {10})
+    assert triage_issues(issues, TITLE, needed=True) == (True, 42, "OPEN", {10})
+
+
+def test_state_defaults_to_open():
+    """Issues without a state field default to OPEN for backward compatibility."""
+    issues = [
+        {"number": 42, "title": TITLE, "createdAt": "2025-01-01T00:00:00Z"},
+    ]
+    assert triage_issues(issues, TITLE, needed=True) == (True, 42, "OPEN", set())
 
 
 # ---------------------------------------------------------------------------
@@ -395,3 +511,43 @@ def test_report_no_source_url_plain_text():
     # Line number should be plain text.
     assert "| 4 |" in report
     assert "[4](" not in report
+
+
+# ---------------------------------------------------------------------------
+# Setup guide CLI tests
+# ---------------------------------------------------------------------------
+
+
+@patch("gha_utils.github.issue.manage_issue_lifecycle")
+def test_setup_guide_missing_pat_opens_issue(mock_lifecycle):
+    """When PAT is missing, manage_issue_lifecycle is called with has_issues=True."""
+    runner = CliRunner()
+    result = runner.invoke(setup_guide, [])
+    assert result.exit_code == 0
+    mock_lifecycle.assert_called_once()
+    kwargs = mock_lifecycle.call_args[1]
+    assert kwargs["has_issues"] is True
+    assert kwargs["labels"] == ["🤖 ci"]
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in kwargs["title"]
+
+
+@patch("gha_utils.github.issue.manage_issue_lifecycle")
+def test_setup_guide_configured_pat_closes_issue(mock_lifecycle):
+    """When PAT is configured, manage_issue_lifecycle is called with has_issues=False."""
+    runner = CliRunner()
+    result = runner.invoke(setup_guide, ["--has-pat"])
+    assert result.exit_code == 0
+    mock_lifecycle.assert_called_once()
+    kwargs = mock_lifecycle.call_args[1]
+    assert kwargs["has_issues"] is False
+
+
+@patch("gha_utils.github.issue.manage_issue_lifecycle")
+def test_setup_guide_body_contains_template(mock_lifecycle):
+    """The body file passed to manage_issue_lifecycle contains the template."""
+    runner = CliRunner()
+    runner.invoke(setup_guide, [])
+    body_file = mock_lifecycle.call_args[1]["body_file"]
+    content = body_file.read_text(encoding="UTF-8")
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in content
+    assert "Fine-grained tokens" in content

@@ -46,22 +46,38 @@ ISSUE_AUTHOR = "github-actions[bot]"
 """GitHub username of the bot that creates and manages issues."""
 
 
-def list_open_issues() -> list[dict[str, Any]]:
-    """List open issues by the bot author.
+def list_issues() -> list[dict[str, Any]]:
+    """List all issues (open and closed) by the bot author.
 
-    :return: List of issue dicts with ``number``, ``title``, and ``createdAt``.
+    :return: List of issue dicts with ``number``, ``title``, ``createdAt``,
+        and ``state``.
     """
     output = run_gh_command([
         "issue",
         "list",
         "--state",
-        "open",
+        "all",
         "--author",
         ISSUE_AUTHOR,
         "--json",
-        "number,title,createdAt",
+        "number,title,createdAt,state",
     ])
     return json.loads(output)  # type: ignore[no-any-return]
+
+
+def list_open_issues() -> list[dict[str, Any]]:
+    """List open issues by the bot author.
+
+    Convenience wrapper around :func:`list_issues` that filters to open issues
+    only and strips the ``state`` field for backward compatibility.
+
+    :return: List of issue dicts with ``number``, ``title``, and ``createdAt``.
+    """
+    return [
+        {k: v for k, v in issue.items() if k != "state"}
+        for issue in list_issues()
+        if issue["state"] == "OPEN"
+    ]
 
 
 def close_issue(number: int, comment: str) -> None:
@@ -78,6 +94,23 @@ def close_issue(number: int, comment: str) -> None:
         comment,
     ])
     logging.info(f"Closed issue #{number}")
+
+
+def reopen_issue(number: int, comment: str = "") -> None:
+    """Reopen a previously closed issue.
+
+    :param number: The issue number to reopen.
+    :param comment: Optional comment to add when reopening.
+    """
+    args = [
+        "issue",
+        "reopen",
+        str(number),
+    ]
+    if comment:
+        args.extend(["--comment", comment])
+    run_gh_command(args)
+    logging.info(f"Reopened issue #{number}")
 
 
 def create_issue(body_file: Path, labels: list[str], title: str) -> int:
@@ -128,21 +161,25 @@ def triage_issues(
     issues: list[dict],
     title: str,
     needed: bool,
-) -> tuple[bool, int | None, set[int]]:
+) -> tuple[bool, int | None, str | None, set[int]]:
     """Triage issues matching a title for deduplication.
 
     :param issues: List of issue dicts from ``gh issue list --json
-        number,title,createdAt``.
+        number,title,createdAt,state``. The ``state`` field is optional for
+        backward compatibility; when absent it defaults to ``"OPEN"``.
     :param title: Issue title to match against.
     :param needed: Whether an issue with this title should exist.
-    :return: A tuple of ``(issue_needed, issue_to_update, issues_to_close)``.
+    :return: A tuple of ``(issue_needed, issue_to_update, issue_state,
+        issues_to_close)``.
 
     If ``needed`` is ``True``, the most recent matching issue is kept as
-    ``issue_to_update`` and all older matching issues are collected in
-    ``issues_to_close``. If ``needed`` is ``False``, all matching issues are
-    placed in ``issues_to_close``.
+    ``issue_to_update`` (with its ``issue_state``) and all older matching
+    issues are collected in ``issues_to_close``. If ``needed`` is ``False``,
+    all open matching issues are placed in ``issues_to_close`` (already-closed
+    issues are skipped).
     """
     issue_to_update: int | None = None
+    issue_state: str | None = None
     issues_to_close: set[int] = set()
 
     for issue in sorted(issues, key=itemgetter("createdAt"), reverse=True):
@@ -150,14 +187,20 @@ def triage_issues(
         if issue["title"] != title:
             logging.debug(f"{issue!r} does not match title, skip.")
             continue
+        state = issue.get("state", "OPEN")
         if needed and issue_to_update is None:
             logging.debug(f"{issue!r} is the most recent matching issue.")
             issue_to_update = issue["number"]
+            issue_state = state
         else:
-            logging.debug(f"{issue!r} is a duplicate to close.")
-            issues_to_close.add(issue["number"])
+            # Only close open issues; skip already-closed ones.
+            if state == "OPEN":
+                logging.debug(f"{issue!r} is a duplicate to close.")
+                issues_to_close.add(issue["number"])
+            else:
+                logging.debug(f"{issue!r} is already closed, skip.")
 
-    return needed, issue_to_update, issues_to_close
+    return needed, issue_to_update, issue_state, issues_to_close
 
 
 def manage_issue_lifecycle(
@@ -170,11 +213,14 @@ def manage_issue_lifecycle(
     """Manage the full issue lifecycle: list, triage, close, create/update.
 
     This function handles:
-    1. Listing open issues via ``gh issue list``.
+    1. Listing all issues (open and closed) via ``gh issue list``.
     2. Triaging matching issues (keep newest if needed, close duplicates).
-    3. Closing duplicate issues via ``gh issue close``.
-    4. Creating or updating the main issue via ``gh issue create`` or
-       ``gh issue edit``.
+    3. Closing duplicate open issues via ``gh issue close``.
+    4. Creating, updating, or reopening the main issue via ``gh issue
+       create``, ``gh issue edit``, or ``gh issue reopen``.
+
+    When ``has_issues`` is ``True`` and the most recent matching issue is
+    closed, it is reopened and updated rather than creating a duplicate.
 
     :param has_issues: Whether issues were found that warrant an open issue.
     :param body_file: Path to the file containing the issue body.
@@ -183,14 +229,16 @@ def manage_issue_lifecycle(
     :param no_issues_comment: Comment to add when closing issues because
         the condition no longer applies.
     """
-    # List open issues.
-    issues = list_open_issues()
-    logging.info(f"Found {len(issues)} open issues by {ISSUE_AUTHOR}")
+    # List all issues (open and closed).
+    issues = list_issues()
+    logging.info(f"Found {len(issues)} issues by {ISSUE_AUTHOR}")
 
     # Triage issues.
-    _, issue_to_update, issues_to_close = triage_issues(issues, title, has_issues)
+    _, issue_to_update, issue_state, issues_to_close = triage_issues(
+        issues, title, has_issues,
+    )
 
-    # Close duplicate/obsolete issues.
+    # Close duplicate/obsolete open issues.
     for issue_number in issues_to_close:
         if issue_to_update:
             comment = f"Superseded by #{issue_to_update}."
@@ -198,9 +246,12 @@ def manage_issue_lifecycle(
             comment = no_issues_comment
         close_issue(issue_number, comment)
 
-    # Create or update issue if needed.
+    # Create, update, or reopen issue if needed.
     if has_issues:
         if issue_to_update:
+            # Reopen the issue if it was closed.
+            if issue_state == "CLOSED":
+                reopen_issue(issue_to_update, comment="Condition recurred.")
             update_issue(issue_to_update, body_file)
         else:
             create_issue(body_file, labels, title=title)

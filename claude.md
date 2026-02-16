@@ -90,7 +90,7 @@ workflows/
 | `deps_graph.py`              | Generate Mermaid dependency graphs from uv lockfiles                |
 | `git_ops.py`                 | Idempotent Git operations for CI/CD contexts                        |
 | `github/__init__.py`         | GitHub CLI wrapper, Actions output formatting, and shared constants |
-| `github/issue.py`            | GitHub issue lifecycle management (list, create, update, close)    |
+| `github/issue.py`            | GitHub issue lifecycle management (list, create, update, close, reopen) |
 | `github/matrix.py`           | Generate build matrices for GitHub Actions                          |
 | `github/pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
 | `github/workflow_sync.py`    | Thin-caller generation, sync, and lint for downstream workflows     |

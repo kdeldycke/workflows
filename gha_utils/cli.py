@@ -20,6 +20,7 @@ import logging
 import os
 import re
 import sys
+import tempfile
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -59,10 +60,11 @@ from .deps_graph import (
     get_available_groups,
 )
 from .git_ops import create_and_push_tag
-from .github import Dialect, format_multiline_output
+from .github import format_multiline_output
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
+    Dialect,
     Metadata,
     get_project_name,
     is_version_bump_allowed,
@@ -1372,6 +1374,53 @@ def broken_links(
         lychee_body_file=body_file,
         sphinx_output_json=output_json,
         sphinx_source_url=source_url,
+    )
+
+
+@gha_utils.command(short_help="Manage setup guide issue lifecycle")
+@option(
+    "--has-pat",
+    is_flag=True,
+    default=False,
+    help="Whether WORKFLOW_UPDATE_GITHUB_PAT is configured.",
+)
+def setup_guide(has_pat: bool) -> None:
+    """Manage the setup guide issue for WORKFLOW_UPDATE_GITHUB_PAT.
+
+    Opens (or reopens) an issue with PAT setup instructions when the secret
+    is missing. Closes the issue when the secret is detected.
+
+    This command requires the ``gh`` CLI to be installed and authenticated.
+
+    \b
+    Examples:
+        # Secret is missing — create or reopen the setup issue
+        gha-utils setup-guide
+
+    \b
+        # Secret is configured — close the setup issue
+        gha-utils setup-guide --has-pat
+    """
+    from .github.issue import manage_issue_lifecycle
+
+    body = render_template("setup-guide")
+
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".md",
+        delete=False,
+        encoding="UTF-8",
+    ) as tmp:
+        tmp.write(body)
+        body_file = Path(tmp.name)
+
+    manage_issue_lifecycle(
+        has_issues=not has_pat,
+        body_file=body_file,
+        labels=["🤖 ci"],
+        title="Set up `WORKFLOW_UPDATE_GITHUB_PAT`"
+        " to enable workflow auto-updates",
+        no_issues_comment="PAT secret detected.",
     )
 
 
