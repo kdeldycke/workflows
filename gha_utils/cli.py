@@ -53,7 +53,7 @@ from .binary import (
 )
 from .broken_links import manage_combined_broken_links_issue
 from .checksums import update_checksums
-from .init_project import ALL_COMPONENTS, DEFAULT_REPO, INIT_CONFIGS, run_init
+from .init_project import ALL_COMPONENTS, INIT_CONFIGS, run_init
 from .changelog import Changelog
 from .deps_graph import (
     generate_dependency_graph,

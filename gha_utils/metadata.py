@@ -506,12 +506,6 @@ SHORT_SHA_LENGTH = 7
 RELEASE_COMMIT_PATTERN = re.compile(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$")
 """Pre-compiled regex pattern for identifying release commits."""
 
-NULL_SHA = "0" * 40
-"""The null SHA used by Git to represent a non-existent commit.
-
-GitHub sends this value as the ``before`` SHA when a tag is created, since there is no
-previous commit to compare against.
-"""
 
 SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
     # Autofix branches from docs.yaml that don't affect code.
