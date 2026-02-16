@@ -1027,7 +1027,9 @@ def test_gha_utils_config_defaults():
     assert metadata.config["test-plan"] is None
     assert metadata.config["gitignore-location"] == "./.gitignore"
     assert metadata.config["gitignore-extra-categories"] == []
-    assert metadata.config["gitignore-extra-content"] == "junit.xml"
+    assert metadata.config["gitignore-extra-content"] == (
+        "junit.xml\n\n# Claude Code local settings.\n.claude/settings.local.json"
+    )
     assert (
         metadata.config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
     )

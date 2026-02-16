@@ -405,6 +405,9 @@ class Config:
         default_factory=lambda: dedent(
             """
             junit.xml
+
+            # Claude Code local settings.
+            .claude/settings.local.json
             """
         ).strip()
     )
