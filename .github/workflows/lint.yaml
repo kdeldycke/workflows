@@ -83,7 +83,8 @@ jobs:
       - name: Run yamllint
         run: >
           uvx --no-progress 'yamllint==1.38.0'
-          --strict --format github --config-data "{rules: {line-length: {max: 120}}}" .
+          --strict --format github
+          --config-data "{rules: {line-length: {max: 120, allow-non-breakable-words: true}}}" .
 
   lint-zsh:
     needs:
