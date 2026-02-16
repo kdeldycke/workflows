@@ -5,28 +5,26 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add `.dev0` suffix to development versions per PEP 440. Closes #169.
-- `--version` flag appends the short git commit hash for dev versions (e.g., `5.9.2.dev0+abc1234`).
-- Add `sync-workflows` job to `autofix.yaml` for downstream repos to keep their thin-caller workflow files in sync.
-- Auto-detect version in `pr-body` from `[tool.bumpversion]` in `pyproject.toml`.
-- Fix creation of GitHub release in `create-release` job.
-- Add `Full Changelog` comparison URL link to GitHub release notes.
-- Move release notes, PR metadata block, and refresh tip to markdown templates in `gha_utils/templates/`.
-- Display auto-detected environment from extra-platforms in `debug.yaml` workflow.
-- Remove `merge-method-notice` job.
 - Add `gha-utils init` command to bootstrap repositories for reusable workflows.
-- Remove `gha-utils bundled` subcommand group.
+- Add `sync-workflows` job to `autofix.yaml` for downstream repos to keep their thin-caller workflow files in sync.
 - Add `setup-guide` job to `autofix.yaml` for user onboarding and configuration validation.
+- Add reopen support to issue lifecycle management. Previously closed issues are reopened instead of creating duplicates.
+- Add SHA-256 checksum verification for all `lychee`, `typos`, `Biome` and `labelmaker` binary downloads, with `gha-utils update-checksums` command and Renovate `postUpgradeTasks` for automatic updates.
+- Fix creation of GitHub release in `create-release` job.
+- Replace thin-wrapper `lycheeverse/lychee-action`, `crate-ci/typos` and `biomejs/setup-biome` actions by direct binary downloads for better performance and reliability.
+- Auto-detect options values from `$GITHUB_REPOSITORY` for `broken-links`, `lint-repo` and `release-prep` commands.
+- Auto-detect version in `pr-body` from `[tool.bumpversion]` in `pyproject.toml`.
+- Add `.dev0` suffix to development versions per PEP 440, with `--version` flag appending the short git commit hash for dev versions (e.g., `5.9.2.dev0+abc1234`). Closes #169.
 - Add quick start tutorial to readme.
 - Consolidate Lychee and Sphinx linkcheck broken link reports into a single "Broken links" issue.
-- Auto-detect options values from `$GITHUB_REPOSITORY` for `broken-links`, `lint-repo` and `release-prep` commands.
+- Add `Full Changelog` comparison URL link to GitHub release notes.
 - Default `mailmap-sync` destination to the source file path (in-place update) instead of stdout.
-- Replace thin-wrapper `lycheeverse/lychee-action`, `crate-ci/typos` and `biomejs/setup-biome` actions by direct binary downloads.
-- Add SHA-256 checksum verification for all `lychee`, `typos`, `Biome` and `labelmaker` binary downloads.
-- Add `gha-utils update-checksums` command and Renovate `postUpgradeTasks` to automatically update SHA-256 checksums.
-- Regroup GitHub-specific modules.
-- Add reopen support to issue lifecycle management. Previously closed issues are reopened instead of creating duplicates.
 - Enable consecutive ordered list numbering (`--number`) in mdformat.
+- Display auto-detected environment from extra-platforms in `debug.yaml` workflow.
+- Move release notes, PR metadata block, and refresh tip to markdown templates in `gha_utils/templates/`.
+- Regroup GitHub-specific modules under `gha_utils/github/`.
+- Remove `merge-method-notice` job.
+- Remove `gha-utils bundled` subcommand group.
 - Experiment with Claude agents.
 
 ## [5.9.1 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)
