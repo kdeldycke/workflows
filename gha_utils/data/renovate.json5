@@ -9,6 +9,10 @@
     // Rebase whenever main advances, not just on conflicts. A lock file maintenance
     // PR computed against a stale uv.lock baseline is outdated by definition.
     rebaseWhen: "behind-base-branch",
+    // Always recreate the branch from scratch instead of attempting a rebase.
+    // Lock file maintenance is cheap to recreate (just runs uv lock) and
+    // recreation avoids merge conflicts that block stale PRs.
+    recreateWhen: "always",
     schedule: ["at any time"],
     semanticCommits: "disabled",
     commitMessagePrefix: "[deps]",
