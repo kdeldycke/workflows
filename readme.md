@@ -13,7 +13,7 @@ This repository contains:
 
 It is designed for `uv`-based Python projects, but can be used for other projects as well. Thanks to this project, I am able to **release Python packages multiple times a day with only 2-clicks**.
 
-It takes care of:
+## What does it do?
 
 - Version bumping
 - Changelog management
@@ -29,7 +29,7 @@ It takes care of:
 - Sphinx documentation building & deployment, and `autodoc` updates
 - Label management, with file-based and content-based rules
 - Awesome list template synchronization
-- Address [GitHub Actions limitations](#GitHub-Actions-limitations)
+- Address [GitHub Actions limitations](#github-actions-limitations)
 
 Nothing is done behind your back. A PR is created every time a change is proposed, so you can inspect it before merging it.
 
@@ -170,28 +170,6 @@ jobs:
 
 > [!IMPORTANT]
 > [Concurrency is already configured](#concurrency-and-cancellation) in the reusable workflows—you don't need to re-specify it in your calling workflow.
-
-### Design
-
-- **`uv` everywhere** — All Python dependencies and CLIs are installed via [`uv`](https://github.com/astral-sh/uv) for speed and reproducibility.
-
-- **Smart job skipping** — Jobs are guarded by conditions to skip unnecessary steps: file type detection (only lint Python if `.py` files exist), branch filtering (`prepare-release` skipped for most linting), and bot detection.
-
-- **Versions pinned** — All actions, tools, and CLIs have pinned versions for stability, reproducibility, and security. See [Dependency strategy](#dependency-strategy).
-
-- **Transparency via PRs** — Autofix workflows never commit directly; they create PRs so you can review changes before merging.
-
-- **Shared metadata job** — A [`project-metadata`](#what-is-this-project-metadata-job) job runs first to extract context (files, project type, build matrices) and feed downstream jobs.
-
-- **Configurable with sensible defaults** — Workflows accept `inputs` for customization while providing defaults that work out of the box.
-
-- **Idempotent operations** — Safe to re-run: tag creation skips if already exists, version bumps have eligibility checks, PRs update existing branches.
-
-- **Graceful degradation** — Fallback tokens (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`) and `continue-on-error` for unstable targets. Job names use emoji prefixes for at-a-glance status: **✅** for stable jobs that must pass, **⁉️** for unstable jobs (e.g., experimental Python versions, unreleased platforms) that are expected to fail and won't block the workflow.
-
-- **Dogfooding** — This repository uses these workflows for itself.
-
-- **Concurrency configured** — All workflows use concurrency groups to [prevent redundant runs and save CI resources](#concurrency-and-cancellation).
 
 ### `[tool.gha-utils]` configuration
 
@@ -629,11 +607,41 @@ This job relies on the [`gha-utils metadata` command](https://github.com/kdeldyc
 >
 > But is worth it given how [GitHub Actions can be frustrating](https://nesbitt.io/2025/12/06/github-actions-package-manager.html).
 
-## Dependency strategy
+## How does it work?
 
-All dependencies in this project are pinned to specific versions to ensure stability, reproducibility, and security. This section explains the mechanisms in place.
+### `uv` everywhere
 
-### Pinning mechanisms
+All Python dependencies and CLIs are installed via [`uv`](https://github.com/astral-sh/uv) for speed and reproducibility.
+
+### Smart job skipping
+
+Jobs are guarded by conditions to skip unnecessary steps: file type detection (only lint Python if `.py` files exist), branch filtering (`prepare-release` skipped for most linting), and bot detection.
+
+### Transparency via PRs
+
+Autofix workflows never commit directly; they create PRs so you can review changes before merging.
+
+### Configurable with sensible defaults
+
+Workflows accept `inputs` for customization while providing defaults that work out of the box. Downstream projects can further customize behavior via [`[tool.gha-utils]` configuration](#toolgha-utils-configuration) in `pyproject.toml`.
+
+### Idempotent operations
+
+Safe to re-run: tag creation skips if already exists, version bumps have eligibility checks, PRs update existing branches.
+
+### Graceful degradation
+
+Fallback tokens (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`) and `continue-on-error` for unstable targets. Job names use emoji prefixes for at-a-glance status: **✅** for stable jobs that must pass, **⁉️** for unstable jobs (e.g., experimental Python versions, unreleased platforms) that are expected to fail and won't block the workflow.
+
+### Dogfooding
+
+This repository uses these workflows for itself.
+
+### Dependency strategy
+
+All dependencies are pinned to specific versions for stability, reproducibility, and security.
+
+#### Pinning mechanisms
 
 | Mechanism                   | What it pins                | How it's updated  |
 | :-------------------------- | :-------------------------- | :---------------- |
@@ -643,7 +651,7 @@ All dependencies in this project are pinned to specific versions to ensure stabi
 | Tagged workflow URLs        | Remote workflow references  | Release process   |
 | `--from . gha-utils`        | CLI from local source       | Release freeze    |
 
-### Hard-coded versions in workflows
+#### Hard-coded versions in workflows
 
 GitHub Actions and npm packages are pinned directly in YAML files:
 
@@ -657,27 +665,27 @@ Renovate's `github-actions` manager handles action updates.
 > [!WARNING]
 > For npm packages, we pin versions inline since they're used sparingly, and then update them manually when needed.
 
-### Renovate cooldowns
+#### Renovate cooldowns
 
 To avoid update fatigue, and [mitigate supply chain attacks](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns), [`renovate.json5`](https://github.com/kdeldycke/workflows/blob/main/renovate.json5) uses stabilization periods (with prime numbers to stagger updates).
 
 This ensures major updates get more scrutiny while patches flow through faster.
 
-### `uv.lock` and `--exclude-newer`
+#### `uv.lock` and `--exclude-newer`
 
 The `uv.lock` file pins all project dependencies, and Renovate keeps it in sync.
 
 The `--exclude-newer` flag ignores packages released in the last 7 days, providing a buffer against freshly-published broken releases.
 
-### Tagged workflow URLs
+#### Tagged workflow URLs
 
 Workflows in this repository are **self-referential**. The [`prepare-release`](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml) job's freeze commit rewrites workflow URL references from `main` to the release tag, ensuring released versions reference immutable URLs. The unfreeze commit reverts them back to `main` for development.
 
-## Permissions and token
+### Permissions and token
 
-As [explained above](#tagged-workflow-urls), this repository updates itself via GitHub Actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
+This repository updates itself via GitHub Actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
 
-### Why `permissions:` isn't enough
+#### Why `permissions:` isn't enough
 
 Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files:
 
@@ -707,11 +715,11 @@ error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
 > The **Settings → Actions → General → Workflow permissions** setting on your repository has no effect on this issue. Even with "Read and write permissions" enabled, the default `GITHUB_TOKEN` cannot modify workflow files—that's a hard security boundary enforced by GitHub:
 > ![](docs/assets/repo-workflow-permissions.png)
 
-### Solution: Fine-grained Personal Access Token
+#### Solution: Fine-grained Personal Access Token
 
 To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_GITHUB_PAT`. It replaces the default `secrets.GITHUB_TOKEN` [in steps that modify workflow files](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code).
 
-#### Step 1: Create the token
+##### Step 1: Create the token
 
 1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**
 
@@ -748,7 +756,7 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
 
 1. Click **Generate token** and copy the `github_pat_XXXX` value
 
-#### Step 2: Add the secret to your repository
+##### Step 2: Add the secret to your repository
 
 1. Go to your repository → **Settings → Security → Secrets and variables → Actions**
 1. Click **New repository secret**
@@ -756,7 +764,7 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
    - **Name**: `WORKFLOW_UPDATE_GITHUB_PAT`
    - **Secret**: paste the `github_pat_XXXX` token
 
-#### Step 3: Configure Dependabot settings
+##### Step 3: Configure Dependabot settings
 
 Go to your repository → **Settings → Advanced Security → Dependabot** and configure:
 
@@ -771,7 +779,7 @@ Go to your repository → **Settings → Advanced Security → Dependabot** and 
 > Keep **Dependabot alerts** enabled—these are passive notifications that Renovate reads via the API.
 > Disable all other Dependabot features since Renovate handles both security and version updates.
 
-#### Step 4: Verify it works
+##### Step 4: Verify it works
 
 Re-run your workflow. It should now update files in `.github/workflows/` without the error.
 
@@ -781,7 +789,23 @@ Re-run your workflow. It should now update files in `.github/workflows/` without
 > [!WARNING]
 > **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token before expiration, or your workflows will fail silently.
 
-## GitHub Actions limitations
+### Concurrency and cancellation
+
+All workflows use a `concurrency` directive to prevent redundant runs and save CI resources. When a new commit is pushed, any in-progress workflow runs for the same branch or PR are automatically cancelled.
+
+Workflows are grouped by:
+
+- **Pull requests**: `{workflow-name}-{pr-number}` — Multiple commits to the same PR cancel previous runs
+- **Branch pushes**: `{workflow-name}-{branch-ref}` — Multiple pushes to the same branch cancel previous runs
+
+`release.yaml` uses a stronger protection: release commits get a **unique concurrency group** based on the commit SHA, so they can never be cancelled. This ensures tagging, PyPI publishing, and GitHub release creation complete successfully.
+
+Additionally, [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) actively cancels in-progress and queued runs when a PR is closed. This complements passive concurrency groups, which only trigger cancellation when a *new* run enters the same group — closing a PR doesn't produce such an event.
+
+> [!TIP]
+> For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see [`claude.md` § Concurrency implementation](claude.md#concurrency-implementation).
+
+### GitHub Actions limitations
 
 GitHub Actions has several design limitations. This repository works around most of them:
 
@@ -802,22 +826,6 @@ GitHub Actions has several design limitations. This repository works around most
 | Branch deletion doesn't cancel runs                         | ❌ Not addressed   | Same root cause as PR close; partially mitigated by `cancel-runs.yaml` since branch deletion typically follows PR closure |
 | No native way to depend on all matrix jobs completing       | ❌ Not addressed   | GitHub limitation; use `needs:` with a summary job as workaround                                                          |
 | `actionlint` false positives for runtime env vars           | 🚫 Not addressable | Linter limitation, not GitHub's                                                                                           |
-
-## Concurrency and cancellation
-
-All workflows use a `concurrency` directive to prevent redundant runs and save CI resources. When a new commit is pushed, any in-progress workflow runs for the same branch or PR are automatically cancelled.
-
-Workflows are grouped by:
-
-- **Pull requests**: `{workflow-name}-{pr-number}` — Multiple commits to the same PR cancel previous runs
-- **Branch pushes**: `{workflow-name}-{branch-ref}` — Multiple pushes to the same branch cancel previous runs
-
-`release.yaml` uses a stronger protection: release commits get a **unique concurrency group** based on the commit SHA, so they can never be cancelled. This ensures tagging, PyPI publishing, and GitHub release creation complete successfully.
-
-Additionally, [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) actively cancels in-progress and queued runs when a PR is closed. This complements passive concurrency groups, which only trigger cancellation when a *new* run enters the same group — closing a PR doesn't produce such an event.
-
-> [!TIP]
-> For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see [`claude.md` § Concurrency implementation](claude.md#concurrency-implementation).
 
 ## Used in
 
