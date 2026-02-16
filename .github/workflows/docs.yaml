@@ -25,7 +25,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: uvx --no-progress 'gha-utils==5.10.0' metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   deploy-docs:
     name: Deploy Sphinx doc
@@ -110,7 +110,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          uvx --no-progress 'gha-utils==5.10.0' broken-links
+          uvx --no-progress --from . gha-utils broken-links
           ${{ steps.lychee_run.outputs.exit_code != '' && format(
             '--lychee-exit-code {0}',
             steps.lychee_run.outputs.exit_code) || '' }}
