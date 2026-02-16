@@ -477,7 +477,7 @@ def _init_workflows(
     workflows_dir.mkdir(parents=True, exist_ok=True)
     for filename in REUSABLE_WORKFLOWS:
         target = workflows_dir / filename
-        rel = str(target.relative_to(output_dir))
+        rel = target.relative_to(output_dir).as_posix()
         if target.exists() and not overwrite:
             result.skipped.append(rel)
             logging.debug(f"Skipped existing: {rel}")
@@ -497,7 +497,7 @@ def _init_config_files(
     """Export bundled config files for a component."""
     for source_name, rel_path in COMPONENT_FILES[component_name]:
         target = output_dir / rel_path
-        rel = str(target.relative_to(output_dir))
+        rel = target.relative_to(output_dir).as_posix()
         if target.exists() and not overwrite:
             result.skipped.append(rel)
             logging.debug(f"Skipped existing: {rel}")
@@ -516,7 +516,7 @@ def _init_changelog(
 ) -> None:
     """Create a minimal changelog.md."""
     changelog_path = output_dir / "changelog.md"
-    rel = str(changelog_path.relative_to(output_dir))
+    rel = changelog_path.relative_to(output_dir).as_posix()
     if changelog_path.exists() and not overwrite:
         result.skipped.append(rel)
         logging.debug(f"Skipped existing: {rel}")
@@ -558,7 +558,7 @@ def _fetch_extra_labels(
             continue
         filename = PurePosixPath(url).name
         target = target_dir / filename
-        rel = str(target.relative_to(output_dir))
+        rel = target.relative_to(output_dir).as_posix()
         logging.info(f"Downloading {url} -> {target}")
         urlretrieve(url, target)  # noqa: S310
         result.created.append(rel)
