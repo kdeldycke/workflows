@@ -8,6 +8,7 @@
   timeout: 80.0
   exit_code: 0
   stdout_contains: ", version"
+  # yamllint disable-line rule:line-length
   stdout_regex_fullmatch: "\x1b\\[97mgha-utils\x1b\\[0m, version \x1b\\[32m[0-9]+\\.[0-9]+\\.[0-9]+(\\.[a-z]+[0-9]+(\\+[a-f0-9]+)?)?\x1b\\[0m\n"
 
 

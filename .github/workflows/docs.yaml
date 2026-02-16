@@ -92,7 +92,8 @@ jobs:
         run: |
           curl -fsSL --output /tmp/lychee.tar.gz \
             "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.23.0/lychee-x86_64-unknown-linux-gnu.tar.gz"
-          echo "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81  /tmp/lychee.tar.gz" | sha256sum --check
+          echo "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81  /tmp/lychee.tar.gz" \
+            | sha256sum --check
           tar xzf /tmp/lychee.tar.gz -C /usr/local/bin ./lychee
       - name: Run lychee
         if: needs.project-metadata.outputs.doc_files
