@@ -11,4 +11,4 @@ Ready to be merged into `main` branch, at the discretion of the maintainers, to 
 
 1. **Click `Ready for review`** button below, to get this PR out of `Draft` mode
 
-1. **Click `Rebase and merge`** button below
+2. **Click `Rebase and merge`** button below

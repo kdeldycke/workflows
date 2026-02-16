@@ -27,6 +27,7 @@ grunt-qa handles typos, docs sync, ordering, style enforcement. You focus on wha
 ## Prose hygiene
 
 Question overly verbose prose in `CLAUDE.md` and `.claude/agents/*.md`:
+
 - Content duplicated between files — move to `CLAUDE.md`, replace with a reference
 - Wordy explanations — tighten to a single sentence
 - Redundant examples or restated rules — cut them

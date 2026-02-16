@@ -5,7 +5,7 @@
 This repository contains two main components:
 
 1. **`gha-utils` CLI** - A command-line utility for GitHub Actions workflows
-1. **Reusable GitHub workflows** - A collection of automated workflows for CI/CD
+2. **Reusable GitHub workflows** - A collection of automated workflows for CI/CD
 
 The CLI provides tools for:
 
@@ -79,30 +79,30 @@ workflows/
 
 ### `gha_utils` modules
 
-| Module                       | Purpose                                                             |
-| ---------------------------- | ------------------------------------------------------------------- |
-| `__init__.py`                | Package-wide exports                                                |
-| `__main__.py`                | Entry point for the `gha-utils` CLI                                 |
-| `binary.py`                  | Binary verification and artifact collection                         |
-| `broken_links.py`            | Broken links detection and reporting (Lychee + Sphinx linkcheck)   |
-| `changelog.py`               | Changelog parsing, updating, and release lifecycle management       |
-| `checksums.py`               | SHA-256 checksum verification and update for binary downloads       |
-| `cli.py`                     | Click-based command-line interface definitions                      |
-| `deps_graph.py`              | Generate Mermaid dependency graphs from uv lockfiles                |
-| `git_ops.py`                 | Idempotent Git operations for CI/CD contexts                        |
-| `github/__init__.py`         | GitHub CLI wrapper, Actions output formatting, and shared constants |
-| `github/issue.py`            | GitHub issue lifecycle management (list, create, update, close, reopen) |
-| `github/matrix.py`           | Generate build matrices for GitHub Actions                          |
-| `github/pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
-| `github/workflow_sync.py`    | Thin-caller generation, sync, and lint for downstream workflows     |
-| `init_project.py`            | Bundled data access, config templates, and repository initialization |
-| `lint_repo.py`               | Repository metadata consistency checks                              |
-| `mailmap.py`                 | Git `.mailmap` file synchronization with contributors               |
-| `metadata.py`                | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
-| `release_prep.py`            | Orchestrate release preparation across citation and workflow files  |
-| `renovate.py`                | Renovate prerequisites, migration, and `exclude-newer` updates      |
-| `sponsor.py`                 | Check GitHub sponsorship and label issues/PRs from sponsors         |
-| `test_plan.py`               | Run YAML-based test plans against compiled binaries                 |
+| Module                    | Purpose                                                                 |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `__init__.py`             | Package-wide exports                                                    |
+| `__main__.py`             | Entry point for the `gha-utils` CLI                                     |
+| `binary.py`               | Binary verification and artifact collection                             |
+| `broken_links.py`         | Broken links detection and reporting (Lychee + Sphinx linkcheck)        |
+| `changelog.py`            | Changelog parsing, updating, and release lifecycle management           |
+| `checksums.py`            | SHA-256 checksum verification and update for binary downloads           |
+| `cli.py`                  | Click-based command-line interface definitions                          |
+| `deps_graph.py`           | Generate Mermaid dependency graphs from uv lockfiles                    |
+| `git_ops.py`              | Idempotent Git operations for CI/CD contexts                            |
+| `github/__init__.py`      | GitHub CLI wrapper, Actions output formatting, and shared constants     |
+| `github/issue.py`         | GitHub issue lifecycle management (list, create, update, close, reopen) |
+| `github/matrix.py`        | Generate build matrices for GitHub Actions                              |
+| `github/pr_body.py`       | Generate PR body with workflow metadata for auto-created PRs            |
+| `github/workflow_sync.py` | Thin-caller generation, sync, and lint for downstream workflows         |
+| `init_project.py`         | Bundled data access, config templates, and repository initialization    |
+| `lint_repo.py`            | Repository metadata consistency checks                                  |
+| `mailmap.py`              | Git `.mailmap` file synchronization with contributors                   |
+| `metadata.py`             | Extract and combine metadata from Git, GitHub, and `pyproject.toml`     |
+| `release_prep.py`         | Orchestrate release preparation across citation and workflow files      |
+| `renovate.py`             | Renovate prerequisites, migration, and `exclude-newer` updates          |
+| `sponsor.py`              | Check GitHub sponsorship and label issues/PRs from sponsors             |
+| `test_plan.py`            | Run YAML-based test plans against compiled binaries                     |
 
 ### Workflows organization
 
@@ -367,8 +367,8 @@ Patterns that recur across sessions — watch for these proactively:
 ### Philosophy
 
 1. Create something that works (to provide business value).
-1. Create something that's beautiful (to lower maintenance costs).
-1. Work on performance.
+2. Create something that's beautiful (to lower maintenance costs).
+3. Work on performance.
 
 ### Linting and formatting
 
@@ -389,7 +389,7 @@ GitHub Actions workflows run in an environment where race conditions, eventual c
 For example, `changelog.yaml`'s `bump-versions` job needs to know the latest released version. Rather than trusting that git tags are always available:
 
 1. **Belt** — The `workflow_run` trigger ensures the job runs *after* the release workflow completes, so tags exist by then.
-1. **Suspenders** — The `is_version_bump_allowed()` function falls back to commit message parsing (`[changelog] Release vX.Y.Z`) when tags aren't found.
+2. **Suspenders** — The `is_version_bump_allowed()` function falls back to commit message parsing (`[changelog] Release vX.Y.Z`) when tags aren't found.
 
 Apply the same philosophy elsewhere: avoid single points of failure in workflow logic. If a job depends on external state (tags, published packages, API availability), add a fallback or a graceful default. When possible, make operations idempotent (e.g., `--skip-existing` on tag creation) so re-runs are safe.
 
@@ -440,7 +440,7 @@ Both `[changelog] Release` and `[changelog] Post-release` patterns must be match
 The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two commits** that must be merged via "Rebase and merge" (never squash):
 
 1. **Freeze commit** (`[changelog] Release vX.Y.Z`) — Freezes everything to the release version: finalizes the changelog date and comparison URL, removes the "unreleased" warning, freezes workflow action references to `@vX.Y.Z`, and freezes CLI invocations to a PyPI version.
-1. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.Z`) — Unfreezes for the next development cycle: reverts action references back to `@main`, reverts CLI invocations back to local source (`--from . gha-utils`), adds a new unreleased changelog section, and bumps the version to the next patch.
+2. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.Z`) — Unfreezes for the next development cycle: reverts action references back to `@main`, reverts CLI invocations back to local source (`--from . gha-utils`), adds a new unreleased changelog section, and bumps the version to the next patch.
 
 The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
 
