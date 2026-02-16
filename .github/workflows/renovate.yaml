@@ -32,17 +32,20 @@ jobs:
       - name: Regenerate bundled renovate.json5
         run: uv run --frozen --no-progress gha-utils init renovate --output-dir gha_utils/data --overwrite
 
+      - id: pr-metadata
+        run: >
+          uv run --frozen --no-progress gha-utils pr-body
+          --template sync-renovate
+          --output "$GITHUB_OUTPUT"
+
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: Sync bundled `renovate.json5`
-          title: Sync bundled `renovate.json5`
-          body: |
-            Auto-generated PR to sync `gha_utils/data/renovate.json5` with root `renovate.json5`.
-
-            The bundled file is used when `gha-utils` is installed as a package.
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
+          body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
-          branch: sync-bundled-renovate-config
+          branch: sync-renovate
 
   migrate-to-renovate:
     name: Migrate to Renovate

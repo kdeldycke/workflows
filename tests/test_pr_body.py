@@ -192,6 +192,7 @@ def test_get_template_names():
     assert "format-pyproject" in names
     assert "format-python" in names
     assert "sync-bumpversion" in names
+    assert "sync-renovate" in names
     assert "update-deps-graph" in names
     assert "update-docs" in names
     assert "update-gitignore" in names
@@ -201,7 +202,7 @@ def test_get_template_names():
     assert "pr-metadata" in names
     assert "refresh-tip" in names
     assert "setup-guide" in names
-    assert len(names) == 17
+    assert len(names) == 18
 
 
 def test_load_template_frontmatter():
@@ -450,6 +451,7 @@ def test_build_pr_body_empty_prefix(monkeypatch):
 REFERENCE_WORKFLOWS = (
     ".github/workflows/autofix.yaml",
     ".github/workflows/changelog.yaml",
+    ".github/workflows/renovate.yaml",
 )
 """Workflow files that reference PR body templates via ``--template``."""
 
