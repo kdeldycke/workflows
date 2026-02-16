@@ -147,7 +147,7 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # Cooldown period: 7-day buffer before using newly released packages.
 # Use a fixed date (not relative like "1 week") to prevent uv.lock timestamp churn.
 # This date is auto-updated by the autofix workflow when it becomes stale.
-exclude-newer = "2026-02-07T00:00:00Z"
+exclude-newer = "2026-02-09T00:00:00Z"
 # Exclude gha-utils from the cooldown period.
 exclude-newer-package = { "gha-utils" = "0 day" }
 # Package is at root level, not in "./src/".
