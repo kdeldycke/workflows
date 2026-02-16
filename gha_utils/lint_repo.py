@@ -37,7 +37,11 @@ def get_repo_metadata(repo: str) -> dict[str, str | None]:
     """
     try:
         output = run_gh_command([
-            "repo", "view", repo, "--json", "homepageUrl,description",
+            "repo",
+            "view",
+            repo,
+            "--json",
+            "homepageUrl,description",
         ])
         data = json.loads(output)
         return {

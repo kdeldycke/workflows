@@ -53,7 +53,7 @@ from .binary import (
 )
 from .broken_links import manage_combined_broken_links_issue
 from .checksums import update_checksums
-from .init_project import ALL_COMPONENTS, INIT_CONFIGS, run_init
+from .init_project import ALL_COMPONENTS, run_init
 from .changelog import Changelog
 from .deps_graph import (
     generate_dependency_graph,
@@ -180,7 +180,9 @@ def gha_utils():
     pass
 
 
-@gha_utils.command(name="init", short_help="Bootstrap a repository to use reusable workflows")
+@gha_utils.command(
+    name="init", short_help="Bootstrap a repository to use reusable workflows"
+)
 @argument(
     "components",
     nargs=-1,
@@ -282,10 +284,7 @@ def init_project(
             " in your repository settings."
         )
         echo("     See: https://github.com/kdeldycke/workflows#secrets")
-        echo(
-            "  2. If using GitHub Pages for docs,"
-            " enable it in repository settings."
-        )
+        echo("  2. If using GitHub Pages for docs, enable it in repository settings.")
         echo("  3. Commit the generated files and push.")
 
 
@@ -1442,8 +1441,7 @@ def setup_guide(has_pat: bool) -> None:
         has_issues=not has_pat,
         body_file=body_file,
         labels=["🤖 ci"],
-        title="Set up `WORKFLOW_UPDATE_GITHUB_PAT`"
-        " to enable workflow auto-updates",
+        title="Set up `WORKFLOW_UPDATE_GITHUB_PAT` to enable workflow auto-updates",
         no_issues_comment="PAT secret detected.",
     )
 
@@ -1935,6 +1933,7 @@ def pr_body(
         # With a prefix via environment variable
         GHA_PR_BODY_PREFIX="Fix formatting" gha-utils pr-body
     """
+
     def _auto_version() -> str:
         """Read current_version from bumpversion config and strip .dev suffix."""
         ver = Metadata.get_current_version()

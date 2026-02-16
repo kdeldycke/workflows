@@ -364,8 +364,7 @@ def check_dependabot_security_disabled(repo: str) -> tuple[bool, str]:
             "api",
             f"repos/{repo}",
             "--jq",
-            ".security_and_analysis.dependabot_security_updates.status "
-            '// "disabled"',
+            '.security_and_analysis.dependabot_security_updates.status // "disabled"',
         ])
         status = output.strip()
     except RuntimeError as e:
@@ -393,7 +392,9 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
     """
     try:
         run_gh_command([
-            "api", f"repos/{repo}/commits/{sha}/statuses", "--silent",
+            "api",
+            f"repos/{repo}/commits/{sha}/statuses",
+            "--silent",
         ])
         return True, "Commit statuses: token has access"
     except RuntimeError:
@@ -449,10 +450,7 @@ def check_renovate_config_exists() -> tuple[bool, str]:
     if Path("renovate.json5").exists():
         return True, "Renovate config: renovate.json5 exists"
 
-    msg = (
-        "renovate.json5 not found. "
-        "Run `gha-utils init renovate` to create it."
-    )
+    msg = "renovate.json5 not found. Run `gha-utils init renovate` to create it."
     return False, msg
 
 

@@ -376,9 +376,7 @@ FILE_COMPONENTS: dict[str, str] = {
 """Components that create files during init, with descriptions."""
 
 # Tool config components that merge into pyproject.toml.
-TOOL_COMPONENTS: dict[str, str] = {
-    k: v.description for k, v in INIT_CONFIGS.items()
-}
+TOOL_COMPONENTS: dict[str, str] = {k: v.description for k, v in INIT_CONFIGS.items()}
 """Tool config components merged into pyproject.toml during init."""
 
 ALL_COMPONENTS: dict[str, str] = {**FILE_COMPONENTS, **TOOL_COMPONENTS}
@@ -394,9 +392,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
         ("labels.toml", "labels.toml"),
     ),
-    "renovate": (
-        ("renovate.json5", "renovate.json5"),
-    ),
+    "renovate": (("renovate.json5", "renovate.json5"),),
 }
 """Bundled config files per component, with their output paths."""
 
