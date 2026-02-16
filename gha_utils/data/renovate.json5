@@ -52,6 +52,17 @@
       matchCurrentAge: "> 1 year",
       addLabels: ["⚠️ stale dependency"],
     },
+    {
+      description: "Update SHA-256 checksums after binary version bumps.",
+      matchFileNames: [".github/workflows/**"],
+      postUpgradeTasks: {
+        commands: [
+          "uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
+        ],
+        fileFilters: [".github/workflows/**"],
+        executionMode: "update",
+      },
+    },
   ],
 
   // Security updates: raise PRs immediately when vulnerabilities are detected.
