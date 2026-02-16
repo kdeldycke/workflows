@@ -18,9 +18,8 @@
 
 from __future__ import annotations
 
-import subprocess
 from datetime import date, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 
 import json
@@ -277,8 +276,8 @@ def test_yml_exists(tmp_path, monkeypatch):
 
 def test_disabled():
     """Pass when security updates disabled."""
-    with patch("gha_utils.renovate.subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(stdout="disabled\n", returncode=0)
+    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+        mock_gh.return_value = "disabled\n"
         passed, msg = check_dependabot_security_disabled("owner/repo")
         assert passed is True
         assert "disabled" in msg
@@ -286,8 +285,8 @@ def test_disabled():
 
 def test_enabled():
     """Fail when security updates enabled."""
-    with patch("gha_utils.renovate.subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(stdout="enabled\n", returncode=0)
+    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+        mock_gh.return_value = "enabled\n"
         passed, msg = check_dependabot_security_disabled("owner/repo")
         assert passed is False
         assert "enabled" in msg.lower()
@@ -295,8 +294,8 @@ def test_enabled():
 
 def test_api_failure():
     """Handle API failure gracefully."""
-    with patch("gha_utils.renovate.subprocess.run") as mock_run:
-        mock_run.side_effect = subprocess.CalledProcessError(1, "gh")
+    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+        mock_gh.side_effect = RuntimeError("gh command failed")
         passed, msg = check_dependabot_security_disabled("owner/repo")
         # Non-fatal, passes but with warning message.
         assert passed is True
@@ -304,8 +303,8 @@ def test_api_failure():
 
 def test_has_permission():
     """Pass when token has permission."""
-    with patch("gha_utils.renovate.subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=0)
+    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+        mock_gh.return_value = ""
         passed, msg = check_commit_statuses_permission("owner/repo", "abc123")
         assert passed is True
         assert "access" in msg
@@ -313,8 +312,8 @@ def test_has_permission():
 
 def test_no_permission():
     """Pass with warning when no permission (non-fatal)."""
-    with patch("gha_utils.renovate.subprocess.run") as mock_run:
-        mock_run.side_effect = subprocess.CalledProcessError(1, "gh")
+    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+        mock_gh.side_effect = RuntimeError("gh command failed")
         passed, msg = check_commit_statuses_permission("owner/repo", "abc123")
         # Non-fatal, passes but with warning.
         assert passed is True

@@ -25,8 +25,9 @@ import pytest
 from extra_platforms import ALL_IDS, is_windows
 from packaging.version import Version
 
-from gha_utils.github import NULL_SHA, Dialect
+from gha_utils.github import NULL_SHA
 from gha_utils.metadata import (
+    Dialect,
     NUITKA_BUILD_TARGETS,
     SKIP_BINARY_BUILD_BRANCHES,
     Config,
@@ -408,6 +409,7 @@ expected = {
         "gha_utils/binary.py",
         "gha_utils/broken_links.py",
         "gha_utils/changelog.py",
+        "gha_utils/checksums.py",
         "gha_utils/cli.py",
         "gha_utils/data/__init__.py",
         "gha_utils/deps_graph.py",
@@ -1025,10 +1027,7 @@ def test_gha_utils_config_defaults():
     assert metadata.config["test-plan"] is None
     assert metadata.config["gitignore-location"] == "./.gitignore"
     assert metadata.config["gitignore-extra-categories"] == []
-    assert (
-        metadata.config["gitignore-extra-content"]
-        == "junit.xml\n\n# Claude Code\n.claude/"
-    )
+    assert metadata.config["gitignore-extra-content"] == "junit.xml"
     assert (
         metadata.config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
     )

@@ -200,7 +200,8 @@ def test_get_template_names():
     assert "release-notes" in names
     assert "pr-metadata" in names
     assert "refresh-tip" in names
-    assert len(names) == 16
+    assert "setup-guide" in names
+    assert len(names) == 17
 
 
 def test_load_template_frontmatter():
@@ -276,7 +277,7 @@ def test_render_bump_version():
     result = render_template("bump-version", version="1.2.0", part="minor")
 
     assert "bump the minor part" in result
-    assert "### To bump version to v1.2.0" in result
+    assert "### To bump version to `v1.2.0`" in result
     assert "Ready for review" in result
     assert "Rebase and merge" in result
     assert "bump-versions" in result
@@ -452,7 +453,7 @@ REFERENCE_WORKFLOWS = (
 )
 """Workflow files that reference PR body templates via ``--template``."""
 
-PROGRAMMATIC_TEMPLATES = frozenset({"pr-metadata", "refresh-tip", "release-notes"})
+PROGRAMMATIC_TEMPLATES = frozenset({"pr-metadata", "refresh-tip", "release-notes", "setup-guide"})
 """Templates rendered from Python code, not via the ``--template`` CLI flag."""
 
 

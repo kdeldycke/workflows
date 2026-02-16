@@ -79,12 +79,6 @@ def _find_checksum_pairs(lines: list[str]) -> Iterator[tuple[str, int, str]]:
                     hash_match = _HASH_PATTERN.search(lines[j])
                     if hash_match:
                         yield url, j, hash_match.group()
-                        break
-                    # Hash may be on a continuation line (e.g. sha256sum --check <<< \).
-                    if j + 1 < len(lines):
-                        hash_match = _HASH_PATTERN.search(lines[j + 1])
-                        if hash_match:
-                            yield url, j + 1, hash_match.group()
                     break
 
 
