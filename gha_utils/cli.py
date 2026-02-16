@@ -1318,15 +1318,16 @@ def deps_graph(
 )
 @option(
     "--repo-name",
-    required=True,
-    help="Repository name (for label selection).",
+    default=None,
+    help="Repository name (for label selection)."
+    " Defaults to $GITHUB_REPOSITORY name component.",
 )
 def broken_links(
     lychee_exit_code: int | None,
     body_file: Path | None,
     output_json: Path | None,
     source_url: str | None,
-    repo_name: str,
+    repo_name: str | None,
 ) -> None:
     """Manage the broken links issue lifecycle.
 
@@ -1334,33 +1335,39 @@ def broken_links(
     issue. Each tool's results appear under its own heading.
 
     \b
+    In GitHub Actions, most options are auto-detected:
+    - --repo-name defaults to $GITHUB_REPOSITORY name component.
+    - --body-file defaults to ./lychee/out.md when --lychee-exit-code is set.
+    - --output-json defaults to ./docs/linkcheck/output.json if the file exists.
+    - --source-url is composed from $GITHUB_SERVER_URL, $GITHUB_REPOSITORY,
+      and $GITHUB_SHA when --output-json is set.
+
+    \b
     This command:
-    1. Validates inputs (lychee exit code must be 0 or 2 if provided).
-    2. Parses Sphinx linkcheck output.json if provided.
-    3. Builds a combined report with sections for each tool.
-    4. Lists open issues by github-actions[bot].
-    5. Triages matching "Broken links" issues (keep newest, close duplicates).
-    6. Creates or updates the main issue.
+    1. Auto-detects missing options from environment and file paths.
+    2. Validates inputs (lychee exit code must be 0 or 2 if provided).
+    3. Parses Sphinx linkcheck output.json if provided.
+    4. Builds a combined report with sections for each tool.
+    5. Lists open issues by github-actions[bot].
+    6. Triages matching "Broken links" issues (keep newest, close duplicates).
+    7. Creates or updates the main issue.
 
     This command requires the ``gh`` CLI to be installed and authenticated.
 
     \b
     Examples:
-        # Lychee only
+        # In GitHub Actions (auto-detection)
+        gha-utils broken-links --lychee-exit-code 2
+
+    \b
+        # Explicit options
         gha-utils broken-links \\
             --lychee-exit-code 2 \\
             --body-file ./lychee/out.md \\
             --repo-name "my-repo"
 
     \b
-        # Sphinx linkcheck only
-        gha-utils broken-links \\
-            --output-json ./docs/linkcheck/output.json \\
-            --repo-name "my-repo" \\
-            --source-url "https://github.com/owner/repo/blob/abc123/docs"
-
-    \b
-        # Both tools combined
+        # Both tools combined (explicit)
         gha-utils broken-links \\
             --lychee-exit-code 2 \\
             --body-file ./lychee/out.md \\

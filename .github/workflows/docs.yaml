@@ -105,11 +105,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
           uvx --no-progress --from . gha-utils broken-links
-          --repo-name "${{ github.event.repository.name }}"
           ${{ steps.lychee_run.outputs.exit_code != '' && format(
-            '--lychee-exit-code {0} --body-file ./lychee/out.md',
+            '--lychee-exit-code {0}',
             steps.lychee_run.outputs.exit_code) || '' }}
-          ${{ (fromJSON(needs.project-metadata.outputs.is_python_project)
-            && fromJSON(needs.project-metadata.outputs.is_sphinx)) && format(
-            '--output-json ./docs/linkcheck/output.json --source-url "{0}/{1}/blob/{2}/docs"',
-            github.server_url, github.repository, github.sha) || '' }}

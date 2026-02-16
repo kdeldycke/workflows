@@ -19,6 +19,7 @@
 - Add `setup-guide` job to `autofix.yaml` for user onboarding and configuration validation.
 - Add quick start tutorial to readme.
 - Consolidate Lychee and Sphinx linkcheck broken link reports into a single "Broken links" issue.
+- Auto-detect `--repo-name`, `--body-file`, `--output-json`, and `--source-url` in `broken-links` CLI from GitHub Actions environment variables and well-known file paths.
 - Extract generic issue lifecycle management into `issue.py`. Centralize `gh` CLI calls and GitHub-specific logic.
 - Regroup GitHub-specific modules.
 - Add reopen support to issue lifecycle management. Previously closed issues are reopened instead of creating duplicates.
