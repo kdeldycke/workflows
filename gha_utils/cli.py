@@ -52,7 +52,7 @@ from .binary import (
     verify_binary_arch,
 )
 from .broken_links import manage_combined_broken_links_issue
-from .init_project import ALL_COMPONENTS, INIT_CONFIGS, run_init
+from .init_project import ALL_COMPONENTS, DEFAULT_REPO, INIT_CONFIGS, run_init
 from .changelog import Changelog
 from .deps_graph import (
     generate_dependency_graph,
@@ -413,8 +413,9 @@ def changelog(ctx, source, changelog_path):
 )
 @option(
     "--update-workflows/--no-update-workflows",
-    default=False,
-    help="Update workflow URLs to use versioned tag instead of default branch.",
+    default=None,
+    help="Update workflow URLs to use versioned tag instead of default branch."
+    " Defaults to True when $GITHUB_REPOSITORY is the canonical workflows repo.",
 )
 @option(
     "--post-release",
@@ -443,6 +444,11 @@ def release_prep(
     - Remove the "[!IMPORTANT]" warning block from changelog.
     - Optionally update workflow URLs to use versioned tag.
 
+    \b
+    When running in GitHub Actions, --update-workflows is auto-detected:
+    it defaults to True when $GITHUB_REPOSITORY matches the canonical
+    workflows repository (kdeldycke/workflows).
+
     For post-release (after the release commit), use --post-release to retarget
     workflow URLs back to the default branch.
 
@@ -453,13 +459,23 @@ def release_prep(
         gha-utils release-prep
 
     \b
-        # Prepare release including workflow URL updates
-        gha-utils release-prep --update-workflows
+        # In GitHub Actions on kdeldycke/workflows (auto-detects --update-workflows)
+        gha-utils release-prep
 
     \b
         # Post-release: retarget workflows to main branch
-        gha-utils release-prep --post-release --update-workflows
+        gha-utils release-prep --post-release
     """
+    # Auto-detect --update-workflows from $GITHUB_REPOSITORY.
+    if update_workflows is None:
+        gh_repo = os.getenv("GITHUB_REPOSITORY", "")
+        update_workflows = gh_repo == DEFAULT_REPO
+        if update_workflows:
+            logging.info(
+                f"Auto-detected --update-workflows: $GITHUB_REPOSITORY={gh_repo!r}"
+                f" matches canonical repo {DEFAULT_REPO!r}"
+            )
+
     workflow_dir_path = Path(workflow_dir).resolve() if workflow_dir else None
     prep = ReleasePrep(
         changelog_path=changelog_path,
@@ -812,7 +828,7 @@ def lint(ctx, workflow_dir, repo, fatal):
 @argument(
     "destination_mailmap",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
-    default="-",
+    default=None,
 )
 @pass_context
 def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
@@ -824,16 +840,16 @@ def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
     used as initial mapping. Only missing contributors not found in this initial mapping
     are added.
 
-    The resulting updated mapping is printed to the console output. So a bare call to
-    `gha-utils mailmap-sync` is the same as a call to
-    `gha-utils mailmap-sync --source .mailmap -`.
-
-    To have the updated mapping written to a file, specify the output file like so:
-    `gha-utils mailmap-sync .mailmap`.
+    The destination defaults to the source file path (in-place update). Pass ``-``
+    explicitly to print to stdout instead.
 
     The updated results are sorted. But no attempts are made at regrouping new
     contributors. So you have to edit entries by hand to regroup them.
     """
+    # Default destination to source path (in-place update).
+    if destination_mailmap is None:
+        destination_mailmap = source
+
     mailmap = Mailmap()
 
     if source.exists():

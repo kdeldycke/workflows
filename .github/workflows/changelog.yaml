@@ -138,9 +138,7 @@ jobs:
       - name: Prepare release
         # Updates changelog and citation dates, comparison URL, and removes warning.
         # Also hard-codes version in workflow URLs for kdeldycke/workflows repository.
-        run: >-
-          uvx --no-progress --from . gha-utils release-prep
-          ${{ github.repository == 'kdeldycke/workflows' && '--update-workflows' || '' }}
+        run: uvx --no-progress --from . gha-utils release-prep
       - name: Prepare repository
         run: |
           git config --global user.name "${{ github.actor }}"
@@ -152,7 +150,7 @@ jobs:
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
         if: github.repository == 'kdeldycke/workflows'
-        run: uvx --no-progress --from . gha-utils release-prep --post-release --update-workflows
+        run: uvx --no-progress --from . gha-utils release-prep --post-release
       - name: Add new changelog entry
         run: uvx --no-progress --from . gha-utils changelog ./changelog.md
       - name: Version bump

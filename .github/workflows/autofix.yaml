@@ -353,7 +353,7 @@ jobs:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Generate .mailmap
-        run: uvx --no-progress --from . gha-utils mailmap-sync --skip-if-missing ./.mailmap
+        run: uvx --no-progress --from . gha-utils mailmap-sync --skip-if-missing
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body

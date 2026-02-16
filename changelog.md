@@ -20,6 +20,9 @@
 - Add quick start tutorial to readme.
 - Consolidate Lychee and Sphinx linkcheck broken link reports into a single "Broken links" issue.
 - Auto-detect `--repo-name`, `--body-file`, `--output-json`, and `--source-url` in `broken-links` CLI from GitHub Actions environment variables and well-known file paths.
+- Auto-detect `--repo-name` in `lint-repo` CLI from `$GITHUB_REPOSITORY`.
+- Auto-detect `--update-workflows` in `release-prep` CLI from `$GITHUB_REPOSITORY` matching the canonical workflows repository.
+- Default `mailmap-sync` destination to the source file path (in-place update) instead of stdout.
 - Extract generic issue lifecycle management into `issue.py`. Centralize `gh` CLI calls and GitHub-specific logic.
 - Regroup GitHub-specific modules.
 - Add reopen support to issue lifecycle management. Previously closed issues are reopened instead of creating duplicates.

@@ -45,7 +45,7 @@ jobs:
       - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ github.token }}
-        run: uvx --no-progress --from . gha-utils lint-repo --repo-name "${{ github.event.repository.name }}"
+        run: uvx --no-progress --from . gha-utils lint-repo
 
   lint-types:
     needs:
