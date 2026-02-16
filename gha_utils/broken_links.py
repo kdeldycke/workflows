@@ -262,13 +262,13 @@ def manage_combined_broken_links_issue(
             sphinx_source_url = f"{server_url}/{gh_repo}/blob/{sha}/docs"
             logging.info(f"Auto-composed source URL: {sphinx_source_url}")
 
-    # Validate lychee exit code.
+    # Interpret lychee exit code.
+    # Exit codes: 0 = success, 1 = unexpected failure, 2 = broken links,
+    # 3 = config error. Treat any non-zero code as "broken links found"
+    # because lychee may still write results to the output file on failure.
     lychee_has_broken = False
     if lychee_exit_code is not None:
-        if lychee_exit_code not in (0, 2):
-            msg = f"Unexpected lychee exit code: {lychee_exit_code}"
-            raise ValueError(msg)
-        lychee_has_broken = lychee_exit_code == 2
+        lychee_has_broken = lychee_exit_code != 0
         logging.info(
             f"Lychee exit code {lychee_exit_code}: "
             f"{'broken links found' if lychee_has_broken else 'no broken links'}"
