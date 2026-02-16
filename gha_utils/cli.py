@@ -52,6 +52,7 @@ from .binary import (
     verify_binary_arch,
 )
 from .broken_links import manage_combined_broken_links_issue
+from .checksums import update_checksums
 from .init_project import ALL_COMPONENTS, DEFAULT_REPO, INIT_CONFIGS, run_init
 from .changelog import Changelog
 from .deps_graph import (
@@ -1995,3 +1996,37 @@ def pr_body(
         logging.info(f"Write PR body to {output}")
 
     echo(content, file=prep_path(output))
+
+
+@gha_utils.command(short_help="Update SHA-256 checksums for binary downloads")
+@argument(
+    "workflow_file",
+    type=file_path(exists=True, readable=True, writable=True, resolve_path=True),
+)
+def update_checksums_cmd(workflow_file: Path) -> None:
+    """Update SHA-256 checksums for direct binary downloads in a workflow file.
+
+    Scans the file for GitHub release download URLs paired with
+    ``sha256sum --check`` verification lines. Downloads each binary,
+    computes the SHA-256, and replaces stale hashes in-place.
+
+    \b
+    Designed for Renovate ``postUpgradeTasks``: after a version bump changes a
+    download URL, this command downloads the new binary and updates the hash.
+
+    \b
+    Examples:
+        # Update checksums in a single workflow file
+        gha-utils update-checksums .github/workflows/docs.yaml
+
+    \b
+        # Verify all checksums are current (no output if all match)
+        gha-utils update-checksums .github/workflows/autofix.yaml
+    """
+    updated = update_checksums(workflow_file)
+    for url, old_hash, new_hash in updated:
+        echo(f"Updated: {url}")
+        echo(f"  Old: {old_hash}")
+        echo(f"  New: {new_hash}")
+    if not updated:
+        logging.info("All checksums are up to date.")

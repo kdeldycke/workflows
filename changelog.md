@@ -19,11 +19,11 @@
 - Add `setup-guide` job to `autofix.yaml` for user onboarding and configuration validation.
 - Add quick start tutorial to readme.
 - Consolidate Lychee and Sphinx linkcheck broken link reports into a single "Broken links" issue.
-- Auto-detect `--repo-name`, `--body-file`, `--output-json`, and `--source-url` in `broken-links` CLI from GitHub Actions environment variables and well-known file paths.
-- Auto-detect `--repo-name` in `lint-repo` CLI from `$GITHUB_REPOSITORY`.
-- Auto-detect `--update-workflows` in `release-prep` CLI from `$GITHUB_REPOSITORY` matching the canonical workflows repository.
+- Auto-detect options values from `$GITHUB_REPOSITORY` for `broken-links`, `lint-repo` and `release-prep` commands.
 - Default `mailmap-sync` destination to the source file path (in-place update) instead of stdout.
-- Extract generic issue lifecycle management into `issue.py`. Centralize `gh` CLI calls and GitHub-specific logic.
+- Replace thin-wrapper `lycheeverse/lychee-action`, `crate-ci/typos` and `biomejs/setup-biome` actions by direct binary downloads.
+- Add SHA-256 checksum verification for all `lychee`, `typos`, `Biome` and  `labelmaker` binary downloads.
+- Add `gha-utils update-checksums` command and Renovate `postUpgradeTasks` to automatically update SHA-256 checksums.
 - Regroup GitHub-specific modules.
 - Add reopen support to issue lifecycle management. Previously closed issues are reopened instead of creating duplicates.
 - Experiment with Claude agents.

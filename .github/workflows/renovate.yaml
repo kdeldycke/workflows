@@ -123,3 +123,9 @@ jobs:
           # Fetch all PRs, not just those created by the current bot.
           # Useful for migrating between bot accounts or taking over existing PRs.
           RENOVATE_IGNORE_PR_AUTHOR: "true"
+          # Allow the checksum update command to run as a postUpgradeTasks command.
+          # Renovate always runs from main (unfreeze commit), so the command always
+          # uses --from . (local source). The freeze/unfreeze cycle does not affect
+          # this because renovate.json5 (where the command is defined) is outside
+          # .github/workflows/ and is not subject to CLI version freezing.
+          RENOVATE_ALLOWED_COMMANDS: '["^uvx --no-progress --from \\. gha-utils update-checksums"]'

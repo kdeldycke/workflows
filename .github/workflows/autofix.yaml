@@ -208,10 +208,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
-      - name: Setup Biome
-        uses: biomejs/setup-biome@v2.7.0
-        with:
-          version: 2.3.12
+      - name: Install Biome
+        run: |
+          curl -fsSL \
+            "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%402.3.12/biome-linux-x64" \
+            --output /tmp/biome
+          echo "a5251fa687b35f8fc06d17dc0794c5b117f1667056bc9f7f268a3268a9b56b78  /tmp/biome" | sha256sum --check
+          install /tmp/biome /usr/local/bin/biome
       - name: Format JSON
         # Allow comments and trailing commas for JSONC files.
         # Biome auto-detects well-known JSONC files (tsconfig.json, etc.).
@@ -243,11 +246,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
-      - uses: crate-ci/typos@v1.42.3
-        with:
-          write_changes: true
-      - name: Remove local typos binary
-        run: rm ./typos
+      - name: Install typos
+        run: |
+          curl -fsSL \
+            "https://github.com/crate-ci/typos/releases/download/v1.42.3/typos-v1.42.3-x86_64-unknown-linux-musl.tar.gz" \
+            --output /tmp/typos.tar.gz
+          echo "e083bf917d840563e77b35b64f43924d98fcb77acb69691455099d39e347d67d  /tmp/typos.tar.gz" | sha256sum --check
+          tar xz --directory=/usr/local/bin --file=/tmp/typos.tar.gz
+      - name: Fix typos
+        run: typos --write-changes
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body

@@ -87,19 +87,25 @@ jobs:
           uv --no-progress run --frozen --all-extras --group docs --
           sphinx-build -b linkcheck ./docs ./docs/linkcheck
         continue-on-error: true
-      - uses: lycheeverse/lychee-action@v2.7.0
+      - name: Install lychee
+        if: needs.project-metadata.outputs.doc_files
+        run: |
+          curl -fsSL \
+            "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.23.0/lychee-x86_64-unknown-linux-gnu.tar.gz" \
+            --output /tmp/lychee.tar.gz
+          echo "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81  /tmp/lychee.tar.gz" | sha256sum --check
+          tar xz --directory=/usr/local/bin --file=/tmp/lychee.tar.gz
+      - name: Run lychee
         if: needs.project-metadata.outputs.doc_files
         id: lychee_run
-        with:
-          lycheeVersion: v0.23.0
-          fail: false
-          args: >
-            --hidden
-            --suggest
-            --no-progress
-            --include-fragments
-            --exclude-all-private
-            ${{ needs.project-metadata.outputs.doc_files }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          exit_code=0
+          lychee --format markdown --output ./lychee/out.md \
+            --hidden --suggest --no-progress --include-fragments --exclude-all-private \
+            ${{ needs.project-metadata.outputs.doc_files }} || exit_code=$?
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
       - name: Manage broken links issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
