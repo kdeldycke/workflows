@@ -29,6 +29,8 @@ import re
 from importlib.resources import as_file, files
 from string import Template
 
+from click_extra import TableFormat, render_table
+
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     pass
@@ -227,21 +229,23 @@ def generate_pr_metadata_block() -> str:
     )
 
     rows = [
-        "| Field | Value |",
-        "| --- | --- |",
-        f"| **Trigger** | `{event_name}` |",
-        f"| **Actor** | @{actor} |",
+        ["**Trigger**", f"`{event_name}`"],
+        ["**Actor**", f"@{actor}"],
     ]
     if triggering_actor and triggering_actor != actor:
-        rows.append(f"| **Re-run by** | @{triggering_actor} |")
+        rows.append(["**Re-run by**", f"@{triggering_actor}"])
     rows += [
-        f"| **Ref** | `{ref_name}` |",
-        (f"| **Commit** | [`{sha[:8]}`]({server_url}/{repository}/commit/{sha}) |"),
-        f"| **Job** | `{job}` |",
-        f"| **Workflow** | [`{workflow_file}`]({workflow_url}) |",
-        f"| **Run** | [#{run_number}.{run_attempt}]({run_url}) |",
+        ["**Ref**", f"`{ref_name}`"],
+        ["**Commit**", f"[`{sha[:8]}`]({server_url}/{repository}/commit/{sha})"],
+        ["**Job**", f"`{job}`"],
+        ["**Workflow**", f"[`{workflow_file}`]({workflow_url})"],
+        ["**Run**", f"[#{run_number}.{run_attempt}]({run_url})"],
     ]
-    table = "\n".join(rows)
+    table = render_table(
+        rows,
+        headers=["Field", "Value"],
+        table_format=TableFormat.GITHUB,
+    )
 
     return render_template("pr-metadata", table=table)
 

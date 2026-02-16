@@ -428,8 +428,12 @@ def test_report_single_broken_link():
     # Report is a section (no H1 heading), ready for embedding.
     assert "# Broken documentation links" not in report
     assert "## `index.rst`" in report
-    assert "| Line | URI | Info |" in report
-    assert "| 10 | https://example.com/missing | 404 Not Found |" in report
+    assert "| Line " in report
+    assert "| URI " in report
+    assert "| Info " in report
+    assert "10" in report
+    assert "https://example.com/missing" in report
+    assert "404 Not Found" in report
     # Status column should not be present.
     assert "Status" not in report
 
@@ -508,8 +512,8 @@ def test_report_no_source_url_plain_text():
     assert "## `architectures.md`" in report
     assert "## [`architectures.md`](" not in report
 
-    # Line number should be plain text.
-    assert "| 4 |" in report
+    # Line number should be plain text, not a link.
+    assert " 4 " in report
     assert "[4](" not in report
 
 

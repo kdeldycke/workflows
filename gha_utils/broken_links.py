@@ -35,6 +35,8 @@ from itertools import groupby
 from operator import attrgetter
 from pathlib import Path
 
+from click_extra import TableFormat, render_table
+
 from .github.issue import manage_issue_lifecycle
 
 TYPE_CHECKING = False
@@ -144,8 +146,7 @@ def generate_markdown_report(
         else:
             lines.append(f"## `{filename}`\n")
 
-        lines.append("| Line | URI | Info |")
-        lines.append("| ---: | --- | ---- |")
+        table_rows = []
         for result in group_list:
             # Escape pipe characters in info to avoid breaking the table.
             escaped_info = result.info.replace("|", "\\|")
@@ -154,7 +155,13 @@ def generate_markdown_report(
                 line_cell = f"[{result.lineno}]({file_url}?plain=1#L{result.lineno})"
             else:
                 line_cell = str(result.lineno)
-            lines.append(f"| {line_cell} | {result.uri} | {escaped_info} |")
+            table_rows.append([line_cell, result.uri, escaped_info])
+        lines.append(render_table(
+            table_rows,
+            headers=["Line", "URI", "Info"],
+            table_format=TableFormat.GITHUB,
+            colalign=("right", "left", "left"),
+        ))
         lines.append("")
 
     return "\n".join(lines)

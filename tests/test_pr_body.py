@@ -115,14 +115,20 @@ def test_generate_metadata_block_all_vars(monkeypatch):
 
     assert "<details>" in block
     assert "<summary><code>Workflow metadata</code></summary>" in block
-    assert "| **Trigger** | `push` |" in block
-    assert "| **Actor** | @dependabot[bot] |" in block
-    assert "| **Ref** | `main` |" in block
-    assert "| **Commit** |" in block
+    assert "**Trigger**" in block
+    assert "`push`" in block
+    assert "**Actor**" in block
+    assert "@dependabot[bot]" in block
+    assert "**Ref**" in block
+    assert "`main`" in block
+    assert "**Commit**" in block
     assert "[`abc12345`]" in block
-    assert "| **Job** | `autofix` |" in block
-    assert "| **Workflow** | [`autofix.yaml`]" in block
-    assert "| **Run** | [#42.1]" in block
+    assert "**Job**" in block
+    assert "`autofix`" in block
+    assert "**Workflow**" in block
+    assert "[`autofix.yaml`]" in block
+    assert "**Run**" in block
+    assert "[#42.1]" in block
     assert "</details>" in block
     # Same actor, no re-run row.
     assert "Re-run by" not in block
@@ -136,7 +142,8 @@ def test_generate_metadata_block_rerun(monkeypatch):
 
     block = generate_pr_metadata_block()
 
-    assert "| **Re-run by** | @admin-user |" in block
+    assert "**Re-run by**" in block
+    assert "@admin-user" in block
 
 
 def test_generate_metadata_block_minimal_vars(monkeypatch):
@@ -150,7 +157,7 @@ def test_generate_metadata_block_minimal_vars(monkeypatch):
     # Should still produce a valid details block without crashing.
     assert "<details>" in block
     assert "</details>" in block
-    assert "| **Trigger** | `` |" in block
+    assert "**Trigger**" in block
 
 
 def test_generate_refresh_tip_with_workflow_ref(monkeypatch):
