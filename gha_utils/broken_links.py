@@ -156,12 +156,14 @@ def generate_markdown_report(
             else:
                 line_cell = str(result.lineno)
             table_rows.append([line_cell, result.uri, escaped_info])
-        lines.append(render_table(
-            table_rows,
-            headers=["Line", "URI", "Info"],
-            table_format=TableFormat.GITHUB,
-            colalign=("right", "left", "left"),
-        ))
+        lines.append(
+            render_table(
+                table_rows,
+                headers=["Line", "URI", "Info"],
+                table_format=TableFormat.GITHUB,
+                colalign=("right", "left", "left"),
+            )
+        )
         lines.append("")
 
     return "\n".join(lines)
@@ -234,12 +236,11 @@ def manage_combined_broken_links_issue(
         gh_repo = os.getenv("GITHUB_REPOSITORY", "")
         if gh_repo:
             repo_name = gh_repo.split("/")[-1]
-            logging.info(f"Auto-detected repo_name={repo_name!r} from $GITHUB_REPOSITORY")
+            logging.info(
+                f"Auto-detected repo_name={repo_name!r} from $GITHUB_REPOSITORY"
+            )
     if not repo_name:
-        msg = (
-            "No repository name specified."
-            " Set --repo-name or $GITHUB_REPOSITORY."
-        )
+        msg = "No repository name specified. Set --repo-name or $GITHUB_REPOSITORY."
         raise ValueError(msg)
 
     # Auto-detect lychee body file when lychee was run.
@@ -283,7 +284,8 @@ def manage_combined_broken_links_issue(
         sphinx_has_broken = len(broken) > 0
         if sphinx_has_broken:
             sphinx_report = generate_markdown_report(
-                broken, source_url=sphinx_source_url,
+                broken,
+                source_url=sphinx_source_url,
             )
         else:
             logging.info("No broken documentation links found.")

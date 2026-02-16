@@ -545,7 +545,7 @@ def test_init_tool_configs_no_pyproject(tmp_path: Path):
 
 def test_init_version_pinned(tmp_path: Path):
     """Verify generated workflows contain the specified version pin."""
-    result = run_init(
+    run_init(
         output_dir=tmp_path,
         components=("workflows",),
         version="v5.9.1",

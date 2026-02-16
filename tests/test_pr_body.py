@@ -468,7 +468,8 @@ def _collect_template_references() -> set[str]:
 
 
 def _template_package_items(
-    *, exclude: frozenset[str] = frozenset(),
+    *,
+    exclude: frozenset[str] = frozenset(),
 ) -> list[tuple[str, str]]:
     """Return ``(filename, name)`` pairs for every file in the templates package.
 

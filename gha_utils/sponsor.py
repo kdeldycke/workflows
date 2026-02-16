@@ -220,7 +220,13 @@ def add_sponsor_label(
     resource = "pr" if is_pr else "issue"
     try:
         run_gh_command([
-            resource, "edit", str(number), "--add-label", label, "--repo", repo,
+            resource,
+            "edit",
+            str(number),
+            "--add-label",
+            label,
+            "--repo",
+            repo,
         ])
     except RuntimeError:
         logging.error(f"Failed to add label to {resource} #{number} in {repo}")

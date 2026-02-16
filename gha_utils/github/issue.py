@@ -235,7 +235,9 @@ def manage_issue_lifecycle(
 
     # Triage issues.
     _, issue_to_update, issue_state, issues_to_close = triage_issues(
-        issues, title, has_issues,
+        issues,
+        title,
+        has_issues,
     )
 
     # Close duplicate/obsolete open issues.
