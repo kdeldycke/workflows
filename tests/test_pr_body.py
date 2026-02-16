@@ -455,7 +455,12 @@ REFERENCE_WORKFLOWS = (
 )
 """Workflow files that reference PR body templates via ``--template``."""
 
-PROGRAMMATIC_TEMPLATES = frozenset({"pr-metadata", "refresh-tip", "release-notes", "setup-guide"})
+PROGRAMMATIC_TEMPLATES = frozenset({
+    "pr-metadata",
+    "refresh-tip",
+    "release-notes",
+    "setup-guide",
+})
 """Templates rendered from Python code, not via the ``--template`` CLI flag."""
 
 
