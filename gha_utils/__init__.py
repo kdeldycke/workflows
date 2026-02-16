@@ -27,7 +27,7 @@ def _dev_version() -> str:
 
     For development versions (containing ``.dev``), appends the short git
     commit hash as a PEP 440 local version identifier (e.g.,
-    ``5.10.0.dev0+abc1234``). For release versions, returns the version
+    ``5.1.0.dev0+abc1234``). For release versions, returns the version
     as-is.
     """
     if ".dev" not in __version__:
