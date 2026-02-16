@@ -32,7 +32,9 @@ jobs:
           curl -fsSL --output /tmp/lm.tar.xz \
             "https://github.com/jwodder/labelmaker/releases/download/v0.6.4/labelmaker-x86_64-unknown-linux-gnu.tar.xz"
           echo "d76f8e64f9671884dac1758fe54a28a6680c5d9bf0ffd593a2c68ba558cc49a2  /tmp/lm.tar.xz" | sha256sum --check
-          tar xJ --strip-components=1 --directory=/usr/local/bin --file=/tmp/lm.tar.xz
+          mkdir -p /tmp/lm
+          tar xJ --strip-components=1 --directory=/tmp/lm --file=/tmp/lm.tar.xz
+          mv /tmp/lm/labelmaker /usr/local/bin/labelmaker
       - name: Dump labels
         run: uvx --no-progress --from . gha-utils init labels --overwrite
       - name: Apply labels
