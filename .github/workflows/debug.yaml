@@ -43,4 +43,7 @@ jobs:
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
       - uses: astral-sh/setup-uv@v7.2.1
-      - run: uvx --no-progress 'extra-platforms==9.1.0'
+      - run: >
+          uvx --no-progress
+          --from 'extra-platforms @ git+https://github.com/kdeldycke/extra-platforms.git'
+          extra-platforms
