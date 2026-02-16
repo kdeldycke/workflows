@@ -30,8 +30,8 @@ from gha_utils.broken_links import (
     generate_markdown_report,
     get_label,
     parse_output_json,
-    triage_issues,
 )
+from gha_utils.issue import triage_issues
 
 
 TITLE = "Broken links"

@@ -25,12 +25,11 @@ import pytest
 from extra_platforms import ALL_IDS, is_windows
 from packaging.version import Version
 
+from gha_utils.github import NULL_SHA, Dialect
 from gha_utils.metadata import (
     NUITKA_BUILD_TARGETS,
-    NULL_SHA,
     SKIP_BINARY_BUILD_BRANCHES,
     Config,
-    Dialect,
     Metadata,
     get_latest_tag_version,
     get_project_name,
@@ -415,6 +414,7 @@ expected = {
         "gha_utils/git_ops.py",
         "gha_utils/github.py",
         "gha_utils/init_project.py",
+        "gha_utils/issue.py",
         "gha_utils/lint_repo.py",
         "gha_utils/mailmap.py",
         "gha_utils/matrix.py",

@@ -59,11 +59,10 @@ from .deps_graph import (
     get_available_groups,
 )
 from .git_ops import create_and_push_tag
-from .github import format_multiline_output
+from .github import Dialect, format_multiline_output
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
-    Dialect,
     Metadata,
     get_project_name,
     is_version_bump_allowed,

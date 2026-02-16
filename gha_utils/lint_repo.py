@@ -24,9 +24,8 @@ from __future__ import annotations
 
 import json
 import logging
-import subprocess
 
-from .github import AnnotationLevel, emit_annotation
+from .github import AnnotationLevel, emit_annotation, run_gh_command
 from .renovate import check_dependabot_config_absent
 
 
@@ -37,25 +36,15 @@ def get_repo_metadata(repo: str) -> dict[str, str | None]:
     :return: Dictionary with 'homepageUrl' and 'description' keys.
     """
     try:
-        result = subprocess.run(
-            [
-                "gh",
-                "repo",
-                "view",
-                repo,
-                "--json",
-                "homepageUrl,description",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        data = json.loads(result.stdout)
+        output = run_gh_command([
+            "repo", "view", repo, "--json", "homepageUrl,description",
+        ])
+        data = json.loads(output)
         return {
             "homepageUrl": data.get("homepageUrl") or None,
             "description": data.get("description") or None,
         }
-    except subprocess.CalledProcessError as e:
+    except RuntimeError as e:
         logging.error(f"Failed to fetch repo metadata: {e}")
         return {"homepageUrl": None, "description": None}
     except json.JSONDecodeError as e:

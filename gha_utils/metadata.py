@@ -322,17 +322,14 @@ from wcmatch.glob import (
 )
 
 from .changelog import Changelog
-from .github import generate_delimiter
+from .github import NULL_SHA, WorkflowEvent, generate_delimiter
 from .matrix import Matrix
 from .pr_body import render_template
 
 if sys.version_info >= (3, 11):
-    from enum import StrEnum
-
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
-    from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -620,58 +617,6 @@ FLAT_BUILD_TARGETS = [
     for target_id, target_data in NUITKA_BUILD_TARGETS.items()
 ]
 """List of build targets in a flat format, suitable for matrix inclusion."""
-
-
-class WorkflowEvent(StrEnum):
-    """Workflow events that cause a workflow to run.
-
-    `List of events
-    <https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
-    """
-
-    branch_protection_rule = "branch_protection_rule"
-    check_run = "check_run"
-    check_suite = "check_suite"
-    create = "create"
-    delete = "delete"
-    deployment = "deployment"
-    deployment_status = "deployment_status"
-    discussion = "discussion"
-    discussion_comment = "discussion_comment"
-    fork = "fork"
-    gollum = "gollum"
-    issue_comment = "issue_comment"
-    issues = "issues"
-    label = "label"
-    merge_group = "merge_group"
-    milestone = "milestone"
-    page_build = "page_build"
-    project = "project"
-    project_card = "project_card"
-    project_column = "project_column"
-    public = "public"
-    pull_request = "pull_request"
-    pull_request_comment = "pull_request_comment"
-    pull_request_review = "pull_request_review"
-    pull_request_review_comment = "pull_request_review_comment"
-    pull_request_target = "pull_request_target"
-    push = "push"
-    registry_package = "registry_package"
-    release = "release"
-    repository_dispatch = "repository_dispatch"
-    schedule = "schedule"
-    status = "status"
-    watch = "watch"
-    workflow_call = "workflow_call"
-    workflow_dispatch = "workflow_dispatch"
-    workflow_run = "workflow_run"
-
-
-class Dialect(StrEnum):
-    """Dialect in which metadata can be formatted to."""
-
-    github = "github"
-    json = "json"
 
 
 MYPY_VERSION_MIN: Final = (3, 8)
@@ -1077,8 +1022,8 @@ class Metadata:
             return None
 
         if bool(os.environ.get("GITHUB_BASE_REF")):
-            return WorkflowEvent.pull_request  # type: ignore[return-value]
-        return WorkflowEvent.push  # type: ignore[return-value]
+            return WorkflowEvent.pull_request
+        return WorkflowEvent.push
 
     @cached_property
     def event_actor(self) -> str | None:
@@ -2066,7 +2011,7 @@ class Metadata:
 
     def dump(
         self,
-        dialect: "Dialect" = Dialect.github,  # type: ignore[assignment]
+        dialect: Dialect = Dialect.github,
     ) -> str:
         """Returns all metadata in the specified format.
 

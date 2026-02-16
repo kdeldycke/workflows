@@ -1,0 +1,206 @@
+# Copyright Kevin Deldycke <kevin@deldycke.com> and contributors.
+#
+# This program is Free Software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+"""GitHub issue lifecycle management.
+
+Generic primitives for listing, creating, updating, closing, and triaging
+GitHub issues via the ``gh`` CLI. Used by :mod:`broken_links` and potentially
+other modules that manage bot-created issues.
+
+We need to manually manage the life-cycle of issues created in CI jobs because the
+``create-issue-from-file`` action blindly creates issues ad-nauseam.
+
+See:
+- https://github.com/peter-evans/create-issue-from-file/issues/298
+- https://github.com/lycheeverse/lychee-action/issues/74#issuecomment-1587089689
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from operator import itemgetter
+from pathlib import Path
+
+from .github import run_gh_command
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any
+
+
+ISSUE_AUTHOR = "github-actions[bot]"
+"""GitHub username of the bot that creates and manages issues."""
+
+
+def list_open_issues() -> list[dict[str, Any]]:
+    """List open issues by the bot author.
+
+    :return: List of issue dicts with ``number``, ``title``, and ``createdAt``.
+    """
+    output = run_gh_command([
+        "issue",
+        "list",
+        "--state",
+        "open",
+        "--author",
+        ISSUE_AUTHOR,
+        "--json",
+        "number,title,createdAt",
+    ])
+    return json.loads(output)  # type: ignore[no-any-return]
+
+
+def close_issue(number: int, comment: str) -> None:
+    """Close an issue with a comment.
+
+    :param number: The issue number to close.
+    :param comment: The comment to add when closing.
+    """
+    run_gh_command([
+        "issue",
+        "close",
+        str(number),
+        "--comment",
+        comment,
+    ])
+    logging.info(f"Closed issue #{number}")
+
+
+def create_issue(body_file: Path, labels: list[str], title: str) -> int:
+    """Create a new issue.
+
+    :param body_file: Path to the file containing the issue body.
+    :param labels: List of labels to apply.
+    :param title: Issue title.
+    :return: The created issue number.
+    """
+    args = [
+        "issue",
+        "create",
+        "--title",
+        title,
+        "--body-file",
+        str(body_file),
+    ]
+    for label in labels:
+        args.extend(["--label", label])
+
+    output = run_gh_command(args)
+    # gh issue create outputs the issue URL, extract the number from it.
+    # Format: https://github.com/owner/repo/issues/123
+    issue_url = output.strip()
+    issue_number = int(issue_url.rstrip("/").split("/")[-1])
+    logging.info(f"Created issue #{issue_number}")
+    return issue_number
+
+
+def update_issue(number: int, body_file: Path) -> None:
+    """Update an existing issue body.
+
+    :param number: The issue number to update.
+    :param body_file: Path to the file containing the new issue body.
+    """
+    run_gh_command([
+        "issue",
+        "edit",
+        str(number),
+        "--body-file",
+        str(body_file),
+    ])
+    logging.info(f"Updated issue #{number}")
+
+
+def triage_issues(
+    issues: list[dict],
+    title: str,
+    needed: bool,
+) -> tuple[bool, int | None, set[int]]:
+    """Triage issues matching a title for deduplication.
+
+    :param issues: List of issue dicts from ``gh issue list --json
+        number,title,createdAt``.
+    :param title: Issue title to match against.
+    :param needed: Whether an issue with this title should exist.
+    :return: A tuple of ``(issue_needed, issue_to_update, issues_to_close)``.
+
+    If ``needed`` is ``True``, the most recent matching issue is kept as
+    ``issue_to_update`` and all older matching issues are collected in
+    ``issues_to_close``. If ``needed`` is ``False``, all matching issues are
+    placed in ``issues_to_close``.
+    """
+    issue_to_update: int | None = None
+    issues_to_close: set[int] = set()
+
+    for issue in sorted(issues, key=itemgetter("createdAt"), reverse=True):
+        logging.debug(f"Processing {issue!r} ...")
+        if issue["title"] != title:
+            logging.debug(f"{issue!r} does not match title, skip.")
+            continue
+        if needed and issue_to_update is None:
+            logging.debug(f"{issue!r} is the most recent matching issue.")
+            issue_to_update = issue["number"]
+        else:
+            logging.debug(f"{issue!r} is a duplicate to close.")
+            issues_to_close.add(issue["number"])
+
+    return needed, issue_to_update, issues_to_close
+
+
+def manage_issue_lifecycle(
+    has_issues: bool,
+    body_file: Path,
+    labels: list[str],
+    title: str,
+    no_issues_comment: str = "No more issues.",
+) -> None:
+    """Manage the full issue lifecycle: list, triage, close, create/update.
+
+    This function handles:
+    1. Listing open issues via ``gh issue list``.
+    2. Triaging matching issues (keep newest if needed, close duplicates).
+    3. Closing duplicate issues via ``gh issue close``.
+    4. Creating or updating the main issue via ``gh issue create`` or
+       ``gh issue edit``.
+
+    :param has_issues: Whether issues were found that warrant an open issue.
+    :param body_file: Path to the file containing the issue body.
+    :param labels: Labels to apply when creating a new issue.
+    :param title: Issue title to match and create.
+    :param no_issues_comment: Comment to add when closing issues because
+        the condition no longer applies.
+    """
+    # List open issues.
+    issues = list_open_issues()
+    logging.info(f"Found {len(issues)} open issues by {ISSUE_AUTHOR}")
+
+    # Triage issues.
+    _, issue_to_update, issues_to_close = triage_issues(issues, title, has_issues)
+
+    # Close duplicate/obsolete issues.
+    for issue_number in issues_to_close:
+        if issue_to_update:
+            comment = f"Superseded by #{issue_to_update}."
+        else:
+            comment = no_issues_comment
+        close_issue(issue_number, comment)
+
+    # Create or update issue if needed.
+    if has_issues:
+        if issue_to_update:
+            update_issue(issue_to_update, body_file)
+        else:
+            create_issue(body_file, labels, title=title)

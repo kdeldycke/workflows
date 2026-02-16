@@ -33,29 +33,13 @@ import json
 import logging
 import os
 from functools import lru_cache
-from pathlib import Path
-from subprocess import run
+
+from .github import get_github_event, run_gh_command
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Any
-
-
-@lru_cache(maxsize=1)
-def get_github_event() -> dict[str, Any]:
-    """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
-
-    :return: The parsed event payload, or empty dict if not available.
-    """
-    event_path = os.environ.get("GITHUB_EVENT_PATH")
-    if not event_path:
-        return {}
-    event_file = Path(event_path)
-    if not event_file.exists():
-        logging.warning(f"Event file not found: {event_path}")
-        return {}
-    return json.loads(event_file.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
 
 def get_default_owner() -> str | None:
@@ -138,18 +122,12 @@ def _run_graphql_query(query: str, owner: str, cursor: str | None = None) -> Any
     :return: Parsed JSON response from the API.
     :raises RuntimeError: If the gh CLI command fails.
     """
-    cmd = ["gh", "api", "graphql", "-f", f"query={query}", "-f", f"owner={owner}"]
+    args = ["api", "graphql", "-f", f"query={query}", "-f", f"owner={owner}"]
     if cursor:
-        cmd.extend(["-f", f"cursor={cursor}"])
+        args.extend(["-f", f"cursor={cursor}"])
 
-    logging.debug(f"Running: {' '.join(cmd)}")
-    process = run(cmd, capture_output=True, encoding="UTF-8")
-
-    if process.returncode:
-        logging.debug(f"GraphQL query failed: {process.stderr}")
-        raise RuntimeError(process.stderr)
-
-    return json.loads(process.stdout)
+    output = run_gh_command(args)
+    return json.loads(output)
 
 
 def _iter_sponsors(owner: str, query: str, data_path: str) -> Iterator[str]:
@@ -240,13 +218,12 @@ def add_sponsor_label(
     :return: True if label was added successfully, False otherwise.
     """
     resource = "pr" if is_pr else "issue"
-    cmd = ["gh", resource, "edit", str(number), "--add-label", label, "--repo", repo]
-
-    logging.debug(f"Running: {' '.join(cmd)}")
-    process = run(cmd, capture_output=True, encoding="UTF-8")
-
-    if process.returncode:
-        logging.error(f"Failed to add label: {process.stderr}")
+    try:
+        run_gh_command([
+            resource, "edit", str(number), "--add-label", label, "--repo", repo,
+        ])
+    except RuntimeError:
+        logging.error(f"Failed to add label to {resource} #{number} in {repo}")
         return False
 
     logging.info(f"Added {label!r} label to {resource} #{number} in {repo}")

@@ -26,7 +26,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
@@ -34,7 +33,7 @@ from pathlib import Path
 
 from click_extra import TableFormat, render_table
 
-from .github import AnnotationLevel, emit_annotation
+from .github import AnnotationLevel, emit_annotation, run_gh_command
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -361,21 +360,15 @@ def check_dependabot_security_disabled(repo: str) -> tuple[bool, str]:
     :return: Tuple of (passed, message).
     """
     try:
-        result = subprocess.run(
-            [
-                "gh",
-                "api",
-                f"repos/{repo}",
-                "--jq",
-                ".security_and_analysis.dependabot_security_updates.status "
-                '// "disabled"',
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        status = result.stdout.strip()
-    except subprocess.CalledProcessError as e:
+        output = run_gh_command([
+            "api",
+            f"repos/{repo}",
+            "--jq",
+            ".security_and_analysis.dependabot_security_updates.status "
+            '// "disabled"',
+        ])
+        status = output.strip()
+    except RuntimeError as e:
         logging.warning(f"Failed to check Dependabot security status: {e}")
         return True, "Could not verify Dependabot security updates status."
 
@@ -399,13 +392,11 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
     :return: Tuple of (passed, message). This check never fails fatally.
     """
     try:
-        subprocess.run(
-            ["gh", "api", f"repos/{repo}/commits/{sha}/statuses", "--silent"],
-            capture_output=True,
-            check=True,
-        )
+        run_gh_command([
+            "api", f"repos/{repo}/commits/{sha}/statuses", "--silent",
+        ])
         return True, "Commit statuses: token has access"
-    except subprocess.CalledProcessError:
+    except RuntimeError:
         msg = (
             "Cannot verify commit statuses permission. "
             "Ensure the token has 'Commit statuses: Read and Write' permission."

@@ -14,20 +14,88 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""GitHub Actions utilities.
+"""GitHub Actions and CLI utilities.
 
-This module provides utilities for working with GitHub Actions, including
-output formatting for ``$GITHUB_OUTPUT`` and workflow annotations.
+This module provides utilities for working with GitHub Actions (output
+formatting, workflow annotations) and a generic wrapper for the ``gh`` CLI.
+
+It also houses GitHub-specific constants and enums that are shared across
+multiple modules.
 """
 
 from __future__ import annotations
 
+import json
+import logging
+import os
+import sys
 from enum import Enum
+from functools import lru_cache
+from pathlib import Path
 from random import randint
+from subprocess import run
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Any, Literal
+
+
+NULL_SHA = "0" * 40
+"""The null SHA used by Git to represent a non-existent commit.
+
+GitHub sends this value as the ``before`` SHA when a tag is created, since there is no
+previous commit to compare against.
+"""
+
+
+class WorkflowEvent(StrEnum):
+    """Workflow events that cause a workflow to run.
+
+    `List of events
+    <https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
+    """
+
+    branch_protection_rule = "branch_protection_rule"
+    check_run = "check_run"
+    check_suite = "check_suite"
+    create = "create"
+    delete = "delete"
+    deployment = "deployment"
+    deployment_status = "deployment_status"
+    discussion = "discussion"
+    discussion_comment = "discussion_comment"
+    fork = "fork"
+    gollum = "gollum"
+    issue_comment = "issue_comment"
+    issues = "issues"
+    label = "label"
+    merge_group = "merge_group"
+    milestone = "milestone"
+    page_build = "page_build"
+    project = "project"
+    project_card = "project_card"
+    project_column = "project_column"
+    public = "public"
+    pull_request = "pull_request"
+    pull_request_comment = "pull_request_comment"
+    pull_request_review = "pull_request_review"
+    pull_request_review_comment = "pull_request_review_comment"
+    pull_request_target = "pull_request_target"
+    push = "push"
+    registry_package = "registry_package"
+    release = "release"
+    repository_dispatch = "repository_dispatch"
+    schedule = "schedule"
+    status = "status"
+    watch = "watch"
+    workflow_call = "workflow_call"
+    workflow_dispatch = "workflow_dispatch"
+    workflow_run = "workflow_run"
 
 
 class AnnotationLevel(Enum):
@@ -36,6 +104,24 @@ class AnnotationLevel(Enum):
     ERROR = "error"
     WARNING = "warning"
     NOTICE = "notice"
+
+
+def run_gh_command(args: list[str]) -> str:
+    """Run a ``gh`` CLI command and return stdout.
+
+    :param args: Command arguments to pass to ``gh``.
+    :return: The stdout output from the command.
+    :raises RuntimeError: If the command fails.
+    """
+    cmd = ["gh", *args]
+    logging.debug(f"Running: {' '.join(cmd)}")
+    process = run(cmd, capture_output=True, encoding="UTF-8")
+
+    if process.returncode:
+        logging.debug(f"gh command failed: {process.stderr}")
+        raise RuntimeError(process.stderr)
+
+    return process.stdout
 
 
 def generate_delimiter() -> str:
@@ -94,3 +180,19 @@ def emit_annotation(
     if isinstance(level, str):
         level = AnnotationLevel(level)
     print(f"::{level.value}::{message}")
+
+
+@lru_cache(maxsize=1)
+def get_github_event() -> dict[str, Any]:
+    """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
+
+    :return: The parsed event payload, or empty dict if not available.
+    """
+    event_path = os.environ.get("GITHUB_EVENT_PATH")
+    if not event_path:
+        return {}
+    event_file = Path(event_path)
+    if not event_file.exists():
+        logging.warning(f"Event file not found: {event_path}")
+        return {}
+    return json.loads(event_file.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
