@@ -22,7 +22,7 @@
 - Auto-detect options values from `$GITHUB_REPOSITORY` for `broken-links`, `lint-repo` and `release-prep` commands.
 - Default `mailmap-sync` destination to the source file path (in-place update) instead of stdout.
 - Replace thin-wrapper `lycheeverse/lychee-action`, `crate-ci/typos` and `biomejs/setup-biome` actions by direct binary downloads.
-- Add SHA-256 checksum verification for all `lychee`, `typos`, `Biome` and  `labelmaker` binary downloads.
+- Add SHA-256 checksum verification for all `lychee`, `typos`, `Biome` and `labelmaker` binary downloads.
 - Add `gha-utils update-checksums` command and Renovate `postUpgradeTasks` to automatically update SHA-256 checksums.
 - Regroup GitHub-specific modules.
 - Add reopen support to issue lifecycle management. Previously closed issues are reopened instead of creating duplicates.

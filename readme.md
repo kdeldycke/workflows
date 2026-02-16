@@ -723,9 +723,9 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
 
 1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**
 
-1. Click **Generate new token**
+2. Click **Generate new token**
 
-1. Configure:
+3. Configure:
 
    | Field                 | Value                                                                                    |
    | :-------------------- | :--------------------------------------------------------------------------------------- |
@@ -733,7 +733,7 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
    | **Expiration**        | Choose based on your security policy                                                     |
    | **Repository access** | Select **Only select repositories** and choose the repos that need workflow self-updates |
 
-1. Click **Add permissions**:
+4. Click **Add permissions**:
 
    | Permission            | Access                  |
    | :-------------------- | :---------------------- |
@@ -754,13 +754,13 @@ To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_
    >
    > The **Issues** permission is required by Renovate to create and update the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) issue.
 
-1. Click **Generate token** and copy the `github_pat_XXXX` value
+5. Click **Generate token** and copy the `github_pat_XXXX` value
 
 ##### Step 2: Add the secret to your repository
 
 1. Go to your repository → **Settings → Security → Secrets and variables → Actions**
-1. Click **New repository secret**
-1. Set:
+2. Click **New repository secret**
+3. Set:
    - **Name**: `WORKFLOW_UPDATE_GITHUB_PAT`
    - **Secret**: paste the `github_pat_XXXX` token
 

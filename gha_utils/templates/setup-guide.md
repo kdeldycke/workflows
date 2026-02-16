@@ -3,17 +3,20 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
 ### Create the token
 
 1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**.
+
 2. Click **Generate new token**.
+
 3. Under **Repository access**, select this repository.
+
 4. Add these permissions:
 
-   | Permission | Access |
-   | :--- | :--- |
+   | Permission          | Access         |
+   | :------------------ | :------------- |
    | **Commit statuses** | Read and Write |
-   | **Contents** | Read and Write |
-   | **Metadata** | Read-only |
-   | **Pull requests** | Read and Write |
-   | **Workflows** | Read and Write |
+   | **Contents**        | Read and Write |
+   | **Metadata**        | Read-only      |
+   | **Pull requests**   | Read and Write |
+   | **Workflows**       | Read and Write |
 
 5. Click **Generate token** and copy it.
 
