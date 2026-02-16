@@ -475,7 +475,7 @@ def _init_workflows(
 ) -> None:
     """Generate thin-caller workflow files."""
     # Lazy import to avoid circular dependency with workflow_sync.
-    from .workflow_sync import REUSABLE_WORKFLOWS, generate_thin_caller
+    from .github.workflow_sync import REUSABLE_WORKFLOWS, generate_thin_caller
 
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)

@@ -24,7 +24,7 @@ import pytest
 import yaml
 
 from gha_utils.github import AnnotationLevel
-from gha_utils.workflow_sync import (
+from gha_utils.github.workflow_sync import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,
     NON_REUSABLE_WORKFLOWS,

@@ -72,35 +72,36 @@ workflows/
 ├── docs/              # Assets (images, Mermaid diagrams)
 ├── gha_utils/         # Python CLI package (see module table below)
 │   ├── data/          # Bundled configuration files
+│   ├── github/        # GitHub platform modules (subpackage)
 │   └── templates/     # PR body markdown templates
 └── tests/             # Test suite
 ```
 
 ### `gha_utils` modules
 
-| Module                | Purpose                                                             |
-| --------------------- | ------------------------------------------------------------------- |
-| `__init__.py`         | Package-wide exports                                                |
-| `__main__.py`         | Entry point for the `gha-utils` CLI                                 |
-| `binary.py`           | Binary verification and artifact collection                         |
-| `broken_links.py`     | Broken links detection and reporting (Lychee + Sphinx linkcheck)   |
-| `changelog.py`        | Changelog parsing, updating, and release lifecycle management       |
-| `cli.py`              | Click-based command-line interface definitions                      |
-| `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
-| `git_ops.py`          | Idempotent Git operations for CI/CD contexts                        |
-| `github.py`           | GitHub CLI wrapper, Actions output formatting, and shared constants |
-| `init_project.py`     | Bundled data access, config templates, and repository initialization |
-| `issue.py`            | GitHub issue lifecycle management (list, create, update, close)    |
-| `lint_repo.py`        | Repository metadata consistency checks                              |
-| `mailmap.py`          | Git `.mailmap` file synchronization with contributors               |
-| `matrix.py`           | Generate build matrices for GitHub Actions                          |
-| `metadata.py`         | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
-| `pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
-| `release_prep.py`     | Orchestrate release preparation across citation and workflow files  |
-| `renovate.py`         | Renovate prerequisites, migration, and `exclude-newer` updates      |
-| `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |
-| `test_plan.py`        | Run YAML-based test plans against compiled binaries                 |
-| `workflow_sync.py`    | Thin-caller generation, sync, and lint for downstream workflows     |
+| Module                       | Purpose                                                             |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `__init__.py`                | Package-wide exports                                                |
+| `__main__.py`                | Entry point for the `gha-utils` CLI                                 |
+| `binary.py`                  | Binary verification and artifact collection                         |
+| `broken_links.py`            | Broken links detection and reporting (Lychee + Sphinx linkcheck)   |
+| `changelog.py`               | Changelog parsing, updating, and release lifecycle management       |
+| `cli.py`                     | Click-based command-line interface definitions                      |
+| `deps_graph.py`              | Generate Mermaid dependency graphs from uv lockfiles                |
+| `git_ops.py`                 | Idempotent Git operations for CI/CD contexts                        |
+| `github/__init__.py`         | GitHub CLI wrapper, Actions output formatting, and shared constants |
+| `github/issue.py`            | GitHub issue lifecycle management (list, create, update, close)    |
+| `github/matrix.py`           | Generate build matrices for GitHub Actions                          |
+| `github/pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
+| `github/workflow_sync.py`    | Thin-caller generation, sync, and lint for downstream workflows     |
+| `init_project.py`            | Bundled data access, config templates, and repository initialization |
+| `lint_repo.py`               | Repository metadata consistency checks                              |
+| `mailmap.py`                 | Git `.mailmap` file synchronization with contributors               |
+| `metadata.py`                | Extract and combine metadata from Git, GitHub, and `pyproject.toml` |
+| `release_prep.py`            | Orchestrate release preparation across citation and workflow files  |
+| `renovate.py`                | Renovate prerequisites, migration, and `exclude-newer` updates      |
+| `sponsor.py`                 | Check GitHub sponsorship and label issues/PRs from sponsors         |
+| `test_plan.py`               | Run YAML-based test plans against compiled binaries                 |
 
 ### Workflows organization
 

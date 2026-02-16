@@ -34,7 +34,7 @@ from itertools import groupby
 from operator import attrgetter
 from pathlib import Path
 
-from .issue import manage_issue_lifecycle
+from .github.issue import manage_issue_lifecycle
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:

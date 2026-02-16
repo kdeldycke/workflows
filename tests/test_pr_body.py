@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-from gha_utils.pr_body import (
+from gha_utils.github.pr_body import (
     _parse_frontmatter,
     _unescape_dollars,
     build_pr_body,

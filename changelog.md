@@ -20,6 +20,7 @@
 - Add quick start tutorial to readme.
 - Consolidate Lychee and Sphinx linkcheck broken link reports into a single "Broken links" issue.
 - Extract generic issue lifecycle management into `issue.py`. Centralize `gh` CLI calls and GitHub-specific logic.
+- Move GitHub-specific modules (`issue`, `matrix`, `pr_body`, `workflow_sync`) into `gha_utils/github/` subpackage.
 - Experiment with Claude agents.
 
 ## [5.9.1 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)

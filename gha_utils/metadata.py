@@ -323,8 +323,8 @@ from wcmatch.glob import (
 
 from .changelog import Changelog
 from .github import NULL_SHA, WorkflowEvent, generate_delimiter
-from .matrix import Matrix
-from .pr_body import render_template
+from .github.matrix import Matrix
+from .github.pr_body import render_template
 
 if sys.version_info >= (3, 11):
     import tomllib

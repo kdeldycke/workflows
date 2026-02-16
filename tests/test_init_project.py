@@ -35,7 +35,7 @@ from gha_utils.init_project import (
     init_config,
     run_init,
 )
-from gha_utils.workflow_sync import REUSABLE_WORKFLOWS
+from gha_utils.github.workflow_sync import REUSABLE_WORKFLOWS
 
 if sys.version_info >= (3, 11):
     import tomllib

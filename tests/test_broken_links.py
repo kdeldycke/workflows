@@ -31,7 +31,7 @@ from gha_utils.broken_links import (
     get_label,
     parse_output_json,
 )
-from gha_utils.issue import triage_issues
+from gha_utils.github.issue import triage_issues
 
 
 TITLE = "Broken links"

@@ -68,7 +68,7 @@ from .metadata import (
     is_version_bump_allowed,
     load_gha_utils_config,
 )
-from .pr_body import (
+from .github.pr_body import (
     _repo_url,
     build_pr_body,
     generate_pr_metadata_block,
@@ -98,7 +98,7 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
-from .workflow_sync import (
+from .github.workflow_sync import (
     DEFAULT_REPO,
     DEFAULT_VERSION,
     WorkflowFormat,

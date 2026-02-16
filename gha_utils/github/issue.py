@@ -35,7 +35,7 @@ import logging
 from operator import itemgetter
 from pathlib import Path
 
-from .github import run_gh_command
+from . import run_gh_command
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
