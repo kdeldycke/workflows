@@ -227,6 +227,8 @@ def generate_pr_metadata_block() -> str:
     )
 
     rows = [
+        "| Field | Value |",
+        "| --- | --- |",
         f"| **Trigger** | `{event_name}` |",
         f"| **Actor** | @{actor} |",
     ]
