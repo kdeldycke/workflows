@@ -6,6 +6,6 @@ args: [table]
 
 | Field   | Value |
 | ------- | ----- |
-| \$table |       |
+\$table
 
 </details>
