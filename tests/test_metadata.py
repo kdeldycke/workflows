@@ -546,7 +546,7 @@ expected = {
     "package_name": "gha-utils",
     "project_description": "🧩 CLI for GitHub Actions + reusable workflows",
     "mypy_params": "--python-version 3.10",
-    "current_version": regex(r"[0-9\.]+"),
+    "current_version": regex(r"[0-9\.]+(\.dev[0-9]+)?"),
     # released_version is None during development, but contains a version string
     # on release branches (e.g., "5.5.0" when a "[changelog] Release v5.5.0"
     # commit exists).
@@ -692,7 +692,7 @@ expected = {
             {
                 "commit": regex(r"[a-z0-9]+"),
                 "short_sha": regex(r"[a-z0-9]+"),
-                "current_version": regex(r"[0-9\.]+"),
+                "current_version": regex(r"[0-9\.]+(\.dev[0-9]+)?"),
             },
             # At least one bin_name entry per OS (varies by commit count).
             {
