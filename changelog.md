@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.10.0.dev0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.9.1...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.10.0 (2026-02-16)](https://github.com/kdeldycke/workflows/compare/v5.9.1...v5.10.0)
 
 - Add `gha-utils init` command to bootstrap repositories for reusable workflows.
 - Add `sync-workflows` job to `autofix.yaml` for downstream repos to keep their thin-caller workflow files in sync.
