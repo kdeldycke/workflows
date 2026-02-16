@@ -14,42 +14,46 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Bundled data files and configuration templates.
+"""Bundled data files, configuration templates, and repository initialization.
 
-This module provides a unified interface for accessing bundled data files
-from ``gha_utils/data/``. All files can be exported via ``gha-utils bundled export``.
+Provides a unified interface for accessing bundled data files from
+``gha_utils/data/`` and orchestrates repository bootstrapping via
+``gha-utils init``.
 
-Exportable files (``gha-utils bundled export <type>``):
+Available components (``gha-utils init <component>``):
 
-- ``ruff`` - Ruff linter/formatter configuration
-- ``bumpversion`` - bump-my-version configuration
-- ``renovate.json5`` - Renovate dependency update configuration
-- ``labels`` - Label definitions for labelmaker
-- ``labeller-file-based`` - Rules for actions/labeler
-- ``labeller-content-based`` - Rules for github/issue-labeler
-- ``autofix.yaml``, ``autolock.yaml``, ``cancel-runs.yaml``, ``changelog.yaml``,
-  ``debug.yaml``, ``docs.yaml``, ``labels.yaml``, ``lint.yaml``, ``release.yaml``,
-  ``renovate.yaml``, ``tests.yaml`` - GitHub Actions workflow templates
-
-Initializable configs (``gha-utils bundled init <type>``):
-
-Only pyproject.toml-mergeable configs support ``init``:
-
-- ``ruff`` - Merges ``[tool.ruff]`` section
-- ``bumpversion`` - Merges ``[tool.bumpversion]`` section
+- ``workflows`` - Thin-caller workflow files
+- ``labels`` - Label definitions (labels.toml + labeller rules)
+- ``renovate`` - Renovate dependency update configuration (renovate.json5)
+- ``changelog`` - Minimal changelog.md
+- ``ruff`` - Merges ``[tool.ruff]`` into pyproject.toml
+- ``pytest`` - Merges ``[tool.pytest]`` into pyproject.toml
+- ``mypy`` - Merges ``[tool.mypy]`` into pyproject.toml
+- ``bumpversion`` - Merges ``[tool.bumpversion]`` into pyproject.toml
 """
 
 from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib.resources import as_file, files
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from urllib.request import urlretrieve
+
+from . import __version__
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+DEFAULT_REPO: str = "kdeldycke/workflows"
+"""Default upstream repository for reusable workflows."""
+
+
+# ---------------------------------------------------------------------------
+# Bundled data access
+# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -133,9 +137,6 @@ INIT_CONFIGS: dict[str, InitConfig] = {
     ),
 }
 
-# Backwards compatibility alias.
-CONFIG_TYPES = INIT_CONFIGS
-
 
 def get_data_content(filename: str) -> str:
     """Get the content of a bundled data file.
@@ -215,19 +216,9 @@ def export_content(filename: str) -> str:
     return get_data_content(filename)
 
 
-def get_default_output_path(filename: str) -> str | None:
-    """Get the default output path for an exportable file.
-
-    :param filename: The filename (e.g., "labels.toml", "release.yaml").
-    :return: Default output path, or None if stdout is the default.
-    :raises ValueError: If the file is not in the registry.
-    """
-    if filename not in EXPORTABLE_FILES:
-        supported = ", ".join(EXPORTABLE_FILES.keys())
-        msg = f"Unknown file: {filename!r}. Supported: {supported}"
-        raise ValueError(msg)
-
-    return EXPORTABLE_FILES[filename]
+# ---------------------------------------------------------------------------
+# pyproject.toml config merging
+# ---------------------------------------------------------------------------
 
 
 def _to_pyproject_format(template: str, tool_section: str) -> str:
@@ -361,92 +352,241 @@ def _find_insertion_point(content: str, config: InitConfig) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Backwards compatibility aliases (deprecated)
+# Repository initialization
 # ---------------------------------------------------------------------------
 
 
-def get_bumpversion_content() -> str:
-    """Get the content of the bumpversion.toml file.
+def default_version_pin() -> str:
+    """Derive the default version pin from ``__version__``.
 
-    .. deprecated::
-        Use ``export_content("bumpversion.toml")`` instead.
+    Strips any ``.dev0`` suffix and prefixes with ``v``. For example,
+    ``"5.10.0.dev0"`` becomes ``"v5.10.0"``.
     """
-    return export_content("bumpversion.toml")
+    version = re.sub(r"\.dev\d*$", "", __version__)
+    return f"v{version}"
 
 
-def merge_bumpversion_config(pyproject_path: Path | None = None) -> str | None:
-    """Merge the bumpversion template into pyproject.toml.
+# Components that generate files (not tool config merges).
+FILE_COMPONENTS: dict[str, str] = {
+    "changelog": "Minimal changelog.md",
+    "labels": "Label config files (labels.toml + labeller rules)",
+    "renovate": "Renovate config (renovate.json5)",
+    "workflows": "Thin-caller workflow files",
+}
+"""Components that create files during init, with descriptions."""
 
-    .. deprecated::
-        Use ``init_config("bumpversion", pyproject_path)`` instead.
+# Tool config components that merge into pyproject.toml.
+TOOL_COMPONENTS: dict[str, str] = {
+    k: v.description for k, v in INIT_CONFIGS.items()
+}
+"""Tool config components merged into pyproject.toml during init."""
+
+ALL_COMPONENTS: dict[str, str] = {**FILE_COMPONENTS, **TOOL_COMPONENTS}
+"""All available init components."""
+
+DEFAULT_COMPONENTS: tuple[str, ...] = tuple(sorted(FILE_COMPONENTS.keys()))
+"""Components included when no explicit selection is made."""
+
+# Maps component names to (source filename, relative output path) tuples.
+COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
+    "labels": (
+        ("labeller-content-based.yaml", ".github/labeller-content-based.yaml"),
+        ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
+        ("labels.toml", "labels.toml"),
+    ),
+    "renovate": (
+        ("renovate.json5", "renovate.json5"),
+    ),
+}
+"""Bundled config files per component, with their output paths."""
+
+
+@dataclass
+class InitResult:
+    """Result of a repository initialization run."""
+
+    created: list[str] = field(default_factory=list)
+    """Relative paths of created files."""
+
+    skipped: list[str] = field(default_factory=list)
+    """Relative paths of skipped (already existing) files."""
+
+    warnings: list[str] = field(default_factory=list)
+    """Warning messages emitted during initialization."""
+
+
+def run_init(
+    output_dir: Path,
+    components: Sequence[str] = (),
+    version: str | None = None,
+    repo: str = DEFAULT_REPO,
+    overwrite: bool = False,
+) -> InitResult:
+    """Bootstrap a repository for use with ``kdeldycke/workflows``.
+
+    Creates thin-caller workflow files, exports configuration files, and
+    generates a minimal ``changelog.md`` if missing. By default, existing
+    files are skipped; use ``overwrite=True`` to replace them.
+
+    :param output_dir: Root directory of the target repository.
+    :param components: Components to initialize. Empty means all defaults.
+    :param version: Version pin for upstream workflows (e.g., ``v5.10.0``).
+    :param repo: Upstream repository containing reusable workflows.
+    :param overwrite: Overwrite existing files instead of skipping.
+    :return: Summary of created, skipped, and warned items.
     """
-    return init_config("bumpversion", pyproject_path)
+    if version is None:
+        version = default_version_pin()
+
+    selected = set(components) if components else set(DEFAULT_COMPONENTS)
+    result = InitResult()
+
+    # Workflows.
+    if "workflows" in selected:
+        _init_workflows(output_dir, repo, version, overwrite, result)
+
+    # Config file components (labels, renovate).
+    for component_name in ("labels", "renovate"):
+        if component_name in selected:
+            _init_config_files(output_dir, component_name, overwrite, result)
+
+    # Fetch extra label files from [tool.gha-utils] config.
+    if "labels" in selected:
+        _fetch_extra_labels(output_dir, result)
+
+    # Changelog.
+    if "changelog" in selected:
+        _init_changelog(output_dir, overwrite, result)
+
+    # Tool configs (merged into pyproject.toml).
+    tool_configs = selected & set(INIT_CONFIGS.keys())
+    if tool_configs:
+        _init_tool_configs(output_dir, sorted(tool_configs), result)
+
+    return result
 
 
-def get_ruff_config_content() -> str:
-    """Get the content of the ruff.toml file.
+def _init_workflows(
+    output_dir: Path,
+    repo: str,
+    version: str,
+    overwrite: bool,
+    result: InitResult,
+) -> None:
+    """Generate thin-caller workflow files."""
+    # Lazy import to avoid circular dependency with workflow_sync.
+    from .workflow_sync import REUSABLE_WORKFLOWS, generate_thin_caller
 
-    .. deprecated::
-        Use ``export_content("ruff.toml")`` instead.
+    workflows_dir = output_dir / ".github" / "workflows"
+    workflows_dir.mkdir(parents=True, exist_ok=True)
+    for filename in REUSABLE_WORKFLOWS:
+        target = workflows_dir / filename
+        rel = str(target.relative_to(output_dir))
+        if target.exists() and not overwrite:
+            result.skipped.append(rel)
+            logging.debug(f"Skipped existing: {rel}")
+            continue
+        content = generate_thin_caller(filename, repo, version)
+        target.write_text(content, encoding="UTF-8")
+        result.created.append(rel)
+        logging.info(f"Created: {rel}")
+
+
+def _init_config_files(
+    output_dir: Path,
+    component_name: str,
+    overwrite: bool,
+    result: InitResult,
+) -> None:
+    """Export bundled config files for a component."""
+    for source_name, rel_path in COMPONENT_FILES[component_name]:
+        target = output_dir / rel_path
+        rel = str(target.relative_to(output_dir))
+        if target.exists() and not overwrite:
+            result.skipped.append(rel)
+            logging.debug(f"Skipped existing: {rel}")
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        content = export_content(source_name)
+        target.write_text(content, encoding="UTF-8")
+        result.created.append(rel)
+        logging.info(f"Created: {rel}")
+
+
+def _init_changelog(
+    output_dir: Path,
+    overwrite: bool,
+    result: InitResult,
+) -> None:
+    """Create a minimal changelog.md."""
+    changelog_path = output_dir / "changelog.md"
+    rel = str(changelog_path.relative_to(output_dir))
+    if changelog_path.exists() and not overwrite:
+        result.skipped.append(rel)
+        logging.debug(f"Skipped existing: {rel}")
+        return
+    changelog_content = (
+        "# Changelog\n"
+        "\n"
+        "## [Unreleased](https://github.com/USER/REPO/compare/main...main)\n"
+    )
+    changelog_path.write_text(changelog_content, encoding="UTF-8")
+    result.created.append(rel)
+    logging.info(f"Created: {rel}")
+
+
+def _fetch_extra_labels(
+    output_dir: Path,
+    result: InitResult,
+) -> None:
+    """Download extra label files from ``[tool.gha-utils]`` config.
+
+    Reads ``extra-label-files`` URLs and downloads each file to an
+    ``extra-labels/`` subdirectory under ``output_dir``.
+    Does nothing if no URLs are configured.
     """
-    return export_content("ruff.toml")
+    # Lazy import to avoid circular dependency.
+    from .metadata import load_gha_utils_config
+
+    config = load_gha_utils_config()
+    urls = config.get("extra-label-files", [])
+    if not urls:
+        logging.debug("No extra-label-files configured.")
+        return
+
+    target_dir = output_dir / "extra-labels"
+    target_dir.mkdir(exist_ok=True)
+    for url in urls:
+        url = url.strip()
+        if not url:
+            continue
+        filename = PurePosixPath(url).name
+        target = target_dir / filename
+        rel = str(target.relative_to(output_dir))
+        logging.info(f"Downloading {url} -> {target}")
+        urlretrieve(url, target)  # noqa: S310
+        result.created.append(rel)
 
 
-def get_labels_content() -> str:
-    """Get the content of the labels.toml file.
-
-    .. deprecated::
-        Use ``export_content("labels.toml")`` instead.
-    """
-    return export_content("labels.toml")
-
-
-def get_file_labeller_rules() -> str:
-    """Get the content of the file-based labeller rules.
-
-    .. deprecated::
-        Use ``export_content("labeller-file-based.yaml")`` instead.
-    """
-    return export_content("labeller-file-based.yaml")
-
-
-def get_content_labeller_rules() -> str:
-    """Get the content of the content-based labeller rules.
-
-    .. deprecated::
-        Use ``export_content("labeller-content-based.yaml")`` instead.
-    """
-    return export_content("labeller-content-based.yaml")
-
-
-def get_config_content(config_type: str) -> str:
-    """Get the content of a bundled configuration template.
-
-    .. deprecated::
-        Use ``export_content(f"{config_type}.toml")`` instead.
-    """
-    # Map old-style names to new filenames.
-    filename = f"{config_type}.toml"
-    return export_content(filename)
-
-
-# Workflow files constant for backwards compatibility.
-WORKFLOW_FILES = tuple(k for k in EXPORTABLE_FILES if k.endswith(".yaml"))
-
-
-def list_workflows() -> tuple[str, ...]:
-    """List all available workflow templates.
-
-    .. deprecated::
-        Use ``EXPORTABLE_FILES`` and filter for .yaml files instead.
-    """
-    return WORKFLOW_FILES
-
-
-def get_workflow_content(filename: str) -> str:
-    """Get the content of a workflow template.
-
-    .. deprecated::
-        Use ``export_content(filename)`` instead.
-    """
-    return export_content(filename)
+def _init_tool_configs(
+    output_dir: Path,
+    tool_configs: Sequence[str],
+    result: InitResult,
+) -> None:
+    """Merge selected tool configs into pyproject.toml."""
+    pyproject_path = output_dir / "pyproject.toml"
+    if not pyproject_path.exists():
+        result.warnings.append(
+            "pyproject.toml not found; skipping tool config initialization."
+        )
+        logging.warning(result.warnings[-1])
+        return
+    for config_type in tool_configs:
+        merged = init_config(config_type, pyproject_path)
+        if merged is None:
+            logging.info(
+                f"[{INIT_CONFIGS[config_type].tool_section}] already exists, skipped."
+            )
+        else:
+            pyproject_path.write_text(merged, encoding="UTF-8")
+            logging.info(f"Merged [{INIT_CONFIGS[config_type].tool_section}].")

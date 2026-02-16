@@ -1,7 +1,7 @@
 # Ruff linter/formatter configuration for Python projects.
 #
 # Native format - can be used standalone as ruff.toml or .ruff.toml.
-# When merged into pyproject.toml via `gha-utils bundled init ruff`,
+# When merged into pyproject.toml via `gha-utils init ruff`,
 # the [tool.ruff] prefix is added automatically.
 preview = true
 fix = true

@@ -344,7 +344,7 @@ def check_dependabot_config_absent() -> tuple[bool, str]:
             msg = (
                 f"Dependabot config found at {filename}. "
                 "Remove it and migrate to Renovate: "
-                "run `gha-utils bundled export renovate.json5` to get a starter config, "
+                "run `gha-utils init renovate` to get a starter config, "
                 "then use the reusable renovate.yaml workflow."
             )
             return False, msg
@@ -460,7 +460,7 @@ def check_renovate_config_exists() -> tuple[bool, str]:
 
     msg = (
         "renovate.json5 not found. "
-        "Run `gha-utils bundled export renovate.json5` to create it."
+        "Run `gha-utils init renovate` to create it."
     )
     return False, msg
 

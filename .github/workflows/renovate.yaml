@@ -30,7 +30,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
 
       - name: Regenerate bundled renovate.json5
-        run: uv run --frozen --no-progress gha-utils bundled export renovate.json5 - > gha_utils/data/renovate.json5
+        run: uv run --frozen --no-progress gha-utils init renovate --output-dir gha_utils/data --overwrite
 
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
@@ -59,7 +59,7 @@ jobs:
 
       - name: Export renovate.json5 if missing
         if: steps.checks.outputs.renovate_config_exists == 'false'
-        run: uvx --no-progress --from . gha-utils bundled export renovate.json5
+        run: uvx --no-progress --from . gha-utils init renovate --overwrite
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''

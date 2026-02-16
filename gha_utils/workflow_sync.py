@@ -32,7 +32,7 @@ from pathlib import Path
 
 import yaml
 
-from .bundled_config import export_content, get_data_content
+from .init_project import export_content, get_data_content
 from .github import AnnotationLevel, emit_annotation
 
 if sys.version_info >= (3, 11):

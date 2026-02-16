@@ -51,13 +51,7 @@ from .binary import (
     verify_binary_arch,
 )
 from .broken_links import manage_broken_links_issue
-from .bundled_config import (
-    EXPORTABLE_FILES,
-    INIT_CONFIGS,
-    export_content,
-    get_default_output_path,
-    init_config,
-)
+from .init_project import ALL_COMPONENTS, INIT_CONFIGS, run_init
 from .changelog import Changelog
 from .deps_graph import (
     generate_dependency_graph,
@@ -183,6 +177,115 @@ def remove_header(content: str) -> str:
 @group(version=_dev_version())
 def gha_utils():
     pass
+
+
+@gha_utils.command(name="init", short_help="Bootstrap a repository to use reusable workflows")
+@argument(
+    "components",
+    nargs=-1,
+    type=Choice(list(ALL_COMPONENTS.keys()), case_sensitive=False),
+)
+@option(
+    "--version",
+    "version_pin",
+    default=None,
+    help="Version pin for upstream workflows (e.g., v5.10.0). "
+    "Defaults to the latest release derived from the package version.",
+)
+@option(
+    "--repo",
+    default=DEFAULT_REPO,
+    help="Upstream repository containing reusable workflows.",
+)
+@option(
+    "--output-dir",
+    type=dir_path(resolve_path=True),
+    default=".",
+    help="Root directory of the target repository.",
+)
+@option(
+    "--overwrite",
+    is_flag=True,
+    default=False,
+    help="Overwrite existing files instead of skipping them.",
+)
+def init_project(
+    components,
+    version_pin,
+    repo,
+    output_dir,
+    overwrite,
+):
+    """Bootstrap a repository to use reusable workflows from kdeldycke/workflows.
+
+    With no arguments, generates thin-caller workflow files, exports
+    configuration files (Renovate, labels, labeller rules), and creates a
+    minimal changelog. Specify COMPONENTS to initialize only selected parts.
+
+    \b
+    Components:
+        workflows    Thin-caller workflow files
+        labels       Label config (labels.toml + labeller rules)
+        renovate     Renovate config (renovate.json5)
+        changelog    Minimal changelog.md
+        ruff         Merge [tool.ruff] into pyproject.toml
+        pytest       Merge [tool.pytest] into pyproject.toml
+        mypy         Merge [tool.mypy] into pyproject.toml
+        bumpversion  Merge [tool.bumpversion] into pyproject.toml
+
+    \b
+    Examples:
+        # Full bootstrap (workflows + labels + renovate + changelog)
+        gha-utils init
+
+    \b
+        # Pin to a specific version
+        gha-utils init --version v5.9.1
+
+    \b
+        # Only merge ruff config into pyproject.toml
+        gha-utils init ruff
+
+    \b
+        # Multiple components
+        gha-utils init ruff bumpversion
+
+    \b
+        # Overwrite existing files
+        gha-utils init --overwrite workflows
+    """
+    result = run_init(
+        output_dir=output_dir,
+        components=components,
+        version=version_pin,
+        repo=repo,
+        overwrite=overwrite,
+    )
+
+    # Print summary.
+    if result.created:
+        echo(f"Created {len(result.created)} file(s):")
+        for path in result.created:
+            echo(f"  {path}")
+    if result.skipped:
+        echo(f"Skipped {len(result.skipped)} existing file(s).")
+    if result.warnings:
+        for warning in result.warnings:
+            echo(f"Warning: {warning}")
+
+    if result.created:
+        echo("")
+        echo("Next steps:")
+        echo(
+            "  1. Create a WORKFLOW_UPDATE_GITHUB_PAT secret"
+            " in your repository settings."
+        )
+        echo("     See: https://github.com/kdeldycke/workflows#secrets")
+        echo(
+            "  2. If using GitHub Pages for docs,"
+            " enable it in repository settings."
+        )
+        echo("  3. Commit the generated files and push.")
 
 
 @gha_utils.command(short_help="Output project metadata")
@@ -416,213 +519,6 @@ def version_check(part: str) -> None:
     """
     allowed = is_version_bump_allowed(part)  # type: ignore[arg-type]
     echo("true" if allowed else "false")
-
-
-@gha_utils.group(short_help="Manage bundled configuration and templates")
-def bundled():
-    """Manage bundled configuration files and templates.
-
-    This command group provides unified access to all bundled files:
-    pyproject.toml templates, label definitions, and workflow templates.
-
-    \b
-    Subcommands:
-        export             - Export any bundled file (with smart default output paths)
-        init               - Merge config into pyproject.toml
-        fetch-extra-labels - Download extra label files from config
-
-    \b
-    Exportable files (gha-utils bundled export <filename>):
-        ruff.toml, bumpversion.toml, ...      - pyproject.toml templates
-        labels.toml                           - Label definitions
-        labeller-file-based.yaml              - File-based labeller rules
-        labeller-content-based.yaml           - Content-based labeller rules
-        autofix.yaml, release.yaml, ...       - Workflow templates
-
-    \b
-    Examples:
-        # Export with default output path
-        gha-utils bundled export labels.toml
-        gha-utils bundled export labeller-file-based.yaml
-        gha-utils bundled export release.yaml
-
-        # Export to custom path
-        gha-utils bundled export labels.toml ./custom/labels.toml
-
-        # Initialize config in pyproject.toml
-        gha-utils bundled init ruff pyproject.toml
-
-        # List all exportable files
-        gha-utils bundled export --list
-    """
-
-
-@bundled.command(short_help="Export any bundled file")
-@option(
-    "--list",
-    "list_only",
-    is_flag=True,
-    default=False,
-    help="List all available exportable files with their default output paths.",
-)
-@argument(
-    "filename",
-    required=False,
-    type=Choice(list(EXPORTABLE_FILES.keys()), case_sensitive=False),
-)
-@argument(
-    "output_path",
-    required=False,
-    type=file_path(writable=True, resolve_path=True, allow_dash=True),
-)
-def export(list_only, filename, output_path):
-    """Export any bundled file.
-
-    Dumps the bundled file to a file or stdout. Each file has a default output
-    path (shown with --list). Specify a custom path to override.
-
-    \b
-    Examples:
-        # List all available files with default paths
-        gha-utils bundled export --list
-
-    \b
-        # Export to default location
-        gha-utils bundled export labels.toml
-        gha-utils bundled export labeller-file-based.yaml
-        gha-utils bundled export release.yaml
-
-    \b
-        # Export to custom location
-        gha-utils bundled export labels.toml ./custom/labels.toml
-
-    \b
-        # Export to stdout (for pyproject.toml templates)
-        gha-utils bundled export ruff.toml
-    """
-    if list_only:
-        echo("Available files (with default output paths):")
-        for file_id, default_path in EXPORTABLE_FILES.items():
-            path_info = default_path if default_path else "(stdout)"
-            echo(f"  {file_id} → {path_info}")
-        return
-
-    if not filename:
-        logging.error("Must specify a filename or use --list.")
-        raise SystemExit(1)
-
-    content = export_content(filename)
-
-    # Auto-append extra rules from [tool.gha-utils] config.
-    if filename in ("labeller-file-based.yaml", "labeller-content-based.yaml"):
-        config = load_gha_utils_config()
-        config_key = {
-            "labeller-file-based.yaml": "extra-file-rules",
-            "labeller-content-based.yaml": "extra-content-rules",
-        }[filename]
-        extra = config.get(config_key, "")
-        if extra:
-            content += "\n" + extra
-
-    # Use provided path, or fall back to default, or stdout.
-    if output_path is None:
-        default_path = get_default_output_path(filename)
-        if default_path:
-            output_path = Path(default_path)
-        else:
-            output_path = Path("-")
-
-    if is_stdout(output_path):
-        logging.info(f"Print to {sys.stdout.name}")
-    else:
-        logging.info(f"Write to {output_path}")
-
-    echo(content.rstrip(), file=prep_path(output_path))
-
-
-@bundled.command(short_help="Initialize config in pyproject.toml")
-@argument(
-    "config_type",
-    type=Choice(list(INIT_CONFIGS.keys()), case_sensitive=False),
-)
-@option(
-    "--source",
-    type=file_path(exists=True, readable=True, resolve_path=True),
-    default="pyproject.toml",
-    help="Path to the pyproject.toml file to update.",
-)
-@argument(
-    "output_path",
-    type=file_path(writable=True, resolve_path=True, allow_dash=True),
-    default="-",
-)
-@pass_context
-def init(ctx, config_type, source, output_path):
-    """Initialize a configuration by merging it into pyproject.toml.
-
-    Reads pyproject.toml, checks if the [tool.X] section already exists,
-    and if not, inserts the bundled template at the appropriate location.
-
-    Only configs with [tool.X] sections support init: ruff, bumpversion.
-
-    By default, outputs the merged result to stdout for preview. To update
-    the file in-place, specify pyproject.toml as the output path.
-
-    \b
-    Examples:
-        # Preview merged configuration (dry-run)
-        gha-utils bundled init ruff
-
-    \b
-        # Update pyproject.toml in-place
-        gha-utils bundled init ruff pyproject.toml
-
-    \b
-        # Initialize bumpversion config
-        gha-utils bundled init bumpversion pyproject.toml
-    """
-    merged = init_config(config_type, source)
-
-    if merged is None:
-        cfg = INIT_CONFIGS[config_type]
-        logging.warning(f"No changes needed. [{cfg.tool_section}] already exists.")
-        ctx.exit()
-
-    if is_stdout(output_path):
-        logging.info(f"Print merged result to {sys.stdout.name}")
-    else:
-        logging.info(f"Write merged result to {output_path}")
-
-    echo(merged.rstrip(), file=prep_path(output_path))
-
-
-@bundled.command(short_help="Download extra label files from config")
-def fetch_extra_labels():
-    """Download extra label definition files from ``[tool.gha-utils]`` config.
-
-    Reads ``extra-label-files`` URLs and downloads each file to an
-    ``extra-labels/`` subdirectory in the current directory.
-    Does nothing if no URLs are configured.
-    """
-    config = load_gha_utils_config()
-    urls = config.get("extra-label-files", [])
-    if not urls:
-        logging.info("No extra-label-files configured.")
-        return
-
-    from pathlib import PurePosixPath
-    from urllib.request import urlretrieve
-
-    target_dir = Path("extra-labels")
-    target_dir.mkdir(exist_ok=True)
-    for url in urls:
-        url = url.strip()
-        if not url:
-            continue
-        filename = PurePosixPath(url).name
-        target = target_dir / filename
-        logging.info(f"Downloading {url} -> {target}")
-        urlretrieve(url, target)  # noqa: S310
 
 
 GITIGNORE_BASE_CATEGORIES: tuple[str, ...] = (

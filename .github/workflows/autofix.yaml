@@ -61,7 +61,7 @@ jobs:
         # Projects with existing ruff config will keep their settings.
         run: |
           uv tool install 'ruff==0.15.0'
-          uvx --no-progress --from . gha-utils bundled init ruff pyproject.toml
+          uvx --no-progress --from . gha-utils init ruff
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
       - name: Run Ruff
@@ -307,7 +307,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Initialize bumpversion config
-        run: uvx --no-progress --from . gha-utils bundled init bumpversion pyproject.toml
+        run: uvx --no-progress --from . gha-utils init bumpversion
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body

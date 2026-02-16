@@ -272,7 +272,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
 - **Sync bumpversion config** (`sync-bumpversion`)
 
-  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils bundled init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/bundled_config.py)
+  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/init_project.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
 

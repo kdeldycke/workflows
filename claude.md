@@ -84,12 +84,12 @@ workflows/
 | `__main__.py`         | Entry point for the `gha-utils` CLI                                 |
 | `binary.py`           | Binary verification and artifact collection                         |
 | `broken_links.py`     | Broken links issue lifecycle management                             |
-| `bundled_config.py`   | Access bundled config templates, labels, and workflow files         |
 | `changelog.py`        | Changelog parsing, updating, and release lifecycle management       |
 | `cli.py`              | Click-based command-line interface definitions                      |
 | `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
 | `git_ops.py`          | Idempotent Git operations for CI/CD contexts                        |
 | `github.py`           | GitHub Actions output formatting and workflow annotations           |
+| `init_project.py`     | Bundled data access, config templates, and repository initialization |
 | `lint_repo.py`        | Repository metadata consistency checks                              |
 | `mailmap.py`          | Git `.mailmap` file synchronization with contributors               |
 | `matrix.py`           | Generate build matrices for GitHub Actions                          |
