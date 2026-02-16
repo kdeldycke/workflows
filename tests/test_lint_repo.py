@@ -33,7 +33,9 @@ from gha_utils.lint_repo import (
 def test_successful_fetch():
     """Fetch and parse repo metadata."""
     with patch("gha_utils.lint_repo.run_gh_command") as mock_gh:
-        mock_gh.return_value = '{"homepageUrl": "https://example.com", "description": "A package"}'
+        mock_gh.return_value = (
+            '{"homepageUrl": "https://example.com", "description": "A package"}'
+        )
         result = get_repo_metadata("owner/repo")
         assert result == {
             "homepageUrl": "https://example.com",
