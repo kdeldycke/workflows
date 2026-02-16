@@ -171,7 +171,7 @@ jobs:
       - name: Auto-format Markdown
         run: >
           for file in ${{ needs.project-metadata.outputs.markdown_files }}; do
-          mdformat --strict-front-matter "$file";
+          mdformat --number --strict-front-matter "$file";
           done
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')

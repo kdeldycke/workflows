@@ -26,6 +26,7 @@
 - Add `gha-utils update-checksums` command and Renovate `postUpgradeTasks` to automatically update SHA-256 checksums.
 - Regroup GitHub-specific modules.
 - Add reopen support to issue lifecycle management. Previously closed issues are reopened instead of creating duplicates.
+- Enable consecutive ordered list numbering (`--number`) in mdformat.
 - Experiment with Claude agents.
 
 ## [5.9.1 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)
