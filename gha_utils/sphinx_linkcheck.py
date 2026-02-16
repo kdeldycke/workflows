@@ -143,7 +143,7 @@ def generate_markdown_report(
             escaped_info = result.info.replace("|", "\\|")
             if source_url:
                 file_url = f"{source_url}/{result.filename}"
-                line_cell = f"[{result.lineno}]({file_url}#L{result.lineno})"
+                line_cell = f"[{result.lineno}]({file_url}?plain=1#L{result.lineno})"
             else:
                 line_cell = str(result.lineno)
             lines.append(f"| {line_cell} | {result.uri} | {escaped_info} |")

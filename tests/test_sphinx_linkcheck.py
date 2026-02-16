@@ -244,7 +244,7 @@ def test_source_url_links_filenames_and_lines():
 
     # Line number should be a deep link.
     assert (
-        "[4](https://github.com/owner/repo/blob/abc123/docs/architectures.md#L4)"
+        "[4](https://github.com/owner/repo/blob/abc123/docs/architectures.md?plain=1#L4)"
     ) in report
 
 
