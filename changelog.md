@@ -15,7 +15,9 @@
 - Display auto-detected environment from extra-platforms in `debug.yaml` workflow.
 - Remove `merge-method-notice` job.
 - Add `gha-utils init` command to bootstrap repositories for reusable workflows.
-- Remove `gha-utils bundled` subcommand group entirely (`bundled init`, `bundled export`, `bundled fetch-extra-labels`), replaced by `gha-utils init`.
+- Remove `gha-utils bundled` subcommand group.
+- Add `setup-guide` job to `autofix.yaml` for user onboarding and configuration validation.
+- Add quick start tutorial to readme.
 - Experiment with Claude agents.
 
 ## [5.9.1 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)

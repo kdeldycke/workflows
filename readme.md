@@ -33,6 +33,18 @@ It takes care of:
 
 Nothing is done behind your back. A PR is created every time a change is proposed, so you can inspect it before merging it.
 
+## Quick start
+
+```shell-session
+$ cd my-project
+$ uvx -- gha-utils init
+$ git add . && git commit -m "Bootstrap reusable workflows" && git push
+```
+
+That's it. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#solution-fine-grained-personal-access-token)) via issues and PRs in your repository.
+
+Run `gha-utils init --help` to see available components and options.
+
 ## `gha-utils` CLI
 
 `gha-utils` stands for *GitHub Actions workflows utilities*.
@@ -70,12 +82,12 @@ Options:
 
 Commands:
   broken-links          Manage broken links issue lifecycle
-  bundled               Manage bundled configuration and templates
   changelog             Maintain a Markdown-formatted changelog
   check-renovate        Check Renovate migration prerequisites
   collect-artifacts     Collect and rename artifacts for release
   deps-graph            Generate dependency graph from uv lockfile
   git-tag               Create and push a Git tag
+  init                  Bootstrap a repository to use reusable workflows
   lint-repo             Run repository consistency checks
   mailmap-sync          Update Git's .mailmap file with missing contributors
   metadata              Output project metadata
@@ -141,9 +153,9 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 ### Example usage
 
-Workflows are designed to be reusable in other repositories [via the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow).
+The fastest way to adopt these workflows is with `gha-utils init` (see [Quick start](#quick-start)). It generates all the thin-caller workflow files for you.
 
-Here is a minimal example to call the [reusable `lint.yaml` workflow](#githubworkflowslintyaml-jobs) from a new repository, by creating a `.github/workflows/lint.yaml` file containing:
+If you prefer to set up a single workflow manually, create a `.github/workflows/lint.yaml` file [using the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow):
 
 ```yaml
 name: Lint
@@ -222,6 +234,14 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 | `extra-content-rules`        | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |
 
 ### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
+
+*Setup* — guide new users through initial configuration:
+
+- **Setup guide** (`setup-guide`)
+
+  - Detects missing `WORKFLOW_UPDATE_GITHUB_PAT` secret and opens an issue with step-by-step setup instructions
+  - Automatically closes the issue once the secret is configured
+  - **Skip**: upstream `kdeldycke/workflows` repo, `workflow_call` events
 
 *Formatters* — rewrite files to enforce canonical style:
 

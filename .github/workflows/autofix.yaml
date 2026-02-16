@@ -13,6 +13,95 @@ concurrency:
 
 jobs:
 
+  setup-guide:
+    name: Setup guide
+    # Only run on push to the default branch, not on workflow_call from downstream.
+    # Skip on the upstream repo itself (it already has the secret).
+    if: github.event_name == 'push' && github.repository != 'kdeldycke/workflows'
+    runs-on: ubuntu-slim
+    permissions:
+      issues: write
+    steps:
+      - name: Check PAT secret and manage setup issue
+        uses: actions/github-script@v8.0.0
+        env:
+          HAS_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || 'false' }}
+        with:
+          script: |
+            const title = 'Set up `WORKFLOW_UPDATE_GITHUB_PAT` to enable workflow auto-updates';
+            const label = '🤖 ci';
+            const hasPat = process.env.HAS_PAT === 'true';
+
+            // Search for an existing setup issue.
+            const {data: issues} = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: 'all',
+              labels: label,
+              per_page: 100,
+            });
+            const existing = issues.find(i => i.title === title);
+
+            if (hasPat) {
+              // Secret is configured. Close the issue if it exists.
+              if (existing && existing.state === 'open') {
+                await github.rest.issues.update({
+                  ...context.repo,
+                  issue_number: existing.number,
+                  state: 'closed',
+                  state_reason: 'completed',
+                });
+                core.info(`Closed setup issue #${existing.number}.`);
+              }
+              return;
+            }
+
+            // Secret is missing. Create or reopen the issue.
+            if (existing) {
+              if (existing.state === 'closed') {
+                await github.rest.issues.update({
+                  ...context.repo,
+                  issue_number: existing.number,
+                  state: 'open',
+                });
+                core.info(`Reopened setup issue #${existing.number}.`);
+              }
+              return;
+            }
+
+            const body = [
+              'Some workflows need a **fine-grained personal access token** to create PRs',
+              'that update files in `.github/workflows/`. Without it, those jobs will silently',
+              'fail.\n',
+              '### Create the token\n',
+              '1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens →',
+              '   [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**.',
+              '2. Click **Generate new token**.',
+              '3. Under **Repository access**, select this repository.',
+              '4. Add these permissions:\n',
+              '   | Permission | Access |',
+              '   | :--- | :--- |',
+              '   | **Commit statuses** | Read and Write |',
+              '   | **Contents** | Read and Write |',
+              '   | **Metadata** | Read-only |',
+              '   | **Pull requests** | Read and Write |',
+              '   | **Workflows** | Read and Write |\n',
+              '5. Click **Generate token** and copy it.\n',
+              '### Add the secret\n',
+              '1. Go to **this repo → Settings → Secrets and variables → Actions**.',
+              '2. Click **New repository secret**.',
+              '3. Name: `WORKFLOW_UPDATE_GITHUB_PAT`',
+              '4. Paste the token and click **Add secret**.\n',
+              'This issue will close automatically once the secret is detected.',
+            ].join('\n');
+
+            await github.rest.issues.create({
+              ...context.repo,
+              title,
+              body,
+              labels: [label],
+            });
+            core.info('Created setup issue.');
+
   project-metadata:
     name: Project metadata
     runs-on: ubuntu-slim
