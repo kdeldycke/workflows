@@ -83,7 +83,7 @@ workflows/
 | `__init__.py`         | Package-wide exports                                                |
 | `__main__.py`         | Entry point for the `gha-utils` CLI                                 |
 | `binary.py`           | Binary verification and artifact collection                         |
-| `broken_links.py`     | Broken links issue lifecycle management                             |
+| `broken_links.py`     | Combined broken links issue lifecycle (Lychee + Sphinx linkcheck)  |
 | `changelog.py`        | Changelog parsing, updating, and release lifecycle management       |
 | `cli.py`              | Click-based command-line interface definitions                      |
 | `deps_graph.py`       | Generate Mermaid dependency graphs from uv lockfiles                |
@@ -97,7 +97,6 @@ workflows/
 | `pr_body.py`          | Generate PR body with workflow metadata for auto-created PRs        |
 | `release_prep.py`     | Orchestrate release preparation across citation and workflow files  |
 | `renovate.py`         | Renovate prerequisites, migration, and `exclude-newer` updates      |
-| `sphinx_linkcheck.py` | Parse Sphinx linkcheck output and manage documentation link issues  |
 | `sponsor.py`          | Check GitHub sponsorship and label issues/PRs from sponsors         |
 | `test_plan.py`        | Run YAML-based test plans against compiled binaries                 |
 | `workflow_sync.py`    | Thin-caller generation, sync, and lint for downstream workflows     |

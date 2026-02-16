@@ -18,7 +18,12 @@
 
 This module consolidates the entire broken links issue management into a single
 workflow: listing open issues, triaging duplicates, closing old issues, and
-creating or updating the main issue.
+creating or updating the main issue. Both Lychee and Sphinx linkcheck results
+are combined into a single "Broken links" issue.
+
+Sphinx linkcheck parsing detects broken auto-generated links (intersphinx,
+autodoc, type annotations) that Lychee cannot see because they only exist in
+the rendered HTML output.
 
 Uses the GitHub CLI (``gh``) to interact with issues.
 
@@ -34,18 +39,135 @@ from __future__ import annotations
 
 import json
 import logging
-from operator import itemgetter
+import tempfile
+from dataclasses import dataclass
+from itertools import groupby
+from operator import attrgetter, itemgetter
 from pathlib import Path
 from subprocess import run
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from typing import Any
 
 
 # Issue title and author are hardcoded for this specific use case.
 ISSUE_TITLE = "Broken links"
 ISSUE_AUTHOR = "github-actions[bot]"
+
+
+# ---------------------------------------------------------------------------
+# Sphinx linkcheck parsing, filtering, and report generation
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class LinkcheckResult:
+    """A single result entry from Sphinx linkcheck ``output.json``.
+
+    Each line in the JSON-lines file corresponds to one checked URI.
+    """
+
+    filename: str
+    lineno: int
+    status: str
+    code: int
+    uri: str
+    info: str
+
+
+def parse_output_json(output_json: Path) -> list[LinkcheckResult]:
+    """Parse the Sphinx linkcheck ``output.json`` file.
+
+    The file uses JSON-lines format: one JSON object per line.
+    Blank lines are skipped.
+
+    :param output_json: Path to the ``output.json`` file.
+    :return: List of parsed linkcheck results.
+    """
+    results: list[LinkcheckResult] = []
+    content = output_json.read_text(encoding="UTF-8")
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        entry = json.loads(stripped)
+        results.append(
+            LinkcheckResult(
+                filename=entry["filename"],
+                lineno=entry["lineno"],
+                status=entry["status"],
+                code=entry["code"],
+                uri=entry["uri"],
+                info=entry.get("info", ""),
+            )
+        )
+    logging.info(f"Parsed {len(results)} linkcheck entries from {output_json}")
+    return results
+
+
+def filter_broken(results: Iterable[LinkcheckResult]) -> list[LinkcheckResult]:
+    """Filter results to only broken and timed-out links.
+
+    :param results: Iterable of linkcheck results.
+    :return: List of results with ``status`` of ``"broken"`` or ``"timeout"``.
+    """
+    broken = [r for r in results if r.status in ("broken", "timeout")]
+    logging.info(f"Found {len(broken)} broken/timed-out links")
+    return broken
+
+
+def generate_markdown_report(
+    broken: list[LinkcheckResult],
+    source_url: str | None = None,
+) -> str:
+    """Generate a Markdown report of broken links grouped by source file.
+
+    The report starts with H2 file headings, suitable for embedding as a
+    section in the combined broken links issue body.
+
+    :param broken: List of broken linkcheck results.
+    :param source_url: Base URL for linking filenames and line numbers. When
+        provided, file headers become clickable links and line numbers deep-link
+        to the specific line.
+    :return: Markdown-formatted report string.
+    """
+    if not broken:
+        return ""
+
+    lines: list[str] = []
+
+    # Group by filename, sorted alphabetically.
+    sorted_results = sorted(broken, key=attrgetter("filename", "lineno"))
+    for filename, group_iter in groupby(sorted_results, key=attrgetter("filename")):
+        group_list = list(group_iter)
+
+        if source_url:
+            file_url = f"{source_url}/{filename}"
+            lines.append(f"## [`{filename}`]({file_url})\n")
+        else:
+            lines.append(f"## `{filename}`\n")
+
+        lines.append("| Line | URI | Info |")
+        lines.append("| ---: | --- | ---- |")
+        for result in group_list:
+            # Escape pipe characters in info to avoid breaking the table.
+            escaped_info = result.info.replace("|", "\\|")
+            if source_url:
+                file_url = f"{source_url}/{result.filename}"
+                line_cell = f"[{result.lineno}]({file_url}?plain=1#L{result.lineno})"
+            else:
+                line_cell = str(result.lineno)
+            lines.append(f"| {line_cell} | {result.uri} | {escaped_info} |")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# GitHub issue lifecycle management via gh CLI
+# ---------------------------------------------------------------------------
 
 
 def run_gh_command(args: list[str]) -> str:
@@ -238,32 +360,92 @@ def manage_issue_lifecycle(
             create_issue(body_file, [label], title=title)
 
 
-def manage_broken_links_issue(
-    lychee_exit_code: int,
-    body_file: Path,
+# ---------------------------------------------------------------------------
+# Combined broken links issue (Lychee + Sphinx linkcheck)
+# ---------------------------------------------------------------------------
+
+
+def manage_combined_broken_links_issue(
     repo_name: str,
+    lychee_exit_code: int | None = None,
+    lychee_body_file: Path | None = None,
+    sphinx_output_json: Path | None = None,
+    sphinx_source_url: str | None = None,
 ) -> None:
-    """Manage the full broken links issue lifecycle.
+    """Manage the combined broken links issue lifecycle.
 
-    Validates the lychee exit code, then delegates to
-    :func:`manage_issue_lifecycle` for issue management.
+    Combines results from Lychee and Sphinx linkcheck into a single "Broken
+    links" issue. Each tool's results appear under its own heading. Tools that
+    were not run are omitted from the report. Tools that found no broken links
+    show a "No broken links found." message.
 
-    :param lychee_exit_code: Exit code from lychee (0=no broken links, 2=broken links).
-    :param body_file: Path to the issue body file (lychee output).
     :param repo_name: Repository name (for label selection).
-    :raises ValueError: If lychee exit code is not 0 or 2.
+    :param lychee_exit_code: Exit code from lychee (0=no broken links,
+        2=broken links found). ``None`` if lychee was not run.
+    :param lychee_body_file: Path to the lychee output file. ``None`` if
+        lychee was not run.
+    :param sphinx_output_json: Path to Sphinx linkcheck ``output.json``.
+        ``None`` if Sphinx linkcheck was not run.
+    :param sphinx_source_url: Base URL for linking filenames and line numbers
+        in the Sphinx report.
+    :raises ValueError: If lychee exit code is not 0, 2, or ``None``.
     """
     # Validate lychee exit code.
-    if lychee_exit_code not in (0, 2):
-        msg = f"Unexpected lychee exit code: {lychee_exit_code}"
-        raise ValueError(msg)
+    lychee_has_broken = False
+    if lychee_exit_code is not None:
+        if lychee_exit_code not in (0, 2):
+            msg = f"Unexpected lychee exit code: {lychee_exit_code}"
+            raise ValueError(msg)
+        lychee_has_broken = lychee_exit_code == 2
+        logging.info(
+            f"Lychee exit code {lychee_exit_code}: "
+            f"{'broken links found' if lychee_has_broken else 'no broken links'}"
+        )
 
-    # Determine if an issue is needed (exit code 2 means broken links found).
-    has_broken_links = lychee_exit_code == 2
-    logging.info(
-        f"Lychee exit code {lychee_exit_code}: "
-        f"{'broken links found' if has_broken_links else 'no broken links'}"
-    )
+    # Parse Sphinx linkcheck results.
+    sphinx_has_broken = False
+    sphinx_report = ""
+    if sphinx_output_json is not None:
+        results = parse_output_json(sphinx_output_json)
+        broken = filter_broken(results)
+        sphinx_has_broken = len(broken) > 0
+        if sphinx_has_broken:
+            sphinx_report = generate_markdown_report(
+                broken, source_url=sphinx_source_url,
+            )
+        else:
+            logging.info("No broken documentation links found.")
+
+    # Build combined issue body.
+    sections: list[str] = []
+
+    if lychee_exit_code is not None:
+        sections.append("## Lychee\n")
+        if lychee_has_broken and lychee_body_file is not None:
+            lychee_content = lychee_body_file.read_text(encoding="UTF-8").strip()
+            sections.append(lychee_content)
+        else:
+            sections.append("No broken links found.")
+
+    if sphinx_output_json is not None:
+        sections.append("## Sphinx linkcheck\n")
+        if sphinx_has_broken:
+            sections.append(sphinx_report.strip())
+        else:
+            sections.append("No broken links found.")
+
+    has_broken_links = lychee_has_broken or sphinx_has_broken
+    body = "# Broken links\n\n" + "\n\n".join(sections) + "\n"
+
+    # Write combined body to a temporary file.
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".md",
+        delete=False,
+        encoding="UTF-8",
+    ) as tmp:
+        tmp.write(body)
+        body_file = Path(tmp.name)
 
     manage_issue_lifecycle(
         has_broken_links=has_broken_links,

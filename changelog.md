@@ -18,6 +18,7 @@
 - Remove `gha-utils bundled` subcommand group.
 - Add `setup-guide` job to `autofix.yaml` for user onboarding and configuration validation.
 - Add quick start tutorial to readme.
+- Consolidate Lychee and Sphinx linkcheck broken link reports into a single "Broken links" issue.
 - Experiment with Claude agents.
 
 ## [5.9.1 (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)

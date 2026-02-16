@@ -50,7 +50,7 @@ from .binary import (
     format_github_output,
     verify_binary_arch,
 )
-from .broken_links import manage_broken_links_issue
+from .broken_links import manage_combined_broken_links_issue
 from .init_project import ALL_COMPONENTS, INIT_CONFIGS, run_init
 from .changelog import Changelog
 from .deps_graph import (
@@ -89,7 +89,6 @@ from .renovate import (
     run_migration_checks,
     update_exclude_newer_in_file,
 )
-from .sphinx_linkcheck import manage_sphinx_linkcheck_issue
 from .sponsor import (
     add_sponsor_label,
     get_default_author,
@@ -1295,101 +1294,86 @@ def deps_graph(
 @option(
     "--lychee-exit-code",
     type=int,
-    required=True,
+    default=None,
     help="Exit code from lychee (0=no broken links, 2=broken links found).",
 )
 @option(
     "--body-file",
     type=file_path(exists=True, readable=True, resolve_path=True),
-    required=True,
+    default=None,
     help="Path to the issue body file (lychee output).",
+)
+@option(
+    "--output-json",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    default=None,
+    help="Path to Sphinx linkcheck output.json file.",
+)
+@option(
+    "--source-url",
+    default=None,
+    help="Base URL for linking filenames and line numbers in the Sphinx report. "
+    "Example: https://github.com/owner/repo/blob/<sha>/docs",
 )
 @option(
     "--repo-name",
     required=True,
     help="Repository name (for label selection).",
 )
-def broken_links(lychee_exit_code: int, body_file: Path, repo_name: str) -> None:
+def broken_links(
+    lychee_exit_code: int | None,
+    body_file: Path | None,
+    output_json: Path | None,
+    source_url: str | None,
+    repo_name: str,
+) -> None:
     """Manage the broken links issue lifecycle.
 
-    This command consolidates the entire broken links workflow into a single call:
+    Combines Lychee and Sphinx linkcheck results into a single "Broken links"
+    issue. Each tool's results appear under its own heading.
 
     \b
-    1. Validates the lychee exit code (error if not 0 or 2).
-    2. Lists open issues by github-actions[bot].
-    3. Triages matching "Broken links" issues (keep newest, close duplicates).
-    4. Closes duplicate/obsolete issues.
-    5. Creates or updates the main issue.
+    This command:
+    1. Validates inputs (lychee exit code must be 0 or 2 if provided).
+    2. Parses Sphinx linkcheck output.json if provided.
+    3. Builds a combined report with sections for each tool.
+    4. Lists open issues by github-actions[bot].
+    5. Triages matching "Broken links" issues (keep newest, close duplicates).
+    6. Creates or updates the main issue.
 
     This command requires the ``gh`` CLI to be installed and authenticated.
 
     \b
     Examples:
-        # Run after lychee check (broken links found)
+        # Lychee only
         gha-utils broken-links \\
             --lychee-exit-code 2 \\
             --body-file ./lychee/out.md \\
             --repo-name "my-repo"
 
     \b
-        # Run after lychee check (no broken links)
+        # Sphinx linkcheck only
         gha-utils broken-links \\
-            --lychee-exit-code 0 \\
-            --body-file ./lychee/out.md \\
-            --repo-name "my-repo"
-    """
-    manage_broken_links_issue(lychee_exit_code, body_file, repo_name)
-
-
-@gha_utils.command(short_help="Manage Sphinx linkcheck issue lifecycle")
-@option(
-    "--output-json",
-    type=file_path(exists=True, readable=True, resolve_path=True),
-    required=True,
-    help="Path to Sphinx linkcheck output.json file.",
-)
-@option(
-    "--repo-name",
-    required=True,
-    help="Repository name (for label selection).",
-)
-@option(
-    "--source-url",
-    default=None,
-    help="Base URL for linking filenames and line numbers in the report. "
-    "Example: https://github.com/owner/repo/blob/<sha>/docs",
-)
-def sphinx_linkcheck(
-    output_json: Path,
-    repo_name: str,
-    source_url: str | None,
-) -> None:
-    """Manage the Sphinx linkcheck issue lifecycle.
-
-    Parses the Sphinx linkcheck ``output.json`` file, identifies broken
-    or timed-out links, and creates or updates a GitHub issue.
-
-    This catches broken auto-generated links (intersphinx, autodoc, type
-    annotations) that Lychee cannot see because they only exist in the
-    rendered HTML output.
-
-    This command requires the ``gh`` CLI to be installed and authenticated.
-
-    \b
-    Examples:
-        # Run after Sphinx linkcheck build
-        gha-utils sphinx-linkcheck \\
             --output-json ./docs/linkcheck/output.json \\
-            --repo-name "my-repo"
+            --repo-name "my-repo" \\
+            --source-url "https://github.com/owner/repo/blob/abc123/docs"
 
     \b
-        # With source URL for linked filenames and line numbers
-        gha-utils sphinx-linkcheck \\
+        # Both tools combined
+        gha-utils broken-links \\
+            --lychee-exit-code 2 \\
+            --body-file ./lychee/out.md \\
             --output-json ./docs/linkcheck/output.json \\
             --repo-name "my-repo" \\
             --source-url "https://github.com/owner/repo/blob/abc123/docs"
     """
-    manage_sphinx_linkcheck_issue(output_json, repo_name, source_url=source_url)
+    manage_combined_broken_links_issue(
+        repo_name=repo_name,
+        lychee_exit_code=lychee_exit_code,
+        lychee_body_file=body_file,
+        sphinx_output_json=output_json,
+        sphinx_source_url=source_url,
+    )
 
 
 @gha_utils.command(short_help="Verify binary architecture using exiftool")

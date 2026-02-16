@@ -52,44 +52,6 @@ jobs:
           publish_dir: ./docs/html
           force_orphan: true
 
-  check-sphinx-links:
-    name: Sphinx linkcheck
-    needs:
-      - project-metadata
-    # Skip all PRs as we won't have permissions to create issues.
-    # Skip the prepare-release branch as it contains URLs pointing to tags that don't exist yet.
-    # Skip any push containing a post-release bump commit as a precautionary measure.
-    if: >
-      github.event_name != 'pull_request'
-      && github.ref != 'refs/heads/prepare-release'
-      && (! contains(toJSON(github.event.commits.*.message), '[changelog] Post-release bump'))
-      && fromJSON(needs.project-metadata.outputs.is_python_project)
-      && fromJSON(needs.project-metadata.outputs.is_sphinx)
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
-      - name: Install Graphviz
-        # So we can use the sphinx.ext.graphviz plugin.
-        # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
-        run: |
-          sudo apt update
-          sudo apt install --yes graphviz
-      - name: Run Sphinx linkcheck
-        # Do not use -W: we parse output.json directly instead of relying on exit codes.
-        run: >
-          uv --no-progress run --frozen --all-extras --group docs --
-          sphinx-build -b linkcheck ./docs ./docs/linkcheck
-        continue-on-error: true
-      - name: Manage Sphinx linkcheck issue
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          uvx --no-progress --from . gha-utils sphinx-linkcheck
-          --output-json ./docs/linkcheck/output.json
-          --repo-name "${{ github.event.repository.name }}"
-          --source-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/docs"
-
   check-broken-links:
     needs:
       - project-metadata
@@ -100,12 +62,33 @@ jobs:
       github.event_name != 'pull_request'
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(toJSON(github.event.commits.*.message), '[changelog] Post-release bump'))
-      && needs.project-metadata.outputs.doc_files
+      && (needs.project-metadata.outputs.doc_files
+        || (fromJSON(needs.project-metadata.outputs.is_python_project)
+          && fromJSON(needs.project-metadata.outputs.is_sphinx)))
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.2.1
+      - name: Install Graphviz
+        if: >
+          fromJSON(needs.project-metadata.outputs.is_python_project)
+          && fromJSON(needs.project-metadata.outputs.is_sphinx)
+        # So we can use the sphinx.ext.graphviz plugin.
+        # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
+        run: |
+          sudo apt update
+          sudo apt install --yes graphviz
+      - name: Run Sphinx linkcheck
+        if: >
+          fromJSON(needs.project-metadata.outputs.is_python_project)
+          && fromJSON(needs.project-metadata.outputs.is_sphinx)
+        # Do not use -W: we parse output.json directly instead of relying on exit codes.
+        run: >
+          uv --no-progress run --frozen --all-extras --group docs --
+          sphinx-build -b linkcheck ./docs ./docs/linkcheck
+        continue-on-error: true
       - uses: lycheeverse/lychee-action@v2.7.0
+        if: needs.project-metadata.outputs.doc_files
         id: lychee_run
         with:
           lycheeVersion: v0.23.0
@@ -122,6 +105,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
           uvx --no-progress --from . gha-utils broken-links
-          --lychee-exit-code ${{ steps.lychee_run.outputs.exit_code }}
-          --body-file ./lychee/out.md
           --repo-name "${{ github.event.repository.name }}"
+          ${{ steps.lychee_run.outputs.exit_code != '' && format(
+            '--lychee-exit-code {0} --body-file ./lychee/out.md',
+            steps.lychee_run.outputs.exit_code) || '' }}
+          ${{ (fromJSON(needs.project-metadata.outputs.is_python_project)
+            && fromJSON(needs.project-metadata.outputs.is_sphinx)) && format(
+            '--output-json ./docs/linkcheck/output.json --source-url "{0}/{1}/blob/{2}/docs"',
+            github.server_url, github.repository, github.sha) || '' }}
