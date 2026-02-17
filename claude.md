@@ -79,30 +79,30 @@ workflows/
 
 ### `gha_utils` modules
 
-| Module                    | Purpose                                                                 |
-| ------------------------- | ----------------------------------------------------------------------- |
-| `__init__.py`             | Package-wide exports                                                    |
-| `__main__.py`             | Entry point for the `gha-utils` CLI                                     |
-| `binary.py`               | Binary verification and artifact collection                             |
-| `broken_links.py`         | Broken links detection and reporting (Lychee + Sphinx linkcheck)        |
+| Module                    | Purpose                                                                     |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `__init__.py`             | Package-wide exports                                                        |
+| `__main__.py`             | Entry point for the `gha-utils` CLI                                         |
+| `binary.py`               | Binary verification and artifact collection                                 |
+| `broken_links.py`         | Broken links detection and reporting (Lychee + Sphinx linkcheck)            |
 | `changelog.py`            | Changelog parsing, updating, release lifecycle management, and date linting |
-| `checksums.py`            | SHA-256 checksum verification and update for binary downloads           |
-| `cli.py`                  | Click-based command-line interface definitions                          |
-| `deps_graph.py`           | Generate Mermaid dependency graphs from uv lockfiles                    |
-| `git_ops.py`              | Idempotent Git operations for CI/CD contexts                            |
-| `github/__init__.py`      | GitHub CLI wrapper, Actions output formatting, and shared constants     |
-| `github/issue.py`         | GitHub issue lifecycle management (list, create, update, close, reopen) |
-| `github/matrix.py`        | Generate build matrices for GitHub Actions                              |
-| `github/pr_body.py`       | Generate PR body with workflow metadata for auto-created PRs            |
-| `github/workflow_sync.py` | Thin-caller generation, sync, and lint for downstream workflows         |
-| `init_project.py`         | Bundled data access, config templates, and repository initialization    |
-| `lint_repo.py`            | Repository metadata consistency checks                                  |
-| `mailmap.py`              | Git `.mailmap` file synchronization with contributors                   |
-| `metadata.py`             | Extract and combine metadata from Git, GitHub, and `pyproject.toml`     |
-| `release_prep.py`         | Orchestrate release preparation across citation and workflow files      |
-| `renovate.py`             | Renovate prerequisites, migration, and `exclude-newer` updates          |
-| `sponsor.py`              | Check GitHub sponsorship and label issues/PRs from sponsors             |
-| `test_plan.py`            | Run YAML-based test plans against compiled binaries                     |
+| `checksums.py`            | SHA-256 checksum verification and update for binary downloads               |
+| `cli.py`                  | Click-based command-line interface definitions                              |
+| `deps_graph.py`           | Generate Mermaid dependency graphs from uv lockfiles                        |
+| `git_ops.py`              | Idempotent Git operations for CI/CD contexts                                |
+| `github/__init__.py`      | GitHub CLI wrapper, Actions output formatting, and shared constants         |
+| `github/issue.py`         | GitHub issue lifecycle management (list, create, update, close, reopen)     |
+| `github/matrix.py`        | Generate build matrices for GitHub Actions                                  |
+| `github/pr_body.py`       | Generate PR body with workflow metadata for auto-created PRs                |
+| `github/workflow_sync.py` | Thin-caller generation, sync, and lint for downstream workflows             |
+| `init_project.py`         | Bundled data access, config templates, and repository initialization        |
+| `lint_repo.py`            | Repository metadata consistency checks                                      |
+| `mailmap.py`              | Git `.mailmap` file synchronization with contributors                       |
+| `metadata.py`             | Extract and combine metadata from Git, GitHub, and `pyproject.toml`         |
+| `release_prep.py`         | Orchestrate release preparation across citation and workflow files          |
+| `renovate.py`             | Renovate prerequisites, migration, and `exclude-newer` updates              |
+| `sponsor.py`              | Check GitHub sponsorship and label issues/PRs from sponsors                 |
+| `test_plan.py`            | Run YAML-based test plans against compiled binaries                         |
 
 ### Workflows organization
 
@@ -203,25 +203,25 @@ Use correct capitalization for proper nouns and trademarked names:
 
 The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag namespace** — it only appears when the reference is to a git tag or something derived from a tag (action ref, comparison URL, commit message). This aligns with PEP 440, PyPI, and semver conventions.
 
-| Context | Format | Example | Rationale |
-| :--- | :--- | :--- | :--- |
-| Python `__version__`, `pyproject.toml` | `1.2.3` | `version = "5.10.1"` | PEP 440 bare version. |
-| Git tags | `` `v1.2.3` `` | `` `v5.10.1` `` | Tag namespace convention. |
-| GitHub comparison URLs | `v1.2.3...v1.2.4` | `compare/v5.10.0...v5.10.1` | References tags. |
-| GitHub action/workflow refs | `` `@v1.2.3` `` | `actions/checkout@v6.0.2` | References tags. |
-| Commit messages | `v1.2.3` | `[changelog] Release v5.10.1` | References the tag being created. |
-| CLI `--version` output | `1.2.3` | `gha-utils, version 5.10.1` | Package version, not a tag. |
-| Changelog headings | `` `1.2.3` `` | `` ## [`5.10.1` (2026-02-17)] `` | Package version, code-formatted. |
-| PyPI URLs | `1.2.3` | `pypi.org/project/gha-utils/5.10.1/` | PyPI uses bare versions. |
-| PyPI admonitions | `` `1.2.3` `` | `` `5.10.1` is available on PyPI `` | Package version, not a tag. |
-| PR titles | `` `v1.2.3` `` | `` Release `v5.10.1` `` | References the tag. |
-| Prose/documentation | `` `v1.2.3` `` or `` `1.2.3` `` | Depends on referent | Match what is being referenced. |
+| Context                                | Format                          | Example                              | Rationale                         |
+| :------------------------------------- | :------------------------------ | :----------------------------------- | :-------------------------------- |
+| Python `__version__`, `pyproject.toml` | `1.2.3`                         | `version = "5.10.1"`                 | PEP 440 bare version.             |
+| Git tags                               | `` `v1.2.3` ``                  | `` `v5.10.1` ``                      | Tag namespace convention.         |
+| GitHub comparison URLs                 | `v1.2.3...v1.2.4`               | `compare/v5.10.0...v5.10.1`          | References tags.                  |
+| GitHub action/workflow refs            | `` `@v1.2.3` ``                 | `actions/checkout@v6.0.2`            | References tags.                  |
+| Commit messages                        | `v1.2.3`                        | `[changelog] Release v5.10.1`        | References the tag being created. |
+| CLI `--version` output                 | `1.2.3`                         | `gha-utils, version 5.10.1`          | Package version, not a tag.       |
+| Changelog headings                     | `` `1.2.3` ``                   | `` ## [`5.10.1` (2026-02-17)] ``     | Package version, code-formatted.  |
+| PyPI URLs                              | `1.2.3`                         | `pypi.org/project/gha-utils/5.10.1/` | PyPI uses bare versions.          |
+| PyPI admonitions                       | `` `1.2.3` ``                   | `` `5.10.1` is available on PyPI ``  | Package version, not a tag.       |
+| PR titles                              | `` `v1.2.3` ``                  | `` Release `v5.10.1` ``              | References the tag.               |
+| Prose/documentation                    | `` `v1.2.3` `` or `` `1.2.3` `` | Depends on referent                  | Match what is being referenced.   |
 
 **Rules:**
 
 1. **No `v` prefix on package versions.** Anywhere the version identifies the *package* (PyPI, changelog heading, CLI output), use the bare version: `1.2.3`.
 2. **`v` prefix on tag references.** Anywhere the version identifies a *git tag* (comparison URLs, action refs, commit messages, PR titles), use `v1.2.3`.
-3. **Always backtick-escape versions in prose.** Both `v1.2.3` (tag) and `1.2.3` (package) are identifiers, not natural language. In markdown, wrap them in backticks: `` `v1.2.3` ``, `` `1.2.3` ``. In reST docstrings, use double backticks: ` ``v1.2.3`` `.
+3. **Always backtick-escape versions in prose.** Both `v1.2.3` (tag) and `1.2.3` (package) are identifiers, not natural language. In markdown, wrap them in backticks: `` `v1.2.3` ``, `` `1.2.3` ``. In reST docstrings, use double backticks: ``` ``v1.2.3`` ```.
 4. **Development versions** follow PEP 440: `1.2.3.dev0` with optional `+{short_sha}` local identifier.
 
 ### Comments and docstrings
