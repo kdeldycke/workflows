@@ -5,6 +5,8 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
+- Fix `publish-github-release` job failing because `actions/checkout` wiped downloaded artifacts.
+
 ## [5.10.0 (2026-02-16)](https://github.com/kdeldycke/workflows/compare/v5.9.1...v5.10.0)
 
 - Add `gha-utils init` command to bootstrap repositories for reusable workflows.

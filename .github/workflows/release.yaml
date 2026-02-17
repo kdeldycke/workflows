@@ -297,6 +297,12 @@ jobs:
       # Allow project without WORKFLOW_UPDATE_GITHUB_PAT to create a GitHub release.
       contents: write
     steps:
+      - uses: actions/checkout@v6.0.2
+        # Only check out if we have artifacts to process.
+        if: needs.build-package.result != 'skipped' || needs.compile-binaries.result != 'skipped'
+      - uses: astral-sh/setup-uv@v7.2.1
+        # Only set up uv if we have artifacts to process.
+        if: needs.build-package.result != 'skipped' || needs.compile-binaries.result != 'skipped'
       - name: Download all artifacts
         # Do not fetch build artifacts if all jobs producing them were skipped.
         if: needs.build-package.result != 'skipped' || needs.compile-binaries.result != 'skipped'
@@ -307,12 +313,6 @@ jobs:
           # Only consider artifacts produced by the release commit.
           pattern: "*-${{ matrix.short_sha }}*"
           merge-multiple: true
-      - uses: actions/checkout@v6.0.2
-        # Only check out if we have artifacts to process.
-        if: steps.artifacts.outputs.download-path
-      - uses: astral-sh/setup-uv@v7.2.1
-        # Only set up uv if we have artifacts to process.
-        if: steps.artifacts.outputs.download-path
       - name: Collect and rename artifacts
         # Do not try to rename artifacts if none have been downloaded.
         if: steps.artifacts.outputs.download-path
