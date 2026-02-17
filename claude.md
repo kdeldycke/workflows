@@ -316,7 +316,7 @@ When a command is too long for a single line, use the folded block scalar (`>`) 
 Keep definitions sorted for readability and to minimize merge conflicts:
 
 - **Workflow jobs**: Ordered by execution dependency (upstream jobs first), then alphabetically within the same dependency level.
-- **Python module-level constants and variables**: Alphabetically, unless there is a logical grouping or dependency order.
+- **Python module-level constants and variables**: Alphabetically, unless there is a logical grouping or dependency order. Hard-coded domain constants (e.g., `NOT_ON_PYPI_ADMONITION`, `SKIP_BRANCHES`) should be placed at the top of the file, immediately after imports. These constants encode domain assertions and business rules — surfacing them early gives readers an immediate sense of the assumptions the module operates under.
 - **YAML configuration keys**: Alphabetically within each mapping level.
 - **Documentation lists and tables**: Alphabetically, unless a logical order (e.g., chronological in changelog) takes precedence.
 
@@ -391,13 +391,26 @@ For example, `changelog.yaml`'s `bump-versions` job needs to know the latest rel
 1. **Belt** — The `workflow_run` trigger ensures the job runs *after* the release workflow completes, so tags exist by then.
 2. **Suspenders** — The `is_version_bump_allowed()` function falls back to commit message parsing (`[changelog] Release vX.Y.Z`) when tags aren't found.
 
-Apply the same philosophy elsewhere: avoid single points of failure in workflow logic. If a job depends on external state (tags, published packages, API availability), add a fallback or a graceful default. When possible, make operations idempotent (e.g., `--skip-existing` on tag creation) so re-runs are safe.
+Apply the same philosophy elsewhere: avoid single points of failure in workflow logic. If a job depends on external state (tags, published packages, API availability), add a fallback or a graceful default. When possible, make operations [idempotent](#idempotency-by-default) so re-runs are safe.
 
 #### `workflow_run` checkout pitfall
 
 When `workflow_run` fires, `github.event.workflow_run.head_sha` points to the commit that *triggered* the upstream workflow — not the latest commit on `main`. If the release cycle added commits after that trigger (freeze + unfreeze), checking out `head_sha` produces a stale tree and the resulting PR will conflict with current `main`.
 
 **Fix:** Use `github.sha` instead, which for `workflow_run` events resolves to the latest commit on the default branch. The `workflow_run` trigger's purpose is *timing* (ensuring tags exist), not pinning to a specific commit. This applies to any job that needs the current state of `main` after an upstream workflow completes.
+
+### Idempotency by default
+
+Workflows and CLI commands must be safe to re-run. Running the same command or workflow twice with the same inputs should produce the same result without errors or unwanted side effects (e.g., duplicate tags, duplicate PR comments, redundant file modifications).
+
+**In practice:**
+
+- Use `--skip-existing` or equivalent guards when creating resources (tags, releases, published packages).
+- Check for existing state before writing (e.g., skip adding an admonition if it's already present, skip creating a PR if one already exists for the branch).
+- Prefer upsert semantics over create-only semantics.
+- Make file-modifying operations convergent: applying the same transformation to an already-transformed file should be a no-op.
+
+**When idempotency is not achievable**, document the reason in a comment or docstring explaining what side effects occur on re-runs and why they are acceptable or unavoidable.
 
 ### Concurrency implementation
 
