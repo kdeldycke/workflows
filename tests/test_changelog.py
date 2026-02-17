@@ -20,7 +20,12 @@ from textwrap import dedent
 
 import pytest
 
-from gha_utils.changelog import Changelog
+from gha_utils.changelog import (
+    Changelog,
+    PyPIRelease,
+    get_pypi_release_dates,
+    lint_changelog_dates,
+)
 
 
 SAMPLE_CHANGELOG = dedent(
@@ -285,3 +290,310 @@ def test_extract_version_notes_missing():
     notes = changelog.extract_version_notes("9.9.9")
 
     assert notes == ""
+
+
+MULTI_RELEASE_CHANGELOG = dedent(
+    """\
+    # Changelog
+
+    ## [2.0.0 (unreleased)](https://github.com/user/repo/compare/v1.1.0...main)
+
+    > [!IMPORTANT]
+    > This version is not released yet and is under active development.
+
+    ## [1.1.0 (2026-02-10)](https://github.com/user/repo/compare/v1.0.0...v1.1.0)
+
+    - Second release.
+
+    ## [1.0.0 (2025-12-01)](https://github.com/user/repo/compare/v0.9.0...v1.0.0)
+
+    - Initial release.
+    """
+)
+"""Changelog with multiple released versions and one unreleased."""
+
+
+def test_extract_all_releases():
+    """Test extraction of multiple released versions."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    releases = changelog.extract_all_releases()
+
+    assert releases == [("1.1.0", "2026-02-10"), ("1.0.0", "2025-12-01")]
+
+
+def test_extract_all_releases_no_releases():
+    """Test extraction when only an unreleased version exists."""
+    content = dedent(
+        """\
+        # Changelog
+
+        ## [1.0.0 (unreleased)](https://github.com/user/repo/compare/v0.0.1...main)
+
+        > [!IMPORTANT]
+        > This version is not released yet and is under active development.
+        """
+    )
+    changelog = Changelog(content)
+    releases = changelog.extract_all_releases()
+
+    assert releases == []
+
+
+def test_extract_all_releases_empty():
+    """Test extraction from an empty changelog."""
+    changelog = Changelog("# Changelog\n")
+    releases = changelog.extract_all_releases()
+
+    assert releases == []
+
+
+def _pypi_mock(releases):
+    """Build a monkeypatch-compatible mock for ``get_pypi_release_dates``."""
+    return lambda pkg: {v: PyPIRelease(*args) for v, args in releases.items()}
+
+
+def test_lint_changelog_dates_pypi_all_match(tmp_path, monkeypatch):
+    """Test that lint returns 0 when all PyPI dates match."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    assert lint_changelog_dates(path) == 0
+
+
+def test_lint_changelog_dates_pypi_mismatch(tmp_path, monkeypatch):
+    """Test that lint returns 1 when a PyPI date differs."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-09", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    assert lint_changelog_dates(path) == 1
+
+
+def test_lint_changelog_dates_fallback_to_tags(tmp_path, monkeypatch):
+    """Test that lint falls back to git tags when not on PyPI."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    # PyPI returns empty dict (not published).
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        lambda pkg: {},
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+    monkeypatch.setattr(
+        "gha_utils.git_ops.get_tag_date",
+        lambda tag: {"v1.1.0": "2026-02-10", "v1.0.0": "2025-12-01"}.get(tag),
+    )
+
+    assert lint_changelog_dates(path) == 0
+
+
+def test_lint_changelog_dates_fallback_no_package(tmp_path, monkeypatch):
+    """Test that lint falls back to git tags when no package name is detected."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "gha_utils.git_ops.get_tag_date",
+        lambda tag: {"v1.1.0": "2026-02-10", "v1.0.0": "2025-12-01"}.get(tag),
+    )
+
+    assert lint_changelog_dates(path) == 0
+
+
+def test_lint_changelog_dates_warns_missing_pypi(tmp_path, monkeypatch):
+    """Test that versions not on PyPI get a warning but lint continues."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    # Only the newest version is on PyPI; 1.0.0 is missing.
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        _pypi_mock({"1.1.0": ("2026-02-10", False)}),
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    # Should return 0: 1.1.0 matches, 1.0.0 warned but non-fatal.
+    assert lint_changelog_dates(path) == 0
+
+
+def test_lint_fix_corrects_date(tmp_path, monkeypatch):
+    """Test that --fix corrects mismatched dates in the changelog."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-11", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    # Mismatch on 1.1.0: changelog says 2026-02-10, PyPI says 2026-02-11.
+    result = lint_changelog_dates(path, fix=True)
+    assert result == 1
+
+    content = path.read_text(encoding="UTF-8")
+    assert "(2026-02-11)" in content
+    assert "(2026-02-10)" not in content
+
+
+def test_lint_fix_adds_pypi_admonition(tmp_path, monkeypatch):
+    """Test that --fix adds PyPI link admonitions."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    lint_changelog_dates(path, fix=True)
+    content = path.read_text(encoding="UTF-8")
+
+    assert "[🐍 Available on PyPI](https://pypi.org/project/my-package/1.1.0/)" in content
+    assert "[🐍 Available on PyPI](https://pypi.org/project/my-package/1.0.0/)" in content
+
+
+def test_lint_fix_adds_yanked_admonition(tmp_path, monkeypatch):
+    """Test that --fix adds a CAUTION admonition for yanked releases."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", True),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    lint_changelog_dates(path, fix=True)
+    content = path.read_text(encoding="UTF-8")
+
+    assert "> [!CAUTION]\n> This release has been yanked from PyPI." in content
+
+
+def test_lint_fix_adds_not_on_pypi_warning(tmp_path, monkeypatch):
+    """Test that --fix adds a WARNING for pre-PyPI versions."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    # Only 1.1.0 is on PyPI; 1.0.0 predates publication.
+    monkeypatch.setattr(
+        "gha_utils.changelog.get_pypi_release_dates",
+        _pypi_mock({"1.1.0": ("2026-02-10", False)}),
+    )
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    lint_changelog_dates(path, fix=True)
+    content = path.read_text(encoding="UTF-8")
+
+    assert "> [!WARNING]\n> This release is not published on PyPI." in content
+
+
+def test_lint_fix_idempotent(tmp_path, monkeypatch):
+    """Test that running --fix twice produces the same result."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    mock = _pypi_mock({
+        "1.1.0": ("2026-02-10", False),
+        "1.0.0": ("2025-12-01", False),
+    })
+    monkeypatch.setattr("gha_utils.changelog.get_pypi_release_dates", mock)
+    monkeypatch.setattr(
+        "gha_utils.metadata.get_project_name",
+        lambda: "my-package",
+    )
+
+    lint_changelog_dates(path, fix=True)
+    first_content = path.read_text(encoding="UTF-8")
+
+    lint_changelog_dates(path, fix=True)
+    second_content = path.read_text(encoding="UTF-8")
+
+    assert first_content == second_content
+
+
+def test_fix_release_date():
+    """Test fixing a specific version's date in the changelog."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    result = changelog.fix_release_date("1.1.0", "2026-02-11")
+
+    assert result is True
+    assert "(2026-02-11)" in changelog.content
+    assert "1.1.0 (2026-02-10)" not in changelog.content
+
+
+def test_add_admonition_after_heading():
+    """Test inserting an admonition after a version heading."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    result = changelog.add_admonition_after_heading(
+        "1.1.0", "> [🐍 Available on PyPI](https://example.com)"
+    )
+
+    assert result is True
+    assert "> [🐍 Available on PyPI](https://example.com)" in changelog.content
+
+
+def test_add_admonition_idempotent():
+    """Test that adding the same admonition twice is a no-op."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    admonition = "> [🐍 Available on PyPI](https://example.com)"
+    changelog.add_admonition_after_heading("1.1.0", admonition)
+    result = changelog.add_admonition_after_heading("1.1.0", admonition)
+
+    assert result is False

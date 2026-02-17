@@ -26,6 +26,27 @@ import logging
 import subprocess
 
 
+def get_tag_date(tag: str) -> str | None:
+    """Get the date of a Git tag in ``YYYY-MM-DD`` format.
+
+    Uses ``creatordate`` which resolves to the tagger date for annotated
+    tags and the commit date for lightweight tags.
+
+    :param tag: The tag name to look up.
+    :return: Date string in ``YYYY-MM-DD`` format, or ``None`` if the
+        tag does not exist.
+    """
+    result = subprocess.run(
+        ["git", "tag", "-l", "--format=%(creatordate:short)", tag],
+        capture_output=True,
+        text=True,
+    )
+    date = result.stdout.strip()
+    if not date:
+        return None
+    return date
+
+
 def tag_exists(tag: str) -> bool:
     """Check if a Git tag already exists locally.
 

@@ -113,11 +113,15 @@ Related modules
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import indent
+from typing import NamedTuple
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 CHANGELOG_HEADER = "# Changelog\n"
 """Default changelog header for empty changelogs."""
@@ -139,6 +143,27 @@ DATE_LABEL_PATTERN = re.compile(r" \(\d{4}\-\d{2}\-\d{2}\)")
 
 VERSION_COMPARE_PATTERN = re.compile(r"v(\d+\.\d+\.\d+)\.\.\.v(\d+\.\d+\.\d+)")
 """Pattern matching GitHub comparison URLs like ``v1.0.0...v1.0.1``."""
+
+RELEASED_VERSION_PATTERN = re.compile(
+    rf"^{SECTION_START}\s*\[(\d+\.\d+\.\d+)\s+\((\d{{4}}-\d{{2}}-\d{{2}})\)\]",
+    re.MULTILINE,
+)
+"""Pattern matching released version headings with dates.
+
+Captures version and date from headings like
+``## [5.9.1 (2026-02-14)](...)``. Skips unreleased versions which use
+``(unreleased)`` instead of a date.
+"""
+
+VERSION_HEADING_PATTERN = re.compile(
+    rf"^({SECTION_START}\s*\[\d+\.\d+\.\d+\s+\()[^)]+(\)\].*)$",
+    re.MULTILINE,
+)
+"""Pattern matching a full version heading line for date replacement.
+
+Captures the prefix up to ``(`` and the suffix from ``)`` onward, allowing
+the date or ``unreleased`` label to be replaced.
+"""
 
 WARNING_PATTERN = re.compile(r"^> \[!IMPORTANT\].+?\n\n", re.MULTILINE | re.DOTALL)
 """Pattern matching the first ``[!IMPORTANT]`` GFM alert block."""
@@ -395,3 +420,250 @@ class Changelog:
         if not match:
             return ""
         return match.groupdict().get("changes", "").strip()
+
+    def extract_all_releases(self) -> list[tuple[str, str]]:
+        """Extract all released versions and their dates from the changelog.
+
+        Scans for headings matching ``## [X.Y.Z (YYYY-MM-DD)](...)``.
+        Unreleased versions (with ``(unreleased)``) are skipped.
+
+        :return: List of ``(version, date)`` tuples ordered as they
+            appear in the changelog (newest first).
+        """
+        return RELEASED_VERSION_PATTERN.findall(self.content)
+
+    def fix_release_date(self, version: str, new_date: str) -> bool:
+        """Replace the date in a specific version heading.
+
+        :param version: Version string (e.g. ``1.2.3``).
+        :param new_date: New date in ``YYYY-MM-DD`` format.
+        :return: True if the content was modified.
+        """
+        pattern = re.compile(
+            rf"^({SECTION_START}\s*\[{re.escape(version)}\s+\()[^)]+(\)\].*)$",
+            re.MULTILINE,
+        )
+        updated = pattern.sub(rf"\g<1>{new_date}\g<2>", self.content, count=1)
+        if updated == self.content:
+            return False
+        self.content = updated
+        return True
+
+    def add_admonition_after_heading(
+        self,
+        version: str,
+        admonition: str,
+    ) -> bool:
+        """Insert an admonition block after a version heading.
+
+        Skips insertion if the admonition text is already present in the
+        section. The admonition is inserted on a new line after the
+        heading, separated by a blank line.
+
+        :param version: Version string to locate (e.g. ``1.2.3``).
+        :param admonition: The full admonition block text (including
+            ``>`` prefix lines).
+        :return: True if the content was modified.
+        """
+        if admonition in self.content:
+            return False
+        # Find the heading line for this version.
+        pattern = re.compile(
+            rf"^({SECTION_START}\s*\[.*{re.escape(version)}\s.+)$",
+            re.MULTILINE,
+        )
+        match = pattern.search(self.content)
+        if not match:
+            return False
+        insert_pos = match.end()
+        self.content = (
+            self.content[:insert_pos] + "\n\n" + admonition + self.content[insert_pos:]
+        )
+        return True
+
+
+PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
+"""PyPI JSON API URL for fetching all release metadata for a package."""
+
+PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
+"""PyPI project page URL for a specific version."""
+
+
+class PyPIRelease(NamedTuple):
+    """Release metadata for a single version from PyPI."""
+
+    date: str
+    """Earliest upload date across all files in ``YYYY-MM-DD`` format."""
+
+    yanked: bool
+    """Whether all files for this version are yanked."""
+
+
+def get_pypi_release_dates(package: str) -> dict[str, PyPIRelease]:
+    """Get upload dates and yanked status for all versions from PyPI.
+
+    Fetches the package metadata in a single API call. For each version,
+    selects the **earliest** upload time across all distribution files as
+    the canonical release date. A version is considered yanked only if
+    **all** of its files are yanked.
+
+    :param package: The PyPI package name.
+    :return: Dict mapping version strings to :class:`PyPIRelease` tuples.
+        Empty dict if the package is not found or the request fails.
+    """
+    url = PYPI_API_URL.format(package=package)
+    request = Request(url, headers={"Accept": "application/json"})  # noqa: S310
+    try:
+        with urlopen(request, timeout=10) as response:  # noqa: S310
+            data = json.loads(response.read())
+    except (URLError, TimeoutError, json.JSONDecodeError) as exc:
+        logging.debug(f"PyPI lookup failed for {package}: {exc}")
+        return {}
+
+    result: dict[str, PyPIRelease] = {}
+    for version, files in data.get("releases", {}).items():
+        if not files:
+            continue
+        # Select the earliest upload time across all distribution files.
+        dates = [f["upload_time"][:10] for f in files if f.get("upload_time")]
+        if not dates:
+            continue
+        earliest_date = min(dates)
+        # A version is yanked only if every file is yanked.
+        all_yanked = all(f.get("yanked", False) for f in files)
+        result[version] = PyPIRelease(date=earliest_date, yanked=all_yanked)
+
+    return result
+
+
+def lint_changelog_dates(
+    changelog_path: Path,
+    package: str | None = None,
+    *,
+    fix: bool = False,
+) -> int:
+    """Verify that changelog release dates match canonical release dates.
+
+    Uses PyPI upload dates as the canonical reference when the project
+    is published to PyPI. Falls back to git tag dates for projects not
+    on PyPI. Stops iterating once it reaches versions older than the
+    oldest PyPI release.
+
+    When ``fix`` is enabled, date mismatches are corrected in-place and
+    admonitions are added to the changelog:
+
+    - A PyPI link admonition under each version found on PyPI.
+    - A ``[!CAUTION]`` admonition for yanked releases.
+    - A ``[!WARNING]`` admonition for versions not found on PyPI.
+
+    :param changelog_path: Path to the changelog file.
+    :param package: PyPI package name. If ``None``, auto-detected from
+        ``pyproject.toml``. If detection fails, falls back to git tags.
+    :param fix: If True, fix dates and add admonitions to the file.
+    :return: ``0`` if all dates match or references are missing,
+        ``1`` if any date mismatch is found.
+    """
+    from .git_ops import get_tag_date
+    from .github import AnnotationLevel, emit_annotation
+    from .metadata import get_project_name
+
+    content = changelog_path.read_text(encoding="UTF-8")
+    changelog = Changelog(content)
+    releases = changelog.extract_all_releases()
+
+    if not releases:
+        logging.info("No released versions found in changelog.")
+        return 0
+
+    # Auto-detect package name for PyPI lookups.
+    if package is None:
+        package = get_project_name()
+
+    # Fetch all PyPI release dates in a single API call.
+    pypi_data: dict[str, PyPIRelease] = {}
+    if package:
+        pypi_data = get_pypi_release_dates(package)
+        if pypi_data:
+            logging.info(
+                f"Using PyPI as reference for {package!r}"
+                f" ({len(pypi_data)} releases found)."
+            )
+        else:
+            logging.info(
+                f"Package {package!r} not found on PyPI, falling back to git tags."
+            )
+    else:
+        logging.info("No package name detected, falling back to git tags.")
+
+    use_pypi = bool(pypi_data)
+    has_mismatch = False
+    modified = False
+
+    for version, changelog_date in releases:
+        if use_pypi:
+            release = pypi_data.get(version)
+            if release is None:
+                logging.warning(f"⚠ {version}: not found on PyPI")
+                emit_annotation(
+                    AnnotationLevel.WARNING,
+                    f"Version {version} not found on PyPI",
+                )
+                continue
+            ref_date = release.date
+            source = "PyPI"
+        else:
+            ref_date = get_tag_date(f"v{version}")
+            source = "tag"
+            if ref_date is None:
+                logging.warning(f"⚠ {version}: not found on {source}")
+                emit_annotation(
+                    AnnotationLevel.WARNING,
+                    f"Version {version} not found on {source}",
+                )
+                continue
+
+        if changelog_date == ref_date:
+            logging.info(f"✓ {version}: {changelog_date} ({source})")
+        else:
+            logging.error(
+                f"✗ {version}: changelog={changelog_date}, {source}={ref_date}"
+            )
+            emit_annotation(
+                AnnotationLevel.ERROR,
+                (
+                    f"Date mismatch for {version}:"
+                    f" changelog={changelog_date}, {source}={ref_date}"
+                ),
+            )
+            has_mismatch = True
+            if fix:
+                modified |= changelog.fix_release_date(version, ref_date)
+
+        # Add admonitions in fix mode for PyPI-tracked versions.
+        if fix and use_pypi and package:
+            release = pypi_data[version]
+            pypi_url = PYPI_PROJECT_URL.format(package=package, version=version)
+            modified |= changelog.add_admonition_after_heading(
+                version,
+                f"> [🐍 Available on PyPI]({pypi_url})",
+            )
+            if release.yanked:
+                modified |= changelog.add_admonition_after_heading(
+                    version,
+                    ("> [!CAUTION]\n> This release has been yanked from PyPI."),
+                )
+
+    # In fix mode, add warnings for changelog versions not found on PyPI.
+    if fix and use_pypi and package:
+        for version, _date in releases:
+            if version not in pypi_data:
+                modified |= changelog.add_admonition_after_heading(
+                    version,
+                    ("> [!WARNING]\n> This release is not published on PyPI."),
+                )
+
+    if fix and modified:
+        changelog_path.write_text(changelog.content, encoding="UTF-8")
+        logging.info(f"Updated {changelog_path}")
+
+    return 1 if has_mismatch else 0

@@ -54,7 +54,7 @@ from .binary import (
 from .broken_links import manage_combined_broken_links_issue
 from .checksums import update_checksums
 from .init_project import ALL_COMPONENTS, run_init
-from .changelog import Changelog
+from .changelog import Changelog, lint_changelog_dates
 from .deps_graph import (
     generate_dependency_graph,
     get_available_extras,
@@ -1775,6 +1775,70 @@ def lint_repo(
         project_description=project_description,
         repo=repo if repo else None,
     )
+    ctx.exit(exit_code)
+
+
+@gha_utils.command(short_help="Check changelog dates against release dates")
+@option(
+    "--changelog",
+    "changelog_path",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    default="changelog.md",
+    help="Path to the changelog file.",
+)
+@option(
+    "--package",
+    default=None,
+    help="PyPI package name for date lookups. Auto-detected from pyproject.toml.",
+)
+@option(
+    "--fix",
+    is_flag=True,
+    default=False,
+    help="Fix date mismatches and add PyPI admonitions to the changelog.",
+)
+@pass_context
+def lint_changelog(
+    ctx: Context,
+    changelog_path: Path,
+    package: str | None,
+    fix: bool,
+) -> None:
+    """Verify that changelog release dates match canonical release dates.
+
+    Uses PyPI upload dates as the canonical reference when the project is
+    published to PyPI. Falls back to git tag dates for non-PyPI projects.
+
+    PyPI timestamps are immutable and reflect the actual publication date,
+    making them more reliable than git tags which can be recreated.
+
+    \b
+    Output symbols:
+        ✓  Dates match
+        ⚠  Version not found on reference source (warning, non-fatal)
+        ✗  Date mismatch (error, fatal)
+
+    \b
+    With --fix, the command also:
+        - Corrects mismatched dates to match the canonical source.
+        - Adds a PyPI link admonition under each released version.
+        - Adds a CAUTION admonition for yanked releases.
+        - Adds a WARNING admonition for versions not on PyPI.
+
+    \b
+    Examples:
+        # Check the default changelog.md (auto-detects PyPI package)
+        gha-utils lint-changelog
+
+    \b
+        # Fix dates and add admonitions
+        gha-utils lint-changelog --fix
+
+    \b
+        # Explicit package name
+        gha-utils lint-changelog --package gha-utils
+    """
+    exit_code = lint_changelog_dates(changelog_path, package=package, fix=fix)
     ctx.exit(exit_code)
 
 
