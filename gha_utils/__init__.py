@@ -29,6 +29,9 @@ def _dev_version() -> str:
     commit hash as a PEP 440 local version identifier (e.g.,
     ``5.1.0.dev0+abc1234``). For release versions, returns the version
     as-is.
+
+    .. todo::
+        Contribute this as a generic feature for Click Extra, and reuse it here.
     """
     if ".dev" not in __version__:
         return __version__
