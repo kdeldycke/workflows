@@ -199,6 +199,31 @@ Use correct capitalization for proper nouns and trademarked names:
 - **macOS** (not ~~MacOS~~ or ~~macos~~)
 - **iOS** (not ~~IOS~~ or ~~ios~~)
 
+### Version formatting
+
+The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag namespace** — it only appears when the reference is to a git tag or something derived from a tag (action ref, comparison URL, commit message). This aligns with PEP 440, PyPI, and semver conventions.
+
+| Context | Format | Example | Rationale |
+| :--- | :--- | :--- | :--- |
+| Python `__version__`, `pyproject.toml` | `1.2.3` | `version = "5.10.1"` | PEP 440 bare version. |
+| Git tags | `` `v1.2.3` `` | `` `v5.10.1` `` | Tag namespace convention. |
+| GitHub comparison URLs | `v1.2.3...v1.2.4` | `compare/v5.10.0...v5.10.1` | References tags. |
+| GitHub action/workflow refs | `` `@v1.2.3` `` | `actions/checkout@v6.0.2` | References tags. |
+| Commit messages | `v1.2.3` | `[changelog] Release v5.10.1` | References the tag being created. |
+| CLI `--version` output | `1.2.3` | `gha-utils, version 5.10.1` | Package version, not a tag. |
+| Changelog headings | `` `1.2.3` `` | `` ## [`5.10.1` (2026-02-17)] `` | Package version, code-formatted. |
+| PyPI URLs | `1.2.3` | `pypi.org/project/gha-utils/5.10.1/` | PyPI uses bare versions. |
+| PyPI admonitions | `` `1.2.3` `` | `` `5.10.1` is available on PyPI `` | Package version, not a tag. |
+| PR titles | `` `v1.2.3` `` | `` Release `v5.10.1` `` | References the tag. |
+| Prose/documentation | `` `v1.2.3` `` or `` `1.2.3` `` | Depends on referent | Match what is being referenced. |
+
+**Rules:**
+
+1. **No `v` prefix on package versions.** Anywhere the version identifies the *package* (PyPI, changelog heading, CLI output), use the bare version: `1.2.3`.
+2. **`v` prefix on tag references.** Anywhere the version identifies a *git tag* (comparison URLs, action refs, commit messages, PR titles), use `v1.2.3`.
+3. **Always backtick-escape versions in prose.** Both `v1.2.3` (tag) and `1.2.3` (package) are identifiers, not natural language. In markdown, wrap them in backticks: `` `v1.2.3` ``, `` `1.2.3` ``. In reST docstrings, use double backticks: ` ``v1.2.3`` `.
+4. **Development versions** follow PEP 440: `1.2.3.dev0` with optional `+{short_sha}` local identifier.
+
 ### Comments and docstrings
 
 - All comments in Python files must end with a period.

@@ -184,7 +184,7 @@ PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
 PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
 """PyPI project page URL for a specific version."""
 
-PYPI_ADMONITION = "> [!TIP]\n> [🐍 `v{version}` is available on PyPI]({url})."
+PYPI_ADMONITION = "> [!TIP]\n> [🐍 `{version}` is available on PyPI]({url})."
 """GFM admonition template for a version published on PyPI."""
 
 YANKED_ADMONITION = "> [!CAUTION]\n> This release has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."

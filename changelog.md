@@ -5,12 +5,14 @@
 > [!IMPORTANT]
 > This version is not released yet and is under active development.
 
-- Add `gha-utils lint-changelog` command to verify changelog release dates against PyPI upload dates, with git tag fallback for non-PyPI projects. Supports `--fix` to auto-correct dates and add PyPI link, yanked, and not-on-PyPI admonitions.
+- Add `gha-utils lint-changelog` command to verify changelog release dates against PyPI upload dates, with git tag fallback for non-PyPI projects.
+- Add auto-correct changelog capabilities to fix dates and add PyPI link, yanked, and not-on-PyPI admonitions.
+- Document version and tag naming conventions.
 
 ## [`5.10.1` (2026-02-17)](https://github.com/kdeldycke/workflows/compare/v5.10.0...v5.10.1)
 
 > [!TIP]
-> [🐍 `v5.10.1` is available on PyPI](https://pypi.org/project/gha-utils/5.10.1/).
+> [🐍 `5.10.1` is available on PyPI](https://pypi.org/project/gha-utils/5.10.1/).
 
 - Fix `publish-github-release` job failing because `actions/checkout` wiped downloaded artifacts.
 - Fix broken links issue being created when lychee exits with a non-zero code but produces no output file.
@@ -18,7 +20,7 @@
 ## [`5.10.0` (2026-02-16)](https://github.com/kdeldycke/workflows/compare/v5.9.1...v5.10.0)
 
 > [!TIP]
-> [🐍 `v5.10.0` is available on PyPI](https://pypi.org/project/gha-utils/5.10.0/).
+> [🐍 `5.10.0` is available on PyPI](https://pypi.org/project/gha-utils/5.10.0/).
 
 - Add `gha-utils init` command to bootstrap repositories for reusable workflows.
 - Add `sync-workflows` job to `autofix.yaml` for downstream repos to keep their thin-caller workflow files in sync.
@@ -45,7 +47,7 @@
 ## [`5.9.1` (2026-02-15)](https://github.com/kdeldycke/workflows/compare/v5.9.0...v5.9.1)
 
 > [!TIP]
-> [🐍 `v5.9.1` is available on PyPI](https://pypi.org/project/gha-utils/5.9.1/).
+> [🐍 `5.9.1` is available on PyPI](https://pypi.org/project/gha-utils/5.9.1/).
 
 - Refactor PR body templates from Python literals to markdown files with YAML frontmatter for metadata (titles, commit messages). The `pr-body` CLI now outputs `title` and `commit_message` alongside `body`.
 - Add and enrich PR templates for all autofix jobs, version bumps, release preparation, and `.gitignore` updates.
@@ -57,7 +59,7 @@
 ## [`5.9.0` (2026-02-14)](https://github.com/kdeldycke/workflows/compare/v5.8.0...v5.9.0)
 
 > [!TIP]
-> [🐍 `v5.9.0` is available on PyPI](https://pypi.org/project/gha-utils/5.9.0/).
+> [🐍 `5.9.0` is available on PyPI](https://pypi.org/project/gha-utils/5.9.0/).
 
 - Add `gha-utils workflow` command group with `create`, `sync`, and `lint` subcommands.
 - Add `[tool.gha-utils] nuitka` option to opt out of Nuitka binary compilation.
@@ -79,7 +81,7 @@
 ## [`5.8.0` (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.2...v5.8.0)
 
 > [!TIP]
-> [🐍 `v5.8.0` is available on PyPI](https://pypi.org/project/gha-utils/5.8.0/).
+> [🐍 `5.8.0` is available on PyPI](https://pypi.org/project/gha-utils/5.8.0/).
 
 - Fix stale checkout in `bump-versions` causing merge conflicts after releases.
 - Add `cancel-runs.yaml` workflow to cancel in-progress and queued runs when a PR is closed.
@@ -89,7 +91,7 @@
 ## [`5.7.2` (2026-02-11)](https://github.com/kdeldycke/workflows/compare/v5.7.1...v5.7.2)
 
 > [!TIP]
-> [🐍 `v5.7.2` is available on PyPI](https://pypi.org/project/gha-utils/5.7.2/).
+> [🐍 `5.7.2` is available on PyPI](https://pypi.org/project/gha-utils/5.7.2/).
 
 - Replace `taiki-e/install-action` with direct `curl` download for `labelmaker` binary.
 - Fix `update-cli-pins` job failing due to shallow clone.
@@ -102,7 +104,7 @@
 ## [`5.7.1` (2026-02-10)](https://github.com/kdeldycke/workflows/compare/v5.7.0...v5.7.1)
 
 > [!TIP]
-> [🐍 `v5.7.1` is available on PyPI](https://pypi.org/project/gha-utils/5.7.1/).
+> [🐍 `5.7.1` is available on PyPI](https://pypi.org/project/gha-utils/5.7.1/).
 
 - Fix `gha-utils` CLI version pins stuck at `5.6.1` by moving pin updates to a post-release `update-cli-pins` job in `release.yaml` that runs after the new version is published to PyPI.
 - Add build provenance attestation to `build-package` job for defense-in-depth supply chain security.
@@ -115,7 +117,7 @@
 ## [`5.7.0` (2026-02-09)](https://github.com/kdeldycke/workflows/compare/v5.6.2...v5.7.0)
 
 > [!TIP]
-> [🐍 `v5.7.0` is available on PyPI](https://pypi.org/project/gha-utils/5.7.0/).
+> [🐍 `5.7.0` is available on PyPI](https://pypi.org/project/gha-utils/5.7.0/).
 
 - Add `gha-utils sphinx-linkcheck` command to detect broken auto-generated links.
 - Replace `blacken-docs` by `ruff` for Markdown code formatting.
@@ -132,14 +134,14 @@
 ## [`5.6.2` (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.6.1...v5.6.2)
 
 > [!TIP]
-> [🐍 `v5.6.2` is available on PyPI](https://pypi.org/project/gha-utils/5.6.2/).
+> [🐍 `5.6.2` is available on PyPI](https://pypi.org/project/gha-utils/5.6.2/).
 
 - Auto-update `gha-utils==X.Y.Z` CLI version pins in workflow files during release.
 
 ## [`5.6.1` (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.6.0...v5.6.1)
 
 > [!TIP]
-> [🐍 `v5.6.1` is available on PyPI](https://pypi.org/project/gha-utils/5.6.1/).
+> [🐍 `5.6.1` is available on PyPI](https://pypi.org/project/gha-utils/5.6.1/).
 
 - Add missing `renovate.json5` template file from the bundled Python package.
 - Keep bundled `renovate.json5` configuration in sync with root file from this repository.
@@ -151,7 +153,7 @@
 ## [`5.6.0` (2026-02-02)](https://github.com/kdeldycke/workflows/compare/v5.5.1...v5.6.0)
 
 > [!TIP]
-> [🐍 `v5.6.0` is available on PyPI](https://pypi.org/project/gha-utils/5.6.0/).
+> [🐍 `5.6.0` is available on PyPI](https://pypi.org/project/gha-utils/5.6.0/).
 
 - Add `migrate-to-renovate` job to `renovate.yaml` workflow that creates a PR that create a `renovate.json5` and remove Dependabot config.
 - Add dynamic prerequisites status table to migration PR body with links to settings pages.
@@ -163,7 +165,7 @@
 ## [`5.5.1` (2026-01-30)](https://github.com/kdeldycke/workflows/compare/v5.5.0...v5.5.1)
 
 > [!TIP]
-> [🐍 `v5.5.1` is available on PyPI](https://pypi.org/project/gha-utils/5.5.1/).
+> [🐍 `5.5.1` is available on PyPI](https://pypi.org/project/gha-utils/5.5.1/).
 
 - Replace workflow shell scripts with CLI commands.
 - Add `pr-metadata` composite action to deduplicate PR body metadata across workflows.
@@ -176,7 +178,7 @@
 ## [`5.5.0` (2026-01-29)](https://github.com/kdeldycke/workflows/compare/v5.4.0...v5.5.0)
 
 > [!TIP]
-> [🐍 `v5.5.0` is available on PyPI](https://pypi.org/project/gha-utils/5.5.0/).
+> [🐍 `5.5.0` is available on PyPI](https://pypi.org/project/gha-utils/5.5.0/).
 
 - Add `gha-utils update-exclude-newer` command to update the exclude-newer date in pyproject.toml.
 - Add `gha-utils check-renovate-prereqs` command to validate Renovate prerequisites.
@@ -197,7 +199,7 @@
 ## [`5.4.0` (2026-01-25)](https://github.com/kdeldycke/workflows/compare/v5.3.1...v5.4.0)
 
 > [!TIP]
-> [🐍 `v5.4.0` is available on PyPI](https://pypi.org/project/gha-utils/5.4.0/).
+> [🐍 `5.4.0` is available on PyPI](https://pypi.org/project/gha-utils/5.4.0/).
 
 - Add unified `gha-utils config` command group with `init`, `export`, `labels`, and `workflows` subcommands.
 - Move `gha-utils labels` to `gha-utils config labels` subcommand.
@@ -209,7 +211,7 @@
 ## [`5.3.1` (2026-01-24)](https://github.com/kdeldycke/workflows/compare/v5.3.0...v5.3.1)
 
 > [!TIP]
-> [🐍 `v5.3.1` is available on PyPI](https://pypi.org/project/gha-utils/5.3.1/).
+> [🐍 `5.3.1` is available on PyPI](https://pypi.org/project/gha-utils/5.3.1/).
 
 - Add `gha-utils sponsor-label` command to label issues/PRs from GitHub sponsors.
 - Replace unmaintained `JasonEtco/is-sponsor-label-action` with `gha-utils sponsor-label`.
@@ -223,7 +225,7 @@
 ## [`5.3.0` (2026-01-24)](https://github.com/kdeldycke/workflows/compare/v5.2.0...v5.3.0)
 
 > [!TIP]
-> [🐍 `v5.3.0` is available on PyPI](https://pypi.org/project/gha-utils/5.3.0/).
+> [🐍 `5.3.0` is available on PyPI](https://pypi.org/project/gha-utils/5.3.0/).
 
 - Rely on `gha-utils labels` to dump label configuration files for inspection and bootstrapping.
 - Enhance `gha-utils bumpversion` command to sync the template directly into `pyproject.toml`.
@@ -236,7 +238,7 @@
 ## [`5.2.0` (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.1.0...v5.2.0)
 
 > [!TIP]
-> [🐍 `v5.2.0` is available on PyPI](https://pypi.org/project/gha-utils/5.2.0/).
+> [🐍 `5.2.0` is available on PyPI](https://pypi.org/project/gha-utils/5.2.0/).
 
 - Add `gha-utils labels` command to dump bundled label configuration files.
 - Add `gha-utils workflows` command to dump bundled workflow templates for inspection and bootstrapping.
@@ -249,7 +251,7 @@
 ## [`5.1.0` (2026-01-23)](https://github.com/kdeldycke/workflows/compare/v5.0.1...v5.1.0)
 
 > [!TIP]
-> [🐍 `v5.1.0` is available on PyPI](https://pypi.org/project/gha-utils/5.1.0/).
+> [🐍 `5.1.0` is available on PyPI](https://pypi.org/project/gha-utils/5.1.0/).
 
 - Add new `gha-utils release-prep` command to consolidate all release preparation steps.
 - Add new `gha-utils version-check` command to prevent double version increments within a development cycle.
@@ -264,7 +266,7 @@
 ## [`5.0.1` (2026-01-22)](https://github.com/kdeldycke/workflows/compare/v5.0.0...v5.0.1)
 
 > [!TIP]
-> [🐍 `v5.0.1` is available on PyPI](https://pypi.org/project/gha-utils/5.0.1/).
+> [🐍 `5.0.1` is available on PyPI](https://pypi.org/project/gha-utils/5.0.1/).
 
 - Fix publishing to PyPI by removing URL-based dependency on `mdformat-pelican`.
 - Protect both release commits and post-release bump commits from cancellation.
@@ -291,14 +293,14 @@
 ## [`4.25.5` (2026-01-09)](https://github.com/kdeldycke/workflows/compare/v4.25.4...v4.25.5)
 
 > [!TIP]
-> [🐍 `v4.25.5` is available on PyPI](https://pypi.org/project/gha-utils/4.25.5/).
+> [🐍 `4.25.5` is available on PyPI](https://pypi.org/project/gha-utils/4.25.5/).
 
 - Fix call to deprecated `extra-platforms` method.
 
 ## [`4.25.4` (2025-12-31)](https://github.com/kdeldycke/workflows/compare/v4.25.3...v4.25.4)
 
 > [!TIP]
-> [🐍 `v4.25.4` is available on PyPI](https://pypi.org/project/gha-utils/4.25.4/).
+> [🐍 `4.25.4` is available on PyPI](https://pypi.org/project/gha-utils/4.25.4/).
 
 - Move auto-lock time from 8:43 to 4:43.
 - Let projects defined their own cooldown period via the `pyproject.toml`.
@@ -307,7 +309,7 @@
 ## [`4.25.3` (2025-12-19)](https://github.com/kdeldycke/workflows/compare/v4.25.2...v4.25.3)
 
 > [!TIP]
-> [🐍 `v4.25.3` is available on PyPI](https://pypi.org/project/gha-utils/4.25.3/).
+> [🐍 `4.25.3` is available on PyPI](https://pypi.org/project/gha-utils/4.25.3/).
 
 - Add Download link to project metadata.
 - Include license file in package.
@@ -316,21 +318,21 @@
 ## [`4.25.2` (2025-12-07)](https://github.com/kdeldycke/workflows/compare/v4.25.1...v4.25.2)
 
 > [!TIP]
-> [🐍 `v4.25.2` is available on PyPI](https://pypi.org/project/gha-utils/4.25.2/).
+> [🐍 `4.25.2` is available on PyPI](https://pypi.org/project/gha-utils/4.25.2/).
 
 - Use uncap dependencies everywhere.
 
 ## [`4.25.1` (2025-12-06)](https://github.com/kdeldycke/workflows/compare/v4.25.0...v4.25.1)
 
 > [!TIP]
-> [🐍 `v4.25.1` is available on PyPI](https://pypi.org/project/gha-utils/4.25.1/).
+> [🐍 `4.25.1` is available on PyPI](https://pypi.org/project/gha-utils/4.25.1/).
 
 - Replace `tool.uv` section by `build-system`.
 
 ## [`4.25.0` (2025-12-06)](https://github.com/kdeldycke/workflows/compare/v4.24.6...v4.25.0)
 
 > [!TIP]
-> [🐍 `v4.25.0` is available on PyPI](https://pypi.org/project/gha-utils/4.25.0/).
+> [🐍 `4.25.0` is available on PyPI](https://pypi.org/project/gha-utils/4.25.0/).
 
 - Add cooldown period for dependabot updates: 7 days by default, 29 days for major updates, 11 days for minor updates, 5 days for patch updates.
 - Sets `--exclude-newer` to 7 days ago when syncing `uv.lock` in `autofix` workflow.
@@ -345,50 +347,50 @@
 ## [`4.24.6` (2025-12-01)](https://github.com/kdeldycke/workflows/compare/v4.24.5...v4.24.6)
 
 > [!TIP]
-> [🐍 `v4.24.6` is available on PyPI](https://pypi.org/project/gha-utils/4.24.6/).
+> [🐍 `4.24.6` is available on PyPI](https://pypi.org/project/gha-utils/4.24.6/).
 
 - Do not check for broken links in pull requests.
 
 ## [`4.24.5` (2025-11-28)](https://github.com/kdeldycke/workflows/compare/v4.24.4...v4.24.5)
 
 > [!TIP]
-> [🐍 `v4.24.5` is available on PyPI](https://pypi.org/project/gha-utils/4.24.5/).
+> [🐍 `4.24.5` is available on PyPI](https://pypi.org/project/gha-utils/4.24.5/).
 
 - Use released versions of `mdformat-myst` plugin.
 
 ## [`4.24.4` (2025-11-27)](https://github.com/kdeldycke/workflows/compare/v4.24.3...v4.24.4)
 
 > [!TIP]
-> [🐍 `v4.24.4` is available on PyPI](https://pypi.org/project/gha-utils/4.24.4/).
+> [🐍 `4.24.4` is available on PyPI](https://pypi.org/project/gha-utils/4.24.4/).
 
 - Add `ubuntu-slim` to the list of platforms in debug workflows.
 
 ## [`4.24.3` (2025-11-24)](https://github.com/kdeldycke/workflows/compare/v4.24.2...v4.24.3)
 
 > [!TIP]
-> [🐍 `v4.24.3` is available on PyPI](https://pypi.org/project/gha-utils/4.24.3/).
+> [🐍 `4.24.3` is available on PyPI](https://pypi.org/project/gha-utils/4.24.3/).
 
-- Replace `mdformat_frontmatter` by `mdformat-front-matters` to fix compatibility with `mdformat` v1.0.0.
+- Replace `mdformat_frontmatter` by `mdformat-front-matters` to fix compatibility with `mdformat` `v1.0.0`.
 - Activate strict front-matter checking in `mdformat` when auto-formatting Markdown files.
 
 ## [`4.24.2` (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.24.1...v4.24.2)
 
 > [!TIP]
-> [🐍 `v4.24.2` is available on PyPI](https://pypi.org/project/gha-utils/4.24.2/).
+> [🐍 `4.24.2` is available on PyPI](https://pypi.org/project/gha-utils/4.24.2/).
 
 - Fix all issues related to the use of `ubuntu-slim` runners.
 
 ## [`4.24.1` (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.24.0...v4.24.1)
 
 > [!TIP]
-> [🐍 `v4.24.1` is available on PyPI](https://pypi.org/project/gha-utils/4.24.1/).
+> [🐍 `4.24.1` is available on PyPI](https://pypi.org/project/gha-utils/4.24.1/).
 
 - Keep using `ubuntu-24.04` for Nuitka builds.
 
 ## [`4.24.0` (2025-11-23)](https://github.com/kdeldycke/workflows/compare/v4.23.4...v4.24.0)
 
 > [!TIP]
-> [🐍 `v4.24.0` is available on PyPI](https://pypi.org/project/gha-utils/4.24.0/).
+> [🐍 `4.24.0` is available on PyPI](https://pypi.org/project/gha-utils/4.24.0/).
 
 - Replace `ubuntu-24.04` runner by `ubuntu-slim` in all jobs not relying on Docker, and in Nuitka build matrix.
 - Bump `actionlint` to `v1.7.9`.
@@ -397,14 +399,14 @@
 ## [`4.23.4` (2025-11-19)](https://github.com/kdeldycke/workflows/compare/v4.23.3...v4.23.4)
 
 > [!TIP]
-> [🐍 `v4.23.4` is available on PyPI](https://pypi.org/project/gha-utils/4.23.4/).
+> [🐍 `4.23.4` is available on PyPI](https://pypi.org/project/gha-utils/4.23.4/).
 
 - Force use of latest Python 3.14 for docs generation.
 
 ## [`4.23.3` (2025-11-18)](https://github.com/kdeldycke/workflows/compare/v4.23.2...v4.23.3)
 
 > [!TIP]
-> [🐍 `v4.23.3` is available on PyPI](https://pypi.org/project/gha-utils/4.23.3/).
+> [🐍 `4.23.3` is available on PyPI](https://pypi.org/project/gha-utils/4.23.3/).
 
 - Fix usage against last Click Extra release.
 - Run tests on Python `3.14t` and `3.15t` free-threaded variants.
@@ -412,21 +414,21 @@
 ## [`4.23.2` (2025-11-17)](https://github.com/kdeldycke/workflows/compare/v4.23.1...v4.23.2)
 
 > [!TIP]
-> [🐍 `v4.23.2` is available on PyPI](https://pypi.org/project/gha-utils/4.23.2/).
+> [🐍 `4.23.2` is available on PyPI](https://pypi.org/project/gha-utils/4.23.2/).
 
 - Fix lychee runs in `lint` workflow.
 
 ## [`4.23.1` (2025-11-02)](https://github.com/kdeldycke/workflows/compare/v4.23.0...v4.23.1)
 
 > [!TIP]
-> [🐍 `v4.23.1` is available on PyPI](https://pypi.org/project/gha-utils/4.23.1/).
+> [🐍 `4.23.1` is available on PyPI](https://pypi.org/project/gha-utils/4.23.1/).
 
 - Fix some incompatibilities between `mdformat` plugins.
 
 ## [`4.23.0` (2025-10-25)](https://github.com/kdeldycke/workflows/compare/v4.22.0...v4.23.0)
 
 > [!TIP]
-> [🐍 `v4.23.0` is available on PyPI](https://pypi.org/project/gha-utils/4.23.0/).
+> [🐍 `4.23.0` is available on PyPI](https://pypi.org/project/gha-utils/4.23.0/).
 
 - Remove maximum capped version of all dependencies (relax all `~=` specifiers to `>=`). This gives more freedom to downstream and upstream packagers. Document each minimal version choice.
 - Add new `--command` parameter to `gha-utils test-plan` command as an alias to `--binary`.
@@ -444,7 +446,7 @@
 ## [`4.22.0` (2025-10-12)](https://github.com/kdeldycke/workflows/compare/v4.21.0...v4.22.0)
 
 > [!TIP]
-> [🐍 `v4.22.0` is available on PyPI](https://pypi.org/project/gha-utils/4.22.0/).
+> [🐍 `4.22.0` is available on PyPI](https://pypi.org/project/gha-utils/4.22.0/).
 
 - Add new `image_files` field to `gha-utils metadata`.
 - Only runs `lint-yaml` job if there are YAML files in the repository.
@@ -460,7 +462,7 @@
 ## [`4.21.0` (2025-10-11)](https://github.com/kdeldycke/workflows/compare/v4.20.0...v4.21.0)
 
 > [!TIP]
-> [🐍 `v4.21.0` is available on PyPI](https://pypi.org/project/gha-utils/4.21.0/).
+> [🐍 `4.21.0` is available on PyPI](https://pypi.org/project/gha-utils/4.21.0/).
 
 - Use `astral-sh/setup-uv` action to install `uv` instead of manually installing it with `pip`.
 - Remove `requirements/uv.txt` file.
@@ -484,7 +486,7 @@
 ## [`4.20.0` (2025-10-10)](https://github.com/kdeldycke/workflows/compare/v4.19.1...v4.20.0)
 
 > [!TIP]
-> [🐍 `v4.20.0` is available on PyPI](https://pypi.org/project/gha-utils/4.20.0/).
+> [🐍 `4.20.0` is available on PyPI](https://pypi.org/project/gha-utils/4.20.0/).
 
 - Add new fields to `gha-utils metadata`:
   - `is_bot` to detect if the current run is not triggered by a human.
@@ -504,14 +506,14 @@
 ## [`4.19.1` (2025-09-25)](https://github.com/kdeldycke/workflows/compare/v4.19.0...v4.19.1)
 
 > [!TIP]
-> [🐍 `v4.19.1` is available on PyPI](https://pypi.org/project/gha-utils/4.19.1/).
+> [🐍 `4.19.1` is available on PyPI](https://pypi.org/project/gha-utils/4.19.1/).
 
 - Bump to Click Extra 6.0.0.
 
 ## [`4.19.0` (2025-09-25)](https://github.com/kdeldycke/workflows/compare/v4.18.1...v4.19.0)
 
 > [!TIP]
-> [🐍 `v4.19.0` is available on PyPI](https://pypi.org/project/gha-utils/4.19.0/).
+> [🐍 `4.19.0` is available on PyPI](https://pypi.org/project/gha-utils/4.19.0/).
 
 - Check for URL fragments when checking links with Lychee.
 - Fix compilation of `rfc3987_syntax` data file thanks to Nuitka `v2.7.14`.
@@ -524,14 +526,14 @@
 ## [`4.18.1` (2025-08-18)](https://github.com/kdeldycke/workflows/compare/v4.18.0...v4.18.1)
 
 > [!TIP]
-> [🐍 `v4.18.1` is available on PyPI](https://pypi.org/project/gha-utils/4.18.1/).
+> [🐍 `4.18.1` is available on PyPI](https://pypi.org/project/gha-utils/4.18.1/).
 
 - Patch `gitignore-parser` locally to support Windows paths.
 
 ## [`4.18.0` (2025-08-17)](https://github.com/kdeldycke/workflows/compare/v4.17.9...v4.18.0)
 
 > [!TIP]
-> [🐍 `v4.18.0` is available on PyPI](https://pypi.org/project/gha-utils/4.18.0/).
+> [🐍 `4.18.0` is available on PyPI](https://pypi.org/project/gha-utils/4.18.0/).
 
 - Adds `--format json` option.
 - Remove `--format plain` option.
@@ -545,14 +547,14 @@
 ## [`4.17.9` (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.8...v4.17.9)
 
 > [!TIP]
-> [🐍 `v4.17.9` is available on PyPI](https://pypi.org/project/gha-utils/4.17.9/).
+> [🐍 `4.17.9` is available on PyPI](https://pypi.org/project/gha-utils/4.17.9/).
 
 - Bump `gha-utils`.
 
 ## [`4.17.8` (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.7...v4.17.8)
 
 > [!TIP]
-> [🐍 `v4.17.8` is available on PyPI](https://pypi.org/project/gha-utils/4.17.8/).
+> [🐍 `4.17.8` is available on PyPI](https://pypi.org/project/gha-utils/4.17.8/).
 
 - Normalized and deduplicate file paths in `gha-utils metadata` output.
 - Ignore non-existing files and broken symlinks in `gha-utils metadata` output.
@@ -560,7 +562,7 @@
 ## [`4.17.7` (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.6...v4.17.7)
 
 > [!TIP]
-> [🐍 `v4.17.7` is available on PyPI](https://pypi.org/project/gha-utils/4.17.7/).
+> [🐍 `4.17.7` is available on PyPI](https://pypi.org/project/gha-utils/4.17.7/).
 
 - Replace `Superseded by #None` comment by `No more broken links` when closing issues in `broken-links` job.
 - Run lychee with `--hidden`, `--suggest`, `--insecure`, `--include-fragments` and `--exclude-all-private` options.
@@ -569,7 +571,7 @@
 ## [`4.17.6` (2025-07-17)](https://github.com/kdeldycke/workflows/compare/v4.17.5...v4.17.6)
 
 > [!TIP]
-> [🐍 `v4.17.6` is available on PyPI](https://pypi.org/project/gha-utils/4.17.6/).
+> [🐍 `4.17.6` is available on PyPI](https://pypi.org/project/gha-utils/4.17.6/).
 
 - Use `uv`-provided ARM64 Python on `windows-11-arm` platform for Nuitka builds.
 - Force use of latest `3.13` Python for all platforms for Nuitka builds.
@@ -578,14 +580,14 @@
 ## [`4.17.5` (2025-06-26)](https://github.com/kdeldycke/workflows/compare/v4.17.4...v4.17.5)
 
 > [!TIP]
-> [🐍 `v4.17.5` is available on PyPI](https://pypi.org/project/gha-utils/4.17.5/).
+> [🐍 `4.17.5` is available on PyPI](https://pypi.org/project/gha-utils/4.17.5/).
 
 - Bump `uv`.
 
 ## [`4.17.4` (2025-06-20)](https://github.com/kdeldycke/workflows/compare/v4.17.3...v4.17.4)
 
 > [!TIP]
-> [🐍 `v4.17.4` is available on PyPI](https://pypi.org/project/gha-utils/4.17.4/).
+> [🐍 `4.17.4` is available on PyPI](https://pypi.org/project/gha-utils/4.17.4/).
 
 - Remove hard-coded domains to skip when checking URLs. Use a `.lycheeignore` file instead.
 - Fix auto-closing and updating of open broken links issues.
@@ -593,7 +595,7 @@
 ## [`4.17.3` (2025-06-08)](https://github.com/kdeldycke/workflows/compare/v4.17.2...v4.17.3)
 
 > [!TIP]
-> [🐍 `v4.17.3` is available on PyPI](https://pypi.org/project/gha-utils/4.17.3/).
+> [🐍 `4.17.3` is available on PyPI](https://pypi.org/project/gha-utils/4.17.3/).
 
 - Remove temporary `node_modules` subfolder when linting JSON files.
 - Do not fail on Lychee finding bad URLs.
@@ -601,7 +603,7 @@
 ## [`4.17.2` (2025-06-08)](https://github.com/kdeldycke/workflows/compare/v4.17.1...v4.17.2)
 
 > [!TIP]
-> [🐍 `v4.17.2` is available on PyPI](https://pypi.org/project/gha-utils/4.17.2/).
+> [🐍 `4.17.2` is available on PyPI](https://pypi.org/project/gha-utils/4.17.2/).
 
 - Ignore `node_modules` subfolder when linting JSON files.
 - Skip `Sci-Hub`, `x.com` and `archive.ph` when checking URLs because they restricts access to crawlers.
@@ -610,7 +612,7 @@
 ## [`4.17.1` (2025-05-27)](https://github.com/kdeldycke/workflows/compare/v4.17.0...v4.17.1)
 
 > [!TIP]
-> [🐍 `v4.17.1` is available on PyPI](https://pypi.org/project/gha-utils/4.17.1/).
+> [🐍 `4.17.1` is available on PyPI](https://pypi.org/project/gha-utils/4.17.1/).
 
 - Add new `unstable-targets` parameter to release workflow.
 - Release binaries without the `-build` suffix in their names.
@@ -618,7 +620,7 @@
 ## [`4.17.0` (2025-05-27)](https://github.com/kdeldycke/workflows/compare/v4.16.7...v4.17.0)
 
 > [!TIP]
-> [🐍 `v4.17.0` is available on PyPI](https://pypi.org/project/gha-utils/4.17.0/).
+> [🐍 `4.17.0` is available on PyPI](https://pypi.org/project/gha-utils/4.17.0/).
 
 - Add a new `-u`/`--unstable-target` option to `metadata` command to allow some Nuitka builds to fail.
 - Do not flag `windows-11-arm` as unstable by default for Nuitka builds.
@@ -628,21 +630,21 @@
 ## [`4.16.7` (2025-05-24)](https://github.com/kdeldycke/workflows/compare/v4.16.6...v4.16.7)
 
 > [!TIP]
-> [🐍 `v4.16.7` is available on PyPI](https://pypi.org/project/gha-utils/4.16.7/).
+> [🐍 `4.16.7` is available on PyPI](https://pypi.org/project/gha-utils/4.16.7/).
 
 - Always allows `windows-11-arm` target to fails for Nuitka builds.
 
 ## [`4.16.6` (2025-05-24)](https://github.com/kdeldycke/workflows/compare/v4.16.5...v4.16.6)
 
 > [!TIP]
-> [🐍 `v4.16.6` is available on PyPI](https://pypi.org/project/gha-utils/4.16.6/).
+> [🐍 `4.16.6` is available on PyPI](https://pypi.org/project/gha-utils/4.16.6/).
 
 - Add a `state` parameter to the Nuitka build matrix and mark `windows-11-arm` as unstable target while we wait for `lxml` to work on it.
 
 ## [`4.16.5` (2025-05-19)](https://github.com/kdeldycke/workflows/compare/v4.16.4...v4.16.5)
 
 > [!TIP]
-> [🐍 `v4.16.5` is available on PyPI](https://pypi.org/project/gha-utils/4.16.5/).
+> [🐍 `4.16.5` is available on PyPI](https://pypi.org/project/gha-utils/4.16.5/).
 
 - Print binary metadata after compiling them with Nuitka.
 - Fix production of arm64 binaries on Windows.
@@ -650,35 +652,35 @@
 ## [`4.16.4` (2025-05-18)](https://github.com/kdeldycke/workflows/compare/v4.16.3...v4.16.4)
 
 > [!TIP]
-> [🐍 `v4.16.4` is available on PyPI](https://pypi.org/project/gha-utils/4.16.4/).
+> [🐍 `4.16.4` is available on PyPI](https://pypi.org/project/gha-utils/4.16.4/).
 
 - Keep to the top the first comment in `.mailmap` files.
 
 ## [`4.16.3` (2025-05-13)](https://github.com/kdeldycke/workflows/compare/v4.16.2...v4.16.3)
 
 > [!TIP]
-> [🐍 `v4.16.3` is available on PyPI](https://pypi.org/project/gha-utils/4.16.3/).
+> [🐍 `4.16.3` is available on PyPI](https://pypi.org/project/gha-utils/4.16.3/).
 
 - Bump dependencies.
 
 ## [`4.16.2` (2025-04-28)](https://github.com/kdeldycke/workflows/compare/v4.16.1...v4.16.2)
 
 > [!TIP]
-> [🐍 `v4.16.2` is available on PyPI](https://pypi.org/project/gha-utils/4.16.2/).
+> [🐍 `4.16.2` is available on PyPI](https://pypi.org/project/gha-utils/4.16.2/).
 
 - Add a new `--show-trace-on-error`/`--hide-trace-on-error` option to `gha-utils test-plan` command to show execution trace of CLI on error.
 
 ## [`4.16.1` (2025-04-26)](https://github.com/kdeldycke/workflows/compare/v4.16.0...v4.16.1)
 
 > [!TIP]
-> [🐍 `v4.16.1` is available on PyPI](https://pypi.org/project/gha-utils/4.16.1/).
+> [🐍 `4.16.1` is available on PyPI](https://pypi.org/project/gha-utils/4.16.1/).
 
 - Use latest `gha-utils` CLI to build ARM64 binaries by default.
 
 ## [`4.16.0` (2025-04-26)](https://github.com/kdeldycke/workflows/compare/v4.15.6...v4.16.0)
 
 > [!TIP]
-> [🐍 `v4.16.0` is available on PyPI](https://pypi.org/project/gha-utils/4.16.0/).
+> [🐍 `4.16.0` is available on PyPI](https://pypi.org/project/gha-utils/4.16.0/).
 
 - Add a new `--exit-on-error`/`-x` option to `gha-utils test-plan` command to exit right away on the first failing test.
 - Add a new `--select-test`/`-t` option to `gha-utils test-plan` command to run specific test cases.
@@ -691,35 +693,35 @@
 ## [`4.15.6` (2025-04-20)](https://github.com/kdeldycke/workflows/compare/v4.15.5...v4.15.6)
 
 > [!TIP]
-> [🐍 `v4.15.6` is available on PyPI](https://pypi.org/project/gha-utils/4.15.6/).
+> [🐍 `4.15.6` is available on PyPI](https://pypi.org/project/gha-utils/4.15.6/).
 
-- Avoid `bump-my-version` v1.1.1 due to [regression](https://github.com/callowayproject/bump-my-version/issues/331).
+- Avoid `bump-my-version` `v1.1.1` due to [regression](https://github.com/callowayproject/bump-my-version/issues/331).
 
 ## [`4.15.5` (2025-03-13)](https://github.com/kdeldycke/workflows/compare/v4.15.4...v4.15.5)
 
 > [!TIP]
-> [🐍 `v4.15.5` is available on PyPI](https://pypi.org/project/gha-utils/4.15.5/).
+> [🐍 `4.15.5` is available on PyPI](https://pypi.org/project/gha-utils/4.15.5/).
 
 - Re-release to fix GitHub release notes.
 
 ## [`4.15.4` (2025-03-13)](https://github.com/kdeldycke/workflows/compare/v4.15.3...v4.15.4)
 
 > [!TIP]
-> [🐍 `v4.15.4` is available on PyPI](https://pypi.org/project/gha-utils/4.15.4/).
+> [🐍 `4.15.4` is available on PyPI](https://pypi.org/project/gha-utils/4.15.4/).
 
 - Fix fetching of released version and notes on release commits.
 
 ## [`4.15.3` (2025-03-12)](https://github.com/kdeldycke/workflows/compare/v4.15.2...v4.15.3)
 
 > [!TIP]
-> [🐍 `v4.15.3` is available on PyPI](https://pypi.org/project/gha-utils/4.15.3/).
+> [🐍 `4.15.3` is available on PyPI](https://pypi.org/project/gha-utils/4.15.3/).
 
 - Use latest `gha-utils` CLI to fix release notes in GitHub releases.
 
 ## [`4.15.2` (2025-03-12)](https://github.com/kdeldycke/workflows/compare/v4.15.1...v4.15.2)
 
 > [!TIP]
-> [🐍 `v4.15.2` is available on PyPI](https://pypi.org/project/gha-utils/4.15.2/).
+> [🐍 `4.15.2` is available on PyPI](https://pypi.org/project/gha-utils/4.15.2/).
 
 - Use uv-provided Python to compile binaries with Nuitka on Linux.
 - Populate `current_version` and `release_notes` field in `gha-utils metadata` output for unreleased versions.
@@ -727,7 +729,7 @@
 ## [`4.15.1` (2025-03-10)](https://github.com/kdeldycke/workflows/compare/v4.15.0...v4.15.1)
 
 > [!TIP]
-> [🐍 `v4.15.1` is available on PyPI](https://pypi.org/project/gha-utils/4.15.1/).
+> [🐍 `4.15.1` is available on PyPI](https://pypi.org/project/gha-utils/4.15.1/).
 
 - Remove deprecated `--plan` option.
 - Remove Nuitka script command extension workaround.
@@ -736,7 +738,7 @@
 ## [`4.15.0` (2025-03-05)](https://github.com/kdeldycke/workflows/compare/v4.14.2...v4.15.0)
 
 > [!TIP]
-> [🐍 `v4.15.0` is available on PyPI](https://pypi.org/project/gha-utils/4.15.0/).
+> [🐍 `4.15.0` is available on PyPI](https://pypi.org/project/gha-utils/4.15.0/).
 
 - Add support for `only_platforms` and `skip_platforms` settings in test plans, to finely select platforms to run tests on.
 - Add a `--skip-platform`/`-s` option to `gha-utils test-plan` to allow skipping of test plan on a whole set of platforms.
@@ -752,7 +754,7 @@
 ## [`4.14.2` (2025-02-19)](https://github.com/kdeldycke/workflows/compare/v4.14.1...v4.14.2)
 
 > [!TIP]
-> [🐍 `v4.14.2` is available on PyPI](https://pypi.org/project/gha-utils/4.14.2/).
+> [🐍 `4.14.2` is available on PyPI](https://pypi.org/project/gha-utils/4.14.2/).
 
 - Fix update of `.gitignore` with `gitignore-extra-content` content.
 - Fix `--timeout` parameter on `gha-utils test-plan` call in release workflow.
@@ -761,7 +763,7 @@
 ## [`4.14.1` (2025-02-16)](https://github.com/kdeldycke/workflows/compare/v4.14.0...v4.14.1)
 
 > [!TIP]
-> [🐍 `v4.14.1` is available on PyPI](https://pypi.org/project/gha-utils/4.14.1/).
+> [🐍 `4.14.1` is available on PyPI](https://pypi.org/project/gha-utils/4.14.1/).
 
 - Add a new `test-plan-file` parameter to the `release` workflow.
 - Remove the `binaries-test-plan` parameter in `release` workflow.
@@ -773,7 +775,7 @@
 ## [`4.14.0` (2025-02-15)](https://github.com/kdeldycke/workflows/compare/v4.13.4...v4.14.0)
 
 > [!TIP]
-> [🐍 `v4.14.0` is available on PyPI](https://pypi.org/project/gha-utils/4.14.0/).
+> [🐍 `4.14.0` is available on PyPI](https://pypi.org/project/gha-utils/4.14.0/).
 
 - Add new `gha-utils test-plan` subcommand.
 - Replace ad-hoc custom matrix code by generic matrix model.
@@ -784,42 +786,42 @@
 ## [`4.13.4` (2025-02-02)](https://github.com/kdeldycke/workflows/compare/v4.13.3...v4.13.4)
 
 > [!TIP]
-> [🐍 `v4.13.4` is available on PyPI](https://pypi.org/project/gha-utils/4.13.4/).
+> [🐍 `4.13.4` is available on PyPI](https://pypi.org/project/gha-utils/4.13.4/).
 
 - Fix uploads of Python packages to GitHub release when binaries are not produced.
 
 ## [`4.13.3` (2025-01-29)](https://github.com/kdeldycke/workflows/compare/v4.13.2...v4.13.3)
 
 > [!TIP]
-> [🐍 `v4.13.3` is available on PyPI](https://pypi.org/project/gha-utils/4.13.3/).
+> [🐍 `4.13.3` is available on PyPI](https://pypi.org/project/gha-utils/4.13.3/).
 
 - Fix uploads of Python packages to GitHub release when binaries are not produced.
 
 ## [`4.13.2` (2025-01-28)](https://github.com/kdeldycke/workflows/compare/v4.13.1...v4.13.2)
 
 > [!TIP]
-> [🐍 `v4.13.2` is available on PyPI](https://pypi.org/project/gha-utils/4.13.2/).
+> [🐍 `4.13.2` is available on PyPI](https://pypi.org/project/gha-utils/4.13.2/).
 
 - Fix permission for GitHub release publishing.
 
 ## [`4.13.1` (2025-01-28)](https://github.com/kdeldycke/workflows/compare/v4.13.0...v4.13.1)
 
 > [!TIP]
-> [🐍 `v4.13.1` is available on PyPI](https://pypi.org/project/gha-utils/4.13.1/).
+> [🐍 `4.13.1` is available on PyPI](https://pypi.org/project/gha-utils/4.13.1/).
 
 - Fix publishing of GitHub release if no binary artefacts have been produced.
 
 ## [`4.13.0` (2025-01-21)](https://github.com/kdeldycke/workflows/compare/v4.12.0...v4.13.0)
 
 > [!TIP]
-> [🐍 `v4.13.0` is available on PyPI](https://pypi.org/project/gha-utils/4.13.0/).
+> [🐍 `4.13.0` is available on PyPI](https://pypi.org/project/gha-utils/4.13.0/).
 
 - Generates attestion for Python packages and standalone binaries on release.
 
 ## [`4.12.0` (2025-01-20)](https://github.com/kdeldycke/workflows/compare/v4.11.1...v4.12.0)
 
 > [!TIP]
-> [🐍 `v4.12.0` is available on PyPI](https://pypi.org/project/gha-utils/4.12.0/).
+> [🐍 `4.12.0` is available on PyPI](https://pypi.org/project/gha-utils/4.12.0/).
 
 - Let `uv` choose the appropriate Python version depending on context.
 - Remove dependency on `twine` and `check-wheel-contents`.
@@ -827,28 +829,28 @@
 ## [`4.11.1` (2025-01-18)](https://github.com/kdeldycke/workflows/compare/v4.11.0...v4.11.1)
 
 > [!TIP]
-> [🐍 `v4.11.1` is available on PyPI](https://pypi.org/project/gha-utils/4.11.1/).
+> [🐍 `4.11.1` is available on PyPI](https://pypi.org/project/gha-utils/4.11.1/).
 
 - Re-release to build Linux `arm64` binaries by default.
 
 ## [`4.11.0` (2025-01-18)](https://github.com/kdeldycke/workflows/compare/v4.10.1...v4.11.0)
 
 > [!TIP]
-> [🐍 `v4.11.0` is available on PyPI](https://pypi.org/project/gha-utils/4.11.0/).
+> [🐍 `4.11.0` is available on PyPI](https://pypi.org/project/gha-utils/4.11.0/).
 
 - Use `ubuntu-24.04-arm` to build Linux binaries for `arm64`.
 
 ## [`4.10.1` (2025-01-08)](https://github.com/kdeldycke/workflows/compare/v4.10.0...v4.10.1)
 
 > [!TIP]
-> [🐍 `v4.10.1` is available on PyPI](https://pypi.org/project/gha-utils/4.10.1/).
+> [🐍 `4.10.1` is available on PyPI](https://pypi.org/project/gha-utils/4.10.1/).
 
 - Re-release with latest `gha-utils`.
 
 ## [`4.10.0` (2025-01-08)](https://github.com/kdeldycke/workflows/compare/v4.9.0...v4.10.0)
 
 > [!TIP]
-> [🐍 `v4.10.0` is available on PyPI](https://pypi.org/project/gha-utils/4.10.0/).
+> [🐍 `4.10.0` is available on PyPI](https://pypi.org/project/gha-utils/4.10.0/).
 
 - Replace unmaintained `jsonlint` by ESLint.
 - Add new `gitignore_exists` metadata output.
@@ -857,7 +859,7 @@
 ## [`4.9.0` (2024-12-27)](https://github.com/kdeldycke/workflows/compare/v4.8.4...v4.9.0)
 
 > [!TIP]
-> [🐍 `v4.9.0` is available on PyPI](https://pypi.org/project/gha-utils/4.9.0/).
+> [🐍 `4.9.0` is available on PyPI](https://pypi.org/project/gha-utils/4.9.0/).
 
 - Use `uv` instead of `setup-python` action to install Python. On all platforms but `windows-2019`.
 - Remove auto-generated dummy `pyproject.toml` used to hack `setup-python` caching.
@@ -869,14 +871,14 @@
 ## [`4.8.4` (2024-11-22)](https://github.com/kdeldycke/workflows/compare/v4.8.3...v4.8.4)
 
 > [!TIP]
-> [🐍 `v4.8.4` is available on PyPI](https://pypi.org/project/gha-utils/4.8.4/).
+> [🐍 `4.8.4` is available on PyPI](https://pypi.org/project/gha-utils/4.8.4/).
 
 - Run binaries tests into a shell subprocess.
 
 ## [`4.8.3` (2024-11-21)](https://github.com/kdeldycke/workflows/compare/v4.8.2...v4.8.3)
 
 > [!TIP]
-> [🐍 `v4.8.3` is available on PyPI](https://pypi.org/project/gha-utils/4.8.3/).
+> [🐍 `4.8.3` is available on PyPI](https://pypi.org/project/gha-utils/4.8.3/).
 
 - Fix parsing of default timeout.
 - Do not force encoding when running CLI in binary test job.
@@ -884,14 +886,14 @@
 ## [`4.8.2` (2024-11-20)](https://github.com/kdeldycke/workflows/compare/v4.8.1...v4.8.2)
 
 > [!TIP]
-> [🐍 `v4.8.2` is available on PyPI](https://pypi.org/project/gha-utils/4.8.2/).
+> [🐍 `4.8.2` is available on PyPI](https://pypi.org/project/gha-utils/4.8.2/).
 
 - Add a `timeout` parameter to release workflow test execution.
 
 ## [`4.8.1` (2024-11-19)](https://github.com/kdeldycke/workflows/compare/v4.8.0...v4.8.1)
 
 > [!TIP]
-> [🐍 `v4.8.1` is available on PyPI](https://pypi.org/project/gha-utils/4.8.1/).
+> [🐍 `4.8.1` is available on PyPI](https://pypi.org/project/gha-utils/4.8.1/).
 
 - Fix permissions for tagging in release workflow.
 
@@ -904,14 +906,14 @@
 ## [`4.7.2` (2024-11-10)](https://github.com/kdeldycke/workflows/compare/v4.7.1...v4.7.2)
 
 > [!TIP]
-> [🐍 `v4.7.2` is available on PyPI](https://pypi.org/project/gha-utils/4.7.2/).
+> [🐍 `4.7.2` is available on PyPI](https://pypi.org/project/gha-utils/4.7.2/).
 
 - Fix installation of `hub` on broken links job.
 
 ## [`4.7.1` (2024-11-03)](https://github.com/kdeldycke/workflows/compare/v4.7.0...v4.7.1)
 
 > [!TIP]
-> [🐍 `v4.7.1` is available on PyPI](https://pypi.org/project/gha-utils/4.7.1/).
+> [🐍 `4.7.1` is available on PyPI](https://pypi.org/project/gha-utils/4.7.1/).
 
 - Fix upload to PyPI on release.
 - Remove unused `uv_requirement_params` in metadata.
@@ -932,7 +934,7 @@
 ## [`4.6.0` (2024-09-20)](https://github.com/kdeldycke/workflows/compare/v4.5.4...v4.6.0)
 
 > [!TIP]
-> [🐍 `v4.6.0` is available on PyPI](https://pypi.org/project/gha-utils/4.6.0/).
+> [🐍 `4.6.0` is available on PyPI](https://pypi.org/project/gha-utils/4.6.0/).
 
 - Use `uv` to build Python packages.
 - Remove dependency on `build` package.
@@ -942,14 +944,14 @@
 ## [`4.5.4` (2024-09-04)](https://github.com/kdeldycke/workflows/compare/v4.5.3...v4.5.4)
 
 > [!TIP]
-> [🐍 `v4.5.4` is available on PyPI](https://pypi.org/project/gha-utils/4.5.4/).
+> [🐍 `4.5.4` is available on PyPI](https://pypi.org/project/gha-utils/4.5.4/).
 
 - Rerelease to stabilize changelog updates.
 
 ## [`4.5.3` (2024-09-04)](https://github.com/kdeldycke/workflows/compare/v4.5.2...v4.5.3)
 
 > [!TIP]
-> [🐍 `v4.5.3` is available on PyPI](https://pypi.org/project/gha-utils/4.5.3/).
+> [🐍 `4.5.3` is available on PyPI](https://pypi.org/project/gha-utils/4.5.3/).
 
 - Fix changelog indention.
 - Add changelog unittests.
@@ -957,7 +959,7 @@
 ## [`4.5.2` (2024-08-26)](https://github.com/kdeldycke/workflows/compare/v4.5.1...v4.5.2)
 
 > [!TIP]
-> [🐍 `v4.5.2` is available on PyPI](https://pypi.org/project/gha-utils/4.5.2/).
+> [🐍 `4.5.2` is available on PyPI](https://pypi.org/project/gha-utils/4.5.2/).
 
 - Rerelease to fix admonition in changelog.
 - Fix changelog new entry format.
@@ -965,7 +967,7 @@
 ## [`4.5.1` (2024-08-25)](https://github.com/kdeldycke/workflows/compare/v4.5.0...v4.5.1)
 
 > [!TIP]
-> [🐍 `v4.5.1` is available on PyPI](https://pypi.org/project/gha-utils/4.5.1/).
+> [🐍 `4.5.1` is available on PyPI](https://pypi.org/project/gha-utils/4.5.1/).
 
 - Fix over-escaping of `[!IMPORTANT]` admonition in changelog.
 - Fix content writing into output files.
@@ -973,7 +975,7 @@
 ## [`4.5.0` (2024-08-24)](https://github.com/kdeldycke/workflows/compare/v4.4.5...v4.5.0)
 
 > [!TIP]
-> [🐍 `v4.5.0` is available on PyPI](https://pypi.org/project/gha-utils/4.5.0/).
+> [🐍 `4.5.0` is available on PyPI](https://pypi.org/project/gha-utils/4.5.0/).
 
 - Replace `mdformat-black` by `mdformat-ruff`.
 - Install `mdformat`, `gha-utils`, `yamllint`, `bump-my-version`, `ruff`, `blacken-docs` and `autopep8` as a global tool to not interfere with the project dependencies.
@@ -986,42 +988,42 @@
 ## [`4.4.5` (2024-08-18)](https://github.com/kdeldycke/workflows/compare/v4.4.4...v4.4.5)
 
 > [!TIP]
-> [🐍 `v4.4.5` is available on PyPI](https://pypi.org/project/gha-utils/4.4.5/).
+> [🐍 `4.4.5` is available on PyPI](https://pypi.org/project/gha-utils/4.4.5/).
 
 - Bump `gha-utils` CLI.
 
 ## [`4.4.4` (2024-08-18)](https://github.com/kdeldycke/workflows/compare/v4.4.3...v4.4.4)
 
 > [!TIP]
-> [🐍 `v4.4.4` is available on PyPI](https://pypi.org/project/gha-utils/4.4.4/).
+> [🐍 `4.4.4` is available on PyPI](https://pypi.org/project/gha-utils/4.4.4/).
 
 - Fix update of changelog without past entries.
 
 ## [`4.4.3` (2024-08-12)](https://github.com/kdeldycke/workflows/compare/v4.4.2...v4.4.3)
 
 > [!TIP]
-> [🐍 `v4.4.3` is available on PyPI](https://pypi.org/project/gha-utils/4.4.3/).
+> [🐍 `4.4.3` is available on PyPI](https://pypi.org/project/gha-utils/4.4.3/).
 
 - Release with relaxed dependencies.
 
 ## [`4.4.2` (2024-08-02)](https://github.com/kdeldycke/workflows/compare/v4.4.1...v4.4.2)
 
 > [!TIP]
-> [🐍 `v4.4.2` is available on PyPI](https://pypi.org/project/gha-utils/4.4.2/).
+> [🐍 `4.4.2` is available on PyPI](https://pypi.org/project/gha-utils/4.4.2/).
 
 - Add local workaround for Nuitka to fix bad packaging of `license_expression` package at build time.
 
 ## [`4.4.1` (2024-08-01)](https://github.com/kdeldycke/workflows/compare/v4.4.0...v4.4.1)
 
 > [!TIP]
-> [🐍 `v4.4.1` is available on PyPI](https://pypi.org/project/gha-utils/4.4.1/).
+> [🐍 `4.4.1` is available on PyPI](https://pypi.org/project/gha-utils/4.4.1/).
 
 - Bump Nuitka and `uv`.
 
 ## [`4.4.0` (2024-07-27)](https://github.com/kdeldycke/workflows/compare/v4.3.4...v4.4.0)
 
 > [!TIP]
-> [🐍 `v4.4.0` is available on PyPI](https://pypi.org/project/gha-utils/4.4.0/).
+> [🐍 `4.4.0` is available on PyPI](https://pypi.org/project/gha-utils/4.4.0/).
 
 - Drop support for Python 3.8.
 - Rely on released version of `mdformat-pelican`.
@@ -1030,35 +1032,35 @@
 ## [`4.3.4` (2024-07-24)](https://github.com/kdeldycke/workflows/compare/v4.3.3...v4.3.4)
 
 > [!TIP]
-> [🐍 `v4.3.4` is available on PyPI](https://pypi.org/project/gha-utils/4.3.4/).
+> [🐍 `4.3.4` is available on PyPI](https://pypi.org/project/gha-utils/4.3.4/).
 
 - Do not maintain `.mailmap` files on Awesome repositories.
 
 ## [`4.3.3` (2024-07-24)](https://github.com/kdeldycke/workflows/compare/v4.3.2...v4.3.3)
 
 > [!TIP]
-> [🐍 `v4.3.3` is available on PyPI](https://pypi.org/project/gha-utils/4.3.3/).
+> [🐍 `4.3.3` is available on PyPI](https://pypi.org/project/gha-utils/4.3.3/).
 
 - Bump `uv` and Nuitka.
 
 ## [`4.3.2` (2024-07-22)](https://github.com/kdeldycke/workflows/compare/v4.3.1...v4.3.2)
 
 > [!TIP]
-> [🐍 `v4.3.2` is available on PyPI](https://pypi.org/project/gha-utils/4.3.2/).
+> [🐍 `4.3.2` is available on PyPI](https://pypi.org/project/gha-utils/4.3.2/).
 
 - Always use frozen `uv.lock` file on `uv run` invocation.
 
 ## [`4.3.1` (2024-07-18)](https://github.com/kdeldycke/workflows/compare/v4.3.0...v4.3.1)
 
 > [!TIP]
-> [🐍 `v4.3.1` is available on PyPI](https://pypi.org/project/gha-utils/4.3.1/).
+> [🐍 `4.3.1` is available on PyPI](https://pypi.org/project/gha-utils/4.3.1/).
 
 - Do not print progress bars on `uv` calls.
 
 ## [`4.3.0` (2024-07-17)](https://github.com/kdeldycke/workflows/compare/v4.2.1...v4.3.0)
 
 > [!TIP]
-> [🐍 `v4.3.0` is available on PyPI](https://pypi.org/project/gha-utils/4.3.0/).
+> [🐍 `4.3.0` is available on PyPI](https://pypi.org/project/gha-utils/4.3.0/).
 
 - Add a new job to keep `uv.lock` updated and in sync.
 - Exclude auto-updated `uv.lock` files from PRs produced from `uv run` and `uv tool run` invocations.
@@ -1066,7 +1068,7 @@
 ## [`4.2.1` (2024-07-15)](https://github.com/kdeldycke/workflows/compare/v4.2.0...v4.2.1)
 
 > [!TIP]
-> [🐍 `v4.2.1` is available on PyPI](https://pypi.org/project/gha-utils/4.2.1/).
+> [🐍 `4.2.1` is available on PyPI](https://pypi.org/project/gha-utils/4.2.1/).
 
 - Fix options in `gha-utils mailmap-sync` calls.
 - Use latest `gha-utils` release in workflows.
@@ -1074,7 +1076,7 @@
 ## [`4.2.0` (2024-07-15)](https://github.com/kdeldycke/workflows/compare/v4.1.4...v4.2.0)
 
 > [!TIP]
-> [🐍 `v4.2.0` is available on PyPI](https://pypi.org/project/gha-utils/4.2.0/).
+> [🐍 `4.2.0` is available on PyPI](https://pypi.org/project/gha-utils/4.2.0/).
 
 - Rename `gha-utils mailmap` command to `gha-utils mailmap-sync`.
 - Add new `--create-if-missing`/`--skip-if-missing` option to `gha-utils mailmap-sync` command.
@@ -1088,28 +1090,28 @@
 ## [`4.1.4` (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.3...v4.1.4)
 
 > [!TIP]
-> [🐍 `v4.1.4` is available on PyPI](https://pypi.org/project/gha-utils/4.1.4/).
+> [🐍 `4.1.4` is available on PyPI](https://pypi.org/project/gha-utils/4.1.4/).
 
 - Bump `gha-utils` CLI.
 
 ## [`4.1.3` (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.2...v4.1.3)
 
 > [!TIP]
-> [🐍 `v4.1.3` is available on PyPI](https://pypi.org/project/gha-utils/4.1.3/).
+> [🐍 `4.1.3` is available on PyPI](https://pypi.org/project/gha-utils/4.1.3/).
 
 - Fix recreation of specifiers.
 
 ## [`4.1.2` (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.1...v4.1.2)
 
 > [!TIP]
-> [🐍 `v4.1.2` is available on PyPI](https://pypi.org/project/gha-utils/4.1.2/).
+> [🐍 `4.1.2` is available on PyPI](https://pypi.org/project/gha-utils/4.1.2/).
 
 - Revert to rely entirely on released `gha-utils` CLI for release workflow.
 
 ## [`4.1.1` (2024-07-02)](https://github.com/kdeldycke/workflows/compare/v4.1.0...v4.1.1)
 
 > [!TIP]
-> [🐍 `v4.1.1` is available on PyPI](https://pypi.org/project/gha-utils/4.1.1/).
+> [🐍 `4.1.1` is available on PyPI](https://pypi.org/project/gha-utils/4.1.1/).
 
 - Pre-compute repository initial state before digging into commit log history.
 - Redo release as `v4.1.0` has been broken.
@@ -1129,7 +1131,7 @@
 ## [`4.0.2` (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v4.0.1...v4.0.2)
 
 > [!TIP]
-> [🐍 `v4.0.2` is available on PyPI](https://pypi.org/project/gha-utils/4.0.2/).
+> [🐍 `4.0.2` is available on PyPI](https://pypi.org/project/gha-utils/4.0.2/).
 
 - Remove comments in GitHub action's environment variable files.
 - Test CLI invocation.
@@ -1137,7 +1139,7 @@
 ## [`4.0.1` (2024-06-29)](https://github.com/kdeldycke/workflows/compare/v4.0.0...v4.0.1)
 
 > [!TIP]
-> [🐍 `v4.0.1` is available on PyPI](https://pypi.org/project/gha-utils/4.0.1/).
+> [🐍 `4.0.1` is available on PyPI](https://pypi.org/project/gha-utils/4.0.1/).
 
 - Re-release to register PyPI project.
 

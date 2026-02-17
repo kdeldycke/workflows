@@ -698,9 +698,9 @@ def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
     tagged release.
 
     For example:
-    - Last release: v5.0.1, current: 5.0.2 → minor bump allowed
-    - Last release: v5.0.1, current: 5.1.0 → minor bump NOT allowed (bumped)
-    - Last release: v5.0.1, current: 6.0.0 → major bump NOT allowed (bumped)
+    - Last release: ``v5.0.1``, current: ``5.0.2`` → minor bump allowed
+    - Last release: ``v5.0.1``, current: ``5.1.0`` → minor bump NOT allowed (bumped)
+    - Last release: ``v5.0.1``, current: ``6.0.0`` → major bump NOT allowed (bumped)
 
     .. note::
         When tags are not available (e.g., due to race conditions between workflows),
