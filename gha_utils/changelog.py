@@ -169,7 +169,9 @@ allowing the date or ``unreleased`` label to be replaced. Backticks
 around the version are optional.
 """
 
-WARNING_PATTERN = re.compile(r"^> \[!(?:IMPORTANT|WARNING)\].+?\n\n", re.MULTILINE | re.DOTALL)
+WARNING_PATTERN = re.compile(
+    r"^> \[!(?:IMPORTANT|WARNING)\].+?\n\n", re.MULTILINE | re.DOTALL
+)
 """Pattern matching the first ``[!WARNING]`` GFM alert block.
 
 .. note::
@@ -184,20 +186,48 @@ DEVELOPMENT_WARNING = (
 """GFM alert block warning that the version is under active development."""
 
 
-PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
-"""PyPI JSON API URL for fetching all release metadata for a package."""
+AVAILABLE_VERB = "is available on"
+"""Verb phrase for versions present on a platform."""
 
-PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
-"""PyPI project page URL for a specific version."""
+FIRST_AVAILABLE_VERB = "is the *first version* available on"
+"""Verb phrase for the inaugural release on a platform."""
+
+GITHUB_API_RELEASES_URL = "https://api.github.com/repos/{owner}/{repo}/releases"
+"""GitHub API URL for fetching all releases for a repository."""
+
+GITHUB_LABEL = "🐙 GitHub"
+"""Display label for GitHub releases in admonitions."""
 
 GITHUB_RELEASE_URL = "{repo_url}/releases/tag/v{version}"
 """GitHub release page URL for a specific version."""
 
-YANKED_ADMONITION = "> [!CAUTION]\n> This release has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."
-"""GFM admonition for a release that has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."""
+NOT_AVAILABLE_VERB = "is **not available** on"
+"""Verb phrase for versions missing from a platform."""
 
-GITHUB_API_RELEASES_URL = "https://api.github.com/repos/{owner}/{repo}/releases"
-"""GFM admonition for a changelog version not found on PyPI."""
+PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
+"""PyPI JSON API URL for fetching all release metadata for a package."""
+
+PYPI_LABEL = "🐍 PyPI"
+"""Display label for PyPI releases in admonitions."""
+
+PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
+"""PyPI project page URL for a specific version."""
+
+AVAILABLE_ADMONITION = "> [!NOTE]\n> `{version}` {verb} {platforms}."
+"""GFM admonition template for versions available on one or more platforms."""
+
+UNAVAILABLE_ADMONITION = "> [!WARNING]\n> `{version}` {verb} {platforms}."
+"""GFM admonition template for versions missing from one or more platforms."""
+
+YANKED_ADMONITION = (
+    "> [!CAUTION]\n"
+    "> This release has been"
+    " [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."
+)
+"""GFM admonition for a release that has been yanked from PyPI."""
+
+YANKED_DEDUP_MARKER = "yanked from PyPI"
+"""Dedup marker for the yanked admonition to prevent duplicate insertion."""
 
 
 class Changelog:
@@ -579,7 +609,6 @@ class Changelog:
         self.content = self.content.replace(section_text, new_section, 1)
         return True
 
-
     def strip_availability_admonitions(self, version: str) -> bool:
         """Remove all availability admonitions from a version section.
 
@@ -603,6 +632,8 @@ class Changelog:
 
         # Find all GFM alert blocks (consecutive lines starting with "> ")
         # and remove those where any line matches "> `{version}` is ".
+        # All availability verbs (AVAILABLE_VERB, FIRST_AVAILABLE_VERB,
+        # NOT_AVAILABLE_VERB) share the "is " prefix, so this catches all.
         availability_marker = f"> `{version}` is "
         admonition_pattern = re.compile(
             r"(?:^>.*$\n?)+",
@@ -732,14 +763,14 @@ def build_release_admonition(
     """
     links: list[str] = []
     if pypi_url:
-        links.append(f"[🐍 PyPI]({pypi_url})")
+        links.append(f"[{PYPI_LABEL}]({pypi_url})")
     if github_url:
-        links.append(f"[🐙 GitHub]({github_url})")
+        links.append(f"[{GITHUB_LABEL}]({github_url})")
     if not links:
         return ""
-    joined = " and ".join(links)
-    verb = "is the *first version* available on" if first_on_all else "is available on"
-    return f"> [!NOTE]\n> `{version}` {verb} {joined}."
+    platforms = " and ".join(links)
+    verb = FIRST_AVAILABLE_VERB if first_on_all else AVAILABLE_VERB
+    return AVAILABLE_ADMONITION.format(version=version, verb=verb, platforms=platforms)
 
 
 def build_unavailable_admonition(
@@ -758,13 +789,15 @@ def build_unavailable_admonition(
     """
     names: list[str] = []
     if missing_pypi:
-        names.append("🐍 PyPI")
+        names.append(PYPI_LABEL)
     if missing_github:
-        names.append("🐙 GitHub")
+        names.append(GITHUB_LABEL)
     if not names:
         return ""
-    joined = " and ".join(names)
-    return f"> [!WARNING]\n> `{version}` is **not available** on {joined}."
+    platforms = " and ".join(names)
+    return UNAVAILABLE_ADMONITION.format(
+        version=version, verb=NOT_AVAILABLE_VERB, platforms=platforms
+    )
 
 
 def lint_changelog_dates(
@@ -848,9 +881,7 @@ def lint_changelog_dates(
     if repo_url:
         github_releases = get_github_releases(repo_url)
         if github_releases:
-            logging.info(
-                f"GitHub releases: {len(github_releases)} found."
-            )
+            logging.info(f"GitHub releases: {len(github_releases)} found.")
 
     # Determine the first version released on GitHub for boundary detection.
     first_github_version: Version | None = None
@@ -864,7 +895,9 @@ def lint_changelog_dates(
             if release is None:
                 parsed = Version(version)
                 if first_pypi_version and parsed < first_pypi_version:
-                    logging.info(f"  {version}: predates PyPI (first: {first_pypi_version})")
+                    logging.info(
+                        f"  {version}: predates PyPI (first: {first_pypi_version})"
+                    )
                     continue
                 logging.warning(f"⚠ {version}: not found on PyPI")
                 emit_annotation(
@@ -875,15 +908,16 @@ def lint_changelog_dates(
             ref_date = release.date
             source = "PyPI"
         else:
-            ref_date = get_tag_date(f"v{version}")
+            tag_date = get_tag_date(f"v{version}")
             source = "tag"
-            if ref_date is None:
+            if tag_date is None:
                 logging.warning(f"⚠ {version}: not found on {source}")
                 emit_annotation(
                     AnnotationLevel.WARNING,
                     f"Version {version} not found on {source}",
                 )
                 continue
+            ref_date = tag_date
 
         if changelog_date == ref_date:
             logging.info(f"✓ {version}: {changelog_date} ({source})")
@@ -982,17 +1016,11 @@ def lint_changelog_dates(
             if changelog.content != snapshot:
                 modified = True
 
-            # Clean up legacy markers.
-            modified |= changelog.remove_admonition_from_section(
-                version,
-                "not published on PyPI",
-            )
-
             if on_pypi and pypi_data[version].yanked:
                 modified |= changelog.add_admonition_after_heading(
                     version,
                     YANKED_ADMONITION,
-                    dedup_marker="yanked from PyPI",
+                    dedup_marker=YANKED_DEDUP_MARKER,
                 )
 
     if fix and modified:

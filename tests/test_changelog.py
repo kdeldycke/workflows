@@ -948,41 +948,6 @@ def test_strip_availability_admonitions_no_match():
     assert result is False
 
 
-def test_lint_fix_removes_stale_admonition(tmp_path, monkeypatch):
-    """Test that --fix removes stale admonitions when availability changes."""
-    # Pre-seed 1.0.0 with a stale "not published on PyPI" warning.
-    stale_warning = "> [!WARNING]\n> This release was not published on PyPI."
-    content = MULTI_RELEASE_CHANGELOG.replace(
-        "- Initial release.",
-        stale_warning + "\n\n- Initial release.",
-    )
-    path = tmp_path / "changelog.md"
-    path.write_text(content, encoding="UTF-8")
-
-    # 1.1.0 on PyPI; 1.0.0 now on GitHub (stale warning should be removed).
-    monkeypatch.setattr(
-        "gha_utils.changelog.get_pypi_release_dates",
-        _pypi_mock({"1.1.0": ("2026-02-10", False)}),
-    )
-    monkeypatch.setattr(
-        "gha_utils.metadata.get_project_name",
-        lambda: "my-package",
-    )
-    monkeypatch.setattr(
-        "gha_utils.changelog.get_github_releases",
-        _github_mock(["1.1.0", "1.0.0"]),
-    )
-
-    lint_changelog_dates(path, fix=True)
-    result = path.read_text(encoding="UTF-8")
-
-    assert "not published on PyPI" not in result
-    # GitHub link should now be present for 1.0.0.
-    assert "[🐙 GitHub](https://github.com/user/repo/releases/tag/v1.0.0)" in result
-    # Content is preserved.
-    assert "Initial release." in result
-
-
 def test_lint_fix_removes_stale_unavailable_warning(tmp_path, monkeypatch):
     """Test that --fix removes stale 'is **not available** on' warnings when
     the version becomes available."""
