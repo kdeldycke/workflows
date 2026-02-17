@@ -1936,12 +1936,13 @@ class Metadata:
         # Generate a link to the version of the package published on PyPI.
         pypi_link = ""
         if self.package_name:
-            pypi_link = (
-                "[🐍 Available on PyPI](https://pypi.org/project/"
-                + self.package_name
-                + "/"
-                + version
-                + ")."
+            from .changelog import PYPI_ADMONITION, PYPI_PROJECT_URL
+
+            pypi_url = PYPI_PROJECT_URL.format(
+                package=self.package_name, version=version
+            )
+            pypi_link = PYPI_ADMONITION.format(
+                version=version, url=pypi_url
             )
 
         # Generate a "Full Changelog" link from the changelog heading URL.

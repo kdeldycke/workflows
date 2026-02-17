@@ -145,24 +145,26 @@ VERSION_COMPARE_PATTERN = re.compile(r"v(\d+\.\d+\.\d+)\.\.\.v(\d+\.\d+\.\d+)")
 """Pattern matching GitHub comparison URLs like ``v1.0.0...v1.0.1``."""
 
 RELEASED_VERSION_PATTERN = re.compile(
-    rf"^{SECTION_START}\s*\[(\d+\.\d+\.\d+)\s+\((\d{{4}}-\d{{2}}-\d{{2}})\)\]",
+    rf"^{SECTION_START}\s*\[`?(\d+\.\d+\.\d+)`?\s+\((\d{{4}}-\d{{2}}-\d{{2}})\)\]",
     re.MULTILINE,
 )
 """Pattern matching released version headings with dates.
 
 Captures version and date from headings like
-``## [5.9.1 (2026-02-14)](...)``. Skips unreleased versions which use
-``(unreleased)`` instead of a date.
+``## [`5.9.1` (2026-02-14)](...)``. Skips unreleased versions which
+use ``(unreleased)`` instead of a date. Backticks around the version
+are optional.
 """
 
 VERSION_HEADING_PATTERN = re.compile(
-    rf"^({SECTION_START}\s*\[\d+\.\d+\.\d+\s+\()[^)]+(\)\].*)$",
+    rf"^({SECTION_START}\s*\[`?\d+\.\d+\.\d+`?\s+\()[^)]+(\)\].*)$",
     re.MULTILINE,
 )
 """Pattern matching a full version heading line for date replacement.
 
-Captures the prefix up to ``(`` and the suffix from ``)`` onward, allowing
-the date or ``unreleased`` label to be replaced.
+Captures the prefix up to ``(`` and the suffix from ``)`` onward,
+allowing the date or ``unreleased`` label to be replaced. Backticks
+around the version are optional.
 """
 
 WARNING_PATTERN = re.compile(r"^> \[!IMPORTANT\].+?\n\n", re.MULTILINE | re.DOTALL)
@@ -174,6 +176,22 @@ DEVELOPMENT_WARNING = (
     "> This version is not released yet and is under active development.\n\n"
 )
 """GFM alert block warning that the version is under active development."""
+
+
+PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
+"""PyPI JSON API URL for fetching all release metadata for a package."""
+
+PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
+"""PyPI project page URL for a specific version."""
+
+PYPI_ADMONITION = "> [!TIP]\n> [🐍 `v{version}` is available on PyPI]({url})."
+"""GFM admonition template for a version published on PyPI."""
+
+YANKED_ADMONITION = "> [!CAUTION]\n> This release has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."
+"""GFM admonition for a release that has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."""
+
+NOT_ON_PYPI_ADMONITION = "> [!WARNING]\n> This release is not published on PyPI."
+"""GFM admonition for a changelog version not found on PyPI."""
 
 
 class Changelog:
@@ -412,7 +430,7 @@ class Changelog:
         """
         match = re.search(
             rf"^{SECTION_START}"
-            rf"(?P<title>.+{re.escape(version)} .+?)\n"
+            rf"(?P<title>.+{re.escape(version)}`? .+?)\n"
             rf"(?P<changes>.*?)(?:\n{SECTION_START}|\Z)",
             self.content,
             flags=re.MULTILINE | re.DOTALL,
@@ -440,7 +458,7 @@ class Changelog:
         :return: True if the content was modified.
         """
         pattern = re.compile(
-            rf"^({SECTION_START}\s*\[{re.escape(version)}\s+\()[^)]+(\)\].*)$",
+            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s+\()[^)]+(\)\].*)$",
             re.MULTILINE,
         )
         updated = pattern.sub(rf"\g<1>{new_date}\g<2>", self.content, count=1)
@@ -453,40 +471,46 @@ class Changelog:
         self,
         version: str,
         admonition: str,
+        *,
+        dedup_marker: str | None = None,
     ) -> bool:
         """Insert an admonition block after a version heading.
 
-        Skips insertion if the admonition text is already present in the
-        section. The admonition is inserted on a new line after the
-        heading, separated by a blank line.
+        Skips insertion if the dedup marker (or the full admonition) is
+        already present in the version's section. The admonition is
+        inserted on a new line after the heading, separated by a blank
+        line.
 
         :param version: Version string to locate (e.g. ``1.2.3``).
         :param admonition: The full admonition block text (including
             ``>`` prefix lines).
+        :param dedup_marker: A unique substring to check for duplicates
+            instead of the full admonition. Useful when admonition
+            formatting may vary slightly between runs.
         :return: True if the content was modified.
         """
-        if admonition in self.content:
-            return False
-        # Find the heading line for this version.
-        pattern = re.compile(
-            rf"^({SECTION_START}\s*\[.*{re.escape(version)}\s.+)$",
-            re.MULTILINE,
+        marker = dedup_marker or admonition
+        # Extract the section for this version (heading to next heading).
+        section_pattern = re.compile(
+            rf"^({SECTION_START}\s*\[.*{re.escape(version)}`?\s.+)$"
+            rf"(.*?)(?=^{SECTION_START}|\Z)",
+            re.MULTILINE | re.DOTALL,
         )
-        match = pattern.search(self.content)
-        if not match:
+        section_match = section_pattern.search(self.content)
+        if not section_match:
             return False
-        insert_pos = match.end()
+        section_text = section_match.group(0)
+        if marker in section_text:
+            return False
+        # Insert after the heading line.
+        heading_end = section_match.start() + len(section_match.group(1))
         self.content = (
-            self.content[:insert_pos] + "\n\n" + admonition + self.content[insert_pos:]
+            self.content[:heading_end]
+            + "\n\n"
+            + admonition
+            + self.content[heading_end:]
         )
         return True
-
-
-PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
-"""PyPI JSON API URL for fetching all release metadata for a package."""
-
-PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
-"""PyPI project page URL for a specific version."""
 
 
 class PyPIRelease(NamedTuple):
@@ -645,12 +669,14 @@ def lint_changelog_dates(
             pypi_url = PYPI_PROJECT_URL.format(package=package, version=version)
             modified |= changelog.add_admonition_after_heading(
                 version,
-                f"> [🐍 Available on PyPI]({pypi_url})",
+                PYPI_ADMONITION.format(version=version, url=pypi_url),
+                dedup_marker=pypi_url,
             )
             if release.yanked:
                 modified |= changelog.add_admonition_after_heading(
                     version,
-                    ("> [!CAUTION]\n> This release has been yanked from PyPI."),
+                    YANKED_ADMONITION,
+                    dedup_marker="yanked from PyPI",
                 )
 
     # In fix mode, add warnings for changelog versions not found on PyPI.
@@ -659,7 +685,8 @@ def lint_changelog_dates(
             if version not in pypi_data:
                 modified |= changelog.add_admonition_after_heading(
                     version,
-                    ("> [!WARNING]\n> This release is not published on PyPI."),
+                    NOT_ON_PYPI_ADMONITION,
+                    dedup_marker="not published on PyPI",
                 )
 
     if fix and modified:

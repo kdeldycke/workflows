@@ -21,8 +21,10 @@ from textwrap import dedent
 import pytest
 
 from gha_utils.changelog import (
+    NOT_ON_PYPI_ADMONITION,
     Changelog,
     PyPIRelease,
+    YANKED_ADMONITION,
     get_pypi_release_dates,
     lint_changelog_dates,
 )
@@ -496,8 +498,8 @@ def test_lint_fix_adds_pypi_admonition(tmp_path, monkeypatch):
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
 
-    assert "[🐍 Available on PyPI](https://pypi.org/project/my-package/1.1.0/)" in content
-    assert "[🐍 Available on PyPI](https://pypi.org/project/my-package/1.0.0/)" in content
+    assert "[🐍 `v1.1.0` is available on PyPI](https://pypi.org/project/my-package/1.1.0/)" in content
+    assert "[🐍 `v1.0.0` is available on PyPI](https://pypi.org/project/my-package/1.0.0/)" in content
 
 
 def test_lint_fix_adds_yanked_admonition(tmp_path, monkeypatch):
@@ -520,7 +522,7 @@ def test_lint_fix_adds_yanked_admonition(tmp_path, monkeypatch):
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
 
-    assert "> [!CAUTION]\n> This release has been yanked from PyPI." in content
+    assert YANKED_ADMONITION in content
 
 
 def test_lint_fix_adds_not_on_pypi_warning(tmp_path, monkeypatch):
@@ -541,7 +543,7 @@ def test_lint_fix_adds_not_on_pypi_warning(tmp_path, monkeypatch):
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
 
-    assert "> [!WARNING]\n> This release is not published on PyPI." in content
+    assert NOT_ON_PYPI_ADMONITION in content
 
 
 def test_lint_fix_idempotent(tmp_path, monkeypatch):
@@ -582,17 +584,17 @@ def test_add_admonition_after_heading():
     """Test inserting an admonition after a version heading."""
     changelog = Changelog(MULTI_RELEASE_CHANGELOG)
     result = changelog.add_admonition_after_heading(
-        "1.1.0", "> [🐍 Available on PyPI](https://example.com)"
+        "1.1.0", "> [🐍 v1.1.0 is available on PyPI](https://example.com)"
     )
 
     assert result is True
-    assert "> [🐍 Available on PyPI](https://example.com)" in changelog.content
+    assert "> [🐍 v1.1.0 is available on PyPI](https://example.com)" in changelog.content
 
 
 def test_add_admonition_idempotent():
     """Test that adding the same admonition twice is a no-op."""
     changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    admonition = "> [🐍 Available on PyPI](https://example.com)"
+    admonition = "> [🐍 v1.1.0 is available on PyPI](https://example.com)"
     changelog.add_admonition_after_heading("1.1.0", admonition)
     result = changelog.add_admonition_after_heading("1.1.0", admonition)
 

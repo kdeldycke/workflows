@@ -565,7 +565,7 @@ expected = {
         ),
         release_pattern=regex(
             r"(?:### Changes\n\n(?!> \[\!IMPORTANT\]).+|"  # With changelog entries.
-            r"\[🐍 Available on PyPI\].+)"  # Without changelog entries.
+            r"> \[\!TIP\]\n> \[🐍 `v.+` is available on PyPI\].+)"  # Without.
         ),
     ),
     # new_commits_matrix is None when running outside GitHub Actions.
