@@ -16,6 +16,12 @@ name: Build & release
     branches:
       - main
   pull_request:
+    paths:
+      - gha_utils/**
+      - tests/**
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/release.yaml
 
 concurrency:
   # Protect release workflows by giving them unique concurrency groups.
