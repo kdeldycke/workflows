@@ -6,6 +6,7 @@
 > This version is not released yet and is under active development.
 
 - Fix `publish-github-release` job failing because `actions/checkout` wiped downloaded artifacts.
+- Fix broken links issue being created when lychee exits with a non-zero code but produces no output file.
 
 ## [5.10.0 (2026-02-16)](https://github.com/kdeldycke/workflows/compare/v5.9.1...v5.10.0)
 

@@ -265,11 +265,19 @@ def manage_combined_broken_links_issue(
 
     # Interpret lychee exit code.
     # Exit codes: 0 = success, 1 = unexpected failure, 2 = broken links,
-    # 3 = config error. Treat any non-zero code as "broken links found"
-    # because lychee may still write results to the output file on failure.
+    # 3 = config error. Only treat as "broken links found" when lychee
+    # produced an output file with actual content. A non-zero exit code
+    # without output (e.g., config error, transient failure) should not
+    # create an issue that misleadingly says "No broken links found."
     lychee_has_broken = False
     if lychee_exit_code is not None:
-        lychee_has_broken = lychee_exit_code != 0
+        if lychee_exit_code != 0 and lychee_body_file is not None:
+            lychee_has_broken = True
+        elif lychee_exit_code != 0:
+            logging.warning(
+                f"Lychee exit code {lychee_exit_code} but no output file found. "
+                "Skipping broken links report."
+            )
         logging.info(
             f"Lychee exit code {lychee_exit_code}: "
             f"{'broken links found' if lychee_has_broken else 'no broken links'}"
