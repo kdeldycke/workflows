@@ -200,9 +200,10 @@ def test_get_template_names():
     assert "sync-workflows" in names
     assert "release-notes" in names
     assert "pr-metadata" in names
+    assert "lint-changelog" in names
     assert "refresh-tip" in names
     assert "setup-guide" in names
-    assert len(names) == 18
+    assert len(names) == 19
 
 
 def test_load_template_frontmatter():
