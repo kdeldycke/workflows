@@ -1,9 +1,6 @@
 # Changelog
 
-## [5.10.1.dev0 (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.10.0...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [5.10.1 (2026-02-17)](https://github.com/kdeldycke/workflows/compare/v5.10.0...v5.10.1)
 
 - Fix `publish-github-release` job failing because `actions/checkout` wiped downloaded artifacts.
 - Fix broken links issue being created when lychee exits with a non-zero code but produces no output file.
