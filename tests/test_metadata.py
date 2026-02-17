@@ -497,6 +497,7 @@ expected = {
         "gha_utils/templates/format-markdown.md",
         "gha_utils/templates/format-pyproject.md",
         "gha_utils/templates/format-python.md",
+        "gha_utils/templates/lint-changelog.md",
         "gha_utils/templates/pr-metadata.md",
         "gha_utils/templates/prepare-release.md",
         "gha_utils/templates/refresh-tip.md",
@@ -523,6 +524,7 @@ expected = {
         "gha_utils/templates/format-markdown.md",
         "gha_utils/templates/format-pyproject.md",
         "gha_utils/templates/format-python.md",
+        "gha_utils/templates/lint-changelog.md",
         "gha_utils/templates/pr-metadata.md",
         "gha_utils/templates/prepare-release.md",
         "gha_utils/templates/refresh-tip.md",
@@ -559,13 +561,13 @@ expected = {
     "release_notes": AnyReleaseNotes(
         dev_pattern=regex(
             r"### Changes\n\n"
-            r"> \[\!IMPORTANT\]\n"
-            r"> This version is not released yet and is under active development\.\n\n"
+            r"> \[\!WARNING\]\n"
+            r"> This version is \*\*not released yet\*\* and is under active development\.\n\n"
             r".+"
         ),
         release_pattern=regex(
-            r"(?:### Changes\n\n(?!> \[\!IMPORTANT\]).+|"  # With changelog entries.
-            r"> \[\!TIP\]\n> \[🐍 `.+` is available on PyPI\].+)"  # Without.
+            r"(?:### Changes\n\n(?!> \[\!WARNING\]).+|"  # With changelog entries.
+            r"> \[\!NOTE\]\n> `.+` is available on \[🐍 PyPI\].+ and \[🐙 GitHub\].+)"  # Without.
         ),
     ),
     # new_commits_matrix is None when running outside GitHub Actions.

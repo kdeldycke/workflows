@@ -441,7 +441,7 @@ def release_prep(
     - Set release date in changelog (replaces "(unreleased)" with today's date).
     - Set release date in citation.cff.
     - Update changelog comparison URL from "...main" to "...v{version}".
-    - Remove the "[!IMPORTANT]" warning block from changelog.
+    - Remove the "[!WARNING]" development warning block from changelog.
     - Optionally update workflow URLs to use versioned tag.
 
     \b

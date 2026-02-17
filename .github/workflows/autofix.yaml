@@ -270,6 +270,30 @@ jobs:
           labels: "📚 documentation"
           branch: autofix-typo
 
+  lint-changelog:
+    name: Lint changelog
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.2.1
+      - name: Fix changelog dates and admonitions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uvx --no-progress --from . gha-utils lint-changelog --fix
+      - id: pr-metadata
+        run: >
+          uvx --no-progress --from . gha-utils pr-body
+          --template lint-changelog
+          --output "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "🆙 changelog"
+          branch: lint-changelog
+
   optimize-images:
     name: Optimize images
     needs:

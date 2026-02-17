@@ -1933,17 +1933,28 @@ class Metadata:
             if changes:
                 changes = "### Changes\n\n" + changes
 
-        # Generate a link to the version of the package published on PyPI.
+        # Generate links to the version published on PyPI and GitHub.
         pypi_link = ""
-        if self.package_name:
-            from .changelog import PYPI_ADMONITION, PYPI_PROJECT_URL
+        from .changelog import (
+            GITHUB_RELEASE_URL,
+            PYPI_PROJECT_URL,
+            build_release_admonition,
+        )
 
+        pypi_url = ""
+        if self.package_name:
             pypi_url = PYPI_PROJECT_URL.format(
                 package=self.package_name, version=version
             )
-            pypi_link = PYPI_ADMONITION.format(
-                version=version, url=pypi_url
+        github_url = ""
+        repo_url = changelog.extract_repo_url()
+        if repo_url:
+            github_url = GITHUB_RELEASE_URL.format(
+                repo_url=repo_url, version=version
             )
+        pypi_link = build_release_admonition(
+            version, pypi_url=pypi_url, github_url=github_url
+        )
 
         # Generate a "Full Changelog" link from the changelog heading URL.
         changelog_link = ""

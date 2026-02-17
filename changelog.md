@@ -6,7 +6,10 @@
 > This version is not released yet and is under active development.
 
 - Add `gha-utils lint-changelog` command to verify changelog release dates against PyPI upload dates, with git tag fallback for non-PyPI projects.
-- Add auto-correct changelog capabilities to fix dates and add PyPI link, yanked, and not-on-PyPI admonitions.
+- Add auto-correct changelog capabilities to fix dates and add availability admonitions for PyPI and GitHub releases.
+- Add `lint-changelog` job to `autofix.yaml` to auto-fix changelog dates and admonitions via PR.
+- Add PyPI and GitHub release availability admonitions in changelog.
+- Change development warning from `[!IMPORTANT]` to `[!WARNING]` GFM alert.
 - Document version and tag naming conventions.
 
 ## [`5.10.1` (2026-02-17)](https://github.com/kdeldycke/workflows/compare/v5.10.0...v5.10.1)

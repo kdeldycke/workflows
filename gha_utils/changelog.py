@@ -80,7 +80,7 @@ Specific gaps across all evaluated tools:
   ``v1.0.0...v1.1.0`` diff links, or update them from ``...main``
   to ``...vX.Y.Z`` at release time.
 - **No unreleased section lifecycle.** None manage the
-  ``[!IMPORTANT]`` GFM alert warning that the version is under
+  ``[!WARNING]`` GFM alert warning that the version is under
   active development, inserting it post-release and removing it at
   release time.
 - **No workflow action reference freezing.** None handle the
@@ -122,6 +122,8 @@ from textwrap import indent
 from typing import NamedTuple
 from urllib.error import URLError
 from urllib.request import Request, urlopen
+
+from packaging.version import Version
 
 CHANGELOG_HEADER = "# Changelog\n"
 """Default changelog header for empty changelogs."""
@@ -167,13 +169,17 @@ allowing the date or ``unreleased`` label to be replaced. Backticks
 around the version are optional.
 """
 
-WARNING_PATTERN = re.compile(r"^> \[!IMPORTANT\].+?\n\n", re.MULTILINE | re.DOTALL)
-"""Pattern matching the first ``[!IMPORTANT]`` GFM alert block."""
+WARNING_PATTERN = re.compile(r"^> \[!(?:IMPORTANT|WARNING)\].+?\n\n", re.MULTILINE | re.DOTALL)
+"""Pattern matching the first ``[!WARNING]`` GFM alert block.
+
+.. note::
+    Also matches the legacy ``[!IMPORTANT]`` variant for migration.
+"""
 
 DEVELOPMENT_WARNING = (
     "\n\n"
-    "> [!IMPORTANT]\n"
-    "> This version is not released yet and is under active development.\n\n"
+    "> [!WARNING]\n"
+    "> This version is **not released yet** and is under active development.\n\n"
 )
 """GFM alert block warning that the version is under active development."""
 
@@ -184,13 +190,13 @@ PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
 PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
 """PyPI project page URL for a specific version."""
 
-PYPI_ADMONITION = "> [!TIP]\n> [🐍 `{version}` is available on PyPI]({url})."
-"""GFM admonition template for a version published on PyPI."""
+GITHUB_RELEASE_URL = "{repo_url}/releases/tag/v{version}"
+"""GitHub release page URL for a specific version."""
 
 YANKED_ADMONITION = "> [!CAUTION]\n> This release has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."
 """GFM admonition for a release that has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."""
 
-NOT_ON_PYPI_ADMONITION = "> [!WARNING]\n> This release is not published on PyPI."
+GITHUB_API_RELEASES_URL = "https://api.github.com/repos/{owner}/{repo}/releases"
 """GFM admonition for a changelog version not found on PyPI."""
 
 
@@ -241,15 +247,15 @@ class Changelog:
 
         ! ## [2.17.5 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
 
-          > [!IMPORTANT]
-          > This version is not released yet and is under active development.
+          > [!WARNING]
+          > This version is **not released yet** and is under active development.
         --- 1,6 ----
           # Changelog
 
         ! ## [2.17.6 (unreleased)](https://github.com/kdeldycke/workflows/compare/v2.17.4...main)
 
-          > [!IMPORTANT]
-          > This version is not released yet and is under active development.
+          > [!WARNING]
+          > This version is **not released yet** and is under active development.
         Would write to config file pyproject.toml:
         *** before pyproject.toml
         --- after pyproject.toml
@@ -329,10 +335,10 @@ class Changelog:
         return True
 
     def remove_warning(self) -> bool:
-        """Remove the first ``[!IMPORTANT]`` GFM alert block.
+        """Remove the first ``[!WARNING]`` development alert block.
 
-        Matches a multi-line block starting with ``> [!IMPORTANT]``
-        and ending at the first blank line.
+        Matches a multi-line block starting with ``> [!WARNING]``
+        (or legacy ``> [!IMPORTANT]``) and ending at the first blank line.
 
         :return: True if the content was modified.
         """
@@ -439,6 +445,24 @@ class Changelog:
             return ""
         return match.groupdict().get("changes", "").strip()
 
+    def extract_repo_url(self) -> str:
+        """Extract the repository URL from changelog comparison links.
+
+        Parses the first ``## [...](<repo_url>/compare/...)`` heading
+        and returns the base repository URL (e.g.
+        ``https://github.com/user/repo``).
+
+        :return: The repository URL, or empty string if not found.
+        """
+        match = re.search(
+            rf"^{SECTION_START}\s*\[.+?\]\((?P<repo>https?://[^/]+/[^/]+/[^/]+)/compare/",
+            self.content,
+            flags=re.MULTILINE,
+        )
+        if not match:
+            return ""
+        return match.group("repo")
+
     def extract_all_releases(self) -> list[tuple[str, str]]:
         """Extract all released versions and their dates from the changelog.
 
@@ -492,7 +516,7 @@ class Changelog:
         marker = dedup_marker or admonition
         # Extract the section for this version (heading to next heading).
         section_pattern = re.compile(
-            rf"^({SECTION_START}\s*\[.*{re.escape(version)}`?\s.+)$"
+            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+)"
             rf"(.*?)(?=^{SECTION_START}|\Z)",
             re.MULTILINE | re.DOTALL,
         )
@@ -510,6 +534,93 @@ class Changelog:
             + admonition
             + self.content[heading_end:]
         )
+        return True
+
+    def remove_admonition_from_section(
+        self,
+        version: str,
+        marker: str,
+    ) -> bool:
+        """Remove an admonition block from a version section.
+
+        Finds the version's section and removes any GFM alert block
+        containing the marker string. Cleans up surrounding blank lines.
+
+        :param version: Version string to locate (e.g. ``1.2.3``).
+        :param marker: A substring identifying the admonition to remove.
+        :return: True if the content was modified.
+        """
+        section_pattern = re.compile(
+            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+)"
+            rf"(.*?)(?=^{SECTION_START}|\Z)",
+            re.MULTILINE | re.DOTALL,
+        )
+        section_match = section_pattern.search(self.content)
+        if not section_match:
+            return False
+        section_text = section_match.group(0)
+        if marker not in section_text:
+            return False
+        # Remove the full GFM alert block (consecutive lines starting
+        # with "> ") that contains the marker, plus surrounding blanks.
+        admonition_pattern = re.compile(
+            r"\n*(?:^>.*$\n?)+",
+            re.MULTILINE,
+        )
+        new_section = section_text
+        for block_match in admonition_pattern.finditer(section_text):
+            if marker in block_match.group(0):
+                new_section = (
+                    section_text[: block_match.start()]
+                    + "\n\n"
+                    + section_text[block_match.end() :]
+                )
+                break
+        self.content = self.content.replace(section_text, new_section, 1)
+        return True
+
+
+    def strip_availability_admonitions(self, version: str) -> bool:
+        """Remove all availability admonitions from a version section.
+
+        Strips GFM alert blocks where the body matches
+        ``> `{version}` is ...`` — covering NOTE (available), WARNING
+        (not available), and any wording variant. Other admonitions
+        (e.g. "not released yet", yanked) are preserved.
+
+        :param version: Version string to locate (e.g. ``1.2.3``).
+        :return: True if the content was modified.
+        """
+        section_pattern = re.compile(
+            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+)"
+            rf"(.*?)(?=^{SECTION_START}|\Z)",
+            re.MULTILINE | re.DOTALL,
+        )
+        section_match = section_pattern.search(self.content)
+        if not section_match:
+            return False
+        section_text = section_match.group(0)
+
+        # Find all GFM alert blocks (consecutive lines starting with "> ")
+        # and remove those where any line matches "> `{version}` is ".
+        availability_marker = f"> `{version}` is "
+        admonition_pattern = re.compile(
+            r"(?:^>.*$\n?)+",
+            re.MULTILINE,
+        )
+        new_section = section_text
+        for block_match in reversed(list(admonition_pattern.finditer(section_text))):
+            if availability_marker in block_match.group(0):
+                start = block_match.start()
+                end = block_match.end()
+                new_section = new_section[:start] + new_section[end:]
+
+        if new_section == section_text:
+            return False
+
+        # Collapse excess blank lines (3+ consecutive newlines → 2).
+        new_section = re.sub(r"\n{3,}", "\n\n", new_section)
+        self.content = self.content.replace(section_text, new_section, 1)
         return True
 
 
@@ -560,6 +671,102 @@ def get_pypi_release_dates(package: str) -> dict[str, PyPIRelease]:
     return result
 
 
+def get_github_releases(repo_url: str) -> set[str]:
+    """Get the set of versions that have GitHub releases.
+
+    Fetches all releases via the GitHub API with pagination. Extracts
+    version numbers by stripping the ``v`` prefix from tag names.
+
+    :param repo_url: Repository URL (e.g.
+        ``https://github.com/user/repo``).
+    :return: Set of version strings with GitHub releases.
+        Empty set if the request fails.
+    """
+    # Parse owner/repo from the URL.
+    parts = repo_url.rstrip("/").split("/")
+    if len(parts) < 2:
+        return set()
+    owner, repo = parts[-2], parts[-1]
+
+    versions: set[str] = set()
+    page = 1
+    while True:
+        url = (
+            GITHUB_API_RELEASES_URL.format(owner=owner, repo=repo)
+            + f"?per_page=100&page={page}"
+        )
+        request = Request(url, headers={"Accept": "application/vnd.github+json"})  # noqa: S310
+        try:
+            with urlopen(request, timeout=10) as response:  # noqa: S310
+                data = json.loads(response.read())
+        except (URLError, TimeoutError, json.JSONDecodeError) as exc:
+            logging.debug(f"GitHub releases lookup failed: {exc}")
+            break
+        if not data:
+            break
+        for release in data:
+            tag = release.get("tag_name", "")
+            if tag.startswith("v"):
+                versions.add(tag[1:])
+        page += 1
+
+    return versions
+
+
+def build_release_admonition(
+    version: str,
+    *,
+    pypi_url: str = "",
+    github_url: str = "",
+    first_on_all: bool = False,
+) -> str:
+    """Build a GFM release admonition with available distribution links.
+
+    :param version: Version string (e.g. ``1.2.3``).
+    :param pypi_url: PyPI project URL, or empty if not on PyPI.
+    :param github_url: GitHub release URL, or empty if no release exists.
+    :param first_on_all: Whether every listed platform is a first appearance.
+        When ``True``, uses "is the *first version* available on" wording.
+    :return: A ``> [!NOTE]`` admonition block, or empty string if neither
+        URL is provided.
+    """
+    links: list[str] = []
+    if pypi_url:
+        links.append(f"[🐍 PyPI]({pypi_url})")
+    if github_url:
+        links.append(f"[🐙 GitHub]({github_url})")
+    if not links:
+        return ""
+    joined = " and ".join(links)
+    verb = "is the *first version* available on" if first_on_all else "is available on"
+    return f"> [!NOTE]\n> `{version}` {verb} {joined}."
+
+
+def build_unavailable_admonition(
+    version: str,
+    *,
+    missing_pypi: bool = False,
+    missing_github: bool = False,
+) -> str:
+    """Build a GFM warning admonition for platforms missing a version.
+
+    :param version: Version string (e.g. ``1.2.3``).
+    :param missing_pypi: Whether the version is missing from PyPI.
+    :param missing_github: Whether the version is missing from GitHub.
+    :return: A ``> [!WARNING]`` admonition block, or empty string if
+        neither platform is missing.
+    """
+    names: list[str] = []
+    if missing_pypi:
+        names.append("🐍 PyPI")
+    if missing_github:
+        names.append("🐙 GitHub")
+    if not names:
+        return ""
+    joined = " and ".join(names)
+    return f"> [!WARNING]\n> `{version}` is **not available** on {joined}."
+
+
 def lint_changelog_dates(
     changelog_path: Path,
     package: str | None = None,
@@ -570,15 +777,21 @@ def lint_changelog_dates(
 
     Uses PyPI upload dates as the canonical reference when the project
     is published to PyPI. Falls back to git tag dates for projects not
-    on PyPI. Stops iterating once it reaches versions older than the
-    oldest PyPI release.
+    on PyPI.
+
+    Versions older than the first PyPI release are expected to be absent
+    and logged at info level. Versions newer than the first PyPI release
+    but missing from PyPI are unexpected and logged as warnings.
 
     When ``fix`` is enabled, date mismatches are corrected in-place and
     admonitions are added to the changelog:
 
-    - A PyPI link admonition under each version found on PyPI.
+    - A ``[!NOTE]`` admonition listing available distribution links
+      (PyPI, GitHub) for each version. Links are conditional: only
+      sources where the version exists are included.
+    - A ``[!WARNING]`` admonition listing platforms where the version
+      is *not* available (missing from PyPI, GitHub, or both).
     - A ``[!CAUTION]`` admonition for yanked releases.
-    - A ``[!WARNING]`` admonition for versions not found on PyPI.
 
     :param changelog_path: Path to the changelog file.
     :param package: PyPI package name. If ``None``, auto-detected from
@@ -623,10 +836,36 @@ def lint_changelog_dates(
     has_mismatch = False
     modified = False
 
+    # Determine the first version published to PyPI for boundary detection.
+    first_pypi_version: Version | None = None
+    if use_pypi:
+        first_pypi_version = min(Version(v) for v in pypi_data)
+        logging.info(f"First PyPI version: {first_pypi_version}")
+
+    # Extract repository URL and fetch GitHub releases.
+    repo_url = changelog.extract_repo_url()
+    github_releases: set[str] = set()
+    if repo_url:
+        github_releases = get_github_releases(repo_url)
+        if github_releases:
+            logging.info(
+                f"GitHub releases: {len(github_releases)} found."
+            )
+
+    # Determine the first version released on GitHub for boundary detection.
+    first_github_version: Version | None = None
+    if github_releases:
+        first_github_version = min(Version(v) for v in github_releases)
+        logging.info(f"First GitHub version: {first_github_version}")
+
     for version, changelog_date in releases:
         if use_pypi:
             release = pypi_data.get(version)
             if release is None:
+                parsed = Version(version)
+                if first_pypi_version and parsed < first_pypi_version:
+                    logging.info(f"  {version}: predates PyPI (first: {first_pypi_version})")
+                    continue
                 logging.warning(f"⚠ {version}: not found on PyPI")
                 emit_annotation(
                     AnnotationLevel.WARNING,
@@ -663,30 +902,97 @@ def lint_changelog_dates(
             if fix:
                 modified |= changelog.fix_release_date(version, ref_date)
 
-        # Add admonitions in fix mode for PyPI-tracked versions.
-        if fix and use_pypi and package:
-            release = pypi_data[version]
-            pypi_url = PYPI_PROJECT_URL.format(package=package, version=version)
-            modified |= changelog.add_admonition_after_heading(
-                version,
-                PYPI_ADMONITION.format(version=version, url=pypi_url),
-                dedup_marker=pypi_url,
+    # In fix mode, build release admonitions for all versions based on
+    # availability in PyPI and GitHub (independently).
+    if fix:
+        for version, _date in releases:
+            on_pypi = version in pypi_data
+            on_github = version in github_releases
+
+            # Build the NOTE admonition for platforms where available.
+            pypi_url = (
+                PYPI_PROJECT_URL.format(package=package, version=version)
+                if on_pypi and package
+                else ""
             )
-            if release.yanked:
+            github_url = (
+                GITHUB_RELEASE_URL.format(repo_url=repo_url, version=version)
+                if on_github and repo_url
+                else ""
+            )
+
+            # "First version" wording applies when every listed platform
+            # is a first appearance for that platform.
+            parsed = Version(version)
+            is_first_pypi = (
+                on_pypi
+                and first_pypi_version is not None
+                and parsed == first_pypi_version
+            )
+            is_first_github = (
+                on_github
+                and first_github_version is not None
+                and parsed == first_github_version
+            )
+            first_on_all = (
+                (is_first_pypi or not on_pypi)
+                and (is_first_github or not on_github)
+                and (is_first_pypi or is_first_github)
+            )
+
+            note = build_release_admonition(
+                version,
+                pypi_url=pypi_url,
+                github_url=github_url,
+                first_on_all=first_on_all,
+            )
+
+            # Build the WARNING admonition for platforms where missing.
+            # Only warn about gaps: versions that postdate the first
+            # release on that platform but are absent from it.
+            pypi_gap = (
+                not on_pypi
+                and bool(package)
+                and first_pypi_version is not None
+                and parsed >= first_pypi_version
+            )
+            github_gap = (
+                not on_github
+                and bool(repo_url)
+                and first_github_version is not None
+                and parsed >= first_github_version
+            )
+            warning = build_unavailable_admonition(
+                version,
+                missing_pypi=pypi_gap,
+                missing_github=github_gap,
+            )
+
+            # Strip all availability admonitions, then re-add current ones.
+            # This is idempotent: stripping already-correct admonitions and
+            # re-adding them produces the same content.
+            snapshot = changelog.content
+            changelog.strip_availability_admonitions(version)
+            expected_admonitions = [a for a in (note, warning) if a]
+            for admonition in expected_admonitions:
+                changelog.add_admonition_after_heading(
+                    version,
+                    admonition,
+                )
+            if changelog.content != snapshot:
+                modified = True
+
+            # Clean up legacy markers.
+            modified |= changelog.remove_admonition_from_section(
+                version,
+                "not published on PyPI",
+            )
+
+            if on_pypi and pypi_data[version].yanked:
                 modified |= changelog.add_admonition_after_heading(
                     version,
                     YANKED_ADMONITION,
                     dedup_marker="yanked from PyPI",
-                )
-
-    # In fix mode, add warnings for changelog versions not found on PyPI.
-    if fix and use_pypi and package:
-        for version, _date in releases:
-            if version not in pypi_data:
-                modified |= changelog.add_admonition_after_heading(
-                    version,
-                    NOT_ON_PYPI_ADMONITION,
-                    dedup_marker="not published on PyPI",
                 )
 
     if fix and modified:
