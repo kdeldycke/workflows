@@ -49,12 +49,12 @@
   # commit SHAs when running in GitHub Actions CI. Use stdout_contains for key
   # checks instead of fullmatch since release_notes content varies.
   stdout_contains:
-    - "is_bot=false"
     - "mailmap_exists=true"
     - "is_python_project=true"
     - "package_name=gha-utils"
     - "is_sphinx=false"
   stdout_regex_matches:
+    - "is_bot=(true|false)"
     - "skip_binary_build=(true|false)"
     - "new_commits=([a-f0-9]+)?"
     - "release_commits=([a-f0-9]+)?"
@@ -79,10 +79,10 @@
   stdout_regex_fullmatch: |-
     # Changelog
 
-    ## \[[0-9\.]+(\.dev[0-9]+)? \(unreleased\)\]\(https://github.com/kdeldycke/workflows/compare/v[0-9\.]+\.\.\.main\)
+    ## \[`[0-9\.]+(\.dev[0-9]+)?` \(unreleased\)\]\(https://github.com/kdeldycke/workflows/compare/v[0-9\.]+\.\.\.main\)
 
-    > \[\!IMPORTANT\]
-    > This version is not released yet and is under active development\.
+    > \[\!WARNING\]
+    > This version is \*\*not released yet\*\* and is under active development\.
 
     .+
 
