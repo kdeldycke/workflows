@@ -510,6 +510,19 @@ RELEASE_COMMIT_PATTERN = re.compile(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0
 """Pre-compiled regex pattern for identifying release commits."""
 
 
+BINARY_AFFECTING_PATHS: Final[tuple[str, ...]] = (
+    ".github/workflows/release.yaml",
+    "gha_utils/",
+    "pyproject.toml",
+    "tests/",
+    "uv.lock",
+)
+"""Path prefixes that affect compiled binaries.
+
+Mirrors the ``pull_request: paths:`` filter in ``release.yaml``. If all changed files
+in a push event fall outside these paths, binary builds can be safely skipped.
+"""
+
 SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
     # Autofix branches from docs.yaml that don't affect code.
     "update-mailmap",
@@ -1086,6 +1099,27 @@ class Metadata:
         return None
 
     @cached_property
+    def changed_files(self) -> tuple[str, ...] | None:
+        """Returns the list of files changed in the current event's commit range.
+
+        Uses ``git diff --name-only`` between the start and end of the commit range.
+        Returns ``None`` if no commit range is available (e.g., outside CI).
+        """
+        if not self.commit_range:
+            return None
+        start, end = self.commit_range
+        if not start or not end:
+            return None
+        try:
+            diff_output = self.git.repo.git.diff("--name-only", start, end)
+        except Exception:
+            logging.warning("Failed to get changed files from git diff.")
+            return None
+        if not diff_output:
+            return ()
+        return tuple(diff_output.strip().splitlines())
+
+    @cached_property
     def skip_binary_build(self) -> bool:
         """Returns ``True`` if binary builds should be skipped for this event.
 
@@ -1093,9 +1127,13 @@ class Metadata:
         contexts where the changes cannot possibly affect compiled binaries,
         allowing workflows to skip Nuitka compilation jobs.
 
-        Currently checks if the PR's head branch is in the list of known
-        branches that only contain non-code changes (documentation,
-        ``.mailmap``, ``.gitignore``, etc.).
+        Two mechanisms are checked:
+
+        1. **Branch name** — PRs from known non-code branches (documentation,
+           ``.mailmap``, ``.gitignore``, etc.) are skipped.
+        2. **Changed files** — Push events where all changed files fall outside
+           :data:`BINARY_AFFECTING_PATHS` are skipped. This avoids ~2h of Nuitka
+           builds for documentation-only commits to ``main``.
         """
         if self.head_branch and self.head_branch in SKIP_BINARY_BUILD_BRANCHES:
             logging.info(
@@ -1103,6 +1141,29 @@ class Metadata:
                 "Binary build will be skipped."
             )
             return True
+
+        # For push events, check if changed files affect binaries.
+        if (
+            self.event_type == WorkflowEvent.push
+            and self.changed_files is not None
+        ):
+            if not self.changed_files:
+                # No changed files means nothing to build.
+                logging.info(
+                    "No changed files detected. Binary build will be skipped."
+                )
+                return True
+            if not any(
+                f.startswith(prefix)
+                for f in self.changed_files
+                for prefix in BINARY_AFFECTING_PATHS
+            ):
+                logging.info(
+                    "No changed files match BINARY_AFFECTING_PATHS. "
+                    "Binary build will be skipped."
+                )
+                return True
+
         return False
 
     @cached_property
