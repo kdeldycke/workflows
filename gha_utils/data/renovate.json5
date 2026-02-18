@@ -65,7 +65,7 @@
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
         commands: [
-          "pip install uv && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
+          "install-tool python 3.12 && pip install uv && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
         ],
         fileFilters: [".github/workflows/**"],
         executionMode: "update",
@@ -76,7 +76,7 @@
       matchUpdateTypes: ["lockFileMaintenance"],
       postUpgradeTasks: {
         commands: [
-          "pip install uv && uvx --no-progress --from . gha-utils sync-uv-lock",
+          "install-tool python 3.12 && pip install uv && uvx --no-progress --from . gha-utils sync-uv-lock",
         ],
         fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",
