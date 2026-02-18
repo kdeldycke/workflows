@@ -109,6 +109,8 @@ jobs:
           # Fetch all PRs, not just those created by the current bot.
           # Useful for migrating between bot accounts or taking over existing PRs.
           RENOVATE_IGNORE_PR_AUTHOR: "true"
+          # XXX Temporary: enable full debug logging to diagnose postUpgradeTasks failures.
+          LOG_LEVEL: "debug"
           # Allow postUpgradeTasks commands to run inside the Renovate container.
           # Renovate always runs from main (unfreeze commit), so the command always
           # uses --from . (local source). The freeze/unfreeze cycle does not affect
@@ -119,7 +121,8 @@ jobs:
           # when a matching manager is detected (not for postUpgradeTasks).
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^install-tool python 3\\.12 && pip install uv &&
-            uvx --no-progress --from \\. gha-utils (update-checksums|sync-uv-lock)"]
+            uvx --no-progress --from \\. gha-utils (update-checksums|sync-uv-lock)",
+            "^echo DIAG && cat /etc/os-release && echo PATH=$PATH && which -a python3 python pip pip3 node npm npx uv uvx curl wget bash sh 2>&1; ls -la /usr/local/bin/ /usr/bin/ /opt/ 2>&1; env | sort"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
           # Prevent python.org API rate limits (HTTP 429) from aborting the

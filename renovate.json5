@@ -62,6 +62,18 @@
       addLabels: ["⚠️ stale dependency"],
     },
     {
+      // XXX Temporary: diagnostic command to inspect the Renovate container environment.
+      description: "Diagnose container environment for postUpgradeTasks.",
+      matchFileNames: [".github/workflows/**"],
+      postUpgradeTasks: {
+        commands: [
+          "echo DIAG && cat /etc/os-release && echo PATH=$PATH && which -a python3 python pip pip3 node npm npx uv uvx curl wget bash sh 2>&1; ls -la /usr/local/bin/ /usr/bin/ /opt/ 2>&1; env | sort",
+        ],
+        fileFilters: [".github/workflows/**"],
+        executionMode: "update",
+      },
+    },
+    {
       description: "Update SHA-256 checksums after binary version bumps.",
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
