@@ -6,14 +6,11 @@
 [![Unittests status](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/workflows/actions/workflows/tests.yaml?query=branch%3Amain)
 [![Coverage status](https://codecov.io/gh/kdeldycke/workflows/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/workflows)
 
-This repository contains:
+[Reusable workflows](#reusable-workflows-collection) and a standalone [CLI (`gha-utils`)](#gha-utils-cli) that let you **release Python packages multiple times a day with only 2-clicks**. Designed for `uv`-based Python projects, but usable for other projects too.
 
-- a [collection of reusable workflows](#reusable-workflows-collection)
-- a standalone [CLI called `gha-utils`](#gha-utils-cli)
+[**Maintainer-in-the-loop**](#maintainer-in-the-loop): nothing is done behind your back. A PR or issue is created every time a change is proposed or action is needed.
 
-It is designed for `uv`-based Python projects, but can be used for other projects as well. Thanks to this project, I am able to **release Python packages multiple times a day with only 2-clicks**.
-
-## What does it do?
+Automates:
 
 - Version bumping
 - Changelog management
@@ -30,8 +27,6 @@ It is designed for `uv`-based Python projects, but can be used for other project
 - Label management, with file-based and content-based rules
 - Awesome list template synchronization
 - Address [GitHub Actions limitations](#github-actions-limitations)
-
-[**Maintainer-in-the-loop**](#maintainer-in-the-loop): nothing is done behind your back. A PR or issue is created every time a change is proposed or action is needed, so you stay in control.
 
 ## Quick start
 
