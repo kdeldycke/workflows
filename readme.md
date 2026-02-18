@@ -76,26 +76,28 @@ Options:
   -h, --help            Show this message and exit.
 
 Commands:
-  broken-links          Manage broken links issue lifecycle
-  changelog             Maintain a Markdown-formatted changelog
-  check-renovate        Check Renovate migration prerequisites
-  collect-artifacts     Collect and rename artifacts for release
-  deps-graph            Generate dependency graph from uv lockfile
-  git-tag               Create and push a Git tag
-  init                  Bootstrap a repository to use reusable workflows
-  lint-repo             Run repository consistency checks
-  mailmap-sync          Update Git's .mailmap file with missing contributors
-  metadata              Output project metadata
-  pr-body               Generate PR body with workflow metadata
-  release-prep          Prepare files for a release
-  sphinx-linkcheck      Manage Sphinx linkcheck issue lifecycle
-  sponsor-label         Label issues/PRs from GitHub sponsors
-  sync-uv-lock          Re-lock and revert if only timestamp noise changed
-  test-plan             Run a test plan from a file against a binary
-  update-gitignore      Generate .gitignore from gitignore.io templates
-  verify-binary         Verify binary architecture using exiftool
-  version-check         Check if a version bump is allowed
-  workflow              Manage downstream workflow caller files
+  broken-links       Manage broken links issue lifecycle
+  changelog          Maintain a Markdown-formatted changelog
+  check-renovate     Check Renovate migration prerequisites
+  collect-artifacts  Collect and rename artifacts for release
+  deps-graph         Generate dependency graph from uv lockfile
+  git-tag            Create and push a Git tag
+  init               Bootstrap a repository to use reusable workflows
+  lint-changelog     Check changelog dates against release dates
+  lint-repo          Run repository consistency checks
+  mailmap-sync       Update Git's .mailmap file with missing contributors
+  metadata           Output project metadata
+  pr-body            Generate PR body with workflow metadata
+  release-prep       Prepare files for a release
+  setup-guide        Manage setup guide issue lifecycle
+  sponsor-label      Label issues/PRs from GitHub sponsors
+  sync-uv-lock       Re-lock and revert if only timestamp noise changed
+  test-plan          Run a test plan from a file against a binary
+  update-checksums   Update SHA-256 checksums for binary downloads
+  update-gitignore   Generate .gitignore from gitignore.io templates
+  verify-binary      Verify binary architecture using exiftool
+  version-check      Check if a version bump is allowed
+  workflow           Manage downstream workflow caller files
 ```
 
 ```shell-session
@@ -249,6 +251,10 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
+- **Lint changelog** (`lint-changelog`)
+
+  - Checks and fixes changelog dates and admonitions using [`gha-utils lint-changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
+
 - **Optimize images** (`optimize-images`)
 
   - Compresses images in the repository using [`image-actions`](https://github.com/calibreapp/image-actions)
@@ -308,6 +314,18 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 - **Lock inactive threads** (`lock`)
 
   - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
+
+### [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/debug.yaml)
+
+- **Dump context** (`dump-context`)
+
+  - Dumps GitHub Actions context and runner environment info across all build targets using [`ghaction-dump-context`](https://github.com/crazy-max/ghaction-dump-context)
+  - Useful for debugging runner differences and CI environment issues
+  - **Runs on**:
+    - Push to `main` (only when `debug.yaml` itself changes)
+    - Monthly schedule
+    - Manual dispatch
+    - `workflow_call` from downstream repositories
 
 ### [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/cancel-runs.yaml)
 
