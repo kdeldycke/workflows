@@ -62,23 +62,11 @@
       addLabels: ["⚠️ stale dependency"],
     },
     {
-      // XXX Temporary: diagnose containerbase environment for postUpgradeTasks.
-      description: "Diagnose container environment.",
-      matchFileNames: [".github/workflows/**"],
-      postUpgradeTasks: {
-        commands: [
-          "bash -c 'echo === ENV FILE === && cat /usr/local/etc/env && echo === PATH === && echo $PATH && echo === FIND UVX === && find / -name uvx -type f 2>/dev/null && echo === FIND UV === && find / -name uv -type f 2>/dev/null | head -20 && echo === LS CONTAINERBASE === && ls -la /opt/containerbase/tools/ 2>/dev/null && echo === LS PYTHON BIN === && ls -la /opt/containerbase/tools/python/*/bin/ 2>/dev/null | head -30'",
-        ],
-        fileFilters: [".github/workflows/**"],
-        executionMode: "update",
-      },
-    },
-    {
       description: "Update SHA-256 checksums after binary version bumps.",
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
         commands: [
-          "bash -c 'install-tool uv latest && . /usr/local/etc/env && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}'",
+          "bash -c 'install-tool uv latest && export PATH=\"/opt/containerbase/tools/python/$(ls /opt/containerbase/tools/python/)/bin:${PATH}\" && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}'",
         ],
         fileFilters: [".github/workflows/**"],
         executionMode: "update",
@@ -89,7 +77,7 @@
       matchUpdateTypes: ["lockFileMaintenance"],
       postUpgradeTasks: {
         commands: [
-          "bash -c 'install-tool uv latest && . /usr/local/etc/env && uvx --no-progress --from . gha-utils sync-uv-lock'",
+          "bash -c 'install-tool uv latest && export PATH=\"/opt/containerbase/tools/python/$(ls /opt/containerbase/tools/python/)/bin:${PATH}\" && uvx --no-progress --from . gha-utils sync-uv-lock'",
         ],
         fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",

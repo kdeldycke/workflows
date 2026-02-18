@@ -116,17 +116,16 @@ jobs:
           # uses --from . (local source). The freeze/unfreeze cycle does not affect
           # this because renovate.json5 (where the command is defined) is outside
           # .github/workflows/ and is not subject to CLI version freezing.
-          # Commands must run under bash (not /bin/sh) because the
-          # containerbase env file at /usr/local/etc/env uses bash syntax.
-          # install-tool ensures uv is installed, sourcing the env file puts
-          # uvx on the PATH. The manager phase pre-installs these tools, but
-          # postUpgradeTasks run via rawExec and do not inherit its PATH.
+          # Commands run under bash because postUpgradeTasks use rawExec via
+          # /bin/sh (dash) which does not inherit the manager phase's PATH.
+          # install-tool ensures uv is installed (as a pip package under the
+          # containerbase Python), then the PATH is extended to include the
+          # Python bin directory where uvx lives.
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^bash -c 'install-tool uv latest &&
-            \\. /usr/local/etc/env &&
+            export PATH=.* &&
             uvx --no-progress --from \\. gha-utils
-            (update-checksums|sync-uv-lock)",
-            "^bash -c 'echo"]
+            (update-checksums|sync-uv-lock)"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
