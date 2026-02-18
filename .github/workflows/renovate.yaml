@@ -118,7 +118,8 @@ jobs:
           # pip to install uv, because containerbase only auto-installs tools
           # when a matching manager is detected (not for postUpgradeTasks).
           RENOVATE_ALLOWED_COMMANDS: >-
-            ["^install-tool python 3\\.12 && pip install uv && uvx --no-progress --from \\. gha-utils (update-checksums|sync-uv-lock)"]
+            ["^install-tool python 3\\.12 && pip install uv &&
+            uvx --no-progress --from \\. gha-utils (update-checksums|sync-uv-lock)"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
