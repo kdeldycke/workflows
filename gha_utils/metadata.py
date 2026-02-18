@@ -1134,7 +1134,8 @@ class Metadata:
         # Derive top-level source package directories from script entry points.
         source_dirs: set[str] = set()
         for _cli_id, module_id, _callable_id in self.script_entries:
-            # Extract top-level package: "meta_package_manager.__main__" → "meta_package_manager/".
+            # Extract top-level package: "meta_package_manager.__main__" →
+            # "meta_package_manager/".
             top_package = module_id.split(".")[0]
             source_dirs.add(f"{top_package}/")
         return BINARY_AFFECTING_PATHS + tuple(sorted(source_dirs))
@@ -1163,21 +1164,14 @@ class Metadata:
             return True
 
         # For push events, check if changed files affect binaries.
-        if (
-            self.event_type == WorkflowEvent.push
-            and self.changed_files is not None
-        ):
+        if self.event_type == WorkflowEvent.push and self.changed_files is not None:
             affecting = self.binary_affecting_paths
             if not self.changed_files:
                 # No changed files means nothing to build.
-                logging.info(
-                    "No changed files detected. Binary build will be skipped."
-                )
+                logging.info("No changed files detected. Binary build will be skipped.")
                 return True
             if not any(
-                f.startswith(prefix)
-                for f in self.changed_files
-                for prefix in affecting
+                f.startswith(prefix) for f in self.changed_files for prefix in affecting
             ):
                 logging.info(
                     f"No changed files match binary-affecting paths {affecting!r}. "
@@ -2031,9 +2025,7 @@ class Metadata:
         github_url = ""
         repo_url = changelog.extract_repo_url()
         if repo_url:
-            github_url = GITHUB_RELEASE_URL.format(
-                repo_url=repo_url, version=version
-            )
+            github_url = GITHUB_RELEASE_URL.format(repo_url=repo_url, version=version)
         pypi_link = build_release_admonition(
             version, pypi_url=pypi_url, github_url=github_url
         )
