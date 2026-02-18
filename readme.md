@@ -593,6 +593,14 @@ docs = [
   - **Requires**:
     - `WORKFLOW_UPDATE_GITHUB_PAT` secret with Dependabot alerts permission
 
+- **Sync `uv.lock`** (`sync-uv-lock`)
+
+  - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`gha-utils sync-uv-lock`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/renovate.py)
+  - Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
+  - Replaces Renovate's `lockFileMaintenance`, which cannot reliably revert noise-only changes
+  - **Requires**:
+    - Python package with a `pyproject.toml` file
+
 ### What is this `project-metadata` job?
 
 Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extract contextual information, reconcile and combine it, and expose it for downstream jobs to consume.

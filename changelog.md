@@ -6,7 +6,9 @@
 > This version is **not released yet** and is under active development.
 
 - Add `sync-uv-lock` command that runs `uv lock` and avoid `exclude-newer-package` timestamp noise.
+- Add `sync-uv-lock` job to `autofix.yaml` to replace Renovate's `lockFileMaintenance`, which cannot reliably revert timestamp-only noise in `uv.lock`.
 - Remove `update-exclude-newer` command.
+- Remove Renovate `lockFileMaintenance` configuration and its `postUpgradeTasks` rule.
 - Revert `exclude-newer` in `pyproject.toml` from a fixed date to `"1 week"`.
 
 ## [`5.10.2` (2026-02-18)](https://github.com/kdeldycke/workflows/compare/v5.10.1...v5.10.2)

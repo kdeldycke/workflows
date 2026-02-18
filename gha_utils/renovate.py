@@ -20,6 +20,13 @@ This module provides utilities for managing Renovate prerequisites,
 migrating from Dependabot to Renovate, updating the ``exclude-newer``
 date in ``pyproject.toml`` files, and reverting lock file noise caused
 by ``exclude-newer-package`` timestamp churn.
+
+.. note::
+    This module also contains general dependency management utilities
+    (e.g., ``sync_uv_lock``, ``exclude-newer`` date handling) that are
+    not strictly Renovate-specific. If more non-Renovate dependency
+    code accumulates here, consider renaming this module to
+    ``dependencies.py`` or similar.
 """
 
 from __future__ import annotations
@@ -622,6 +629,12 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
     Calls :func:`is_lock_diff_only_timestamp_noise` and, if ``True``,
     runs ``git checkout`` to discard the noise changes.
 
+    .. note::
+        In Renovate's ``postUpgradeTasks`` context, the revert is ineffective
+        because Renovate captures file content after its own ``uv lock --upgrade``
+        manager step *before* ``postUpgradeTasks`` run, and commits its cached
+        content regardless of working tree changes.
+
     :param lock_path: Path to the lock file to inspect and potentially revert.
     :return: ``True`` if the file was reverted, ``False`` otherwise.
     """
@@ -637,21 +650,22 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
 
 
 def sync_uv_lock(lock_path: Path) -> bool:
-    """Re-lock and revert if only timestamp noise changed.
+    """Re-lock with ``--upgrade`` and revert if only timestamp noise changed.
 
-    This is the single entry point for Renovate's ``lockFileMaintenance``
-    post-upgrade task. It runs ``uv lock`` and then checks whether the
-    resulting diff contains only ``exclude-newer-package`` timestamp noise.
-    If so, it reverts ``uv.lock`` so Renovate sees no diff and skips
-    creating a PR.
+    Runs ``uv lock --upgrade`` to update transitive dependencies to their
+    latest allowed versions, replacing Renovate's ``lockFileMaintenance``
+    which cannot reliably revert noise-only changes. If the resulting diff
+    contains only ``exclude-newer-package`` timestamp noise, it reverts
+    ``uv.lock`` so ``peter-evans/create-pull-request`` sees no diff and
+    skips creating a PR.
 
     :param lock_path: Path to the ``uv.lock`` file.
     :return: ``True`` if the lock file was reverted (noise only),
         ``False`` if it contains real dependency changes.
     """
-    # Step 1: Run uv lock.
-    logging.info("Running uv lock...")
-    subprocess.run(["uv", "lock"], check=True)
+    # Step 1: Run uv lock --upgrade.
+    logging.info("Running uv lock --upgrade...")
+    subprocess.run(["uv", "--no-progress", "lock", "--upgrade"], check=True)
 
     # Step 2: Revert uv.lock if only timestamp noise changed.
     return revert_lock_if_noise(lock_path)

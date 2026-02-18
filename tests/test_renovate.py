@@ -642,7 +642,9 @@ def test_sync_uv_lock_keeps_real_changes(tmp_path):
             reverted = sync_uv_lock(lock_path)
             assert reverted is False
             # uv lock was called.
-            mock_run.assert_called_once_with(["uv", "lock"], check=True)
+            mock_run.assert_called_once_with(
+                ["uv", "--no-progress", "lock", "--upgrade"], check=True
+            )
 
 
 def test_sync_uv_lock_reverts_noise(tmp_path):

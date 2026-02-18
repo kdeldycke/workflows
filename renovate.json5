@@ -2,22 +2,6 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["config:recommended", "abandonments:recommended"],
 
-  // Keep lock files up-to-date, including transitive dependencies.
-  // Runs on every Renovate execution rather than the default weekly schedule.
-  lockFileMaintenance: {
-    enabled: true,
-    // Rebase whenever main advances, not just on conflicts. A lock file maintenance
-    // PR computed against a stale uv.lock baseline is outdated by definition.
-    rebaseWhen: "behind-base-branch",
-    // Always recreate the branch from scratch instead of attempting a rebase.
-    // Lock file maintenance is cheap to recreate (just runs uv lock) and
-    // recreation avoids merge conflicts that block stale PRs.
-    recreateWhen: "always",
-    schedule: ["at any time"],
-    semanticCommits: "disabled",
-    commitMessageAction: "Sync `uv.lock`",
-  },
-
   // PR and issue settings.
   labels: ["📦 dependencies"],
   dependencyDashboardLabels: ["📦 dependencies"],
@@ -69,17 +53,6 @@
           "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}'",
         ],
         fileFilters: [".github/workflows/**"],
-        executionMode: "update",
-      },
-    },
-    {
-      description: "Update exclude-newer date and re-lock during lock file maintenance.",
-      matchUpdateTypes: ["lockFileMaintenance"],
-      postUpgradeTasks: {
-        commands: [
-          "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress --from . gha-utils sync-uv-lock'",
-        ],
-        fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",
       },
     },
