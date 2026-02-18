@@ -11,6 +11,7 @@
 - Add PyPI and GitHub release availability admonitions in changelog.
 - Change development warning from `[!IMPORTANT]` to `[!WARNING]` GFM alert.
 - Document version and tag naming conventions.
+- Fix Renovate aborting entirely when python.org API is rate-limited.
 
 ## [`5.10.1` (2026-02-17)](https://github.com/kdeldycke/workflows/compare/v5.10.0...v5.10.1)
 

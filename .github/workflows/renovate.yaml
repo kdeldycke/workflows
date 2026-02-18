@@ -132,3 +132,8 @@ jobs:
           # this because renovate.json5 (where the command is defined) is outside
           # .github/workflows/ and is not subject to CLI version freezing.
           RENOVATE_ALLOWED_COMMANDS: '["^uvx --no-progress --from \\. gha-utils update-checksums"]'
+          # Prevent python.org API rate limits (HTTP 429) from aborting the
+          # entire Renovate run. Without this, a single throttled request to
+          # the python-version datasource causes Renovate to skip all PR
+          # creation and dashboard updates for the repository.
+          RENOVATE_HOST_RULES: '[{"hostType": "python-version", "abortOnError": false}]'
