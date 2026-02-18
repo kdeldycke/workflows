@@ -31,7 +31,7 @@ It is designed for `uv`-based Python projects, but can be used for other project
 - Awesome list template synchronization
 - Address [GitHub Actions limitations](#github-actions-limitations)
 
-Nothing is done behind your back. A PR is created every time a change is proposed, so you can inspect it before merging it.
+[**Maintainer-in-the-loop**](#maintainer-in-the-loop): nothing is done behind your back. A PR or issue is created every time a change is proposed or action is needed, so you stay in control.
 
 ## Quick start
 
@@ -617,9 +617,9 @@ All Python dependencies and CLIs are installed via [`uv`](https://github.com/ast
 
 Jobs are guarded by conditions to skip unnecessary steps: file type detection (only lint Python if `.py` files exist), branch filtering (`prepare-release` skipped for most linting), and bot detection.
 
-### Transparency via PRs
+### Maintainer-in-the-loop
 
-Autofix workflows never commit directly; they create PRs so you can review changes before merging.
+Workflows never commit directly or act silently. Every proposed change creates a PR; every action needed opens an issue. You review and decide — nothing lands without your approval.
 
 ### Configurable with sensible defaults
 
