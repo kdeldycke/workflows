@@ -115,19 +115,16 @@ jobs:
           # this because renovate.json5 (where the command is defined) is outside
           # .github/workflows/ and is not subject to CLI version freezing.
           # Commands run under bash so glob expansion works. install-tool
-          # ensures uv is installed as a pip package under containerbase's
-          # Python. Since postUpgradeTasks run via rawExec and do not inherit
-          # the manager phase's PATH, uvx is invoked by its absolute path
-          # using a glob to match any installed Python version.
-          # XXX Temporary: debug logging to see diagnostic stdout.
-          RENOVATE_LOG_LEVEL: "debug"
-          # XXX Temporary: diagnostic allowed command added.
+          # ensures uv is installed (as a pip package under containerbase's
+          # uv tool directory). postUpgradeTasks run via rawExec and do not
+          # inherit the manager phase's PATH, so uvx is invoked by its
+          # absolute path with globs matching the uv and Python versions:
+          # /opt/containerbase/tools/uv/<uv_ver>/<py_ver>/bin/uvx
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^bash -c 'install-tool uv latest &&
-            /opt/containerbase/tools/python/\\*/bin/uvx
+            /opt/containerbase/tools/uv/\\*/\\*/bin/uvx
             --no-progress --from \\. gha-utils
-            (update-checksums|sync-uv-lock)",
-            "^bash -c 'echo"]
+            (update-checksums|sync-uv-lock)"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
