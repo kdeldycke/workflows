@@ -512,15 +512,15 @@ RELEASE_COMMIT_PATTERN = re.compile(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0
 
 BINARY_AFFECTING_PATHS: Final[tuple[str, ...]] = (
     ".github/workflows/release.yaml",
-    "gha_utils/",
     "pyproject.toml",
     "tests/",
     "uv.lock",
 )
-"""Path prefixes that affect compiled binaries.
+"""Path prefixes that always affect compiled binaries, regardless of the project.
 
-Mirrors the ``pull_request: paths:`` filter in ``release.yaml``. If all changed files
-in a push event fall outside these paths, binary builds can be safely skipped.
+Project-specific source directories (derived from ``[project.scripts]`` in
+``pyproject.toml``) are added dynamically by
+:attr:`Metadata.binary_affecting_paths`.
 """
 
 SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
@@ -1120,6 +1120,26 @@ class Metadata:
         return tuple(diff_output.strip().splitlines())
 
     @cached_property
+    def binary_affecting_paths(self) -> tuple[str, ...]:
+        """Path prefixes that affect compiled binaries for this project.
+
+        Combines the static :data:`BINARY_AFFECTING_PATHS` (common files like
+        ``pyproject.toml``, ``uv.lock``, ``tests/``) with project-specific source
+        directories derived from ``[project.scripts]`` in ``pyproject.toml``.
+
+        For example, a project with ``mpm = "meta_package_manager.__main__:main"``
+        adds ``meta_package_manager/`` as an affecting path. This makes the check
+        reusable across downstream repositories without hardcoding source directories.
+        """
+        # Derive top-level source package directories from script entry points.
+        source_dirs: set[str] = set()
+        for _cli_id, module_id, _callable_id in self.script_entries:
+            # Extract top-level package: "meta_package_manager.__main__" → "meta_package_manager/".
+            top_package = module_id.split(".")[0]
+            source_dirs.add(f"{top_package}/")
+        return BINARY_AFFECTING_PATHS + tuple(sorted(source_dirs))
+
+    @cached_property
     def skip_binary_build(self) -> bool:
         """Returns ``True`` if binary builds should be skipped for this event.
 
@@ -1132,7 +1152,7 @@ class Metadata:
         1. **Branch name** — PRs from known non-code branches (documentation,
            ``.mailmap``, ``.gitignore``, etc.) are skipped.
         2. **Changed files** — Push events where all changed files fall outside
-           :data:`BINARY_AFFECTING_PATHS` are skipped. This avoids ~2h of Nuitka
+           :attr:`binary_affecting_paths` are skipped. This avoids ~2h of Nuitka
            builds for documentation-only commits to ``main``.
         """
         if self.head_branch and self.head_branch in SKIP_BINARY_BUILD_BRANCHES:
@@ -1147,6 +1167,7 @@ class Metadata:
             self.event_type == WorkflowEvent.push
             and self.changed_files is not None
         ):
+            affecting = self.binary_affecting_paths
             if not self.changed_files:
                 # No changed files means nothing to build.
                 logging.info(
@@ -1156,10 +1177,10 @@ class Metadata:
             if not any(
                 f.startswith(prefix)
                 for f in self.changed_files
-                for prefix in BINARY_AFFECTING_PATHS
+                for prefix in affecting
             ):
                 logging.info(
-                    "No changed files match BINARY_AFFECTING_PATHS. "
+                    f"No changed files match binary-affecting paths {affecting!r}. "
                     "Binary build will be skipped."
                 )
                 return True
