@@ -114,13 +114,14 @@ jobs:
           # uses --from . (local source). The freeze/unfreeze cycle does not affect
           # this because renovate.json5 (where the command is defined) is outside
           # .github/workflows/ and is not subject to CLI version freezing.
+          # Commands are prefixed with "pip install uv" because containerbase
+          # doesn't support uv as a built-in tool, so it must be installed at
+          # runtime before uvx can be used.
           RENOVATE_ALLOWED_COMMANDS: >-
-            ["^uvx --no-progress --from \\. gha-utils (update-checksums|update-exclude-newer)",
-            "^uv lock$"]
-          # Install tools (like uv) via containerbase inside the Renovate
-          # Docker container. Required because postUpgradeTasks commands
-          # (e.g., update-checksums via uvx) run inside the container, where
-          # runner-level setup-uv is not available.
+            ["^pip install uv && uvx --no-progress --from \\. gha-utils (update-checksums|update-exclude-newer)( && uv lock)?"]
+          # Install Python via containerbase so pip is available for
+          # "pip install uv" in postUpgradeTasks. Containerbase supports Python
+          # but not uv directly, hence the two-step install.
           RENOVATE_BINARY_SOURCE: "install"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
           # entire Renovate run. Without this, a single throttled request to

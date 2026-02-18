@@ -65,7 +65,7 @@
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
         commands: [
-          "uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
+          "pip install uv && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
         ],
         fileFilters: [".github/workflows/**"],
         executionMode: "update",
@@ -76,8 +76,7 @@
       matchUpdateTypes: ["lockFileMaintenance"],
       postUpgradeTasks: {
         commands: [
-          "uvx --no-progress --from . gha-utils update-exclude-newer",
-          "uv lock",
+          "pip install uv && uvx --no-progress --from . gha-utils update-exclude-newer && uv lock",
         ],
         fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",
