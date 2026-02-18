@@ -1554,16 +1554,16 @@ def collect_artifacts(
     help="Path to the uv.lock file.",
 )
 def sync_uv_lock_cmd(lockfile: Path) -> None:
-    """Run ``uv lock`` and revert if only timestamp noise changed.
+    """Run ``uv lock --upgrade`` and revert if only timestamp noise changed.
 
-    Single command for Renovate's ``lockFileMaintenance`` post-upgrade task.
-    Runs ``uv lock`` and then checks whether the resulting ``uv.lock`` diff
-    contains only ``exclude-newer-package`` timestamp changes. If so, reverts
-    the lock file so Renovate sees no diff and skips creating a PR.
+    Runs ``uv lock --upgrade`` to update transitive dependencies to their
+    latest allowed versions. If the resulting ``uv.lock`` diff contains only
+    ``exclude-newer-package`` timestamp changes, reverts the lock file so
+    ``peter-evans/create-pull-request`` sees no diff and skips creating a PR.
 
     \b
     Examples:
-        # Standard usage (from Renovate postUpgradeTasks)
+        # Standard usage (from renovate.yaml sync-uv-lock job)
         gha-utils sync-uv-lock
 
     \b

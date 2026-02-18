@@ -17,16 +17,14 @@
 """Renovate-related utilities for GitHub Actions workflows.
 
 This module provides utilities for managing Renovate prerequisites,
-migrating from Dependabot to Renovate, updating the ``exclude-newer``
-date in ``pyproject.toml`` files, and reverting lock file noise caused
-by ``exclude-newer-package`` timestamp churn.
+migrating from Dependabot to Renovate, and reverting lock file noise
+caused by ``exclude-newer-package`` timestamp churn.
 
 .. note::
     This module also contains general dependency management utilities
-    (e.g., ``sync_uv_lock``, ``exclude-newer`` date handling) that are
-    not strictly Renovate-specific. If more non-Renovate dependency
-    code accumulates here, consider renaming this module to
-    ``dependencies.py`` or similar.
+    (e.g., ``sync_uv_lock``) that are not strictly Renovate-specific.
+    If more non-Renovate dependency code accumulates here, consider
+    renaming this module to ``dependencies.py`` or similar.
 """
 
 from __future__ import annotations
@@ -35,23 +33,12 @@ import json
 import logging
 import re
 import subprocess
-import sys
 from dataclasses import asdict, dataclass
-from datetime import date, timedelta
 from pathlib import Path
 
 from click_extra import TableFormat, render_table
 
 from .github import AnnotationLevel, emit_annotation, run_gh_command
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib  # type: ignore[import-not-found]
-
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from datetime import date as DateType
 
 
 @dataclass
@@ -173,171 +160,6 @@ class RenovateCheckResult:
         )
 
         return "\n".join(lines)
-
-
-def parse_exclude_newer_date(pyproject_path: Path) -> DateType | None:
-    """Parse the exclude-newer date from pyproject.toml.
-
-    :param pyproject_path: Path to the pyproject.toml file.
-    :return: The date if found, None otherwise. Returns ``date.min`` for relative
-        date strings (e.g., "1 week") to signal they should be replaced with
-        fixed dates.
-    """
-    if not pyproject_path.exists():
-        logging.debug(f"{pyproject_path} does not exist.")
-        return None
-
-    content = pyproject_path.read_text(encoding="utf-8")
-    try:
-        data = tomllib.loads(content)
-    except tomllib.TOMLDecodeError as e:
-        logging.warning(f"Failed to parse TOML: {e}")
-        return None
-
-    # Navigate to tool.uv.pip.exclude-newer or tool.uv.exclude-newer.
-    tool_uv = data.get("tool", {}).get("uv", {})
-    exclude_newer = tool_uv.get("pip", {}).get("exclude-newer") or tool_uv.get(
-        "exclude-newer"
-    )
-
-    if not exclude_newer:
-        logging.debug("No exclude-newer field found.")
-        return None
-
-    # Extract just the date part (YYYY-MM-DD) from the ISO timestamp.
-    match = re.match(r"(\d{4}-\d{2}-\d{2})", exclude_newer)
-    if not match:
-        # Check if this is a relative date string (e.g., "1 week", "2 weeks").
-        # uv supports these, but we want to replace them with fixed dates to
-        # prevent uv.lock timestamp churn on every sync.
-        if re.match(r"^\d+\s+(day|week|month|year)s?$", exclude_newer):
-            logging.info(
-                f"Found relative date {exclude_newer!r}, will convert to fixed date."
-            )
-            # Return date.min to signal this needs updating.
-            return date.min
-        logging.warning(f"Could not parse date from {exclude_newer!r}")
-        return None
-
-    return date.fromisoformat(match.group(1))
-
-
-def calculate_target_date(days_ago: int = 7) -> DateType:
-    """Calculate the target date for exclude-newer.
-
-    :param days_ago: Number of days in the past. Defaults to 7.
-    :return: The target date.
-    """
-    return date.today() - timedelta(days=days_ago)
-
-
-def has_tool_uv_section(pyproject_path: Path) -> bool:
-    """Check if pyproject.toml has a [tool.uv] section.
-
-    :param pyproject_path: Path to the pyproject.toml file.
-    :return: True if [tool.uv] section exists, False otherwise.
-    """
-    if not pyproject_path.exists():
-        return False
-
-    content = pyproject_path.read_text(encoding="utf-8")
-    try:
-        data = tomllib.loads(content)
-    except tomllib.TOMLDecodeError:
-        return False
-
-    return "uv" in data.get("tool", {})
-
-
-def add_exclude_newer_to_file(pyproject_path: Path, target_date: DateType) -> bool:
-    """Add exclude-newer to [tool.uv] section if missing.
-
-    Inserts the exclude-newer setting right after the [tool.uv] header line.
-    Only works if [tool.uv] section exists but exclude-newer is not set.
-
-    :param pyproject_path: Path to the pyproject.toml file.
-    :param target_date: The date to set.
-    :return: True if the file was modified, False otherwise.
-    """
-    if not pyproject_path.exists():
-        logging.info(f"{pyproject_path} does not exist.")
-        return False
-
-    content = pyproject_path.read_text(encoding="utf-8")
-
-    # Check if [tool.uv] exists.
-    if not re.search(r"^\[tool\.uv\]", content, re.MULTILINE):
-        logging.info("No [tool.uv] section found.")
-        return False
-
-    # Check if exclude-newer already exists.
-    if re.search(r"^exclude-newer\s*=", content, re.MULTILINE):
-        logging.debug("exclude-newer already exists.")
-        return False
-
-    new_timestamp = f"{target_date.isoformat()}T00:00:00Z"
-
-    # Insert exclude-newer after [tool.uv] line.
-    # The setting is added with a comment explaining its purpose.
-    exclude_newer_block = (
-        "# Cooldown period: 7-day buffer before using newly released packages.\n"
-        '# Use a fixed date (not relative like "1 week") to prevent uv.lock '
-        "timestamp churn.\n"
-        "# This date is auto-updated by the autofix workflow when it becomes stale.\n"
-        f'exclude-newer = "{new_timestamp}"\n'
-    )
-
-    new_content = re.sub(
-        r"^(\[tool\.uv\]\n)",
-        rf"\g<1>{exclude_newer_block}",
-        content,
-        count=1,
-        flags=re.MULTILINE,
-    )
-
-    if new_content == content:
-        logging.warning("Failed to insert exclude-newer.")
-        return False
-
-    pyproject_path.write_text(new_content, encoding="utf-8")
-    logging.info(f"Added exclude-newer = {new_timestamp}")
-    return True
-
-
-def update_exclude_newer_in_file(pyproject_path: Path, target_date: DateType) -> bool:
-    """Update the exclude-newer date in pyproject.toml.
-
-    Uses regex replacement to preserve formatting and comments.
-
-    :param pyproject_path: Path to the pyproject.toml file.
-    :param target_date: The new date to set.
-    :return: True if the file was modified, False otherwise.
-    """
-    if not pyproject_path.exists():
-        logging.info(f"{pyproject_path} does not exist.")
-        return False
-
-    content = pyproject_path.read_text(encoding="utf-8")
-    new_timestamp = f"{target_date.isoformat()}T00:00:00Z"
-
-    # Replace the exclude-newer value.
-    new_content, count = re.subn(
-        r'(exclude-newer\s*=\s*")[^"]*(")',
-        rf"\g<1>{new_timestamp}\g<2>",
-        content,
-    )
-
-    if count == 0:
-        logging.info("No exclude-newer field found to update.")
-        return False
-
-    if new_content == content:
-        logging.info("exclude-newer date is already up to date.")
-        return False
-
-    pyproject_path.write_text(new_content, encoding="utf-8")
-    logging.info(f"Updated exclude-newer to {new_timestamp}")
-    return True
 
 
 def check_dependabot_config_absent() -> tuple[bool, str]:

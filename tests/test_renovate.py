@@ -18,235 +18,23 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
 from unittest.mock import patch
-
 
 import json
 
 from gha_utils.renovate import (
     RenovateCheckResult,
-    add_exclude_newer_to_file,
-    calculate_target_date,
     check_commit_statuses_permission,
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
     check_renovate_config_exists,
     collect_check_results,
     get_dependabot_config_path,
-    has_tool_uv_section,
     is_lock_diff_only_timestamp_noise,
-    parse_exclude_newer_date,
     revert_lock_if_noise,
     run_migration_checks,
     sync_uv_lock,
-    update_exclude_newer_in_file,
 )
-
-
-def test_valid_date(tmp_path):
-    """Parse valid exclude-newer date."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-15T00:00:00Z"\n')
-    result = parse_exclude_newer_date(pyproject)
-    assert result == date(2025, 1, 15)
-
-
-def test_date_in_pip_section(tmp_path):
-    """Parse date from tool.uv.pip section."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv.pip]\nexclude-newer = "2025-01-20T00:00:00Z"\n')
-    result = parse_exclude_newer_date(pyproject)
-    assert result == date(2025, 1, 20)
-
-
-def test_no_exclude_newer(tmp_path):
-    """Return None when no exclude-newer field."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
-    result = parse_exclude_newer_date(pyproject)
-    assert result is None
-
-
-def test_file_not_exists(tmp_path):
-    """Return None when file doesn't exist."""
-    pyproject = tmp_path / "pyproject.toml"
-    result = parse_exclude_newer_date(pyproject)
-    assert result is None
-
-
-def test_malformed_date(tmp_path):
-    """Return None for malformed date."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "not-a-date"\n')
-    result = parse_exclude_newer_date(pyproject)
-    assert result is None
-
-
-def test_relative_date_1_week(tmp_path):
-    """Return date.min for relative date '1 week' to trigger update."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "1 week"\n')
-    result = parse_exclude_newer_date(pyproject)
-    assert result == date.min
-
-
-def test_relative_date_2_weeks(tmp_path):
-    """Return date.min for relative date '2 weeks' to trigger update."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "2 weeks"\n')
-    result = parse_exclude_newer_date(pyproject)
-    assert result == date.min
-
-
-def test_relative_date_7_days(tmp_path):
-    """Return date.min for relative date '7 days' to trigger update."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "7 days"\n')
-    result = parse_exclude_newer_date(pyproject)
-    assert result == date.min
-
-
-def test_invalid_toml(tmp_path):
-    """Return None for invalid TOML."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("this is not valid TOML [[[")
-    result = parse_exclude_newer_date(pyproject)
-    assert result is None
-
-
-def test_has_section(tmp_path):
-    """Return True when [tool.uv] exists."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
-    assert has_tool_uv_section(pyproject) is True
-
-
-def test_no_section(tmp_path):
-    """Return False when [tool.uv] doesn't exist."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[project]\nname = "test"\n')
-    assert has_tool_uv_section(pyproject) is False
-
-
-def test_no_file_has_tool_uv(tmp_path):
-    """Return False when file doesn't exist."""
-    pyproject = tmp_path / "pyproject.toml"
-    assert has_tool_uv_section(pyproject) is False
-
-
-def test_invalid_toml_has_tool_uv(tmp_path):
-    """Return False for invalid TOML."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("this is not valid TOML [[[")
-    assert has_tool_uv_section(pyproject) is False
-
-
-def test_add_to_existing_section(tmp_path):
-    """Add exclude-newer to existing [tool.uv] section."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
-    result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
-    assert result is True
-    content = pyproject.read_text()
-    assert 'exclude-newer = "2025-01-20T00:00:00Z"' in content
-    assert "dev-dependencies = []" in content
-
-
-def test_no_tool_uv_section(tmp_path):
-    """Return False when no [tool.uv] section."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[project]\nname = "test"\n')
-    result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
-    assert result is False
-
-
-def test_exclude_newer_already_exists(tmp_path):
-    """Return False when exclude-newer already exists."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-01T00:00:00Z"\n')
-    result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
-    assert result is False
-
-
-def test_add_exclude_newer_no_file(tmp_path):
-    """Return False when file doesn't exist."""
-    pyproject = tmp_path / "pyproject.toml"
-    result = add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
-    assert result is False
-
-
-def test_adds_comment_block(tmp_path):
-    """Adds explanatory comments with the setting."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
-    add_exclude_newer_to_file(pyproject, date(2025, 1, 20))
-    content = pyproject.read_text()
-    assert "Cooldown period" in content
-    assert "auto-updated by the autofix workflow" in content
-
-
-def test_default_7_days():
-    """Default to 7 days ago."""
-    expected = date.today() - timedelta(days=7)
-    assert calculate_target_date() == expected
-
-
-def test_custom_days():
-    """Calculate with custom days."""
-    expected = date.today() - timedelta(days=14)
-    assert calculate_target_date(days_ago=14) == expected
-
-
-def test_update_date(tmp_path):
-    """Update exclude-newer date."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-01T00:00:00Z"\n')
-    result = update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
-    assert result is True
-    content = pyproject.read_text()
-    assert 'exclude-newer = "2025-01-20T00:00:00Z"' in content
-
-
-def test_no_change_needed(tmp_path):
-    """Return False when date is already correct."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text('[tool.uv]\nexclude-newer = "2025-01-20T00:00:00Z"\n')
-    result = update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
-    assert result is False
-
-
-def test_update_exclude_newer_no_file(tmp_path):
-    """Return False when file doesn't exist."""
-    pyproject = tmp_path / "pyproject.toml"
-    result = update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
-    assert result is False
-
-
-def test_no_exclude_newer_field(tmp_path):
-    """Return False when no exclude-newer field."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("[tool.uv]\ndev-dependencies = []\n")
-    result = update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
-    assert result is False
-
-
-def test_preserves_formatting(tmp_path):
-    """Preserve surrounding content and formatting."""
-    pyproject = tmp_path / "pyproject.toml"
-    original = """\
-[project]
-name = "my-package"
-
-[tool.uv]
-exclude-newer = "2025-01-01T00:00:00Z"
-dev-dependencies = []
-"""
-    pyproject.write_text(original)
-    update_exclude_newer_in_file(pyproject, date(2025, 1, 20))
-    content = pyproject.read_text()
-    assert '[project]\nname = "my-package"' in content
-    assert "dev-dependencies = []" in content
 
 
 def test_no_config_file(tmp_path, monkeypatch):
