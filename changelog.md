@@ -1,9 +1,6 @@
 # Changelog
 
-## [`5.10.2.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.10.1...main)
-
-> [!IMPORTANT]
-> This version is not released yet and is under active development.
+## [`5.10.2` (2026-02-18)](https://github.com/kdeldycke/workflows/compare/v5.10.1...v5.10.2)
 
 - Add `gha-utils lint-changelog` command to verify changelog release dates against PyPI upload dates, with git tag fallback for non-PyPI projects.
 - Add auto-correct changelog capabilities to fix dates and add availability admonitions for PyPI and GitHub releases.
