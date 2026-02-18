@@ -176,6 +176,22 @@ lint.ignore = [ "D400", "ERA001" ]
 # https://docs.astral.sh/ruff/settings/#lint_future-annotations
 lint.future-annotations = true
 
+[tool.typos]
+default.extend-ignore-identifiers-re = [
+  # error: `certifi` should be `certify`, `certifies`, `certified`
+  #     ╭▸ ./docs/assets/dependencies.mmd:184:11
+  #     │
+  # 184 │     click certifi "https://pypi.org/project/certifi/" _blank
+  #     ╰╴          ━━━━━━━
+  "certifi",
+  # error: `WARNIN` should be `WARNING`
+  #     ╭▸ ./tests/test_changelog.py:565:46
+  #     │
+  # 565 │     # Both sources available — NOTE only, no WARNINGs.
+  #     ╰╴
+  "WARNIN",
+]
+
 [tool.pytest]
 # https://docs.pytest.org/en/latest/customize.html#pyproject-toml
 addopts = [
