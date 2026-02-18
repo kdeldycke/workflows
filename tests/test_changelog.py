@@ -27,7 +27,6 @@ from gha_utils.changelog import (
     YANKED_ADMONITION,
     build_release_admonition,
     build_unavailable_admonition,
-    get_pypi_release_dates,
     lint_changelog_dates,
 )
 
@@ -785,11 +784,7 @@ def test_lint_fix_no_admonition_when_nowhere(tmp_path, monkeypatch):
     content = path.read_text(encoding="UTF-8")
 
     # 1.1.0: WARNING listing both missing platforms.
-    assert (
-        "is **not available** on "
-        "🐍 PyPI and "
-        "🐙 GitHub."
-    ) in content
+    assert ("is **not available** on 🐍 PyPI and 🐙 GitHub.") in content
     assert "releases/tag/v1.1.0" not in content
     assert "my-package/1.1.0" not in content
     # 1.0.0 has both.
