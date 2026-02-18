@@ -53,6 +53,11 @@
       minimumReleaseAge: "8 days",
     },
     {
+      description: "Backtick-wrap GitHub Actions names in commit messages.",
+      matchManagers: ["github-actions"],
+      commitMessageTopic: "`{{{depName}}}` action",
+    },
+    {
       description: "Flag dependencies with no recent releases.",
       matchCurrentAge: "> 1 year",
       addLabels: ["⚠️ stale dependency"],
