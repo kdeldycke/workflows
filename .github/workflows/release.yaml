@@ -97,7 +97,7 @@ jobs:
         run: git branch --all
       - name: List all commits
         run: git log --decorate=full --oneline
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Run gha-utils metadata
         id: project-metadata
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
@@ -117,7 +117,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Build package
         run: uv --no-progress build
       - name: Generate build attestations
@@ -147,7 +147,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Setup venv
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
@@ -216,7 +216,7 @@ jobs:
       - name: Set binary permissions
         if: runner.os != 'Windows'
         run: chmod +x ${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Run test plan for binary
         run: >
           uvx --no-progress --from . gha-utils test-plan
@@ -240,7 +240,7 @@ jobs:
           # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
           # https://github.com/orgs/community/discussions/27028
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Create and push tag
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
@@ -267,7 +267,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Download build artifacts
         uses: actions/download-artifact@v7.0.0
         id: download
@@ -306,7 +306,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         # Only check out if we have artifacts to process.
         if: needs.build-package.result != 'skipped' || needs.compile-binaries.result != 'skipped'
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
         # Only set up uv if we have artifacts to process.
         if: needs.build-package.result != 'skipped' || needs.compile-binaries.result != 'skipped'
       - name: Download all artifacts

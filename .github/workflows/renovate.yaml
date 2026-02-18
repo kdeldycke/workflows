@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
 
       - name: Regenerate bundled renovate.json5
         run: uv run --frozen --no-progress gha-utils init renovate --output-dir gha_utils/data --overwrite
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
 
       - name: Check Renovate prerequisites
         id: checks
@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
 
       # Validate prerequisites before running Renovate.
       # This ensures the repository is properly configured.
