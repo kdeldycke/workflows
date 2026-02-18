@@ -62,23 +62,11 @@
       addLabels: ["⚠️ stale dependency"],
     },
     {
-      // XXX Temporary: diagnostic command to inspect the Renovate container environment.
-      description: "Diagnose container environment for postUpgradeTasks.",
-      matchFileNames: [".github/workflows/**"],
-      postUpgradeTasks: {
-        commands: [
-          "echo DIAG && cat /etc/os-release && echo PATH=$PATH && which -a python3 python pip pip3 node npm npx uv uvx curl wget bash sh 2>&1; ls -la /usr/local/bin/ /usr/bin/ /opt/ 2>&1; env | sort",
-        ],
-        fileFilters: [".github/workflows/**"],
-        executionMode: "update",
-      },
-    },
-    {
       description: "Update SHA-256 checksums after binary version bumps.",
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
         commands: [
-          "install-tool python 3.12 && pip install uv && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
+          "uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
         ],
         fileFilters: [".github/workflows/**"],
         executionMode: "update",
@@ -89,7 +77,7 @@
       matchUpdateTypes: ["lockFileMaintenance"],
       postUpgradeTasks: {
         commands: [
-          "install-tool python 3.12 && pip install uv && uvx --no-progress --from . gha-utils sync-uv-lock",
+          "uvx --no-progress --from . gha-utils sync-uv-lock",
         ],
         fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",
