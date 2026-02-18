@@ -166,8 +166,11 @@
       customType: "regex",
       fileMatch: ["\\.github/workflows/.+\\.yaml$"],
       matchStrings: [
-        // Matches: typos/releases/download/v1.42.3/
+        // The download URL contains the version twice:
+        //   typos/releases/download/v1.43.3/typos-v1.43.3-x86_64-...
+        // Both patterns are needed so Renovate updates both occurrences.
         "typos/releases/download/v(?<currentValue>[0-9.]+)/",
+        "typos-v(?<currentValue>[0-9.]+)-",
       ],
       depNameTemplate: "crate-ci/typos",
       datasourceTemplate: "github-releases",

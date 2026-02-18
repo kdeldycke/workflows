@@ -213,7 +213,7 @@ jobs:
           curl -fsSL \
             "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%402.3.14/biome-linux-x64" \
             --output /tmp/biome
-          echo "a5251fa687b35f8fc06d17dc0794c5b117f1667056bc9f7f268a3268a9b56b78  /tmp/biome" | sha256sum --check
+          echo "8315b1d0221c3d7ffa8c43899928d0fe3fa910e8e4aa07381576f420ea02f2e6  /tmp/biome" | sha256sum --check
           install /tmp/biome /usr/local/bin/biome
       - name: Format JSON
         # Allow comments and trailing commas for JSONC files.
@@ -249,8 +249,8 @@ jobs:
       - name: Install typos
         run: |
           curl -fsSL --output /tmp/typos.tar.gz \
-            "https://github.com/crate-ci/typos/releases/download/v1.43.3/typos-v1.42.3-x86_64-unknown-linux-musl.tar.gz"
-          echo "e083bf917d840563e77b35b64f43924d98fcb77acb69691455099d39e347d67d  /tmp/typos.tar.gz" | sha256sum --check
+            "https://github.com/crate-ci/typos/releases/download/v1.43.3/typos-v1.43.3-x86_64-unknown-linux-musl.tar.gz"
+          echo "ac2d3da42920f7d39576216eb85bf7db763d7ae13722bf0851413261cac741cf  /tmp/typos.tar.gz" | sha256sum --check
           tar xzf /tmp/typos.tar.gz -C /usr/local/bin ./typos
       - name: Fix typos
         run: typos --write-changes
