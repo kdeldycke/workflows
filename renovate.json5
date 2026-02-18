@@ -62,6 +62,18 @@
       addLabels: ["⚠️ stale dependency"],
     },
     {
+      // XXX Temporary: diagnose containerbase environment for postUpgradeTasks.
+      description: "Diagnose container environment.",
+      matchFileNames: [".github/workflows/**"],
+      postUpgradeTasks: {
+        commands: [
+          "bash -c 'echo === ENV FILE === && cat /usr/local/etc/env && echo === PATH === && echo $PATH && echo === FIND UVX === && find / -name uvx -type f 2>/dev/null && echo === FIND UV === && find / -name uv -type f 2>/dev/null | head -20 && echo === LS CONTAINERBASE === && ls -la /opt/containerbase/tools/ 2>/dev/null && echo === LS PYTHON BIN === && ls -la /opt/containerbase/tools/python/*/bin/ 2>/dev/null | head -30'",
+        ],
+        fileFilters: [".github/workflows/**"],
+        executionMode: "update",
+      },
+    },
+    {
       description: "Update SHA-256 checksums after binary version bumps.",
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
