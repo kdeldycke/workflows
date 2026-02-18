@@ -92,23 +92,6 @@ jobs:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . gha-utils check-renovate
 
-      - name: Update exclude-newer date if stale
-        id: update_date
-        # Updates the exclude-newer date in pyproject.toml when it's older than 7 days.
-        # Uses a fixed date (not relative) to prevent uv.lock timestamp churn on every sync.
-        # Runs before Renovate so changes are picked up in lock file maintenance.
-        run: uvx --no-progress --from . gha-utils update-exclude-newer --output "$GITHUB_OUTPUT"
-
-      - name: Commit and push if modified
-        if: steps.update_date.outputs.modified == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml
-          # shellcheck disable=SC2016
-          git commit -m 'Update `exclude-newer` date'
-          git push
-
       - uses: renovatebot/github-action@v44.2.6
         with:
           # Custom PAT required for Renovate to function fully.
@@ -126,12 +109,14 @@ jobs:
           # Fetch all PRs, not just those created by the current bot.
           # Useful for migrating between bot accounts or taking over existing PRs.
           RENOVATE_IGNORE_PR_AUTHOR: "true"
-          # Allow the checksum update command to run as a postUpgradeTasks command.
+          # Allow postUpgradeTasks commands to run inside the Renovate container.
           # Renovate always runs from main (unfreeze commit), so the command always
           # uses --from . (local source). The freeze/unfreeze cycle does not affect
           # this because renovate.json5 (where the command is defined) is outside
           # .github/workflows/ and is not subject to CLI version freezing.
-          RENOVATE_ALLOWED_COMMANDS: '["^uvx --no-progress --from \\. gha-utils update-checksums"]'
+          RENOVATE_ALLOWED_COMMANDS: >-
+            ["^uvx --no-progress --from \\. gha-utils (update-checksums|update-exclude-newer)",
+            "^uv lock$"]
           # Install tools (like uv) via containerbase inside the Renovate
           # Docker container. Required because postUpgradeTasks commands
           # (e.g., update-checksums via uvx) run inside the container, where

@@ -68,6 +68,18 @@
         executionMode: "update",
       },
     },
+    {
+      description: "Update exclude-newer date and re-lock during lock file maintenance.",
+      matchUpdateTypes: ["lockFileMaintenance"],
+      postUpgradeTasks: {
+        commands: [
+          "uvx --no-progress --from . gha-utils update-exclude-newer",
+          "uv lock",
+        ],
+        fileFilters: ["pyproject.toml", "uv.lock"],
+        executionMode: "update",
+      },
+    },
   ],
 
   // Security updates: raise PRs immediately when vulnerabilities are detected.

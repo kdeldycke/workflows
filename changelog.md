@@ -11,8 +11,9 @@
 - Add PyPI and GitHub release availability admonitions in changelog.
 - Change development warning from `[!IMPORTANT]` to `[!WARNING]` GFM alert.
 - Document version and tag naming conventions.
-- Fix Renovate `postUpgradeTasks` failing with `uvx: not found`.
+- Fix Renovate `postUpgradeTasks` failing with `uvx: not found` by installing tools via `binarySource: install` inside the Renovate Docker container.
 - Fix Renovate aborting entirely when python.org API is rate-limited.
+- Move `exclude-newer` date update from direct push to `main` into Renovate's lock file maintenance PR via `postUpgradeTasks`.
 - Skip Nuitka binary builds for non-code pushes to `main`.
 
 ## [`5.10.1` (2026-02-17)](https://github.com/kdeldycke/workflows/compare/v5.10.0...v5.10.1)
