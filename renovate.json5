@@ -66,7 +66,7 @@
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
         commands: [
-          "install-tool uv latest && . /usr/local/etc/env && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}",
+          "bash -c 'install-tool uv latest && . /usr/local/etc/env && uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}'",
         ],
         fileFilters: [".github/workflows/**"],
         executionMode: "update",
@@ -77,7 +77,7 @@
       matchUpdateTypes: ["lockFileMaintenance"],
       postUpgradeTasks: {
         commands: [
-          "install-tool uv latest && . /usr/local/etc/env && uvx --no-progress --from . gha-utils sync-uv-lock",
+          "bash -c 'install-tool uv latest && . /usr/local/etc/env && uvx --no-progress --from . gha-utils sync-uv-lock'",
         ],
         fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",
