@@ -90,6 +90,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
+          # See: https://github.com/actions/checkout/issues/504
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           # We're going to browse all new commits.
           fetch-depth: 0
