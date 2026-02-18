@@ -132,6 +132,11 @@ jobs:
           # this because renovate.json5 (where the command is defined) is outside
           # .github/workflows/ and is not subject to CLI version freezing.
           RENOVATE_ALLOWED_COMMANDS: '["^uvx --no-progress --from \\. gha-utils update-checksums"]'
+          # Install tools (like uv) via containerbase inside the Renovate
+          # Docker container. Required because postUpgradeTasks commands
+          # (e.g., update-checksums via uvx) run inside the container, where
+          # runner-level setup-uv is not available.
+          RENOVATE_BINARY_SOURCE: "install"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
           # entire Renovate run. Without this, a single throttled request to
           # the python-version datasource causes Renovate to skip all PR

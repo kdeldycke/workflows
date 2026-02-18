@@ -11,6 +11,7 @@
 - Add PyPI and GitHub release availability admonitions in changelog.
 - Change development warning from `[!IMPORTANT]` to `[!WARNING]` GFM alert.
 - Document version and tag naming conventions.
+- Fix Renovate `postUpgradeTasks` failing with `uvx: not found`.
 - Fix Renovate aborting entirely when python.org API is rate-limited.
 - Skip Nuitka binary builds for non-code pushes to `main`.
 
