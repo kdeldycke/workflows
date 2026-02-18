@@ -32,7 +32,7 @@
   semanticCommits: "disabled",
   commitMessagePrefix: "[deps]",
   commitMessageTopic: "`{{{depName}}}`",
-  commitMessageExtra: "to `{{#if isMajor}}v{{{newMajor}}}{{else}}{{#if isSingleVersion}}v{{{newVersion}}}{{else}}{{{newValue}}}{{/if}}{{/if}}`",
+  commitMessageExtra: "to `{{{newValue}}}`",
 
   // Stabilization periods. Must be > 7 days to match pyproject.toml's exclude-newer.
   minimumReleaseAge: "8 days",
