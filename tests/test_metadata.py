@@ -393,7 +393,7 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
 
 
 expected = {
-    "is_bot": False,
+    "is_bot": AnyBool(),
     "skip_binary_build": False,
     # new_commits is None when running outside GitHub Actions (no event data).
     # In CI, it contains commit SHAs extracted from the push event payload.
@@ -973,8 +973,13 @@ nuitka = false
     assert metadata.nuitka_matrix is None
 
 
-def test_is_bot_false_by_default():
+def test_is_bot_false_by_default(monkeypatch):
     """Test that is_bot is False when not in a bot context."""
+    # Clear CI env vars that could make is_bot return True (e.g., when tests run
+    # on a commit pushed by Renovate, GITHUB_ACTOR is "renovate-bot").
+    monkeypatch.delenv("GITHUB_ACTOR", raising=False)
+    monkeypatch.delenv("GITHUB_EVENT_PATH", raising=False)
+    monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
     metadata = Metadata()
     # Outside of bot context (no bot actor or renovate branch), is_bot is False.
     assert isinstance(metadata.is_bot, bool)
