@@ -548,17 +548,18 @@ def test_missing_renovate_config(tmp_path, monkeypatch):
             assert result.renovate_config_exists is False
 
 
-# Sample diff containing only exclude-newer-package timestamp noise.
+# Sample diff containing only exclude-newer timestamp noise.
 _TIMESTAMP_ONLY_DIFF = """\
 diff --git a/uv.lock b/uv.lock
 index abc1234..def5678 100644
 --- a/uv.lock
 +++ b/uv.lock
-@@ -10,4 +10,4 @@
--timestamp = 1739836800
--span = { secs = 0, nanos = 0 }
-+timestamp = 1739923200
-+span = { secs = 0, nanos = 0 }
+@@ -5,7 +5,7 @@
+-exclude-newer = "2026-02-11T13:52:20.092144Z"
++exclude-newer = "2026-02-11T14:09:32.945450358Z"
+@@ -9,3 +9,3 @@
+-gha-utils = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
++gha-utils = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
 """
 
 # Sample diff with real dependency changes mixed in.
@@ -567,11 +568,12 @@ diff --git a/uv.lock b/uv.lock
 index abc1234..def5678 100644
 --- a/uv.lock
 +++ b/uv.lock
-@@ -10,5 +10,5 @@
--timestamp = 1739836800
--span = { secs = 0, nanos = 0 }
-+timestamp = 1739923200
-+span = { secs = 0, nanos = 0 }
+@@ -5,7 +5,7 @@
+-exclude-newer = "2026-02-11T13:52:20.092144Z"
++exclude-newer = "2026-02-11T14:09:32.945450358Z"
+@@ -9,3 +9,3 @@
+-gha-utils = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
++gha-utils = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
 -version = "1.2.3"
 +version = "1.2.4"
 """

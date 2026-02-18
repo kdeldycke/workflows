@@ -548,18 +548,24 @@ def run_migration_checks(repo: str, sha: str) -> int:
     return 1 if fatal_error else 0
 
 
-# Pattern matching exclude-newer-package timestamp lines in uv.lock diffs.
-# These lines contain `timestamp` or `span` fields within the
-# `[manifest.requirements.exclude-newer-package]` section and represent
+# Pattern matching exclude-newer timestamp lines in uv.lock diffs.
+# These lines appear in the ``[options]`` section (``exclude-newer``) and the
+# ``[options.exclude-newer-package]`` section (per-package entries) and represent
 # no actual dependency changes.
 _TIMESTAMP_LINE_RE = re.compile(
-    r"^\s*(timestamp\s*=\s*\d+|span\s*=\s*\{.*\})\s*$"
+    r"^\s*("
+    r'exclude-newer\s*=\s*"[^"]*"'
+    r"|"
+    r'\S+\s*=\s*\{[^}]*timestamp\s*=\s*"[^"]*"[^}]*\}'
+    r")\s*$"
 )
-"""Matches ``timestamp = <integer>`` and ``span = { ... }`` lines in uv.lock diffs.
+"""Matches ``exclude-newer`` and per-package timestamp lines in uv.lock diffs.
 
-These appear in the ``[manifest.requirements.exclude-newer-package]`` section
-and change on every ``uv lock`` run when a relative ``exclude-newer-package``
-offset (e.g., ``"0 day"``) is configured.
+The first alternative matches the top-level ``exclude-newer = "<ISO datetime>"``
+line from the ``[options]`` section. The second matches per-package lines like
+``gha-utils = { timestamp = "<ISO datetime>", span = "PT0S" }`` from the
+``[options.exclude-newer-package]`` section. Both change on every ``uv lock``
+run when a relative ``exclude-newer-package`` offset is configured.
 """
 
 
