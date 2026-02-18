@@ -73,11 +73,12 @@
       },
     },
     {
-      description: "Update exclude-newer date and re-lock during lock file maintenance.",
+      // XXX Temporary: diagnose where uv/uvx are installed in the container.
+      description: "Diagnose container environment.",
       matchUpdateTypes: ["lockFileMaintenance"],
       postUpgradeTasks: {
         commands: [
-          "bash -c 'install-tool uv latest && /opt/containerbase/tools/python/*/bin/uvx --no-progress --from . gha-utils sync-uv-lock'",
+          "bash -c 'echo === FIND UV === && find / -name uv -o -name uvx 2>/dev/null && echo === LS OPT === && ls -laR /opt/ 2>/dev/null | head -80 && echo === PATH === && echo $PATH && echo === WHICH === && which -a python3 python pip uv uvx 2>&1 && echo === ENV FILE === && cat /usr/local/etc/env 2>/dev/null | head -30'",
         ],
         fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",

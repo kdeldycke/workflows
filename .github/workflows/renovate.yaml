@@ -121,11 +121,14 @@ jobs:
           # Python. Since postUpgradeTasks run via rawExec and do not inherit
           # the manager phase's PATH, uvx is invoked by its absolute path
           # using a glob to match any installed Python version.
+          # XXX Temporary: debug logging + diagnostic allowed command.
+          LOG_LEVEL: "debug"
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^bash -c 'install-tool uv latest &&
             /opt/containerbase/tools/python/\\*/bin/uvx
             --no-progress --from \\. gha-utils
-            (update-checksums|sync-uv-lock)"]
+            (update-checksums|sync-uv-lock)",
+            "^bash -c 'echo"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
