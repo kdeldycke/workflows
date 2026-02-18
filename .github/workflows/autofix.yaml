@@ -211,7 +211,7 @@ jobs:
       - name: Install Biome
         run: |
           curl -fsSL \
-            "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%402.3.12/biome-linux-x64" \
+            "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%402.3.14/biome-linux-x64" \
             --output /tmp/biome
           echo "a5251fa687b35f8fc06d17dc0794c5b117f1667056bc9f7f268a3268a9b56b78  /tmp/biome" | sha256sum --check
           install /tmp/biome /usr/local/bin/biome
