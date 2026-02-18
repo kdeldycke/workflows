@@ -110,10 +110,9 @@ jobs:
           # Useful for migrating between bot accounts or taking over existing PRs.
           RENOVATE_IGNORE_PR_AUTHOR: "true"
           # Allow postUpgradeTasks commands to run inside the Renovate container.
-          # Renovate always runs from main (unfreeze commit), so the command always
-          # uses --from . (local source). The freeze/unfreeze cycle does not affect
-          # this because renovate.json5 (where the command is defined) is outside
-          # .github/workflows/ and is not subject to CLI version freezing.
+          # The freeze/unfreeze cycle updates renovate.json5: on tagged releases
+          # the command uses gha-utils==X.Y.Z (PyPI), on main it uses
+          # --from . gha-utils (local source). The regex accepts both forms.
           # Commands run under bash so glob expansion works. install-tool
           # ensures uv is installed (as a pip package under containerbase's
           # uv tool directory). postUpgradeTasks run via rawExec and do not
@@ -123,7 +122,7 @@ jobs:
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^bash -c 'install-tool uv latest &&
             /opt/containerbase/tools/uv/\\*/\\*/bin/uvx
-            --no-progress --from \\. gha-utils
+            --no-progress (--from \\. |)gha-utils(==\\d[\\d.]*)?
             (update-checksums|sync-uv-lock)"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"

@@ -139,6 +139,20 @@ class ReleasePrep:
 
         return count
 
+    @cached_property
+    def _json5_files(self) -> list[Path]:
+        """Return renovate.json5 files that need CLI freeze/unfreeze.
+
+        Includes the repo-root ``renovate.json5`` and the bundled copy under
+        ``gha_utils/data/``.
+        """
+        # Repo root is two levels up from .github/workflows/.
+        repo_root = self.workflow_dir.parent.parent
+        return [
+            repo_root / "renovate.json5",
+            repo_root / "gha_utils" / "data" / "renovate.json5",
+        ]
+
     def freeze_cli_version(self, version: str) -> int:
         """Replace local source CLI invocations with a frozen PyPI version.
 
@@ -149,7 +163,9 @@ class ReleasePrep:
         tree.
 
         Replaces ``--from . gha-utils`` with ``'gha-utils=={version}'`` in all
-        workflow YAML files.
+        workflow YAML files, and with ``gha-utils=={version}`` (unquoted) in
+        ``renovate.json5`` files (where the command lives inside ``bash -c '...'``
+        and single quotes would break the outer quoting).
 
         :param version: The PyPI version to freeze to.
         :return: Number of files modified.
@@ -160,12 +176,23 @@ class ReleasePrep:
 
         count = 0
         search = "--from . gha-utils"
-        replace = f"'gha-utils=={version}'"
+        yaml_replace = f"'gha-utils=={version}'"
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
-            content = original.replace(search, replace)
+            content = original.replace(search, yaml_replace)
             if self._update_file(workflow_file, content, original):
+                count += 1
+
+        # Freeze renovate.json5 files with unquoted form.
+        json5_replace = f"gha-utils=={version}"
+        for json5_file in self._json5_files:
+            if not json5_file.exists():
+                logging.debug(f"JSON5 file not found: {json5_file}")
+                continue
+            original = json5_file.read_text(encoding="UTF-8")
+            content = original.replace(search, json5_replace)
+            if self._update_file(json5_file, content, original):
                 count += 1
 
         return count
@@ -177,8 +204,9 @@ class ReleasePrep:
         invocations back to local source (``--from . gha-utils``) for the next
         development cycle on ``main``.
 
-        Replaces ``'gha-utils==X.Y.Z'`` with ``--from . gha-utils`` in all
-        workflow YAML files.
+        Replaces ``'gha-utils==X.Y.Z'`` (quoted, in YAML) and
+        ``gha-utils==X.Y.Z`` (unquoted, in ``renovate.json5``) with
+        ``--from . gha-utils``.
 
         :return: Number of files modified.
         """
@@ -187,13 +215,24 @@ class ReleasePrep:
             return 0
 
         count = 0
-        pattern = re.compile(r"'gha-utils==[\d.]+'")
+        yaml_pattern = re.compile(r"'gha-utils==[\d.]+'")
         replace = "--from . gha-utils"
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
-            content = pattern.sub(replace, original)
+            content = yaml_pattern.sub(replace, original)
             if self._update_file(workflow_file, content, original):
+                count += 1
+
+        # Unfreeze renovate.json5 files (unquoted form).
+        json5_pattern = re.compile(r"gha-utils==[\d.]+")
+        for json5_file in self._json5_files:
+            if not json5_file.exists():
+                logging.debug(f"JSON5 file not found: {json5_file}")
+                continue
+            original = json5_file.read_text(encoding="UTF-8")
+            content = json5_pattern.sub(replace, original)
+            if self._update_file(json5_file, content, original):
                 count += 1
 
         return count
