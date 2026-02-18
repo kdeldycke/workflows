@@ -60,7 +60,7 @@ jobs:
           ref: ${{ github.sha }}
           # Fetch all tags so we can compare against the latest release.
           fetch-tags: true
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Run gha-utils metadata
         id: project-metadata
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
@@ -87,7 +87,7 @@ jobs:
           # Do NOT use workflow_run.head_sha — it points to the commit that triggered
           # "Build & release", which may be stale after the release cycle adds commits.
           ref: ${{ github.sha }}
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
       - name: Install bump-my-version
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Install bump-my-version
         run: uv tool install 'bump-my-version==1.2.6'
       # --- Freeze commit: freeze everything to the release version. ---

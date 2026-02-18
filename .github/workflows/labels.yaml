@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Install labelmaker
         run: |
           curl -fsSL --output /tmp/lm.tar.xz \
@@ -68,7 +68,7 @@ jobs:
       is_bot: ${{ steps.project-metadata.outputs.is_bot }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Run gha-utils metadata
         id: project-metadata
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Dump default rules
         run: uvx --no-progress --from . gha-utils init labels --overwrite
       - name: Apply rules
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Dump default rules
         run: uvx --no-progress --from . gha-utils init labels --overwrite
       - name: Apply rules
@@ -120,7 +120,7 @@ jobs:
       && (! fromJson(needs.project-metadata.outputs.is_bot))
     runs-on: ubuntu-slim
     steps:
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Add sponsor label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -22,7 +22,7 @@ jobs:
       doc_files: ${{ steps.project-metadata.outputs.doc_files }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Run gha-utils metadata
         id: project-metadata
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Install Graphviz
         if: >
           fromJSON(needs.project-metadata.outputs.is_python_project)

@@ -66,7 +66,7 @@ jobs:
     continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Install Python ${{ matrix.python-version }}
         # If UV cannot find the requested Python version, it exits with code 2, which let the job pass unnoticed on
         # Windows. So we force the shell to bash, even on Windows, and "set -e" to ensure any error in the install
@@ -116,7 +116,7 @@ jobs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.2.1
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Run gha-utils metadata
         id: project-metadata
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
