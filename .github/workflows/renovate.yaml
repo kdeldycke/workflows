@@ -109,8 +109,6 @@ jobs:
           # Fetch all PRs, not just those created by the current bot.
           # Useful for migrating between bot accounts or taking over existing PRs.
           RENOVATE_IGNORE_PR_AUTHOR: "true"
-          # XXX Temporary: debug logging to diagnose postUpgradeTasks.
-          LOG_LEVEL: "debug"
           # Allow postUpgradeTasks commands to run inside the Renovate container.
           # Renovate always runs from main (unfreeze commit), so the command always
           # uses --from . (local source). The freeze/unfreeze cycle does not affect
@@ -121,8 +119,9 @@ jobs:
           # Python. Since postUpgradeTasks run via rawExec and do not inherit
           # the manager phase's PATH, uvx is invoked by its absolute path
           # using a glob to match any installed Python version.
-          # XXX Temporary: debug logging + diagnostic allowed command.
-          LOG_LEVEL: "debug"
+          # XXX Temporary: debug logging to see diagnostic stdout.
+          RENOVATE_LOG_LEVEL: "debug"
+          # XXX Temporary: diagnostic allowed command added.
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^bash -c 'install-tool uv latest &&
             /opt/containerbase/tools/python/\\*/bin/uvx
