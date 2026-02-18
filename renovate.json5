@@ -77,7 +77,7 @@
       matchUpdateTypes: ["lockFileMaintenance"],
       postUpgradeTasks: {
         commands: [
-          "pip install uv && uvx --no-progress --from . gha-utils update-exclude-newer && uv lock",
+          "pip install uv && uvx --no-progress --from . gha-utils sync-uv-lock",
         ],
         fileFilters: ["pyproject.toml", "uv.lock"],
         executionMode: "update",

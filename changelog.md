@@ -5,6 +5,10 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `sync-uv-lock` command that runs `uv lock` and avoid `exclude-newer-package` timestamp noise.
+- Remove `update-exclude-newer` command.
+- Revert `exclude-newer` in `pyproject.toml` from a fixed date to `"1 week"`.
+
 ## [`5.10.2` (2026-02-18)](https://github.com/kdeldycke/workflows/compare/v5.10.1...v5.10.2)
 
 > [!NOTE]

@@ -83,13 +83,9 @@ from .github.pr_body import (
 )
 from .release_prep import ReleasePrep
 from .renovate import (
-    add_exclude_newer_to_file,
-    calculate_target_date,
     collect_check_results,
-    has_tool_uv_section,
-    parse_exclude_newer_date,
     run_migration_checks,
-    update_exclude_newer_in_file,
+    sync_uv_lock as _sync_uv_lock,
 )
 from .sponsor import (
     add_sponsor_label,
@@ -1550,80 +1546,34 @@ def collect_artifacts(
     echo(github_output, file=prep_path(output))
 
 
-@gha_utils.command(short_help="Update exclude-newer date in pyproject.toml")
+@gha_utils.command(short_help="Re-lock and revert if only timestamp noise changed")
 @option(
-    "--pyproject",
+    "--lockfile",
     type=file_path(resolve_path=True),
-    default="pyproject.toml",
-    help="Path to pyproject.toml file.",
+    default="uv.lock",
+    help="Path to the uv.lock file.",
 )
-@option(
-    "--days",
-    type=IntRange(min=1),
-    default=7,
-    help="Number of days in the past for the target date.",
-)
-@option(
-    "-o",
-    "--output",
-    type=file_path(writable=True, resolve_path=True, allow_dash=True),
-    default=None,
-    help="Output file for modified=true/false (e.g., $GITHUB_OUTPUT).",
-)
-def update_exclude_newer(
-    pyproject: Path,
-    days: int,
-    output: Path | None,
-) -> None:
-    """Update or add exclude-newer date in pyproject.toml.
+def sync_uv_lock_cmd(lockfile: Path) -> None:
+    """Run ``uv lock`` and revert if only timestamp noise changed.
 
-    If [tool.uv] exists but exclude-newer is missing, adds it with a default
-    value. If exclude-newer exists and is stale, updates it.
-
-    Uses a fixed date (not relative) to prevent uv.lock timestamp churn on
-    every sync. This ensures Renovate's minimumReleaseAge and uv's
-    exclude-newer stay synchronized.
+    Single command for Renovate's ``lockFileMaintenance`` post-upgrade task.
+    Runs ``uv lock`` and then checks whether the resulting ``uv.lock`` diff
+    contains only ``exclude-newer-package`` timestamp changes. If so, reverts
+    the lock file so Renovate sees no diff and skips creating a PR.
 
     \b
     Examples:
-        # Check and update pyproject.toml
-        gha-utils update-exclude-newer
+        # Standard usage (from Renovate postUpgradeTasks)
+        gha-utils sync-uv-lock
 
     \b
-        # Output result for GitHub Actions
-        gha-utils update-exclude-newer --output "$GITHUB_OUTPUT"
-
-    \b
-        # Use a different cooldown period
-        gha-utils update-exclude-newer --days 14
+        # Check a different lock file
+        gha-utils sync-uv-lock --lockfile path/to/uv.lock
     """
-    if not pyproject.exists():
-        logging.info(f"No {pyproject} found, skipping.")
-        if output:
-            echo("modified=false", file=prep_path(output))
-        return
-
-    target_date = calculate_target_date(days)
-    current_date = parse_exclude_newer_date(pyproject)
-
-    logging.info(f"Current exclude-newer date: {current_date}")
-    logging.info(f"Target date ({days} days ago): {target_date}")
-
-    modified = False
-
-    if current_date is None:
-        # No exclude-newer found. Add it if [tool.uv] section exists.
-        if has_tool_uv_section(pyproject):
-            logging.info("Adding missing exclude-newer to [tool.uv] section.")
-            modified = add_exclude_newer_to_file(pyproject, target_date)
-        else:
-            logging.info("No [tool.uv] section found, skipping.")
-    elif current_date < target_date:
-        # exclude-newer exists but is stale.
-        modified = update_exclude_newer_in_file(pyproject, target_date)
-
-    if output:
-        echo(f"modified={'true' if modified else 'false'}", file=prep_path(output))
+    if _sync_uv_lock(lockfile):
+        echo("Reverted uv.lock: only exclude-newer-package timestamp noise.")
+    else:
+        echo("Kept uv.lock: contains real dependency changes.")
 
 
 @gha_utils.command(short_help="Check Renovate migration prerequisites")

@@ -17,8 +17,9 @@
 """Renovate-related utilities for GitHub Actions workflows.
 
 This module provides utilities for managing Renovate prerequisites,
-migrating from Dependabot to Renovate, and updating the ``exclude-newer``
-date in ``pyproject.toml`` files.
+migrating from Dependabot to Renovate, updating the ``exclude-newer``
+date in ``pyproject.toml`` files, and reverting lock file noise caused
+by ``exclude-newer-package`` timestamp churn.
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
@@ -544,3 +546,106 @@ def run_migration_checks(repo: str, sha: str) -> int:
         emit_annotation(AnnotationLevel.WARNING, msg)
 
     return 1 if fatal_error else 0
+
+
+# Pattern matching exclude-newer-package timestamp lines in uv.lock diffs.
+# These lines contain `timestamp` or `span` fields within the
+# `[manifest.requirements.exclude-newer-package]` section and represent
+# no actual dependency changes.
+_TIMESTAMP_LINE_RE = re.compile(
+    r"^\s*(timestamp\s*=\s*\d+|span\s*=\s*\{.*\})\s*$"
+)
+"""Matches ``timestamp = <integer>`` and ``span = { ... }`` lines in uv.lock diffs.
+
+These appear in the ``[manifest.requirements.exclude-newer-package]`` section
+and change on every ``uv lock`` run when a relative ``exclude-newer-package``
+offset (e.g., ``"0 day"``) is configured.
+"""
+
+
+def is_lock_diff_only_timestamp_noise(lock_path: Path) -> bool:
+    """Check whether the only changes in a lock file are timestamp noise.
+
+    Runs ``git diff`` on the given path and inspects every added/removed
+    content line. Returns ``True`` only when *all* changed lines match the
+    ``exclude-newer-package`` timestamp pattern (``timestamp =`` / ``span =``).
+
+    :param lock_path: Path to the lock file to inspect.
+    :return: ``True`` if the diff contains only timestamp noise, ``False``
+        if there are no changes or any real dependency change is present.
+    """
+    result = subprocess.run(
+        ["git", "diff", "--", str(lock_path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    diff_output = result.stdout
+    if not diff_output:
+        logging.debug(f"No diff output for {lock_path}.")
+        return False
+
+    changed_lines: list[str] = []
+    for line in diff_output.splitlines():
+        # Skip diff metadata lines.
+        if line.startswith(("---", "+++", "@@", "diff ", "index ")):
+            continue
+        # Collect content lines (added or removed).
+        if line.startswith(("+", "-")):
+            changed_lines.append(line[1:])
+
+    if not changed_lines:
+        logging.debug("Diff contains only metadata, no content changes.")
+        return False
+
+    for line in changed_lines:
+        if not _TIMESTAMP_LINE_RE.match(line):
+            logging.debug(f"Non-timestamp change found: {line!r}")
+            return False
+
+    logging.info(
+        f"All {len(changed_lines)} changed line(s) in {lock_path}"
+        " are exclude-newer-package timestamp noise."
+    )
+    return True
+
+
+def revert_lock_if_noise(lock_path: Path) -> bool:
+    """Revert a lock file if its only changes are timestamp noise.
+
+    Calls :func:`is_lock_diff_only_timestamp_noise` and, if ``True``,
+    runs ``git checkout`` to discard the noise changes.
+
+    :param lock_path: Path to the lock file to inspect and potentially revert.
+    :return: ``True`` if the file was reverted, ``False`` otherwise.
+    """
+    if not is_lock_diff_only_timestamp_noise(lock_path):
+        return False
+
+    logging.info(f"Reverting {lock_path}: only exclude-newer-package timestamp noise.")
+    subprocess.run(
+        ["git", "checkout", "--", str(lock_path)],
+        check=True,
+    )
+    return True
+
+
+def sync_uv_lock(lock_path: Path) -> bool:
+    """Re-lock and revert if only timestamp noise changed.
+
+    This is the single entry point for Renovate's ``lockFileMaintenance``
+    post-upgrade task. It runs ``uv lock`` and then checks whether the
+    resulting diff contains only ``exclude-newer-package`` timestamp noise.
+    If so, it reverts ``uv.lock`` so Renovate sees no diff and skips
+    creating a PR.
+
+    :param lock_path: Path to the ``uv.lock`` file.
+    :return: ``True`` if the lock file was reverted (noise only),
+        ``False`` if it contains real dependency changes.
+    """
+    # Step 1: Run uv lock.
+    logging.info("Running uv lock...")
+    subprocess.run(["uv", "lock"], check=True)
+
+    # Step 2: Revert uv.lock if only timestamp noise changed.
+    return revert_lock_if_noise(lock_path)

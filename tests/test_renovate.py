@@ -35,8 +35,11 @@ from gha_utils.renovate import (
     collect_check_results,
     get_dependabot_config_path,
     has_tool_uv_section,
+    is_lock_diff_only_timestamp_noise,
     parse_exclude_newer_date,
+    revert_lock_if_noise,
     run_migration_checks,
+    sync_uv_lock,
     update_exclude_newer_in_file,
 )
 
@@ -543,3 +546,112 @@ def test_missing_renovate_config(tmp_path, monkeypatch):
             mock_perm.return_value = (True, "Has access")
             result = collect_check_results("owner/repo", "abc123")
             assert result.renovate_config_exists is False
+
+
+# Sample diff containing only exclude-newer-package timestamp noise.
+_TIMESTAMP_ONLY_DIFF = """\
+diff --git a/uv.lock b/uv.lock
+index abc1234..def5678 100644
+--- a/uv.lock
++++ b/uv.lock
+@@ -10,4 +10,4 @@
+-timestamp = 1739836800
+-span = { secs = 0, nanos = 0 }
++timestamp = 1739923200
++span = { secs = 0, nanos = 0 }
+"""
+
+# Sample diff with real dependency changes mixed in.
+_REAL_CHANGE_DIFF = """\
+diff --git a/uv.lock b/uv.lock
+index abc1234..def5678 100644
+--- a/uv.lock
++++ b/uv.lock
+@@ -10,5 +10,5 @@
+-timestamp = 1739836800
+-span = { secs = 0, nanos = 0 }
++timestamp = 1739923200
++span = { secs = 0, nanos = 0 }
+-version = "1.2.3"
++version = "1.2.4"
+"""
+
+
+def _mock_subprocess_run(stdout):
+    """Create a mock for subprocess.run returning the given stdout."""
+    mock_result = type("Result", (), {"stdout": stdout, "returncode": 0})()
+    return patch("gha_utils.renovate.subprocess.run", return_value=mock_result)
+
+
+def test_timestamp_only_diff_is_noise(tmp_path):
+    """Return True when diff contains only timestamp changes."""
+    lock_path = tmp_path / "uv.lock"
+    with _mock_subprocess_run(_TIMESTAMP_ONLY_DIFF):
+        assert is_lock_diff_only_timestamp_noise(lock_path) is True
+
+
+def test_real_changes_are_not_noise(tmp_path):
+    """Return False when diff contains real dependency changes."""
+    lock_path = tmp_path / "uv.lock"
+    with _mock_subprocess_run(_REAL_CHANGE_DIFF):
+        assert is_lock_diff_only_timestamp_noise(lock_path) is False
+
+
+def test_empty_diff_is_not_noise(tmp_path):
+    """Return False when there is no diff output."""
+    lock_path = tmp_path / "uv.lock"
+    with _mock_subprocess_run(""):
+        assert is_lock_diff_only_timestamp_noise(lock_path) is False
+
+
+def test_revert_lock_if_noise_reverts(tmp_path):
+    """Revert lock file when diff is only timestamp noise."""
+    lock_path = tmp_path / "uv.lock"
+    with patch(
+        "gha_utils.renovate.is_lock_diff_only_timestamp_noise", return_value=True
+    ):
+        with patch("gha_utils.renovate.subprocess.run") as mock_run:
+            result = revert_lock_if_noise(lock_path)
+            assert result is True
+            mock_run.assert_called_once_with(
+                ["git", "checkout", "--", str(lock_path)],
+                check=True,
+            )
+
+
+def test_revert_lock_if_noise_keeps(tmp_path):
+    """Keep lock file when diff contains real changes."""
+    lock_path = tmp_path / "uv.lock"
+    with patch(
+        "gha_utils.renovate.is_lock_diff_only_timestamp_noise", return_value=False
+    ):
+        result = revert_lock_if_noise(lock_path)
+        assert result is False
+
+
+def test_sync_uv_lock_keeps_real_changes(tmp_path):
+    """Keep lock file when real dependency changes exist."""
+    lock_path = tmp_path / "uv.lock"
+    with patch("gha_utils.renovate.subprocess.run") as mock_run:
+        with patch(
+            "gha_utils.renovate.is_lock_diff_only_timestamp_noise",
+            return_value=False,
+        ):
+            reverted = sync_uv_lock(lock_path)
+            assert reverted is False
+            # uv lock was called.
+            mock_run.assert_called_once_with(["uv", "lock"], check=True)
+
+
+def test_sync_uv_lock_reverts_noise(tmp_path):
+    """Revert lock file when only timestamp noise changed."""
+    lock_path = tmp_path / "uv.lock"
+    with patch("gha_utils.renovate.subprocess.run") as mock_run:
+        with patch(
+            "gha_utils.renovate.is_lock_diff_only_timestamp_noise",
+            return_value=True,
+        ):
+            reverted = sync_uv_lock(lock_path)
+            assert reverted is True
+            # uv lock + git checkout were called.
+            assert mock_run.call_count == 2

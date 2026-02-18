@@ -100,7 +100,7 @@ workflows/
 | `mailmap.py`              | Git `.mailmap` file synchronization with contributors                       |
 | `metadata.py`             | Extract and combine metadata from Git, GitHub, and `pyproject.toml`         |
 | `release_prep.py`         | Orchestrate release preparation across citation and workflow files          |
-| `renovate.py`             | Renovate prerequisites, migration, and `exclude-newer` updates              |
+| `renovate.py`             | Renovate prerequisites, migration, `exclude-newer` updates, and lock file sync |
 | `sponsor.py`              | Check GitHub sponsorship and label issues/PRs from sponsors                 |
 | `test_plan.py`            | Run YAML-based test plans against compiled binaries                         |
 

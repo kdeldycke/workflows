@@ -95,8 +95,8 @@ Commands:
   release-prep          Prepare files for a release
   sphinx-linkcheck      Manage Sphinx linkcheck issue lifecycle
   sponsor-label         Label issues/PRs from GitHub sponsors
+  sync-uv-lock          Re-lock and revert if only timestamp noise changed
   test-plan             Run a test plan from a file against a binary
-  update-exclude-newer  Update exclude-newer date in pyproject.toml
   update-gitignore      Generate .gitignore from gitignore.io templates
   verify-binary         Verify binary architecture using exiftool
   version-check         Check if a version bump is allowed
