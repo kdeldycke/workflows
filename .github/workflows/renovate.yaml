@@ -127,6 +127,8 @@ jobs:
             (update-checksums|sync-uv-lock)"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
+          # Enable debug logging to diagnose postUpgradeTasks and manager issues.
+          RENOVATE_LOG_LEVEL: "debug"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
           # entire Renovate run. Without this, a single throttled request to
           # the python-version datasource causes Renovate to skip all PR
