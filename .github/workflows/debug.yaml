@@ -24,7 +24,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.2.1
       - name: Run gha-utils metadata
         id: project-metadata
-        run: uvx --no-progress 'gha-utils==5.10.2' --verbosity DEBUG metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . gha-utils --verbosity DEBUG metadata --output "$GITHUB_OUTPUT"
       - name: Extend matrix with ubuntu-slim
         id: extend-matrix
         run: |
