@@ -655,10 +655,7 @@ GitHub Actions and npm packages are pinned directly in YAML files:
   - run: npm install eslint@9.39.1       # Pinned npm package
 ```
 
-Renovate's `github-actions` manager handles action updates.
-
-> [!WARNING]
-> For npm packages, we pin versions inline since they're used sparingly, and then update them manually when needed.
+Renovate's `github-actions` manager handles action updates, and a [custom regex manager](https://github.com/kdeldycke/workflows/blob/main/renovate.json5) handles npm packages pinned inline in workflow files.
 
 #### Renovate cooldowns
 
