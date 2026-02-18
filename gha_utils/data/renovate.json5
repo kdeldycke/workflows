@@ -27,10 +27,11 @@
   timezone: "UTC",
   schedule: ["at any time"],
 
-  // Commit message format: "[deps] Update click to <8.4".
+  // Commit message format: "[deps] Update `click` to `<8.4`".
   semanticCommits: "disabled",
   commitMessagePrefix: "[deps]",
-  commitMessageTopic: "{{{depName}}}",
+  commitMessageTopic: "`{{{depName}}}`",
+  commitMessageExtra: "to `{{#if isMajor}}v{{{newMajor}}}{{else}}{{#if isSingleVersion}}v{{{newVersion}}}{{else}}{{{newValue}}}{{/if}}{{/if}}`",
 
   // Stabilization periods. Must be > 7 days to match pyproject.toml's exclude-newer.
   minimumReleaseAge: "8 days",
