@@ -58,11 +58,11 @@ jobs:
         id: checks
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress 'gha-utils==5.10.2' check-renovate --format=github --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . gha-utils check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       - name: Export renovate.json5 if missing
         if: steps.checks.outputs.renovate_config_exists == 'false'
-        run: uvx --no-progress 'gha-utils==5.10.2' init renovate --overwrite
+        run: uvx --no-progress --from . gha-utils init renovate --overwrite
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''
@@ -90,7 +90,7 @@ jobs:
       - name: Validate Renovate prerequisites
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress 'gha-utils==5.10.2' check-renovate
+        run: uvx --no-progress --from . gha-utils check-renovate
 
       - uses: renovatebot/github-action@v44.2.6
         with:
