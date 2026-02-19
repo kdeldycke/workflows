@@ -1027,4 +1027,8 @@ def lint_changelog_dates(
         changelog_path.write_text(changelog.content, encoding="UTF-8")
         logging.info(f"Updated {changelog_path}")
 
+    # In fix mode, mismatches were corrected in-place, so return success
+    # to let downstream workflow steps (e.g., PR creation) proceed.
+    if fix and modified:
+        return 0
     return 1 if has_mismatch else 0

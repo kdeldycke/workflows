@@ -529,8 +529,9 @@ def test_lint_fix_corrects_date(tmp_path, monkeypatch):
     )
 
     # Mismatch on 1.1.0: changelog says 2026-02-10, PyPI says 2026-02-11.
+    # fix=True corrects it in-place, so return 0 to let downstream steps proceed.
     result = lint_changelog_dates(path, fix=True)
-    assert result == 1
+    assert result == 0
 
     content = path.read_text(encoding="UTF-8")
     assert "(2026-02-11)" in content
