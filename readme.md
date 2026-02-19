@@ -504,10 +504,11 @@ docs = [
 
 **Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms. Job names are prefixed with ✅ (stable, must pass) or ⁉️ (unstable, allowed to fail) for quick visual triage in the GitHub Actions UI.
 
-- **Revert squash merge** (`revert-squash-merge`)
+- **Detect squash merge** (`detect-squash-merge`)
 
-  - Detects squash-merged release PRs and automatically reverts them so `prepare-release` can recreate the PR with the correct two-commit structure
-  - Identifies squash merges by checking if the head commit message starts with `` Release `v `` (the PR title pattern) rather than `[changelog] Release v` (the canonical freeze commit pattern)
+  - Detects squash-merged release PRs, opens a GitHub issue to notify the maintainer, and fails the workflow
+  - The release is effectively skipped: `create-tag` only matches commits with the `[changelog] Release v` prefix, so no tag, PyPI publish, or GitHub release is created from a squash merge
+  - The net effect of squashing freeze + unfreeze leaves `main` in a valid state for the next development cycle; the maintainer just releases the next version when ready
   - **Runs on**:
     - Push to `main` only
 

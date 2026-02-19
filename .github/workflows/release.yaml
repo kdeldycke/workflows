@@ -46,27 +46,54 @@ concurrency:
 
 jobs:
 
-  revert-squash-merge:
-    name: Revert squash merge of release PR
+  detect-squash-merge:
+    name: Detect squash merge of release PR
     # A rebase merge produces commits starting with "[changelog] Release v" and
     # "[changelog] Post-release bump v". A squash merge uses the PR title instead:
-    # "Release `vX.Y.Z` (#NNN)". Detect the squash pattern and revert it so that
-    # prepare-release can recreate the PR with the correct two-commit structure.
+    # "Release `vX.Y.Z` (#NNN)". Detect the squash pattern, open an issue, and
+    # fail the workflow. The release is effectively skipped: create-tag only
+    # matches commits with the "[changelog] Release v" prefix, so no tag, PyPI
+    # publish, or GitHub release is created from a squash merge. The net effect
+    # of squashing freeze + unfreeze leaves main in a valid state for the next
+    # development cycle.
     if: >-
       github.event_name == 'push'
       && startsWith(github.event.head_commit.message, 'Release `v')
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-        with:
-          # We need a PAT to push the revert commit so it triggers downstream workflows.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-      - name: Revert squash merge
+      - uses: astral-sh/setup-uv@v7.3.0
+      - name: Extract PR reference
+        id: extract
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git revert --no-edit HEAD
-          git push origin main
+          pr_ref=$(echo "${COMMIT_MSG}" | grep -oE '#[0-9]+' | tail -1)
+          echo "pr_ref=${pr_ref}" >> "$GITHUB_OUTPUT"
+      - name: Generate issue body
+        id: issue-metadata
+        run: >
+          uvx --no-progress --from . gha-utils pr-body
+          --template detect-squash-merge
+          --pr-ref "${{ steps.extract.outputs.pr_ref }}"
+          --output "$GITHUB_OUTPUT"
+      - name: Open issue to notify maintainer
+        id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: ${{ steps.issue-metadata.outputs.title }}
+          BODY: ${{ steps.issue-metadata.outputs.body }}
+        run: |
+          issue_url=$(gh issue create \
+            --title "${TITLE}" \
+            --assignee "${GITHUB_ACTOR}" \
+            --body "${BODY}")
+          echo "issue_url=${issue_url}" >> "$GITHUB_OUTPUT"
+      - name: Fail workflow
+        run: |
+          echo "::error::Squash merge detected. Release was skipped. See ${{ steps.issue.outputs.issue_url }}"
+          exit 1
 
   project-metadata:
     name: Project metadata

@@ -1905,6 +1905,12 @@ def git_tag(
     help="Version part passed to bump-version template (e.g. minor, major).",
 )
 @option(
+    "--pr-ref",
+    "pr_ref",
+    default=None,
+    help="PR reference passed to detect-squash-merge template (e.g. #2316).",
+)
+@option(
     "-o",
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
@@ -1916,6 +1922,7 @@ def pr_body(
     template: str | None,
     version: str | None,
     part: str | None,
+    pr_ref: str | None,
     output: Path,
 ) -> None:
     """Generate a PR body with a collapsible workflow metadata block.
@@ -1960,9 +1967,10 @@ def pr_body(
 
     # Map argument names to their values or callables.
     arg_sources: dict[str, str | None | Callable[[], str]] = {
-        "version": version if version is not None else _auto_version,
         "part": part,
+        "pr_ref": pr_ref,
         "repo_url": _repo_url,  # Callable, will be invoked if needed.
+        "version": version if version is not None else _auto_version,
     }
 
     title_str = ""

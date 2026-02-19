@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Replace `revert-squash-merge` auto-revert with `detect-squash-merge` notification. On accidental squash merge of a release PR, the job now opens a GitHub issue and fails the workflow instead of reverting on `main`. The release is skipped; the maintainer releases the next version when ready.
 - Skip `lint-changelog` job on release and post-release commits.
 - Skip Nuitka binary builds for the post-release bump commit during releases, halving the number of builds.
 
