@@ -153,6 +153,55 @@ class ReleasePrep:
             repo_root / "gha_utils" / "data" / "renovate.json5",
         ]
 
+    @staticmethod
+    def _replace_skip_comments(
+        content: str,
+        search: str,
+        replacement: str,
+        comment_prefix: str = "#",
+    ) -> str:
+        """Replace a string only in non-comment lines.
+
+        Comment lines (where the first non-whitespace character is
+        ``comment_prefix``) are preserved unchanged. This prevents
+        freeze/unfreeze operations from corrupting explanatory comments that
+        mention the search string.
+
+        :param content: The file content to process.
+        :param search: The literal string to find and replace.
+        :param replacement: The string to substitute.
+        :param comment_prefix: The character that marks a comment line.
+        :return: The content with replacements applied to non-comment lines.
+        """
+        lines = content.splitlines(keepends=True)
+        return "".join(
+            line if line.lstrip().startswith(comment_prefix)
+            else line.replace(search, replacement)
+            for line in lines
+        )
+
+    @staticmethod
+    def _sub_skip_comments(
+        content: str,
+        pattern: re.Pattern[str],
+        replacement: str,
+        comment_prefix: str = "#",
+    ) -> str:
+        """Regex-substitute only in non-comment lines.
+
+        :param content: The file content to process.
+        :param pattern: The compiled regex pattern to match.
+        :param replacement: The string to substitute.
+        :param comment_prefix: The character that marks a comment line.
+        :return: The content with substitutions applied to non-comment lines.
+        """
+        lines = content.splitlines(keepends=True)
+        return "".join(
+            line if line.lstrip().startswith(comment_prefix)
+            else pattern.sub(replacement, line)
+            for line in lines
+        )
+
     def freeze_cli_version(self, version: str) -> int:
         """Replace local source CLI invocations with a frozen PyPI version.
 
@@ -167,6 +216,9 @@ class ReleasePrep:
         ``renovate.json5`` files (where the command lives inside ``bash -c '...'``
         and single quotes would break the outer quoting).
 
+        Comment lines in YAML (starting with ``#``) and JSON5 (starting with
+        ``//``) are skipped to avoid corrupting explanatory comments.
+
         :param version: The PyPI version to freeze to.
         :return: Number of files modified.
         """
@@ -180,7 +232,7 @@ class ReleasePrep:
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
-            content = original.replace(search, yaml_replace)
+            content = self._replace_skip_comments(original, search, yaml_replace)
             if self._update_file(workflow_file, content, original):
                 count += 1
 
@@ -191,7 +243,9 @@ class ReleasePrep:
                 logging.debug(f"JSON5 file not found: {json5_file}")
                 continue
             original = json5_file.read_text(encoding="UTF-8")
-            content = original.replace(search, json5_replace)
+            content = self._replace_skip_comments(
+                original, search, json5_replace, comment_prefix="//",
+            )
             if self._update_file(json5_file, content, original):
                 count += 1
 
@@ -208,6 +262,8 @@ class ReleasePrep:
         ``gha-utils==X.Y.Z`` (unquoted, in ``renovate.json5``) with
         ``--from . gha-utils``.
 
+        Comment lines are skipped (see :meth:`freeze_cli_version`).
+
         :return: Number of files modified.
         """
         if not self.workflow_dir.exists():
@@ -220,7 +276,7 @@ class ReleasePrep:
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
-            content = yaml_pattern.sub(replace, original)
+            content = self._sub_skip_comments(original, yaml_pattern, replace)
             if self._update_file(workflow_file, content, original):
                 count += 1
 
@@ -231,7 +287,9 @@ class ReleasePrep:
                 logging.debug(f"JSON5 file not found: {json5_file}")
                 continue
             original = json5_file.read_text(encoding="UTF-8")
-            content = json5_pattern.sub(replace, original)
+            content = self._sub_skip_comments(
+                original, json5_pattern, replace, comment_prefix="//",
+            )
             if self._update_file(json5_file, content, original):
                 count += 1
 

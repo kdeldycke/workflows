@@ -8,6 +8,7 @@
 - Replace `revert-squash-merge` auto-revert with `detect-squash-merge` notification. On accidental squash merge of a release PR, the job now opens a GitHub issue and fails the workflow instead of reverting on `main`. The release is skipped; the maintainer releases the next version when ready.
 - Skip `lint-changelog` job on release and post-release commits.
 - Skip Nuitka binary builds for the post-release bump commit during releases, halving the number of builds.
+- Fix freeze/unfreeze cycle corrupting YAML and JSON5 comments that mention `--from . gha-utils`.
 
 ## [`5.10.3` (2026-02-19)](https://github.com/kdeldycke/workflows/compare/v5.10.2...v5.10.3)
 
