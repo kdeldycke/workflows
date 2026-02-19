@@ -5,6 +5,9 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Skip `lint-changelog` job on release and post-release commits.
+- Skip Nuitka binary builds for the post-release bump commit during releases, halving the number of builds.
+
 ## [`5.10.3` (2026-02-19)](https://github.com/kdeldycke/workflows/compare/v5.10.2...v5.10.3)
 
 - Add `--include-package-data=extra_platforms` to Nuitka build to fix `FileNotFoundError` on `architecture_data.py` in compiled binaries.

@@ -1750,7 +1750,7 @@ class Metadata:
         """Pre-compute a matrix for Nuitka compilation workflows.
 
         Combine the variations of:
-        - all new commits
+        - release commits only (during releases) or all new commits (otherwise)
         - all entry points
         - for the 3 main OSes
         - for a set of architectures
@@ -1952,13 +1952,16 @@ class Metadata:
                 "module_path": str(module_path),
             })
 
-        # We'd like to run a build for each new commit bundled in the action trigger.
-        # If no new commits are detected, it's because we are not in a GitHub workflow
-        # event, so we'll fallback to the current commit and only build for it.
+        # For releases, only build binaries for the release (freeze) commits. The
+        # post-release bump commit doesn't need binaries — only the freeze commit
+        # gets tagged and attached to the GitHub release. This halves the number of
+        # expensive Nuitka builds during the release cycle (6 instead of 12).
+        # For non-release pushes, build for all new commits. If no new commits are
+        # detected (not in a GitHub workflow event), fall back to the current commit.
         build_commit_matrix = (
-            self.new_commits_matrix
-            if self.new_commits_matrix
-            else self.current_commit_matrix
+            self.release_commits_matrix
+            or self.new_commits_matrix
+            or self.current_commit_matrix
         )
         assert build_commit_matrix
         # Extend the matrix with a new dimension: a list of commits.
