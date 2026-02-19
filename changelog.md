@@ -1,9 +1,6 @@
 # Changelog
 
-## [`5.10.4.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.10.3...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`5.10.4` (2026-02-19)](https://github.com/kdeldycke/workflows/compare/v5.10.3...v5.10.4)
 
 - Replace `revert-squash-merge` auto-revert with `detect-squash-merge` notification. On accidental squash merge of a release PR, the job now opens a GitHub issue and fails the workflow instead of reverting on `main`. The release is skipped; the maintainer releases the next version when ready.
 - Skip `lint-changelog` job on release and post-release commits.
