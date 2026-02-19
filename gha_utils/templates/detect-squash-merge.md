@@ -3,6 +3,8 @@ args: [pr_ref]
 title: 🚨 Squash merge detected — release skipped
 ---
 
+### Summary
+
 > [!CAUTION]
 > The release PR \$pr_ref was squash-merged instead of rebase-merged.
 

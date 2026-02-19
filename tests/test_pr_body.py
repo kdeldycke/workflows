@@ -204,7 +204,8 @@ def test_get_template_names():
     assert "lint-changelog" in names
     assert "refresh-tip" in names
     assert "setup-guide" in names
-    assert len(names) == 20
+    assert "detect-squash-merge" in names
+    assert len(names) == 21
 
 
 def test_load_template_frontmatter():
@@ -453,6 +454,7 @@ def test_build_pr_body_empty_prefix(monkeypatch):
 REFERENCE_WORKFLOWS = (
     ".github/workflows/autofix.yaml",
     ".github/workflows/changelog.yaml",
+    ".github/workflows/release.yaml",
     ".github/workflows/renovate.yaml",
 )
 """Workflow files that reference PR body templates via ``--template``."""
