@@ -158,9 +158,15 @@ jobs:
       - name: Build binary
         id: build-binary
         continue-on-error: true
+        # --include-package-data=extra_platforms works around extra-platforms
+        # reading .py source files at import time for docstring extraction.
+        # Without this, Nuitka's onefile mode only includes compiled .so files
+        # and the FileNotFoundError on architecture_data.py crashes the binary.
         run: >
           uv --no-progress run --frozen -- nuitka
-          --mode=onefile --assume-yes-for-downloads --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
+          --mode=onefile --assume-yes-for-downloads
+          --include-package-data=extra_platforms
+          --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v6.0.0
         with:

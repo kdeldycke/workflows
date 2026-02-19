@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `--include-package-data=extra_platforms` to Nuitka build to fix `FileNotFoundError` on `architecture_data.py` in compiled binaries.
 - Add `sync-uv-lock` command that runs `uv lock` and avoid `exclude-newer-package` timestamp noise.
 - Add `sync-uv-lock` job to `autofix.yaml` to replace Renovate's `lockFileMaintenance`, which cannot reliably revert timestamp-only noise in `uv.lock`.
 - Remove `update-exclude-newer` command.
