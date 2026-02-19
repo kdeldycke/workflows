@@ -272,11 +272,11 @@ jobs:
 
   lint-changelog:
     name: Lint changelog
+    needs:
+      - project-metadata
     # Skip during release cycle: the release pipeline hasn't published to PyPI/GitHub yet,
     # so lint-changelog would incorrectly add "not available" admonitions.
-    if: >
-      !startsWith(github.event.head_commit.message, '[changelog] Release')
-      && !startsWith(github.event.head_commit.message, '[changelog] Post-release')
+    if: "!needs.project-metadata.outputs.release_commits_matrix"
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
