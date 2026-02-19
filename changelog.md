@@ -10,6 +10,9 @@
 
 ## [`5.10.3` (2026-02-19)](https://github.com/kdeldycke/workflows/compare/v5.10.2...v5.10.3)
 
+> [!NOTE]
+> `5.10.3` is available on [🐍 PyPI](https://pypi.org/project/gha-utils/5.10.3/) and [🐙 GitHub](https://github.com/kdeldycke/workflows/releases/tag/v5.10.3).
+
 - Add `--include-package-data=extra_platforms` to Nuitka build to fix `FileNotFoundError` on `architecture_data.py` in compiled binaries.
 - Add `sync-uv-lock` command that runs `uv lock` and avoid `exclude-newer-package` timestamp noise.
 - Add `sync-uv-lock` job to `autofix.yaml` to replace Renovate's `lockFileMaintenance`, which cannot reliably revert timestamp-only noise in `uv.lock`.
