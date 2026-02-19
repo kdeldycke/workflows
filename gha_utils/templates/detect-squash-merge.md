@@ -1,10 +1,10 @@
 ---
 args: [pr_ref]
-title: "🚨 Squash merge detected — release skipped"
+title: 🚨 Squash merge detected — release skipped
 ---
 
 > [!CAUTION]
-> The release PR $pr_ref was squash-merged instead of rebase-merged.
+> The release PR \$pr_ref was squash-merged instead of rebase-merged.
 
 ### What happened
 
@@ -26,4 +26,4 @@ No immediate action is required. To release:
 2. Let `prepare-release` create a new release PR for the next version.
 3. Merge it with **"Rebase and merge"**.
 
-Supersedes $pr_ref.
+Supersedes \$pr_ref.
