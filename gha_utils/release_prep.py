@@ -175,7 +175,8 @@ class ReleasePrep:
         """
         lines = content.splitlines(keepends=True)
         return "".join(
-            line if line.lstrip().startswith(comment_prefix)
+            line
+            if line.lstrip().startswith(comment_prefix)
             else line.replace(search, replacement)
             for line in lines
         )
@@ -197,7 +198,8 @@ class ReleasePrep:
         """
         lines = content.splitlines(keepends=True)
         return "".join(
-            line if line.lstrip().startswith(comment_prefix)
+            line
+            if line.lstrip().startswith(comment_prefix)
             else pattern.sub(replacement, line)
             for line in lines
         )
@@ -244,7 +246,10 @@ class ReleasePrep:
                 continue
             original = json5_file.read_text(encoding="UTF-8")
             content = self._replace_skip_comments(
-                original, search, json5_replace, comment_prefix="//",
+                original,
+                search,
+                json5_replace,
+                comment_prefix="//",
             )
             if self._update_file(json5_file, content, original):
                 count += 1
@@ -288,7 +293,10 @@ class ReleasePrep:
                 continue
             original = json5_file.read_text(encoding="UTF-8")
             content = self._sub_skip_comments(
-                original, json5_pattern, replace, comment_prefix="//",
+                original,
+                json5_pattern,
+                replace,
+                comment_prefix="//",
             )
             if self._update_file(json5_file, content, original):
                 count += 1
