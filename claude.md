@@ -439,6 +439,19 @@ Workflows and CLI commands must be safe to re-run. Running the same command or w
 
 **When idempotency is not achievable**, document the reason in a comment or docstring explaining what side effects occur on re-runs and why they are acceptable or unavoidable.
 
+### Skip and move forward, don't rewrite history
+
+When a release goes wrong — squash merge, broken artifact, bad metadata — prefer **skipping the version and releasing the next one** over reverting commits, force-pushing, or rewriting `main`. A burned version number is cheap; a botched automated recovery is not.
+
+This mirrors how package repositories handle defective releases. PyPI lets maintainers [yank](https://peps.python.org/pep-0592/) a release rather than delete it, preserving immutability while signaling that consumers should upgrade. The same principle applies to our workflow:
+
+- **Don't automate destructive recovery.** Automated reverts, force-pushes, and history rewrites on `main` are high-risk operations that compound the original mistake. The `detect-squash-merge` job creates a notification issue instead of reverting precisely for this reason.
+- **Notify and let humans decide.** Open an issue, fail the workflow, and trust the maintainer to choose the right recovery path. A human in the loop is always safer than an automated guess.
+- **Version numbers are disposable.** Software skips versions routinely. A changelog entry for an unpublished version is a minor cosmetic issue, not a correctness problem.
+- **Existing safeguards are the real protection.** The tagging, publishing, and release jobs are gated on commit message patterns (`[changelog] Release v`). If those gates hold, no broken release escapes — regardless of what landed on `main`.
+
+When designing new workflow safeguards, default to **detection + notification** rather than **detection + automated fix**. The blast radius of a missed notification is zero; the blast radius of a bad automated fix can be catastrophic.
+
 ### Concurrency implementation
 
 > [!NOTE]
