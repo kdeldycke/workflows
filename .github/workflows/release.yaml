@@ -136,7 +136,9 @@ jobs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix || needs.project-metadata.outputs.new_commits_matrix) }}
+      matrix: >-
+        ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix
+        || needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-slim
     permissions:
       id-token: write
@@ -200,7 +202,8 @@ jobs:
           --include-package-data=extra_platforms
           --include-data-files=gha_utils/templates/*.md=gha_utils/templates/
           --include-data-files="$(uv --no-progress run --frozen -- python -c
-          'import extra_platforms; print(extra_platforms.__path__[0])')/*.py=extra_platforms/"
+          'import extra_platforms;
+          print(extra_platforms.__path__[0])')/*.py=extra_platforms/"
           --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v6.0.0
