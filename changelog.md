@@ -9,6 +9,9 @@
 
 ## [`5.10.4` (2026-02-19)](https://github.com/kdeldycke/workflows/compare/v5.10.3...v5.10.4)
 
+> [!NOTE]
+> `5.10.4` is available on [🐍 PyPI](https://pypi.org/project/gha-utils/5.10.4/) and [🐙 GitHub](https://github.com/kdeldycke/workflows/releases/tag/v5.10.4).
+
 - Replace `revert-squash-merge` auto-revert with `detect-squash-merge` notification. On accidental squash merge of a release PR, the job now opens a GitHub issue and fails the workflow instead of reverting on `main`. The release is skipped; the maintainer releases the next version when ready.
 - Skip `lint-changelog` job on release and post-release commits.
 - Skip Nuitka binary builds for the post-release bump commit during releases, halving the number of builds.
