@@ -185,16 +185,20 @@ jobs:
       - name: Build binary
         id: build-binary
         continue-on-error: true
-        # --include-package-data bundles non-code data files (e.g. .md
-        # templates in gha_utils, .json/.txt in extra_platforms). But
+        # --include-package-data=extra_platforms bundles non-code data files.
         # extra_platforms also reads .py source files at import time for
-        # docstring extraction. --include-package-data does not cover .py
-        # files, so we use --include-data-files to explicitly preserve them.
+        # docstring extraction, so --include-data-files preserves those too.
+        #
+        # gha_utils/templates/*.md are needed at import time (Click's
+        # Choice() calls get_template_names()). We cannot use
+        # --include-package-data=gha_utils because gha_utils/data/ contains
+        # symlinks to .github/workflows/ that break Nuitka's macOS xattr
+        # step. Instead, we target only the .md templates explicitly.
         run: >
           uv --no-progress run --frozen -- nuitka
           --mode=onefile --assume-yes-for-downloads
           --include-package-data=extra_platforms
-          --include-package-data=gha_utils
+          --include-data-files=gha_utils/templates/*.md=gha_utils/templates/
           --include-data-files="$(uv --no-progress run --frozen -- python -c
           'import extra_platforms; print(extra_platforms.__path__[0])')/*.py=extra_platforms/"
           --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
