@@ -181,7 +181,7 @@ jobs:
       - name: Setup venv
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
-        run: uv --no-progress pip install "Nuitka[onefile]==4.0"
+        run: uv --no-progress pip install "Nuitka[onefile]==4.0.1"
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
