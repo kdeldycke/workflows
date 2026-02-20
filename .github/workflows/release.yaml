@@ -185,14 +185,18 @@ jobs:
       - name: Build binary
         id: build-binary
         continue-on-error: true
-        # --include-package-data=extra_platforms works around extra-platforms
-        # reading .py source files at import time for docstring extraction.
-        # Without this, Nuitka's onefile mode only includes compiled .so files
-        # and the FileNotFoundError on architecture_data.py crashes the binary.
+        # --include-package-data bundles non-code data files (e.g. .md
+        # templates in gha_utils, .json/.txt in extra_platforms). But
+        # extra_platforms also reads .py source files at import time for
+        # docstring extraction. --include-package-data does not cover .py
+        # files, so we use --include-data-files to explicitly preserve them.
         run: >
           uv --no-progress run --frozen -- nuitka
           --mode=onefile --assume-yes-for-downloads
           --include-package-data=extra_platforms
+          --include-package-data=gha_utils
+          --include-data-files="$(uv --no-progress run --frozen -- python -c
+          'import extra_platforms; print(extra_platforms.__path__[0])')/*.py=extra_platforms/"
           --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v6.0.0
