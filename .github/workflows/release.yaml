@@ -136,7 +136,7 @@ jobs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.new_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix || needs.project-metadata.outputs.new_commits_matrix) }}
     runs-on: ubuntu-slim
     permissions:
       id-token: write
