@@ -3,12 +3,13 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-02-13T06:04:59.088501Z"
+exclude-newer = "2026-02-14T10:47:39.255557464Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-gha-utils = { timestamp = "2026-02-20T06:04:59.088626Z", span = "PT0S" }
-extra-platforms = { timestamp = "2026-02-20T06:04:59.089073Z", span = "PT0S" }
+gha-utils = { timestamp = "2026-02-21T10:47:39.255562794Z", span = "PT0S" }
+extra-platforms = { timestamp = "2026-02-21T10:47:39.255567893Z", span = "PT0S" }
+nuitka = { timestamp = "2026-02-21T10:47:39.255568414Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -406,7 +407,7 @@ wheels = [
 
 [[package]]
 name = "gha-utils"
-version = "5.10.5.dev0"
+version = "5.11.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
