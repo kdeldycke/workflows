@@ -1186,6 +1186,20 @@ def sponsor_label(
     help="Include all dependency groups from pyproject.toml.",
 )
 @option(
+    "--no-group",
+    "excluded_groups",
+    multiple=True,
+    help="Exclude the specified group. Takes precedence over --all-groups and --group. "
+    "Can be repeated.",
+)
+@option(
+    "--only-group",
+    "only_groups",
+    multiple=True,
+    help="Only include dependencies from the specified group, excluding main "
+    "dependencies. Can be repeated.",
+)
+@option(
     "-e",
     "--extra",
     "extras",
@@ -1198,6 +1212,20 @@ def sponsor_label(
     is_flag=True,
     default=False,
     help="Include all optional extras from pyproject.toml.",
+)
+@option(
+    "--no-extra",
+    "excluded_extras",
+    multiple=True,
+    help="Exclude the specified extra, if --all-extras is supplied. "
+    "Can be repeated.",
+)
+@option(
+    "--only-extra",
+    "only_extras",
+    multiple=True,
+    help="Only include dependencies from the specified extra, excluding main "
+    "dependencies. Can be repeated.",
 )
 @option(
     "--frozen/--no-frozen",
@@ -1223,8 +1251,12 @@ def deps_graph(
     package: str | None,
     groups: tuple[str, ...],
     all_groups: bool,
+    excluded_groups: tuple[str, ...],
+    only_groups: tuple[str, ...],
     extras: tuple[str, ...],
     all_extras: bool,
+    excluded_extras: tuple[str, ...],
+    only_extras: tuple[str, ...],
     frozen: bool,
     level: int | None,
     output: Path | None,
@@ -1247,6 +1279,22 @@ def deps_graph(
     \b
         # Include all groups and extras
         gha-utils deps-graph --all-groups --all-extras
+
+    \b
+        # Include all groups except typing
+        gha-utils deps-graph --all-groups --no-group typing
+
+    \b
+        # Include all extras except one
+        gha-utils deps-graph --all-extras --no-extra json5
+
+    \b
+        # Show only test group dependencies (no main deps)
+        gha-utils deps-graph --only-group test
+
+    \b
+        # Show only a specific extra's dependencies
+        gha-utils deps-graph --only-extra xml
 
     \b
         # Focus on a specific package
@@ -1276,6 +1324,13 @@ def deps_graph(
         else:
             output = Path("-")
 
+    # Resolve --only-group/--only-extra (exclusive mode: no main deps).
+    exclude_base = bool(only_groups or only_extras)
+    if only_groups:
+        groups = only_groups
+    if only_extras:
+        extras = only_extras
+
     # Resolve --all-groups and --all-extras flags.
     resolved_groups: tuple[str, ...] | None = groups if groups else None
     if all_groups:
@@ -1287,12 +1342,25 @@ def deps_graph(
         resolved_extras = get_available_extras()
         logging.info(f"Discovered extras: {', '.join(resolved_extras)}")
 
+    # Apply --no-group and --no-extra exclusions.
+    if excluded_groups and resolved_groups:
+        resolved_groups = tuple(
+            g for g in resolved_groups if g not in excluded_groups
+        )
+        logging.info(f"After exclusions, groups: {', '.join(resolved_groups)}")
+    if excluded_extras and resolved_extras:
+        resolved_extras = tuple(
+            e for e in resolved_extras if e not in excluded_extras
+        )
+        logging.info(f"After exclusions, extras: {', '.join(resolved_extras)}")
+
     graph = generate_dependency_graph(
         package=package,
         groups=resolved_groups,
         extras=resolved_extras,
         frozen=frozen,
         depth=level,
+        exclude_base=exclude_base,
     )
 
     if is_stdout(output):

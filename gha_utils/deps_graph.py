@@ -845,6 +845,7 @@ def generate_dependency_graph(
     extras: tuple[str, ...] | None = None,
     frozen: bool = True,
     depth: int | None = None,
+    exclude_base: bool = False,
 ) -> str:
     """Generate a Mermaid dependency graph.
 
@@ -854,6 +855,9 @@ def generate_dependency_graph(
     :param extras: Optional extras to include (e.g., "xml", "json5").
     :param frozen: If True, use --frozen to skip lock file updates.
     :param depth: Optional maximum depth from root. If None, shows the full tree.
+    :param exclude_base: If True, exclude main (base) dependencies from the graph,
+        showing only packages unique to the requested groups/extras. Used by
+        ``--only-group`` and ``--only-extra``.
     :return: The graph in Mermaid format.
     """
     # Get the full SBOM with all requested groups and extras.
@@ -905,6 +909,22 @@ def generate_dependency_graph(
         for extra_pkgs in extra_packages.values():
             for pkg in extra_pkgs:
                 edges.append((root_name, pkg))
+
+    # Exclude base (main) dependencies when --only-group/--only-extra is used.
+    # Keeps the root node and packages unique to groups/extras, removing
+    # everything that belongs to the base dependency set.
+    if exclude_base:
+        allowed = seen_in_subgraphs | {root_name}
+        nodes = {
+            ref: (name, version)
+            for ref, (name, version) in nodes.items()
+            if name in allowed
+        }
+        edges = [
+            (from_name, to_name)
+            for from_name, to_name in edges
+            if from_name in allowed and to_name in allowed
+        ]
 
     # Filter to specific package if requested.
     if package:
