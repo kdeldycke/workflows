@@ -49,7 +49,7 @@
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
         commands: [
-          "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress --from . gha-utils update-checksums {{{packageFile}}}'",
+          "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress gha-utils==5.11.0 update-checksums {{{packageFile}}}'",
         ],
         fileFilters: [".github/workflows/**"],
         executionMode: "update",
