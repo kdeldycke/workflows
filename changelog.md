@@ -1,5 +1,10 @@
 # Changelog
 
+## [`5.11.2.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.11.1...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`5.11.1` (2026-02-21)](https://github.com/kdeldycke/workflows/compare/v5.11.0...v5.11.1)
 
 - Declare `WORKFLOW_UPDATE_GITHUB_PAT` as an optional `workflow_call` secret to fix downstream compatibility.
