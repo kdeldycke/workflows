@@ -252,8 +252,8 @@ jobs:
       - name: Install typos
         run: |
           curl -fsSL --output /tmp/typos.tar.gz \
-            "https://github.com/crate-ci/typos/releases/download/v1.43.3/typos-v1.43.3-x86_64-unknown-linux-musl.tar.gz"
-          echo "ac2d3da42920f7d39576216eb85bf7db763d7ae13722bf0851413261cac741cf  /tmp/typos.tar.gz" | sha256sum --check
+            "https://github.com/crate-ci/typos/releases/download/v1.43.4/typos-v1.43.4-x86_64-unknown-linux-musl.tar.gz"
+          echo "f05f9da84ba714789271a2915060f8b7d329411b5c11e83b8d2c367ef592036c  /tmp/typos.tar.gz" | sha256sum --check
           tar xzf /tmp/typos.tar.gz -C /usr/local/bin ./typos
       - name: Fix typos
         run: typos --write-changes
