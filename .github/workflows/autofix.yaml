@@ -116,7 +116,7 @@ jobs:
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
         run: >
-          uvx --no-progress 'pyproject-fmt==2.15.1'
+          uvx --no-progress 'pyproject-fmt==2.15.3'
           --expand-tables project.entry-points,project.optional-dependencies,project.urls,project.scripts
           pyproject.toml || true
       - id: pr-metadata
