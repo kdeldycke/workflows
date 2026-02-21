@@ -1,9 +1,6 @@
 # Changelog
 
-## [`5.11.0.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.10.4...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`5.11.0` (2026-02-21)](https://github.com/kdeldycke/workflows/compare/v5.10.4...v5.11.0)
 
 - Add `--no-group`, `--no-extra`, `--only-group`, and `--only-extra` options to `deps-graph` command.
 - Make `gha-utils init bumpversion` idempotent: updates existing `[tool.bumpversion]` configs with dev versioning keys (`parse`, `serialize`, `[parts.dev]`) and bumps `current_version` to `.dev0`.
