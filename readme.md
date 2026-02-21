@@ -762,27 +762,27 @@ Modifying workflow files is the primary reason for the PAT, but it serves additi
 
 Jobs that use `WORKFLOW_UPDATE_GITHUB_PAT`:
 
-| Workflow | Job | Reason |
-| :--- | :--- | :--- |
-| `autofix.yaml` | Fix typos | Create PR touching `.github/workflows/` files |
-| `autofix.yaml` | Sync workflows | Create PR updating workflow caller files |
-| `autofix.yaml` | Sync awesome template | Checkout and sync including workflow files |
-| `changelog.yaml` | Prepare release | Create release PR freezing versions in workflow files |
-| `release.yaml` | Create tag | Push tag that triggers `on.push.tags` workflows |
-| `release.yaml` | Publish GitHub release | Create release that triggers downstream workflows |
-| `renovate.yaml` | Renovate | Manage dependency PRs, status checks, dashboard, and vulnerability alerts |
+| Workflow         | Job                    | Reason                                                                    |
+| :--------------- | :--------------------- | :------------------------------------------------------------------------ |
+| `autofix.yaml`   | Fix typos              | Create PR touching `.github/workflows/` files                             |
+| `autofix.yaml`   | Sync workflows         | Create PR updating workflow caller files                                  |
+| `autofix.yaml`   | Sync awesome template  | Checkout and sync including workflow files                                |
+| `changelog.yaml` | Prepare release        | Create release PR freezing versions in workflow files                     |
+| `release.yaml`   | Create tag             | Push tag that triggers `on.push.tags` workflows                           |
+| `release.yaml`   | Publish GitHub release | Create release that triggers downstream workflows                         |
+| `renovate.yaml`  | Renovate               | Manage dependency PRs, status checks, dashboard, and vulnerability alerts |
 
 Each token permission maps to specific needs:
 
-| Permission | Needed for |
-| :--- | :--- |
-| **Workflows** | All PR-creating jobs that touch `.github/workflows/` files |
-| **Contents** | Tag pushes, release publishing, PR branch creation |
-| **Pull requests** | All PR-creating jobs (sync-workflows, fix-typos, prepare-release, Renovate) |
-| **Commit statuses** | Renovate `stability-days` status checks |
-| **Dependabot alerts** | Renovate vulnerability alert reading |
-| **Issues** | Renovate [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) |
-| **Metadata** | Required for all fine-grained token API operations |
+| Permission            | Needed for                                                                            |
+| :-------------------- | :------------------------------------------------------------------------------------ |
+| **Workflows**         | All PR-creating jobs that touch `.github/workflows/` files                            |
+| **Contents**          | Tag pushes, release publishing, PR branch creation                                    |
+| **Pull requests**     | All PR-creating jobs (sync-workflows, fix-typos, prepare-release, Renovate)           |
+| **Commit statuses**   | Renovate `stability-days` status checks                                               |
+| **Dependabot alerts** | Renovate vulnerability alert reading                                                  |
+| **Issues**            | Renovate [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) |
+| **Metadata**          | Required for all fine-grained token API operations                                    |
 
 All jobs fall back to `GITHUB_TOKEN` when the PAT is unavailable (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`), but operations requiring the `workflows` permission or workflow triggering will silently fail.
 
