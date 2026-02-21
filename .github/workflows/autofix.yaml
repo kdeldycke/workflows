@@ -81,7 +81,7 @@ jobs:
         # Initialize [tool.ruff] in pyproject.toml if it doesn't exist.
         # Projects with existing ruff config will keep their settings.
         run: |
-          uv tool install 'ruff==0.15.0'
+          uv tool install 'ruff==0.15.1'
           uvx --no-progress --from . gha-utils init ruff
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
@@ -165,7 +165,7 @@ jobs:
           --with 'mdformat_simple_breaks==0.1.0'
           --with 'mdformat-toc==0.5.0'
           --with 'mdformat-web==0.2.0'
-          --with 'ruff==0.15.0'
+          --with 'ruff==0.15.1'
           'mdformat==1.0.0'
       - name: Install shfmt
         run: sudo apt install --yes shfmt
