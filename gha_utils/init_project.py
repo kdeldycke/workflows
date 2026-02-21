@@ -377,9 +377,7 @@ def _update_bumpversion_config(
     # Find the insertion point: after the last root-level key in
     # [tool.bumpversion], before [[tool.bumpversion.files]] or
     # [tool.bumpversion.parts.*] or the next top-level section.
-    bv_section_match = re.search(
-        r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE
-    )
+    bv_section_match = re.search(r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE)
     if not bv_section_match:
         return None
 
@@ -409,9 +407,7 @@ def _update_bumpversion_config(
 
     # Update current_version if it needs .dev0 suffix.
     if needs_dev_suffix and current_version:
-        modified = _update_current_version(
-            modified, current_version, new_version
-        )
+        modified = _update_current_version(modified, current_version, new_version)
 
         # Apply version changes to managed files.
         # pyproject.toml is updated in-memory since the caller writes it.
@@ -427,9 +423,7 @@ def _update_bumpversion_config(
     return modified
 
 
-def _update_current_version(
-    content: str, old_version: str, new_version: str
-) -> str:
+def _update_current_version(content: str, old_version: str, new_version: str) -> str:
     """Replace ``current_version`` in the bumpversion section.
 
     Only replaces the first occurrence within ``[tool.bumpversion]`` to avoid
@@ -441,11 +435,7 @@ def _update_current_version(
     :return: The modified content.
     """
     # Match current_version = "X.Y.Z" in the bumpversion section.
-    pattern = (
-        r'(current_version\s*=\s*")'
-        + re.escape(old_version)
-        + r'"'
-    )
+    pattern = r'(current_version\s*=\s*")' + re.escape(old_version) + r'"'
     return re.sub(pattern, rf'\g<1>{new_version}"', content, count=1)
 
 
@@ -491,9 +481,7 @@ def _update_managed_files(
             # Expand glob relative to project directory.
             paths = [
                 Path(p)
-                for p in globmod.glob(
-                    str(project_dir / glob_pattern), recursive=True
-                )
+                for p in globmod.glob(str(project_dir / glob_pattern), recursive=True)
             ]
         elif filename:
             paths = [project_dir / filename]
@@ -521,8 +509,7 @@ def _update_managed_files(
                 updated = file_content.replace(search_str, replace_str)
                 path.write_text(updated, encoding="UTF-8")
                 logging.info(
-                    f"Updated version in {path}: "
-                    f"{old_version!r} -> {new_version!r}"
+                    f"Updated version in {path}: {old_version!r} -> {new_version!r}"
                 )
 
     return pyproject_content

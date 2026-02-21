@@ -57,9 +57,7 @@ class WorkflowFormat(StrEnum):
 DEFAULT_REPO: Final[str] = "kdeldycke/workflows"
 """Default upstream repository for reusable workflows."""
 
-DEFAULT_VERSION: Final[str] = (
-    "main" if ".dev" in __version__ else f"v{__version__}"
-)
+DEFAULT_VERSION: Final[str] = "main" if ".dev" in __version__ else f"v{__version__}"
 """Default version reference for upstream workflows.
 
 For release builds (e.g., ``gha-utils==5.11.0``), this resolves to the
