@@ -2,6 +2,9 @@
 name: Renovate
 "on":
   workflow_call:
+    secrets:
+      WORKFLOW_UPDATE_GITHUB_PAT:
+        required: false
   schedule:
     # Run weekly.
     - cron: "3 17 * * 1"

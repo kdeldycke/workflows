@@ -98,10 +98,29 @@ def test_returns_trigger_info(filename: str) -> None:
     assert len(info.name) > 0
 
 
+def test_autofix_has_secrets() -> None:
+    """Verify autofix.yaml defines secrets."""
+    info = extract_trigger_info("autofix.yaml")
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
+
+
+def test_changelog_has_secrets() -> None:
+    """Verify changelog.yaml defines secrets."""
+    info = extract_trigger_info("changelog.yaml")
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
+
+
 def test_release_has_secrets() -> None:
     """Verify release.yaml defines secrets."""
     info = extract_trigger_info("release.yaml")
     assert "PYPI_TOKEN" in info.call_secrets
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
+
+
+def test_renovate_has_secrets() -> None:
+    """Verify renovate.yaml defines secrets."""
+    info = extract_trigger_info("renovate.yaml")
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
@@ -174,9 +193,27 @@ def test_quoted_on_key(filename: str) -> None:
     assert '"on":' in content
 
 
+def test_autofix_has_secrets_inherit() -> None:
+    """Verify autofix.yaml thin caller has secrets: inherit."""
+    content = generate_thin_caller("autofix.yaml")
+    assert "secrets: inherit" in content
+
+
+def test_changelog_has_secrets_inherit() -> None:
+    """Verify changelog.yaml thin caller has secrets: inherit."""
+    content = generate_thin_caller("changelog.yaml")
+    assert "secrets: inherit" in content
+
+
 def test_release_has_secrets_inherit() -> None:
     """Verify release.yaml thin caller has secrets: inherit."""
     content = generate_thin_caller("release.yaml")
+    assert "secrets: inherit" in content
+
+
+def test_renovate_has_secrets_inherit() -> None:
+    """Verify renovate.yaml thin caller has secrets: inherit."""
+    content = generate_thin_caller("renovate.yaml")
     assert "secrets: inherit" in content
 
 

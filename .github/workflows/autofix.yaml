@@ -2,6 +2,9 @@
 name: Autofix
 "on":
   workflow_call:
+    secrets:
+      WORKFLOW_UPDATE_GITHUB_PAT:
+        required: false
   workflow_dispatch:
   push:
     branches:

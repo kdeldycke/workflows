@@ -2,6 +2,9 @@
 name: Changelog & versions
 "on":
   workflow_call:
+    secrets:
+      WORKFLOW_UPDATE_GITHUB_PAT:
+        required: false
   workflow_dispatch:
   schedule:
     # Run daily at 6:00 UTC for bump-versions job.
