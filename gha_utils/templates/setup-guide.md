@@ -10,13 +10,15 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
 
 4. Add these permissions:
 
-   | Permission          | Access         |
-   | :------------------ | :------------- |
-   | **Commit statuses** | Read and Write |
-   | **Contents**        | Read and Write |
-   | **Metadata**        | Read-only      |
-   | **Pull requests**   | Read and Write |
-   | **Workflows**       | Read and Write |
+   | Permission            | Access                  |
+   | :-------------------- | :---------------------- |
+   | **Commit statuses**   | Read and Write          |
+   | **Contents**          | Read and Write          |
+   | **Dependabot alerts** | Read-only               |
+   | **Issues**            | Read and Write          |
+   | **Metadata**          | Read-only *(mandatory)* |
+   | **Pull requests**     | Read and Write          |
+   | **Workflows**         | Read and Write          |
 
 5. Click **Generate token** and copy it.
 

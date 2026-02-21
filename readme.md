@@ -756,9 +756,39 @@ error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
 > The **Settings → Actions → General → Workflow permissions** setting on your repository has no effect on this issue. Even with "Read and write permissions" enabled, the default `GITHUB_TOKEN` cannot modify workflow files—that's a hard security boundary enforced by GitHub:
 > ![](docs/assets/repo-workflow-permissions.png)
 
+#### What needs the PAT
+
+Modifying workflow files is the primary reason for the PAT, but it serves additional purposes. Events triggered by `GITHUB_TOKEN` [don't start new workflow runs](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow), so operations like tag pushes also need the PAT to trigger downstream workflows. Renovate requires several additional permissions for its full feature set.
+
+Jobs that use `WORKFLOW_UPDATE_GITHUB_PAT`:
+
+| Workflow | Job | Reason |
+| :--- | :--- | :--- |
+| `autofix.yaml` | Fix typos | Create PR touching `.github/workflows/` files |
+| `autofix.yaml` | Sync workflows | Create PR updating workflow caller files |
+| `autofix.yaml` | Sync awesome template | Checkout and sync including workflow files |
+| `changelog.yaml` | Prepare release | Create release PR freezing versions in workflow files |
+| `release.yaml` | Create tag | Push tag that triggers `on.push.tags` workflows |
+| `release.yaml` | Publish GitHub release | Create release that triggers downstream workflows |
+| `renovate.yaml` | Renovate | Manage dependency PRs, status checks, dashboard, and vulnerability alerts |
+
+Each token permission maps to specific needs:
+
+| Permission | Needed for |
+| :--- | :--- |
+| **Workflows** | All PR-creating jobs that touch `.github/workflows/` files |
+| **Contents** | Tag pushes, release publishing, PR branch creation |
+| **Pull requests** | All PR-creating jobs (sync-workflows, fix-typos, prepare-release, Renovate) |
+| **Commit statuses** | Renovate `stability-days` status checks |
+| **Dependabot alerts** | Renovate vulnerability alert reading |
+| **Issues** | Renovate [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) |
+| **Metadata** | Required for all fine-grained token API operations |
+
+All jobs fall back to `GITHUB_TOKEN` when the PAT is unavailable (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`), but operations requiring the `workflows` permission or workflow triggering will silently fail.
+
 #### Solution: Fine-grained Personal Access Token
 
-To bypass this limitation, create a custom access token called `WORKFLOW_UPDATE_GITHUB_PAT`. It replaces the default `secrets.GITHUB_TOKEN` [in steps that modify workflow files](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code).
+To bypass these limitations, create a custom access token called `WORKFLOW_UPDATE_GITHUB_PAT`. It replaces the default `secrets.GITHUB_TOKEN` [in steps that need elevated permissions](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code).
 
 ##### Step 1: Create the token
 
