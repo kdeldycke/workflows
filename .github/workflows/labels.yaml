@@ -36,7 +36,7 @@ jobs:
           tar xJ --strip-components=1 --directory=/tmp/lm --file=/tmp/lm.tar.xz
           mv /tmp/lm/labelmaker /usr/local/bin/labelmaker
       - name: Dump labels
-        run: uvx --no-progress --from . gha-utils init labels --overwrite
+        run: uvx --no-progress 'gha-utils==5.11.1' init labels --overwrite
       - name: Apply labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,7 +71,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run gha-utils metadata
         id: project-metadata
-        run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.11.1' metadata --output "$GITHUB_OUTPUT"
 
   file-labeller:
     name: File-based PR labeller
@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Dump default rules
-        run: uvx --no-progress --from . gha-utils init labels --overwrite
+        run: uvx --no-progress 'gha-utils==5.11.1' init labels --overwrite
       - name: Apply rules
         uses: actions/labeler@v6.0.1
         with:
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Dump default rules
-        run: uvx --no-progress --from . gha-utils init labels --overwrite
+        run: uvx --no-progress 'gha-utils==5.11.1' init labels --overwrite
       - name: Apply rules
         uses: github/issue-labeler@v3.4
         with:
@@ -124,4 +124,4 @@ jobs:
       - name: Add sponsor label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . gha-utils sponsor-label
+        run: uvx --no-progress 'gha-utils==5.11.1' sponsor-label
