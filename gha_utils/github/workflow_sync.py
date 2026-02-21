@@ -32,6 +32,7 @@ from pathlib import Path
 
 import yaml
 
+from .. import __version__
 from ..init_project import export_content, get_data_content
 from . import AnnotationLevel, emit_annotation
 
@@ -56,8 +57,15 @@ class WorkflowFormat(StrEnum):
 DEFAULT_REPO: Final[str] = "kdeldycke/workflows"
 """Default upstream repository for reusable workflows."""
 
-DEFAULT_VERSION: Final[str] = "main"
-"""Default version reference for upstream workflows."""
+DEFAULT_VERSION: Final[str] = (
+    "main" if ".dev" in __version__ else f"v{__version__}"
+)
+"""Default version reference for upstream workflows.
+
+For release builds (e.g., ``gha-utils==5.11.0``), this resolves to the
+corresponding tag (``v5.11.0``). For development builds (``5.11.1.dev0``),
+it falls back to ``main`` since the tag does not exist yet.
+"""
 
 NON_REUSABLE_WORKFLOWS: Final[frozenset[str]] = frozenset(("tests.yaml",))
 """Workflows without ``workflow_call`` that cannot be used as thin callers."""
