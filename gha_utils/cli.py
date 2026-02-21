@@ -1217,8 +1217,7 @@ def sponsor_label(
     "--no-extra",
     "excluded_extras",
     multiple=True,
-    help="Exclude the specified extra, if --all-extras is supplied. "
-    "Can be repeated.",
+    help="Exclude the specified extra, if --all-extras is supplied. Can be repeated.",
 )
 @option(
     "--only-extra",
@@ -1344,14 +1343,10 @@ def deps_graph(
 
     # Apply --no-group and --no-extra exclusions.
     if excluded_groups and resolved_groups:
-        resolved_groups = tuple(
-            g for g in resolved_groups if g not in excluded_groups
-        )
+        resolved_groups = tuple(g for g in resolved_groups if g not in excluded_groups)
         logging.info(f"After exclusions, groups: {', '.join(resolved_groups)}")
     if excluded_extras and resolved_extras:
-        resolved_extras = tuple(
-            e for e in resolved_extras if e not in excluded_extras
-        )
+        resolved_extras = tuple(e for e in resolved_extras if e not in excluded_extras)
         logging.info(f"After exclusions, extras: {', '.join(resolved_extras)}")
 
     graph = generate_dependency_graph(
