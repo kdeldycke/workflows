@@ -28,7 +28,9 @@ from gha_utils.init_project import (
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     INIT_CONFIGS,
+    _extract_dev_config_block,
     _to_pyproject_format,
+    _update_bumpversion_config,
     default_version_pin,
     export_content,
     get_data_content,
@@ -598,3 +600,260 @@ def test_init_with_single_tool_config(tmp_path: Path):
     content = pyproject.read_text(encoding="UTF-8")
     assert "[tool.ruff]" in content
     assert "[tool.bumpversion]" not in content
+
+
+# --- Bumpversion config update tests ---
+
+
+# Minimal pyproject with existing bumpversion config (no dev versioning).
+PYPROJECT_WITH_BUMPVERSION = """\
+[project]
+name = "test-project"
+version = "7.5.3"
+
+[tool.bumpversion]
+current_version = "7.5.3"
+allow_dirty = true
+
+[[tool.bumpversion.files]]
+filename = "./pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "./changelog.md"
+search = "## [{current_version} (unreleased)]("
+replace = "## [{new_version} (unreleased)]("
+"""
+
+# Same config but already migrated with dev versioning keys.
+PYPROJECT_WITH_DEV_VERSIONING = """\
+[project]
+name = "test-project"
+version = "7.5.3.dev0"
+
+[tool.bumpversion]
+current_version = "7.5.3.dev0"
+allow_dirty = true
+ignore_missing_files = true
+parse = '(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\.dev(?P<dev>\\d+))?'
+serialize = [
+    "{major}.{minor}.{patch}.dev{dev}",
+    "{major}.{minor}.{patch}",
+]
+
+[tool.bumpversion.parts.dev]
+values = [ "0", "release" ]
+optional_value = "release"
+
+[[tool.bumpversion.files]]
+filename = "./pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "./changelog.md"
+search = "## [{current_version} (unreleased)]("
+replace = "## [{new_version} (unreleased)]("
+"""
+
+
+def test_extract_dev_config_block_has_required_keys() -> None:
+    """Verify dev config block contains all required keys."""
+    block = _extract_dev_config_block()
+    assert "ignore_missing_files = true" in block
+    assert "parse = " in block
+    assert "serialize = [" in block
+    assert "[tool.bumpversion.parts.dev]" in block
+    assert "optional_value" in block
+
+
+def test_extract_dev_config_block_excludes_files() -> None:
+    """Verify dev config block does not contain [[files]] entries."""
+    block = _extract_dev_config_block()
+    assert "[[" not in block
+    assert "filename" not in block
+    assert "glob" not in block
+
+
+def test_extract_dev_config_block_excludes_non_dev_keys() -> None:
+    """Verify dev config block does not contain current_version or allow_dirty."""
+    block = _extract_dev_config_block()
+    assert "current_version" not in block
+    assert "allow_dirty" not in block
+
+
+def test_updates_existing_bumpversion_config(tmp_path: Path) -> None:
+    """Verify existing [tool.bumpversion] without parse gets dev config injected."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    assert "parse = " in result
+    assert "serialize = [" in result
+    assert "ignore_missing_files = true" in result
+    assert "[tool.bumpversion.parts.dev]" in result
+
+
+def test_updates_current_version_with_dev_suffix(tmp_path: Path) -> None:
+    """Verify current_version "7.5.3" becomes "7.5.3.dev0"."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    assert 'current_version = "7.5.3.dev0"' in result
+
+
+def test_updates_project_version_with_dev_suffix(tmp_path: Path) -> None:
+    """Verify [project] version is also updated to dev0."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    assert 'version = "7.5.3.dev0"' in result
+
+
+def test_preserves_bumpversion_files_entries(tmp_path: Path) -> None:
+    """Verify [[tool.bumpversion.files]] entries are untouched."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    assert "[[tool.bumpversion.files]]" in result
+    assert 'filename = "./pyproject.toml"' in result
+    assert 'filename = "./changelog.md"' in result
+
+
+def test_preserves_other_pyproject_sections(tmp_path: Path) -> None:
+    """Verify [project] and other sections are unchanged."""
+    content = (
+        '[project]\nname = "test-project"\nversion = "2.0.0"\n\n'
+        "[tool.ruff]\npreview = true\n\n"
+        "[tool.bumpversion]\n"
+        'current_version = "2.0.0"\n'
+        "allow_dirty = true\n\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./pyproject.toml"\n'
+    )
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    assert 'name = "test-project"' in result
+    assert "[tool.ruff]" in result
+    assert "preview = true" in result
+
+
+def test_updates_managed_changelog(tmp_path: Path) -> None:
+    """Verify changelog.md heading is updated via bumpversion file entries."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
+
+    changelog = tmp_path / "changelog.md"
+    changelog.write_text(
+        "# Changelog\n\n## [7.5.3 (unreleased)](https://example.com)\n",
+        encoding="UTF-8",
+    )
+
+    init_config("bumpversion", pyproject)
+
+    # Changelog should be updated on disk.
+    updated = changelog.read_text(encoding="UTF-8")
+    assert "## [7.5.3.dev0 (unreleased)](" in updated
+
+
+def test_updates_managed_init_py(tmp_path: Path) -> None:
+    """Verify __init__.py version is updated via bumpversion glob entries."""
+    content = (
+        '[project]\nname = "test-project"\nversion = "1.0.0"\n\n'
+        "[tool.bumpversion]\n"
+        'current_version = "1.0.0"\n'
+        "allow_dirty = true\n\n"
+        "[[tool.bumpversion.files]]\n"
+        'glob = "./**/__init__.py"\n'
+        "ignore_missing_version = true\n"
+    )
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    # Create a package with __init__.py.
+    pkg_dir = tmp_path / "my_pkg"
+    pkg_dir.mkdir()
+    init_py = pkg_dir / "__init__.py"
+    init_py.write_text('__version__ = "1.0.0"\n', encoding="UTF-8")
+
+    init_config("bumpversion", pyproject)
+
+    # __init__.py should be updated on disk.
+    updated = init_py.read_text(encoding="UTF-8")
+    assert '__version__ = "1.0.0.dev0"' in updated
+
+
+def test_skips_already_migrated(tmp_path: Path) -> None:
+    """Verify config with parse key returns None (no changes needed)."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_DEV_VERSIONING, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is None
+
+
+def test_skips_already_dev_version(tmp_path: Path) -> None:
+    """Verify version ending .dev0 is not double-suffixed."""
+    content = (
+        '[project]\nname = "test"\nversion = "1.0.0.dev0"\n\n'
+        "[tool.bumpversion]\n"
+        'current_version = "1.0.0.dev0"\n'
+        "allow_dirty = true\n"
+    )
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    result = _update_bumpversion_config(content, pyproject)
+
+    assert result is not None
+    # Version should not be double-suffixed.
+    assert "1.0.0.dev0.dev0" not in result
+    assert 'current_version = "1.0.0.dev0"' in result
+
+
+def test_bumpversion_update_idempotent(tmp_path: Path) -> None:
+    """Verify running update twice produces the same result."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
+
+    # First run: should update.
+    result1 = init_config("bumpversion", pyproject)
+    assert result1 is not None
+    pyproject.write_text(result1, encoding="UTF-8")
+
+    # Second run: should be a no-op.
+    result2 = init_config("bumpversion", pyproject)
+    assert result2 is None
+
+
+def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
+    """Verify updated pyproject.toml is still valid TOML."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    parsed = tomllib.loads(result)
+    bv = parsed["tool"]["bumpversion"]
+    assert "parse" in bv
+    assert "serialize" in bv
+    assert "parts" in bv
+    assert "dev" in bv["parts"]

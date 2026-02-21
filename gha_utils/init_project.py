@@ -34,14 +34,21 @@ Available components (``gha-utils init <component>``):
 
 from __future__ import annotations
 
+import glob as globmod
 import logging
 import re
+import sys
 from dataclasses import dataclass, field
 from importlib.resources import as_file, files
 from pathlib import Path, PurePosixPath
 from urllib.request import urlretrieve
 
 from . import __version__
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -257,6 +264,270 @@ def _to_pyproject_format(template: str, tool_section: str) -> str:
     return "\n".join(result)
 
 
+def _extract_dev_config_block() -> str:
+    """Extract the dev versioning keys from the bumpversion template.
+
+    Reads ``bumpversion.toml`` and returns only the root-level keys needed for
+    dev versioning (``ignore_missing_files``, ``parse``, ``serialize``) plus the
+    ``[parts.dev]`` section, formatted for ``[tool.bumpversion]`` in
+    pyproject.toml.
+
+    :return: The dev config block as text, ready for insertion.
+    """
+    native_template = export_content("bumpversion.toml")
+    lines = native_template.splitlines()
+
+    # Collect root-level dev keys and the [parts.dev] section.
+    dev_keys = {"ignore_missing_files", "parse", "serialize"}
+    result_lines: list[str] = []
+    in_dev_key = False
+    in_parts_dev = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Detect [parts.dev] section start.
+        if re.match(r"^\[parts\.dev\]", stripped):
+            in_parts_dev = True
+            result_lines.append(f"[tool.bumpversion.{stripped[1:-1]}]")
+            continue
+
+        # Detect end of [parts.dev] section (next section or [[files]]).
+        if in_parts_dev and re.match(r"^\[", stripped):
+            in_parts_dev = False
+
+        if in_parts_dev:
+            result_lines.append(line)
+            continue
+
+        # Detect root-level dev keys.
+        key_match = re.match(r"^(\w+)\s*=", stripped)
+        if key_match and key_match.group(1) in dev_keys:
+            in_dev_key = True
+
+        if in_dev_key:
+            result_lines.append(line)
+            # Multi-line values end when we see a line with `]`.
+            if stripped.endswith("]") or (
+                "=" in stripped and not stripped.endswith("[")
+            ):
+                in_dev_key = False
+            continue
+
+        # Collect comments that precede dev keys.
+        if stripped.startswith("#") and not result_lines:
+            # Skip file-level comments at the top.
+            continue
+        if stripped.startswith("#"):
+            # Check if the next non-comment line is a dev key.
+            result_lines.append(line)
+            continue
+
+    # Clean up: remove trailing comment-only lines that don't belong.
+    # Walk backwards and drop comment lines that aren't followed by a dev key.
+    cleaned: list[str] = []
+    pending_comments: list[str] = []
+    for line in result_lines:
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            pending_comments.append(line)
+        else:
+            if stripped:
+                cleaned.extend(pending_comments)
+            pending_comments = []
+            cleaned.append(line)
+
+    return "\n".join(cleaned)
+
+
+def _update_bumpversion_config(
+    content: str,
+    pyproject_path: Path,
+) -> str | None:
+    """Update an existing ``[tool.bumpversion]`` config with dev versioning keys.
+
+    Detects whether the existing config already has dev versioning support
+    (``parse`` key) and, if not, injects the required keys. Also appends
+    ``.dev0`` to ``current_version`` if it lacks a dev suffix.
+
+    After updating pyproject.toml content in memory, applies version changes to
+    all files managed by the ``[[tool.bumpversion.files]]`` entries.
+
+    :param content: The current pyproject.toml content.
+    :param pyproject_path: Path to pyproject.toml (for resolving managed files).
+    :return: Modified pyproject.toml content, or ``None`` if already up to date.
+    """
+    parsed = tomllib.loads(content)
+    bv_config = parsed.get("tool", {}).get("bumpversion", {})
+
+    # Already has dev versioning configured.
+    if "parse" in bv_config:
+        logging.info("[tool.bumpversion] already has dev versioning configured.")
+        return None
+
+    current_version = bv_config.get("current_version", "")
+
+    # Determine the new version with .dev0 suffix.
+    needs_dev_suffix = not re.search(r"\.dev\d+$", current_version)
+    new_version = f"{current_version}.dev0" if needs_dev_suffix else current_version
+
+    # Extract the dev config block from the template.
+    dev_block = _extract_dev_config_block()
+
+    # Find the insertion point: after the last root-level key in
+    # [tool.bumpversion], before [[tool.bumpversion.files]] or
+    # [tool.bumpversion.parts.*] or the next top-level section.
+    bv_section_match = re.search(
+        r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE
+    )
+    if not bv_section_match:
+        return None
+
+    # Find the end of root-level keys in [tool.bumpversion].
+    # Look for the first subsection, array section, or next top-level section.
+    after_header = bv_section_match.end()
+    next_section_pattern = re.compile(
+        r"^(?:\[\[tool\.bumpversion\."
+        r"|\[tool\.bumpversion\."
+        r"|\[[a-z])",
+        re.MULTILINE,
+    )
+    next_section = next_section_pattern.search(content, after_header)
+
+    if next_section:
+        insertion_point = next_section.start()
+    else:
+        insertion_point = len(content)
+
+    # Insert the dev config block.
+    before = content[:insertion_point].rstrip()
+    after = content[insertion_point:].lstrip()
+
+    modified = before + "\n" + dev_block.strip() + "\n"
+    if after:
+        modified += "\n" + after
+
+    # Update current_version if it needs .dev0 suffix.
+    if needs_dev_suffix and current_version:
+        modified = _update_current_version(
+            modified, current_version, new_version
+        )
+
+        # Apply version changes to managed files.
+        # pyproject.toml is updated in-memory since the caller writes it.
+        files_entries = bv_config.get("files", [])
+        modified = _update_managed_files(
+            pyproject_path,
+            files_entries,
+            current_version,
+            new_version,
+            modified,
+        )
+
+    return modified
+
+
+def _update_current_version(
+    content: str, old_version: str, new_version: str
+) -> str:
+    """Replace ``current_version`` in the bumpversion section.
+
+    Only replaces the first occurrence within ``[tool.bumpversion]`` to avoid
+    touching version strings in other sections.
+
+    :param content: The pyproject.toml content.
+    :param old_version: The current version string (e.g., ``"7.5.3"``).
+    :param new_version: The new version string (e.g., ``"7.5.3.dev0"``).
+    :return: The modified content.
+    """
+    # Match current_version = "X.Y.Z" in the bumpversion section.
+    pattern = (
+        r'(current_version\s*=\s*")'
+        + re.escape(old_version)
+        + r'"'
+    )
+    return re.sub(pattern, rf'\g<1>{new_version}"', content, count=1)
+
+
+def _update_managed_files(
+    pyproject_path: Path,
+    files_entries: list[dict[str, str]],
+    old_version: str,
+    new_version: str,
+    pyproject_content: str,
+) -> str:
+    """Apply version updates to files managed by bumpversion.
+
+    Reads each file entry from ``[[tool.bumpversion.files]]``, interpolates
+    ``{current_version}`` and ``{new_version}`` in the search/replace patterns,
+    and applies the substitution.
+
+    Updates to ``pyproject.toml`` are applied to ``pyproject_content`` in memory
+    (since the caller writes the final content). All other files are written to
+    disk directly.
+
+    :param pyproject_path: Path to pyproject.toml.
+    :param files_entries: List of file entry dicts from bumpversion config.
+    :param old_version: The old version string.
+    :param new_version: The new version string.
+    :param pyproject_content: The in-memory pyproject.toml content.
+    :return: The updated pyproject.toml content.
+    """
+    project_dir = pyproject_path.parent
+
+    for entry in files_entries:
+        search = entry.get("search", "{current_version}")
+        replace = entry.get("replace", "{new_version}")
+
+        # Interpolate version placeholders.
+        search_str = search.replace("{current_version}", old_version)
+        replace_str = replace.replace("{new_version}", new_version)
+
+        # Resolve file paths.
+        glob_pattern = entry.get("glob")
+        filename = entry.get("filename")
+
+        if glob_pattern:
+            # Expand glob relative to project directory.
+            paths = [
+                Path(p)
+                for p in globmod.glob(
+                    str(project_dir / glob_pattern), recursive=True
+                )
+            ]
+        elif filename:
+            paths = [project_dir / filename]
+        else:
+            continue
+
+        for path in paths:
+            # pyproject.toml is updated in memory, not on disk.
+            if path.resolve() == pyproject_path.resolve():
+                if search_str in pyproject_content:
+                    pyproject_content = pyproject_content.replace(
+                        search_str, replace_str
+                    )
+                    logging.info(
+                        f"Updated version in {path} (in memory): "
+                        f"{old_version!r} -> {new_version!r}"
+                    )
+                continue
+
+            if not path.exists():
+                logging.debug(f"Skipping missing file: {path}")
+                continue
+            file_content = path.read_text(encoding="UTF-8")
+            if search_str in file_content:
+                updated = file_content.replace(search_str, replace_str)
+                path.write_text(updated, encoding="UTF-8")
+                logging.info(
+                    f"Updated version in {path}: "
+                    f"{old_version!r} -> {new_version!r}"
+                )
+
+    return pyproject_content
+
+
 def init_config(config_type: str, pyproject_path: Path | None = None) -> str | None:
     """Initialize a configuration by merging it into pyproject.toml.
 
@@ -292,6 +563,9 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     # Check if the config section already exists.
     section_pattern = rf"^\[{re.escape(config.tool_section)}\]"
     if re.search(section_pattern, content, re.MULTILINE):
+        # For bumpversion, try updating existing config with dev versioning.
+        if config_type == "bumpversion":
+            return _update_bumpversion_config(content, pyproject_path)
         logging.info(f"[{config.tool_section}] already exists in {pyproject_path.name}")
         return None
 
@@ -578,11 +852,18 @@ def _init_tool_configs(
         logging.warning(result.warnings[-1])
         return
     for config_type in tool_configs:
+        section = INIT_CONFIGS[config_type].tool_section
+        had_section = re.search(
+            rf"^\[{re.escape(section)}\]",
+            pyproject_path.read_text(encoding="UTF-8"),
+            re.MULTILINE,
+        )
         merged = init_config(config_type, pyproject_path)
         if merged is None:
-            logging.info(
-                f"[{INIT_CONFIGS[config_type].tool_section}] already exists, skipped."
-            )
+            logging.info(f"[{section}] already up to date, skipped.")
         else:
             pyproject_path.write_text(merged, encoding="UTF-8")
-            logging.info(f"Merged [{INIT_CONFIGS[config_type].tool_section}].")
+            if had_section:
+                logging.info(f"Updated [{section}].")
+            else:
+                logging.info(f"Merged [{section}].")

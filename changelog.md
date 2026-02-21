@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add `--no-group`, `--no-extra`, `--only-group`, and `--only-extra` options to `deps-graph` command.
+- Make `gha-utils init bumpversion` idempotent: updates existing `[tool.bumpversion]` configs with dev versioning keys (`parse`, `serialize`, `[parts.dev]`) and bumps `current_version` to `.dev0`.
 - Add `::error::` annotation when `create-pull-request` fails due to missing `WORKFLOW_UPDATE_GITHUB_PAT` secret.
 - Add `Dependabot alerts` and `Issues` permissions to setup-guide issue template, matching the readme.
 - Document which jobs use `WORKFLOW_UPDATE_GITHUB_PAT` and why each permission is needed.
