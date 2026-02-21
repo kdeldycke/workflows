@@ -269,6 +269,14 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: autofix-typo
+      - name: PAT setup hint
+        if: failure()
+        run: >
+          ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT
+          && 'true'
+          || 'echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
+          See https://github.com/kdeldycke/workflows#solution-fine-grained-personal-access-token"' }}
 
   lint-changelog:
     name: Lint changelog
@@ -491,6 +499,14 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-workflows
+      - name: PAT setup hint
+        if: failure()
+        run: >
+          ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT
+          && 'true'
+          || 'echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
+          See https://github.com/kdeldycke/workflows#solution-fine-grained-personal-access-token"' }}
 
   sync-awesome-template:
     name: Sync awesome template

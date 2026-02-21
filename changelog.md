@@ -6,6 +6,9 @@
 > This version is **not released yet** and is under active development.
 
 - Add `--no-group`, `--no-extra`, `--only-group`, and `--only-extra` options to `deps-graph` command.
+- Add `::error::` annotation when `create-pull-request` fails due to missing `WORKFLOW_UPDATE_GITHUB_PAT` secret.
+- Add `Dependabot alerts` and `Issues` permissions to setup-guide issue template, matching the readme.
+- Document which jobs use `WORKFLOW_UPDATE_GITHUB_PAT` and why each permission is needed.
 - Skip PyPI package build for the post-release bump commit during releases.
 
 ## [`5.10.4` (2026-02-19)](https://github.com/kdeldycke/workflows/compare/v5.10.3...v5.10.4)

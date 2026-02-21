@@ -181,3 +181,11 @@ jobs:
           branch: prepare-release
           delete-branch: true
           draft: always-true
+      - name: PAT setup hint
+        if: failure()
+        run: >
+          ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT
+          && 'true'
+          || 'echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
+          See https://github.com/kdeldycke/workflows#solution-fine-grained-personal-access-token"' }}
