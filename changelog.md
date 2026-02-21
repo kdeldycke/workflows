@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Declare `WORKFLOW_UPDATE_GITHUB_PAT` as an optional `workflow_call` secret to fix downstream compatibility.
+- Fix Renovate `postUpgradeTasks` failing to update SHA-256 checksums. Replace containerbase `install-tool uv` with a direct pinned binary download verified by SHA-256.
 - Fix `gha-utils workflow sync` defaulting to `@main` instead of the version tag when run from a released package.
 
 ## [`5.11.0` (2026-02-21)](https://github.com/kdeldycke/workflows/compare/v5.10.4...v5.11.0)
