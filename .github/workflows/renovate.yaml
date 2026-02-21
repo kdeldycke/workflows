@@ -136,8 +136,16 @@ jobs:
           #    renovate.json5, downloads the new tarball and uses sed to
           #    replace the old SHA-256 hash inline (no binary execution).
           RENOVATE_ALLOWED_COMMANDS: >-
-            ["^bash -c 'curl -fsSL https://github\\.com/astral-sh/uv/releases/download/[0-9.]+/uv-x86_64-unknown-linux-gnu\\.tar\\.gz --output /tmp/uv\\.tar\\.gz && echo [a-f0-9]{64}  /tmp/uv\\.tar\\.gz \\| sha256sum --check && tar xzf /tmp/uv\\.tar\\.gz --strip-components=1 -C /tmp && /tmp/uvx --no-progress (--from \\. |)gha-utils(==\\d[\\d.]*)? update-checksums",
-            "^bash -c 'curl -fsSL https://github\\.com/astral-sh/uv/releases/download/[0-9.]+/uv-x86_64-unknown-linux-gnu\\.tar\\.gz --output /tmp/uv\\.tar\\.gz && sed -i .+ renovate\\.json5'$"]
+            ["^bash -c 'curl -fsSL
+            https://github\\.com/astral-sh/uv/releases/download/[0-9.]+/uv-x86_64-unknown-linux-gnu\\.tar\\.gz
+            --output /tmp/uv\\.tar\\.gz
+            && echo [a-f0-9]{64}  /tmp/uv\\.tar\\.gz \\| sha256sum --check
+            && tar xzf /tmp/uv\\.tar\\.gz --strip-components=1 -C /tmp
+            && /tmp/uvx --no-progress (--from \\. |)gha-utils(==\\d[\\d.]*)? update-checksums",
+            "^bash -c 'curl -fsSL
+            https://github\\.com/astral-sh/uv/releases/download/[0-9.]+/uv-x86_64-unknown-linux-gnu\\.tar\\.gz
+            --output /tmp/uv\\.tar\\.gz
+            && sed -i .+ renovate\\.json5'$"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
           # Enable debug logging to diagnose postUpgradeTasks and manager issues.
