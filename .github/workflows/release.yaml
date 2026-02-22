@@ -189,7 +189,7 @@ jobs:
       - name: Install Nuitka
         # uv-build is required because Nuitka's --project flag uses the build
         # backend declared in pyproject.toml to extract project configuration.
-        run: uv --no-progress pip install 'nuitka[onefile]==4.0.1' 'uv-build==0.10.4'
+        run: uv --no-progress pip install 'nuitka[onefile]==4.0.1' 'uv-build==0.10.2'
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
