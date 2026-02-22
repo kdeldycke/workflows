@@ -49,7 +49,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils lint-repo
 
   lint-types:
-    name: 🔤 Lint types
+    name: 🛡️ Lint types
     needs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.

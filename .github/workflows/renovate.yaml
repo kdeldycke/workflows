@@ -36,7 +36,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   sync-bundled-config:
-    name: 🔄 Sync `renovate.json5`
+    name: 🔄 Sync renovate.json5
     # Only runs in the workflows repo where the bundled config lives.
     # Uses `uv run` (not `uvx --from .`) because the source checkout is always
     # available here. These invocations are intentionally outside the
