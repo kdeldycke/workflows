@@ -8,6 +8,9 @@ name: 🏷️ Labels
       - main
   # Trigger labellers and sponsor tagger on PR open only to avoid excessive runs.
   pull_request:
+    branches-ignore:
+      - prepare-release
+      - renovate/**
     types: [opened]
   # Trigger labellers and sponsor tagger on issue open only to avoid excessive runs.
   issues:
