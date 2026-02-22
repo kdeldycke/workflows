@@ -110,5 +110,3 @@ def verify_binary_arch(target: str, binary_path: Path) -> None:
         f"Binary architecture matches: {expected_substring!r} found in {field!r} "
         f"for {target} target."
     )
-
-

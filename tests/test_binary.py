@@ -122,5 +122,3 @@ def test_missing_field(tmp_path):
     with patch("gha_utils.binary.run_exiftool", return_value=mock_output):
         with pytest.raises(AssertionError, match="Binary architecture mismatch"):
             verify_binary_arch("linux-arm64", binary)
-
-

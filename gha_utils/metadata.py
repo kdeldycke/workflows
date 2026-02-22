@@ -1982,9 +1982,9 @@ class Metadata:
             # We will re-attach back this binary name to the with an include directive,
             # so we need a copy the main variants it corresponds to.
             bin_name_include = {k: variations[k] for k in matrix.variations}
-            bin_name_include["bin_name"] = (
-                "{cli_id}-{target}.{extension}"
-            ).format(**variations)
+            bin_name_include["bin_name"] = ("{cli_id}-{target}.{extension}").format(
+                **variations
+            )
             matrix.add_includes(bin_name_include)
 
         # Pass project-specific Nuitka flags from [tool.gha-utils] config.
