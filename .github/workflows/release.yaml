@@ -183,7 +183,9 @@ jobs:
       - name: Setup venv
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
-        run: uv --no-progress pip install "Nuitka[onefile]==4.0.1"
+        # uv-build is required because Nuitka's --project flag uses the build
+        # backend declared in pyproject.toml to extract project configuration.
+        run: uv --no-progress pip install 'nuitka[onefile]==4.0.1' 'uv-build==0.10.4'
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
