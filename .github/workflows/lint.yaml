@@ -121,9 +121,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - name: Install actionlint and shellcheck
-        id: install_actionlint
         run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.10
+          curl -fsSL --output /tmp/actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v1.7.10/actionlint_1.7.10_linux_amd64.tar.gz"
+          echo "f4c76b71db5755a713e6055cbb0857ed07e103e028bda117817660ebadb4386f  /tmp/actionlint.tar.gz" | sha256sum --check
+          tar xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
           sudo apt update
           sudo apt install --yes shellcheck
       - name: Setup problem matcher
@@ -142,8 +144,7 @@ jobs:
         #     |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # See: https://github.com/rhysd/actionlint/issues/148
         run: >
-          ${{ steps.install_actionlint.outputs.executable }}
-          -color
+          actionlint -color
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
 
   lint-awesome:
