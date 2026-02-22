@@ -7,6 +7,11 @@ on-rename-clash = "error"
 [profiles.default]
 
 [[profiles.default.labels]]
+name = "🪫 AI slop"
+color = "cfd3d7"
+description = "Low-effort LLM-generated contribution"
+
+[[profiles.default.labels]]
 name = "🐛 bug"
 color = "fbca04"
 description = "Something isn't working, or a fix is proposed"
@@ -14,26 +19,26 @@ description = "Something isn't working, or a fix is proposed"
 [[profiles.default.labels]]
 name = "🎲 can't reproduce"
 color = "cfd3d7"
-description = "Root cause not from project"
+description = "Bug cannot be replicated, or root cause not from project"
 
 [[profiles.default.labels]]
 name = "🆙 changelog"
 color = "c2e0c6"
-description = "Keep track of changes"
+description = "Affects the changelog"
 
 [[profiles.default.labels]]
 name = "🤖 ci"
-color = "A4A837"
-description = "Continuous integration, tests, automation and management of the project"
+color = "a4a837"
+description = "Continuous integration and automation"
 
 [[profiles.default.labels]]
 name = "📦 dependencies"
-color = "AAA666"
-description = "Dependencies changes"
+color = "aaa666"
+description = "Dependency changes"
 
 [[profiles.default.labels]]
 name = "⚠️ stale dependency"
-color = "E4A12C"
+color = "e4a12c"
 description = "Dependency appears abandoned"
 
 [[profiles.default.labels]]
@@ -49,21 +54,17 @@ description = "This issue or pull request already exists"
 [[profiles.default.labels]]
 name = "✨ enhancement"
 color = "1d76db"
-description = "Improvement or change to an existing feature"
-
-[[profiles.default.labels]]
-name = "🎁 feature request"
-color = "0052cc"
-description = "Not existing yet and need to be implemented"
+description = "New feature or improvement to an existing one"
+rename-from = ["🎁 feature request"]
 
 [[profiles.default.labels]]
 name = "🌱 good first issue"
-color = "B3CD7F"
+color = "b3cd7f"
 description = "A place for newcomers to start contributing"
 
 [[profiles.default.labels]]
 name = "🙏 help wanted"
-color = "C2E0C6"
+color = "c2e0c6"
 description = "I can't do this alone and need contributors"
 
 [[profiles.default.labels]]
@@ -73,7 +74,7 @@ description = "Further information is requested"
 
 [[profiles.default.labels]]
 name = "💣 security"
-color = "F83911"
+color = "f83911"
 description = "Exploit, token leaks, …"
 
 [[profiles.default.labels]]
@@ -102,4 +103,4 @@ description = "A link worth adding to the list"
 [[profiles.awesome.labels]]
 name = "🩹 fix link"
 color = "d4c5f9"
-description = "Existing link need to be updated"
+description = "Existing link needs to be updated"
