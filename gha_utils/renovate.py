@@ -162,6 +162,18 @@ class RenovateCheckResult:
         return "\n".join(lines)
 
 
+def get_dependabot_config_path() -> Path | None:
+    """Get the path to the Dependabot configuration file if it exists.
+
+    :return: Path to the Dependabot config file, or None if not found.
+    """
+    for filename in (".github/dependabot.yaml", ".github/dependabot.yml"):
+        path = Path(filename)
+        if path.exists():
+            return path
+    return None
+
+
 def check_dependabot_config_absent() -> tuple[bool, str]:
     """Check that no Dependabot version updates config file exists.
 
@@ -169,15 +181,15 @@ def check_dependabot_config_absent() -> tuple[bool, str]:
 
     :return: Tuple of (passed, message).
     """
-    for filename in (".github/dependabot.yaml", ".github/dependabot.yml"):
-        if Path(filename).exists():
-            msg = (
-                f"Dependabot config found at {filename}. "
-                "Remove it and migrate to Renovate: "
-                "run `gha-utils init renovate` to get a starter config, "
-                "then use the reusable renovate.yaml workflow."
-            )
-            return False, msg
+    path = get_dependabot_config_path()
+    if path:
+        msg = (
+            f"Dependabot config found at {path}. "
+            "Remove it and migrate to Renovate: "
+            "run `gha-utils init renovate` to get a starter config, "
+            "then use the reusable renovate.yaml workflow."
+        )
+        return False, msg
 
     return True, "Dependabot version updates: disabled (no config file)"
 
@@ -283,18 +295,6 @@ def check_renovate_config_exists() -> tuple[bool, str]:
 
     msg = "renovate.json5 not found. Run `gha-utils init renovate` to create it."
     return False, msg
-
-
-def get_dependabot_config_path() -> Path | None:
-    """Get the path to the Dependabot configuration file if it exists.
-
-    :return: Path to the Dependabot config file, or None if not found.
-    """
-    for filename in (".github/dependabot.yaml", ".github/dependabot.yml"):
-        path = Path(filename)
-        if path.exists():
-            return path
-    return None
 
 
 def collect_check_results(repo: str, sha: str) -> RenovateCheckResult:
