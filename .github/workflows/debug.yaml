@@ -12,6 +12,16 @@ name: 🩺 Debug
     # Run monthly on the 1st at 12:00 UTC to spot silent regressions.
     - cron: "0 12 1 * *"
 
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event.pull_request.number
+      || github.ref
+    }}
+  cancel-in-progress: >-
+    ${{ !startsWith(github.event.head_commit.message,
+      '[changelog] Release') }}
+
 jobs:
 
   project-metadata:
