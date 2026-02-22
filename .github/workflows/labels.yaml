@@ -22,7 +22,7 @@ jobs:
   sync-labels:
     name: Sync labels
     # Restrict job to the main branch pushes and workflow calls only, as this is a project-management task.
-    if: github.event_name == 'push' || github.event_name == 'workflow_call'
+    if: github.event_name == 'push' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
