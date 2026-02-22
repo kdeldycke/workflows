@@ -1538,7 +1538,6 @@ def verify_binary(target: str, binary_path: Path) -> None:
     echo(f"Binary architecture verified for {target}: {binary_path}")
 
 
-
 @gha_utils.command(short_help="Re-lock and revert if only timestamp noise changed")
 @option(
     "--lockfile",
