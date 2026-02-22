@@ -189,13 +189,18 @@ jobs:
       - name: Install Nuitka
         # uv-build is required because Nuitka's --project flag uses the build
         # backend declared in pyproject.toml to extract project configuration.
-        run: uv --no-progress pip install 'nuitka[onefile]==4.0.1' 'uv-build==0.10.2'
+        # Temporarily using factory branch to test uv_build backend support:
+        # https://github.com/Nuitka/Nuitka/issues/3750
+        run: >
+          uv --no-progress pip install
+          'nuitka[onefile] @ https://github.com/Nuitka/Nuitka/archive/factory.zip'
+          'uv-build==0.10.2'
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
         id: build-binary
         continue-on-error: true
-        # --project enables uv_build-aware project discovery (Nuitka 4.0.1+).
+        # --project enables uv_build-aware project discovery.
         # Project-specific Nuitka flags come from [tool.gha-utils]
         # nuitka-extra-args in pyproject.toml, passed via the build matrix.
         run: >
