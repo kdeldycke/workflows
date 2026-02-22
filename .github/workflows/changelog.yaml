@@ -95,7 +95,7 @@ jobs:
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
       - name: Install bump-my-version
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
-        run: uv tool install 'bump-my-version==1.2.6'
+        run: uv tool install 'bump-my-version==1.2.7'
       - name: ${{ matrix.part }} version bump
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         run: bump-my-version bump --verbose ${{ matrix.part }}
@@ -132,7 +132,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Install bump-my-version
-        run: uv tool install 'bump-my-version==1.2.6'
+        run: uv tool install 'bump-my-version==1.2.7'
       # --- Freeze commit: freeze everything to the release version. ---
       - name: Strip dev suffix for release
         # Bump the "dev" part: .dev0 → release (omitted), producing a clean X.Y.Z version.
