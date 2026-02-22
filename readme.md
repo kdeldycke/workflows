@@ -197,6 +197,9 @@ Downstream projects can customize workflow behavior by adding a `[tool.gha-utils
 ```toml
 [tool.gha-utils]
 nuitka = false
+nuitka-extra-args = [
+  "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
+]
 unstable-targets = ["linux-arm64", "windows-arm64"]
 test-plan-file = "./tests/cli-test-plan.yaml"
 timeout = 120
@@ -218,6 +221,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 | Option                       | Type      | Default                                           | Description                                                                                                                                          |
 | :--------------------------- | :-------- | :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `nuitka`                     | bool      | `true`                                            | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries. |
+| `nuitka-extra-args`          | list[str] | `[]`                                              | Extra Nuitka CLI arguments for binary compilation (e.g., `--include-data-files`, `--include-package-data`). Passed via the build matrix.              |
 | `unstable-targets`           | list[str] | `[]`                                              | Nuitka build targets allowed to fail without blocking the release (e.g., `["linux-arm64"]`).                                                         |
 | `test-plan-file`             | str       | `"./tests/cli-test-plan.yaml"`                    | Path to the YAML test plan file for binary testing. Read directly by `test-plan` subcommand; CLI args override.                                      |
 | `timeout`                    | int       | *(none)*                                          | Timeout in seconds for each binary test. Read directly by `test-plan` subcommand; CLI `--timeout` overrides.                                         |

@@ -189,23 +189,13 @@ jobs:
       - name: Build binary
         id: build-binary
         continue-on-error: true
-        # --include-package-data=extra_platforms bundles non-code data files.
-        # extra_platforms also reads .py source files at import time for
-        # docstring extraction, so --include-data-files preserves those too.
-        #
-        # gha_utils/templates/*.md are needed at import time (Click's
-        # Choice() calls get_template_names()). We cannot use
-        # --include-package-data=gha_utils because gha_utils/data/ contains
-        # symlinks to .github/workflows/ that break Nuitka's macOS xattr
-        # step. Instead, we target only the .md templates explicitly.
+        # --project enables uv_build-aware project discovery (Nuitka 4.0.1+).
+        # Project-specific Nuitka flags come from [tool.gha-utils]
+        # nuitka-extra-args in pyproject.toml, passed via the build matrix.
         run: >
           uv --no-progress run --frozen -- nuitka
-          --mode=onefile --assume-yes-for-downloads
-          --include-package-data=extra_platforms
-          --include-data-files=gha_utils/templates/*.md=gha_utils/templates/
-          --include-data-files="$(uv --no-progress run --frozen -- python -c
-          'import extra_platforms;
-          print(extra_platforms.__path__[0])')/*.py=extra_platforms/"
+          --project --mode=onefile --assume-yes-for-downloads
+          ${{ matrix.nuitka_extra_args }}
           --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v6.0.0

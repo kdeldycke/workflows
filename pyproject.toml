@@ -213,6 +213,12 @@ run.branch = true
 run.source = [ "gha_utils" ]
 report.precision = 2
 
+[tool.gha-utils]
+nuitka-extra-args = [
+  "--include-package-data=extra_platforms",
+  "--include-data-files=gha_utils/templates/*.md=gha_utils/templates/",
+]
+
 [tool.bumpversion]
 current_version = "5.11.2.dev0"
 allow_dirty = true

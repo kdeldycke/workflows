@@ -361,6 +361,13 @@ class Config:
     to ``false`` to opt out of Nuitka compilation.
     """
 
+    nuitka_extra_args: list[str] = field(default_factory=list)
+    """Extra Nuitka CLI arguments for binary compilation.
+
+    Project-specific flags (e.g., ``--include-data-files``,
+    ``--include-package-data``) that are passed to the Nuitka build command.
+    """
+
     unstable_targets: list[str] = field(default_factory=list)
     """Nuitka build targets allowed to fail without blocking the release.
 
@@ -1980,6 +1987,10 @@ class Metadata:
             ).format(**variations)
             matrix.add_includes(bin_name_include)
 
+        # Pass project-specific Nuitka flags from [tool.gha-utils] config.
+        nuitka_extra_args = " ".join(self.config["nuitka-extra-args"])
+        matrix.add_includes({"nuitka_extra_args": nuitka_extra_args})
+
         # All jobs are stable by default, unless marked otherwise by specific
         # configuration.
         matrix.add_includes({"state": "stable"})
@@ -2150,7 +2161,10 @@ class Metadata:
         # Exclude unstable-targets (dedicated property with validation logic) and
         # subcommand config fields (read directly by test-plan and deps-graph).
         for f in fields(Config):
-            if f.name != "unstable_targets" and f.name not in SUBCOMMAND_CONFIG_FIELDS:
+            if (
+                f.name not in ("unstable_targets", "nuitka_extra_args")
+                and f.name not in SUBCOMMAND_CONFIG_FIELDS
+            ):
                 config_key = f.name.replace("_", "-")
                 metadata[f.name] = self.config[config_key]
 

@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `nuitka-extra-args` config field to `[tool.gha-utils]` for project-specific Nuitka flags. Remove hard-coded Nuitka includes from the workflow. Fixes downstream repos failing on `gha_utils/templates/*.md` include.
 - Add `🪫 AI slop` label. Merge `🎁 feature request` into `✨ enhancement`. Fix label descriptions and normalize hex color casing.
 
 ## [`5.11.1` (2026-02-21)](https://github.com/kdeldycke/workflows/compare/v5.11.0...v5.11.1)

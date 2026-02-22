@@ -692,6 +692,13 @@ expected = {
                 "callable_id": "main",
                 "module_path": regex(r"gha_utils(/|\\)__main__\.py"),
             },
+            # Nuitka extra args from [tool.gha-utils] config (fixed).
+            {
+                "nuitka_extra_args": (
+                    "--include-package-data=extra_platforms"
+                    " --include-data-files=gha_utils/templates/*.md=gha_utils/templates/"
+                ),
+            },
             # State (fixed).
             {"state": "stable"},
             # At least one commit info entry (varies by commit count).
@@ -1143,6 +1150,37 @@ unstable-targets = ["linux-arm64", "unknown-target"]
     assert metadata.unstable_targets == {"linux-arm64"}
 
 
+def test_nuitka_extra_args_default(tmp_path, monkeypatch):
+    """Test that nuitka-extra-args defaults to an empty list."""
+    monkeypatch.chdir(tmp_path)
+    config = load_gha_utils_config()
+    assert config["nuitka-extra-args"] == []
+
+
+def test_nuitka_extra_args_custom(tmp_path, monkeypatch):
+    """Test that nuitka-extra-args reads custom values from pyproject.toml."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.gha-utils]
+nuitka-extra-args = [
+  "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
+  "--include-package-data=my_pkg",
+]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    assert metadata.config["nuitka-extra-args"] == [
+        "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
+        "--include-package-data=my_pkg",
+    ]
+
+
 def test_load_gha_utils_config_defaults(tmp_path, monkeypatch):
     """Test that load_gha_utils_config returns defaults when no pyproject.toml."""
     monkeypatch.chdir(tmp_path)
@@ -1158,6 +1196,7 @@ def test_load_gha_utils_config_defaults(tmp_path, monkeypatch):
     assert config["test-plan"] is None
     assert config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
     assert config["nuitka"] is True
+    assert config["nuitka-extra-args"] == []
     assert config["extra-label-files"] == []
     assert config["extra-file-rules"] == ""
     assert config["extra-content-rules"] == ""
