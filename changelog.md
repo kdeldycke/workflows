@@ -12,11 +12,17 @@
 
 ## [`5.11.1` (2026-02-21)](https://github.com/kdeldycke/workflows/compare/v5.11.0...v5.11.1)
 
+> [!NOTE]
+> `5.11.1` is available on [🐍 PyPI](https://pypi.org/project/gha-utils/5.11.1/) and [🐙 GitHub](https://github.com/kdeldycke/workflows/releases/tag/v5.11.1).
+
 - Declare `WORKFLOW_UPDATE_GITHUB_PAT` as an optional `workflow_call` secret to fix downstream compatibility.
 - Fix Renovate `postUpgradeTasks` failing to update SHA-256 checksums. Replace containerbase `install-tool uv` with a direct pinned binary download verified by SHA-256.
 - Fix `gha-utils workflow sync` defaulting to `@main` instead of the version tag when run from a released package.
 
 ## [`5.11.0` (2026-02-21)](https://github.com/kdeldycke/workflows/compare/v5.10.4...v5.11.0)
+
+> [!NOTE]
+> `5.11.0` is available on [🐍 PyPI](https://pypi.org/project/gha-utils/5.11.0/) and [🐙 GitHub](https://github.com/kdeldycke/workflows/releases/tag/v5.11.0).
 
 - Add `--no-group`, `--no-extra`, `--only-group`, and `--only-extra` options to `deps-graph` command.
 - Make `gha-utils init bumpversion` idempotent: updates existing `[tool.bumpversion]` configs with dev versioning keys (`parse`, `serialize`, `[parts.dev]`) and bumps `current_version` to `.dev0`.
