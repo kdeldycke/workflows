@@ -90,22 +90,16 @@
       datasourceTemplate: "npm",
     },
     {
-      description: "Update actionlint version in download script.",
+      description: "Update actionlint version in download URL and matcher URL.",
       customType: "regex",
       fileMatch: ["\\.github/workflows/.+\\.yaml$"],
       matchStrings: [
-        // Matches: download-actionlint.bash) 1.7.9
-        "download-actionlint\\.bash\\)\\s+(?<currentValue>[0-9.]+)",
-      ],
-      depNameTemplate: "rhysd/actionlint",
-      datasourceTemplate: "github-releases",
-    },
-    {
-      description: "Update actionlint version in matcher URL.",
-      customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
-      matchStrings: [
-        // Matches: actionlint/refs/tags/v1.7.9/
+        // The download URL contains the version twice:
+        //   actionlint/releases/download/v1.7.10/actionlint_1.7.10_linux_amd64.tar.gz
+        // Both patterns are needed so Renovate updates both occurrences.
+        "actionlint/releases/download/v(?<currentValue>[0-9.]+)/",
+        "actionlint_(?<currentValue>[0-9.]+)_linux",
+        // Matches: actionlint/refs/tags/v1.7.10/
         "actionlint/refs/tags/v(?<currentValue>[0-9.]+)/",
       ],
       depNameTemplate: "rhysd/actionlint",
