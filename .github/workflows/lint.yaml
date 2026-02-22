@@ -124,7 +124,8 @@ jobs:
         run: |
           curl -fsSL --output /tmp/actionlint.tar.gz \
             "https://github.com/rhysd/actionlint/releases/download/v1.7.10/actionlint_1.7.10_linux_amd64.tar.gz"
-          echo "f4c76b71db5755a713e6055cbb0857ed07e103e028bda117817660ebadb4386f  /tmp/actionlint.tar.gz" | sha256sum --check
+          echo "f4c76b71db5755a713e6055cbb0857ed07e103e028bda117817660ebadb4386f  /tmp/actionlint.tar.gz" \
+            | sha256sum --check
           tar xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
           sudo apt update
           sudo apt install --yes shellcheck
