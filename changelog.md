@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Decouple GitHub release creation from binary builds. The release is published immediately after tagging with the Python package only; each binary uploads itself independently as its build completes.
+- Remove `gha-utils collect-artifacts` subcommand. Binary renaming and upload is now handled directly in the `compile-binaries` workflow job.
 - Add `nuitka-extra-args` config field to `[tool.gha-utils]` for project-specific Nuitka flags. Remove hard-coded Nuitka includes from the workflow. Fixes downstream repos failing on `gha_utils/templates/*.md` include.
 - Add `🪫 AI slop` label. Merge `🎁 feature request` into `✨ enhancement`. Fix label descriptions and normalize hex color casing.
 

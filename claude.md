@@ -83,7 +83,7 @@ workflows/
 | ------------------------- | ------------------------------------------------------------------------------ |
 | `__init__.py`             | Package-wide exports                                                           |
 | `__main__.py`             | Entry point for the `gha-utils` CLI                                            |
-| `binary.py`               | Binary verification and artifact collection                                    |
+| `binary.py`               | Binary verification                                                            |
 | `broken_links.py`         | Broken links detection and reporting (Lychee + Sphinx linkcheck)               |
 | `changelog.py`            | Changelog parsing, updating, release lifecycle management, and date linting    |
 | `checksums.py`            | SHA-256 checksum verification and update for binary downloads                  |

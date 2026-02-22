@@ -101,7 +101,6 @@ Commands:
   broken-links       Manage broken links issue lifecycle
   changelog          Maintain a Markdown-formatted changelog
   check-renovate     Check Renovate migration prerequisites
-  collect-artifacts  Collect and rename artifacts for release
   deps-graph         Generate dependency graph from uv lockfile
   git-tag            Create and push a Git tag
   init               Bootstrap a repository to use reusable workflows
@@ -547,6 +546,7 @@ docs = [
 - **Compile binaries** (`compile-binaries`)
 
   - Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
+  - On release pushes, each binary generates an attestation and uploads itself directly to the GitHub release as its build completes — decoupled from `create-release`
   - **Requires**:
     - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
   - **Skipped if** `[tool.gha-utils] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
@@ -583,7 +583,8 @@ docs = [
 
 - **Create release** (`create-release`)
 
-  - Creates a GitHub release with all artifacts attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
+  - Creates a GitHub release with the Python package attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
+  - Binaries are attached independently by each `compile-binaries` matrix entry as they complete
   - **Requires**:
     - Successful `create-tag` job
 

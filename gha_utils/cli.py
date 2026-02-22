@@ -47,8 +47,6 @@ from extra_platforms import ALL_IDS, is_github_ci
 from . import __version__, _dev_version
 from .binary import (
     BINARY_ARCH_MAPPINGS,
-    collect_and_rename_artifacts,
-    format_github_output,
     verify_binary_arch,
 )
 from .broken_links import manage_combined_broken_links_issue
@@ -1539,74 +1537,6 @@ def verify_binary(target: str, binary_path: Path) -> None:
     verify_binary_arch(target, binary_path)
     echo(f"Binary architecture verified for {target}: {binary_path}")
 
-
-@gha_utils.command(short_help="Collect and rename artifacts for release")
-@option(
-    "--download-folder",
-    type=dir_path(exists=True, resolve_path=True),
-    required=True,
-    help="Folder containing downloaded artifacts.",
-)
-@option(
-    "--short-sha",
-    required=True,
-    help="SHA suffix to strip from binary filenames.",
-)
-@option(
-    "--nuitka-matrix",
-    default=None,
-    help="JSON string of the nuitka matrix (to identify binaries).",
-)
-@option(
-    "-o",
-    "--output",
-    type=file_path(writable=True, resolve_path=True, allow_dash=True),
-    default="-",
-    help="Output file path for GITHUB_OUTPUT format. Defaults to stdout.",
-)
-def collect_artifacts(
-    download_folder: Path,
-    short_sha: str,
-    nuitka_matrix: str | None,
-    output: Path,
-) -> None:
-    """Collect artifacts and rename binaries for GitHub release.
-
-    Processes all files in the download folder:
-    - Binaries (identified via nuitka-matrix) are renamed to strip the SHA suffix.
-    - Other artifacts are collected as-is.
-
-    Outputs artifact paths in GITHUB_OUTPUT multiline format.
-
-    \b
-    Examples:
-        # Collect artifacts and write to GITHUB_OUTPUT
-        gha-utils collect-artifacts \\
-            --download-folder ./release_artifact \\
-            --short-sha 346ce66 \\
-            --nuitka-matrix '{"include": [...]}' \\
-            --output "$GITHUB_OUTPUT"
-
-    \b
-        # Preview artifact collection (output to stdout)
-        gha-utils collect-artifacts \\
-            --download-folder ./release_artifact \\
-            --short-sha abc1234
-    """
-    artifacts = collect_and_rename_artifacts(
-        download_folder=download_folder,
-        short_sha=short_sha,
-        nuitka_matrix_json=nuitka_matrix,
-    )
-
-    github_output = format_github_output(artifacts)
-
-    if is_stdout(output):
-        logging.info(f"Print to {sys.stdout.name}")
-    else:
-        logging.info(f"Write to {output}")
-
-    echo(github_output, file=prep_path(output))
 
 
 @gha_utils.command(short_help="Re-lock and revert if only timestamp noise changed")

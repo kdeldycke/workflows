@@ -14,21 +14,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Tests for binary verification and artifact collection."""
+"""Tests for binary verification."""
 
 from __future__ import annotations
 
-import json
-import re
 from unittest.mock import patch
 
 import pytest
 
 from gha_utils.binary import (
     BINARY_ARCH_MAPPINGS,
-    collect_and_rename_artifacts,
-    extract_binary_names,
-    format_github_output,
     verify_binary_arch,
 )
 
@@ -129,157 +124,3 @@ def test_missing_field(tmp_path):
             verify_binary_arch("linux-arm64", binary)
 
 
-def test_empty_string():
-    """Empty string returns empty set."""
-    assert extract_binary_names("") == set()
-
-
-def test_whitespace_only():
-    """Whitespace-only string returns empty set."""
-    assert extract_binary_names("   \n  ") == set()
-
-
-def test_valid_matrix():
-    """Valid nuitka matrix extracts binary names."""
-    matrix = {
-        "include": [
-            {"bin_name": "app-linux-arm64.bin", "target": "linux-arm64"},
-            {"bin_name": "app-windows-x64.exe", "target": "windows-x64"},
-            {"target": "macos-arm64"},  # Missing bin_name.
-        ]
-    }
-    result = extract_binary_names(json.dumps(matrix))
-    assert result == {"app-linux-arm64.bin", "app-windows-x64.exe"}
-
-
-def test_empty_include():
-    """Empty include array returns empty set."""
-    matrix = {"include": []}
-    result = extract_binary_names(json.dumps(matrix))
-    assert result == set()
-
-
-def test_missing_include_key():
-    """Missing include key returns empty set."""
-    matrix = {"other": "data"}
-    result = extract_binary_names(json.dumps(matrix))
-    assert result == set()
-
-
-def test_empty_folder(tmp_path):
-    """Empty folder returns empty list."""
-    result = collect_and_rename_artifacts(tmp_path, "abc1234")
-    assert result == []
-
-
-def test_non_binary_artifacts(tmp_path):
-    """Non-binary artifacts are collected as-is."""
-    (tmp_path / "package.whl").touch()
-    (tmp_path / "package.tar.gz").touch()
-
-    result = collect_and_rename_artifacts(tmp_path, "abc1234")
-    names = {p.name for p in result}
-    assert names == {"package.whl", "package.tar.gz"}
-
-
-def test_binary_rename(tmp_path):
-    """Binaries are renamed to strip SHA suffix."""
-    (tmp_path / "app-linux-arm64-abc1234.bin").touch()
-
-    matrix = {"include": [{"bin_name": "app-linux-arm64-abc1234.bin"}]}
-    result = collect_and_rename_artifacts(tmp_path, "abc1234", json.dumps(matrix))
-
-    assert len(result) == 1
-    assert result[0].name == "app-linux-arm64.bin"
-    assert result[0].exists()
-
-
-def test_mixed_artifacts(tmp_path):
-    """Mixed binaries and packages are handled correctly."""
-    (tmp_path / "app-linux-arm64-abc1234.bin").touch()
-    (tmp_path / "app-windows-x64-abc1234.exe").touch()
-    (tmp_path / "package-abc1234.whl").touch()
-
-    matrix = {
-        "include": [
-            {"bin_name": "app-linux-arm64-abc1234.bin"},
-            {"bin_name": "app-windows-x64-abc1234.exe"},
-        ]
-    }
-    result = collect_and_rename_artifacts(tmp_path, "abc1234", json.dumps(matrix))
-
-    names = {p.name for p in result}
-    assert names == {
-        "app-linux-arm64.bin",
-        "app-windows-x64.exe",
-        "package-abc1234.whl",
-    }
-
-
-def test_target_exists_error(tmp_path):
-    """Raises error if renamed file already exists."""
-    (tmp_path / "app-linux-arm64-abc1234.bin").touch()
-    (tmp_path / "app-linux-arm64.bin").touch()  # Conflict.
-
-    matrix = {"include": [{"bin_name": "app-linux-arm64-abc1234.bin"}]}
-    with pytest.raises(FileExistsError, match="already exists"):
-        collect_and_rename_artifacts(tmp_path, "abc1234", json.dumps(matrix))
-
-
-def test_skips_directories(tmp_path):
-    """Directories are skipped."""
-    (tmp_path / "subdir").mkdir()
-    (tmp_path / "file.txt").touch()
-
-    result = collect_and_rename_artifacts(tmp_path, "abc1234")
-    assert len(result) == 1
-    assert result[0].name == "file.txt"
-
-
-def test_empty_list():
-    """Empty artifact list produces valid output."""
-    result = format_github_output([])
-    assert result.startswith("artifacts_path<<GHA_DELIMITER_")
-    assert result.endswith(result.split("<<")[1].split("\n")[0])
-
-
-def test_single_artifact(tmp_path):
-    """Single artifact path is formatted correctly."""
-    artifact = tmp_path / "app.bin"
-    result = format_github_output([artifact])
-
-    # Check structure.
-    lines = result.split("\n")
-    assert lines[0].startswith("artifacts_path<<GHA_DELIMITER_")
-    assert lines[1] == str(artifact)
-    assert lines[2].startswith("GHA_DELIMITER_")
-
-
-def test_multiple_artifacts(tmp_path):
-    """Multiple artifact paths are formatted correctly."""
-    artifacts = [tmp_path / "app1.bin", tmp_path / "app2.bin", tmp_path / "pkg.whl"]
-    result = format_github_output(artifacts)
-
-    lines = result.split("\n")
-    assert len(lines) == 5  # Header, 3 paths, footer.
-    assert str(artifacts[0]) in lines[1]
-    assert str(artifacts[1]) in lines[2]
-    assert str(artifacts[2]) in lines[3]
-
-
-def test_delimiter_format():
-    """Delimiter follows expected format."""
-    result = format_github_output([])
-    delimiter_match = re.search(r"GHA_DELIMITER_(\d+)", result)
-    assert delimiter_match
-    # Delimiter is 9 digits.
-    assert 10**8 <= int(delimiter_match.group(1)) < 10**9
-
-
-def test_delimiter_uniqueness():
-    """Delimiters vary between calls."""
-    results = {
-        format_github_output([]).split("<<")[1].split("\n")[0] for _ in range(10)
-    }
-    # With random generation, we expect some variation.
-    assert len(results) > 1
