@@ -1,5 +1,5 @@
 ---
-name: Autofix
+name: 🪄 Autofix
 "on":
   workflow_call:
     secrets:

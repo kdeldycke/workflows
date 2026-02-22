@@ -1,6 +1,6 @@
 # Locks closed issues and pull requests after a period of inactivity, to prevent spam and noise.
 ---
-name: Autolock
+name: 🔒 Autolock
 "on":
   workflow_call:
   workflow_dispatch:

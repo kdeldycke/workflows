@@ -1,5 +1,5 @@
 ---
-name: Changelog & versions
+name: 🆙 Changelog & versions
 "on":
   workflow_call:
     secrets:

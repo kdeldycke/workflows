@@ -1,5 +1,5 @@
 ---
-name: Labels
+name: 🏷️ Labels
 "on":
   workflow_call:
   workflow_dispatch:

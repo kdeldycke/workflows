@@ -1,5 +1,5 @@
 ---
-name: Docs
+name: 📚 Docs
 "on":
   workflow_call:
   workflow_dispatch:

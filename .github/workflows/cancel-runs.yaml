@@ -5,7 +5,7 @@
 # pull_request event for workflows using default activity types (opened, synchronize, reopened).
 # This wastes CI resources, especially for long-running jobs like Nuitka binary builds.
 ---
-name: Cancel runs
+name: ✂️ Cancel runs
 "on":
   workflow_call:
   pull_request:
