@@ -15,7 +15,7 @@ name: ✂️ Cancel runs
 jobs:
 
   cancel-runs:
-    name: Cancel PR runs
+    name: ✂️ Cancel PR runs
     if: github.event.pull_request.number
     runs-on: ubuntu-slim
     steps:

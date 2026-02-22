@@ -20,7 +20,7 @@ concurrency:
 jobs:
 
   sync-labels:
-    name: Sync labels
+    name: 🔄 Sync labels
     # Restrict job to the main branch pushes and workflow calls only, as this is a project-management task.
     if: github.event_name == 'push' || github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-slim
@@ -60,7 +60,7 @@ jobs:
           done
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
@@ -74,7 +74,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   file-labeller:
-    name: File-based PR labeller
+    name: 📁 File-based PR labeller
     needs:
       - project-metadata
     if: >
@@ -92,7 +92,7 @@ jobs:
           configuration-path: ".github/labeller-file-based.yaml"
 
   content-labeller:
-    name: Content-based labeller
+    name: 📝 Content-based labeller
     needs:
       - project-metadata
     if: >
@@ -112,7 +112,7 @@ jobs:
           include-title: 1
 
   sponsor-labeller:
-    name: Tag sponsors
+    name: 💝 Tag sponsors
     needs:
       - project-metadata
     if: >

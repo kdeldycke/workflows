@@ -24,7 +24,7 @@ concurrency:
 jobs:
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
@@ -36,7 +36,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   sync-bundled-config:
-    name: Sync bundled renovate.json5
+    name: 📦 Sync bundled renovate.json5
     # Only runs in the workflows repo where the bundled config lives.
     # Uses `uv run` (not `uvx --from .`) because the source checkout is always
     # available here. These invocations are intentionally outside the
@@ -66,7 +66,7 @@ jobs:
           branch: sync-renovate
 
   migrate-to-renovate:
-    name: Migrate to Renovate
+    name: 🚚 Migrate to Renovate
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -96,7 +96,7 @@ jobs:
           branch: migrate-to-renovate
 
   renovate:
-    name: Renovate
+    name: 🔄 Renovate
     # Cannot use "ubuntu-slim" here because renovatebot/github-action relies on Docker.
     runs-on: ubuntu-24.04
     steps:
@@ -157,7 +157,7 @@ jobs:
           RENOVATE_HOST_RULES: '[{"hostType": "python-version", "abortOnError": false}]'
 
   sync-uv-lock:
-    name: Sync uv.lock
+    name: 🔒 Sync uv.lock
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)

@@ -15,7 +15,7 @@ concurrency:
 jobs:
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
@@ -35,6 +35,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   lint-repo:
+    name: 🏠 Lint repo
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
@@ -48,6 +49,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils lint-repo
 
   lint-types:
+    name: 🔤 Lint types
     needs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
@@ -68,6 +70,7 @@ jobs:
           ${{ needs.project-metadata.outputs.python_files }}
 
   lint-yaml:
+    name: 📄 Lint YAML
     needs:
       - project-metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
@@ -87,6 +90,7 @@ jobs:
           --config-data "{rules: {line-length: {max: 120, allow-non-breakable-words: true}}}" .
 
   lint-zsh:
+    name: 🐚 Lint Zsh
     needs:
       - project-metadata
     # Skip linting on prepare-release branch and bots PRs because they do not alter Zsh files.
@@ -105,6 +109,7 @@ jobs:
         run: for file in ${{ needs.project-metadata.outputs.zsh_files }}; do zsh --no-exec "$file"; done
 
   lint-github-actions:
+    name: ⚡ Lint GitHub Actions
     needs:
       - project-metadata
     # Skip linting on prepare-release branch and dependency update PRs because they do not heavily alter GitHub Actions.
@@ -142,6 +147,7 @@ jobs:
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
 
   lint-awesome:
+    name: 🌟 Lint awesome
     # Lint only "awesome-*" repositories except "awesome-template".
     # Skip linting on prepare-release branch to align the condition with other jobs, even if it does not really matter
     # here as "awesome-*" repositories don't trigger the release workflow.
@@ -163,6 +169,7 @@ jobs:
         run: npx awesome-lint
 
   lint-secrets:
+    name: 🔐 Lint secrets
     needs:
       - project-metadata
     # Skip secret checks on prepare-release branch and dependency update PRs.

@@ -14,7 +14,7 @@ concurrency:
 jobs:
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
@@ -28,7 +28,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   deploy-docs:
-    name: Deploy Sphinx doc
+    name: 📖 Deploy Sphinx doc
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)

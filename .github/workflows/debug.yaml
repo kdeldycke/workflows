@@ -15,7 +15,7 @@ name: 🐛 Debug
 jobs:
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
       build_targets: ${{ steps.extend-matrix.outputs.targets }}
@@ -32,7 +32,7 @@ jobs:
           echo "targets=$targets" >> "$GITHUB_OUTPUT"
 
   dump-context:
-    name: ${{ matrix.os }} info dump
+    name: 🐛 ${{ matrix.os }} info dump
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets

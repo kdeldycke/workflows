@@ -17,7 +17,7 @@ concurrency:
 jobs:
 
   setup-guide:
-    name: Setup guide
+    name: 📖 Setup guide
     # Only run on push to the default branch, not on workflow_call from downstream.
     # Skip on the upstream repo itself (it already has the secret).
     if: github.event_name == 'push' && github.repository != 'kdeldycke/workflows'
@@ -35,7 +35,7 @@ jobs:
           ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && '--has-pat' || '' }}
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
       gitignore_exists: ${{ steps.project-metadata.outputs.gitignore_exists }}
@@ -58,7 +58,7 @@ jobs:
   # --- Formatters: rewrite files to enforce canonical style. ---
 
   format-python:
-    name: Format Python
+    name: 🐍 Format Python
     needs:
       - project-metadata
     # Ruff can format code in both Python and Markdown files.
@@ -104,7 +104,7 @@ jobs:
           branch: format-python
 
   format-pyproject:
-    name: Format pyproject.toml
+    name: 📐 Format pyproject.toml
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
@@ -134,7 +134,7 @@ jobs:
           branch: format-pyproject
 
   format-markdown:
-    name: Format Markdown
+    name: ✍️ Format Markdown
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.markdown_files
@@ -203,7 +203,7 @@ jobs:
           branch: format-markdown
 
   format-json:
-    name: Format JSON
+    name: 🔧 Format JSON
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.json_files
@@ -244,7 +244,7 @@ jobs:
   # --- Fixers: correct or improve existing content in-place. ---
 
   fix-typos:
-    name: Fix typos
+    name: ✏️ Fix typos
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -282,7 +282,7 @@ jobs:
           See https://github.com/kdeldycke/workflows#solution-fine-grained-personal-access-token"' }}
 
   lint-changelog:
-    name: Lint changelog
+    name: 📋 Lint changelog
     needs:
       - project-metadata
     # Skip during release cycle: the release pipeline hasn't published to PyPI/GitHub yet,
@@ -311,7 +311,7 @@ jobs:
           branch: lint-changelog
 
   optimize-images:
-    name: Optimize images
+    name: 🖼️ Optimize images
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.image_files
@@ -340,7 +340,7 @@ jobs:
   # --- Syncers: regenerate files from external sources or project state. ---
 
   update-gitignore:
-    name: Update .gitignore
+    name: 🙈 Update .gitignore
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
@@ -365,7 +365,7 @@ jobs:
           branch: update-gitignore
 
   sync-bumpversion:
-    name: Sync bumpversion config
+    name: 🔄 Sync bumpversion config
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -387,7 +387,7 @@ jobs:
           branch: sync-bumpversion
 
   update-mailmap:
-    name: Update .mailmap
+    name: 📬 Update .mailmap
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.mailmap_exists)
@@ -415,7 +415,7 @@ jobs:
           branch: update-mailmap
 
   update-deps-graph:
-    name: Update dependency graph
+    name: 📊 Update dependency graph
     needs:
       - project-metadata
     # Only update dependency graph on release to avoid noise from transitive dependency changes.
@@ -444,7 +444,7 @@ jobs:
           branch: update-deps-graph
 
   update-docs:
-    name: Update docs
+    name: 📚 Update docs
     needs:
       - project-metadata
     if: >
@@ -479,7 +479,7 @@ jobs:
           branch: update-docs
 
   sync-workflows:
-    name: Sync workflows
+    name: 🔗 Sync workflows
     if: github.repository != 'kdeldycke/workflows'
     runs-on: ubuntu-slim
     steps:
@@ -512,7 +512,7 @@ jobs:
           See https://github.com/kdeldycke/workflows#solution-fine-grained-personal-access-token"' }}
 
   sync-awesome-template:
-    name: Sync awesome template
+    name: 🌟 Sync awesome template
     if: >
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'

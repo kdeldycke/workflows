@@ -40,7 +40,7 @@ concurrency:
 jobs:
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     # Run on schedule, manual dispatch, push, or after release workflow completes successfully.
     # Push events keep bump-version PRs conflict-free by recreating them on every main change.
     if: >
@@ -69,6 +69,7 @@ jobs:
         run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
 
   bump-versions:
+    name: 🆙 Bump versions
     needs:
       - project-metadata
     # Always run since project-metadata already filters appropriate events.
@@ -122,6 +123,7 @@ jobs:
           draft: always-true
 
   prepare-release:
+    name: 🎁 Prepare release
     # Skip schedule (exists for bump-versions only) and workflow_run (would double-run
     # on every push to main, since push already triggers this job directly).
     if: github.event_name != 'schedule' && github.event_name != 'workflow_run'

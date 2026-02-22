@@ -110,7 +110,7 @@ jobs:
         run: uv run --frozen --no-progress -- gha-utils test-plan --command "uv run -- gha-utils"
 
   project-metadata:
-    name: Project metadata
+    name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
@@ -125,7 +125,7 @@ jobs:
     # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on
     # emulation to run the build. See:
     # https://docs.astral.sh/uv/concepts/python-versions/#transparent-x86_64-emulation-on-aarch64
-    name: Validate ${{ matrix.os }} / ${{ matrix.arch }}
+    name: 🖥️ Validate ${{ matrix.os }} / ${{ matrix.arch }}
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets

@@ -1,5 +1,5 @@
 ---
-name: 🏗️ Build & release
+name: 🚀 Build & release
 # Read https://github.com/actions/runner/issues/491 for insights on complex workflow execution logic.
 "on":
   workflow_call:
@@ -49,7 +49,7 @@ concurrency:
 jobs:
 
   detect-squash-merge:
-    name: 🧯 Detect squash merge of release PR
+    name: 🧯 No squash on release
     # A rebase merge produces commits starting with "[changelog] Release v" and
     # "[changelog] Post-release bump v". A squash merge uses the PR title instead:
     # "Release `vX.Y.Z` (#NNN)". Detect the squash pattern, open an issue, and
@@ -98,7 +98,7 @@ jobs:
           exit 1
 
   project-metadata:
-    name: 📋 Project metadata
+    name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
       # There's a design issue with GitHub actions: matrix outputs are not cumulative. The last job wins
@@ -286,7 +286,7 @@ jobs:
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
 
   create-tag:
-    name: 🏷️ Tag release
+    name: 📌 Tag release
     needs:
       - project-metadata
     # Only consider pushes to main branch as triggers for releases.
