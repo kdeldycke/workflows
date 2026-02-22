@@ -123,7 +123,7 @@ jobs:
           draft: always-true
 
   prepare-release:
-    name: 🎁 Prepare release
+    name: 🎬 Prepare release
     # Skip schedule (exists for bump-versions only) and workflow_run (would double-run
     # on every push to main, since push already triggers this job directly).
     if: github.event_name != 'schedule' && github.event_name != 'workflow_run'

@@ -415,7 +415,7 @@ jobs:
           branch: update-mailmap
 
   update-deps-graph:
-    name: 📊 Update dependency graph
+    name: 🕸️ Update dependency graph
     needs:
       - project-metadata
     # Only update dependency graph on release to avoid noise from transitive dependency changes.
@@ -479,7 +479,7 @@ jobs:
           branch: update-docs
 
   sync-workflows:
-    name: 🔗 Sync workflows
+    name: 🪢 Sync workflows
     if: github.repository != 'kdeldycke/workflows'
     runs-on: ubuntu-slim
     steps:

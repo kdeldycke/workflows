@@ -53,6 +53,7 @@ jobs:
           force_orphan: true
 
   check-broken-links:
+    name: 💔 Check broken links
     needs:
       - project-metadata
     # Skip all PRs as we won't have permissions to create issues.

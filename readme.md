@@ -233,11 +233,11 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 | `extra-file-rules`           | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                     |
 | `extra-content-rules`        | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |
 
-### [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
+### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 
 *Setup* — guide new users through initial configuration:
 
-- **Setup guide** (`setup-guide`)
+- 📖 **Setup guide** (`setup-guide`)
 
   - Detects missing `WORKFLOW_UPDATE_GITHUB_PAT` secret and opens an issue with step-by-step setup instructions
   - Automatically closes the issue once the secret is configured
@@ -245,26 +245,26 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
 *Formatters* — rewrite files to enforce canonical style:
 
-- **Format Python** (`format-python`)
+- 🐍 **Format Python** (`format-python`)
 
   - Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8) and [`ruff`](https://github.com/astral-sh/ruff)
   - **Requires**:
     - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository, or
     - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`)
 
-- **Format `pyproject.toml`** (`format-pyproject`)
+- 📐 **Format `pyproject.toml`** (`format-pyproject`)
 
   - Auto-formats `pyproject.toml` using [`pyproject-fmt`](https://github.com/tox-dev/pyproject-fmt)
   - **Requires**:
     - Python package with a `pyproject.toml` file
 
-- **Format Markdown** (`format-markdown`)
+- ✍️ **Format Markdown** (`format-markdown`)
 
   - Auto-formats Markdown files using [`mdformat`](https://github.com/hukkin/mdformat)
   - **Requires**:
     - Markdown files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}`) in the repository
 
-- **Format JSON** (`format-json`)
+- 🔧 **Format JSON** (`format-json`)
 
   - Auto-formats JSON, JSONC, and JSON5 files using [Biome](https://github.com/biomejs/biome)
   - **Requires**:
@@ -272,15 +272,15 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
 *Fixers* — correct or improve existing content in-place:
 
-- **Fix typos** (`fix-typos`)
+- ✏️ **Fix typos** (`fix-typos`)
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
-- **Lint changelog** (`lint-changelog`)
+- 📋 **Lint changelog** (`lint-changelog`)
 
   - Checks and fixes changelog dates and admonitions using [`gha-utils lint-changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
 
-- **Optimize images** (`optimize-images`)
+- 🖼️ **Optimize images** (`optimize-images`)
 
   - Compresses images in the repository using [`image-actions`](https://github.com/calibreapp/image-actions)
   - **Requires**:
@@ -288,37 +288,37 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
 *Syncers* — regenerate files from external sources or project state:
 
-- **Update .gitignore** (`update-gitignore`)
+- 🙈 **Update .gitignore** (`update-gitignore`)
 
   - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`gha-utils update-gitignore`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
   - **Requires**:
     - A `.gitignore` file in the repository
 
-- **Sync bumpversion config** (`sync-bumpversion`)
+- 🔄 **Sync bumpversion config** (`sync-bumpversion`)
 
   - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/init_project.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
 
-- **Sync workflows** (`sync-workflows`)
+- 🪢 **Sync workflows** (`sync-workflows`)
 
   - Syncs thin-caller workflow files from the upstream [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) repository using [`gha-utils workflow sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/workflow_sync.py)
   - **Skipped if**:
     - Repository is [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) itself (the upstream source)
 
-- **Update `.mailmap`** (`update-mailmap`)
+- 📬 **Update `.mailmap`** (`update-mailmap`)
 
   - Keeps `.mailmap` file up to date with contributors using [`gha-utils mailmap-sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/mailmap.py)
   - **Requires**:
     - A `.mailmap` file in the repository root
 
-- **Update dependency graph** (`update-deps-graph`)
+- 🕸️ **Update dependency graph** (`update-deps-graph`)
 
   - Generates a Mermaid dependency graph of the Python project using [`gha-utils deps-graph`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/deps_graph.py)
   - **Requires**:
     - Python package with a `uv.lock` file
 
-- **Update docs** (`update-docs`)
+- 📚 **Update docs** (`update-docs`)
 
   - Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
   - Runs `docs/docs_update.py` if present to generate dynamic content (tables, diagrams, Sphinx directives)
@@ -327,22 +327,22 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
     - `docs` dependency group
     - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
 
-- **Sync awesome template** (`sync-awesome-template`)
+- 🌟 **Sync awesome template** (`sync-awesome-template`)
 
   - Syncs awesome list projects from the [`awesome-template`](https://github.com/kdeldycke/awesome-template) repository using [`actions-template-sync`](https://github.com/AndreasAugustin/actions-template-sync)
   - **Requires**:
     - Repository name starts with `awesome-`
     - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
 
-### [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml)
+### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autolock.yaml)
 
-- **Lock inactive threads** (`lock`)
+- 🔒 **Lock inactive threads** (`lock`)
 
   - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
 
-### [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/debug.yaml)
+### 🩺 [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/debug.yaml)
 
-- **Dump context** (`dump-context`)
+- 🩺 **Dump context** (`dump-context`)
 
   - Dumps GitHub Actions context and runner environment info across all build targets using [`ghaction-dump-context`](https://github.com/crazy-max/ghaction-dump-context)
   - Useful for debugging runner differences and CI environment issues
@@ -352,17 +352,17 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
     - Manual dispatch
     - `workflow_call` from downstream repositories
 
-### [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/cancel-runs.yaml)
+### ✂️ [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/cancel-runs.yaml)
 
-- **Cancel PR runs** (`cancel-runs`)
+- ✂️ **Cancel PR runs** (`cancel-runs`)
 
   - Cancels all in-progress and queued workflow runs for a PR's branch when the PR is closed
   - Prevents wasted CI resources from long-running jobs (e.g. Nuitka binary builds) that continue after a PR is closed
   - GitHub Actions does not natively cancel runs on PR close — the `concurrency` mechanism only triggers cancellation when a *new* run enters the same group
 
-### [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml)
+### 🆙 [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/changelog.yaml)
 
-- **Bump versions** (`bump-versions`)
+- 🆙 **Bump versions** (`bump-versions`)
 
   - Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
   - Syncs `uv.lock` to include the new version in the same commit
@@ -375,7 +375,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
     - Manual dispatch
     - After `release.yaml` workflow completes successfully (via `workflow_run` trigger, to ensure tags exist before checking bump eligibility). Checks out the latest `main` HEAD, not the triggering workflow's commit.
 
-- **Prepare release** (`prepare-release`)
+- 🎬 **Prepare release** (`prepare-release`)
 
   - Creates a release PR with two commits: a **freeze commit** that freezes everything to the release version, and an **unfreeze commit** that reverts to development references and bumps the patch version
   - Uses [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`gha-utils changelog`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/changelog.py)
@@ -388,7 +388,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
     - Manual dispatch
     - `workflow_call` from downstream repositories
 
-### [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml)
+### 📚 [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/docs.yaml)
 
 These jobs require a `docs` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml` so they can determine the right Sphinx version to install and its dependencies:
 
@@ -402,7 +402,7 @@ docs = [
 ]
 ```
 
-- **Deploy Sphinx doc** (`deploy-docs`)
+- 📖 **Deploy Sphinx doc** (`deploy-docs`)
 
   - Builds Sphinx-based documentation and publishes it to GitHub Pages using [`sphinx`](https://github.com/sphinx-doc/sphinx) and [`gh-pages`](https://github.com/peaceiris/actions-gh-pages)
   - **Requires**:
@@ -410,7 +410,7 @@ docs = [
     - `docs` dependency group
     - Sphinx configuration file at `docs/conf.py`
 
-- **Sphinx linkcheck** (`check-sphinx-links`)
+- 🔗 **Sphinx linkcheck** (`check-sphinx-links`)
 
   - Runs Sphinx's built-in [`linkcheck`](https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.linkcheck.CheckExternalLinksBuilder) builder to detect broken auto-generated links (intersphinx, autodoc, type annotations) that Lychee cannot see
   - Creates/updates issues for broken documentation links found
@@ -423,7 +423,7 @@ docs = [
     - `prepare-release` branch
     - Post-release version bump commits
 
-- **Check broken links** (`check-broken-links`)
+- 💔 **Check broken links** (`check-broken-links`)
 
   - Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
   - Creates/updates issues for broken links found
@@ -434,45 +434,45 @@ docs = [
     - `prepare-release` branch
     - Post-release bump commits
 
-### [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labels.yaml)
+### 🏷️ [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/labels.yaml)
 
-- **Sync labels** (`sync-labels`)
+- 🔄 **Sync labels** (`sync-labels`)
 
   - Synchronizes repository labels using [`labelmaker`](https://github.com/jwodder/labelmaker)
   - Uses [`labels.toml`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/data/labels.toml) with multiple profiles:
     - `default` profile applied to all repositories
     - `awesome` profile additionally applied to `awesome-*` repositories
 
-- **File-based PR labeller** (`file-labeller`)
+- 📁 **File-based PR labeller** (`file-labeller`)
 
   - Automatically labels PRs based on changed file paths using [`labeler`](https://github.com/actions/labeler)
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs
 
-- **Content-based labeller** (`content-labeller`)
+- 📝 **Content-based labeller** (`content-labeller`)
 
   - Automatically labels issues and PRs based on title and body content using [`issue-labeler`](https://github.com/github/issue-labeler)
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs
 
-- **Tag sponsors** (`sponsor-labeller`)
+- 💝 **Tag sponsors** (`sponsor-labeller`)
 
   - Adds a `💖 sponsors` label to issues and PRs from sponsors using the GitHub GraphQL API
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs
 
-### [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml)
+### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/lint.yaml)
 
-- **Lint repository metadata** (`lint-repo`)
+- 🏠 **Lint repository metadata** (`lint-repo`)
 
   - Validates repository metadata (package name, Sphinx docs, project description) using [`gha-utils lint-repo`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py). Reads `pyproject.toml` directly.
   - **Requires**:
     - Python package (with a `pyproject.toml` file)
 
-- **Lint types** (`lint-types`)
+- 🔤 **Lint types** (`lint-types`)
 
   - Type-checks Python code using [`mypy`](https://github.com/python/mypy)
   - **Requires**:
@@ -480,7 +480,7 @@ docs = [
   - **Skipped for**:
     - `prepare-release` branch
 
-- **Lint YAML** (`lint-yaml`)
+- 📄 **Lint YAML** (`lint-yaml`)
 
   - Lints YAML files using [`yamllint`](https://github.com/adrienverge/yamllint)
   - **Requires**:
@@ -489,7 +489,7 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
-- **Lint Zsh** (`lint-zsh`)
+- 🐚 **Lint Zsh** (`lint-zsh`)
 
   - Syntax-checks Zsh scripts using `zsh --no-exec`
   - **Requires**:
@@ -498,7 +498,7 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
-- **Lint GitHub Actions** (`lint-github-actions`)
+- ⚡ **Lint GitHub Actions** (`lint-github-actions`)
 
   - Lints workflow files using [`actionlint`](https://github.com/rhysd/actionlint) and [`shellcheck`](https://github.com/koalaman/shellcheck)
   - **Requires**:
@@ -507,7 +507,7 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
-- **Lint Awesome list** (`lint-awesome`)
+- 🌟 **Lint Awesome list** (`lint-awesome`)
 
   - Lints awesome lists using [`awesome-lint`](https://github.com/sindresorhus/awesome-lint)
   - **Requires**:
@@ -516,20 +516,20 @@ docs = [
   - **Skipped for**:
     - `prepare-release` branch
 
-- **Lint secrets** (`lint-secrets`)
+- 🔐 **Lint secrets** (`lint-secrets`)
 
   - Scans for leaked secrets using [`gitleaks`](https://github.com/gitleaks/gitleaks)
   - **Skipped for**:
     - `prepare-release` branch
     - Bot-created PRs
 
-### [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml)
+### 🚀 [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/release.yaml)
 
 [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist) that nobody wants to deal with. This workflow automates most of it for Python projects.
 
 **Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms. Job names are prefixed with ✅ (stable, must pass) or ⁉️ (unstable, allowed to fail) for quick visual triage in the GitHub Actions UI.
 
-- **Detect squash merge** (`detect-squash-merge`)
+- 🧯 **Detect squash merge** (`detect-squash-merge`)
 
   - Detects squash-merged release PRs, opens a GitHub issue to notify the maintainer, and fails the workflow
   - The release is effectively skipped: `create-tag` only matches commits with the `[changelog] Release v` prefix, so no tag, PyPI publish, or GitHub release is created from a squash merge
@@ -537,13 +537,13 @@ docs = [
   - **Runs on**:
     - Push to `main` only
 
-- **Build package** (`build-package`)
+- 📦 **Build package** (`build-package`)
 
   - Builds Python wheel and sdist packages using [`uv build`](https://github.com/astral-sh/uv)
   - **Requires**:
     - Python package with a `pyproject.toml` file
 
-- **Compile binaries** (`compile-binaries`)
+- ✅ **Compile binaries** (`compile-binaries`)
 
   - Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
   - On release pushes, each binary generates an attestation and uploads itself directly to the GitHub release as its build completes — decoupled from `create-release`
@@ -558,7 +558,7 @@ docs = [
     - `optimize-images` (image optimization)
     - `update-deps-graph` (dependency graph docs)
 
-- **Test binaries** (`test-binaries`)
+- ✅ **Test binaries** (`test-binaries`)
 
   - Runs test plans against compiled binaries using [`gha-utils test-plan`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/test_plan.py)
   - **Requires**:
@@ -567,36 +567,36 @@ docs = [
   - **Skipped for**:
     - Same branches as `compile-binaries`
 
-- **Create tag** (`create-tag`)
+- 📌 **Create tag** (`create-tag`)
 
   - Creates a Git tag for the release version
   - **Requires**:
     - Push to `main` branch
     - Release commits matrix from [`gha-utils metadata`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/metadata.py)
 
-- **Publish to PyPI** (`publish-pypi`)
+- 🐍 **Publish to PyPI** (`publish-pypi`)
 
   - Uploads packages to PyPI with attestations using [`uv publish`](https://github.com/astral-sh/uv)
   - **Requires**:
     - `PYPI_TOKEN` secret
     - Built packages from `build-package` job
 
-- **Create release** (`create-release`)
+- 🐙 **Create release** (`create-release`)
 
   - Creates a GitHub release with the Python package attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
   - Binaries are attached independently by each `compile-binaries` matrix entry as they complete
   - **Requires**:
     - Successful `create-tag` job
 
-### [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
+### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/renovate.yaml)
 
-- **Sync bundled config** (`sync-bundled-config`)
+- 🔄 **Sync bundled config** (`sync-bundled-config`)
 
   - Keeps the bundled `gha_utils/data/renovate.json5` in sync with the root `renovate.json5`
   - **Only runs in**:
     - The `kdeldycke/workflows` repository
 
-- **Migrate to Renovate** (`migrate-to-renovate`)
+- 🚚 **Migrate to Renovate** (`migrate-to-renovate`)
 
   - Automatically migrates from Dependabot to Renovate by creating a PR that:
     - Exports `renovate.json5` configuration file (if missing)
@@ -609,7 +609,7 @@ docs = [
   - **Skipped if**:
     - No changes needed (`renovate.json5` already exists and no Dependabot config is present)
 
-- **Renovate** (`renovate`)
+- 🆕 **Renovate** (`renovate`)
 
   - Validates prerequisites before running (fails if not met):
     - `renovate.json5` configuration exists
@@ -621,7 +621,7 @@ docs = [
   - **Requires**:
     - `WORKFLOW_UPDATE_GITHUB_PAT` secret with Dependabot alerts permission
 
-- **Sync `uv.lock`** (`sync-uv-lock`)
+- ⛓️ **Sync `uv.lock`** (`sync-uv-lock`)
 
   - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`gha-utils sync-uv-lock`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/renovate.py)
   - Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
@@ -629,7 +629,7 @@ docs = [
   - **Requires**:
     - Python package with a `pyproject.toml` file
 
-### What is this `project-metadata` job?
+### 🧬 What is this `project-metadata` job?
 
 Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extract contextual information, reconcile and combine it, and expose it for downstream jobs to consume.
 

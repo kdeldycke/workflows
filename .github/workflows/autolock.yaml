@@ -11,6 +11,7 @@ name: 🔒 Autolock
 jobs:
 
   lock:
+    name: 🔒 Lock inactive threads
     runs-on: ubuntu-slim
     steps:
       - uses: dessant/lock-threads@v6.0.0

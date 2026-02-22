@@ -1,5 +1,5 @@
 ---
-name: 🐛 Debug
+name: 🩺 Debug
 "on":
   push:
     branches:
@@ -32,7 +32,7 @@ jobs:
           echo "targets=$targets" >> "$GITHUB_OUTPUT"
 
   dump-context:
-    name: 🐛 ${{ matrix.os }} info dump
+    name: 🩺 ${{ matrix.os }} info dump
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.build_targets
