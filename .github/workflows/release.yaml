@@ -187,25 +187,17 @@ jobs:
       - name: Setup venv
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
-        # uv-build is required because Nuitka's --project flag uses the build
-        # backend declared in pyproject.toml to extract project configuration.
-        # Temporarily using factory branch to test uv_build backend support:
-        # https://github.com/Nuitka/Nuitka/issues/3750
-        run: >
-          uv --no-progress pip install
-          'nuitka[onefile] @ https://github.com/Nuitka/Nuitka/archive/factory.zip'
-          'uv-build==0.10.2'
+        run: uv --no-progress pip install 'nuitka[onefile]==2.8.10'
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
         id: build-binary
         continue-on-error: true
-        # --project enables uv_build-aware project discovery.
         # Project-specific Nuitka flags come from [tool.gha-utils]
         # nuitka-extra-args in pyproject.toml, passed via the build matrix.
         run: >
           uv --no-progress run --frozen -- nuitka
-          --project --mode=onefile --assume-yes-for-downloads
+          --onefile --assume-yes-for-downloads
           ${{ matrix.nuitka_extra_args }}
           --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
       - name: Upload Nuitka crash report
