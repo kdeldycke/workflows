@@ -1,9 +1,6 @@
 # Changelog
 
-## [`5.12.0.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.11.1...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`5.12.0` (2026-02-22)](https://github.com/kdeldycke/workflows/compare/v5.11.1...v5.12.0)
 
 - Decouple GitHub release creation from binary builds. The release is published immediately after tagging with the Python package only; each binary uploads itself independently as its build completes.
 - Remove `gha-utils collect-artifacts` subcommand. Binary renaming and upload is now handled directly in the `compile-binaries` workflow job.
