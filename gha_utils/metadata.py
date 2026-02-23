@@ -376,6 +376,21 @@ class Config:
     release workflow from succeeding.
     """
 
+    workflow_sync: bool = True
+    """Whether workflow sync is enabled for this project.
+
+    Projects that manage their own workflow files and do not want the autofix job
+    to sync thin callers or headers can set this to ``false``.
+    """
+
+    workflow_sync_exclude: list[str] = field(default_factory=list)
+    """Workflow filenames to exclude from ``workflow sync`` and ``workflow create``.
+
+    Each entry is a workflow filename (e.g., ``"debug.yaml"``) that will be skipped
+    when syncing or creating workflow files without explicit positional arguments.
+    Explicit CLI positional arguments override this list.
+    """
+
     test_plan_file: str = "./tests/cli-test-plan.yaml"
     """Path to the YAML test plan file for binary testing.
 
@@ -447,16 +462,18 @@ class Config:
 
 
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
-    "test_plan_file",
-    "timeout",
-    "test_plan",
     "dependency_graph_output",
-    "extra_label_files",
-    "extra_file_rules",
     "extra_content_rules",
-    "gitignore_location",
+    "extra_file_rules",
+    "extra_label_files",
     "gitignore_extra_categories",
     "gitignore_extra_content",
+    "gitignore_location",
+    "test_plan",
+    "test_plan_file",
+    "timeout",
+    "workflow_sync",
+    "workflow_sync_exclude",
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.
 

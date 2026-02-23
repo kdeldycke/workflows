@@ -215,6 +215,8 @@ dependency-graph-output = "./docs/assets/dependencies.mmd"
 extra-label-files = ["https://example.com/my-labels.toml"]
 extra-file-rules = "docs:\n  - docs/**"
 extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
+workflow-sync = false
+workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 ```
 
 | Option                       | Type      | Default                                           | Description                                                                                                                                          |
@@ -232,6 +234,8 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 | `extra-label-files`          | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                       |
 | `extra-file-rules`           | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                     |
 | `extra-content-rules`        | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |
+| `workflow-sync`              | bool      | `true`                                            | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                              |
+| `workflow-sync-exclude`      | list[str] | `[]`                                              | Workflow filenames to exclude from sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                       |
 
 ### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/autofix.yaml)
 

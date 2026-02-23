@@ -23,6 +23,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from gha_utils.cli import _apply_workflow_config
 from gha_utils.github import AnnotationLevel
 from gha_utils.github.workflow_sync import (
     ALL_WORKFLOW_FILES,
@@ -773,5 +774,140 @@ def test_header_only_defaults_to_non_reusable(tmp_path: Path) -> None:
     for filename in NON_REUSABLE_WORKFLOWS:
         content = (tmp_path / filename).read_text(encoding="UTF-8")
         assert "concurrency:" in content
+
+
+# ---------------------------------------------------------------------------
+# Config filtering tests (_apply_workflow_config)
+# ---------------------------------------------------------------------------
+
+
+def test_apply_config_explicit_names_bypass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Explicit CLI args bypass config filtering entirely."""
+    pyproject_content = """\
+[tool.gha-utils]
+workflow-sync = false
+workflow-sync-exclude = ["lint.yaml"]
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    result = _apply_workflow_config(
+        ("lint.yaml", "release.yaml"), WorkflowFormat.THIN_CALLER
+    )
+    assert result == ("lint.yaml", "release.yaml")
+
+
+def test_apply_config_no_explicit_names_no_config(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Without config, returns format-specific defaults."""
+    monkeypatch.chdir(tmp_path)
+
+    result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    assert result == REUSABLE_WORKFLOWS
+
+    result = _apply_workflow_config((), WorkflowFormat.HEADER_ONLY)
+    assert result == tuple(sorted(NON_REUSABLE_WORKFLOWS))
+
+
+def test_apply_config_global_toggle_off(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Returns None when workflow-sync is false and no explicit args."""
+    pyproject_content = """\
+[tool.gha-utils]
+workflow-sync = false
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    assert result is None
+
+
+def test_apply_config_excludes_thin_caller(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exclude list removes workflows from thin-caller defaults."""
+    pyproject_content = """\
+[tool.gha-utils]
+workflow-sync-exclude = ["debug.yaml"]
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    assert result is not None
+    assert "debug.yaml" not in result
+    # Other reusable workflows are still present.
+    assert "lint.yaml" in result
+    assert "release.yaml" in result
+
+
+def test_apply_config_excludes_header_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exclude list removes workflows from header-only defaults."""
+    pyproject_content = """\
+[tool.gha-utils]
+workflow-sync-exclude = ["tests.yaml"]
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    result = _apply_workflow_config((), WorkflowFormat.HEADER_ONLY)
+    assert result is not None
+    assert "tests.yaml" not in result
+
+
+def test_apply_config_warns_unknown(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Warning logged for unknown workflow in exclude list."""
+    pyproject_content = """\
+[tool.gha-utils]
+workflow-sync-exclude = ["nonexistent.yaml"]
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    import logging
+
+    with caplog.at_level(logging.WARNING):
+        result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+
+    assert result is not None
+    assert "nonexistent.yaml" in caplog.text
+    assert "Unknown workflow" in caplog.text
+
+
+def test_generate_with_exclude_integration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """End-to-end: excluded workflow is not created."""
+    pyproject_content = """\
+[tool.gha-utils]
+workflow-sync-exclude = ["debug.yaml"]
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    filtered = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    assert filtered is not None
+
+    output_dir = tmp_path / ".github" / "workflows"
+    exit_code = generate_workflows(
+        names=filtered,
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=output_dir,
+        overwrite=False,
+    )
+    assert exit_code == 0
+    assert not (output_dir / "debug.yaml").exists()
+    # Other workflows are created.
+    assert (output_dir / "lint.yaml").exists()
+    assert (output_dir / "release.yaml").exists()
 
 

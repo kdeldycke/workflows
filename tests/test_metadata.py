@@ -1070,6 +1070,8 @@ def test_gha_utils_config_defaults():
     assert metadata.config["extra-label-files"] == []
     assert metadata.config["extra-file-rules"] == ""
     assert metadata.config["extra-content-rules"] == ""
+    assert metadata.config["workflow-sync"] is True
+    assert metadata.config["workflow-sync-exclude"] == []
 
 
 def test_gha_utils_config_custom_values(tmp_path, monkeypatch):
@@ -1096,6 +1098,8 @@ unstable-targets = ["linux-arm64", "windows-x64"]
 extra-label-files = ["https://example.com/labels.toml"]
 extra-file-rules = "docs:\\n  - docs/**"
 extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
+workflow-sync = false
+workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1123,6 +1127,11 @@ extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
     assert (
         metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
     )
+    assert metadata.config["workflow-sync"] is False
+    assert metadata.config["workflow-sync-exclude"] == [
+        "debug.yaml",
+        "autolock.yaml",
+    ]
 
 
 def test_unstable_targets_default():
@@ -1200,6 +1209,8 @@ def test_load_gha_utils_config_defaults(tmp_path, monkeypatch):
     assert config["extra-label-files"] == []
     assert config["extra-file-rules"] == ""
     assert config["extra-content-rules"] == ""
+    assert config["workflow-sync"] is True
+    assert config["workflow-sync-exclude"] == []
 
 
 def test_load_gha_utils_config_custom_values(tmp_path, monkeypatch):

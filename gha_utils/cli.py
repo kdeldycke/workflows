@@ -96,8 +96,11 @@ from .sponsor import (
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 from .github.workflow_sync import (
+    ALL_WORKFLOW_FILES,
     DEFAULT_REPO,
     DEFAULT_VERSION,
+    NON_REUSABLE_WORKFLOWS,
+    REUSABLE_WORKFLOWS,
     WorkflowFormat,
     generate_workflows,
     run_workflow_lint,
@@ -618,6 +621,55 @@ def update_gitignore(output_path: Path | None) -> None:
     echo(content.rstrip(), file=prep_path(output_path))
 
 
+def _apply_workflow_config(
+    names: tuple[str, ...],
+    output_format: WorkflowFormat,
+) -> tuple[str, ...] | None:
+    """Apply ``[tool.gha-utils]`` config filtering to workflow names.
+
+    When explicit CLI positional arguments are given, they bypass config entirely.
+    Otherwise, the global ``workflow-sync`` toggle and ``workflow-sync-exclude``
+    list are applied.
+
+    :param names: Workflow filenames from CLI positional args (empty = defaults).
+    :param output_format: The output format, used to determine default names.
+    :return: Filtered workflow names, or ``None`` if the global toggle is off.
+    """
+    # Explicit CLI args bypass all config filtering.
+    if names:
+        return names
+
+    config = load_gha_utils_config()
+
+    # Global toggle: if disabled, skip all work.
+    if not config.get("workflow-sync", True):
+        return None
+
+    # Compute format-specific defaults.
+    if output_format == WorkflowFormat.THIN_CALLER:
+        default_names: tuple[str, ...] = REUSABLE_WORKFLOWS
+    elif output_format == WorkflowFormat.HEADER_ONLY:
+        default_names = tuple(sorted(NON_REUSABLE_WORKFLOWS))
+    else:
+        default_names = ALL_WORKFLOW_FILES
+
+    # Apply exclude list.
+    exclude: list[str] = config.get("workflow-sync-exclude", [])
+    if exclude:
+        exclude_set = set(exclude)
+        # Warn about unknown workflow names in the exclude list.
+        all_known = set(ALL_WORKFLOW_FILES)
+        unknown = exclude_set - all_known
+        for name in sorted(unknown):
+            logging.warning(
+                f"Unknown workflow in workflow-sync-exclude: {name!r}. "
+                f"Known workflows: {', '.join(sorted(all_known))}"
+            )
+        default_names = tuple(n for n in default_names if n not in exclude_set)
+
+    return default_names
+
+
 @gha_utils.group(short_help="Manage downstream workflow caller files")
 def workflow():
     """Manage downstream workflow caller files.
@@ -688,9 +740,17 @@ def create(ctx, output_format, version, repo, output_dir, workflow_names):
         # Full copy mode
         gha-utils workflow create --format full-copy
     """
+    fmt = WorkflowFormat(output_format)
+    filtered = _apply_workflow_config(workflow_names, fmt)
+    if filtered is None:
+        logging.info(
+            "[tool.gha-utils] workflow-sync is disabled. Skipping workflow create."
+        )
+        ctx.exit(0)
+
     exit_code = generate_workflows(
-        names=workflow_names,
-        output_format=WorkflowFormat(output_format),
+        names=filtered,
+        output_format=fmt,
         version=version,
         repo=repo,
         output_dir=output_dir,
@@ -742,9 +802,17 @@ def sync(ctx, output_format, version, repo, output_dir, workflow_names):
         # Sync specific workflows
         gha-utils workflow sync release.yaml lint.yaml
     """
+    fmt = WorkflowFormat(output_format)
+    filtered = _apply_workflow_config(workflow_names, fmt)
+    if filtered is None:
+        logging.info(
+            "[tool.gha-utils] workflow-sync is disabled. Skipping workflow sync."
+        )
+        ctx.exit(0)
+
     exit_code = generate_workflows(
-        names=workflow_names,
-        output_format=WorkflowFormat(output_format),
+        names=filtered,
+        output_format=fmt,
         version=version,
         repo=repo,
         output_dir=output_dir,

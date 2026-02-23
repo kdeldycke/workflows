@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `workflow-sync` and `workflow-sync-exclude` config keys to `[tool.gha-utils]` for per-project control over which workflows are synced. Explicit CLI positional arguments override both settings.
 - Add `--format header-only` mode to `gha-utils workflow sync` for syncing headers (`name`, `on`, `concurrency`) of non-reusable workflows like `tests.yaml`.
 - Use explicit `--format thin-caller` in `autofix.yaml` sync step.
 - Fix race condition where binary builds could finish before `create-release`, causing `gh release upload` to fail with "release not found". Make `compile-binaries` depend on `create-release`.
