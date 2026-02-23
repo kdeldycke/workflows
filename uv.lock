@@ -3,12 +3,11 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-02-16T16:56:05.820242923Z"
+exclude-newer = "2026-02-16T18:19:32.472955Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-gha-utils = { timestamp = "2026-02-23T16:56:05.820249746Z", span = "PT0S" }
-extra-platforms = { timestamp = "2026-02-23T16:56:05.820255246Z", span = "PT0S" }
+gha-utils = { timestamp = "2026-02-23T18:19:32.473045Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
