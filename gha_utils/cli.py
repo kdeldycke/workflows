@@ -51,7 +51,7 @@ from .binary import (
 )
 from .broken_links import manage_combined_broken_links_issue
 from .checksums import update_checksums
-from .init_project import ALL_COMPONENTS, run_init
+from .init_project import ALL_COMPONENTS, export_content, run_init
 from .changelog import Changelog, lint_changelog_dates
 from .deps_graph import (
     generate_dependency_graph,
@@ -1634,6 +1634,41 @@ def sync_uv_lock_cmd(lockfile: Path) -> None:
         echo("Reverted uv.lock: only exclude-newer-package timestamp noise.")
     else:
         echo("Kept uv.lock: contains real dependency changes.")
+
+
+@gha_utils.command(short_help="Sync Renovate config from canonical reference")
+@option(
+    "--output",
+    "output_path",
+    type=file_path(writable=True, resolve_path=True),
+    default="renovate.json5",
+    help="Output path for the Renovate configuration file.",
+)
+@pass_context
+def sync_renovate(ctx: Context, output_path: Path) -> None:
+    """Sync ``renovate.json5`` from the canonical reference configuration.
+
+    Overwrites the local Renovate configuration with the version bundled in
+    ``gha-utils``, which strips repo-specific settings (``customManagers``,
+    ``assignees``) from the upstream ``kdeldycke/workflows`` reference.
+
+    Exits gracefully if the target file does not exist (the repository is
+    not using Renovate).
+    """
+    config = load_gha_utils_config()
+    if not config.get("renovate-sync", True):
+        logging.info(
+            "[tool.gha-utils] renovate-sync is disabled. "
+            "Skipping Renovate config sync."
+        )
+        ctx.exit(0)
+
+    if not Path(output_path).exists():
+        logging.info(f"{output_path} does not exist, skipping sync.")
+        ctx.exit(0)
+
+    content = export_content("renovate.json5")
+    echo(content.rstrip(), file=prep_path(output_path))
 
 
 @gha_utils.command(short_help="Check Renovate migration prerequisites")

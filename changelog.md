@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `sync-renovate` CLI command and autofix workflow job to keep downstream `renovate.json5` in sync with the canonical reference from `gha-utils`. Opt out via `renovate-sync = false` in `[tool.gha-utils]`.
 - Add `workflow-sync` and `workflow-sync-exclude` config keys to `[tool.gha-utils]` for per-project control over which workflows are synced. Explicit CLI positional arguments override both settings.
 - Add `--format header-only` mode to `gha-utils workflow sync` for syncing headers (`name`, `on`, `concurrency`) of non-reusable workflows like `tests.yaml`.
 - Use explicit `--format thin-caller` in `autofix.yaml` sync step.

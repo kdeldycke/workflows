@@ -215,6 +215,7 @@ dependency-graph-output = "./docs/assets/dependencies.mmd"
 extra-label-files = ["https://example.com/my-labels.toml"]
 extra-file-rules = "docs:\n  - docs/**"
 extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
+renovate-sync = false
 workflow-sync = false
 workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 ```
@@ -234,6 +235,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `extra-label-files`          | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                       |
 | `extra-file-rules`           | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                     |
 | `extra-content-rules`        | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |
+| `renovate-sync`              | bool      | `true`                                            | Enable Renovate config sync. Set to `false` to skip `sync-renovate` in the autofix workflow.                                                         |
 | `workflow-sync`              | bool      | `true`                                            | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                              |
 | `workflow-sync-exclude`      | list[str] | `[]`                                              | Workflow filenames to exclude from sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                       |
 
@@ -303,6 +305,14 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
   - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/init_project.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
+
+- 🔄 **Sync `renovate.json5`** (`sync-renovate`)
+
+  - Syncs the local `renovate.json5` with the canonical reference from [`gha-utils`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/init_project.py), stripping repo-specific settings (`customManagers`, `assignees`)
+  - **Skipped if**:
+    - Repository is [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) itself (the upstream source)
+    - No `renovate.json5` file in the repository root
+    - `renovate-sync = false` in `[tool.gha-utils]`
 
 - 🪢 **Sync workflows** (`sync-workflows`)
 

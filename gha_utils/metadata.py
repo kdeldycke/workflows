@@ -376,6 +376,13 @@ class Config:
     release workflow from succeeding.
     """
 
+    renovate_sync: bool = True
+    """Whether Renovate config sync is enabled for this project.
+
+    Projects that manage their own ``renovate.json5`` and do not want the
+    autofix job to overwrite it can set this to ``false``.
+    """
+
     workflow_sync: bool = True
     """Whether workflow sync is enabled for this project.
 
@@ -469,6 +476,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "gitignore_extra_categories",
     "gitignore_extra_content",
     "gitignore_location",
+    "renovate_sync",
     "test_plan",
     "test_plan_file",
     "timeout",
@@ -584,6 +592,8 @@ contain multiple lines.
 MAILMAP_PATH = Path(".mailmap")
 
 GITIGNORE_PATH = Path(".gitignore")
+
+RENOVATE_CONFIG_PATH = Path("renovate.json5")
 
 NUITKA_BUILD_TARGETS = {
     "linux-arm64": {
@@ -1385,6 +1395,10 @@ class Metadata:
         return GITIGNORE_PATH.is_file()
 
     @cached_property
+    def renovate_config_exists(self) -> bool:
+        return RENOVATE_CONFIG_PATH.is_file()
+
+    @cached_property
     def gitignore_parser(self) -> Parser | None:
         """Returns a parser for the ``.gitignore`` file, if it exists."""
         if self.gitignore_exists:
@@ -2147,6 +2161,7 @@ class Metadata:
             "release_commits": self.release_commits_hash,
             "mailmap_exists": self.mailmap_exists,
             "gitignore_exists": self.gitignore_exists,
+            "renovate_config_exists": self.renovate_config_exists,
             "python_files": self.python_files,
             "json_files": self.json_files,
             "yaml_files": self.yaml_files,

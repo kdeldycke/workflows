@@ -403,6 +403,7 @@ expected = {
     "release_commits": OptionalList(regex(r"[a-f0-9]{40}")),
     "mailmap_exists": True,
     "gitignore_exists": True,
+    "renovate_config_exists": True,
     "python_files": [
         "gha_utils/__init__.py",
         "gha_utils/__main__.py",
@@ -442,6 +443,7 @@ expected = {
         "tests/test_pr_body.py",
         "tests/test_release_prep.py",
         "tests/test_renovate.py",
+        "tests/test_sync_renovate.py",
         "tests/test_workflow_sync.py",
         "tests/test_workflows.py",
     ],
@@ -488,6 +490,14 @@ expected = {
     "doc_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/skills/gha-changelog/SKILL.md",
+        ".claude/skills/gha-deps/SKILL.md",
+        ".claude/skills/gha-init/SKILL.md",
+        ".claude/skills/gha-lint/SKILL.md",
+        ".claude/skills/gha-metadata/SKILL.md",
+        ".claude/skills/gha-release/SKILL.md",
+        ".claude/skills/gha-sync/SKILL.md",
+        ".claude/skills/gha-test/SKILL.md",
         ".github/code-of-conduct.md",
         "changelog.md",
         "claude.md",
@@ -517,6 +527,14 @@ expected = {
     "markdown_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/skills/gha-changelog/SKILL.md",
+        ".claude/skills/gha-deps/SKILL.md",
+        ".claude/skills/gha-init/SKILL.md",
+        ".claude/skills/gha-lint/SKILL.md",
+        ".claude/skills/gha-metadata/SKILL.md",
+        ".claude/skills/gha-release/SKILL.md",
+        ".claude/skills/gha-sync/SKILL.md",
+        ".claude/skills/gha-test/SKILL.md",
         ".github/code-of-conduct.md",
         "changelog.md",
         "claude.md",
@@ -1070,6 +1088,7 @@ def test_gha_utils_config_defaults():
     assert metadata.config["extra-label-files"] == []
     assert metadata.config["extra-file-rules"] == ""
     assert metadata.config["extra-content-rules"] == ""
+    assert metadata.config["renovate-sync"] is True
     assert metadata.config["workflow-sync"] is True
     assert metadata.config["workflow-sync-exclude"] == []
 
@@ -1098,6 +1117,7 @@ unstable-targets = ["linux-arm64", "windows-x64"]
 extra-label-files = ["https://example.com/labels.toml"]
 extra-file-rules = "docs:\\n  - docs/**"
 extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
+renovate-sync = false
 workflow-sync = false
 workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 """
@@ -1127,6 +1147,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
     assert (
         metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
     )
+    assert metadata.config["renovate-sync"] is False
     assert metadata.config["workflow-sync"] is False
     assert metadata.config["workflow-sync-exclude"] == [
         "debug.yaml",
