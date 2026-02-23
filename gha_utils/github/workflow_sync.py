@@ -14,12 +14,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Thin-caller generation, sync, and lint for downstream workflows.
+"""Generation, sync, and lint for downstream workflows.
 
 Downstream repositories consuming reusable workflows from ``kdeldycke/workflows``
-manually write thin caller workflows that often miss triggers like
+manually write caller workflows that often miss triggers like
 ``workflow_dispatch``. This module provides tools to generate, synchronize, and
-lint those callers by parsing the canonical reusable workflow definitions.
+lint those callers by parsing the canonical workflow definitions.
+
+See :class:`WorkflowFormat` for available output formats and their behavior.
+
+.. caution::
+    PyYAML destroys formatting and comments on round-trip. Until we find a
+    layout-preserving YAML parsing and rendering solution, we use raw text
+    extraction to manipulate workflow files while preserving formatting and
+    comments.
 """
 
 from __future__ import annotations
@@ -49,9 +57,36 @@ if TYPE_CHECKING:
 class WorkflowFormat(StrEnum):
     """Output format for generated workflow files."""
 
-    THIN_CALLER = "thin-caller"
     FULL_COPY = "full-copy"
+    """Verbatim copy of the canonical workflow file.
+
+    Creates or overwrites the target with the full upstream content. Useful for
+    workflows that need no downstream customization.
+    """
+
+    HEADER_ONLY = "header-only"
+    """Sync only the header (``name``, ``on``, ``concurrency``) from upstream.
+
+    Replaces everything before the ``jobs:`` line in an existing downstream file
+    with the canonical header. The downstream ``jobs:`` section is preserved.
+    Requires the target file to already exist; does not create new files.
+    """
+
     SYMLINK = "symlink"
+    """Create a symbolic link to the canonical workflow file.
+
+    Creates or overwrites the target as a symlink pointing to the upstream
+    workflow in the bundled data directory.
+    """
+
+    THIN_CALLER = "thin-caller"
+    """Generate a minimal caller that delegates to the reusable upstream workflow.
+
+    Creates or overwrites the target with a lightweight workflow containing only
+    ``name``, ``on`` triggers, and a ``jobs:`` section that calls the upstream
+    workflow via ``workflow_call``. Only works for reusable workflows (those with
+    a ``workflow_call`` trigger).
+    """
 
 
 DEFAULT_REPO: Final[str] = "kdeldycke/workflows"
@@ -68,19 +103,17 @@ it falls back to ``main`` since the tag does not exist yet.
 NON_REUSABLE_WORKFLOWS: Final[frozenset[str]] = frozenset(("tests.yaml",))
 """Workflows without ``workflow_call`` that cannot be used as thin callers."""
 
-REUSABLE_WORKFLOWS: Final[tuple[str, ...]] = tuple(
-    sorted((
-        "autofix.yaml",
-        "autolock.yaml",
-        "cancel-runs.yaml",
-        "changelog.yaml",
-        "debug.yaml",
-        "docs.yaml",
-        "labels.yaml",
-        "lint.yaml",
-        "release.yaml",
-        "renovate.yaml",
-    ))
+REUSABLE_WORKFLOWS: Final[tuple[str, ...]] = (
+    "autofix.yaml",
+    "autolock.yaml",
+    "cancel-runs.yaml",
+    "changelog.yaml",
+    "debug.yaml",
+    "docs.yaml",
+    "labels.yaml",
+    "lint.yaml",
+    "release.yaml",
+    "renovate.yaml",
 )
 """Workflow filenames that support ``workflow_call`` triggers."""
 
@@ -88,6 +121,51 @@ ALL_WORKFLOW_FILES: Final[tuple[str, ...]] = tuple(
     sorted(set(REUSABLE_WORKFLOWS) | NON_REUSABLE_WORKFLOWS)
 )
 """All workflow filenames (reusable and non-reusable)."""
+
+
+def _extract_raw_section(content: str, section_name: str) -> str | None:
+    """Extract a top-level YAML section as raw text.
+
+    Finds a line matching ``{section_name}:`` at column 0 and returns it along
+    with all indented continuation lines (including comments). Returns ``None``
+    if the section is not found.
+
+    :param content: Full workflow file content.
+    :param section_name: Top-level key to extract (e.g., ``"concurrency"``).
+    :return: Raw text of the section, or ``None`` if absent.
+    """
+    pattern = re.compile(rf"^{re.escape(section_name)}:", re.MULTILINE)
+    match = pattern.search(content)
+    if match is None:
+        return None
+
+    lines = content[match.start() :].split("\n")
+    result = [lines[0]]
+    for line in lines[1:]:
+        # Stop at the next top-level key (non-empty, non-comment, no indent).
+        if line and not line[0].isspace() and not line.startswith("#"):
+            break
+        result.append(line)
+
+    # Strip trailing blank lines.
+    while result and not result[-1].strip():
+        result.pop()
+
+    return "\n".join(result)
+
+
+def _extract_raw_header(content: str) -> str:
+    """Extract everything before the ``jobs:`` line as raw text.
+
+    :param content: Full workflow file content.
+    :return: Raw header text (up to but not including ``jobs:``).
+    :raises ValueError: If no ``jobs:`` line is found.
+    """
+    match = re.search(r"^jobs:", content, re.MULTILINE)
+    if match is None:
+        msg = "No 'jobs:' line found in workflow content."
+        raise ValueError(msg)
+    return content[: match.start()]
 
 
 @dataclass(frozen=True)
@@ -111,6 +189,12 @@ class WorkflowTriggerInfo:
 
     has_workflow_call: bool
     """Whether the workflow defines a ``workflow_call`` trigger."""
+
+    concurrency: dict[str, Any] | None
+    """Parsed concurrency configuration, or ``None`` if absent."""
+
+    raw_concurrency: str | None
+    """Raw text of the concurrency block, preserving formatting and comments."""
 
 
 @dataclass
@@ -156,10 +240,15 @@ def extract_trigger_info(filename: str) -> WorkflowTriggerInfo:
     call_secrets = call_config.get("secrets") or {}
 
     # Collect all non-workflow_call triggers.
-    non_call_triggers: dict[str, Any] = {}
-    for trigger_name, trigger_config in triggers.items():
-        if trigger_name != "workflow_call":
-            non_call_triggers[trigger_name] = trigger_config
+    non_call_triggers: dict[str, Any] = {
+        trigger_name: trigger_config
+        for trigger_name, trigger_config in triggers.items()
+        if trigger_name != "workflow_call"
+    }
+
+    # Extract concurrency block (parsed and raw).
+    concurrency = data.get("concurrency")
+    raw_concurrency = _extract_raw_section(content, "concurrency")
 
     return WorkflowTriggerInfo(
         name=name,
@@ -168,6 +257,8 @@ def extract_trigger_info(filename: str) -> WorkflowTriggerInfo:
         call_inputs=call_inputs,
         call_secrets=call_secrets,
         has_workflow_call=has_workflow_call,
+        concurrency=concurrency,
+        raw_concurrency=raw_concurrency,
     )
 
 
@@ -313,13 +404,17 @@ def generate_thin_caller(
         raise ValueError(msg)
 
     # Build trigger dict, ensuring workflow_dispatch is present.
-    triggers: dict[str, Any] = {}
-    for trigger_name, trigger_config in info.non_call_triggers.items():
-        triggers[trigger_name] = trigger_config
+    triggers: dict[str, Any] = {
+        trigger_name: trigger_config
+        for trigger_name, trigger_config in info.non_call_triggers.items()
+    }
     if "workflow_dispatch" not in triggers:
         triggers["workflow_dispatch"] = None
 
     # Build the YAML content programmatically.
+    # Concurrency is intentionally omitted: the reusable workflow's own
+    # concurrency block applies when called via ``workflow_call``, so
+    # duplicating it in the thin caller would be redundant.
     lines = [
         "---",
         f"name: {info.name}",
@@ -559,6 +654,83 @@ def check_secrets_inherit(
     )
 
 
+def check_concurrency_match(
+    workflow_path: Path,
+    canonical_filename: str,
+) -> LintResult:
+    """Check that a thin caller's concurrency block matches the canonical workflow.
+
+    Compares parsed concurrency dicts so formatting differences are ignored.
+
+    :param workflow_path: Path to the caller workflow file.
+    :param canonical_filename: Filename of the canonical upstream workflow.
+    :return: Lint result.
+    """
+    info = extract_trigger_info(canonical_filename)
+
+    try:
+        content = workflow_path.read_text(encoding="UTF-8")
+        data = yaml.safe_load(content)
+    except (OSError, yaml.YAMLError) as e:
+        return LintResult(
+            message=f"{workflow_path.name}: failed to parse: {e}",
+            is_issue=True,
+            level=AnnotationLevel.ERROR,
+        )
+
+    caller_concurrency = data.get("concurrency") if isinstance(data, dict) else None
+
+    if info.concurrency is None:
+        # Canonical has no concurrency; caller shouldn't either, but don't flag it.
+        return LintResult(
+            message=(
+                f"{workflow_path.name}: no concurrency required"
+                f" by {canonical_filename}."
+            ),
+            is_issue=False,
+        )
+
+    if caller_concurrency is None:
+        return LintResult(
+            message=(
+                f"{workflow_path.name}: missing concurrency block"
+                f" (expected by {canonical_filename})."
+            ),
+            is_issue=True,
+            level=AnnotationLevel.WARNING,
+        )
+
+    if caller_concurrency != info.concurrency:
+        return LintResult(
+            message=(
+                f"{workflow_path.name}: concurrency block does not match"
+                f" canonical {canonical_filename}."
+            ),
+            is_issue=True,
+            level=AnnotationLevel.WARNING,
+        )
+
+    return LintResult(
+        message=f"{workflow_path.name}: concurrency matches canonical.",
+        is_issue=False,
+    )
+
+
+def generate_workflow_header(filename: str) -> str:
+    """Return the raw header of a canonical workflow.
+
+    The header is everything before the ``jobs:`` line: ``name``, ``on``
+    triggers, ``concurrency``, and any comments.
+
+    :param filename: Canonical workflow filename (e.g., ``tests.yaml``).
+    :return: Raw header text.
+    :raises FileNotFoundError: If the workflow file is not bundled.
+    :raises ValueError: If no ``jobs:`` line is found.
+    """
+    content = get_data_content(filename)
+    return _extract_raw_header(content)
+
+
 def run_workflow_lint(
     workflow_dir: Path,
     repo: str = DEFAULT_REPO,
@@ -646,17 +818,20 @@ def generate_workflows(
     Shared logic for the ``create`` and ``sync`` subcommands.
 
     :param names: Workflow filenames to generate. Empty tuple means all.
-    :param output_format: Output format (thin-caller, full-copy, symlink).
+    :param output_format: See :class:`WorkflowFormat` for available formats.
     :param version: Version reference for thin callers.
     :param repo: Upstream repository.
     :param output_dir: Directory to write files to.
     :param overwrite: Whether to overwrite existing files.
     :return: Exit code (0 for success, 1 for errors).
     """
-    # Default to all reusable workflows for thin-caller, all for other modes.
+    # Default to all reusable workflows for thin-caller, non-reusable for
+    # header-only, all for other modes.
     if not names:
         if output_format == WorkflowFormat.THIN_CALLER:
             names = REUSABLE_WORKFLOWS
+        elif output_format == WorkflowFormat.HEADER_ONLY:
+            names = tuple(sorted(NON_REUSABLE_WORKFLOWS))
         else:
             names = ALL_WORKFLOW_FILES
 
@@ -689,6 +864,33 @@ def generate_workflows(
 
             target.write_text(content, encoding="UTF-8")
             logging.info(f"Generated thin caller: {target}")
+
+        elif output_format == WorkflowFormat.HEADER_ONLY:
+            if not target.exists():
+                logging.error(
+                    f"{target} does not exist. header-only mode requires"
+                    " an existing file with a jobs: section."
+                )
+                errors += 1
+                continue
+
+            try:
+                canonical_header = generate_workflow_header(filename)
+            except (ValueError, FileNotFoundError) as e:
+                logging.error(f"Failed to extract header for {filename}: {e}")
+                errors += 1
+                continue
+
+            existing = target.read_text(encoding="UTF-8")
+            jobs_match = re.search(r"^jobs:", existing, re.MULTILINE)
+            if jobs_match is None:
+                logging.error(f"{target} has no 'jobs:' line to preserve.")
+                errors += 1
+                continue
+
+            content = canonical_header + existing[jobs_match.start() :]
+            target.write_text(content, encoding="UTF-8")
+            logging.info(f"Synced header: {target}")
 
         elif output_format == WorkflowFormat.FULL_COPY:
             try:

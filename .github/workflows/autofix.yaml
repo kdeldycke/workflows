@@ -485,8 +485,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Sync workflow files
-        run: uvx --no-progress --from . gha-utils workflow sync
+      - name: Re-create thin caller workflows
+        run: uvx --no-progress --from . gha-utils workflow sync --format thin-caller
+      - name: Sync non-reusable workflow headers
+        run: uvx --no-progress --from . gha-utils workflow sync --format header-only
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body

@@ -38,6 +38,7 @@ from gha_utils.github.workflow_sync import (
     check_version_pinned,
     extract_trigger_info,
     generate_thin_caller,
+    generate_workflow_header,
     generate_workflows,
     identify_canonical_workflow,
     run_workflow_lint,
@@ -569,16 +570,18 @@ def test_creates_output_dir(tmp_path: Path) -> None:
 
 def test_values() -> None:
     """Verify expected enum values."""
-    assert WorkflowFormat.THIN_CALLER == "thin-caller"
     assert WorkflowFormat.FULL_COPY == "full-copy"
+    assert WorkflowFormat.HEADER_ONLY == "header-only"
     assert WorkflowFormat.SYMLINK == "symlink"
+    assert WorkflowFormat.THIN_CALLER == "thin-caller"
 
 
 def test_from_string() -> None:
     """Verify construction from string."""
-    assert WorkflowFormat("thin-caller") == WorkflowFormat.THIN_CALLER
     assert WorkflowFormat("full-copy") == WorkflowFormat.FULL_COPY
+    assert WorkflowFormat("header-only") == WorkflowFormat.HEADER_ONLY
     assert WorkflowFormat("symlink") == WorkflowFormat.SYMLINK
+    assert WorkflowFormat("thin-caller") == WorkflowFormat.THIN_CALLER
 
 
 def test_default_level() -> None:
@@ -591,3 +594,184 @@ def test_custom_level() -> None:
     """Verify custom annotation level."""
     result = LintResult(message="test", is_issue=True, level=AnnotationLevel.ERROR)
     assert result.level == AnnotationLevel.ERROR
+
+
+# ---------------------------------------------------------------------------
+# Concurrency extraction tests
+# ---------------------------------------------------------------------------
+
+WORKFLOWS_WITH_CONCURRENCY = (
+    "autofix.yaml",
+    "changelog.yaml",
+    "debug.yaml",
+    "docs.yaml",
+    "labels.yaml",
+    "lint.yaml",
+    "release.yaml",
+    "renovate.yaml",
+)
+"""Canonical workflows that define a concurrency block."""
+
+WORKFLOWS_WITHOUT_CONCURRENCY = ("autolock.yaml", "cancel-runs.yaml")
+"""Canonical workflows that do not define a concurrency block."""
+
+
+@pytest.mark.parametrize("filename", WORKFLOWS_WITH_CONCURRENCY)
+def test_concurrency_present(filename: str) -> None:
+    """Verify concurrency is extracted for workflows that define it."""
+    info = extract_trigger_info(filename)
+    assert info.concurrency is not None
+    assert info.raw_concurrency is not None
+    assert "concurrency:" in info.raw_concurrency
+
+
+@pytest.mark.parametrize("filename", WORKFLOWS_WITHOUT_CONCURRENCY)
+def test_concurrency_absent(filename: str) -> None:
+    """Verify concurrency is None for workflows without it."""
+    info = extract_trigger_info(filename)
+    assert info.concurrency is None
+    assert info.raw_concurrency is None
+
+
+def test_concurrency_preserves_expressions() -> None:
+    """Verify raw concurrency preserves ``${{ }}`` expressions."""
+    info = extract_trigger_info("lint.yaml")
+    assert info.raw_concurrency is not None
+    assert "${{" in info.raw_concurrency
+
+
+def test_concurrency_preserves_comments() -> None:
+    """Verify raw concurrency preserves inline comments."""
+    info = extract_trigger_info("release.yaml")
+    assert info.raw_concurrency is not None
+    # release.yaml has explanatory comments in its concurrency block.
+    assert "#" in info.raw_concurrency
+
+
+# ---------------------------------------------------------------------------
+# Thin caller omits concurrency
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
+def test_thin_caller_omits_concurrency(filename: str) -> None:
+    """Verify thin callers never include concurrency.
+
+    The reusable workflow's own concurrency block applies when called via
+    ``workflow_call``, so duplicating it in the thin caller is unnecessary.
+    """
+    content = generate_thin_caller(filename)
+    assert "concurrency:" not in content
+
+
+# ---------------------------------------------------------------------------
+# Header generation tests
+# ---------------------------------------------------------------------------
+
+
+def test_header_extraction_tests_yaml() -> None:
+    """Verify header extraction for tests.yaml."""
+    header = generate_workflow_header("tests.yaml")
+    assert "name:" in header
+    assert "concurrency:" in header
+    assert "jobs:" not in header
+
+
+def test_header_extraction_lint_yaml() -> None:
+    """Verify header extraction for lint.yaml."""
+    header = generate_workflow_header("lint.yaml")
+    assert "name:" in header
+    assert '"on":' in header or "on:" in header
+    assert "jobs:" not in header
+
+
+def test_header_extraction_nonexistent() -> None:
+    """Raise FileNotFoundError for missing workflow."""
+    with pytest.raises(FileNotFoundError):
+        generate_workflow_header("nonexistent.yaml")
+
+
+# ---------------------------------------------------------------------------
+# Header-only format tests
+# ---------------------------------------------------------------------------
+
+
+def test_header_only_syncs_header(tmp_path: Path) -> None:
+    """Verify header-only syncs header and preserves downstream jobs."""
+    target = tmp_path / "tests.yaml"
+    target.write_text(
+        "---\nname: Old Name\n\"on\":\n  push:\n\njobs:\n\n"
+        "  my-tests:\n    runs-on: ubuntu-latest\n"
+        "    steps:\n      - run: echo hello\n",
+        encoding="UTF-8",
+    )
+    exit_code = generate_workflows(
+        names=("tests.yaml",),
+        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+    )
+    assert exit_code == 0
+    content = target.read_text(encoding="UTF-8")
+    # Header should come from canonical tests.yaml.
+    assert "Tests" in content
+    assert "concurrency:" in content
+    # Downstream jobs section should be preserved.
+    assert "my-tests:" in content
+    assert "echo hello" in content
+
+
+def test_header_only_errors_on_missing_file(tmp_path: Path) -> None:
+    """Error when target file does not exist in header-only mode."""
+    exit_code = generate_workflows(
+        names=("tests.yaml",),
+        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+    )
+    assert exit_code == 1
+
+
+def test_header_only_errors_on_no_jobs(tmp_path: Path) -> None:
+    """Error when target file has no jobs: line."""
+    target = tmp_path / "tests.yaml"
+    target.write_text("---\nname: No Jobs\n", encoding="UTF-8")
+    exit_code = generate_workflows(
+        names=("tests.yaml",),
+        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+    )
+    assert exit_code == 1
+
+
+def test_header_only_defaults_to_non_reusable(tmp_path: Path) -> None:
+    """Verify header-only defaults to non-reusable workflows."""
+    # Create target files for non-reusable workflows.
+    for filename in NON_REUSABLE_WORKFLOWS:
+        target = tmp_path / filename
+        target.write_text(
+            "---\nname: Old\n\"on\":\n  push:\n\njobs:\n\n"
+            "  test:\n    runs-on: ubuntu-latest\n",
+            encoding="UTF-8",
+        )
+    exit_code = generate_workflows(
+        names=(),
+        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+    )
+    assert exit_code == 0
+    for filename in NON_REUSABLE_WORKFLOWS:
+        content = (tmp_path / filename).read_text(encoding="UTF-8")
+        assert "concurrency:" in content
+
+

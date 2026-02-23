@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `--format header-only` mode to `gha-utils workflow sync` for syncing headers (`name`, `on`, `concurrency`) of non-reusable workflows like `tests.yaml`.
+- Use explicit `--format thin-caller` in `autofix.yaml` sync step.
 - Fix race condition where binary builds could finish before `create-release`, causing `gh release upload` to fail with "release not found". Make `compile-binaries` depend on `create-release`.
 
 ## [`5.12.0` (2026-02-22)](https://github.com/kdeldycke/workflows/compare/v5.11.1...v5.12.0)
