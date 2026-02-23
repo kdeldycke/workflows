@@ -701,7 +701,7 @@ def test_header_only_syncs_header(tmp_path: Path) -> None:
     """Verify header-only syncs header and preserves downstream jobs."""
     target = tmp_path / "tests.yaml"
     target.write_text(
-        "---\nname: Old Name\n\"on\":\n  push:\n\njobs:\n\n"
+        '---\nname: Old Name\n"on":\n  push:\n\njobs:\n\n'
         "  my-tests:\n    runs-on: ubuntu-latest\n"
         "    steps:\n      - run: echo hello\n",
         encoding="UTF-8",
@@ -758,7 +758,7 @@ def test_header_only_defaults_to_non_reusable(tmp_path: Path) -> None:
     for filename in NON_REUSABLE_WORKFLOWS:
         target = tmp_path / filename
         target.write_text(
-            "---\nname: Old\n\"on\":\n  push:\n\njobs:\n\n"
+            '---\nname: Old\n"on":\n  push:\n\njobs:\n\n'
             "  test:\n    runs-on: ubuntu-latest\n",
             encoding="UTF-8",
         )
@@ -781,7 +781,9 @@ def test_header_only_defaults_to_non_reusable(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_apply_config_explicit_names_bypass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_apply_config_explicit_names_bypass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Explicit CLI args bypass config filtering entirely."""
     pyproject_content = """\
 [tool.gha-utils]
@@ -909,5 +911,3 @@ workflow-sync-exclude = ["debug.yaml"]
     # Other workflows are created.
     assert (output_dir / "lint.yaml").exists()
     assert (output_dir / "release.yaml").exists()
-
-

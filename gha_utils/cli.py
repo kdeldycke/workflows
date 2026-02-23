@@ -1704,8 +1704,7 @@ def sync_renovate(ctx: Context, output_path: Path) -> None:
     config = load_gha_utils_config()
     if not config.get("renovate-sync", True):
         logging.info(
-            "[tool.gha-utils] renovate-sync is disabled. "
-            "Skipping Renovate config sync."
+            "[tool.gha-utils] renovate-sync is disabled. Skipping Renovate config sync."
         )
         ctx.exit(0)
 
