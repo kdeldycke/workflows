@@ -205,7 +205,8 @@ def test_get_template_names():
     assert "refresh-tip" in names
     assert "setup-guide" in names
     assert "detect-squash-merge" in names
-    assert len(names) == 21
+    assert "sync-linter-configs" in names
+    assert len(names) == 22
 
 
 def test_load_template_frontmatter():
