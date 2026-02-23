@@ -3,7 +3,7 @@ name: gha-deps
 description: Generate and analyze dependency graphs from uv lockfiles.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: "[--level N] [args]"
+argument-hint: '[--level N] [args]'
 ---
 
 ## Context

@@ -196,13 +196,13 @@ When a command is too long for a single line, use the folded block scalar (`>`) 
 
 CLI commands, workflow job IDs, PR branch names, and PR body template names must all agree on the same verb prefix. This consistency makes the conventions learnable and grepable across all four dimensions.
 
-| Prefix | Semantics | Source of truth | Idempotent? | Examples |
-| :--------- | :---------------------------------------------- | :------------------- | :---------- | :------------------------------------------------- |
-| `sync-X` | Regenerate from a canonical or external source. | Template, API, repo | Yes | `sync-gitignore`, `sync-mailmap`, `sync-renovate` |
-| `update-X` | Compute from project state. | Lockfile, git log | Yes | `update-deps-graph`, `update-checksums` |
-| `format-X` | Rewrite to enforce canonical style. | Formatter rules | Yes | `format-json`, `format-markdown`, `format-python` |
-| `fix-X` | Correct content (auto-fix). | Linter/checker rules | Yes | `fix-typos` |
-| `lint-X` | Check content without modifying it. | Linter rules | Yes | `lint-changelog` |
+| Prefix     | Semantics                                       | Source of truth      | Idempotent? | Examples                                          |
+| :--------- | :---------------------------------------------- | :------------------- | :---------- | :------------------------------------------------ |
+| `sync-X`   | Regenerate from a canonical or external source. | Template, API, repo  | Yes         | `sync-gitignore`, `sync-mailmap`, `sync-renovate` |
+| `update-X` | Compute from project state.                     | Lockfile, git log    | Yes         | `update-deps-graph`, `update-checksums`           |
+| `format-X` | Rewrite to enforce canonical style.             | Formatter rules      | Yes         | `format-json`, `format-markdown`, `format-python` |
+| `fix-X`    | Correct content (auto-fix).                     | Linter/checker rules | Yes         | `fix-typos`                                       |
+| `lint-X`   | Check content without modifying it.             | Linter rules         | Yes         | `lint-changelog`                                  |
 
 **Rules:**
 

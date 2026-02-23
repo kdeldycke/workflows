@@ -3,7 +3,7 @@ name: gha-metadata
 description: Extract and explain project metadata from Git, GitHub, and pyproject.toml.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: "[args]"
+argument-hint: '[args]'
 ---
 
 ## Context
