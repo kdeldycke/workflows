@@ -195,8 +195,8 @@ def test_get_template_names():
     assert "sync-renovate" in names
     assert "update-deps-graph" in names
     assert "update-docs" in names
-    assert "update-gitignore" in names
-    assert "update-mailmap" in names
+    assert "sync-gitignore" in names
+    assert "sync-mailmap" in names
     assert "sync-uv-lock" in names
     assert "sync-workflows" in names
     assert "release-notes" in names
@@ -263,8 +263,8 @@ def test_render_commit_message_explicit():
     msg = render_commit_message("format-pyproject")
     assert msg == "Format `pyproject.toml`"
 
-    msg = render_commit_message("update-gitignore")
-    assert msg == "Update `.gitignore`"
+    msg = render_commit_message("sync-gitignore")
+    assert msg == "Sync `.gitignore`"
 
 
 def test_render_commit_message_parameterized():
@@ -309,13 +309,13 @@ def test_render_prepare_release(monkeypatch):
     assert "releaseyaml-jobs" in result
 
 
-def test_render_update_gitignore():
-    """Update gitignore template includes description, config options, and docs link."""
-    result = render_template("update-gitignore")
+def test_render_sync_gitignore():
+    """Sync gitignore template includes description, config options, and docs link."""
+    result = render_template("sync-gitignore")
 
     assert "### Description" in result
     assert "gitignore.io" in result
-    assert "update-gitignore" in result
+    assert "sync-gitignore" in result
     assert "### Configuration" in result
     assert "gitignore-extra-categories" in result
     assert "gitignore-extra-content" in result
@@ -401,9 +401,9 @@ def test_render_update_docs():
     assert "autofixyaml-jobs" in result
 
 
-def test_render_update_mailmap():
-    """Update mailmap template includes description and docs link."""
-    result = render_template("update-mailmap")
+def test_render_sync_mailmap():
+    """Sync mailmap template includes description and docs link."""
+    result = render_template("sync-mailmap")
 
     assert "### Description" in result
     assert ".mailmap" in result

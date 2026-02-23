@@ -556,14 +556,13 @@ Project-specific source directories (derived from ``[project.scripts]`` in
 """
 
 SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
-    # Autofix branches from docs.yaml that don't affect code.
-    "update-mailmap",
-    "optimize-images",
-    "update-deps-graph",
-    # Autofix branches from autofix.yaml that don't affect code.
-    "format-markdown",
+    # Autofix branches that don't affect compiled binaries.
     "format-json",
-    "update-gitignore",
+    "format-markdown",
+    "optimize-images",
+    "sync-gitignore",
+    "sync-mailmap",
+    "update-deps-graph",
 ))
 """Branch names for which binary builds should be skipped.
 

@@ -336,6 +336,24 @@ When a command is too long for a single line, use the folded block scalar (`>`) 
 
 **When to use `|`:** Use literal block scalar (`|`) only when the command requires preserved newlines (e.g., multi-statement scripts, heredocs).
 
+### Naming conventions for automated operations
+
+CLI commands, workflow job IDs, PR branch names, and PR body template names must all agree on the same verb prefix. This consistency makes the conventions learnable and grepable across all four dimensions.
+
+| Prefix | Semantics | Source of truth | Idempotent? | Examples |
+| :--------- | :---------------------------------------------- | :------------------- | :---------- | :------------------------------------------------- |
+| `sync-X` | Regenerate from a canonical or external source. | Template, API, repo | Yes | `sync-gitignore`, `sync-mailmap`, `sync-renovate` |
+| `update-X` | Compute from project state. | Lockfile, git log | Yes | `update-deps-graph`, `update-checksums` |
+| `format-X` | Rewrite to enforce canonical style. | Formatter rules | Yes | `format-json`, `format-markdown`, `format-python` |
+| `fix-X` | Correct content (auto-fix). | Linter/checker rules | Yes | `fix-typos` |
+| `lint-X` | Check content without modifying it. | Linter rules | Yes | `lint-changelog` |
+
+**Rules:**
+
+1. **Pick the verb that matches the data source.** If the operation pulls from an external template, API, or canonical reference, it is a `sync`. If it computes from local project state (lockfiles, git history, source code), it is an `update`. If it reformats existing content, it is a `format`.
+2. **All four dimensions must agree.** When adding a new automated operation, the CLI command, workflow job ID, PR branch name, and PR body template file name must all use the same `verb-noun` identifier (e.g., `sync-gitignore` everywhere).
+3. **Function names follow the CLI name.** The Python function backing a CLI command uses the underscore equivalent of the CLI name (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter to override (e.g., `@gha_utils.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
+
 ### Ordering conventions
 
 Keep definitions sorted for readability and to minimize merge conflicts:

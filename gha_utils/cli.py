@@ -562,7 +562,7 @@ GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
 """gitignore.io API endpoint for fetching ``.gitignore`` templates."""
 
 
-@gha_utils.command(short_help="Generate .gitignore from gitignore.io templates")
+@gha_utils.command(short_help="Sync .gitignore from gitignore.io templates")
 @option(
     "--output",
     "output_path",
@@ -570,8 +570,8 @@ GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
     default=None,
     help=("Output path. Defaults to gitignore-location from [tool.gha-utils] config."),
 )
-def update_gitignore(output_path: Path | None) -> None:
-    """Generate a ``.gitignore`` file from gitignore.io templates.
+def sync_gitignore(output_path: Path | None) -> None:
+    """Sync a ``.gitignore`` file from gitignore.io templates.
 
     Fetches templates for a base set of categories plus any extras from
     ``[tool.gha-utils]`` config, then appends ``gitignore-extra-content``.
@@ -581,15 +581,15 @@ def update_gitignore(output_path: Path | None) -> None:
     \b
     Examples:
         # Generate .gitignore using config from pyproject.toml
-        gha-utils update-gitignore
+        gha-utils sync-gitignore
 
     \b
         # Write to custom location
-        gha-utils update-gitignore --output ./custom/.gitignore
+        gha-utils sync-gitignore --output ./custom/.gitignore
 
     \b
         # Preview on stdout
-        gha-utils update-gitignore --output -
+        gha-utils sync-gitignore --output -
     """
     config = load_gha_utils_config()
 
@@ -871,7 +871,7 @@ def lint(ctx, workflow_dir, repo, fatal):
     ctx.exit(exit_code)
 
 
-@gha_utils.command(short_help="Update Git's .mailmap file with missing contributors")
+@gha_utils.command(short_help="Sync Git's .mailmap file with missing contributors")
 @option(
     "--source",
     type=file_path(readable=True, resolve_path=True),
@@ -893,7 +893,7 @@ def lint(ctx, workflow_dir, repo, fatal):
     default=None,
 )
 @pass_context
-def mailmap_sync(ctx, source, create_if_missing, destination_mailmap):
+def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
     """Update a ``.mailmap`` file with all missing contributors found in Git commit
     history.
 
@@ -1231,7 +1231,10 @@ def sponsor_label(
         echo(f"Author {author!r} is not a sponsor of {owner!r}")
 
 
-@gha_utils.command(short_help="Generate dependency graph from uv lockfile")
+@gha_utils.command(
+    name="update-deps-graph",
+    short_help="Generate dependency graph from uv lockfile",
+)
 @option(
     "-p",
     "--package",
@@ -1335,43 +1338,43 @@ def deps_graph(
     \b
     Examples:
         # Generate Mermaid graph
-        gha-utils deps-graph
+        gha-utils update-deps-graph
 
     \b
         # Include test dependencies
-        gha-utils deps-graph --group test
+        gha-utils update-deps-graph --group test
 
     \b
         # Include all groups and extras
-        gha-utils deps-graph --all-groups --all-extras
+        gha-utils update-deps-graph --all-groups --all-extras
 
     \b
         # Include all groups except typing
-        gha-utils deps-graph --all-groups --no-group typing
+        gha-utils update-deps-graph --all-groups --no-group typing
 
     \b
         # Include all extras except one
-        gha-utils deps-graph --all-extras --no-extra json5
+        gha-utils update-deps-graph --all-extras --no-extra json5
 
     \b
         # Show only test group dependencies (no main deps)
-        gha-utils deps-graph --only-group test
+        gha-utils update-deps-graph --only-group test
 
     \b
         # Show only a specific extra's dependencies
-        gha-utils deps-graph --only-extra xml
+        gha-utils update-deps-graph --only-extra xml
 
     \b
         # Focus on a specific package
-        gha-utils deps-graph --package click-extra
+        gha-utils update-deps-graph --package click-extra
 
     \b
         # Limit graph depth to 2 levels
-        gha-utils deps-graph --level 2
+        gha-utils update-deps-graph --level 2
 
     \b
         # Save to file
-        gha-utils deps-graph --output docs/dependency-graph.md
+        gha-utils update-deps-graph --output docs/dependency-graph.md
     """
     config = load_gha_utils_config()
 
@@ -1634,6 +1637,28 @@ def sync_uv_lock_cmd(lockfile: Path) -> None:
         echo("Reverted uv.lock: only exclude-newer-package timestamp noise.")
     else:
         echo("Kept uv.lock: contains real dependency changes.")
+
+
+@gha_utils.command(short_help="Sync bumpversion config from bundled template")
+def sync_bumpversion() -> None:
+    """Sync ``[tool.bumpversion]`` config in ``pyproject.toml`` from the bundled
+    template.
+
+    Overwrites the ``[tool.bumpversion]`` section with the canonical template
+    bundled in ``gha-utils``. Designed for the ``sync-bumpversion`` autofix job.
+    The ``gha-utils init bumpversion`` command remains available for interactive
+    bootstrapping.
+    """
+    result = run_init(
+        output_dir=Path("."),
+        components=("bumpversion",),
+        overwrite=True,
+    )
+    if result.created:
+        for path in result.created:
+            echo(f"Updated: {path}")
+    else:
+        echo("bumpversion config is up to date.")
 
 
 @gha_utils.command(short_help="Sync Renovate config from canonical reference")

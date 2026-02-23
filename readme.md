@@ -101,22 +101,24 @@ Commands:
   broken-links       Manage broken links issue lifecycle
   changelog          Maintain a Markdown-formatted changelog
   check-renovate     Check Renovate migration prerequisites
-  deps-graph         Generate dependency graph from uv lockfile
-  git-tag            Create and push a Git tag
-  init               Bootstrap a repository to use reusable workflows
-  lint-changelog     Check changelog dates against release dates
-  lint-repo          Run repository consistency checks
-  mailmap-sync       Update Git's .mailmap file with missing contributors
-  metadata           Output project metadata
-  pr-body            Generate PR body with workflow metadata
-  release-prep       Prepare files for a release
-  setup-guide        Manage setup guide issue lifecycle
-  sponsor-label      Label issues/PRs from GitHub sponsors
-  sync-uv-lock       Re-lock and revert if only timestamp noise changed
-  test-plan          Run a test plan from a file against a binary
-  update-checksums   Update SHA-256 checksums for binary downloads
-  update-gitignore   Generate .gitignore from gitignore.io templates
-  verify-binary      Verify binary architecture using exiftool
+  git-tag              Create and push a Git tag
+  init                 Bootstrap a repository to use reusable workflows
+  lint-changelog       Check changelog dates against release dates
+  lint-repo            Run repository consistency checks
+  metadata             Output project metadata
+  pr-body              Generate PR body with workflow metadata
+  release-prep         Prepare files for a release
+  setup-guide          Manage setup guide issue lifecycle
+  sponsor-label        Label issues/PRs from GitHub sponsors
+  sync-bumpversion     Sync bumpversion config from bundled template
+  sync-gitignore       Sync .gitignore from gitignore.io templates
+  sync-mailmap         Sync Git's .mailmap file with missing contributors
+  sync-renovate        Sync Renovate config from canonical reference
+  sync-uv-lock         Re-lock and revert if only timestamp noise changed
+  test-plan            Run a test plan from a file against a binary
+  update-checksums     Update SHA-256 checksums for binary downloads
+  update-deps-graph    Generate dependency graph from uv lockfile
+  verify-binary        Verify binary architecture using exiftool
   version-check      Check if a version bump is allowed
   workflow           Manage downstream workflow caller files
 ```
@@ -231,7 +233,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `gitignore-location`         | str       | `"./.gitignore"`                                  | File path of the `.gitignore` to update.                                                                                                             |
 | `gitignore-extra-categories` | list[str] | `[]`                                              | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`).                                                                 |
 | `gitignore-extra-content`    | str       | See [example above](#toolgha-utils-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`).                                  |
-| `dependency-graph-output`    | str       | `"./docs/assets/dependencies.mmd"`                | Location of the generated dependency graph file. Read directly by `deps-graph` subcommand; CLI `--output` overrides.                                 |
+| `dependency-graph-output`    | str       | `"./docs/assets/dependencies.mmd"`                | Location of the generated dependency graph file. Read directly by `update-deps-graph` subcommand; CLI `--output` overrides.                                 |
 | `extra-label-files`          | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                       |
 | `extra-file-rules`           | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                     |
 | `extra-content-rules`        | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |
@@ -294,15 +296,15 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 
 *Syncers* — regenerate files from external sources or project state:
 
-- 🙈 **Update .gitignore** (`update-gitignore`)
+- 🙈 **Sync `.gitignore`** (`sync-gitignore`)
 
-  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`gha-utils update-gitignore`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
+  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`gha-utils sync-gitignore`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
   - **Requires**:
     - A `.gitignore` file in the repository
 
 - 🔄 **Sync bumpversion config** (`sync-bumpversion`)
 
-  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils init bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/init_project.py)
+  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils sync-bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
 
@@ -320,15 +322,15 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
   - **Skipped if**:
     - Repository is [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) itself (the upstream source)
 
-- 📬 **Update `.mailmap`** (`update-mailmap`)
+- 📬 **Sync `.mailmap`** (`sync-mailmap`)
 
-  - Keeps `.mailmap` file up to date with contributors using [`gha-utils mailmap-sync`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/mailmap.py)
+  - Keeps `.mailmap` file up to date with contributors using [`gha-utils sync-mailmap`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/mailmap.py)
   - **Requires**:
     - A `.mailmap` file in the repository root
 
 - 🕸️ **Update dependency graph** (`update-deps-graph`)
 
-  - Generates a Mermaid dependency graph of the Python project using [`gha-utils deps-graph`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/deps_graph.py)
+  - Generates a Mermaid dependency graph of the Python project using [`gha-utils update-deps-graph`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/deps_graph.py)
   - **Requires**:
     - Python package with a `uv.lock` file
 
@@ -565,11 +567,11 @@ docs = [
     - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
   - **Skipped if** `[tool.gha-utils] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
   - **Skipped for** branches that don't affect code:
-    - `update-mailmap` (`.mailmap` changes)
-    - `format-markdown` (documentation formatting)
     - `format-json` (JSON formatting)
-    - `update-gitignore` (`.gitignore` updates)
+    - `format-markdown` (documentation formatting)
     - `optimize-images` (image optimization)
+    - `sync-gitignore` (`.gitignore` sync)
+    - `sync-mailmap` (`.mailmap` sync)
     - `update-deps-graph` (dependency graph docs)
 
 - ✅ **Test binaries** (`test-binaries`)

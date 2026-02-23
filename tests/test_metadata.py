@@ -515,13 +515,13 @@ expected = {
         "gha_utils/templates/release-notes.md",
         "gha_utils/templates/setup-guide.md",
         "gha_utils/templates/sync-bumpversion.md",
+        "gha_utils/templates/sync-gitignore.md",
+        "gha_utils/templates/sync-mailmap.md",
         "gha_utils/templates/sync-renovate.md",
         "gha_utils/templates/sync-uv-lock.md",
         "gha_utils/templates/sync-workflows.md",
         "gha_utils/templates/update-deps-graph.md",
         "gha_utils/templates/update-docs.md",
-        "gha_utils/templates/update-gitignore.md",
-        "gha_utils/templates/update-mailmap.md",
         "readme.md",
     ],
     "markdown_files": [
@@ -552,13 +552,13 @@ expected = {
         "gha_utils/templates/release-notes.md",
         "gha_utils/templates/setup-guide.md",
         "gha_utils/templates/sync-bumpversion.md",
+        "gha_utils/templates/sync-gitignore.md",
+        "gha_utils/templates/sync-mailmap.md",
         "gha_utils/templates/sync-renovate.md",
         "gha_utils/templates/sync-uv-lock.md",
         "gha_utils/templates/sync-workflows.md",
         "gha_utils/templates/update-deps-graph.md",
         "gha_utils/templates/update-docs.md",
-        "gha_utils/templates/update-gitignore.md",
-        "gha_utils/templates/update-mailmap.md",
         "readme.md",
     ],
     "image_files": [
@@ -955,10 +955,10 @@ def test_skip_binary_build_branches_constant():
     """Test that SKIP_BINARY_BUILD_BRANCHES contains expected branch names."""
     assert isinstance(SKIP_BINARY_BUILD_BRANCHES, frozenset)
     # Verify the list contains expected branches for non-code changes.
-    assert "update-mailmap" in SKIP_BINARY_BUILD_BRANCHES
+    assert "sync-mailmap" in SKIP_BINARY_BUILD_BRANCHES
     assert "format-markdown" in SKIP_BINARY_BUILD_BRANCHES
     assert "optimize-images" in SKIP_BINARY_BUILD_BRANCHES
-    assert "update-gitignore" in SKIP_BINARY_BUILD_BRANCHES
+    assert "sync-gitignore" in SKIP_BINARY_BUILD_BRANCHES
     # Verify branches that affect code are NOT in the list.
     assert "format-python" not in SKIP_BINARY_BUILD_BRANCHES
     assert "prepare-release" not in SKIP_BINARY_BUILD_BRANCHES

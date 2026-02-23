@@ -271,7 +271,7 @@ jobs:
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
-          branch: autofix-typo
+          branch: fix-typos
       - name: PAT setup hint
         if: failure()
         run: >
@@ -339,8 +339,8 @@ jobs:
 
   # --- Syncers: regenerate files from external sources or project state. ---
 
-  update-gitignore:
-    name: 🙈 Update .gitignore
+  sync-gitignore:
+    name: 🙈 Sync .gitignore
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
@@ -348,12 +348,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Generate .gitignore
-        run: uvx --no-progress --from . gha-utils update-gitignore
+      - name: Sync .gitignore
+        run: uvx --no-progress --from . gha-utils sync-gitignore
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body
-          --template update-gitignore
+          --template sync-gitignore
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
@@ -362,7 +362,7 @@ jobs:
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
-          branch: update-gitignore
+          branch: sync-gitignore
 
   sync-bumpversion:
     name: 🔄 Sync bumpversion config
@@ -370,8 +370,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Initialize bumpversion config
-        run: uvx --no-progress --from . gha-utils init bumpversion
+      - name: Sync bumpversion config
+        run: uvx --no-progress --from . gha-utils sync-bumpversion
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body
@@ -413,8 +413,8 @@ jobs:
           labels: "🤖 ci"
           branch: sync-renovate
 
-  update-mailmap:
-    name: 📬 Update .mailmap
+  sync-mailmap:
+    name: 📬 Sync .mailmap
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.mailmap_exists)
@@ -425,12 +425,12 @@ jobs:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Generate .mailmap
-        run: uvx --no-progress --from . gha-utils mailmap-sync --skip-if-missing
+      - name: Sync .mailmap
+        run: uvx --no-progress --from . gha-utils sync-mailmap --skip-if-missing
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body
-          --template update-mailmap
+          --template sync-mailmap
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
@@ -439,7 +439,7 @@ jobs:
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
-          branch: update-mailmap
+          branch: sync-mailmap
 
   update-deps-graph:
     name: 🕸️ Update dependency graph
@@ -455,7 +455,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Generate graph
         # Package name and output path are auto-detected from pyproject.toml.
-        run: uvx --no-progress --from . gha-utils deps-graph --all-groups --all-extras
+        run: uvx --no-progress --from . gha-utils update-deps-graph --all-groups --all-extras
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body

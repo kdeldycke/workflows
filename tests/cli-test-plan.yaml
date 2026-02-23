@@ -87,11 +87,11 @@
     .+
 
 
-# Test mailmap-sync output.
+# Test sync-mailmap output.
 - cli_parameters:
     - --verbosity
     - INFO
-    - mailmap-sync
+    - sync-mailmap
   only_platforms:
     # Test mixed-case platform names, provided as a list of strings.
     - linux
