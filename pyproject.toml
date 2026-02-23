@@ -5,7 +5,7 @@ requires = [ "uv-build>=0.9" ]
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
-version = "5.13.0.dev0"
+version = "5.13.0"
 description = "🧩 CLI for GitHub Actions + reusable workflows"
 readme = "readme.md"
 keywords = [
@@ -119,7 +119,7 @@ gha-utils = "gha_utils.__main__:main"
 
 [project.urls]
 "Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
-"Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.13.0.dev0"
+"Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.13.0"
 "Funding" = "https://github.com/sponsors/kdeldycke"
 "Homepage" = "https://github.com/kdeldycke/workflows"
 "Issues" = "https://github.com/kdeldycke/workflows/issues"
@@ -214,7 +214,7 @@ run.source = [ "gha_utils" ]
 report.precision = 2
 
 [tool.bumpversion]
-current_version = "5.13.0.dev0"
+current_version = "5.13.0"
 allow_dirty = true
 ignore_missing_files = true
 # Parse versions with an optional .devN suffix (PEP 440).
