@@ -807,12 +807,14 @@ def test_apply_config_no_explicit_names_no_config(
     monkeypatch.chdir(tmp_path)
 
     result = _apply_workflow_config(
-        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+        (),
+        WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
     )
     assert result == REUSABLE_WORKFLOWS
 
     result = _apply_workflow_config(
-        (), WorkflowFormat.HEADER_ONLY  # type: ignore[arg-type]
+        (),
+        WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
     )
     assert result == tuple(sorted(NON_REUSABLE_WORKFLOWS))
 
@@ -829,7 +831,8 @@ workflow-sync = false
     monkeypatch.chdir(tmp_path)
 
     result = _apply_workflow_config(
-        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+        (),
+        WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
     )
     assert result is None
 
@@ -846,7 +849,8 @@ workflow-sync-exclude = ["debug.yaml"]
     monkeypatch.chdir(tmp_path)
 
     result = _apply_workflow_config(
-        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+        (),
+        WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
     )
     assert result is not None
     assert "debug.yaml" not in result
@@ -867,7 +871,8 @@ workflow-sync-exclude = ["tests.yaml"]
     monkeypatch.chdir(tmp_path)
 
     result = _apply_workflow_config(
-        (), WorkflowFormat.HEADER_ONLY  # type: ignore[arg-type]
+        (),
+        WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
     )
     assert result is not None
     assert "tests.yaml" not in result
@@ -888,7 +893,8 @@ workflow-sync-exclude = ["nonexistent.yaml"]
 
     with caplog.at_level(logging.WARNING):
         result = _apply_workflow_config(
-            (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+            (),
+            WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         )
 
     assert result is not None
@@ -908,7 +914,8 @@ workflow-sync-exclude = ["debug.yaml"]
     monkeypatch.chdir(tmp_path)
 
     filtered = _apply_workflow_config(
-        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+        (),
+        WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
     )
     assert filtered is not None
 
