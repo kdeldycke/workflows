@@ -169,9 +169,13 @@ jobs:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} build"
     needs:
       - project-metadata
+      - create-release
     # Skip binary compilation for branches that don't affect code (e.g., update-mailmap, format-markdown).
-    if: >
-      needs.project-metadata.outputs.nuitka_matrix
+    # Use always() because create-release is skipped on non-release pushes and PRs.
+    if: >-
+      always()
+      && needs.project-metadata.result == 'success'
+      && needs.project-metadata.outputs.nuitka_matrix
       && !fromJSON(needs.project-metadata.outputs.skip_binary_build || 'false')
     strategy:
       matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
@@ -234,10 +238,6 @@ jobs:
           name: ${{ matrix.bin_name }}-${{ matrix.short_sha }}
           if-no-files-found: warn
           path: ${{ matrix.bin_name }}
-      # On release pushes, each binary uploads itself directly to the GitHub
-      # release. This decouples binary builds from release creation: the
-      # release is published immediately after tagging, and binaries attach
-      # independently as each platform build completes.
       - name: Generate binary attestation
         if: >-
           github.ref == 'refs/heads/main'

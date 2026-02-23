@@ -546,7 +546,7 @@ docs = [
 - ✅ **Compile binaries** (`compile-binaries`)
 
   - Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
-  - On release pushes, each binary generates an attestation and uploads itself directly to the GitHub release as its build completes — decoupled from `create-release`
+  - On release pushes, each binary generates an attestation and uploads itself to the GitHub release as its build completes
   - **Requires**:
     - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
   - **Skipped if** `[tool.gha-utils] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
