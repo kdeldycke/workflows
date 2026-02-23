@@ -794,7 +794,8 @@ workflow-sync-exclude = ["lint.yaml"]
     monkeypatch.chdir(tmp_path)
 
     result = _apply_workflow_config(
-        ("lint.yaml", "release.yaml"), WorkflowFormat.THIN_CALLER
+        ("lint.yaml", "release.yaml"),
+        WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
     )
     assert result == ("lint.yaml", "release.yaml")
 
@@ -805,10 +806,14 @@ def test_apply_config_no_explicit_names_no_config(
     """Without config, returns format-specific defaults."""
     monkeypatch.chdir(tmp_path)
 
-    result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    result = _apply_workflow_config(
+        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+    )
     assert result == REUSABLE_WORKFLOWS
 
-    result = _apply_workflow_config((), WorkflowFormat.HEADER_ONLY)
+    result = _apply_workflow_config(
+        (), WorkflowFormat.HEADER_ONLY  # type: ignore[arg-type]
+    )
     assert result == tuple(sorted(NON_REUSABLE_WORKFLOWS))
 
 
@@ -823,7 +828,9 @@ workflow-sync = false
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
-    result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    result = _apply_workflow_config(
+        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+    )
     assert result is None
 
 
@@ -838,7 +845,9 @@ workflow-sync-exclude = ["debug.yaml"]
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
-    result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    result = _apply_workflow_config(
+        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+    )
     assert result is not None
     assert "debug.yaml" not in result
     # Other reusable workflows are still present.
@@ -857,7 +866,9 @@ workflow-sync-exclude = ["tests.yaml"]
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
-    result = _apply_workflow_config((), WorkflowFormat.HEADER_ONLY)
+    result = _apply_workflow_config(
+        (), WorkflowFormat.HEADER_ONLY  # type: ignore[arg-type]
+    )
     assert result is not None
     assert "tests.yaml" not in result
 
@@ -876,7 +887,9 @@ workflow-sync-exclude = ["nonexistent.yaml"]
     import logging
 
     with caplog.at_level(logging.WARNING):
-        result = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+        result = _apply_workflow_config(
+            (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+        )
 
     assert result is not None
     assert "nonexistent.yaml" in caplog.text
@@ -894,7 +907,9 @@ workflow-sync-exclude = ["debug.yaml"]
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
-    filtered = _apply_workflow_config((), WorkflowFormat.THIN_CALLER)
+    filtered = _apply_workflow_config(
+        (), WorkflowFormat.THIN_CALLER  # type: ignore[arg-type]
+    )
     assert filtered is not None
 
     output_dir = tmp_path / ".github" / "workflows"

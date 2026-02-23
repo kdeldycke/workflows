@@ -45,6 +45,7 @@ jobs:
       markdown_files: ${{ steps.project-metadata.outputs.markdown_files }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
+      renovate_config_exists: ${{ steps.project-metadata.outputs.renovate_config_exists }}
       image_files: ${{ steps.project-metadata.outputs.image_files }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
