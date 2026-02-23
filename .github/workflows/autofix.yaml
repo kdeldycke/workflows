@@ -456,7 +456,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Generate graph
         # Package name and output path are auto-detected from pyproject.toml.
-        run: uvx --no-progress --from . gha-utils update-deps-graph --all-groups --all-extras
+        run: uvx --no-progress --from . gha-utils update-deps-graph
       - id: pr-metadata
         run: >
           uvx --no-progress --from . gha-utils pr-body

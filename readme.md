@@ -215,6 +215,11 @@ junit.xml
 .claude/
 '''
 dependency-graph-output = "./docs/assets/dependencies.mmd"
+dependency-graph-all-groups = true
+dependency-graph-all-extras = true
+dependency-graph-no-groups = []
+dependency-graph-no-extras = []
+dependency-graph-level = 0
 extra-label-files = ["https://example.com/my-labels.toml"]
 extra-file-rules = "docs:\n  - docs/**"
 extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
@@ -235,6 +240,11 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `gitignore-extra-categories` | list[str] | `[]`                                              | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`).                                                                 |
 | `gitignore-extra-content`    | str       | See [example above](#toolgha-utils-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`).                                  |
 | `dependency-graph-output`    | str       | `"./docs/assets/dependencies.mmd"`                | Location of the generated dependency graph file. Read directly by `update-deps-graph` subcommand; CLI `--output` overrides.                          |
+| `dependency-graph-all-groups` | bool     | `true`                                            | Include all dependency groups in the graph. Set to `false` to exclude development groups (docs, test, typing). CLI `--all-groups` overrides.         |
+| `dependency-graph-all-extras` | bool     | `true`                                            | Include all optional extras in the graph. CLI `--all-extras` overrides.                                                                              |
+| `dependency-graph-no-groups` | list[str] | `[]`                                              | Dependency groups to exclude from the graph. Equivalent to `--no-group` for each entry. Takes precedence over `dependency-graph-all-groups`.         |
+| `dependency-graph-no-extras` | list[str] | `[]`                                              | Optional extras to exclude from the graph. Equivalent to `--no-extra` for each entry. Takes precedence over `dependency-graph-all-extras`.           |
+| `dependency-graph-level`     | int       | *(none)*                                          | Maximum depth of the dependency graph. `1` = primary deps only, `2` = primary + their deps, etc. CLI `--level` overrides.                           |
 | `extra-label-files`          | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                       |
 | `extra-file-rules`           | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                     |
 | `extra-content-rules`        | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |

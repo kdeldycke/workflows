@@ -449,6 +449,43 @@ class Config:
     The dependency graph visualizes the project's dependency tree in Mermaid format.
     """
 
+    dependency_graph_all_groups: bool = True
+    """Whether to include all dependency groups in the graph.
+
+    When ``True``, the ``update-deps-graph`` command behaves as if
+    ``--all-groups`` was passed. Projects that want to exclude development
+    dependency groups (docs, test, typing) from their published graph can
+    set this to ``false``.
+    """
+
+    dependency_graph_all_extras: bool = True
+    """Whether to include all optional extras in the graph.
+
+    When ``True``, the ``update-deps-graph`` command behaves as if
+    ``--all-extras`` was passed.
+    """
+
+    dependency_graph_no_groups: list[str] = field(default_factory=list)
+    """Dependency groups to exclude from the graph.
+
+    Equivalent to passing ``--no-group`` for each entry. Takes precedence
+    over ``dependency-graph-all-groups``.
+    """
+
+    dependency_graph_no_extras: list[str] = field(default_factory=list)
+    """Optional extras to exclude from the graph.
+
+    Equivalent to passing ``--no-extra`` for each entry. Takes precedence
+    over ``dependency-graph-all-extras``.
+    """
+
+    dependency_graph_level: int | None = None
+    """Maximum depth of the dependency graph.
+
+    ``None`` means unlimited. ``1`` = primary deps only, ``2`` = primary +
+    their deps, etc. Equivalent to ``--level``.
+    """
+
     extra_label_files: list[str] = field(default_factory=list)
     """URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
 
@@ -469,6 +506,11 @@ class Config:
 
 
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
+    "dependency_graph_all_extras",
+    "dependency_graph_all_groups",
+    "dependency_graph_level",
+    "dependency_graph_no_extras",
+    "dependency_graph_no_groups",
     "dependency_graph_output",
     "extra_content_rules",
     "extra_file_rules",

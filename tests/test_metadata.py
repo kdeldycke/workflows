@@ -1085,6 +1085,11 @@ def test_gha_utils_config_defaults():
     assert (
         metadata.config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
     )
+    assert metadata.config["dependency-graph-all-groups"] is True
+    assert metadata.config["dependency-graph-all-extras"] is True
+    assert metadata.config["dependency-graph-no-groups"] == []
+    assert metadata.config["dependency-graph-no-extras"] == []
+    assert metadata.config["dependency-graph-level"] is None
     assert metadata.config["extra-label-files"] == []
     assert metadata.config["extra-file-rules"] == ""
     assert metadata.config["extra-content-rules"] == ""
@@ -1113,6 +1118,11 @@ junit.xml
 .claude/
 '''
 dependency-graph-output = "./custom/deps.mmd"
+dependency-graph-all-groups = false
+dependency-graph-all-extras = true
+dependency-graph-no-groups = ["typing"]
+dependency-graph-no-extras = ["xml"]
+dependency-graph-level = 2
 unstable-targets = ["linux-arm64", "windows-x64"]
 extra-label-files = ["https://example.com/labels.toml"]
 extra-file-rules = "docs:\\n  - docs/**"
@@ -1139,6 +1149,11 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
         == "junit.xml\n\n# Claude Code\n.claude/\n"
     )
     assert metadata.config["dependency-graph-output"] == "./custom/deps.mmd"
+    assert metadata.config["dependency-graph-all-groups"] is False
+    assert metadata.config["dependency-graph-all-extras"] is True
+    assert metadata.config["dependency-graph-no-groups"] == ["typing"]
+    assert metadata.config["dependency-graph-no-extras"] == ["xml"]
+    assert metadata.config["dependency-graph-level"] == 2
     assert metadata.unstable_targets == {"linux-arm64", "windows-x64"}
     assert metadata.config["extra-label-files"] == [
         "https://example.com/labels.toml",
@@ -1225,6 +1240,11 @@ def test_load_gha_utils_config_defaults(tmp_path, monkeypatch):
     assert config["timeout"] is None
     assert config["test-plan"] is None
     assert config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
+    assert config["dependency-graph-all-groups"] is True
+    assert config["dependency-graph-all-extras"] is True
+    assert config["dependency-graph-no-groups"] == []
+    assert config["dependency-graph-no-extras"] == []
+    assert config["dependency-graph-level"] is None
     assert config["nuitka"] is True
     assert config["nuitka-extra-args"] == []
     assert config["extra-label-files"] == []

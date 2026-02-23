@@ -1393,6 +1393,22 @@ def deps_graph(
         else:
             output = Path("-")
 
+    # Apply config defaults when CLI flags are not explicitly provided.
+    if not all_groups and not groups and not only_groups:
+        all_groups = config.get("dependency-graph-all-groups", True)
+    if not all_extras and not extras and not only_extras:
+        all_extras = config.get("dependency-graph-all-extras", True)
+    if not excluded_groups:
+        config_no_groups = config.get("dependency-graph-no-groups", [])
+        if config_no_groups:
+            excluded_groups = tuple(config_no_groups)
+    if not excluded_extras:
+        config_no_extras = config.get("dependency-graph-no-extras", [])
+        if config_no_extras:
+            excluded_extras = tuple(config_no_extras)
+    if level is None:
+        level = config.get("dependency-graph-level")
+
     # Resolve --only-group/--only-extra (exclusive mode: no main deps).
     exclude_base = bool(only_groups or only_extras)
     if only_groups:
