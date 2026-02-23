@@ -15,7 +15,7 @@ Automates:
 - Version bumping
 - Changelog management
 - Formatting autofix for: Python, Markdown, JSON, typos
-- Linting: Python types with `mypy`, YAML, `zsh`, GitHub Actions, URLS & redirects, Awesome lists, secrets
+- Linting: Python types with `mypy`, YAML, `zsh`, GitHub Actions, workflow security, URLS & redirects, Awesome lists, secrets
 - Compiling of Python binaries for Linux / macOS / Windows on `x86_64` & `arm64`
 - Building of Python packages and upload to PyPI
 - Produce attestations
@@ -518,6 +518,15 @@ docs = [
 - ⚡ **Lint GitHub Actions** (`lint-github-actions`)
 
   - Lints workflow files using [`actionlint`](https://github.com/rhysd/actionlint) and [`shellcheck`](https://github.com/koalaman/shellcheck)
+  - **Requires**:
+    - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
+  - **Skipped for**:
+    - `prepare-release` branch
+    - Bot-created PRs
+
+- 🔒 **Lint workflow security** (`lint-workflow-security`)
+
+  - Audits workflow files for security issues using [`zizmor`](https://github.com/woodruffw/zizmor) (template injection, excessive permissions, supply chain risks, etc.)
   - **Requires**:
     - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
   - **Skipped for**:

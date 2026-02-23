@@ -151,6 +151,22 @@ jobs:
           actionlint -color
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
 
+  lint-workflow-security:
+    name: 🔒 Lint workflow security
+    needs:
+      - project-metadata
+    # Skip linting on prepare-release branch and dependency update PRs because they do not heavily alter GitHub Actions.
+    if: >
+      github.head_ref != 'prepare-release'
+      && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && needs.project-metadata.outputs.workflow_files
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.3.0
+      - name: Run zizmor
+        run: uvx --no-progress 'zizmor==1.22.0' --format github --offline .
+
   lint-awesome:
     name: 🌟 Lint awesome
     # Lint only "awesome-*" repositories except "awesome-template".
