@@ -23,7 +23,7 @@ Work beyond the local repository: check issues, PRs, and CI runs on GitHub. Fix 
 
 ## Checks
 
-1. **`CLAUDE.md` compliance** — Read it, then grep the codebase for violations. Fix all of: typos, grammar, stale references, ordering violations, style issues, documentation sync issues.
+1. **`CLAUDE.md` compliance** — Read it, then grep the codebase for violations. Fix all of: typos, grammar, stale references, ordering violations, style issues, documentation sync issues. Remove discoverable content per `CLAUDE.md` § Keeping `claude.md` lean.
 2. **CLI health** — Run every subcommand's `--help`; fix docs if output diverges
 3. **Documentation sync** — Per `CLAUDE.md` § Documentation sync
 4. **Quality checks** — Per `CLAUDE.md` § Commands; fix simple issues, escalate complex ones

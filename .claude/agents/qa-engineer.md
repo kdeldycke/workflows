@@ -40,6 +40,7 @@ Question overly verbose prose in `CLAUDE.md` and `.claude/agents/*.md`:
 - Content duplicated between files — move to `CLAUDE.md`, replace with a reference
 - Wordy explanations — tighten to a single sentence
 - Redundant examples or restated rules — cut them
+- **Discoverable content** — remove per `CLAUDE.md` § Keeping `claude.md` lean. Structural inventories, code examples copied from source files, and general programming knowledge do not belong in `CLAUDE.md`.
 
 Prefer mechanical enforcement over prose (see `CLAUDE.md` § Agent behavior policy). If a rule can be a test, autofix job, or lint check — implement it instead of writing it down.
 
