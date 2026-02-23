@@ -13,6 +13,7 @@
 - Use explicit `--format thin-caller` in `autofix.yaml` sync step.
 - Fix race condition where binary builds could finish before `create-release`, causing `gh release upload` to fail with "release not found". Make `compile-binaries` depend on `create-release`.
 - Add `lint-workflow-security` job to lint workflow using [`zizmor`](https://github.com/woodruffw/zizmor) to detect security vulnerabilities in GitHub Actions workflows. Closes #1478.
+- Add `sync-linter-configs` CLI command and autofix job to sync `.github/zizmor.yml` to downstream repos. Add `linters` init component.
 - Add per-project dependency graph configuration to `[tool.gha-utils]`: `dependency-graph-all-groups`, `dependency-graph-all-extras`, `dependency-graph-no-groups`, `dependency-graph-no-extras`, and `dependency-graph-level`. The `update-deps-graph` command reads these as defaults, with CLI flags taking precedence. The autofix workflow no longer hardcodes `--all-groups --all-extras`.
 
 ## [`5.12.0` (2026-02-22)](https://github.com/kdeldycke/workflows/compare/v5.11.1...v5.12.0)

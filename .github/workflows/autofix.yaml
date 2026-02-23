@@ -387,6 +387,28 @@ jobs:
           labels: "🤖 ci"
           branch: sync-bumpversion
 
+  sync-linter-configs:
+    name: 🔄 Sync linter configs
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.3.0
+      - name: Sync linter configs
+        run: uvx --no-progress --from . gha-utils sync-linter-configs
+      - id: pr-metadata
+        run: >
+          uvx --no-progress --from . gha-utils pr-body
+          --template sync-linter-configs
+          --output "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "🤖 ci"
+          branch: sync-linter-configs
+
   sync-renovate:
     name: 🔄 Sync renovate.json5
     needs:

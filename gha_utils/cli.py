@@ -1678,6 +1678,26 @@ def sync_bumpversion() -> None:
         echo("bumpversion config is up to date.")
 
 
+@gha_utils.command(short_help="Sync linter config files from bundled definitions")
+def sync_linter_configs() -> None:
+    """Sync linter configuration files from the bundled definitions in ``gha-utils``.
+
+    Overwrites ``.github/zizmor.yml`` with the canonical configuration
+    bundled in ``gha-utils``. Designed for the ``sync-linter-configs`` autofix job.
+    Use ``gha-utils init linters`` for interactive bootstrapping.
+    """
+    result = run_init(
+        output_dir=Path("."),
+        components=("linters",),
+        overwrite=True,
+    )
+    if result.created:
+        for path in result.created:
+            echo(f"Updated: {path}")
+    else:
+        echo("Linter configs are up to date.")
+
+
 @gha_utils.command(short_help="Sync Claude Code skills from bundled definitions")
 def sync_skills() -> None:
     """Sync Claude Code skill files from the bundled definitions in ``gha-utils``.

@@ -112,6 +112,7 @@ Commands:
   sponsor-label        Label issues/PRs from GitHub sponsors
   sync-bumpversion     Sync bumpversion config from bundled template
   sync-gitignore       Sync .gitignore from gitignore.io templates
+  sync-linter-configs  Sync linter config files from bundled definitions
   sync-mailmap         Sync Git's .mailmap file with missing contributors
   sync-renovate        Sync Renovate config from canonical reference
   sync-skills          Sync Claude Code skills from bundled definitions
@@ -318,6 +319,10 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
   - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`gha-utils sync-bumpversion`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/cli.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
+
+- 🔄 **Sync linter configs** (`sync-linter-configs`)
+
+  - Syncs linter configuration files (`.github/zizmor.yml`) with the canonical references from [`gha-utils`](https://github.com/kdeldycke/workflows/blob/main/gha_utils/data/zizmor.yml)
 
 - 🔄 **Sync `renovate.json5`** (`sync-renovate`)
 
