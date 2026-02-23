@@ -1,5 +1,10 @@
 # Changelog
 
+## [`5.13.1.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.13.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`5.13.0` (2026-02-23)](https://github.com/kdeldycke/workflows/compare/v5.12.0...v5.13.0)
 
 - Harmonize sync/update naming across CLI commands, workflow jobs, PR branches, and templates. `sync-X` means regenerate from a canonical source; `update-X` means compute from project state. Breaking renames: `update-gitignore` → `sync-gitignore`, `mailmap-sync` → `sync-mailmap`, `deps-graph` → `update-deps-graph`. New `sync-bumpversion` CLI command replaces `init bumpversion` in the autofix job. Fix `autofix-typo` branch → `fix-typos`.
