@@ -15,6 +15,9 @@
 
 ## [`5.12.0` (2026-02-22)](https://github.com/kdeldycke/workflows/compare/v5.11.1...v5.12.0)
 
+> [!NOTE]
+> `5.12.0` is available on [🐍 PyPI](https://pypi.org/project/gha-utils/5.12.0/) and [🐙 GitHub](https://github.com/kdeldycke/workflows/releases/tag/v5.12.0).
+
 - Decouple GitHub release creation from binary builds. The release is published immediately after tagging with the Python package only; each binary uploads itself independently as its build completes.
 - Remove `gha-utils collect-artifacts` subcommand. Binary renaming and upload is now handled directly in the `compile-binaries` workflow job.
 - Add `nuitka-extra-args` config field to `[tool.gha-utils]` for project-specific Nuitka flags. Remove hard-coded Nuitka includes from the workflow. Fixes downstream repos failing on `gha_utils/templates/*.md` include.
