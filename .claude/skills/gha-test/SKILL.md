@@ -3,7 +3,7 @@ name: gha-test
 description: Run and write YAML test plans for compiled binaries.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
-argument-hint: "[--command CMD] [test-plan.yaml]"
+argument-hint: '[--command CMD] [test-plan.yaml]'
 ---
 
 ## Context

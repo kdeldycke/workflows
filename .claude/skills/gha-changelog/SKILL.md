@@ -3,7 +3,7 @@ name: gha-changelog
 description: Draft, validate, and fix changelog entries.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
-argument-hint: "[add|check|fix]"
+argument-hint: '[add|check|fix]'
 ---
 
 ## Context

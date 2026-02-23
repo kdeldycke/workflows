@@ -3,7 +3,7 @@ name: gha-sync
 description: Sync workflow caller files with upstream reusable workflows.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: "[args]"
+argument-hint: '[args]'
 ---
 
 ## Context

@@ -3,7 +3,7 @@ name: gha-lint
 description: Lint workflows and repository metadata.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: "[workflows|repo|all]"
+argument-hint: '[workflows|repo|all]'
 ---
 
 ## Context

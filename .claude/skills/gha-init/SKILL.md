@@ -3,7 +3,7 @@ name: gha-init
 description: Bootstrap a repository with reusable workflows from kdeldycke/workflows.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: "[component ...]"
+argument-hint: '[component ...]'
 ---
 
 ## Context
