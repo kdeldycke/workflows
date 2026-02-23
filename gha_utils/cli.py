@@ -228,6 +228,7 @@ def init_project(
         labels       Label config (labels.toml + labeller rules)
         renovate     Renovate config (renovate.json5)
         changelog    Minimal changelog.md
+        skills       Claude Code skill definitions (.claude/skills/)
         ruff         Merge [tool.ruff] into pyproject.toml
         pytest       Merge [tool.pytest] into pyproject.toml
         mypy         Merge [tool.mypy] into pyproject.toml
@@ -1659,6 +1660,26 @@ def sync_bumpversion() -> None:
             echo(f"Updated: {path}")
     else:
         echo("bumpversion config is up to date.")
+
+
+@gha_utils.command(short_help="Sync Claude Code skills from bundled definitions")
+def sync_skills() -> None:
+    """Sync Claude Code skill files from the bundled definitions in ``gha-utils``.
+
+    Overwrites ``.claude/skills/`` with the canonical skill definitions
+    bundled in ``gha-utils``. Designed for the ``sync-skills`` autofix job.
+    Use ``gha-utils init skills`` for interactive bootstrapping.
+    """
+    result = run_init(
+        output_dir=Path("."),
+        components=("skills",),
+        overwrite=True,
+    )
+    if result.created:
+        for path in result.created:
+            echo(f"Updated: {path}")
+    else:
+        echo("Skills are up to date.")
 
 
 @gha_utils.command(short_help="Sync Renovate config from canonical reference")

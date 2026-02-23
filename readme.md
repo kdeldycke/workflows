@@ -114,6 +114,7 @@ Commands:
   sync-gitignore       Sync .gitignore from gitignore.io templates
   sync-mailmap         Sync Git's .mailmap file with missing contributors
   sync-renovate        Sync Renovate config from canonical reference
+  sync-skills          Sync Claude Code skills from bundled definitions
   sync-uv-lock         Re-lock and revert if only timestamp noise changed
   test-plan            Run a test plan from a file against a binary
   update-checksums     Update SHA-256 checksums for binary downloads
@@ -896,6 +897,22 @@ Additionally, [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) activel
 
 > [!TIP]
 > For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see [`claude.md` § Concurrency implementation](claude.md#concurrency-implementation).
+
+## Claude Code integration
+
+This repository includes [Claude Code skills](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) that wrap `gha-utils` CLI commands as slash commands. Downstream repositories can install them with:
+
+```shell-session
+$ uvx -- gha-utils init skills
+```
+
+To keep skills in sync with the latest version:
+
+```shell-session
+$ uvx -- gha-utils sync-skills
+```
+
+Available skills: `/gha-init`, `/gha-changelog`, `/gha-release`, `/gha-lint`, `/gha-sync`, `/gha-deps`, `/gha-test`, `/gha-metadata`.
 
 ## Used in
 

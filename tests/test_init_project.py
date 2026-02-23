@@ -404,6 +404,7 @@ def test_init_default_components():
     assert "changelog" in DEFAULT_COMPONENTS
     assert "labels" in DEFAULT_COMPONENTS
     assert "renovate" in DEFAULT_COMPONENTS
+    assert "skills" in DEFAULT_COMPONENTS
     assert "workflows" in DEFAULT_COMPONENTS
     # Tool configs should not be in defaults.
     assert "ruff" not in DEFAULT_COMPONENTS
@@ -490,6 +491,32 @@ def test_init_only_labels(tmp_path: Path):
     # No workflows or changelog should be created.
     for filename in REUSABLE_WORKFLOWS:
         assert f".github/workflows/{filename}" not in created_set
+    assert "changelog.md" not in created_set
+
+
+def test_init_only_skills(tmp_path: Path):
+    """Verify only skill files are created."""
+    result = run_init(output_dir=tmp_path, components=("skills",))
+
+    created_set = set(result.created)
+    assert len(created_set) == 8
+
+    # Verify all skill files are created.
+    for name in (
+        "gha-changelog",
+        "gha-deps",
+        "gha-init",
+        "gha-lint",
+        "gha-metadata",
+        "gha-release",
+        "gha-sync",
+        "gha-test",
+    ):
+        rel = f".claude/skills/{name}/SKILL.md"
+        assert rel in created_set
+        assert (tmp_path / ".claude" / "skills" / name / "SKILL.md").exists()
+
+    # No workflows or changelog should be created.
     assert "changelog.md" not in created_set
 
 

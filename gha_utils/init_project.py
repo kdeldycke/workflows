@@ -30,6 +30,7 @@ Available components (``gha-utils init <component>``):
 - ``pytest`` - Merges ``[tool.pytest]`` into pyproject.toml
 - ``mypy`` - Merges ``[tool.mypy]`` into pyproject.toml
 - ``bumpversion`` - Merges ``[tool.bumpversion]`` into pyproject.toml
+- ``skills`` - Claude Code skill definitions (.claude/skills/)
 """
 
 from __future__ import annotations
@@ -97,6 +98,15 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "labels.toml": "./labels.toml",
     "labeller-file-based.yaml": "./.github/labeller-file-based.yaml",
     "labeller-content-based.yaml": "./.github/labeller-content-based.yaml",
+    # Claude Code skill definitions.
+    "skill-gha-changelog.md": "./.claude/skills/gha-changelog/SKILL.md",
+    "skill-gha-deps.md": "./.claude/skills/gha-deps/SKILL.md",
+    "skill-gha-init.md": "./.claude/skills/gha-init/SKILL.md",
+    "skill-gha-lint.md": "./.claude/skills/gha-lint/SKILL.md",
+    "skill-gha-metadata.md": "./.claude/skills/gha-metadata/SKILL.md",
+    "skill-gha-release.md": "./.claude/skills/gha-release/SKILL.md",
+    "skill-gha-sync.md": "./.claude/skills/gha-sync/SKILL.md",
+    "skill-gha-test.md": "./.claude/skills/gha-test/SKILL.md",
     # Workflow templates.
     "autofix.yaml": "./.github/workflows/autofix.yaml",
     "autolock.yaml": "./.github/workflows/autolock.yaml",
@@ -632,6 +642,7 @@ FILE_COMPONENTS: dict[str, str] = {
     "changelog": "Minimal changelog.md",
     "labels": "Label config files (labels.toml + labeller rules)",
     "renovate": "Renovate config (renovate.json5)",
+    "skills": "Claude Code skill definitions (.claude/skills/)",
     "workflows": "Thin-caller workflow files",
 }
 """Components that create files during init, with descriptions."""
@@ -654,6 +665,16 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("labels.toml", "labels.toml"),
     ),
     "renovate": (("renovate.json5", "renovate.json5"),),
+    "skills": (
+        ("skill-gha-changelog.md", ".claude/skills/gha-changelog/SKILL.md"),
+        ("skill-gha-deps.md", ".claude/skills/gha-deps/SKILL.md"),
+        ("skill-gha-init.md", ".claude/skills/gha-init/SKILL.md"),
+        ("skill-gha-lint.md", ".claude/skills/gha-lint/SKILL.md"),
+        ("skill-gha-metadata.md", ".claude/skills/gha-metadata/SKILL.md"),
+        ("skill-gha-release.md", ".claude/skills/gha-release/SKILL.md"),
+        ("skill-gha-sync.md", ".claude/skills/gha-sync/SKILL.md"),
+        ("skill-gha-test.md", ".claude/skills/gha-test/SKILL.md"),
+    ),
 }
 """Bundled config files per component, with their output paths."""
 
@@ -703,7 +724,7 @@ def run_init(
         _init_workflows(output_dir, repo, version, overwrite, result)
 
     # Config file components (labels, renovate).
-    for component_name in ("labels", "renovate"):
+    for component_name in ("labels", "renovate", "skills"):
         if component_name in selected:
             _init_config_files(output_dir, component_name, overwrite, result)
 

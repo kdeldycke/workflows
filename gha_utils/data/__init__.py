@@ -17,11 +17,12 @@
 """Bundled data files for gha-utils.
 
 This package contains label configurations, labeller rules, bumpversion template,
-Ruff configuration, and workflow templates.
+Ruff configuration, workflow templates, and Claude Code skill definitions.
 
 Configuration files (labels, labellers, bumpversion, ruff) are stored directly
 in this directory. Workflow templates are symlinked from ``.github/workflows/``
-to maintain a single source of truth while still being bundled in the package.
+and skill definitions from ``.claude/skills/`` to maintain a single source of
+truth while still being bundled in the package.
 
 All files are accessible at runtime via ``importlib.resources``.
 """

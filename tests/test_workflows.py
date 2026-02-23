@@ -528,25 +528,42 @@ def test_all_workflows_have_symlinks_in_data() -> None:
     )
 
 
-def test_only_workflows_are_symlinks_in_data() -> None:
-    """Verify that only workflow files are symlinks in gha_utils/data/."""
+def test_only_workflows_and_skills_are_symlinks_in_data() -> None:
+    """Verify that only workflow and skill files are symlinks in gha_utils/data/."""
     workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
+    skills = {p.name for p in DATA_DIR.iterdir() if p.name.startswith("skill-")}
+    expected = workflows | skills
     symlinks = {p.name for p in DATA_DIR.iterdir() if p.is_symlink()}
 
-    extra = symlinks - workflows
+    extra = symlinks - expected
     assert not extra, (
         f"Unexpected symlinks in gha_utils/data/: {sorted(extra)}. "
-        "Only workflow files should be symlinked."
+        "Only workflow and skill files should be symlinked."
     )
 
 
 def test_workflow_symlinks_resolve_correctly() -> None:
     """Verify that workflow symlinks in gha_utils/data/ point to the correct targets."""
     for symlink in sorted(DATA_DIR.iterdir()):
-        if not symlink.is_symlink():
+        if not symlink.is_symlink() or symlink.name.startswith("skill-"):
             continue
         target = symlink.resolve()
         expected = (WORKFLOWS_DIR / symlink.name).resolve()
+        assert target == expected, (
+            f"Symlink {symlink.name} points to {target}, expected {expected}"
+        )
+
+
+def test_skill_symlinks_resolve_correctly() -> None:
+    """Verify that skill symlinks in gha_utils/data/ point to the correct targets."""
+    skills_dir = REPO_ROOT / ".claude" / "skills"
+    for symlink in sorted(DATA_DIR.iterdir()):
+        if not symlink.is_symlink() or not symlink.name.startswith("skill-"):
+            continue
+        # skill-gha-changelog.md -> .claude/skills/gha-changelog/SKILL.md.
+        skill_name = symlink.name.removeprefix("skill-").removesuffix(".md")
+        expected = (skills_dir / skill_name / "SKILL.md").resolve()
+        target = symlink.resolve()
         assert target == expected, (
             f"Symlink {symlink.name} points to {target}, expected {expected}"
         )

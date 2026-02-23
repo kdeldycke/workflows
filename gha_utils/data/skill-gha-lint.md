@@ -1,0 +1,1 @@
+../../.claude/skills/gha-lint/SKILL.md

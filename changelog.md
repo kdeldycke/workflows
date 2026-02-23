@@ -6,7 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Harmonize sync/update naming across CLI commands, workflow jobs, PR branches, and templates. `sync-X` means regenerate from a canonical source; `update-X` means compute from project state. Breaking renames: `update-gitignore` → `sync-gitignore`, `mailmap-sync` → `sync-mailmap`, `deps-graph` → `update-deps-graph`. New `sync-bumpversion` CLI command replaces `init bumpversion` in the autofix job. Fix `autofix-typo` branch → `fix-typos`.
-- Add Claude Code skills (`.claude/skills/`) wrapping `gha-utils` CLI commands as slash commands: `/gha-init`, `/gha-changelog`, `/gha-release`, `/gha-lint`, `/gha-sync`, `/gha-deps`, `/gha-test`, `/gha-metadata`.
+- Add Claude Code skills (`.claude/skills/`) wrapping `gha-utils` CLI commands as slash commands: `/gha-init`, `/gha-changelog`, `/gha-release`, `/gha-lint`, `/gha-sync`, `/gha-deps`, `/gha-test`, `/gha-metadata`. Distribute skills via `gha-utils init skills` and `gha-utils sync-skills` for downstream repos.
 - Add `sync-renovate` CLI command and autofix workflow job to keep downstream `renovate.json5` in sync with the canonical reference from `gha-utils`. Opt out via `renovate-sync = false` in `[tool.gha-utils]`.
 - Add `workflow-sync` and `workflow-sync-exclude` config keys to `[tool.gha-utils]` for per-project control over which workflows are synced. Explicit CLI positional arguments override both settings.
 - Add `--format header-only` mode to `gha-utils workflow sync` for syncing headers (`name`, `on`, `concurrency`) of non-reusable workflows like `tests.yaml`.

@@ -1,0 +1,1 @@
+../../.claude/skills/gha-sync/SKILL.md
