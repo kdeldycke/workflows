@@ -405,6 +405,12 @@ Patterns that recur across sessions — watch for these proactively:
 - Agent definitions should reference `CLAUDE.md` sections, not restate them.
 - qa-engineer is the gatekeeper for agent definition changes.
 
+### Skills
+
+Skills in `.claude/skills/` wrap `gha-utils` CLI commands as slash commands. They are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules.
+
+Available skills: `/gha-init`, `/gha-changelog`, `/gha-release`, `/gha-lint`, `/gha-sync`, `/gha-deps`, `/gha-test`, `/gha-metadata`.
+
 ## Design principles
 
 ### Philosophy
