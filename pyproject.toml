@@ -149,7 +149,7 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
 exclude-newer = "1 week"
 # Exclude gha-utils from the cooldown period.
-exclude-newer-package = { "gha-utils" = "0 day"}
+exclude-newer-package = { "gha-utils" = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 
