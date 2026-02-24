@@ -5,8 +5,8 @@ requires = [ "uv-build>=0.9" ]
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
-version = "5.14.0"
-description = "⚠️ Renamed to repokit — see https://pypi.org/project/repokit/"
+version = "5.14.1"
+description = "⚠️ Renamed to repomatic — see https://pypi.org/project/repomatic/"
 readme = "readme.md"
 keywords = [
   "build-automation",
@@ -118,13 +118,13 @@ dependencies = [
 gha-utils = "gha_utils.__main__:main"
 
 [project.urls]
-"Changelog" = "https://github.com/kdeldycke/repokit/blob/main/changelog.md"
-"Download" = "https://github.com/kdeldycke/repokit/releases/tag/v5.14.0"
+"Changelog" = "https://github.com/kdeldycke/repomatic/blob/main/changelog.md"
+"Download" = "https://github.com/kdeldycke/repomatic/releases/tag/v5.14.1"
 "Funding" = "https://github.com/sponsors/kdeldycke"
-"Homepage" = "https://github.com/kdeldycke/repokit"
-"Issues" = "https://github.com/kdeldycke/repokit/issues"
-"Repository" = "https://github.com/kdeldycke/repokit"
-"Successor" = "https://pypi.org/project/repokit/"
+"Homepage" = "https://github.com/kdeldycke/repomatic"
+"Issues" = "https://github.com/kdeldycke/repomatic/issues"
+"Repository" = "https://github.com/kdeldycke/repomatic"
+"Successor" = "https://pypi.org/project/repomatic/"
 
 # Non-runtime development dependency groups.
 [dependency-groups]
@@ -215,7 +215,7 @@ run.source = [ "gha_utils" ]
 report.precision = 2
 
 [tool.bumpversion]
-current_version = "5.14.0"
+current_version = "5.14.1"
 allow_dirty = true
 ignore_missing_files = true
 # Parse versions with an optional .devN suffix (PEP 440).

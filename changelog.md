@@ -1,5 +1,9 @@
 # Changelog
 
+## [`5.14.1` (2026-02-24)](https://github.com/kdeldycke/workflows/compare/v5.14.0...v5.14.1)
+
+- Final release under the `gha-utils` name on [PyPI](https://pypi.org/project/gha-utils/). This project is being renamed to [`repomatic`](https://pypi.org/project/repomatic/) and the GitHub repository moves from [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) to [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic). Supersedes `5.14.0` which pointed to an unavailable package name.
+
 ## [`5.14.0` (2026-02-24)](https://github.com/kdeldycke/workflows/compare/v5.13.0...v5.14.0)
 
 - Final release under the `gha-utils` name on [PyPI](https://pypi.org/project/gha-utils/). This project is being renamed to [`repokit`](https://pypi.org/project/repokit/) and the GitHub repository moves from [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) to [`kdeldycke/repokit`](https://github.com/kdeldycke/repokit).

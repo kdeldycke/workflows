@@ -8,16 +8,16 @@
 
 > [!CAUTION]
 > **This project has been renamed.** The `gha-utils` package is now
-> [`repokit`](https://pypi.org/project/repokit/). This is the **final release**
+> [`repomatic`](https://pypi.org/project/repomatic/). This is the **final release**
 > under the `gha-utils` name. Please migrate:
 >
 > ```shell-session
-> $ uvx -- repokit --help
+> $ uvx -- repomatic --help
 > ```
 >
 > The GitHub repository moves from
 > [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) to
-> [`kdeldycke/repokit`](https://github.com/kdeldycke/repokit).
+> [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic).
 
 [Reusable workflows](#reusable-workflows-collection) and a standalone [CLI (`gha-utils`)](#gha-utils-cli) that let you **release Python packages multiple times a day with only 2-clicks**. Designed for `uv`-based Python projects, but usable for other projects too.
 
