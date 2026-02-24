@@ -78,7 +78,7 @@ jobs:
       - name: Generate issue body
         id: issue-metadata
         run: >
-          uvx --no-progress 'repomatic==6.0.1' pr-body
+          uvx --no-progress --from . repomatic pr-body
           --template detect-squash-merge
           --pr-ref "${{ steps.extract.outputs.pr_ref }}"
           --output "$GITHUB_OUTPUT"
@@ -133,7 +133,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run repomatic metadata
         id: project-metadata
-        run: uvx --no-progress 'repomatic==6.0.1' metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
 
   build-package:
     name: 📦 Build package
@@ -228,7 +228,7 @@ jobs:
         run: choco install exiftool --no-progress --yes --retry-count=3
       - name: Verify binary architecture
         run: >
-          uvx --no-progress 'repomatic==6.0.1'
+          uvx --no-progress --from . repomatic
           verify-binary --target "${{ matrix.target }}" --binary "${{ matrix.bin_name }}"
       - name: Upload binaries
         uses: actions/upload-artifact@v6.0.0
@@ -285,7 +285,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run test plan for binary
         run: >
-          uvx --no-progress 'repomatic==6.0.1' test-plan
+          uvx --no-progress --from . repomatic test-plan
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
 
   create-tag:
@@ -311,7 +311,7 @@ jobs:
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
         run: >
-          uvx --no-progress 'repomatic==6.0.1' git-tag
+          uvx --no-progress --from . repomatic git-tag
           --tag "v${{ matrix.current_version }}"
           --commit "${{ matrix.commit }}"
           --skip-existing
