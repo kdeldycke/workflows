@@ -94,19 +94,19 @@ Use correct capitalization for proper nouns and trademarked names:
 
 The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag namespace** — it only appears when the reference is to a git tag or something derived from a tag (action ref, comparison URL, commit message). This aligns with PEP 440, PyPI, and semver conventions.
 
-| Context                                | Format                          | Example                              | Rationale                         |
-| :------------------------------------- | :------------------------------ | :----------------------------------- | :-------------------------------- |
-| Python `__version__`, `pyproject.toml` | `1.2.3`                         | `version = "5.10.1"`                 | PEP 440 bare version.             |
-| Git tags                               | `` `v1.2.3` ``                  | `` `v5.10.1` ``                      | Tag namespace convention.         |
-| GitHub comparison URLs                 | `v1.2.3...v1.2.4`               | `compare/v5.10.0...v5.10.1`          | References tags.                  |
-| GitHub action/workflow refs            | `` `@v1.2.3` ``                 | `actions/checkout@v6.0.2`            | References tags.                  |
-| Commit messages                        | `v1.2.3`                        | `[changelog] Release v5.10.1`        | References the tag being created. |
-| CLI `--version` output                 | `1.2.3`                         | `repokit, version 5.10.1`          | Package version, not a tag.       |
-| Changelog headings                     | `` `1.2.3` ``                   | `` ## [`5.10.1` (2026-02-17)] ``     | Package version, code-formatted.  |
-| PyPI URLs                              | `1.2.3`                         | `pypi.org/project/repokit/5.10.1/` | PyPI uses bare versions.          |
-| PyPI admonitions                       | `` `1.2.3` ``                   | `` `5.10.1` is available on PyPI ``  | Package version, not a tag.       |
-| PR titles                              | `` `v1.2.3` ``                  | `` Release `v5.10.1` ``              | References the tag.               |
-| Prose/documentation                    | `` `v1.2.3` `` or `` `1.2.3` `` | Depends on referent                  | Match what is being referenced.   |
+| Context                                | Format                          | Example                             | Rationale                         |
+| :------------------------------------- | :------------------------------ | :---------------------------------- | :-------------------------------- |
+| Python `__version__`, `pyproject.toml` | `1.2.3`                         | `version = "5.10.1"`                | PEP 440 bare version.             |
+| Git tags                               | `` `v1.2.3` ``                  | `` `v5.10.1` ``                     | Tag namespace convention.         |
+| GitHub comparison URLs                 | `v1.2.3...v1.2.4`               | `compare/v5.10.0...v5.10.1`         | References tags.                  |
+| GitHub action/workflow refs            | `` `@v1.2.3` ``                 | `actions/checkout@v6.0.2`           | References tags.                  |
+| Commit messages                        | `v1.2.3`                        | `[changelog] Release v5.10.1`       | References the tag being created. |
+| CLI `--version` output                 | `1.2.3`                         | `repokit, version 5.10.1`           | Package version, not a tag.       |
+| Changelog headings                     | `` `1.2.3` ``                   | `` ## [`5.10.1` (2026-02-17)] ``    | Package version, code-formatted.  |
+| PyPI URLs                              | `1.2.3`                         | `pypi.org/project/repokit/5.10.1/`  | PyPI uses bare versions.          |
+| PyPI admonitions                       | `` `1.2.3` ``                   | `` `5.10.1` is available on PyPI `` | Package version, not a tag.       |
+| PR titles                              | `` `v1.2.3` ``                  | `` Release `v5.10.1` ``             | References the tag.               |
+| Prose/documentation                    | `` `v1.2.3` `` or `` `1.2.3` `` | Depends on referent                 | Match what is being referenced.   |
 
 **Rules:**
 
