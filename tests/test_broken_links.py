@@ -26,15 +26,15 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from repokit.broken_links import (
+from repomatic.broken_links import (
     LinkcheckResult,
     filter_broken,
     generate_markdown_report,
     get_label,
     parse_output_json,
 )
-from repokit.cli import setup_guide
-from repokit.github.issue import triage_issues
+from repomatic.cli import setup_guide
+from repomatic.github.issue import triage_issues
 
 
 TITLE = "Broken links"
@@ -522,7 +522,7 @@ def test_report_no_source_url_plain_text():
 # ---------------------------------------------------------------------------
 
 
-@patch("repokit.github.issue.manage_issue_lifecycle")
+@patch("repomatic.github.issue.manage_issue_lifecycle")
 def test_setup_guide_missing_pat_opens_issue(mock_lifecycle):
     """When PAT is missing, manage_issue_lifecycle is called with has_issues=True."""
     runner = CliRunner()
@@ -535,7 +535,7 @@ def test_setup_guide_missing_pat_opens_issue(mock_lifecycle):
     assert "WORKFLOW_UPDATE_GITHUB_PAT" in kwargs["title"]
 
 
-@patch("repokit.github.issue.manage_issue_lifecycle")
+@patch("repomatic.github.issue.manage_issue_lifecycle")
 def test_setup_guide_configured_pat_closes_issue(mock_lifecycle):
     """When PAT is configured, manage_issue_lifecycle is called with has_issues=False."""
     runner = CliRunner()
@@ -546,7 +546,7 @@ def test_setup_guide_configured_pat_closes_issue(mock_lifecycle):
     assert kwargs["has_issues"] is False
 
 
-@patch("repokit.github.issue.manage_issue_lifecycle")
+@patch("repomatic.github.issue.manage_issue_lifecycle")
 def test_setup_guide_body_contains_template(mock_lifecycle):
     """The body file passed to manage_issue_lifecycle contains the template."""
     runner = CliRunner()

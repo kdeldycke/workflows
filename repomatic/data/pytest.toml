@@ -1,0 +1,25 @@
+# Pytest configuration for Python projects.
+#
+# Native format - can be used standalone as pytest.ini.
+# When merged into pyproject.toml via `repomatic init pytest`,
+# the [tool.pytest] prefix is added automatically.
+#
+# Note: You should customize --cov=<package_name> to match your project.
+
+# https://docs.pytest.org/en/latest/customize.html#pyproject-toml
+addopts = [
+    # Show the N slowest tests.
+    "--durations=10",
+    # Coverage settings - customize the package name for your project.
+    "--cov=.",
+    "--cov-branch",
+    "--cov-precision=2",
+    "--cov-report=term",
+    "--cov-report=xml",
+    # Codecov.io's test analytics requires a JUnit XML file:
+    # https://docs.codecov.com/docs/test-analytics#1-output-a-junit-xml-file-in-your-ci
+    "--junitxml=junit.xml",
+    "--override-ini=junit_family=legacy",
+]
+# Make sure tests that are expected to fail do not resurrect and start working.
+xfail_strict = true

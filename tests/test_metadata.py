@@ -25,8 +25,8 @@ import pytest
 from extra_platforms import ALL_IDS, is_windows
 from packaging.version import Version
 
-from repokit.github import NULL_SHA
-from repokit.metadata import (
+from repomatic.github import NULL_SHA
+from repomatic.metadata import (
     Dialect,
     NUITKA_BUILD_TARGETS,
     SKIP_BINARY_BUILD_BRANCHES,
@@ -36,7 +36,7 @@ from repokit.metadata import (
     get_project_name,
     get_release_version_from_commits,
     is_version_bump_allowed,
-    load_repokit_config,
+    load_repomatic_config,
 )
 
 
@@ -405,30 +405,30 @@ expected = {
     "gitignore_exists": True,
     "renovate_config_exists": True,
     "python_files": [
-        "repokit/__init__.py",
-        "repokit/__main__.py",
-        "repokit/binary.py",
-        "repokit/broken_links.py",
-        "repokit/changelog.py",
-        "repokit/checksums.py",
-        "repokit/cli.py",
-        "repokit/data/__init__.py",
-        "repokit/deps_graph.py",
-        "repokit/git_ops.py",
-        "repokit/github/__init__.py",
-        "repokit/github/issue.py",
-        "repokit/github/matrix.py",
-        "repokit/github/pr_body.py",
-        "repokit/github/workflow_sync.py",
-        "repokit/init_project.py",
-        "repokit/lint_repo.py",
-        "repokit/mailmap.py",
-        "repokit/metadata.py",
-        "repokit/release_prep.py",
-        "repokit/renovate.py",
-        "repokit/sponsor.py",
-        "repokit/templates/__init__.py",
-        "repokit/test_plan.py",
+        "repomatic/__init__.py",
+        "repomatic/__main__.py",
+        "repomatic/binary.py",
+        "repomatic/broken_links.py",
+        "repomatic/changelog.py",
+        "repomatic/checksums.py",
+        "repomatic/cli.py",
+        "repomatic/data/__init__.py",
+        "repomatic/deps_graph.py",
+        "repomatic/git_ops.py",
+        "repomatic/github/__init__.py",
+        "repomatic/github/issue.py",
+        "repomatic/github/matrix.py",
+        "repomatic/github/pr_body.py",
+        "repomatic/github/workflow_sync.py",
+        "repomatic/init_project.py",
+        "repomatic/lint_repo.py",
+        "repomatic/mailmap.py",
+        "repomatic/metadata.py",
+        "repomatic/release_prep.py",
+        "repomatic/renovate.py",
+        "repomatic/sponsor.py",
+        "repomatic/templates/__init__.py",
+        "repomatic/test_plan.py",
         "tests/__init__.py",
         "tests/test_binary.py",
         "tests/test_broken_links.py",
@@ -462,19 +462,19 @@ expected = {
         ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
         ".github/zizmor.yml",
-        "repokit/data/labeller-content-based.yaml",
-        "repokit/data/labeller-file-based.yaml",
-        "repokit/data/zizmor.yml",
+        "repomatic/data/labeller-content-based.yaml",
+        "repomatic/data/labeller-file-based.yaml",
+        "repomatic/data/zizmor.yml",
         "tests/cli-test-plan.yaml",
     ],
     "toml_files": [
         "lychee.toml",
         "pyproject.toml",
-        "repokit/data/bumpversion.toml",
-        "repokit/data/labels.toml",
-        "repokit/data/mypy.toml",
-        "repokit/data/pytest.toml",
-        "repokit/data/ruff.toml",
+        "repomatic/data/bumpversion.toml",
+        "repomatic/data/labels.toml",
+        "repomatic/data/mypy.toml",
+        "repomatic/data/pytest.toml",
+        "repomatic/data/ruff.toml",
     ],
     "workflow_files": [
         ".github/workflows/autofix.yaml",
@@ -492,78 +492,78 @@ expected = {
     "doc_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
-        ".claude/skills/repokit-changelog/SKILL.md",
-        ".claude/skills/repokit-deps/SKILL.md",
-        ".claude/skills/repokit-init/SKILL.md",
-        ".claude/skills/repokit-lint/SKILL.md",
-        ".claude/skills/repokit-metadata/SKILL.md",
-        ".claude/skills/repokit-release/SKILL.md",
-        ".claude/skills/repokit-sync/SKILL.md",
-        ".claude/skills/repokit-test/SKILL.md",
+        ".claude/skills/repomatic-changelog/SKILL.md",
+        ".claude/skills/repomatic-deps/SKILL.md",
+        ".claude/skills/repomatic-init/SKILL.md",
+        ".claude/skills/repomatic-lint/SKILL.md",
+        ".claude/skills/repomatic-metadata/SKILL.md",
+        ".claude/skills/repomatic-release/SKILL.md",
+        ".claude/skills/repomatic-sync/SKILL.md",
+        ".claude/skills/repomatic-test/SKILL.md",
         ".github/code-of-conduct.md",
         "changelog.md",
         "claude.md",
         "readme.md",
-        "repokit/templates/bump-version.md",
-        "repokit/templates/detect-squash-merge.md",
-        "repokit/templates/fix-typos.md",
-        "repokit/templates/format-json.md",
-        "repokit/templates/format-markdown.md",
-        "repokit/templates/format-pyproject.md",
-        "repokit/templates/format-python.md",
-        "repokit/templates/lint-changelog.md",
-        "repokit/templates/pr-metadata.md",
-        "repokit/templates/prepare-release.md",
-        "repokit/templates/refresh-tip.md",
-        "repokit/templates/release-notes.md",
-        "repokit/templates/setup-guide.md",
-        "repokit/templates/sync-bumpversion.md",
-        "repokit/templates/sync-gitignore.md",
-        "repokit/templates/sync-linter-configs.md",
-        "repokit/templates/sync-mailmap.md",
-        "repokit/templates/sync-renovate.md",
-        "repokit/templates/sync-uv-lock.md",
-        "repokit/templates/sync-workflows.md",
-        "repokit/templates/update-deps-graph.md",
-        "repokit/templates/update-docs.md",
+        "repomatic/templates/bump-version.md",
+        "repomatic/templates/detect-squash-merge.md",
+        "repomatic/templates/fix-typos.md",
+        "repomatic/templates/format-json.md",
+        "repomatic/templates/format-markdown.md",
+        "repomatic/templates/format-pyproject.md",
+        "repomatic/templates/format-python.md",
+        "repomatic/templates/lint-changelog.md",
+        "repomatic/templates/pr-metadata.md",
+        "repomatic/templates/prepare-release.md",
+        "repomatic/templates/refresh-tip.md",
+        "repomatic/templates/release-notes.md",
+        "repomatic/templates/setup-guide.md",
+        "repomatic/templates/sync-bumpversion.md",
+        "repomatic/templates/sync-gitignore.md",
+        "repomatic/templates/sync-linter-configs.md",
+        "repomatic/templates/sync-mailmap.md",
+        "repomatic/templates/sync-renovate.md",
+        "repomatic/templates/sync-uv-lock.md",
+        "repomatic/templates/sync-workflows.md",
+        "repomatic/templates/update-deps-graph.md",
+        "repomatic/templates/update-docs.md",
     ],
     "markdown_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
-        ".claude/skills/repokit-changelog/SKILL.md",
-        ".claude/skills/repokit-deps/SKILL.md",
-        ".claude/skills/repokit-init/SKILL.md",
-        ".claude/skills/repokit-lint/SKILL.md",
-        ".claude/skills/repokit-metadata/SKILL.md",
-        ".claude/skills/repokit-release/SKILL.md",
-        ".claude/skills/repokit-sync/SKILL.md",
-        ".claude/skills/repokit-test/SKILL.md",
+        ".claude/skills/repomatic-changelog/SKILL.md",
+        ".claude/skills/repomatic-deps/SKILL.md",
+        ".claude/skills/repomatic-init/SKILL.md",
+        ".claude/skills/repomatic-lint/SKILL.md",
+        ".claude/skills/repomatic-metadata/SKILL.md",
+        ".claude/skills/repomatic-release/SKILL.md",
+        ".claude/skills/repomatic-sync/SKILL.md",
+        ".claude/skills/repomatic-test/SKILL.md",
         ".github/code-of-conduct.md",
         "changelog.md",
         "claude.md",
         "readme.md",
-        "repokit/templates/bump-version.md",
-        "repokit/templates/detect-squash-merge.md",
-        "repokit/templates/fix-typos.md",
-        "repokit/templates/format-json.md",
-        "repokit/templates/format-markdown.md",
-        "repokit/templates/format-pyproject.md",
-        "repokit/templates/format-python.md",
-        "repokit/templates/lint-changelog.md",
-        "repokit/templates/pr-metadata.md",
-        "repokit/templates/prepare-release.md",
-        "repokit/templates/refresh-tip.md",
-        "repokit/templates/release-notes.md",
-        "repokit/templates/setup-guide.md",
-        "repokit/templates/sync-bumpversion.md",
-        "repokit/templates/sync-gitignore.md",
-        "repokit/templates/sync-linter-configs.md",
-        "repokit/templates/sync-mailmap.md",
-        "repokit/templates/sync-renovate.md",
-        "repokit/templates/sync-uv-lock.md",
-        "repokit/templates/sync-workflows.md",
-        "repokit/templates/update-deps-graph.md",
-        "repokit/templates/update-docs.md",
+        "repomatic/templates/bump-version.md",
+        "repomatic/templates/detect-squash-merge.md",
+        "repomatic/templates/fix-typos.md",
+        "repomatic/templates/format-json.md",
+        "repomatic/templates/format-markdown.md",
+        "repomatic/templates/format-pyproject.md",
+        "repomatic/templates/format-python.md",
+        "repomatic/templates/lint-changelog.md",
+        "repomatic/templates/pr-metadata.md",
+        "repomatic/templates/prepare-release.md",
+        "repomatic/templates/refresh-tip.md",
+        "repomatic/templates/release-notes.md",
+        "repomatic/templates/setup-guide.md",
+        "repomatic/templates/sync-bumpversion.md",
+        "repomatic/templates/sync-gitignore.md",
+        "repomatic/templates/sync-linter-configs.md",
+        "repomatic/templates/sync-mailmap.md",
+        "repomatic/templates/sync-renovate.md",
+        "repomatic/templates/sync-uv-lock.md",
+        "repomatic/templates/sync-workflows.md",
+        "repomatic/templates/update-deps-graph.md",
+        "repomatic/templates/update-docs.md",
     ],
     "image_files": [
         "docs/assets/repo-workflow-permissions.png",
@@ -571,7 +571,7 @@ expected = {
     "zsh_files": [],
     "is_python_project": True,
     "nuitka": True,
-    "package_name": "repokit",
+    "package_name": "repomatic",
     "project_description": "🧩 CLI for GitHub Actions + reusable workflows",
     "mypy_params": "--python-version 3.10",
     "current_version": regex(r"[0-9\.]+(\.dev[0-9]+)?"),
@@ -657,7 +657,7 @@ expected = {
             "windows-11-arm",
             "windows-2025",
         ],
-        "entry_point": ["repokit"],
+        "entry_point": ["repomatic"],
         "commit": AnyLengthList(regex(r"[a-z0-9]+")),
         # The include list contains per-commit entries that multiply with more commits.
         # We validate that required fixed items are present (build targets, entry point,
@@ -708,17 +708,17 @@ expected = {
             },
             # Entry point info (fixed, one per entry point).
             {
-                "entry_point": "repokit",
-                "cli_id": "repokit",
-                "module_id": "repokit.__main__",
+                "entry_point": "repomatic",
+                "cli_id": "repomatic",
+                "module_id": "repomatic.__main__",
                 "callable_id": "main",
-                "module_path": regex(r"repokit(/|\\)__main__\.py"),
+                "module_path": regex(r"repomatic(/|\\)__main__\.py"),
             },
-            # Nuitka extra args from [tool.repokit] config (fixed).
+            # Nuitka extra args from [tool.repomatic] config (fixed).
             {
                 "nuitka_extra_args": (
                     "--include-package-data=extra_platforms"
-                    " --include-data-files=repokit/templates/*.md=repokit/templates/"
+                    " --include-data-files=repomatic/templates/*.md=repomatic/templates/"
                 ),
             },
             # State (fixed).
@@ -732,39 +732,39 @@ expected = {
             # At least one bin_name entry per OS (varies by commit count).
             {
                 "os": "ubuntu-24.04-arm",
-                "entry_point": "repokit",
+                "entry_point": "repomatic",
                 "commit": regex(r"[a-z0-9]+"),
-                "bin_name": "repokit-linux-arm64.bin",
+                "bin_name": "repomatic-linux-arm64.bin",
             },
             {
                 "os": "ubuntu-24.04",
-                "entry_point": "repokit",
+                "entry_point": "repomatic",
                 "commit": regex(r"[a-z0-9]+"),
-                "bin_name": "repokit-linux-x64.bin",
+                "bin_name": "repomatic-linux-x64.bin",
             },
             {
                 "os": "macos-26",
-                "entry_point": "repokit",
+                "entry_point": "repomatic",
                 "commit": regex(r"[a-z0-9]+"),
-                "bin_name": "repokit-macos-arm64.bin",
+                "bin_name": "repomatic-macos-arm64.bin",
             },
             {
                 "os": "macos-15-intel",
-                "entry_point": "repokit",
+                "entry_point": "repomatic",
                 "commit": regex(r"[a-z0-9]+"),
-                "bin_name": "repokit-macos-x64.bin",
+                "bin_name": "repomatic-macos-x64.bin",
             },
             {
                 "os": "windows-11-arm",
-                "entry_point": "repokit",
+                "entry_point": "repomatic",
                 "commit": regex(r"[a-z0-9]+"),
-                "bin_name": "repokit-windows-arm64.exe",
+                "bin_name": "repomatic-windows-arm64.exe",
             },
             {
                 "os": "windows-2025",
-                "entry_point": "repokit",
+                "entry_point": "repomatic",
                 "commit": regex(r"[a-z0-9]+"),
-                "bin_name": "repokit-windows-x64.exe",
+                "bin_name": "repomatic-windows-x64.exe",
             },
         ]),
     },
@@ -993,7 +993,7 @@ version = "1.0.0"
 [project.scripts]
 my-cli = "my_package.__main__:main"
 
-[tool.repokit]
+[tool.repomatic]
 nuitka = false
 """
     pyproject_file = tmp_path / "pyproject.toml"
@@ -1075,8 +1075,8 @@ def test_is_version_bump_allowed_uses_commit_fallback():
     assert isinstance(result, bool)
 
 
-def test_repokit_config_defaults():
-    """Test that [tool.repokit] config properties return sensible defaults."""
+def test_repomatic_config_defaults():
+    """Test that [tool.repomatic] config properties return sensible defaults."""
     metadata = Metadata()
     assert metadata.config["test-plan-file"] == "./tests/cli-test-plan.yaml"
     assert metadata.config["timeout"] is None
@@ -1102,14 +1102,14 @@ def test_repokit_config_defaults():
     assert metadata.config["workflow-sync-exclude"] == []
 
 
-def test_repokit_config_custom_values(tmp_path, monkeypatch):
-    """Test that [tool.repokit] config properties read from pyproject.toml."""
+def test_repomatic_config_custom_values(tmp_path, monkeypatch):
+    """Test that [tool.repomatic] config properties read from pyproject.toml."""
     pyproject_content = """\
 [project]
 name = "test-project"
 version = "1.0.0"
 
-[tool.repokit]
+[tool.repomatic]
 test-plan-file = "./custom/test-plan.yaml"
 timeout = 120
 test-plan = "- args: --version"
@@ -1187,7 +1187,7 @@ def test_unstable_targets_ignores_unknown(tmp_path, monkeypatch):
 name = "test-project"
 version = "1.0.0"
 
-[tool.repokit]
+[tool.repomatic]
 unstable-targets = ["linux-arm64", "unknown-target"]
 """
     pyproject_file = tmp_path / "pyproject.toml"
@@ -1202,7 +1202,7 @@ unstable-targets = ["linux-arm64", "unknown-target"]
 def test_nuitka_extra_args_default(tmp_path, monkeypatch):
     """Test that nuitka-extra-args defaults to an empty list."""
     monkeypatch.chdir(tmp_path)
-    config = load_repokit_config()
+    config = load_repomatic_config()
     assert config["nuitka-extra-args"] == []
 
 
@@ -1213,7 +1213,7 @@ def test_nuitka_extra_args_custom(tmp_path, monkeypatch):
 name = "test-project"
 version = "1.0.0"
 
-[tool.repokit]
+[tool.repomatic]
 nuitka-extra-args = [
   "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
   "--include-package-data=my_pkg",
@@ -1230,10 +1230,10 @@ nuitka-extra-args = [
     ]
 
 
-def test_load_repokit_config_defaults(tmp_path, monkeypatch):
-    """Test that load_repokit_config returns defaults when no pyproject.toml."""
+def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
+    """Test that load_repomatic_config returns defaults when no pyproject.toml."""
     monkeypatch.chdir(tmp_path)
-    config = load_repokit_config()
+    config = load_repomatic_config()
     # All Config dataclass fields should be present with defaults.
     from dataclasses import fields as dc_fields
 
@@ -1258,14 +1258,14 @@ def test_load_repokit_config_defaults(tmp_path, monkeypatch):
     assert config["workflow-sync-exclude"] == []
 
 
-def test_load_repokit_config_custom_values(tmp_path, monkeypatch):
-    """Test that load_repokit_config reads custom values from pyproject.toml."""
+def test_load_repomatic_config_custom_values(tmp_path, monkeypatch):
+    """Test that load_repomatic_config reads custom values from pyproject.toml."""
     pyproject_content = """\
 [project]
 name = "test-project"
 version = "1.0.0"
 
-[tool.repokit]
+[tool.repomatic]
 timeout = 120
 test-plan-file = "./custom/test-plan.yaml"
 dependency-graph-output = "./custom/deps.mmd"
@@ -1274,23 +1274,23 @@ nuitka = false
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
-    config = load_repokit_config()
+    config = load_repomatic_config()
     assert config["timeout"] == 120
     assert config["test-plan-file"] == "./custom/test-plan.yaml"
     assert config["dependency-graph-output"] == "./custom/deps.mmd"
     assert config["nuitka"] is False
 
 
-def test_load_repokit_config_with_preloaded_data():
-    """Test that load_repokit_config accepts pre-parsed pyproject data."""
+def test_load_repomatic_config_with_preloaded_data():
+    """Test that load_repomatic_config accepts pre-parsed pyproject data."""
     data = {
         "tool": {
-            "repokit": {
+            "repomatic": {
                 "timeout": 60,
             },
         },
     }
-    config = load_repokit_config(data)
+    config = load_repomatic_config(data)
     assert config["timeout"] == 60
     # Other defaults are still present.
     assert config["test-plan-file"] == "./tests/cli-test-plan.yaml"

@@ -1,4 +1,4 @@
-# This test plan checks some high-level behavior of the repokit CLI.
+# This test plan checks some high-level behavior of the repomatic CLI.
 # But also serves as unittests for the features supported by the YAML parser.
 
 # Output the version of the CLI.
@@ -9,7 +9,7 @@
   exit_code: 0
   stdout_contains: ", version"
   # yamllint disable-line rule:line-length
-  stdout_regex_fullmatch: "\x1b\\[97mrepokit\x1b\\[0m, version \x1b\\[32m[0-9]+\\.[0-9]+\\.[0-9]+(\\.[a-z]+[0-9]+(\\+[a-f0-9]+)?)?\x1b\\[0m\n"
+  stdout_regex_fullmatch: "\x1b\\[97mrepomatic\x1b\\[0m, version \x1b\\[32m[0-9]+\\.[0-9]+\\.[0-9]+(\\.[a-z]+[0-9]+(\\+[a-f0-9]+)?)?\x1b\\[0m\n"
 
 
 # Test combination of version and verbosity.
@@ -20,12 +20,12 @@
     - --version
   exit_code: 0
   stdout_contains: ", version"
-  stdout_regex_matches: "\x1b\\[97mrepokit\x1b\\[0m, version "
+  stdout_regex_matches: "\x1b\\[97mrepomatic\x1b\\[0m, version "
   stderr_contains:
     - "Set <RootLogger root (DEBUG)> to DEBUG."
-    - "\x1b[34mdebug\x1b[0m: {prog_name}      : \x1b[97mrepokit\x1b[0m\n"
+    - "\x1b[34mdebug\x1b[0m: {prog_name}      : \x1b[97mrepomatic\x1b[0m\n"
   stderr_regex_matches:
-    - "\x1b\\[34mdebug\x1b\\[0m: {prog_name}      : \x1b\\[97mrepokit\x1b\\[0m\n"
+    - "\x1b\\[34mdebug\x1b\\[0m: {prog_name}      : \x1b\\[97mrepomatic\x1b\\[0m\n"
 
 
 # Test help output.
@@ -33,7 +33,7 @@
     - --help
   strip_ansi: true
   stdout_contains:
-    - "Usage: repokit [OPTIONS] COMMAND [ARGS]..."
+    - "Usage: repomatic [OPTIONS] COMMAND [ARGS]..."
     - "-h, --help"
 
 
@@ -51,7 +51,7 @@
   stdout_contains:
     - "mailmap_exists=true"
     - "is_python_project=true"
-    - "package_name=repokit"
+    - "package_name=repomatic"
     - "is_sphinx=false"
   stdout_regex_matches:
     - "is_bot=(true|false)"
@@ -79,7 +79,7 @@
   stdout_regex_fullmatch: |-
     # Changelog
 
-    ## \[`[0-9\.]+(\.dev[0-9]+)?` \(unreleased\)\]\(https://github.com/kdeldycke/repokit/compare/v[0-9\.]+\.\.\.main\)
+    ## \[`[0-9\.]+(\.dev[0-9]+)?` \(unreleased\)\]\(https://github.com/kdeldycke/repomatic/compare/v[0-9\.]+\.\.\.main\)
 
     > \[\!WARNING\]
     > This version is \*\*not released yet\*\* and is under active development\.
@@ -112,7 +112,7 @@
   strip_ansi: true
   # Test multi-line single string.
   stderr_contains: |
-    Usage: repokit test-plan [OPTIONS]
-    Try 'repokit test-plan --help' for help.
+    Usage: repomatic test-plan [OPTIONS]
+    Try 'repomatic test-plan --help' for help.
 
     Error: Missing option '--command' / '--binary'.

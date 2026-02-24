@@ -1,1 +1,0 @@
-../../.claude/skills/repokit-test/SKILL.md

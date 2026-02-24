@@ -18,7 +18,7 @@ Work beyond the local repository: check issues, PRs, and CI runs on GitHub. Fix 
 ## Tools of the trade
 
 - `gh issue list`, `gh pr list`, `gh pr view`, `gh run list`, `gh run view`
-- `uv run repokit lint-repo`, `uv run repokit metadata`, and every other subcommand
+- `uv run repomatic lint-repo`, `uv run repomatic metadata`, and every other subcommand
 - Tests, type checking, linting (see `CLAUDE.md` § Commands)
 
 ## Checks
@@ -29,7 +29,7 @@ Work beyond the local repository: check issues, PRs, and CI runs on GitHub. Fix 
 4. **Quality checks** — Per `CLAUDE.md` § Commands; fix simple issues, escalate complex ones
 5. **Release alignment** — Per `CLAUDE.md` § Release checklist
 6. **CI/CD failures** — Review recent failed runs, distinguish systematic from one-off
-7. **Workflow CLI references** — Verify all `repokit` invocations in workflows use valid subcommands and flags
+7. **Workflow CLI references** — Verify all `repomatic` invocations in workflows use valid subcommands and flags
 
 ## High-frequency lapses
 
@@ -44,7 +44,7 @@ These issues recur across sessions — check them every pass:
 ## What you report to qa-engineer
 
 - Repetitive patterns that could be automated as a new autofix or lint job
-- New `repokit` subcommands that could address common issues
+- New `repomatic` subcommands that could address common issues
 - Deeper code issues (duplication, edge cases, concurrency)
 - Anything requiring new features or architectural changes
 - CI/CD structural failures

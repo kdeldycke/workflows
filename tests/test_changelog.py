@@ -21,7 +21,7 @@ from textwrap import dedent
 
 import pytest
 
-from repokit.changelog import (
+from repomatic.changelog import (
     Changelog,
     PyPIRelease,
     YANKED_ADMONITION,
@@ -366,18 +366,18 @@ def test_lint_changelog_dates_pypi_all_match(tmp_path, monkeypatch):
     path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
 
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-10", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 
@@ -390,18 +390,18 @@ def test_lint_changelog_dates_pypi_mismatch(tmp_path, monkeypatch):
     path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
 
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-09", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 
@@ -415,19 +415,19 @@ def test_lint_changelog_dates_fallback_to_tags(tmp_path, monkeypatch):
 
     # PyPI returns empty dict (not published).
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         lambda pkg: {},
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.git_ops.get_tag_date",
+        "repomatic.git_ops.get_tag_date",
         lambda tag: {"v1.1.0": "2026-02-10", "v1.0.0": "2025-12-01"}.get(tag),
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
 
@@ -440,15 +440,15 @@ def test_lint_changelog_dates_fallback_no_package(tmp_path, monkeypatch):
     path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
 
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: None,
     )
     monkeypatch.setattr(
-        "repokit.git_ops.get_tag_date",
+        "repomatic.git_ops.get_tag_date",
         lambda tag: {"v1.1.0": "2026-02-10", "v1.0.0": "2025-12-01"}.get(tag),
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
 
@@ -463,15 +463,15 @@ def test_lint_changelog_dates_warns_missing_pypi(tmp_path, monkeypatch, caplog):
 
     # Only the oldest version is on PyPI; 1.1.0 is an unexpected gap.
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({"1.0.0": ("2025-12-01", False)}),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
 
@@ -489,15 +489,15 @@ def test_lint_changelog_dates_skips_pre_pypi(tmp_path, monkeypatch, caplog):
 
     # Only the newest version is on PyPI; 1.0.0 predates publication.
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({"1.1.0": ("2026-02-10", False)}),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
 
@@ -513,18 +513,18 @@ def test_lint_fix_corrects_date(tmp_path, monkeypatch):
     path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
 
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-11", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 
@@ -544,18 +544,18 @@ def test_lint_fix_adds_release_admonition(tmp_path, monkeypatch):
     path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
 
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-10", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 
@@ -579,15 +579,15 @@ def test_lint_fix_github_only(tmp_path, monkeypatch):
 
     # 1.0.0 on PyPI, 1.1.0 only on GitHub (not on PyPI).
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({"1.0.0": ("2025-12-01", False)}),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 
@@ -638,18 +638,18 @@ def test_lint_fix_first_version_admonition(tmp_path, monkeypatch):
     # 1.0.0: first on both PyPI and GitHub.
     # 2.0.0: on both, but not first on either.
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "2.0.0": ("2026-02-10", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["2.0.0", "1.0.0", "0.5.0"]),
     )
 
@@ -672,18 +672,18 @@ def test_lint_fix_pypi_only(tmp_path, monkeypatch):
 
     # 1.1.0 on PyPI only, not on GitHub.
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-10", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.0.0"]),
     )
 
@@ -707,18 +707,18 @@ def test_lint_fix_no_warning_predates_github(tmp_path, monkeypatch):
 
     # Both on PyPI; only 1.1.0 on GitHub (1.0.0 predates GitHub releases).
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-10", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0"]),
     )
 
@@ -740,18 +740,18 @@ def test_lint_fix_adds_yanked_admonition(tmp_path, monkeypatch):
     path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
 
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-10", True),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 
@@ -769,15 +769,15 @@ def test_lint_fix_no_admonition_when_nowhere(tmp_path, monkeypatch):
 
     # 1.0.0 on PyPI; 1.1.0 on neither.
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({"1.0.0": ("2025-12-01", False)}),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.0.0"]),
     )
 
@@ -801,13 +801,13 @@ def test_lint_fix_idempotent(tmp_path, monkeypatch):
         "1.1.0": ("2026-02-10", False),
         "1.0.0": ("2025-12-01", False),
     })
-    monkeypatch.setattr("repokit.changelog.get_pypi_release_dates", mock)
+    monkeypatch.setattr("repomatic.changelog.get_pypi_release_dates", mock)
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 
@@ -961,18 +961,18 @@ def test_lint_fix_removes_stale_unavailable_warning(tmp_path, monkeypatch):
 
     # Now 1.0.0 is on both PyPI and GitHub — stale warning should go.
     monkeypatch.setattr(
-        "repokit.changelog.get_pypi_release_dates",
+        "repomatic.changelog.get_pypi_release_dates",
         _pypi_mock({
             "1.1.0": ("2026-02-10", False),
             "1.0.0": ("2025-12-01", False),
         }),
     )
     monkeypatch.setattr(
-        "repokit.metadata.get_project_name",
+        "repomatic.metadata.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repokit.changelog.get_github_releases",
+        "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
 

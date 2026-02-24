@@ -1,5 +1,5 @@
 flowchart LR
-    repokit[["`repokit`"]]
+    repomatic[["`repomatic`"]]
 
     subgraph primary-deps [Primary dependencies]
         bump_my_version{{"`bump-my-version`"}}
@@ -76,18 +76,18 @@ flowchart LR
         types_pyyaml{{"`types-pyyaml >=6.0.12.9`"}}
     end
 
-    repokit ==>|" >=1.2.6 "| bump_my_version
-    repokit ==>|" >=7.5 "| click_extra
-    repokit ==>|" >=2.6 "| pydriller
-    repokit ==>|" >=25 "| packaging
-    repokit ==>|" >=2.3 "| tomli
-    repokit ==>|" >=10 "| wcmatch
-    repokit ==>|" >=8 "| extra_platforms
-    repokit ==>|" >=25 "| boltons
-    repokit ==>|" >=0.3.3 "| py_walk
-    repokit ==>|" >=0.9 "| pyproject_metadata
-    repokit ==>|" >=1.3.1 "| backports_strenum
-    repokit ==>|" >=6.0.3 "| pyyaml
+    repomatic ==>|" >=1.2.6 "| bump_my_version
+    repomatic ==>|" >=7.5 "| click_extra
+    repomatic ==>|" >=2.6 "| pydriller
+    repomatic ==>|" >=25 "| packaging
+    repomatic ==>|" >=2.3 "| tomli
+    repomatic ==>|" >=10 "| wcmatch
+    repomatic ==>|" >=8 "| extra_platforms
+    repomatic ==>|" >=25 "| boltons
+    repomatic ==>|" >=0.3.3 "| py_walk
+    repomatic ==>|" >=0.9 "| pyproject_metadata
+    repomatic ==>|" >=1.3.1 "| backports_strenum
+    repomatic ==>|" >=6.0.3 "| pyyaml
     pytest ==> packaging
     pytest ==> tomli
     pytest --> colorama
@@ -172,8 +172,8 @@ flowchart LR
     markdown_it_py --> mdurl
     prompt_toolkit --> wcwidth
     pydantic_core --> typing_extensions
-    repokit -.-> grp_test
-    repokit -.-> grp_typing
+    repomatic -.-> grp_test
+    repomatic -.-> grp_typing
 
     click annotated_types "https://pypi.org/project/annotated-types/" _blank
     click anyio "https://pypi.org/project/anyio/" _blank
@@ -193,7 +193,7 @@ flowchart LR
     click distro "https://pypi.org/project/distro/" _blank
     click exceptiongroup "https://pypi.org/project/exceptiongroup/" _blank
     click extra_platforms "https://pypi.org/project/extra-platforms/" _blank
-    click repokit "https://pypi.org/project/repokit/" _blank
+    click repomatic "https://pypi.org/project/repomatic/" _blank
     click gitdb "https://pypi.org/project/gitdb/" _blank
     click gitpython "https://pypi.org/project/gitpython/" _blank
     click h11 "https://pypi.org/project/h11/" _blank
@@ -242,7 +242,7 @@ flowchart LR
     click wcmatch "https://pypi.org/project/wcmatch/" _blank
     click wcwidth "https://pypi.org/project/wcwidth/" _blank
 
-    style repokit stroke-width:3px
+    style repomatic stroke-width:3px
     style backports_strenum stroke-width:3px
     style boltons stroke-width:3px
     style bump_my_version stroke-width:3px

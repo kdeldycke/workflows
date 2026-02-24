@@ -22,7 +22,7 @@ from unittest.mock import patch
 
 import pytest
 
-from repokit.binary import (
+from repomatic.binary import (
     BINARY_ARCH_MAPPINGS,
     verify_binary_arch,
 )
@@ -87,7 +87,7 @@ def test_matching_arch(tmp_path, target, field, value):
     binary.touch()
 
     mock_output = [{field: value}]
-    with patch("repokit.binary.run_exiftool", return_value=mock_output[0]):
+    with patch("repomatic.binary.run_exiftool", return_value=mock_output[0]):
         # Should not raise.
         verify_binary_arch(target, binary)
 
@@ -107,7 +107,7 @@ def test_mismatched_arch(tmp_path, target, field, wrong_value):
     binary.touch()
 
     mock_output = {field: wrong_value}
-    with patch("repokit.binary.run_exiftool", return_value=mock_output):
+    with patch("repomatic.binary.run_exiftool", return_value=mock_output):
         with pytest.raises(AssertionError, match="Binary architecture mismatch"):
             verify_binary_arch(target, binary)
 
@@ -119,6 +119,6 @@ def test_missing_field(tmp_path):
 
     # Return empty metadata.
     mock_output = {}
-    with patch("repokit.binary.run_exiftool", return_value=mock_output):
+    with patch("repomatic.binary.run_exiftool", return_value=mock_output):
         with pytest.raises(AssertionError, match="Binary architecture mismatch"):
             verify_binary_arch("linux-arm64", binary)

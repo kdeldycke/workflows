@@ -1,1 +1,0 @@
-../../.claude/skills/repokit-init/SKILL.md

@@ -1,12 +1,12 @@
-# `repokit` CLI + reusable workflows
+# `repomatic` CLI + reusable workflows
 
-[![Last release](https://img.shields.io/pypi/v/repokit.svg)](https://pypi.org/project/repokit/)
-[![Python versions](https://img.shields.io/pypi/pyversions/repokit.svg)](https://pypi.org/project/repokit/)
-[![Downloads](https://static.pepy.tech/badge/repokit/month)](https://pepy.tech/projects/repokit)
-[![Unittests status](https://github.com/kdeldycke/repokit/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/repokit/actions/workflows/tests.yaml?query=branch%3Amain)
-[![Coverage status](https://codecov.io/gh/kdeldycke/repokit/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/repokit)
+[![Last release](https://img.shields.io/pypi/v/repomatic.svg)](https://pypi.org/project/repomatic/)
+[![Python versions](https://img.shields.io/pypi/pyversions/repomatic.svg)](https://pypi.org/project/repomatic/)
+[![Downloads](https://static.pepy.tech/badge/repomatic/month)](https://pepy.tech/projects/repomatic)
+[![Unittests status](https://github.com/kdeldycke/repomatic/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/repomatic/actions/workflows/tests.yaml?query=branch%3Amain)
+[![Coverage status](https://codecov.io/gh/kdeldycke/repomatic/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/repomatic)
 
-[Reusable workflows](#reusable-workflows-collection) and a standalone [CLI (`repokit`)](#repokit-cli) that let you **release Python packages multiple times a day with only 2-clicks**. Designed for `uv`-based Python projects, but usable for other projects too.
+[Reusable workflows](#reusable-workflows-collection) and a standalone [CLI (`repomatic`)](#repomatic-cli) that let you **release Python packages multiple times a day with only 2-clicks**. Designed for `uv`-based Python projects, but usable for other projects too.
 
 [**Maintainer-in-the-loop**](#maintainer-in-the-loop): nothing is done behind your back. A PR or issue is created every time a change is proposed or action is needed.
 
@@ -34,8 +34,8 @@ GitHub Actions has several design limitations. This repository works around most
 
 | Limitation                                                  | Status             | Addressed by                                                                                                                                                      |
 | :---------------------------------------------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No conditional step groups                                  | ✅ Addressed       | [`project-metadata` job](#what-is-this-project-metadata-job) + [`repokit metadata`](#repokit-cli)                                                                 |
-| Workflow inputs only accept strings                         | ✅ Addressed       | String parsing in [`repokit`](#repokit-cli)                                                                                                                       |
+| No conditional step groups                                  | ✅ Addressed       | [`project-metadata` job](#what-is-this-project-metadata-job) + [`repomatic metadata`](#repomatic-cli)                                                                 |
+| Workflow inputs only accept strings                         | ✅ Addressed       | String parsing in [`repomatic`](#repomatic-cli)                                                                                                                       |
 | Matrix outputs not cumulative                               | ✅ Addressed       | [`project-metadata`](#what-is-this-project-metadata-job) pre-computes matrices                                                                                    |
 | `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed       | [SHA-based concurrency groups](#concurrency-and-cancellation) in [`release.yaml`](#githubworkflowsreleaseyaml-jobs)                                               |
 | Cross-event concurrency cancellation                        | ✅ Addressed       | [`event_name` in `changelog.yaml` concurrency group](#concurrency-and-cancellation)                                                                               |
@@ -43,9 +43,9 @@ GitHub Actions has several design limitations. This repository works around most
 | `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT](#solution-fine-grained-personal-access-token)                                                                     |
 | Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | [Custom PAT](#solution-fine-grained-personal-access-token) for tag operations                                                                                     |
 | Default input values not propagated across events           | ✅ Addressed       | Manual defaults in `env:` section                                                                                                                                 |
-| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repokit metadata`](#what-is-this-project-metadata-job) extracts full commit range                                                                               |
+| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-project-metadata-job) extracts full commit range                                                                               |
 | `actions/checkout` uses merge commit for PRs                | ✅ Addressed       | Explicit `ref: github.event.pull_request.head.sha`                                                                                                                |
-| Multiline output encoding fragile                           | ✅ Addressed       | Random delimiters in `repokit/github.py`                                                                                                                          |
+| Multiline output encoding fragile                           | ✅ Addressed       | Random delimiters in `repomatic/github.py`                                                                                                                          |
 | Branch deletion doesn't cancel runs                         | ❌ Not addressed   | Same root cause as PR close; partially mitigated by [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) since branch deletion typically follows PR closure |
 | No native way to depend on all matrix jobs completing       | ❌ Not addressed   | GitHub limitation; use `needs:` with a summary job as workaround                                                                                                  |
 | `actionlint` false positives for runtime env vars           | 🚫 Not addressable | Linter limitation, not GitHub's                                                                                                                                   |
@@ -54,25 +54,25 @@ GitHub Actions has several design limitations. This repository works around most
 
 ```shell-session
 $ cd my-project
-$ uvx -- repokit init
+$ uvx -- repomatic init
 $ git add . && git commit -m "Bootstrap reusable workflows" && git push
 ```
 
 That's it. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#solution-fine-grained-personal-access-token)) via issues and PRs in your repository.
 
-Run `repokit init --help` to see available components and options.
+Run `repomatic init --help` to see available components and options.
 
-## `repokit` CLI
+## `repomatic` CLI
 
-`repokit` stands for *GitHub Actions workflows utilities*.
+`repomatic` stands for *GitHub Actions workflows utilities*.
 
 ### Try it
 
 Thanks to `uv`, you can run it in one command, without installation or venv:
 
 ```shell-session
-$ uvx -- repokit
-Usage: repokit [OPTIONS] COMMAND [ARGS]...
+$ uvx -- repomatic
+Usage: repomatic [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --time / --no-time    Measure and print elapsed execution time.  [default:
@@ -83,7 +83,7 @@ Options:
   --config CONFIG_PATH  Location of the configuration file. Supports local path
                         with glob patterns or remote URL.  [default:
                         ~/Library/Application
-                        Support/repokit/*.toml|*.yaml|*.yml|*.json|*.ini]
+                        Support/repomatic/*.toml|*.yaml|*.yml|*.json|*.ini]
   --no-config           Ignore all configuration files and only use command
                         line parameters and environment variables.
   --show-params         Show all CLI parameters, their provenance, defaults and
@@ -126,24 +126,24 @@ Commands:
 ```
 
 ```shell-session
-$ uvx -- repokit --version
-repokit, version 5.9.1
+$ uvx -- repomatic --version
+repomatic, version 5.9.1
 ```
 
-That's the best way to get started with `repokit` and experiment with it.
+That's the best way to get started with `repomatic` and experiment with it.
 
 > [!TIP]
 > Development versions use a `.devN` suffix per [PEP 440](https://peps.python.org/pep-0440/#developmental-releases). When running from a Git clone, the short commit hash is appended as a local version identifier (e.g., `5.9.2.dev0+abc1234`).
 
 ### Executables
 
-To ease deployment, standalone executables of `repokit`'s latest version are available as direct downloads for several platforms and architectures:
+To ease deployment, standalone executables of `repomatic`'s latest version are available as direct downloads for several platforms and architectures:
 
 | Platform    | `arm64`                                                                                                                         | `x86_64`                                                                                                                    |
 | :---------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Linux**   | [Download `repokit-linux-arm64.bin`](https://github.com/kdeldycke/repokit/releases/latest/download/repokit-linux-arm64.bin)     | [Download `repokit-linux-x64.bin`](https://github.com/kdeldycke/repokit/releases/latest/download/repokit-linux-x64.bin)     |
-| **macOS**   | [Download `repokit-macos-arm64.bin`](https://github.com/kdeldycke/repokit/releases/latest/download/repokit-macos-arm64.bin)     | [Download `repokit-macos-x64.bin`](https://github.com/kdeldycke/repokit/releases/latest/download/repokit-macos-x64.bin)     |
-| **Windows** | [Download `repokit-windows-arm64.exe`](https://github.com/kdeldycke/repokit/releases/latest/download/repokit-windows-arm64.exe) | [Download `repokit-windows-x64.exe`](https://github.com/kdeldycke/repokit/releases/latest/download/repokit-windows-x64.exe) |
+| **Linux**   | [Download `repomatic-linux-arm64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-linux-arm64.bin)     | [Download `repomatic-linux-x64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-linux-x64.bin)     |
+| **macOS**   | [Download `repomatic-macos-arm64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-macos-arm64.bin)     | [Download `repomatic-macos-x64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-macos-x64.bin)     |
+| **Windows** | [Download `repomatic-windows-arm64.exe`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-windows-arm64.exe) | [Download `repomatic-windows-x64.exe`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-windows-x64.exe) |
 
 That way you have a chance to try it out without installing Python or `uv`. Or embed it in your CI/CD pipelines running on minimal images. Or run it on old platforms without worrying about dependency hell.
 
@@ -151,22 +151,22 @@ That way you have a chance to try it out without installing Python or `uv`. Or e
 > ABI targets:
 >
 > ```shell-session
-> $ file ./repokit-*
-> ./repokit-linux-arm64.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=520bfc6f2bb21f48ad568e46752888236552b26a, for GNU/Linux 3.7.0, stripped
-> ./repokit-linux-x64.bin:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=56ba24bccfa917e6ce9009223e4e83924f616d46, for GNU/Linux 3.2.0, stripped
-> ./repokit-macos-arm64.bin:   Mach-O 64-bit executable arm64
-> ./repokit-macos-x64.bin:     Mach-O 64-bit executable x86_64
-> ./repokit-windows-arm64.exe: PE32+ executable (console) Aarch64, for MS Windows
-> ./repokit-windows-x64.exe:   PE32+ executable (console) x86-64, for MS Windows
+> $ file ./repomatic-*
+> ./repomatic-linux-arm64.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=520bfc6f2bb21f48ad568e46752888236552b26a, for GNU/Linux 3.7.0, stripped
+> ./repomatic-linux-x64.bin:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=56ba24bccfa917e6ce9009223e4e83924f616d46, for GNU/Linux 3.2.0, stripped
+> ./repomatic-macos-arm64.bin:   Mach-O 64-bit executable arm64
+> ./repomatic-macos-x64.bin:     Mach-O 64-bit executable x86_64
+> ./repomatic-windows-arm64.exe: PE32+ executable (console) Aarch64, for MS Windows
+> ./repomatic-windows-x64.exe:   PE32+ executable (console) x86-64, for MS Windows
 > ```
 
 ### Development version
 
-To play with the latest development version of `repokit`, you can run it directly from the repository:
+To play with the latest development version of `repomatic`, you can run it directly from the repository:
 
 ```shell-session
-$ uvx --from git+https://github.com/kdeldycke/repokit -- repokit --version
-repokit, version 5.9.2.dev0+3eb8894
+$ uvx --from git+https://github.com/kdeldycke/repomatic -- repomatic --version
+repomatic, version 5.9.2.dev0+3eb8894
 ```
 
 ## Reusable workflows collection
@@ -175,7 +175,7 @@ This repository contains workflows to automate most of the boring tasks in the f
 
 ### Example usage
 
-The fastest way to adopt these workflows is with `repokit init` (see [Quick start](#quick-start)). It generates all the thin-caller workflow files for you.
+The fastest way to adopt these workflows is with `repomatic init` (see [Quick start](#quick-start)). It generates all the thin-caller workflow files for you.
 
 If you prefer to set up a single workflow manually, create a `.github/workflows/lint.yaml` file [using the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow):
 
@@ -187,18 +187,18 @@ on:
 
 jobs:
   lint:
-    uses: kdeldycke/repokit/.github/workflows/lint.yaml@v5.9.1
+    uses: kdeldycke/repomatic/.github/workflows/lint.yaml@v5.9.1
 ```
 
 > [!IMPORTANT]
 > [Concurrency is already configured](#concurrency-and-cancellation) in the reusable workflows—you don't need to re-specify it in your calling workflow.
 
-### `[tool.repokit]` configuration
+### `[tool.repomatic]` configuration
 
-Downstream projects can customize workflow behavior by adding a `[tool.repokit]` section in their `pyproject.toml`:
+Downstream projects can customize workflow behavior by adding a `[tool.repomatic]` section in their `pyproject.toml`:
 
 ```toml
-[tool.repokit]
+[tool.repomatic]
 nuitka = false
 nuitka-extra-args = [
   "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
@@ -239,7 +239,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `test-plan`                   | str       | *(none)*                                        | Inline YAML test plan for binary testing. Read directly by `test-plan` subcommand; CLI `--plan-file`/`--plan-envvar` override.                       |
 | `gitignore-location`          | str       | `"./.gitignore"`                                | File path of the `.gitignore` to update.                                                                                                             |
 | `gitignore-extra-categories`  | list[str] | `[]`                                            | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`).                                                                 |
-| `gitignore-extra-content`     | str       | See [example above](#toolrepokit-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`).                                  |
+| `gitignore-extra-content`     | str       | See [example above](#toolrepomatic-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`).                                  |
 | `dependency-graph-output`     | str       | `"./docs/assets/dependencies.mmd"`              | Location of the generated dependency graph file. Read directly by `update-deps-graph` subcommand; CLI `--output` overrides.                          |
 | `dependency-graph-all-groups` | bool      | `true`                                          | Include all dependency groups in the graph. Set to `false` to exclude development groups (docs, test, typing). CLI `--all-groups` overrides.         |
 | `dependency-graph-all-extras` | bool      | `true`                                          | Include all optional extras in the graph. CLI `--all-extras` overrides.                                                                              |
@@ -253,7 +253,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `workflow-sync`               | bool      | `true`                                          | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                             |
 | `workflow-sync-exclude`       | list[str] | `[]`                                            | Workflow filenames to exclude from sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                       |
 
-### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/autofix.yaml)
+### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autofix.yaml)
 
 *Setup* — guide new users through initial configuration:
 
@@ -261,7 +261,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 
   - Detects missing `WORKFLOW_UPDATE_GITHUB_PAT` secret and opens an issue with step-by-step setup instructions
   - Automatically closes the issue once the secret is configured
-  - **Skip**: upstream `kdeldycke/repokit` repo, `workflow_call` events
+  - **Skip**: upstream `kdeldycke/repomatic` repo, `workflow_call` events
 
 *Formatters* — rewrite files to enforce canonical style:
 
@@ -298,7 +298,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 
 - 📋 **Lint changelog** (`lint-changelog`)
 
-  - Checks and fixes changelog dates and admonitions using [`repokit lint-changelog`](https://github.com/kdeldycke/repokit/blob/main/repokit/changelog.py)
+  - Checks and fixes changelog dates and admonitions using [`repomatic lint-changelog`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
 
 - 🖼️ **Optimize images** (`optimize-images`)
 
@@ -310,43 +310,43 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 
 - 🙈 **Sync `.gitignore`** (`sync-gitignore`)
 
-  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`repokit sync-gitignore`](https://github.com/kdeldycke/repokit/blob/main/repokit/cli.py)
+  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`repomatic sync-gitignore`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py)
   - **Requires**:
     - A `.gitignore` file in the repository
 
 - 🔄 **Sync bumpversion config** (`sync-bumpversion`)
 
-  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`repokit sync-bumpversion`](https://github.com/kdeldycke/repokit/blob/main/repokit/cli.py)
+  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`repomatic sync-bumpversion`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
 
 - 🔄 **Sync linter configs** (`sync-linter-configs`)
 
-  - Syncs linter configuration files (`.github/zizmor.yml`) with the canonical references from [`repokit`](https://github.com/kdeldycke/repokit/blob/main/repokit/data/zizmor.yml)
+  - Syncs linter configuration files (`.github/zizmor.yml`) with the canonical references from [`repomatic`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/zizmor.yml)
 
 - 🔄 **Sync `renovate.json5`** (`sync-renovate`)
 
-  - Syncs the local `renovate.json5` with the canonical reference from [`repokit`](https://github.com/kdeldycke/repokit/blob/main/repokit/init_project.py), stripping repo-specific settings (`customManagers`, `assignees`)
+  - Syncs the local `renovate.json5` with the canonical reference from [`repomatic`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py), stripping repo-specific settings (`customManagers`, `assignees`)
   - **Skipped if**:
-    - Repository is [`kdeldycke/repokit`](https://github.com/kdeldycke/repokit) itself (the upstream source)
+    - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
     - No `renovate.json5` file in the repository root
-    - `renovate-sync = false` in `[tool.repokit]`
+    - `renovate-sync = false` in `[tool.repomatic]`
 
 - 🪢 **Sync workflows** (`sync-workflows`)
 
-  - Syncs [workflows from the upstream `kdeldycke/repokit`](https://github.com/kdeldycke/repokit/tree/main/.github/workflows) repository using [`repokit workflow sync`](https://github.com/kdeldycke/repokit/blob/main/repokit/github/workflow_sync.py)
+  - Syncs [workflows from the upstream `kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/tree/main/.github/workflows) repository using [`repomatic workflow sync`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/github/workflow_sync.py)
   - **Skipped if**:
-    - Repository is [`kdeldycke/repokit`](https://github.com/kdeldycke/repokit) itself (the upstream source)
+    - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
 
 - 📬 **Sync `.mailmap`** (`sync-mailmap`)
 
-  - Keeps `.mailmap` file up to date with contributors using [`repokit sync-mailmap`](https://github.com/kdeldycke/repokit/blob/main/repokit/mailmap.py)
+  - Keeps `.mailmap` file up to date with contributors using [`repomatic sync-mailmap`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/mailmap.py)
   - **Requires**:
     - A `.mailmap` file in the repository root
 
 - 🕸️ **Update dependency graph** (`update-deps-graph`)
 
-  - Generates a Mermaid dependency graph of the Python project using [`repokit update-deps-graph`](https://github.com/kdeldycke/repokit/blob/main/repokit/deps_graph.py)
+  - Generates a Mermaid dependency graph of the Python project using [`repomatic update-deps-graph`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/deps_graph.py)
   - **Requires**:
     - Python package with a `uv.lock` file
 
@@ -366,13 +366,13 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
     - Repository name starts with `awesome-`
     - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
 
-### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/autolock.yaml)
+### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autolock.yaml)
 
 - 🔒 **Lock inactive threads** (`lock`)
 
   - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
 
-### 🩺 [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/debug.yaml)
+### 🩺 [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/debug.yaml)
 
 - 🩺 **Dump context** (`dump-context`)
 
@@ -384,7 +384,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
     - Manual dispatch
     - `workflow_call` from downstream repositories
 
-### ✂️ [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/cancel-runs.yaml)
+### ✂️ [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/cancel-runs.yaml)
 
 - ✂️ **Cancel PR runs** (`cancel-runs`)
 
@@ -392,7 +392,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
   - Prevents wasted CI resources from long-running jobs (e.g. Nuitka binary builds) that continue after a PR is closed
   - GitHub Actions does not natively cancel runs on PR close — the `concurrency` mechanism only triggers cancellation when a *new* run enters the same group
 
-### 🆙 [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/changelog.yaml)
+### 🆙 [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/changelog.yaml)
 
 - 🆙 **Bump versions** (`bump-versions`)
 
@@ -410,7 +410,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 - 🎬 **Prepare release** (`prepare-release`)
 
   - Creates a release PR with two commits: a **freeze commit** that freezes everything to the release version, and an **unfreeze commit** that reverts to development references and bumps the patch version
-  - Uses [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`repokit changelog`](https://github.com/kdeldycke/repokit/blob/main/repokit/changelog.py)
+  - Uses [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`repomatic changelog`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
   - Must be merged with "Rebase and merge" (not squash) — the auto-tagging job needs both commits separate
   - **Requires**:
     - `bump-my-version` configuration in `pyproject.toml`
@@ -420,7 +420,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
     - Manual dispatch
     - `workflow_call` from downstream repositories
 
-### 📚 [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/docs.yaml)
+### 📚 [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/docs.yaml)
 
 These jobs require a `docs` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml` so they can determine the right Sphinx version to install and its dependencies:
 
@@ -466,12 +466,12 @@ docs = [
     - `prepare-release` branch
     - Post-release bump commits
 
-### 🏷️ [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/labels.yaml)
+### 🏷️ [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/labels.yaml)
 
 - 🔄 **Sync labels** (`sync-labels`)
 
   - Synchronizes repository labels using [`labelmaker`](https://github.com/jwodder/labelmaker)
-  - Uses [`labels.toml`](https://github.com/kdeldycke/repokit/blob/main/repokit/data/labels.toml) with multiple profiles:
+  - Uses [`labels.toml`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/labels.toml) with multiple profiles:
     - `default` profile applied to all repositories
     - `awesome` profile additionally applied to `awesome-*` repositories
 
@@ -496,11 +496,11 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
-### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/lint.yaml)
+### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/lint.yaml)
 
 - 🏠 **Lint repository metadata** (`lint-repo`)
 
-  - Validates repository metadata (package name, Sphinx docs, project description) using [`repokit lint-repo`](https://github.com/kdeldycke/repokit/blob/main/repokit/cli.py). Reads `pyproject.toml` directly.
+  - Validates repository metadata (package name, Sphinx docs, project description) using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly.
   - **Requires**:
     - Python package (with a `pyproject.toml` file)
 
@@ -564,7 +564,7 @@ docs = [
     - `prepare-release` branch
     - Bot-created PRs
 
-### 🚀 [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/release.yaml)
+### 🚀 [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/release.yaml)
 
 [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist) that nobody wants to deal with. This workflow automates most of it for Python projects.
 
@@ -590,7 +590,7 @@ docs = [
   - On release pushes, each binary generates an attestation and uploads itself to the GitHub release as its build completes
   - **Requires**:
     - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
-  - **Skipped if** `[tool.repokit] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
+  - **Skipped if** `[tool.repomatic] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
   - **Skipped for** branches that don't affect code:
     - `format-json` (JSON formatting)
     - `format-markdown` (documentation formatting)
@@ -601,7 +601,7 @@ docs = [
 
 - ✅ **Test binaries** (`test-binaries`)
 
-  - Runs test plans against compiled binaries using [`repokit test-plan`](https://github.com/kdeldycke/repokit/blob/main/repokit/test_plan.py)
+  - Runs test plans against compiled binaries using [`repomatic test-plan`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/test_plan.py)
   - **Requires**:
     - Compiled binaries from `compile-binaries` job
     - Test plan file (default: `./tests/cli-test-plan.yaml`)
@@ -613,7 +613,7 @@ docs = [
   - Creates a Git tag for the release version
   - **Requires**:
     - Push to `main` branch
-    - Release commits matrix from [`repokit metadata`](https://github.com/kdeldycke/repokit/blob/main/repokit/metadata.py)
+    - Release commits matrix from [`repomatic metadata`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/metadata.py)
 
 - 🐍 **Publish to PyPI** (`publish-pypi`)
 
@@ -629,13 +629,13 @@ docs = [
   - **Requires**:
     - Successful `create-tag` job
 
-### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/renovate.yaml)
+### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
 
 - 🔄 **Sync bundled config** (`sync-bundled-config`)
 
-  - Keeps the bundled `repokit/data/renovate.json5` in sync with the root `renovate.json5`
+  - Keeps the bundled `repomatic/data/renovate.json5` in sync with the root `renovate.json5`
   - **Only runs in**:
-    - The `kdeldycke/repokit` repository
+    - The `kdeldycke/repomatic` repository
 
 - 🚚 **Migrate to Renovate** (`migrate-to-renovate`)
 
@@ -664,13 +664,13 @@ docs = [
 
 - ⛓️ **Sync `uv.lock`** (`sync-uv-lock`)
 
-  - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`repokit sync-uv-lock`](https://github.com/kdeldycke/repokit/blob/main/repokit/renovate.py)
+  - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`repomatic sync-uv-lock`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/renovate.py)
   - Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
   - Replaces Renovate's `lockFileMaintenance`, which cannot reliably revert noise-only changes
   - **Requires**:
     - Python package with a `pyproject.toml` file
 
-### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/tests.yaml)
+### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/tests.yaml)
 
 - 🔬 **Run tests** (`tests`)
 
@@ -698,7 +698,7 @@ This expands the capabilities of GitHub Actions, since it allows to:
 - Allow for runner introspection
 - Fix quirks (like missing environment variables, events/commits mismatch, merge commits, etc.)
 
-This job relies on the [`repokit metadata` command](https://github.com/kdeldycke/repokit/blob/main/repokit/metadata.py) to gather data from multiple sources:
+This job relies on the [`repomatic metadata` command](https://github.com/kdeldycke/repomatic/blob/main/repomatic/metadata.py) to gather data from multiple sources:
 
 - **Git**: current branch, latest tag, commit messages, changed files
 - **GitHub**: event type, actor, PR labels
@@ -730,7 +730,7 @@ Workflows never commit directly or act silently. Every proposed change creates a
 
 ### Configurable with sensible defaults
 
-Workflows accept `inputs` for customization while providing defaults that work out of the box. Downstream projects can further customize behavior via [`[tool.repokit]` configuration](#toolrepokit-configuration) in `pyproject.toml`.
+Workflows accept `inputs` for customization while providing defaults that work out of the box. Downstream projects can further customize behavior via [`[tool.repomatic]` configuration](#toolrepomatic-configuration) in `pyproject.toml`.
 
 ### Idempotent operations
 
@@ -756,7 +756,7 @@ All dependencies are pinned to specific versions for stability, reproducibility,
 | Hard-coded versions in YAML | GitHub Actions, npm, Python | Renovate PRs      |
 | `uv --exclude-newer` option | Transitive dependencies     | Time-based window |
 | Tagged workflow URLs        | Remote workflow references  | Release process   |
-| `--from . repokit`          | CLI from local source       | Release freeze    |
+| `--from . repomatic`          | CLI from local source       | Release freeze    |
 
 #### Hard-coded versions in workflows
 
@@ -767,11 +767,11 @@ GitHub Actions and npm packages are pinned directly in YAML files:
   - run: npm install eslint@9.39.1       # Pinned npm package
 ```
 
-Renovate's `github-actions` manager handles action updates, and a [custom regex manager](https://github.com/kdeldycke/repokit/blob/main/renovate.json5) handles npm packages pinned inline in workflow files.
+Renovate's `github-actions` manager handles action updates, and a [custom regex manager](https://github.com/kdeldycke/repomatic/blob/main/renovate.json5) handles npm packages pinned inline in workflow files.
 
 #### Renovate cooldowns
 
-To avoid update fatigue, and [mitigate supply chain attacks](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns), [`renovate.json5`](https://github.com/kdeldycke/repokit/blob/main/renovate.json5) uses stabilization periods (with prime numbers to stagger updates).
+To avoid update fatigue, and [mitigate supply chain attacks](https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns), [`renovate.json5`](https://github.com/kdeldycke/repomatic/blob/main/renovate.json5) uses stabilization periods (with prime numbers to stagger updates).
 
 This ensures major updates get more scrutiny while patches flow through faster.
 
@@ -783,7 +783,7 @@ The `--exclude-newer` flag ignores packages released in the last 7 days, providi
 
 #### Tagged workflow URLs
 
-Workflows in this repository are **self-referential**. The [`prepare-release`](https://github.com/kdeldycke/repokit/blob/main/.github/workflows/changelog.yaml) job's freeze commit rewrites workflow URL references from `main` to the release tag, ensuring released versions reference immutable URLs. The unfreeze commit reverts them back to `main` for development.
+Workflows in this repository are **self-referential**. The [`prepare-release`](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/changelog.yaml) job's freeze commit rewrites workflow URL references from `main` to the release tag, ensuring released versions reference immutable URLs. The unfreeze commit reverts them back to `main` for development.
 
 ### Permissions and token
 
@@ -941,19 +941,19 @@ Additionally, [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) activel
 
 ## Claude Code integration
 
-This repository includes [Claude Code skills](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) that wrap `repokit` CLI commands as slash commands. Downstream repositories can install them with:
+This repository includes [Claude Code skills](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/skills) that wrap `repomatic` CLI commands as slash commands. Downstream repositories can install them with:
 
 ```shell-session
-$ uvx -- repokit init skills
+$ uvx -- repomatic init skills
 ```
 
 To keep skills in sync with the latest version:
 
 ```shell-session
-$ uvx -- repokit sync-skills
+$ uvx -- repomatic sync-skills
 ```
 
-Available skills: `/repokit-init`, `/repokit-changelog`, `/repokit-release`, `/repokit-lint`, `/repokit-sync`, `/repokit-deps`, `/repokit-test`, `/repokit-metadata`.
+Available skills: `/repomatic-init`, `/repomatic-changelog`, `/repomatic-release`, `/repomatic-lint`, `/repomatic-sync`, `/repomatic-deps`, `/repomatic-test`, `/repomatic-metadata`.
 
 ## Used in
 
@@ -967,7 +967,7 @@ Check these projects to get real-life examples of usage and inspiration:
 - ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/mail-deduplicate?label=%E2%AD%90&style=flat-square) [Mail Deduplicate](https://github.com/kdeldycke/mail-deduplicate) - A CLI to deduplicate similar emails.
 - ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/dotfiles?label=%E2%AD%90&style=flat-square) [dotfiles](https://github.com/kdeldycke/dotfiles) - macOS dotfiles for Python developers.
 - ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/click-extra?label=%E2%AD%90&style=flat-square) [Click Extra](https://github.com/kdeldycke/click-extra) - Extra colorization and configuration loading for Click.
-- ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/repokit?label=%E2%AD%90&style=flat-square) [repokit](https://github.com/kdeldycke/repokit) - Itself. Eat your own dog-food.
+- ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/repomatic?label=%E2%AD%90&style=flat-square) [repomatic](https://github.com/kdeldycke/repomatic) - Itself. Eat your own dog-food.
 - ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/extra-platforms?label=%E2%AD%90&style=flat-square) [Extra Platforms](https://github.com/kdeldycke/extra-platforms) - Detect platforms and group them by family.
 
 Feel free to send a PR to add your project in this list if you are relying on these scripts.

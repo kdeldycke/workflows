@@ -22,7 +22,7 @@ from textwrap import dedent
 
 import pytest
 
-from repokit.release_prep import ReleasePrep
+from repomatic.release_prep import ReleasePrep
 
 
 @pytest.fixture
@@ -80,7 +80,7 @@ def temp_workflows(tmp_path: Path) -> Path:
             on: push
             jobs:
               build:
-                uses: kdeldycke/repokit/main/.github/workflows/release.yaml
+                uses: kdeldycke/repomatic/main/.github/workflows/release.yaml
             """),
         encoding="UTF-8",
     )
@@ -91,7 +91,7 @@ def temp_workflows(tmp_path: Path) -> Path:
             on: push
             jobs:
               lint:
-                uses: kdeldycke/repokit/main/.github/workflows/lint.yaml
+                uses: kdeldycke/repomatic/main/.github/workflows/lint.yaml
             """),
         encoding="UTF-8",
     )
@@ -113,7 +113,7 @@ def temp_workflows_with_actions(tmp_path: Path) -> Path:
               format:
                 steps:
                   - id: pr-metadata
-                    uses: kdeldycke/repokit/.github/actions/pr-metadata@main
+                    uses: kdeldycke/repomatic/.github/actions/pr-metadata@main
                   - uses: peter-evans/create-pull-request@v8
                     with:
                       body: ${{ steps.pr-metadata.outputs.body }}
@@ -126,7 +126,7 @@ def temp_workflows_with_actions(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def temp_workflows_with_cli(tmp_path: Path) -> Path:
-    """Create workflows with ``--from . repokit`` CLI invocations."""
+    """Create workflows with ``--from . repomatic`` CLI invocations."""
     workflow_dir = tmp_path / ".github" / "workflows"
     workflow_dir.mkdir(parents=True)
 
@@ -138,12 +138,12 @@ def temp_workflows_with_cli(tmp_path: Path) -> Path:
               metadata:
                 steps:
                   - run: >
-                      uvx --no-progress --from . repokit
+                      uvx --no-progress --from . repomatic
                       metadata --output "$GITHUB_OUTPUT"
               lint:
                 steps:
                   - run: >
-                      uvx --no-progress --from . repokit
+                      uvx --no-progress --from . repomatic
                       lint-repo --repo-name "test"
             """),
         encoding="UTF-8",
@@ -157,9 +157,9 @@ def temp_workflows_with_cli(tmp_path: Path) -> Path:
               format:
                 steps:
                   - run: >
-                      uvx --no-progress --from . repokit
+                      uvx --no-progress --from . repomatic
                       metadata --output "$GITHUB_OUTPUT"
-                  - run: uvx --no-progress --from . repokit pr-body
+                  - run: uvx --no-progress --from . repomatic pr-body
             """),
         encoding="UTF-8",
     )
@@ -212,7 +212,7 @@ def test_freeze_action_reference(
     content = (temp_workflows_with_actions / "autofix.yaml").read_text(encoding="UTF-8")
     assert "@main" not in content
     assert "@v1.2.3" in content
-    assert "kdeldycke/repokit/.github/actions/pr-metadata@v1.2.3" in content
+    assert "kdeldycke/repomatic/.github/actions/pr-metadata@v1.2.3" in content
 
 
 def test_freeze_cli_version(
@@ -221,7 +221,7 @@ def test_freeze_cli_version(
     temp_pyproject: Path,
     monkeypatch,
 ) -> None:
-    """Test that ``--from . repokit`` is frozen to a PyPI version."""
+    """Test that ``--from . repomatic`` is frozen to a PyPI version."""
     monkeypatch.chdir(tmp_path)
 
     prep = ReleasePrep(workflow_dir=temp_workflows_with_cli)
@@ -230,8 +230,8 @@ def test_freeze_cli_version(
     assert count == 2
     for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "--from . repokit" not in content
-        assert "'repokit==1.0.0'" in content
+        assert "--from . repomatic" not in content
+        assert "'repomatic==1.0.0'" in content
 
 
 def test_freeze_workflow_urls(
@@ -249,8 +249,8 @@ def test_freeze_workflow_urls(
     assert count == 2
     for workflow_file in temp_workflows.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "/repokit/main/" not in content
-        assert "/repokit/v1.2.3/" in content
+        assert "/repomatic/main/" not in content
+        assert "/repomatic/v1.2.3/" in content
 
 
 def test_post_release(
@@ -272,7 +272,7 @@ def test_post_release(
     assert len(modified) == 2
     for workflow_file in temp_workflows.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "/repokit/main/" in content
+        assert "/repomatic/main/" in content
 
 
 def test_post_release_unfreezes_cli(
@@ -289,7 +289,7 @@ def test_post_release_unfreezes_cli(
     prep.freeze_cli_version("1.0.0")
     for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "'repokit==1.0.0'" in content
+        assert "'repomatic==1.0.0'" in content
 
     # Then run post-release.
     prep.modified_files = []
@@ -298,8 +298,8 @@ def test_post_release_unfreezes_cli(
     assert len(modified) == 2
     for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "'repokit==" not in content
-        assert "--from . repokit" in content
+        assert "'repomatic==" not in content
+        assert "--from . repomatic" in content
 
 
 def test_prepare_release_full(
@@ -321,7 +321,7 @@ def test_prepare_release_full(
     modified = prep.prepare_release(update_workflows=True)
 
     # Changelog once, citation once, 2 workflows for URLs.
-    # CLI freeze doesn't match (no --from . repokit in temp_workflows).
+    # CLI freeze doesn't match (no --from . repomatic in temp_workflows).
     assert len(modified) == 4
     assert len(set(modified)) == 4
 
@@ -338,7 +338,7 @@ def test_prepare_release_full(
     # Verify workflow changes.
     for workflow_file in temp_workflows.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "/repokit/v1.2.3/" in content
+        assert "/repomatic/v1.2.3/" in content
 
 
 def test_prepare_release_freezes_cli(
@@ -361,8 +361,8 @@ def test_prepare_release_freezes_cli(
 
     for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "--from . repokit" not in content
-        assert "'repokit==1.2.3'" in content
+        assert "--from . repomatic" not in content
+        assert "'repomatic==1.2.3'" in content
 
 
 def test_prepare_release_without_workflows(
@@ -448,7 +448,7 @@ def test_unfreeze_action_reference(
     content = (temp_workflows_with_actions / "autofix.yaml").read_text(encoding="UTF-8")
     assert "@v1.2.3" not in content
     assert "@main" in content
-    assert "kdeldycke/repokit/.github/actions/pr-metadata@main" in content
+    assert "kdeldycke/repomatic/.github/actions/pr-metadata@main" in content
 
 
 def test_unfreeze_cli_version(
@@ -465,7 +465,7 @@ def test_unfreeze_cli_version(
     prep.freeze_cli_version("1.0.0")
     for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "'repokit==1.0.0'" in content
+        assert "'repomatic==1.0.0'" in content
 
     # Then unfreeze.
     prep.modified_files = []
@@ -474,8 +474,8 @@ def test_unfreeze_cli_version(
     assert count == 2
     for workflow_file in temp_workflows_with_cli.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "'repokit==" not in content
-        assert "--from . repokit" in content
+        assert "'repomatic==" not in content
+        assert "--from . repomatic" in content
 
 
 def test_unfreeze_workflow_urls(
@@ -499,8 +499,8 @@ def test_unfreeze_workflow_urls(
     assert count == 2
     for workflow_file in temp_workflows.glob("*.yaml"):
         content = workflow_file.read_text(encoding="UTF-8")
-        assert "/repokit/v1.2.3/" not in content
-        assert "/repokit/main/" in content
+        assert "/repomatic/v1.2.3/" not in content
+        assert "/repomatic/main/" in content
 
 
 # --- JSON5 (renovate.json5) freeze/unfreeze tests ---
@@ -515,14 +515,14 @@ def temp_renovate_configs(tmp_path: Path) -> list[Path]:
             {
               postUpgradeTasks: {
                 commands: [
-                  "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress --from . repokit update-checksums {{{packageFile}}}'",
+                  "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress --from . repomatic update-checksums {{{packageFile}}}'",
                 ],
               },
             },
             {
               postUpgradeTasks: {
                 commands: [
-                  "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress --from . repokit sync-uv-lock'",
+                  "bash -c 'install-tool uv latest && /opt/containerbase/tools/uv/*/*/bin/uvx --no-progress --from . repomatic sync-uv-lock'",
                 ],
               },
             },
@@ -533,7 +533,7 @@ def temp_renovate_configs(tmp_path: Path) -> list[Path]:
     root_json5 = tmp_path / "renovate.json5"
     root_json5.write_text(json5_content, encoding="UTF-8")
 
-    bundled_dir = tmp_path / "repokit" / "data"
+    bundled_dir = tmp_path / "repomatic" / "data"
     bundled_dir.mkdir(parents=True)
     bundled_json5 = bundled_dir / "renovate.json5"
     bundled_json5.write_text(json5_content, encoding="UTF-8")
@@ -548,7 +548,7 @@ def test_freeze_cli_version_renovate_json5(
     temp_pyproject: Path,
     monkeypatch,
 ) -> None:
-    """Test that ``--from . repokit`` is frozen to unquoted form in JSON5 files."""
+    """Test that ``--from . repomatic`` is frozen to unquoted form in JSON5 files."""
     monkeypatch.chdir(tmp_path)
 
     prep = ReleasePrep(workflow_dir=temp_workflows_with_cli)
@@ -558,10 +558,10 @@ def test_freeze_cli_version_renovate_json5(
     assert count == 4
     for json5_file in temp_renovate_configs:
         content = json5_file.read_text(encoding="UTF-8")
-        assert "--from . repokit" not in content
-        assert "repokit==1.0.0" in content
+        assert "--from . repomatic" not in content
+        assert "repomatic==1.0.0" in content
         # Must not use quoted form in JSON5 (would break bash -c '...' quoting).
-        assert "'repokit==" not in content
+        assert "'repomatic==" not in content
 
 
 def test_unfreeze_cli_version_renovate_json5(
@@ -579,7 +579,7 @@ def test_unfreeze_cli_version_renovate_json5(
     prep.freeze_cli_version("1.0.0")
     for json5_file in temp_renovate_configs:
         content = json5_file.read_text(encoding="UTF-8")
-        assert "repokit==1.0.0" in content
+        assert "repomatic==1.0.0" in content
 
     # Then unfreeze.
     prep.modified_files = []
@@ -589,5 +589,5 @@ def test_unfreeze_cli_version_renovate_json5(
     assert count == 4
     for json5_file in temp_renovate_configs:
         content = json5_file.read_text(encoding="UTF-8")
-        assert "repokit==" not in content
-        assert "--from . repokit" in content
+        assert "repomatic==" not in content
+        assert "--from . repomatic" in content

@@ -4,7 +4,7 @@ requires = [ "uv-build>=0.9" ]
 
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
-name = "repokit"
+name = "repomatic"
 version = "6.0.1.dev0"
 description = "🧩 CLI for GitHub Actions + reusable workflows"
 readme = "readme.md"
@@ -115,15 +115,15 @@ dependencies = [
 ]
 
 [project.scripts]
-repokit = "repokit.__main__:main"
+repomatic = "repomatic.__main__:main"
 
 [project.urls]
-"Changelog" = "https://github.com/kdeldycke/repokit/blob/main/changelog.md"
-"Download" = "https://github.com/kdeldycke/repokit/releases/tag/v6.0.1.dev0"
+"Changelog" = "https://github.com/kdeldycke/repomatic/blob/main/changelog.md"
+"Download" = "https://github.com/kdeldycke/repomatic/releases/tag/v6.0.1.dev0"
 "Funding" = "https://github.com/sponsors/kdeldycke"
-"Homepage" = "https://github.com/kdeldycke/repokit"
-"Issues" = "https://github.com/kdeldycke/repokit/issues"
-"Repository" = "https://github.com/kdeldycke/repokit"
+"Homepage" = "https://github.com/kdeldycke/repomatic"
+"Issues" = "https://github.com/kdeldycke/repomatic/issues"
+"Repository" = "https://github.com/kdeldycke/repomatic"
 
 
 # Non-runtime development dependency groups.
@@ -149,8 +149,8 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # Relative dates are fine here because the Renovate lock-maintenance job
 # (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
 exclude-newer = "1 week"
-# Exclude repokit from the cooldown period.
-exclude-newer-package = { "repokit" = "0 day" }
+# Exclude repomatic from the cooldown period.
+exclude-newer-package = { "repomatic" = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 
@@ -211,7 +211,7 @@ xfail_strict = true
 [tool.coverage]
 # https://coverage.readthedocs.io/en/latest/config.html
 run.branch = true
-run.source = [ "repokit" ]
+run.source = [ "repomatic" ]
 report.precision = 2
 
 [tool.bumpversion]
@@ -268,8 +268,8 @@ warn_unreachable = true
 pretty = true
 overrides = [ { ignore_missing_imports = true, module = [ "py_walk.*" ] } ]
 
-[tool.repokit]
+[tool.repomatic]
 nuitka-extra-args = [
   "--include-package-data=extra_platforms",
-  "--include-data-files=repokit/templates/*.md=repokit/templates/",
+  "--include-data-files=repomatic/templates/*.md=repomatic/templates/",
 ]

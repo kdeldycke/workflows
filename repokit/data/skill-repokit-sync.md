@@ -1,1 +1,0 @@
-../../.claude/skills/repokit-sync/SKILL.md

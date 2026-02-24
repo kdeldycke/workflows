@@ -1,1 +1,0 @@
-../../.claude/skills/repokit-metadata/SKILL.md

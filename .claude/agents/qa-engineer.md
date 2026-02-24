@@ -46,7 +46,7 @@ Prefer mechanical enforcement over prose (see `CLAUDE.md` § Agent behavior poli
 
 ## Design new automation
 
-When grunt-qa reports repetitive patterns, evaluate whether to add a new autofix job, linting check, or `repokit` subcommand. You are the only agent who implements new features and architectural changes.
+When grunt-qa reports repetitive patterns, evaluate whether to add a new autofix job, linting check, or `repomatic` subcommand. You are the only agent who implements new features and architectural changes.
 
 ## Agent definition gatekeeper
 

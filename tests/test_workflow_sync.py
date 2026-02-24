@@ -23,9 +23,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from repokit.cli import _apply_workflow_config
-from repokit.github import AnnotationLevel
-from repokit.github.workflow_sync import (
+from repomatic.cli import _apply_workflow_config
+from repomatic.github import AnnotationLevel
+from repomatic.github.workflow_sync import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,
     NON_REUSABLE_WORKFLOWS,
@@ -129,8 +129,8 @@ def test_renovate_has_secrets() -> None:
 def test_no_workflow_call_inputs(filename: str) -> None:
     """Verify no reusable workflow defines ``workflow_call`` inputs.
 
-    All configurable options live in ``[tool.repokit]`` in ``pyproject.toml``.
-    Workflows read config via ``repokit`` CLI instead of accepting inputs.
+    All configurable options live in ``[tool.repomatic]`` in ``pyproject.toml``.
+    Workflows read config via ``repomatic`` CLI instead of accepting inputs.
     """
     info = extract_trigger_info(filename)
     assert len(info.call_inputs) == 0, (
@@ -786,7 +786,7 @@ def test_apply_config_explicit_names_bypass(
 ) -> None:
     """Explicit CLI args bypass config filtering entirely."""
     pyproject_content = """\
-[tool.repokit]
+[tool.repomatic]
 workflow-sync = false
 workflow-sync-exclude = ["lint.yaml"]
 """
@@ -824,7 +824,7 @@ def test_apply_config_global_toggle_off(
 ) -> None:
     """Returns None when workflow-sync is false and no explicit args."""
     pyproject_content = """\
-[tool.repokit]
+[tool.repomatic]
 workflow-sync = false
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
@@ -842,7 +842,7 @@ def test_apply_config_excludes_thin_caller(
 ) -> None:
     """Exclude list removes workflows from thin-caller defaults."""
     pyproject_content = """\
-[tool.repokit]
+[tool.repomatic]
 workflow-sync-exclude = ["debug.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
@@ -864,7 +864,7 @@ def test_apply_config_excludes_header_only(
 ) -> None:
     """Exclude list removes workflows from header-only defaults."""
     pyproject_content = """\
-[tool.repokit]
+[tool.repomatic]
 workflow-sync-exclude = ["tests.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
@@ -883,7 +883,7 @@ def test_apply_config_warns_unknown(
 ) -> None:
     """Warning logged for unknown workflow in exclude list."""
     pyproject_content = """\
-[tool.repokit]
+[tool.repomatic]
 workflow-sync-exclude = ["nonexistent.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
@@ -907,7 +907,7 @@ def test_generate_with_exclude_integration(
 ) -> None:
     """End-to-end: excluded workflow is not created."""
     pyproject_content = """\
-[tool.repokit]
+[tool.repomatic]
 workflow-sync-exclude = ["debug.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)

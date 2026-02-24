@@ -20,7 +20,7 @@ from itertools import permutations
 
 import pytest
 
-from repokit.github.matrix import Matrix
+from repomatic.github.matrix import Matrix
 
 
 def test_matrix():

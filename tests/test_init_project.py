@@ -24,7 +24,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from repokit.init_project import (
+from repomatic.init_project import (
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     INIT_CONFIGS,
@@ -37,7 +37,7 @@ from repokit.init_project import (
     init_config,
     run_init,
 )
-from repokit.github.workflow_sync import REUSABLE_WORKFLOWS
+from repomatic.github.workflow_sync import REUSABLE_WORKFLOWS
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -102,11 +102,11 @@ def test_bundled_renovate_matches_processed_root() -> None:
     """Verify bundled renovate.json5 matches processed root file.
 
     The root ``renovate.json5`` is the source of truth. The bundled version
-    in ``repokit/data/`` should match the root file with repo-specific
+    in ``repomatic/data/`` should match the root file with repo-specific
     settings (``assignees``, ``customManagers``) removed.
 
     If this test fails, regenerate the bundled file by running:
-        uv run repokit init renovate --output-dir repokit/data --overwrite
+        uv run repomatic init renovate --output-dir repomatic/data --overwrite
     """
     # Read the root file and process it (same logic as _get_renovate_config).
     root_path = Path(__file__).parent.parent / "renovate.json5"
@@ -131,8 +131,8 @@ def test_bundled_renovate_matches_processed_root() -> None:
 
     assert bundled_content.strip() == content.strip(), (
         "Bundled renovate.json5 is out of sync with root file.\n"
-        "Regenerate with: uv run repokit init renovate"
-        " --output-dir repokit/data --overwrite"
+        "Regenerate with: uv run repomatic init renovate"
+        " --output-dir repomatic/data --overwrite"
     )
 
 
@@ -503,14 +503,14 @@ def test_init_only_skills(tmp_path: Path):
 
     # Verify all skill files are created.
     for name in (
-        "repokit-changelog",
-        "repokit-deps",
-        "repokit-init",
-        "repokit-lint",
-        "repokit-metadata",
-        "repokit-release",
-        "repokit-sync",
-        "repokit-test",
+        "repomatic-changelog",
+        "repomatic-deps",
+        "repomatic-init",
+        "repomatic-lint",
+        "repomatic-metadata",
+        "repomatic-release",
+        "repomatic-sync",
+        "repomatic-test",
     ):
         rel = f".claude/skills/{name}/SKILL.md"
         assert rel in created_set

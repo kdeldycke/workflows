@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pytest
 
-from repokit.github.pr_body import (
+from repomatic.github.pr_body import (
     _parse_frontmatter,
     _unescape_dollars,
     build_pr_body,
@@ -321,7 +321,7 @@ def test_render_sync_gitignore():
     assert "gitignore-extra-categories" in result
     assert "gitignore-extra-content" in result
     assert "gitignore-location" in result
-    assert "[tool.repokit]" in result
+    assert "[tool.repomatic]" in result
 
 
 def test_render_fix_typos():
@@ -389,7 +389,7 @@ def test_render_update_deps_graph():
     assert "autofixyaml-jobs" in result
     assert "### Configuration" in result
     assert "dependency-graph-output" in result
-    assert "[tool.repokit]" in result
+    assert "[tool.repomatic]" in result
 
 
 def test_render_update_docs():
@@ -489,7 +489,7 @@ def _template_package_items(
     :param exclude: Template names to skip.
     """
     items = []
-    for item in files("repokit.templates").iterdir():
+    for item in files("repomatic.templates").iterdir():
         filename = getattr(item, "name", str(item))
         if filename.startswith("__"):
             continue

@@ -2,11 +2,11 @@
 
 ## Downstream repositories
 
-This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that reuses workflows from [`kdeldycke/repokit`](https://github.com/kdeldycke/repokit), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
+This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that reuses workflows from [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
 
 In other words, downstream repositories should mirror the patterns established here for code style, documentation, testing, and design principles.
 
-**Contributing upstream:** If Claude spots inefficiencies, potential improvements, performance bottlenecks, missing features, or opportunities for better adaptability in the reusable workflows, `repokit` CLI, or this `claude.md` file itself, it should propose these changes upstream via a pull request or issue at [`kdeldycke/repokit`](https://github.com/kdeldycke/repokit/issues). This benefits all downstream repositories.
+**Contributing upstream:** If Claude spots inefficiencies, potential improvements, performance bottlenecks, missing features, or opportunities for better adaptability in the reusable workflows, `repomatic` CLI, or this `claude.md` file itself, it should propose these changes upstream via a pull request or issue at [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/issues). This benefits all downstream repositories.
 
 ## Commands
 
@@ -26,17 +26,17 @@ $ uv run --group test pytest tests/test_changelog.py::test_function_name
 ### Type checking
 
 ```shell-session
-$ uv run --group typing mypy repokit
+$ uv run --group typing mypy repomatic
 ```
 
 ### Running the CLI
 
 ```shell-session
 # Run locally during development.
-$ uv run repokit --help
+$ uv run repomatic --help
 
 # Try without installation using uvx.
-$ uvx -- repokit --help
+$ uvx -- repomatic --help
 ```
 
 ## Documentation requirements
@@ -44,7 +44,7 @@ $ uvx -- repokit --help
 ### Scope of `claude.md` vs `readme.md`
 
 - **`claude.md`**: Contributor and Claude-focused directives—code style, testing guidelines, design principles, and internal development guidance.
-- **`readme.md`**: User-facing documentation for the reusable workflows and `repokit` CLI—installation, usage, configuration, and workflow job descriptions.
+- **`readme.md`**: User-facing documentation for the reusable workflows and `repomatic` CLI—installation, usage, configuration, and workflow job descriptions.
 
 When adding new content, consider whether it benefits end users (`readme.md`) or contributors/Claude working on the codebase (`claude.md`).
 
@@ -68,10 +68,10 @@ Always update documentation when making changes:
 
 The following documentation artifacts must stay in sync with the code. When changing any of these, update the others:
 
-- **CLI output in `readme.md`**: The inline `uvx -- repokit` help block, `--version` output, and development version output must match actual CLI output. Re-run the commands and update the pasted text.
+- **CLI output in `readme.md`**: The inline `uvx -- repomatic` help block, `--version` output, and development version output must match actual CLI output. Re-run the commands and update the pasted text.
 - **Version references in `readme.md`**: The `--version` examples and example workflow `@vX.Y.Z` reference must reflect the latest released version.
 - **Workflow job descriptions in `readme.md`**: Each `.github/workflows/*.yaml` workflow section must document all jobs by their actual job ID, with accurate descriptions of what they do, their requirements, and skip conditions.
-- **`[tool.repokit]` configuration table in `readme.md`**: The options table must match what the code actually reads from `pyproject.toml`. Search `repokit/` for config key references to verify.
+- **`[tool.repomatic]` configuration table in `readme.md`**: The options table must match what the code actually reads from `pyproject.toml`. Search `repomatic/` for config key references to verify.
 
 ### Documenting code decisions
 
@@ -101,9 +101,9 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 | GitHub comparison URLs                 | `v1.2.3...v1.2.4`               | `compare/v5.10.0...v5.10.1`         | References tags.                  |
 | GitHub action/workflow refs            | `` `@v1.2.3` ``                 | `actions/checkout@v6.0.2`           | References tags.                  |
 | Commit messages                        | `v1.2.3`                        | `[changelog] Release v5.10.1`       | References the tag being created. |
-| CLI `--version` output                 | `1.2.3`                         | `repokit, version 5.10.1`           | Package version, not a tag.       |
+| CLI `--version` output                 | `1.2.3`                         | `repomatic, version 5.10.1`           | Package version, not a tag.       |
 | Changelog headings                     | `` `1.2.3` ``                   | `` ## [`5.10.1` (2026-02-17)] ``    | Package version, code-formatted.  |
-| PyPI URLs                              | `1.2.3`                         | `pypi.org/project/repokit/5.10.1/`  | PyPI uses bare versions.          |
+| PyPI URLs                              | `1.2.3`                         | `pypi.org/project/repomatic/5.10.1/`  | PyPI uses bare versions.          |
 | PyPI admonitions                       | `` `1.2.3` ``                   | `` `5.10.1` is available on PyPI `` | Package version, not a tag.       |
 | PR titles                              | `` `v1.2.3` ``                  | `` Release `v5.10.1` ``             | References the tag.               |
 | Prose/documentation                    | `` `v1.2.3` `` or `` `1.2.3` `` | Depends on referent                 | Match what is being referenced.   |
@@ -125,7 +125,7 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 
 ### Imports
 
-- Import from the root package (`from repokit import cli`), not submodules when possible.
+- Import from the root package (`from repomatic import cli`), not submodules when possible.
 - Place imports at the top of the file, unless avoiding circular imports.
 - **Version-dependent imports** (e.g., `tomllib` fallback for Python 3.10) should be placed **after all normal imports** but **before the `TYPE_CHECKING` block**. This allows ruff to freely sort and organize the normal imports above without interference.
 
@@ -228,7 +228,7 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 
 1. **Pick the verb that matches the data source.** If the operation pulls from an external template, API, or canonical reference, it is a `sync`. If it computes from local project state (lockfiles, git history, source code), it is an `update`. If it reformats existing content, it is a `format`.
 2. **All four dimensions must agree.** When adding a new automated operation, the CLI command, workflow job ID, PR branch name, and PR body template file name must all use the same `verb-noun` identifier (e.g., `sync-gitignore` everywhere).
-3. **Function names follow the CLI name.** The Python function backing a CLI command uses the underscore equivalent of the CLI name (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter to override (e.g., `@repokit.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
+3. **Function names follow the CLI name.** The Python function backing a CLI command uses the underscore equivalent of the CLI name (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter to override (e.g., `@repomatic.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
 
 ### Ordering conventions
 
@@ -283,9 +283,9 @@ Patterns that recur across sessions — watch for these proactively:
 
 ### Skills
 
-Skills in `.claude/skills/` wrap `repokit` CLI commands as slash commands. They are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules.
+Skills in `.claude/skills/` wrap `repomatic` CLI commands as slash commands. They are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules.
 
-Available skills: `/repokit-init`, `/repokit-changelog`, `/repokit-release`, `/repokit-lint`, `/repokit-sync`, `/repokit-deps`, `/repokit-test`, `/repokit-metadata`.
+Available skills: `/repomatic-init`, `/repomatic-changelog`, `/repomatic-release`, `/repomatic-lint`, `/repomatic-sync`, `/repomatic-deps`, `/repomatic-test`, `/repomatic-metadata`.
 
 ## Design principles
 
@@ -301,9 +301,9 @@ Available skills: `/repokit-init`, `/repokit-changelog`, `/repokit-release`, `/r
 
 ### Metadata-driven workflow conditions
 
-GitHub Actions lacks conditional step groups—you cannot conditionally skip multiple steps with a single condition. Rather than duplicating `if:` conditions on every step, augment the `repokit metadata` subcommand to compute the condition once and reference it from workflow steps.
+GitHub Actions lacks conditional step groups—you cannot conditionally skip multiple steps with a single condition. Rather than duplicating `if:` conditions on every step, augment the `repomatic metadata` subcommand to compute the condition once and reference it from workflow steps.
 
-**Why:** Python code in `repokit` is simpler to maintain, test, and debug than complex GitHub Actions workflow logic. Moving conditional checks into metadata extraction centralizes logic in one place.
+**Why:** Python code in `repomatic` is simpler to maintain, test, and debug than complex GitHub Actions workflow logic. Moving conditional checks into metadata extraction centralizes logic in one place.
 
 Example: Instead of a separate "check" step followed by multiple steps with `if: steps.check.outputs.allowed == 'true'`, add the check to metadata output and reference `steps.metadata.outputs.some_check == 'true'`.
 
@@ -370,13 +370,13 @@ The solution is to give each release run its own unique group using the commit S
 The `prepare-release` job in `changelog.yaml` creates a PR with exactly **two commits** that must be merged via "Rebase and merge" (never squash):
 
 1. **Freeze commit** (`[changelog] Release vX.Y.Z`) — Freezes everything to the release version: finalizes the changelog date and comparison URL, removes the "unreleased" warning, freezes workflow action references to `@vX.Y.Z`, and freezes CLI invocations to a PyPI version.
-2. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.Z`) — Unfreezes for the next development cycle: reverts action references back to `@main`, reverts CLI invocations back to local source (`--from . repokit`), adds a new unreleased changelog section, and bumps the version to the next patch.
+2. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.Z`) — Unfreezes for the next development cycle: reverts action references back to `@main`, reverts CLI invocations back to local source (`--from . repomatic`), adds a new unreleased changelog section, and bumps the version to the next patch.
 
 The auto-tagging job in `release.yaml` depends on these being **separate commits** — it uses `release_commits_matrix` to identify and tag only the freeze commit. Squashing would merge both into one, breaking the tagging logic.
 
 **Squash merge safeguard:** The `detect-squash-merge` job in `release.yaml` detects squash merges by checking if the head commit message starts with `` Release `v `` (the PR title pattern) rather than `[changelog] Release v` (the canonical freeze commit pattern). When detected, it opens a GitHub issue assigned to the person who merged, then fails the workflow. The release is effectively skipped — existing safeguards in `create-tag` prevent tagging, publishing, and releasing.
 
-On `main`, workflows use `--from . repokit` to run the CLI from local source (dogfooding). The freeze commit freezes these to `'repokit==X.Y.Z'` so tagged releases reference a published package. The unfreeze commit reverts them back for the next development cycle.
+On `main`, workflows use `--from . repomatic` to run the CLI from local source (dogfooding). The freeze commit freezes these to `'repomatic==X.Y.Z'` so tagged releases reference a published package. The unfreeze commit reverts them back for the next development cycle.
 
 #### `changelog.yaml` — event-scoped groups
 
@@ -390,7 +390,7 @@ Always prefer long-form options over short-form for readability when invoking co
 - Use `--verbose` instead of `-v`.
 - Use `--recursive` instead of `-r`.
 
-The `repokit` CLI defines both short and long-form options for convenience, but workflow files and scripts should use long-form options for clarity.
+The `repomatic` CLI defines both short and long-form options for convenience, but workflow files and scripts should use long-form options for clarity.
 
 ### uv flags in CI workflows
 
