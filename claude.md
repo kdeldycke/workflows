@@ -137,6 +137,26 @@ Place a module-level `TYPE_CHECKING` block after all imports (including version-
 
 Use modern equivalents from `collections.abc` and built-in types instead of `typing` imports. Use `X | Y` instead of `Union` and `X | None` instead of `Optional`. New modules should include `from __future__ import annotations` ([PEP 563](https://peps.python.org/pep-0563/)).
 
+### Minimal inline type annotations
+
+Omit type annotations on local variables, loop variables, and assignments when mypy can infer the type from the right-hand side. Annotations add visual noise without helping the type checker.
+
+```python
+# ✅ Preferred: mypy infers the type.
+root_dir = None
+name = "default"
+items = []
+
+# ❌ Avoid: redundant annotation that mypy already knows.
+root_dir: Path | None = None
+name: str = "default"
+items: list[str] = []
+```
+
+**When to annotate:** Add an explicit annotation only when mypy cannot infer the correct type and reports an error — e.g., empty collections that need a specific element type (`items: list[Package] = []`), `None` initializations where the intended type isn't obvious from later usage, or narrowing a union that mypy doesn't resolve on its own.
+
+**Function signatures are unaffected.** Always annotate function parameters and return types — those are part of the public API and cannot be inferred.
+
 ### Python 3.10 compatibility
 
 This project supports Python 3.10+. Be aware of syntax features that are **not** available in Python 3.10:
