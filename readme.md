@@ -683,6 +683,23 @@ docs = [
   - **Requires**:
     - Python package with a `pyproject.toml` file
 
+### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/workflows/blob/main/.github/workflows/tests.yaml)
+
+- 🔬 **Run tests** (`tests`)
+
+  - Runs the test suite across a matrix of OS (Linux/macOS/Windows × `x86_64`/`arm64`) and Python versions (`3.10`, `3.14`, `3.14t`, `3.15`, `3.15t`)
+  - Verifies CLI launchability via `uvx`, `uv run`, and module invocation
+  - Runs `pytest` with coverage reporting to Codecov
+  - Runs self-tests against the CLI test plan
+  - Job names prefixed with **✅** (stable) or **⁉️** (unstable, e.g., unreleased Python versions)
+
+- 🖥️ **Validate architecture** (`validate-arch`)
+
+  - Checks that the detected CPU architecture matches what the runner image advertises
+  - Ensures runners are not silently using emulation (e.g., x86_64 on aarch64)
+  - **Requires**:
+    - Build targets from `project-metadata` job
+
 ### 🧬 What is this `project-metadata` job?
 
 Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extract contextual information, reconcile and combine it, and expose it for downstream jobs to consume.
