@@ -4,9 +4,9 @@ requires = [ "uv-build>=0.9" ]
 
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
-name = "gha-utils"
+name = "repokit"
 version = "5.14.1.dev0"
-description = "⚠️ Renamed to repokit — see https://pypi.org/project/repokit/"
+description = "🧩 CLI for GitHub Actions + reusable workflows"
 readme = "readme.md"
 keywords = [
   "build-automation",
@@ -115,7 +115,7 @@ dependencies = [
 ]
 
 [project.scripts]
-gha-utils = "gha_utils.__main__:main"
+repokit = "repokit.__main__:main"
 
 [project.urls]
 "Changelog" = "https://github.com/kdeldycke/repokit/blob/main/changelog.md"
@@ -124,7 +124,7 @@ gha-utils = "gha_utils.__main__:main"
 "Homepage" = "https://github.com/kdeldycke/repokit"
 "Issues" = "https://github.com/kdeldycke/repokit/issues"
 "Repository" = "https://github.com/kdeldycke/repokit"
-"Successor" = "https://pypi.org/project/repokit/"
+
 
 # Non-runtime development dependency groups.
 [dependency-groups]
@@ -149,8 +149,8 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # Relative dates are fine here because the Renovate lock-maintenance job
 # (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
 exclude-newer = "1 week"
-# Exclude gha-utils from the cooldown period.
-exclude-newer-package = { "gha-utils" = "0 day" }
+# Exclude repokit from the cooldown period.
+exclude-newer-package = { "repokit" = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 
@@ -211,7 +211,7 @@ xfail_strict = true
 [tool.coverage]
 # https://coverage.readthedocs.io/en/latest/config.html
 run.branch = true
-run.source = [ "gha_utils" ]
+run.source = [ "repokit" ]
 report.precision = 2
 
 [tool.bumpversion]
@@ -268,8 +268,8 @@ warn_unreachable = true
 pretty = true
 overrides = [ { ignore_missing_imports = true, module = [ "py_walk.*" ] } ]
 
-[tool.gha-utils]
+[tool.repokit]
 nuitka-extra-args = [
   "--include-package-data=extra_platforms",
-  "--include-data-files=gha_utils/templates/*.md=gha_utils/templates/",
+  "--include-data-files=repokit/templates/*.md=repokit/templates/",
 ]

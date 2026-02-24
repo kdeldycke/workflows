@@ -15,7 +15,7 @@ name: 🆕 Renovate
     paths:
       - ".github/workflows/renovate.yaml"
       - "renovate.json5"
-      - "gha_utils/data/renovate.json5"
+      - "repokit/data/renovate.json5"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -31,9 +31,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Run gha-utils metadata
+      - name: Run repokit metadata
         id: project-metadata
-        run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . repokit metadata --output "$GITHUB_OUTPUT"
 
   sync-bundled-config:
     name: 🔄 Sync renovate.json5
@@ -41,18 +41,18 @@ jobs:
     # Uses `uv run` (not `uvx --from .`) because the source checkout is always
     # available here. These invocations are intentionally outside the
     # freeze/unfreeze cycle — downstream repos never call this job.
-    if: github.repository == 'kdeldycke/workflows'
+    if: github.repository == 'kdeldycke/repokit'
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
 
       - name: Regenerate bundled renovate.json5
-        run: uv run --frozen --no-progress gha-utils init renovate --output-dir gha_utils/data --overwrite
+        run: uv run --frozen --no-progress repokit init renovate --output-dir repokit/data --overwrite
 
       - id: pr-metadata
         run: >
-          uv run --frozen --no-progress gha-utils pr-body
+          uv run --frozen --no-progress repokit pr-body
           --template sync-renovate
           --output "$GITHUB_OUTPUT"
 
@@ -76,11 +76,11 @@ jobs:
         id: checks
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . gha-utils check-renovate --format=github --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . repokit check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       - name: Export renovate.json5 if missing
         if: steps.checks.outputs.renovate_config_exists == 'false'
-        run: uvx --no-progress --from . gha-utils init renovate --overwrite
+        run: uvx --no-progress --from . repokit init renovate --overwrite
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''
@@ -108,7 +108,7 @@ jobs:
       - name: Validate Renovate prerequisites
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . gha-utils check-renovate
+        run: uvx --no-progress --from . repokit check-renovate
 
       - uses: renovatebot/github-action@v44.2.6
         with:
@@ -131,7 +131,7 @@ jobs:
           # Two command patterns are allowed:
           # 1. Workflow checksum updates: downloads a pinned uv binary from
           #    GitHub Releases, verifies its SHA-256, extracts uvx, then runs
-          #    gha-utils update-checksums on the upgraded workflow file.
+          #    repokit update-checksums on the upgraded workflow file.
           # 2. uv hash auto-update: when Renovate bumps the uv version in
           #    renovate.json5, downloads the new tarball and uses sed to
           #    replace the old SHA-256 hash inline (no binary execution).
@@ -141,7 +141,7 @@ jobs:
             --output /tmp/uv\\.tar\\.gz
             && echo [a-f0-9]{64}  /tmp/uv\\.tar\\.gz \\| sha256sum --check
             && tar xzf /tmp/uv\\.tar\\.gz --strip-components=1 -C /tmp
-            && /tmp/uvx --no-progress (--from \\. |)gha-utils(==\\d[\\d.]*)? update-checksums",
+            && /tmp/uvx --no-progress (--from \\. |)repokit(==\\d[\\d.]*)? update-checksums",
             "^bash -c 'curl -fsSL
             https://github\\.com/astral-sh/uv/releases/download/[0-9.]+/uv-x86_64-unknown-linux-gnu\\.tar\\.gz
             --output /tmp/uv\\.tar\\.gz
@@ -166,10 +166,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Sync uv.lock
-        run: uvx --no-progress --from . gha-utils sync-uv-lock
+        run: uvx --no-progress --from . repokit sync-uv-lock
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . gha-utils pr-body
+          uvx --no-progress --from . repokit pr-body
           --template sync-uv-lock
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0

@@ -1,1 +1,0 @@
-../../.claude/skills/gha-metadata/SKILL.md

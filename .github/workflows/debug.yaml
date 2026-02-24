@@ -32,9 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Run gha-utils metadata
+      - name: Run repokit metadata
         id: project-metadata
-        run: uvx --no-progress --from . gha-utils --verbosity DEBUG metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . repokit --verbosity DEBUG metadata --output "$GITHUB_OUTPUT"
       - name: Extend matrix with ubuntu-slim
         id: extend-matrix
         run: |

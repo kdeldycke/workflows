@@ -1,0 +1,26 @@
+# Ruff linter/formatter configuration for Python projects.
+#
+# Native format - can be used standalone as ruff.toml or .ruff.toml.
+# When merged into pyproject.toml via `repokit init ruff`,
+# the [tool.ruff] prefix is added automatically.
+preview = true
+fix = true
+unsafe-fixes = true
+show-fixes = true
+# Enable formatting of Python code blocks in Markdown files.
+# https://docs.astral.sh/ruff/formatter/#markdown-code-formatting
+extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}" ]
+# Enable reformatting of code snippets in docstrings.
+# https://docs.astral.sh/ruff/formatter/#docstring-formatting
+format.docstring-code-format = true
+# D400: First line should end with a period.
+#   Allows docstrings to end up with any punctuation, not just a period.
+#   See: https://github.com/astral-sh/ruff/issues/1858#issuecomment-1382640623
+# ERA001: Found commented-out code.
+#   Do not remove commented code, as it might be used for documentation.
+#   See: https://docs.astral.sh/ruff/rules/#eradicate-era
+lint.ignore = [ "D400", "ERA001" ]
+# Allow rules to add `from __future__ import annotations` in cases where
+# this would simplify a fix or enable a new diagnostic.
+# https://docs.astral.sh/ruff/settings/#lint_future-annotations
+lint.future-annotations = true

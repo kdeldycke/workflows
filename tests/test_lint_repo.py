@@ -21,7 +21,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 
-from gha_utils.lint_repo import (
+from repokit.lint_repo import (
     check_description_matches,
     check_package_name_vs_repo,
     check_website_for_sphinx,
@@ -32,7 +32,7 @@ from gha_utils.lint_repo import (
 
 def test_successful_fetch():
     """Fetch and parse repo metadata."""
-    with patch("gha_utils.lint_repo.run_gh_command") as mock_gh:
+    with patch("repokit.lint_repo.run_gh_command") as mock_gh:
         mock_gh.return_value = (
             '{"homepageUrl": "https://example.com", "description": "A package"}'
         )
@@ -45,7 +45,7 @@ def test_successful_fetch():
 
 def test_empty_fields():
     """Handle empty fields."""
-    with patch("gha_utils.lint_repo.run_gh_command") as mock_gh:
+    with patch("repokit.lint_repo.run_gh_command") as mock_gh:
         mock_gh.return_value = '{"homepageUrl": "", "description": ""}'
         result = get_repo_metadata("owner/repo")
         assert result == {"homepageUrl": None, "description": None}
@@ -53,7 +53,7 @@ def test_empty_fields():
 
 def test_api_failure():
     """Handle API failure."""
-    with patch("gha_utils.lint_repo.run_gh_command") as mock_gh:
+    with patch("repokit.lint_repo.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("gh command failed")
         result = get_repo_metadata("owner/repo")
         assert result == {"homepageUrl": None, "description": None}
@@ -61,7 +61,7 @@ def test_api_failure():
 
 def test_json_parse_error():
     """Handle JSON parse error."""
-    with patch("gha_utils.lint_repo.run_gh_command") as mock_gh:
+    with patch("repokit.lint_repo.run_gh_command") as mock_gh:
         mock_gh.return_value = "not json"
         result = get_repo_metadata("owner/repo")
         assert result == {"homepageUrl": None, "description": None}
@@ -118,7 +118,7 @@ def test_sphinx_without_website():
 
 def test_sphinx_fetches_metadata():
     """Fetch metadata when homepage_url not provided."""
-    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+    with patch("repokit.lint_repo.get_repo_metadata") as mock_get:
         mock_get.return_value = {"homepageUrl": "https://example.com"}
         warning, msg = check_website_for_sphinx("owner/repo", is_sphinx=True)
         assert warning is None
@@ -158,7 +158,7 @@ def test_no_project_description():
 
 def test_fetches_metadata():
     """Fetch metadata when repo_description not provided."""
-    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+    with patch("repokit.lint_repo.get_repo_metadata") as mock_get:
         mock_get.return_value = {"description": "A cool package"}
         error, msg = check_description_matches(
             "owner/repo", project_description="A cool package"
@@ -169,7 +169,7 @@ def test_fetches_metadata():
 
 def test_all_checks_pass(capsys):
     """Return 0 when all checks pass."""
-    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+    with patch("repokit.lint_repo.get_repo_metadata") as mock_get:
         mock_get.return_value = {
             "homepageUrl": "https://example.com",
             "description": "A cool package",
@@ -186,7 +186,7 @@ def test_all_checks_pass(capsys):
 
 def test_description_mismatch(capsys):
     """Return 1 when description mismatches."""
-    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+    with patch("repokit.lint_repo.get_repo_metadata") as mock_get:
         mock_get.return_value = {
             "homepageUrl": None,
             "description": "Different description",
@@ -213,7 +213,7 @@ def test_package_name_warning(capsys):
 
 def test_website_warning(capsys):
     """Emit warning for missing website but still pass."""
-    with patch("gha_utils.lint_repo.get_repo_metadata") as mock_get:
+    with patch("repokit.lint_repo.get_repo_metadata") as mock_get:
         mock_get.return_value = {"homepageUrl": None, "description": None}
         exit_code = run_repo_lint(
             is_sphinx=True,

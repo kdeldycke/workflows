@@ -20,8 +20,8 @@ from __future__ import annotations
 
 from click.testing import CliRunner
 
-from gha_utils.cli import sync_renovate
-from gha_utils.init_project import export_content
+from repokit.cli import sync_renovate
+from repokit.init_project import export_content
 
 
 def test_sync_renovate_writes_canonical_config(tmp_path, monkeypatch):
@@ -53,14 +53,14 @@ def test_sync_renovate_skips_when_missing(tmp_path, monkeypatch):
 
 
 def test_sync_renovate_config_toggle_off(tmp_path, monkeypatch):
-    """Exit 0 when ``renovate-sync = false`` in ``[tool.gha-utils]``."""
+    """Exit 0 when ``renovate-sync = false`` in ``[tool.repokit]``."""
     monkeypatch.chdir(tmp_path)
     target = tmp_path / "renovate.json5"
     target.write_text('{ "old": true }')
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         "[project]\nname = 'test'\nversion = '0.1.0'\n\n"
-        "[tool.gha-utils]\nrenovate-sync = false\n"
+        "[tool.repokit]\nrenovate-sync = false\n"
     )
 
     runner = CliRunner()

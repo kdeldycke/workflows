@@ -22,7 +22,7 @@ from unittest.mock import patch
 
 import json
 
-from gha_utils.renovate import (
+from repokit.renovate import (
     RenovateCheckResult,
     check_commit_statuses_permission,
     check_dependabot_config_absent,
@@ -67,7 +67,7 @@ def test_yml_exists(tmp_path, monkeypatch):
 
 def test_disabled():
     """Pass when security updates disabled."""
-    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+    with patch("repokit.renovate.run_gh_command") as mock_gh:
         mock_gh.return_value = "disabled\n"
         passed, msg = check_dependabot_security_disabled("owner/repo")
         assert passed is True
@@ -76,7 +76,7 @@ def test_disabled():
 
 def test_enabled():
     """Fail when security updates enabled."""
-    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+    with patch("repokit.renovate.run_gh_command") as mock_gh:
         mock_gh.return_value = "enabled\n"
         passed, msg = check_dependabot_security_disabled("owner/repo")
         assert passed is False
@@ -85,7 +85,7 @@ def test_enabled():
 
 def test_api_failure():
     """Handle API failure gracefully."""
-    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+    with patch("repokit.renovate.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("gh command failed")
         passed, msg = check_dependabot_security_disabled("owner/repo")
         # Non-fatal, passes but with warning message.
@@ -94,7 +94,7 @@ def test_api_failure():
 
 def test_has_permission():
     """Pass when token has permission."""
-    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+    with patch("repokit.renovate.run_gh_command") as mock_gh:
         mock_gh.return_value = ""
         passed, msg = check_commit_statuses_permission("owner/repo", "abc123")
         assert passed is True
@@ -103,7 +103,7 @@ def test_has_permission():
 
 def test_no_permission():
     """Pass with warning when no permission (non-fatal)."""
-    with patch("gha_utils.renovate.run_gh_command") as mock_gh:
+    with patch("repokit.renovate.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("gh command failed")
         passed, msg = check_commit_statuses_permission("owner/repo", "abc123")
         # Non-fatal, passes but with warning.
@@ -116,8 +116,8 @@ def test_all_checks_pass(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     # Create renovate.json5 so that check passes.
     (tmp_path / "renovate.json5").touch()
-    with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
+    with patch("repokit.renovate.check_dependabot_security_disabled") as mock_sec:
+        with patch("repokit.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -127,8 +127,8 @@ def test_all_checks_pass(tmp_path, monkeypatch, capsys):
 def test_renovate_config_missing(tmp_path, monkeypatch, capsys):
     """Return 1 when renovate.json5 is missing."""
     monkeypatch.chdir(tmp_path)
-    with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
+    with patch("repokit.renovate.check_dependabot_security_disabled") as mock_sec:
+        with patch("repokit.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -144,8 +144,8 @@ def test_dependabot_config_exists(tmp_path, monkeypatch, capsys):
     (tmp_path / "renovate.json5").touch()
     (tmp_path / ".github").mkdir()
     (tmp_path / ".github" / "dependabot.yaml").touch()
-    with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
+    with patch("repokit.renovate.check_dependabot_security_disabled") as mock_sec:
+        with patch("repokit.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -159,8 +159,8 @@ def test_security_updates_enabled(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     # Create renovate.json5 so that check passes.
     (tmp_path / "renovate.json5").touch()
-    with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
+    with patch("repokit.renovate.check_dependabot_security_disabled") as mock_sec:
+        with patch("repokit.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (False, "Security updates enabled")
             mock_perm.return_value = (True, "Has access")
             exit_code = run_migration_checks("owner/repo", "abc123")
@@ -300,8 +300,8 @@ def test_collect_results_all_pass(tmp_path, monkeypatch):
     """Collect results when all checks pass."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "renovate.json5").touch()
-    with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
+    with patch("repokit.renovate.check_dependabot_security_disabled") as mock_sec:
+        with patch("repokit.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             result = collect_check_results("owner/repo", "abc123")
@@ -317,8 +317,8 @@ def test_with_dependabot_config(tmp_path, monkeypatch):
     (tmp_path / "renovate.json5").touch()
     (tmp_path / ".github").mkdir()
     (tmp_path / ".github" / "dependabot.yaml").touch()
-    with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
+    with patch("repokit.renovate.check_dependabot_security_disabled") as mock_sec:
+        with patch("repokit.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             result = collect_check_results("owner/repo", "abc123")
@@ -328,8 +328,8 @@ def test_with_dependabot_config(tmp_path, monkeypatch):
 def test_missing_renovate_config(tmp_path, monkeypatch):
     """Collect results when renovate.json5 is missing."""
     monkeypatch.chdir(tmp_path)
-    with patch("gha_utils.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("gha_utils.renovate.check_commit_statuses_permission") as mock_perm:
+    with patch("repokit.renovate.check_dependabot_security_disabled") as mock_sec:
+        with patch("repokit.renovate.check_commit_statuses_permission") as mock_perm:
             mock_sec.return_value = (True, "Disabled")
             mock_perm.return_value = (True, "Has access")
             result = collect_check_results("owner/repo", "abc123")
@@ -346,8 +346,8 @@ index abc1234..def5678 100644
 -exclude-newer = "2026-02-11T13:52:20.092144Z"
 +exclude-newer = "2026-02-11T14:09:32.945450358Z"
 @@ -9,3 +9,3 @@
--gha-utils = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
-+gha-utils = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
+-repokit = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
++repokit = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
 """
 
 # Sample diff with real dependency changes mixed in.
@@ -360,8 +360,8 @@ index abc1234..def5678 100644
 -exclude-newer = "2026-02-11T13:52:20.092144Z"
 +exclude-newer = "2026-02-11T14:09:32.945450358Z"
 @@ -9,3 +9,3 @@
--gha-utils = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
-+gha-utils = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
+-repokit = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
++repokit = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
 -version = "1.2.3"
 +version = "1.2.4"
 """
@@ -370,7 +370,7 @@ index abc1234..def5678 100644
 def _mock_subprocess_run(stdout):
     """Create a mock for subprocess.run returning the given stdout."""
     mock_result = type("Result", (), {"stdout": stdout, "returncode": 0})()
-    return patch("gha_utils.renovate.subprocess.run", return_value=mock_result)
+    return patch("repokit.renovate.subprocess.run", return_value=mock_result)
 
 
 def test_timestamp_only_diff_is_noise(tmp_path):
@@ -398,9 +398,9 @@ def test_revert_lock_if_noise_reverts(tmp_path):
     """Revert lock file when diff is only timestamp noise."""
     lock_path = tmp_path / "uv.lock"
     with patch(
-        "gha_utils.renovate.is_lock_diff_only_timestamp_noise", return_value=True
+        "repokit.renovate.is_lock_diff_only_timestamp_noise", return_value=True
     ):
-        with patch("gha_utils.renovate.subprocess.run") as mock_run:
+        with patch("repokit.renovate.subprocess.run") as mock_run:
             result = revert_lock_if_noise(lock_path)
             assert result is True
             mock_run.assert_called_once_with(
@@ -413,7 +413,7 @@ def test_revert_lock_if_noise_keeps(tmp_path):
     """Keep lock file when diff contains real changes."""
     lock_path = tmp_path / "uv.lock"
     with patch(
-        "gha_utils.renovate.is_lock_diff_only_timestamp_noise", return_value=False
+        "repokit.renovate.is_lock_diff_only_timestamp_noise", return_value=False
     ):
         result = revert_lock_if_noise(lock_path)
         assert result is False
@@ -422,9 +422,9 @@ def test_revert_lock_if_noise_keeps(tmp_path):
 def test_sync_uv_lock_keeps_real_changes(tmp_path):
     """Keep lock file when real dependency changes exist."""
     lock_path = tmp_path / "uv.lock"
-    with patch("gha_utils.renovate.subprocess.run") as mock_run:
+    with patch("repokit.renovate.subprocess.run") as mock_run:
         with patch(
-            "gha_utils.renovate.is_lock_diff_only_timestamp_noise",
+            "repokit.renovate.is_lock_diff_only_timestamp_noise",
             return_value=False,
         ):
             reverted = sync_uv_lock(lock_path)
@@ -438,9 +438,9 @@ def test_sync_uv_lock_keeps_real_changes(tmp_path):
 def test_sync_uv_lock_reverts_noise(tmp_path):
     """Revert lock file when only timestamp noise changed."""
     lock_path = tmp_path / "uv.lock"
-    with patch("gha_utils.renovate.subprocess.run") as mock_run:
+    with patch("repokit.renovate.subprocess.run") as mock_run:
         with patch(
-            "gha_utils.renovate.is_lock_diff_only_timestamp_noise",
+            "repokit.renovate.is_lock_diff_only_timestamp_noise",
             return_value=True,
         ):
             reverted = sync_uv_lock(lock_path)

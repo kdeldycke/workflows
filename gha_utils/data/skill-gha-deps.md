@@ -1,1 +1,0 @@
-../../.claude/skills/gha-deps/SKILL.md

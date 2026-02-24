@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from gha_utils.deps_graph import (
+from repokit.deps_graph import (
     _compute_node_degrees,
     _compute_node_depths,
     _compute_subtree_sizes,

@@ -25,7 +25,7 @@ import pytest
 import yaml
 
 # Self-referential URL base for this repository.
-SELF_REF_URL_BASE = "https://raw.githubusercontent.com/kdeldycke/workflows"
+SELF_REF_URL_BASE = "https://raw.githubusercontent.com/kdeldycke/repokit"
 
 # Branch used in self-referential URLs during development.
 SELF_REF_BRANCH = "main"
@@ -445,9 +445,9 @@ def test_action_uses_full_semantic_version(
     if action.startswith("docker://"):
         pytest.skip("Docker action")
 
-    # Skip self-references to kdeldycke/workflows actions.
+    # Skip self-references to kdeldycke/repokit actions.
     # These use @main in development and get rewritten to @vX.Y.Z during release.
-    if action.startswith("kdeldycke/workflows/") and action.endswith("@main"):
+    if action.startswith("kdeldycke/repokit/") and action.endswith("@main"):
         pytest.skip("Self-reference uses @main in development, rewritten on release")
 
     assert ACTION_VERSION_PATTERN.match(action), (
@@ -513,23 +513,23 @@ def test_runner_uses_ubuntu_slim_by_default(
 # --- Bundled data symlink consistency tests ---
 
 # Path to the bundled data directory.
-DATA_DIR = REPO_ROOT / "gha_utils" / "data"
+DATA_DIR = REPO_ROOT / "repokit" / "data"
 
 
 def test_all_workflows_have_symlinks_in_data() -> None:
-    """Verify that every workflow in .github/workflows/ has a symlink in gha_utils/data/."""
+    """Verify that every workflow in .github/workflows/ has a symlink in repokit/data/."""
     workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
     symlinks = {p.name for p in DATA_DIR.iterdir() if p.is_symlink()}
 
     missing = workflows - symlinks
     assert not missing, (
-        f"Workflows missing symlinks in gha_utils/data/: {sorted(missing)}. "
-        "Create them with: ln -s ../../.github/workflows/<name> gha_utils/data/<name>"
+        f"Workflows missing symlinks in repokit/data/: {sorted(missing)}. "
+        "Create them with: ln -s ../../.github/workflows/<name> repokit/data/<name>"
     )
 
 
 def test_only_workflows_and_skills_are_symlinks_in_data() -> None:
-    """Verify that only workflow and skill files are symlinks in gha_utils/data/."""
+    """Verify that only workflow and skill files are symlinks in repokit/data/."""
     workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
     skills = {p.name for p in DATA_DIR.iterdir() if p.name.startswith("skill-")}
     expected = workflows | skills
@@ -537,13 +537,13 @@ def test_only_workflows_and_skills_are_symlinks_in_data() -> None:
 
     extra = symlinks - expected
     assert not extra, (
-        f"Unexpected symlinks in gha_utils/data/: {sorted(extra)}. "
+        f"Unexpected symlinks in repokit/data/: {sorted(extra)}. "
         "Only workflow and skill files should be symlinked."
     )
 
 
 def test_workflow_symlinks_resolve_correctly() -> None:
-    """Verify that workflow symlinks in gha_utils/data/ point to the correct targets."""
+    """Verify that workflow symlinks in repokit/data/ point to the correct targets."""
     for symlink in sorted(DATA_DIR.iterdir()):
         if not symlink.is_symlink() or symlink.name.startswith("skill-"):
             continue
@@ -555,12 +555,12 @@ def test_workflow_symlinks_resolve_correctly() -> None:
 
 
 def test_skill_symlinks_resolve_correctly() -> None:
-    """Verify that skill symlinks in gha_utils/data/ point to the correct targets."""
+    """Verify that skill symlinks in repokit/data/ point to the correct targets."""
     skills_dir = REPO_ROOT / ".claude" / "skills"
     for symlink in sorted(DATA_DIR.iterdir()):
         if not symlink.is_symlink() or not symlink.name.startswith("skill-"):
             continue
-        # skill-gha-changelog.md -> .claude/skills/gha-changelog/SKILL.md.
+        # skill-repokit-changelog.md -> .claude/skills/repokit-changelog/SKILL.md.
         skill_name = symlink.name.removeprefix("skill-").removesuffix(".md")
         expected = (skills_dir / skill_name / "SKILL.md").resolve()
         target = symlink.resolve()

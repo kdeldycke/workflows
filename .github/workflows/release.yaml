@@ -22,7 +22,7 @@ name: 🚀 Build & release
       - prepare-release
       - renovate/**
     paths:
-      - gha_utils/**
+      - repokit/**
       - tests/**
       - pyproject.toml
       - uv.lock
@@ -78,7 +78,7 @@ jobs:
       - name: Generate issue body
         id: issue-metadata
         run: >
-          uvx --no-progress --from . gha-utils pr-body
+          uvx --no-progress --from . repokit pr-body
           --template detect-squash-merge
           --pr-ref "${{ steps.extract.outputs.pr_ref }}"
           --output "$GITHUB_OUTPUT"
@@ -131,9 +131,9 @@ jobs:
       - name: List all commits
         run: git log --decorate=full --oneline
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Run gha-utils metadata
+      - name: Run repokit metadata
         id: project-metadata
-        run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress --from . repokit metadata --output "$GITHUB_OUTPUT"
 
   build-package:
     name: 📦 Build package
@@ -200,7 +200,7 @@ jobs:
       - name: Build binary
         id: build-binary
         continue-on-error: true
-        # Project-specific Nuitka flags come from [tool.gha-utils]
+        # Project-specific Nuitka flags come from [tool.repokit]
         # nuitka-extra-args in pyproject.toml, passed via the build matrix.
         run: >
           uv --no-progress run --frozen -- nuitka
@@ -228,7 +228,7 @@ jobs:
         run: choco install exiftool --no-progress --yes --retry-count=3
       - name: Verify binary architecture
         run: >
-          uvx --no-progress --from . gha-utils
+          uvx --no-progress --from . repokit
           verify-binary --target "${{ matrix.target }}" --binary "${{ matrix.bin_name }}"
       - name: Upload binaries
         uses: actions/upload-artifact@v6.0.0
@@ -285,7 +285,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run test plan for binary
         run: >
-          uvx --no-progress --from . gha-utils test-plan
+          uvx --no-progress --from . repokit test-plan
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
 
   create-tag:
@@ -311,7 +311,7 @@ jobs:
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
         run: >
-          uvx --no-progress --from . gha-utils git-tag
+          uvx --no-progress --from . repokit git-tag
           --tag "v${{ matrix.current_version }}"
           --commit "${{ matrix.commit }}"
           --skip-existing
