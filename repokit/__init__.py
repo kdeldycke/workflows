@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import subprocess
 
-__version__ = "5.14.1.dev0"
+__version__ = "6.0.0.dev0"
 
 
 def _dev_version() -> str:
