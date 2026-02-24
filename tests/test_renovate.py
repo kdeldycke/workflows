@@ -397,9 +397,7 @@ def test_empty_diff_is_not_noise(tmp_path):
 def test_revert_lock_if_noise_reverts(tmp_path):
     """Revert lock file when diff is only timestamp noise."""
     lock_path = tmp_path / "uv.lock"
-    with patch(
-        "repokit.renovate.is_lock_diff_only_timestamp_noise", return_value=True
-    ):
+    with patch("repokit.renovate.is_lock_diff_only_timestamp_noise", return_value=True):
         with patch("repokit.renovate.subprocess.run") as mock_run:
             result = revert_lock_if_noise(lock_path)
             assert result is True
