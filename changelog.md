@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.0.0.dev0` (unreleased)](https://github.com/kdeldycke/repokit/compare/v5.14.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.0.0` (2026-02-24)](https://github.com/kdeldycke/repokit/compare/v5.14.0...v6.0.0)
 
 ## [`5.14.0` (2026-02-24)](https://github.com/kdeldycke/repokit/compare/v5.13.0...v5.14.0)
 
