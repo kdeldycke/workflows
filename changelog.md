@@ -1,9 +1,11 @@
 # Changelog
 
-## [`5.13.1.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.13.0...main)
+## [`5.14.0.dev0` (unreleased)](https://github.com/kdeldycke/workflows/compare/v5.13.0...main)
 
 > [!WARNING]
 > This version is **not released yet** and is under active development.
+
+- Final release under the `gha-utils` name on [PyPI](https://pypi.org/project/gha-utils/). This project is being renamed to [`repokit`](https://pypi.org/project/repokit/) and the GitHub repository moves from [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) to [`kdeldycke/repokit`](https://github.com/kdeldycke/repokit).
 
 ## [`5.13.0` (2026-02-23)](https://github.com/kdeldycke/workflows/compare/v5.12.0...v5.13.0)
 

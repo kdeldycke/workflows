@@ -5,8 +5,8 @@ requires = [ "uv-build>=0.9" ]
 [project]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "gha-utils"
-version = "5.13.1.dev0"
-description = "🧩 CLI for GitHub Actions + reusable workflows"
+version = "5.14.0.dev0"
+description = "⚠️ Renamed to repokit — see https://pypi.org/project/repokit/"
 readme = "readme.md"
 keywords = [
   "build-automation",
@@ -118,12 +118,13 @@ dependencies = [
 gha-utils = "gha_utils.__main__:main"
 
 [project.urls]
-"Changelog" = "https://github.com/kdeldycke/workflows/blob/main/changelog.md"
-"Download" = "https://github.com/kdeldycke/workflows/releases/tag/v5.13.1.dev0"
+"Changelog" = "https://github.com/kdeldycke/repokit/blob/main/changelog.md"
+"Download" = "https://github.com/kdeldycke/repokit/releases/tag/v5.14.0.dev0"
 "Funding" = "https://github.com/sponsors/kdeldycke"
-"Homepage" = "https://github.com/kdeldycke/workflows"
-"Issues" = "https://github.com/kdeldycke/workflows/issues"
-"Repository" = "https://github.com/kdeldycke/workflows"
+"Homepage" = "https://github.com/kdeldycke/repokit"
+"Issues" = "https://github.com/kdeldycke/repokit/issues"
+"Repository" = "https://github.com/kdeldycke/repokit"
+"Successor" = "https://pypi.org/project/repokit/"
 
 # Non-runtime development dependency groups.
 [dependency-groups]
@@ -214,7 +215,7 @@ run.source = [ "gha_utils" ]
 report.precision = 2
 
 [tool.bumpversion]
-current_version = "5.13.1.dev0"
+current_version = "5.14.0.dev0"
 allow_dirty = true
 ignore_missing_files = true
 # Parse versions with an optional .devN suffix (PEP 440).
