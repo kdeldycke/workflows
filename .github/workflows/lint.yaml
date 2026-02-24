@@ -35,7 +35,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run gha-utils metadata
         id: project-metadata
-        run: uvx --no-progress --from . gha-utils metadata --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'gha-utils==5.14.0' metadata --output "$GITHUB_OUTPUT"
 
   lint-repo:
     name: 🏠 Lint repo
@@ -49,7 +49,7 @@ jobs:
       - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ github.token }}
-        run: uvx --no-progress --from . gha-utils lint-repo
+        run: uvx --no-progress 'gha-utils==5.14.0' lint-repo
 
   lint-types:
     name: 🛡️ Lint types
