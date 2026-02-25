@@ -13,6 +13,7 @@
 - Add `prebake-version` CLI command to inject Git commit hash into `__version__` before Nuitka compilation. Standalone binaries now report the exact commit they were built from (e.g., `6.1.0.dev0+abc1234`).
 - Pre-bake dev versions automatically in the `compile-binaries` workflow job before Nuitka runs.
 - Detect orphaned versions in `lint-changelog`: versions that exist as git tags, GitHub releases, or PyPI packages but have no changelog entry. In `--fix` mode, insert placeholder sections with correct comparison URLs.
+- Rename `lint-changelog` workflow job to `fix-changelog` since it always runs with `--fix`. The CLI command remains `lint-changelog`.
 - Group CLI commands into sections (Project setup, Release & versioning, Sync, Linting & checks, GitHub issues & PRs) for better discoverability in help output.
 
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)

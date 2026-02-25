@@ -281,8 +281,8 @@ jobs:
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
           See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"
 
-  lint-changelog:
-    name: 📋 Lint changelog
+  fix-changelog:
+    name: 📋 Fix changelog
     needs:
       - project-metadata
     # Skip during release cycle: the release pipeline hasn't published to PyPI/GitHub yet,
@@ -299,7 +299,7 @@ jobs:
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body
-          --template lint-changelog
+          --template fix-changelog
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
@@ -308,7 +308,7 @@ jobs:
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🆙 changelog"
-          branch: lint-changelog
+          branch: fix-changelog
 
   optimize-images:
     name: 🖼️ Optimize images

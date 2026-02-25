@@ -201,7 +201,7 @@ def test_get_template_names():
     assert "sync-workflows" in names
     assert "release-notes" in names
     assert "pr-metadata" in names
-    assert "lint-changelog" in names
+    assert "fix-changelog" in names
     assert "refresh-tip" in names
     assert "setup-guide" in names
     assert "detect-squash-merge" in names

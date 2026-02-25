@@ -311,9 +311,9 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
-- 📋 **Lint changelog** (`lint-changelog`)
+- 📋 **Fix changelog** (`fix-changelog`)
 
-  - Checks and fixes changelog dates and admonitions using [`repomatic lint-changelog`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
+  - Checks and fixes changelog dates, availability admonitions, and orphaned versions using [`repomatic lint-changelog --fix`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
 
 - 🖼️ **Optimize images** (`optimize-images`)
 

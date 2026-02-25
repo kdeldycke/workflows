@@ -1,5 +1,5 @@
 ---
-title: Lint changelog
+title: Fix changelog
 ---
 
 ### Description
