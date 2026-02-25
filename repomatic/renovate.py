@@ -33,6 +33,7 @@ import json
 import logging
 import re
 import subprocess
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -40,6 +41,19 @@ from click_extra import TableFormat, render_table
 
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum  # type: ignore[import-not-found]
+
+
+class CheckFormat(StrEnum):
+    """Output format for Renovate prerequisite checks."""
+
+    github = "github"
+    json = "json"
+    text = "text"
 
 
 @dataclass

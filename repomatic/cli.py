@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import functools
 import logging
 import os
 import re
@@ -29,16 +30,19 @@ from urllib.request import Request, urlopen
 from boltons.iterutils import unique
 from click_extra import (
     Choice,
+    ClickException,
     Context,
     EnumChoice,
     FloatRange,
     IntRange,
+    UsageError,
     argument,
     dir_path,
     echo,
     file_path,
     group,
     option,
+    option_group,
     pass_context,
 )
 from click_extra.envvar import merge_envvar_ids
@@ -50,9 +54,8 @@ from .binary import (
     verify_binary_arch,
 )
 from .broken_links import manage_combined_broken_links_issue
-from .checksums import update_checksums
-from .init_project import ALL_COMPONENTS, export_content, run_init
 from .changelog import Changelog, lint_changelog_dates
+from .checksums import update_checksums
 from .deps_graph import (
     generate_dependency_graph,
     get_available_extras,
@@ -60,16 +63,6 @@ from .deps_graph import (
 )
 from .git_ops import create_and_push_tag
 from .github.actions import format_multiline_output
-from .lint_repo import run_repo_lint
-from .mailmap import Mailmap
-from .prebake import prebake_version
-from .metadata import (
-    Dialect,
-    Metadata,
-    get_project_name,
-    is_version_bump_allowed,
-    load_repomatic_config,
-)
 from .github.pr_body import (
     _repo_url,
     build_pr_body,
@@ -80,26 +73,12 @@ from .github.pr_body import (
     render_title,
     template_args,
 )
-from .release_prep import ReleasePrep
-from .renovate import (
-    collect_check_results,
-    run_migration_checks,
-    sync_uv_lock as _sync_uv_lock,
-)
-from .sponsor import (
-    add_sponsor_label,
-    get_default_author,
-    get_default_number,
-    get_default_owner,
-    get_default_repo,
-    is_pull_request,
-    is_sponsor,
-)
-from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
-from .github.token import validate_gh_token_env
+from .github import token as _token_mod
+from .github import unsubscribe as _unsub_mod
 from .github.unsubscribe import (
-    _validate_notifications_token,
     render_report as _render_report,
+)
+from .github.unsubscribe import (
     unsubscribe_threads as _unsubscribe_threads,
 )
 from .github.workflow_sync import (
@@ -112,6 +91,35 @@ from .github.workflow_sync import (
     generate_workflows,
     run_workflow_lint,
 )
+from .init_project import ALL_COMPONENTS, export_content, run_init
+from .lint_repo import run_repo_lint
+from .mailmap import Mailmap
+from .metadata import (
+    Dialect,
+    Metadata,
+    get_project_name,
+    is_version_bump_allowed,
+    load_repomatic_config,
+)
+from .prebake import prebake_version
+from .release_prep import ReleasePrep
+from .renovate import (
+    CheckFormat,
+    collect_check_results,
+    run_migration_checks,
+)
+from .renovate import (
+    sync_uv_lock as _sync_uv_lock,
+)
+from .sponsor import (
+    add_sponsor_label,
+    get_default_author,
+    get_default_number,
+    get_default_owner,
+    is_pull_request,
+    is_sponsor,
+)
+from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -177,6 +185,28 @@ def remove_header(content: str) -> str:
     headerless_content = "\n".join(lines)
     logging.debug(f"Result of header removal:\n{headerless_content}")
     return headerless_content
+
+
+def _require_token(module, attr):
+    """Decorator that runs a token validator before the Click command body.
+
+    Uses late-bound ``getattr(module, attr)`` so that
+    ``unittest.mock.patch`` can replace the module attribute after import
+    and the decorator sees the mock at call time.
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                getattr(module, attr)()
+            except RuntimeError as exc:
+                raise ClickException(str(exc))
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 @group()
@@ -354,8 +384,7 @@ def metadata(ctx, format, overwrite, output):
                 " other jobs to consume the produced metadata."
             )
 
-    dialect = Dialect(format)
-    content = metadata.dump(dialect=dialect)
+    content = metadata.dump(dialect=format)
     echo(content, file=prep_path(output))
 
 
@@ -408,6 +437,7 @@ def changelog(ctx, source, changelog_path):
 )
 @option(
     "--workflow-dir",
+    type=dir_path(resolve_path=True),
     default=".github/workflows",
     help="Path to the GitHub workflows directory.",
 )
@@ -481,11 +511,10 @@ def release_prep(
                 f" matches canonical repo {DEFAULT_REPO!r}"
             )
 
-    workflow_dir_path = Path(workflow_dir).resolve() if workflow_dir else None
     prep = ReleasePrep(
         changelog_path=changelog_path,
         citation_path=citation_path if citation_path.exists() else None,
-        workflow_dir=workflow_dir_path,
+        workflow_dir=workflow_dir,
         default_branch=default_branch,
     )
 
@@ -608,8 +637,8 @@ def sync_gitignore(output_path: Path | None) -> None:
     # Fetch from gitignore.io API.
     url = f"{GITIGNORE_IO_URL}/{','.join(all_categories)}"
     logging.info(f"Fetching {url}")
-    request = Request(url, headers={"User-Agent": f"repomatic/{__version__}"})  # noqa: S310
-    with urlopen(request) as response:  # noqa: S310
+    request = Request(url, headers={"User-Agent": f"repomatic/{__version__}"})
+    with urlopen(request) as response:
         content = response.read().decode("UTF-8")
 
     # Append extra content.
@@ -693,34 +722,36 @@ def workflow():
     """
 
 
+def _workflow_options(func):
+    """Shared options for workflow create and sync commands."""
+    func = argument("workflow_names", nargs=-1)(func)
+    func = option(
+        "--output-dir",
+        type=dir_path(resolve_path=True),
+        default=".github/workflows",
+        help="Directory to write workflow files to.",
+    )(func)
+    func = option(
+        "--repo",
+        default=DEFAULT_REPO,
+        help="Upstream repository containing reusable workflows.",
+    )(func)
+    func = option(
+        "--version",
+        default=DEFAULT_VERSION,
+        help="Version reference for the upstream workflows (tag or branch).",
+    )(func)
+    return option(
+        "--format",
+        "output_format",
+        type=EnumChoice(WorkflowFormat),
+        default=WorkflowFormat.THIN_CALLER,
+        help="Output format for generated workflows.",
+    )(func)
+
+
 @workflow.command(short_help="Generate new workflow caller files")
-@option(
-    "--format",
-    "output_format",
-    type=EnumChoice(WorkflowFormat),
-    default=WorkflowFormat.THIN_CALLER,
-    help="Output format for generated workflows.",
-)
-@option(
-    "--version",
-    default=DEFAULT_VERSION,
-    help="Version reference for the upstream workflows (tag or branch).",
-)
-@option(
-    "--repo",
-    default=DEFAULT_REPO,
-    help="Upstream repository containing reusable workflows.",
-)
-@option(
-    "--output-dir",
-    type=dir_path(resolve_path=True),
-    default=".github/workflows",
-    help="Directory to write workflow files to.",
-)
-@argument(
-    "workflow_names",
-    nargs=-1,
-)
+@_workflow_options
 @pass_context
 def create(ctx, output_format, version, repo, output_dir, workflow_names):
     """Generate new workflow caller files.
@@ -748,8 +779,7 @@ def create(ctx, output_format, version, repo, output_dir, workflow_names):
         # Full copy mode
         repomatic workflow create --format full-copy
     """
-    fmt = WorkflowFormat(output_format)
-    filtered = _apply_workflow_config(workflow_names, fmt)
+    filtered = _apply_workflow_config(workflow_names, output_format)
     if filtered is None:
         logging.info(
             "[tool.repomatic] workflow-sync is disabled. Skipping workflow create."
@@ -758,7 +788,7 @@ def create(ctx, output_format, version, repo, output_dir, workflow_names):
 
     exit_code = generate_workflows(
         names=filtered,
-        output_format=fmt,
+        output_format=output_format,
         version=version,
         repo=repo,
         output_dir=output_dir,
@@ -768,33 +798,7 @@ def create(ctx, output_format, version, repo, output_dir, workflow_names):
 
 
 @workflow.command(short_help="Sync workflow caller files (overwrites existing)")
-@option(
-    "--format",
-    "output_format",
-    type=EnumChoice(WorkflowFormat),
-    default=WorkflowFormat.THIN_CALLER,
-    help="Output format for generated workflows.",
-)
-@option(
-    "--version",
-    default=DEFAULT_VERSION,
-    help="Version reference for the upstream workflows (tag or branch).",
-)
-@option(
-    "--repo",
-    default=DEFAULT_REPO,
-    help="Upstream repository containing reusable workflows.",
-)
-@option(
-    "--output-dir",
-    type=dir_path(resolve_path=True),
-    default=".github/workflows",
-    help="Directory to write workflow files to.",
-)
-@argument(
-    "workflow_names",
-    nargs=-1,
-)
+@_workflow_options
 @pass_context
 def sync(ctx, output_format, version, repo, output_dir, workflow_names):
     """Sync workflow caller files, overwriting existing files.
@@ -810,8 +814,7 @@ def sync(ctx, output_format, version, repo, output_dir, workflow_names):
         # Sync specific workflows
         repomatic workflow sync release.yaml lint.yaml
     """
-    fmt = WorkflowFormat(output_format)
-    filtered = _apply_workflow_config(workflow_names, fmt)
+    filtered = _apply_workflow_config(workflow_names, output_format)
     if filtered is None:
         logging.info(
             "[tool.repomatic] workflow-sync is disabled. Skipping workflow sync."
@@ -820,7 +823,7 @@ def sync(ctx, output_format, version, repo, output_dir, workflow_names):
 
     exit_code = generate_workflows(
         names=filtered,
-        output_format=fmt,
+        output_format=output_format,
         version=version,
         repo=repo,
         output_dir=output_dir,
@@ -1026,7 +1029,9 @@ def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
     default=True,
     help="Print per-manager package statistics.",
 )
+@pass_context
 def test_plan(
+    ctx: Context,
     command: str,
     plan_file: tuple[Path, ...] | None,
     plan_envvar: tuple[str, ...] | None,
@@ -1117,7 +1122,7 @@ def test_plan(
                 echo(test_case.execution_trace)
             if exit_on_error:
                 logging.debug("Don't continue testing, a failed test was found.")
-                sys.exit(1)
+                ctx.exit(1)
 
     if stats:
         echo(
@@ -1126,12 +1131,13 @@ def test_plan(
         )
 
     if counter["failed"]:
-        sys.exit(1)
+        ctx.exit(1)
 
 
 @repomatic.command(short_help="Label issues/PRs from GitHub sponsors")
 @option(
     "--owner",
+    envvar="GITHUB_REPOSITORY_OWNER",
     help="GitHub username or organization to check sponsorship for. "
     "Defaults to $GITHUB_REPOSITORY_OWNER.",
 )
@@ -1142,11 +1148,12 @@ def test_plan(
 )
 @option(
     "--repo",
+    envvar="GITHUB_REPOSITORY",
     help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
 )
 @option(
     "--number",
-    type=int,
+    type=IntRange(min=1),
     help="Issue or PR number. Defaults to number from $GITHUB_EVENT_PATH.",
 )
 @option(
@@ -1160,9 +1167,8 @@ def test_plan(
     default=None,
     help="Specify issue or pull request. Auto-detected from $GITHUB_EVENT_PATH.",
 )
-@pass_context
+@_require_token(_token_mod, "validate_gh_token_env")
 def sponsor_label(
-    ctx: Context,
     owner: str | None,
     author: str | None,
     repo: str | None,
@@ -1196,18 +1202,11 @@ def sponsor_label(
         repomatic sponsor-label --owner kdeldycke --author some-user \\
             --repo kdeldycke/repomatic --number 123 --issue
     """
-    try:
-        validate_gh_token_env()
-    except RuntimeError as exc:
-        raise SystemExit(str(exc))
-
     # Apply defaults from GitHub Actions environment.
     if owner is None:
         owner = get_default_owner()
     if author is None:
         author = get_default_author()
-    if repo is None:
-        repo = get_default_repo()
     if number is None:
         number = get_default_number()
     if is_pr is None:
@@ -1225,11 +1224,10 @@ def sponsor_label(
         missing.append("--number")
 
     if missing:
-        logging.error(
+        raise UsageError(
             f"Missing required parameters: {', '.join(missing)}. "
             "These could not be auto-detected from the environment."
         )
-        ctx.exit(1)
 
     # Type narrowing for mypy.
     assert owner and author and repo and number
@@ -1238,8 +1236,7 @@ def sponsor_label(
         if add_sponsor_label(repo, number, label, is_pr=is_pr):
             echo(f"Added {label!r} label to {'PR' if is_pr else 'issue'} #{number}")
         else:
-            logging.error("Failed to add sponsor label")
-            ctx.exit(1)
+            raise ClickException("Failed to add sponsor label")
     else:
         echo(f"Author {author!r} is not a sponsor of {owner!r}")
 
@@ -1253,60 +1250,67 @@ def sponsor_label(
     "--package",
     help="Focus on a specific package's dependency tree.",
 )
-@option(
-    "-g",
-    "--group",
-    "groups",
-    multiple=True,
-    help="Include dependencies from the specified group (e.g., test, typing). "
-    "Can be repeated.",
+@option_group(
+    "Group filtering",
+    option(
+        "-g",
+        "--group",
+        "groups",
+        multiple=True,
+        help="Include dependencies from the specified group (e.g., test, typing). "
+        "Can be repeated.",
+    ),
+    option(
+        "--all-groups",
+        is_flag=True,
+        default=False,
+        help="Include all dependency groups from pyproject.toml.",
+    ),
+    option(
+        "--no-group",
+        "excluded_groups",
+        multiple=True,
+        help="Exclude the specified group. Takes precedence over --all-groups "
+        "and --group. Can be repeated.",
+    ),
+    option(
+        "--only-group",
+        "only_groups",
+        multiple=True,
+        help="Only include dependencies from the specified group, excluding main "
+        "dependencies. Can be repeated.",
+    ),
 )
-@option(
-    "--all-groups",
-    is_flag=True,
-    default=False,
-    help="Include all dependency groups from pyproject.toml.",
-)
-@option(
-    "--no-group",
-    "excluded_groups",
-    multiple=True,
-    help="Exclude the specified group. Takes precedence over --all-groups and --group. "
-    "Can be repeated.",
-)
-@option(
-    "--only-group",
-    "only_groups",
-    multiple=True,
-    help="Only include dependencies from the specified group, excluding main "
-    "dependencies. Can be repeated.",
-)
-@option(
-    "-e",
-    "--extra",
-    "extras",
-    multiple=True,
-    help="Include dependencies from the specified extra (e.g., xml, json5). "
-    "Can be repeated.",
-)
-@option(
-    "--all-extras",
-    is_flag=True,
-    default=False,
-    help="Include all optional extras from pyproject.toml.",
-)
-@option(
-    "--no-extra",
-    "excluded_extras",
-    multiple=True,
-    help="Exclude the specified extra, if --all-extras is supplied. Can be repeated.",
-)
-@option(
-    "--only-extra",
-    "only_extras",
-    multiple=True,
-    help="Only include dependencies from the specified extra, excluding main "
-    "dependencies. Can be repeated.",
+@option_group(
+    "Extra filtering",
+    option(
+        "-e",
+        "--extra",
+        "extras",
+        multiple=True,
+        help="Include dependencies from the specified extra (e.g., xml, json5). "
+        "Can be repeated.",
+    ),
+    option(
+        "--all-extras",
+        is_flag=True,
+        default=False,
+        help="Include all optional extras from pyproject.toml.",
+    ),
+    option(
+        "--no-extra",
+        "excluded_extras",
+        multiple=True,
+        help="Exclude the specified extra, if --all-extras is supplied. "
+        "Can be repeated.",
+    ),
+    option(
+        "--only-extra",
+        "only_extras",
+        multiple=True,
+        help="Only include dependencies from the specified extra, excluding main "
+        "dependencies. Can be repeated.",
+    ),
 )
 @option(
     "--frozen/--no-frozen",
@@ -1316,7 +1320,7 @@ def sponsor_label(
 @option(
     "-l",
     "--level",
-    type=int,
+    type=IntRange(min=1),
     default=None,
     help="Maximum depth of the dependency graph. "
     "1 = primary deps only, 2 = primary + their deps, etc.",
@@ -1495,6 +1499,7 @@ def deps_graph(
     help="Repository name (for label selection)."
     " Defaults to $GITHUB_REPOSITORY name component.",
 )
+@_require_token(_token_mod, "validate_gh_token_env")
 def broken_links(
     lychee_exit_code: int | None,
     body_file: Path | None,
@@ -1548,11 +1553,6 @@ def broken_links(
             --repo-name "my-repo" \\
             --source-url "https://github.com/owner/repo/blob/abc123/docs"
     """
-    try:
-        validate_gh_token_env()
-    except RuntimeError as exc:
-        raise SystemExit(str(exc))
-
     manage_combined_broken_links_issue(
         repo_name=repo_name,
         lychee_exit_code=lychee_exit_code,
@@ -1567,8 +1567,10 @@ def broken_links(
     "--has-pat",
     is_flag=True,
     default=False,
+    envvar="HAS_WORKFLOW_PAT",
     help="Whether WORKFLOW_UPDATE_GITHUB_PAT is configured.",
 )
+@_require_token(_token_mod, "validate_gh_token_env")
 def setup_guide(has_pat: bool) -> None:
     """Manage the setup guide issue for WORKFLOW_UPDATE_GITHUB_PAT.
 
@@ -1591,14 +1593,6 @@ def setup_guide(has_pat: bool) -> None:
         # Secret is configured — close the setup issue
         repomatic setup-guide --has-pat
     """
-    # Support both explicit flag and env var.
-    has_pat = has_pat or bool(os.environ.get("HAS_WORKFLOW_PAT"))
-
-    try:
-        validate_gh_token_env()
-    except RuntimeError as exc:
-        raise SystemExit(str(exc))
-
     from .github.issue import manage_issue_lifecycle
 
     body = render_template("setup-guide")
@@ -1641,6 +1635,7 @@ def setup_guide(has_pat: bool) -> None:
     default=True,
     help="Report what would be done without making changes.",
 )
+@_require_token(_unsub_mod, "_validate_notifications_token")
 def unsubscribe_threads(months: int, batch_size: int, dry_run: bool) -> None:
     """Unsubscribe from closed, inactive GitHub notification threads.
 
@@ -1669,11 +1664,6 @@ def unsubscribe_threads(months: int, batch_size: int, dry_run: bool) -> None:
         # Process at most 50 threads per phase
         repomatic unsubscribe-threads --batch-size 50
     """
-    try:
-        _validate_notifications_token()
-    except RuntimeError as exc:
-        raise SystemExit(str(exc))
-
     result = _unsubscribe_threads(months, batch_size, dry_run)
     echo(_render_report(result))
 
@@ -1843,18 +1833,20 @@ def sync_renovate(ctx: Context, output_path: Path) -> None:
 @option(
     "--repo",
     default=None,
+    envvar="GITHUB_REPOSITORY",
     help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
 )
 @option(
     "--sha",
     default=None,
+    envvar="GITHUB_SHA",
     help="Commit SHA for permission checks. Defaults to $GITHUB_SHA.",
 )
 @option(
     "--format",
     "output_format",
-    type=Choice(["text", "json", "github"], case_sensitive=False),
-    default="text",
+    type=EnumChoice(CheckFormat),
+    default=CheckFormat.text,
     help="Output format: text (human-readable), json (structured), "
     "or github (for $GITHUB_OUTPUT).",
 )
@@ -1870,7 +1862,7 @@ def check_renovate(
     ctx: Context,
     repo: str | None,
     sha: str | None,
-    output_format: str,
+    output_format: CheckFormat,
     output: Path,
 ) -> None:
     """Check prerequisites for Renovate migration.
@@ -1903,30 +1895,22 @@ def check_renovate(
         # Manual invocation
         repomatic check-renovate --repo owner/repo --sha abc123
     """
-    # Apply defaults from environment.
-    if repo is None:
-        repo = os.getenv("GITHUB_REPOSITORY", "")
-    if sha is None:
-        sha = os.getenv("GITHUB_SHA", "")
-
     if not repo:
-        logging.error("No repository specified. Set --repo or $GITHUB_REPOSITORY.")
-        ctx.exit(1)
+        raise UsageError("No repository specified. Set --repo or $GITHUB_REPOSITORY.")
     if not sha:
-        logging.error("No SHA specified. Set --sha or $GITHUB_SHA.")
-        ctx.exit(1)
+        raise UsageError("No SHA specified. Set --sha or $GITHUB_SHA.")
 
     # For text format, use the original function with console output.
-    if output_format == "text":
+    if output_format == CheckFormat.text:
         exit_code = run_migration_checks(repo, sha)
         ctx.exit(exit_code)
 
     # For json/github formats, collect results and output structured data.
     results = collect_check_results(repo, sha)
 
-    if output_format == "json":
+    if output_format == CheckFormat.json:
         content = results.to_json()
-    else:  # github format
+    else:  # github format.
         content = results.to_github_output()
 
     echo(content, file=prep_path(output))
@@ -1941,6 +1925,7 @@ def check_renovate(
 @option(
     "--repo",
     default=None,
+    envvar="GITHUB_REPOSITORY",
     help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
 )
 @pass_context
@@ -1968,9 +1953,6 @@ def lint_repo(
         # Local run (derives repo from $GITHUB_REPOSITORY or --repo)
         repomatic lint-repo --repo owner/repo
     """
-    # Apply defaults from environment.
-    if repo is None:
-        repo = os.getenv("GITHUB_REPOSITORY", "")
     if repo_name is None and repo:
         # Extract repo name from owner/repo format.
         repo_name = repo.split("/")[-1] if "/" in repo else repo
@@ -2083,9 +2065,7 @@ def lint_changelog(
     default=None,
     help="Output file for created=true/false (e.g., $GITHUB_OUTPUT).",
 )
-@pass_context
 def git_tag(
-    ctx: Context,
     tag: str,
     commit: str | None,
     push: bool,
@@ -2126,20 +2106,18 @@ def git_tag(
             push=push,
             skip_existing=skip_existing,
         )
-        if created:
-            echo(f"Created{' and pushed' if push else ''} tag {tag!r}")
-        else:
-            echo(f"Tag {tag!r} already exists, skipped.")
-
-        if output:
-            echo(f"created={'true' if created else 'false'}", file=prep_path(output))
-
     except ValueError as e:
-        logging.error(str(e))
-        ctx.exit(1)
+        raise ClickException(str(e))
     except Exception as e:
-        logging.error(f"Failed to create/push tag: {e}")
-        ctx.exit(1)
+        raise ClickException(f"Failed to create/push tag: {e}")
+
+    if created:
+        echo(f"Created{' and pushed' if push else ''} tag {tag!r}")
+    else:
+        echo(f"Tag {tag!r} already exists, skipped.")
+
+    if output:
+        echo(f"created={'true' if created else 'false'}", file=prep_path(output))
 
 
 @repomatic.command(short_help="Generate PR body with workflow metadata")
@@ -2223,7 +2201,7 @@ def pr_body(
         ver = Metadata.get_current_version()
         if not ver:
             msg = "Cannot auto-detect version: no bumpversion config found."
-            raise SystemExit(msg)
+            raise ClickException(msg)
         ver = re.sub(r"\.dev\d*$", "", ver)
         logging.info(f"Auto-detected version: {ver}")
         return ver
@@ -2245,7 +2223,7 @@ def pr_body(
             value = arg_sources.get(arg)
             if value is None:
                 msg = f"--{arg} is required for template '{template}'"
-                raise SystemExit(msg)
+                raise UsageError(msg)
             # Call if callable, otherwise use the value directly.
             kwargs[arg] = value() if callable(value) else value
 
