@@ -291,6 +291,8 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
+        with:
+          fetch-tags: true
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Fix changelog dates and admonitions
         env:
