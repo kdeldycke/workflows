@@ -14,7 +14,7 @@ rules:
     disable: true
 
   # zizmor crashes on multiline `${{ }}` expressions in autofix.yaml and changelog.yaml.
-  # See: https://github.com/woodruffw/zizmor/issues/TODO
+  # See: https://github.com/zizmorcore/zizmor/issues/1664
   template-injection:
     disable: true
 
