@@ -426,9 +426,14 @@ def generate_thin_caller(
         f"    uses: {repo}/.github/workflows/{filename}@{version}",
     ]
 
-    # Add secrets: inherit when the canonical workflow defines secrets.
+    # Pass only the specific secrets the canonical workflow declares, so
+    # downstream callers don't trigger zizmor's ``secrets-inherit`` finding.
     if info.call_secrets:
-        lines.append("    secrets: inherit")
+        lines.append("    secrets:")
+        for secret_name in info.call_secrets:
+            lines.append(
+                f"      {secret_name}: ${{{{ secrets.{secret_name} }}}}"
+            )
 
     # Trailing newline.
     lines.append("")
@@ -597,11 +602,15 @@ def check_triggers_match(
     )
 
 
-def check_secrets_inherit(
+def check_secrets_passed(
     workflow_path: Path,
     canonical_filename: str,
 ) -> LintResult:
-    """Check that a thin caller uses ``secrets: inherit`` when needed.
+    """Check that a thin caller passes all required secrets explicitly.
+
+    Verifies that every secret declared by the canonical workflow is forwarded
+    by the caller, either via explicit ``secrets:`` mapping or via
+    ``secrets: inherit``.
 
     :param workflow_path: Path to the caller workflow file.
     :param canonical_filename: Filename of the canonical upstream workflow.
@@ -634,19 +643,42 @@ def check_secrets_inherit(
             level=AnnotationLevel.ERROR,
         )
 
+    expected = set(info.call_secrets)
     jobs = data.get("jobs") or {}
     for job_config in jobs.values():
         if not isinstance(job_config, dict):
             continue
-        if job_config.get("secrets") == "inherit":
+        job_secrets = job_config.get("secrets")
+        # ``secrets: inherit`` forwards everything.
+        if job_secrets == "inherit":
             return LintResult(
                 message=f"{workflow_path.name}: secrets: inherit is set.",
                 is_issue=False,
             )
+        if isinstance(job_secrets, dict):
+            passed = set(job_secrets)
+            missing = expected - passed
+            if not missing:
+                return LintResult(
+                    message=(
+                        f"{workflow_path.name}: all secrets"
+                        f" passed to {canonical_filename}."
+                    ),
+                    is_issue=False,
+                )
+            return LintResult(
+                message=(
+                    f"{workflow_path.name}: missing secrets for"
+                    f" {canonical_filename}:"
+                    f" {', '.join(sorted(missing))}."
+                ),
+                is_issue=True,
+                level=AnnotationLevel.WARNING,
+            )
 
     return LintResult(
         message=(
-            f"{workflow_path.name}: missing 'secrets: inherit' but"
+            f"{workflow_path.name}: no secrets passed but"
             f" {canonical_filename} defines secrets."
         ),
         is_issue=True,
@@ -781,8 +813,8 @@ def run_workflow_lint(
         if result.is_issue:
             issues_found = True
 
-        # Check 4: secrets inherit.
-        result = check_secrets_inherit(wf_path, canonical)
+        # Check 4: secrets passed.
+        result = check_secrets_passed(wf_path, canonical)
         _emit_lint_result(result)
         if result.is_issue:
             issues_found = True

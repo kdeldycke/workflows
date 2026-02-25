@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Generate thin caller workflows with explicit secret forwarding instead of `secrets: inherit`, eliminating zizmor's `secrets-inherit` warnings in downstream repositories.
+
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)
 
 ## [`6.0.0` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v5.14.0...v6.0.0)

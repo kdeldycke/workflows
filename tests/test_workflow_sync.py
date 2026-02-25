@@ -34,7 +34,7 @@ from repomatic.github.workflow_sync import (
     WorkflowFormat,
     WorkflowTriggerInfo,
     check_has_workflow_dispatch,
-    check_secrets_inherit,
+    check_secrets_passed,
     check_triggers_match,
     check_version_pinned,
     extract_trigger_info,
@@ -195,34 +195,39 @@ def test_quoted_on_key(filename: str) -> None:
     assert '"on":' in content
 
 
-def test_autofix_has_secrets_inherit() -> None:
-    """Verify autofix.yaml thin caller has secrets: inherit."""
+def test_autofix_passes_secrets_explicitly() -> None:
+    """Verify autofix.yaml thin caller passes secrets explicitly."""
     content = generate_thin_caller("autofix.yaml")
-    assert "secrets: inherit" in content
-
-
-def test_changelog_has_secrets_inherit() -> None:
-    """Verify changelog.yaml thin caller has secrets: inherit."""
-    content = generate_thin_caller("changelog.yaml")
-    assert "secrets: inherit" in content
-
-
-def test_release_has_secrets_inherit() -> None:
-    """Verify release.yaml thin caller has secrets: inherit."""
-    content = generate_thin_caller("release.yaml")
-    assert "secrets: inherit" in content
-
-
-def test_renovate_has_secrets_inherit() -> None:
-    """Verify renovate.yaml thin caller has secrets: inherit."""
-    content = generate_thin_caller("renovate.yaml")
-    assert "secrets: inherit" in content
-
-
-def test_lint_no_secrets_inherit() -> None:
-    """Verify lint.yaml thin caller has no secrets: inherit."""
-    content = generate_thin_caller("lint.yaml")
     assert "secrets: inherit" not in content
+    assert "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}" in content
+
+
+def test_changelog_passes_secrets_explicitly() -> None:
+    """Verify changelog.yaml thin caller passes secrets explicitly."""
+    content = generate_thin_caller("changelog.yaml")
+    assert "secrets: inherit" not in content
+    assert "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}" in content
+
+
+def test_release_passes_secrets_explicitly() -> None:
+    """Verify release.yaml thin caller passes secrets explicitly."""
+    content = generate_thin_caller("release.yaml")
+    assert "secrets: inherit" not in content
+    assert "PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}" in content
+    assert "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}" in content
+
+
+def test_renovate_passes_secrets_explicitly() -> None:
+    """Verify renovate.yaml thin caller passes secrets explicitly."""
+    content = generate_thin_caller("renovate.yaml")
+    assert "secrets: inherit" not in content
+    assert "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}" in content
+
+
+def test_lint_no_secrets() -> None:
+    """Verify lint.yaml thin caller has no secrets block."""
+    content = generate_thin_caller("lint.yaml")
+    assert "secrets:" not in content
 
 
 def test_custom_version() -> None:
@@ -384,8 +389,23 @@ def test_missing_trigger(tmp_path: Path) -> None:
     assert "missing triggers" in result.message
 
 
-def test_has_secrets_inherit(tmp_path: Path) -> None:
-    """Pass when secrets: inherit is present."""
+def test_explicit_secrets_passed(tmp_path: Path) -> None:
+    """Pass when all required secrets are passed explicitly."""
+    wf = tmp_path / "release.yaml"
+    wf.write_text(
+        "---\njobs:\n  release:\n"
+        f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n"
+        "    secrets:\n"
+        "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n"
+        "      WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}\n",
+        encoding="UTF-8",
+    )
+    result = check_secrets_passed(wf, "release.yaml")
+    assert result.is_issue is False
+
+
+def test_secrets_inherit_still_accepted(tmp_path: Path) -> None:
+    """Pass when secrets: inherit is used (backwards-compatible)."""
     wf = tmp_path / "release.yaml"
     wf.write_text(
         "---\njobs:\n  release:\n"
@@ -393,21 +413,36 @@ def test_has_secrets_inherit(tmp_path: Path) -> None:
         "    secrets: inherit\n",
         encoding="UTF-8",
     )
-    result = check_secrets_inherit(wf, "release.yaml")
+    result = check_secrets_passed(wf, "release.yaml")
     assert result.is_issue is False
 
 
-def test_missing_secrets_inherit(tmp_path: Path) -> None:
-    """Fail when secrets: inherit is missing but required."""
+def test_missing_secrets(tmp_path: Path) -> None:
+    """Fail when no secrets are passed but required."""
     wf = tmp_path / "release.yaml"
     wf.write_text(
         "---\njobs:\n  release:\n"
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n",
         encoding="UTF-8",
     )
-    result = check_secrets_inherit(wf, "release.yaml")
+    result = check_secrets_passed(wf, "release.yaml")
     assert result.is_issue is True
     assert "secrets" in result.message
+
+
+def test_partial_secrets_missing(tmp_path: Path) -> None:
+    """Fail when only some required secrets are passed."""
+    wf = tmp_path / "release.yaml"
+    wf.write_text(
+        "---\njobs:\n  release:\n"
+        f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n"
+        "    secrets:\n"
+        "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n",
+        encoding="UTF-8",
+    )
+    result = check_secrets_passed(wf, "release.yaml")
+    assert result.is_issue is True
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in result.message
 
 
 def test_no_secrets_needed(tmp_path: Path) -> None:
@@ -418,7 +453,7 @@ def test_no_secrets_needed(tmp_path: Path) -> None:
         f"    uses: {DEFAULT_REPO}/.github/workflows/lint.yaml@v5.8.0\n",
         encoding="UTF-8",
     )
-    result = check_secrets_inherit(wf, "lint.yaml")
+    result = check_secrets_passed(wf, "lint.yaml")
     assert result.is_issue is False
 
 
