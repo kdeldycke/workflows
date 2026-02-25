@@ -21,11 +21,20 @@
 
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)
 
+> [!NOTE]
+> First release under the [`repomatic`](https://pypi.org/project/repomatic/) name on PyPI, after [`repokit`](https://pypi.org/project/repokit/) was rejected for typo-squatting (see `6.0.0` below). The GitHub repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic).
+
 ## [`6.0.0` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v5.14.0...v6.0.0)
+
+> [!CAUTION]
+> This release was [yanked from PyPI](https://pypi.org/project/repokit/6.0.0/). It was published as [`repokit`](https://pypi.org/project/repokit/), but PyPI flagged the name as typo-squatting the pre-existing [`repo-kit`](https://pypi.org/project/repo-kit/) package. The project was renamed to [`repomatic`](https://pypi.org/project/repomatic/) and re-released as `6.0.1`.
+
+- Rename project from `gha-utils` to `repokit`. Rename GitHub repository from [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) to [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic).
 
 ## [`5.14.0` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v5.13.0...v5.14.0)
 
-- Final release under the `gha-utils` name on [PyPI](https://pypi.org/project/gha-utils/). This project is being renamed to [`repomatic`](https://pypi.org/project/repomatic/) and the GitHub repository moves from [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) to [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic).
+> [!NOTE]
+> Final release under the [`gha-utils`](https://pypi.org/project/gha-utils/) name on PyPI. The project was renamed to [`repokit`](https://pypi.org/project/repokit/) in `6.0.0`, then to [`repomatic`](https://pypi.org/project/repomatic/) in `6.0.1` after a PyPI typo-squatting rejection. The GitHub repository moved from [`kdeldycke/workflows`](https://github.com/kdeldycke/workflows) to [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic).
 
 ## [`5.13.0` (2026-02-23)](https://github.com/kdeldycke/repomatic/compare/v5.12.0...v5.13.0)
 
