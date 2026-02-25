@@ -253,6 +253,21 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `workflow-sync`               | bool      | `true`                                            | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                             |
 | `workflow-sync-exclude`       | list[str] | `[]`                                              | Workflow filenames to exclude from sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                       |
 
+> [!TIP]
+> The workflows also invoke tools that read their own `[tool.*]` sections from your `pyproject.toml`. You can customize their behavior in your project without forking or patching the workflows:
+>
+> | Tool                                          | Section                     | Customizes                          |
+> | :-------------------------------------------- | :-------------------------- | :---------------------------------- |
+> | [bump-my-version](https://callowayproject.github.io/bump-my-version/) | `[tool.bumpversion]`        | Version bump patterns and files     |
+> | [coverage.py](https://coverage.readthedocs.io/en/latest/config.html)  | `[tool.coverage.*]`         | Code coverage reporting             |
+> | [mypy](https://mypy.readthedocs.io/en/stable/config_file.html)       | `[tool.mypy]`               | Static type checking                |
+> | [pytest](https://docs.pytest.org/en/stable/reference/customize.html)  | `[tool.pytest.ini_options]` | Test runner options                 |
+> | [ruff](https://docs.astral.sh/ruff/configuration/)                   | `[tool.ruff]`               | Linting and formatting rules        |
+> | [typos](https://github.com/crate-ci/typos)                           | `[tool.typos]`              | Spell-checking exceptions           |
+> | [uv](https://docs.astral.sh/uv/reference/settings/)                  | `[tool.uv]`                 | Package resolution and build config |
+>
+> See [click-extra's inventory of `pyproject.toml`-aware tools](https://kdeldycke.github.io/click-extra/config.html#pyproject-toml) for a broader list.
+
 ### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autofix.yaml)
 
 *Setup* — guide new users through initial configuration:
