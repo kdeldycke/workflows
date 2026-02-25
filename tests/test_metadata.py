@@ -419,6 +419,7 @@ expected = {
         "repomatic/github/issue.py",
         "repomatic/github/matrix.py",
         "repomatic/github/pr_body.py",
+        "repomatic/github/unsubscribe.py",
         "repomatic/github/workflow_sync.py",
         "repomatic/init_project.py",
         "repomatic/lint_repo.py",

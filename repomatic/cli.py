@@ -95,6 +95,11 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
+from .github.unsubscribe import (
+    _validate_notifications_token,
+    render_report as _render_report,
+    unsubscribe_threads as _unsubscribe_threads,
+)
 from .github.workflow_sync import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,
@@ -1589,6 +1594,63 @@ def setup_guide(has_pat: bool) -> None:
         title="Set up `WORKFLOW_UPDATE_GITHUB_PAT` to enable workflow auto-updates",
         no_issues_comment="PAT secret detected.",
     )
+
+
+@repomatic.command(
+    short_help="Unsubscribe from closed, inactive notification threads",
+)
+@option(
+    "--months",
+    type=IntRange(min=1),
+    default=3,
+    help="Inactivity threshold in months. Threads updated more recently are kept.",
+)
+@option(
+    "--batch-size",
+    type=IntRange(min=1),
+    default=200,
+    help="Maximum number of threads/items to process per phase.",
+)
+@option(
+    "--dry-run/--live",
+    default=True,
+    help="Report what would be done without making changes.",
+)
+def unsubscribe_threads(months: int, batch_size: int, dry_run: bool) -> None:
+    """Unsubscribe from closed, inactive GitHub notification threads.
+
+    Processes notifications in two phases:
+
+    \b
+    Phase 1 — REST notification threads:
+      Fetches Issue/PullRequest notification threads, inspects each for
+      closed + stale status, and unsubscribes via DELETE + PATCH.
+
+    \b
+    Phase 2 — GraphQL threadless subscriptions:
+      Searches for closed issues/PRs the user is involved in and
+      unsubscribes via the updateSubscription mutation.
+
+    \b
+    Examples:
+        # Dry run to preview what would be unsubscribed
+        repomatic unsubscribe-threads --dry-run
+
+    \b
+        # Unsubscribe from threads inactive for 6+ months
+        repomatic unsubscribe-threads --months 6
+
+    \b
+        # Process at most 50 threads per phase
+        repomatic unsubscribe-threads --batch-size 50
+    """
+    try:
+        _validate_notifications_token()
+    except RuntimeError as exc:
+        raise SystemExit(str(exc))
+
+    result = _unsubscribe_threads(months, batch_size, dry_run)
+    echo(_render_report(result))
 
 
 @repomatic.command(short_help="Verify binary architecture using exiftool")
