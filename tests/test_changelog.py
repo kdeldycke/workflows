@@ -889,6 +889,38 @@ def test_add_admonition_idempotent():
     assert result is False
 
 
+def test_add_admonition_preserves_existing_admonitions():
+    """Auto-maintained admonitions are inserted after hand-written ones."""
+    hand_written = (
+        "> [!CAUTION]\n"
+        "> This release was yanked from PyPI."
+    )
+    content = MULTI_RELEASE_CHANGELOG.replace(
+        "## [1.1.0 (2026-02-10)]"
+        "(https://github.com/user/repo/compare/v1.0.0...v1.1.0)\n\n"
+        "- Second release.",
+        "## [1.1.0 (2026-02-10)]"
+        "(https://github.com/user/repo/compare/v1.0.0...v1.1.0)\n\n"
+        f"{hand_written}\n\n"
+        "- Second release.",
+    )
+    changelog = Changelog(content)
+    auto_admonition = (
+        "> [!NOTE]\n"
+        "> `1.1.0` is available on [🐍 PyPI](https://example.com)."
+    )
+    result = changelog.add_admonition_after_heading("1.1.0", auto_admonition)
+
+    assert result is True
+    # Hand-written CAUTION appears before auto-maintained NOTE.
+    caution_pos = changelog.content.index("[!CAUTION]")
+    note_pos = changelog.content.index("[!NOTE]")
+    assert caution_pos < note_pos
+    # List items follow after the auto-maintained admonition.
+    items_pos = changelog.content.index("- Second release.")
+    assert note_pos < items_pos
+
+
 def test_remove_admonition_from_section():
     """Test removing an admonition block from a version section."""
     changelog = Changelog(MULTI_RELEASE_CHANGELOG)

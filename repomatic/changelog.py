@@ -572,14 +572,22 @@ class Changelog:
         section_text = section_match.group(0)
         if marker in section_text:
             return False
-        # Insert after the heading line.
+        # Insert after existing admonition blocks so hand-written ones
+        # stay above auto-maintained ones.
         heading_end = section_match.start() + len(section_match.group(1))
-        self.content = (
-            self.content[:heading_end]
-            + "\n\n"
-            + admonition
-            + self.content[heading_end:]
+        insert_pos = heading_end
+        remaining = self.content[heading_end:]
+        admonition_tail = re.match(
+            r"(?:\s*\n(?:>.*\n?)+)+",
+            remaining,
         )
+        if admonition_tail:
+            insert_pos = heading_end + admonition_tail.end()
+        # Strip trailing whitespace at insertion point, then add
+        # exactly one blank line before and after the admonition.
+        before = self.content[:insert_pos].rstrip("\n")
+        after = self.content[insert_pos:].lstrip("\n")
+        self.content = before + "\n\n" + admonition + "\n\n" + after
         return True
 
     def remove_admonition_from_section(
