@@ -3,11 +3,11 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-02-17T11:42:38.115065695Z"
+exclude-newer = "2026-02-18T06:31:03.413924167Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-repomatic = { timestamp = "2026-02-24T11:42:38.115072387Z", span = "PT0S" }
+repomatic = { timestamp = "2026-02-25T06:31:03.41393131Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -925,7 +925,7 @@ wheels = [
 
 [[package]]
 name = "repomatic"
-version = "6.0.2.dev0"
+version = "6.1.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
