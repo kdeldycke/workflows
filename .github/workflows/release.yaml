@@ -195,6 +195,11 @@ jobs:
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
         run: uv --no-progress pip install 'nuitka[onefile]==2.8.10'
+      - name: Pre-bake version with commit hash
+        if: contains(matrix.current_version, '.dev')
+        run: >
+          uvx --no-progress --from . repomatic
+          prebake-version --hash "${{ matrix.short_sha }}"
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary

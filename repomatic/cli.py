@@ -44,7 +44,7 @@ from click_extra import (
 from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS, is_github_ci
 
-from . import __version__, _dev_version
+from . import __version__
 from .binary import (
     BINARY_ARCH_MAPPINGS,
     verify_binary_arch,
@@ -62,6 +62,7 @@ from .git_ops import create_and_push_tag
 from .github.actions import format_multiline_output
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
+from .prebake import prebake_version
 from .metadata import (
     Dialect,
     Metadata,
@@ -178,7 +179,7 @@ def remove_header(content: str) -> str:
     return headerless_content
 
 
-@group(version=_dev_version())
+@group()
 def repomatic():
     pass
 
@@ -2313,3 +2314,82 @@ def update_checksums_cmd(workflow_file: Path) -> None:
         echo(f"  New: {new_hash}")
     if not updated:
         logging.info("All checksums are up to date.")
+
+
+@repomatic.command(short_help="Pre-bake __version__ with Git commit hash")
+@option(
+    "--hash",
+    "git_hash",
+    default=None,
+    help="Git short hash to append. Auto-detected from HEAD if not provided.",
+)
+@option(
+    "--module",
+    "module_path",
+    type=file_path(exists=True, readable=True, writable=True, resolve_path=True),
+    default=None,
+    help="Path to a specific __init__.py to modify. "
+    "Auto-discovered from [project.scripts] if not provided.",
+)
+def prebake_version_cmd(git_hash, module_path):
+    """Inject Git commit hash into ``__version__`` for Nuitka binaries.
+
+    Finds ``__version__`` in the project's ``__init__.py`` files (auto-discovered
+    from ``[project.scripts]`` entry points in ``pyproject.toml``) and appends the
+    Git short hash as a PEP 440 local version identifier.
+
+    Only modifies ``.dev`` versions that do not already have a ``+`` suffix.
+    Release versions and pre-baked versions are left untouched.
+
+    \b
+    This command is designed to run **before** Nuitka compilation in CI, so that
+    standalone binaries report the exact commit they were built from.
+
+    \b
+    Examples:
+        # Auto-discover and pre-bake (uses git HEAD)
+        repomatic prebake-version
+
+    \b
+        # Pre-bake with an explicit hash (e.g., from CI matrix)
+        repomatic prebake-version --hash abc1234
+
+    \b
+        # Pre-bake a specific file
+        repomatic prebake-version --module mypackage/__init__.py
+    """
+    if module_path:
+        # Explicit file provided — just pre-bake it.
+        result = prebake_version(module_path, git_hash=git_hash)
+        if result:
+            echo(f"Pre-baked {module_path}: {result}")
+        else:
+            echo(f"No changes to {module_path}")
+        return
+
+    # Auto-discover from pyproject.toml entry points.
+    metadata = Metadata()
+    if not metadata.script_entries:
+        logging.warning("No [project.scripts] entries found in pyproject.toml.")
+        return
+
+    # Collect unique package __init__.py paths from entry points.
+    seen: set[Path] = set()
+    for _cli_id, module_id, _callable_id in metadata.script_entries:
+        # Derive the top-level package directory from the module path.
+        # e.g., "repomatic.__main__" → "repomatic", "mail_deduplicate.cli" → "mail_deduplicate"
+        package_dir = module_id.split(".")[0]
+        init_path = Path(package_dir) / "__init__.py"
+        if init_path in seen:
+            continue
+        seen.add(init_path)
+
+        if not init_path.exists():
+            logging.warning(f"Package init not found: {init_path}")
+            continue
+
+        result = prebake_version(init_path, git_hash=git_hash)
+        if result:
+            echo(f"Pre-baked {init_path}: {result}")
+        else:
+            echo(f"No changes to {init_path}")

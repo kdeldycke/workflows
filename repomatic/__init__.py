@@ -17,33 +17,4 @@
 
 from __future__ import annotations
 
-import subprocess
-
 __version__ = "6.1.0.dev0"
-
-
-def _dev_version() -> str:
-    """Return version string with git SHA appended for dev versions.
-
-    For development versions (containing ``.dev``), appends the short git
-    commit hash as a PEP 440 local version identifier (e.g.,
-    ``5.1.0.dev0+abc1234``). For release versions, returns the version
-    as-is.
-
-    .. todo::
-        Contribute this as a generic feature for Click Extra, and reuse it here.
-    """
-    if ".dev" not in __version__:
-        return __version__
-    try:
-        result = subprocess.run(
-            ("git", "rev-parse", "--short", "HEAD"),
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return f"{__version__}+{result.stdout.strip()}"
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
-    return __version__

@@ -10,6 +10,8 @@
 - Move zizmor config from `.github/zizmor.yml` to `zizmor.yaml` at repo root for visibility and consistency with other root-level config files.
 - Centralize PAT existence check via workflow-level `env` block, replacing duplicated `secrets.*` ternary expressions in PAT hint steps and the `setup-guide` invocation.
 - Restrict binary compilation to the HEAD commit for non-release pushes, avoiding redundant Nuitka builds across all commits in multi-commit push events.
+- Add `prebake-version` CLI command to inject Git commit hash into `__version__` before Nuitka compilation. Standalone binaries now report the exact commit they were built from (e.g., `6.1.0.dev0+abc1234`).
+- Pre-bake dev versions automatically in the `compile-binaries` workflow job before Nuitka runs.
 
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)
 
