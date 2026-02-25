@@ -2035,11 +2035,14 @@ class Metadata:
         # post-release bump commit doesn't need binaries — only the freeze commit
         # gets tagged and attached to the GitHub release. This halves the number of
         # expensive Nuitka builds during the release cycle (6 instead of 12).
-        # For non-release pushes, build for all new commits. If no new commits are
-        # detected (not in a GitHub workflow event), fall back to the current commit.
+        # For non-release pushes, only build for the HEAD commit. Binary
+        # compilation is expensive (6 OS/arch combinations × Nuitka), and the
+        # workflow concurrency rule already cancels older runs for non-release
+        # pushes — building every commit in a multi-commit push is wasteful.
+        # Package builds (build-package job) still use new_commits_matrix
+        # since they're cheap.
         build_commit_matrix = (
             self.release_commits_matrix
-            or self.new_commits_matrix
             or self.current_commit_matrix
         )
         assert build_commit_matrix
