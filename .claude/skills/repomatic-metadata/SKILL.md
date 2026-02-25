@@ -30,3 +30,10 @@ You help users extract and understand their project metadata.
 - Parse the JSON output and explain each field group (project identity, versioning, Git state, GitHub context).
 - Highlight anything notable: version drift between sources, missing fields, unexpected values, bot commits in recent history.
 - If running in a GitHub Actions context, explain which outputs are available for use in workflow steps.
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-deps` to visualize the dependency tree.
+- `/repomatic-lint` to check repository metadata for issues.

@@ -34,3 +34,10 @@ You help users prepare and validate releases. Reference `CLAUDE.md` § Release c
 - Cross-check against `CLAUDE.md` § Release checklist: git tag, GitHub release, binaries, PyPI package, changelog entry.
 - Warn about any incomplete items.
 - Explain the version formatting rules: bare versions for package references, `v`-prefixed for tag references (see `CLAUDE.md` § Version formatting).
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-changelog check` to verify the changelog is consistent.
+- `/repomatic-release post-release` after the release PR is merged (if using `prep`).

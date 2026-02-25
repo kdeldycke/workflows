@@ -32,3 +32,10 @@ You help users manage their `changelog.md` file. Follow `CLAUDE.md` § Changelog
 - Entries describe **what** changed (new features, bug fixes, behavior changes), not **why**.
 - Justifications belong in documentation or code comments, not the changelog.
 - Follow the version formatting rules from `CLAUDE.md` § Version formatting: bare versions in changelog headings (`` `1.2.3` ``), no `v` prefix.
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-release check` to validate the project is ready for release.
+- `/repomatic-release prep` to prepare the release PR.

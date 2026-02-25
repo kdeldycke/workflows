@@ -31,3 +31,10 @@ You help users bootstrap a repository to use the reusable GitHub Actions workflo
 - Show the generated files and explain what each workflow does.
 - Highlight required next steps: GitHub PAT setup for workflows that need it, GitHub Pages configuration for docs workflows, and any `pyproject.toml` `[tool.repomatic]` configuration options.
 - If existing workflow files were detected, warn about potential conflicts.
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-sync` to pull the latest upstream workflow changes.
+- `/repomatic-lint` to validate the generated files.

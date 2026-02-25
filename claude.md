@@ -285,7 +285,14 @@ Patterns that recur across sessions — watch for these proactively:
 
 Skills in `.claude/skills/` wrap `repomatic` CLI commands as slash commands. They are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules.
 
-Available skills: `/repomatic-init`, `/repomatic-changelog`, `/repomatic-release`, `/repomatic-lint`, `/repomatic-sync`, `/repomatic-deps`, `/repomatic-test`, `/repomatic-metadata`.
+Skills are grouped by lifecycle phase. Each skill includes a "Next steps" section that suggests related skills to run next, creating a guided workflow:
+
+- **Setup**: `/repomatic-init`, `/repomatic-sync`
+- **Development**: `/repomatic-deps`, `/repomatic-metadata`
+- **Quality**: `/repomatic-lint`, `/repomatic-test`
+- **Release**: `/repomatic-changelog`, `/repomatic-release`
+
+Run `repomatic list-skills` to see all skills with descriptions.
 
 ## Design principles
 

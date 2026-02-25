@@ -15,6 +15,9 @@
 - Detect orphaned versions in `lint-changelog`: versions that exist as git tags, GitHub releases, or PyPI packages but have no changelog entry. In `--fix` mode, insert placeholder sections with correct comparison URLs.
 - Rename `lint-changelog` workflow job to `fix-changelog` since it always runs with `--fix`. The CLI command remains `lint-changelog`.
 - Group CLI commands into sections (Project setup, Release & versioning, Sync, Linting & checks, GitHub issues & PRs) for better discoverability in help output.
+- Add `list-skills` CLI command to display all available Claude Code skills grouped by lifecycle phase (Setup, Development, Quality, Release).
+- Add next-step handoff suggestions to all Claude Code skills, creating a guided workflow where each skill suggests what to run next.
+- Document skills with a grouped table, recommended workflow sequence, and walkthrough example in `readme.md`.
 
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)
 

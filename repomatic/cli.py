@@ -92,7 +92,7 @@ from .github.workflow_sync import (
     generate_workflows,
     run_workflow_lint,
 )
-from .init_project import ALL_COMPONENTS, export_content, run_init
+from .init_project import ALL_COMPONENTS, COMPONENT_FILES, export_content, run_init
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
@@ -1805,6 +1805,76 @@ def sync_skills() -> None:
             echo(f"Updated: {path}")
     else:
         echo("Skills are up to date.")
+
+
+# Lifecycle phases for skill grouping. Each skill name maps to a phase.
+_SKILL_PHASES: dict[str, str] = {
+    "repomatic-init": "Setup",
+    "repomatic-sync": "Setup",
+    "repomatic-deps": "Development",
+    "repomatic-metadata": "Development",
+    "repomatic-lint": "Quality",
+    "repomatic-test": "Quality",
+    "repomatic-changelog": "Release",
+    "repomatic-release": "Release",
+}
+"""Maps skill names to lifecycle phases for display grouping."""
+
+# Canonical display order for lifecycle phases.
+_PHASE_ORDER = ("Setup", "Development", "Quality", "Release")
+
+
+def _parse_skill_frontmatter(content: str) -> dict[str, str]:
+    """Extract YAML frontmatter fields from a skill definition file.
+
+    Parses the ``---``-delimited frontmatter block and returns a dict of
+    key-value pairs. Only handles simple ``key: value`` lines (no nested
+    structures).
+    """
+    parts = content.split("---", 2)
+    if len(parts) < 3:
+        return {}
+    result = {}
+    for line in parts[1].strip().splitlines():
+        if ":" in line:
+            key, _, value = line.partition(":")
+            result[key.strip()] = value.strip()
+    return result
+
+
+@repomatic.command(
+    short_help="List available Claude Code skills",
+    section=_section_setup,
+)
+def list_skills() -> None:
+    """List all bundled Claude Code skills grouped by lifecycle phase.
+
+    Reads skill definitions from the bundled data files and displays them
+    in a table grouped by phase: Setup, Development, Quality, and Release.
+    """
+    # Collect skill metadata from bundled files.
+    skills = []
+    for source_name, _rel_path in COMPONENT_FILES["skills"]:
+        content = export_content(source_name)
+        meta = _parse_skill_frontmatter(content)
+        name = meta.get("name", source_name)
+        description = meta.get("description", "")
+        # Strip trailing period for table display.
+        if description.endswith("."):
+            description = description[:-1]
+        phase = _SKILL_PHASES.get(name, "Other")
+        skills.append((phase, name, description))
+
+    # Group by phase in canonical order.
+    for phase in _PHASE_ORDER:
+        phase_skills = [(n, d) for p, n, d in skills if p == phase]
+        if not phase_skills:
+            continue
+        echo(f"\n{phase}:")
+        for name, description in phase_skills:
+            echo(f"  /{name:<24s} {description}")
+
+    echo("")
 
 
 @repomatic.command(short_help="Sync Renovate config from canonical reference", section=_section_sync)

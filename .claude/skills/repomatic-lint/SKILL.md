@@ -31,3 +31,10 @@ You help users lint their workflows and repository metadata for common issues.
 - Explain each issue found: what the problem is, why it matters, and how to fix it.
 - Group issues by severity (errors first, then warnings).
 - For workflow issues, reference the specific file and line where possible.
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-sync` if workflow files are outdated or have upstream drift.
+- `/repomatic-changelog check` before a release to validate the changelog too.

@@ -31,3 +31,9 @@ You help users run YAML-based test plans against compiled binaries or write new 
 - Read the full trace output and explain what went wrong.
 - Identify whether the failure is in the test plan definition, the binary under test, or the test infrastructure.
 - Suggest specific fixes.
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-lint` for broader repository validation beyond test plans.

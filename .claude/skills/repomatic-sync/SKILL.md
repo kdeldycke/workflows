@@ -31,3 +31,9 @@ You help users synchronize their workflow caller files with upstream reusable wo
 - Show the diff of changed files.
 - Warn about any breaking changes (removed inputs, renamed jobs, changed defaults).
 - Suggest running `/repomatic-lint workflows` to validate the synced files.
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-lint workflows` to validate the synced workflow files.

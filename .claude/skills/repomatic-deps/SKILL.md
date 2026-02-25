@@ -30,3 +30,9 @@ You help users generate and analyze dependency graphs from their uv lockfiles.
 - Display the Mermaid output.
 - Analyze the graph: count total dependencies, flag deep dependency chains, identify packages with high fan-in (many dependents) or fan-out (many dependencies).
 - Highlight any notable patterns or potential concerns (e.g., single points of failure, overly deep transitive chains).
+
+### Next steps
+
+Suggest the user run:
+
+- `/repomatic-metadata` to see full project metadata alongside the dependency graph.
