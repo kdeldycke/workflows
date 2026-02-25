@@ -34,16 +34,19 @@ if TYPE_CHECKING:
 
 
 def validate_gh_token_env() -> None:
-    """Check that ``GH_TOKEN`` environment variable is set.
+    """Check that a GitHub token environment variable is set.
 
-    :raises RuntimeError: If ``GH_TOKEN`` is not set.
+    The ``gh`` CLI accepts authentication via ``GH_TOKEN`` (highest
+    priority) or ``GITHUB_TOKEN``.  This function checks both, matching
+    the CLI's own lookup order.
+
+    :raises RuntimeError: If neither variable is set.
     """
-    if not os.environ.get("GH_TOKEN"):
+    if not (os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")):
         msg = (
-            "GH_TOKEN environment variable is not set. "
-            "Create a personal access token at "
-            "https://github.com/settings/tokens "
-            "and set it as GH_TOKEN."
+            "No GitHub token found. "
+            "Set GH_TOKEN or GITHUB_TOKEN to a personal access token. "
+            "Create one at https://github.com/settings/tokens"
         )
         raise RuntimeError(msg)
 
@@ -103,11 +106,11 @@ def validate_gh_api_access() -> tuple[int, dict[str, str], str]:
 
 
 def validate_classic_pat_scope(required_scope: str) -> list[str]:
-    """Validate that ``GH_TOKEN`` is a classic PAT with the required scope.
+    """Validate that the GitHub token is a classic PAT with the required scope.
 
     Checks:
 
-    1. ``GH_TOKEN`` environment variable is set.
+    1. A GitHub token environment variable is set.
     2. GitHub API is reachable (smoke-test GET).
     3. Token is a classic PAT (has ``X-OAuth-Scopes`` header).
     4. Token has the required scope.
@@ -124,7 +127,7 @@ def validate_classic_pat_scope(required_scope: str) -> list[str]:
     if scopes_header is None:
         msg = (
             "No X-OAuth-Scopes header found."
-            " GH_TOKEN must be a classic PAT"
+            " The token must be a classic PAT"
             " (fine-grained PATs are not supported)."
         )
         raise RuntimeError(msg)
