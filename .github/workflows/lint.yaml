@@ -165,7 +165,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run zizmor
-        run: uvx --no-progress 'zizmor==1.22.0' --config .github/zizmor.yml --format github --offline .
+        run: uvx --no-progress 'zizmor==1.22.0' --config zizmor.yaml --format github --offline .
 
   lint-awesome:
     name: 🌟 Lint awesome

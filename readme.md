@@ -337,7 +337,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 
 - 🔄 **Sync linter configs** (`sync-linter-configs`)
 
-  - Syncs linter configuration files (`.github/zizmor.yml`) with the canonical references from [`repomatic`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/zizmor.yml)
+  - Syncs linter configuration files (`zizmor.yaml`) with the canonical references from [`repomatic`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/zizmor.yaml)
 
 - 🔄 **Sync `renovate.json5`** (`sync-renovate`)
 

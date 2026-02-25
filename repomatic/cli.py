@@ -1760,7 +1760,7 @@ def sync_bumpversion() -> None:
 def sync_linter_configs() -> None:
     """Sync linter configuration files from the bundled definitions in ``repomatic``.
 
-    Overwrites ``.github/zizmor.yml`` with the canonical configuration
+    Overwrites ``zizmor.yaml`` with the canonical configuration
     bundled in ``repomatic``. Designed for the ``sync-linter-configs`` autofix job.
     Use ``repomatic init linters`` for interactive bootstrapping.
     """

@@ -99,7 +99,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "labeller-file-based.yaml": "./.github/labeller-file-based.yaml",
     "labeller-content-based.yaml": "./.github/labeller-content-based.yaml",
     # Linter configuration files.
-    "zizmor.yml": "./.github/zizmor.yml",
+    "zizmor.yaml": "./zizmor.yaml",
     # Claude Code skill definitions.
     "skill-repomatic-changelog.md": "./.claude/skills/repomatic-changelog/SKILL.md",
     "skill-repomatic-deps.md": "./.claude/skills/repomatic-deps/SKILL.md",
@@ -643,7 +643,7 @@ def default_version_pin() -> str:
 FILE_COMPONENTS: dict[str, str] = {
     "changelog": "Minimal changelog.md",
     "labels": "Label config files (labels.toml + labeller rules)",
-    "linters": "Linter config files (.github/zizmor.yml)",
+    "linters": "Linter config files (zizmor.yaml)",
     "renovate": "Renovate config (renovate.json5)",
     "skills": "Claude Code skill definitions (.claude/skills/)",
     "workflows": "Thin-caller workflow files",
@@ -667,7 +667,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
         ("labels.toml", "labels.toml"),
     ),
-    "linters": (("zizmor.yml", ".github/zizmor.yml"),),
+    "linters": (("zizmor.yaml", "zizmor.yaml"),),
     "renovate": (("renovate.json5", "renovate.json5"),),
     "skills": (
         ("skill-repomatic-changelog.md", ".claude/skills/repomatic-changelog/SKILL.md"),

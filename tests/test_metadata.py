@@ -463,11 +463,11 @@ expected = {
         ".github/workflows/release.yaml",
         ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
-        ".github/zizmor.yml",
         "repomatic/data/labeller-content-based.yaml",
         "repomatic/data/labeller-file-based.yaml",
-        "repomatic/data/zizmor.yml",
+        "repomatic/data/zizmor.yaml",
         "tests/cli-test-plan.yaml",
+        "zizmor.yaml",
     ],
     "toml_files": [
         "lychee.toml",
