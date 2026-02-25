@@ -95,6 +95,7 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
+from .github.token import validate_gh_token_env
 from .github.unsubscribe import (
     _validate_notifications_token,
     render_report as _render_report,
@@ -1194,6 +1195,11 @@ def sponsor_label(
         repomatic sponsor-label --owner kdeldycke --author some-user \\
             --repo kdeldycke/repomatic --number 123 --issue
     """
+    try:
+        validate_gh_token_env()
+    except RuntimeError as exc:
+        raise SystemExit(str(exc))
+
     # Apply defaults from GitHub Actions environment.
     if owner is None:
         owner = get_default_owner()
@@ -1541,6 +1547,11 @@ def broken_links(
             --repo-name "my-repo" \\
             --source-url "https://github.com/owner/repo/blob/abc123/docs"
     """
+    try:
+        validate_gh_token_env()
+    except RuntimeError as exc:
+        raise SystemExit(str(exc))
+
     manage_combined_broken_links_issue(
         repo_name=repo_name,
         lychee_exit_code=lychee_exit_code,
@@ -1574,6 +1585,11 @@ def setup_guide(has_pat: bool) -> None:
         # Secret is configured — close the setup issue
         repomatic setup-guide --has-pat
     """
+    try:
+        validate_gh_token_env()
+    except RuntimeError as exc:
+        raise SystemExit(str(exc))
+
     from .github.issue import manage_issue_lifecycle
 
     body = render_template("setup-guide")

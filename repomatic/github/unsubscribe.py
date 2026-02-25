@@ -36,13 +36,12 @@ from __future__ import annotations
 import calendar
 import json
 import logging
-import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from subprocess import run as _run_process
 
 from . import run_gh_command
+from .token import validate_classic_pat_scope
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -324,116 +323,21 @@ def _unsubscribe_rest_thread(thread_id: str) -> bool:
 def _validate_notifications_token() -> None:
     """Validate that the current token can access the notifications API.
 
-    Checks:
-
-    1. ``GH_TOKEN`` environment variable is set.
-    2. Notifications API is reachable (smoke-test GET).
-    3. Token is a classic PAT (has ``X-OAuth-Scopes`` header).
-    4. Token has the ``notifications`` scope.
-
-    Warns (via logging) if the token has more scopes than needed.
+    Delegates to :func:`validate_classic_pat_scope` for generic checks,
+    then warns if the token has more scopes than needed.
 
     :raises RuntimeError: If validation fails.
     """
-    if not os.environ.get("GH_TOKEN"):
-        msg = (
-            "GH_TOKEN environment variable is not set. "
-            "Create a classic PAT at "
-            "https://github.com/settings/tokens/new?scopes=notifications "
-            "and set it as GH_TOKEN. "
-            "Fine-grained PATs are not supported "
-            "(the notifications API requires a classic PAT)."
-        )
-        raise RuntimeError(msg)
+    scope_list = validate_classic_pat_scope("notifications")
 
-    proc = _run_process(
-        [
-            "gh",
-            "api",
-            "-i",
-            "--method",
-            "GET",
-            "/notifications?per_page=1&all=false",
-        ],
-        capture_output=True,
-        encoding="UTF-8",
-    )
-    stdout = proc.stdout or ""
-
-    # Parse the HTTP response: status line, headers, then body after blank line.
-    lines = stdout.splitlines()
-    status_line = lines[0] if lines else ""
-    headers: dict[str, str] = {}
-    body_start = len(lines)
-    for i, line in enumerate(lines[1:], start=1):
-        if not line.strip():
-            body_start = i + 1
-            break
-        if ":" in line:
-            key, _, value = line.partition(":")
-            headers[key.strip().lower()] = value.strip()
-    body = "\n".join(lines[body_start:])
-
-    # Check for HTTP error status.
-    status_code = 0
-    parts = status_line.split()
-    if len(parts) >= 2:
-        try:
-            status_code = int(parts[1])
-        except ValueError:
-            pass
-
-    if status_code >= 400:
-        message = ""
-        try:
-            message = json.loads(body).get("message", "")
-        except (json.JSONDecodeError, AttributeError):
-            pass
-        scopes = headers.get("x-oauth-scopes")
-        detail = f"Token cannot access the notifications API ({status_line})."
-        if message:
-            detail += f" GitHub says: {message}"
-        if scopes is None:
-            detail += (
-                " No X-OAuth-Scopes header found."
-                " This token is likely a fine-grained PAT,"
-                " which does not support the notifications API."
-                " Create a classic PAT at"
-                " https://github.com/settings/tokens/new?scopes=notifications"
-                " and set it as GH_TOKEN."
-            )
-        else:
-            detail += (
-                f" Token scopes: '{scopes}'."
-                " The 'notifications' scope is required."
-            )
-        raise RuntimeError(detail)
-
-    scopes_header = headers.get("x-oauth-scopes")
-    if scopes_header is None:
-        msg = (
-            "No X-OAuth-Scopes header found."
-            " GH_TOKEN must be a classic PAT"
-            " (fine-grained PATs are not supported)."
-        )
-        raise RuntimeError(msg)
-
-    scope_list = [s.strip() for s in scopes_header.split(",") if s.strip()]
-    if "notifications" not in scope_list:
-        msg = (
-            f"Token scopes: '{scopes_header}'."
-            " The 'notifications' scope is required."
-        )
-        raise RuntimeError(msg)
-
+    # Notifications-specific: warn about extra scopes.
     if scope_list != ["notifications"]:
+        scopes_header = ", ".join(scope_list)
         logging.warning(
             "GH_TOKEN has more scopes than needed: '%s'."
             " Only 'notifications' is required.",
             scopes_header,
         )
-
-    logging.info("Token validated: scopes='%s'.", scopes_header)
 
 
 def _get_authenticated_username() -> str:
