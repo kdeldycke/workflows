@@ -34,7 +34,8 @@ import logging
 import os
 from functools import lru_cache
 
-from .github import get_github_event, run_gh_command
+from .github.actions import get_github_event
+from .github.gh import run_gh_command
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:

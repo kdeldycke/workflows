@@ -42,7 +42,7 @@ import yaml
 
 from .. import __version__
 from ..init_project import export_content, get_data_content
-from . import AnnotationLevel, emit_annotation
+from .actions import AnnotationLevel, emit_annotation
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum

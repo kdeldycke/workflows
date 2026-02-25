@@ -322,7 +322,7 @@ from wcmatch.glob import (
 )
 
 from .changelog import Changelog
-from .github import NULL_SHA, WorkflowEvent, generate_delimiter
+from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
 from .github.matrix import Matrix
 from .github.pr_body import render_template
 

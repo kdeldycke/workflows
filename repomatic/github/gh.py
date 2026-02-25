@@ -14,9 +14,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""GitHub integration package.
+"""Generic wrapper for the ``gh`` CLI."""
 
-Submodules provide GitHub Actions utilities (``actions``), a ``gh`` CLI
-wrapper (``gh``), and helpers for issues, matrices, PR bodies, tokens,
-unsubscribing, and workflow syncing.
-"""
+from __future__ import annotations
+
+import logging
+from subprocess import run
+
+
+def run_gh_command(args: list[str]) -> str:
+    """Run a ``gh`` CLI command and return stdout.
+
+    :param args: Command arguments to pass to ``gh``.
+    :return: The stdout output from the command.
+    :raises RuntimeError: If the command fails.
+    """
+    cmd = ["gh", *args]
+    logging.debug(f"Running: {' '.join(cmd)}")
+    process = run(cmd, capture_output=True, encoding="UTF-8")
+
+    if process.returncode:
+        logging.debug(f"gh command failed: {process.stderr}")
+        raise RuntimeError(process.stderr)
+
+    return process.stdout

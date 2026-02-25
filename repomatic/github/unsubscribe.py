@@ -40,7 +40,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 
-from . import run_gh_command
+from .gh import run_gh_command
 from .token import validate_classic_pat_scope
 
 TYPE_CHECKING = False

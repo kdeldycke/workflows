@@ -24,7 +24,7 @@ import pytest
 import yaml
 
 from repomatic.cli import _apply_workflow_config
-from repomatic.github import AnnotationLevel
+from repomatic.github.actions import AnnotationLevel
 from repomatic.github.workflow_sync import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,

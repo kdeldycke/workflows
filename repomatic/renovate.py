@@ -38,7 +38,8 @@ from pathlib import Path
 
 from click_extra import TableFormat, render_table
 
-from .github import AnnotationLevel, emit_annotation, run_gh_command
+from .github.actions import AnnotationLevel, emit_annotation
+from .github.gh import run_gh_command
 
 
 @dataclass

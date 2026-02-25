@@ -25,7 +25,8 @@ from __future__ import annotations
 import json
 import logging
 
-from .github import AnnotationLevel, emit_annotation, run_gh_command
+from .github.actions import AnnotationLevel, emit_annotation
+from .github.gh import run_gh_command
 from .renovate import check_dependabot_config_absent
 
 

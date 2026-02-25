@@ -834,7 +834,7 @@ def lint_changelog_dates(
         ``1`` if any date mismatch is found.
     """
     from .git_ops import get_tag_date
-    from .github import AnnotationLevel, emit_annotation
+    from .github.actions import AnnotationLevel, emit_annotation
     from .metadata import get_project_name
 
     content = changelog_path.read_text(encoding="UTF-8")

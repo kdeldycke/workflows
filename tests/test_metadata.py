@@ -25,7 +25,7 @@ import pytest
 from extra_platforms import ALL_IDS, is_windows
 from packaging.version import Version
 
-from repomatic.github import NULL_SHA
+from repomatic.github.actions import NULL_SHA
 from repomatic.metadata import (
     Dialect,
     NUITKA_BUILD_TARGETS,
@@ -416,6 +416,8 @@ expected = {
         "repomatic/deps_graph.py",
         "repomatic/git_ops.py",
         "repomatic/github/__init__.py",
+        "repomatic/github/actions.py",
+        "repomatic/github/gh.py",
         "repomatic/github/issue.py",
         "repomatic/github/matrix.py",
         "repomatic/github/pr_body.py",
