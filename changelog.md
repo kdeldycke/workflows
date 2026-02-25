@@ -8,6 +8,7 @@
 - Add `unsubscribe-threads` CLI command to unsubscribe from closed, inactive GitHub notification threads.
 - Generate thin caller workflows with explicit secret forwarding instead of `secrets: inherit`, eliminating zizmor's `secrets-inherit` warnings in downstream repositories.
 - Move zizmor config from `.github/zizmor.yml` to `zizmor.yaml` at repo root for visibility and consistency with other root-level config files.
+- Centralize PAT existence check via workflow-level `env` block, replacing duplicated `secrets.*` ternary expressions in PAT hint steps and the `setup-guide` invocation.
 - Restrict binary compilation to the HEAD commit for non-release pushes, avoiding redundant Nuitka builds across all commits in multi-commit push events.
 
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)

@@ -1574,6 +1574,11 @@ def setup_guide(has_pat: bool) -> None:
     Opens (or reopens) an issue with PAT setup instructions when the secret
     is missing. Closes the issue when the secret is detected.
 
+    The ``--has-pat`` flag can also be set via the ``HAS_WORKFLOW_PAT``
+    environment variable (any non-empty value is truthy). Workflows set this
+    env var at the workflow level so individual steps don't need to repeat the
+    ``secrets.*`` ternary.
+
     This command requires the ``gh`` CLI to be installed and authenticated.
 
     \b
@@ -1585,6 +1590,9 @@ def setup_guide(has_pat: bool) -> None:
         # Secret is configured — close the setup issue
         repomatic setup-guide --has-pat
     """
+    # Support both explicit flag and env var.
+    has_pat = has_pat or bool(os.environ.get("HAS_WORKFLOW_PAT"))
+
     try:
         validate_gh_token_env()
     except RuntimeError as exc:

@@ -10,6 +10,9 @@ name: 🪄 Autofix
     branches:
       - main
 
+env:
+  HAS_WORKFLOW_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || '' }}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
@@ -30,9 +33,7 @@ jobs:
       - name: Manage setup guide issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          uvx --no-progress --from . repomatic setup-guide
-          ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && '--has-pat' || '' }}
+        run: uvx --no-progress --from . repomatic setup-guide
 
   project-metadata:
     name: 🧬 Project metadata
@@ -274,13 +275,11 @@ jobs:
           labels: "📚 documentation"
           branch: fix-typos
       - name: PAT setup hint
-        if: failure()
+        if: failure() && !env.HAS_WORKFLOW_PAT
         run: >
-          ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT
-          && 'true'
-          || 'echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"' }}
+          See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"
 
   lint-changelog:
     name: 📋 Lint changelog
@@ -555,13 +554,11 @@ jobs:
           labels: "🤖 ci"
           branch: sync-workflows
       - name: PAT setup hint
-        if: failure()
+        if: failure() && !env.HAS_WORKFLOW_PAT
         run: >
-          ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT
-          && 'true'
-          || 'echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"' }}
+          See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"
 
   sync-awesome-template:
     name: 🌟 Sync awesome template

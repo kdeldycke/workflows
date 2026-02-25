@@ -29,6 +29,9 @@ name: 🆙 Changelog & versions
     branches:
       - main
 
+env:
+  HAS_WORKFLOW_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || '' }}
+
 concurrency:
   # Include event_name so workflow_run events (from "Build & release" completing)
   # cannot cancel push-triggered runs. Without this, the fast-completing
@@ -187,10 +190,8 @@ jobs:
           delete-branch: true
           draft: always-true
       - name: PAT setup hint
-        if: failure()
+        if: failure() && !env.HAS_WORKFLOW_PAT
         run: >
-          ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT
-          && 'true'
-          || 'echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"' }}
+          See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"
