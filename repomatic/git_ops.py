@@ -47,6 +47,38 @@ def get_tag_date(tag: str) -> str | None:
     return date
 
 
+def get_all_version_tags() -> dict[str, str]:
+    """Get all version tags and their dates.
+
+    Runs a single ``git tag`` command to list all tags matching the
+    ``vX.Y.Z`` pattern and extracts their dates.
+
+    :return: Dict mapping version strings (without ``v`` prefix) to
+        dates in ``YYYY-MM-DD`` format.
+    """
+    result = subprocess.run(
+        [
+            "git",
+            "tag",
+            "-l",
+            "v[0-9]*.[0-9]*.[0-9]*",
+            "--format=%(refname:short) %(creatordate:short)",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    tags: dict[str, str] = {}
+    for line in result.stdout.strip().splitlines():
+        if not line:
+            continue
+        parts = line.split(None, 1)
+        if len(parts) == 2:
+            tag, date = parts
+            if tag.startswith("v"):
+                tags[tag[1:]] = date
+    return tags
+
+
 def tag_exists(tag: str) -> bool:
     """Check if a Git tag already exists locally.
 

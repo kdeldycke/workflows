@@ -29,6 +29,7 @@ from repomatic.changelog import (
     build_unavailable_admonition,
     lint_changelog_dates,
 )
+from repomatic.github.releases import GitHubRelease
 
 
 SAMPLE_CHANGELOG = dedent(
@@ -356,8 +357,31 @@ def _pypi_mock(releases):
 
 
 def _github_mock(versions):
-    """Build a monkeypatch-compatible mock for ``get_github_releases``."""
-    return lambda repo_url: set(versions)
+    """Build a monkeypatch-compatible mock for ``get_github_releases``.
+
+    Accepts either a list of version strings (uses a dummy date) or a
+    dict mapping version strings to date strings.
+    """
+    if isinstance(versions, dict):
+        return lambda repo_url: {
+            v: GitHubRelease(date=d) for v, d in versions.items()
+        }
+    return lambda repo_url: {
+        v: GitHubRelease(date="2026-01-01") for v in versions
+    }
+
+
+def _tags_mock(tags=None):
+    """Build a monkeypatch-compatible mock for ``get_all_version_tags``."""
+    return lambda: tags if tags is not None else {}
+
+
+def _patch_tags(monkeypatch, tags=None):
+    """Monkeypatch ``get_all_version_tags`` to return the given dict."""
+    monkeypatch.setattr(
+        "repomatic.git_ops.get_all_version_tags",
+        _tags_mock(tags),
+    )
 
 
 def test_lint_changelog_dates_pypi_all_match(tmp_path, monkeypatch):
@@ -380,6 +404,7 @@ def test_lint_changelog_dates_pypi_all_match(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     assert lint_changelog_dates(path) == 0
 
@@ -404,6 +429,7 @@ def test_lint_changelog_dates_pypi_mismatch(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     assert lint_changelog_dates(path) == 1
 
@@ -430,6 +456,7 @@ def test_lint_changelog_dates_fallback_to_tags(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
+    _patch_tags(monkeypatch)
 
     assert lint_changelog_dates(path) == 0
 
@@ -451,6 +478,7 @@ def test_lint_changelog_dates_fallback_no_package(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
+    _patch_tags(monkeypatch)
 
     assert lint_changelog_dates(path) == 0
 
@@ -474,6 +502,7 @@ def test_lint_changelog_dates_warns_missing_pypi(tmp_path, monkeypatch, caplog):
         "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
+    _patch_tags(monkeypatch)
 
     with caplog.at_level(logging.WARNING):
         # Should return 0: 1.0.0 matches, 1.1.0 warned but non-fatal.
@@ -500,6 +529,7 @@ def test_lint_changelog_dates_skips_pre_pypi(tmp_path, monkeypatch, caplog):
         "repomatic.changelog.get_github_releases",
         _github_mock([]),
     )
+    _patch_tags(monkeypatch)
 
     with caplog.at_level(logging.INFO):
         assert lint_changelog_dates(path) == 0
@@ -527,6 +557,7 @@ def test_lint_fix_corrects_date(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     # Mismatch on 1.1.0: changelog says 2026-02-10, PyPI says 2026-02-11.
     # fix=True corrects it in-place, so return 0 to let downstream steps proceed.
@@ -558,6 +589,7 @@ def test_lint_fix_adds_release_admonition(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
@@ -590,6 +622,7 @@ def test_lint_fix_github_only(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
@@ -652,6 +685,7 @@ def test_lint_fix_first_version_admonition(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["2.0.0", "1.0.0", "0.5.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
@@ -686,6 +720,7 @@ def test_lint_fix_pypi_only(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
@@ -721,6 +756,7 @@ def test_lint_fix_no_warning_predates_github(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
@@ -754,6 +790,7 @@ def test_lint_fix_adds_yanked_admonition(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
@@ -780,6 +817,7 @@ def test_lint_fix_no_admonition_when_nowhere(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
@@ -810,6 +848,7 @@ def test_lint_fix_idempotent(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     first_content = path.read_text(encoding="UTF-8")
@@ -975,6 +1014,7 @@ def test_lint_fix_removes_stale_unavailable_warning(tmp_path, monkeypatch):
         "repomatic.changelog.get_github_releases",
         _github_mock(["1.1.0", "1.0.0"]),
     )
+    _patch_tags(monkeypatch)
 
     lint_changelog_dates(path, fix=True)
     result = path.read_text(encoding="UTF-8")
@@ -984,3 +1024,255 @@ def test_lint_fix_removes_stale_unavailable_warning(tmp_path, monkeypatch):
     assert "[🐍 PyPI](https://pypi.org/project/my-package/1.0.0/)" in result
     assert "[🐙 GitHub](https://github.com/user/repo/releases/tag/v1.0.0)" in result
     assert "Initial release." in result
+
+
+def test_extract_all_version_headings():
+    """Test that all versions (released and unreleased) are extracted."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    headings = changelog.extract_all_version_headings()
+
+    assert headings == {"2.0.0", "1.1.0", "1.0.0"}
+
+
+def test_extract_all_version_headings_empty():
+    """Test extraction from an empty changelog."""
+    changelog = Changelog("# Changelog\n")
+    assert changelog.extract_all_version_headings() == set()
+
+
+def test_insert_version_section():
+    """Test inserting a placeholder section for a missing version."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    all_versions = ["2.0.0", "1.1.0", "1.0.5", "1.0.0"]
+    result = changelog.insert_version_section(
+        "1.0.5", "2026-01-15", "https://github.com/user/repo", all_versions
+    )
+
+    assert result is True
+    assert "## [`1.0.5` (2026-01-15)]" in changelog.content
+    assert "compare/v1.0.0...v1.0.5" in changelog.content
+    # The next-higher version (1.1.0) should now point to 1.0.5.
+    assert "compare/v1.0.5...v1.1.0" in changelog.content
+
+
+def test_insert_version_section_idempotent():
+    """Test that inserting an already-present version is a no-op."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    all_versions = ["2.0.0", "1.1.0", "1.0.0"]
+    result = changelog.insert_version_section(
+        "1.1.0", "2026-02-10", "https://github.com/user/repo", all_versions
+    )
+
+    assert result is False
+
+
+def test_insert_version_section_at_end():
+    """Test inserting a version older than all existing ones."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    all_versions = ["2.0.0", "1.1.0", "1.0.0", "0.5.0"]
+    result = changelog.insert_version_section(
+        "0.5.0", "2025-06-01", "https://github.com/user/repo", all_versions
+    )
+
+    assert result is True
+    assert "## [`0.5.0` (2025-06-01)]" in changelog.content
+    # Should be at the end, with comparison base v0.0.0 (no lower version).
+    assert "compare/v0.0.0...v0.5.0" in changelog.content
+    # 1.0.0 should now point to 0.5.0.
+    assert "compare/v0.5.0...v1.0.0" in changelog.content
+
+
+def test_update_comparison_base():
+    """Test replacing the comparison base in a version heading."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    result = changelog.update_comparison_base("1.1.0", "1.0.5")
+
+    assert result is True
+    assert "compare/v1.0.5...v1.1.0" in changelog.content
+    assert "compare/v1.0.0...v1.1.0" not in changelog.content
+
+
+def test_update_comparison_base_no_match():
+    """Test that updating a non-existent version is a no-op."""
+    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
+    result = changelog.update_comparison_base("9.9.9", "1.0.0")
+
+    assert result is False
+
+
+def test_lint_orphan_detection_returns_1(tmp_path, monkeypatch, caplog):
+    """Test that an orphaned version causes lint to return 1."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "my-package",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock(["1.1.0", "1.0.0"]),
+    )
+    # Tag for 1.0.5 exists but has no changelog entry.
+    _patch_tags(monkeypatch, {"1.0.5": "2026-01-15"})
+
+    with caplog.at_level(logging.WARNING):
+        assert lint_changelog_dates(path) == 1
+
+    assert "1.0.5: found in external sources" in caplog.text
+
+
+def test_lint_orphan_fix_inserts_placeholder(tmp_path, monkeypatch):
+    """Test that --fix inserts placeholder sections for orphaned versions."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "my-package",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock(["1.1.0", "1.0.0"]),
+    )
+    # Orphan: 1.0.5 exists as a tag but has no changelog entry.
+    _patch_tags(monkeypatch, {"1.0.5": "2026-01-15"})
+
+    result = lint_changelog_dates(path, fix=True)
+    assert result == 0
+
+    content = path.read_text(encoding="UTF-8")
+    assert "## [`1.0.5` (2026-01-15)]" in content
+    assert "compare/v1.0.0...v1.0.5" in content
+    # 1.1.0 comparison URL should now point to 1.0.5.
+    assert "compare/v1.0.5...v1.1.0" in content
+
+
+def test_lint_orphan_fix_idempotent(tmp_path, monkeypatch):
+    """Test that running --fix with orphans twice produces the same result."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "my-package",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock(["1.1.0", "1.0.0"]),
+    )
+    _patch_tags(monkeypatch, {"1.0.5": "2026-01-15"})
+
+    lint_changelog_dates(path, fix=True)
+    first_content = path.read_text(encoding="UTF-8")
+
+    lint_changelog_dates(path, fix=True)
+    second_content = path.read_text(encoding="UTF-8")
+
+    assert first_content == second_content
+
+
+def test_lint_orphan_tag_only(tmp_path, monkeypatch, caplog):
+    """Test orphan detected from git tag only (not on PyPI or GitHub)."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "my-package",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock(["1.1.0", "1.0.0"]),
+    )
+    _patch_tags(monkeypatch, {"1.0.5": "2026-01-15"})
+
+    with caplog.at_level(logging.WARNING):
+        assert lint_changelog_dates(path) == 1
+
+    assert "1.0.5" in caplog.text
+
+
+def test_lint_orphan_uses_pypi_date(tmp_path, monkeypatch):
+    """Test that orphan fix prefers PyPI date over GitHub and tag dates."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.5": ("2026-01-20", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "my-package",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock({"1.1.0": "2026-02-10", "1.0.5": "2026-01-18", "1.0.0": "2025-12-01"}),
+    )
+    _patch_tags(monkeypatch, {"1.0.5": "2026-01-15"})
+
+    lint_changelog_dates(path, fix=True)
+    content = path.read_text(encoding="UTF-8")
+
+    # Should use PyPI date (2026-01-20), not GitHub (2026-01-18) or tag (2026-01-15).
+    assert "## [`1.0.5` (2026-01-20)]" in content
+
+
+def test_lint_unreleased_not_flagged_as_orphan(tmp_path, monkeypatch):
+    """Test that the unreleased dev version is not flagged as orphan."""
+    path = tmp_path / "changelog.md"
+    path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
+
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        _pypi_mock({
+            "1.1.0": ("2026-02-10", False),
+            "1.0.0": ("2025-12-01", False),
+        }),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "my-package",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock(["1.1.0", "1.0.0"]),
+    )
+    _patch_tags(monkeypatch)
+
+    # 2.0.0 is the unreleased version in MULTI_RELEASE_CHANGELOG.
+    # It should not be flagged as orphan.
+    assert lint_changelog_dates(path) == 0

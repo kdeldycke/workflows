@@ -125,6 +125,8 @@ from urllib.request import Request, urlopen
 
 from packaging.version import Version
 
+from .github.releases import GitHubRelease, get_github_releases
+
 CHANGELOG_HEADER = "# Changelog\n"
 """Default changelog header for empty changelogs."""
 
@@ -191,9 +193,6 @@ AVAILABLE_VERB = "is available on"
 
 FIRST_AVAILABLE_VERB = "is the *first version* available on"
 """Verb phrase for the inaugural release on a platform."""
-
-GITHUB_API_RELEASES_URL = "https://api.github.com/repos/{owner}/{repo}/releases"
-"""GitHub API URL for fetching all releases for a repository."""
 
 GITHUB_LABEL = "🐙 GitHub"
 """Display label for GitHub releases in admonitions."""
@@ -504,6 +503,23 @@ class Changelog:
         """
         return RELEASED_VERSION_PATTERN.findall(self.content)
 
+    def extract_all_version_headings(self) -> set[str]:
+        """Extract all version strings from ``##`` headings.
+
+        Includes both released and unreleased versions, so the caller
+        can avoid false-positive orphan detection for the current
+        development version.
+
+        :return: Set of version strings found in headings.
+        """
+        return set(
+            re.findall(
+                rf"^{SECTION_START}\s*\[`?(\d+\.\d+\.\d+(?:\.\w+)?)`?\s",
+                self.content,
+                flags=re.MULTILINE,
+            )
+        )
+
     def fix_release_date(self, version: str, new_date: str) -> bool:
         """Replace the date in a specific version heading.
 
@@ -654,6 +670,102 @@ class Changelog:
         self.content = self.content.replace(section_text, new_section, 1)
         return True
 
+    def insert_version_section(
+        self,
+        version: str,
+        date: str,
+        repo_url: str,
+        all_versions: list[str],
+    ) -> bool:
+        """Insert a placeholder section for a missing version.
+
+        The section is placed at the correct position in descending
+        version order. The comparison URL points from the next-lower
+        version to this one. After insertion, the next-higher version's
+        comparison URL base is updated to reference this version, keeping
+        the timeline coherent.
+
+        Idempotent: returns False if the version heading already exists.
+
+        :param version: Version string (e.g. ``1.2.3``).
+        :param date: Release date in ``YYYY-MM-DD`` format.
+        :param repo_url: Repository URL for comparison links.
+        :param all_versions: All known versions sorted descending.
+        :return: True if the content was modified.
+        """
+        # Idempotent: skip if already present.
+        if version in self.extract_all_version_headings():
+            return False
+
+        parsed = Version(version)
+
+        # Find the next-lower version for the comparison URL base.
+        lower_version = None
+        for v in sorted(all_versions, key=Version, reverse=True):
+            if Version(v) < parsed:
+                lower_version = v
+                break
+
+        compare_base = f"v{lower_version}" if lower_version else "v0.0.0"
+        heading = (
+            f"## [`{version}` ({date})]"
+            f"({repo_url}/compare/{compare_base}...v{version})\n"
+        )
+
+        # Find the right insertion point: before the first heading whose
+        # version is lower than this one.
+        insert_pos = None
+        for match in re.finditer(
+            rf"^{SECTION_START}\s*\[`?(\d+\.\d+\.\d+)`?\s",
+            self.content,
+            flags=re.MULTILINE,
+        ):
+            existing = Version(match.group(1))
+            if existing < parsed:
+                insert_pos = match.start()
+                break
+
+        if insert_pos is not None:
+            self.content = (
+                self.content[:insert_pos] + heading + "\n" + self.content[insert_pos:]
+            )
+        else:
+            # Append at the end (oldest version).
+            self.content = self.content.rstrip() + "\n\n" + heading
+
+        # Update the next-higher version's comparison URL to point to
+        # this newly inserted version.
+        higher_version = None
+        for v in sorted(all_versions, key=Version):
+            if Version(v) > parsed:
+                higher_version = v
+                break
+        if higher_version:
+            self.update_comparison_base(higher_version, version)
+
+        return True
+
+    def update_comparison_base(self, version: str, new_base: str) -> bool:
+        """Replace the base version in a version heading's comparison URL.
+
+        Changes ``compare/vOLD...vX.Y.Z`` to ``compare/vNEW...vX.Y.Z``
+        in the heading for the given version.
+
+        :param version: The version whose heading to update.
+        :param new_base: New base version (without ``v`` prefix).
+        :return: True if the content was modified.
+        """
+        pattern = re.compile(
+            rf"(^{SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]*"
+            rf"/compare/)v[^.]+\.[^.]+\.[^.]+(\.\.\.v{re.escape(version)}\))",
+            re.MULTILINE,
+        )
+        updated = pattern.sub(rf"\g<1>v{new_base}\g<2>", self.content, count=1)
+        if updated == self.content:
+            return False
+        self.content = updated
+        return True
+
 
 class PyPIRelease(NamedTuple):
     """Release metadata for a single version from PyPI."""
@@ -700,48 +812,6 @@ def get_pypi_release_dates(package: str) -> dict[str, PyPIRelease]:
         result[version] = PyPIRelease(date=earliest_date, yanked=all_yanked)
 
     return result
-
-
-def get_github_releases(repo_url: str) -> set[str]:
-    """Get the set of versions that have GitHub releases.
-
-    Fetches all releases via the GitHub API with pagination. Extracts
-    version numbers by stripping the ``v`` prefix from tag names.
-
-    :param repo_url: Repository URL (e.g.
-        ``https://github.com/user/repo``).
-    :return: Set of version strings with GitHub releases.
-        Empty set if the request fails.
-    """
-    # Parse owner/repo from the URL.
-    parts = repo_url.rstrip("/").split("/")
-    if len(parts) < 2:
-        return set()
-    owner, repo = parts[-2], parts[-1]
-
-    versions: set[str] = set()
-    page = 1
-    while True:
-        url = (
-            GITHUB_API_RELEASES_URL.format(owner=owner, repo=repo)
-            + f"?per_page=100&page={page}"
-        )
-        request = Request(url, headers={"Accept": "application/vnd.github+json"})  # noqa: S310
-        try:
-            with urlopen(request, timeout=10) as response:  # noqa: S310
-                data = json.loads(response.read())
-        except (URLError, TimeoutError, json.JSONDecodeError) as exc:
-            logging.debug(f"GitHub releases lookup failed: {exc}")
-            break
-        if not data:
-            break
-        for release in data:
-            tag = release.get("tag_name", "")
-            if tag.startswith("v"):
-                versions.add(tag[1:])
-        page += 1
-
-    return versions
 
 
 def build_release_admonition(
@@ -816,6 +886,10 @@ def lint_changelog_dates(
     and logged at info level. Versions newer than the first PyPI release
     but missing from PyPI are unexpected and logged as warnings.
 
+    Also detects **orphaned versions**: versions that exist as git tags,
+    GitHub releases, or PyPI packages but have no corresponding changelog
+    entry. Orphans are logged as warnings and cause a non-zero exit code.
+
     When ``fix`` is enabled, date mismatches are corrected in-place and
     admonitions are added to the changelog:
 
@@ -825,15 +899,17 @@ def lint_changelog_dates(
     - A ``[!WARNING]`` admonition listing platforms where the version
       is *not* available (missing from PyPI, GitHub, or both).
     - A ``[!CAUTION]`` admonition for yanked releases.
+    - Placeholder sections for orphaned versions, with comparison URLs
+      linking to adjacent versions.
 
     :param changelog_path: Path to the changelog file.
     :param package: PyPI package name. If ``None``, auto-detected from
         ``pyproject.toml``. If detection fails, falls back to git tags.
     :param fix: If True, fix dates and add admonitions to the file.
     :return: ``0`` if all dates match or references are missing,
-        ``1`` if any date mismatch is found.
+        ``1`` if any date mismatch or orphan is found.
     """
-    from .git_ops import get_tag_date
+    from .git_ops import get_all_version_tags, get_tag_date
     from .github.actions import AnnotationLevel, emit_annotation
     from .metadata import get_project_name
 
@@ -877,7 +953,7 @@ def lint_changelog_dates(
 
     # Extract repository URL and fetch GitHub releases.
     repo_url = changelog.extract_repo_url()
-    github_releases: set[str] = set()
+    github_releases: dict[str, GitHubRelease] = {}
     if repo_url:
         github_releases = get_github_releases(repo_url)
         if github_releases:
@@ -888,6 +964,54 @@ def lint_changelog_dates(
     if github_releases:
         first_github_version = min(Version(v) for v in github_releases)
         logging.info(f"First GitHub version: {first_github_version}")
+
+    # Detect orphaned versions: present in external sources but missing
+    # from the changelog.
+    tag_versions = get_all_version_tags()
+    changelog_headings = changelog.extract_all_version_headings()
+    all_known = set(pypi_data) | set(github_releases) | set(tag_versions)
+    orphans = all_known - changelog_headings
+    if orphans:
+        for orphan in sorted(orphans, key=Version):
+            logging.warning(
+                f"⚠ {orphan}: found in external sources but missing"
+                " from changelog"
+            )
+            emit_annotation(
+                AnnotationLevel.WARNING,
+                (
+                    f"Version {orphan} exists as a tag, GitHub release,"
+                    " or PyPI package but has no changelog entry"
+                ),
+            )
+        has_mismatch = True
+
+        if fix and repo_url:
+            # Insert orphans oldest-first so each insertion correctly
+            # updates the adjacent section's comparison URL.
+            all_versions = sorted(
+                changelog_headings | orphans,
+                key=Version,
+                reverse=True,
+            )
+            for orphan in sorted(orphans, key=Version):
+                # Determine date: prefer PyPI, then GitHub, then git tag.
+                orphan_date = ""
+                if orphan in pypi_data:
+                    orphan_date = pypi_data[orphan].date
+                elif orphan in github_releases:
+                    orphan_date = github_releases[orphan].date
+                elif orphan in tag_versions:
+                    orphan_date = tag_versions[orphan]
+                if not orphan_date:
+                    orphan_date = "0000-00-00"
+                modified |= changelog.insert_version_section(
+                    orphan, orphan_date, repo_url, list(all_versions)
+                )
+
+            # Re-extract releases so the admonition loop below processes
+            # the newly inserted sections.
+            releases = changelog.extract_all_releases()
 
     for version, changelog_date in releases:
         if use_pypi:

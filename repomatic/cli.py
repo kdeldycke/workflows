@@ -2019,6 +2019,10 @@ def lint_changelog(
     PyPI timestamps are immutable and reflect the actual publication date,
     making them more reliable than git tags which can be recreated.
 
+    Also detects orphaned versions: versions that exist as git tags,
+    GitHub releases, or PyPI packages but have no corresponding changelog
+    entry. Orphans cause a non-zero exit code.
+
     \b
     Output symbols:
         ✓  Dates match
@@ -2031,6 +2035,7 @@ def lint_changelog(
         - Adds a PyPI link admonition under each released version.
         - Adds a CAUTION admonition for yanked releases.
         - Adds a WARNING admonition for versions not on PyPI.
+        - Inserts placeholder sections for orphaned versions.
 
     \b
     Examples:
