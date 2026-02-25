@@ -273,3 +273,4 @@ nuitka-extra-args = [
   "--include-package-data=extra_platforms",
   "--include-data-files=repomatic/templates/*.md=repomatic/templates/",
 ]
+pypi-package-history = [ "gha-utils", "repokit" ]

@@ -224,6 +224,7 @@ dependency-graph-level = 0
 extra-label-files = ["https://example.com/my-labels.toml"]
 extra-file-rules = "docs:\n  - docs/**"
 extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
+pypi-package-history = ["old-name", "older-name"]
 renovate-sync = false
 workflow-sync = false
 workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
@@ -249,6 +250,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `extra-label-files`           | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                       |
 | `extra-file-rules`            | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                     |
 | `extra-content-rules`         | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                  |
+| `pypi-package-history`        | list[str] | `[]`                                              | Former PyPI package names for renamed projects. `lint-changelog` fetches releases from each name and generates correct PyPI URLs per version.         |
 | `renovate-sync`               | bool      | `true`                                            | Enable Renovate config sync. Set to `false` to skip `sync-renovate` in the autofix workflow.                                                         |
 | `workflow-sync`               | bool      | `true`                                            | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                             |
 | `workflow-sync-exclude`       | list[str] | `[]`                                              | Workflow filenames to exclude from sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                       |

@@ -1101,6 +1101,7 @@ def test_repomatic_config_defaults():
     assert metadata.config["extra-label-files"] == []
     assert metadata.config["extra-file-rules"] == ""
     assert metadata.config["extra-content-rules"] == ""
+    assert metadata.config["pypi-package-history"] == []
     assert metadata.config["renovate-sync"] is True
     assert metadata.config["workflow-sync"] is True
     assert metadata.config["workflow-sync-exclude"] == []
@@ -1135,6 +1136,7 @@ unstable-targets = ["linux-arm64", "windows-x64"]
 extra-label-files = ["https://example.com/labels.toml"]
 extra-file-rules = "docs:\\n  - docs/**"
 extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
+pypi-package-history = ["old-name", "older-name"]
 renovate-sync = false
 workflow-sync = false
 workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
@@ -1170,6 +1172,7 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
     assert (
         metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
     )
+    assert metadata.config["pypi-package-history"] == ["old-name", "older-name"]
     assert metadata.config["renovate-sync"] is False
     assert metadata.config["workflow-sync"] is False
     assert metadata.config["workflow-sync-exclude"] == [
@@ -1258,6 +1261,7 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     assert config["extra-label-files"] == []
     assert config["extra-file-rules"] == ""
     assert config["extra-content-rules"] == ""
+    assert config["pypi-package-history"] == []
     assert config["workflow-sync"] is True
     assert config["workflow-sync-exclude"] == []
 

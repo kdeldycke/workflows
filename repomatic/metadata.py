@@ -368,6 +368,14 @@ class Config:
     ``--include-package-data``) that are passed to the Nuitka build command.
     """
 
+    pypi_package_history: list[str] = field(default_factory=list)
+    """Former PyPI package names for projects that were renamed.
+
+    When a project changes its PyPI name, older versions remain published under
+    the previous name. List former names here so ``lint-changelog`` can fetch
+    release metadata from all names and generate correct PyPI URLs.
+    """
+
     unstable_targets: list[str] = field(default_factory=list)
     """Nuitka build targets allowed to fail without blocking the release.
 
@@ -518,6 +526,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "gitignore_extra_categories",
     "gitignore_extra_content",
     "gitignore_location",
+    "pypi_package_history",
     "renovate_sync",
     "test_plan",
     "test_plan_file",

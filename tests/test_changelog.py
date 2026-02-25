@@ -351,9 +351,17 @@ def test_extract_all_releases_empty():
     assert releases == []
 
 
-def _pypi_mock(releases):
-    """Build a monkeypatch-compatible mock for ``get_pypi_release_dates``."""
-    return lambda pkg: {v: PyPIRelease(*args) for v, args in releases.items()}
+def _pypi_mock(releases, package="my-package"):
+    """Build a monkeypatch-compatible mock for ``get_pypi_release_dates``.
+
+    Each value in *releases* is a ``(date, yanked)`` tuple. The *package*
+    argument is injected as the third ``PyPIRelease`` field so callers
+    don't need to repeat it in every entry.
+    """
+    return lambda pkg: {
+        v: PyPIRelease(date=args[0], yanked=args[1], package=package)
+        for v, args in releases.items()
+    }
 
 
 def _github_mock(versions):
@@ -1308,3 +1316,116 @@ def test_lint_unreleased_not_flagged_as_orphan(tmp_path, monkeypatch):
     # 2.0.0 is the unreleased version in MULTI_RELEASE_CHANGELOG.
     # It should not be flagged as orphan.
     assert lint_changelog_dates(path) == 0
+
+
+RENAME_CHANGELOG = dedent(
+    """\
+    # Changelog
+
+    ## [2.0.0 (unreleased)](https://github.com/user/repo/compare/v1.1.0...main)
+
+    > [!WARNING]
+    > This version is **not released yet** and is under active development.
+
+    ## [1.1.0 (2026-02-10)](https://github.com/user/repo/compare/v1.0.0...v1.1.0)
+
+    - New release under current name.
+
+    ## [1.0.0 (2025-12-01)](https://github.com/user/repo/compare/v0.9.0...v1.0.0)
+
+    - Release under old name.
+    """
+)
+"""Changelog fixture for package rename tests."""
+
+
+def test_lint_fix_pypi_package_history(tmp_path, monkeypatch):
+    """Versions from former package names get correct PyPI URLs."""
+    path = tmp_path / "changelog.md"
+    path.write_text(RENAME_CHANGELOG, encoding="UTF-8")
+
+    # Current package has only 1.1.0.
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        lambda pkg: {
+            "new-pkg": {
+                "1.1.0": PyPIRelease(
+                    date="2026-02-10", yanked=False, package="new-pkg"
+                ),
+            },
+            "old-pkg": {
+                "1.0.0": PyPIRelease(
+                    date="2025-12-01", yanked=False, package="old-pkg"
+                ),
+            },
+        }.get(pkg, {}),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "new-pkg",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock(["1.1.0", "1.0.0"]),
+    )
+    _patch_tags(monkeypatch)
+
+    lint_changelog_dates(
+        path,
+        package="new-pkg",
+        fix=True,
+        pypi_package_history=["old-pkg"],
+    )
+    content = path.read_text(encoding="UTF-8")
+
+    # 1.1.0 should link to new-pkg on PyPI.
+    assert "pypi.org/project/new-pkg/1.1.0/" in content
+    # 1.0.0 should link to old-pkg on PyPI.
+    assert "pypi.org/project/old-pkg/1.0.0/" in content
+
+
+def test_lint_pypi_history_current_wins(tmp_path, monkeypatch):
+    """Current package name wins when a version exists under both names."""
+    path = tmp_path / "changelog.md"
+    path.write_text(RENAME_CHANGELOG, encoding="UTF-8")
+
+    # Version 1.0.0 exists under both current and former names.
+    monkeypatch.setattr(
+        "repomatic.changelog.get_pypi_release_dates",
+        lambda pkg: {
+            "new-pkg": {
+                "1.1.0": PyPIRelease(
+                    date="2026-02-10", yanked=False, package="new-pkg"
+                ),
+                "1.0.0": PyPIRelease(
+                    date="2025-12-01", yanked=False, package="new-pkg"
+                ),
+            },
+            "old-pkg": {
+                "1.0.0": PyPIRelease(
+                    date="2025-11-30", yanked=False, package="old-pkg"
+                ),
+            },
+        }.get(pkg, {}),
+    )
+    monkeypatch.setattr(
+        "repomatic.metadata.get_project_name",
+        lambda: "new-pkg",
+    )
+    monkeypatch.setattr(
+        "repomatic.changelog.get_github_releases",
+        _github_mock(["1.1.0", "1.0.0"]),
+    )
+    _patch_tags(monkeypatch)
+
+    lint_changelog_dates(
+        path,
+        package="new-pkg",
+        fix=True,
+        pypi_package_history=["old-pkg"],
+    )
+    content = path.read_text(encoding="UTF-8")
+
+    # Current package wins: 1.0.0 should link to new-pkg, not old-pkg.
+    assert "pypi.org/project/new-pkg/1.0.0/" in content
+    assert "pypi.org/project/old-pkg/1.0.0/" not in content

@@ -116,6 +116,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import indent
@@ -784,6 +785,13 @@ class PyPIRelease(NamedTuple):
     yanked: bool
     """Whether all files for this version are yanked."""
 
+    package: str
+    """PyPI package name this release was fetched from.
+
+    Needed for projects that were renamed: older versions live under a former
+    package name and their PyPI URLs must point to that name, not the current one.
+    """
+
 
 def get_pypi_release_dates(package: str) -> dict[str, PyPIRelease]:
     """Get upload dates and yanked status for all versions from PyPI.
@@ -817,7 +825,9 @@ def get_pypi_release_dates(package: str) -> dict[str, PyPIRelease]:
         earliest_date = min(dates)
         # A version is yanked only if every file is yanked.
         all_yanked = all(f.get("yanked", False) for f in files)
-        result[version] = PyPIRelease(date=earliest_date, yanked=all_yanked)
+        result[version] = PyPIRelease(
+            date=earliest_date, yanked=all_yanked, package=package
+        )
 
     return result
 
@@ -883,6 +893,7 @@ def lint_changelog_dates(
     package: str | None = None,
     *,
     fix: bool = False,
+    pypi_package_history: Sequence[str] = (),
 ) -> int:
     """Verify that changelog release dates match canonical release dates.
 
@@ -914,6 +925,10 @@ def lint_changelog_dates(
     :param package: PyPI package name. If ``None``, auto-detected from
         ``pyproject.toml``. If detection fails, falls back to git tags.
     :param fix: If True, fix dates and add admonitions to the file.
+    :param pypi_package_history: Former PyPI package names for renamed
+        projects. Releases from each former name are merged into the
+        lookup table so versions published under old names are recognized.
+        The current package name wins on version collisions.
     :return: ``0`` if all dates match or references are missing,
         ``1`` if any date mismatch or orphan is found.
     """
@@ -948,6 +963,18 @@ def lint_changelog_dates(
             )
     else:
         logging.info("No package name detected, falling back to git tags.")
+
+    # Merge releases from former package names (for renamed projects).
+    for former_package in pypi_package_history:
+        former_data = get_pypi_release_dates(former_package)
+        if former_data:
+            logging.info(
+                f"Using PyPI history for {former_package!r}"
+                f" ({len(former_data)} releases found)."
+            )
+        # Current package wins on version collisions.
+        for v, rel in former_data.items():
+            pypi_data.setdefault(v, rel)
 
     use_pypi = bool(pypi_data)
     has_mismatch = False
@@ -1076,9 +1103,13 @@ def lint_changelog_dates(
             on_github = version in github_releases
 
             # Build the NOTE admonition for platforms where available.
+            # Use the package name embedded in the PyPIRelease entry so
+            # renamed projects point to the correct PyPI page.
             pypi_url = (
-                PYPI_PROJECT_URL.format(package=package, version=version)
-                if on_pypi and package
+                PYPI_PROJECT_URL.format(
+                    package=pypi_data[version].package, version=version
+                )
+                if on_pypi
                 else ""
             )
             github_url = (

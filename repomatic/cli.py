@@ -2093,6 +2093,9 @@ def lint_changelog(
     GitHub releases, or PyPI packages but have no corresponding changelog
     entry. Orphans cause a non-zero exit code.
 
+    Reads ``pypi-package-history`` from ``[tool.repomatic]`` to fetch
+    releases published under former package names (for renamed projects).
+
     \b
     Output symbols:
         ✓  Dates match
@@ -2120,7 +2123,14 @@ def lint_changelog(
         # Explicit package name
         repomatic lint-changelog --package repomatic
     """
-    exit_code = lint_changelog_dates(changelog_path, package=package, fix=fix)
+    config = load_repomatic_config()
+    pypi_package_history = config.get("pypi-package-history", [])
+    exit_code = lint_changelog_dates(
+        changelog_path,
+        package=package,
+        fix=fix,
+        pypi_package_history=pypi_package_history,
+    )
     ctx.exit(exit_code)
 
 
