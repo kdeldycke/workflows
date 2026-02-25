@@ -23,7 +23,7 @@
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)
 
 > [!NOTE]
-> First release under the [`repomatic`](https://pypi.org/project/repomatic/) name on PyPI, after [`repokit`](https://pypi.org/project/repokit/) was rejected for typo-squatting (see `6.0.0` below). The GitHub repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic).
+> First release under the [`repomatic`](https://pypi.org/project/repomatic/) name on PyPI, after `repokit` was rejected for typo-squatting (see `6.0.0` below). The GitHub repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic).
 
 - Rename project from `repokit` to `repomatic`. Rename GitHub repository from `kdeldycke/repokit` to `kdeldycke/repomatic`.
 
@@ -32,12 +32,14 @@
 > [!CAUTION]
 > This release was deleted from PyPI. It was supposed to be published as `repokit`, but PyPI flagged the name as typo-squatting the pre-existing [`repo-kit`](https://pypi.org/project/repo-kit/) package.
 
-- Rename project from `gha-utils` to `repokit`. Rename GitHub repository from `kdeldycke/workflows` to `kdeldycke/repomatic`.
+- Rename project from `gha-utils` to `repokit`. Rename GitHub repository from `kdeldycke/workflows` to `kdeldycke/repokit`.
 
 ## [`5.14.0` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v5.13.0...v5.14.0)
 
 > [!NOTE]
 > Final release under the [`gha-utils`](https://pypi.org/project/gha-utils/) name on PyPI. The project was renamed to [`repomatic`](https://pypi.org/project/repomatic/) in `6.0.1`. The GitHub repository moved from `kdeldycke/workflows` to `kdeldycke/repomatic`.
+
+- Add messages to redirect PyPI package from `gha-utils` to `repokit` and GitHub repository from `kdeldycke/workflows` to `kdeldycke/repokit`.
 
 ## [`5.13.0` (2026-02-23)](https://github.com/kdeldycke/repomatic/compare/v5.12.0...v5.13.0)
 
