@@ -556,7 +556,7 @@ docs = [
 
 - 🔒 **Lint workflow security** (`lint-workflow-security`)
 
-  - Audits workflow files for security issues using [`zizmor`](https://github.com/woodruffw/zizmor) (template injection, excessive permissions, supply chain risks, etc.)
+  - Audits workflow files for security issues using [`zizmor`](https://github.com/zizmorcore/zizmor) (template injection, excessive permissions, supply chain risks, etc.)
   - **Requires**:
     - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
   - **Skipped for**:
