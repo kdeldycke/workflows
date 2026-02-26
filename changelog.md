@@ -514,7 +514,7 @@
 
 - Replace `ubuntu-24.04` runner by `ubuntu-slim` in all jobs not relying on Docker, and in Nuitka build matrix.
 - Bump `actionlint` to `v1.7.9`.
-- Ignore Github links pointing to stable release assets when checking for broken links.
+- Ignore GitHub links pointing to stable release assets when checking for broken links.
 
 ## [`4.23.4` (2025-11-19)](https://github.com/kdeldycke/repomatic/compare/v4.23.3...v4.23.4)
 
@@ -2007,7 +2007,7 @@
 > [!NOTE]
 > `2.10.0` is available on [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v2.10.0).
 
-- Lint Github actions workflows with `actionlint`.
+- Lint GitHub Actions workflows with `actionlint`.
 
 ## [`2.9.0` (2023-02-18)](https://github.com/kdeldycke/repomatic/compare/v2.8.3...v2.9.0)
 
@@ -2658,7 +2658,7 @@
 > [!NOTE]
 > `0.8.4` is available on [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v0.8.4).
 
-- Replace hard-coded PyPi package link in GitHub release text with dynamic
+- Replace hard-coded PyPI package link in GitHub release text with dynamic
   value from Poetry configuration.
 
 ## [`0.8.3` (2022-02-13)](https://github.com/kdeldycke/repomatic/compare/v0.8.2...v0.8.3)
@@ -2741,14 +2741,14 @@
 - Trigger tagging by monitoring `main` branch commit messages instead of
   `prepare-release` PR merge event.
 - Upload build artifacts for each commit.
-- Fix addition of PyPi link in GitHub release content.
+- Fix addition of PyPI link in GitHub release content.
 
 ## [`0.7.19` (2022-01-11)](https://github.com/kdeldycke/repomatic/compare/v0.7.18...v0.7.19)
 
 > [!NOTE]
 > `0.7.19` is available on [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v0.7.19).
 
-- Secret token need to be passed explicitly in reused workflow for PyPi
+- Secret token need to be passed explicitly in reused workflow for PyPI
   publishing.
 
 ## [`0.7.18` (2022-01-11)](https://github.com/kdeldycke/repomatic/compare/v0.7.17...v0.7.18)
@@ -2907,7 +2907,7 @@
 > [!WARNING]
 > `0.7.0` is **not available** on 🐙 GitHub.
 
-- Detect Poetry-based project, then auto-build and publish packages on PyPi on
+- Detect Poetry-based project, then auto-build and publish packages on PyPI on
   release.
 - Always test builds on each commit.
 - Add build artifacts to GitHub releases.

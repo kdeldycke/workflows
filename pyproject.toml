@@ -178,6 +178,11 @@ lint.ignore = [ "D400", "ERA001" ]
 lint.future-annotations = true
 
 [tool.typos]
+files.extend-exclude = [
+  # Contains deliberate wrong-casing examples in strikethrough (~~PyPi~~, ~~Github~~, etc.).
+  "claude.md",
+]
+default.extend-identifiers = { Github = "GitHub", IOS = "iOS", Javascript = "JavaScript", MacOS = "macOS", PyPi = "PyPI", Typescript = "TypeScript" }
 default.extend-ignore-identifiers-re = [
   # error: `certifi` should be `certify`, `certifies`, `certified`
   #     ╭▸ ./docs/assets/dependencies.mmd:184:11
@@ -185,6 +190,13 @@ default.extend-ignore-identifiers-re = [
   # 184 │     click certifi "https://pypi.org/project/certifi/" _blank
   #     ╰╴          ━━━━━━━
   "certifi",
+  # error: `nwo` should be `now`
+  #     ╭▸ ./repomatic/github/release_sync.py:147:5
+  #     │
+  # 147 │     nwo = f"{parts[-2]}/{parts[-1]}" if len(parts) >= 2 else ""
+  #     ╰╴    ━━━
+  # Standard GitHub API term for "name with owner" (e.g. "owner/repo").
+  "nwo",
   # error: `WARNIN` should be `WARNING`
   #     ╭▸ ./tests/test_changelog.py:565:46
   #     │
