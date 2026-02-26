@@ -162,17 +162,6 @@ use ``(unreleased)`` instead of a date. Backticks around the version
 are optional.
 """
 
-VERSION_HEADING_PATTERN = re.compile(
-    rf"^({SECTION_START}\s*\[`?\d+\.\d+\.\d+`?\s+\()[^)]+(\)\].*)$",
-    re.MULTILINE,
-)
-"""Pattern matching a full version heading line for date replacement.
-
-Captures the prefix up to ``(`` and the suffix from ``)`` onward,
-allowing the date or ``unreleased`` label to be replaced. Backticks
-around the version are optional.
-"""
-
 HEADING_PARTS_PATTERN = re.compile(
     rf"^{SECTION_START}\s*\[`?(?P<version>\d+\.\d+\.\d+(?:\.\w+)?)`?\s+"
     rf"\((?P<date>[^)]+)\)\]"
@@ -484,44 +473,6 @@ class Changelog:
         logging.info(f"Updated {path}")
         return True
 
-    def extract_version_url(self, version: str) -> str:
-        """Extract the URL from the changelog heading for a specific version.
-
-        :param version: Version string to look for (e.g. ``1.2.3``).
-        :return: The URL from the heading, or empty string if not found.
-        """
-        match = re.search(
-            rf"^{SECTION_START}"
-            rf"\s*\[.*{re.escape(version)}.+?\]"
-            rf"\((?P<url>[^)]+)\)",
-            self.content,
-            flags=re.MULTILINE,
-        )
-        if not match:
-            return ""
-        return match.group("url")
-
-    def extract_version_notes(self, version: str) -> str:
-        """Extract the changelog entry for a specific version.
-
-        Parses the changelog content and returns the body text between
-        the ``## [version ...]`` heading and the next ``##`` heading.
-
-        :param version: Version string to look for (e.g. ``1.2.3``).
-        :return: The changelog entry body, or empty string if not
-            found.
-        """
-        match = re.search(
-            rf"^{SECTION_START}"
-            rf"(?P<title>.+{re.escape(version)}`? .+?)\n"
-            rf"(?P<changes>.*?)(?:\n{SECTION_START}|\Z)",
-            self.content,
-            flags=re.MULTILINE | re.DOTALL,
-        )
-        if not match:
-            return ""
-        return match.groupdict().get("changes", "").strip()
-
     def extract_repo_url(self) -> str:
         """Extract the repository URL from changelog comparison links.
 
@@ -567,169 +518,6 @@ class Changelog:
                 flags=re.MULTILINE,
             )
         )
-
-    def fix_release_date(self, version: str, new_date: str) -> bool:
-        """Replace the date in a specific version heading.
-
-        :param version: Version string (e.g. ``1.2.3``).
-        :param new_date: New date in ``YYYY-MM-DD`` format.
-        :return: True if the content was modified.
-        """
-        pattern = re.compile(
-            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s+\()[^)]+(\)\].*)$",
-            re.MULTILINE,
-        )
-        updated = pattern.sub(rf"\g<1>{new_date}\g<2>", self.content, count=1)
-        if updated == self.content:
-            return False
-        self.content = updated
-        return True
-
-    def add_admonition_after_heading(
-        self,
-        version: str,
-        admonition: str,
-        *,
-        dedup_marker: str | None = None,
-    ) -> bool:
-        """Insert an admonition block after a version heading.
-
-        Skips insertion if the dedup marker (or the full admonition) is
-        already present in the version's section. The admonition is
-        inserted on a new line after the heading, separated by a blank
-        line.
-
-        :param version: Version string to locate (e.g. ``1.2.3``).
-        :param admonition: The full admonition block text (including
-            ``>`` prefix lines).
-        :param dedup_marker: A unique substring to check for duplicates
-            instead of the full admonition. Useful when admonition
-            formatting may vary slightly between runs.
-        :return: True if the content was modified.
-        """
-        marker = dedup_marker or admonition
-        # Extract the section for this version (heading to next heading).
-        section_pattern = re.compile(
-            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+)"
-            rf"(.*?)(?=^{SECTION_START}|\Z)",
-            re.MULTILINE | re.DOTALL,
-        )
-        section_match = section_pattern.search(self.content)
-        if not section_match:
-            return False
-        section_text = section_match.group(0)
-        if marker in section_text:
-            return False
-        # Insert after existing admonition blocks so hand-written ones
-        # stay above auto-maintained ones.
-        heading_end = section_match.start() + len(section_match.group(1))
-        insert_pos = heading_end
-        remaining = self.content[heading_end:]
-        admonition_tail = re.match(
-            r"(?:\s*\n(?:>.*\n?)+)+",
-            remaining,
-        )
-        if admonition_tail:
-            insert_pos = heading_end + admonition_tail.end()
-        # Strip trailing whitespace at insertion point, then add
-        # exactly one blank line before and after the admonition.
-        before = self.content[:insert_pos].rstrip("\n")
-        after = self.content[insert_pos:].lstrip("\n")
-        self.content = before + "\n\n" + admonition + "\n\n" + after
-        return True
-
-    def remove_admonition_from_section(
-        self,
-        version: str,
-        marker: str,
-    ) -> bool:
-        """Remove an admonition block from a version section.
-
-        Finds the version's section and removes any GFM alert block
-        containing the marker string. Cleans up surrounding blank lines.
-
-        :param version: Version string to locate (e.g. ``1.2.3``).
-        :param marker: A substring identifying the admonition to remove.
-        :return: True if the content was modified.
-        """
-        section_pattern = re.compile(
-            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+)"
-            rf"(.*?)(?=^{SECTION_START}|\Z)",
-            re.MULTILINE | re.DOTALL,
-        )
-        section_match = section_pattern.search(self.content)
-        if not section_match:
-            return False
-        section_text = section_match.group(0)
-        if marker not in section_text:
-            return False
-        # Remove the full GFM alert block (consecutive lines starting
-        # with "> ") that contains the marker, plus surrounding blanks.
-        admonition_pattern = re.compile(
-            r"\n*(?:^>.*$\n?)+",
-            re.MULTILINE,
-        )
-        new_section = section_text
-        for block_match in admonition_pattern.finditer(section_text):
-            if marker in block_match.group(0):
-                new_section = (
-                    section_text[: block_match.start()]
-                    + "\n\n"
-                    + section_text[block_match.end() :]
-                )
-                break
-        self.content = self.content.replace(section_text, new_section, 1)
-        return True
-
-    def strip_availability_admonitions(self, version: str) -> bool:
-        """Remove all availability admonitions from a version section.
-
-        Strips GFM alert blocks where the body matches
-        ``> `{version}` is ...`` (covering NOTE/WARNING availability
-        admonitions) or contains the ``YANKED_DEDUP_MARKER``. Other
-        admonitions (e.g. "not released yet") are preserved.
-
-        :param version: Version string to locate (e.g. ``1.2.3``).
-        :return: True if the content was modified.
-        """
-        section_pattern = re.compile(
-            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+)"
-            rf"(.*?)(?=^{SECTION_START}|\Z)",
-            re.MULTILINE | re.DOTALL,
-        )
-        section_match = section_pattern.search(self.content)
-        if not section_match:
-            return False
-        section_text = section_match.group(0)
-
-        # Find all GFM alert blocks (consecutive lines starting with "> ")
-        # and remove those where any line matches "> `{version}` is " or
-        # contains the yanked dedup marker. All availability verbs
-        # (AVAILABLE_VERB, FIRST_AVAILABLE_VERB, NOT_AVAILABLE_VERB) share
-        # the "is " prefix, so this catches all.
-        availability_marker = f"> `{version}` is "
-        admonition_pattern = re.compile(
-            r"(?:^>.*$\n?)+",
-            re.MULTILINE,
-        )
-        new_section = section_text
-        for block_match in reversed(list(admonition_pattern.finditer(section_text))):
-            block_text = block_match.group(0)
-            if (
-                availability_marker in block_text
-                or YANKED_DEDUP_MARKER in block_text
-            ):
-                start = block_match.start()
-                end = block_match.end()
-                new_section = new_section[:start] + new_section[end:]
-
-        if new_section == section_text:
-            return False
-
-        # Collapse excess blank lines (3+ consecutive newlines → 2).
-        new_section = re.sub(r"\n{3,}", "\n\n", new_section)
-        self.content = self.content.replace(section_text, new_section, 1)
-        return True
 
     def insert_version_section(
         self,
@@ -837,10 +625,7 @@ class Changelog:
         """Decompose a version section into discrete elements.
 
         Parses both the heading (version, date, URL) and the body
-        (admonitions, changes). Uses the section regex directly (not
-        :meth:`extract_version_notes`) because admonitions contain the
-        version string, which would confuse the title-matching regex in
-        ``extract_version_notes``.
+        (admonitions, changes).
 
         Classifies each GFM alert block (consecutive ``>`` lines) as one
         of the auto-generated element types. Everything not classified
@@ -913,47 +698,11 @@ class Changelog:
 
         return elements
 
-    def replace_section_body(self, version: str, new_body: str) -> bool:
-        """Replace the body of a version section with new content.
-
-        Locates the version heading and replaces everything between it
-        and the next ``##`` heading (or EOF) with ``new_body``. The
-        heading line itself is preserved.
-
-        :param version: Version string (e.g. ``1.2.3``).
-        :param new_body: New body content for the section.
-        :return: True if the content was modified.
-        """
-        section_pattern = re.compile(
-            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+\n)"
-            rf"(.*?)(?=^{SECTION_START}|\Z)",
-            re.MULTILINE | re.DOTALL,
-        )
-        match = section_pattern.search(self.content)
-        if not match:
-            return False
-        heading = match.group(1)
-        old_body = match.group(2)
-        # Normalize: ensure new_body has a leading blank line and
-        # trailing newline for consistent formatting.
-        formatted = f"\n{new_body.strip()}\n\n"
-        if old_body == formatted:
-            return False
-        self.content = (
-            self.content[: match.start()]
-            + heading
-            + formatted
-            + self.content[match.end() :]
-        )
-        return True
-
     def replace_section(self, version: str, new_section: str) -> bool:
         """Replace the entire section (heading + body) for a version.
 
         Locates the version heading and replaces everything up to the
-        next ``##`` heading (or EOF) with ``new_section``. Unlike
-        :meth:`replace_section_body`, this also replaces the heading
-        line itself.
+        next ``##`` heading (or EOF) with ``new_section``.
 
         :param version: Version string (e.g. ``1.2.3``).
         :param new_section: New section content including heading.
@@ -1252,6 +1001,8 @@ def lint_changelog_dates(
             # the newly inserted sections.
             releases = changelog.extract_all_releases()
 
+    date_corrections: dict[str, str] = {}
+
     for version, changelog_date in releases:
         if use_pypi:
             release = pypi_data.get(version)
@@ -1297,17 +1048,22 @@ def lint_changelog_dates(
             )
             has_mismatch = True
             if fix:
-                modified |= changelog.fix_release_date(version, ref_date)
+                date_corrections[version] = ref_date
 
     # In fix mode, decompose each version section into elements,
-    # compute updated admonitions, and reassemble via the
-    # release-notes template. This is idempotent: decomposing and
-    # re-rendering an already-correct section is a no-op.
+    # apply date corrections, compute updated admonitions, and
+    # reassemble via the release-notes template. This is idempotent:
+    # decomposing and re-rendering an already-correct section is a
+    # no-op.
     if fix:
         from .github.pr_body import render_template
 
         for version, _date in releases:
             elements = changelog.decompose_version(version)
+
+            # Apply corrected date if the check loop found a mismatch.
+            if version in date_corrections:
+                elements.date = date_corrections[version]
 
             on_pypi = version in pypi_data
             on_github = version in github_releases

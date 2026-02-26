@@ -25,7 +25,6 @@ from repomatic.changelog import (
     Changelog,
     PyPIRelease,
     VersionElements,
-    build_release_admonition,
     build_unavailable_admonition,
     lint_changelog_dates,
 )
@@ -246,58 +245,8 @@ def test_freeze_file_missing(tmp_path):
     assert result is False
 
 
-def test_extract_version_url():
-    """Test extracting URL for a specific released version."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    url = changelog.extract_version_url("1.2.2")
-
-    assert url == "https://github.com/user/repo/compare/v1.2.1...v1.2.2"
-
-
-def test_extract_version_url_unreleased():
-    """Test extracting URL for the unreleased version."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    url = changelog.extract_version_url("1.2.3")
-
-    assert url == "https://github.com/user/repo/compare/v1.2.2...main"
-
-
-def test_extract_version_url_missing():
-    """Test that missing version returns empty string."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    url = changelog.extract_version_url("9.9.9")
-
-    assert url == ""
-
-
-def test_extract_version_notes():
-    """Test extracting notes for a specific released version."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    notes = changelog.extract_version_notes("1.2.2")
-
-    assert "- Previous release." in notes
-
-
-def test_extract_version_notes_unreleased():
-    """Test extracting notes for the unreleased version."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    notes = changelog.extract_version_notes("1.2.3")
-
-    assert "[!WARNING]" in notes
-    assert "- Add new feature." in notes
-    assert "- Fix bug." in notes
-
-
-def test_extract_version_notes_missing():
-    """Test that missing version returns empty string."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    notes = changelog.extract_version_notes("9.9.9")
-
-    assert notes == ""
-
-
 # ---------------------------------------------------------------------------
-# decompose_version / replace_section_body / replace_section tests
+# decompose_version / replace_section tests
 # ---------------------------------------------------------------------------
 
 DECOMPOSE_CHANGELOG = dedent(
@@ -330,53 +279,70 @@ DECOMPOSE_CHANGELOG = dedent(
 """Changelog with all element types for decompose tests."""
 
 
-def test_decompose_version_all_elements():
-    """Section with dev warning + changes and heading fields."""
+@pytest.mark.parametrize(
+    ("version", "expected_date", "expected_url", "contains", "equals"),
+    [
+        pytest.param(
+            "3.0.0",
+            "unreleased",
+            "https://github.com/user/repo/compare/v2.0.0...main",
+            {"development_warning": ("contains", "not released yet")},
+            {"changes": "- New feature."},
+            id="dev-warning-and-changes",
+        ),
+        pytest.param(
+            "2.0.0",
+            "2026-02-01",
+            "https://github.com/user/repo/compare/v1.0.0...v2.0.0",
+            {
+                "availability_admonition": (
+                    "contains",
+                    ["[!NOTE]", "is available on"],
+                ),
+                "yanked_admonition": (
+                    "contains",
+                    ["[!CAUTION]", "yanked from PyPI"],
+                ),
+                "changes": (
+                    "contains",
+                    ["- Breaking change.", "- New API."],
+                ),
+            },
+            {"development_warning": ""},
+            id="availability-and-yanked",
+        ),
+        pytest.param(
+            "1.0.0",
+            "2025-12-01",
+            "https://github.com/user/repo/compare/v0.9.0...v1.0.0",
+            {},
+            {
+                "development_warning": "",
+                "availability_admonition": "",
+                "yanked_admonition": "",
+                "changes": "- Initial release.",
+            },
+            id="changes-only",
+        ),
+    ],
+)
+def test_decompose_version(
+    version, expected_date, expected_url, contains, equals
+):
+    """Decompose versions with varying element combinations."""
     changelog = Changelog(DECOMPOSE_CHANGELOG)
-    elements = changelog.decompose_version("3.0.0")
+    elements = changelog.decompose_version(version)
 
-    assert elements.version == "3.0.0"
-    assert elements.date == "unreleased"
-    assert elements.compare_url == (
-        "https://github.com/user/repo/compare/v2.0.0...main"
-    )
-    assert "not released yet" in elements.development_warning
-    assert elements.changes == "- New feature."
+    assert elements.version == version
+    assert elements.date == expected_date
+    assert elements.compare_url == expected_url
 
-
-def test_decompose_version_availability_and_yanked():
-    """Section with availability NOTE and yanked CAUTION."""
-    changelog = Changelog(DECOMPOSE_CHANGELOG)
-    elements = changelog.decompose_version("2.0.0")
-
-    assert elements.version == "2.0.0"
-    assert elements.date == "2026-02-01"
-    assert elements.compare_url == (
-        "https://github.com/user/repo/compare/v1.0.0...v2.0.0"
-    )
-    assert elements.development_warning == ""
-    assert "[!NOTE]" in elements.availability_admonition
-    assert "is available on" in elements.availability_admonition
-    assert "[!CAUTION]" in elements.yanked_admonition
-    assert "yanked from PyPI" in elements.yanked_admonition
-    assert "- Breaking change." in elements.changes
-    assert "- New API." in elements.changes
-
-
-def test_decompose_version_changes_only():
-    """Section with only changes, no admonitions."""
-    changelog = Changelog(DECOMPOSE_CHANGELOG)
-    elements = changelog.decompose_version("1.0.0")
-
-    assert elements.version == "1.0.0"
-    assert elements.date == "2025-12-01"
-    assert elements.compare_url == (
-        "https://github.com/user/repo/compare/v0.9.0...v1.0.0"
-    )
-    assert elements.development_warning == ""
-    assert elements.availability_admonition == ""
-    assert elements.yanked_admonition == ""
-    assert elements.changes == "- Initial release."
+    for field, (_, targets) in contains.items():
+        value = getattr(elements, field)
+        for target in (targets if isinstance(targets, list) else [targets]):
+            assert target in value
+    for field, expected in equals.items():
+        assert getattr(elements, field) == expected
 
 
 def test_decompose_version_preserves_hand_written_admonitions():
@@ -410,55 +376,41 @@ def test_decompose_version_empty():
     assert elements == VersionElements()
 
 
-def test_replace_section_body():
-    """Replaces body, preserves heading and adjacent sections."""
+@pytest.mark.parametrize(
+    ("version", "new_section", "expected", "present", "absent"),
+    [
+        pytest.param(
+            "1.0.0",
+            (
+                "## [`1.0.0` (2025-12-15)]"
+                "(https://github.com/user/repo/compare/v0.9.0...v1.0.0)\n\n"
+                "- Updated release.\n"
+            ),
+            True,
+            ["- Updated release.", "2025-12-15", "- Breaking change.", "3.0.0"],
+            ["- Initial release."],
+            id="replaces-section",
+        ),
+        pytest.param(
+            "9.9.9",
+            "## [`9.9.9` ...]\n\n- x\n",
+            False,
+            ["- Initial release."],
+            [],
+            id="no-match",
+        ),
+    ],
+)
+def test_replace_section(version, new_section, expected, present, absent):
+    """Test replacing an entire section (heading + body)."""
     changelog = Changelog(DECOMPOSE_CHANGELOG)
-    changed = changelog.replace_section_body("1.0.0", "- Replaced content.")
+    changed = changelog.replace_section(version, new_section)
 
-    assert changed is True
-    assert "- Replaced content." in changelog.content
-    assert "- Initial release." not in changelog.content
-    # Adjacent sections are preserved.
-    assert "- Breaking change." in changelog.content
-    assert "3.0.0" in changelog.content
-
-
-def test_replace_section_body_no_match():
-    """Returns False for unknown version."""
-    changelog = Changelog(DECOMPOSE_CHANGELOG)
-    changed = changelog.replace_section_body("9.9.9", "- New body.")
-
-    assert changed is False
-    # Content is unchanged.
-    assert "- Initial release." in changelog.content
-
-
-def test_replace_section():
-    """Replaces entire section including heading."""
-    changelog = Changelog(DECOMPOSE_CHANGELOG)
-    new_section = (
-        "## [`1.0.0` (2025-12-15)]"
-        "(https://github.com/user/repo/compare/v0.9.0...v1.0.0)\n\n"
-        "- Updated release.\n"
-    )
-    changed = changelog.replace_section("1.0.0", new_section)
-
-    assert changed is True
-    assert "- Updated release." in changelog.content
-    assert "2025-12-15" in changelog.content
-    assert "- Initial release." not in changelog.content
-    # Adjacent sections are preserved.
-    assert "- Breaking change." in changelog.content
-    assert "3.0.0" in changelog.content
-
-
-def test_replace_section_no_match():
-    """Returns False for unknown version."""
-    changelog = Changelog(DECOMPOSE_CHANGELOG)
-    changed = changelog.replace_section("9.9.9", "## [`9.9.9` ...]\n\n- x\n")
-
-    assert changed is False
-    assert "- Initial release." in changelog.content
+    assert changed is expected
+    for text in present:
+        assert text in changelog.content
+    for text in absent:
+        assert text not in changelog.content
 
 
 MULTI_RELEASE_CHANGELOG = dedent(
@@ -482,38 +434,39 @@ MULTI_RELEASE_CHANGELOG = dedent(
 """Changelog with multiple released versions and one unreleased."""
 
 
-def test_extract_all_releases():
-    """Test extraction of multiple released versions."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    releases = changelog.extract_all_releases()
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        pytest.param(
+            MULTI_RELEASE_CHANGELOG,
+            [("1.1.0", "2026-02-10"), ("1.0.0", "2025-12-01")],
+            id="multiple-releases",
+        ),
+        pytest.param(
+            dedent(
+                """\
+                # Changelog
 
-    assert releases == [("1.1.0", "2026-02-10"), ("1.0.0", "2025-12-01")]
+                ## [1.0.0 (unreleased)](https://github.com/user/repo/compare/v0.0.1...main)
 
-
-def test_extract_all_releases_no_releases():
-    """Test extraction when only an unreleased version exists."""
-    content = dedent(
-        """\
-        # Changelog
-
-        ## [1.0.0 (unreleased)](https://github.com/user/repo/compare/v0.0.1...main)
-
-        > [!WARNING]
-        > This version is **not released yet** and is under active development.
-        """
-    )
+                > [!WARNING]
+                > This version is **not released yet** and is under active development.
+                """
+            ),
+            [],
+            id="unreleased-only",
+        ),
+        pytest.param(
+            "# Changelog\n",
+            [],
+            id="empty",
+        ),
+    ],
+)
+def test_extract_all_releases(content, expected):
+    """Test extraction of released versions from varying changelogs."""
     changelog = Changelog(content)
-    releases = changelog.extract_all_releases()
-
-    assert releases == []
-
-
-def test_extract_all_releases_empty():
-    """Test extraction from an empty changelog."""
-    changelog = Changelog("# Changelog\n")
-    releases = changelog.extract_all_releases()
-
-    assert releases == []
+    assert changelog.extract_all_releases() == expected
 
 
 def _pypi_mock(releases, package="my-package"):
@@ -1039,169 +992,6 @@ def test_lint_fix_idempotent(tmp_path, monkeypatch):
     assert first_content == second_content
 
 
-def test_fix_release_date():
-    """Test fixing a specific version's date in the changelog."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    result = changelog.fix_release_date("1.1.0", "2026-02-11")
-
-    assert result is True
-    assert "(2026-02-11)" in changelog.content
-    assert "1.1.0 (2026-02-10)" not in changelog.content
-
-
-def test_add_admonition_after_heading():
-    """Test inserting an admonition after a version heading."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    admonition = "> [!NOTE]\n> `1.1.0` is available on [🐍 PyPI](https://example.com)."
-    result = changelog.add_admonition_after_heading("1.1.0", admonition)
-
-    assert result is True
-    assert admonition in changelog.content
-
-
-def test_add_admonition_idempotent():
-    """Test that adding the same admonition twice is a no-op."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    admonition = "> [!NOTE]\n> `1.1.0` is available on [🐍 PyPI](https://example.com)."
-    changelog.add_admonition_after_heading("1.1.0", admonition)
-    result = changelog.add_admonition_after_heading("1.1.0", admonition)
-
-    assert result is False
-
-
-def test_add_admonition_preserves_existing_admonitions():
-    """Auto-maintained admonitions are inserted after hand-written ones."""
-    hand_written = (
-        "> [!CAUTION]\n"
-        "> This release was yanked from PyPI."
-    )
-    content = MULTI_RELEASE_CHANGELOG.replace(
-        "## [1.1.0 (2026-02-10)]"
-        "(https://github.com/user/repo/compare/v1.0.0...v1.1.0)\n\n"
-        "- Second release.",
-        "## [1.1.0 (2026-02-10)]"
-        "(https://github.com/user/repo/compare/v1.0.0...v1.1.0)\n\n"
-        f"{hand_written}\n\n"
-        "- Second release.",
-    )
-    changelog = Changelog(content)
-    auto_admonition = (
-        "> [!NOTE]\n"
-        "> `1.1.0` is available on [🐍 PyPI](https://example.com)."
-    )
-    result = changelog.add_admonition_after_heading("1.1.0", auto_admonition)
-
-    assert result is True
-    # Hand-written CAUTION appears before auto-maintained NOTE.
-    caution_pos = changelog.content.index("[!CAUTION]")
-    note_pos = changelog.content.index("[!NOTE]")
-    assert caution_pos < note_pos
-    # List items follow after the auto-maintained admonition.
-    items_pos = changelog.content.index("- Second release.")
-    assert note_pos < items_pos
-
-
-def test_remove_admonition_from_section():
-    """Test removing an admonition block from a version section."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    admonition = build_release_admonition(
-        "1.0.0",
-        github_url="https://github.com/user/repo/releases/tag/v1.0.0",
-    )
-    changelog.add_admonition_after_heading(
-        "1.0.0",
-        admonition,
-        dedup_marker="is available on",
-    )
-    assert "is available on" in changelog.content
-
-    result = changelog.remove_admonition_from_section(
-        "1.0.0",
-        "is available on",
-    )
-
-    assert result is True
-    assert "is available on" not in changelog.content
-    # Heading and content are preserved.
-    assert "1.0.0" in changelog.content
-    assert "Initial release." in changelog.content
-
-
-def test_remove_admonition_no_match():
-    """Test that removing a non-existent admonition is a no-op."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    result = changelog.remove_admonition_from_section(
-        "1.0.0",
-        "is available on",
-    )
-
-    assert result is False
-
-
-def test_strip_availability_admonitions():
-    """Test that strip removes NOTE and WARNING availability admonitions while
-    preserving the 'not released yet' WARNING and YANKED CAUTION."""
-    content = dedent(
-        """\
-        # Changelog
-
-        ## [2.0.0 (unreleased)](https://github.com/user/repo/compare/v1.1.0...main)
-
-        > [!WARNING]
-        > This version is **not released yet** and is under active development.
-
-        ## [1.1.0 (2026-02-10)](https://github.com/user/repo/compare/v1.0.0...v1.1.0)
-
-        > [!NOTE]
-        > `1.1.0` is available on [🐍 PyPI](https://pypi.org/project/pkg/1.1.0/).
-
-        > [!WARNING]
-        > `1.1.0` is **not available** on 🐙 GitHub.
-
-        - Second release.
-
-        ## [1.0.0 (2025-12-01)](https://github.com/user/repo/compare/v0.9.0...v1.0.0)
-
-        > [!NOTE]
-        > `1.0.0` is the *first version* available on [🐍 PyPI](https://pypi.org/project/pkg/1.0.0/).
-
-        > [!CAUTION]
-        > `1.0.0` has been [yanked from PyPI](https://pypi.org/project/pkg/1.0.0/).
-
-        - Initial release.
-        """
-    )
-    changelog = Changelog(content)
-
-    result = changelog.strip_availability_admonitions("1.1.0")
-    assert result is True
-    # Availability admonitions for 1.1.0 are removed.
-    assert "`1.1.0` is available on" not in changelog.content
-    assert "`1.1.0` is **not available**" not in changelog.content
-    # Content is preserved.
-    assert "- Second release." in changelog.content
-    # Other versions' admonitions are untouched.
-    assert "`1.0.0` is the *first version* available on" in changelog.content
-    # "Not released yet" WARNING is preserved (uses "This version", not version string).
-    assert "not released yet" in changelog.content
-    # 1.0.0's yanked CAUTION is untouched (belongs to a different version).
-    assert "yanked from PyPI" in changelog.content
-
-    # Strip 1.0.0: both availability NOTE and yanked CAUTION are removed.
-    result = changelog.strip_availability_admonitions("1.0.0")
-    assert result is True
-    assert "`1.0.0` is the *first version* available on" not in changelog.content
-    assert "yanked from PyPI" not in changelog.content
-    assert "- Initial release." in changelog.content
-
-
-def test_strip_availability_admonitions_no_match():
-    """Test that strip is a no-op when no availability admonitions exist."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    result = changelog.strip_availability_admonitions("1.1.0")
-    assert result is False
-
-
 def test_lint_fix_removes_stale_unavailable_warning(tmp_path, monkeypatch):
     """Test that --fix removes stale 'is **not available** on' warnings when
     the version becomes available."""
@@ -1301,22 +1091,36 @@ def test_insert_version_section_at_end():
     assert "compare/v0.5.0...v1.0.0" in changelog.content
 
 
-def test_update_comparison_base():
+@pytest.mark.parametrize(
+    ("version", "new_base", "expected", "present", "absent"),
+    [
+        pytest.param(
+            "1.1.0",
+            "1.0.5",
+            True,
+            "compare/v1.0.5...v1.1.0",
+            "compare/v1.0.0...v1.1.0",
+            id="replaces-base",
+        ),
+        pytest.param(
+            "9.9.9",
+            "1.0.0",
+            False,
+            "compare/v1.0.0...v1.1.0",
+            None,
+            id="no-match",
+        ),
+    ],
+)
+def test_update_comparison_base(version, new_base, expected, present, absent):
     """Test replacing the comparison base in a version heading."""
     changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    result = changelog.update_comparison_base("1.1.0", "1.0.5")
+    result = changelog.update_comparison_base(version, new_base)
 
-    assert result is True
-    assert "compare/v1.0.5...v1.1.0" in changelog.content
-    assert "compare/v1.0.0...v1.1.0" not in changelog.content
-
-
-def test_update_comparison_base_no_match():
-    """Test that updating a non-existent version is a no-op."""
-    changelog = Changelog(MULTI_RELEASE_CHANGELOG)
-    result = changelog.update_comparison_base("9.9.9", "1.0.0")
-
-    assert result is False
+    assert result is expected
+    assert present in changelog.content
+    if absent:
+        assert absent not in changelog.content
 
 
 def test_lint_orphan_detection_returns_1(tmp_path, monkeypatch, caplog):

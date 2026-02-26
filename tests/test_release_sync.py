@@ -64,13 +64,7 @@ def test_build_expected_body():
 
 
 def test_build_expected_body_with_admonition():
-    """Extraction preserves admonitions when they appear in the changes group.
-
-    The version string must not appear inside the admonition text because
-    ``extract_version_notes`` uses a regex where ``.+{version}`` would
-    match the version in the admonition and consume it as part of the
-    title group.
-    """
+    """Extraction preserves admonitions when they appear in the changes group."""
     changelog_with_admonition = """\
 # Changelog
 
@@ -152,8 +146,7 @@ def test_sync_all_in_sync(tmp_path):
     changelog_path.write_text(SAMPLE_CHANGELOG, encoding="UTF-8")
 
     changelog = Changelog(SAMPLE_CHANGELOG)
-    # Use build_expected_body to get the expected release body (which
-    # may differ from extract_version_notes due to template filtering).
+    # Use build_expected_body to get the template-rendered release body.
     body_200 = build_expected_body(changelog, "2.0.0")
     body_110 = build_expected_body(changelog, "1.1.0")
     body_100 = build_expected_body(changelog, "1.0.0")
