@@ -84,13 +84,14 @@ def build_expected_body(changelog: Changelog, version: str) -> str:
     """
     from dataclasses import asdict
 
-    elements = changelog.decompose_version_body(version)
+    elements = changelog.decompose_version(version)
     if not elements.changes and not elements.availability_admonition:
         return ""
     # Build a link to the full changelog comparison URL.
-    compare_url = changelog.extract_version_url(version)
     full_changelog_link = (
-        f"**[Full changelog]({compare_url})**" if compare_url else ""
+        f"**[Full changelog]({elements.compare_url})**"
+        if elements.compare_url
+        else ""
     )
     return render_template(
         "github-releases",

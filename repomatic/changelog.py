@@ -173,6 +173,18 @@ allowing the date or ``unreleased`` label to be replaced. Backticks
 around the version are optional.
 """
 
+HEADING_PARTS_PATTERN = re.compile(
+    rf"^{SECTION_START}\s*\[`?(?P<version>\d+\.\d+\.\d+(?:\.\w+)?)`?\s+"
+    rf"\((?P<date>[^)]+)\)\]"
+    rf"\((?P<url>[^)]+)\)",
+    re.MULTILINE,
+)
+"""Pattern extracting version, date/label, and URL from a heading.
+
+Used by :meth:`Changelog.decompose_version` to populate the heading
+fields of :class:`VersionElements`.
+"""
+
 WARNING_PATTERN = re.compile(
     r"^> \[!(?:IMPORTANT|WARNING)\].+?\n\n", re.MULTILINE | re.DOTALL
 )
@@ -229,13 +241,28 @@ YANKED_DEDUP_MARKER = "yanked from PyPI"
 
 @dataclass
 class VersionElements:
-    """Discrete building blocks of a changelog version section body.
+    """Discrete building blocks of a changelog version section.
 
     Each field is a pre-formatted markdown block (or empty string when absent).
     Templates compose these elements into the final section layout. Empty
     variables produce empty strings, which ``render_template``'s 3+ newline
     collapsing handles gracefully.
+
+    Heading fields (``compare_url``, ``date``, ``version``) are populated by
+    :meth:`Changelog.decompose_version` and used by the ``release-notes``
+    template to render the ``##`` heading line. Body fields are unchanged.
     """
+
+    compare_url: str = ""
+    """GitHub comparison URL from the heading (e.g. ``repo/compare/vA...vB``)."""
+
+    date: str = ""
+    """Release date or ``unreleased`` label from the heading."""
+
+    version: str = ""
+    """Version string extracted from the heading (e.g. ``1.2.3``)."""
+
+    # --- body fields ---
 
     availability_admonition: str = ""
     """``[!NOTE]`` or ``[!WARNING]`` block for platform availability."""
@@ -740,10 +767,16 @@ class Changelog:
                 lower_version = v
                 break
 
+        from .github.pr_body import render_template
+
         compare_base = f"v{lower_version}" if lower_version else "v0.0.0"
+        elements = VersionElements(
+            compare_url=f"{repo_url}/compare/{compare_base}...v{version}",
+            date=date,
+            version=version,
+        )
         heading = (
-            f"## [`{version}` ({date})]"
-            f"({repo_url}/compare/{compare_base}...v{version})\n"
+            render_template("release-notes", **asdict(elements)) + "\n"
         )
 
         # Find the right insertion point: before the first heading whose
@@ -800,12 +833,14 @@ class Changelog:
         self.content = updated
         return True
 
-    def decompose_version_body(self, version: str) -> VersionElements:
-        """Decompose a version section body into discrete elements.
+    def decompose_version(self, version: str) -> VersionElements:
+        """Decompose a version section into discrete elements.
 
-        Uses the section regex directly (not :meth:`extract_version_notes`)
-        because admonitions contain the version string, which would
-        confuse the title-matching regex in ``extract_version_notes``.
+        Parses both the heading (version, date, URL) and the body
+        (admonitions, changes). Uses the section regex directly (not
+        :meth:`extract_version_notes`) because admonitions contain the
+        version string, which would confuse the title-matching regex in
+        ``extract_version_notes``.
 
         Classifies each GFM alert block (consecutive ``>`` lines) as one
         of the auto-generated element types. Everything not classified
@@ -822,11 +857,20 @@ class Changelog:
         match = section_pattern.search(self.content)
         if not match:
             return VersionElements()
+
+        # Extract heading fields.
+        heading_match = HEADING_PARTS_PATTERN.search(
+            self.content[match.start() : match.end()]
+        )
+        elements = VersionElements()
+        if heading_match:
+            elements.compare_url = heading_match.group("url")
+            elements.date = heading_match.group("date")
+            elements.version = heading_match.group("version")
+
         body = match.group(1).strip()
         if not body:
-            return VersionElements()
-
-        elements = VersionElements()
+            return elements
         # Match GFM alert blocks: consecutive lines starting with "> ".
         admonition_pattern = re.compile(
             r"(?:^>.*$\n?)+",
@@ -898,6 +942,38 @@ class Changelog:
         self.content = (
             self.content[: match.start()]
             + heading
+            + formatted
+            + self.content[match.end() :]
+        )
+        return True
+
+    def replace_section(self, version: str, new_section: str) -> bool:
+        """Replace the entire section (heading + body) for a version.
+
+        Locates the version heading and replaces everything up to the
+        next ``##`` heading (or EOF) with ``new_section``. Unlike
+        :meth:`replace_section_body`, this also replaces the heading
+        line itself.
+
+        :param version: Version string (e.g. ``1.2.3``).
+        :param new_section: New section content including heading.
+        :return: True if the content was modified.
+        """
+        section_pattern = re.compile(
+            rf"^{SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+\n"
+            rf"(.*?)(?=^{SECTION_START}|\Z)",
+            re.MULTILINE | re.DOTALL,
+        )
+        match = section_pattern.search(self.content)
+        if not match:
+            return False
+        old_section = match.group(0)
+        # Normalize: ensure trailing newlines for consistent formatting.
+        formatted = new_section.rstrip() + "\n\n"
+        if old_section == formatted:
+            return False
+        self.content = (
+            self.content[: match.start()]
             + formatted
             + self.content[match.end() :]
         )
@@ -1231,7 +1307,7 @@ def lint_changelog_dates(
         from .github.pr_body import render_template
 
         for version, _date in releases:
-            elements = changelog.decompose_version_body(version)
+            elements = changelog.decompose_version(version)
 
             on_pypi = version in pypi_data
             on_github = version in github_releases
@@ -1318,11 +1394,11 @@ def lint_changelog_dates(
                     version=version, pypi_url=yanked_url
                 )
 
-            new_body = render_template(
+            new_section = render_template(
                 "release-notes", **asdict(elements)
             )
-            modified |= changelog.replace_section_body(
-                version, new_body
+            modified |= changelog.replace_section(
+                version, new_section
             )
 
     if fix and modified:

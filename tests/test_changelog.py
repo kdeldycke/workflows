@@ -297,7 +297,7 @@ def test_extract_version_notes_missing():
 
 
 # ---------------------------------------------------------------------------
-# decompose_version_body / replace_section_body tests
+# decompose_version / replace_section_body / replace_section tests
 # ---------------------------------------------------------------------------
 
 DECOMPOSE_CHANGELOG = dedent(
@@ -330,20 +330,30 @@ DECOMPOSE_CHANGELOG = dedent(
 """Changelog with all element types for decompose tests."""
 
 
-def test_decompose_version_body_all_elements():
-    """Section with dev warning + availability + yanked + changes."""
+def test_decompose_version_all_elements():
+    """Section with dev warning + changes and heading fields."""
     changelog = Changelog(DECOMPOSE_CHANGELOG)
-    elements = changelog.decompose_version_body("3.0.0")
+    elements = changelog.decompose_version("3.0.0")
 
+    assert elements.version == "3.0.0"
+    assert elements.date == "unreleased"
+    assert elements.compare_url == (
+        "https://github.com/user/repo/compare/v2.0.0...main"
+    )
     assert "not released yet" in elements.development_warning
     assert elements.changes == "- New feature."
 
 
-def test_decompose_version_body_availability_and_yanked():
+def test_decompose_version_availability_and_yanked():
     """Section with availability NOTE and yanked CAUTION."""
     changelog = Changelog(DECOMPOSE_CHANGELOG)
-    elements = changelog.decompose_version_body("2.0.0")
+    elements = changelog.decompose_version("2.0.0")
 
+    assert elements.version == "2.0.0"
+    assert elements.date == "2026-02-01"
+    assert elements.compare_url == (
+        "https://github.com/user/repo/compare/v1.0.0...v2.0.0"
+    )
     assert elements.development_warning == ""
     assert "[!NOTE]" in elements.availability_admonition
     assert "is available on" in elements.availability_admonition
@@ -353,18 +363,23 @@ def test_decompose_version_body_availability_and_yanked():
     assert "- New API." in elements.changes
 
 
-def test_decompose_version_body_changes_only():
+def test_decompose_version_changes_only():
     """Section with only changes, no admonitions."""
     changelog = Changelog(DECOMPOSE_CHANGELOG)
-    elements = changelog.decompose_version_body("1.0.0")
+    elements = changelog.decompose_version("1.0.0")
 
+    assert elements.version == "1.0.0"
+    assert elements.date == "2025-12-01"
+    assert elements.compare_url == (
+        "https://github.com/user/repo/compare/v0.9.0...v1.0.0"
+    )
     assert elements.development_warning == ""
     assert elements.availability_admonition == ""
     assert elements.yanked_admonition == ""
     assert elements.changes == "- Initial release."
 
 
-def test_decompose_version_body_preserves_hand_written_admonitions():
+def test_decompose_version_preserves_hand_written_admonitions():
     """Custom admonitions (e.g. [!TIP]) stay in changes."""
     changelog_text = dedent(
         """\
@@ -379,7 +394,7 @@ def test_decompose_version_body_preserves_hand_written_admonitions():
         """
     )
     changelog = Changelog(changelog_text)
-    elements = changelog.decompose_version_body("1.0.0")
+    elements = changelog.decompose_version("1.0.0")
 
     assert "[!TIP]" in elements.changes
     assert "hand-written tip" in elements.changes
@@ -387,10 +402,10 @@ def test_decompose_version_body_preserves_hand_written_admonitions():
     assert elements.availability_admonition == ""
 
 
-def test_decompose_version_body_empty():
+def test_decompose_version_empty():
     """Version not found returns empty elements."""
     changelog = Changelog(DECOMPOSE_CHANGELOG)
-    elements = changelog.decompose_version_body("9.9.9")
+    elements = changelog.decompose_version("9.9.9")
 
     assert elements == VersionElements()
 
@@ -415,6 +430,34 @@ def test_replace_section_body_no_match():
 
     assert changed is False
     # Content is unchanged.
+    assert "- Initial release." in changelog.content
+
+
+def test_replace_section():
+    """Replaces entire section including heading."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    new_section = (
+        "## [`1.0.0` (2025-12-15)]"
+        "(https://github.com/user/repo/compare/v0.9.0...v1.0.0)\n\n"
+        "- Updated release.\n"
+    )
+    changed = changelog.replace_section("1.0.0", new_section)
+
+    assert changed is True
+    assert "- Updated release." in changelog.content
+    assert "2025-12-15" in changelog.content
+    assert "- Initial release." not in changelog.content
+    # Adjacent sections are preserved.
+    assert "- Breaking change." in changelog.content
+    assert "3.0.0" in changelog.content
+
+
+def test_replace_section_no_match():
+    """Returns False for unknown version."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    changed = changelog.replace_section("9.9.9", "## [`9.9.9` ...]\n\n- x\n")
+
+    assert changed is False
     assert "- Initial release." in changelog.content
 
 
