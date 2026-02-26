@@ -93,6 +93,44 @@ def test_build_expected_body_missing_version():
     assert build_expected_body(changelog, "9.9.9") == ""
 
 
+def test_build_expected_body_includes_all_elements():
+    """The github-releases template includes all elements like release-notes."""
+    changelog_with_admonitions = """\
+# Changelog
+
+## [`1.0.0` (2025-12-01)](https://github.com/user/repo/compare/v0.9.0...v1.0.0)
+
+> [!NOTE]
+> `1.0.0` is available on [🐍 PyPI](https://pypi.org/project/pkg/1.0.0/).
+
+- Initial release.
+"""
+    changelog = Changelog(changelog_with_admonitions)
+    body = build_expected_body(changelog, "1.0.0")
+    assert "- Initial release." in body
+    assert "[!NOTE]" in body
+    assert "is available on" in body
+
+
+def test_build_expected_body_decomposes_elements():
+    """Verifies the decompose → template path produces correct output."""
+    changelog = Changelog(SAMPLE_CHANGELOG)
+    body = build_expected_body(changelog, "1.1.0")
+    # Changes should be present.
+    assert "Fixed bug in parser." in body
+    assert "Improved performance." in body
+    # The availability admonition is included by the github-releases template.
+    assert "`1.1.0` is available on" in body
+
+
+def test_build_expected_body_includes_full_changelog_link():
+    """The github-releases template appends a full changelog link."""
+    changelog = Changelog(SAMPLE_CHANGELOG)
+    body = build_expected_body(changelog, "2.0.0")
+    assert "**[Full changelog](" in body
+    assert "compare/v1.1.0...v2.0.0" in body
+
+
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
@@ -114,9 +152,11 @@ def test_sync_all_in_sync(tmp_path):
     changelog_path.write_text(SAMPLE_CHANGELOG, encoding="UTF-8")
 
     changelog = Changelog(SAMPLE_CHANGELOG)
-    body_200 = changelog.extract_version_notes("2.0.0")
-    body_110 = changelog.extract_version_notes("1.1.0")
-    body_100 = changelog.extract_version_notes("1.0.0")
+    # Use build_expected_body to get the expected release body (which
+    # may differ from extract_version_notes due to template filtering).
+    body_200 = build_expected_body(changelog, "2.0.0")
+    body_110 = build_expected_body(changelog, "1.1.0")
+    body_100 = build_expected_body(changelog, "1.0.0")
 
     mock_releases = {
         "2.0.0": GitHubRelease(date="2026-01-15", body=body_200),
@@ -145,7 +185,7 @@ def test_sync_detects_drift(tmp_path):
     changelog_path.write_text(SAMPLE_CHANGELOG, encoding="UTF-8")
 
     changelog = Changelog(SAMPLE_CHANGELOG)
-    body_110 = changelog.extract_version_notes("1.1.0")
+    body_110 = build_expected_body(changelog, "1.1.0")
 
     mock_releases = {
         "2.0.0": GitHubRelease(date="2026-01-15", body="old body"),
@@ -200,7 +240,7 @@ def test_sync_live_updates(tmp_path):
     changelog_path.write_text(SAMPLE_CHANGELOG, encoding="UTF-8")
 
     changelog = Changelog(SAMPLE_CHANGELOG)
-    expected_body = changelog.extract_version_notes("2.0.0")
+    expected_body = build_expected_body(changelog, "2.0.0")
 
     mock_releases = {
         "2.0.0": GitHubRelease(date="2026-01-15", body="old body"),

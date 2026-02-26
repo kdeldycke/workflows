@@ -24,6 +24,7 @@ import pytest
 from repomatic.changelog import (
     Changelog,
     PyPIRelease,
+    VersionElements,
     build_release_admonition,
     build_unavailable_admonition,
     lint_changelog_dates,
@@ -293,6 +294,128 @@ def test_extract_version_notes_missing():
     notes = changelog.extract_version_notes("9.9.9")
 
     assert notes == ""
+
+
+# ---------------------------------------------------------------------------
+# decompose_version_body / replace_section_body tests
+# ---------------------------------------------------------------------------
+
+DECOMPOSE_CHANGELOG = dedent(
+    """\
+    # Changelog
+
+    ## [`3.0.0` (unreleased)](https://github.com/user/repo/compare/v2.0.0...main)
+
+    > [!WARNING]
+    > This version is **not released yet** and is under active development.
+
+    - New feature.
+
+    ## [`2.0.0` (2026-02-01)](https://github.com/user/repo/compare/v1.0.0...v2.0.0)
+
+    > [!NOTE]
+    > `2.0.0` is available on [🐍 PyPI](https://pypi.org/project/pkg/2.0.0/).
+
+    > [!CAUTION]
+    > `2.0.0` has been [yanked from PyPI](https://pypi.org/project/pkg/2.0.0/).
+
+    - Breaking change.
+    - New API.
+
+    ## [`1.0.0` (2025-12-01)](https://github.com/user/repo/compare/v0.9.0...v1.0.0)
+
+    - Initial release.
+    """
+)
+"""Changelog with all element types for decompose tests."""
+
+
+def test_decompose_version_body_all_elements():
+    """Section with dev warning + availability + yanked + changes."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    elements = changelog.decompose_version_body("3.0.0")
+
+    assert "not released yet" in elements.development_warning
+    assert elements.changes == "- New feature."
+
+
+def test_decompose_version_body_availability_and_yanked():
+    """Section with availability NOTE and yanked CAUTION."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    elements = changelog.decompose_version_body("2.0.0")
+
+    assert elements.development_warning == ""
+    assert "[!NOTE]" in elements.availability_admonition
+    assert "is available on" in elements.availability_admonition
+    assert "[!CAUTION]" in elements.yanked_admonition
+    assert "yanked from PyPI" in elements.yanked_admonition
+    assert "- Breaking change." in elements.changes
+    assert "- New API." in elements.changes
+
+
+def test_decompose_version_body_changes_only():
+    """Section with only changes, no admonitions."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    elements = changelog.decompose_version_body("1.0.0")
+
+    assert elements.development_warning == ""
+    assert elements.availability_admonition == ""
+    assert elements.yanked_admonition == ""
+    assert elements.changes == "- Initial release."
+
+
+def test_decompose_version_body_preserves_hand_written_admonitions():
+    """Custom admonitions (e.g. [!TIP]) stay in changes."""
+    changelog_text = dedent(
+        """\
+        # Changelog
+
+        ## [`1.0.0` (2025-12-01)](https://github.com/u/r/compare/v0.9.0...v1.0.0)
+
+        > [!TIP]
+        > This is a hand-written tip.
+
+        - Initial release.
+        """
+    )
+    changelog = Changelog(changelog_text)
+    elements = changelog.decompose_version_body("1.0.0")
+
+    assert "[!TIP]" in elements.changes
+    assert "hand-written tip" in elements.changes
+    assert "- Initial release." in elements.changes
+    assert elements.availability_admonition == ""
+
+
+def test_decompose_version_body_empty():
+    """Version not found returns empty elements."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    elements = changelog.decompose_version_body("9.9.9")
+
+    assert elements == VersionElements()
+
+
+def test_replace_section_body():
+    """Replaces body, preserves heading and adjacent sections."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    changed = changelog.replace_section_body("1.0.0", "- Replaced content.")
+
+    assert changed is True
+    assert "- Replaced content." in changelog.content
+    assert "- Initial release." not in changelog.content
+    # Adjacent sections are preserved.
+    assert "- Breaking change." in changelog.content
+    assert "3.0.0" in changelog.content
+
+
+def test_replace_section_body_no_match():
+    """Returns False for unknown version."""
+    changelog = Changelog(DECOMPOSE_CHANGELOG)
+    changed = changelog.replace_section_body("9.9.9", "- New body.")
+
+    assert changed is False
+    # Content is unchanged.
+    assert "- Initial release." in changelog.content
 
 
 MULTI_RELEASE_CHANGELOG = dedent(

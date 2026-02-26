@@ -205,8 +205,9 @@ def test_get_template_names():
     assert "setup-guide" in names
     assert "detect-squash-merge" in names
     assert "sync-linter-configs" in names
-    assert "sync-github-releases" in names
-    assert len(names) == 22
+    assert "github-releases" in names
+    assert "release-notes" in names
+    assert len(names) == 23
 
 
 def test_load_template_frontmatter():
@@ -461,10 +462,11 @@ REFERENCE_WORKFLOWS = (
 """Workflow files that reference PR body templates via ``--template``."""
 
 PROGRAMMATIC_TEMPLATES = frozenset({
+    "github-releases",
     "pr-metadata",
     "refresh-tip",
+    "release-notes",
     "setup-guide",
-    "sync-github-releases",
 })
 """Templates rendered from Python code, not via the ``--template`` CLI flag."""
 

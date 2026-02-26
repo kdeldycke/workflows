@@ -72,21 +72,30 @@ class SyncResult:
 def build_expected_body(changelog: Changelog, version: str) -> str:
     """Build the expected release body from the changelog.
 
-    Renders the ``sync-github-releases`` template with the changelog
-    section for the given version. The template is the single place
-    that defines the release body layout.
+    Decomposes the changelog section into discrete elements and renders
+    them through the ``github-releases`` template. This allows the
+    GitHub release body to include a different subset of elements than
+    the ``release-notes`` template used for ``changelog.md`` entries.
 
     :param changelog: Parsed changelog instance.
     :param version: Version string (e.g. ``1.2.3``).
     :return: The rendered release body, or empty string if the
         version has no changelog section.
     """
-    section = changelog.extract_version_notes(version)
-    if not section:
+    from dataclasses import asdict
+
+    elements = changelog.decompose_version_body(version)
+    if not elements.changes and not elements.availability_admonition:
         return ""
+    # Build a link to the full changelog comparison URL.
+    compare_url = changelog.extract_version_url(version)
+    full_changelog_link = (
+        f"**[Full changelog]({compare_url})**" if compare_url else ""
+    )
     return render_template(
-        "sync-github-releases",
-        changelog_section=section,
+        "github-releases",
+        **asdict(elements),
+        full_changelog_link=full_changelog_link,
     )
 
 

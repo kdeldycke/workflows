@@ -2089,7 +2089,7 @@ class Metadata:
     def release_notes(self) -> str | None:
         """Generate notes to be attached to the GitHub release.
 
-        Renders the ``sync-github-releases`` template with changelog
+        Renders the ``github-releases`` template with changelog
         content for the version. The template is the single place
         that defines the release body layout.
         """

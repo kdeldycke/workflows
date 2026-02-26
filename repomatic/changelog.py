@@ -117,6 +117,7 @@ import json
 import logging
 import re
 from collections.abc import Sequence
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import indent
@@ -224,6 +225,29 @@ YANKED_ADMONITION = "> [!CAUTION]\n> `{version}` has been [yanked from PyPI]({py
 
 YANKED_DEDUP_MARKER = "yanked from PyPI"
 """Dedup marker for the yanked admonition to prevent duplicate insertion."""
+
+
+@dataclass
+class VersionElements:
+    """Discrete building blocks of a changelog version section body.
+
+    Each field is a pre-formatted markdown block (or empty string when absent).
+    Templates compose these elements into the final section layout. Empty
+    variables produce empty strings, which ``render_template``'s 3+ newline
+    collapsing handles gracefully.
+    """
+
+    availability_admonition: str = ""
+    """``[!NOTE]`` or ``[!WARNING]`` block for platform availability."""
+
+    changes: str = ""
+    """Hand-written changelog entries (bullet points, prose, user admonitions)."""
+
+    development_warning: str = ""
+    """``[!WARNING]`` block for unreleased versions under active development."""
+
+    yanked_admonition: str = ""
+    """``[!CAUTION]`` block for releases yanked from PyPI."""
 
 
 class Changelog:
@@ -776,6 +800,109 @@ class Changelog:
         self.content = updated
         return True
 
+    def decompose_version_body(self, version: str) -> VersionElements:
+        """Decompose a version section body into discrete elements.
+
+        Uses the section regex directly (not :meth:`extract_version_notes`)
+        because admonitions contain the version string, which would
+        confuse the title-matching regex in ``extract_version_notes``.
+
+        Classifies each GFM alert block (consecutive ``>`` lines) as one
+        of the auto-generated element types. Everything not classified
+        as auto-generated is preserved as ``changes``.
+
+        :param version: Version string (e.g. ``1.2.3``).
+        :return: A :class:`VersionElements` with each field populated.
+        """
+        section_pattern = re.compile(
+            rf"^{SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+\n"
+            rf"(.*?)(?=^{SECTION_START}|\Z)",
+            re.MULTILINE | re.DOTALL,
+        )
+        match = section_pattern.search(self.content)
+        if not match:
+            return VersionElements()
+        body = match.group(1).strip()
+        if not body:
+            return VersionElements()
+
+        elements = VersionElements()
+        # Match GFM alert blocks: consecutive lines starting with "> ".
+        admonition_pattern = re.compile(
+            r"(?:^>.*$\n?)+",
+            re.MULTILINE,
+        )
+
+        # Track regions to exclude from changes.
+        exclude_regions: list[tuple[int, int]] = []
+        # Accumulate availability admonitions (NOTE + WARNING can coexist).
+        availability_parts: list[str] = []
+
+        for match in admonition_pattern.finditer(body):
+            block_text = match.group(0)
+            if "not released yet" in block_text:
+                elements.development_warning = block_text.rstrip("\n")
+                exclude_regions.append((match.start(), match.end()))
+            elif YANKED_DEDUP_MARKER in block_text:
+                elements.yanked_admonition = block_text.rstrip("\n")
+                exclude_regions.append((match.start(), match.end()))
+            elif f"> `{version}` is " in block_text:
+                availability_parts.append(block_text.rstrip("\n"))
+                exclude_regions.append((match.start(), match.end()))
+            # else: unknown admonition, preserved in changes.
+
+        elements.availability_admonition = "\n\n".join(
+            availability_parts
+        )
+
+        # Build changes from everything not in excluded regions.
+        parts: list[str] = []
+        prev_end = 0
+        for start, end in exclude_regions:
+            parts.append(body[prev_end:start])
+            prev_end = end
+        parts.append(body[prev_end:])
+        changes = "".join(parts)
+        # Collapse runs of 3+ newlines and strip.
+        changes = re.sub(r"\n{3,}", "\n\n", changes).strip()
+        elements.changes = changes
+
+        return elements
+
+    def replace_section_body(self, version: str, new_body: str) -> bool:
+        """Replace the body of a version section with new content.
+
+        Locates the version heading and replaces everything between it
+        and the next ``##`` heading (or EOF) with ``new_body``. The
+        heading line itself is preserved.
+
+        :param version: Version string (e.g. ``1.2.3``).
+        :param new_body: New body content for the section.
+        :return: True if the content was modified.
+        """
+        section_pattern = re.compile(
+            rf"^({SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+\n)"
+            rf"(.*?)(?=^{SECTION_START}|\Z)",
+            re.MULTILINE | re.DOTALL,
+        )
+        match = section_pattern.search(self.content)
+        if not match:
+            return False
+        heading = match.group(1)
+        old_body = match.group(2)
+        # Normalize: ensure new_body has a leading blank line and
+        # trailing newline for consistent formatting.
+        formatted = f"\n{new_body.strip()}\n\n"
+        if old_body == formatted:
+            return False
+        self.content = (
+            self.content[: match.start()]
+            + heading
+            + formatted
+            + self.content[match.end() :]
+        )
+        return True
+
 
 class PyPIRelease(NamedTuple):
     """Release metadata for a single version from PyPI."""
@@ -1096,10 +1223,16 @@ def lint_changelog_dates(
             if fix:
                 modified |= changelog.fix_release_date(version, ref_date)
 
-    # In fix mode, build release admonitions for all versions based on
-    # availability in PyPI and GitHub (independently).
+    # In fix mode, decompose each version section into elements,
+    # compute updated admonitions, and reassemble via the
+    # release-notes template. This is idempotent: decomposing and
+    # re-rendering an already-correct section is a no-op.
     if fix:
+        from .github.pr_body import render_template
+
         for version, _date in releases:
+            elements = changelog.decompose_version_body(version)
+
             on_pypi = version in pypi_data
             on_github = version in github_releases
             is_yanked = on_pypi and pypi_data[version].yanked
@@ -1117,7 +1250,9 @@ def lint_changelog_dates(
                 else ""
             )
             github_url = (
-                GITHUB_RELEASE_URL.format(repo_url=repo_url, version=version)
+                GITHUB_RELEASE_URL.format(
+                    repo_url=repo_url, version=version
+                )
                 if on_github and repo_url
                 else ""
             )
@@ -1168,37 +1303,27 @@ def lint_changelog_dates(
                 missing_pypi=pypi_gap,
                 missing_github=github_gap,
             )
-
-            # Strip all availability admonitions, then re-add current ones.
-            # This is idempotent: stripping already-correct admonitions and
-            # re-adding them produces the same content.
-            snapshot = changelog.content
-            changelog.strip_availability_admonitions(version)
-            expected_admonitions = [a for a in (note, warning) if a]
-            for admonition in expected_admonitions:
-                changelog.add_admonition_after_heading(
-                    version,
-                    admonition,
-                )
-            if changelog.content != snapshot:
-                modified = True
+            # Combine NOTE and WARNING admonitions. Both can appear
+            # when a version is on one platform but not the other.
+            admonitions = [a for a in (note, warning) if a]
+            elements.availability_admonition = (
+                "\n\n".join(admonitions)
+            )
 
             if is_yanked:
-                # Strip any existing yanked admonition so the URL stays
-                # correct across project renames, then re-add.
-                changelog.remove_admonition_from_section(
-                    version, YANKED_DEDUP_MARKER
-                )
                 yanked_url = PYPI_PROJECT_URL.format(
                     package=pypi_data[version].package, version=version
                 )
-                modified |= changelog.add_admonition_after_heading(
-                    version,
-                    YANKED_ADMONITION.format(
-                        version=version, pypi_url=yanked_url
-                    ),
-                    dedup_marker=YANKED_DEDUP_MARKER,
+                elements.yanked_admonition = YANKED_ADMONITION.format(
+                    version=version, pypi_url=yanked_url
                 )
+
+            new_body = render_template(
+                "release-notes", **asdict(elements)
+            )
+            modified |= changelog.replace_section_body(
+                version, new_body
+            )
 
     if fix and modified:
         changelog_path.write_text(changelog.content, encoding="UTF-8")
