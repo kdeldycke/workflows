@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.1.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.1.0` (2026-02-26)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
 
 - Add `unsubscribe-threads` CLI command to unsubscribe from closed, inactive GitHub notification threads.
 - Generate thin caller workflows with explicit secret forwarding instead of `secrets: inherit`, eliminating zizmor's `secrets-inherit` warnings in downstream repositories.
