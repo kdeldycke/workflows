@@ -24,7 +24,6 @@ import pytest
 from repomatic.changelog import (
     Changelog,
     PyPIRelease,
-    YANKED_ADMONITION,
     build_release_admonition,
     build_unavailable_admonition,
     lint_changelog_dates,
@@ -803,7 +802,14 @@ def test_lint_fix_adds_yanked_admonition(tmp_path, monkeypatch):
     lint_changelog_dates(path, fix=True)
     content = path.read_text(encoding="UTF-8")
 
-    assert YANKED_ADMONITION in content
+    # Yanked CAUTION links to the specific PyPI project page.
+    assert (
+        "`1.1.0` has been [yanked from PyPI]"
+        "(https://pypi.org/project/my-package/1.1.0/)"
+    ) in content
+    # NOTE should show GitHub only, not PyPI (yanked release excluded).
+    assert "[🐍 PyPI](https://pypi.org/project/my-package/1.1.0/)" not in content
+    assert "[🐙 GitHub](https://github.com/user/repo/releases/tag/v1.1.0)" in content
 
 
 def test_lint_fix_no_admonition_when_nowhere(tmp_path, monkeypatch):
@@ -994,7 +1000,7 @@ def test_strip_availability_admonitions():
         > `1.0.0` is the *first version* available on [🐍 PyPI](https://pypi.org/project/pkg/1.0.0/).
 
         > [!CAUTION]
-        > This release has been [yanked from PyPI](https://docs.pypi.org/project-management/yanking/).
+        > `1.0.0` has been [yanked from PyPI](https://pypi.org/project/pkg/1.0.0/).
 
         - Initial release.
         """
@@ -1012,8 +1018,15 @@ def test_strip_availability_admonitions():
     assert "`1.0.0` is the *first version* available on" in changelog.content
     # "Not released yet" WARNING is preserved (uses "This version", not version string).
     assert "not released yet" in changelog.content
-    # YANKED CAUTION is preserved (uses "This release has been").
+    # 1.0.0's yanked CAUTION is untouched (belongs to a different version).
     assert "yanked from PyPI" in changelog.content
+
+    # Strip 1.0.0: both availability NOTE and yanked CAUTION are removed.
+    result = changelog.strip_availability_admonitions("1.0.0")
+    assert result is True
+    assert "`1.0.0` is the *first version* available on" not in changelog.content
+    assert "yanked from PyPI" not in changelog.content
+    assert "- Initial release." in changelog.content
 
 
 def test_strip_availability_admonitions_no_match():

@@ -219,12 +219,8 @@ AVAILABLE_ADMONITION = "> [!NOTE]\n> `{version}` {verb} {platforms}."
 UNAVAILABLE_ADMONITION = "> [!WARNING]\n> `{version}` {verb} {platforms}."
 """GFM admonition template for versions missing from one or more platforms."""
 
-YANKED_ADMONITION = (
-    "> [!CAUTION]\n"
-    "> This release has been"
-    " [yanked from PyPI](https://docs.pypi.org/project-management/yanking/)."
-)
-"""GFM admonition for a release that has been yanked from PyPI."""
+YANKED_ADMONITION = "> [!CAUTION]\n> `{version}` has been [yanked from PyPI]({pypi_url})."
+"""GFM admonition template for a release that has been yanked from PyPI."""
 
 YANKED_DEDUP_MARKER = "yanked from PyPI"
 """Dedup marker for the yanked admonition to prevent duplicate insertion."""
@@ -638,9 +634,9 @@ class Changelog:
         """Remove all availability admonitions from a version section.
 
         Strips GFM alert blocks where the body matches
-        ``> `{version}` is ...`` — covering NOTE (available), WARNING
-        (not available), and any wording variant. Other admonitions
-        (e.g. "not released yet", yanked) are preserved.
+        ``> `{version}` is ...`` (covering NOTE/WARNING availability
+        admonitions) or contains the ``YANKED_DEDUP_MARKER``. Other
+        admonitions (e.g. "not released yet") are preserved.
 
         :param version: Version string to locate (e.g. ``1.2.3``).
         :return: True if the content was modified.
@@ -656,9 +652,10 @@ class Changelog:
         section_text = section_match.group(0)
 
         # Find all GFM alert blocks (consecutive lines starting with "> ")
-        # and remove those where any line matches "> `{version}` is ".
-        # All availability verbs (AVAILABLE_VERB, FIRST_AVAILABLE_VERB,
-        # NOT_AVAILABLE_VERB) share the "is " prefix, so this catches all.
+        # and remove those where any line matches "> `{version}` is " or
+        # contains the yanked dedup marker. All availability verbs
+        # (AVAILABLE_VERB, FIRST_AVAILABLE_VERB, NOT_AVAILABLE_VERB) share
+        # the "is " prefix, so this catches all.
         availability_marker = f"> `{version}` is "
         admonition_pattern = re.compile(
             r"(?:^>.*$\n?)+",
@@ -666,7 +663,11 @@ class Changelog:
         )
         new_section = section_text
         for block_match in reversed(list(admonition_pattern.finditer(section_text))):
-            if availability_marker in block_match.group(0):
+            block_text = block_match.group(0)
+            if (
+                availability_marker in block_text
+                or YANKED_DEDUP_MARKER in block_text
+            ):
                 start = block_match.start()
                 end = block_match.end()
                 new_section = new_section[:start] + new_section[end:]
@@ -1101,15 +1102,18 @@ def lint_changelog_dates(
         for version, _date in releases:
             on_pypi = version in pypi_data
             on_github = version in github_releases
+            is_yanked = on_pypi and pypi_data[version].yanked
 
             # Build the NOTE admonition for platforms where available.
             # Use the package name embedded in the PyPIRelease entry so
             # renamed projects point to the correct PyPI page.
+            # Yanked releases are excluded from the NOTE — the CAUTION
+            # admonition below links to the specific PyPI page instead.
             pypi_url = (
                 PYPI_PROJECT_URL.format(
                     package=pypi_data[version].package, version=version
                 )
-                if on_pypi
+                if on_pypi and not is_yanked
                 else ""
             )
             github_url = (
@@ -1179,10 +1183,20 @@ def lint_changelog_dates(
             if changelog.content != snapshot:
                 modified = True
 
-            if on_pypi and pypi_data[version].yanked:
+            if is_yanked:
+                # Strip any existing yanked admonition so the URL stays
+                # correct across project renames, then re-add.
+                changelog.remove_admonition_from_section(
+                    version, YANKED_DEDUP_MARKER
+                )
+                yanked_url = PYPI_PROJECT_URL.format(
+                    package=pypi_data[version].package, version=version
+                )
                 modified |= changelog.add_admonition_after_heading(
                     version,
-                    YANKED_ADMONITION,
+                    YANKED_ADMONITION.format(
+                        version=version, pypi_url=yanked_url
+                    ),
                     dedup_marker=YANKED_DEDUP_MARKER,
                 )
 
