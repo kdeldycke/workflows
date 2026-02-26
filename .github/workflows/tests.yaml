@@ -94,7 +94,12 @@ jobs:
           uv run --with git+https://github.com/kdeldycke/repomatic -- repomatic --version
 
       - name: Unittests
-        run: uv --no-progress run --frozen -- pytest
+        # Produce XML artifacts for Codecov integration (coverage + test analytics).
+        run: >
+          uv --no-progress run --frozen -- pytest
+          --cov-report=xml
+          --junitxml=junit.xml
+          --override-ini=junit_family=legacy
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.5.2

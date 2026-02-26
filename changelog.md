@@ -19,6 +19,7 @@
 - Add next-step handoff suggestions to all Claude Code skills, creating a guided workflow where each skill suggests what to run next.
 - Document skills with a grouped table, recommended workflow sequence, and walkthrough example in `readme.md`.
 - Add `pypi-package-history` config option for renamed projects. `lint-changelog` now fetches releases from former package names and generates correct PyPI URLs for each version.
+- Only produce XML coverage and JUnit XML output when running `pytest` in the CI workflow.
 
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)
 
