@@ -251,7 +251,7 @@ A complete release consists of all of the following. If any are missing, the rel
 
 ## Testing guidelines
 
-- Use `@pytest.mark.parametrize` when testing the same logic for multiple inputs.
+- Use `@pytest.mark.parametrize` when testing the same logic for multiple inputs. Prefer parametrize over copy-pasted test functions that differ only in their data — it deduplicates test logic, improves readability, and makes it trivial to add new cases.
 - Keep test logic simple with straightforward asserts.
 - Tests should be sorted logically and alphabetically where applicable.
 - Test coverage is tracked with `pytest-cov` and reported to Codecov.
