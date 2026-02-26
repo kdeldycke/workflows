@@ -35,7 +35,7 @@ SAMPLE_CHANGELOG = dedent(
     """\
     # Changelog
 
-    ## [1.2.3 (unreleased)](https://github.com/user/repo/compare/v1.2.2...main)
+    ## [`1.2.3` (unreleased)](https://github.com/user/repo/compare/v1.2.2...main)
 
     > [!WARNING]
     > This version is **not released yet** and is under active development.
@@ -43,7 +43,7 @@ SAMPLE_CHANGELOG = dedent(
     - Add new feature.
     - Fix bug.
 
-    ## [1.2.2 (2024-01-15)](https://github.com/user/repo/compare/v1.2.1...v1.2.2)
+    ## [`1.2.2` (2024-01-15)](https://github.com/user/repo/compare/v1.2.1...v1.2.2)
 
     - Previous release.
     """
@@ -99,7 +99,7 @@ SAMPLE_CHANGELOG = dedent(
                 """\
                 # Changelog
 
-                ## [1.0.0 (unreleased)](https://github.com/kdeldycke/extra-platforms/compare/v1.0.0...main)
+                ## [`1.0.0` (unreleased)](https://github.com/kdeldycke/extra-platforms/compare/v1.0.0...main)
 
                 > [!WARNING]
                 > This version is **not released yet** and is under active development.
@@ -114,71 +114,6 @@ SAMPLE_CHANGELOG = dedent(
 def test_changelog_update(version, initial, updated):
     changelog = Changelog(initial, current_version=version)
     assert changelog.update() == updated
-
-
-def test_set_release_date():
-    """Test that (unreleased) is replaced with a date."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    result = changelog.set_release_date("2026-02-14")
-
-    assert result is True
-    assert "(unreleased)" not in changelog.content
-    assert "(2026-02-14)" in changelog.content
-    # Only the first occurrence is replaced.
-    assert changelog.content.count("2026-02-14") == 1
-
-
-def test_set_release_date_already_released():
-    """Test that nothing changes if no unreleased marker exists."""
-    content = "# Changelog\n\n## [1.0.0 (2024-01-01)](https://example.com)\n"
-    changelog = Changelog(content)
-    result = changelog.set_release_date("2026-02-14")
-
-    assert result is False
-    assert changelog.content == content
-
-
-def test_update_comparison_url():
-    """Test that comparison URL is pinned to version tag."""
-    changelog = Changelog(SAMPLE_CHANGELOG, current_version="1.2.3")
-    result = changelog.update_comparison_url()
-
-    assert result is True
-    assert "...main)" not in changelog.content
-    assert "...v1.2.3)" in changelog.content
-
-
-def test_update_comparison_url_custom_branch():
-    """Test comparison URL update with a non-default branch."""
-    content = SAMPLE_CHANGELOG.replace("...main)", "...develop)")
-    changelog = Changelog(content, current_version="1.2.3")
-    result = changelog.update_comparison_url(default_branch="develop")
-
-    assert result is True
-    assert "...develop)" not in changelog.content
-    assert "...v1.2.3)" in changelog.content
-
-
-def test_remove_warning():
-    """Test that the WARNING block is removed."""
-    changelog = Changelog(SAMPLE_CHANGELOG)
-    result = changelog.remove_warning()
-
-    assert result is True
-    assert "[!WARNING]" not in changelog.content
-    assert "not released yet" not in changelog.content
-    # Content after the warning is preserved.
-    assert "- Add new feature." in changelog.content
-
-
-def test_remove_warning_no_warning():
-    """Test that nothing changes if no warning exists."""
-    content = "# Changelog\n\n## [1.0.0 (2024-01-01)](url)\n\n- Change.\n"
-    changelog = Changelog(content)
-    result = changelog.remove_warning()
-
-    assert result is False
-    assert changelog.content == content
 
 
 def test_freeze():

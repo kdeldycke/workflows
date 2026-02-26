@@ -23,6 +23,7 @@
 - Add `pypi-package-history` config option for renamed projects. `lint-changelog` now fetches releases from former package names and generates correct PyPI URLs for each version.
 - Add `sync-github-releases` CLI command to sync GitHub release notes from `changelog.md`.
 - Make changelog entry and GitHub release body assembly template-driven. `release-notes.md` controls `changelog.md` layout (including the `##` version heading), `github-releases.md` controls GitHub release bodies. Editing one template affects only its destination.
+- Converge `freeze()` and `update()` onto the same decompose→render→replace pattern used by `lint_changelog_dates()`, with the `release-notes.md` template as the single source of truth for section layout.
 - Only produce XML coverage and JUnit XML output when running `pytest` in the CI workflow.
 
 ## [`6.0.1` (2026-02-24)](https://github.com/kdeldycke/repomatic/compare/v6.0.0...v6.0.1)

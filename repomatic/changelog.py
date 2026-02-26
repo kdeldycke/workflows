@@ -21,20 +21,22 @@ decisions and operations. It handles two phases of the release cycle:
 
 **Post-release (unfreeze)** — :meth:`Changelog.update`:
 
-1. Derive a new entry template from the latest release entry.
-2. Replace the release date with ``(unreleased)``.
-3. Retarget the comparison URL to ``...main``.
-4. Replace the entry body with a ``[!IMPORTANT]`` development warning.
-5. Prepend the new entry to the changelog.
+Decomposes the latest release section via :meth:`Changelog.decompose_version`,
+transforms the elements into an unreleased entry (date → ``unreleased``,
+comparison URL → ``...main``, body → development warning), renders via the
+``release-notes`` template, and prepends the result to the changelog.
 
 **Release preparation (freeze)** — :meth:`Changelog.freeze`:
 
-1. Replace ``(unreleased)`` with today's date (``YYYY-MM-DD``).
-2. Freeze the comparison URL from ``...main`` to ``...vX.Y.Z``.
-3. Remove the ``[!IMPORTANT]`` development warning.
+Decomposes the current unreleased section, sets the release date, freezes
+the comparison URL to ``...vX.Y.Z``, clears the development warning,
+renders via the ``release-notes`` template, and replaces the section
+in place.
 
-Both operations are idempotent: re-running them produces the same result.
-This is critical for CI workflows that may be retried.
+Both operations follow the same decompose → modify → render → replace
+pattern, with the ``release-notes.md`` template as the single source of
+truth for section layout. Both are idempotent: re-running them produces
+the same result. This is critical for CI workflows that may be retried.
 
 .. note::
     This is a custom implementation. After evaluating all major
@@ -132,20 +134,11 @@ from .github.releases import GitHubRelease, get_github_releases
 CHANGELOG_HEADER = "# Changelog\n"
 """Default changelog header for empty changelogs."""
 
-CHANGELOG_BODY_PATTERN = re.compile(r"\n\n.*", re.MULTILINE | re.DOTALL)
-"""Pattern matching the changelog entry body (everything after header)."""
-
 SECTION_START = "##"
 """Markdown heading level for changelog version sections."""
 
-UNRELEASED_LABEL = " (unreleased)"
-"""Label with parentheses for unreleased versions in changelog headers."""
-
 DATE_PATTERN = re.compile(r"\d{4}\-\d{2}\-\d{2}")
 """Pattern matching release dates in YYYY-MM-DD format."""
-
-DATE_LABEL_PATTERN = re.compile(r" \(\d{4}\-\d{2}\-\d{2}\)")
-"""Pattern matching release date with surrounding parentheses and space."""
 
 VERSION_COMPARE_PATTERN = re.compile(r"v(\d+\.\d+\.\d+)\.\.\.v(\d+\.\d+\.\d+)")
 """Pattern matching GitHub comparison URLs like ``v1.0.0...v1.0.1``."""
@@ -172,15 +165,6 @@ HEADING_PARTS_PATTERN = re.compile(
 
 Used by :meth:`Changelog.decompose_version` to populate the heading
 fields of :class:`VersionElements`.
-"""
-
-WARNING_PATTERN = re.compile(
-    r"^> \[!(?:IMPORTANT|WARNING)\].+?\n\n", re.MULTILINE | re.DOTALL
-)
-"""Pattern matching the first ``[!WARNING]`` GFM alert block.
-
-.. note::
-    Also matches the legacy ``[!IMPORTANT]`` variant for migration.
 """
 
 DEVELOPMENT_WARNING = (
@@ -282,160 +266,93 @@ class Changelog:
         logging.debug(f"Initial content set to:\n{self.content}")
 
     def update(self) -> str:
-        r"""Adds a new empty entry at the top of the changelog.
+        """Add a new unreleased entry at the top of the changelog.
 
-        Will return the same content as the current changelog if it has already
-        been updated.
+        Decomposes the current version section, transforms it into an
+        unreleased entry (date set to ``unreleased``, comparison URL
+        retargeted to ``main``, body replaced with the development
+        warning), and prepends it to the changelog.
 
-        This is designed to be used just after a new release has been tagged.
-        And before a post-release version increment is applied with a call to:
-
-        ```shell-session
-        $ bump-my-version bump --verbose patch
-        Starting BumpVersion 0.5.1.dev6
-        Reading config file pyproject.toml:
-        Specified version (2.17.5) does not match last tagged version (2.17.4)
-        Parsing version '2.17.5' using '(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)'
-        Parsed the following values: major=2, minor=17, patch=5
-        Attempting to increment part 'patch'
-        Values are now: major=2, minor=17, patch=6
-        New version will be '2.17.6'
-        Dry run active, won't touch any files.
-        Asserting files ./changelog.md contain the version string...
-        Found '[2.17.5 (unreleased)](' in ./changelog.md at line 2:
-        ## [2.17.5 (unreleased)](https://github.com/kdeldycke/repomatic/compare/v2.17.4...main)
-        Would change file ./changelog.md:
-        *** before ./changelog.md
-        --- after ./changelog.md
-        ***************
-        *** 1,6 ****
-          # Changelog
-
-        ! ## [2.17.5 (unreleased)](https://github.com/kdeldycke/repomatic/compare/v2.17.4...main)
-
-          > [!WARNING]
-          > This version is **not released yet** and is under active development.
-        --- 1,6 ----
-          # Changelog
-
-        ! ## [2.17.6 (unreleased)](https://github.com/kdeldycke/repomatic/compare/v2.17.4...main)
-
-          > [!WARNING]
-          > This version is **not released yet** and is under active development.
-        Would write to config file pyproject.toml:
-        *** before pyproject.toml
-        --- after pyproject.toml
-        ***************
-        *** 1,5 ****
-          [tool.bumpversion]
-        ! current_version = "2.17.5"
-          allow_dirty = true
-
-          [[tool.bumpversion.files]]
-        --- 1,5 ----
-          [tool.bumpversion]
-        ! current_version = "2.17.6"
-          allow_dirty = true
-
-          [[tool.bumpversion.files]]
-        Would not commit
-        Would not tag since we are not committing
-        ```
+        Idempotent: returns the current content unchanged if an
+        unreleased entry already exists.
         """
-        # Extract parts of the changelog or set default values.
-        sections = self.content.split(SECTION_START, 2)
-        changelog_header = sections[0] if len(sections) > 0 else f"{CHANGELOG_HEADER}\n"
-        current_entry = f"{SECTION_START}{sections[1]}" if len(sections) > 1 else ""
-        past_entries = f"{SECTION_START}{sections[2]}" if len(sections) > 2 else ""
+        if not self.current_version:
+            return self.content.rstrip()
 
-        # Derive the release template from the last entry.
-        # Replace the release date with the unreleased label.
-        new_entry = DATE_LABEL_PATTERN.sub(UNRELEASED_LABEL, current_entry, count=1)
+        from .github.pr_body import render_template
 
-        # Update GitHub's comparison URL to target the main branch.
-        new_entry = VERSION_COMPARE_PATTERN.sub(
-            f"v{self.current_version}...main", new_entry, count=1
+        elements = self.decompose_version(self.current_version)
+
+        # Idempotent: skip if an unreleased section already exists.
+        if elements.date == "unreleased":
+            return self.content.rstrip()
+
+        if not elements.version:
+            # No existing section to clone. Return header only.
+            return self.content.rstrip()
+
+        # Transform frozen entry into an unreleased entry.
+        elements.date = "unreleased"
+        elements.compare_url = VERSION_COMPARE_PATTERN.sub(
+            f"v{self.current_version}...main",
+            elements.compare_url,
         )
+        elements.development_warning = DEVELOPMENT_WARNING.strip()
+        elements.changes = ""
+        elements.availability_admonition = ""
+        elements.yanked_admonition = ""
 
-        # Replace the whole paragraph of changes by a notice message. The paragraph is
-        # identified as starting by a blank line, at which point everything gets
-        # replaced.
-        new_entry = CHANGELOG_BODY_PATTERN.sub(DEVELOPMENT_WARNING, new_entry)
+        new_entry = render_template("release-notes", **asdict(elements))
         logging.info("New generated section:\n" + indent(new_entry, " " * 2))
 
-        history = current_entry + past_entries
-        if new_entry not in history:
-            history = new_entry + history
-        return (changelog_header + history).rstrip()
+        # Split header from sections.
+        sections = self.content.split(SECTION_START, 1)
+        changelog_header = sections[0] if sections else f"{CHANGELOG_HEADER}\n"
+        history = f"{SECTION_START}{sections[1]}" if len(sections) > 1 else ""
 
-    def set_release_date(self, release_date: str) -> bool:
-        """Replace ``(unreleased)`` with the release date.
-
-        Only the first occurrence is replaced (the current release
-        section).
-
-        :param release_date: Date string in ``YYYY-MM-DD`` format.
-        :return: True if the content was modified.
-        """
-        updated = self.content.replace(UNRELEASED_LABEL, f" ({release_date})", 1)
-        if updated == self.content:
-            return False
-        self.content = updated
-        return True
-
-    def update_comparison_url(self, default_branch: str = "main") -> bool:
-        """Freeze the comparison URL to the release tag.
-
-        Replaces ``...{branch})`` with ``...vX.Y.Z)`` for the first
-        occurrence (the current release section).
-
-        :param default_branch: Branch name to replace in the URL.
-        :return: True if the content was modified.
-        """
-        updated = self.content.replace(
-            f"...{default_branch})", f"...v{self.current_version})", 1
-        )
-        if updated == self.content:
-            return False
-        self.content = updated
-        return True
-
-    def remove_warning(self) -> bool:
-        """Remove the first ``[!WARNING]`` development alert block.
-
-        Matches a multi-line block starting with ``> [!WARNING]``
-        (or legacy ``> [!IMPORTANT]``) and ending at the first blank line.
-
-        :return: True if the content was modified.
-        """
-        updated = WARNING_PATTERN.sub("", self.content, count=1)
-        if updated == self.content:
-            return False
-        self.content = updated
-        return True
+        return (changelog_header + new_entry + "\n\n" + history).rstrip()
 
     def freeze(
         self,
         release_date: str | None = None,
         default_branch: str = "main",
     ) -> bool:
-        """Run all freeze operations for release preparation.
+        """Freeze the current unreleased section for release.
 
-        Combines :meth:`set_release_date`,
-        :meth:`update_comparison_url`, and :meth:`remove_warning`
-        into a single call.
+        Decomposes the current version section, sets the release date,
+        freezes the comparison URL to the release tag, clears the
+        development warning, and re-renders via the ``release-notes``
+        template.
 
         :param release_date: Date in ``YYYY-MM-DD`` format.
             Defaults to today (UTC).
         :param default_branch: Branch name for comparison URL.
-        :return: True if any content was modified.
+        :return: True if the content was modified.
         """
         if release_date is None:
             release_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        changed = self.set_release_date(release_date)
-        changed |= self.update_comparison_url(default_branch)
-        changed |= self.remove_warning()
-        return changed
+
+        if not self.current_version:
+            return False
+
+        from .github.pr_body import render_template
+
+        elements = self.decompose_version(self.current_version)
+        if not elements.version:
+            return False
+
+        # Already frozen: nothing to do.
+        if elements.date != "unreleased":
+            return False
+
+        elements.date = release_date
+        elements.compare_url = elements.compare_url.replace(
+            f"...{default_branch}", f"...v{self.current_version}"
+        )
+        elements.development_warning = ""
+
+        new_section = render_template("release-notes", **asdict(elements))
+        return self.replace_section(self.current_version, new_section)
 
     @classmethod
     def freeze_file(
