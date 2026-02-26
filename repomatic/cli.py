@@ -76,6 +76,12 @@ from .github.pr_body import (
 )
 from .github import token as _token_mod
 from .github import unsubscribe as _unsub_mod
+from .github.release_sync import (
+    render_sync_report as _render_sync_report,
+)
+from .github.release_sync import (
+    sync_github_releases as _sync_github_releases,
+)
 from .github.unsubscribe import (
     render_report as _render_report,
 )
@@ -666,6 +672,45 @@ def sync_gitignore(output_path: Path | None) -> None:
         logging.info(f"Write to {output_path}")
 
     echo(content.rstrip(), file=prep_path(output_path))
+
+
+@repomatic.command(
+    short_help="Sync GitHub release notes from changelog",
+    section=_section_sync,
+)
+@option(
+    "--dry-run/--live",
+    default=True,
+    help="Report what would be done without making changes.",
+)
+def sync_github_releases(dry_run: bool) -> None:
+    """Sync GitHub release notes from ``changelog.md``.
+
+    Compares each GitHub release body against the corresponding
+    ``changelog.md`` section and updates any that have drifted.
+
+    \b
+    Examples:
+        # Dry run to preview what would be updated
+        repomatic sync-github-releases --dry-run
+
+    \b
+        # Update drifted release notes
+        repomatic sync-github-releases --live
+    """
+    changelog_path = Path("./changelog.md")
+    if not changelog_path.exists():
+        logging.warning("changelog.md not found.")
+        return
+
+    changelog = Changelog(changelog_path.read_text(encoding="UTF-8"))
+    repo_url = changelog.extract_repo_url()
+    if not repo_url:
+        logging.warning("Could not extract repository URL from changelog.")
+        return
+
+    result = _sync_github_releases(repo_url, changelog_path, dry_run)
+    echo(_render_sync_report(result))
 
 
 def _apply_workflow_config(

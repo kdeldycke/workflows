@@ -371,10 +371,10 @@ def _github_mock(versions):
     """
     if isinstance(versions, dict):
         return lambda repo_url: {
-            v: GitHubRelease(date=d) for v, d in versions.items()
+            v: GitHubRelease(date=d, body="") for v, d in versions.items()
         }
     return lambda repo_url: {
-        v: GitHubRelease(date="2026-01-01") for v in versions
+        v: GitHubRelease(date="2026-01-01", body="") for v in versions
     }
 
 

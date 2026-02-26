@@ -112,6 +112,7 @@ Commands:
   sponsor-label        Label issues/PRs from GitHub sponsors
   sync-bumpversion     Sync bumpversion config from bundled template
   sync-gitignore       Sync .gitignore from gitignore.io templates
+  sync-github-releases Sync GitHub release notes from changelog
   sync-linter-configs  Sync linter config files from bundled definitions
   sync-mailmap         Sync Git's .mailmap file with missing contributors
   sync-renovate        Sync Renovate config from canonical reference

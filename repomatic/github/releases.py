@@ -34,6 +34,9 @@ class GitHubRelease(NamedTuple):
     date: str
     """Publication date in ``YYYY-MM-DD`` format."""
 
+    body: str
+    """Release description body (markdown)."""
+
 
 def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
     """Get versions and dates for all GitHub releases.
@@ -79,7 +82,8 @@ def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
                 )
                 date = raw_date[:10] if raw_date else ""
                 if date:
-                    result[version] = GitHubRelease(date=date)
+                    body = release.get("body", "")
+                    result[version] = GitHubRelease(date=date, body=body)
         page += 1
 
     return result

@@ -199,13 +199,13 @@ def test_get_template_names():
     assert "sync-mailmap" in names
     assert "sync-uv-lock" in names
     assert "sync-workflows" in names
-    assert "release-notes" in names
     assert "pr-metadata" in names
     assert "fix-changelog" in names
     assert "refresh-tip" in names
     assert "setup-guide" in names
     assert "detect-squash-merge" in names
     assert "sync-linter-configs" in names
+    assert "sync-github-releases" in names
     assert len(names) == 22
 
 
@@ -463,8 +463,8 @@ REFERENCE_WORKFLOWS = (
 PROGRAMMATIC_TEMPLATES = frozenset({
     "pr-metadata",
     "refresh-tip",
-    "release-notes",
     "setup-guide",
+    "sync-github-releases",
 })
 """Templates rendered from Python code, not via the ``--template`` CLI flag."""
 

@@ -324,7 +324,6 @@ from wcmatch.glob import (
 from .changelog import Changelog
 from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
 from .github.matrix import Matrix
-from .github.pr_body import render_template
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -2088,60 +2087,28 @@ class Metadata:
 
     @cached_property
     def release_notes(self) -> str | None:
-        """Generate notes to be attached to the GitHub release."""
-        # Produce the release notes of the release version or the current one.
+        """Generate notes to be attached to the GitHub release.
+
+        Renders the ``sync-github-releases`` template with changelog
+        content for the version. The template is the single place
+        that defines the release body layout.
+        """
+        from .github.release_sync import build_expected_body
+
         version = self.released_version
         if not version:
             version = self.current_version
         if not version:
             return None
 
-        # Extract the changelog entry for this version.
-        changes = ""
         changelog_path = Path("./changelog.md")
-        if changelog_path.exists():
-            changelog = Changelog(
-                changelog_path.read_text(encoding="UTF-8"),
-            )
-            changes = changelog.extract_version_notes(version)
-            if changes:
-                changes = "### Changes\n\n" + changes
+        if not changelog_path.exists():
+            return None
 
-        # Generate links to the version published on PyPI and GitHub.
-        pypi_link = ""
-        from .changelog import (
-            GITHUB_RELEASE_URL,
-            PYPI_PROJECT_URL,
-            build_release_admonition,
+        changelog = Changelog(
+            changelog_path.read_text(encoding="UTF-8"),
         )
-
-        pypi_url = ""
-        if self.package_name:
-            pypi_url = PYPI_PROJECT_URL.format(
-                package=self.package_name, version=version
-            )
-        github_url = ""
-        repo_url = changelog.extract_repo_url()
-        if repo_url:
-            github_url = GITHUB_RELEASE_URL.format(repo_url=repo_url, version=version)
-        pypi_link = build_release_admonition(
-            version, pypi_url=pypi_url, github_url=github_url
-        )
-
-        # Generate a "Full Changelog" link from the changelog heading URL.
-        changelog_link = ""
-        if changelog_path.exists():
-            url = changelog.extract_version_url(version)
-            if url:
-                changelog_link = f"**Full Changelog**: {url}"
-
-        # Assemble the release notes from the template.
-        notes = render_template(
-            "release-notes",
-            changes_section=changes,
-            pypi_link=pypi_link,
-            changelog_link=changelog_link,
-        )
+        notes = build_expected_body(changelog, version)
         return notes or None
 
     @staticmethod

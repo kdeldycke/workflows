@@ -421,6 +421,8 @@ expected = {
         "repomatic/github/issue.py",
         "repomatic/github/matrix.py",
         "repomatic/github/pr_body.py",
+        "repomatic/github/release_sync.py",
+        "repomatic/github/releases.py",
         "repomatic/github/token.py",
         "repomatic/github/unsubscribe.py",
         "repomatic/github/workflow_sync.py",
@@ -428,6 +430,7 @@ expected = {
         "repomatic/lint_repo.py",
         "repomatic/mailmap.py",
         "repomatic/metadata.py",
+        "repomatic/prebake.py",
         "repomatic/release_prep.py",
         "repomatic/renovate.py",
         "repomatic/sponsor.py",
@@ -445,7 +448,9 @@ expected = {
         "tests/test_matrix.py",
         "tests/test_metadata.py",
         "tests/test_pr_body.py",
+        "tests/test_prebake.py",
         "tests/test_release_prep.py",
+        "tests/test_release_sync.py",
         "tests/test_renovate.py",
         "tests/test_sync_renovate.py",
         "tests/test_workflow_sync.py",
@@ -510,18 +515,18 @@ expected = {
         "readme.md",
         "repomatic/templates/bump-version.md",
         "repomatic/templates/detect-squash-merge.md",
+        "repomatic/templates/fix-changelog.md",
         "repomatic/templates/fix-typos.md",
         "repomatic/templates/format-json.md",
         "repomatic/templates/format-markdown.md",
         "repomatic/templates/format-pyproject.md",
         "repomatic/templates/format-python.md",
-        "repomatic/templates/fix-changelog.md",
         "repomatic/templates/pr-metadata.md",
         "repomatic/templates/prepare-release.md",
         "repomatic/templates/refresh-tip.md",
-        "repomatic/templates/release-notes.md",
         "repomatic/templates/setup-guide.md",
         "repomatic/templates/sync-bumpversion.md",
+        "repomatic/templates/sync-github-releases.md",
         "repomatic/templates/sync-gitignore.md",
         "repomatic/templates/sync-linter-configs.md",
         "repomatic/templates/sync-mailmap.md",
@@ -548,18 +553,18 @@ expected = {
         "readme.md",
         "repomatic/templates/bump-version.md",
         "repomatic/templates/detect-squash-merge.md",
+        "repomatic/templates/fix-changelog.md",
         "repomatic/templates/fix-typos.md",
         "repomatic/templates/format-json.md",
         "repomatic/templates/format-markdown.md",
         "repomatic/templates/format-pyproject.md",
         "repomatic/templates/format-python.md",
-        "repomatic/templates/fix-changelog.md",
         "repomatic/templates/pr-metadata.md",
         "repomatic/templates/prepare-release.md",
         "repomatic/templates/refresh-tip.md",
-        "repomatic/templates/release-notes.md",
         "repomatic/templates/setup-guide.md",
         "repomatic/templates/sync-bumpversion.md",
+        "repomatic/templates/sync-github-releases.md",
         "repomatic/templates/sync-gitignore.md",
         "repomatic/templates/sync-linter-configs.md",
         "repomatic/templates/sync-mailmap.md",
@@ -585,20 +590,19 @@ expected = {
     "released_version": OptionalVersionString(regex(r"[0-9]+\.[0-9]+\.[0-9]+")),
     "is_sphinx": False,
     "active_autodoc": False,
-    # Release notes vary based on development vs release state.
-    # Development: contains "not released yet" warning.
-    # Release: contains actual changelog content and PyPI link.
+    # Release notes are verbatim changelog content.
+    # Development: starts with the unreleased warning admonition.
+    # Release: contains actual changelog entries (bullets, admonitions).
     "release_notes": AnyReleaseNotes(
         dev_pattern=regex(
-            r"### Changes\n\n"
             r"> \[\!WARNING\]\n"
             r"> This version is \*\*not released yet\*\* and is under active development\.\n\n"
             r".+"
         ),
         release_pattern=regex(
-            r"(?:### Changes\n\n(?!> \[\!WARNING\]).+|"  # With changelog entries.
-            # Without.
-            r"> \[\!NOTE\]\n> `.+` is available on \[🐍 PyPI\].+ and \[🐙 GitHub\].+)"
+            r"(?:(?!> \[\!WARNING\]).+|"  # With changelog entries.
+            # With admonition (e.g. NOTE or CAUTION).
+            r"> \[\!(NOTE|CAUTION)\]\n>.+)"
         ),
     ),
     # new_commits_matrix is None when running outside GitHub Actions.
