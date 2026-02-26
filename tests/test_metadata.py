@@ -1085,8 +1085,11 @@ def test_is_version_bump_allowed_uses_commit_fallback():
     assert isinstance(result, bool)
 
 
-def test_repomatic_config_defaults():
+def test_repomatic_config_defaults(tmp_path, monkeypatch):
     """Test that [tool.repomatic] config properties return sensible defaults."""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text('[project]\nname = "test-project"\nversion = "1.0.0"\n')
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
     metadata = Metadata()
     assert metadata.config["test-plan-file"] == "./tests/cli-test-plan.yaml"
     assert metadata.config["timeout"] is None
@@ -1187,8 +1190,11 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
     ]
 
 
-def test_unstable_targets_default():
+def test_unstable_targets_default(tmp_path, monkeypatch):
     """Test that unstable_targets defaults to an empty set."""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text('[project]\nname = "test-project"\nversion = "1.0.0"\n')
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
     metadata = Metadata()
     assert metadata.unstable_targets == set()
 
