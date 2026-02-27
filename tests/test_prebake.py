@@ -74,17 +74,11 @@ def test_no_version_in_file(init_file):
     assert result is None
 
 
-def test_no_git_hash_returns_none(init_file):
-    """Without a hash and no git, returns None."""
+def test_empty_hash_raises(init_file):
+    """An empty hash raises TypeError — callers must provide a valid hash."""
     p = init_file('__version__ = "1.0.0.dev0"\n')
-    result = prebake_version(p, git_hash=None)
-    # May or may not succeed depending on whether git is available in the
-    # test environment.  If running inside a git repo it will succeed; if not,
-    # it returns None.  Either outcome is acceptable.
-    if result is None:
-        assert '__version__ = "1.0.0.dev0"' in p.read_text()
-    else:
-        assert "+" in result
+    with pytest.raises(TypeError):
+        prebake_version(p)
 
 
 def test_idempotent(init_file):

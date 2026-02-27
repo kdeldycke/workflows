@@ -2511,6 +2511,16 @@ def prebake_version_cmd(git_hash, module_path):
         # Pre-bake a specific file
         repomatic prebake-version --module mypackage/__init__.py
     """
+    if git_hash is None:
+        from click_extra import ExtraVersionOption
+
+        git_hash = ExtraVersionOption(module_file=__file__).git_short_hash
+        if not git_hash:
+            raise ClickException(
+                "No --hash provided and Git hash auto-detection failed. "
+                "Pass --hash explicitly or run from a Git repository."
+            )
+
     if module_path:
         # Explicit file provided — just pre-bake it.
         result = prebake_version(module_path, git_hash=git_hash)

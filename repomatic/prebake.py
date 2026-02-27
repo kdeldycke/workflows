@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import logging
 import re
-import subprocess
 from pathlib import Path
 
 # Matches: __version__ = "1.2.3.dev0"  (with optional single/double quotes)
@@ -37,23 +36,7 @@ _VERSION_RE = re.compile(
 )
 
 
-def get_git_short_hash() -> str | None:
-    """Return the short Git hash of HEAD, or ``None`` if unavailable."""
-    try:
-        result = subprocess.run(
-            ("git", "rev-parse", "--short", "HEAD"),
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip()
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        pass
-    return None
-
-
-def prebake_version(file_path: Path, git_hash: str | None = None) -> str | None:
+def prebake_version(file_path: Path, git_hash: str) -> str | None:
     """Pre-bake a ``__version__`` string with a Git hash.
 
     Reads *file_path*, finds the ``__version__`` assignment, and — if the
@@ -61,8 +44,7 @@ def prebake_version(file_path: Path, git_hash: str | None = None) -> str | None:
     ``+<git_hash>``.
 
     Returns the new version string on success, or ``None`` if no change was
-    made (release version, already pre-baked, no ``__version__`` found, or
-    Git unavailable).
+    made (release version, already pre-baked, or no ``__version__`` found).
     """
     source = file_path.read_text(encoding="utf-8")
 
@@ -81,14 +63,6 @@ def prebake_version(file_path: Path, git_hash: str | None = None) -> str | None:
         logging.info(
             f"Version {version!r} in {file_path} already has a local identifier"
             " — skipping."
-        )
-        return None
-
-    if git_hash is None:
-        git_hash = get_git_short_hash()
-    if not git_hash:
-        logging.warning(
-            f"Cannot pre-bake {version!r}: no Git hash provided and git is unavailable."
         )
         return None
 
