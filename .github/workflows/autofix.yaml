@@ -316,18 +316,23 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.image_files
-    # Cannot use "ubuntu-slim" here because calibreapp/image-actions rely on Docker.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
-      - uses: calibreapp/image-actions@1.4.1
-        id: image_actions
-        with:
-          compressOnly: true
+      - name: Install image optimization tools
+        run: >
+          sudo apt-get update &&
+          sudo apt-get install --yes --no-install-recommends
+          oxipng jpegoptim
+      - name: Optimize images
+        id: optimize
+        run: >
+          uvx --no-progress --from . repomatic optimize-images
+          --output "$GITHUB_OUTPUT"
       - id: pr-metadata
         env:
-          GHA_PR_BODY_PREFIX: ${{ steps.image_actions.outputs.markdown }}
+          GHA_PR_BODY_PREFIX: ${{ steps.optimize.outputs.markdown }}
         run: uvx --no-progress --from . repomatic pr-body --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:

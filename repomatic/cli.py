@@ -64,6 +64,11 @@ from .deps_graph import (
 )
 from .git_ops import create_and_push_tag
 from .github.actions import format_multiline_output
+from .images import (
+    DEFAULT_MIN_SAVINGS_PCT,
+    generate_markdown_summary,
+    optimize_images,
+)
 from .github.pr_body import (
     _repo_url,
     build_pr_body,
@@ -2543,6 +2548,85 @@ def update_checksums_cmd(workflow_file: Path) -> None:
         echo(f"  New: {new_hash}")
     if not updated:
         logging.info("All checksums are up to date.")
+
+
+@repomatic.command(
+    name="optimize-images",
+    short_help="Optimize images with CLI tools",
+    section=_section_setup,
+)
+@option(
+    "--min-savings",
+    type=FloatRange(0, 100),
+    default=DEFAULT_MIN_SAVINGS_PCT,
+    show_default=True,
+    help="Minimum percentage savings to keep an optimized file.",
+)
+@option(
+    "-o",
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default="-",
+    help="Output file path. Defaults to stdout.",
+)
+def optimize_images_cmd(min_savings: float, output: Path) -> None:
+    """Optimize images in the repository using external CLI tools.
+
+    Discovers PNG and JPEG files and compresses them losslessly in-place using
+    ``oxipng`` and ``jpegoptim``. Produces a markdown summary table showing
+    before/after sizes and savings.
+
+    Only lossless optimizers are used so that results are idempotent — running
+    the command twice produces no further changes. See ``repomatic.images`` for
+    the rationale on excluding WebP and AVIF.
+
+    When ``--output`` points to ``$GITHUB_OUTPUT``, the markdown summary is
+    written as a ``markdown`` output variable in heredoc format.
+
+    \b
+    Required tools (install via apt):
+        sudo apt-get install oxipng jpegoptim
+
+    \b
+    Examples:
+        # Optimize images and print summary
+        repomatic optimize-images
+
+    \b
+        # Write markdown output for GitHub Actions
+        repomatic optimize-images --output "$GITHUB_OUTPUT"
+
+    \b
+        # Use a 10% minimum savings threshold
+        repomatic optimize-images --min-savings 10
+    """
+    image_files = Metadata().image_files
+    if not image_files:
+        echo("No image files found.")
+        return
+
+    logging.info(f"Found {len(image_files)} image file(s) to optimize.")
+    results = optimize_images(image_files, min_savings_pct=min_savings)
+    markdown = generate_markdown_summary(results)
+
+    github_output_path = os.getenv("GITHUB_OUTPUT", "")
+    is_github_output = (
+        not is_stdout(output)
+        and github_output_path
+        and str(output) == github_output_path
+    )
+
+    if is_github_output:
+        content = format_multiline_output("markdown", markdown)
+    else:
+        content = markdown
+
+    if is_stdout(output):
+        logging.info(f"Print image optimization summary to {sys.stdout.name}")
+    else:
+        logging.info(f"Write image optimization summary to {output}")
+
+    echo(content, file=prep_path(output))
 
 
 @repomatic.command(short_help="Pre-bake __version__ with Git commit hash", section=_section_release)

@@ -296,7 +296,7 @@ GitHub Actions has several design limitations that the workflows work around:
 
 - 🖼️ **Optimize images** (`optimize-images`)
 
-  - Compresses images in the repository using [`image-actions`](https://github.com/calibreapp/image-actions)
+  - Losslessly compresses PNG and JPEG images using [`repomatic optimize-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
   - **Requires**:
     - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
 

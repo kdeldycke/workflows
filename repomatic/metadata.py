@@ -1603,8 +1603,8 @@ class Metadata:
     def image_files(self) -> list[Path]:
         """Returns a list of image files.
 
-        Inspired by the list of image extensions supported by calibre's image-actions:
-        https://github.com/calibreapp/image-actions/blob/f325757/src/constants.ts#L32
+        Covers the formats handled by ``repomatic optimize-images``: JPEG, PNG,
+        WebP, and AVIF. See :mod:`repomatic.images` for the optimization tools.
         """
         return self.glob_files("**/*.{jpeg,jpg,png,webp,avif}")
 

@@ -15,6 +15,7 @@
 - Support GitHub immutable releases by restructuring the release workflow to draft-then-publish.
 - Add `repomatic-topics` skill for optimizing GitHub repository topics for discoverability.
 - Add `lint-repo` check that warns when GitHub topics are not a subset of `pyproject.toml` keywords.
+- Replace `calibreapp/image-actions` with `repomatic optimize-images` CLI command using lossless `oxipng` (PNG) and `jpegoptim` (JPEG). Exclude WebP and AVIF for lack of stability.
 - Use GFM admonitions (`> [!WARNING]`) instead of emoji-prefixed blockquotes in the setup guide template.
 - Add `sync-dev-release` CLI command and workflow job to maintain a rolling dev pre-release on GitHub with latest binaries and Python package.
 
