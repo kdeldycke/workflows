@@ -7,6 +7,8 @@
 
 - Consolidate documentation.
 - Trim verbose workflow YAML comments that are now documented in Python code, replacing them with brief pointers to the relevant module.
+- Add knowledge placement guide to `CLAUDE.md` with audience-based routing table and YAML→Python distillation pattern.
+- Add misplaced knowledge detection to QA agent checklists.
 
 ## [`6.1.0` (2026-02-26)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
 

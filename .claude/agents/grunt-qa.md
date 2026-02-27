@@ -40,6 +40,7 @@ These issues recur across sessions — check them every pass:
 - `GitHub Actions` miscapitalized as "GitHub actions" or "Github Actions"
 - Workflow job descriptions missing or outdated after job renames/additions
 - Grammar errors in CLI help strings (`"does not exists"`, missing periods)
+- Verbose "why" explanations in YAML workflow comments that belong in Python docstrings (see `CLAUDE.md` § Knowledge placement)
 
 ## What you report to qa-engineer
 
