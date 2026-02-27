@@ -62,9 +62,8 @@ That's it. The workflows will start running and guide you through any remaining 
 
 Run `repomatic init --help` to see available components and options.
 
-## `repomatic` CLI
 
-`repomatic` stands for *GitHub Actions workflows utilities*.
+## `repomatic` CLI
 
 ### Try it
 
@@ -133,9 +132,6 @@ repomatic, version 5.9.1
 
 That's the best way to get started with `repomatic` and experiment with it.
 
-> [!TIP]
-> Development versions use a `.devN` suffix per [PEP 440](https://peps.python.org/pep-0440/#developmental-releases). When running from a Git clone, the short commit hash is appended as a local version identifier (e.g., `5.9.2.dev0+abc1234`).
-
 ### Executables
 
 To ease deployment, standalone executables of `repomatic`'s latest version are available as direct downloads for several platforms and architectures:
@@ -148,19 +144,6 @@ To ease deployment, standalone executables of `repomatic`'s latest version are a
 
 That way you have a chance to try it out without installing Python or `uv`. Or embed it in your CI/CD pipelines running on minimal images. Or run it on old platforms without worrying about dependency hell.
 
-> [!NOTE]
-> ABI targets:
->
-> ```shell-session
-> $ file ./repomatic-*
-> ./repomatic-linux-arm64.bin:   ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=520bfc6f2bb21f48ad568e46752888236552b26a, for GNU/Linux 3.7.0, stripped
-> ./repomatic-linux-x64.bin:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=56ba24bccfa917e6ce9009223e4e83924f616d46, for GNU/Linux 3.2.0, stripped
-> ./repomatic-macos-arm64.bin:   Mach-O 64-bit executable arm64
-> ./repomatic-macos-x64.bin:     Mach-O 64-bit executable x86_64
-> ./repomatic-windows-arm64.exe: PE32+ executable (console) Aarch64, for MS Windows
-> ./repomatic-windows-x64.exe:   PE32+ executable (console) x86-64, for MS Windows
-> ```
-
 ### Development version
 
 To play with the latest development version of `repomatic`, you can run it directly from the repository:
@@ -170,31 +153,7 @@ $ uvx --from git+https://github.com/kdeldycke/repomatic -- repomatic --version
 repomatic, version 5.9.2.dev0+3eb8894
 ```
 
-## Reusable workflows collection
-
-This repository contains workflows to automate most of the boring tasks in the form of [reusable GitHub Actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
-
-### Example usage
-
-The fastest way to adopt these workflows is with `repomatic init` (see [Quick start](#quick-start)). It generates all the thin-caller workflow files for you.
-
-If you prefer to set up a single workflow manually, create a `.github/workflows/lint.yaml` file [using the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow):
-
-```yaml
-name: Lint
-on:
-  push:
-  pull_request:
-
-jobs:
-  lint:
-    uses: kdeldycke/repomatic/.github/workflows/lint.yaml@v5.9.1
-```
-
-> [!IMPORTANT]
-> [Concurrency is already configured](#concurrency-and-cancellation) in the reusable workflows—you don't need to re-specify it in your calling workflow.
-
-### `[tool.repomatic]` configuration
+## `[tool.repomatic]` configuration
 
 Downstream projects can customize workflow behavior by adding a `[tool.repomatic]` section in their `pyproject.toml`:
 
@@ -270,6 +229,30 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 > | [uv](https://docs.astral.sh/uv/reference/settings/)                  | `[tool.uv]`                 | Package resolution and build config |
 >
 > See [click-extra's inventory of `pyproject.toml`-aware tools](https://kdeldycke.github.io/click-extra/config.html#pyproject-toml) for a broader list.
+
+## Reusable workflows collection
+
+This repository contains workflows to automate most of the boring tasks in the form of [reusable GitHub Actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
+
+### Example usage
+
+The fastest way to adopt these workflows is with `repomatic init` (see [Quick start](#quick-start)). It generates all the thin-caller workflow files for you.
+
+If you prefer to set up a single workflow manually, create a `.github/workflows/lint.yaml` file [using the `uses` syntax](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow):
+
+```yaml
+name: Lint
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    uses: kdeldycke/repomatic/.github/workflows/lint.yaml@v5.9.1
+```
+
+> [!IMPORTANT]
+> [Concurrency is already configured](#concurrency-and-cancellation) in the reusable workflows—you don't need to re-specify it in your calling workflow.
 
 ### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autofix.yaml)
 

@@ -49,7 +49,21 @@ BINARY_ARCH_MAPPINGS: Final[dict[str, tuple[str, str]]] = {
     "windows-arm64": ("MachineType", "ARM64"),
     "windows-x64": ("MachineType", "AMD64"),
 }
-"""Mapping of build targets to (exiftool_field, expected_substring) tuples."""
+"""Mapping of build targets to (exiftool_field, expected_substring) tuples.
+
+ABI signatures reported by ``file(1)`` for each compiled binary:
+
+- ``linux-arm64``: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV),
+  dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, for GNU/Linux 3.7.0,
+  stripped
+- ``linux-x64``: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV),
+  dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,
+  stripped
+- ``macos-arm64``: Mach-O 64-bit executable arm64
+- ``macos-x64``: Mach-O 64-bit executable x86_64
+- ``windows-arm64``: PE32+ executable (console) Aarch64, for MS Windows
+- ``windows-x64``: PE32+ executable (console) x86-64, for MS Windows
+"""
 
 
 def get_exiftool_command() -> str:
