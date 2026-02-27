@@ -65,4 +65,4 @@ This issue will close automatically once the secret is detected.
 
 ---
 
-🤖 Generated with [repomatic](https://github.com/kdeldycke/repomatic)
+🏭 Generated with [repomatic](https://github.com/kdeldycke/repomatic)

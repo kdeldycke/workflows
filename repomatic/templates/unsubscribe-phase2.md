@@ -8,4 +8,4 @@ args: [mode, phase2_content]
 
 ---
 
-🤖 Generated with [repomatic](https://github.com/kdeldycke/repomatic)
+🏭 Generated with [repomatic](https://github.com/kdeldycke/repomatic)

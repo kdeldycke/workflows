@@ -583,7 +583,7 @@ expected = {
     "is_python_project": True,
     "nuitka": True,
     "package_name": "repomatic",
-    "project_description": "🧩 CLI for GitHub Actions + reusable workflows",
+    "project_description": "🏭 Automate repository maintenance, releases, and CI/CD workflows",
     "mypy_params": "--python-version 3.10",
     "current_version": regex(r"[0-9\.]+(\.dev[0-9]+)?"),
     # released_version is None during development, but contains a version string

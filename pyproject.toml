@@ -6,30 +6,29 @@ requires = [ "uv-build>=0.9" ]
 # Docs: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 name = "repomatic"
 version = "6.1.1.dev0"
-description = "🧩 CLI for GitHub Actions + reusable workflows"
+description = "🏭 Automate repository maintenance, releases, and CI/CD workflows"
 readme = "readme.md"
 keywords = [
-  "build-automation",
   "changelog-formatter",
-  "ci-cd",
-  "cli",
-  "formatting",
+  "dependabot-alternative",
   "github-actions",
-  "labels",
-  "linting",
-  "markdown",
+  "github-labels",
+  "github-workflow",
+  "gitignore",
+  "mailmap",
   "mypy",
   "nuitka",
-  "packaging",
-  "pypi",
-  "python",
+  "python-automation",
   "release-automation",
-  "sphinx",
-  "sponsorship",
-  "terminal",
+  "renovate",
+  "repository-automation",
+  "repository-management",
+  "reusable-workflows",
+  "software-factory",
+  "sphinx-doc",
   "typo",
+  "uv",
   "workflow-reusable",
-  "yaml",
 ]
 license = "GPL-2.0-or-later"
 license-files = [ "license" ]
