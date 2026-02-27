@@ -156,6 +156,7 @@ pypi-package-history = ["old-name", "older-name"]
 renovate-sync = false
 workflow-sync = false
 workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
+init-exclude = ["linters", "skills"]
 ```
 
 | Option                        | Type      | Default                                           | Description                                                                                                                                          |
@@ -181,7 +182,8 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `pypi-package-history`        | list[str] | `[]`                                              | Former PyPI package names for renamed projects. `lint-changelog` fetches releases from each name and generates correct PyPI URLs per version.         |
 | `renovate-sync`               | bool      | `true`                                            | Enable Renovate config sync. Set to `false` to skip `sync-renovate` in the autofix workflow.                                                         |
 | `workflow-sync`               | bool      | `true`                                            | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                             |
-| `workflow-sync-exclude`       | list[str] | `[]`                                              | Workflow filenames to exclude from sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                       |
+| `init-exclude`                | list[str] | `[]`                                              | Component names to exclude from `repomatic init` default selection (e.g., `["linters", "skills"]`). Explicit CLI positional arguments override this list. |
+| `workflow-sync-exclude`       | list[str] | `[]`                                              | Workflow filenames to exclude from init/sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                  |
 
 > [!TIP]
 > The workflows also invoke tools that read their own `[tool.*]` sections from your `pyproject.toml`. You can customize their behavior in your project without forking or patching the workflows:

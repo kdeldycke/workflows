@@ -397,12 +397,21 @@ class Config:
     to sync thin callers or headers can set this to ``false``.
     """
 
+    init_exclude: list[str] = field(default_factory=list)
+    """Component names to exclude from ``repomatic init`` default selection.
+
+    Each entry is a component name (e.g., ``"linters"``, ``"skills"``) that will be
+    skipped when running ``repomatic init`` without explicit positional arguments.
+    Explicit CLI positional arguments override this list.
+    """
+
     workflow_sync_exclude: list[str] = field(default_factory=list)
-    """Workflow filenames to exclude from ``workflow sync`` and ``workflow create``.
+    """Workflow filenames to exclude from ``repomatic init``, ``workflow sync``, and
+    ``workflow create``.
 
     Each entry is a workflow filename (e.g., ``"debug.yaml"``) that will be skipped
-    when syncing or creating workflow files without explicit positional arguments.
-    Explicit CLI positional arguments override this list.
+    when initializing, syncing, or creating workflow files without explicit positional
+    arguments. Explicit CLI positional arguments override this list.
     """
 
     test_plan_file: str = "./tests/cli-test-plan.yaml"
@@ -525,6 +534,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "gitignore_extra_categories",
     "gitignore_extra_content",
     "gitignore_location",
+    "init_exclude",
     "pypi_package_history",
     "renovate_sync",
     "test_plan",

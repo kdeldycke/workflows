@@ -693,6 +693,12 @@ class InitResult:
     skipped: list[str] = field(default_factory=list)
     """Relative paths of skipped (already existing) files."""
 
+    excluded_components: list[str] = field(default_factory=list)
+    """Component names excluded by ``init-exclude`` config."""
+
+    excluded_workflows: list[str] = field(default_factory=list)
+    """Workflow filenames excluded by ``workflow-sync-exclude`` config."""
+
     warnings: list[str] = field(default_factory=list)
     """Warning messages emitted during initialization."""
 
@@ -723,9 +729,34 @@ def run_init(
     selected = set(components) if components else set(DEFAULT_COMPONENTS)
     result = InitResult()
 
+    # Apply config exclusions when no explicit components given.
+    workflow_exclude: frozenset[str] = frozenset()
+    if not components:
+        from .metadata import load_repomatic_config
+
+        config = load_repomatic_config()
+        init_exclude: list[str] = config.get("init-exclude", [])
+        if init_exclude:
+            exclude_set = set(init_exclude)
+            unknown = exclude_set - set(ALL_COMPONENTS)
+            for name in sorted(unknown):
+                logging.warning(
+                    f"Unknown component in init-exclude: {name!r}. "
+                    f"Known components: {', '.join(sorted(ALL_COMPONENTS))}"
+                )
+            actually_excluded = exclude_set & selected
+            selected -= exclude_set
+            result.excluded_components = sorted(actually_excluded)
+
+        wf_exclude: list[str] = config.get("workflow-sync-exclude", [])
+        if wf_exclude:
+            workflow_exclude = frozenset(wf_exclude)
+
     # Workflows.
     if "workflows" in selected:
-        _init_workflows(output_dir, repo, version, overwrite, result)
+        _init_workflows(
+            output_dir, repo, version, overwrite, result, exclude=workflow_exclude
+        )
 
     # Config file components (labels, linters, renovate, skills).
     for component_name in ("labels", "linters", "renovate", "skills"):
@@ -754,14 +785,29 @@ def _init_workflows(
     version: str,
     overwrite: bool,
     result: InitResult,
+    *,
+    exclude: frozenset[str] = frozenset(),
 ) -> None:
     """Generate thin-caller workflow files."""
     # Lazy import to avoid circular dependency with workflow_sync.
     from .github.workflow_sync import REUSABLE_WORKFLOWS, generate_thin_caller
 
+    workflows = REUSABLE_WORKFLOWS
+    if exclude:
+        all_known = set(REUSABLE_WORKFLOWS)
+        unknown = exclude - all_known
+        for name in sorted(unknown):
+            logging.warning(
+                f"Unknown workflow in workflow-sync-exclude: {name!r}. "
+                f"Known workflows: {', '.join(sorted(all_known))}"
+            )
+        actually_excluded = exclude & all_known
+        workflows = tuple(w for w in workflows if w not in exclude)
+        result.excluded_workflows = sorted(actually_excluded)
+
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)
-    for filename in REUSABLE_WORKFLOWS:
+    for filename in workflows:
         target = workflows_dir / filename
         rel = target.relative_to(output_dir).as_posix()
         if target.exists() and not overwrite:

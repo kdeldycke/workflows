@@ -317,6 +317,16 @@ def init_project(
     )
 
     # Print summary.
+    if result.excluded_components:
+        echo(
+            "Excluded by config: "
+            + ", ".join(result.excluded_components)
+        )
+    if result.excluded_workflows:
+        echo(
+            "Excluded workflows by config: "
+            + ", ".join(result.excluded_workflows)
+        )
     if result.created:
         echo(f"Created {len(result.created)} file(s):")
         for path in result.created:
@@ -334,7 +344,7 @@ def init_project(
             "  1. Create a WORKFLOW_UPDATE_GITHUB_PAT secret"
             " in your repository settings."
         )
-        echo("     See: https://github.com/kdeldycke/repomatic#secrets")
+        echo("     See: https://github.com/kdeldycke/repomatic#permissions-and-token")
         echo("  2. If using GitHub Pages for docs, enable it in repository settings.")
         echo("  3. Commit the generated files and push.")
 

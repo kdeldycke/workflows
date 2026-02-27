@@ -25,6 +25,7 @@ from tempfile import NamedTemporaryFile
 import pytest
 
 from repomatic.init_project import (
+    ALL_COMPONENTS,
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     INIT_CONFIGS,
@@ -884,3 +885,128 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
     assert "serialize" in bv
     assert "parts" in bv
     assert "dev" in bv["parts"]
+
+
+# --- Init exclusion tests ---
+
+
+def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify init-exclude config skips listed components."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'init-exclude = ["linters", "skills"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    # Linter and skill files should not be created.
+    assert "zizmor.yaml" not in created_set
+    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+        assert rel_path not in created_set
+
+    # Other default components should still be created.
+    assert "changelog.md" in created_set
+    assert "renovate.json5" in created_set
+
+    # Verify excluded_components is populated.
+    assert result.excluded_components == ["linters", "skills"]
+    assert result.excluded_workflows == []
+
+
+def test_init_respects_workflow_sync_exclude(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify workflow-sync-exclude config skips listed workflows during init."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'workflow-sync-exclude = ["debug.yaml", "docs.yaml"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    # Excluded workflows should not be created.
+    assert ".github/workflows/debug.yaml" not in created_set
+    assert ".github/workflows/docs.yaml" not in created_set
+
+    # Other workflows should still be created.
+    assert ".github/workflows/lint.yaml" in created_set
+    assert ".github/workflows/release.yaml" in created_set
+
+    # Verify excluded_workflows is populated.
+    assert result.excluded_components == []
+    assert result.excluded_workflows == ["debug.yaml", "docs.yaml"]
+
+
+def test_init_explicit_components_bypass_exclude(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify explicit CLI components override both exclusion lists."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'init-exclude = ["linters", "skills", "changelog"]\n'
+        'workflow-sync-exclude = ["debug.yaml"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    # Explicitly request excluded components.
+    result = run_init(output_dir=tmp_path, components=("linters", "changelog"))
+
+    created_set = set(result.created)
+    # Explicitly requested components should be created despite exclusion.
+    assert "zizmor.yaml" in created_set
+    assert "changelog.md" in created_set
+
+    # Exclusion lists should be empty when explicit components given.
+    assert result.excluded_components == []
+    assert result.excluded_workflows == []
+
+
+def test_init_exclude_unknown_warns(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+):
+    """Verify unknown component name in init-exclude logs a warning."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'init-exclude = ["nonexistent-component"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with caplog.at_level("WARNING"):
+        run_init(output_dir=tmp_path)
+
+    assert "Unknown component in init-exclude: 'nonexistent-component'" in caplog.text
+
+
+def test_init_workflow_exclude_unknown_warns(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+):
+    """Verify unknown workflow name in workflow-sync-exclude logs a warning."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'workflow-sync-exclude = ["nonexistent.yaml"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with caplog.at_level("WARNING"):
+        run_init(output_dir=tmp_path)
+
+    assert "Unknown workflow in workflow-sync-exclude: 'nonexistent.yaml'" in caplog.text

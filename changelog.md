@@ -10,6 +10,7 @@
 - Add knowledge placement guide to `CLAUDE.md` with audience-based routing table and YAML→Python distillation pattern.
 - Add misplaced knowledge detection to QA agent checklists.
 - Add `rename-from` rules to migrate all 9 default GitHub labels.
+- Add `init-exclude` config option to skip components during `repomatic init`. Extend `workflow-sync-exclude` to also apply to `repomatic init` workflows.
 
 ## [`6.1.0` (2026-02-26)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
 
