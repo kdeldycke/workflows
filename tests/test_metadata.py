@@ -430,7 +430,6 @@ expected = {
         "repomatic/lint_repo.py",
         "repomatic/mailmap.py",
         "repomatic/metadata.py",
-        "repomatic/prebake.py",
         "repomatic/release_prep.py",
         "repomatic/renovate.py",
         "repomatic/sponsor.py",

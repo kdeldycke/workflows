@@ -108,7 +108,7 @@ from .metadata import (
     is_version_bump_allowed,
     load_repomatic_config,
 )
-from .prebake import prebake_version
+from click_extra import ExtraVersionOption
 from .release_prep import ReleasePrep
 from .renovate import (
     CheckFormat,
@@ -2512,8 +2512,6 @@ def prebake_version_cmd(git_hash, module_path):
         repomatic prebake-version --module mypackage/__init__.py
     """
     if git_hash is None:
-        from click_extra import ExtraVersionOption
-
         git_hash = ExtraVersionOption(module_file=__file__).git_short_hash
         if not git_hash:
             raise ClickException(
@@ -2521,9 +2519,11 @@ def prebake_version_cmd(git_hash, module_path):
                 "Pass --hash explicitly or run from a Git repository."
             )
 
+    prebake = ExtraVersionOption.prebake_version
+
     if module_path:
         # Explicit file provided — just pre-bake it.
-        result = prebake_version(module_path, git_hash=git_hash)
+        result = prebake(module_path, local_version=git_hash)
         if result:
             echo(f"Pre-baked {module_path}: {result}")
         else:
@@ -2551,7 +2551,7 @@ def prebake_version_cmd(git_hash, module_path):
             logging.warning(f"Package init not found: {init_path}")
             continue
 
-        result = prebake_version(init_path, git_hash=git_hash)
+        result = prebake(init_path, local_version=git_hash)
         if result:
             echo(f"Pre-baked {init_path}: {result}")
         else:

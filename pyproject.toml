@@ -91,8 +91,8 @@ dependencies = [
   "boltons>=25",
   # v1.2.6 fix Click compatibility issues.
   "bump-my-version>=1.2.6",
-  # Click Extra 7.6.1 adds native pyproject.toml config format and dev version git hash.
-  "click-extra>=7.6.1",
+  # Click Extra 7.6.2 adds prebake_version() upstream.
+  "click-extra>=7.6.2",
   # We depends on new plublic methods exposed in extra-platforms 8.0.0.
   "extra-platforms>=8",
   # v25.0 is the first version we used when we last changed the requirement.
@@ -142,6 +142,9 @@ test = [
   "pytest-randomly>=4",
 ]
 typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
+
+[tool.uv.sources]
+click-extra = { git = "https://github.com/kdeldycke/click-extra.git", branch = "main" }
 
 [tool.uv]
 # Cooldown period: 7-day buffer before using newly released packages.
