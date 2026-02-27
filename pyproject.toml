@@ -157,6 +157,7 @@ build-backend.module-root = ""
 [tool.ruff]
 # Enable formatting of Python code blocks in Markdown files.
 # https://docs.astral.sh/ruff/formatter/#markdown-code-formatting
+# https://github.com/astral-sh/ruff/pull/23434
 extend-include = [ "*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}" ]
 preview = true
 fix = true
