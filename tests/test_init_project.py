@@ -412,12 +412,20 @@ def test_init_default_components():
     assert "bumpversion" not in DEFAULT_COMPONENTS
 
 
-def test_init_creates_all_default_files(tmp_path: Path):
-    """Verify all default component files are created."""
+def test_init_creates_all_default_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify all default component files are created (with no exclusions)."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        "init-exclude = []\n",
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
     result = run_init(output_dir=tmp_path)
 
-    # Default components: changelog, labels, renovate, workflows.
-    # 10 workflows + 3 label files + 1 renovate + 1 changelog = 15.
+    # All components: changelog, labels, linters, renovate, skills, workflows.
     config_file_count = sum(len(v) for v in COMPONENT_FILES.values())
     expected_count = len(REUSABLE_WORKFLOWS) + config_file_count + 1
     assert len(result.created) == expected_count
@@ -890,6 +898,33 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
 # --- Init exclusion tests ---
 
 
+def test_init_default_excludes_workflow_regenerated_components(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify default init-exclude skips labels, linters, and skills."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    # Labels, linters, and skills are excluded by default.
+    assert "labels.toml" not in created_set
+    assert "zizmor.yaml" not in created_set
+    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+        assert rel_path not in created_set
+
+    # Other default components should still be created.
+    assert "changelog.md" in created_set
+    assert "renovate.json5" in created_set
+
+    assert result.excluded_components == ["labels", "linters", "skills"]
+
+
 def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify init-exclude config skips listed components."""
     pyproject = tmp_path / "pyproject.toml"
@@ -943,7 +978,7 @@ def test_init_respects_workflow_sync_exclude(
     assert ".github/workflows/release.yaml" in created_set
 
     # Verify excluded_workflows is populated.
-    assert result.excluded_components == []
+    assert result.excluded_components == ["labels", "linters", "skills"]
     assert result.excluded_workflows == ["debug.yaml", "docs.yaml"]
 
 

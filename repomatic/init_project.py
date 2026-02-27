@@ -735,7 +735,9 @@ def run_init(
         from .metadata import load_repomatic_config
 
         config = load_repomatic_config()
-        init_exclude: list[str] = config.get("init-exclude", [])
+        init_exclude: list[str] = config.get(
+            "init-exclude", ["labels", "linters", "skills"],
+        )
         if init_exclude:
             exclude_set = set(init_exclude)
             unknown = exclude_set - set(ALL_COMPONENTS)
