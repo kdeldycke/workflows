@@ -1,5 +1,5 @@
 ---
-args: [development_warning, yanked_admonition, availability_admonition, changes, full_changelog_link]
+args: [development_warning, yanked_admonition, availability_admonition, changes, tag_range, compare_url]
 ---
 
 \$development_warning
@@ -10,4 +10,4 @@ args: [development_warning, yanked_admonition, availability_admonition, changes,
 
 \$changes
 
-\$full_changelog_link
+**Full changelog**: [`\$tag_range`](\$compare_url)

@@ -121,8 +121,8 @@ def test_build_expected_body_includes_full_changelog_link():
     """The github-releases template appends a full changelog link."""
     changelog = Changelog(SAMPLE_CHANGELOG)
     body = build_expected_body(changelog, "2.0.0")
-    assert "**[Full changelog](" in body
-    assert "compare/v1.1.0...v2.0.0" in body
+    assert "**Full changelog**: [`v1.1.0...v2.0.0`](" in body
+    assert "compare/v1.1.0...v2.0.0)" in body
 
 
 @pytest.mark.parametrize(

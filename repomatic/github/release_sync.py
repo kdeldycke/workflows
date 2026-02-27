@@ -87,16 +87,16 @@ def build_expected_body(changelog: Changelog, version: str) -> str:
     elements = changelog.decompose_version(version)
     if not elements.changes and not elements.availability_admonition:
         return ""
-    # Build a link to the full changelog comparison URL.
-    full_changelog_link = (
-        f"**[Full changelog]({elements.compare_url})**"
+    # Extract tag range from compare URL (e.g. "v1.1.0...v2.0.0").
+    tag_range = (
+        elements.compare_url.rsplit("/compare/", 1)[-1]
         if elements.compare_url
         else ""
     )
     return render_template(
         "github-releases",
         **asdict(elements),
-        full_changelog_link=full_changelog_link,
+        tag_range=tag_range,
     )
 
 
