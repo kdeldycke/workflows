@@ -24,6 +24,7 @@ from unittest.mock import patch
 from repomatic.lint_repo import (
     check_description_matches,
     check_package_name_vs_repo,
+    check_topics_subset_of_keywords,
     check_website_for_sphinx,
     get_repo_metadata,
     run_repo_lint,
@@ -228,3 +229,54 @@ def test_minimal_run(capsys):
     """Run with no checks enabled."""
     exit_code = run_repo_lint()
     assert exit_code == 0
+
+
+def test_topics_no_keywords():
+    """Skip when no keywords provided."""
+    warning, msg = check_topics_subset_of_keywords("owner/repo", keywords=None)
+    assert warning is None
+    assert "skipped" in msg
+
+
+def test_topics_all_in_keywords():
+    """No warning when all topics are in keywords."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = "python\nautomation\n"
+        warning, msg = check_topics_subset_of_keywords(
+            "owner/repo", keywords=["python", "automation", "cli"]
+        )
+        assert warning is None
+        assert "2" in msg
+
+
+def test_topics_extra_not_in_keywords():
+    """Warning when topics exist that are not in keywords."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = "python\nunknown-topic\n"
+        warning, msg = check_topics_subset_of_keywords(
+            "owner/repo", keywords=["python", "cli"]
+        )
+        assert warning is not None
+        assert "unknown-topic" in warning
+
+
+def test_topics_api_failure():
+    """Skip gracefully when API call fails."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.side_effect = RuntimeError("gh command failed")
+        warning, msg = check_topics_subset_of_keywords(
+            "owner/repo", keywords=["python"]
+        )
+        assert warning is None
+        assert "skipped" in msg
+
+
+def test_topics_empty_response():
+    """Skip when no topics are set on the repo."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = ""
+        warning, msg = check_topics_subset_of_keywords(
+            "owner/repo", keywords=["python"]
+        )
+        assert warning is None
+        assert "skipped" in msg

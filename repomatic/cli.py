@@ -2115,17 +2115,19 @@ def lint_repo(
         # Extract repo name from owner/repo format.
         repo_name = repo.split("/")[-1] if "/" in repo else repo
 
-    # Derive package_name, is_sphinx, project_description from pyproject.toml.
+    # Derive package_name, is_sphinx, project_description, keywords from pyproject.toml.
     metadata = Metadata()
     package_name = get_project_name()
     is_sphinx = metadata.is_sphinx
     project_description = metadata.project_description
+    keywords = metadata.pyproject_toml.get("project", {}).get("keywords")
 
     exit_code = run_repo_lint(
         package_name=package_name,
         repo_name=repo_name,
         is_sphinx=is_sphinx,
         project_description=project_description,
+        keywords=keywords,
         repo=repo if repo else None,
     )
     ctx.exit(exit_code)

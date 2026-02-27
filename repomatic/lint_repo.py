@@ -128,11 +128,45 @@ def check_description_matches(
     return None, "Repository description matches project description."
 
 
+def check_topics_subset_of_keywords(
+    repo: str,
+    keywords: list[str] | None = None,
+) -> tuple[str | None, str]:
+    """Check that GitHub repo topics are a subset of pyproject.toml keywords.
+
+    :param repo: Repository in 'owner/repo' format.
+    :param keywords: Keywords from pyproject.toml. If ``None``, check is skipped.
+    :return: Tuple of (warning_message or None, info_message).
+    """
+    if not keywords:
+        return None, "Topics check: skipped (no keywords in pyproject.toml)"
+
+    try:
+        output = run_gh_command(["api", f"repos/{repo}", "--jq", ".topics[]"])
+    except RuntimeError as e:
+        logging.warning(f"Could not fetch GitHub topics: {e}")
+        return None, "Topics check: skipped (could not fetch GitHub topics)"
+
+    topics = {t.strip() for t in output.splitlines() if t.strip()}
+    if not topics:
+        return None, "Topics check: skipped (no GitHub topics set)"
+
+    extra = sorted(topics - set(keywords))
+    if extra:
+        msg = (
+            f"GitHub topics not in pyproject.toml keywords: {', '.join(extra)}. "
+            "Add them to [project] keywords or remove from repo topics."
+        )
+        return msg, msg
+    return None, f"All {len(topics)} GitHub topics are in pyproject.toml keywords."
+
+
 def run_repo_lint(
     package_name: str | None = None,
     repo_name: str | None = None,
     is_sphinx: bool = False,
     project_description: str | None = None,
+    keywords: list[str] | None = None,
     repo: str | None = None,
 ) -> int:
     """Run all repository lint checks.
@@ -143,6 +177,7 @@ def run_repo_lint(
     :param repo_name: The repository name.
     :param is_sphinx: Whether the project uses Sphinx documentation.
     :param project_description: Description from pyproject.toml.
+    :param keywords: Keywords list from pyproject.toml.
     :param repo: Repository in 'owner/repo' format.
     :return: Exit code (0 for success, 1 for errors).
     """
@@ -191,5 +226,12 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.ERROR, error)
             fatal_error = True
         print(f"{'✗' if error else '✓'} {msg}")
+
+    # Check 5: GitHub topics are a subset of pyproject.toml keywords.
+    if keywords and repo:
+        warning, msg = check_topics_subset_of_keywords(repo, keywords)
+        if warning:
+            emit_annotation(AnnotationLevel.WARNING, warning)
+        print(f"{'⚠' if warning else '✓'} {msg}")
 
     return 1 if fatal_error else 0
