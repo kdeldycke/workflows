@@ -51,3 +51,7 @@ Re-run the workflow. Jobs should now update `.github/workflows/` files without e
 $org_tip
 
 This issue will close automatically once the secret is detected.
+
+---
+
+🤖 Generated with [repomatic](https://github.com/kdeldycke/repomatic)

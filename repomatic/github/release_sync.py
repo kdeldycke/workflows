@@ -235,42 +235,45 @@ def render_sync_report(result: SyncResult) -> str:
     :param result: Structured results from the sync run.
     :return: Markdown report string.
     """
-    lines: list[str] = []
     mode = "dry-run" if result.dry_run else "live"
 
-    lines.append(f"## \U0001f504 Release notes sync ({mode})")
-    lines.append("")
-
-    # Summary counts.
-    lines.append("| Metric | Value |")
-    lines.append("| --- | --- |")
-    lines.append(f"| \U0001f4e6 Total releases | {result.total} |")
-    lines.append(f"| \u2705 In sync | {result.in_sync} |")
-    lines.append(f"| \U0001f504 Drifted | {result.drifted} |")
+    # Summary table rows.
+    summary_lines = [
+        f"| \U0001f4e6 Total releases | {result.total} |",
+        f"| \u2705 In sync | {result.in_sync} |",
+        f"| \U0001f504 Drifted | {result.drifted} |",
+    ]
     if not result.dry_run:
-        lines.append(f"| \u2705 Updated | {result.updated} |")
-        lines.append(f"| \u26a0\ufe0f Failed | {result.failed} |")
+        summary_lines.append(f"| \u2705 Updated | {result.updated} |")
+        summary_lines.append(f"| \u26a0\ufe0f Failed | {result.failed} |")
     if result.missing_changelog:
-        lines.append(
+        summary_lines.append(
             f"| \u2753 Missing changelog | {result.missing_changelog} |"
         )
-    lines.append("")
 
     # Per-release details.
     drifted_rows = [
         row for row in result.rows if row.action != SyncAction.SKIPPED
     ]
+    details_section = ""
     if drifted_rows:
-        lines.append("### \U0001f4dd Details")
-        lines.append("")
-        lines.append("| Version | Release | Action |")
-        lines.append("| --- | --- | --- |")
+        detail_lines = [
+            "### \U0001f4dd Details",
+            "",
+            "| Version | Release | Action |",
+            "| --- | --- | --- |",
+        ]
         for row in drifted_rows:
-            lines.append(
+            detail_lines.append(
                 f"| `{row.version}`"
                 f" | [`v{row.version}`]({row.release_url})"
                 f" | {_action_emoji(row.action)} |"
             )
+        details_section = "\n".join(detail_lines)
 
-    lines.append("")
-    return "\n".join(lines)
+    return render_template(
+        "release-sync-report",
+        mode=mode,
+        summary_rows="\n".join(summary_lines),
+        details_section=details_section,
+    )

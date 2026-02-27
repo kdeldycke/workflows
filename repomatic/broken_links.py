@@ -38,6 +38,7 @@ from pathlib import Path
 from click_extra import TableFormat, render_table
 
 from .github.issue import manage_issue_lifecycle
+from .github.pr_body import render_template
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -299,25 +300,28 @@ def manage_combined_broken_links_issue(
             logging.info("No broken documentation links found.")
 
     # Build combined issue body.
-    sections: list[str] = []
-
+    lychee_section = ""
     if lychee_exit_code is not None:
-        sections.append("## Lychee\n")
         if lychee_has_broken and lychee_body_file is not None:
             lychee_content = lychee_body_file.read_text(encoding="UTF-8").strip()
-            sections.append(lychee_content)
         else:
-            sections.append("No broken links found.")
+            lychee_content = "No broken links found."
+        lychee_section = f"## Lychee\n\n{lychee_content}"
 
+    sphinx_section = ""
     if sphinx_output_json is not None:
-        sections.append("## Sphinx linkcheck\n")
-        if sphinx_has_broken:
-            sections.append(sphinx_report.strip())
-        else:
-            sections.append("No broken links found.")
+        sphinx_content = (
+            sphinx_report.strip() if sphinx_has_broken
+            else "No broken links found."
+        )
+        sphinx_section = f"## Sphinx linkcheck\n\n{sphinx_content}"
 
     has_broken_links = lychee_has_broken or sphinx_has_broken
-    body = "# Broken links\n\n" + "\n\n".join(sections) + "\n"
+    body = render_template(
+        "broken-links-issue",
+        lychee_section=lychee_section,
+        sphinx_section=sphinx_section,
+    ) + "\n"
 
     # Write combined body to a temporary file.
     with tempfile.NamedTemporaryFile(

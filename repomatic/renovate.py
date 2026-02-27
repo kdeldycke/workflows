@@ -41,6 +41,7 @@ from click_extra import TableFormat, render_table
 
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
+from .github.pr_body import render_template
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -107,23 +108,17 @@ class RenovateCheckResult:
 
         :return: Markdown-formatted PR body with changes and prerequisites table.
         """
-        lines = ["Migrate from Dependabot to Renovate.", ""]
-
-        # Changes section.
-        lines.append("## Changes")
+        # Build changes bullet list.
+        changes = []
         if not self.renovate_config_exists:
-            lines.append("- Export `renovate.json5` configuration file")
+            changes.append("- Export `renovate.json5` configuration file")
         if self.dependabot_config_path:
-            lines.append(f"- Remove `{self.dependabot_config_path}`")
+            changes.append(f"- Remove `{self.dependabot_config_path}`")
         if self.renovate_config_exists and not self.dependabot_config_path:
-            lines.append("- No changes needed")
-        lines.append("")
+            changes.append("- No changes needed")
+        changes_list = "\n".join(changes)
 
-        # Prerequisites status table.
-        lines.append("## Prerequisites Status")
-        lines.append("")
-
-        # Build table rows.
+        # Build prerequisites status table.
         settings_url = f"https://github.com/{self.repo}/settings/security_analysis"
         docs_url = "https://github.com/kdeldycke/repomatic#permissions-and-token"
 
@@ -160,21 +155,17 @@ class RenovateCheckResult:
             ],
         ]
 
-        lines.append(
-            render_table(
-                table_data,
-                headers=["Check", "Status", "Action"],
-                table_format=TableFormat.GITHUB,
-            )
-        )
-        lines.append("")
-        lines.append("---")
-        lines.append("")
-        lines.append(
-            "🤖 Generated with [repomatic](https://github.com/kdeldycke/repomatic)"
+        prerequisites_table = render_table(
+            table_data,
+            headers=["Check", "Status", "Action"],
+            table_format=TableFormat.GITHUB,
         )
 
-        return "\n".join(lines)
+        return render_template(
+            "renovate-migration",
+            changes_list=changes_list,
+            prerequisites_table=prerequisites_table,
+        )
 
 
 def get_dependabot_config_path() -> Path | None:

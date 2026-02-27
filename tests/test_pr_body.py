@@ -207,7 +207,16 @@ def test_get_template_names():
     assert "sync-linter-configs" in names
     assert "github-releases" in names
     assert "release-notes" in names
-    assert len(names) == 23
+    assert "available-admonition" in names
+    assert "broken-links-issue" in names
+    assert "development-warning" in names
+    assert "release-sync-report" in names
+    assert "renovate-migration" in names
+    assert "unavailable-admonition" in names
+    assert "unsubscribe-phase1" in names
+    assert "unsubscribe-phase2" in names
+    assert "yanked-admonition" in names
+    assert len(names) == 32
 
 
 def test_load_template_frontmatter():
@@ -421,6 +430,7 @@ def test_build_pr_body_with_prefix(monkeypatch):
     result = build_pr_body("Fix formatting issues.", metadata)
 
     assert result.startswith("Fix formatting issues.")
+    assert "Generated with [repomatic]" in result
     assert "\n\n\n<details>metadata</details>" in result
 
 
@@ -434,19 +444,22 @@ def test_build_pr_body_with_tip(monkeypatch):
 
     assert result.startswith("Description.")
     assert "> [!TIP]" in result
+    assert "Generated with [repomatic]" in result
     assert result.index("Description.") < result.index("[!TIP]")
-    assert result.index("[!TIP]") < result.index("<details>")
+    assert result.index("[!TIP]") < result.index("Generated with")
+    assert result.index("Generated with") < result.index("<details>")
 
 
 def test_build_pr_body_empty_prefix(monkeypatch):
-    """Empty prefix without tip returns just the metadata block."""
+    """Empty prefix without tip still includes footer and metadata."""
     for key in GITHUB_ENV_VARS:
         monkeypatch.delenv(key, raising=False)
 
     metadata = "<details>metadata</details>"
     result = build_pr_body("", metadata)
 
-    assert result == metadata
+    assert "Generated with [repomatic]" in result
+    assert "<details>metadata</details>" in result
 
 
 # ---------------------------------------------------------------------------
@@ -462,11 +475,20 @@ REFERENCE_WORKFLOWS = (
 """Workflow files that reference PR body templates via ``--template``."""
 
 PROGRAMMATIC_TEMPLATES = frozenset({
+    "available-admonition",
+    "broken-links-issue",
+    "development-warning",
     "github-releases",
     "pr-metadata",
     "refresh-tip",
     "release-notes",
+    "release-sync-report",
+    "renovate-migration",
     "setup-guide",
+    "unavailable-admonition",
+    "unsubscribe-phase1",
+    "unsubscribe-phase2",
+    "yanked-admonition",
 })
 """Templates rendered from Python code, not via the ``--template`` CLI flag."""
 

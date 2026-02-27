@@ -41,6 +41,7 @@ from datetime import datetime, timezone
 from enum import Enum
 
 from .gh import run_gh_command
+from .pr_body import render_template
 from .token import validate_classic_pat_scope
 
 TYPE_CHECKING = False
@@ -420,6 +421,32 @@ def _graphql_unsubscribe(node_id: str) -> bool:
     return True
 
 
+def _render_detail_table(rows: list[DetailRow]) -> str:
+    """Render a details table with header and data rows.
+
+    :param rows: Detail rows to render.
+    :return: Details heading and table, or empty string if no rows.
+    """
+    if not rows:
+        return ""
+    lines = [
+        "### \U0001f4dd Details",
+        "",
+        (
+            "| \U0001f4ac Title | \U0001f517 Link"
+            " | \U0001f550 Last activity | \u26a1 Action |"
+        ),
+        "| --- | --- | --- | --- |",
+    ]
+    for row in rows:
+        ago = _days_ago(row.updated_at) if row.updated_at else "-"
+        lines.append(
+            f"| {row.title} | {_format_link(row)}"
+            f" | {ago} | {_action_emoji(row.action)} |"
+        )
+    return "\n".join(lines)
+
+
 def render_report(result: UnsubscribeResult) -> str:
     """Render a markdown report from unsubscribe results.
 
@@ -429,186 +456,143 @@ def render_report(result: UnsubscribeResult) -> str:
     :param result: Structured results from both phases.
     :return: Markdown report string.
     """
-    lines: list[str] = []
     mode = "dry-run" if result.dry_run else "live"
     p1 = result.phase1
     p2 = result.phase2
 
-    # Phase 1 header.
-    lines.append(f"## \U0001f515 Unsubscribe report ({mode})")
-    lines.append("")
-
     # Phase 1 summary line.
-    candidates = len(p1.rows)
+    cutoff_str = p1.cutoff.isoformat() if p1.cutoff else "-"
     if result.dry_run:
-        cutoff_str = p1.cutoff.isoformat() if p1.cutoff else "-"
-        lines.append(
-            f"\U0001f50d **Candidates found:** {candidates}"
+        summary_line = (
+            f"\U0001f50d **Candidates found:** {len(p1.rows)}"
             f" \u2014 cutoff: `{cutoff_str}`"
             f" (inactive for more than {result.months} months, dry-run)"
         )
     else:
-        cutoff_str = p1.cutoff.isoformat() if p1.cutoff else "-"
-        lines.append(
+        summary_line = (
             f"\U0001f515 **Unsubscribed:** {p1.threads_unsubscribed}"
             f" | \u26a0\ufe0f **Failed:** {p1.threads_failed}"
             f" \u2014 cutoff: `{cutoff_str}`"
             f" (inactive for more than {result.months} months)"
         )
-    lines.append("")
 
-    # Phase 1 batch details.
+    # Phase 1 batch details rows.
     remaining = p1.threads_total - p1.threads_inspected
     oldest_str = p1.oldest_updated.isoformat() if p1.oldest_updated else "-"
     newest_str = p1.newest_updated.isoformat() if p1.newest_updated else "-"
-    cutoff_str = p1.cutoff.isoformat() if p1.cutoff else "-"
-    lines.append("### \U0001f4ca Batch details")
-    lines.append("")
-    lines.append("| Metric | Value |")
-    lines.append("| --- | --- |")
-    lines.append(f"| \U0001f514 Total notifications | {p1.threads_total} |")
-    lines.append(f"| \U0001f4e6 Batch size | {p1.batch_size} |")
-    lines.append(f"| \U0001f50e Inspected | {p1.threads_inspected} |")
-    lines.append(f"| \U0001f4cb Remaining backlog | {remaining} |")
-    lines.append(f"| \u23ea Oldest activity | {oldest_str} |")
-    lines.append(f"| \u23e9 Newest activity | {newest_str} |")
-    lines.append(f"| \u2702\ufe0f Cutoff | {cutoff_str} |")
-    lines.append("")
+    batch_details_rows = "\n".join([
+        f"| \U0001f514 Total notifications | {p1.threads_total} |",
+        f"| \U0001f4e6 Batch size | {p1.batch_size} |",
+        f"| \U0001f50e Inspected | {p1.threads_inspected} |",
+        f"| \U0001f4cb Remaining backlog | {remaining} |",
+        f"| \u23ea Oldest activity | {oldest_str} |",
+        f"| \u23e9 Newest activity | {newest_str} |",
+        f"| \u2702\ufe0f Cutoff | {cutoff_str} |",
+    ])
 
-    # Phase 1 breakdown by state.
-    lines.append("### \U0001f3f7\ufe0f Breakdown by state")
-    lines.append("")
-    lines.append("| State | Count |")
-    lines.append("| --- | --- |")
-    lines.append(f"| \U0001f7e2 Open | {p1.threads_skipped_open} |")
-    lines.append(
-        "| \U0001f7e1 Closed (active since cutoff)"
-        f" | {p1.threads_skipped_recent} |"
-    )
+    # Phase 1 state breakdown rows.
     stale_count = p1.threads_unsubscribed + p1.threads_failed
-    lines.append(
-        f"| \U0001f534 Closed (inactive, eligible) | {stale_count} |"
-    )
-    lines.append(f"| \u26aa Unknown | {p1.threads_skipped_unknown} |")
+    state_breakdown_rows = "\n".join([
+        f"| \U0001f7e2 Open | {p1.threads_skipped_open} |",
+        (
+            "| \U0001f7e1 Closed (active since cutoff)"
+            f" | {p1.threads_skipped_recent} |"
+        ),
+        f"| \U0001f534 Closed (inactive, eligible) | {stale_count} |",
+        f"| \u26aa Unknown | {p1.threads_skipped_unknown} |",
+    ])
 
-    # Warning when oldest activity >= cutoff and remaining > 0.
+    # Backlog warning (empty string if not applicable).
+    backlog_warning = ""
     if (
         p1.oldest_updated is not None
         and p1.cutoff is not None
         and remaining > 0
         and p1.oldest_updated >= p1.cutoff
     ):
-        lines.append("")
-        lines.append("> [!WARNING]")
-        lines.append(
-            "> Oldest activity seen in this batch:"
-            f" `{oldest_str}` (cutoff: `{cutoff_str}`)."
-        )
-        lines.append(
-            "> The notification API does not sort by issue activity,"
-            " so the current"
-        )
-        lines.append(
-            f"> batch of {p1.threads_inspected} threads did not reach"
-            " any old-enough candidates."
-        )
-        lines.append(
-            f"> Consider increasing `batch-size` (currently {p1.batch_size})"
-            " or running manually"
-        )
-        lines.append(
-            "> with a larger batch to clear the backlog faster."
-        )
+        backlog_warning = "\n".join([
+            "> [!WARNING]",
+            (
+                "> Oldest activity seen in this batch:"
+                f" `{oldest_str}` (cutoff: `{cutoff_str}`)."
+            ),
+            (
+                "> The notification API does not sort by issue activity,"
+                " so the current"
+            ),
+            (
+                f"> batch of {p1.threads_inspected} threads did not reach"
+                " any old-enough candidates."
+            ),
+            (
+                f"> Consider increasing `batch-size`"
+                f" (currently {p1.batch_size})"
+                " or running manually"
+            ),
+            "> with a larger batch to clear the backlog faster.",
+        ])
 
-    # Phase 1 details table.
-    if p1.rows:
-        lines.append("")
-        lines.append("---")
-        lines.append("")
-        lines.append("### \U0001f4dd Details")
-        lines.append("")
-        lines.append(
-            "| \U0001f4ac Title | \U0001f517 Link"
-            " | \U0001f550 Last activity | \u26a1 Action |"
-        )
-        lines.append("| --- | --- | --- | --- |")
-        for row in p1.rows:
-            ago = _days_ago(row.updated_at) if row.updated_at else "-"
-            lines.append(
-                f"| {row.title} | {_format_link(row)}"
-                f" | {ago} | {_action_emoji(row.action)} |"
-            )
+    # Phase 1 details section (includes --- separator).
+    p1_detail_table = _render_detail_table(p1.rows)
+    details_section = f"---\n\n{p1_detail_table}" if p1_detail_table else ""
 
-    # Phase 2 header.
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-    lines.append(f"## \U0001f515 Threadless subscriptions ({mode})")
-    lines.append("")
+    phase1 = render_template(
+        "unsubscribe-phase1",
+        mode=mode,
+        summary_line=summary_line,
+        batch_details_rows=batch_details_rows,
+        state_breakdown_rows=state_breakdown_rows,
+        backlog_warning=backlog_warning,
+        details_section=details_section,
+    )
 
+    # Phase 2 content.
     if p2.skipped:
-        lines.append("> [!WARNING]")
-        lines.append(f"> {p2.skip_reason}")
+        phase2_content = f"> [!WARNING]\n> {p2.skip_reason}"
     else:
         # Phase 2 summary line.
-        p2_candidates = len(p2.rows)
         p2_cutoff_str = p2.cutoff.isoformat() if p2.cutoff else "-"
         if result.dry_run:
-            lines.append(
-                f"\U0001f50d **Candidates found:** {p2_candidates}"
+            p2_summary = (
+                f"\U0001f50d **Candidates found:** {len(p2.rows)}"
                 f" \u2014 cutoff: `{p2_cutoff_str}`"
                 f" (inactive for more than {result.months} months, dry-run)"
             )
         else:
-            lines.append(
+            p2_summary = (
                 f"\U0001f515 **Unsubscribed:** {p2.graphql_unsubscribed}"
                 f" | \u26a0\ufe0f **Failed:** {p2.graphql_failed}"
                 f" \u2014 cutoff: `{p2_cutoff_str}`"
                 f" (inactive for more than {result.months} months)"
             )
-        lines.append("")
 
-        # Phase 2 search details.
-        subscribed_count = (
-            p2.graphql_unsubscribed + p2.graphql_failed
-        )
-        lines.append("### \U0001f4ca Search details")
-        lines.append("")
-        lines.append("| Metric | Value |")
-        lines.append("| --- | --- |")
-        lines.append(
-            f"| \U0001f50e Search query | `{p2.search_query}` |"
-        )
-        lines.append(
-            f"| \U0001f514 Total results | {p2.graphql_total} |"
-        )
-        lines.append(f"| \U0001f4e6 Batch size | {p2.batch_size} |")
-        lines.append(
-            f"| \u2705 Still subscribed | {subscribed_count} |"
-        )
-        lines.append(
-            f"| \u23ed\ufe0f Not subscribed | {p2.graphql_not_subscribed} |"
-        )
+        # Phase 2 search details table.
+        subscribed_count = p2.graphql_unsubscribed + p2.graphql_failed
+        p2_table = "\n".join([
+            "### \U0001f4ca Search details",
+            "",
+            "| Metric | Value |",
+            "| --- | --- |",
+            f"| \U0001f50e Search query | `{p2.search_query}` |",
+            f"| \U0001f514 Total results | {p2.graphql_total} |",
+            f"| \U0001f4e6 Batch size | {p2.batch_size} |",
+            f"| \u2705 Still subscribed | {subscribed_count} |",
+            f"| \u23ed\ufe0f Not subscribed | {p2.graphql_not_subscribed} |",
+        ])
 
-        # Phase 2 details table.
-        if p2.rows:
-            lines.append("")
-            lines.append("### \U0001f4dd Details")
-            lines.append("")
-            lines.append(
-                "| \U0001f4ac Title | \U0001f517 Link"
-                " | \U0001f550 Last activity | \u26a1 Action |"
-            )
-            lines.append("| --- | --- | --- | --- |")
-            for row in p2.rows:
-                ago = _days_ago(row.updated_at) if row.updated_at else "-"
-                lines.append(
-                    f"| {row.title} | {_format_link(row)}"
-                    f" | {ago} | {_action_emoji(row.action)} |"
-                )
+        p2_detail_table = _render_detail_table(p2.rows)
+        p2_parts = [p2_summary, "", p2_table]
+        if p2_detail_table:
+            p2_parts.extend(["", p2_detail_table])
+        phase2_content = "\n".join(p2_parts)
 
-    lines.append("")
-    return "\n".join(lines)
+    phase2 = render_template(
+        "unsubscribe-phase2",
+        mode=mode,
+        phase2_content=phase2_content,
+    )
+
+    return phase1 + "\n\n---\n\n" + phase2 + "\n"
 
 
 def unsubscribe_threads(

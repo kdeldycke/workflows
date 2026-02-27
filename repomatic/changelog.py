@@ -167,14 +167,6 @@ Used by :meth:`Changelog.decompose_version` to populate the heading
 fields of :class:`VersionElements`.
 """
 
-DEVELOPMENT_WARNING = (
-    "\n\n"
-    "> [!WARNING]\n"
-    "> This version is **not released yet** and is under active development.\n\n"
-)
-"""GFM alert block warning that the version is under active development."""
-
-
 AVAILABLE_VERB = "is available on"
 """Verb phrase for versions present on a platform."""
 
@@ -198,15 +190,6 @@ PYPI_LABEL = "🐍 PyPI"
 
 PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
 """PyPI project page URL for a specific version."""
-
-AVAILABLE_ADMONITION = "> [!NOTE]\n> `{version}` {verb} {platforms}."
-"""GFM admonition template for versions available on one or more platforms."""
-
-UNAVAILABLE_ADMONITION = "> [!WARNING]\n> `{version}` {verb} {platforms}."
-"""GFM admonition template for versions missing from one or more platforms."""
-
-YANKED_ADMONITION = "> [!CAUTION]\n> `{version}` has been [yanked from PyPI]({pypi_url})."
-"""GFM admonition template for a release that has been yanked from PyPI."""
 
 YANKED_DEDUP_MARKER = "yanked from PyPI"
 """Dedup marker for the yanked admonition to prevent duplicate insertion."""
@@ -297,7 +280,7 @@ class Changelog:
             f"v{self.current_version}...main",
             elements.compare_url,
         )
-        elements.development_warning = DEVELOPMENT_WARNING.strip()
+        elements.development_warning = render_template("development-warning")
         elements.changes = ""
         elements.availability_admonition = ""
         elements.yanked_admonition = ""
@@ -726,9 +709,13 @@ def build_release_admonition(
         links.append(f"[{GITHUB_LABEL}]({github_url})")
     if not links:
         return ""
+    from .github.pr_body import render_template
+
     platforms = " and ".join(links)
     verb = FIRST_AVAILABLE_VERB if first_on_all else AVAILABLE_VERB
-    return AVAILABLE_ADMONITION.format(version=version, verb=verb, platforms=platforms)
+    return render_template(
+        "available-admonition", version=version, verb=verb, platforms=platforms
+    )
 
 
 def build_unavailable_admonition(
@@ -752,9 +739,14 @@ def build_unavailable_admonition(
         names.append(GITHUB_LABEL)
     if not names:
         return ""
+    from .github.pr_body import render_template
+
     platforms = " and ".join(names)
-    return UNAVAILABLE_ADMONITION.format(
-        version=version, verb=NOT_AVAILABLE_VERB, platforms=platforms
+    return render_template(
+        "unavailable-admonition",
+        version=version,
+        verb=NOT_AVAILABLE_VERB,
+        platforms=platforms,
     )
 
 
@@ -1071,8 +1063,10 @@ def lint_changelog_dates(
                 yanked_url = PYPI_PROJECT_URL.format(
                     package=pypi_data[version].package, version=version
                 )
-                elements.yanked_admonition = YANKED_ADMONITION.format(
-                    version=version, pypi_url=yanked_url
+                elements.yanked_admonition = render_template(
+                    "yanked-admonition",
+                    version=version,
+                    pypi_url=yanked_url,
                 )
 
             new_section = render_template(
