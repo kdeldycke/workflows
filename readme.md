@@ -62,7 +62,6 @@ That's it. The workflows will start running and guide you through any remaining 
 
 Run `repomatic init --help` to see available components and options.
 
-
 ## `repomatic` CLI
 
 ### Try it
@@ -143,15 +142,6 @@ To ease deployment, standalone executables of `repomatic`'s latest version are a
 | **Windows** | [Download `repomatic-windows-arm64.exe`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-windows-arm64.exe) | [Download `repomatic-windows-x64.exe`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-windows-x64.exe) |
 
 That way you have a chance to try it out without installing Python or `uv`. Or embed it in your CI/CD pipelines running on minimal images. Or run it on old platforms without worrying about dependency hell.
-
-### Development version
-
-To play with the latest development version of `repomatic`, you can run it directly from the repository:
-
-```shell-session
-$ uvx --from git+https://github.com/kdeldycke/repomatic -- repomatic --version
-repomatic, version 5.9.2.dev0+3eb8894
-```
 
 ## `[tool.repomatic]` configuration
 
