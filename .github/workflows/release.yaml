@@ -338,7 +338,7 @@ jobs:
           "${{ steps.download.outputs.download-path }}/*"
 
   create-release:
-    name: 🐙 Publish GitHub release
+    name: 🐙 Create GitHub release draft
     needs:
       - project-metadata
       - build-package
@@ -372,13 +372,14 @@ jobs:
         uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: release_artifact/*
-      - name: Create GitHub release
+      - name: Create GitHub release draft
         uses: softprops/action-gh-release@v2.5.0
         # PAT required so tag pushes trigger downstream on.push.tags workflows.
         # See repomatic/git_ops.py module docstring.
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         with:
+          draft: true
           tag_name: v${{ matrix.current_version }}
           target_commitish: ${{ matrix.commit }}
           files: release_artifact/*
@@ -386,3 +387,27 @@ jobs:
             ${{ needs.publish-pypi.result == 'success'
                 && needs.project-metadata.outputs.release_notes_with_admonition
                 || needs.project-metadata.outputs.release_notes }}
+
+  publish-release:
+    name: 🎉 Publish GitHub release
+    needs:
+      - project-metadata
+      - create-release
+      - compile-binaries
+    # Wait for all upstream jobs regardless of result, but only publish if the draft was created.
+    if: >-
+      always()
+      && needs.create-release.result == 'success'
+    strategy:
+      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    steps:
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+        run: >
+          gh release edit "v${{ matrix.current_version }}"
+          --draft=false
+          --repo "${{ github.repository }}"

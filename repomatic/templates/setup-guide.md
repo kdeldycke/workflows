@@ -40,13 +40,24 @@ Go to **this repo → [Settings → Advanced Security → Dependabot](${repo_url
 | **Grouped security updates**    | ❌ Disabled | Not needed when security updates are disabled         |
 | **Dependabot version updates**  | ❌ Disabled | Renovate handles all version updates                  |
 
-> ⚠️ Keep **Dependabot alerts** enabled — Renovate reads them via the API. Disable all other Dependabot features.
+> [!WARNING]
+> Keep **Dependabot alerts** enabled — Renovate reads them via the API. Disable all other Dependabot features.
 
-### Step 4: Verify
+### Step 4: Enable immutable releases
+
+Go to **this repo → [Settings → General](${repo_url}/settings)**, scroll to the **Releases** section, and enable **Release immutability**.
+
+This locks git tags and release assets after publication, preventing tampering. Release notes remain editable.
+
+> [!WARNING]
+> **Permanent tag reservation**: tags used for immutable releases are permanently reserved, even after deleting the release. If a release goes wrong, skip to the next version — don't try to reuse the tag.
+
+### Step 5: Verify
 
 Re-run the workflow. Jobs should now update `.github/workflows/` files without errors.
 
-> ⚠️ **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token, or workflows will fail silently.
+> [!WARNING]
+> **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token, or workflows will fail silently.
 
 $org_tip
 

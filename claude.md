@@ -353,6 +353,10 @@ When `workflow_run` fires, `github.event.workflow_run.head_sha` points to the co
 
 **Fix:** Use `github.sha` instead, which for `workflow_run` events resolves to the latest commit on the default branch. The `workflow_run` trigger's purpose is *timing* (ensuring tags exist), not pinning to a specific commit. This applies to any job that needs the current state of `main` after an upstream workflow completes.
 
+#### Immutable releases
+
+The release workflow creates a draft, uploads all assets, then publishes. Once published with [GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) enabled, tags and assets are locked. Tag names are permanently burned — reinforcing the [skip and move forward](#skip-and-move-forward-dont-rewrite-history) principle. Release notes remain editable for `sync-github-releases`.
+
 ### Idempotency by default
 
 Workflows and CLI commands must be safe to re-run. Running the same command or workflow twice with the same inputs should produce the same result without errors or unwanted side effects (e.g., duplicate tags, duplicate PR comments, redundant file modifications).

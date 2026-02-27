@@ -615,12 +615,20 @@ docs = [
     - `PYPI_TOKEN` secret
     - Built packages from `build-package` job
 
-- 🐙 **Create release** (`create-release`)
+- 🐙 **Create release draft** (`create-release`)
 
-  - Creates a GitHub release with the Python package attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
-  - Binaries are attached independently by each `compile-binaries` matrix entry as they complete
+  - Creates a GitHub release **draft** with the Python package attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
+  - Binaries are attached independently by each `compile-binaries` matrix entry as they complete (uploading to drafts is allowed)
   - **Requires**:
     - Successful `create-tag` job
+
+- 🎉 **Publish release** (`publish-release`)
+
+  - Publishes the draft GitHub release after all assets have been uploaded
+  - Supports [GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases): once published, tags and assets are locked
+  - Uses `always()` so it runs even when `compile-binaries` is skipped (non-binary projects) or partially fails (unstable platforms)
+  - **Requires**:
+    - Successful `create-release` job (draft must exist)
 
 ### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
 
@@ -879,7 +887,7 @@ The typical lifecycle for maintaining a downstream repository follows this seque
 
 This project was previously published as [`gha-utils`](https://pypi.org/project/gha-utils/) on PyPI and hosted at `kdeldycke/workflows` on GitHub. It was [renamed to `repomatic` in `6.0.1`](https://github.com/kdeldycke/repomatic/blob/main/changelog.md#601-2026-02-24).
 
-Running `uvx -- repomatic init --overwrite` in an existing downstream repository regenerates all workflow files to point at `kdeldycke/repomatic`, but several things require manual attention:
+Running `uvx -- repomatic init workflows --overwrite` in an existing downstream repository regenerates all workflow files to point at `kdeldycke/repomatic`, but several things require manual attention:
 
 1. **Rename the config section** in `pyproject.toml`: `[tool.gha-utils]` → `[tool.repomatic]`. The `init` command does not migrate this automatically.
 
@@ -903,8 +911,8 @@ $ cd my-project
 # 1. Rename config section in pyproject.toml (if present).
 $ sed -i.bak 's/\[tool\.gha-utils\]/[tool.repomatic]/' pyproject.toml && rm pyproject.toml.bak
 
-# 2. Regenerate all workflow files and config.
-$ uvx -- repomatic init --overwrite
+# 2. Regenerate workflow files.
+$ uvx -- repomatic init workflows --overwrite
 
 # 3. Remove old skill directories.
 $ rm -rf .claude/skills/gha-*/
