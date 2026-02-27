@@ -29,14 +29,8 @@ name: 🚀 Build & release
       - .github/workflows/release.yaml
 
 concurrency:
-  # Protect release workflows by giving them unique concurrency groups.
-  # The problem: cancel-in-progress is evaluated on the NEW workflow, not the old one.
-  # If a regular commit is pushed while a release workflow is running, the new workflow
-  # would cancel the release (since they share the same group and the new commit doesn't
-  # match the release pattern).
-  # Solution: Release commits (freeze and unfreeze) get a unique group (using SHA), so
-  # they can never be cancelled by subsequent pushes. Regular pushes share a group and
-  # cancel each other.
+  # Release commits get a unique SHA-based group so they can never be cancelled.
+  # See repomatic/github/actions.py for rationale.
   group: >-
     ${{ github.workflow }}-${{
       github.event.pull_request.number
@@ -53,14 +47,8 @@ jobs:
 
   detect-squash-merge:
     name: 🧯 No squash on release
-    # A rebase merge produces commits starting with "[changelog] Release v" and
-    # "[changelog] Post-release bump v". A squash merge uses the PR title instead:
-    # "Release `vX.Y.Z` (#NNN)". Detect the squash pattern, open an issue, and
-    # fail the workflow. The release is effectively skipped: create-tag only
-    # matches commits with the "[changelog] Release v" prefix, so no tag, PyPI
-    # publish, or GitHub release is created from a squash merge. The net effect
-    # of squashing freeze + unfreeze leaves main in a valid state for the next
-    # development cycle.
+    # Detect squash merges on release PRs and open an issue instead of releasing.
+    # See RELEASE_COMMIT_PATTERN in repomatic/metadata.py for the detection mechanism.
     if: >-
       github.event_name == 'push'
       && startsWith(github.event.head_commit.message, 'Release `v')
@@ -104,11 +92,8 @@ jobs:
     name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
-      # There's a design issue with GitHub Actions: matrix outputs are not cumulative. The last job wins
-      # (see: https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626).
-      # This means in a graph of jobs, a matrix-based one is terminal, and cannot be depended on. Same goes for
-      # (reusable) workflows. We use this preliminary job to produce all matrix we need to trigger depending jobs
-      # over the dimensions.
+      # Matrix outputs are non-cumulative (last job wins), so all matrices
+      # must be pre-computed here. See repomatic/github/matrix.py for details.
       new_commits_matrix: ${{ steps.project-metadata.outputs.new_commits_matrix }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
       # Export Python project metadata.
@@ -306,10 +291,8 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-          # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
-          # any other workflows that use `on.push.tags` triggers. See:
-          # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
-          # https://github.com/orgs/community/discussions/27028
+          # PAT required so tag pushes trigger downstream on.push.tags workflows.
+          # See repomatic/git_ops.py module docstring.
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Create and push tag
@@ -389,10 +372,8 @@ jobs:
           subject-path: release_artifact/*
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2.5.0
-        # XXX We need custom PAT with workflows permissions because tag generation will work but it will not trigger
-        # any other workflows that use `on.push.tags` triggers. See:
-        # https://stackoverflow.com/questions/60963759/use-github-actions-to-create-a-tag-but-not-a-release#comment135891921_64479344
-        # https://github.com/orgs/community/discussions/27028
+        # PAT required so tag pushes trigger downstream on.push.tags workflows.
+        # See repomatic/git_ops.py module docstring.
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         with:

@@ -33,10 +33,8 @@ env:
   HAS_WORKFLOW_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || '' }}
 
 concurrency:
-  # Include event_name so workflow_run events (from "Build & release" completing)
-  # cannot cancel push-triggered runs. Without this, the fast-completing
-  # "Build & release" fires workflow_run before prepare-release finishes,
-  # killing it via the shared concurrency group.
+  # Include event_name to prevent cross-event cancellation.
+  # See repomatic/github/actions.py for rationale.
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -59,12 +57,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
         with:
-          # github.sha resolves correctly for all trigger types: push (pushed commit),
-          # schedule/workflow_dispatch/workflow_run (latest commit on default branch).
-          # Do NOT use workflow_run.head_sha — it points to the commit that triggered
-          # "Build & release", which may be stale after the release cycle adds commits.
+          # Use github.sha, not workflow_run.head_sha (stale after release cycle).
+          # See repomatic/github/actions.py for rationale.
           ref: ${{ github.sha }}
-          # Fetch all tags so we can compare against the latest release.
           fetch-tags: true
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run repomatic metadata
@@ -89,10 +84,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
         with:
-          # github.sha resolves correctly for all trigger types: push (pushed commit),
-          # schedule/workflow_dispatch/workflow_run (latest commit on default branch).
-          # Do NOT use workflow_run.head_sha — it points to the commit that triggered
-          # "Build & release", which may be stale after the release cycle adds commits.
+          # Use github.sha, not workflow_run.head_sha (stale after release cycle).
           ref: ${{ github.sha }}
       - uses: astral-sh/setup-uv@v7.3.0
         if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'

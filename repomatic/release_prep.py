@@ -16,15 +16,31 @@
 
 """Prepare a release by updating changelog, citation, and workflow files.
 
-This module orchestrates the full release preparation across multiple file
-types, delegating changelog operations to :mod:`repomatic.changelog`. It
-handles:
+A release cycle produces exactly two commits that **must** be merged via
+"Rebase and merge" (never squash):
 
-- Changelog freeze via :meth:`Changelog.freeze() <repomatic.changelog.Changelog.freeze>`.
-- Setting the release date in ``citation.cff``.
-- Freezing workflow URLs to versioned tags (for `kdeldycke/repomatic`).
-- Freezing ``repomatic`` CLI invocations to PyPI versions, unfreezing back to
-  local source (``--from . repomatic``).
+1. **Freeze commit** (``[changelog] Release vX.Y.Z``):
+
+   - Strips the ``.dev0`` suffix from the version.
+   - Finalizes the changelog date and comparison URL.
+   - Freezes workflow action references: ``@main`` → ``@vX.Y.Z``.
+   - Freezes CLI invocations: ``--from . repomatic`` → ``'repomatic==X.Y.Z'``.
+   - Sets the release date in ``citation.cff``.
+
+2. **Unfreeze commit** (``[changelog] Post-release bump vX.Y.Z → vX.Y.(Z+1)``):
+
+   - Reverts action references: ``@vX.Y.Z`` → ``@main``.
+   - Reverts CLI invocations back to local source for dogfooding.
+   - Bumps the version with a ``.dev0`` suffix.
+   - Adds a new unreleased changelog section.
+
+The auto-tagging job in ``release.yaml`` depends on these being **separate
+commits** — it uses ``release_commits_matrix`` to identify and tag only the
+freeze commit. Squash-merging would collapse both into one, breaking the
+tagging logic. See the ``detect-squash-merge`` job for the safeguard.
+
+Both operations are idempotent: re-running on an already-frozen or
+already-unfrozen tree is a no-op.
 """
 
 from __future__ import annotations

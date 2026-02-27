@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Consolidate documentation.
+- Trim verbose workflow YAML comments that are now documented in Python code, replacing them with brief pointers to the relevant module.
 
 ## [`6.1.0` (2026-02-26)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
 

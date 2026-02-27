@@ -19,6 +19,28 @@
 This module provides utilities for working with GitHub Actions: multiline
 output formatting, workflow annotations, event payload loading, and
 GitHub-specific constants and enums shared across multiple modules.
+
+.. note:: Concurrency quirks addressed by the workflows
+
+   **SHA-based groups (``release.yaml``):** ``cancel-in-progress`` is
+   evaluated on the *new* workflow, not the old one. If a regular commit is
+   pushed while a release workflow is running, the new workflow would cancel
+   it (same group). Solution: release commits (freeze and unfreeze) get a
+   unique group keyed by ``github.sha``, so they can never be cancelled.
+
+   **Event-scoped groups (``changelog.yaml``):** ``changelog.yaml`` has
+   both ``push`` and ``workflow_run`` triggers. Without ``event_name`` in
+   the concurrency group, a fast-completing ``workflow_run`` event would
+   cancel the ``push`` event's ``prepare-release`` job, then skip
+   ``prepare-release`` itself (guarded by ``if: event_name != 'workflow_run'``),
+   so it would never run. Including ``event_name`` prevents cross-event
+   cancellation.
+
+   **``workflow_run`` checkout ref:** Always use ``github.sha`` (latest
+   commit on the default branch), never ``workflow_run.head_sha`` (the
+   commit that *triggered* the upstream workflow). After a release cycle
+   adds commits (freeze + unfreeze), ``head_sha`` is stale and produces
+   a tree that conflicts with current ``main``.
 """
 
 from __future__ import annotations

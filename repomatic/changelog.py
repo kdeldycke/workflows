@@ -788,6 +788,14 @@ def lint_changelog_dates(
     - A ``[!WARNING]`` admonition listing platforms where the version
       is *not* available (missing from PyPI, GitHub, or both).
     - A ``[!CAUTION]`` admonition for yanked releases.
+
+    .. caution::
+
+       The ``fix-changelog`` workflow job skips this function during the
+       release cycle (when ``release_commits_matrix`` is non-empty). At that
+       point the release pipeline hasn't published to PyPI or created a
+       GitHub release yet, so this function would incorrectly add "not
+       available" admonitions to the freshly-released version.
     - Placeholder sections for orphaned versions, with comparison URLs
       linking to adjacent versions.
 

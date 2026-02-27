@@ -18,6 +18,14 @@
 .. code-block:: shell-session
 
     $ python -m repomatic
+
+The CI test suite (``tests.yaml``) verifies launchability via multiple
+invocation paths to catch entry-point and import issues early:
+
+- ``uv run -m repomatic`` (module invocation)
+- ``uv run -- repomatic`` (from local project)
+- ``uvx -- repomatic`` (installed from PyPI)
+- ``uvx --from git+https://...`` (installed from git)
 """
 
 from __future__ import annotations

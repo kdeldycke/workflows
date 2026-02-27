@@ -18,6 +18,18 @@
 
 This module provides utilities for common Git operations in CI/CD contexts,
 with idempotent behavior to allow safe re-runs of failed workflows.
+
+All operations follow a "belt-and-suspenders" approach: combine workflow
+timing guarantees (e.g. ``workflow_run`` ensures tags exist) with idempotent
+guards (e.g. ``skip_existing`` on tag creation). This ensures correctness
+in the face of race conditions, API eventual consistency, and partial failures
+that are common in GitHub Actions.
+
+.. warning:: Tag push requires ``WORKFLOW_UPDATE_GITHUB_PAT``
+
+   Tags pushed with the default ``GITHUB_TOKEN`` do not trigger downstream
+   ``on.push.tags`` workflows. The custom PAT is required so that tagging
+   a release commit actually fires the publish and release creation jobs.
 """
 
 from __future__ import annotations

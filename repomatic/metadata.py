@@ -589,7 +589,17 @@ SHORT_SHA_LENGTH = 7
 """
 
 RELEASE_COMMIT_PATTERN = re.compile(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$")
-"""Pre-compiled regex pattern for identifying release commits."""
+"""Pre-compiled regex pattern for identifying release commits.
+
+A rebase merge preserves the original commit messages, so release commits
+match this pattern. A squash merge replaces them with the PR title
+(e.g. ``Release `v1.2.3` (#42)``), which does **not** match. This mismatch
+is the mechanism by which squash merges are safely skipped: the ``create-tag``
+job only processes commits matching this pattern, so no tag, PyPI publish, or
+GitHub release is created from a squash merge. The ``detect-squash-merge``
+job in ``release.yaml`` detects this and opens an issue to notify the
+maintainer.
+"""
 
 
 BINARY_AFFECTING_PATHS: Final[tuple[str, ...]] = (
