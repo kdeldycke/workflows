@@ -88,6 +88,7 @@ Commands:
   sponsor-label        Label issues/PRs from GitHub sponsors
   sync-bumpversion     Sync bumpversion config from bundled template
   sync-gitignore       Sync .gitignore from gitignore.io templates
+  sync-dev-release     Sync rolling dev pre-release on GitHub
   sync-github-releases Sync GitHub release notes from changelog
   sync-linter-configs  Sync linter config files from bundled definitions
   sync-mailmap         Sync Git's .mailmap file with missing contributors
@@ -629,6 +630,16 @@ docs = [
   - Uses `always()` so it runs even when `compile-binaries` is skipped (non-binary projects) or partially fails (unstable platforms)
   - **Requires**:
     - Successful `create-release` job (draft must exist)
+
+- 🔄 **Sync dev pre-release** (`sync-dev-release`)
+
+  - Maintains a rolling dev pre-release on GitHub that mirrors the unreleased changelog section
+  - Downloads binaries and Python packages from build jobs and attaches them to the dev release
+  - The dev tag (e.g. `v6.1.1.dev0`) is force-updated to point to the latest `main` commit
+  - Automatically cleaned up when a real release is created
+  - **Runs on**: Non-release pushes to `main` only
+  - **Requires**:
+    - `build-package` and `compile-binaries` jobs (uses `always()` for resilience)
 
 ### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
 

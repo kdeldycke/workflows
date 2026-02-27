@@ -101,6 +101,8 @@ jobs:
       nuitka_matrix: ${{ steps.project-metadata.outputs.nuitka_matrix }}
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
+      current_version: ${{ steps.project-metadata.outputs.current_version }}
+      released_version: ${{ steps.project-metadata.outputs.released_version }}
       release_notes: ${{ steps.project-metadata.outputs.release_notes }}
       release_notes_with_admonition: ${{ steps.project-metadata.outputs.release_notes_with_admonition }}
       skip_binary_build: ${{ steps.project-metadata.outputs.skip_binary_build }}
@@ -372,6 +374,16 @@ jobs:
         uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: release_artifact/*
+      - name: Delete dev pre-release
+        # Clean up the rolling dev release before creating the real release.
+        # See repomatic/github/dev_release.py for rationale.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+        run: >
+          gh release delete "v${{ matrix.current_version }}.dev0"
+          --cleanup-tag --yes
+          --repo "${{ github.repository }}"
       - name: Create GitHub release draft
         uses: softprops/action-gh-release@v2.5.0
         # PAT required so tag pushes trigger downstream on.push.tags workflows.
@@ -411,3 +423,44 @@ jobs:
           gh release edit "v${{ matrix.current_version }}"
           --draft=false
           --repo "${{ github.repository }}"
+
+  sync-dev-release:
+    name: 🔄 Sync dev pre-release
+    needs:
+      - project-metadata
+      - build-package
+      - compile-binaries
+    # Run on non-release pushes to main after builds complete.
+    # Uses always() because compile-binaries depends on create-release (skipped for non-release pushes).
+    if: >-
+      always()
+      && github.ref == 'refs/heads/main'
+      && !needs.project-metadata.outputs.release_commits_matrix
+      && needs.project-metadata.outputs.current_version
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.3.0
+      - name: Sync dev release metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uvx --no-progress --from . repomatic sync-dev-release --live
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v7.0.0
+        with:
+          path: release_assets
+          merge-multiple: true
+      - name: Upload assets to dev release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release upload
+          "v${{ needs.project-metadata.outputs.current_version }}"
+          release_assets/repomatic-*.bin
+          release_assets/repomatic-*.exe
+          release_assets/*.whl
+          release_assets/*.tar.gz
+          --repo "${{ github.repository }}"
+          --clobber

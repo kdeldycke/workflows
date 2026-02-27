@@ -16,6 +16,7 @@
 - Add `repomatic-topics` skill for optimizing GitHub repository topics for discoverability.
 - Add `lint-repo` check that warns when GitHub topics are not a subset of `pyproject.toml` keywords.
 - Use GFM admonitions (`> [!WARNING]`) instead of emoji-prefixed blockquotes in the setup guide template.
+- Add `sync-dev-release` CLI command and workflow job to maintain a rolling dev pre-release on GitHub with latest binaries and Python package.
 
 ## [`6.1.0` (2026-02-26)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
 

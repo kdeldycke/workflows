@@ -76,6 +76,12 @@ from .github.pr_body import (
 )
 from .github import token as _token_mod
 from .github import unsubscribe as _unsub_mod
+from .github.dev_release import (
+    delete_dev_release as _delete_dev_release,
+)
+from .github.dev_release import (
+    sync_dev_release as _sync_dev_release,
+)
 from .github.release_sync import (
     render_sync_report as _render_sync_report,
 )
@@ -721,6 +727,76 @@ def sync_github_releases(dry_run: bool) -> None:
 
     result = _sync_github_releases(repo_url, changelog_path, dry_run)
     echo(_render_sync_report(result))
+
+
+@repomatic.command(
+    short_help="Sync rolling dev pre-release on GitHub",
+    section=_section_sync,
+)
+@option(
+    "--dry-run/--live",
+    default=True,
+    help="Report what would be done without making changes.",
+)
+@option(
+    "--delete/--no-delete",
+    default=False,
+    help="Delete-only mode: remove the dev pre-release without recreating.",
+)
+def sync_dev_release(dry_run: bool, delete: bool) -> None:
+    """Sync a rolling dev pre-release on GitHub.
+
+    Maintains a single pre-release that mirrors the unreleased changelog
+    section. The dev tag is force-updated to point to the latest ``main``
+    commit.
+
+    In ``--delete`` mode, removes the dev pre-release without recreating
+    it. This is used during real releases to clean up.
+
+    \b
+    Examples:
+        # Dry run to preview what would be synced
+        repomatic sync-dev-release --dry-run
+
+    \b
+        # Create or update the dev pre-release
+        repomatic sync-dev-release --live
+
+    \b
+        # Delete the dev pre-release (e.g. during a real release)
+        repomatic sync-dev-release --live --delete
+    """
+    version = Metadata.get_current_version()
+    if not version:
+        logging.warning("Could not determine current version.")
+        return
+
+    changelog_path = Path("./changelog.md")
+    if not changelog_path.exists():
+        logging.warning("changelog.md not found.")
+        return
+
+    changelog = Changelog(changelog_path.read_text(encoding="UTF-8"))
+    repo_url = changelog.extract_repo_url()
+    if not repo_url:
+        logging.warning("Could not extract repository URL from changelog.")
+        return
+
+    # Parse owner/repo for gh CLI.
+    parts = repo_url.rstrip("/").split("/")
+    nwo = f"{parts[-2]}/{parts[-1]}" if len(parts) >= 2 else ""
+
+    if delete:
+        if dry_run:
+            echo(f"[dry-run] Would delete dev release v{version}.")
+            return
+        _delete_dev_release(version, nwo)
+        echo(f"Deleted dev release v{version}.")
+        return
+
+    if _sync_dev_release(changelog_path, version, nwo, dry_run):
+        mode = "dry-run" if dry_run else "live"
+        echo(f"[{mode}] Dev release v{version} synced.")
 
 
 def _apply_workflow_config(
