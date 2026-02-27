@@ -458,6 +458,7 @@ expected = {
     ],
     "json_files": [],
     "yaml_files": [
+        ".github/ISSUE_TEMPLATE/bug-report.yml",
         ".github/funding.yml",
         ".github/workflows/autofix.yaml",
         ".github/workflows/autolock.yaml",
@@ -514,8 +515,11 @@ expected = {
         "changelog.md",
         "claude.md",
         "readme.md",
+        "repomatic/templates/available-admonition.md",
+        "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",
         "repomatic/templates/detect-squash-merge.md",
+        "repomatic/templates/development-warning.md",
         "repomatic/templates/fix-changelog.md",
         "repomatic/templates/fix-typos.md",
         "repomatic/templates/format-json.md",
@@ -527,6 +531,8 @@ expected = {
         "repomatic/templates/prepare-release.md",
         "repomatic/templates/refresh-tip.md",
         "repomatic/templates/release-notes.md",
+        "repomatic/templates/release-sync-report.md",
+        "repomatic/templates/renovate-migration.md",
         "repomatic/templates/setup-guide.md",
         "repomatic/templates/sync-bumpversion.md",
         "repomatic/templates/sync-gitignore.md",
@@ -535,8 +541,12 @@ expected = {
         "repomatic/templates/sync-renovate.md",
         "repomatic/templates/sync-uv-lock.md",
         "repomatic/templates/sync-workflows.md",
+        "repomatic/templates/unavailable-admonition.md",
+        "repomatic/templates/unsubscribe-phase1.md",
+        "repomatic/templates/unsubscribe-phase2.md",
         "repomatic/templates/update-deps-graph.md",
         "repomatic/templates/update-docs.md",
+        "repomatic/templates/yanked-admonition.md",
     ],
     "markdown_files": [
         ".claude/agents/grunt-qa.md",
@@ -554,8 +564,11 @@ expected = {
         "changelog.md",
         "claude.md",
         "readme.md",
+        "repomatic/templates/available-admonition.md",
+        "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",
         "repomatic/templates/detect-squash-merge.md",
+        "repomatic/templates/development-warning.md",
         "repomatic/templates/fix-changelog.md",
         "repomatic/templates/fix-typos.md",
         "repomatic/templates/format-json.md",
@@ -567,6 +580,8 @@ expected = {
         "repomatic/templates/prepare-release.md",
         "repomatic/templates/refresh-tip.md",
         "repomatic/templates/release-notes.md",
+        "repomatic/templates/release-sync-report.md",
+        "repomatic/templates/renovate-migration.md",
         "repomatic/templates/setup-guide.md",
         "repomatic/templates/sync-bumpversion.md",
         "repomatic/templates/sync-gitignore.md",
@@ -575,12 +590,14 @@ expected = {
         "repomatic/templates/sync-renovate.md",
         "repomatic/templates/sync-uv-lock.md",
         "repomatic/templates/sync-workflows.md",
+        "repomatic/templates/unavailable-admonition.md",
+        "repomatic/templates/unsubscribe-phase1.md",
+        "repomatic/templates/unsubscribe-phase2.md",
         "repomatic/templates/update-deps-graph.md",
         "repomatic/templates/update-docs.md",
+        "repomatic/templates/yanked-admonition.md",
     ],
-    "image_files": [
-        "docs/assets/repo-workflow-permissions.png",
-    ],
+    "image_files": [],
     "zsh_files": [],
     "is_python_project": True,
     "nuitka": True,
@@ -613,6 +630,8 @@ expected = {
     # admonition with PyPI and GitHub links.
     "release_notes_with_admonition": AnyReleaseNotes(
         dev_pattern=regex(
+            r"> \[\!WARNING\]\n"
+            r"> This version is \*\*not released yet\*\* and is under active development\.\n\n"
             r"> \[\!NOTE\]\n"
             r"> .+is available on.+\n\n"
             r".+"
