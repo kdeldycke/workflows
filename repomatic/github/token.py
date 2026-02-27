@@ -19,6 +19,52 @@
 Provides early validation for CLI commands that depend on the GitHub API,
 so users get clear error messages at startup rather than opaque failures
 mid-execution.
+
+.. note:: Why ``WORKFLOW_UPDATE_GITHUB_PAT`` is needed
+
+   GitHub's ``GITHUB_TOKEN`` cannot modify workflow files in ``.github/``.
+   Neither ``contents: write``, ``actions: write``, nor ``permissions:
+   write-all`` grant this ability. The only way to push changes to workflow
+   YAML files is via a fine-grained Personal Access Token with the
+   **Workflows** permission. Without it, pushes are rejected with::
+
+       ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a
+       GitHub App to create or update workflow
+       `.github/workflows/my_workflow.yaml` without `workflows` permission)
+
+   Additionally, events triggered by ``GITHUB_TOKEN`` do not start new
+   workflow runs (see `GitHub docs
+   <https://docs.github.com/en/actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow>`_),
+   so tag pushes also need the PAT to trigger downstream workflows.
+
+   The **Settings → Actions → General → Workflow permissions** setting has
+   no effect on this limitation — it's a hard security boundary enforced by
+   GitHub regardless of repository-level settings.
+
+   Jobs that use ``WORKFLOW_UPDATE_GITHUB_PAT``:
+
+   - ``autofix.yaml``: fix-typos, sync-workflows, sync-awesome-template
+     (PRs touching ``.github/workflows/`` files).
+   - ``changelog.yaml``: prepare-release (freezes versions in workflow files).
+   - ``release.yaml``: create-tag (push triggers ``on.push.tags``),
+     create-release (triggers downstream workflows).
+   - ``renovate.yaml``: renovate (dependency PRs, status checks, dashboard,
+     vulnerability alerts).
+
+   All jobs fall back to ``GITHUB_TOKEN`` when the PAT is unavailable
+   (``secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN``), but
+   operations requiring the ``workflows`` permission or workflow triggering
+   will silently fail.
+
+   Token permission mapping:
+
+   - **Workflows** — PRs that touch ``.github/workflows/`` files.
+   - **Contents** — Tag pushes, release publishing, PR branch creation.
+   - **Pull requests** — All PR-creating jobs.
+   - **Commit statuses** — Renovate ``stability-days`` status checks.
+   - **Dependabot alerts** — Renovate vulnerability alert reading.
+   - **Issues** — Renovate Dependency Dashboard.
+   - **Metadata** — Required for all fine-grained token API operations.
 """
 
 from __future__ import annotations

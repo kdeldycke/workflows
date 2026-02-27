@@ -194,4 +194,4 @@ jobs:
         run: >
           echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See https://github.com/kdeldycke/repomatic#solution-fine-grained-personal-access-token"
+          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+WORKFLOW_UPDATE_GITHUB_PAT+in:title"

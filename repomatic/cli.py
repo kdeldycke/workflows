@@ -1649,9 +1649,29 @@ def setup_guide(has_pat: bool) -> None:
         # Secret is configured — close the setup issue
         repomatic setup-guide --has-pat
     """
+    from .github.gh import run_gh_command
     from .github.issue import manage_issue_lifecycle
 
-    body = render_template("setup-guide")
+    # Detect if the repository owner is an organization.
+    org_tip = ""
+    owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+    if owner:
+        try:
+            owner_type = run_gh_command(
+                ["api", f"users/{owner}", "--jq", ".type"],
+            ).strip()
+            if owner_type == "Organization":
+                org_tip = (
+                    "> \U0001f4a1 **For organizations**: Consider using a"
+                    " [machine user account](https://docs.github.com/en/"
+                    "get-started/learning-about-github/types-of-github-accounts"
+                    "#personal-accounts) or a dedicated service account to own"
+                    " the PAT, rather than tying it to an individual's account."
+                )
+        except RuntimeError:
+            logging.debug(f"Failed to detect owner type for {owner!r}.")
+
+    body = render_template("setup-guide", repo_url=_repo_url(), org_tip=org_tip)
 
     with tempfile.NamedTemporaryFile(
         mode="w",

@@ -40,8 +40,8 @@ GitHub Actions has several design limitations. This repository works around most
 | `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed       | [SHA-based concurrency groups](#concurrency-and-cancellation) in [`release.yaml`](#githubworkflowsreleaseyaml-jobs)                                               |
 | Cross-event concurrency cancellation                        | ✅ Addressed       | [`event_name` in `changelog.yaml` concurrency group](#concurrency-and-cancellation)                                                                               |
 | PR close doesn't cancel runs                                | ✅ Addressed       | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                                        |
-| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT](#solution-fine-grained-personal-access-token)                                                                     |
-| Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | [Custom PAT](#solution-fine-grained-personal-access-token) for tag operations                                                                                     |
+| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT](#permissions-and-token)                                                                                           |
+| Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | [Custom PAT](#permissions-and-token) for tag operations                                                                                                           |
 | Default input values not propagated across events           | ✅ Addressed       | Manual defaults in `env:` section                                                                                                                                 |
 | `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-project-metadata-job) extracts full commit range                                                                             |
 | `actions/checkout` uses merge commit for PRs                | ✅ Addressed       | Explicit `ref: github.event.pull_request.head.sha`                                                                                                                |
@@ -58,7 +58,7 @@ $ uvx -- repomatic init
 $ git add . && git commit -m "Bootstrap reusable workflows" && git push
 ```
 
-That's it. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#solution-fine-grained-personal-access-token)) via issues and PRs in your repository.
+That's it. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#permissions-and-token)) via issues and PRs in your repository.
 
 Run `repomatic init --help` to see available components and options.
 
@@ -778,141 +778,9 @@ Workflows in this repository are **self-referential**. The [`prepare-release`](h
 
 ### Permissions and token
 
-This repository updates itself via GitHub Actions. But updating its own YAML files in `.github/workflows` is forbidden by default, and we need extra permissions.
+Several workflows need a `WORKFLOW_UPDATE_GITHUB_PAT` secret to create PRs that modify files in `.github/workflows/` and to trigger downstream workflows. Without it, those jobs silently fall back to the default `GITHUB_TOKEN`, which lacks the required permissions.
 
-#### Why `permissions:` isn't enough
-
-Usually, to grant special permissions to some jobs, you use the [`permissions` parameter in workflow](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) files:
-
-```yaml
-on: (…)
-
-jobs:
-  my-job:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps: (…)
-```
-
-But `contents: write` doesn't allow write access to workflow files in `.github/`. The `actions: write` permission only covers workflow *runs*, not their YAML source files. Even `permissions: write-all` doesn't work.
-
-You will always end up with this error:
-
-```text
-! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a GitHub App to create or update workflow `.github/workflows/my_workflow.yaml` without `workflows` permission)
-
-error: failed to push some refs to 'https://github.com/kdeldycke/my-repo'
-```
-
-> [!NOTE]
-> The **Settings → Actions → General → Workflow permissions** setting on your repository has no effect on this issue. Even with "Read and write permissions" enabled, the default `GITHUB_TOKEN` cannot modify workflow files—that's a hard security boundary enforced by GitHub:
-> ![](docs/assets/repo-workflow-permissions.png)
-
-#### What needs the PAT
-
-Modifying workflow files is the primary reason for the PAT, but it serves additional purposes. Events triggered by `GITHUB_TOKEN` [don't start new workflow runs](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow), so operations like tag pushes also need the PAT to trigger downstream workflows. Renovate requires several additional permissions for its full feature set.
-
-Jobs that use `WORKFLOW_UPDATE_GITHUB_PAT`:
-
-| Workflow         | Job                    | Reason                                                                    |
-| :--------------- | :--------------------- | :------------------------------------------------------------------------ |
-| `autofix.yaml`   | Fix typos              | Create PR touching `.github/workflows/` files                             |
-| `autofix.yaml`   | Sync workflows         | Create PR updating workflow caller files                                  |
-| `autofix.yaml`   | Sync awesome template  | Checkout and sync including workflow files                                |
-| `changelog.yaml` | Prepare release        | Create release PR freezing versions in workflow files                     |
-| `release.yaml`   | Create tag             | Push tag that triggers `on.push.tags` workflows                           |
-| `release.yaml`   | Publish GitHub release | Create release that triggers downstream workflows                         |
-| `renovate.yaml`  | Renovate               | Manage dependency PRs, status checks, dashboard, and vulnerability alerts |
-
-Each token permission maps to specific needs:
-
-| Permission            | Needed for                                                                            |
-| :-------------------- | :------------------------------------------------------------------------------------ |
-| **Workflows**         | All PR-creating jobs that touch `.github/workflows/` files                            |
-| **Contents**          | Tag pushes, release publishing, PR branch creation                                    |
-| **Pull requests**     | All PR-creating jobs (sync-workflows, fix-typos, prepare-release, Renovate)           |
-| **Commit statuses**   | Renovate `stability-days` status checks                                               |
-| **Dependabot alerts** | Renovate vulnerability alert reading                                                  |
-| **Issues**            | Renovate [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) |
-| **Metadata**          | Required for all fine-grained token API operations                                    |
-
-All jobs fall back to `GITHUB_TOKEN` when the PAT is unavailable (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`), but operations requiring the `workflows` permission or workflow triggering will silently fail.
-
-#### Solution: Fine-grained Personal Access Token
-
-To bypass these limitations, create a custom access token called `WORKFLOW_UPDATE_GITHUB_PAT`. It replaces the default `secrets.GITHUB_TOKEN` [in steps that need elevated permissions](https://github.com/search?q=repo%3Akdeldycke%2Fworkflows%20WORKFLOW_UPDATE_GITHUB_PAT&type=code).
-
-##### Step 1: Create the token
-
-1. Go to **GitHub → Settings → Developer Settings → Personal Access Tokens → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**
-
-2. Click **Generate new token**
-
-3. Configure:
-
-   | Field                 | Value                                                                                    |
-   | :-------------------- | :--------------------------------------------------------------------------------------- |
-   | **Token name**        | `workflow-self-update` (or similar descriptive name)                                     |
-   | **Expiration**        | Choose based on your security policy                                                     |
-   | **Repository access** | Select **Only select repositories** and choose the repos that need workflow self-updates |
-
-4. Click **Add permissions**:
-
-   | Permission            | Access                  |
-   | :-------------------- | :---------------------- |
-   | **Commit statuses**   | Read and Write          |
-   | **Contents**          | Read and Write          |
-   | **Dependabot alerts** | Read-only               |
-   | **Issues**            | Read and Write          |
-   | **Metadata**          | Read-only *(mandatory)* |
-   | **Pull requests**     | Read and Write          |
-   | **Workflows**         | Read and Write          |
-
-   > [!IMPORTANT]
-   > The **Workflows** permission is the key. This is the *only* place where you can grant it—it's not available via the `permissions:` parameter in YAML files.
-   >
-   > The **Commit statuses** permission is required by Renovate to set status checks (e.g., `renovate/stability-days`) on commits.
-   >
-   > The **Dependabot alerts** permission allows Renovate to read vulnerability alerts and create security update PRs, replacing Dependabot security updates.
-   >
-   > The **Issues** permission is required by Renovate to create and update the [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/) issue.
-
-5. Click **Generate token** and copy the `github_pat_XXXX` value
-
-##### Step 2: Add the secret to your repository
-
-1. Go to your repository → **Settings → Security → Secrets and variables → Actions**
-2. Click **New repository secret**
-3. Set:
-   - **Name**: `WORKFLOW_UPDATE_GITHUB_PAT`
-   - **Secret**: paste the `github_pat_XXXX` token
-
-##### Step 3: Configure Dependabot settings
-
-Go to your repository → **Settings → Advanced Security → Dependabot** and configure:
-
-| Setting                         | Status      | Reason                                                |
-| :------------------------------ | :---------- | :---------------------------------------------------- |
-| **Dependabot alerts**           | ✅ Enabled  | Renovate reads these alerts to detect vulnerabilities |
-| **Dependabot security updates** | ❌ Disabled | Renovate creates security PRs instead                 |
-| **Grouped security updates**    | ❌ Disabled | Not needed when security updates are disabled         |
-| **Dependabot version updates**  | ❌ Disabled | Renovate handles all version updates                  |
-
-> [!WARNING]
-> Keep **Dependabot alerts** enabled—these are passive notifications that Renovate reads via the API.
-> Disable all other Dependabot features since Renovate handles both security and version updates.
-
-##### Step 4: Verify it works
-
-Re-run your workflow. It should now update files in `.github/workflows/` without the error.
-
-> [!TIP]
-> **For organizations**: Consider using a [machine user account](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#personal-accounts) or a dedicated service account to own the PAT, rather than tying it to an individual's account.
-
-> [!WARNING]
-> **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token before expiration, or your workflows will fail silently.
+After your first push, the [`setup-guide` job](#githubworkflowsautofixyaml-jobs) automatically opens an issue with [step-by-step instructions](https://github.com/kdeldycke/repomatic/blob/main/repomatic/templates/setup-guide.md) to create and configure the token.
 
 ### Concurrency and cancellation
 
