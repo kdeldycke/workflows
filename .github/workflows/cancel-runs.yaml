@@ -20,41 +20,28 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: Cancel in-progress runs for PR branch
-        uses: actions/github-script@v8.0.0
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const branch = context.payload.pull_request.head.ref;
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          branch="${{ github.event.pull_request.head.ref }}"
+          current_run_id="${{ github.run_id }}"
+          cancelled=0
 
-            // List all workflow runs for the PR branch.
-            const {data: {workflow_runs}} = await github.rest.actions.listWorkflowRunsForRepo({
-              owner,
-              repo,
-              branch,
-              status: 'in_progress',
-            });
+          for status in in_progress queued; do
+            while read -r run_id; do
+              [ -z "$run_id" ] && continue
+              if [ "$run_id" != "$current_run_id" ]; then
+                echo "Cancelling run #${run_id} (status: ${status})"
+                gh api --method POST \
+                  "repos/{owner}/{repo}/actions/runs/${run_id}/cancel" \
+                  || true
+                cancelled=$((cancelled + 1))
+              fi
+            done < <(
+              gh api "repos/{owner}/{repo}/actions/runs?branch=${branch}&status=${status}" \
+                --jq '.workflow_runs[].id'
+            )
+          done
 
-            // Also fetch queued runs.
-            const {data: {workflow_runs: queuedRuns}} = await github.rest.actions.listWorkflowRunsForRepo({
-              owner,
-              repo,
-              branch,
-              status: 'queued',
-            });
-
-            const allRuns = [...workflow_runs, ...queuedRuns];
-
-            // Do not cancel ourselves.
-            const runsToCancel = allRuns.filter(run => run.id !== context.runId);
-
-            for (const run of runsToCancel) {
-              core.info(`Cancelling run #${run.id} (${run.name}, status: ${run.status})`);
-              await github.rest.actions.cancelWorkflowRun({
-                owner,
-                repo,
-                run_id: run.id,
-              });
-            }
-
-            core.info(`Cancelled ${runsToCancel.length} run(s) for branch '${branch}'.`);
+          echo "Cancelled ${cancelled} run(s) for branch '${branch}'."
