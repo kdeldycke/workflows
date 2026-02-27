@@ -2,11 +2,11 @@
 
 ## Downstream repositories
 
-This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that reuses workflows from [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
+This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that uses the `repomatic` CLI and its [`[tool.repomatic]` configuration](readme.md#toolrepomatic-configuration), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
 
 In other words, downstream repositories should mirror the patterns established here for code style, documentation, testing, and design principles.
 
-**Contributing upstream:** If Claude spots inefficiencies, potential improvements, performance bottlenecks, missing features, or opportunities for better adaptability in the reusable workflows, `repomatic` CLI, or this `claude.md` file itself, it should propose these changes upstream via a pull request or issue at [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/issues). This benefits all downstream repositories.
+**Contributing upstream:** If Claude spots inefficiencies, potential improvements, performance bottlenecks, missing features, or opportunities for better adaptability in the `repomatic` CLI, its configuration, the reusable workflows, or this `claude.md` file itself, it should propose these changes upstream via a pull request or issue at [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/issues). This benefits all downstream repositories.
 
 ## Commands
 
@@ -44,7 +44,7 @@ $ uvx -- repomatic --help
 ### Scope of `claude.md` vs `readme.md`
 
 - **`claude.md`**: Contributor and Claude-focused directives—code style, testing guidelines, design principles, and internal development guidance.
-- **`readme.md`**: User-facing documentation for the reusable workflows and `repomatic` CLI—installation, usage, configuration, and workflow job descriptions.
+- **`readme.md`**: User-facing documentation for the `repomatic` CLI and `[tool.repomatic]` configuration—installation, usage, and the workflows that implement them.
 
 When adding new content, consider whether it benefits end users (`readme.md`) or contributors/Claude working on the codebase (`claude.md`).
 
@@ -317,6 +317,10 @@ Run `repomatic list-skills` to see all skills with descriptions.
 1. Create something that works (to provide business value).
 2. Create something that's beautiful (to lower maintenance costs).
 3. Work on performance.
+
+### CLI and configuration as primary abstractions
+
+The `repomatic` CLI and its `[tool.repomatic]` configuration in `pyproject.toml` are the project's primary interfaces. Everything else — reusable workflows, templates, label definitions — is a delivery mechanism. New features should be implemented in the CLI first; workflows should call the CLI, not the other way around. Documentation should lead with what the CLI does and how to configure it.
 
 ### Linting and formatting
 

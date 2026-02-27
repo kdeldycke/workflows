@@ -1,4 +1,4 @@
-# `repomatic` CLI + reusable workflows
+# `repomatic`
 
 [![Last release](https://img.shields.io/pypi/v/repomatic.svg)](https://pypi.org/project/repomatic/)
 [![Python versions](https://img.shields.io/pypi/pyversions/repomatic.svg)](https://pypi.org/project/repomatic/)
@@ -6,7 +6,7 @@
 [![Unittests status](https://github.com/kdeldycke/repomatic/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/kdeldycke/repomatic/actions/workflows/tests.yaml?query=branch%3Amain)
 [![Coverage status](https://codecov.io/gh/kdeldycke/repomatic/branch/main/graph/badge.svg)](https://app.codecov.io/gh/kdeldycke/repomatic)
 
-[Reusable workflows](#reusable-workflows-collection) and a standalone [CLI (`repomatic`)](#repomatic-cli) that let you **release Python packages multiple times a day with only 2-clicks**. Designed for `uv`-based Python projects, but usable for other projects too.
+A Python CLI and [`pyproject.toml` configuration](#toolrepomatic-configuration) that let you **release Python packages multiple times a day with only 2-clicks**. Designed for `uv`-based Python projects, but usable for other projects too. The CLI operates through [reusable GitHub Actions workflows](#reusable-workflows) as its CI delivery mechanism.
 
 [**Maintainer-in-the-loop**](#maintainer-in-the-loop): nothing is done behind your back. A PR or issue is created every time a change is proposed or action is needed.
 
@@ -27,28 +27,6 @@ Automates:
 - Label management, with file-based and content-based rules
 - Awesome list template synchronization
 - Address [GitHub Actions limitations](#github-actions-limitations)
-
-## GitHub Actions limitations
-
-GitHub Actions has several design limitations. This repository works around most of them:
-
-| Limitation                                                  | Status             | Addressed by                                                                                                                                                      |
-| :---------------------------------------------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No conditional step groups                                  | ✅ Addressed       | [`project-metadata` job](#what-is-this-project-metadata-job) + [`repomatic metadata`](#repomatic-cli)                                                             |
-| Workflow inputs only accept strings                         | ✅ Addressed       | String parsing in [`repomatic`](#repomatic-cli)                                                                                                                   |
-| Matrix outputs not cumulative                               | ✅ Addressed       | [`project-metadata`](#what-is-this-project-metadata-job) pre-computes matrices                                                                                    |
-| `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed       | [SHA-based concurrency groups](#concurrency-and-cancellation) in [`release.yaml`](#githubworkflowsreleaseyaml-jobs)                                               |
-| Cross-event concurrency cancellation                        | ✅ Addressed       | [`event_name` in `changelog.yaml` concurrency group](#concurrency-and-cancellation)                                                                               |
-| PR close doesn't cancel runs                                | ✅ Addressed       | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                                        |
-| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT](#permissions-and-token)                                                                                           |
-| Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | [Custom PAT](#permissions-and-token) for tag operations                                                                                                           |
-| Default input values not propagated across events           | ✅ Addressed       | Manual defaults in `env:` section                                                                                                                                 |
-| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-project-metadata-job) extracts full commit range                                                                             |
-| `actions/checkout` uses merge commit for PRs                | ✅ Addressed       | Explicit `ref: github.event.pull_request.head.sha`                                                                                                                |
-| Multiline output encoding fragile                           | ✅ Addressed       | Random delimiters in `repomatic/github.py`                                                                                                                        |
-| Branch deletion doesn't cancel runs                         | ❌ Not addressed   | Same root cause as PR close; partially mitigated by [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) since branch deletion typically follows PR closure |
-| No native way to depend on all matrix jobs completing       | ❌ Not addressed   | GitHub limitation; use `needs:` with a summary job as workaround                                                                                                  |
-| `actionlint` false positives for runtime env vars           | 🚫 Not addressable | Linter limitation, not GitHub's                                                                                                                                   |
 
 ## Quick start
 
@@ -220,9 +198,9 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 >
 > See [click-extra's inventory of `pyproject.toml`-aware tools](https://kdeldycke.github.io/click-extra/config.html#pyproject-toml) for a broader list.
 
-## Reusable workflows collection
+## Reusable workflows
 
-This repository contains workflows to automate most of the boring tasks in the form of [reusable GitHub Actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
+The `repomatic` CLI operates in CI through [reusable GitHub Actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows). You configure behavior via [`[tool.repomatic]`](#toolrepomatic-configuration) in `pyproject.toml`; the workflows are the execution layer.
 
 ### Example usage
 
@@ -243,6 +221,28 @@ jobs:
 
 > [!IMPORTANT]
 > [Concurrency is already configured](#concurrency-and-cancellation) in the reusable workflows—you don't need to re-specify it in your calling workflow.
+
+### GitHub Actions limitations
+
+GitHub Actions has several design limitations that the workflows work around:
+
+| Limitation                                                  | Status             | Addressed by                                                                                                                                                      |
+| :---------------------------------------------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No conditional step groups                                  | ✅ Addressed       | [`project-metadata` job](#what-is-this-project-metadata-job) + [`repomatic metadata`](#repomatic-cli)                                                             |
+| Workflow inputs only accept strings                         | ✅ Addressed       | String parsing in [`repomatic`](#repomatic-cli)                                                                                                                   |
+| Matrix outputs not cumulative                               | ✅ Addressed       | [`project-metadata`](#what-is-this-project-metadata-job) pre-computes matrices                                                                                    |
+| `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed       | [SHA-based concurrency groups](#concurrency-and-cancellation) in [`release.yaml`](#githubworkflowsreleaseyaml-jobs)                                               |
+| Cross-event concurrency cancellation                        | ✅ Addressed       | [`event_name` in `changelog.yaml` concurrency group](#concurrency-and-cancellation)                                                                               |
+| PR close doesn't cancel runs                                | ✅ Addressed       | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                                        |
+| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT](#permissions-and-token)                                                                                           |
+| Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | [Custom PAT](#permissions-and-token) for tag operations                                                                                                           |
+| Default input values not propagated across events           | ✅ Addressed       | Manual defaults in `env:` section                                                                                                                                 |
+| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-project-metadata-job) extracts full commit range                                                                             |
+| `actions/checkout` uses merge commit for PRs                | ✅ Addressed       | Explicit `ref: github.event.pull_request.head.sha`                                                                                                                |
+| Multiline output encoding fragile                           | ✅ Addressed       | Random delimiters in `repomatic/github.py`                                                                                                                        |
+| Branch deletion doesn't cancel runs                         | ❌ Not addressed   | Same root cause as PR close; partially mitigated by [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) since branch deletion typically follows PR closure |
+| No native way to depend on all matrix jobs completing       | ❌ Not addressed   | GitHub limitation; use `needs:` with a summary job as workaround                                                                                                  |
+| `actionlint` false positives for runtime env vars           | 🚫 Not addressable | Linter limitation, not GitHub's                                                                                                                                   |
 
 ### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autofix.yaml)
 
@@ -721,7 +721,7 @@ Workflows never commit directly or act silently. Every proposed change creates a
 
 ### Configurable with sensible defaults
 
-Workflows accept `inputs` for customization while providing defaults that work out of the box. Downstream projects can further customize behavior via [`[tool.repomatic]` configuration](#toolrepomatic-configuration) in `pyproject.toml`.
+Downstream projects customize behavior via [`[tool.repomatic]`](#toolrepomatic-configuration) in `pyproject.toml`. Workflows also accept `inputs` for fine-tuning, but the configuration file is the primary interface.
 
 ### Idempotent operations
 
