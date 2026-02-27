@@ -1890,6 +1890,7 @@ _SKILL_PHASES: dict[str, str] = {
     "repomatic-metadata": "Development",
     "repomatic-lint": "Quality",
     "repomatic-test": "Quality",
+    "repomatic-topics": "Development",
     "repomatic-changelog": "Release",
     "repomatic-release": "Release",
 }

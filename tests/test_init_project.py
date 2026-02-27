@@ -508,7 +508,7 @@ def test_init_only_skills(tmp_path: Path):
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 8
+    assert len(created_set) == 9
 
     # Verify all skill files are created.
     for name in (
@@ -520,6 +520,7 @@ def test_init_only_skills(tmp_path: Path):
         "repomatic-release",
         "repomatic-sync",
         "repomatic-test",
+        "repomatic-topics",
     ):
         rel = f".claude/skills/{name}/SKILL.md"
         assert rel in created_set
