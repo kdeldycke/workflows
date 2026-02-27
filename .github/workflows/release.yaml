@@ -102,6 +102,7 @@ jobs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
       package_name: ${{ steps.project-metadata.outputs.package_name }}
       release_notes: ${{ steps.project-metadata.outputs.release_notes }}
+      release_notes_with_admonition: ${{ steps.project-metadata.outputs.release_notes_with_admonition }}
       skip_binary_build: ${{ steps.project-metadata.outputs.skip_binary_build }}
     steps:
       - uses: actions/checkout@v6.0.2
@@ -342,6 +343,7 @@ jobs:
       - project-metadata
       - build-package
       - create-tag
+      - publish-pypi
     # Make sure this job always starts if create-tag ran and succeeded.
     if: always() && needs.create-tag.result == 'success'
     strategy:
@@ -380,4 +382,7 @@ jobs:
           tag_name: v${{ matrix.current_version }}
           target_commitish: ${{ matrix.commit }}
           files: release_artifact/*
-          body: ${{ needs.project-metadata.outputs.release_notes }}
+          body: >-
+            ${{ needs.publish-pypi.result == 'success'
+                && needs.project-metadata.outputs.release_notes_with_admonition
+                || needs.project-metadata.outputs.release_notes }}

@@ -649,6 +649,7 @@ possibly change the binary output.
 HEREDOC_FIELDS: Final[frozenset[str]] = frozenset((
     # Contains markdown with brackets, parentheses, and emojis that can break parsing.
     "release_notes",
+    "release_notes_with_admonition",
 ))
 """Metadata fields that should always use heredoc format in GitHub Actions output.
 
@@ -2131,6 +2132,58 @@ class Metadata:
         notes = build_expected_body(changelog, version)
         return notes or None
 
+    @cached_property
+    def release_notes_with_admonition(self) -> str | None:
+        """Generate release notes with a pre-computed availability admonition.
+
+        Builds the same body as :attr:`release_notes`, but injects a
+        ``> [!NOTE]`` admonition linking to PyPI and GitHub even before
+        ``fix-changelog`` has a chance to update ``changelog.md``.  This
+        lets the ``create-release`` workflow step include the admonition
+        at creation time when ``publish-pypi`` succeeds.
+
+        Returns ``None`` when the project is not on PyPI, has no
+        changelog, or has no version to release.
+        """
+        from .changelog import (
+            GITHUB_RELEASE_URL,
+            PYPI_PROJECT_URL,
+            build_release_admonition,
+        )
+        from .github.release_sync import build_expected_body
+
+        version = self.released_version
+        if not version:
+            version = self.current_version
+        if not version or not self.package_name:
+            return None
+
+        changelog_path = Path("./changelog.md")
+        if not changelog_path.exists():
+            return None
+
+        changelog = Changelog(
+            changelog_path.read_text(encoding="UTF-8"),
+        )
+
+        repo_url = changelog.extract_repo_url()
+        if not repo_url:
+            return None
+
+        pypi_url = PYPI_PROJECT_URL.format(
+            package=self.package_name, version=version,
+        )
+        github_url = GITHUB_RELEASE_URL.format(
+            repo_url=repo_url, version=version,
+        )
+        admonition = build_release_admonition(
+            version, pypi_url=pypi_url, github_url=github_url,
+        )
+        notes = build_expected_body(
+            changelog, version, admonition_override=admonition,
+        )
+        return notes or None
+
     @staticmethod
     def format_github_value(value: Any) -> str:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
@@ -2220,6 +2273,7 @@ class Metadata:
             "is_sphinx": self.is_sphinx,
             "active_autodoc": self.active_autodoc,
             "release_notes": self.release_notes,
+            "release_notes_with_admonition": self.release_notes_with_admonition,
             "new_commits_matrix": self.new_commits_matrix,
             "release_commits_matrix": self.release_commits_matrix,
             "build_targets": FLAT_BUILD_TARGETS,

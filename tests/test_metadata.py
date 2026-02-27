@@ -607,6 +607,19 @@ expected = {
             r"> \[\!(NOTE|CAUTION)\]\n>.+)"
         ),
     ),
+    # Same as release_notes, but always includes a pre-computed availability
+    # admonition with PyPI and GitHub links.
+    "release_notes_with_admonition": AnyReleaseNotes(
+        dev_pattern=regex(
+            r"> \[\!NOTE\]\n"
+            r"> .+is available on.+\n\n"
+            r".+"
+        ),
+        release_pattern=regex(
+            r"> \[\!NOTE\]\n"
+            r"> .+is available on.+"
+        ),
+    ),
     # new_commits_matrix is None when running outside GitHub Actions.
     # In CI, it contains a matrix dict with commit data.
     "new_commits_matrix": OptionalMatrix(),

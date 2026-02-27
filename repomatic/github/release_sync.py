@@ -69,7 +69,12 @@ class SyncResult:
     missing_changelog: int = 0
 
 
-def build_expected_body(changelog: Changelog, version: str) -> str:
+def build_expected_body(
+    changelog: Changelog,
+    version: str,
+    *,
+    admonition_override: str | None = None,
+) -> str:
     """Build the expected release body from the changelog.
 
     Decomposes the changelog section into discrete elements and renders
@@ -79,6 +84,10 @@ def build_expected_body(changelog: Changelog, version: str) -> str:
 
     :param changelog: Parsed changelog instance.
     :param version: Version string (e.g. ``1.2.3``).
+    :param admonition_override: If provided, replaces the
+        ``availability_admonition`` from the changelog. Used by
+        ``release_notes_with_admonition`` to inject a pre-computed
+        admonition at release time.
     :return: The rendered release body, or empty string if the
         version has no changelog section.
     """
@@ -87,6 +96,9 @@ def build_expected_body(changelog: Changelog, version: str) -> str:
     elements = changelog.decompose_version(version)
     if not elements.changes and not elements.availability_admonition:
         return ""
+
+    if admonition_override is not None:
+        elements.availability_admonition = admonition_override
     # Extract tag range from compare URL (e.g. "v1.1.0...v2.0.0").
     tag_range = (
         elements.compare_url.rsplit("/compare/", 1)[-1]

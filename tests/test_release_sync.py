@@ -81,6 +81,36 @@ def test_build_expected_body_with_admonition():
     assert "New feature." in body
 
 
+def test_build_expected_body_admonition_override():
+    """Override replaces the changelog's availability admonition."""
+    changelog = Changelog(SAMPLE_CHANGELOG)
+    override = (
+        "> [!NOTE]\n"
+        "> `1.1.0` is available on"
+        " [🐍 PyPI](https://pypi.org/project/pkg/1.1.0/)"
+        " and [🐙 GitHub release](https://github.com/user/repo/releases/tag/v1.1.0)."
+    )
+    body = build_expected_body(changelog, "1.1.0", admonition_override=override)
+    # The override admonition should appear in the rendered body.
+    assert "🐍 PyPI" in body
+    assert "🐙 GitHub release" in body
+    # Original changes should still be present.
+    assert "Fixed bug in parser." in body
+
+
+def test_build_expected_body_admonition_override_no_original():
+    """Override injects an admonition where none existed in the changelog."""
+    changelog = Changelog(SAMPLE_CHANGELOG)
+    override = (
+        "> [!NOTE]\n"
+        "> `2.0.0` is available on"
+        " [🐍 PyPI](https://pypi.org/project/pkg/2.0.0/)."
+    )
+    body = build_expected_body(changelog, "2.0.0", admonition_override=override)
+    assert "🐍 PyPI" in body
+    assert "Breaking change: redesigned API." in body
+
+
 def test_build_expected_body_missing_version():
     """Returns empty string for a missing version."""
     changelog = Changelog(SAMPLE_CHANGELOG)
