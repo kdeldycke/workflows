@@ -82,6 +82,9 @@ from .github.pr_body import (
 from .github import token as _token_mod
 from .github import unsubscribe as _unsub_mod
 from .github.dev_release import (
+    cleanup_dev_releases as _cleanup_dev_releases,
+)
+from .github.dev_release import (
     delete_dev_release as _delete_dev_release,
 )
 from .github.dev_release import (
@@ -793,10 +796,10 @@ def sync_dev_release(dry_run: bool, delete: bool) -> None:
 
     if delete:
         if dry_run:
-            echo(f"[dry-run] Would delete dev release v{version}.")
+            echo("[dry-run] Would delete all dev releases.")
             return
-        _delete_dev_release(version, nwo)
-        echo(f"Deleted dev release v{version}.")
+        _cleanup_dev_releases(nwo)
+        echo("Deleted all dev releases.")
         return
 
     if _sync_dev_release(changelog_path, version, nwo, dry_run):

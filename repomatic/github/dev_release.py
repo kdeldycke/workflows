@@ -16,20 +16,22 @@
 
 """Sync a rolling dev pre-release on GitHub.
 
-Maintains a single pre-release that mirrors the unreleased changelog
-section and always carries the latest successful dev binaries and
-Python package. The dev tag (e.g. ``v6.1.1.dev0``) is force-updated
+Maintains a single **draft** pre-release that mirrors the unreleased
+changelog section and always carries the latest successful dev binaries
+and Python package. The dev tag (e.g. ``v6.1.1.dev0``) is force-updated
 to point to the latest ``main`` commit — no tag proliferation.
 
 .. note::
-    If GitHub's immutable releases setting is enabled on the repository,
-    published pre-releases cannot be deleted or have their assets replaced.
-    The delete-then-recreate approach will fail in that case. Callers
-    should handle :class:`RuntimeError` from ``run_gh_command`` gracefully.
+    Dev releases are created as **drafts** so they remain mutable even
+    when GitHub's immutable releases setting is enabled. Drafts can always
+    be deleted and have their assets replaced. The workflow uploads
+    binaries and packages after creation, then leaves the release as a
+    draft — it is never published.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 
@@ -79,14 +81,17 @@ def sync_dev_release(
         logging.info(f"[dry-run] Release body:\n{body}")
         return True
 
-    # Delete existing dev release + tag. Silently succeed if none exists.
-    delete_dev_release(version, nwo)
+    # Delete all existing dev releases (current + stale from previous versions).
+    cleanup_dev_releases(nwo)
 
-    # Create new pre-release targeting main.
+    # Create new draft pre-release targeting main. Draft stays mutable so
+    # the workflow can upload binaries and packages after creation, and so
+    # immutable releases don't block asset uploads or future deletions.
     run_gh_command([
         "release",
         "create",
         tag,
+        "--draft",
         "--prerelease",
         "--target",
         "main",
@@ -97,22 +102,64 @@ def sync_dev_release(
         "--repo",
         nwo,
     ])
-    logging.info(f"Created dev pre-release {tag}.")
+    logging.info(f"Created dev draft pre-release {tag}.")
 
     return True
+
+
+def cleanup_dev_releases(nwo: str) -> None:
+    """Delete all dev pre-releases from GitHub.
+
+    Lists all releases and deletes any whose tag ends with ``.dev0``.
+    This handles both the current version's dev release and stale ones
+    left behind after version bumps. Silently succeeds if no dev
+    releases exist or if individual deletions fail (e.g., immutable
+    published releases from before the draft migration).
+
+    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    """
+    try:
+        output = run_gh_command([
+            "release",
+            "list",
+            "--json",
+            "tagName",
+            "--repo",
+            nwo,
+        ])
+    except RuntimeError:
+        logging.debug("Could not list releases.")
+        return
+
+    releases = json.loads(output)
+    for release in releases:
+        tag = release["tagName"]
+        if tag.endswith(".dev0"):
+            delete_release_by_tag(tag, nwo)
 
 
 def delete_dev_release(version: str, nwo: str) -> None:
     """Delete the dev pre-release and its tag from GitHub.
 
-    Silently succeeds if no dev release exists. This is used both
-    during ``sync-dev-release`` (delete-then-recreate) and during
-    real releases (cleanup of the dev pre-release).
+    Silently succeeds if no dev release exists. This is used during
+    real releases to clean up the dev pre-release for the version
+    being released.
 
     :param version: Dev version string (e.g. ``6.1.1.dev0``).
     :param nwo: Repository name-with-owner (e.g. ``user/repo``).
     """
-    tag = f"v{version}"
+    delete_release_by_tag(f"v{version}", nwo)
+
+
+def delete_release_by_tag(tag: str, nwo: str) -> None:
+    """Delete a release and its tag from GitHub.
+
+    Silently succeeds if the release does not exist or cannot be
+    deleted (e.g., immutable published releases).
+
+    :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
+    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    """
     try:
         run_gh_command([
             "release",
@@ -125,4 +172,4 @@ def delete_dev_release(version: str, nwo: str) -> None:
         ])
         logging.info(f"Deleted dev release {tag}.")
     except RuntimeError:
-        logging.debug(f"No existing dev release {tag} to delete.")
+        logging.debug(f"Could not delete release {tag}.")

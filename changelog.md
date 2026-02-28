@@ -18,6 +18,7 @@
 - Replace `calibreapp/image-actions` with `repomatic optimize-images` CLI command using lossless `oxipng` (PNG) and `jpegoptim` (JPEG). Exclude WebP and AVIF for lack of stability.
 - Use GFM admonitions (`> [!WARNING]`) instead of emoji-prefixed blockquotes in the setup guide template.
 - Add `sync-dev-release` CLI command and workflow job to maintain a rolling dev pre-release on GitHub with latest binaries and Python package.
+- Create dev pre-releases as drafts to stay compatible with GitHub immutable releases. Clean up all stale `.dev0` releases on each sync, not just the current version's.
 
 ## [`6.1.0` (2026-02-26)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
 

@@ -374,16 +374,17 @@ jobs:
         uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: release_artifact/*
+      - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ matrix.commit }}
+      - uses: astral-sh/setup-uv@v7.3.0
       - name: Delete dev pre-release
-        # Clean up the rolling dev release before creating the real release.
+        # Clean up all rolling dev releases before creating the real release.
         # See repomatic/github/dev_release.py for rationale.
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        run: >
-          gh release delete "v${{ matrix.current_version }}.dev0"
-          --cleanup-tag --yes
-          --repo "${{ github.repository }}"
+        run: uvx --no-progress --from . repomatic sync-dev-release --live --delete
       - name: Create GitHub release draft
         uses: softprops/action-gh-release@v2.5.0
         # PAT required so tag pushes trigger downstream on.push.tags workflows.
