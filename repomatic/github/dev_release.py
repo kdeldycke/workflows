@@ -23,10 +23,11 @@ to point to the latest ``main`` commit — no tag proliferation.
 
 .. note::
     Dev releases are created as **drafts** so they remain mutable even
-    when GitHub's immutable releases setting is enabled. Drafts can always
-    be deleted and have their assets replaced. The workflow uploads
-    binaries and packages after creation, then leaves the release as a
-    draft — it is never published.
+    when GitHub's immutable releases setting is enabled. Immutability
+    only blocks **asset uploads** on published releases — deletion still
+    works. But because the workflow needs to upload binaries *after*
+    creation, the release must stay as a draft throughout its lifetime
+    to allow asset uploads. See ``CLAUDE.md`` § Immutable releases.
 """
 
 from __future__ import annotations
@@ -113,8 +114,7 @@ def cleanup_dev_releases(nwo: str) -> None:
     Lists all releases and deletes any whose tag ends with ``.dev0``.
     This handles both the current version's dev release and stale ones
     left behind after version bumps. Silently succeeds if no dev
-    releases exist or if individual deletions fail (e.g., immutable
-    published releases from before the draft migration).
+    releases exist or if individual deletions fail.
 
     :param nwo: Repository name-with-owner (e.g. ``user/repo``).
     """
@@ -154,8 +154,7 @@ def delete_dev_release(version: str, nwo: str) -> None:
 def delete_release_by_tag(tag: str, nwo: str) -> None:
     """Delete a release and its tag from GitHub.
 
-    Silently succeeds if the release does not exist or cannot be
-    deleted (e.g., immutable published releases).
+    Silently succeeds if the release does not exist or cannot be deleted.
 
     :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
     :param nwo: Repository name-with-owner (e.g. ``user/repo``).

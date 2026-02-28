@@ -357,6 +357,10 @@ When `workflow_run` fires, `github.event.workflow_run.head_sha` points to the co
 
 The release workflow creates a draft, uploads all assets, then publishes. Once published with [GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) enabled, tags and assets are locked. Tag names are permanently burned — reinforcing the [skip and move forward](#skip-and-move-forward-dont-rewrite-history) principle. Release notes remain editable for `sync-github-releases`.
 
+**What immutable releases actually locks:** Immutability only blocks **asset uploads and modifications** on published releases (`HTTP 422: Cannot upload assets to an immutable release`). Published releases can still be **deleted** (along with their tags via `--cleanup-tag`). This distinction is critical for the dev release strategy below.
+
+**Dev releases use drafts.** The `sync-dev-release` job creates dev pre-releases as **drafts** (`--draft --prerelease`) rather than published pre-releases. This ensures the workflow can upload binaries and packages to the release after creation. The release stays as a draft permanently — it is never published. On the next push, `cleanup_dev_releases()` deletes all existing `.dev0` releases (drafts are always deletable) before creating a fresh one. See `repomatic/github/dev_release.py` for implementation.
+
 ### Idempotency by default
 
 Workflows and CLI commands must be safe to re-run. Running the same command or workflow twice with the same inputs should produce the same result without errors or unwanted side effects (e.g., duplicate tags, duplicate PR comments, redundant file modifications).
