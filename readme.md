@@ -900,7 +900,7 @@ This project was previously published as [`gha-utils`](https://pypi.org/project/
 
 Running `uvx -- repomatic init workflows --overwrite` in an existing downstream repository regenerates all workflow files to point at `kdeldycke/repomatic`, but several things require manual attention:
 
-1. **Rename the config section** in `pyproject.toml`: `[tool.gha-utils]` → `[tool.repomatic]`. The `init` command does not migrate this automatically.
+1. **Config section migration** is automatic: `repomatic init` detects `[tool.gha-utils]` (or `[tool.repokit]`) and renames it to `[tool.repomatic]` in place. All commands also fall back to legacy section names transparently when `[tool.repomatic]` is absent.
 
 2. **Use `--overwrite`**. Without it, `init` skips existing workflow files — so old thin-callers referencing `kdeldycke/workflows` are left untouched. The `workflow sync` command also won't recognize them, because it only matches `uses:` references to `kdeldycke/repomatic`.
 
@@ -919,16 +919,13 @@ Running `uvx -- repomatic init workflows --overwrite` in an existing downstream 
 ```shell-session
 $ cd my-project
 
-# 1. Rename config section in pyproject.toml (if present).
-$ sed -i.bak 's/\[tool\.gha-utils\]/[tool.repomatic]/' pyproject.toml && rm pyproject.toml.bak
-
-# 2. Regenerate workflow files.
+# 1. Regenerate workflow files and auto-migrate [tool.gha-utils] config.
 $ uvx -- repomatic init workflows --overwrite
 
-# 3. Remove old skill directories.
+# 2. Remove old skill directories.
 $ rm -rf .claude/skills/gha-*/
 
-# 4. Commit and push.
+# 3. Commit and push.
 $ git add . && git commit -m "Migrate from gha-utils to repomatic" && git push
 ```
 

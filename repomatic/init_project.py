@@ -731,6 +731,15 @@ def run_init(
     selected = set(components) if components else set(DEFAULT_COMPONENTS)
     result = InitResult()
 
+    # Migrate legacy [tool.gha-utils] or [tool.repokit] before reading config.
+    pyproject_path = output_dir / "pyproject.toml"
+    if pyproject_path.exists():
+        if _migrate_repomatic_config_section(pyproject_path):
+            result.warnings.append(
+                "Migrated legacy [tool.*] section to [tool.repomatic]"
+                " in pyproject.toml."
+            )
+
     # Apply config exclusions when no explicit components given.
     workflow_exclude: frozenset[str] = frozenset()
     if not components:
@@ -929,3 +938,50 @@ def _init_tool_configs(
                 logging.info(f"Updated [{section}].")
             else:
                 logging.info(f"Merged [{section}].")
+
+
+def _migrate_repomatic_config_section(pyproject_path: Path) -> bool:
+    """Rename a legacy ``[tool.gha-utils]`` or ``[tool.repokit]`` section header.
+
+    Performs a text-based replacement of the first matching legacy section header
+    to ``[tool.repomatic]``, preserving comments and formatting. If
+    ``[tool.repomatic]`` already exists, no rename is performed.
+
+    :param pyproject_path: Path to the ``pyproject.toml`` file.
+    :return: ``True`` if a rename was performed, ``False`` otherwise.
+    """
+    from .metadata import REPOMATIC_CONFIG_RENAME_FROM
+
+    content = pyproject_path.read_text(encoding="UTF-8")
+
+    has_new = bool(re.search(r"^\[tool\.repomatic\]", content, re.MULTILINE))
+
+    if has_new:
+        # Warn about leftover legacy sections.
+        for old_name in REPOMATIC_CONFIG_RENAME_FROM:
+            if re.search(
+                rf"^\[tool\.{re.escape(old_name)}\]", content, re.MULTILINE
+            ):
+                logging.warning(
+                    f"[tool.{old_name}] is obsolete and can be removed. "
+                    "[tool.repomatic] already exists."
+                )
+        return False
+
+    for old_name in REPOMATIC_CONFIG_RENAME_FROM:
+        new_content, count = re.subn(
+            rf"^\[tool\.{re.escape(old_name)}\]",
+            "[tool.repomatic]",
+            content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        if count:
+            pyproject_path.write_text(new_content, encoding="UTF-8")
+            logging.info(
+                f"Migrated [tool.{old_name}] to [tool.repomatic] "
+                f"in {pyproject_path}."
+            )
+            return True
+
+    return False

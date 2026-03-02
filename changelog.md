@@ -19,6 +19,7 @@
 - Use GFM admonitions (`> [!WARNING]`) instead of emoji-prefixed blockquotes in the setup guide template.
 - Add `sync-dev-release` CLI command and workflow job to maintain a rolling dev pre-release on GitHub with latest binaries and Python package.
 - Create dev pre-releases as drafts to stay compatible with GitHub immutable releases. Clean up all stale `.dev0` releases on each sync, not just the current version's.
+- Automatically migrate `[tool.gha-utils]` and `[tool.repokit]` config sections to `[tool.repomatic]` during `repomatic init`. All commands fall back to legacy section names when `[tool.repomatic]` is absent.
 
 ## [`6.1.0` (2026-02-26)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
 

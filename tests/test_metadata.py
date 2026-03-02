@@ -1349,6 +1349,71 @@ def test_load_repomatic_config_with_preloaded_data():
     assert config["test-plan-file"] == "./tests/cli-test-plan.yaml"
 
 
+@pytest.mark.parametrize("old_name", ["gha-utils", "repokit"])
+def test_load_repomatic_config_falls_back_to_legacy(
+    tmp_path, monkeypatch, caplog, old_name
+):
+    """Legacy [tool.*] section is used as fallback when [tool.repomatic] is absent."""
+    pyproject_content = (
+        "[project]\n"
+        'name = "test-project"\n'
+        "version = \"1.0.0\"\n\n"
+        f"[tool.{old_name}]\n"
+        "timeout = 90\n"
+    )
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    with caplog.at_level("WARNING"):
+        config = load_repomatic_config()
+
+    assert config["timeout"] == 90
+    assert f"[tool.{old_name}] is deprecated" in caplog.text
+    assert "repomatic init" in caplog.text
+
+
+@pytest.mark.parametrize("old_name", ["gha-utils", "repokit"])
+def test_load_repomatic_config_prefers_repomatic_over_legacy(
+    tmp_path, monkeypatch, caplog, old_name
+):
+    """[tool.repomatic] takes precedence; leftover legacy section logs a warning."""
+    pyproject_content = (
+        "[project]\n"
+        'name = "test-project"\n'
+        "version = \"1.0.0\"\n\n"
+        "[tool.repomatic]\n"
+        "timeout = 120\n\n"
+        f"[tool.{old_name}]\n"
+        "timeout = 90\n"
+    )
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    with caplog.at_level("WARNING"):
+        config = load_repomatic_config()
+
+    assert config["timeout"] == 120
+    assert f"[tool.{old_name}] is obsolete" in caplog.text
+
+
+@pytest.mark.parametrize("old_name", ["gha-utils", "repokit"])
+def test_load_repomatic_config_preloaded_falls_back(caplog, old_name):
+    """Pre-parsed dict with legacy section triggers fallback and warning."""
+    data: dict[str, Any] = {
+        "tool": {
+            old_name: {
+                "timeout": 75,
+            },
+        },
+    }
+
+    with caplog.at_level("WARNING"):
+        config = load_repomatic_config(data)
+
+    assert config["timeout"] == 75
+    assert f"[tool.{old_name}] is deprecated" in caplog.text
+
+
 def test_get_project_name_from_cwd(tmp_path, monkeypatch):
     """Test that get_project_name reads from pyproject.toml in CWD."""
     pyproject_content = """\

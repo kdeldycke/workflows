@@ -337,6 +337,16 @@ if TYPE_CHECKING:
     from typing import Any, Final, Literal
 
 
+REPOMATIC_CONFIG_RENAME_FROM: Final[tuple[str, ...]] = ("gha-utils", "repokit")
+"""Legacy ``[tool.*]`` section names from previous project names.
+
+The project was published as ``gha-utils`` on PyPI (renamed to ``repomatic`` in
+``6.0.1``), with a brief intermediate ``repokit`` name that was deleted from PyPI
+before any release. Both old section names are recognized as fallbacks by
+``load_repomatic_config()`` and physically renamed by ``repomatic init``.
+"""
+
+
 class Dialect(StrEnum):
     """Output dialect for metadata serialization."""
 
@@ -572,7 +582,28 @@ def load_repomatic_config(
         else:
             pyproject_data = {}
 
-    user_config: dict[str, Any] = pyproject_data.get("tool", {}).get("repomatic", {})
+    tool_section = pyproject_data.get("tool", {})
+    user_config: dict[str, Any] = tool_section.get("repomatic", {})
+
+    if not user_config:
+        # Fall back to legacy section names from previous project names.
+        for old_name in REPOMATIC_CONFIG_RENAME_FROM:
+            user_config = tool_section.get(old_name, {})
+            if user_config:
+                logging.warning(
+                    f"[tool.{old_name}] is deprecated. "
+                    "Run `repomatic init` to migrate to [tool.repomatic]."
+                )
+                break
+    else:
+        # Warn about leftover legacy sections when [tool.repomatic] exists.
+        for old_name in REPOMATIC_CONFIG_RENAME_FROM:
+            if old_name in tool_section:
+                logging.warning(
+                    f"[tool.{old_name}] is obsolete and can be removed. "
+                    "[tool.repomatic] takes precedence."
+                )
+
     schema = Config()
     config = {f.name.replace("_", "-"): getattr(schema, f.name) for f in fields(Config)}
     config.update(user_config)
