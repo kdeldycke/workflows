@@ -1357,7 +1357,7 @@ def test_load_repomatic_config_falls_back_to_legacy(
     pyproject_content = (
         "[project]\n"
         'name = "test-project"\n'
-        "version = \"1.0.0\"\n\n"
+        'version = "1.0.0"\n\n'
         f"[tool.{old_name}]\n"
         "timeout = 90\n"
     )
@@ -1380,7 +1380,7 @@ def test_load_repomatic_config_prefers_repomatic_over_legacy(
     pyproject_content = (
         "[project]\n"
         'name = "test-project"\n'
-        "version = \"1.0.0\"\n\n"
+        'version = "1.0.0"\n\n'
         "[tool.repomatic]\n"
         "timeout = 120\n\n"
         f"[tool.{old_name}]\n"

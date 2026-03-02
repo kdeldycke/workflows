@@ -25,7 +25,6 @@ from tempfile import NamedTemporaryFile
 import pytest
 
 from repomatic.init_project import (
-    ALL_COMPONENTS,
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     INIT_CONFIGS,
@@ -413,13 +412,13 @@ def test_init_default_components():
     assert "bumpversion" not in DEFAULT_COMPONENTS
 
 
-def test_init_creates_all_default_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_init_creates_all_default_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     """Verify all default component files are created (with no exclusions)."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        "init-exclude = []\n",
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninit-exclude = []\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1046,7 +1045,9 @@ def test_init_workflow_exclude_unknown_warns(
     with caplog.at_level("WARNING"):
         run_init(output_dir=tmp_path)
 
-    assert "Unknown workflow in workflow-sync-exclude: 'nonexistent.yaml'" in caplog.text
+    assert (
+        "Unknown workflow in workflow-sync-exclude: 'nonexistent.yaml'" in caplog.text
+    )
 
 
 # --- Legacy config section migration tests ---
@@ -1059,10 +1060,7 @@ def test_migrate_config_section_renames_legacy(
     """Legacy [tool.*] section header is renamed to [tool.repomatic]."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        "[project]\n"
-        'name = "test"\n\n'
-        f"[tool.{old_name}]\n"
-        "timeout = 90\n",
+        f'[project]\nname = "test"\n\n[tool.{old_name}]\ntimeout = 90\n',
         encoding="UTF-8",
     )
 
@@ -1080,7 +1078,7 @@ def test_migrate_config_section_renames_legacy(
 def test_migrate_config_section_no_legacy(tmp_path: Path, old_name: str):
     """No legacy section present — returns False, file unchanged."""
     pyproject = tmp_path / "pyproject.toml"
-    original = "[project]\n" 'name = "test"\n'
+    original = '[project]\nname = "test"\n'
     pyproject.write_text(original, encoding="UTF-8")
 
     assert _migrate_repomatic_config_section(pyproject) is False
@@ -1092,10 +1090,7 @@ def test_migrate_config_section_already_repomatic(tmp_path: Path, old_name: str)
     """[tool.repomatic] already exists — returns False."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        "[project]\n"
-        'name = "test"\n\n'
-        "[tool.repomatic]\n"
-        "timeout = 120\n",
+        '[project]\nname = "test"\n\n[tool.repomatic]\ntimeout = 120\n',
         encoding="UTF-8",
     )
 
@@ -1125,9 +1120,7 @@ def test_migrate_config_section_both_old_and_new(
 
 
 @pytest.mark.parametrize("old_name", ["gha-utils", "repokit"])
-def test_migrate_config_section_preserves_comments(
-    tmp_path: Path, old_name: str
-):
+def test_migrate_config_section_preserves_comments(tmp_path: Path, old_name: str):
     """Comments above and below the section header survive the rename."""
     pyproject = tmp_path / "pyproject.toml"
     original = (
@@ -1154,10 +1147,7 @@ def test_migrate_config_section_idempotent(tmp_path: Path, old_name: str):
     """Second call after migration returns False (already migrated)."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        "[project]\n"
-        'name = "test"\n\n'
-        f"[tool.{old_name}]\n"
-        "timeout = 90\n",
+        f'[project]\nname = "test"\n\n[tool.{old_name}]\ntimeout = 90\n',
         encoding="UTF-8",
     )
 
