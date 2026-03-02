@@ -3,12 +3,12 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-02-20T16:09:54.619445515Z"
+exclude-newer = "2026-02-23T17:23:41.781174738Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-02-27T16:09:54.619454912Z", span = "PT0S" }
-repomatic = { timestamp = "2026-02-27T16:09:54.619461755Z", span = "PT0S" }
+click-extra = { timestamp = "2026-03-02T17:23:41.78118094Z", span = "PT0S" }
+repomatic = { timestamp = "2026-03-02T17:23:41.78118675Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -192,7 +192,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.6.2"
+version = "7.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -205,9 +205,9 @@ dependencies = [
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/17/fc/dd0c29147f5dea75395eb0b5401b9c9dbf621a2a1651dba6b6fc66e01372/click_extra-7.6.2.tar.gz", hash = "sha256:4b67af523a53144e025eb09a91b359a5534a9cf6994569478b97a8a7d876c100", size = 102154, upload-time = "2026-02-27T15:54:32.785Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/99/12/d9ec0a4328d15dc9f3265561248bcdd64cc7f2d72ed83c3601d8852bed6e/click_extra-7.6.3.tar.gz", hash = "sha256:05c44101eeceff46f7880ce8fe342470dc5754a72a0a60476b62b4fdd58b3589", size = 102158, upload-time = "2026-03-02T09:59:13.754Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/a5/5b284926865577fb6b6fa9596bed15d7471032a0e5f1e8fcd656536ed677/click_extra-7.6.2-py3-none-any.whl", hash = "sha256:cdd1185cb8d4a7fa8604e561bc56d30e56ae25dee0d3552b401bda183aadefad", size = 116566, upload-time = "2026-02-27T15:54:31.577Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/1f/05a49c9e278221a65b5f16971a42da20f08fee0bd071e78273b40fb89fc2/click_extra-7.6.3-py3-none-any.whl", hash = "sha256:ab3cd74241e4507457d8030d6147ee641c17a5d4de552cebfaa45464c2540295", size = 116565, upload-time = "2026-03-02T09:59:12.227Z" },
 ]
 
 [[package]]
