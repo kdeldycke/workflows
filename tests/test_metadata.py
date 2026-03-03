@@ -371,9 +371,24 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
             # be adjusted for Windows.
             if key.endswith("_files") and is_windows():
                 # Path are stored as a list in JSON format.
+                # Re-sort with case-insensitive key to match Windows Path ordering.
                 if isinstance(value, list):
-                    value = [v.replace("/", "\\") for v in value]
-                # Path are space-separated and serialized as a string in GitHub format.
+                    value = sorted(
+                        (v.replace("/", "\\") for v in value),
+                        key=str.casefold,
+                    )
+                # Path are space-separated quoted strings in GitHub format.
+                # Re-sort to match Windows case-insensitive Path ordering.
+                elif value:
+                    paths = [
+                        p.replace("/", "\\")
+                        for p in value.split('" "')
+                    ]
+                    # Strip outer quotes from first/last, sort, re-quote.
+                    paths[0] = paths[0].lstrip('"')
+                    paths[-1] = paths[-1].rstrip('"')
+                    paths.sort(key=str.casefold)
+                    value = " ".join(f'"{p}"' for p in paths)
                 else:
                     value = value.replace("/", "\\")
 
