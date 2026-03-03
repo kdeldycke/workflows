@@ -23,9 +23,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
         run: |
-          branch="${{ github.event.pull_request.head.ref }}"
-          current_run_id="${{ github.run_id }}"
+          branch="${BRANCH}"
+          current_run_id="${CURRENT_RUN_ID}"
           cancelled=0
 
           for status in in_progress queued; do

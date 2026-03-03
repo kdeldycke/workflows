@@ -378,6 +378,8 @@ jobs:
         with:
           ref: ${{ matrix.commit }}
       - uses: astral-sh/setup-uv@v7.3.0
+        with:
+          enable-cache: false
       - name: Delete dev pre-release
         # Clean up all rolling dev releases before creating the real release.
         # See repomatic/github/dev_release.py for rationale.
@@ -456,12 +458,20 @@ jobs:
       - name: Upload assets to dev release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          gh release upload
-          "v${{ needs.project-metadata.outputs.current_version }}"
-          release_assets/repomatic-*.bin
-          release_assets/repomatic-*.exe
-          release_assets/*.whl
-          release_assets/*.tar.gz
-          --repo "${{ github.repository }}"
-          --clobber
+        run: |
+          shopt -s nullglob
+          files=(
+            release_assets/repomatic-*.bin
+            release_assets/repomatic-*.exe
+            release_assets/*.whl
+            release_assets/*.tar.gz
+          )
+          if [ ${#files[@]} -gt 0 ]; then
+            gh release upload \
+              "v${{ needs.project-metadata.outputs.current_version }}" \
+              "${files[@]}" \
+              --repo "${{ github.repository }}" \
+              --clobber
+          else
+            echo "No assets found to upload."
+          fi
