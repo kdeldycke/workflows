@@ -190,7 +190,7 @@ nuitka_matrix={
             "cli_id": "mpm",
             "module_id": "meta_package_manager.__main__",
             "callable_id": "main",
-            "module_path": "meta_package_manager/__main__.py"
+            "module_path": "meta_package_manager"
         },
         {
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
@@ -1969,7 +1969,7 @@ class Metadata:
                         "cli_id": "mpm",
                         "module_id": "meta_package_manager.__main__",
                         "callable_id": "main",
-                        "module_path": "meta_package_manager/__main__.py",
+                        "module_path": "meta_package_manager",
                     },
                     {
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
@@ -2080,6 +2080,9 @@ class Metadata:
         for target_data in FLAT_BUILD_TARGETS:
             matrix.add_includes(target_data)
 
+        # Collect extra Nuitka flags from config, plus any auto-detected ones.
+        nuitka_extra_args_list = list(self.config["nuitka-extra-args"])
+
         # Augment each entry point with some metadata.
         for cli_id, module_id, callable_id in self.script_entries:
             # CLI ID is supposed to be unique, we'll use that as a key.
@@ -2089,6 +2092,18 @@ class Metadata:
             # doesn't seems to support the entry-point notation.
             module_path = Path(f"{module_id.replace('.', '/')}.py")
             assert module_path.exists()
+
+            # When the entry point is a ``__main__.py`` inside a package,
+            # Nuitka expects the package directory (not the file) along
+            # with ``--python-flag=-m``.  Passing the file directly
+            # produces a binary that silently exits without output.
+            if module_path.name == "__main__.py":
+                package_dir = module_path.parent
+                init_file = package_dir / "__init__.py"
+                if init_file.exists():
+                    module_path = package_dir
+                    nuitka_extra_args_list.append("--python-flag=-m")
+
             matrix.add_includes({
                 "entry_point": cli_id,
                 "cli_id": cli_id,
@@ -2128,8 +2143,8 @@ class Metadata:
             )
             matrix.add_includes(bin_name_include)
 
-        # Pass project-specific Nuitka flags from [tool.repomatic] config.
-        nuitka_extra_args = " ".join(self.config["nuitka-extra-args"])
+        # Pass project-specific and auto-detected Nuitka flags.
+        nuitka_extra_args = " ".join(nuitka_extra_args_list)
         matrix.add_includes({"nuitka_extra_args": nuitka_extra_args})
 
         # All jobs are stable by default, unless marked otherwise by specific

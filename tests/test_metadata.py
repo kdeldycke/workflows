@@ -755,13 +755,15 @@ expected = {
                 "cli_id": "repomatic",
                 "module_id": "repomatic.__main__",
                 "callable_id": "main",
-                "module_path": regex(r"repomatic(/|\\)__main__\.py"),
+                "module_path": regex(r"repomatic(/|\\)?"),
             },
-            # Nuitka extra args from [tool.repomatic] config (fixed).
+            # Nuitka extra args from [tool.repomatic] config plus
+            # auto-detected --python-flag=-m for __main__.py packages.
             {
                 "nuitka_extra_args": (
                     "--include-package-data=extra_platforms"
                     " --include-data-files=repomatic/templates/*.md=repomatic/templates/"
+                    " --python-flag=-m"
                 ),
             },
             # State (fixed).
