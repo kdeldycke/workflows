@@ -224,10 +224,16 @@ class VersionElements:
     """``[!NOTE]`` or ``[!WARNING]`` block for platform availability."""
 
     changes: str = ""
-    """Hand-written changelog entries (bullet points, prose, user admonitions)."""
+    """Hand-written changelog entries (bullet points, prose)."""
 
     development_warning: str = ""
     """``[!WARNING]`` block for unreleased versions under active development."""
+
+    editorial_admonition: str = ""
+    """Hand-written GFM alert blocks not matching auto-generated patterns.
+
+    Multiple blocks are joined with double newlines.
+    """
 
     yanked_admonition: str = ""
     """``[!CAUTION]`` block for releases yanked from PyPI."""
@@ -283,6 +289,7 @@ class Changelog:
         elements.development_warning = render_template("development-warning")
         elements.changes = ""
         elements.availability_admonition = ""
+        elements.editorial_admonition = ""
         elements.yanked_admonition = ""
 
         new_entry = render_template("release-notes", **asdict(elements))
@@ -564,6 +571,8 @@ class Changelog:
         exclude_regions: list[tuple[int, int]] = []
         # Accumulate availability admonitions (NOTE + WARNING can coexist).
         availability_parts: list[str] = []
+        # Accumulate editorial (hand-written) admonitions.
+        editorial_parts: list[str] = []
 
         for match in admonition_pattern.finditer(body):
             block_text = match.group(0)
@@ -576,9 +585,13 @@ class Changelog:
             elif f"> `{version}` is " in block_text:
                 availability_parts.append(block_text.rstrip("\n"))
                 exclude_regions.append((match.start(), match.end()))
-            # else: unknown admonition, preserved in changes.
+            else:
+                # Hand-written admonition, not auto-generated.
+                editorial_parts.append(block_text.rstrip("\n"))
+                exclude_regions.append((match.start(), match.end()))
 
         elements.availability_admonition = "\n\n".join(availability_parts)
+        elements.editorial_admonition = "\n\n".join(editorial_parts)
 
         # Build changes from everything not in excluded regions.
         parts: list[str] = []

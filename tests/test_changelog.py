@@ -222,7 +222,7 @@ DECOMPOSE_CHANGELOG = dedent(
             "unreleased",
             "https://github.com/user/repo/compare/v2.0.0...main",
             {"development_warning": ("contains", "not released yet")},
-            {"changes": "- New feature."},
+            {"changes": "- New feature.", "editorial_admonition": ""},
             id="dev-warning-and-changes",
         ),
         pytest.param(
@@ -243,7 +243,7 @@ DECOMPOSE_CHANGELOG = dedent(
                     ["- Breaking change.", "- New API."],
                 ),
             },
-            {"development_warning": ""},
+            {"development_warning": "", "editorial_admonition": ""},
             id="availability-and-yanked",
         ),
         pytest.param(
@@ -254,6 +254,7 @@ DECOMPOSE_CHANGELOG = dedent(
             {
                 "development_warning": "",
                 "availability_admonition": "",
+                "editorial_admonition": "",
                 "yanked_admonition": "",
                 "changes": "- Initial release.",
             },
@@ -278,8 +279,8 @@ def test_decompose_version(version, expected_date, expected_url, contains, equal
         assert getattr(elements, field) == expected
 
 
-def test_decompose_version_preserves_hand_written_admonitions():
-    """Custom admonitions (e.g. [!TIP]) stay in changes."""
+def test_decompose_version_extracts_editorial_admonitions():
+    """Editorial admonitions (e.g. [!TIP]) land in editorial_admonition."""
     changelog_text = dedent(
         """\
         # Changelog
@@ -295,10 +296,68 @@ def test_decompose_version_preserves_hand_written_admonitions():
     changelog = Changelog(changelog_text)
     elements = changelog.decompose_version("1.0.0")
 
-    assert "[!TIP]" in elements.changes
-    assert "hand-written tip" in elements.changes
+    assert "[!TIP]" in elements.editorial_admonition
+    assert "hand-written tip" in elements.editorial_admonition
+    assert "[!TIP]" not in elements.changes
     assert "- Initial release." in elements.changes
     assert elements.availability_admonition == ""
+
+
+def test_decompose_version_multiple_editorial_admonitions():
+    """Multiple editorial admonitions are joined in editorial_admonition."""
+    changelog_text = dedent(
+        """\
+        # Changelog
+
+        ## [`1.0.0` (2025-12-01)](https://github.com/u/r/compare/v0.9.0...v1.0.0)
+
+        > [!NOTE]
+        > First editorial note.
+
+        > [!CAUTION]
+        > Important editorial caution.
+
+        - Some change.
+        """
+    )
+    changelog = Changelog(changelog_text)
+    elements = changelog.decompose_version("1.0.0")
+
+    assert "[!NOTE]" in elements.editorial_admonition
+    assert "First editorial note." in elements.editorial_admonition
+    assert "[!CAUTION]" in elements.editorial_admonition
+    assert "Important editorial caution." in elements.editorial_admonition
+    assert "\n\n" in elements.editorial_admonition
+    assert "- Some change." in elements.changes
+    assert "[!NOTE]" not in elements.changes
+    assert "[!CAUTION]" not in elements.changes
+
+
+def test_decompose_version_editorial_with_auto_generated():
+    """Editorial and auto-generated admonitions are correctly separated."""
+    changelog_text = dedent(
+        """\
+        # Changelog
+
+        ## [`2.0.0` (2026-01-15)](https://github.com/u/r/compare/v1.0.0...v2.0.0)
+
+        > [!NOTE]
+        > `2.0.0` is available on [🐍 PyPI](https://pypi.org/project/pkg/2.0.0/).
+
+        > [!NOTE]
+        > This is a hand-written editorial note.
+
+        - Breaking change.
+        """
+    )
+    changelog = Changelog(changelog_text)
+    elements = changelog.decompose_version("2.0.0")
+
+    assert "is available on" in elements.availability_admonition
+    assert "hand-written editorial note" in elements.editorial_admonition
+    assert "hand-written editorial note" not in elements.availability_admonition
+    assert "is available on" not in elements.editorial_admonition
+    assert "- Breaking change." in elements.changes
 
 
 def test_decompose_version_empty():

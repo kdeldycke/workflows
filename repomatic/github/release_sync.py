@@ -94,7 +94,11 @@ def build_expected_body(
     from dataclasses import asdict
 
     elements = changelog.decompose_version(version)
-    if not elements.changes and not elements.availability_admonition:
+    if (
+        not elements.changes
+        and not elements.availability_admonition
+        and not elements.editorial_admonition
+    ):
         return ""
 
     if admonition_override is not None:

@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Extract hand-written GFM alert blocks (editorial admonitions) from changelog entries.
 - Fix Nuitka-compiled binaries silently producing no output when the entry point is a `__main__.py` inside a package. Auto-detect this pattern and pass the package directory with `--python-flag=-m` instead of the file path.
 - Consolidate documentation.
 - Trim verbose workflow YAML comments that are now documented in Python code, replacing them with brief pointers to the relevant module.

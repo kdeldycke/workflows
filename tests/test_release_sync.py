@@ -110,6 +110,22 @@ def test_build_expected_body_admonition_override_no_original():
     assert "Breaking change: redesigned API." in body
 
 
+def test_build_expected_body_editorial_only():
+    """Version with only editorial admonition returns non-empty body."""
+    changelog_text = """\
+# Changelog
+
+## [`4.0.0` (2026-03-01)](https://github.com/user/repo/compare/v3.0.0...v4.0.0)
+
+> [!NOTE]
+> This is a hand-written editorial note.
+"""
+    changelog = Changelog(changelog_text)
+    body = build_expected_body(changelog, "4.0.0")
+    assert body != ""
+    assert "hand-written editorial note" in body
+
+
 def test_build_expected_body_missing_version():
     """Returns empty string for a missing version."""
     changelog = Changelog(SAMPLE_CHANGELOG)
