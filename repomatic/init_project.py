@@ -747,7 +747,8 @@ def run_init(
 
         config = load_repomatic_config()
         init_exclude: list[str] = config.get(
-            "init-exclude", ["labels", "linters", "skills"],
+            "init-exclude",
+            ["labels", "linters", "skills"],
         )
         if init_exclude:
             exclude_set = set(init_exclude)
@@ -959,9 +960,7 @@ def _migrate_repomatic_config_section(pyproject_path: Path) -> bool:
     if has_new:
         # Warn about leftover legacy sections.
         for old_name in REPOMATIC_CONFIG_RENAME_FROM:
-            if re.search(
-                rf"^\[tool\.{re.escape(old_name)}\]", content, re.MULTILINE
-            ):
+            if re.search(rf"^\[tool\.{re.escape(old_name)}\]", content, re.MULTILINE):
                 logging.warning(
                     f"[tool.{old_name}] is obsolete and can be removed. "
                     "[tool.repomatic] already exists."
@@ -979,8 +978,7 @@ def _migrate_repomatic_config_section(pyproject_path: Path) -> bool:
         if count:
             pyproject_path.write_text(new_content, encoding="UTF-8")
             logging.info(
-                f"Migrated [tool.{old_name}] to [tool.repomatic] "
-                f"in {pyproject_path}."
+                f"Migrated [tool.{old_name}] to [tool.repomatic] in {pyproject_path}."
             )
             return True
 
