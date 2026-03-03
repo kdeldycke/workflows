@@ -24,14 +24,14 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
 
 ### Step 2: Add the secret
 
-1. Go to **this repo → [Settings → Secrets → Actions](${repo_url}/settings/secrets/actions)**.
+1. Go to **this repo → [Settings → Secrets → Actions]($repo_url/settings/secrets/actions)**.
 2. Click **New repository secret**.
 3. Name: `WORKFLOW_UPDATE_GITHUB_PAT`
 4. Paste the token and click **Add secret**.
 
 ### Step 3: Configure Dependabot settings
 
-Go to **this repo → [Settings → Advanced Security → Dependabot](${repo_url}/settings/security_analysis)** and configure:
+Go to **this repo → [Settings → Advanced Security → Dependabot]($repo_url/settings/security_analysis)** and configure:
 
 | Setting                         | Status      | Reason                                                |
 | :------------------------------ | :---------- | :---------------------------------------------------- |
@@ -45,7 +45,7 @@ Go to **this repo → [Settings → Advanced Security → Dependabot](${repo_url
 
 ### Step 4: Enable immutable releases
 
-Go to **this repo → [Settings → General](${repo_url}/settings)**, scroll to the **Releases** section, and enable **Release immutability**.
+Go to **this repo → [Settings → General]($repo_url/settings)**, scroll to the **Releases** section, and enable **Release immutability**.
 
 This locks git tags and release assets after publication, preventing tampering. Release notes remain editable.
 
