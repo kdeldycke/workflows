@@ -591,3 +591,155 @@ def test_unfreeze_cli_version_renovate_json5(
         content = json5_file.read_text(encoding="UTF-8")
         assert "repomatic==" not in content
         assert "--from . repomatic" in content
+
+
+# --- Readme binary download URL freeze tests ---
+
+
+@pytest.fixture
+def temp_readme(tmp_path: Path) -> Path:
+    """Create a temporary readme with binary download table."""
+    readme = tmp_path / "readme.md"
+    readme.write_text(
+        dedent("""\
+            # My Project
+
+            ### Executables
+
+            | Platform    | `arm64` | `x86_64` |
+            | :---------- | ------- | -------- |
+            | **Linux**   | [Download `repomatic-linux-arm64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-linux-arm64.bin) | [Download `repomatic-linux-x64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-linux-x64.bin) |
+            | **macOS**   | [Download `repomatic-macos-arm64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-macos-arm64.bin) | [Download `repomatic-macos-x64.bin`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-macos-x64.bin) |
+            | **Windows** | [Download `repomatic-windows-arm64.exe`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-windows-arm64.exe) | [Download `repomatic-windows-x64.exe`](https://github.com/kdeldycke/repomatic/releases/latest/download/repomatic-windows-x64.exe) |
+            """),
+        encoding="UTF-8",
+    )
+    return readme
+
+
+@pytest.fixture
+def temp_readme_frozen(tmp_path: Path) -> Path:
+    """Create a temporary readme with previously frozen download URLs."""
+    readme = tmp_path / "readme.md"
+    readme.write_text(
+        dedent("""\
+            # My Project
+
+            ### Executables
+
+            | Platform    | `arm64` | `x86_64` |
+            | :---------- | ------- | -------- |
+            | **Linux**   | [Download `repomatic-1.2.2-linux-arm64.bin`](https://github.com/kdeldycke/repomatic/releases/download/v1.2.2/repomatic-1.2.2-linux-arm64.bin) | [Download `repomatic-1.2.2-linux-x64.bin`](https://github.com/kdeldycke/repomatic/releases/download/v1.2.2/repomatic-1.2.2-linux-x64.bin) |
+            | **macOS**   | [Download `repomatic-1.2.2-macos-arm64.bin`](https://github.com/kdeldycke/repomatic/releases/download/v1.2.2/repomatic-1.2.2-macos-arm64.bin) | [Download `repomatic-1.2.2-macos-x64.bin`](https://github.com/kdeldycke/repomatic/releases/download/v1.2.2/repomatic-1.2.2-macos-x64.bin) |
+            | **Windows** | [Download `repomatic-1.2.2-windows-arm64.exe`](https://github.com/kdeldycke/repomatic/releases/download/v1.2.2/repomatic-1.2.2-windows-arm64.exe) | [Download `repomatic-1.2.2-windows-x64.exe`](https://github.com/kdeldycke/repomatic/releases/download/v1.2.2/repomatic-1.2.2-windows-x64.exe) |
+            """),
+        encoding="UTF-8",
+    )
+    return readme
+
+
+def test_freeze_readme_download_urls(
+    tmp_path: Path,
+    temp_readme: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that initial ``/releases/latest/download/`` URLs are frozen."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(readme_path=temp_readme)
+    result = prep.freeze_readme_download_urls("1.2.3")
+
+    assert result is True
+    content = temp_readme.read_text(encoding="UTF-8")
+    assert "/releases/latest/download/" not in content
+    assert "/releases/download/v1.2.3/" in content
+    assert "repomatic-1.2.3-linux-arm64.bin" in content
+    assert "repomatic-1.2.3-linux-x64.bin" in content
+    assert "repomatic-1.2.3-macos-arm64.bin" in content
+    assert "repomatic-1.2.3-macos-x64.bin" in content
+    assert "repomatic-1.2.3-windows-arm64.exe" in content
+    assert "repomatic-1.2.3-windows-x64.exe" in content
+
+
+def test_freeze_readme_download_urls_already_frozen(
+    tmp_path: Path,
+    temp_readme_frozen: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that previously frozen URLs are re-frozen to new version."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(readme_path=temp_readme_frozen)
+    result = prep.freeze_readme_download_urls("1.2.3")
+
+    assert result is True
+    content = temp_readme_frozen.read_text(encoding="UTF-8")
+    assert "v1.2.2" not in content
+    assert "1.2.2" not in content
+    assert "/releases/download/v1.2.3/" in content
+    assert "repomatic-1.2.3-linux-arm64.bin" in content
+    assert "repomatic-1.2.3-windows-x64.exe" in content
+
+
+def test_freeze_readme_download_urls_updates_link_text(
+    tmp_path: Path,
+    temp_readme: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that display text in markdown links is also updated."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(readme_path=temp_readme)
+    prep.freeze_readme_download_urls("1.2.3")
+
+    content = temp_readme.read_text(encoding="UTF-8")
+    # Display text inside backticks should be updated.
+    assert "`repomatic-1.2.3-linux-arm64.bin`" in content
+    assert "`repomatic-1.2.3-windows-x64.exe`" in content
+    # Old versionless names should not remain.
+    assert "`repomatic-linux-arm64.bin`" not in content
+    assert "`repomatic-windows-x64.exe`" not in content
+
+
+def test_freeze_readme_missing_file(
+    tmp_path: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that missing readme is handled gracefully."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(readme_path=tmp_path / "nonexistent.md")
+    result = prep.freeze_readme_download_urls("1.2.3")
+
+    assert result is False
+
+
+def test_prepare_release_freezes_readme(
+    tmp_path: Path,
+    temp_changelog: Path,
+    temp_citation: Path,
+    temp_workflows: Path,
+    temp_readme: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Test that ``prepare_release(update_workflows=True)`` freezes readme URLs."""
+    monkeypatch.chdir(tmp_path)
+
+    prep = ReleasePrep(
+        changelog_path=temp_changelog,
+        citation_path=temp_citation,
+        workflow_dir=temp_workflows,
+        readme_path=temp_readme,
+    )
+    modified = prep.prepare_release(update_workflows=True)
+
+    assert temp_readme in modified
+    content = temp_readme.read_text(encoding="UTF-8")
+    assert "/releases/latest/download/" not in content
+    assert "/releases/download/v1.2.3/" in content
+    assert "repomatic-1.2.3-linux-arm64.bin" in content

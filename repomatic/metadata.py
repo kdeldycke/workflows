@@ -1985,73 +1985,73 @@ class Metadata:
                         "os": "ubuntu-24.04-arm",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-linux-arm64-346ce66.bin",
+                        "bin_name": "mpm-2.0.0-linux-arm64.bin",
                     },
                     {
                         "os": "ubuntu-24.04-arm",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-linux-arm64-6f27db4.bin",
+                        "bin_name": "mpm-1.9.1-linux-arm64.bin",
                     },
                     {
                         "os": "ubuntu-24.04",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-linux-x64-346ce66.bin",
+                        "bin_name": "mpm-2.0.0-linux-x64.bin",
                     },
                     {
                         "os": "ubuntu-24.04",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-linux-x64-6f27db4.bin",
+                        "bin_name": "mpm-1.9.1-linux-x64.bin",
                     },
                     {
                         "os": "macos-26",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-macos-arm64-346ce66.bin",
+                        "bin_name": "mpm-2.0.0-macos-arm64.bin",
                     },
                     {
                         "os": "macos-26",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-macos-arm64-6f27db4.bin",
+                        "bin_name": "mpm-1.9.1-macos-arm64.bin",
                     },
                     {
                         "os": "macos-15-intel",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-macos-x64-346ce66.bin",
+                        "bin_name": "mpm-2.0.0-macos-x64.bin",
                     },
                     {
                         "os": "macos-15-intel",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-macos-x64-6f27db4.bin",
+                        "bin_name": "mpm-1.9.1-macos-x64.bin",
                     },
                     {
                         "os": "windows-11-arm",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-windows-arm64-346ce66.bin",
+                        "bin_name": "mpm-2.0.0-windows-arm64.exe",
                     },
                     {
                         "os": "windows-11-arm",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-windows-arm64-6f27db4.bin",
+                        "bin_name": "mpm-1.9.1-windows-arm64.exe",
                     },
                     {
                         "os": "windows-2025",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-windows-x64-346ce66.exe",
+                        "bin_name": "mpm-2.0.0-windows-x64.exe",
                     },
                     {
                         "os": "windows-2025",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-windows-x64-6f27db4.exe",
+                        "bin_name": "mpm-1.9.1-windows-x64.exe",
                     },
                     {
                         "state": "stable",
@@ -2135,7 +2135,9 @@ class Metadata:
             # We will re-attach back this binary name to the with an include directive,
             # so we need a copy the main variants it corresponds to.
             bin_name_include = {k: variations[k] for k in matrix.variations}
-            bin_name_include["bin_name"] = ("{cli_id}-{target}.{extension}").format(
+            bin_name_include["bin_name"] = (
+                "{cli_id}-{current_version}-{target}.{extension}"
+            ).format(
                 **variations
             )
             matrix.add_includes(bin_name_include)
