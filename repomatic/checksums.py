@@ -65,7 +65,8 @@ def _find_checksum_pairs(lines: list[str]) -> Iterator[tuple[str, int, str]]:
     """Find (url, hash_line_index, old_hash) triples in workflow file lines.
 
     For each GitHub release URL found, searches the next few lines for a
-    ``sha256sum --check`` line containing a 64-char hex hash.
+    ``sha256sum --check`` line. The hash may be on that same line (single-line
+    pattern) or on a preceding line (multi-line ``echo ... | sha256sum``).
 
     :param lines: Lines of the workflow file.
     :return: Iterator of (url, hash_line_index, old_hash) triples.
@@ -79,6 +80,13 @@ def _find_checksum_pairs(lines: list[str]) -> Iterator[tuple[str, int, str]]:
                     hash_match = _HASH_PATTERN.search(lines[j])
                     if hash_match:
                         yield url, j, hash_match.group()
+                        break
+                    # Hash may be on a preceding line (multi-line echo|sha256sum).
+                    for k in range(j - 1, i, -1):
+                        hash_match = _HASH_PATTERN.search(lines[k])
+                        if hash_match:
+                            yield url, k, hash_match.group()
+                            break
                     break
 
 
