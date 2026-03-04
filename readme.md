@@ -618,7 +618,7 @@ docs = [
 
 - 🐙 **Create release draft** (`create-release`)
 
-  - Creates a GitHub release **draft** with the Python package attached using [`action-gh-release`](https://github.com/softprops/action-gh-release)
+  - Creates a GitHub release **draft** with the Python package attached using `gh release create`
   - Binaries are attached independently by each `compile-binaries` matrix entry as they complete (uploading to drafts is allowed)
   - **Requires**:
     - Successful `create-tag` job

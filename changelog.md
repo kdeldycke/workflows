@@ -25,6 +25,7 @@
 - Automatically migrate `[tool.gha-utils]` and `[tool.repokit]` config sections to `[tool.repomatic]` during `repomatic init`. All commands fall back to legacy section names when `[tool.repomatic]` is absent.
 - Add version to compiled binary filenames (`repomatic-6.2.0-linux-arm64.bin` instead of `repomatic-linux-arm64.bin`), matching Python package naming conventions.
 - Freeze readme binary download URLs during releases, replacing `/releases/latest/download/` with versioned `/releases/download/vX.Y.Z/` paths.
+- Replace `softprops/action-gh-release` with `gh release create` in the release workflow. All release operations now use the `gh` CLI.
 - Fix `fix-changelog` and `freeze_file` producing a trailing blank line when the last changelog section is modified. Both write sites now normalize to exactly one trailing newline.
 
 ## [`6.1.0` (2026-02-27)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)

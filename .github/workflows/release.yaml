@@ -388,20 +388,28 @@ jobs:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . repomatic sync-dev-release --live --delete
       - name: Create GitHub release draft
-        uses: softprops/action-gh-release@v2.5.0
-        # PAT required so tag pushes trigger downstream on.push.tags workflows.
-        # See repomatic/git_ops.py module docstring.
+        # Idempotent: skips if release already exists (e.g. workflow re-run).
         env:
-          GITHUB_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        with:
-          draft: true
-          tag_name: v${{ matrix.current_version }}
-          target_commitish: ${{ matrix.commit }}
-          files: release_artifact/*
-          body: >-
+          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          RELEASE_NOTES: >-
             ${{ needs.publish-pypi.result == 'success'
                 && needs.project-metadata.outputs.release_notes_with_admonition
                 || needs.project-metadata.outputs.release_notes }}
+        run: |
+          tag="v${{ matrix.current_version }}"
+          if gh release view "${tag}" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "Release ${tag} already exists, skipping creation."
+          else
+            shopt -s nullglob
+            files=(release_artifact/*)
+            gh release create "${tag}" \
+              --draft \
+              --target "${{ matrix.commit }}" \
+              --title "${tag}" \
+              --repo "${{ github.repository }}" \
+              --notes-file - \
+              "${files[@]}" <<< "${RELEASE_NOTES}"
+          fi
 
   publish-release:
     name: 🎉 Publish GitHub release
