@@ -24,9 +24,10 @@ to point to the latest ``main`` commit — no tag proliferation.
 When the current version's dev release already exists, it is **edited**
 (not deleted and recreated) so that previously uploaded assets — especially
 compiled binaries — survive pushes that skip binary compilation (e.g.
-documentation-only changes). The workflow's upload step uses ``--clobber``
-to replace assets when new builds are available. Stale dev releases from
-previous versions are always deleted.
+documentation-only changes). The ``upload_release_assets()`` function deletes
+all existing assets before uploading new ones, preventing stale files from
+accumulating when the naming scheme changes. Stale dev releases from previous
+versions are always deleted.
 
 .. note::
     Dev releases are created as **drafts** so they remain mutable even
@@ -50,12 +51,22 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     pass
 
+DEV_ASSET_PATTERNS = ("*.bin", "*.exe", "*.whl", "*.tar.gz")
+"""Glob patterns for dev release assets.
+
+.. note::
+    Bare extensions (no ``repomatic-`` prefix) keep patterns generic so
+    downstream repositories can reuse the same logic regardless of their
+    package name.
+"""
+
 
 def sync_dev_release(
     changelog_path: Path,
     version: str,
     nwo: str,
     dry_run: bool = True,
+    asset_dir: Path | None = None,
 ) -> bool:
     """Create or update the dev pre-release on GitHub.
 
@@ -65,14 +76,16 @@ def sync_dev_release(
     versions are always cleaned up.
 
     Existing releases are edited (not deleted and recreated) to preserve
-    assets like compiled binaries from previous successful builds. The
-    workflow's upload step uses ``--clobber`` to replace assets when new
-    ones are available.
+    assets like compiled binaries from previous successful builds.
+    When ``asset_dir`` is provided, existing assets are deleted and new
+    ones uploaded via :func:`upload_release_assets`.
 
     :param changelog_path: Path to ``changelog.md``.
     :param version: Current version string (e.g. ``6.1.1.dev0``).
     :param nwo: Repository name-with-owner (e.g. ``user/repo``).
     :param dry_run: If ``True``, report without making changes.
+    :param asset_dir: Directory containing assets to upload. If ``None``,
+        no asset upload is performed.
     :return: ``True`` if the release was synced (or would be in
         dry-run), ``False`` if the changelog section is empty.
     """
@@ -91,6 +104,13 @@ def sync_dev_release(
     if dry_run:
         logging.info(f"[dry-run] Would sync dev release {tag}.")
         logging.info(f"[dry-run] Release body:\n{body}")
+        if asset_dir is not None:
+            files = _collect_asset_files(asset_dir)
+            if files:
+                names = ", ".join(f.name for f in files)
+                logging.info(f"[dry-run] Would upload {len(files)} assets: {names}")
+            else:
+                logging.info("[dry-run] No matching assets found in %s.", asset_dir)
         return True
 
     # Delete stale dev releases from previous versions, preserving the current one.
@@ -122,7 +142,107 @@ def sync_dev_release(
         ])
         logging.info(f"Created dev draft pre-release {tag}.")
 
+    if asset_dir is not None:
+        uploaded = upload_release_assets(tag, nwo, asset_dir)
+        if uploaded:
+            names = ", ".join(f.name for f in uploaded)
+            logging.info(f"Uploaded {len(uploaded)} assets: {names}")
+
     return True
+
+
+def _collect_asset_files(asset_dir: Path) -> list[Path]:
+    """Collect files matching :data:`DEV_ASSET_PATTERNS` from a directory.
+
+    :param asset_dir: Directory to scan.
+    :return: Sorted list of matching file paths.
+    """
+    files: list[Path] = []
+    for pattern in DEV_ASSET_PATTERNS:
+        files.extend(asset_dir.glob(pattern))
+    return sorted(set(files))
+
+
+def _delete_release_assets(tag: str, nwo: str) -> int:
+    """Delete all assets from an existing release.
+
+    Fetches the asset list via ``gh release view`` and deletes each asset
+    individually via the GitHub API. Continues on per-asset failures,
+    mirroring the shell script's ``|| true`` behavior.
+
+    :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
+    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    :return: Number of assets successfully deleted.
+    """
+    try:
+        output = run_gh_command([
+            "release",
+            "view",
+            tag,
+            "--repo",
+            nwo,
+            "--json",
+            "assets",
+        ])
+    except RuntimeError:
+        logging.debug(f"Could not view release {tag} for asset deletion.")
+        return 0
+
+    assets = json.loads(output).get("assets", [])
+    deleted = 0
+    for asset in assets:
+        # Extract numeric asset ID from the apiUrl field.
+        asset_id = asset["apiUrl"].split("/")[-1]
+        try:
+            run_gh_command([
+                "api",
+                "--method",
+                "DELETE",
+                f"repos/{nwo}/releases/assets/{asset_id}",
+            ])
+            deleted += 1
+        except RuntimeError:
+            logging.debug(f"Could not delete asset {asset_id}.")
+    return deleted
+
+
+def upload_release_assets(
+    tag: str,
+    nwo: str,
+    asset_dir: Path,
+) -> list[Path]:
+    """Upload assets to a GitHub release.
+
+    Scans ``asset_dir`` for files matching :data:`DEV_ASSET_PATTERNS`. If
+    no matching files are found, returns immediately without modifying the
+    release — this preserves existing assets for documentation-only pushes.
+    When files are found, all existing assets are deleted first to prevent
+    stale files from accumulating when the naming scheme changes.
+
+    :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
+    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    :param asset_dir: Directory containing assets to upload.
+    :return: List of uploaded file paths.
+    """
+    files = _collect_asset_files(asset_dir)
+    if not files:
+        logging.info("No matching assets found; preserving existing release assets.")
+        return []
+
+    deleted = _delete_release_assets(tag, nwo)
+    logging.debug(f"Deleted {deleted} existing assets before upload.")
+
+    file_args = [str(f) for f in files]
+    run_gh_command([
+        "release",
+        "upload",
+        tag,
+        *file_args,
+        "--repo",
+        nwo,
+        "--clobber",
+    ])
+    return files
 
 
 def cleanup_dev_releases(nwo: str, *, keep_tag: str | None = None) -> None:

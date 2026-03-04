@@ -748,7 +748,17 @@ def sync_github_releases(dry_run: bool) -> None:
     default=False,
     help="Delete-only mode: remove the dev pre-release without recreating.",
 )
-def sync_dev_release(dry_run: bool, delete: bool) -> None:
+@option(
+    "--upload-assets",
+    type=dir_path(exists=True, resolve_path=True),
+    default=None,
+    help="Directory containing assets (binaries, packages) to upload.",
+)
+def sync_dev_release(
+    dry_run: bool,
+    delete: bool,
+    upload_assets: Path | None,
+) -> None:
     """Sync a rolling dev pre-release on GitHub.
 
     Maintains a single pre-release that mirrors the unreleased changelog
@@ -768,9 +778,15 @@ def sync_dev_release(dry_run: bool, delete: bool) -> None:
         repomatic sync-dev-release --live
 
     \b
+        # Create or update with asset upload
+        repomatic sync-dev-release --live --upload-assets release_assets/
+
+    \b
         # Delete the dev pre-release (e.g. during a real release)
         repomatic sync-dev-release --live --delete
     """
+    if delete and upload_assets:
+        raise UsageError("--delete and --upload-assets are mutually exclusive.")
     version = Metadata.get_current_version()
     if not version:
         logging.warning("Could not determine current version.")
@@ -799,7 +815,9 @@ def sync_dev_release(dry_run: bool, delete: bool) -> None:
         echo("Deleted all dev releases.")
         return
 
-    if _sync_dev_release(changelog_path, version, nwo, dry_run):
+    if _sync_dev_release(
+        changelog_path, version, nwo, dry_run, asset_dir=upload_assets
+    ):
         mode = "dry-run" if dry_run else "live"
         echo(f"[{mode}] Dev release v{version} synced.")
 

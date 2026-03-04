@@ -26,6 +26,7 @@
 - Add version to compiled binary filenames (`repomatic-6.2.0-linux-arm64.bin` instead of `repomatic-linux-arm64.bin`), matching Python package naming conventions.
 - Freeze readme binary download URLs during releases, replacing `/releases/latest/download/` with versioned `/releases/download/vX.Y.Z/` paths.
 - Replace `softprops/action-gh-release` with `gh release create` in the release workflow. All release operations now use the `gh` CLI.
+- Move dev release asset upload from shell script into `sync-dev-release` CLI command with `--upload-assets` option, replacing the workflow's inline script.
 - Fix `update-checksums` skipping multi-line `echo ... \` + `| sha256sum --check` patterns where the hash and `sha256sum` keyword are on different lines. This caused Renovate `postUpgradeTasks` to silently leave stale SHA-256 hashes after version bumps.
 - Fix `fix-changelog` and `freeze_file` producing a trailing blank line when the last changelog section is modified. Both write sites now normalize to exactly one trailing newline.
 

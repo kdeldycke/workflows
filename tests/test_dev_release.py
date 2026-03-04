@@ -20,11 +20,13 @@ import json
 from unittest.mock import call, patch
 
 from repomatic.github.dev_release import (
+    _delete_release_assets,
     _edit_dev_release,
     cleanup_dev_releases,
     delete_dev_release,
     delete_release_by_tag,
     sync_dev_release,
+    upload_release_assets,
 )
 
 UNRELEASED_CHANGELOG = """\
@@ -458,3 +460,210 @@ def test_delete_release_by_tag_immutable():
     ):
         # Should not raise.
         delete_release_by_tag("v6.1.1.dev0", "user/repo")
+
+
+# --- _delete_release_assets() tests ---
+
+
+def test_delete_release_assets_success():
+    """Deletes assets and returns count."""
+    assets_json = json.dumps({
+        "assets": [
+            {"apiUrl": "https://api.github.com/repos/user/repo/releases/assets/111"},
+            {"apiUrl": "https://api.github.com/repos/user/repo/releases/assets/222"},
+        ],
+    })
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+        side_effect=[assets_json, None, None],
+    ) as mock_gh:
+        result = _delete_release_assets("v6.1.1.dev0", "user/repo")
+
+    assert result == 2
+    assert mock_gh.call_args_list[1] == call([
+        "api",
+        "--method",
+        "DELETE",
+        "repos/user/repo/releases/assets/111",
+    ])
+    assert mock_gh.call_args_list[2] == call([
+        "api",
+        "--method",
+        "DELETE",
+        "repos/user/repo/releases/assets/222",
+    ])
+
+
+def test_delete_release_assets_no_release():
+    """Returns 0 when the release does not exist."""
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+        side_effect=RuntimeError("not found"),
+    ):
+        result = _delete_release_assets("v6.1.1.dev0", "user/repo")
+
+    assert result == 0
+
+
+def test_delete_release_assets_empty():
+    """Returns 0 when the release has no assets."""
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+        return_value=json.dumps({"assets": []}),
+    ):
+        result = _delete_release_assets("v6.1.1.dev0", "user/repo")
+
+    assert result == 0
+
+
+def test_delete_release_assets_partial_failure():
+    """Continues when individual asset deletions fail."""
+    assets_json = json.dumps({
+        "assets": [
+            {"apiUrl": "https://api.github.com/repos/user/repo/releases/assets/111"},
+            {"apiUrl": "https://api.github.com/repos/user/repo/releases/assets/222"},
+        ],
+    })
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+        side_effect=[
+            assets_json,
+            RuntimeError("forbidden"),
+            None,
+        ],
+    ) as mock_gh:
+        result = _delete_release_assets("v6.1.1.dev0", "user/repo")
+
+    assert result == 1
+    assert mock_gh.call_count == 3
+
+
+# --- upload_release_assets() tests ---
+
+
+def test_upload_release_assets_success(tmp_path):
+    """Uploads matching files and skips unrelated ones."""
+    # Create matching files.
+    (tmp_path / "repomatic-6.2.0-linux-x64.bin").touch()
+    (tmp_path / "repomatic-6.2.0.tar.gz").touch()
+    # Create a non-matching file.
+    (tmp_path / "readme.txt").touch()
+
+    assets_json = json.dumps({"assets": []})
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+        side_effect=[assets_json, None],
+    ) as mock_gh:
+        result = upload_release_assets("v6.2.0.dev0", "user/repo", tmp_path)
+
+    assert len(result) == 2
+    assert all(f.suffix in (".bin", ".gz") for f in result)
+    # Last call should be the upload.
+    upload_call = mock_gh.call_args_list[-1]
+    assert upload_call[0][0][:3] == ["release", "upload", "v6.2.0.dev0"]
+    assert "--clobber" in upload_call[0][0]
+
+
+def test_upload_release_assets_no_files(tmp_path):
+    """Returns empty list and makes no gh calls when no matching files."""
+    (tmp_path / "readme.txt").touch()
+
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+    ) as mock_gh:
+        result = upload_release_assets("v6.2.0.dev0", "user/repo", tmp_path)
+
+    assert result == []
+    mock_gh.assert_not_called()
+
+
+def test_upload_release_assets_deletes_existing_first(tmp_path):
+    """Deletes existing assets before uploading new ones."""
+    (tmp_path / "pkg-1.0.0.whl").touch()
+
+    assets_json = json.dumps({
+        "assets": [
+            {"apiUrl": "https://api.github.com/repos/user/repo/releases/assets/999"},
+        ],
+    })
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+        side_effect=[
+            assets_json,  # view assets
+            None,  # delete asset 999
+            None,  # upload
+        ],
+    ) as mock_gh:
+        result = upload_release_assets("v6.2.0.dev0", "user/repo", tmp_path)
+
+    assert len(result) == 1
+    # First call: view release assets.
+    assert mock_gh.call_args_list[0][0][0][:3] == ["release", "view", "v6.2.0.dev0"]
+    # Second call: delete existing asset.
+    assert mock_gh.call_args_list[1] == call([
+        "api",
+        "--method",
+        "DELETE",
+        "repos/user/repo/releases/assets/999",
+    ])
+    # Third call: upload.
+    assert mock_gh.call_args_list[2][0][0][:3] == ["release", "upload", "v6.2.0.dev0"]
+
+
+# --- sync_dev_release() with assets tests ---
+
+
+def test_sync_dev_release_with_assets(tmp_path):
+    """End-to-end: metadata sync + asset upload."""
+    changelog_path = tmp_path / "changelog.md"
+    changelog_path.write_text(UNRELEASED_CHANGELOG, encoding="UTF-8")
+    asset_dir = tmp_path / "assets"
+    asset_dir.mkdir()
+    (asset_dir / "repomatic-6.1.1.dev0.tar.gz").touch()
+
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+        side_effect=[
+            json.dumps([]),  # list releases for cleanup
+            RuntimeError("not found"),  # edit fails
+            None,  # create release
+            json.dumps({"assets": []}),  # view assets (empty)
+            None,  # upload
+        ],
+    ) as mock_gh:
+        result = sync_dev_release(
+            changelog_path,
+            "6.1.1.dev0",
+            "user/repo",
+            dry_run=False,
+            asset_dir=asset_dir,
+        )
+
+    assert result is True
+    # Last call should be the upload.
+    upload_call = mock_gh.call_args_list[-1]
+    assert upload_call[0][0][:3] == ["release", "upload", "v6.1.1.dev0"]
+
+
+def test_sync_dev_release_dry_run_with_assets(tmp_path):
+    """Dry-run previews asset files without making gh calls."""
+    changelog_path = tmp_path / "changelog.md"
+    changelog_path.write_text(UNRELEASED_CHANGELOG, encoding="UTF-8")
+    asset_dir = tmp_path / "assets"
+    asset_dir.mkdir()
+    (asset_dir / "repomatic-6.1.1.dev0.whl").touch()
+    (asset_dir / "repomatic-6.1.1.dev0.tar.gz").touch()
+
+    with patch(
+        "repomatic.github.dev_release.run_gh_command",
+    ) as mock_gh:
+        result = sync_dev_release(
+            changelog_path,
+            "6.1.1.dev0",
+            "user/repo",
+            dry_run=True,
+            asset_dir=asset_dir,
+        )
+
+    assert result is True
+    mock_gh.assert_not_called()

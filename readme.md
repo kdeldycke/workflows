@@ -634,7 +634,7 @@ docs = [
 - 🔄 **Sync dev pre-release** (`sync-dev-release`)
 
   - Maintains a rolling dev pre-release on GitHub that mirrors the unreleased changelog section
-  - Downloads binaries and Python packages from build jobs and attaches them to the dev release
+  - Attaches binaries and Python packages from build jobs via `--upload-assets`
   - The dev tag (e.g. `v6.1.1.dev0`) is force-updated to point to the latest `main` commit
   - Automatically cleaned up when a real release is created
   - **Runs on**: Non-release pushes to `main` only

@@ -454,32 +454,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
-      - name: Sync dev release metadata
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . repomatic sync-dev-release --live
       - name: Download all build artifacts
         uses: actions/download-artifact@v7.0.0
         with:
           path: release_assets
           merge-multiple: true
-      - name: Upload assets to dev release
+      - name: Sync dev release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          shopt -s nullglob
-          files=(
-            release_assets/repomatic-*.bin
-            release_assets/repomatic-*.exe
-            release_assets/*.whl
-            release_assets/*.tar.gz
-          )
-          if [ ${#files[@]} -gt 0 ]; then
-            gh release upload \
-              "v${{ needs.project-metadata.outputs.current_version }}" \
-              "${files[@]}" \
-              --repo "${{ github.repository }}" \
-              --clobber
-          else
-            echo "No assets found to upload."
-          fi
+        run: >
+          uvx --no-progress --from . repomatic sync-dev-release --live
+          --upload-assets release_assets
