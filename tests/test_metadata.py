@@ -380,10 +380,7 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
                 # Path are space-separated quoted strings in GitHub format.
                 # Re-sort to match Windows case-insensitive Path ordering.
                 elif value:
-                    paths = [
-                        p.replace("/", "\\")
-                        for p in value.split('" "')
-                    ]
+                    paths = [p.replace("/", "\\") for p in value.split('" "')]
                     # Strip outer quotes from first/last, sort, re-quote.
                     paths[0] = paths[0].lstrip('"')
                     paths[-1] = paths[-1].rstrip('"')
