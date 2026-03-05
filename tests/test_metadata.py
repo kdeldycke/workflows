@@ -406,7 +406,9 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
 
 expected = {
     "is_bot": AnyBool(),
-    "skip_binary_build": False,
+    # skip_binary_build depends on the event type and changed files. In CI push events
+    # where only non-binary-affecting files changed, it is True.
+    "skip_binary_build": AnyBool(),
     # new_commits is None when running outside GitHub Actions (no event data).
     # In CI, it contains commit SHAs extracted from the push event payload.
     "new_commits": OptionalList(regex(r"[a-f0-9]{40}")),
@@ -1031,12 +1033,14 @@ def test_skip_binary_build_branches_constant():
     assert "main" not in SKIP_BINARY_BUILD_BRANCHES
 
 
-def test_skip_binary_build_property_false_by_default():
-    """Test that skip_binary_build is False when not in a PR context."""
+def test_skip_binary_build_property_is_bool():
+    """Test that skip_binary_build always returns a boolean.
+
+    The actual value depends on CI context: in push events where only
+    non-binary-affecting files changed, it is ``True``; otherwise ``False``.
+    """
     metadata = Metadata()
-    # Outside of PR context (GITHUB_HEAD_REF not set), skip_binary_build is False.
     assert isinstance(metadata.skip_binary_build, bool)
-    assert metadata.skip_binary_build is False
 
 
 def test_nuitka_enabled_default():
