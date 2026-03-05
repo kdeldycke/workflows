@@ -71,7 +71,7 @@ The following documentation artifacts must stay in sync with the code. When chan
 - **CLI output in `readme.md`**: The inline `uvx -- repomatic` help block, `--version` output, and development version output must match actual CLI output. Re-run the commands and update the pasted text.
 - **Version references in `readme.md`**: The `--version` examples and example workflow `@vX.Y.Z` reference must reflect the latest released version.
 - **Workflow job descriptions in `readme.md`**: Each `.github/workflows/*.yaml` workflow section must document all jobs by their actual job ID, with accurate descriptions of what they do, their requirements, and skip conditions.
-- **Binary download URLs in `readme.md`**: The download table URLs are automatically frozen during releases (``/releases/latest/download/`` → ``/releases/download/vX.Y.Z/`` with versioned filenames). No manual update needed.
+- **Binary download URLs in `readme.md`**: The download table URLs are automatically frozen during releases (`/releases/latest/download/` → `/releases/download/vX.Y.Z/` with versioned filenames). No manual update needed.
 - **`[tool.repomatic]` configuration table in `readme.md`**: The options table must match what the code actually reads from `pyproject.toml`. Search `repomatic/` for config key references to verify.
 
 ### Knowledge placement
