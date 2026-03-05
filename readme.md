@@ -290,10 +290,6 @@ GitHub Actions has several design limitations that the workflows work around:
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
-- 📋 **Fix changelog** (`fix-changelog`)
-
-  - Checks and fixes changelog dates, availability admonitions, and orphaned versions using [`repomatic lint-changelog --fix`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
-
 - 🖼️ **Optimize images** (`optimize-images`)
 
   - Losslessly compresses PNG and JPEG images using [`repomatic optimize-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
@@ -400,6 +396,13 @@ GitHub Actions has several design limitations that the workflows work around:
     - Schedule (daily at 6:00 UTC)
     - Manual dispatch
     - After `release.yaml` workflow completes successfully (via `workflow_run` trigger, to ensure tags exist before checking bump eligibility). Checks out the latest `main` HEAD, not the triggering workflow's commit.
+
+- 📋 **Fix changelog** (`fix-changelog`)
+
+  - Checks and fixes changelog dates, availability admonitions, and orphaned versions using [`repomatic lint-changelog --fix`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
+  - **Runs on**:
+    - Push to `main` (when `changelog.md`, `pyproject.toml`, or workflow files change). Skipped during release cycles.
+    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger), when the GitHub release is published and visible to the public API.
 
 - 🎬 **Prepare release** (`prepare-release`)
 

@@ -281,36 +281,6 @@ jobs:
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
           See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+WORKFLOW_UPDATE_GITHUB_PAT+in:title"
 
-  fix-changelog:
-    name: 📋 Fix changelog
-    needs:
-      - project-metadata
-    # Skip during release cycle. See repomatic/changelog.py lint_changelog_dates docstring.
-    if: "!needs.project-metadata.outputs.release_commits_matrix"
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-        with:
-          fetch-tags: true
-      - uses: astral-sh/setup-uv@v7.3.0
-      - name: Fix changelog dates and admonitions
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . repomatic lint-changelog --fix
-      - id: pr-metadata
-        run: >
-          uvx --no-progress --from . repomatic pr-body
-          --template fix-changelog
-          --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
-        with:
-          assignees: ${{ github.actor }}
-          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
-          title: ${{ steps.pr-metadata.outputs.title }}
-          body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "🆙 changelog"
-          branch: fix-changelog
-
   optimize-images:
     name: 🖼️ Optimize images
     needs:
