@@ -28,6 +28,7 @@
 - Replace `softprops/action-gh-release` with `gh release create` in the release workflow. All release operations now use the `gh` CLI.
 - Move dev release asset upload from shell script into `sync-dev-release` CLI command with `--upload-assets` option, replacing the workflow's inline script.
 - Fix `update-checksums` skipping multi-line `echo ... \` + `| sha256sum --check` patterns where the hash and `sha256sum` keyword are on different lines. This caused Renovate `postUpgradeTasks` to silently leave stale SHA-256 hashes after version bumps.
+- Force native ARM64 Python on Windows ARM64 test runners via `UV_PYTHON` to work around [uv defaulting to x86_64 emulation](https://github.com/astral-sh/uv/issues/12906). Fixes `test-results-parser` (from `codecov-cli`) failing to compile its Rust extension under cross-architecture emulation.
 - Fix `fix-changelog` and `freeze_file` producing a trailing blank line when the last changelog section is modified. Both write sites now normalize to exactly one trailing newline.
 
 ## [`6.1.0` (2026-02-27)](https://github.com/kdeldycke/repomatic/compare/v6.0.1...v6.1.0)
