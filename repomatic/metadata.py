@@ -2137,9 +2137,7 @@ class Metadata:
             bin_name_include = {k: variations[k] for k in matrix.variations}
             bin_name_include["bin_name"] = (
                 "{cli_id}-{current_version}-{target}.{extension}"
-            ).format(
-                **variations
-            )
+            ).format(**variations)
             matrix.add_includes(bin_name_include)
 
         # Pass project-specific and auto-detected Nuitka flags.
