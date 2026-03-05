@@ -35,7 +35,7 @@ FAKE_HASH_NEW = "b" * 64
         (
             "single-line echo|sha256sum",
             [
-                '  curl -fsSL --output /tmp/tool.tar.gz \\',
+                "  curl -fsSL --output /tmp/tool.tar.gz \\",
                 '    "https://github.com/org/tool/releases/download/v1.0/tool.tar.gz"',
                 f'  echo "{FAKE_HASH_OLD}  /tmp/tool.tar.gz" | sha256sum --check',
             ],
@@ -46,10 +46,10 @@ FAKE_HASH_NEW = "b" * 64
         (
             "multi-line echo \\ | sha256sum",
             [
-                '  curl -fsSL --output /tmp/tool.tar.gz \\',
+                "  curl -fsSL --output /tmp/tool.tar.gz \\",
                 '    "https://github.com/org/tool/releases/download/v1.0/tool.tar.gz"',
                 f'  echo "{FAKE_HASH_OLD}  /tmp/tool.tar.gz" \\',
-                '    | sha256sum --check',
+                "    | sha256sum --check",
             ],
             "https://github.com/org/tool/releases/download/v1.0/tool.tar.gz",
             2,
@@ -72,9 +72,9 @@ def test_find_checksum_pairs(
 def test_find_checksum_pairs_no_match():
     """Lines without sha256sum produce no results."""
     lines = [
-        '  curl -fsSL --output /tmp/tool.tar.gz \\',
+        "  curl -fsSL --output /tmp/tool.tar.gz \\",
         '    "https://github.com/org/tool/releases/download/v1.0/tool.tar.gz"',
-        '  tar xzf /tmp/tool.tar.gz',
+        "  tar xzf /tmp/tool.tar.gz",
     ]
     assert list(_find_checksum_pairs(lines)) == []
 
@@ -90,9 +90,7 @@ def test_update_checksums_replaces_hash(tmp_path):
         encoding="UTF-8",
     )
 
-    with patch(
-        "repomatic.checksums._download_sha256", return_value=FAKE_HASH_NEW
-    ):
+    with patch("repomatic.checksums._download_sha256", return_value=FAKE_HASH_NEW):
         updated = update_checksums(workflow)
 
     assert len(updated) == 1
@@ -112,9 +110,7 @@ def test_update_checksums_noop_when_hash_matches(tmp_path):
     )
     workflow.write_text(content, encoding="UTF-8")
 
-    with patch(
-        "repomatic.checksums._download_sha256", return_value=FAKE_HASH_OLD
-    ):
+    with patch("repomatic.checksums._download_sha256", return_value=FAKE_HASH_OLD):
         updated = update_checksums(workflow)
 
     assert updated == []

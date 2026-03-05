@@ -1075,9 +1075,7 @@ def lint_changelog_dates(
             modified |= changelog.replace_section(version, new_section)
 
     if fix and modified:
-        changelog_path.write_text(
-            changelog.content.rstrip() + "\n", encoding="UTF-8"
-        )
+        changelog_path.write_text(changelog.content.rstrip() + "\n", encoding="UTF-8")
         logging.info(f"Updated {changelog_path}")
 
     # In fix mode, mismatches were corrected in-place, so return success
