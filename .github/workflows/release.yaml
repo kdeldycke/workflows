@@ -360,6 +360,12 @@ jobs:
       # Allow project without WORKFLOW_UPDATE_GITHUB_PAT to create a GitHub release.
       contents: write
     steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ matrix.commit }}
+      - uses: astral-sh/setup-uv@v7.3.0
+        with:
+          enable-cache: false
       - name: Download Python package
         # Do not fetch build artifacts if build-package was skipped (non-Python projects).
         if: needs.build-package.result != 'skipped'
@@ -374,12 +380,6 @@ jobs:
         uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: release_artifact/*
-      - uses: actions/checkout@v6.0.2
-        with:
-          ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.3.0
-        with:
-          enable-cache: false
       - name: Delete dev pre-release
         # Clean up all rolling dev releases before creating the real release.
         # See repomatic/github/dev_release.py for rationale.
