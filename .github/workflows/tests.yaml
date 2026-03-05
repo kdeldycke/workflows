@@ -54,6 +54,10 @@ jobs:
           - "3.14t"
           - "3.15"
           - "3.15t"
+        exclude:
+          # Python 3.10 has no native ARM64 Windows build.
+          - os: windows-11-arm
+            python-version: "3.10"
         include:
           # Default all jobs as stable, unless marked otherwise below.
           - state: stable
