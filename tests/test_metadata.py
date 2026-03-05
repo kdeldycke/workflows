@@ -453,6 +453,7 @@ expected = {
         "tests/test_binary.py",
         "tests/test_broken_links.py",
         "tests/test_changelog.py",
+        "tests/test_checksums.py",
         "tests/test_deps_graph.py",
         "tests/test_dev_release.py",
         "tests/test_git_ops.py",
