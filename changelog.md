@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.2.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.1.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.2.0` (2026-03-05)](https://github.com/kdeldycke/repomatic/compare/v6.1.0...v6.2.0)
 
 - Extract hand-written GFM alert blocks (editorial admonitions) from changelog entries.
 - Fix Nuitka-compiled binaries silently producing no output when the entry point is a `__main__.py` inside a package. Auto-detect this pattern and pass the package directory with `--python-flag=-m` instead of the file path.
