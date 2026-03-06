@@ -304,9 +304,9 @@ Skills in `.claude/skills/` are user-invocable only (`disable-model-invocation: 
 
 Skills are grouped by lifecycle phase. Each skill includes a "Next steps" section that suggests related skills to run next, creating a guided workflow:
 
-- **Setup**: `/repomatic-init`, `/repomatic-sync`
-- **Development**: `/repomatic-deps`, `/repomatic-metadata`
-- **Quality**: `/repomatic-lint`, `/repomatic-test`, `/repomatic-audit`
+- **Setup**: `/repomatic-init`
+- **Mechanical convenience** (run CI steps locally): `/repomatic-sync`, `/repomatic-lint`
+- **Development**: `/repomatic-deps`, `/repomatic-test`
 - **Release**: `/repomatic-changelog`, `/repomatic-release`
 - **Maintenance**: `/repomatic-audit`, `/repomatic-topics`
 

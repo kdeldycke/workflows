@@ -65,5 +65,4 @@ GitHub allows up to 20 topics. Fill all 20 slots — unused slots are wasted dis
 
 Suggest the user run:
 
-- `/repomatic-metadata` to verify project metadata is consistent after keyword changes.
 - `/repomatic-lint` to check for any issues introduced.

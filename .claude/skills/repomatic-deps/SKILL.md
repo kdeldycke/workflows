@@ -39,4 +39,4 @@ The `autofix.yaml` workflow's `update-deps-graph` job already regenerates the de
 
 Suggest the user run:
 
-- `/repomatic-metadata` to see full project metadata alongside the dependency graph.
+- `/repomatic-lint` to check repository metadata for issues.
