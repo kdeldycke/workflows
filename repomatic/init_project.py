@@ -102,6 +102,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     # Linter configuration files.
     "zizmor.yaml": "./zizmor.yaml",
     # Claude Code skill definitions.
+    "skill-repomatic-audit.md": "./.claude/skills/repomatic-audit/SKILL.md",
     "skill-repomatic-changelog.md": "./.claude/skills/repomatic-changelog/SKILL.md",
     "skill-repomatic-deps.md": "./.claude/skills/repomatic-deps/SKILL.md",
     "skill-repomatic-init.md": "./.claude/skills/repomatic-init/SKILL.md",
@@ -605,6 +606,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
     "linters": (("zizmor.yaml", "zizmor.yaml"),),
     "renovate": (("renovate.json5", "renovate.json5"),),
     "skills": (
+        ("skill-repomatic-audit.md", ".claude/skills/repomatic-audit/SKILL.md"),
         ("skill-repomatic-changelog.md", ".claude/skills/repomatic-changelog/SKILL.md"),
         ("skill-repomatic-deps.md", ".claude/skills/repomatic-deps/SKILL.md"),
         ("skill-repomatic-init.md", ".claude/skills/repomatic-init/SKILL.md"),

@@ -601,10 +601,11 @@ def test_init_only_skills(tmp_path: Path):
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 8
+    assert len(created_set) == 9
 
     # Verify all skill files are created.
     for name in (
+        "repomatic-audit",
         "repomatic-changelog",
         "repomatic-deps",
         "repomatic-init",
@@ -620,6 +621,55 @@ def test_init_only_skills(tmp_path: Path):
 
     # No workflows or changelog should be created.
     assert "changelog.md" not in created_set
+
+
+def test_skills_consistency():
+    """Verify all .claude/skills/ directories have matching entries in code.
+
+    Guards against adding a skill definition to ``.claude/skills/`` without
+    registering it in ``COMPONENT_FILES``, ``_SKILL_PHASES``, and the
+    ``repomatic/data/`` symlinks.
+    """
+    from repomatic.cli import _SKILL_PHASES
+
+    # Collect skill directories from the filesystem.
+    skills_dir = Path(__file__).resolve().parents[1] / ".claude" / "skills"
+    fs_skills = {
+        p.parent.name
+        for p in skills_dir.glob("*/SKILL.md")
+    }
+
+    # Collect skills registered in COMPONENT_FILES.
+    component_skills = {
+        rel_path.split("/")[2]
+        for _, rel_path in COMPONENT_FILES.get("skills", ())
+    }
+
+    # Collect skills registered in _SKILL_PHASES.
+    phase_skills = set(_SKILL_PHASES)
+
+    # Collect data symlinks.
+    data_dir = Path(__file__).resolve().parents[1] / "repomatic" / "data"
+    data_skills = {
+        p.stem.removeprefix("skill-")
+        for p in data_dir.glob("skill-repomatic-*.md")
+    }
+
+    assert fs_skills == component_skills, (
+        f"COMPONENT_FILES mismatch: "
+        f"missing={fs_skills - component_skills}, "
+        f"extra={component_skills - fs_skills}"
+    )
+    assert fs_skills == data_skills, (
+        f"Data symlinks mismatch: "
+        f"missing={fs_skills - data_skills}, "
+        f"extra={data_skills - fs_skills}"
+    )
+    assert fs_skills == phase_skills, (
+        f"_SKILL_PHASES mismatch: "
+        f"missing={fs_skills - phase_skills}, "
+        f"stale={phase_skills - fs_skills}"
+    )
 
 
 def test_init_only_renovate(tmp_path: Path):

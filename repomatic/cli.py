@@ -2016,8 +2016,8 @@ def sync_skills() -> None:
 _SKILL_PHASES: dict[str, str] = {
     "repomatic-init": "Setup",
     "repomatic-sync": "Setup",
+    "repomatic-audit": "Maintenance",
     "repomatic-deps": "Development",
-    "repomatic-metadata": "Development",
     "repomatic-lint": "Quality",
     "repomatic-test": "Quality",
     "repomatic-topics": "Development",
@@ -2027,7 +2027,7 @@ _SKILL_PHASES: dict[str, str] = {
 """Maps skill names to lifecycle phases for display grouping."""
 
 # Canonical display order for lifecycle phases.
-_PHASE_ORDER = ("Setup", "Development", "Quality", "Release")
+_PHASE_ORDER = ("Setup", "Development", "Quality", "Maintenance", "Release")
 
 
 def _parse_skill_frontmatter(content: str) -> dict[str, str]:
