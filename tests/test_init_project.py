@@ -270,6 +270,39 @@ def test_has_files_section() -> None:
     assert len(parsed["files"]) > 0
 
 
+def test_template_matches_own_pyproject() -> None:
+    """Verify bundled bumpversion.toml stays in sync with repomatic's own config.
+
+    The template is the canonical reference for downstream projects. Structural
+    settings (parse, serialize, parts.dev) and shared file entries must match
+    repomatic's own ``[tool.bumpversion]`` section.
+    """
+    template = tomllib.loads(export_content("bumpversion.toml"))
+
+    project_root = Path(__file__).resolve().parent.parent
+    own_config = tomllib.loads(
+        (project_root / "pyproject.toml").read_text(encoding="UTF-8")
+    )["tool"]["bumpversion"]
+
+    # Structural settings.
+    assert own_config["allow_dirty"] == template["allow_dirty"]
+    assert own_config["ignore_missing_files"] == template["ignore_missing_files"]
+    assert own_config["parse"] == template["parse"]
+    assert own_config["serialize"] == template["serialize"]
+
+    # Dev versioning parts.
+    assert own_config["parts"]["dev"] == template["parts"]["dev"]
+
+    # Every [[files]] entry in the template must exist in the project config.
+    # The project may have extra entries (project-specific), but must not be
+    # missing any template-defined ones.
+    own_files = own_config["files"]
+    for template_entry in template["files"]:
+        assert template_entry in own_files, (
+            f"Template [[files]] entry missing from pyproject.toml: {template_entry}"
+        )
+
+
 # --- pyproject.toml merging tests ---
 
 
