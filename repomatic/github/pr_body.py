@@ -243,7 +243,7 @@ def generate_pr_metadata_block() -> str:
         table_format=TableFormat.GITHUB,
     )
 
-    return render_template("pr-metadata", table=table)
+    return render_template("generated-footer", table=table)
 
 
 def _repo_url() -> str:
@@ -274,20 +274,13 @@ def generate_refresh_tip() -> str:
     return render_template("refresh-tip", workflow_dispatch_url=workflow_dispatch_url)
 
 
-GENERATED_FOOTER = (
-    "---\n\n"
-    "\U0001f916 Generated with"
-    " [repomatic](https://github.com/kdeldycke/repomatic)"
-)
-"""Attribution footer appended to all PR bodies."""
-
-
 def build_pr_body(prefix: str, metadata_block: str) -> str:
-    """Concatenate prefix, refresh tip, footer, and metadata block into a PR body.
+    """Concatenate prefix, refresh tip, and metadata footer into a PR body.
 
     :param prefix: Content to prepend before the metadata block. Can be empty.
-    :param metadata_block: The collapsible metadata block from
-        :func:`generate_pr_metadata_block`.
+    :param metadata_block: The generated footer from
+        :func:`generate_pr_metadata_block`, which includes the collapsible
+        metadata table and the attribution line.
     :return: The complete PR body string.
     """
     parts: list[str] = []
@@ -296,6 +289,5 @@ def build_pr_body(prefix: str, metadata_block: str) -> str:
     tip = generate_refresh_tip()
     if tip:
         parts.append(tip)
-    parts.append(GENERATED_FOOTER)
     parts.append(metadata_block)
     return "\n\n\n".join(parts)

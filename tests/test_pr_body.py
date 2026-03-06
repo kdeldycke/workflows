@@ -199,11 +199,11 @@ def test_get_template_names():
     assert "sync-mailmap" in names
     assert "sync-uv-lock" in names
     assert "sync-workflows" in names
-    assert "pr-metadata" in names
     assert "fix-changelog" in names
     assert "refresh-tip" in names
     assert "setup-guide" in names
     assert "detect-squash-merge" in names
+    assert "generated-footer" in names
     assert "sync-linter-configs" in names
     assert "github-releases" in names
     assert "release-notes" in names
@@ -421,13 +421,20 @@ def test_render_sync_mailmap():
     assert "autofixyaml-jobs" in result
 
 
+FAKE_FOOTER = (
+    "<details>metadata</details>\n\n"
+    "***\n\n"
+    "Generated with [repomatic](https://github.com/kdeldycke/repomatic)"
+)
+"""Simulates ``generate_pr_metadata_block()`` output for unit tests."""
+
+
 def test_build_pr_body_with_prefix(monkeypatch):
     """Prefix is prepended with triple newline separator."""
     for key in GITHUB_ENV_VARS:
         monkeypatch.delenv(key, raising=False)
 
-    metadata = "<details>metadata</details>"
-    result = build_pr_body("Fix formatting issues.", metadata)
+    result = build_pr_body("Fix formatting issues.", FAKE_FOOTER)
 
     assert result.startswith("Fix formatting issues.")
     assert "Generated with [repomatic]" in result
@@ -435,19 +442,18 @@ def test_build_pr_body_with_prefix(monkeypatch):
 
 
 def test_build_pr_body_with_tip(monkeypatch):
-    """Tip is inserted between prefix and metadata when env vars are set."""
+    """Tip is inserted between prefix and footer when env vars are set."""
     for key, value in GITHUB_ENV_VARS.items():
         monkeypatch.setenv(key, value)
 
-    metadata = "<details>metadata</details>"
-    result = build_pr_body("Description.", metadata)
+    result = build_pr_body("Description.", FAKE_FOOTER)
 
     assert result.startswith("Description.")
     assert "> [!TIP]" in result
     assert "Generated with [repomatic]" in result
     assert result.index("Description.") < result.index("[!TIP]")
     assert result.index("[!TIP]") < result.index("Generated with")
-    assert result.index("Generated with") < result.index("<details>")
+    assert result.index("<details>") < result.index("Generated with")
 
 
 def test_build_pr_body_empty_prefix(monkeypatch):
@@ -455,8 +461,7 @@ def test_build_pr_body_empty_prefix(monkeypatch):
     for key in GITHUB_ENV_VARS:
         monkeypatch.delenv(key, raising=False)
 
-    metadata = "<details>metadata</details>"
-    result = build_pr_body("", metadata)
+    result = build_pr_body("", FAKE_FOOTER)
 
     assert "Generated with [repomatic]" in result
     assert "<details>metadata</details>" in result
@@ -478,8 +483,8 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "available-admonition",
     "broken-links-issue",
     "development-warning",
+    "generated-footer",
     "github-releases",
-    "pr-metadata",
     "refresh-tip",
     "release-notes",
     "release-sync-report",

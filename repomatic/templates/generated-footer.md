@@ -7,3 +7,7 @@ args: [table]
 \$table
 
 </details>
+
+***
+
+🏭 Generated with [repomatic](https://github.com/kdeldycke/repomatic)
