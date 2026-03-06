@@ -358,8 +358,6 @@ def test_has_files_section() -> None:
     assert len(parsed["files"]) > 0
 
 
-
-
 # --- pyproject.toml merging tests ---
 
 
@@ -777,6 +775,7 @@ search = "## [{current_version} (unreleased)]("
 replace = "## [{new_version} (unreleased)]("
 """
 
+
 def _make_pyproject_with_template_bumpversion(version: str = "7.5.3.dev0") -> str:
     """Generate a pyproject.toml with the bumpversion section from the template.
 
@@ -917,9 +916,7 @@ def test_updates_managed_init_py(tmp_path: Path) -> None:
 def test_skips_already_migrated(tmp_path: Path) -> None:
     """Verify config matching the template returns None (no changes needed)."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        _make_pyproject_with_template_bumpversion(), encoding="UTF-8"
-    )
+    pyproject.write_text(_make_pyproject_with_template_bumpversion(), encoding="UTF-8")
 
     result = init_config("bumpversion", pyproject)
 
@@ -946,8 +943,8 @@ def test_replaces_old_changelog_pattern(tmp_path: Path) -> None:
 
     assert result is not None
     # Template has backtick-escaped pattern.
-    assert '## [`{current_version}` (unreleased)](' in result
-    assert '## [`{new_version}` (unreleased)](' in result
+    assert "## [`{current_version}` (unreleased)](" in result
+    assert "## [`{new_version}` (unreleased)](" in result
 
 
 def test_skips_already_dev_version(tmp_path: Path) -> None:

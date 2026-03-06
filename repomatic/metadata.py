@@ -846,7 +846,7 @@ def get_release_version_from_commits(max_count: int = 10) -> Version | None:
     return None
 
 
-def is_version_bump_allowed(part: Literal['minor', 'major']) -> bool:
+def is_version_bump_allowed(part: Literal["minor", "major"]) -> bool:
     """Check if a version bump of the specified part is allowed.
 
     This prevents double version increments within a development cycle. A bump is

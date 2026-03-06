@@ -48,7 +48,6 @@ class SkippedTest(Exception):
     """Raised when a test case should be skipped."""
 
 
-
 def _split_args(cli: str) -> list[str]:
     """Split a string or sequence of strings into a tuple of arguments.
 
@@ -195,9 +194,7 @@ class CLITestCase:
             intertwined output.
         """
         if self.only_platforms and current_platform() not in self.only_platforms:  # type: ignore[operator]
-            raise SkippedTest(
-                f"Test case only runs on platform: {current_platform()}"
-            )
+            raise SkippedTest(f"Test case only runs on platform: {current_platform()}")
 
         if current_platform() in extract_members(
             self.skip_platforms, additional_skip_platforms

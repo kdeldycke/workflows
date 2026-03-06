@@ -65,13 +65,10 @@ from .deps_graph import (
     get_available_groups,
 )
 from .git_ops import create_and_push_tag
-from .github import token as _token_mod
-from .github import unsubscribe as _unsub_mod
+from .github import token as _token_mod, unsubscribe as _unsub_mod
 from .github.actions import format_multiline_output
 from .github.dev_release import (
     cleanup_dev_releases as _cleanup_dev_releases,
-)
-from .github.dev_release import (
     sync_dev_release as _sync_dev_release,
 )
 from .github.pr_body import (
@@ -86,14 +83,10 @@ from .github.pr_body import (
 )
 from .github.release_sync import (
     render_sync_report as _render_sync_report,
-)
-from .github.release_sync import (
     sync_github_releases as _sync_github_releases,
 )
 from .github.unsubscribe import (
     render_report as _render_report,
-)
-from .github.unsubscribe import (
     unsubscribe_threads as _unsubscribe_threads,
 )
 from .github.workflow_sync import (
@@ -126,8 +119,6 @@ from .renovate import (
     CheckFormat,
     collect_check_results,
     run_migration_checks,
-)
-from .renovate import (
     sync_uv_lock as _sync_uv_lock,
 )
 from .sponsor import (
