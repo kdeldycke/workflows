@@ -14,7 +14,7 @@
 - Fix all new ruff `0.15.5` preview violations.
 - Add `LOG015` to ruff ignore list: root logger calls (`logging.info()`, etc.) are intentional since the CLI configures the root logger via Click.
 - Refactor `sync-bumpversion` to replace the entire `[tool.bumpversion]` section from the bundled template instead of applying incremental migrations. Remove legacy backtick migration code.
-- Add test to catch drift between bundled `bumpversion.toml` template and repomatic's own `[tool.bumpversion]` config.
+- Add parametrized sync tests to catch drift between all bundled data files and repomatic's own config: template TOML settings vs `pyproject.toml` (ruff, mypy, pytest, bumpversion), zizmor vs root config, and a loadability check for all registered data files (no dangling symlinks).
 
 ## [`6.2.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.2.0...v6.2.1)
 

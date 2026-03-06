@@ -28,6 +28,7 @@ from repomatic.github.workflow_sync import REUSABLE_WORKFLOWS
 from repomatic.init_project import (
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
+    EXPORTABLE_FILES,
     INIT_CONFIGS,
     _migrate_repomatic_config_section,
     _to_pyproject_format,
@@ -98,6 +99,77 @@ def test_unknown_file_raises_error() -> None:
         export_content("nonexistent.toml")
 
 
+@pytest.mark.parametrize("filename", list(EXPORTABLE_FILES.keys()))
+def test_exportable_file_loadable(filename: str) -> None:
+    """Verify every registered data file can be loaded (no dangling symlinks)."""
+    content = export_content(filename)
+    assert len(content) > 0
+
+
+# Keys intentionally different between template and repomatic's own pyproject.toml.
+# - ``exclude``: key exists only in the template (for downstream), not in own config.
+# - ``superset``: every template list entry must appear in own config, but own may
+#   have extras.
+_TEMPLATE_EXCLUDE_KEYS: dict[str, frozenset[str]] = {
+    "bumpversion": frozenset({"current_version"}),
+    "mypy": frozenset(),
+    "pytest": frozenset({"addopts"}),
+    "ruff": frozenset({"extend-include"}),
+}
+_TEMPLATE_SUPERSET_KEYS: dict[str, frozenset[str]] = {
+    "bumpversion": frozenset({"files"}),
+    "mypy": frozenset(),
+    "pytest": frozenset(),
+    "ruff": frozenset(),
+}
+
+
+@pytest.mark.parametrize("config_type", list(INIT_CONFIGS.keys()))
+def test_template_matches_own_pyproject(config_type: str) -> None:
+    """Verify bundled template stays in sync with repomatic's own config.
+
+    Template keys (minus intentional exclusions) must match the corresponding
+    ``[tool.*]`` section. List keys marked as superset require every template
+    entry to appear in own config, but own config may have extras.
+    """
+    config = INIT_CONFIGS[config_type]
+    template = tomllib.loads(export_content(config.filename))
+
+    project_root = Path(__file__).resolve().parent.parent
+    own_config = tomllib.loads(
+        (project_root / "pyproject.toml").read_text(encoding="UTF-8")
+    )["tool"][config_type]
+
+    exclude = _TEMPLATE_EXCLUDE_KEYS.get(config_type, frozenset())
+    superset = _TEMPLATE_SUPERSET_KEYS.get(config_type, frozenset())
+
+    def assert_subset(tmpl: dict, own: dict, path: str = "") -> None:
+        for key, value in tmpl.items():
+            full = f"{path}.{key}" if path else key
+            if key in exclude:
+                continue
+            if key in superset:
+                for entry in value:
+                    assert entry in own[key], (
+                        f"Template entry missing from [tool.{config_type}] "
+                        f"{full}: {entry}"
+                    )
+                continue
+            assert key in own, (
+                f"Template key {full!r} missing from "
+                f"[tool.{config_type}] in pyproject.toml"
+            )
+            if isinstance(value, dict):
+                assert_subset(value, own[key], full)
+            else:
+                assert own[key] == value, (
+                    f"[tool.{config_type}] {full!r}: "
+                    f"expected {value!r}, got {own[key]!r}"
+                )
+
+    assert_subset(template, own_config)
+
+
 def test_bundled_renovate_matches_processed_root() -> None:
     """Verify bundled renovate.json5 matches processed root file.
 
@@ -133,6 +205,23 @@ def test_bundled_renovate_matches_processed_root() -> None:
         "Bundled renovate.json5 is out of sync with root file.\n"
         "Regenerate with: uv run repomatic init renovate"
         " --output-dir repomatic/data"
+    )
+
+
+def test_bundled_zizmor_matches_root() -> None:
+    """Verify bundled zizmor.yaml matches the root config file.
+
+    The root ``zizmor.yaml`` is the source of truth. The bundled version must
+    be identical.
+    """
+    root_path = Path(__file__).parent.parent / "zizmor.yaml"
+    assert root_path.exists(), "Root zizmor.yaml not found"
+
+    root_content = root_path.read_text(encoding="UTF-8")
+    bundled_content = get_data_content("zizmor.yaml")
+
+    assert bundled_content.strip() == root_content.strip(), (
+        "Bundled zizmor.yaml is out of sync with root file."
     )
 
 
@@ -269,37 +358,6 @@ def test_has_files_section() -> None:
     assert len(parsed["files"]) > 0
 
 
-def test_template_matches_own_pyproject() -> None:
-    """Verify bundled bumpversion.toml stays in sync with repomatic's own config.
-
-    The template is the canonical reference for downstream projects. Structural
-    settings (parse, serialize, parts.dev) and shared file entries must match
-    repomatic's own ``[tool.bumpversion]`` section.
-    """
-    template = tomllib.loads(export_content("bumpversion.toml"))
-
-    project_root = Path(__file__).resolve().parent.parent
-    own_config = tomllib.loads(
-        (project_root / "pyproject.toml").read_text(encoding="UTF-8")
-    )["tool"]["bumpversion"]
-
-    # Structural settings.
-    assert own_config["allow_dirty"] == template["allow_dirty"]
-    assert own_config["ignore_missing_files"] == template["ignore_missing_files"]
-    assert own_config["parse"] == template["parse"]
-    assert own_config["serialize"] == template["serialize"]
-
-    # Dev versioning parts.
-    assert own_config["parts"]["dev"] == template["parts"]["dev"]
-
-    # Every [[files]] entry in the template must exist in the project config.
-    # The project may have extra entries (project-specific), but must not be
-    # missing any template-defined ones.
-    own_files = own_config["files"]
-    for template_entry in template["files"]:
-        assert template_entry in own_files, (
-            f"Template [[files]] entry missing from pyproject.toml: {template_entry}"
-        )
 
 
 # --- pyproject.toml merging tests ---
