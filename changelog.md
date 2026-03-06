@@ -9,6 +9,8 @@
 - Use short SHA in release workflow job names instead of the full 40-character commit hash.
 - Make `repomatic init` output contextual: distinguish created vs updated vs skipped files, warn about excluded files still on disk, and simplify next steps to point to the `setup-guide` workflow.
 - Auto-remove legacy `.claude/skills/gha-*/` skill directories during `repomatic init`, completing the `gha-utils` → `repomatic` rename migration.
+- Refactor `sync-bumpversion` to replace the entire `[tool.bumpversion]` section from the bundled template instead of applying incremental migrations. Remove legacy backtick migration code.
+- Add test to catch drift between bundled `bumpversion.toml` template and repomatic's own `[tool.bumpversion]` config.
 
 ## [`6.2.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.2.0...v6.2.1)
 

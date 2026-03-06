@@ -106,7 +106,6 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "skill-repomatic-deps.md": "./.claude/skills/repomatic-deps/SKILL.md",
     "skill-repomatic-init.md": "./.claude/skills/repomatic-init/SKILL.md",
     "skill-repomatic-lint.md": "./.claude/skills/repomatic-lint/SKILL.md",
-    "skill-repomatic-metadata.md": "./.claude/skills/repomatic-metadata/SKILL.md",
     "skill-repomatic-release.md": "./.claude/skills/repomatic-release/SKILL.md",
     "skill-repomatic-sync.md": "./.claude/skills/repomatic-sync/SKILL.md",
     "skill-repomatic-test.md": "./.claude/skills/repomatic-test/SKILL.md",
@@ -278,153 +277,104 @@ def _to_pyproject_format(template: str, tool_section: str) -> str:
     return "\n".join(result)
 
 
-def _extract_dev_config_block() -> str:
-    """Extract the dev versioning keys from the bumpversion template.
+def _find_bumpversion_section_range(content: str) -> tuple[int, int] | None:
+    """Find the character range of the entire ``[tool.bumpversion]`` section.
 
-    Reads ``bumpversion.toml`` and returns only the root-level keys needed for
-    dev versioning (``ignore_missing_files``, ``parse``, ``serialize``) plus the
-    ``[parts.dev]`` section, formatted for ``[tool.bumpversion]`` in
-    pyproject.toml.
+    Locates the section header and all its subsections
+    (``[[tool.bumpversion.files]]``, ``[tool.bumpversion.parts.*]``), returning
+    the start and end indices.
 
-    :return: The dev config block as text, ready for insertion.
+    :param content: The pyproject.toml content.
+    :return: Tuple of (start, end) character indices, or ``None`` if not found.
     """
-    native_template = export_content("bumpversion.toml")
-    lines = native_template.splitlines()
+    header_match = re.search(
+        r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE
+    )
+    if not header_match:
+        return None
 
-    # Collect root-level dev keys and the [parts.dev] section.
-    dev_keys = {"ignore_missing_files", "parse", "serialize"}
-    result_lines: list[str] = []
-    in_dev_key = False
-    in_parts_dev = False
+    start = header_match.start()
 
-    for line in lines:
-        stripped = line.strip()
+    # Find the next section header that is not part of bumpversion.
+    # Skips both [tool.bumpversion.X] and [[tool.bumpversion.X]] headers.
+    next_section = re.search(
+        r"^\[{1,2}(?!tool\.bumpversion[\].])[a-z]",
+        content[header_match.end() :],
+        re.MULTILINE,
+    )
+    if next_section:
+        end = header_match.end() + next_section.start()
+    else:
+        end = len(content)
 
-        # Detect [parts.dev] section start.
-        if re.match(r"^\[parts\.dev\]", stripped):
-            in_parts_dev = True
-            result_lines.append(f"[tool.bumpversion.{stripped[1:-1]}]")
-            continue
-
-        # Detect end of [parts.dev] section (next section or [[files]]).
-        if in_parts_dev and re.match(r"^\[", stripped):
-            in_parts_dev = False
-
-        if in_parts_dev:
-            result_lines.append(line)
-            continue
-
-        # Detect root-level dev keys.
-        key_match = re.match(r"^(\w+)\s*=", stripped)
-        if key_match and key_match.group(1) in dev_keys:
-            in_dev_key = True
-
-        if in_dev_key:
-            result_lines.append(line)
-            # Multi-line values end when we see a line with `]`.
-            if stripped.endswith("]") or (
-                "=" in stripped and not stripped.endswith("[")
-            ):
-                in_dev_key = False
-            continue
-
-        # Collect comments that precede dev keys.
-        if stripped.startswith("#") and not result_lines:
-            # Skip file-level comments at the top.
-            continue
-        if stripped.startswith("#"):
-            # Check if the next non-comment line is a dev key.
-            result_lines.append(line)
-            continue
-
-    # Clean up: remove trailing comment-only lines that don't belong.
-    # Walk backwards and drop comment lines that aren't followed by a dev key.
-    cleaned: list[str] = []
-    pending_comments: list[str] = []
-    for line in result_lines:
-        stripped = line.strip()
-        if stripped.startswith("#"):
-            pending_comments.append(line)
-        else:
-            if stripped:
-                cleaned.extend(pending_comments)
-            pending_comments = []
-            cleaned.append(line)
-
-    return "\n".join(cleaned)
+    return start, end
 
 
 def _update_bumpversion_config(
     content: str,
     pyproject_path: Path,
 ) -> str | None:
-    """Update an existing ``[tool.bumpversion]`` config with dev versioning keys.
+    """Replace an existing ``[tool.bumpversion]`` section from the template.
 
-    Detects whether the existing config already has dev versioning support
-    (``parse`` key) and, if not, injects the required keys. Also appends
-    ``.dev0`` to ``current_version`` if it lacks a dev suffix.
+    Instead of applying incremental migrations, replaces the entire section
+    with the canonical template from ``bumpversion.toml``. Only
+    ``current_version`` is preserved from the existing config.
 
-    After updating pyproject.toml content in memory, applies version changes to
-    all files managed by the ``[[tool.bumpversion.files]]`` entries.
+    If the existing config does not use dev versioning (no ``parse`` key),
+    a ``.dev0`` suffix is appended to ``current_version`` and managed files
+    are updated accordingly.
 
     :param content: The current pyproject.toml content.
     :param pyproject_path: Path to pyproject.toml (for resolving managed files).
     :return: Modified pyproject.toml content, or ``None`` if already up to date.
     """
+    section_range = _find_bumpversion_section_range(content)
+    if not section_range:
+        return None
+
+    # Parse existing config to extract current_version.
     parsed = tomllib.loads(content)
     bv_config = parsed.get("tool", {}).get("bumpversion", {})
+    current_version = bv_config.get("current_version", "0.0.0.dev0")
 
-    # Already has dev versioning configured.
-    if "parse" in bv_config:
-        logging.info("[tool.bumpversion] already has dev versioning configured.")
-        return None
-
-    current_version = bv_config.get("current_version", "")
-
-    # Determine the new version with .dev0 suffix.
-    needs_dev_suffix = not re.search(r"\.dev\d+$", current_version)
+    # Determine if dev versioning migration is needed.
+    had_dev_versioning = "parse" in bv_config
+    needs_dev_suffix = not had_dev_versioning and not re.search(
+        r"\.dev\d+$", current_version
+    )
     new_version = f"{current_version}.dev0" if needs_dev_suffix else current_version
 
-    # Extract the dev config block from the template.
-    dev_block = _extract_dev_config_block()
-
-    # Find the insertion point: after the last root-level key in
-    # [tool.bumpversion], before [[tool.bumpversion.files]] or
-    # [tool.bumpversion.parts.*] or the next top-level section.
-    bv_section_match = re.search(r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE)
-    if not bv_section_match:
-        return None
-
-    # Find the end of root-level keys in [tool.bumpversion].
-    # Look for the first subsection, array section, or next top-level section.
-    after_header = bv_section_match.end()
-    next_section_pattern = re.compile(
-        r"^(?:\[\[tool\.bumpversion\."
-        r"|\[tool\.bumpversion\."
-        r"|\[[a-z])",
-        re.MULTILINE,
+    # Generate the replacement section from the template, stripping
+    # file-level comments that only apply to the standalone format.
+    native_template = export_content("bumpversion.toml")
+    native_lines = native_template.splitlines()
+    first_key = next(
+        i for i, line in enumerate(native_lines) if line and not line.startswith("#")
     )
-    next_section = next_section_pattern.search(content, after_header)
+    native_template = "\n".join(native_lines[first_key:])
+    template_section = _to_pyproject_format(native_template, "tool.bumpversion")
 
-    if next_section:
-        insertion_point = next_section.start()
-    else:
-        insertion_point = len(content)
+    # Replace the placeholder current_version with the project's version.
+    template_section = template_section.replace(
+        'current_version = "0.0.0.dev0"',
+        f'current_version = "{new_version}"',
+    )
 
-    # Insert the dev config block.
-    before = content[:insertion_point].rstrip()
-    after = content[insertion_point:].lstrip()
+    # Splice the new section into the content.
+    start, end = section_range
+    before = content[:start].rstrip()
+    after = content[end:].lstrip()
 
-    modified = before + "\n" + dev_block.strip() + "\n"
+    modified = before + "\n\n" + template_section.strip() + "\n"
     if after:
         modified += "\n" + after
 
-    # Update current_version if it needs .dev0 suffix.
-    if needs_dev_suffix and current_version:
-        modified = _update_current_version(modified, current_version, new_version)
+    if modified.strip() == content.strip():
+        logging.info("[tool.bumpversion] already up to date.")
+        return None
 
-        # Apply version changes to managed files.
-        # pyproject.toml is updated in-memory since the caller writes it.
+    # If we just added dev versioning, update managed files.
+    if needs_dev_suffix and current_version:
         files_entries = bv_config.get("files", [])
         modified = _update_managed_files(
             pyproject_path,
@@ -434,23 +384,8 @@ def _update_bumpversion_config(
             modified,
         )
 
+    logging.info("Replaced [tool.bumpversion] from bundled template.")
     return modified
-
-
-def _update_current_version(content: str, old_version: str, new_version: str) -> str:
-    """Replace ``current_version`` in the bumpversion section.
-
-    Only replaces the first occurrence within ``[tool.bumpversion]`` to avoid
-    touching version strings in other sections.
-
-    :param content: The pyproject.toml content.
-    :param old_version: The current version string (e.g., ``"7.5.3"``).
-    :param new_version: The new version string (e.g., ``"7.5.3.dev0"``).
-    :return: The modified content.
-    """
-    # Match current_version = "X.Y.Z" in the bumpversion section.
-    pattern = r'(current_version\s*=\s*")' + re.escape(old_version) + r'"'
-    return re.sub(pattern, rf'\g<1>{new_version}"', content, count=1)
 
 
 def _update_managed_files(
@@ -676,7 +611,6 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("skill-repomatic-deps.md", ".claude/skills/repomatic-deps/SKILL.md"),
         ("skill-repomatic-init.md", ".claude/skills/repomatic-init/SKILL.md"),
         ("skill-repomatic-lint.md", ".claude/skills/repomatic-lint/SKILL.md"),
-        ("skill-repomatic-metadata.md", ".claude/skills/repomatic-metadata/SKILL.md"),
         ("skill-repomatic-release.md", ".claude/skills/repomatic-release/SKILL.md"),
         ("skill-repomatic-sync.md", ".claude/skills/repomatic-sync/SKILL.md"),
         ("skill-repomatic-test.md", ".claude/skills/repomatic-test/SKILL.md"),
@@ -980,6 +914,7 @@ def _init_tool_configs(
         )
         logging.warning(result.warnings[-1])
         return
+    rel = pyproject_path.relative_to(output_dir).as_posix()
     for config_type in tool_configs:
         section = INIT_CONFIGS[config_type].tool_section
         had_section = re.search(
@@ -994,8 +929,12 @@ def _init_tool_configs(
             pyproject_path.write_text(merged, encoding="UTF-8")
             if had_section:
                 logging.info(f"Updated [{section}].")
+                if rel not in result.updated:
+                    result.updated.append(rel)
             else:
                 logging.info(f"Merged [{section}].")
+                if rel not in result.created:
+                    result.created.append(rel)
 
 
 def _remove_legacy_skills(output_dir: Path) -> list[str]:

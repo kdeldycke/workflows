@@ -27,10 +27,10 @@ from packaging.version import Version
 
 from repomatic.github.actions import NULL_SHA
 from repomatic.metadata import (
-    Dialect,
     NUITKA_BUILD_TARGETS,
     SKIP_BINARY_BUILD_BRANCHES,
     Config,
+    Dialect,
     Metadata,
     get_latest_tag_version,
     get_project_name,
@@ -520,11 +520,11 @@ expected = {
     "doc_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
         ".claude/skills/repomatic-init/SKILL.md",
         ".claude/skills/repomatic-lint/SKILL.md",
-        ".claude/skills/repomatic-metadata/SKILL.md",
         ".claude/skills/repomatic-release/SKILL.md",
         ".claude/skills/repomatic-sync/SKILL.md",
         ".claude/skills/repomatic-test/SKILL.md",
@@ -569,11 +569,11 @@ expected = {
     "markdown_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
         ".claude/skills/repomatic-init/SKILL.md",
         ".claude/skills/repomatic-lint/SKILL.md",
-        ".claude/skills/repomatic-metadata/SKILL.md",
         ".claude/skills/repomatic-release/SKILL.md",
         ".claude/skills/repomatic-sync/SKILL.md",
         ".claude/skills/repomatic-test/SKILL.md",

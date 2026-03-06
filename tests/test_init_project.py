@@ -24,11 +24,11 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
+from repomatic.github.workflow_sync import REUSABLE_WORKFLOWS
 from repomatic.init_project import (
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     INIT_CONFIGS,
-    _extract_dev_config_block,
     _migrate_repomatic_config_section,
     _to_pyproject_format,
     _update_bumpversion_config,
@@ -38,7 +38,6 @@ from repomatic.init_project import (
     init_config,
     run_init,
 )
-from repomatic.github.workflow_sync import REUSABLE_WORKFLOWS
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -59,7 +58,7 @@ def test_supported_config_types() -> None:
 
 def test_config_type_has_required_fields() -> None:
     """Verify that each config type has all required fields."""
-    for name, config in INIT_CONFIGS.items():
+    for config in INIT_CONFIGS.values():
         assert config.filename
         assert config.tool_section
         assert config.description
@@ -543,7 +542,7 @@ def test_init_only_skills(tmp_path: Path):
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 9
+    assert len(created_set) == 8
 
     # Verify all skill files are created.
     for name in (
@@ -551,7 +550,6 @@ def test_init_only_skills(tmp_path: Path):
         "repomatic-deps",
         "repomatic-init",
         "repomatic-lint",
-        "repomatic-metadata",
         "repomatic-release",
         "repomatic-sync",
         "repomatic-test",
@@ -699,61 +697,22 @@ search = "## [{current_version} (unreleased)]("
 replace = "## [{new_version} (unreleased)]("
 """
 
-# Same config but already migrated with dev versioning keys.
-PYPROJECT_WITH_DEV_VERSIONING = """\
-[project]
-name = "test-project"
-version = "7.5.3.dev0"
+def _make_pyproject_with_template_bumpversion(version: str = "7.5.3.dev0") -> str:
+    """Generate a pyproject.toml with the bumpversion section from the template.
 
-[tool.bumpversion]
-current_version = "7.5.3.dev0"
-allow_dirty = true
-ignore_missing_files = true
-parse = '(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\.dev(?P<dev>\\d+))?'
-serialize = [
-    "{major}.{minor}.{patch}.dev{dev}",
-    "{major}.{minor}.{patch}",
-]
-
-[tool.bumpversion.parts.dev]
-values = [ "0", "release" ]
-optional_value = "release"
-
-[[tool.bumpversion.files]]
-filename = "./pyproject.toml"
-search = 'version = "{current_version}"'
-replace = 'version = "{new_version}"'
-
-[[tool.bumpversion.files]]
-filename = "./changelog.md"
-search = "## [{current_version} (unreleased)]("
-replace = "## [{new_version} (unreleased)]("
-"""
-
-
-def test_extract_dev_config_block_has_required_keys() -> None:
-    """Verify dev config block contains all required keys."""
-    block = _extract_dev_config_block()
-    assert "ignore_missing_files = true" in block
-    assert "parse = " in block
-    assert "serialize = [" in block
-    assert "[tool.bumpversion.parts.dev]" in block
-    assert "optional_value" in block
-
-
-def test_extract_dev_config_block_excludes_files() -> None:
-    """Verify dev config block does not contain [[files]] entries."""
-    block = _extract_dev_config_block()
-    assert "[[" not in block
-    assert "filename" not in block
-    assert "glob" not in block
-
-
-def test_extract_dev_config_block_excludes_non_dev_keys() -> None:
-    """Verify dev config block does not contain current_version or allow_dirty."""
-    block = _extract_dev_config_block()
-    assert "current_version" not in block
-    assert "allow_dirty" not in block
+    Used as a fixture for tests that need an already-up-to-date config.
+    """
+    native = export_content("bumpversion.toml")
+    bv_section = _to_pyproject_format(native, "tool.bumpversion")
+    bv_section = bv_section.replace(
+        'current_version = "0.0.0.dev0"',
+        f'current_version = "{version}"',
+    )
+    return (
+        f'[project]\nname = "test-project"\nversion = "{version}"\n\n'
+        + bv_section.strip()
+        + "\n"
+    )
 
 
 def test_updates_existing_bumpversion_config(tmp_path: Path) -> None:
@@ -792,8 +751,8 @@ def test_updates_project_version_with_dev_suffix(tmp_path: Path) -> None:
     assert 'version = "7.5.3.dev0"' in result
 
 
-def test_preserves_bumpversion_files_entries(tmp_path: Path) -> None:
-    """Verify [[tool.bumpversion.files]] entries are untouched."""
+def test_replaces_bumpversion_files_from_template(tmp_path: Path) -> None:
+    """Verify [[tool.bumpversion.files]] entries come from the template."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
 
@@ -801,8 +760,11 @@ def test_preserves_bumpversion_files_entries(tmp_path: Path) -> None:
 
     assert result is not None
     assert "[[tool.bumpversion.files]]" in result
+    # Template entries are present.
     assert 'filename = "./pyproject.toml"' in result
     assert 'filename = "./changelog.md"' in result
+    assert 'filename = "./citation.cff"' in result
+    assert 'glob = "./**/__init__.py"' in result
 
 
 def test_preserves_other_pyproject_sections(tmp_path: Path) -> None:
@@ -873,13 +835,39 @@ def test_updates_managed_init_py(tmp_path: Path) -> None:
 
 
 def test_skips_already_migrated(tmp_path: Path) -> None:
-    """Verify config with parse key returns None (no changes needed)."""
+    """Verify config matching the template returns None (no changes needed)."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(PYPROJECT_WITH_DEV_VERSIONING, encoding="UTF-8")
+    pyproject.write_text(
+        _make_pyproject_with_template_bumpversion(), encoding="UTF-8"
+    )
 
     result = init_config("bumpversion", pyproject)
 
     assert result is None
+
+
+def test_replaces_old_changelog_pattern(tmp_path: Path) -> None:
+    """Verify old changelog pattern without backticks is replaced by template."""
+    content = (
+        '[project]\nname = "test"\nversion = "1.0.0.dev0"\n\n'
+        "[tool.bumpversion]\n"
+        'current_version = "1.0.0.dev0"\n'
+        "allow_dirty = true\n"
+        "parse = '(?P<major>\\d+)'\n\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./changelog.md"\n'
+        'search = "## [{current_version} (unreleased)]("\n'
+        'replace = "## [{new_version} (unreleased)]("\n'
+    )
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    # Template has backtick-escaped pattern.
+    assert '## [`{current_version}` (unreleased)](' in result
+    assert '## [`{new_version}` (unreleased)](' in result
 
 
 def test_skips_already_dev_version(tmp_path: Path) -> None:
