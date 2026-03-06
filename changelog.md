@@ -18,10 +18,16 @@
 
 ## [`6.2.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.2.0...v6.2.1)
 
+> [!NOTE]
+> `6.2.1` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.2.1/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.2.1).
+
 - Fix `actions/checkout` wiping downloaded Python package artifacts (`.whl`, `.tar.gz`) before `gh release create` could attach them. Move checkout before artifact download so the release draft includes the Python distribution files.
 - Fix `fix-changelog` marking releases as "not available on GitHub" when the GitHub release is still a draft. Move the job from `autofix.yaml` to `changelog.yaml` which has a `workflow_run` trigger that fires after "Build & release" completes, when the release is published and visible to the public API.
 
 ## [`6.2.0` (2026-03-05)](https://github.com/kdeldycke/repomatic/compare/v6.1.0...v6.2.0)
+
+> [!NOTE]
+> `6.2.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.2.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.2.0).
 
 - Extract hand-written GFM alert blocks (editorial admonitions) from changelog entries.
 - Fix Nuitka-compiled binaries silently producing no output when the entry point is a `__main__.py` inside a package. Auto-detect this pattern and pass the package directory with `--python-flag=-m` instead of the file path.
