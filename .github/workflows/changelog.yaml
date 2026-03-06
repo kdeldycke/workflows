@@ -54,6 +54,7 @@ jobs:
       # Bump eligibility to prevent double version increments within a development cycle.
       minor_bump_allowed: ${{ steps.project-metadata.outputs.minor_bump_allowed }}
       major_bump_allowed: ${{ steps.project-metadata.outputs.major_bump_allowed }}
+      release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -100,6 +101,7 @@ jobs:
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🆙 changelog"
+          base: main
           branch: fix-changelog
 
   bump-versions:
