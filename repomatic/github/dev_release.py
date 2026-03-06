@@ -47,8 +47,6 @@ from pathlib import Path
 from .gh import run_gh_command
 from .release_sync import build_expected_body
 
-TYPE_CHECKING = False
-
 DEV_ASSET_PATTERNS = ("*.bin", "*.exe", "*.whl", "*.tar.gz")
 """Glob patterns for dev release assets.
 

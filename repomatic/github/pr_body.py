@@ -31,10 +31,6 @@ from string import Template
 
 from click_extra import TableFormat, render_table
 
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    pass
-
 
 def _unescape_dollars(text: str) -> str:
     r"""Replace ``\$`` with ``$`` in template text.
