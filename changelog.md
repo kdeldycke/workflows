@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.2.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.2.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.2.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.2.0...v6.2.1)
 
 - Fix `actions/checkout` wiping downloaded Python package artifacts (`.whl`, `.tar.gz`) before `gh release create` could attach them. Move checkout before artifact download so the release draft includes the Python distribution files.
 - Fix `fix-changelog` marking releases as "not available on GitHub" when the GitHub release is still a draft. Move the job from `autofix.yaml` to `changelog.yaml` which has a `workflow_run` trigger that fires after "Build & release" completes, when the release is published and visible to the public API.
