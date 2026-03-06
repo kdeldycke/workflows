@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.3.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.3.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.3.0` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.2.1...v6.3.0)
 
 - Make `repomatic init` always overwrite managed files (workflows, configs, skills) by default. Remove the `--overwrite` flag. `changelog.md` is never overwritten once it exists.
