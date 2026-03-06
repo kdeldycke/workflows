@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.3.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.3.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.3.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.3.0...v6.3.1)
 
 - Register `repomatic-audit` skill in `COMPONENT_FILES`, data symlinks, and `_SKILL_PHASES` so it syncs to downstream repos.
 - Remove stale `repomatic-metadata` entry from `_SKILL_PHASES`.
