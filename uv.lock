@@ -3,12 +3,12 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-02-27T08:58:14.834239544Z"
+exclude-newer = "2026-02-27T14:18:41.279844Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-03-06T08:58:14.834246166Z", span = "PT0S" }
-repomatic = { timestamp = "2026-03-06T08:58:14.834250474Z", span = "PT0S" }
+click-extra = { timestamp = "2026-02-28T14:18:41.27986Z", span = "P6D" }
+repomatic = { timestamp = "2026-03-06T14:18:41.279865Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -82,11 +82,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2026.1.4"
+version = "2026.2.25"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e0/2d/a891ca51311197f6ad14a7ef42e2399f36cf2f9bd44752b3dc4eab60fdc5/certifi-2026.1.4.tar.gz", hash = "sha256:ac726dd470482006e014ad384921ed6438c457018f4b3d204aea4281258b2120", size = 154268, upload-time = "2026-01-04T02:42:41.825Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/2d/7bf41579a8986e348fa033a31cdd0e4121114f6bce2457e8876010b092dd/certifi-2026.2.25.tar.gz", hash = "sha256:e887ab5cee78ea814d3472169153c2d12cd43b14bd03329a39a9c6e2e80bfba7", size = 155029, upload-time = "2026-02-25T02:54:17.342Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e6/ad/3cc14f097111b4de0040c83a525973216457bbeeb63739ef1ed275c1c021/certifi-2026.1.4-py3-none-any.whl", hash = "sha256:9943707519e4add1115f44c2bc244f782c0249876bf51b6599fee1ffbedd685c", size = 152900, upload-time = "2026-01-04T02:42:40.15Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/3c/c17fb3ca2d9c3acff52e30b309f538586f9f5b9c9cf454f3845fc9af4881/certifi-2026.2.25-py3-none-any.whl", hash = "sha256:027692e4402ad994f1c42e52a4997a9763c646b73e4096e4d5d6db8af1d6f0fa", size = 153684, upload-time = "2026-02-25T02:54:15.766Z" },
 ]
 
 [[package]]
@@ -192,7 +192,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.6.3"
+version = "7.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -205,9 +205,9 @@ dependencies = [
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/99/12/d9ec0a4328d15dc9f3265561248bcdd64cc7f2d72ed83c3601d8852bed6e/click_extra-7.6.3.tar.gz", hash = "sha256:05c44101eeceff46f7880ce8fe342470dc5754a72a0a60476b62b4fdd58b3589", size = 102158, upload-time = "2026-03-02T09:59:13.754Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/17/fc/dd0c29147f5dea75395eb0b5401b9c9dbf621a2a1651dba6b6fc66e01372/click_extra-7.6.2.tar.gz", hash = "sha256:4b67af523a53144e025eb09a91b359a5534a9cf6994569478b97a8a7d876c100", size = 102154, upload-time = "2026-02-27T15:54:32.785Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/1f/05a49c9e278221a65b5f16971a42da20f08fee0bd071e78273b40fb89fc2/click_extra-7.6.3-py3-none-any.whl", hash = "sha256:ab3cd74241e4507457d8030d6147ee641c17a5d4de552cebfaa45464c2540295", size = 116565, upload-time = "2026-03-02T09:59:12.227Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/a5/5b284926865577fb6b6fa9596bed15d7471032a0e5f1e8fcd656536ed677/click_extra-7.6.2-py3-none-any.whl", hash = "sha256:cdd1185cb8d4a7fa8604e561bc56d30e56ae25dee0d3552b401bda183aadefad", size = 116566, upload-time = "2026-02-27T15:54:31.577Z" },
 ]
 
 [[package]]
