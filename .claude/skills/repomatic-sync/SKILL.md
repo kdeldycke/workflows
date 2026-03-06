@@ -1,6 +1,6 @@
 ---
 name: repomatic-sync
-description: Sync workflow caller files with upstream reusable workflows, then analyze what the mechanical sync cannot cover.
+description: Run workflow sync locally to preview or apply upstream changes before CI does.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob
 argument-hint: '[args]'
@@ -15,11 +15,9 @@ argument-hint: '[args]'
 
 ## Instructions
 
-You help users synchronize their workflow caller files with upstream reusable workflows from `kdeldycke/repomatic`.
+You run `repomatic workflow sync` locally — the same command that the `autofix.yaml` workflow's `sync-workflows` job runs automatically on every push to `main`.
 
-### Mechanical layer
-
-The `autofix.yaml` workflow's `sync-workflows` job already runs `repomatic workflow sync` automatically on every push to `main`. This skill is useful when you want to run the sync **interactively** (e.g., before pushing, or to preview changes).
+This skill is a **mechanical convenience** for previewing or applying sync changes before pushing. For deeper analysis of what the sync cannot fix (stale action versions in custom job content, missing workarounds, config drift), use `/repomatic-audit`.
 
 ### Determine invocation method
 
@@ -31,18 +29,15 @@ The `autofix.yaml` workflow's `sync-workflows` job already runs `repomatic workf
 - Pass `$ARGUMENTS` through to `<cmd> workflow sync $ARGUMENTS`.
 - If `$ARGUMENTS` is empty, run `<cmd> workflow sync` with no extra arguments.
 
-### After running — analytical layer
+### After running
 
-The mechanical sync only covers thin-caller workflows and header-only workflow headers. After running, provide the analysis that the CLI cannot:
-
-1. Show the diff of changed files.
-2. Warn about any breaking changes (removed inputs, renamed jobs, changed defaults).
-3. **Check header-only workflow job content** (e.g., `tests.yaml`) for stale action versions, missing workarounds, or outdated patterns compared to the upstream reference. The sync tool does not touch this content.
-4. Report any files excluded via `workflow-sync-exclude` in `[tool.repomatic]`.
+- Show the diff of changed files.
+- Report any files excluded via `workflow-sync-exclude` in `[tool.repomatic]`.
+- Warn about any breaking changes (removed inputs, renamed jobs, changed defaults).
 
 ### Next steps
 
 Suggest the user run:
 
-- `/repomatic-audit workflows` for a deeper analysis of header-only workflow drift.
+- `/repomatic-audit workflows` for analysis of drift that sync cannot fix (header-only job content, stale versions).
 - `/repomatic-lint workflows` to validate the synced workflow files.
