@@ -690,7 +690,10 @@ class InitResult:
     """Result of a repository initialization run."""
 
     created: list[str] = field(default_factory=list)
-    """Relative paths of created files."""
+    """Relative paths of newly created files."""
+
+    updated: list[str] = field(default_factory=list)
+    """Relative paths of existing files overwritten with new content."""
 
     skipped: list[str] = field(default_factory=list)
     """Relative paths of skipped (already existing) files."""
@@ -700,6 +703,9 @@ class InitResult:
 
     excluded_workflows: list[str] = field(default_factory=list)
     """Workflow filenames excluded by ``workflow-sync-exclude`` config."""
+
+    excluded_existing: list[str] = field(default_factory=list)
+    """Relative paths of excluded files that still exist on disk."""
 
     warnings: list[str] = field(default_factory=list)
     """Warning messages emitted during initialization."""
@@ -762,6 +768,24 @@ def run_init(
             selected -= exclude_set
             result.excluded_components = sorted(actually_excluded)
 
+            # Warn about excluded components whose files still exist on disk.
+            for comp in sorted(actually_excluded):
+                if comp in COMPONENT_FILES:
+                    for _, rel_path in COMPONENT_FILES[comp]:
+                        target = output_dir / rel_path
+                        if target.exists():
+                            result.excluded_existing.append(rel_path)
+                            logging.warning(
+                                f"Excluded but still on disk: {rel_path}"
+                            )
+                elif comp == "changelog":
+                    changelog = output_dir / "changelog.md"
+                    if changelog.exists():
+                        result.excluded_existing.append("changelog.md")
+                        logging.warning(
+                            "Excluded but still on disk: changelog.md"
+                        )
+
         wf_exclude: list[str] = config.get("workflow-sync-exclude", [])
         if wf_exclude:
             workflow_exclude = frozenset(wf_exclude)
@@ -819,19 +843,33 @@ def _init_workflows(
         workflows = tuple(w for w in workflows if w not in exclude)
         result.excluded_workflows = sorted(actually_excluded)
 
+        # Warn about excluded workflows that still exist on disk.
+        workflows_dir_check = output_dir / ".github" / "workflows"
+        for filename in sorted(actually_excluded):
+            target = workflows_dir_check / filename
+            if target.exists():
+                rel = target.relative_to(output_dir).as_posix()
+                result.excluded_existing.append(rel)
+                logging.warning(f"Excluded but still on disk: {rel}")
+
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)
     for filename in workflows:
         target = workflows_dir / filename
         rel = target.relative_to(output_dir).as_posix()
-        if target.exists() and not overwrite:
+        existed = target.exists()
+        if existed and not overwrite:
             result.skipped.append(rel)
             logging.debug(f"Skipped existing: {rel}")
             continue
         content = generate_thin_caller(filename, repo, version)
         target.write_text(content, encoding="UTF-8")
-        result.created.append(rel)
-        logging.info(f"Created: {rel}")
+        if existed:
+            result.updated.append(rel)
+            logging.info(f"Updated: {rel}")
+        else:
+            result.created.append(rel)
+            logging.info(f"Created: {rel}")
 
 
 def _init_config_files(
@@ -844,15 +882,20 @@ def _init_config_files(
     for source_name, rel_path in COMPONENT_FILES[component_name]:
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()
-        if target.exists() and not overwrite:
+        existed = target.exists()
+        if existed and not overwrite:
             result.skipped.append(rel)
             logging.debug(f"Skipped existing: {rel}")
             continue
         target.parent.mkdir(parents=True, exist_ok=True)
         content = export_content(source_name)
         target.write_text(content, encoding="UTF-8")
-        result.created.append(rel)
-        logging.info(f"Created: {rel}")
+        if existed:
+            result.updated.append(rel)
+            logging.info(f"Updated: {rel}")
+        else:
+            result.created.append(rel)
+            logging.info(f"Created: {rel}")
 
 
 def _init_changelog(
@@ -863,7 +906,8 @@ def _init_changelog(
     """Create a minimal changelog.md."""
     changelog_path = output_dir / "changelog.md"
     rel = changelog_path.relative_to(output_dir).as_posix()
-    if changelog_path.exists() and not overwrite:
+    existed = changelog_path.exists()
+    if existed and not overwrite:
         result.skipped.append(rel)
         logging.debug(f"Skipped existing: {rel}")
         return
@@ -873,8 +917,12 @@ def _init_changelog(
         "## [Unreleased](https://github.com/USER/REPO/compare/main...main)\n"
     )
     changelog_path.write_text(changelog_content, encoding="UTF-8")
-    result.created.append(rel)
-    logging.info(f"Created: {rel}")
+    if existed:
+        result.updated.append(rel)
+        logging.info(f"Updated: {rel}")
+    else:
+        result.created.append(rel)
+        logging.info(f"Created: {rel}")
 
 
 def _fetch_extra_labels(

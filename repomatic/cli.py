@@ -329,29 +329,47 @@ def init_project(
 
     # Print summary.
     if result.excluded_components:
-        echo("Excluded by config: " + ", ".join(result.excluded_components))
+        echo("Excluded by init-exclude config: " + ", ".join(result.excluded_components))
     if result.excluded_workflows:
-        echo("Excluded workflows by config: " + ", ".join(result.excluded_workflows))
+        echo(
+            "Excluded by workflow-sync-exclude config: "
+            + ", ".join(result.excluded_workflows)
+        )
     if result.created:
         echo(f"Created {len(result.created)} file(s):")
         for path in result.created:
             echo(f"  {path}")
+    if result.updated:
+        echo(f"Updated {len(result.updated)} existing file(s):")
+        for path in result.updated:
+            echo(f"  {path}")
     if result.skipped:
-        echo(f"Skipped {len(result.skipped)} existing file(s).")
+        echo(f"Skipped {len(result.skipped)} existing file(s) (use --overwrite):")
+        for path in result.skipped:
+            echo(f"  {path}")
+    if result.excluded_existing:
+        echo(
+            f"Warning: {len(result.excluded_existing)} excluded file(s)"
+            " still on disk (consider removing):"
+        )
+        for path in result.excluded_existing:
+            echo(f"  {path}")
     if result.warnings:
         for warning in result.warnings:
             echo(f"Warning: {warning}")
 
-    if result.created:
+    has_changes = result.created or result.updated
+    if has_changes:
         echo("")
         echo("Next steps:")
         step = 1
         echo(f"  {step}. Commit the generated files and push.")
         step += 1
-        workflows_created = any(
-            p.startswith(".github/workflows/") for p in result.created
+        workflows_touched = any(
+            p.startswith(".github/workflows/")
+            for p in (*result.created, *result.updated)
         )
-        if workflows_created:
+        if workflows_touched:
             echo(
                 f"  {step}. On first push, workflows will detect missing"
                 " configuration and open issues"

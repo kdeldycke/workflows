@@ -7,7 +7,7 @@
 
 - Remove `extend-include` for Markdown files now that ruff 0.15.5 discovers `*.md` by default in preview mode.
 - Use short SHA in release workflow job names instead of the full 40-character commit hash.
-- Simplify `repomatic init` next steps.
+- Make `repomatic init` output contextual. Simplify next steps.
 
 ## [`6.2.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.2.0...v6.2.1)
 

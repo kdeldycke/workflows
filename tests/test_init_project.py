@@ -481,10 +481,12 @@ def test_init_idempotent(tmp_path: Path):
     """Verify second run creates nothing and skips everything."""
     result1 = run_init(output_dir=tmp_path)
     assert len(result1.created) > 0
+    assert len(result1.updated) == 0
     assert len(result1.skipped) == 0
 
     result2 = run_init(output_dir=tmp_path)
     assert len(result2.created) == 0
+    assert len(result2.updated) == 0
     assert len(result2.skipped) == len(result1.created)
 
 
@@ -564,7 +566,8 @@ def test_init_overwrite(tmp_path: Path):
         overwrite=True,
     )
 
-    assert "changelog.md" in result.created
+    assert "changelog.md" in result.updated
+    assert len(result.created) == 0
     assert len(result.skipped) == 0
     # Content should be replaced.
     content = changelog.read_text(encoding="UTF-8")
