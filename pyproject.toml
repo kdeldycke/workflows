@@ -170,11 +170,11 @@ format.docstring-code-format = true
 #   The CLI configures the root logger via Click, so root logger calls are intentional.
 #   See: https://docs.astral.sh/ruff/rules/root-logger-call/
 lint.ignore = [ "D400", "ERA001", "LOG015" ]
+lint.isort.combine-as-imports = true
 # Allow rules to add `from __future__ import annotations` in cases where
 # this would simplify a fix or enable a new diagnostic.
 # https://docs.astral.sh/ruff/settings/#lint_future-annotations
 lint.future-annotations = true
-lint.isort.combine-as-imports = true
 
 [tool.typos]
 files.extend-exclude = [
