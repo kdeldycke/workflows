@@ -1,5 +1,6 @@
 ---
 title: Format Python
+footer: false
 ---
 
 ### Description

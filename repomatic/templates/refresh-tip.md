@@ -1,5 +1,6 @@
 ---
 args: [workflow_dispatch_url]
+footer: false
 ---
 
 > [!TIP]

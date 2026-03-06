@@ -1,5 +1,6 @@
 ---
 title: Update docs
+footer: false
 ---
 
 ### Description

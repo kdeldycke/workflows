@@ -1,6 +1,7 @@
 ---
 args: [version, part]
 title: Bump $part version to `v$version`
+footer: false
 ---
 
 ### Description

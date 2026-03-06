@@ -1,5 +1,6 @@
 ---
 title: Typo
+footer: false
 ---
 
 ### Description

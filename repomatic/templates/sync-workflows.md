@@ -1,5 +1,6 @@
 ---
 title: Sync workflow files
+footer: false
 ---
 
 ### Description

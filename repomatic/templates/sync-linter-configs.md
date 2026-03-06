@@ -1,5 +1,6 @@
 ---
 title: Sync linter configs
+footer: false
 ---
 
 ### Description

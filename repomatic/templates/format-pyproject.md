@@ -1,5 +1,6 @@
 ---
 title: Format `pyproject.toml`
+footer: false
 ---
 
 ### Description

@@ -1,5 +1,6 @@
 ---
 title: Sync `uv.lock`
+footer: false
 ---
 
 ### Description

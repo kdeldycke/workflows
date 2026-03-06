@@ -1,3 +1,7 @@
+---
+args: [repo_url, org_tip]
+---
+
 Some workflows need a **fine-grained personal access token** to create PRs that update files in `.github/workflows/`. Without it, those jobs will silently fail.
 
 ### Step 1: Create the token
@@ -62,7 +66,3 @@ Re-run the workflow. Jobs should now update `.github/workflows/` files without e
 \$org_tip
 
 This issue will close automatically once the secret is detected.
-
----
-
-🏭 Generated with [repomatic](https://github.com/kdeldycke/repomatic)

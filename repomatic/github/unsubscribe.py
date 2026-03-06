@@ -530,16 +530,6 @@ def render_report(result: UnsubscribeResult) -> str:
     p1_detail_table = _render_detail_table(p1.rows)
     details_section = f"---\n\n{p1_detail_table}" if p1_detail_table else ""
 
-    phase1 = render_template(
-        "unsubscribe-phase1",
-        mode=mode,
-        summary_line=summary_line,
-        batch_details_rows=batch_details_rows,
-        state_breakdown_rows=state_breakdown_rows,
-        backlog_warning=backlog_warning,
-        details_section=details_section,
-    )
-
     # Phase 2 content.
     if p2.skipped:
         phase2_content = f"> [!WARNING]\n> {p2.skip_reason}"
@@ -580,13 +570,17 @@ def render_report(result: UnsubscribeResult) -> str:
             p2_parts.extend(["", p2_detail_table])
         phase2_content = "\n".join(p2_parts)
 
-    phase2 = render_template(
+    return render_template(
+        "unsubscribe-phase1",
         "unsubscribe-phase2",
         mode=mode,
+        summary_line=summary_line,
+        batch_details_rows=batch_details_rows,
+        state_breakdown_rows=state_breakdown_rows,
+        backlog_warning=backlog_warning,
+        details_section=details_section,
         phase2_content=phase2_content,
     )
-
-    return phase1 + "\n\n---\n\n" + phase2 + "\n"
 
 
 def unsubscribe_threads(

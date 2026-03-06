@@ -1,5 +1,6 @@
 ---
 title: Format Markdown
+footer: false
 ---
 
 ### Description

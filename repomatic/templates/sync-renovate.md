@@ -1,5 +1,6 @@
 ---
 title: Sync `renovate.json5`
+footer: false
 ---
 
 ### Description

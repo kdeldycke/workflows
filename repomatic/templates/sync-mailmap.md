@@ -1,5 +1,6 @@
 ---
 title: Sync `.mailmap`
+footer: false
 ---
 
 ### Description

@@ -9,7 +9,3 @@ args: [mode, summary_rows, details_section]
 | \$summary_rows |       |
 
 \$details_section
-
----
-
-🏭 Generated with [repomatic](https://github.com/kdeldycke/repomatic)

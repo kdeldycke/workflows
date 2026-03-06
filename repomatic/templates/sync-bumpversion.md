@@ -1,5 +1,6 @@
 ---
 title: Sync `bump-my-version` config
+footer: false
 ---
 
 ### Description

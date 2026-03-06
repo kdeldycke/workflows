@@ -200,6 +200,7 @@ def test_get_template_names():
     assert "sync-uv-lock" in names
     assert "sync-workflows" in names
     assert "fix-changelog" in names
+    assert "pr-metadata" in names
     assert "refresh-tip" in names
     assert "setup-guide" in names
     assert "detect-squash-merge" in names
@@ -216,7 +217,7 @@ def test_get_template_names():
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
     assert "yanked-admonition" in names
-    assert len(names) == 32
+    assert len(names) == 33
 
 
 def test_load_template_frontmatter():
@@ -485,6 +486,7 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "development-warning",
     "generated-footer",
     "github-releases",
+    "pr-metadata",
     "refresh-tip",
     "release-notes",
     "release-sync-report",
@@ -566,6 +568,31 @@ def test_template_file_policy(filename, name):
     # Body must start with a markdown heading.
     assert body.startswith("###"), (
         f"Template {name!r} body must start with a '###' heading"
+    )
+
+
+FRONTMATTER_KEY_ORDER = ["args", "title", "commit_message", "footer"]
+"""Canonical ordering of keys within template frontmatter."""
+
+
+@pytest.mark.parametrize(
+    ("filename", "name"),
+    _template_package_items(),
+    ids=[pair[1] for pair in _template_package_items()],
+)
+def test_frontmatter_key_ordering(filename, name):
+    """Frontmatter keys must follow the canonical order: args, title, commit_message, footer."""
+    template_dir = files("repomatic.templates")
+    raw = template_dir.joinpath(filename).read_text(encoding="UTF-8")
+    if not raw.startswith("---"):
+        return
+    end = raw.index("---", 3)
+    yaml_block = raw[3:end].strip()
+    keys = [line.partition(":")[0].strip() for line in yaml_block.splitlines() if ":" in line]
+    known = [k for k in keys if k in FRONTMATTER_KEY_ORDER]
+    expected = [k for k in FRONTMATTER_KEY_ORDER if k in known]
+    assert known == expected, (
+        f"Template {name!r} frontmatter keys are {known}, expected order {expected}"
     )
 
 

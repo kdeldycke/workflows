@@ -1,5 +1,6 @@
 ---
 title: Fix changelog
+footer: false
 ---
 
 ### Description

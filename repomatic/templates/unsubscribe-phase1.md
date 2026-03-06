@@ -1,5 +1,6 @@
 ---
 args: [mode, summary_line, batch_details_rows, state_breakdown_rows, backlog_warning, details_section]
+footer: false
 ---
 
 ## 🔕 Unsubscribe report (\$mode)

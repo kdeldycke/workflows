@@ -319,13 +319,10 @@ def manage_combined_broken_links_issue(
         sphinx_section = f"## Sphinx linkcheck\n\n{sphinx_content}"
 
     has_broken_links = lychee_has_broken or sphinx_has_broken
-    body = (
-        render_template(
-            "broken-links-issue",
-            lychee_section=lychee_section,
-            sphinx_section=sphinx_section,
-        )
-        + "\n"
+    body = render_template(
+        "broken-links-issue",
+        lychee_section=lychee_section,
+        sphinx_section=sphinx_section,
     )
 
     # Write combined body to a temporary file.

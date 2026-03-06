@@ -1,5 +1,6 @@
 ---
 title: Format JSON
+footer: false
 ---
 
 ### Description

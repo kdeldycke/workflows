@@ -1,5 +1,6 @@
 ---
 title: Sync `.gitignore`
+footer: false
 ---
 
 ### Description

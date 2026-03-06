@@ -1,6 +1,7 @@
 ---
 args: [version]
 title: Release `v$version`
+footer: false
 ---
 
 ### Description

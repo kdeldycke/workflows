@@ -1,5 +1,6 @@
 ---
 title: Regenerate dependency graph
+footer: false
 ---
 
 ### Description

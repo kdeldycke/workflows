@@ -1,6 +1,7 @@
 ---
 args: [pr_ref]
 title: 🚨 Squash merge detected — release skipped
+footer: false
 ---
 
 ### Summary

@@ -101,8 +101,26 @@ def _substitute(text: str, kwargs: dict[str, str]) -> str:
     return text
 
 
-def render_template(name: str, **kwargs: str) -> str:
-    """Load and render a PR body template with variable substitution.
+def _render_single(name: str, kwargs: dict[str, str]) -> tuple[str, bool]:
+    """Render a single template and return its body with footer preference.
+
+    :param name: Template name without ``.md`` extension.
+    :param kwargs: Variables to substitute into the template.
+    :return: A tuple of (rendered body, wants_footer).
+    """
+    meta, body = load_template(name)
+    result = _substitute(body, kwargs).strip()
+    wants_footer = meta.get("footer") != "false" and name != "generated-footer"
+    return result, wants_footer
+
+
+def render_template(*names: str, **kwargs: str) -> str:
+    """Load and render one or more templates with variable substitution.
+
+    When multiple template names are given, each is rendered and joined with
+    a blank line. The ``generated-footer`` attribution is appended
+    once at the end if **any** of the templates wants it (i.e. does not have
+    ``footer: false`` in its frontmatter).
 
     Static templates (no ``$variable`` placeholders) are returned as-is.
     Dynamic templates use ``string.Template`` (``$variable`` syntax) to avoid
@@ -111,15 +129,24 @@ def render_template(name: str, **kwargs: str) -> str:
     Consecutive blank lines left by empty variables are collapsed to a single
     blank line.
 
-    :param name: Template name without ``.md`` extension.
-    :param kwargs: Variables to substitute into the template.
+    :param names: One or more template names without ``.md`` extension.
+    :param kwargs: Variables to substitute into all templates.
     :return: The rendered markdown string.
     """
-    _meta, body = load_template(name)
-    result = _substitute(body, kwargs)
-    # Collapse runs of 3+ newlines (from empty variable substitutions) into
-    # a single blank line, and strip leading/trailing whitespace.
-    return re.sub(r"\n{3,}", "\n\n", result).strip()
+    parts = []
+    append_footer = False
+    for name in names:
+        body, wants_footer = _render_single(name, kwargs)
+        parts.append(body)
+        if wants_footer:
+            append_footer = True
+    result = "\n\n".join(parts)
+    if append_footer:
+        result += "\n\n" + generated_footer()
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    if append_footer:
+        result += "\n"
+    return result
 
 
 def render_title(name: str, **kwargs: str) -> str:
@@ -243,7 +270,7 @@ def generate_pr_metadata_block() -> str:
         table_format=TableFormat.GITHUB,
     )
 
-    return render_template("generated-footer", table=table)
+    return render_template("pr-metadata", table=table)
 
 
 def _repo_url() -> str:
@@ -274,13 +301,23 @@ def generate_refresh_tip() -> str:
     return render_template("refresh-tip", workflow_dispatch_url=workflow_dispatch_url)
 
 
+def generated_footer() -> str:
+    """Render the attribution footer from the ``generated-footer`` template.
+
+    Single source of truth for the attribution line appended to all PR and
+    issue bodies produced by repomatic.
+
+    :return: A markdown string with a horizontal rule and the attribution line.
+    """
+    return "---\n\n" + render_template("generated-footer")
+
+
 def build_pr_body(prefix: str, metadata_block: str) -> str:
-    """Concatenate prefix, refresh tip, and metadata footer into a PR body.
+    """Concatenate prefix, refresh tip, metadata block, and footer into a PR body.
 
     :param prefix: Content to prepend before the metadata block. Can be empty.
-    :param metadata_block: The generated footer from
-        :func:`generate_pr_metadata_block`, which includes the collapsible
-        metadata table and the attribution line.
+    :param metadata_block: The collapsible metadata block from
+        :func:`generate_pr_metadata_block`.
     :return: The complete PR body string.
     """
     parts: list[str] = []
@@ -290,4 +327,5 @@ def build_pr_body(prefix: str, metadata_block: str) -> str:
     if tip:
         parts.append(tip)
     parts.append(metadata_block)
+    parts.append(generated_footer())
     return "\n\n\n".join(parts)

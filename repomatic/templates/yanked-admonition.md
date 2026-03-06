@@ -1,5 +1,6 @@
 ---
 args: [version, pypi_url]
+footer: false
 ---
 
 > [!CAUTION]

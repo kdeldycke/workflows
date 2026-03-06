@@ -11,7 +11,3 @@ Migrate from Dependabot to Renovate.
 ## Prerequisites Status
 
 \$prerequisites_table
-
----
-
-🏭 Generated with [repomatic](https://github.com/kdeldycke/repomatic)
