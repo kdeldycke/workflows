@@ -27,3 +27,4 @@ lint.ignore = [ "D400", "ERA001", "LOG015" ]
 # this would simplify a fix or enable a new diagnostic.
 # https://docs.astral.sh/ruff/settings/#lint_future-annotations
 lint.future-annotations = true
+lint.isort.combine-as-imports = true
