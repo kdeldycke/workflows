@@ -32,11 +32,11 @@ Automates:
 
 ```shell-session
 $ cd my-project
-$ uvx -- repomatic init
-$ git add . && git commit -m "Bootstrap reusable workflows" && git push
+$ uvx -- repomatic init --overwrite
+$ git add . && git commit -m "Update repomatic files" && git push
 ```
 
-That's it. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#permissions-and-token)) via issues and PRs in your repository.
+This works for both new and existing repositories — `--overwrite` regenerates all managed files to the latest version. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#permissions-and-token)) via issues and PRs in your repository. After that, the [autofix workflow](#githubworkflowsautofixyaml-jobs) handles ongoing sync.
 
 Run `repomatic init --help` to see available components and options.
 
@@ -893,39 +893,6 @@ The typical lifecycle for maintaining a downstream repository follows this seque
 ```
 
 </details>
-
-## Migrating from `kdeldycke/workflows`
-
-> [!WARNING]
-> This section is for users of the former `gha-utils` package / `kdeldycke/workflows` repository.
-
-This project was previously published as [`gha-utils`](https://pypi.org/project/gha-utils/) on PyPI and hosted at `kdeldycke/workflows` on GitHub. It was [renamed to `repomatic` in `6.0.1`](https://github.com/kdeldycke/repomatic/blob/main/changelog.md#601-2026-02-24).
-
-Running `uvx -- repomatic init --overwrite` in an existing downstream repository handles the migration automatically:
-
-- Regenerates workflow files to reference `kdeldycke/repomatic`.
-- Renames `[tool.gha-utils]` (or `[tool.repokit]`) to `[tool.repomatic]` in `pyproject.toml`.
-- Removes old `.claude/skills/gha-*/` skill directories.
-
-After that, two things require manual attention:
-
-1. **Update CLI references**. Replace `gha-utils` / `uvx gha-utils` with `repomatic` / `uvx repomatic` in any scripts, Makefiles, or CI steps outside of the managed workflow files.
-
-2. **Review `tests.yaml`**. This is the only non-reusable workflow — it contains project-specific logic. If it references `kdeldycke/workflows` or `gha-utils` in comments or `uses:` lines, update those manually.
-
-### Migration checklist
-
-```shell-session
-$ cd my-project
-
-# 1. Regenerate all files and auto-migrate legacy config and skills.
-$ uvx -- repomatic init --overwrite
-
-# 2. Commit and push.
-$ git add . && git commit -m "Migrate from gha-utils to repomatic" && git push
-```
-
-After pushing, the [autofix workflow](#githubworkflowsautofixyaml-jobs) handles ongoing sync (workflows, Renovate config, skills, linter configs).
 
 ## Used in
 
