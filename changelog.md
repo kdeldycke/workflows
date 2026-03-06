@@ -9,6 +9,7 @@
 - Use short SHA in release workflow job names instead of the full 40-character commit hash.
 - Make `repomatic init` output contextual: distinguish created vs updated vs skipped files, warn about excluded files still on disk, and simplify next steps to point to the `setup-guide` workflow.
 - Auto-remove legacy `.claude/skills/gha-*/` skill directories during `repomatic init`, completing the `gha-utils` → `repomatic` rename migration.
+- Make `sync-bumpversion`, `sync-linter-configs`, and `sync-skills` CLI commands report both created and updated files.
 - Fix all new ruff `0.15.5` preview violations.
 - Add `LOG015` to ruff ignore list: root logger calls (`logging.info()`, etc.) are intentional since the CLI configures the root logger via Click.
 - Refactor `sync-bumpversion` to replace the entire `[tool.bumpversion]` section from the bundled template instead of applying incremental migrations. Remove legacy backtick migration code.
