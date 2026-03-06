@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Remove `extend-include` for Markdown files now that ruff 0.15.5 discovers `*.md` by default in preview mode.
+
 ## [`6.2.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.2.0...v6.2.1)
 
 - Fix `actions/checkout` wiping downloaded Python package artifacts (`.whl`, `.tar.gz`) before `gh release create` could attach them. Move checkout before artifact download so the release draft includes the Python distribution files.
