@@ -59,12 +59,12 @@
     {
       description: "Update uv SHA-256 checksum after version bump in Renovate config.",
       matchDepNames: ["astral-sh/uv"],
-      matchFileNames: ["renovate.json5"],
+      matchFileNames: ["**/renovate.json5"],
       postUpgradeTasks: {
         commands: [
           "bash -c 'curl -fsSL https://github.com/astral-sh/uv/releases/download/{{{newVersion}}}/uv-x86_64-unknown-linux-gnu.tar.gz --output /tmp/uv.tar.gz && sed -i \"/sha256sum/s/[a-f0-9]\\{64\\}/$(sha256sum /tmp/uv.tar.gz | cut -c1-64)/\" {{{packageFile}}}'",
         ],
-        fileFilters: ["renovate.json5"],
+        fileFilters: ["**/renovate.json5"],
         executionMode: "update",
       },
     },
