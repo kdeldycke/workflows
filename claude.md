@@ -300,16 +300,46 @@ Patterns that recur across sessions — watch for these proactively:
 
 ### Skills
 
-Skills in `.claude/skills/` wrap `repomatic` CLI commands as slash commands. They are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules.
+Skills in `.claude/skills/` are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules.
 
 Skills are grouped by lifecycle phase. Each skill includes a "Next steps" section that suggests related skills to run next, creating a guided workflow:
 
 - **Setup**: `/repomatic-init`, `/repomatic-sync`
 - **Development**: `/repomatic-deps`, `/repomatic-metadata`
-- **Quality**: `/repomatic-lint`, `/repomatic-test`
+- **Quality**: `/repomatic-lint`, `/repomatic-test`, `/repomatic-audit`
 - **Release**: `/repomatic-changelog`, `/repomatic-release`
+- **Maintenance**: `/repomatic-audit`, `/repomatic-topics`
 
 Run `repomatic list-skills` to see all skills with descriptions.
+
+### Mechanical vs analytical work
+
+The `repomatic` ecosystem has two layers of automation:
+
+1. **Mechanical layer** — CLI commands and CI workflows that deterministically sync, lint, format, and fix files. These run automatically on every push to `main` via the `autofix.yaml` and `lint.yaml` workflows.
+2. **Analytical layer** — Judgment-based tasks that require comparing context, weighing trade-offs, and making recommendations. These cannot be automated by the CLI.
+
+**What the autofix workflow already handles mechanically** (no skill needed to trigger these — they run on every push to `main`):
+
+| Autofix job | What it does |
+|---|---|
+| `sync-workflows` | Re-creates thin-caller workflows, syncs header-only workflow headers |
+| `sync-gitignore` | Syncs `.gitignore` from template |
+| `sync-bumpversion` | Syncs bumpversion config |
+| `sync-linter-configs` | Syncs ruff, zizmor configs |
+| `sync-renovate` | Syncs `renovate.json5` base config |
+| `sync-mailmap` | Syncs `.mailmap` from git history |
+| `update-deps-graph` | Regenerates dependency graph from lockfile |
+| `format-*` / `fix-*` | Formats Python, Markdown, JSON; fixes typos |
+
+**What skills should focus on** — the gaps the mechanical layer cannot cover:
+
+- **Analysis of custom job content** in header-only workflows (stale action versions, missing workarounds, outdated integration patterns). The sync only touches the header.
+- **Cross-repo pattern comparison** — identifying conventions in the upstream reference that downstream repos should adopt, or downstream innovations that should be contributed back.
+- **Judgment calls** — whether a config difference is intentional divergence or stale drift, whether a workaround is still needed, what to exclude from sync.
+- **Interactive guidance** — explaining lint results, suggesting fix strategies, walking through release prep.
+
+When writing or updating skills, always check whether the task overlaps with the mechanical layer. If a skill mostly wraps a CLI command that already runs in CI, the skill's value must come from the analytical layer on top: explaining results, suggesting next steps, or catching things the mechanical tool misses. Do not duplicate what CI already does.
 
 ## Design principles
 

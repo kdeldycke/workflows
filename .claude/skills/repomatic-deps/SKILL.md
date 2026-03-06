@@ -15,6 +15,10 @@ argument-hint: '[--level N] [args]'
 
 You help users generate and analyze dependency graphs from their uv lockfiles.
 
+### Mechanical layer
+
+The `autofix.yaml` workflow's `update-deps-graph` job already regenerates the dependency graph on every push to `main`. This skill is useful for **interactive analysis** — understanding the graph, spotting concerns, or generating it before pushing.
+
 ### Determine invocation method
 
 - If the context above shows `CANONICAL_REPO`, use `uv run repomatic`.

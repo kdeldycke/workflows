@@ -15,6 +15,10 @@ argument-hint: '[args]'
 
 You help users extract and understand their project metadata.
 
+### Mechanical layer
+
+The `project-metadata` job runs in both `autofix.yaml` and `lint.yaml` to feed outputs to other CI jobs. This skill runs the same command locally but adds **interactive explanation** of the metadata fields, which CI does not provide.
+
 ### Determine invocation method
 
 - If the context above shows `CANONICAL_REPO`, use `uv run repomatic`.

@@ -16,6 +16,10 @@ argument-hint: '[add|check|fix]'
 
 You help users manage their `changelog.md` file. Follow `CLAUDE.md` § Changelog and readme updates for style rules.
 
+### Mechanical layer
+
+The `lint.yaml` workflow runs `lint-changelog` in CI. The `check` and `fix` subcommands below invoke the same tool locally. The `add` subcommand is purely analytical — it reviews git history and drafts entries, which no CI job does.
+
 ### Determine invocation method
 
 - If the context above shows `CANONICAL_REPO`, use `uv run repomatic`.
