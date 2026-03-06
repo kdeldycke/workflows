@@ -805,7 +805,7 @@ def test_updates_existing_bumpversion_config(tmp_path: Path) -> None:
     assert "parse = " in result
     assert "serialize = [" in result
     assert "ignore_missing_files = true" in result
-    assert "[tool.bumpversion.parts.dev]" in result
+    assert "parts.dev.values = " in result
 
 
 def test_updates_current_version_with_dev_suffix(tmp_path: Path) -> None:
