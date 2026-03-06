@@ -901,34 +901,27 @@ The typical lifecycle for maintaining a downstream repository follows this seque
 
 This project was previously published as [`gha-utils`](https://pypi.org/project/gha-utils/) on PyPI and hosted at `kdeldycke/workflows` on GitHub. It was [renamed to `repomatic` in `6.0.1`](https://github.com/kdeldycke/repomatic/blob/main/changelog.md#601-2026-02-24).
 
-Running `uvx -- repomatic init workflows --overwrite` in an existing downstream repository regenerates all workflow files to point at `kdeldycke/repomatic`, but several things require manual attention:
+Running `uvx -- repomatic init --overwrite` in an existing downstream repository handles the migration automatically:
 
-1. **Config section migration** is automatic: `repomatic init` detects `[tool.gha-utils]` (or `[tool.repokit]`) and renames it to `[tool.repomatic]` in place. All commands also fall back to legacy section names transparently when `[tool.repomatic]` is absent.
+- Regenerates workflow files to reference `kdeldycke/repomatic`.
+- Renames `[tool.gha-utils]` (or `[tool.repokit]`) to `[tool.repomatic]` in `pyproject.toml`.
+- Removes old `.claude/skills/gha-*/` skill directories.
 
-2. **Use `--overwrite`**. Without it, `init` skips existing workflow files — so old thin-callers referencing `kdeldycke/workflows` are left untouched. The `workflow sync` command also won't recognize them, because it only matches `uses:` references to `kdeldycke/repomatic`.
+After that, two things require manual attention:
 
-3. **Remove old Claude Code skills**. The old `/gha-*` skill directories (`.claude/skills/gha-init/`, `.claude/skills/gha-changelog/`, etc.) are not cleaned up by `init`. Delete them manually:
+1. **Update CLI references**. Replace `gha-utils` / `uvx gha-utils` with `repomatic` / `uvx repomatic` in any scripts, Makefiles, or CI steps outside of the managed workflow files.
 
-   ```shell-session
-   $ rm -rf .claude/skills/gha-*/
-   ```
-
-4. **Update CLI references**. Replace `gha-utils` / `uvx gha-utils` with `repomatic` / `uvx repomatic` in any scripts, Makefiles, or CI steps outside of the managed workflow files.
-
-5. **Review `tests.yaml`**. This is the only non-reusable workflow — it contains project-specific logic. If it references `kdeldycke/workflows` or `gha-utils` in comments or `uses:` lines, update those manually.
+2. **Review `tests.yaml`**. This is the only non-reusable workflow — it contains project-specific logic. If it references `kdeldycke/workflows` or `gha-utils` in comments or `uses:` lines, update those manually.
 
 ### Migration checklist
 
 ```shell-session
 $ cd my-project
 
-# 1. Regenerate workflow files and auto-migrate [tool.gha-utils] config.
-$ uvx -- repomatic init workflows --overwrite
+# 1. Regenerate all files and auto-migrate legacy config and skills.
+$ uvx -- repomatic init --overwrite
 
-# 2. Remove old skill directories.
-$ rm -rf .claude/skills/gha-*/
-
-# 3. Commit and push.
+# 2. Commit and push.
 $ git add . && git commit -m "Migrate from gha-utils to repomatic" && git push
 ```
 

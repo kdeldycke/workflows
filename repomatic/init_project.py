@@ -38,6 +38,7 @@ from __future__ import annotations
 import glob as globmod
 import logging
 import re
+import shutil
 import sys
 from dataclasses import dataclass, field
 from importlib.resources import as_file, files
@@ -746,6 +747,14 @@ def run_init(
                 " in pyproject.toml."
             )
 
+    # Remove old gha-* skill directories from the rename.
+    removed_skills = _remove_legacy_skills(output_dir)
+    if removed_skills:
+        result.warnings.append(
+            "Removed legacy skill directories: "
+            + ", ".join(removed_skills)
+        )
+
     # Apply config exclusions when no explicit components given.
     workflow_exclude: frozenset[str] = frozenset()
     if not components:
@@ -987,6 +996,31 @@ def _init_tool_configs(
                 logging.info(f"Updated [{section}].")
             else:
                 logging.info(f"Merged [{section}].")
+
+
+def _remove_legacy_skills(output_dir: Path) -> list[str]:
+    """Remove old ``gha-*`` skill directories left over from the rename.
+
+    The project was renamed from ``gha-utils`` to ``repomatic`` in ``6.0.1``.
+    Old skill directories (e.g., ``.claude/skills/gha-init/``) are no longer
+    managed and should be cleaned up.
+
+    :param output_dir: Root directory of the target repository.
+    :return: List of relative paths of removed directories.
+    """
+    removed: list[str] = []
+    skills_dir = output_dir / ".claude" / "skills"
+    if not skills_dir.is_dir():
+        return removed
+
+    for entry in sorted(skills_dir.iterdir()):
+        if entry.is_dir() and entry.name.startswith("gha-"):
+            rel = entry.relative_to(output_dir).as_posix()
+            shutil.rmtree(entry)
+            removed.append(rel)
+            logging.info(f"Removed legacy skill directory: {rel}")
+
+    return removed
 
 
 def _migrate_repomatic_config_section(pyproject_path: Path) -> bool:
