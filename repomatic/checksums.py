@@ -54,8 +54,8 @@ def _download_sha256(url: str) -> str:
     :param url: The URL to download.
     :return: Lowercase hex SHA-256 digest of the response body.
     """
-    request = Request(url)  # noqa: S310
-    with urlopen(request) as response:  # noqa: S310
+    request = Request(url)
+    with urlopen(request) as response:
         digest = hashlib.sha256(response.read()).hexdigest()
     logging.debug(f"SHA-256 of {url}: {digest}")
     return digest

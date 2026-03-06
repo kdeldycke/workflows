@@ -674,12 +674,11 @@ def run_init(
 
     # Migrate legacy [tool.gha-utils] or [tool.repokit] before reading config.
     pyproject_path = output_dir / "pyproject.toml"
-    if pyproject_path.exists():
-        if _migrate_repomatic_config_section(pyproject_path):
-            result.warnings.append(
-                "Migrated legacy [tool.*] section to [tool.repomatic]"
-                " in pyproject.toml."
-            )
+    if pyproject_path.exists() and _migrate_repomatic_config_section(pyproject_path):
+        result.warnings.append(
+            "Migrated legacy [tool.*] section to [tool.repomatic]"
+            " in pyproject.toml."
+        )
 
     # Remove old gha-* skill directories from the rename.
     removed_skills = _remove_legacy_skills(output_dir)
@@ -897,7 +896,7 @@ def _fetch_extra_labels(
         target = target_dir / filename
         rel = target.relative_to(output_dir).as_posix()
         logging.info(f"Downloading {url} -> {target}")
-        urlretrieve(url, target)  # noqa: S310
+        urlretrieve(url, target)
         result.created.append(rel)
 
 

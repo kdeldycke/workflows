@@ -225,7 +225,7 @@ def test_exempt_workflows_no_concurrency(workflow_name: str) -> None:
 
 def test_all_workflows_discovered() -> None:
     """Verify that workflow discovery is working correctly."""
-    all_workflows = set(p.name for p in WORKFLOWS_DIR.glob("*.yaml"))
+    all_workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
 
     # Verify exempt workflows exist.
     missing_exempt = WORKFLOWS_WITHOUT_CONCURRENCY - all_workflows

@@ -34,8 +34,8 @@ def test_matrix():
 
     assert hasattr(matrix, "include")
     assert hasattr(matrix, "exclude")
-    assert matrix.include == tuple()
-    assert matrix.exclude == tuple()
+    assert matrix.include == ()
+    assert matrix.exclude == ()
 
     matrix.add_variation("foo", ["a", "b", "c"])
     assert matrix.variations == {"foo": ("a", "b", "c")}
@@ -304,7 +304,7 @@ def test_all_variations():
 def test_product():
     matrix = Matrix()
 
-    assert tuple(matrix.product()) == tuple()
+    assert tuple(matrix.product()) == ()
 
     matrix.add_variation("foo", ["a", "b"])
     matrix.add_variation("bar", ["1", "2"])

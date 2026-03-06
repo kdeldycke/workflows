@@ -332,28 +332,28 @@ def _render_trigger_value(value: Any, indent: int) -> str:
 def _quote_yaml_value(value: Any) -> str:
     """Quote a YAML value if it needs quoting.
 
+    Quotes strings that contain special YAML characters.
+
     :param value: A scalar YAML value.
     :return: String representation, quoted if necessary.
     """
     if isinstance(value, bool):
         return "true" if value else "false"
-    if isinstance(value, str):
-        # Quote strings that contain special YAML characters.
-        if any(c in value for c in ":#{}[]|>&*!%@`"):
-            return f'"{value}"'
+    if isinstance(value, str) and any(c in value for c in ":#{}[]|>&*!%@`"):
+        return f'"{value}"'
     return str(value)
 
 
 def _quote_yaml_list_item(value: Any) -> str:
     """Quote a YAML list item if it needs quoting.
 
+    Quotes strings that start with or contain YAML-special characters.
+
     :param value: A scalar YAML value used as a list item.
     :return: String representation, quoted if necessary.
     """
-    if isinstance(value, str):
-        # Quote strings that start with or contain YAML-special characters.
-        if any(c in value for c in "*&!%@`#{}[]|>"):
-            return f'"{value}"'
+    if isinstance(value, str) and any(c in value for c in "*&!%@`#{}[]|>"):
+        return f'"{value}"'
     return str(value)
 
 
@@ -430,8 +430,10 @@ def generate_thin_caller(
     # downstream callers don't trigger zizmor's ``secrets-inherit`` finding.
     if info.call_secrets:
         lines.append("    secrets:")
-        for secret_name in info.call_secrets:
-            lines.append(f"      {secret_name}: ${{{{ secrets.{secret_name} }}}}")
+        lines.extend(
+            f"      {secret_name}: ${{{{ secrets.{secret_name} }}}}"
+            for secret_name in info.call_secrets
+        )
 
     # Trailing newline.
     lines.append("")
@@ -950,7 +952,7 @@ def generate_workflows(
                     target.unlink()
                 target.symlink_to(source_resolved)
                 logging.info(f"Created symlink: {target} -> {source_resolved}")
-            except Exception as e:
+            except OSError as e:
                 logging.error(f"Failed to create symlink for {filename}: {e}")
                 errors += 1
                 continue

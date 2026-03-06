@@ -24,7 +24,6 @@ import pytest
 
 from repomatic.checksums import _find_checksum_pairs, update_checksums
 
-
 FAKE_HASH_OLD = "a" * 64
 FAKE_HASH_NEW = "b" * 64
 

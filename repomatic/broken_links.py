@@ -245,10 +245,13 @@ def manage_combined_broken_links_issue(
         raise ValueError(msg)
 
     # Auto-detect lychee body file when lychee was run.
-    if lychee_exit_code is not None and lychee_body_file is None:
-        if LYCHEE_DEFAULT_BODY.exists():
-            lychee_body_file = LYCHEE_DEFAULT_BODY.resolve()
-            logging.info(f"Auto-detected lychee body file: {lychee_body_file}")
+    if (
+        lychee_exit_code is not None
+        and lychee_body_file is None
+        and LYCHEE_DEFAULT_BODY.exists()
+    ):
+        lychee_body_file = LYCHEE_DEFAULT_BODY.resolve()
+        logging.info(f"Auto-detected lychee body file: {lychee_body_file}")
 
     # Auto-detect Sphinx linkcheck output.
     if sphinx_output_json is None and SPHINX_DEFAULT_OUTPUT.exists():

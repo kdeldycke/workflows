@@ -36,7 +36,6 @@ from repomatic.broken_links import (
 from repomatic.cli import setup_guide
 from repomatic.github.issue import triage_issues
 
-
 TITLE = "Broken links"
 
 

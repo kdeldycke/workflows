@@ -34,7 +34,6 @@ from repomatic.deps_graph import (
     trim_graph_to_depth,
 )
 
-
 # Sample CycloneDX SBOM data for testing.
 SAMPLE_SBOM = {
     "metadata": {

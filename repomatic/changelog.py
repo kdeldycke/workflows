@@ -666,9 +666,9 @@ def get_pypi_release_dates(package: str) -> dict[str, PyPIRelease]:
         Empty dict if the package is not found or the request fails.
     """
     url = PYPI_API_URL.format(package=package)
-    request = Request(url, headers={"Accept": "application/json"})  # noqa: S310
+    request = Request(url, headers={"Accept": "application/json"})
     try:
-        with urlopen(request, timeout=10) as response:  # noqa: S310
+        with urlopen(request, timeout=10) as response:
             data = json.loads(response.read())
     except (URLError, TimeoutError, json.JSONDecodeError) as exc:
         logging.debug(f"PyPI lookup failed for {package}: {exc}")

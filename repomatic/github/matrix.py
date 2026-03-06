@@ -67,8 +67,8 @@ class Matrix:
         self.variations: dict[str, tuple[str, ...]] = {}
 
         # Tuples are used to keep track of the insertion order and force immutability.
-        self.include: tuple[dict[str, str], ...] = tuple()
-        self.exclude: tuple[dict[str, str], ...] = tuple()
+        self.include: tuple[dict[str, str], ...] = ()
+        self.exclude: tuple[dict[str, str], ...] = ()
 
         self._job_counter: int = 0
 

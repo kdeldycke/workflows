@@ -48,8 +48,6 @@ from .gh import run_gh_command
 from .release_sync import build_expected_body
 
 TYPE_CHECKING = False
-if TYPE_CHECKING:
-    pass
 
 DEV_ASSET_PATTERNS = ("*.bin", "*.exe", "*.whl", "*.tar.gz")
 """Glob patterns for dev release assets.
@@ -302,9 +300,10 @@ def _edit_dev_release(tag: str, version: str, body: str, nwo: str) -> bool:
             "--repo",
             nwo,
         ])
-        return True
     except RuntimeError:
         return False
+    else:
+        return True
 
 
 def delete_dev_release(version: str, nwo: str) -> None:

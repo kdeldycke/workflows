@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-
 from repomatic.lint_repo import (
     check_description_matches,
     check_package_name_vs_repo,
@@ -77,7 +76,7 @@ def test_names_match():
 
 def test_names_differ():
     """Warning when names differ."""
-    warning, msg = check_package_name_vs_repo("my-package", "my-repo")
+    warning, _msg = check_package_name_vs_repo("my-package", "my-repo")
     assert warning is not None
     assert "differs" in warning
     assert "my-package" in warning
@@ -109,7 +108,7 @@ def test_sphinx_with_website():
 
 def test_sphinx_without_website():
     """Warning when Sphinx project has no website."""
-    warning, msg = check_website_for_sphinx(
+    warning, _msg = check_website_for_sphinx(
         "owner/repo", is_sphinx=True, homepage_url=None
     )
     assert warning is not None
@@ -121,7 +120,7 @@ def test_sphinx_fetches_metadata():
     """Fetch metadata when homepage_url not provided."""
     with patch("repomatic.lint_repo.get_repo_metadata") as mock_get:
         mock_get.return_value = {"homepageUrl": "https://example.com"}
-        warning, msg = check_website_for_sphinx("owner/repo", is_sphinx=True)
+        warning, _msg = check_website_for_sphinx("owner/repo", is_sphinx=True)
         assert warning is None
         mock_get.assert_called_once_with("owner/repo")
 
@@ -139,7 +138,7 @@ def test_descriptions_match():
 
 def test_descriptions_differ():
     """Error when descriptions differ."""
-    error, msg = check_description_matches(
+    error, _msg = check_description_matches(
         "owner/repo",
         project_description="A cool package",
         repo_description="Different description",
@@ -161,7 +160,7 @@ def test_fetches_metadata():
     """Fetch metadata when repo_description not provided."""
     with patch("repomatic.lint_repo.get_repo_metadata") as mock_get:
         mock_get.return_value = {"description": "A cool package"}
-        error, msg = check_description_matches(
+        error, _msg = check_description_matches(
             "owner/repo", project_description="A cool package"
         )
         assert error is None
@@ -253,7 +252,7 @@ def test_topics_extra_not_in_keywords():
     """Warning when topics exist that are not in keywords."""
     with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
         mock_gh.return_value = "python\nunknown-topic\n"
-        warning, msg = check_topics_subset_of_keywords(
+        warning, _msg = check_topics_subset_of_keywords(
             "owner/repo", keywords=["python", "cli"]
         )
         assert warning is not None

@@ -245,13 +245,14 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
             f"repos/{repo}/commits/{sha}/statuses",
             "--silent",
         ])
-        return True, "Commit statuses: token has access"
     except RuntimeError:
         msg = (
             "Cannot verify commit statuses permission. "
             "Ensure the token has 'Commit statuses: Read and Write' permission."
         )
         return True, msg  # Non-fatal.
+    else:
+        return True, "Commit statuses: token has access"
 
 
 def run_renovate_prereq_checks(repo: str, sha: str) -> int:

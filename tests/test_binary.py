@@ -107,9 +107,11 @@ def test_mismatched_arch(tmp_path, target, field, wrong_value):
     binary.touch()
 
     mock_output = {field: wrong_value}
-    with patch("repomatic.binary.run_exiftool", return_value=mock_output):
-        with pytest.raises(AssertionError, match="Binary architecture mismatch"):
-            verify_binary_arch(target, binary)
+    with (
+        patch("repomatic.binary.run_exiftool", return_value=mock_output),
+        pytest.raises(AssertionError, match="Binary architecture mismatch"),
+    ):
+        verify_binary_arch(target, binary)
 
 
 def test_missing_field(tmp_path):
@@ -119,6 +121,8 @@ def test_missing_field(tmp_path):
 
     # Return empty metadata.
     mock_output = {}
-    with patch("repomatic.binary.run_exiftool", return_value=mock_output):
-        with pytest.raises(AssertionError, match="Binary architecture mismatch"):
-            verify_binary_arch("linux-arm64", binary)
+    with (
+        patch("repomatic.binary.run_exiftool", return_value=mock_output),
+        pytest.raises(AssertionError, match="Binary architecture mismatch"),
+    ):
+        verify_binary_arch("linux-arm64", binary)

@@ -30,7 +30,6 @@ from repomatic.changelog import (
 )
 from repomatic.github.releases import GitHubRelease
 
-
 SAMPLE_CHANGELOG = dedent(
     """\
     # Changelog

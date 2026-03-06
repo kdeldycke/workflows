@@ -47,7 +47,6 @@ if TYPE_CHECKING:
 class SkippedTest(Exception):
     """Raised when a test case should be skipped."""
 
-    pass
 
 
 def _split_args(cli: str) -> list[str]:
@@ -143,7 +142,7 @@ class CLITestCase:
 
                     for item in field_data:
                         if not isinstance(item, str):
-                            raise ValueError(f"Invalid string in {field_id}: {item}")
+                            raise TypeError(f"Invalid string in {field_id}: {item}")
                     # Ignore blank value.
                     field_data = tuple(i for i in field_data if i.strip())
 
@@ -195,11 +194,10 @@ class CLITestCase:
             Add support for proper mixed <stdout>/<stderr> stream as a single,
             intertwined output.
         """
-        if self.only_platforms:
-            if current_platform() not in self.only_platforms:  # type: ignore[operator]
-                raise SkippedTest(
-                    f"Test case only runs on platform: {current_platform()}"
-                )
+        if self.only_platforms and current_platform() not in self.only_platforms:  # type: ignore[operator]
+            raise SkippedTest(
+                f"Test case only runs on platform: {current_platform()}"
+            )
 
         if current_platform() in extract_members(
             self.skip_platforms, additional_skip_platforms
@@ -237,6 +235,7 @@ class CLITestCase:
                 clean_args,
                 capture_output=True,
                 timeout=self.timeout,  # type: ignore[arg-type]
+                check=False,
                 # Force UTF-8 decoding of subprocess output. The encoding parameter
                 # only affects parent-side decoding and does not change child process
                 # behavior. Without this, Windows defaults to cp1252, causing
@@ -333,14 +332,14 @@ def parse_test_plan(plan_string: str | None) -> Generator[CLITestCase, None, Non
     if not plan:
         raise ValueError("Empty test plan")
     if not isinstance(plan, list):
-        raise ValueError(f"Test plan is not a list: {plan}")
+        raise TypeError(f"Test plan is not a list: {plan}")
 
     directives = frozenset(CLITestCase.__dataclass_fields__.keys())
 
     for index, test_case in enumerate(plan):
         # Validates test case structure.
         if not isinstance(test_case, dict):
-            raise ValueError(f"Test case #{index + 1} is not a dict: {test_case}")
+            raise TypeError(f"Test case #{index + 1} is not a dict: {test_case}")
         if not directives.issuperset(test_case):
             raise ValueError(
                 f"Test case #{index + 1} contains invalid directives:"

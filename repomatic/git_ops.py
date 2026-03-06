@@ -52,6 +52,7 @@ def get_tag_date(tag: str) -> str | None:
         ["git", "tag", "-l", "--format=%(creatordate:short)", tag],
         capture_output=True,
         text=True,
+        check=False,
     )
     date = result.stdout.strip()
     if not date:
@@ -78,6 +79,7 @@ def get_all_version_tags() -> dict[str, str]:
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
     tags: dict[str, str] = {}
     for line in result.stdout.strip().splitlines():
@@ -100,6 +102,7 @@ def tag_exists(tag: str) -> bool:
     result = subprocess.run(
         ["git", "show-ref", "--tags", tag, "--quiet"],
         capture_output=True,
+        check=False,
     )
     return result.returncode == 0
 

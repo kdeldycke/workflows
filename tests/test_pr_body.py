@@ -94,7 +94,7 @@ def test_unescape_dollars(text, expected):
 def test_parse_frontmatter_unescapes_body():
     r"""Body ``\$`` placeholders are unescaped at parse time."""
     raw = "---\ntitle: Test\n---\nHello \\$name"
-    meta, body = _parse_frontmatter(raw)
+    _meta, body = _parse_frontmatter(raw)
     assert "$name" in body
     assert r"\$" not in body
 

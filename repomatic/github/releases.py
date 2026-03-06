@@ -63,9 +63,9 @@ def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
             GITHUB_API_RELEASES_URL.format(owner=owner, repo=repo)
             + f"?per_page=100&page={page}"
         )
-        request = Request(url, headers={"Accept": "application/vnd.github+json"})  # noqa: S310
+        request = Request(url, headers={"Accept": "application/vnd.github+json"})
         try:
-            with urlopen(request, timeout=10) as response:  # noqa: S310
+            with urlopen(request, timeout=10) as response:
                 data = json.loads(response.read())
         except (URLError, TimeoutError, json.JSONDecodeError) as exc:
             logging.debug(f"GitHub releases lookup failed: {exc}")

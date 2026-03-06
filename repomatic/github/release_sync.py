@@ -279,12 +279,9 @@ def render_sync_report(result: SyncResult) -> str:
             "| Version | Release | Action |",
             "| --- | --- | --- |",
         ]
-        for row in drifted_rows:
-            detail_lines.append(
-                f"| `{row.version}`"
+        detail_lines.extend(f"| `{row.version}`"
                 f" | [`v{row.version}`]({row.release_url})"
-                f" | {_action_emoji(row.action)} |"
-            )
+                f" | {_action_emoji(row.action)} |" for row in drifted_rows)
         details_section = "\n".join(detail_lines)
 
     return render_template(

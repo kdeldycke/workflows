@@ -118,7 +118,7 @@ def validate_gh_api_access() -> tuple[int, dict[str, str], str]:
         request.add_header("Authorization", f"token {token}")
 
     try:
-        response = urlopen(request)  # noqa: S310
+        response = urlopen(request)
     except HTTPError as exc:
         message = ""
         try:

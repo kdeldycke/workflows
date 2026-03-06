@@ -106,10 +106,7 @@ class Mailmap:
         pre_lines = []
         for line in map(str.strip, content.splitlines()):
             # Comment lines are added as-is.
-            if line.startswith("#"):
-                pre_lines.append(line)
-            # Blank lines are added as-is.
-            elif not line:
+            if line.startswith("#") or not line:
                 pre_lines.append(line)
             # Mapping entry, which mark the end of a block, so add it to the list
             # mailmap records.
@@ -152,7 +149,7 @@ class Mailmap:
 
         git_cli = ("git", "log", "--pretty=format:%aN <%aE>%n%cN <%cE>")
         logging.debug(f"Run: {' '.join(git_cli)}")
-        process = run(git_cli, capture_output=True, encoding="UTF-8")
+        process = run(git_cli, capture_output=True, encoding="UTF-8", check=False)
 
         # Parse git CLI output.
         if process.returncode:

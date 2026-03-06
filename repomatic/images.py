@@ -187,7 +187,6 @@ def optimize_image(path: Path, min_savings_pct: float) -> OptimizationResult | N
             f"{format_file_size(before_bytes)} → {format_file_size(after_bytes)} "
             f"({result.saved_pct:.1f}% savings)."
         )
-        return result
 
     except subprocess.CalledProcessError as exc:
         # Restore original on failure.
@@ -195,6 +194,8 @@ def optimize_image(path: Path, min_savings_pct: float) -> OptimizationResult | N
             shutil.copy2(str(backup), str(path))
         logging.warning(f"Failed to optimize {path}: {exc.stderr or exc}")
         return None
+    else:
+        return result
     finally:
         backup.unlink(missing_ok=True)
 
@@ -241,12 +242,9 @@ def generate_markdown_summary(results: list[OptimizationResult]) -> str:
         "| :------- | -----: | ----: | ----------: |",
     ]
 
-    for r in results:
-        lines.append(
-            f"| `{r.path}` "
+    lines.extend(f"| `{r.path}` "
             f"| {format_file_size(r.before_bytes)} "
             f"| {format_file_size(r.after_bytes)} "
-            f"| {r.saved_pct:.1f}% |"
-        )
+            f"| {r.saved_pct:.1f}% |" for r in results)
 
     return "\n".join(lines)

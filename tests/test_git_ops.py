@@ -39,6 +39,7 @@ def test_tag_exists_true():
         mock_run.assert_called_once_with(
             ["git", "show-ref", "--tags", "v1.0.0", "--quiet"],
             capture_output=True,
+            check=False,
         )
 
 
@@ -119,49 +120,59 @@ def test_push_tag_failure():
 
 def test_create_new_tag():
     """Create and push new tag."""
-    with patch("repomatic.git_ops.tag_exists", return_value=False):
-        with patch("repomatic.git_ops.create_tag") as mock_create:
-            with patch("repomatic.git_ops.push_tag") as mock_push:
-                result = create_and_push_tag("v1.0.0")
-                assert result is True
-                mock_create.assert_called_once_with("v1.0.0", None)
-                mock_push.assert_called_once_with("v1.0.0")
+    with (
+        patch("repomatic.git_ops.tag_exists", return_value=False),
+        patch("repomatic.git_ops.create_tag") as mock_create,
+        patch("repomatic.git_ops.push_tag") as mock_push,
+    ):
+        result = create_and_push_tag("v1.0.0")
+        assert result is True
+        mock_create.assert_called_once_with("v1.0.0", None)
+        mock_push.assert_called_once_with("v1.0.0")
 
 
 def test_create_and_push_tag_at_commit():
     """Create and push tag at specific commit."""
-    with patch("repomatic.git_ops.tag_exists", return_value=False):
-        with patch("repomatic.git_ops.create_tag") as mock_create:
-            with patch("repomatic.git_ops.push_tag"):
-                result = create_and_push_tag("v1.0.0", commit="abc123")
-                assert result is True
-                mock_create.assert_called_once_with("v1.0.0", "abc123")
+    with (
+        patch("repomatic.git_ops.tag_exists", return_value=False),
+        patch("repomatic.git_ops.create_tag") as mock_create,
+        patch("repomatic.git_ops.push_tag"),
+    ):
+        result = create_and_push_tag("v1.0.0", commit="abc123")
+        assert result is True
+        mock_create.assert_called_once_with("v1.0.0", "abc123")
 
 
 def test_skip_existing_tag():
     """Skip when tag exists and skip_existing is True."""
-    with patch("repomatic.git_ops.tag_exists", return_value=True):
-        with patch("repomatic.git_ops.create_tag") as mock_create:
-            with patch("repomatic.git_ops.push_tag") as mock_push:
-                result = create_and_push_tag("v1.0.0", skip_existing=True)
-                assert result is False
-                mock_create.assert_not_called()
-                mock_push.assert_not_called()
+    with (
+        patch("repomatic.git_ops.tag_exists", return_value=True),
+        patch("repomatic.git_ops.create_tag") as mock_create,
+        patch("repomatic.git_ops.push_tag") as mock_push,
+    ):
+        result = create_and_push_tag("v1.0.0", skip_existing=True)
+        assert result is False
+        mock_create.assert_not_called()
+        mock_push.assert_not_called()
 
 
 def test_error_existing_tag():
     """Raise ValueError when tag exists and skip_existing is False."""
-    with patch("repomatic.git_ops.tag_exists", return_value=True):
-        with pytest.raises(ValueError, match="already exists"):
-            create_and_push_tag("v1.0.0", skip_existing=False)
+    with (
+        patch("repomatic.git_ops.tag_exists", return_value=True),
+        pytest.raises(ValueError, match="already exists"),
+    ):
+        create_and_push_tag("v1.0.0", skip_existing=False)
 
 
 def test_create_without_push():
     """Create tag without pushing."""
-    with patch("repomatic.git_ops.tag_exists", return_value=False):
-        with patch("repomatic.git_ops.create_tag") as mock_create:
-            with patch("repomatic.git_ops.push_tag") as mock_push:
-                result = create_and_push_tag("v1.0.0", push=False)
-                assert result is True
-                mock_create.assert_called_once()
-                mock_push.assert_not_called()
+    with (
+        patch("repomatic.git_ops.tag_exists", return_value=False),
+        patch("repomatic.git_ops.create_tag") as mock_create,
+        patch("repomatic.git_ops.push_tag") as mock_push,
+    ):
+        result = create_and_push_tag("v1.0.0", push=False)
+        assert result is True
+        mock_create.assert_called_once()
+        mock_push.assert_not_called()

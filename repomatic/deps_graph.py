@@ -633,7 +633,7 @@ def render_mermaid(
 
     # Collect all unique package names.
     packages: set[str] = set()
-    for _ref, (name, _version) in nodes.items():
+    for (name, _version) in nodes.values():
         packages.add(name)
 
     # Also collect from edges in case some are missing from nodes.
@@ -802,8 +802,7 @@ def render_mermaid(
 
     # Add dashed arrows from root to each subgraph.
     root_id = normalize_package_name(root_name)
-    for subgraph_name in sorted(root_to_subgraphs):
-        lines.append(f"    {root_id} -.-> {subgraph_name}")
+    lines.extend(f"    {root_id} -.-> {subgraph_name}" for subgraph_name in sorted(root_to_subgraphs))
 
     # Add click links to PyPI for each package.
     lines.append("")

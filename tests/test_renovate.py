@@ -18,9 +18,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
 import json
+from unittest.mock import patch
 
 from repomatic.renovate import (
     RenovateCheckResult,
@@ -87,7 +86,7 @@ def test_api_failure():
     """Handle API failure gracefully."""
     with patch("repomatic.renovate.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("gh command failed")
-        passed, msg = check_dependabot_security_disabled("owner/repo")
+        passed, _msg = check_dependabot_security_disabled("owner/repo")
         # Non-fatal, passes but with warning message.
         assert passed is True
 
@@ -116,25 +115,29 @@ def test_all_checks_pass(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     # Create renovate.json5 so that check passes.
     (tmp_path / "renovate.json5").touch()
-    with patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm:
-            mock_sec.return_value = (True, "Disabled")
-            mock_perm.return_value = (True, "Has access")
-            exit_code = run_migration_checks("owner/repo", "abc123")
-            assert exit_code == 0
+    with (
+        patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
+        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+    ):
+        mock_sec.return_value = (True, "Disabled")
+        mock_perm.return_value = (True, "Has access")
+        exit_code = run_migration_checks("owner/repo", "abc123")
+        assert exit_code == 0
 
 
 def test_renovate_config_missing(tmp_path, monkeypatch, capsys):
     """Return 1 when renovate.json5 is missing."""
     monkeypatch.chdir(tmp_path)
-    with patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm:
-            mock_sec.return_value = (True, "Disabled")
-            mock_perm.return_value = (True, "Has access")
-            exit_code = run_migration_checks("owner/repo", "abc123")
-            assert exit_code == 1
-            captured = capsys.readouterr()
-            assert "::error::" in captured.out
+    with (
+        patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
+        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+    ):
+        mock_sec.return_value = (True, "Disabled")
+        mock_perm.return_value = (True, "Has access")
+        exit_code = run_migration_checks("owner/repo", "abc123")
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "::error::" in captured.out
 
 
 def test_dependabot_config_exists(tmp_path, monkeypatch, capsys):
@@ -144,14 +147,16 @@ def test_dependabot_config_exists(tmp_path, monkeypatch, capsys):
     (tmp_path / "renovate.json5").touch()
     (tmp_path / ".github").mkdir()
     (tmp_path / ".github" / "dependabot.yaml").touch()
-    with patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm:
-            mock_sec.return_value = (True, "Disabled")
-            mock_perm.return_value = (True, "Has access")
-            exit_code = run_migration_checks("owner/repo", "abc123")
-            assert exit_code == 1
-            captured = capsys.readouterr()
-            assert "::error::" in captured.out
+    with (
+        patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
+        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+    ):
+        mock_sec.return_value = (True, "Disabled")
+        mock_perm.return_value = (True, "Has access")
+        exit_code = run_migration_checks("owner/repo", "abc123")
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "::error::" in captured.out
 
 
 def test_security_updates_enabled(tmp_path, monkeypatch, capsys):
@@ -159,14 +164,16 @@ def test_security_updates_enabled(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     # Create renovate.json5 so that check passes.
     (tmp_path / "renovate.json5").touch()
-    with patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm:
-            mock_sec.return_value = (False, "Security updates enabled")
-            mock_perm.return_value = (True, "Has access")
-            exit_code = run_migration_checks("owner/repo", "abc123")
-            assert exit_code == 1
-            captured = capsys.readouterr()
-            assert "::error::" in captured.out
+    with (
+        patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
+        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+    ):
+        mock_sec.return_value = (False, "Security updates enabled")
+        mock_perm.return_value = (True, "Has access")
+        exit_code = run_migration_checks("owner/repo", "abc123")
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        assert "::error::" in captured.out
 
 
 def test_config_exists(tmp_path, monkeypatch):
@@ -300,15 +307,17 @@ def test_collect_results_all_pass(tmp_path, monkeypatch):
     """Collect results when all checks pass."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "renovate.json5").touch()
-    with patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm:
-            mock_sec.return_value = (True, "Disabled")
-            mock_perm.return_value = (True, "Has access")
-            result = collect_check_results("owner/repo", "abc123")
-            assert result.renovate_config_exists is True
-            assert result.dependabot_config_path == ""
-            assert result.dependabot_security_disabled is True
-            assert result.commit_statuses_permission is True
+    with (
+        patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
+        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+    ):
+        mock_sec.return_value = (True, "Disabled")
+        mock_perm.return_value = (True, "Has access")
+        result = collect_check_results("owner/repo", "abc123")
+        assert result.renovate_config_exists is True
+        assert result.dependabot_config_path == ""
+        assert result.dependabot_security_disabled is True
+        assert result.commit_statuses_permission is True
 
 
 def test_with_dependabot_config(tmp_path, monkeypatch):
@@ -317,23 +326,27 @@ def test_with_dependabot_config(tmp_path, monkeypatch):
     (tmp_path / "renovate.json5").touch()
     (tmp_path / ".github").mkdir()
     (tmp_path / ".github" / "dependabot.yaml").touch()
-    with patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm:
-            mock_sec.return_value = (True, "Disabled")
-            mock_perm.return_value = (True, "Has access")
-            result = collect_check_results("owner/repo", "abc123")
-            assert result.dependabot_config_path == ".github/dependabot.yaml"
+    with (
+        patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
+        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+    ):
+        mock_sec.return_value = (True, "Disabled")
+        mock_perm.return_value = (True, "Has access")
+        result = collect_check_results("owner/repo", "abc123")
+        assert result.dependabot_config_path == ".github/dependabot.yaml"
 
 
 def test_missing_renovate_config(tmp_path, monkeypatch):
     """Collect results when renovate.json5 is missing."""
     monkeypatch.chdir(tmp_path)
-    with patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec:
-        with patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm:
-            mock_sec.return_value = (True, "Disabled")
-            mock_perm.return_value = (True, "Has access")
-            result = collect_check_results("owner/repo", "abc123")
-            assert result.renovate_config_exists is False
+    with (
+        patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
+        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+    ):
+        mock_sec.return_value = (True, "Disabled")
+        mock_perm.return_value = (True, "Has access")
+        result = collect_check_results("owner/repo", "abc123")
+        assert result.renovate_config_exists is False
 
 
 # Sample diff containing only exclude-newer timestamp noise.
@@ -399,14 +412,13 @@ def test_revert_lock_if_noise_reverts(tmp_path):
     lock_path = tmp_path / "uv.lock"
     with patch(
         "repomatic.renovate.is_lock_diff_only_timestamp_noise", return_value=True
-    ):
-        with patch("repomatic.renovate.subprocess.run") as mock_run:
-            result = revert_lock_if_noise(lock_path)
-            assert result is True
-            mock_run.assert_called_once_with(
-                ["git", "checkout", "--", str(lock_path)],
-                check=True,
-            )
+    ), patch("repomatic.renovate.subprocess.run") as mock_run:
+        result = revert_lock_if_noise(lock_path)
+        assert result is True
+        mock_run.assert_called_once_with(
+            ["git", "checkout", "--", str(lock_path)],
+            check=True,
+        )
 
 
 def test_revert_lock_if_noise_keeps(tmp_path):
@@ -422,28 +434,26 @@ def test_revert_lock_if_noise_keeps(tmp_path):
 def test_sync_uv_lock_keeps_real_changes(tmp_path):
     """Keep lock file when real dependency changes exist."""
     lock_path = tmp_path / "uv.lock"
-    with patch("repomatic.renovate.subprocess.run") as mock_run:
-        with patch(
-            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
-            return_value=False,
-        ):
-            reverted = sync_uv_lock(lock_path)
-            assert reverted is False
-            # uv lock was called.
-            mock_run.assert_called_once_with(
-                ["uv", "--no-progress", "lock", "--upgrade"], check=True
-            )
+    with patch("repomatic.renovate.subprocess.run") as mock_run, patch(
+        "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+        return_value=False,
+    ):
+        reverted = sync_uv_lock(lock_path)
+        assert reverted is False
+        # uv lock was called.
+        mock_run.assert_called_once_with(
+            ["uv", "--no-progress", "lock", "--upgrade"], check=True
+        )
 
 
 def test_sync_uv_lock_reverts_noise(tmp_path):
     """Revert lock file when only timestamp noise changed."""
     lock_path = tmp_path / "uv.lock"
-    with patch("repomatic.renovate.subprocess.run") as mock_run:
-        with patch(
-            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
-            return_value=True,
-        ):
-            reverted = sync_uv_lock(lock_path)
-            assert reverted is True
-            # uv lock + git checkout were called.
-            assert mock_run.call_count == 2
+    with patch("repomatic.renovate.subprocess.run") as mock_run, patch(
+        "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+        return_value=True,
+    ):
+        reverted = sync_uv_lock(lock_path)
+        assert reverted is True
+        # uv lock + git checkout were called.
+        assert mock_run.call_count == 2

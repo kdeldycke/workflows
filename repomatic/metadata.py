@@ -304,6 +304,7 @@ from bumpversion.config import get_configuration  # type: ignore[import-untyped]
 from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
 from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
+from git.exc import GitCommandError
 from gitdb.exc import BadName  # type: ignore[import-untyped]
 from packaging.version import Version
 from py_walk import get_parser_from_file
@@ -326,8 +327,9 @@ from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
 from .github.matrix import Matrix
 
 if sys.version_info >= (3, 11):
-    import tomllib
     from enum import StrEnum
+
+    import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
     from backports.strenum import StrEnum  # type: ignore[import-not-found]
@@ -844,7 +846,7 @@ def get_release_version_from_commits(max_count: int = 10) -> Version | None:
     return None
 
 
-def is_version_bump_allowed(part: "Literal['minor', 'major']") -> bool:
+def is_version_bump_allowed(part: Literal['minor', 'major']) -> bool:
     """Check if a version bump of the specified part is allowed.
 
     This prevents double version increments within a development cycle. A bump is
@@ -991,12 +993,6 @@ class Metadata:
         for attempt in range(max_attempts):
             try:
                 _ = self.git.get_commit(commit_hash)
-                if attempt > 0:
-                    logging.info(
-                        f"Found commit {commit_hash} after {attempt} deepen "
-                        "operation(s)."
-                    )
-                return True
             except (ValueError, BadName) as ex:
                 logging.debug(f"Commit {commit_hash} not found: {ex}")
 
@@ -1028,9 +1024,16 @@ class Metadata:
                     logging.debug(
                         f"Repository deepened successfully. New depth: {current_depth}"
                     )
-                except Exception as ex:
+                except GitCommandError as ex:
                     logging.error(f"Failed to deepen repository: {ex}")
                     return False
+            else:
+                if attempt > 0:
+                    logging.info(
+                        f"Found commit {commit_hash} after {attempt} deepen "
+                        "operation(s)."
+                    )
+                return True
 
         return False
 
@@ -1157,7 +1160,7 @@ class Metadata:
         return matrix
 
     @cached_property
-    def event_type(self) -> "WorkflowEvent | None":
+    def event_type(self) -> WorkflowEvent | None:
         """Returns the type of event that triggered the workflow run.
 
         .. caution::
@@ -1218,9 +1221,7 @@ class Metadata:
             return True
         # Detect Renovate PRs by branch name pattern. This handles self-hosted Renovate
         # or cases where Renovate runs as a user account.
-        if self.head_branch and self.head_branch.startswith("renovate/"):
-            return True
-        return False
+        return bool(self.head_branch and self.head_branch.startswith("renovate/"))
 
     @cached_property
     def head_branch(self) -> str | None:
@@ -1253,7 +1254,7 @@ class Metadata:
             return None
         try:
             diff_output = self.git.repo.git.diff("--name-only", start, end)
-        except Exception:
+        except GitCommandError:
             logging.warning("Failed to get changed files from git diff.")
             return None
         if not diff_output:
@@ -1514,9 +1515,7 @@ class Metadata:
         return None
 
     def gitignore_match(self, file_path: Path | str) -> bool:
-        if self.gitignore_parser and self.gitignore_parser.match(file_path):
-            return True
-        return False
+        return bool(self.gitignore_parser and self.gitignore_parser.match(file_path))
 
     def glob_files(self, *patterns: str) -> list[Path]:
         """Return all file path matching the ``patterns``.
@@ -1651,7 +1650,7 @@ class Metadata:
         Presence of a ``pyproject.toml`` file that respects the standards is enough
         to consider the project as a Python one.
         """
-        return False if self.pyproject is None else True
+        return not self.pyproject is None
 
     @cached_property
     def pyproject_toml(self) -> dict[str, Any]:

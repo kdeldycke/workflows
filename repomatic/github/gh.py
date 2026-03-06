@@ -31,7 +31,7 @@ def run_gh_command(args: list[str]) -> str:
     """
     cmd = ["gh", *args]
     logging.debug(f"Running: {' '.join(cmd)}")
-    process = run(cmd, capture_output=True, encoding="UTF-8")
+    process = run(cmd, capture_output=True, encoding="UTF-8", check=False)
 
     if process.returncode:
         logging.debug(f"gh command failed: {process.stderr}")
