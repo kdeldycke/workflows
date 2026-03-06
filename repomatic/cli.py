@@ -345,13 +345,18 @@ def init_project(
     if result.created:
         echo("")
         echo("Next steps:")
-        echo(
-            "  1. Create a WORKFLOW_UPDATE_GITHUB_PAT secret"
-            " in your repository settings."
+        step = 1
+        echo(f"  {step}. Commit the generated files and push.")
+        step += 1
+        workflows_created = any(
+            p.startswith(".github/workflows/") for p in result.created
         )
-        echo("     See: https://github.com/kdeldycke/repomatic#permissions-and-token")
-        echo("  2. If using GitHub Pages for docs, enable it in repository settings.")
-        echo("  3. Commit the generated files and push.")
+        if workflows_created:
+            echo(
+                f"  {step}. On first push, workflows will detect missing"
+                " configuration and open issues"
+            )
+            echo("     with setup instructions.")
 
 
 @repomatic.command(short_help="Output project metadata", section=_section_setup)
