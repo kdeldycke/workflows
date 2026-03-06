@@ -124,7 +124,7 @@ jobs:
         run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
 
   build-package:
-    name: 📦 Build package
+    name: 📦 Build package (${{ matrix.short_sha }})
     needs:
       - project-metadata
     if: fromJSON(needs.project-metadata.outputs.is_python_project)
@@ -282,7 +282,7 @@ jobs:
           --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
 
   create-tag:
-    name: 📌 Tag release
+    name: 📌 Tag release (${{ matrix.short_sha }})
     needs:
       - project-metadata
     # Only consider pushes to main branch as triggers for releases.
@@ -308,7 +308,7 @@ jobs:
           --skip-existing
 
   publish-pypi:
-    name: 🐍 Publish to PyPI
+    name: 🐍 Publish to PyPI (${{ matrix.short_sha }})
     needs:
       - project-metadata
       - build-package
@@ -340,7 +340,7 @@ jobs:
           "${{ steps.download.outputs.download-path }}/*"
 
   create-release:
-    name: 🐙 Create GitHub release draft
+    name: 🐙 Create GitHub release draft (${{ matrix.short_sha }})
     needs:
       - project-metadata
       - build-package
@@ -412,7 +412,7 @@ jobs:
           fi
 
   publish-release:
-    name: 🎉 Publish GitHub release
+    name: 🎉 Publish GitHub release (${{ matrix.short_sha }})
     needs:
       - project-metadata
       - create-release
