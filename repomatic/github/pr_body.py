@@ -29,8 +29,6 @@ import re
 from importlib.resources import as_file, files
 from string import Template
 
-from click_extra import TableFormat, render_table
-
 
 def _unescape_dollars(text: str) -> str:
     r"""Replace ``\$`` with ``$`` in template text.
@@ -142,7 +140,7 @@ def render_template(*names: str, **kwargs: str) -> str:
             append_footer = True
     result = "\n\n".join(parts)
     if append_footer:
-        result += "\n\n" + generated_footer()
+        result += "\n\n---\n\n" + render_template("generated-footer")
     result = re.sub(r"\n{3,}", "\n\n", result)
     if append_footer:
         result += "\n"
@@ -250,27 +248,27 @@ def generate_pr_metadata_block() -> str:
     workflow_url = (
         f"{server_url}/{repository}/blob/{sha}/.github/workflows/{workflow_file}"
     )
+    commit_url = f"{server_url}/{repository}/commit/{sha}"
 
-    rows = [
-        ["**Trigger**", f"`{event_name}`"],
-        ["**Actor**", f"@{actor}"],
-    ]
+    rerun_row = ""
     if triggering_actor and triggering_actor != actor:
-        rows.append(["**Re-run by**", f"@{triggering_actor}"])
-    rows += [
-        ["**Ref**", f"`{ref_name}`"],
-        ["**Commit**", f"[`{sha[:8]}`]({server_url}/{repository}/commit/{sha})"],
-        ["**Job**", f"`{job}`"],
-        ["**Workflow**", f"[`{workflow_file}`]({workflow_url})"],
-        ["**Run**", f"[#{run_number}.{run_attempt}]({run_url})"],
-    ]
-    table = render_table(
-        rows,
-        headers=["Field", "Value"],
-        table_format=TableFormat.GITHUB,
-    )
+        rerun_row = f"| **Re-run by** | @{triggering_actor} |\n"
 
-    return render_template("pr-metadata", table=table)
+    return render_template(
+        "pr-metadata",
+        event_name=event_name,
+        actor=actor,
+        rerun_row=rerun_row,
+        ref_name=ref_name,
+        sha_short=sha[:8],
+        commit_url=commit_url,
+        job=job,
+        workflow_file=workflow_file,
+        workflow_url=workflow_url,
+        run_number=run_number,
+        run_attempt=run_attempt,
+        run_url=run_url,
+    )
 
 
 def _repo_url() -> str:
@@ -301,23 +299,16 @@ def generate_refresh_tip() -> str:
     return render_template("refresh-tip", workflow_dispatch_url=workflow_dispatch_url)
 
 
-def generated_footer() -> str:
-    """Render the attribution footer from the ``generated-footer`` template.
-
-    Single source of truth for the attribution line appended to all PR and
-    issue bodies produced by repomatic.
-
-    :return: A markdown string with a horizontal rule and the attribution line.
-    """
-    return "---\n\n" + render_template("generated-footer")
-
 
 def build_pr_body(prefix: str, metadata_block: str) -> str:
-    """Concatenate prefix, refresh tip, metadata block, and footer into a PR body.
+    """Concatenate prefix, refresh tip, and metadata block into a PR body.
+
+    The ``metadata_block`` already includes the attribution footer (appended
+    automatically by :func:`render_template`).
 
     :param prefix: Content to prepend before the metadata block. Can be empty.
     :param metadata_block: The collapsible metadata block from
-        :func:`generate_pr_metadata_block`.
+        :func:`generate_pr_metadata_block`, with footer.
     :return: The complete PR body string.
     """
     parts: list[str] = []
@@ -327,5 +318,4 @@ def build_pr_body(prefix: str, metadata_block: str) -> str:
     if tip:
         parts.append(tip)
     parts.append(metadata_block)
-    parts.append(generated_footer())
     return "\n\n\n".join(parts)
