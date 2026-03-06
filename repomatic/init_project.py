@@ -651,20 +651,19 @@ def run_init(
     components: Sequence[str] = (),
     version: str | None = None,
     repo: str = DEFAULT_REPO,
-    overwrite: bool = False,
 ) -> InitResult:
     """Bootstrap a repository for use with ``kdeldycke/repomatic``.
 
     Creates thin-caller workflow files, exports configuration files, and
-    generates a minimal ``changelog.md`` if missing. By default, existing
-    files are skipped; use ``overwrite=True`` to replace them.
+    generates a minimal ``changelog.md`` if missing. Managed files (workflows,
+    configs, skills) are always overwritten. The changelog stub is never
+    overwritten — once a real changelog exists, it is preserved.
 
     :param output_dir: Root directory of the target repository.
     :param components: Components to initialize. Empty means all defaults.
     :param version: Version pin for upstream workflows (e.g., ``v5.10.0``).
     :param repo: Upstream repository containing reusable workflows.
-    :param overwrite: Overwrite existing files instead of skipping.
-    :return: Summary of created, skipped, and warned items.
+    :return: Summary of created, updated, skipped, and warned items.
     """
     if version is None:
         version = default_version_pin()
@@ -735,13 +734,13 @@ def run_init(
     # Workflows.
     if "workflows" in selected:
         _init_workflows(
-            output_dir, repo, version, overwrite, result, exclude=workflow_exclude
+            output_dir, repo, version, result, exclude=workflow_exclude
         )
 
     # Config file components (labels, linters, renovate, skills).
     for component_name in ("labels", "linters", "renovate", "skills"):
         if component_name in selected:
-            _init_config_files(output_dir, component_name, overwrite, result)
+            _init_config_files(output_dir, component_name, result)
 
     # Fetch extra label files from [tool.repomatic] config.
     if "labels" in selected:
@@ -749,7 +748,7 @@ def run_init(
 
     # Changelog.
     if "changelog" in selected:
-        _init_changelog(output_dir, overwrite, result)
+        _init_changelog(output_dir, result)
 
     # Tool configs (merged into pyproject.toml).
     tool_configs = selected & set(INIT_CONFIGS.keys())
@@ -763,7 +762,6 @@ def _init_workflows(
     output_dir: Path,
     repo: str,
     version: str,
-    overwrite: bool,
     result: InitResult,
     *,
     exclude: frozenset[str] = frozenset(),
@@ -800,10 +798,6 @@ def _init_workflows(
         target = workflows_dir / filename
         rel = target.relative_to(output_dir).as_posix()
         existed = target.exists()
-        if existed and not overwrite:
-            result.skipped.append(rel)
-            logging.debug(f"Skipped existing: {rel}")
-            continue
         content = generate_thin_caller(filename, repo, version)
         target.write_text(content, encoding="UTF-8")
         if existed:
@@ -817,7 +811,6 @@ def _init_workflows(
 def _init_config_files(
     output_dir: Path,
     component_name: str,
-    overwrite: bool,
     result: InitResult,
 ) -> None:
     """Export bundled config files for a component."""
@@ -825,10 +818,6 @@ def _init_config_files(
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()
         existed = target.exists()
-        if existed and not overwrite:
-            result.skipped.append(rel)
-            logging.debug(f"Skipped existing: {rel}")
-            continue
         target.parent.mkdir(parents=True, exist_ok=True)
         content = export_content(source_name)
         target.write_text(content, encoding="UTF-8")
@@ -842,14 +831,17 @@ def _init_config_files(
 
 def _init_changelog(
     output_dir: Path,
-    overwrite: bool,
     result: InitResult,
 ) -> None:
-    """Create a minimal changelog.md."""
+    """Create a minimal changelog.md if it doesn't exist.
+
+    The changelog stub is only useful for bootstrapping new repositories.
+    An existing ``changelog.md`` is never overwritten — it contains real
+    release history that would be destroyed by the stub template.
+    """
     changelog_path = output_dir / "changelog.md"
     rel = changelog_path.relative_to(output_dir).as_posix()
-    existed = changelog_path.exists()
-    if existed and not overwrite:
+    if changelog_path.exists():
         result.skipped.append(rel)
         logging.debug(f"Skipped existing: {rel}")
         return
@@ -859,12 +851,8 @@ def _init_changelog(
         "## [Unreleased](https://github.com/USER/REPO/compare/main...main)\n"
     )
     changelog_path.write_text(changelog_content, encoding="UTF-8")
-    if existed:
-        result.updated.append(rel)
-        logging.info(f"Updated: {rel}")
-    else:
-        result.created.append(rel)
-        logging.info(f"Created: {rel}")
+    result.created.append(rel)
+    logging.info(f"Created: {rel}")
 
 
 def _fetch_extra_labels(

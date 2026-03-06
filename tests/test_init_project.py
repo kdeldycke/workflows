@@ -106,7 +106,7 @@ def test_bundled_renovate_matches_processed_root() -> None:
     settings (``assignees``, ``customManagers``) removed.
 
     If this test fails, regenerate the bundled file by running:
-        uv run repomatic init renovate --output-dir repomatic/data --overwrite
+        uv run repomatic init renovate --output-dir repomatic/data
     """
     # Read the root file and process it (same logic as _get_renovate_config).
     root_path = Path(__file__).parent.parent / "renovate.json5"
@@ -132,7 +132,7 @@ def test_bundled_renovate_matches_processed_root() -> None:
     assert bundled_content.strip() == content.strip(), (
         "Bundled renovate.json5 is out of sync with root file.\n"
         "Regenerate with: uv run repomatic init renovate"
-        " --output-dir repomatic/data --overwrite"
+        " --output-dir repomatic/data"
     )
 
 
@@ -510,7 +510,7 @@ def test_init_existing_changelog_skipped(tmp_path: Path):
 
 
 def test_init_idempotent(tmp_path: Path):
-    """Verify second run creates nothing and skips everything."""
+    """Verify second run updates managed files and skips changelog."""
     result1 = run_init(output_dir=tmp_path)
     assert len(result1.created) > 0
     assert len(result1.updated) == 0
@@ -518,8 +518,11 @@ def test_init_idempotent(tmp_path: Path):
 
     result2 = run_init(output_dir=tmp_path)
     assert len(result2.created) == 0
-    assert len(result2.updated) == 0
-    assert len(result2.skipped) == len(result1.created)
+    # Managed files are always overwritten (reported as updated).
+    managed_count = len(result1.created) - 1  # Minus changelog.
+    assert len(result2.updated) == managed_count
+    # Only changelog is skipped (never overwritten).
+    assert result2.skipped == ["changelog.md"]
 
 
 def test_init_only_labels(tmp_path: Path):
@@ -586,23 +589,42 @@ def test_init_only_workflows(tmp_path: Path):
     assert "changelog.md" not in created_set
 
 
-def test_init_overwrite(tmp_path: Path):
-    """Verify --overwrite replaces existing files."""
+def test_init_always_overwrites_managed_files(tmp_path: Path):
+    """Verify managed files are always replaced on re-run."""
+    # Create a workflow file with old content.
+    workflows_dir = tmp_path / ".github" / "workflows"
+    workflows_dir.mkdir(parents=True)
+    target = workflows_dir / "lint.yaml"
+    target.write_text("# Old content\n", encoding="UTF-8")
+
+    result = run_init(
+        output_dir=tmp_path,
+        components=("workflows",),
+    )
+
+    assert ".github/workflows/lint.yaml" in result.updated
+    assert len(result.skipped) == 0
+    # Content should be replaced.
+    content = target.read_text(encoding="UTF-8")
+    assert content != "# Old content\n"
+
+
+def test_init_changelog_never_overwritten(tmp_path: Path):
+    """Verify an existing changelog.md is never overwritten."""
     changelog = tmp_path / "changelog.md"
     changelog.write_text("# Old content\n", encoding="UTF-8")
 
     result = run_init(
         output_dir=tmp_path,
         components=("changelog",),
-        overwrite=True,
     )
 
-    assert "changelog.md" in result.updated
+    assert "changelog.md" in result.skipped
     assert len(result.created) == 0
-    assert len(result.skipped) == 0
-    # Content should be replaced.
+    assert len(result.updated) == 0
+    # Content should be preserved.
     content = changelog.read_text(encoding="UTF-8")
-    assert content.startswith("# Changelog")
+    assert content == "# Old content\n"
 
 
 def test_init_tool_configs_no_pyproject(tmp_path: Path):

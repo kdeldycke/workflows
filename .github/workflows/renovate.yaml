@@ -48,7 +48,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.0
 
       - name: Regenerate bundled renovate.json5
-        run: uv run --frozen --no-progress repomatic init renovate --output-dir repomatic/data --overwrite
+        run: uv run --frozen --no-progress repomatic init renovate --output-dir repomatic/data
 
       - id: pr-metadata
         run: >
@@ -80,7 +80,7 @@ jobs:
 
       - name: Export renovate.json5 if missing
         if: steps.checks.outputs.renovate_config_exists == 'false'
-        run: uvx --no-progress --from . repomatic init renovate --overwrite
+        run: uvx --no-progress --from . repomatic init renovate
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''

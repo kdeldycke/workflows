@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Make `repomatic init` always overwrite managed files (workflows, configs, skills) by default. Remove the `--overwrite` flag. `changelog.md` is never overwritten once it exists.
 - Remove `extend-include` for Markdown files now that ruff 0.15.5 discovers `*.md` by default in preview mode.
 - Use short SHA in release workflow job names instead of the full 40-character commit hash.
 - Make `repomatic init` output contextual: distinguish created vs updated vs skipped files, warn about excluded files still on disk, and simplify next steps to point to the `setup-guide` workflow.

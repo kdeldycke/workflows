@@ -32,11 +32,11 @@ Automates:
 
 ```shell-session
 $ cd my-project
-$ uvx -- repomatic init --overwrite
+$ uvx -- repomatic init
 $ git add . && git commit -m "Update repomatic files" && git push
 ```
 
-This works for both new and existing repositories — `--overwrite` regenerates all managed files to the latest version. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#permissions-and-token)) via issues and PRs in your repository. After that, the [autofix workflow](#githubworkflowsautofixyaml-jobs) handles ongoing sync.
+This works for both new and existing repositories — managed files (workflows, configs, skills) are always regenerated to the latest version. The only exception is `changelog.md`, which is never overwritten once it exists. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#permissions-and-token)) via issues and PRs in your repository. After that, the [autofix workflow](#githubworkflowsautofixyaml-jobs) handles ongoing sync.
 
 Run `repomatic init --help` to see available components and options.
 

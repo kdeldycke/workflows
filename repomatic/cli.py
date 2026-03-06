@@ -268,18 +268,11 @@ _section_sync = Section("Sync")
     default=".",
     help="Root directory of the target repository.",
 )
-@option(
-    "--overwrite",
-    is_flag=True,
-    default=False,
-    help="Overwrite existing files instead of skipping them.",
-)
 def init_project(
     components,
     version_pin,
     repo,
     output_dir,
-    overwrite,
 ):
     """Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
 
@@ -316,16 +309,12 @@ def init_project(
         # Multiple components
         repomatic init ruff bumpversion
 
-    \b
-        # Overwrite existing files
-        repomatic init --overwrite workflows
     """
     result = run_init(
         output_dir=output_dir,
         components=components,
         version=version_pin,
         repo=repo,
-        overwrite=overwrite,
     )
 
     # Print summary.
@@ -347,7 +336,7 @@ def init_project(
         for path in result.updated:
             echo(f"  {path}")
     if result.skipped:
-        echo(f"Skipped {len(result.skipped)} existing file(s) (use --overwrite):")
+        echo(f"Skipped {len(result.skipped)} existing file(s) (never overwritten):")
         for path in result.skipped:
             echo(f"  {path}")
     if result.excluded_existing:
@@ -1978,7 +1967,6 @@ def sync_bumpversion() -> None:
     result = run_init(
         output_dir=Path("."),
         components=("bumpversion",),
-        overwrite=True,
     )
     changed = [*result.created, *result.updated]
     if changed:
@@ -2002,7 +1990,6 @@ def sync_linter_configs() -> None:
     result = run_init(
         output_dir=Path("."),
         components=("linters",),
-        overwrite=True,
     )
     changed = [*result.created, *result.updated]
     if changed:
@@ -2025,7 +2012,6 @@ def sync_skills() -> None:
     result = run_init(
         output_dir=Path("."),
         components=("skills",),
-        overwrite=True,
     )
     changed = [*result.created, *result.updated]
     if changed:
