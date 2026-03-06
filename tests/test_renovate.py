@@ -410,9 +410,12 @@ def test_empty_diff_is_not_noise(tmp_path):
 def test_revert_lock_if_noise_reverts(tmp_path):
     """Revert lock file when diff is only timestamp noise."""
     lock_path = tmp_path / "uv.lock"
-    with patch(
-        "repomatic.renovate.is_lock_diff_only_timestamp_noise", return_value=True
-    ), patch("repomatic.renovate.subprocess.run") as mock_run:
+    with (
+        patch(
+            "repomatic.renovate.is_lock_diff_only_timestamp_noise", return_value=True
+        ),
+        patch("repomatic.renovate.subprocess.run") as mock_run,
+    ):
         result = revert_lock_if_noise(lock_path)
         assert result is True
         mock_run.assert_called_once_with(
@@ -434,9 +437,12 @@ def test_revert_lock_if_noise_keeps(tmp_path):
 def test_sync_uv_lock_keeps_real_changes(tmp_path):
     """Keep lock file when real dependency changes exist."""
     lock_path = tmp_path / "uv.lock"
-    with patch("repomatic.renovate.subprocess.run") as mock_run, patch(
-        "repomatic.renovate.is_lock_diff_only_timestamp_noise",
-        return_value=False,
+    with (
+        patch("repomatic.renovate.subprocess.run") as mock_run,
+        patch(
+            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+            return_value=False,
+        ),
     ):
         reverted = sync_uv_lock(lock_path)
         assert reverted is False
@@ -449,9 +455,12 @@ def test_sync_uv_lock_keeps_real_changes(tmp_path):
 def test_sync_uv_lock_reverts_noise(tmp_path):
     """Revert lock file when only timestamp noise changed."""
     lock_path = tmp_path / "uv.lock"
-    with patch("repomatic.renovate.subprocess.run") as mock_run, patch(
-        "repomatic.renovate.is_lock_diff_only_timestamp_noise",
-        return_value=True,
+    with (
+        patch("repomatic.renovate.subprocess.run") as mock_run,
+        patch(
+            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+            return_value=True,
+        ),
     ):
         reverted = sync_uv_lock(lock_path)
         assert reverted is True

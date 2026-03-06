@@ -287,9 +287,7 @@ def _find_bumpversion_section_range(content: str) -> tuple[int, int] | None:
     :param content: The pyproject.toml content.
     :return: Tuple of (start, end) character indices, or ``None`` if not found.
     """
-    header_match = re.search(
-        r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE
-    )
+    header_match = re.search(r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE)
     if not header_match:
         return None
 
@@ -675,16 +673,14 @@ def run_init(
     pyproject_path = output_dir / "pyproject.toml"
     if pyproject_path.exists() and _migrate_repomatic_config_section(pyproject_path):
         result.warnings.append(
-            "Migrated legacy [tool.*] section to [tool.repomatic]"
-            " in pyproject.toml."
+            "Migrated legacy [tool.*] section to [tool.repomatic] in pyproject.toml."
         )
 
     # Remove old gha-* skill directories from the rename.
     removed_skills = _remove_legacy_skills(output_dir)
     if removed_skills:
         result.warnings.append(
-            "Removed legacy skill directories: "
-            + ", ".join(removed_skills)
+            "Removed legacy skill directories: " + ", ".join(removed_skills)
         )
 
     # Apply config exclusions when no explicit components given.
@@ -716,16 +712,12 @@ def run_init(
                         target = output_dir / rel_path
                         if target.exists():
                             result.excluded_existing.append(rel_path)
-                            logging.warning(
-                                f"Excluded but still on disk: {rel_path}"
-                            )
+                            logging.warning(f"Excluded but still on disk: {rel_path}")
                 elif comp == "changelog":
                     changelog = output_dir / "changelog.md"
                     if changelog.exists():
                         result.excluded_existing.append("changelog.md")
-                        logging.warning(
-                            "Excluded but still on disk: changelog.md"
-                        )
+                        logging.warning("Excluded but still on disk: changelog.md")
 
         wf_exclude: list[str] = config.get("workflow-sync-exclude", [])
         if wf_exclude:
@@ -733,9 +725,7 @@ def run_init(
 
     # Workflows.
     if "workflows" in selected:
-        _init_workflows(
-            output_dir, repo, version, result, exclude=workflow_exclude
-        )
+        _init_workflows(output_dir, repo, version, result, exclude=workflow_exclude)
 
     # Config file components (labels, linters, renovate, skills).
     for component_name in ("labels", "linters", "renovate", "skills"):

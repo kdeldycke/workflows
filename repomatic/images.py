@@ -242,9 +242,12 @@ def generate_markdown_summary(results: list[OptimizationResult]) -> str:
         "| :------- | -----: | ----: | ----------: |",
     ]
 
-    lines.extend(f"| `{r.path}` "
-            f"| {format_file_size(r.before_bytes)} "
-            f"| {format_file_size(r.after_bytes)} "
-            f"| {r.saved_pct:.1f}% |" for r in results)
+    lines.extend(
+        f"| `{r.path}` "
+        f"| {format_file_size(r.before_bytes)} "
+        f"| {format_file_size(r.after_bytes)} "
+        f"| {r.saved_pct:.1f}% |"
+        for r in results
+    )
 
     return "\n".join(lines)

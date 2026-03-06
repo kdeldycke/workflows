@@ -588,7 +588,11 @@ def test_frontmatter_key_ordering(filename, name):
         return
     end = raw.index("---", 3)
     yaml_block = raw[3:end].strip()
-    keys = [line.partition(":")[0].strip() for line in yaml_block.splitlines() if ":" in line]
+    keys = [
+        line.partition(":")[0].strip()
+        for line in yaml_block.splitlines()
+        if ":" in line
+    ]
     known = [k for k in keys if k in FRONTMATTER_KEY_ORDER]
     expected = [k for k in FRONTMATTER_KEY_ORDER if k in known]
     assert known == expected, (

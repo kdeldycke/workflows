@@ -299,7 +299,6 @@ def generate_refresh_tip() -> str:
     return render_template("refresh-tip", workflow_dispatch_url=workflow_dispatch_url)
 
 
-
 def build_pr_body(prefix: str, metadata_block: str) -> str:
     """Concatenate prefix, refresh tip, and metadata block into a PR body.
 
