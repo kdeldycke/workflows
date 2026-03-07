@@ -30,7 +30,7 @@ jobs:
       is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
         id: project-metadata
         run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
 
       - name: Regenerate bundled renovate.json5
         run: uv run --frozen --no-progress repomatic init renovate --output-dir repomatic/data
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
 
       - name: Check Renovate prerequisites
         id: checks
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
 
       # Validate prerequisites before running Renovate.
       # This ensures the repository is properly configured.
@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Sync uv.lock
         run: uvx --no-progress --from . repomatic sync-uv-lock
       - id: pr-metadata
