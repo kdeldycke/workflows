@@ -31,6 +31,7 @@ from repomatic.init_project import (
     EXPORTABLE_FILES,
     INIT_CONFIGS,
     _migrate_repomatic_config_section,
+    _remove_legacy_zizmor,
     _to_pyproject_format,
     _update_bumpversion_config,
     default_version_pin,
@@ -1330,3 +1331,39 @@ def test_init_migrates_legacy_config_section(
 
     # Migration warning should be in the result.
     assert any("Migrated legacy" in w for w in result.warnings)
+
+
+# --- Legacy zizmor config migration tests ---
+
+
+@pytest.mark.parametrize("filename", ["zizmor.yml", "zizmor.yaml"])
+def test_remove_legacy_zizmor_removes_file(tmp_path: Path, filename: str):
+    """Old .github/zizmor.{yml,yaml} is removed."""
+    github_dir = tmp_path / ".github"
+    github_dir.mkdir()
+    legacy = github_dir / filename
+    legacy.write_text("rules: {}\n", encoding="UTF-8")
+
+    removed = _remove_legacy_zizmor(tmp_path)
+
+    assert removed == [f".github/{filename}"]
+    assert not legacy.exists()
+
+
+def test_remove_legacy_zizmor_no_file(tmp_path: Path):
+    """No legacy file present — returns empty list, no error."""
+    assert _remove_legacy_zizmor(tmp_path) == []
+
+
+def test_init_removes_legacy_zizmor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """run_init() removes .github/zizmor.yml and warns about it."""
+    github_dir = tmp_path / ".github"
+    github_dir.mkdir()
+    legacy = github_dir / "zizmor.yml"
+    legacy.write_text("rules: {}\n", encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, components=("linters",))
+
+    assert not legacy.exists()
+    assert any("Removed legacy zizmor" in w for w in result.warnings)

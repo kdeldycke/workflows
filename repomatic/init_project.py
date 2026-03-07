@@ -685,6 +685,13 @@ def run_init(
             "Removed legacy skill directories: " + ", ".join(removed_skills)
         )
 
+    # Remove old .github/zizmor.{yml,yaml} from before the move to root-level.
+    removed_zizmor = _remove_legacy_zizmor(output_dir)
+    if removed_zizmor:
+        result.warnings.append(
+            "Removed legacy zizmor config files: " + ", ".join(removed_zizmor)
+        )
+
     # Apply config exclusions when no explicit components given.
     workflow_exclude: frozenset[str] = frozenset()
     if not components:
@@ -914,6 +921,28 @@ def _init_tool_configs(
                 logging.info(f"Merged [{section}].")
                 if rel not in result.created:
                     result.created.append(rel)
+
+
+def _remove_legacy_zizmor(output_dir: Path) -> list[str]:
+    """Remove old ``.github/zizmor.yml`` and ``.github/zizmor.yaml`` files.
+
+    The zizmor config was moved from ``.github/zizmor.{yml,yaml}`` to the
+    root-level ``zizmor.yaml`` in ``6.3.2``. Remove the old files to prevent
+    zizmor from picking them up from the legacy location.
+
+    :param output_dir: Root directory of the target repository.
+    :return: List of relative paths of removed files.
+    """
+    removed: list[str] = []
+    github_dir = output_dir / ".github"
+    for filename in ("zizmor.yml", "zizmor.yaml"):
+        legacy = github_dir / filename
+        if legacy.is_file():
+            rel = legacy.relative_to(output_dir).as_posix()
+            legacy.unlink()
+            removed.append(rel)
+            logging.info(f"Removed legacy zizmor config: {rel}")
+    return removed
 
 
 def _remove_legacy_skills(output_dir: Path) -> list[str]:
