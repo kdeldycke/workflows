@@ -181,10 +181,20 @@ def _get_renovate_config() -> str:
     """Get Renovate config, with repo-specific settings stripped.
 
     When running from the source repository, reads the root ``renovate.json5``
-    and removes repo-specific settings (``customManagers``, ``assignees``).
+    and removes repo-specific settings (``assignees`` and the self-referencing
+    uv ``customManagers`` entry that targets ``renovate.json5`` itself).
 
     When installed as a package, falls back to the pre-processed bundled file
     in ``repomatic/data/renovate.json5``.
+
+    .. note::
+        The self-referencing uv ``customManagers`` entry is excluded because it
+        creates an endless update loop in downstream repos: Renovate bumps the
+        pinned uv version, the merged PR triggers ``sync-renovate``, which
+        overwrites ``renovate.json5`` back to the bundled template (reverting
+        the bump), and Renovate opens the same PR again — indefinitely. All
+        other ``customManagers`` entries are included since they target workflow
+        files, not ``renovate.json5`` itself.
 
     :return: The clean Renovate configuration content.
     """
@@ -197,21 +207,19 @@ def _get_renovate_config() -> str:
 
     content = root_path.read_text(encoding="UTF-8")
 
-    # Remove assignees line.
+    # Remove assignees line (repo-specific).
     content = re.sub(r"\s*assignees:\s*\[[^\]]*\],?\n", "\n", content)
 
-    # Remove customManagers section and its preceding comment.
-    # Find where customManagers starts (including its comment).
-    cm_match = re.search(
-        r"\n\s*//[^\n]*[Cc]ustom [Mm]anagers[^\n]*\n\s*customManagers:", content
+    # Remove the self-referencing uv customManagers entry (identified by its
+    # unique description). This entry targets renovate.json5 itself and causes
+    # an endless update loop when synced to downstream repos.
+    content = re.sub(
+        r'\n    \{\n      description: "Update uv version in postUpgradeTasks'
+        r' download URL\.",\n.*?\n    \},',
+        "",
+        content,
+        flags=re.DOTALL,
     )
-    if cm_match:
-        # Find the closing of vulnerabilityAlerts (the section before customManagers).
-        # Keep everything up to and including that closing brace and comma.
-        va_end = re.search(r"(vulnerabilityAlerts:\s*\{[^}]*\},?\s*)\n", content)
-        if va_end:
-            # Keep content up to end of vulnerabilityAlerts, then close the object.
-            content = content[: va_end.end()].rstrip().rstrip(",") + "\n}\n"
 
     return content
 

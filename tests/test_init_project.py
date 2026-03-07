@@ -176,7 +176,8 @@ def test_bundled_renovate_matches_processed_root() -> None:
 
     The root ``renovate.json5`` is the source of truth. The bundled version
     in ``repomatic/data/`` should match the root file with repo-specific
-    settings (``assignees``, ``customManagers``) removed.
+    settings (``assignees`` and the self-referencing uv ``customManagers``
+    entry) removed.
 
     If this test fails, regenerate the bundled file by running:
         uv run repomatic init renovate --output-dir repomatic/data
@@ -190,14 +191,14 @@ def test_bundled_renovate_matches_processed_root() -> None:
     # Remove assignees line.
     content = re.sub(r"\s*assignees:\s*\[[^\]]*\],?\n", "\n", content)
 
-    # Remove customManagers section and its preceding comment.
-    cm_match = re.search(
-        r"\n\s*//[^\n]*[Cc]ustom [Mm]anagers[^\n]*\n\s*customManagers:", content
+    # Remove the self-referencing uv customManagers entry.
+    content = re.sub(
+        r'\n    \{\n      description: "Update uv version in postUpgradeTasks'
+        r' download URL\.",\n.*?\n    \},',
+        "",
+        content,
+        flags=re.DOTALL,
     )
-    if cm_match:
-        va_end = re.search(r"(vulnerabilityAlerts:\s*\{[^}]*\},?\s*)\n", content)
-        if va_end:
-            content = content[: va_end.end()].rstrip().rstrip(",") + "\n}\n"
 
     # Read the bundled file and compare.
     bundled_content = get_data_content("renovate.json5")
