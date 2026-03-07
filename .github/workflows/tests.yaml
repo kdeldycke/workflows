@@ -90,7 +90,7 @@ jobs:
           set -e
           uv --no-progress venv --python "${UV_PYTHON:-${{ matrix.python-version }}}"
       - name: Install project
-        run: uv --no-progress sync --frozen --group test
+        run: uv --no-progress sync --frozen --all-extras --group test
 
       - name: Unittests
         # Produce XML artifacts for Codecov integration (coverage + test analytics).
