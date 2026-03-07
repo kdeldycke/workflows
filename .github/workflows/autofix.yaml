@@ -29,7 +29,7 @@ jobs:
       issues: write
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Manage setup guide issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
         id: project-metadata
         run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Run autopep8
         if: needs.project-metadata.outputs.python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Run pyproject-fmt
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       # https://mdformat.readthedocs.io/en/stable/users/plugins.html
       - name: Install mdformat
         # XXX mdformat-pelican is capped at mdformat<0.8.0 so it block the whole ecosystem from upgrading:
@@ -212,7 +212,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Install Biome
         run: |
           curl -fsSL \
@@ -250,7 +250,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Install typos
         run: |
           curl -fsSL --output /tmp/typos.tar.gz \
@@ -290,7 +290,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Install image optimization tools
         run: >
           sudo apt-get update &&
@@ -324,7 +324,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Sync .gitignore
         run: uvx --no-progress --from . repomatic sync-gitignore
       - id: pr-metadata
@@ -346,7 +346,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Sync bumpversion config
         run: uvx --no-progress --from . repomatic sync-bumpversion
       - id: pr-metadata
@@ -368,7 +368,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Sync linter configs
         run: uvx --no-progress --from . repomatic sync-linter-configs
       - id: pr-metadata
@@ -395,7 +395,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Sync Renovate config
         run: uvx --no-progress --from . repomatic sync-renovate
       - id: pr-metadata
@@ -423,7 +423,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Sync .mailmap
         run: uvx --no-progress --from . repomatic sync-mailmap --skip-if-missing
       - id: pr-metadata
@@ -451,7 +451,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Generate graph
         # Package name and output path are auto-detected from pyproject.toml.
         run: uvx --no-progress --from . repomatic update-deps-graph
@@ -479,7 +479,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Regenerate Sphinx autodoc
         # Omit --force so existing RST files (often with custom modifications produced by the next step) are preserved.
         # Only new module stubs are created, and deleted ones are left for manual removal by the maintainers.
@@ -510,7 +510,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Re-create thin caller workflows
         run: uvx --no-progress --from . repomatic workflow sync --format thin-caller
       - name: Sync non-reusable workflow headers
@@ -551,7 +551,7 @@ jobs:
         with:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - id: pr-metadata
         # Template variables are substituted by the template-sync action.
         env:

@@ -72,7 +72,7 @@ jobs:
     continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Force native ARM64 Python on Windows ARM64
         # Workaround for https://github.com/astral-sh/uv/issues/12906: uv defaults to x86_64 Python on ARM64 Windows,
         # relying on transparent emulation. Native extensions with Rust (e.g., test-results-parser from codecov-cli)
@@ -130,7 +130,7 @@ jobs:
       package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
         id: project-metadata
         run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
@@ -146,7 +146,7 @@ jobs:
       CLI_SCRIPTS: ${{ needs.project-metadata.outputs.cli_scripts }}
       GIT_URL: git+https://github.com/${{ github.repository }}
     steps:
-      - uses: astral-sh/setup-uv@v7.3.0
+      - uses: astral-sh/setup-uv@v7.3.1
       - name: Install Python
         run: uv --no-progress venv --python 3.14
       - name: Run stable CLI
