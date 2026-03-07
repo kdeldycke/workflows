@@ -404,10 +404,18 @@ def generate_thin_caller(
         raise ValueError(msg)
 
     # Build trigger dict, ensuring workflow_dispatch is present.
-    triggers: dict[str, Any] = {
-        trigger_name: trigger_config
-        for trigger_name, trigger_config in info.non_call_triggers.items()
-    }
+    # Strip paths/paths-ignore: canonical paths reference the repomatic source
+    # tree and are wrong in downstream thin callers. Callers trigger on any
+    # file change within the matching branches — conservative but correct.
+    triggers: dict[str, Any] = {}
+    for trigger_name, trigger_config in info.non_call_triggers.items():
+        if isinstance(trigger_config, dict):
+            trigger_config = {
+                k: v
+                for k, v in trigger_config.items()
+                if k not in {"paths", "paths-ignore"}
+            }
+        triggers[trigger_name] = trigger_config
     if "workflow_dispatch" not in triggers:
         triggers["workflow_dispatch"] = None
 

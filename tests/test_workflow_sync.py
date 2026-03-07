@@ -713,6 +713,31 @@ def test_thin_caller_omits_concurrency(filename: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Thin caller omits paths filters
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
+def test_thin_caller_omits_paths_filter(filename: str) -> None:
+    """Verify thin callers never include paths or paths-ignore filters.
+
+    Canonical workflow paths reference the repomatic source tree and would
+    incorrectly restrict CI triggers in downstream repos.
+    """
+    content = generate_thin_caller(filename)
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    for trigger_name, trigger_config in triggers.items():
+        if isinstance(trigger_config, dict):
+            assert "paths" not in trigger_config, (
+                f"{filename}: trigger '{trigger_name}' has a paths filter."
+            )
+            assert "paths-ignore" not in trigger_config, (
+                f"{filename}: trigger '{trigger_name}' has a paths-ignore filter."
+            )
+
+
+# ---------------------------------------------------------------------------
 # Header generation tests
 # ---------------------------------------------------------------------------
 

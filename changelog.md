@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Fix `generate_thin_caller()` stripping `paths` and `paths-ignore` filters from generated thin callers. Canonical workflow paths reference the repomatic source tree and would incorrectly restrict CI triggers in downstream repos.
 - Auto-remove legacy `.github/zizmor.yml` and `.github/zizmor.yaml` during `repomatic init` and `sync-linter-configs`, completing the migration to root-level `zizmor.yaml`.
 - Fix `optimize-images` job failing on `ubuntu-slim` because `oxipng` is not available there.
 - Add `date-released` update entry for `citation.cff` to the bundled `bumpversion.toml` template so downstream repos keep their release date in sync during version bumps.
