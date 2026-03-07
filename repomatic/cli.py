@@ -2097,11 +2097,30 @@ def sync_renovate(ctx: Context, output_path: Path) -> None:
     """Sync ``renovate.json5`` from the canonical reference configuration.
 
     Overwrites the local Renovate configuration with the version bundled in
-    ``repomatic``, which strips repo-specific settings (``customManagers``,
-    ``assignees``) from the upstream ``kdeldycke/repomatic`` reference.
+    ``repomatic``, which strips ``assignees`` and ``customManagers`` from the
+    upstream ``kdeldycke/repomatic`` reference.
 
     Exits gracefully if the target file does not exist (the repository is
     not using Renovate).
+
+    .. note::
+
+        ``customManagers`` is intentionally omitted from the bundled template
+        for two reasons:
+
+        1. **Tool mix varies by repo.** The upstream ``customManagers`` track
+           tools specific to ``repomatic``'s own workflows (actionlint, biome,
+           lychee, labelmaker, typos). Downstream repos may not use all of
+           these, adding noise to the Renovate dependency dashboard and
+           risking spurious update PRs from overly broad regex patterns.
+
+        2. **The self-referencing uv manager would create an endless loop.**
+           One ``customManagers`` entry targets ``renovate.json5`` itself to
+           keep the hardcoded ``uv`` version in ``postUpgradeTasks`` current.
+           If synced downstream, Renovate would bump that version via PR;
+           the merged PR would trigger ``sync-renovate``, which overwrites
+           ``renovate.json5`` back to the bundled template (reverting the
+           bump); Renovate would then open the same PR again — indefinitely.
     """
     config = load_repomatic_config()
     if not config.get("renovate-sync", True):
