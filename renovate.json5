@@ -123,8 +123,9 @@
       matchStrings: [
         // Matches: uvx 'package==1.2.3', uv tool install 'package==1.2.3',
         // uv pip install 'package==1.2.3', --with 'package==1.2.3',
-        // also with optional extras like 'package[extra]==1.2.3'
-        "'(?<depName>[a-z][a-z0-9_-]*)(\\[[^\\]]+\\])?==(?<currentValue>[0-9.]+)'",
+        // also with optional extras like 'package[extra]==1.2.3'.
+        // Requires uvx/uv/--with prefix to avoid matching arbitrary single-quoted strings.
+        "(?:uvx?|--with)[^'\\n]*'(?<depName>[a-z][a-z0-9_-]*)(?:\\[[^\\]]+\\])?==(?<currentValue>[0-9.]+)'",
       ],
       datasourceTemplate: "pypi",
     },
