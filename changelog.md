@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Fix `optimize-images` job failing on `ubuntu-slim` because `oxipng` is not available there.
 ## [`6.3.1` (2026-03-06)](https://github.com/kdeldycke/repomatic/compare/v6.3.0...v6.3.1)
 
 - Register `repomatic-audit` skill in `COMPONENT_FILES`, data symlinks, and `_SKILL_PHASES` so it syncs to downstream repos.

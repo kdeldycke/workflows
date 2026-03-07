@@ -286,7 +286,8 @@ jobs:
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.image_files
-    runs-on: ubuntu-slim
+    # Cannot use "ubuntu-slim" because oxipng is not available there.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
