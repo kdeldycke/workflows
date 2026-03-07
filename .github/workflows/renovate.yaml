@@ -132,9 +132,11 @@ jobs:
           # 1. Workflow checksum updates: downloads a pinned uv binary from
           #    GitHub Releases, verifies its SHA-256, extracts uvx, then runs
           #    repomatic update-checksums on the upgraded workflow file.
-          # 2. uv hash auto-update: when Renovate bumps the uv version in
-          #    renovate.json5, downloads the new tarball and uses sed to
-          #    replace the old SHA-256 hash inline (no binary execution).
+          # 2. uv hash auto-update: when Renovate bumps the uv version in any
+          #    renovate.json5 (root or bundled template), downloads the new
+          #    tarball and uses sed to replace the old SHA-256 hash inline
+          #    (no binary execution). The [^ ]* prefix matches paths like
+          #    repomatic/data/renovate.json5.
           RENOVATE_ALLOWED_COMMANDS: >-
             ["^bash -c 'curl -fsSL
             https://github\\.com/astral-sh/uv/releases/download/[0-9.]+/uv-x86_64-unknown-linux-gnu\\.tar\\.gz
@@ -145,7 +147,7 @@ jobs:
             "^bash -c 'curl -fsSL
             https://github\\.com/astral-sh/uv/releases/download/[0-9.]+/uv-x86_64-unknown-linux-gnu\\.tar\\.gz
             --output /tmp/uv\\.tar\\.gz
-            && sed -i .+ renovate\\.json5'$"]
+            && sed -i .+ [^ ]*renovate\\.json5'$"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
           # Enable debug logging to diagnose postUpgradeTasks and manager issues.
