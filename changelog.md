@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `test-package-install` job to `tests.yaml`: verifies all `[project.scripts]` entry points install and run correctly via `uvx`, `uv run --with`, module invocation, `uv tool install`, and `pipx run`, from both PyPI and GitHub. Runs once on a single stable OS/Python instead of repeating across the full matrix. Add `cli_scripts` output to `repomatic metadata`.
 - Sync `customManagers` to downstream `renovate.json5` so Renovate can update inline version pins in workflow files (Python packages in `uvx`/`uv pip` commands, binary tool versions in download URLs, npm packages). Only the self-referencing uv entry (which targets `renovate.json5` itself) is excluded to prevent an endless sync loop.
 - Fix `generate_thin_caller()` stripping `paths` and `paths-ignore` filters from generated thin callers. Canonical workflow paths reference the repomatic source tree and would incorrectly restrict CI triggers in downstream repos.
 - Auto-remove legacy `.github/zizmor.yml` and `.github/zizmor.yaml` during `repomatic init` and `sync-linter-configs`, completing the migration to root-level `zizmor.yaml`.

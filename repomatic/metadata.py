@@ -2320,6 +2320,7 @@ class Metadata:
             "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,
+            "cli_scripts": [cli_id for cli_id, _, _ in self.script_entries],
             "project_description": self.project_description,
             "mypy_params": self.mypy_params,
             "current_version": self.current_version,

@@ -687,10 +687,17 @@ docs = [
 
 ### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/tests.yaml)
 
+- 📦 **Package install** (`test-package-install`)
+
+  - Verifies the package can be installed and all CLI entry points run correctly via every install method: `uvx`, `uvx --from`, `uv run --with`, module invocation (`-m`), `uv tool install`, and `pipx run`
+  - Tests both the latest PyPI release and the current `main` branch from GitHub
+  - Runs once on a single stable OS/Python — install correctness does not vary by platform
+  - **Requires**:
+    - `cli_scripts` from `project-metadata` job (skipped if no `[project.scripts]` entries)
+
 - 🔬 **Run tests** (`tests`)
 
   - Runs the test suite across a matrix of OS (Linux/macOS/Windows × `x86_64`/`arm64`) and Python versions (`3.10`, `3.14`, `3.14t`, `3.15`, `3.15t`)
-  - Verifies CLI launchability via `uvx`, `uv run`, and module invocation
   - Runs `pytest` with coverage reporting to Codecov
   - Runs self-tests against the CLI test plan
   - Job names prefixed with **✅** (stable) or **⁉️** (unstable, e.g., unreleased Python versions)

@@ -92,19 +92,6 @@ jobs:
       - name: Install project
         run: uv --no-progress sync --frozen --group test
 
-      - name: Check launchable modules
-        run: |
-          uv run        -m repomatic --version
-          uv run python -m repomatic --version
-      - name: Check launchable stable CLI
-        run: |
-          uvx    -- repomatic --version
-          uv run -- repomatic --version
-      - name: Check launchable dev CLI
-        run: |
-          uvx    --from git+https://github.com/kdeldycke/repomatic -- repomatic --version
-          uv run --with git+https://github.com/kdeldycke/repomatic -- repomatic --version
-
       - name: Unittests
         # Produce XML artifacts for Codecov integration (coverage + test analytics).
         run: >
@@ -139,12 +126,71 @@ jobs:
     runs-on: ubuntu-slim
     outputs:
       build_targets: ${{ steps.project-metadata.outputs.build_targets }}
+      cli_scripts: ${{ steps.project-metadata.outputs.cli_scripts }}
+      package_name: ${{ steps.project-metadata.outputs.package_name }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.0
       - name: Run repomatic metadata
         id: project-metadata
         run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+
+  test-package-install:
+    name: 📦 Package install
+    needs:
+      - project-metadata
+    if: needs.project-metadata.outputs.cli_scripts
+    runs-on: ubuntu-slim
+    env:
+      PACKAGE: ${{ needs.project-metadata.outputs.package_name }}
+      CLI_SCRIPTS: ${{ needs.project-metadata.outputs.cli_scripts }}
+      GIT_URL: git+https://github.com/${{ github.repository }}
+    steps:
+      - uses: astral-sh/setup-uv@v7.3.0
+      - name: Install Python
+        run: uv --no-progress venv --python 3.14
+      - name: Run stable CLI
+        run: |
+          for script in $CLI_SCRIPTS; do
+            uvx "$script" --version
+            uvx --from "$PACKAGE" -- "$script" --version
+            uv run --with "$PACKAGE" -- "$script" --version
+          done
+          module=$(echo "$PACKAGE" | tr '-' '_')
+          uv run --with "$PACKAGE" -m "$module" --version
+          uv run --with "$PACKAGE" python -m "$module" --version
+      - name: Run dev CLI
+        run: |
+          for script in $CLI_SCRIPTS; do
+            uvx --from "$GIT_URL" -- "$script" --version
+            uv run --with "$GIT_URL" -- "$script" --version
+          done
+          module=$(echo "$PACKAGE" | tr '-' '_')
+          uv run --with "$GIT_URL" -m "$module" --version
+          uv run --with "$GIT_URL" python -m "$module" --version
+      - name: Run stable CLI via uv tool
+        run: |
+          uv --no-progress tool install "$PACKAGE"
+          for script in $CLI_SCRIPTS; do
+            "$script" --version
+          done
+          uv --no-progress tool uninstall "$PACKAGE"
+      - name: Run dev CLI via uv tool
+        run: |
+          uv --no-progress tool install "$GIT_URL"
+          for script in $CLI_SCRIPTS; do
+            "$script" --version
+          done
+          uv --no-progress tool uninstall "$PACKAGE"
+      - name: Run CLI via pipx
+        run: |
+          uv --no-progress tool install pipx
+          for script in $CLI_SCRIPTS; do
+            pipx run "$script" --version
+            pipx run --spec "$PACKAGE" "$script" --version
+            pipx run --spec "$GIT_URL" "$script" --version
+          done
+          uv --no-progress tool uninstall pipx
 
   validate-arch:
     # Check architecture matches the one expected from the runner image. This is to ensure that the OS does not rely on

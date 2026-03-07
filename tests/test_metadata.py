@@ -118,6 +118,15 @@ class AnyLengthList:
         self.item_pattern = item_pattern
 
 
+class StringList(list):
+    """A list of plain strings serialized without double-quoting in GitHub Actions format.
+
+    Used for metadata fields like ``cli_scripts`` that contain plain string values
+    (not file paths). File path lists use double-quoted space-separated format because
+    the actual metadata holds ``Path`` objects; plain string lists do not.
+    """
+
+
 class PartialIncludeList:
     """Matcher for include lists where required items must be present.
 
@@ -622,6 +631,7 @@ expected = {
     "is_python_project": True,
     "nuitka": True,
     "package_name": "repomatic",
+    "cli_scripts": StringList(["repomatic"]),
     "project_description": "🏭 Automate repository maintenance, releases, and CI/CD workflows",
     "mypy_params": "--python-version 3.10",
     "current_version": regex(r"[0-9\.]+(\.dev[0-9]+)?"),
@@ -929,7 +939,11 @@ def test_metadata_github_format():
             new_value = AnyReleaseNotesOrEmptyString(
                 value.dev_pattern, value.release_pattern
             )
+        elif isinstance(value, StringList):
+            # Plain string lists: space-separated without double-quotes.
+            new_value = " ".join(value)
         elif isinstance(value, list) and all(isinstance(i, str) for i in value):
+            # File path lists (Path objects in actual metadata): double-quoted.
             new_value = " ".join(f'"{i}"' for i in value)
         github_format_expected[key] = new_value
 
