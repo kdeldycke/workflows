@@ -213,15 +213,13 @@ def _get_renovate_config() -> str:
     # Remove the self-referencing uv customManagers entry (identified by its
     # unique description). This entry targets renovate.json5 itself and causes
     # an endless update loop when synced to downstream repos.
-    content = re.sub(
+    return re.sub(
         r'\n    \{\n      description: "Update uv version in postUpgradeTasks'
         r' download URL\.",\n.*?\n    \},',
         "",
         content,
         flags=re.DOTALL,
     )
-
-    return content
 
 
 def export_content(filename: str) -> str:
