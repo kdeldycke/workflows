@@ -6,4 +6,6 @@
 exclude = [
     # GitHub issue comment fragments are dynamically loaded and can't be verified.
     "^https://github.com/.+/issues/[0-9]+#issuecomment-.*$",
+    # Release binary download URLs redirect to the GitHub CDN (objects.githubusercontent.com).
+    "^https://github.com/.+/releases/.+/download/.*$",
 ]
