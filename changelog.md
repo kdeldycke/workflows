@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.3.3.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.3.2` (2026-03-08)](https://github.com/kdeldycke/repomatic/compare/v6.3.1...v6.3.2)
 
 - Add `--all-extras` to the `uv sync` step in `tests.yaml` to catch incompatibilities between optional dependency groups. No-op for projects with no extras.
