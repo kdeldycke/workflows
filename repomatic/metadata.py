@@ -436,6 +436,13 @@ class Config:
     to overwrite it can set this to ``false``.
     """
 
+    dev_release_sync: bool = True
+    """Whether dev pre-release sync is enabled for this project.
+
+    Projects that do not want a rolling draft pre-release maintained on
+    GitHub can set this to ``false``.
+    """
+
     renovate_sync: bool = True
     """Whether Renovate config sync is enabled for this project.
 
@@ -597,6 +604,7 @@ class Config:
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "awesome_template_sync",
     "bumpversion_sync",
+    "dev_release_sync",
     "dependency_graph_all_extras",
     "dependency_graph_all_groups",
     "dependency_graph_level",

@@ -769,7 +769,9 @@ def sync_github_releases(dry_run: bool) -> None:
     default=None,
     help="Directory containing assets (binaries, packages) to upload.",
 )
+@pass_context
 def sync_dev_release(
+    ctx: Context,
     dry_run: bool,
     delete: bool,
     upload_assets: Path | None,
@@ -800,6 +802,14 @@ def sync_dev_release(
         # Delete the dev pre-release (e.g. during a real release)
         repomatic sync-dev-release --live --delete
     """
+    config = load_repomatic_config()
+    if not config.get("dev-release-sync", True):
+        logging.info(
+            "[tool.repomatic] dev-release-sync is disabled."
+            " Skipping dev release sync."
+        )
+        ctx.exit(0)
+
     if delete and upload_assets:
         raise UsageError("--delete and --upload-assets are mutually exclusive.")
     version = Metadata.get_current_version()

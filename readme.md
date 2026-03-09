@@ -156,6 +156,7 @@ extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 pypi-package-history = ["old-name", "older-name"]
 awesome-template-sync = false
 bumpversion-sync = false
+dev-release-sync = false
 gitignore-sync = false
 labels-sync = false
 mailmap-sync = false
@@ -190,6 +191,7 @@ init-exclude = ["linters", "skills"]
 | `pypi-package-history`        | list[str] | `[]`                                              | Former PyPI package names for renamed projects. `lint-changelog` fetches releases from each name and generates correct PyPI URLs per version.                                                                |
 | `awesome-template-sync`       | bool      | `true`                                            | Enable awesome-template sync. Set to `false` to skip `sync-awesome-template` in the autofix workflow.                                                                                                        |
 | `bumpversion-sync`            | bool      | `true`                                            | Enable bumpversion config sync. Set to `false` to skip `sync-bumpversion` in the autofix workflow.                                                                                                           |
+| `dev-release-sync`            | bool      | `true`                                            | Enable dev pre-release sync. Set to `false` to skip `sync-dev-release` in the release workflow.                                                                                                              |
 | `gitignore-sync`              | bool      | `true`                                            | Enable `.gitignore` sync. Set to `false` to skip `sync-gitignore` in the autofix workflow.                                                                                                                   |
 | `labels-sync`                 | bool      | `true`                                            | Enable label sync. Set to `false` to skip `sync-labels` in the labels workflow.                                                                                                                              |
 | `mailmap-sync`                | bool      | `true`                                            | Enable `.mailmap` sync. Set to `false` to skip `sync-mailmap` in the autofix workflow.                                                                                                                       |
@@ -669,6 +671,8 @@ docs = [
   - **Runs on**: Non-release pushes to `main` only
   - **Requires**:
     - `build-package` and `compile-binaries` jobs (uses `always()` for resilience)
+  - **Skipped if**:
+    - `dev-release-sync = false` in `[tool.repomatic]`
 
 ### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
 

@@ -1313,6 +1313,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["pypi-package-history"] == []
     assert metadata.config["awesome-template-sync"] is True
     assert metadata.config["bumpversion-sync"] is True
+    assert metadata.config["dev-release-sync"] is True
     assert metadata.config["gitignore-sync"] is True
     assert metadata.config["labels-sync"] is True
     assert metadata.config["mailmap-sync"] is True
@@ -1355,6 +1356,7 @@ extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
 pypi-package-history = ["old-name", "older-name"]
 awesome-template-sync = false
 bumpversion-sync = false
+dev-release-sync = false
 gitignore-sync = false
 labels-sync = false
 mailmap-sync = false
@@ -1398,6 +1400,7 @@ zizmor-sync = false
     assert metadata.config["pypi-package-history"] == ["old-name", "older-name"]
     assert metadata.config["awesome-template-sync"] is False
     assert metadata.config["bumpversion-sync"] is False
+    assert metadata.config["dev-release-sync"] is False
     assert metadata.config["gitignore-sync"] is False
     assert metadata.config["labels-sync"] is False
     assert metadata.config["mailmap-sync"] is False
