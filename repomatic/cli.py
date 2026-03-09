@@ -1991,21 +1991,21 @@ def sync_bumpversion(ctx: Context) -> None:
 
 
 @repomatic.command(
-    short_help="Sync linter config files from bundled definitions",
+    short_help="Sync zizmor.yaml from bundled definition",
     section=_section_sync,
 )
 @pass_context
-def sync_linter_configs(ctx: Context) -> None:
-    """Sync linter configuration files from the bundled definitions in ``repomatic``.
+def sync_zizmor(ctx: Context) -> None:
+    """Sync ``zizmor.yaml`` from the bundled definition in ``repomatic``.
 
     Overwrites ``zizmor.yaml`` with the canonical configuration
-    bundled in ``repomatic``. Designed for the ``sync-linter-configs`` autofix job.
+    bundled in ``repomatic``. Designed for the ``sync-zizmor`` autofix job.
     Use ``repomatic init linters`` for interactive bootstrapping.
     """
     config = load_repomatic_config()
-    if not config.get("linter-sync", True):
+    if not config.get("zizmor-sync", True):
         logging.info(
-            "[tool.repomatic] linter-sync is disabled. Skipping linter config sync."
+            "[tool.repomatic] zizmor-sync is disabled. Skipping zizmor config sync."
         )
         ctx.exit(0)
 
@@ -2018,7 +2018,7 @@ def sync_linter_configs(ctx: Context) -> None:
         for path in changed:
             echo(f"Updated: {path}")
     else:
-        echo("Linter configs are up to date.")
+        echo("Zizmor config is up to date.")
 
 
 @repomatic.command(

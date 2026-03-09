@@ -5,7 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
-- Add `awesome-template-sync`, `bumpversion-sync`, `gitignore-sync`, `labels-sync`, `linter-sync`, and `mailmap-sync` toggles to `[tool.repomatic]`. All sync operations can now be individually disabled.
+- Rename `sync-linter-configs` to `sync-zizmor` and `linter-sync` toggle to `zizmor-sync`. Sync jobs are named after the specific tool they sync, not a generic category.
+- Add `awesome-template-sync`, `bumpversion-sync`, `gitignore-sync`, `labels-sync`, `zizmor-sync`, and `mailmap-sync` toggles to `[tool.repomatic]`. All sync operations can now be individually disabled.
 - Add `repomatic sync-labels` CLI command wrapping `labelmaker` invocation with toggle check, profile detection, and extra label file handling.
 - Replace `AndreasAugustin/actions-template-sync` with native `repomatic sync-awesome-template` CLI command. Removes a third-party action dependency and aligns the job with the standard sync pattern.
 - Skip `init ruff` config injection in `format-python` job for non-Python projects. Doc-only repos use Ruff for code-block formatting without needing a `[tool.ruff]` section.

@@ -205,7 +205,7 @@ def test_get_template_names():
     assert "setup-guide" in names
     assert "detect-squash-merge" in names
     assert "generated-footer" in names
-    assert "sync-linter-configs" in names
+    assert "sync-zizmor" in names
     assert "github-releases" in names
     assert "release-notes" in names
     assert "available-admonition" in names
@@ -217,7 +217,7 @@ def test_get_template_names():
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
     assert "yanked-admonition" in names
-    assert len(names) == 33
+    assert len(names) == 34
 
 
 def test_load_template_frontmatter():

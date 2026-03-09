@@ -416,13 +416,6 @@ class Config:
     to overwrite it can set this to ``false``.
     """
 
-    linter_sync: bool = True
-    """Whether linter config sync is enabled for this project.
-
-    Projects that do not want the autofix job to sync ``zizmor.yaml`` can set
-    this to ``false``.
-    """
-
     labels_sync: bool = True
     """Whether label sync is enabled for this project.
 
@@ -472,6 +465,13 @@ class Config:
     Each entry is a workflow filename (e.g., ``"debug.yaml"``) that will be skipped
     when initializing, syncing, or creating workflow files without explicit positional
     arguments. Explicit CLI positional arguments override this list.
+    """
+
+    zizmor_sync: bool = True
+    """Whether ``zizmor.yaml`` sync is enabled for this project.
+
+    Projects that do not want the autofix job to sync ``zizmor.yaml`` can set
+    this to ``false``.
     """
 
     test_plan_file: str = "./tests/cli-test-plan.yaml"
@@ -599,7 +599,6 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "gitignore_sync",
     "init_exclude",
     "labels_sync",
-    "linter_sync",
     "mailmap_sync",
     "pypi_package_history",
     "renovate_sync",
@@ -608,6 +607,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "timeout",
     "workflow_sync",
     "workflow_sync_exclude",
+    "zizmor_sync",
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.
 

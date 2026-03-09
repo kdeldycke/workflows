@@ -368,8 +368,8 @@ jobs:
           labels: "🤖 ci"
           branch: sync-bumpversion
 
-  sync-linter-configs:
-    name: 🔄 Sync linter configs
+  sync-zizmor:
+    name: 🔄 Sync zizmor.yaml
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.workflow_files
@@ -377,12 +377,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
-      - name: Sync linter configs
-        run: uvx --no-progress --from . repomatic sync-linter-configs
+      - name: Sync zizmor config
+        run: uvx --no-progress --from . repomatic sync-zizmor
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body
-          --template sync-linter-configs
+          --template sync-zizmor
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
@@ -391,7 +391,7 @@ jobs:
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
-          branch: sync-linter-configs
+          branch: sync-zizmor
 
   sync-renovate:
     name: 🔄 Sync renovate.json5
