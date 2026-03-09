@@ -19,21 +19,7 @@
 from __future__ import annotations
 
 import logging
-import os
 from subprocess import run
-
-
-def get_repo_slug() -> str:
-    """Return the ``owner/name`` slug for the current repository.
-
-    Reads ``GITHUB_REPOSITORY`` in CI, falls back to ``gh repo view`` locally.
-    """
-    slug = os.environ.get("GITHUB_REPOSITORY", "")
-    if not slug:
-        slug = run_gh_command(
-            ["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"],
-        ).strip()
-    return slug
 
 
 def run_gh_command(args: list[str]) -> str:

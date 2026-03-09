@@ -1119,6 +1119,107 @@ def test_is_bot_ignores_non_renovate_branch(monkeypatch):
     assert metadata.is_bot is False
 
 
+@pytest.mark.parametrize(
+    "prop, envvar, value",
+    [
+        ("event_name", "GITHUB_EVENT_NAME", "push"),
+        ("job_name", "GITHUB_JOB", "sync-labels"),
+        ("ref_name", "GITHUB_REF_NAME", "main"),
+        ("repo_owner", "GITHUB_REPOSITORY_OWNER", "kdeldycke"),
+        ("repo_slug", "GITHUB_REPOSITORY", "kdeldycke/repomatic"),
+        ("run_attempt", "GITHUB_RUN_ATTEMPT", "1"),
+        ("run_id", "GITHUB_RUN_ID", "123456789"),
+        ("run_number", "GITHUB_RUN_NUMBER", "42"),
+        ("server_url", "GITHUB_SERVER_URL", "https://github.com"),
+        ("sha", "GITHUB_SHA", "abc123def456"),
+        ("triggering_actor", "GITHUB_TRIGGERING_ACTOR", "kdeldycke"),
+        (
+            "workflow_ref",
+            "GITHUB_WORKFLOW_REF",
+            "kdeldycke/repomatic/.github/workflows/autofix.yaml@refs/heads/main",
+        ),
+    ],
+)
+def test_ci_context_properties(monkeypatch, prop, envvar, value):
+    """Test CI context properties read from environment variables."""
+    monkeypatch.setenv(envvar, value)
+    metadata = Metadata()
+    assert getattr(metadata, prop) == value
+
+
+def test_ci_context_defaults(monkeypatch):
+    """Test CI context properties return empty strings when env vars are unset."""
+    for envvar in (
+        "GITHUB_EVENT_NAME",
+        "GITHUB_JOB",
+        "GITHUB_REF_NAME",
+        "GITHUB_RUN_ATTEMPT",
+        "GITHUB_RUN_ID",
+        "GITHUB_RUN_NUMBER",
+        "GITHUB_SHA",
+        "GITHUB_TRIGGERING_ACTOR",
+        "GITHUB_WORKFLOW_REF",
+    ):
+        monkeypatch.delenv(envvar, raising=False)
+    metadata = Metadata()
+    assert metadata.event_name == ""
+    assert metadata.job_name == ""
+    assert metadata.ref_name == ""
+    assert metadata.run_attempt == ""
+    assert metadata.run_id == ""
+    assert metadata.run_number == ""
+    assert metadata.sha == ""
+    assert metadata.triggering_actor == ""
+    assert metadata.workflow_ref == ""
+
+
+def test_repo_name_derived_from_slug(monkeypatch):
+    """Test that repo_name is derived from repo_slug."""
+    monkeypatch.setenv("GITHUB_REPOSITORY", "kdeldycke/repomatic")
+    metadata = Metadata()
+    assert metadata.repo_name == "repomatic"
+
+
+def test_repo_name_fallback_to_gh_cli(monkeypatch):
+    """Test that repo_name falls back to gh CLI when env var is unset."""
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+    metadata = Metadata()
+    # The gh CLI fallback detects the current repo.
+    assert metadata.repo_name != ""
+
+
+def test_repo_owner_fallback_to_slug(monkeypatch):
+    """Test that repo_owner falls back to owner from repo_slug."""
+    monkeypatch.delenv("GITHUB_REPOSITORY_OWNER", raising=False)
+    monkeypatch.setenv("GITHUB_REPOSITORY", "kdeldycke/repomatic")
+    metadata = Metadata()
+    assert metadata.repo_owner == "kdeldycke"
+
+
+def test_repo_url_composed(monkeypatch):
+    """Test that repo_url is composed from server_url and repo_slug."""
+    monkeypatch.setenv("GITHUB_SERVER_URL", "https://github.com")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "kdeldycke/repomatic")
+    metadata = Metadata()
+    assert metadata.repo_url == "https://github.com/kdeldycke/repomatic"
+
+
+def test_repo_url_fallback(monkeypatch):
+    """Test that repo_url falls back to gh CLI when env var is unset."""
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+    monkeypatch.delenv("GITHUB_SERVER_URL", raising=False)
+    metadata = Metadata()
+    # The gh CLI fallback detects the current repo.
+    assert "github.com" in metadata.repo_url
+
+
+def test_server_url_default(monkeypatch):
+    """Test that server_url defaults to https://github.com."""
+    monkeypatch.delenv("GITHUB_SERVER_URL", raising=False)
+    metadata = Metadata()
+    assert metadata.server_url == "https://github.com"
+
+
 def test_get_release_version_from_commits():
     """Test that get_release_version_from_commits returns expected type.
 

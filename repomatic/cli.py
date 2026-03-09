@@ -67,6 +67,8 @@ from .deps_graph import (
 from .git_ops import create_and_push_tag
 from .github import token as _token_mod, unsubscribe as _unsub_mod
 from .github.actions import format_multiline_output
+from .github.gh import run_gh_command
+from .github.issue import manage_issue_lifecycle
 from .github.dev_release import (
     cleanup_dev_releases as _cleanup_dev_releases,
     sync_dev_release as _sync_dev_release,
@@ -540,13 +542,13 @@ def release_prep(
         # Post-release: retarget workflows to main branch
         repomatic release-prep --post-release
     """
-    # Auto-detect --update-workflows from $GITHUB_REPOSITORY.
+    # Auto-detect --update-workflows from CI context.
     if update_workflows is None:
-        gh_repo = os.getenv("GITHUB_REPOSITORY", "")
-        update_workflows = gh_repo == DEFAULT_REPO
+        repo_slug = Metadata().repo_slug
+        update_workflows = repo_slug == DEFAULT_REPO
         if update_workflows:
             logging.info(
-                f"Auto-detected --update-workflows: $GITHUB_REPOSITORY={gh_repo!r}"
+                f"Auto-detected --update-workflows: repo_slug={repo_slug!r}"
                 f" matches canonical repo {DEFAULT_REPO!r}"
             )
 
@@ -1791,12 +1793,9 @@ def setup_guide(has_pat: bool) -> None:
         # Secret is configured — close the setup issue
         repomatic setup-guide --has-pat
     """
-    from .github.gh import run_gh_command
-    from .github.issue import manage_issue_lifecycle
-
     # Detect if the repository owner is an organization.
     org_tip = ""
-    owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+    owner = Metadata().repo_owner
     if owner:
         try:
             owner_type = run_gh_command(
@@ -2068,11 +2067,9 @@ def sync_awesome_template(ctx: Context, source_repo: str) -> None:
         )
         ctx.exit(0)
 
-    from .github.gh import get_repo_slug
-
     # Detect current repository name for URL rewriting.
-    repo_slug = get_repo_slug()
-    repo_name = repo_slug.split("/")[-1]
+    md = Metadata()
+    repo_name = md.repo_name
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
@@ -2158,11 +2155,9 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
         )
         ctx.exit(0)
 
-    from .github.gh import get_repo_slug
-
     # Auto-detect repository.
     if repository is None:
-        repository = get_repo_slug()
+        repository = Metadata().repo_slug
     repo_name = repository.split("/")[-1]
 
     # Dump label files.

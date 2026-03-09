@@ -9,6 +9,8 @@
 - Add `awesome-template-sync`, `bumpversion-sync`, `gitignore-sync`, `labels-sync`, `zizmor-sync`, and `mailmap-sync` toggles to `[tool.repomatic]`. All sync operations can now be individually disabled.
 - Add `repomatic sync-labels` CLI command wrapping `labelmaker` invocation with toggle check, profile detection, and extra label file handling.
 - Replace `AndreasAugustin/actions-template-sync` with native `repomatic sync-awesome-template` CLI command. Removes a third-party action dependency and aligns the job with the standard sync pattern.
+- Centralize all CI context reads (repository slug, server URL, SHA, run ID, actor, etc.) into `Metadata` cached properties. Modules no longer read `GITHUB_*` environment variables directly.
+- Remove `get_repo_slug()` from `gh.py` in favor of `Metadata.repo_slug`.
 - Skip `init ruff` config injection in `format-python` job for non-Python projects. Doc-only repos use Ruff for code-block formatting without needing a `[tool.ruff]` section.
 
 ## [`6.3.2` (2026-03-08)](https://github.com/kdeldycke/repomatic/compare/v6.3.1...v6.3.2)

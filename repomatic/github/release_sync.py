@@ -24,17 +24,14 @@ Compares each GitHub release body against the corresponding
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
 
+from ..changelog import Changelog
 from .gh import run_gh_command
 from .pr_body import render_template
 from .releases import get_github_releases
-
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from ..changelog import Changelog
 
 
 class SyncAction(Enum):
@@ -91,8 +88,6 @@ def build_expected_body(
     :return: The rendered release body, or empty string if the
         version has no changelog section.
     """
-    from dataclasses import asdict
-
     elements = changelog.decompose_version(version)
     if (
         not elements.changes
@@ -145,8 +140,6 @@ def sync_github_releases(
     :param dry_run: If ``True``, report without making changes.
     :return: Structured sync results.
     """
-    from ..changelog import Changelog
-
     result = SyncResult(dry_run=dry_run)
 
     content = changelog_path.read_text(encoding="UTF-8")

@@ -496,7 +496,7 @@ def _tags_mock(tags=None):
 def _patch_tags(monkeypatch, tags=None):
     """Monkeypatch ``get_all_version_tags`` to return the given dict."""
     monkeypatch.setattr(
-        "repomatic.git_ops.get_all_version_tags",
+        "repomatic.changelog.get_all_version_tags",
         _tags_mock(tags),
     )
 
@@ -566,7 +566,7 @@ def test_lint_changelog_dates_fallback_to_tags(tmp_path, monkeypatch):
         lambda: "my-package",
     )
     monkeypatch.setattr(
-        "repomatic.git_ops.get_tag_date",
+        "repomatic.changelog.get_tag_date",
         lambda tag: {"v1.1.0": "2026-02-10", "v1.0.0": "2025-12-01"}.get(tag),
     )
     monkeypatch.setattr(
@@ -588,7 +588,7 @@ def test_lint_changelog_dates_fallback_no_package(tmp_path, monkeypatch):
         lambda: None,
     )
     monkeypatch.setattr(
-        "repomatic.git_ops.get_tag_date",
+        "repomatic.changelog.get_tag_date",
         lambda tag: {"v1.1.0": "2026-02-10", "v1.0.0": "2025-12-01"}.get(tag),
     )
     monkeypatch.setattr(

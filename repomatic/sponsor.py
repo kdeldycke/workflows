@@ -20,22 +20,20 @@ Uses the GitHub GraphQL API via the ``gh`` CLI to query sponsorship data.
 Supports both user and organization owners, with pagination for accounts
 that have more than 100 sponsors.
 
-When run in GitHub Actions, defaults are read from environment variables:
-
-- ``GITHUB_REPOSITORY_OWNER`` for the owner
-- ``GITHUB_REPOSITORY`` for the repository
-- ``GITHUB_EVENT_PATH`` for the author and issue/PR number
+When run in GitHub Actions, defaults are read from
+:class:`~repomatic.metadata.Metadata` for owner and repository, and from
+``GITHUB_EVENT_PATH`` for the author and issue/PR number.
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import os
 from functools import lru_cache
 
 from .github.actions import get_github_event
 from .github.gh import run_gh_command
+from .metadata import Metadata
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -44,13 +42,23 @@ if TYPE_CHECKING:
 
 
 def get_default_owner() -> str | None:
-    """Get the repository owner from ``GITHUB_REPOSITORY_OWNER``."""
-    return os.environ.get("GITHUB_REPOSITORY_OWNER")
+    """Get the repository owner from CI context.
+
+    Delegates to :attr:`Metadata.repo_owner
+    <repomatic.metadata.Metadata.repo_owner>`.
+    """
+    owner = Metadata().repo_owner
+    return owner if owner else None
 
 
 def get_default_repo() -> str | None:
-    """Get the repository from ``GITHUB_REPOSITORY``."""
-    return os.environ.get("GITHUB_REPOSITORY")
+    """Get the repository slug from CI context.
+
+    Delegates to :attr:`Metadata.repo_slug
+    <repomatic.metadata.Metadata.repo_slug>`.
+    """
+    slug = Metadata().repo_slug
+    return slug if slug else None
 
 
 def get_default_author() -> str | None:

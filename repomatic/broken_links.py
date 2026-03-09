@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import tempfile
 from dataclasses import dataclass
 from itertools import groupby
@@ -39,6 +38,7 @@ from click_extra import TableFormat, render_table
 
 from .github.issue import manage_issue_lifecycle
 from .github.pr_body import render_template
+from .metadata import Metadata
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -206,19 +206,20 @@ def manage_combined_broken_links_issue(
     show a "No broken links found." message.
 
     When running in GitHub Actions, most parameters are auto-detected from
-    environment variables and well-known file paths:
+    :class:`~repomatic.metadata.Metadata` and well-known file paths:
 
-    - ``repo_name`` defaults to the name component of ``$GITHUB_REPOSITORY``.
+    - ``repo_name`` defaults to :attr:`Metadata.repo_name
+      <repomatic.metadata.Metadata.repo_name>`.
     - ``lychee_body_file`` defaults to ``./lychee/out.md`` when
       ``lychee_exit_code`` is provided and the file exists.
     - ``sphinx_output_json`` defaults to ``./docs/linkcheck/output.json``
       when the file exists.
-    - ``sphinx_source_url`` is composed from ``$GITHUB_SERVER_URL``,
-      ``$GITHUB_REPOSITORY``, and ``$GITHUB_SHA`` when ``sphinx_output_json``
-      is set.
+    - ``sphinx_source_url`` is composed from :attr:`Metadata.repo_url
+      <repomatic.metadata.Metadata.repo_url>` and :attr:`Metadata.sha
+      <repomatic.metadata.Metadata.sha>`.
 
     :param repo_name: Repository name (for label selection). Defaults to
-        the name component of ``$GITHUB_REPOSITORY``.
+        :attr:`Metadata.repo_name <repomatic.metadata.Metadata.repo_name>`.
     :param lychee_exit_code: Exit code from lychee (0=no broken links,
         2=broken links found). ``None`` if lychee was not run.
     :param lychee_body_file: Path to the lychee output file. Defaults to
@@ -227,19 +228,18 @@ def manage_combined_broken_links_issue(
     :param sphinx_output_json: Path to Sphinx linkcheck ``output.json``.
         Defaults to ``./docs/linkcheck/output.json`` when the file exists.
     :param sphinx_source_url: Base URL for linking filenames and line numbers
-        in the Sphinx report. Auto-composed from ``$GITHUB_SERVER_URL``,
-        ``$GITHUB_REPOSITORY``, and ``$GITHUB_SHA`` when not provided.
+        in the Sphinx report. Auto-composed from :attr:`Metadata.repo_url
+        <repomatic.metadata.Metadata.repo_url>` and :attr:`Metadata.sha
+        <repomatic.metadata.Metadata.sha>`.
     :raises ValueError: If lychee exit code is not 0, 2, or ``None``.
     :raises ValueError: If ``repo_name`` cannot be determined.
     """
-    # Auto-detect repo_name from $GITHUB_REPOSITORY.
+    # Auto-detect repo_name from CI context.
     if repo_name is None:
-        gh_repo = os.getenv("GITHUB_REPOSITORY", "")
-        if gh_repo:
-            repo_name = gh_repo.split("/")[-1]
-            logging.info(
-                f"Auto-detected repo_name={repo_name!r} from $GITHUB_REPOSITORY"
-            )
+        md_repo_name = Metadata().repo_name
+        if md_repo_name:
+            repo_name = md_repo_name
+            logging.info(f"Auto-detected repo_name={repo_name!r} from CI context.")
     if not repo_name:
         msg = "No repository name specified. Set --repo-name or $GITHUB_REPOSITORY."
         raise ValueError(msg)
@@ -258,13 +258,11 @@ def manage_combined_broken_links_issue(
         sphinx_output_json = SPHINX_DEFAULT_OUTPUT.resolve()
         logging.info(f"Auto-detected Sphinx output: {sphinx_output_json}")
 
-    # Auto-compose Sphinx source URL from GitHub Actions environment.
+    # Auto-compose Sphinx source URL from CI context.
     if sphinx_output_json is not None and sphinx_source_url is None:
-        server_url = os.getenv("GITHUB_SERVER_URL", "")
-        gh_repo = os.getenv("GITHUB_REPOSITORY", "")
-        sha = os.getenv("GITHUB_SHA", "")
-        if server_url and gh_repo and sha:
-            sphinx_source_url = f"{server_url}/{gh_repo}/blob/{sha}/docs"
+        md = Metadata()
+        if md.repo_url and md.sha:
+            sphinx_source_url = f"{md.repo_url}/blob/{md.sha}/docs"
             logging.info(f"Auto-composed source URL: {sphinx_source_url}")
 
     # Interpret lychee exit code.

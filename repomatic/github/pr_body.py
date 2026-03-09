@@ -16,18 +16,19 @@
 
 """Generate PR body with workflow metadata for auto-created pull requests.
 
-Reads ``GITHUB_*`` environment variables to produce a collapsible ``<details>``
-block containing a metadata table. Template prefixes are loaded from markdown
-files in ``repomatic/templates/``, optionally with YAML frontmatter for
-templates that require arguments.
+Uses :class:`~repomatic.metadata.Metadata` for CI context to produce a
+collapsible ``<details>`` block containing a metadata table. Template prefixes
+are loaded from markdown files in ``repomatic/templates/``, optionally with
+YAML frontmatter for templates that require arguments.
 """
 
 from __future__ import annotations
 
-import os
 import re
 from importlib.resources import as_file, files
 from string import Template
+
+from ..metadata import Metadata
 
 
 def _unescape_dollars(text: str) -> str:
@@ -223,78 +224,69 @@ def extract_workflow_filename(workflow_ref: str) -> str:
 
 
 def generate_pr_metadata_block() -> str:
-    """Generate a collapsible metadata block from GitHub Actions environment variables.
+    """Generate a collapsible metadata block from CI context.
 
-    Reads ``GITHUB_*`` environment variables and returns a markdown ``<details>``
-    block containing a table of workflow metadata fields.
+    Uses :class:`~repomatic.metadata.Metadata` to read ``GITHUB_*``
+    environment variables and returns a markdown ``<details>`` block
+    containing a table of workflow metadata fields.
 
     :return: A markdown string with the metadata block.
     """
-    run_id = os.getenv("GITHUB_RUN_ID", "")
-    run_number = os.getenv("GITHUB_RUN_NUMBER", "")
-    run_attempt = os.getenv("GITHUB_RUN_ATTEMPT", "")
-    server_url = os.getenv("GITHUB_SERVER_URL", "")
-    repository = os.getenv("GITHUB_REPOSITORY", "")
-    job = os.getenv("GITHUB_JOB", "")
-    sha = os.getenv("GITHUB_SHA", "")
-    workflow_ref = os.getenv("GITHUB_WORKFLOW_REF", "")
-    event_name = os.getenv("GITHUB_EVENT_NAME", "")
-    actor = os.getenv("GITHUB_ACTOR", "")
-    triggering_actor = os.getenv("GITHUB_TRIGGERING_ACTOR", "")
-    ref_name = os.getenv("GITHUB_REF_NAME", "")
+    md = Metadata()
 
-    workflow_file = extract_workflow_filename(workflow_ref)
-    run_url = f"{server_url}/{repository}/actions/runs/{run_id}"
+    workflow_file = extract_workflow_filename(md.workflow_ref)
+    run_url = f"{md.repo_url}/actions/runs/{md.run_id}"
     workflow_url = (
-        f"{server_url}/{repository}/blob/{sha}/.github/workflows/{workflow_file}"
+        f"{md.repo_url}/blob/{md.sha}/.github/workflows/{workflow_file}"
     )
-    commit_url = f"{server_url}/{repository}/commit/{sha}"
+    commit_url = f"{md.repo_url}/commit/{md.sha}"
 
+    actor = md.event_actor or ""
+    triggering_actor = md.triggering_actor
     rerun_row = ""
     if triggering_actor and triggering_actor != actor:
         rerun_row = f"| **Re-run by** | @{triggering_actor} |\n"
 
     return render_template(
         "pr-metadata",
-        event_name=event_name,
+        event_name=md.event_name,
         actor=actor,
         rerun_row=rerun_row,
-        ref_name=ref_name,
-        sha_short=sha[:8],
+        ref_name=md.ref_name,
+        sha_short=md.sha[:8],
         commit_url=commit_url,
-        job=job,
+        job=md.job_name,
         workflow_file=workflow_file,
         workflow_url=workflow_url,
-        run_number=run_number,
-        run_attempt=run_attempt,
+        run_number=md.run_number,
+        run_attempt=md.run_attempt,
         run_url=run_url,
     )
 
 
 def _repo_url() -> str:
-    """Build repository URL from ``GITHUB_SERVER_URL`` and ``GITHUB_REPOSITORY``."""
-    server_url = os.getenv("GITHUB_SERVER_URL", "")
-    repository = os.getenv("GITHUB_REPOSITORY", "")
-    return f"{server_url}/{repository}"
+    """Build repository URL from CI context.
+
+    Delegates to :attr:`Metadata.repo_url <repomatic.metadata.Metadata.repo_url>`.
+    """
+    return Metadata().repo_url
 
 
 def generate_refresh_tip() -> str:
     """Generate a tip admonition inviting users to refresh the PR manually.
 
-    Uses ``GITHUB_SERVER_URL``, ``GITHUB_REPOSITORY``, and
+    Uses :class:`~repomatic.metadata.Metadata` for the repository URL and
     ``GITHUB_WORKFLOW_REF`` to build the workflow dispatch URL.
 
     :return: A GitHub-flavored markdown ``[!TIP]`` blockquote, or an empty
         string if the workflow reference is unavailable.
     """
-    server_url = os.getenv("GITHUB_SERVER_URL", "")
-    repository = os.getenv("GITHUB_REPOSITORY", "")
-    workflow_ref = os.getenv("GITHUB_WORKFLOW_REF", "")
-    workflow_file = extract_workflow_filename(workflow_ref)
+    md = Metadata()
+    workflow_file = extract_workflow_filename(md.workflow_ref)
     if not workflow_file:
         return ""
     workflow_dispatch_url = (
-        f"{server_url}/{repository}/actions/workflows/{workflow_file}"
+        f"{md.repo_url}/actions/workflows/{workflow_file}"
     )
     return render_template("refresh-tip", workflow_dispatch_url=workflow_dispatch_url)
 

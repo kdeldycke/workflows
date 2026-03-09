@@ -36,6 +36,7 @@ import logging
 import re
 import sys
 from dataclasses import dataclass, field
+from importlib.resources import as_file, files
 from pathlib import Path
 
 import yaml
@@ -945,9 +946,6 @@ def generate_workflows(
 
         elif output_format == WorkflowFormat.SYMLINK:
             try:
-                # Resolve the bundled data path.
-                from importlib.resources import as_file, files
-
                 data_files = files("repomatic.data")
                 with as_file(data_files.joinpath(filename)) as source:
                     if not source.exists():

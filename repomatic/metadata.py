@@ -322,8 +322,14 @@ from wcmatch.glob import (
     iglob,
 )
 
-from .changelog import Changelog
+from .changelog import (
+    GITHUB_RELEASE_URL,
+    PYPI_PROJECT_URL,
+    Changelog,
+    build_release_admonition,
+)
 from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
+from .github.gh import run_gh_command
 from .github.matrix import Matrix
 
 if sys.version_info >= (3, 11):
@@ -1289,6 +1295,151 @@ class Metadata:
         return None
 
     @cached_property
+    def event_name(self) -> str:
+        """Returns the name of the event that triggered the workflow.
+
+        Reads ``GITHUB_EVENT_NAME``. This is the raw event name (e.g.,
+        ``"push"``, ``"pull_request"``, ``"workflow_run"``), as opposed to
+        :attr:`event_type` which returns a :class:`WorkflowEvent` enum based
+        on heuristics.
+        """
+        return os.environ.get("GITHUB_EVENT_NAME", "")
+
+    @cached_property
+    def job_name(self) -> str:
+        """Returns the ID of the current job in the workflow.
+
+        Reads ``GITHUB_JOB``.
+        """
+        return os.environ.get("GITHUB_JOB", "")
+
+    @cached_property
+    def ref_name(self) -> str:
+        """Returns the short ref name of the branch or tag.
+
+        Reads ``GITHUB_REF_NAME``.
+        """
+        return os.environ.get("GITHUB_REF_NAME", "")
+
+    @cached_property
+    def repo_name(self) -> str:
+        """Returns the repository name without owner prefix.
+
+        Derived from :attr:`repo_slug` by splitting on ``/``.
+        """
+        slug = self.repo_slug
+        return slug.split("/")[-1] if slug else ""
+
+    @cached_property
+    def repo_owner(self) -> str:
+        """Returns the repository owner.
+
+        Reads ``GITHUB_REPOSITORY_OWNER``, falling back to the owner
+        component of :attr:`repo_slug`.
+        """
+        owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+        if not owner:
+            slug = self.repo_slug
+            if "/" in slug:
+                owner = slug.split("/")[0]
+        return owner
+
+    @cached_property
+    def repo_slug(self) -> str:
+        """Returns the ``owner/name`` slug for the current repository.
+
+        Reads ``GITHUB_REPOSITORY`` in CI, falls back to ``gh repo view``
+        locally.
+        """
+        slug = os.environ.get("GITHUB_REPOSITORY", "")
+        if not slug:
+            try:
+                slug = run_gh_command(
+                    [
+                        "repo",
+                        "view",
+                        "--json",
+                        "nameWithOwner",
+                        "--jq",
+                        ".nameWithOwner",
+                    ],
+                ).strip()
+            except RuntimeError:
+                logging.debug("Failed to detect repository slug via gh CLI.")
+        return slug
+
+    @cached_property
+    def repo_url(self) -> str:
+        """Returns the full URL to the repository.
+
+        Derived from :attr:`server_url` and :attr:`repo_slug`.
+        """
+        server = self.server_url
+        slug = self.repo_slug
+        if server and slug:
+            return f"{server}/{slug}"
+        return ""
+
+    @cached_property
+    def run_attempt(self) -> str:
+        """Returns the run attempt number.
+
+        Reads ``GITHUB_RUN_ATTEMPT``.
+        """
+        return os.environ.get("GITHUB_RUN_ATTEMPT", "")
+
+    @cached_property
+    def run_id(self) -> str:
+        """Returns the unique ID of the current workflow run.
+
+        Reads ``GITHUB_RUN_ID``.
+        """
+        return os.environ.get("GITHUB_RUN_ID", "")
+
+    @cached_property
+    def run_number(self) -> str:
+        """Returns the run number for the current workflow.
+
+        Reads ``GITHUB_RUN_NUMBER``.
+        """
+        return os.environ.get("GITHUB_RUN_NUMBER", "")
+
+    @cached_property
+    def server_url(self) -> str:
+        """Returns the GitHub server URL.
+
+        Reads ``GITHUB_SERVER_URL``, defaulting to ``https://github.com``.
+        """
+        return os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+
+    @cached_property
+    def sha(self) -> str:
+        """Returns the commit SHA that triggered the workflow.
+
+        Reads ``GITHUB_SHA``.
+        """
+        return os.environ.get("GITHUB_SHA", "")
+
+    @cached_property
+    def triggering_actor(self) -> str:
+        """Returns the login of the user that initiated the workflow run.
+
+        Reads ``GITHUB_TRIGGERING_ACTOR``. This differs from
+        :attr:`event_actor` (``GITHUB_ACTOR``) when a workflow is re-run by a
+        different user.
+        """
+        return os.environ.get("GITHUB_TRIGGERING_ACTOR", "")
+
+    @cached_property
+    def workflow_ref(self) -> str:
+        """Returns the full workflow reference.
+
+        Reads ``GITHUB_WORKFLOW_REF``. The format is
+        ``owner/repo/.github/workflows/name.yaml@refs/heads/branch``.
+        """
+        return os.environ.get("GITHUB_WORKFLOW_REF", "")
+
+    @cached_property
     def changed_files(self) -> tuple[str, ...] | None:
         """Returns the list of files changed in the current event's commit range.
 
@@ -1422,7 +1573,7 @@ class Metadata:
         # Push event.
         else:
             start = self.github_event.get("before")
-            end = os.environ.get("GITHUB_SHA")
+            end = self.sha or None
         logging.debug(f"Commit range: {start} -> {end}")
         if not start or not end:
             logging.warning(f"Incomplete commit range: {start} -> {end}")
@@ -2210,6 +2361,8 @@ class Metadata:
         content for the version. The template is the single place
         that defines the release body layout.
         """
+        # Lazy import to avoid circular dependency:
+        # release_sync → pr_body → metadata.
         from .github.release_sync import build_expected_body
 
         version = self.released_version
@@ -2241,11 +2394,8 @@ class Metadata:
         Returns ``None`` when the project is not on PyPI, has no
         changelog, or has no version to release.
         """
-        from .changelog import (
-            GITHUB_RELEASE_URL,
-            PYPI_PROJECT_URL,
-            build_release_admonition,
-        )
+        # Lazy import to avoid circular dependency:
+        # release_sync → pr_body → metadata.
         from .github.release_sync import build_expected_body
 
         version = self.released_version

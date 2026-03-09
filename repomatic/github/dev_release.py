@@ -44,6 +44,7 @@ import json
 import logging
 from pathlib import Path
 
+from ..changelog import Changelog
 from .gh import run_gh_command
 from .release_sync import build_expected_body
 
@@ -85,8 +86,6 @@ def sync_dev_release(
     :return: ``True`` if the release was synced (or would be in
         dry-run), ``False`` if the changelog section is empty.
     """
-    from ..changelog import Changelog
-
     content = changelog_path.read_text(encoding="UTF-8")
     changelog = Changelog(content)
 

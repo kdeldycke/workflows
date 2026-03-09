@@ -522,7 +522,7 @@ def test_report_no_source_url_plain_text():
 
 
 @patch("repomatic.github.token.validate_gh_token_env")
-@patch("repomatic.github.issue.manage_issue_lifecycle")
+@patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_missing_pat_opens_issue(mock_lifecycle, _mock_token):
     """When PAT is missing, manage_issue_lifecycle is called with has_issues=True."""
     runner = CliRunner()
@@ -536,7 +536,7 @@ def test_setup_guide_missing_pat_opens_issue(mock_lifecycle, _mock_token):
 
 
 @patch("repomatic.github.token.validate_gh_token_env")
-@patch("repomatic.github.issue.manage_issue_lifecycle")
+@patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_configured_pat_closes_issue(mock_lifecycle, _mock_token):
     """When PAT is configured, manage_issue_lifecycle is called with has_issues=False."""
     runner = CliRunner()
@@ -548,7 +548,7 @@ def test_setup_guide_configured_pat_closes_issue(mock_lifecycle, _mock_token):
 
 
 @patch("repomatic.github.token.validate_gh_token_env")
-@patch("repomatic.github.issue.manage_issue_lifecycle")
+@patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
     """The body file passed to manage_issue_lifecycle contains the template."""
     runner = CliRunner()

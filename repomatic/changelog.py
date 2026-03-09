@@ -129,6 +129,8 @@ from urllib.request import Request, urlopen
 
 from packaging.version import Version
 
+from .git_ops import get_all_version_tags, get_tag_date
+from .github.actions import AnnotationLevel, emit_annotation
 from .github.releases import GitHubRelease, get_github_releases
 
 CHANGELOG_HEADER = "# Changelog\n"
@@ -268,6 +270,7 @@ class Changelog:
         if not self.current_version:
             return self.content.rstrip()
 
+        # Lazy import to avoid circular dependency: pr_body → metadata → changelog.
         from .github.pr_body import render_template
 
         elements = self.decompose_version(self.current_version)
@@ -325,6 +328,7 @@ class Changelog:
         if not self.current_version:
             return False
 
+        # Lazy import to avoid circular dependency: pr_body → metadata → changelog.
         from .github.pr_body import render_template
 
         elements = self.decompose_version(self.current_version)
@@ -462,6 +466,7 @@ class Changelog:
                 lower_version = v
                 break
 
+        # Lazy import to avoid circular dependency: pr_body → metadata → changelog.
         from .github.pr_body import render_template
 
         compare_base = f"v{lower_version}" if lower_version else "v0.0.0"
@@ -716,6 +721,7 @@ def build_release_admonition(
         links.append(f"[{GITHUB_LABEL}]({github_url})")
     if not links:
         return ""
+    # Lazy import to avoid circular dependency: pr_body → metadata → changelog.
     from .github.pr_body import render_template
 
     platforms = " and ".join(links)
@@ -746,6 +752,7 @@ def build_unavailable_admonition(
         names.append(GITHUB_LABEL)
     if not names:
         return ""
+    # Lazy import to avoid circular dependency: pr_body → metadata → changelog.
     from .github.pr_body import render_template
 
     platforms = " and ".join(names)
@@ -809,8 +816,7 @@ def lint_changelog_dates(
     :return: ``0`` if all dates match or references are missing,
         ``1`` if any date mismatch or orphan is found.
     """
-    from .git_ops import get_all_version_tags, get_tag_date
-    from .github.actions import AnnotationLevel, emit_annotation
+    # Lazy import to avoid circular dependency: metadata → changelog.
     from .metadata import get_project_name
 
     content = changelog_path.read_text(encoding="UTF-8")
@@ -979,6 +985,7 @@ def lint_changelog_dates(
     # decomposing and re-rendering an already-correct section is a
     # no-op.
     if fix:
+        # Lazy import to avoid circular dependency: pr_body → metadata → changelog.
         from .github.pr_body import render_template
 
         for version, _date in releases:

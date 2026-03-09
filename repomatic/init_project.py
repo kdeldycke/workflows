@@ -46,6 +46,7 @@ from pathlib import Path, PurePosixPath
 from urllib.request import urlretrieve
 
 from . import __version__
+from .metadata import REPOMATIC_CONFIG_RENAME_FROM, load_repomatic_config
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -701,8 +702,6 @@ def run_init(
     # Apply config exclusions when no explicit components given.
     workflow_exclude: frozenset[str] = frozenset()
     if not components:
-        from .metadata import load_repomatic_config
-
         config = load_repomatic_config()
         init_exclude: list[str] = config.get(
             "init-exclude",
@@ -870,9 +869,6 @@ def _fetch_extra_labels(
     ``extra-labels/`` subdirectory under ``output_dir``.
     Does nothing if no URLs are configured.
     """
-    # Lazy import to avoid circular dependency.
-    from .metadata import load_repomatic_config
-
     config = load_repomatic_config()
     urls = config.get("extra-label-files", [])
     if not urls:
@@ -986,8 +982,6 @@ def _migrate_repomatic_config_section(pyproject_path: Path) -> bool:
     :param pyproject_path: Path to the ``pyproject.toml`` file.
     :return: ``True`` if a rename was performed, ``False`` otherwise.
     """
-    from .metadata import REPOMATIC_CONFIG_RENAME_FROM
-
     content = pyproject_path.read_text(encoding="UTF-8")
 
     has_new = bool(re.search(r"^\[tool\.repomatic\]", content, re.MULTILINE))
