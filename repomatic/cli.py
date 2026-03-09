@@ -2699,7 +2699,7 @@ def pr_body(
 
     The prefix can be set via ``--template`` (built-in templates) or ``--prefix``
     (arbitrary content, also via ``GHA_PR_BODY_PREFIX`` env var). If both are
-    given, ``--template`` takes precedence.
+    given, ``--prefix`` is prepended before the rendered template content.
 
     \b
     Examples:
@@ -2750,7 +2750,12 @@ def pr_body(
             # Call if callable, otherwise use the value directly.
             kwargs[arg] = value() if callable(value) else value
 
-        prefix = render_template(template, **kwargs)
+        template_content = render_template(template, **kwargs)
+        # Combine prefix (e.g. from GHA_PR_BODY_PREFIX) with template content.
+        if prefix:
+            prefix = prefix + "\n\n" + template_content
+        else:
+            prefix = template_content
         title_str = render_title(template, **kwargs)
         commit_msg_str = render_commit_message(template, **kwargs)
 

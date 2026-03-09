@@ -306,12 +306,15 @@ jobs:
       - id: pr-metadata
         env:
           GHA_PR_BODY_PREFIX: ${{ steps.format.outputs.markdown }}
-        run: uvx --no-progress --from . repomatic pr-body --output "$GITHUB_OUTPUT"
+        run: >
+          uvx --no-progress --from . repomatic pr-body
+          --template format-images
+          --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: Format images
-          title: Format images
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: format-images

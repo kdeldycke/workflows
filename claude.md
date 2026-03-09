@@ -287,6 +287,7 @@ Every `update-*` operation computes derived artifacts from project state (lockfi
 
 **Optional properties:**
 
+- **CLI command.** A CLI wrapper is only required when the update runs custom repomatic Python logic (e.g., `update-deps-graph`). Updates that invoke external tools or standalone scripts (e.g., `sphinx-apidoc`) may call them directly from the workflow without a `repomatic update-*` wrapper.
 - **Config toggle.** Add a `*_update: bool = True` toggle only when the generated output involves files the user may want to manage independently. If added, follow the sync toggle pattern (Config field, `SUBCOMMAND_CONFIG_FIELDS`, tests).
 - **Config parameters.** Output paths, filtering options, or depth limits belong as Config fields (e.g., `dependency-graph-output`, `dependency-graph-groups`). These configure behavior without enabling/disabling the operation.
 
@@ -314,6 +315,10 @@ Every `lint-*` operation checks content without modifying it. Lint operations ar
 1. **CLI command.** A `repomatic lint-*` command. Returns exit code 0 on pass, non-zero on failure.
 2. **Workflow job.** A `lint-*` job in `lint.yaml` (not `autofix.yaml`). No PR creation — lints gate merges via status checks.
 3. **Documentation.** Job description in `readme.md`. Changelog entry.
+
+**Optional properties:**
+
+- **CLI command.** A CLI wrapper is only required when the lint runs custom Python logic (e.g., `lint-repo`). Lints that invoke a standard external tool (`mypy`, `yamllint`, `actionlint`, `zizmor`, `gitleaks`, etc.) may call the tool directly from the workflow without a `repomatic lint-*` wrapper.
 
 **Invariants:**
 

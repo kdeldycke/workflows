@@ -6,6 +6,8 @@
 > This version is **not released yet** and is under active development.
 
 - Rename `optimize-images` to `format-images`. Image lossless optimization is a format operation (semantics-preserving rewrite using external tools), aligning it with the `format-*` naming convention.
+- Add `format-images` PR body template and use `--template format-images` in the workflow, aligning with the standard format job pattern.
+- Allow `--prefix` and `--template` to be combined in `repomatic pr-body`. When both are given, the prefix is prepended before the rendered template content.
 - Rename `sync-linter-configs` to `sync-zizmor` and `linter-sync` toggle to `zizmor-sync`. Sync jobs are named after the specific tool they sync, not a generic category.
 - Add `awesome-template-sync`, `bumpversion-sync`, `gitignore-sync`, `labels-sync`, `zizmor-sync`, and `mailmap-sync` toggles to `[tool.repomatic]`. All sync operations can now be individually disabled.
 - Add `repomatic sync-labels` CLI command wrapping `labelmaker` invocation with toggle check, profile detection, and extra label file handling.
