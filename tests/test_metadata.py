@@ -1045,7 +1045,7 @@ def test_skip_binary_build_branches_constant():
     # Verify the list contains expected branches for non-code changes.
     assert "sync-mailmap" in SKIP_BINARY_BUILD_BRANCHES
     assert "format-markdown" in SKIP_BINARY_BUILD_BRANCHES
-    assert "optimize-images" in SKIP_BINARY_BUILD_BRANCHES
+    assert "format-images" in SKIP_BINARY_BUILD_BRANCHES
     assert "sync-gitignore" in SKIP_BINARY_BUILD_BRANCHES
     # Verify branches that affect code are NOT in the list.
     assert "format-python" not in SKIP_BINARY_BUILD_BRANCHES

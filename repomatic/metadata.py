@@ -722,7 +722,7 @@ SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
     # Autofix branches that don't affect compiled binaries.
     "format-json",
     "format-markdown",
-    "optimize-images",
+    "format-images",
     "sync-gitignore",
     "sync-mailmap",
     "update-deps-graph",
@@ -1852,7 +1852,7 @@ class Metadata:
     def image_files(self) -> list[Path]:
         """Returns a list of image files.
 
-        Covers the formats handled by ``repomatic optimize-images``: JPEG, PNG,
+        Covers the formats handled by ``repomatic format-images``: JPEG, PNG,
         WebP, and AVIF. See :mod:`repomatic.images` for the optimization tools.
         """
         return self.glob_files("**/*.{jpeg,jpg,png,webp,avif}")

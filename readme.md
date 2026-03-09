@@ -302,9 +302,9 @@ GitHub Actions has several design limitations that the workflows work around:
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
-- 🖼️ **Optimize images** (`optimize-images`)
+- 🖼️ **Format images** (`format-images`)
 
-  - Losslessly compresses PNG and JPEG images using [`repomatic optimize-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
+  - Losslessly compresses PNG and JPEG images using [`repomatic format-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
   - **Requires**:
     - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
 
@@ -615,7 +615,7 @@ docs = [
   - **Skipped for** branches that don't affect code:
     - `format-json` (JSON formatting)
     - `format-markdown` (documentation formatting)
-    - `optimize-images` (image optimization)
+    - `format-images` (image formatting)
     - `sync-gitignore` (`.gitignore` sync)
     - `sync-mailmap` (`.mailmap` sync)
     - `update-deps-graph` (dependency graph docs)

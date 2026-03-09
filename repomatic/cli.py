@@ -2820,8 +2820,8 @@ def update_checksums_cmd(workflow_file: Path) -> None:
 
 
 @repomatic.command(
-    name="optimize-images",
-    short_help="Optimize images with CLI tools",
+    name="format-images",
+    short_help="Format images with lossless optimization",
     section=_section_setup,
 )
 @option(
@@ -2838,8 +2838,8 @@ def update_checksums_cmd(workflow_file: Path) -> None:
     default="-",
     help="Output file path. Defaults to stdout.",
 )
-def optimize_images_cmd(min_savings: float, output: Path) -> None:
-    """Optimize images in the repository using external CLI tools.
+def format_images_cmd(min_savings: float, output: Path) -> None:
+    """Format images by losslessly optimizing them with external CLI tools.
 
     Discovers PNG and JPEG files and compresses them losslessly in-place using
     ``oxipng`` and ``jpegoptim``. Produces a markdown summary table showing
@@ -2858,16 +2858,16 @@ def optimize_images_cmd(min_savings: float, output: Path) -> None:
 
     \b
     Examples:
-        # Optimize images and print summary
-        repomatic optimize-images
+        # Format images and print summary
+        repomatic format-images
 
     \b
         # Write markdown output for GitHub Actions
-        repomatic optimize-images --output "$GITHUB_OUTPUT"
+        repomatic format-images --output "$GITHUB_OUTPUT"
 
     \b
         # Use a 10% minimum savings threshold
-        repomatic optimize-images --min-savings 10
+        repomatic format-images --min-savings 10
     """
     image_files = Metadata().image_files
     if not image_files:

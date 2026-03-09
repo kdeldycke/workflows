@@ -283,8 +283,8 @@ jobs:
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
           See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+WORKFLOW_UPDATE_GITHUB_PAT+in:title"
 
-  optimize-images:
-    name: 🖼️ Optimize images
+  format-images:
+    name: 🖼️ Format images
     needs:
       - project-metadata
     if: needs.project-metadata.outputs.image_files
@@ -298,23 +298,23 @@ jobs:
           sudo apt-get update &&
           sudo apt-get install --yes --no-install-recommends
           oxipng jpegoptim
-      - name: Optimize images
-        id: optimize
+      - name: Format images
+        id: format
         run: >
-          uvx --no-progress --from . repomatic optimize-images
+          uvx --no-progress --from . repomatic format-images
           --output "$GITHUB_OUTPUT"
       - id: pr-metadata
         env:
-          GHA_PR_BODY_PREFIX: ${{ steps.optimize.outputs.markdown }}
+          GHA_PR_BODY_PREFIX: ${{ steps.format.outputs.markdown }}
         run: uvx --no-progress --from . repomatic pr-body --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           assignees: ${{ github.actor }}
-          commit-message: Optimize images
-          title: Optimize images
+          commit-message: Format images
+          title: Format images
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
-          branch: optimize-images
+          branch: format-images
 
   # --- Syncers: regenerate files from external sources or project state. ---
 
