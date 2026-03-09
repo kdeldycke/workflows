@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Skip `init ruff` config injection in `format-python` job for non-Python projects. Doc-only repos use Ruff for code-block formatting without needing a `[tool.ruff]` section.
+
 ## [`6.3.2` (2026-03-08)](https://github.com/kdeldycke/repomatic/compare/v6.3.1...v6.3.2)
 
 - Add `--all-extras` to the `uv sync` step in `tests.yaml` to catch incompatibilities between optional dependency groups. No-op for projects with no extras.

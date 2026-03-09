@@ -79,12 +79,13 @@ jobs:
         run: >
           uvx --no-progress 'autopep8==2.3.2' --recursive --in-place --max-line-length 88 --select E501 --aggressive
           ${{ needs.project-metadata.outputs.python_files }}
-      - name: Install Ruff and init config
-        # Initialize [tool.ruff] in pyproject.toml if it doesn't exist.
-        # Projects with existing ruff config will keep their settings.
-        run: |
-          uv tool install 'ruff==0.15.5'
-          uvx --no-progress --from . repomatic init ruff
+      - name: Install Ruff
+        run: uv tool install 'ruff==0.15.5'
+      - name: Init Ruff config
+        # Initialize [tool.ruff] in pyproject.toml if missing. Only for Python projects;
+        # doc-only repos use Ruff for code-block formatting without needing project config.
+        if: needs.project-metadata.outputs.python_files
+        run: uvx --no-progress --from . repomatic init ruff
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
       - name: Run Ruff
