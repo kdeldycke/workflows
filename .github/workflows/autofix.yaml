@@ -343,6 +343,9 @@ jobs:
 
   sync-bumpversion:
     name: 🔄 Sync bumpversion config
+    needs:
+      - project-metadata
+    if: fromJSON(needs.project-metadata.outputs.is_python_project)
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2

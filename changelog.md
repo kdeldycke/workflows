@@ -15,6 +15,7 @@
 - Fix `optimize-images` job failing on `ubuntu-slim` because `oxipng` is not available there.
 - Add `date-released` update entry for `citation.cff` to the bundled `bumpversion.toml` template so downstream repos keep their release date in sync during version bumps.
 - Reduce PR noise with more specific uv version package update regex.
+- Skip `sync-bumpversion` job for non-Python projects by gating on `is_python_project` metadata.
 
 ## [`6.3.1` (2026-03-07)](https://github.com/kdeldycke/repomatic/compare/v6.3.0...v6.3.1)
 
