@@ -99,6 +99,8 @@ Document design decisions, trade-offs, and non-obvious implementation choices di
 
 Use correct capitalization for proper nouns and trademarked names:
 
+<!-- typos:off -->
+
 - **PyPI** (not ~~PyPi~~) — the Python Package Index. The "I" is capitalized because it stands for "Index". See [PyPI trademark guidelines](https://pypi.org/trademarks/).
 - **GitHub** (not ~~Github~~)
 - **GitHub Actions** (not ~~Github Actions~~ or ~~GitHub actions~~)
@@ -106,6 +108,8 @@ Use correct capitalization for proper nouns and trademarked names:
 - **TypeScript** (not ~~Typescript~~)
 - **macOS** (not ~~MacOS~~ or ~~macos~~)
 - **iOS** (not ~~IOS~~ or ~~ios~~)
+
+<!-- typos:on -->
 
 ### Version formatting
 
