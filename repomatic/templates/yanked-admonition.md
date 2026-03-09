@@ -1,7 +1,7 @@
 ---
-args: [version, pypi_url]
+args: [version, package]
 footer: false
 ---
 
 > [!CAUTION]
-> `\$version` has been [yanked from PyPI]($pypi_url).
+> `\$version` has been [yanked from PyPI](https://pypi.org/project/$package/$version/).

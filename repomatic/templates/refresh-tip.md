@@ -1,7 +1,7 @@
 ---
-args: [workflow_dispatch_url]
+args: [repo_url, workflow_file]
 footer: false
 ---
 
 > [!TIP]
-> If you suspect the PR content is outdated, **[click `Run workflow`]($workflow_dispatch_url)** to refresh it manually before merging.
+> If you suspect the PR content is outdated, **[click `Run workflow`]($repo_url/actions/workflows/$workflow_file)** to refresh it manually before merging.

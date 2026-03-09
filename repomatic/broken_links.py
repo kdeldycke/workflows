@@ -234,9 +234,12 @@ def manage_combined_broken_links_issue(
     :raises ValueError: If lychee exit code is not 0, 2, or ``None``.
     :raises ValueError: If ``repo_name`` cannot be determined.
     """
+    # Shared Metadata instance for all CI context lookups.
+    md = Metadata()
+
     # Auto-detect repo_name from CI context.
     if repo_name is None:
-        md_repo_name = Metadata().repo_name
+        md_repo_name = md.repo_name
         if md_repo_name:
             repo_name = md_repo_name
             logging.info(f"Auto-detected repo_name={repo_name!r} from CI context.")
@@ -260,7 +263,6 @@ def manage_combined_broken_links_issue(
 
     # Auto-compose Sphinx source URL from CI context.
     if sphinx_output_json is not None and sphinx_source_url is None:
-        md = Metadata()
         if md.repo_url and md.sha:
             sphinx_source_url = f"{md.repo_url}/blob/{md.sha}/docs"
             logging.info(f"Auto-composed source URL: {sphinx_source_url}")

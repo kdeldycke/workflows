@@ -461,6 +461,7 @@ expected = {
         "repomatic/templates/__init__.py",
         "repomatic/test_plan.py",
         "tests/__init__.py",
+        "tests/conftest.py",
         "tests/test_binary.py",
         "tests/test_broken_links.py",
         "tests/test_changelog.py",
@@ -1148,7 +1149,7 @@ def test_ci_context_properties(monkeypatch, prop, envvar, value):
 
 
 def test_ci_context_defaults(monkeypatch):
-    """Test CI context properties return empty strings when env vars are unset."""
+    """Test CI context properties return None when env vars are unset."""
     for envvar in (
         "GITHUB_EVENT_NAME",
         "GITHUB_JOB",
@@ -1162,15 +1163,36 @@ def test_ci_context_defaults(monkeypatch):
     ):
         monkeypatch.delenv(envvar, raising=False)
     metadata = Metadata()
-    assert metadata.event_name == ""
-    assert metadata.job_name == ""
-    assert metadata.ref_name == ""
-    assert metadata.run_attempt == ""
-    assert metadata.run_id == ""
-    assert metadata.run_number == ""
-    assert metadata.sha == ""
-    assert metadata.triggering_actor == ""
-    assert metadata.workflow_ref == ""
+    assert metadata.event_name is None
+    assert metadata.job_name is None
+    assert metadata.ref_name is None
+    assert metadata.run_attempt is None
+    assert metadata.run_id is None
+    assert metadata.run_number is None
+    assert metadata.sha is None
+    assert metadata.triggering_actor is None
+    assert metadata.workflow_ref is None
+
+
+@pytest.mark.parametrize(
+    "prop, envvar",
+    [
+        ("event_name", "GITHUB_EVENT_NAME"),
+        ("job_name", "GITHUB_JOB"),
+        ("ref_name", "GITHUB_REF_NAME"),
+        ("run_attempt", "GITHUB_RUN_ATTEMPT"),
+        ("run_id", "GITHUB_RUN_ID"),
+        ("run_number", "GITHUB_RUN_NUMBER"),
+        ("sha", "GITHUB_SHA"),
+        ("triggering_actor", "GITHUB_TRIGGERING_ACTOR"),
+        ("workflow_ref", "GITHUB_WORKFLOW_REF"),
+    ],
+)
+def test_ci_context_empty_is_none(monkeypatch, prop, envvar):
+    """Test that empty env var values are normalized to None."""
+    monkeypatch.setenv(envvar, "")
+    metadata = Metadata()
+    assert getattr(metadata, prop) is None
 
 
 def test_repo_name_derived_from_slug(monkeypatch):
@@ -1185,7 +1207,7 @@ def test_repo_name_fallback_to_gh_cli(monkeypatch):
     monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
     metadata = Metadata()
     # The gh CLI fallback detects the current repo.
-    assert metadata.repo_name != ""
+    assert metadata.repo_name is not None
 
 
 def test_repo_owner_fallback_to_slug(monkeypatch):

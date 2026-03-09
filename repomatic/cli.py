@@ -2070,6 +2070,8 @@ def sync_awesome_template(ctx: Context, source_repo: str) -> None:
     # Detect current repository name for URL rewriting.
     md = Metadata()
     repo_name = md.repo_name
+    if not repo_name:
+        raise ClickException("Cannot detect repository name.")
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
@@ -2158,6 +2160,8 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     # Auto-detect repository.
     if repository is None:
         repository = Metadata().repo_slug
+    if not repository:
+        raise ClickException("Cannot detect repository.")
     repo_name = repository.split("/")[-1]
 
     # Dump label files.

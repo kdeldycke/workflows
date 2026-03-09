@@ -1069,13 +1069,10 @@ def lint_changelog_dates(
             elements.availability_admonition = "\n\n".join(admonitions)
 
             if is_yanked:
-                yanked_url = PYPI_PROJECT_URL.format(
-                    package=pypi_data[version].package, version=version
-                )
                 elements.yanked_admonition = render_template(
                     "yanked-admonition",
                     version=version,
-                    pypi_url=yanked_url,
+                    package=pypi_data[version].package,
                 )
 
             new_section = render_template("release-notes", **asdict(elements))

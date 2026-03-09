@@ -93,10 +93,16 @@ def load_template(name: str) -> tuple[dict[str, object], str]:
     return _parse_frontmatter(raw)
 
 
-def _substitute(text: str, kwargs: dict[str, str]) -> str:
-    """Apply ``string.Template`` substitution if kwargs are provided."""
+def _substitute(text: str, kwargs: dict[str, str | None]) -> str:
+    """Apply ``string.Template`` substitution if kwargs are provided.
+
+    ``None`` values are normalized to empty strings so callers can pass
+    :class:`~repomatic.metadata.Metadata` properties directly without
+    coercing at the call site.
+    """
     if kwargs:
-        return Template(text).substitute(kwargs)
+        safe = {k: (v if v is not None else "") for k, v in kwargs.items()}
+        return Template(text).substitute(safe)
     return text
 
 
@@ -234,13 +240,7 @@ def generate_pr_metadata_block() -> str:
     """
     md = Metadata()
 
-    workflow_file = extract_workflow_filename(md.workflow_ref)
-    run_url = f"{md.repo_url}/actions/runs/{md.run_id}"
-    workflow_url = (
-        f"{md.repo_url}/blob/{md.sha}/.github/workflows/{workflow_file}"
-    )
-    commit_url = f"{md.repo_url}/commit/{md.sha}"
-
+    sha = md.sha or ""
     actor = md.event_actor or ""
     triggering_actor = md.triggering_actor
     rerun_row = ""
@@ -253,14 +253,14 @@ def generate_pr_metadata_block() -> str:
         actor=actor,
         rerun_row=rerun_row,
         ref_name=md.ref_name,
-        sha_short=md.sha[:8],
-        commit_url=commit_url,
+        repo_url=md.repo_url,
+        sha=sha,
+        sha_short=sha[:8],
         job=md.job_name,
-        workflow_file=workflow_file,
-        workflow_url=workflow_url,
+        workflow_file=extract_workflow_filename(md.workflow_ref),
+        run_id=md.run_id,
         run_number=md.run_number,
         run_attempt=md.run_attempt,
-        run_url=run_url,
     )
 
 
@@ -285,10 +285,9 @@ def generate_refresh_tip() -> str:
     workflow_file = extract_workflow_filename(md.workflow_ref)
     if not workflow_file:
         return ""
-    workflow_dispatch_url = (
-        f"{md.repo_url}/actions/workflows/{workflow_file}"
+    return render_template(
+        "refresh-tip", repo_url=md.repo_url, workflow_file=workflow_file,
     )
-    return render_template("refresh-tip", workflow_dispatch_url=workflow_dispatch_url)
 
 
 def build_pr_body(prefix: str, metadata_block: str) -> str:

@@ -988,10 +988,31 @@ class JSONMetadata(json.JSONEncoder):
 
 
 class Metadata:
-    """Metadata class."""
+    """Metadata class.
+
+    Implemented as a singleton: every ``Metadata()`` call returns the same
+    instance within a process. This is safe because env vars and project files
+    do not change during a single CLI invocation. Use :meth:`reset` in test
+    teardown to discard the cached instance between tests.
+    """
+
+    _instance: Metadata | None = None
+
+    def __new__(cls) -> Metadata:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self) -> None:
         """Initialize internal variables."""
+
+    @classmethod
+    def reset(cls) -> None:
+        """Discard the singleton so the next call creates a fresh instance.
+
+        Intended for test teardown only. Production code should never call this.
+        """
+        cls._instance = None
 
     pyproject_path = Path() / "pyproject.toml"
     sphinx_conf_path = Path() / "docs" / "conf.py"
@@ -1295,7 +1316,7 @@ class Metadata:
         return None
 
     @cached_property
-    def event_name(self) -> str:
+    def event_name(self) -> str | None:
         """Returns the name of the event that triggered the workflow.
 
         Reads ``GITHUB_EVENT_NAME``. This is the raw event name (e.g.,
@@ -1303,55 +1324,55 @@ class Metadata:
         :attr:`event_type` which returns a :class:`WorkflowEvent` enum based
         on heuristics.
         """
-        return os.environ.get("GITHUB_EVENT_NAME", "")
+        return os.environ.get("GITHUB_EVENT_NAME") or None
 
     @cached_property
-    def job_name(self) -> str:
+    def job_name(self) -> str | None:
         """Returns the ID of the current job in the workflow.
 
         Reads ``GITHUB_JOB``.
         """
-        return os.environ.get("GITHUB_JOB", "")
+        return os.environ.get("GITHUB_JOB") or None
 
     @cached_property
-    def ref_name(self) -> str:
+    def ref_name(self) -> str | None:
         """Returns the short ref name of the branch or tag.
 
         Reads ``GITHUB_REF_NAME``.
         """
-        return os.environ.get("GITHUB_REF_NAME", "")
+        return os.environ.get("GITHUB_REF_NAME") or None
 
     @cached_property
-    def repo_name(self) -> str:
+    def repo_name(self) -> str | None:
         """Returns the repository name without owner prefix.
 
         Derived from :attr:`repo_slug` by splitting on ``/``.
         """
         slug = self.repo_slug
-        return slug.split("/")[-1] if slug else ""
+        return slug.split("/")[-1] if slug else None
 
     @cached_property
-    def repo_owner(self) -> str:
+    def repo_owner(self) -> str | None:
         """Returns the repository owner.
 
         Reads ``GITHUB_REPOSITORY_OWNER``, falling back to the owner
         component of :attr:`repo_slug`.
         """
-        owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+        owner = os.environ.get("GITHUB_REPOSITORY_OWNER") or None
         if not owner:
             slug = self.repo_slug
-            if "/" in slug:
+            if slug and "/" in slug:
                 owner = slug.split("/")[0]
         return owner
 
     @cached_property
-    def repo_slug(self) -> str:
+    def repo_slug(self) -> str | None:
         """Returns the ``owner/name`` slug for the current repository.
 
         Reads ``GITHUB_REPOSITORY`` in CI, falls back to ``gh repo view``
         locally.
         """
-        slug = os.environ.get("GITHUB_REPOSITORY", "")
+        slug = os.environ.get("GITHUB_REPOSITORY") or None
         if not slug:
             try:
                 slug = run_gh_command(
@@ -1363,46 +1384,45 @@ class Metadata:
                         "--jq",
                         ".nameWithOwner",
                     ],
-                ).strip()
+                ).strip() or None
             except RuntimeError:
                 logging.debug("Failed to detect repository slug via gh CLI.")
         return slug
 
     @cached_property
-    def repo_url(self) -> str:
+    def repo_url(self) -> str | None:
         """Returns the full URL to the repository.
 
         Derived from :attr:`server_url` and :attr:`repo_slug`.
         """
-        server = self.server_url
         slug = self.repo_slug
-        if server and slug:
-            return f"{server}/{slug}"
-        return ""
+        if slug:
+            return f"{self.server_url}/{slug}"
+        return None
 
     @cached_property
-    def run_attempt(self) -> str:
+    def run_attempt(self) -> str | None:
         """Returns the run attempt number.
 
         Reads ``GITHUB_RUN_ATTEMPT``.
         """
-        return os.environ.get("GITHUB_RUN_ATTEMPT", "")
+        return os.environ.get("GITHUB_RUN_ATTEMPT") or None
 
     @cached_property
-    def run_id(self) -> str:
+    def run_id(self) -> str | None:
         """Returns the unique ID of the current workflow run.
 
         Reads ``GITHUB_RUN_ID``.
         """
-        return os.environ.get("GITHUB_RUN_ID", "")
+        return os.environ.get("GITHUB_RUN_ID") or None
 
     @cached_property
-    def run_number(self) -> str:
+    def run_number(self) -> str | None:
         """Returns the run number for the current workflow.
 
         Reads ``GITHUB_RUN_NUMBER``.
         """
-        return os.environ.get("GITHUB_RUN_NUMBER", "")
+        return os.environ.get("GITHUB_RUN_NUMBER") or None
 
     @cached_property
     def server_url(self) -> str:
@@ -1410,34 +1430,34 @@ class Metadata:
 
         Reads ``GITHUB_SERVER_URL``, defaulting to ``https://github.com``.
         """
-        return os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+        return os.environ.get("GITHUB_SERVER_URL") or "https://github.com"
 
     @cached_property
-    def sha(self) -> str:
+    def sha(self) -> str | None:
         """Returns the commit SHA that triggered the workflow.
 
         Reads ``GITHUB_SHA``.
         """
-        return os.environ.get("GITHUB_SHA", "")
+        return os.environ.get("GITHUB_SHA") or None
 
     @cached_property
-    def triggering_actor(self) -> str:
+    def triggering_actor(self) -> str | None:
         """Returns the login of the user that initiated the workflow run.
 
         Reads ``GITHUB_TRIGGERING_ACTOR``. This differs from
         :attr:`event_actor` (``GITHUB_ACTOR``) when a workflow is re-run by a
         different user.
         """
-        return os.environ.get("GITHUB_TRIGGERING_ACTOR", "")
+        return os.environ.get("GITHUB_TRIGGERING_ACTOR") or None
 
     @cached_property
-    def workflow_ref(self) -> str:
+    def workflow_ref(self) -> str | None:
         """Returns the full workflow reference.
 
         Reads ``GITHUB_WORKFLOW_REF``. The format is
         ``owner/repo/.github/workflows/name.yaml@refs/heads/branch``.
         """
-        return os.environ.get("GITHUB_WORKFLOW_REF", "")
+        return os.environ.get("GITHUB_WORKFLOW_REF") or None
 
     @cached_property
     def changed_files(self) -> tuple[str, ...] | None:
@@ -1573,7 +1593,7 @@ class Metadata:
         # Push event.
         else:
             start = self.github_event.get("before")
-            end = self.sha or None
+            end = self.sha
         logging.debug(f"Commit range: {start} -> {end}")
         if not start or not end:
             logging.warning(f"Incomplete commit range: {start} -> {end}")
