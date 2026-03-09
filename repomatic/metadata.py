@@ -443,6 +443,13 @@ class Config:
     autofix job to overwrite it can set this to ``false``.
     """
 
+    uv_lock_sync: bool = True
+    """Whether ``uv.lock`` sync is enabled for this project.
+
+    Projects that manage their own lock file strategy and do not want the
+    ``sync-uv-lock`` job to run ``uv lock --upgrade`` can set this to ``false``.
+    """
+
     workflow_sync: bool = True
     """Whether workflow sync is enabled for this project.
 
@@ -608,6 +615,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "mailmap_sync",
     "pypi_package_history",
     "renovate_sync",
+    "uv_lock_sync",
     "test_plan",
     "test_plan_file",
     "timeout",

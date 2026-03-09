@@ -1317,6 +1317,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["labels-sync"] is True
     assert metadata.config["mailmap-sync"] is True
     assert metadata.config["renovate-sync"] is True
+    assert metadata.config["uv-lock-sync"] is True
     assert metadata.config["workflow-sync"] is True
     assert metadata.config["workflow-sync-exclude"] == []
     assert metadata.config["zizmor-sync"] is True
@@ -1358,6 +1359,7 @@ gitignore-sync = false
 labels-sync = false
 mailmap-sync = false
 renovate-sync = false
+uv-lock-sync = false
 workflow-sync = false
 workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
 zizmor-sync = false
@@ -1400,6 +1402,7 @@ zizmor-sync = false
     assert metadata.config["labels-sync"] is False
     assert metadata.config["mailmap-sync"] is False
     assert metadata.config["renovate-sync"] is False
+    assert metadata.config["uv-lock-sync"] is False
     assert metadata.config["workflow-sync"] is False
     assert metadata.config["workflow-sync-exclude"] == [
         "debug.yaml",

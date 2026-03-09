@@ -1933,7 +1933,8 @@ def verify_binary(target: str, binary_path: Path) -> None:
     default="uv.lock",
     help="Path to the uv.lock file.",
 )
-def sync_uv_lock_cmd(lockfile: Path) -> None:
+@pass_context
+def sync_uv_lock_cmd(ctx: Context, lockfile: Path) -> None:
     """Run ``uv lock --upgrade`` and revert if only timestamp noise changed.
 
     Runs ``uv lock --upgrade`` to update transitive dependencies to their
@@ -1950,6 +1951,14 @@ def sync_uv_lock_cmd(lockfile: Path) -> None:
         # Check a different lock file
         repomatic sync-uv-lock --lockfile path/to/uv.lock
     """
+    config = load_repomatic_config()
+    if not config.get("uv-lock-sync", True):
+        logging.info(
+            "[tool.repomatic] uv-lock-sync is disabled."
+            " Skipping uv.lock sync."
+        )
+        ctx.exit(0)
+
     if _sync_uv_lock(lockfile):
         echo("Reverted uv.lock: only exclude-newer-package timestamp noise.")
     else:
