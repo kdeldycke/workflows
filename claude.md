@@ -251,10 +251,14 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 
 1. **Pick the verb that matches the data source.** If the operation pulls from an external template, API, or canonical reference, it is a `sync`. If it computes from local project state (lockfiles, git history, source code), it is an `update`. If it reformats existing content, it is a `format`.
 2. **Name the specific tool or file, not a generic category.** The noun in `verb-noun` must identify the concrete tool, file, or resource the operation targets (e.g., `sync-zizmor`, `sync-gitignore`, `sync-renovate`). Do not use abstract groupings like `sync-linter-configs` or `sync-vcs-configs`. If a second tool is added to a category, create a separate operation for it.
-3. **All four dimensions must agree.** When adding a new automated operation, the CLI command, workflow job ID, PR branch name, and PR body template file name must all use the same `verb-noun` identifier (e.g., `sync-gitignore` everywhere).
+3. **All four dimensions must agree.** When adding a file-modifying operation, the CLI command, workflow job ID, PR branch name, and PR body template file name must all use the same `verb-noun` identifier (e.g., `sync-gitignore` everywhere). For read-only operations (`lint-*`), only the CLI command and workflow job ID apply.
 4. **Function names follow the CLI name.** The Python function backing a CLI command uses the underscore equivalent of the CLI name (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter to override (e.g., `@repomatic.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
 
-### Sync job contract
+### Automated operation contracts
+
+Every automated operation follows the [naming conventions](#naming-conventions-for-automated-operations) and is [idempotent](#idempotency-by-default). The contracts below define the required properties for each operation type.
+
+#### Sync job contract
 
 Every `sync-*` operation modifies or overwrites user-controlled files or resources. Users must retain full control: each sync operation must be individually disableable via `[tool.repomatic]`.
 
@@ -263,15 +267,58 @@ Every `sync-*` operation modifies or overwrites user-controlled files or resourc
 1. **Config toggle.** A `*_sync: bool = True` field in the `Config` dataclass. Kebab-case key in `[tool.repomatic]` (e.g., `gitignore-sync = false`). Alphabetically sorted among existing sync fields.
 2. **CLI command.** A `repomatic sync-*` command that loads config, checks the toggle, and exits cleanly (`ctx.exit(0)`) when disabled. Uses `@pass_context` to receive `ctx`.
 3. **Toggle enforcement.** For CLI-based syncs: the toggle field goes in `SUBCOMMAND_CONFIG_FIELDS` (checked in the CLI, not exposed as metadata). For workflow-only syncs (no CLI command): the toggle is exposed as a metadata output and checked in the job's `if:` condition.
-4. **Workflow job.** A `sync-*` job with: metadata `needs:` when required, prerequisite `if:` conditions, PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template sync-*`). Exception: syncs targeting API resources (e.g., labels) rather than repo files apply changes directly.
+4. **Workflow job.** A `sync-*` job in `autofix.yaml` with: metadata `needs:` when required, prerequisite `if:` conditions, PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template sync-*`). Exception: syncs targeting API resources (e.g., labels) rather than repo files apply changes directly.
 5. **Documentation.** Config table row and TOML example in `readme.md`. Job description with "Skipped if" clause in `readme.md`. Changelog entry.
 6. **Tests.** Default and custom value assertions in `test_repomatic_config_defaults` and `test_repomatic_config_custom_values`.
 
 **Invariants:**
 
-- All sync operations are **idempotent** (see [§ Idempotency by default](#idempotency-by-default)).
-- Naming across CLI command, job ID, branch name, and PR body template must agree (see naming conventions above).
 - A disabled toggle must produce **zero side effects**: no file writes, no API calls, no PRs.
+
+#### Update job contract
+
+Every `update-*` operation computes derived artifacts from project state (lockfiles, git history, source code). Unlike sync operations, these generate computed output rather than overwriting user-authored content.
+
+**Required properties:**
+
+1. **CLI command.** A `repomatic update-*` command.
+2. **Workflow job.** An `update-*` job in `autofix.yaml` with PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template update-*`).
+3. **Documentation.** Job description in `readme.md`. Changelog entry.
+
+**Optional properties:**
+
+- **Config toggle.** Add a `*_update: bool = True` toggle only when the generated output involves files the user may want to manage independently. If added, follow the sync toggle pattern (Config field, `SUBCOMMAND_CONFIG_FIELDS`, tests).
+- **Config parameters.** Output paths, filtering options, or depth limits belong as Config fields (e.g., `dependency-graph-output`, `dependency-graph-groups`). These configure behavior without enabling/disabling the operation.
+
+#### Format and fix job contract
+
+Every `format-*` and `fix-*` operation rewrites files using a pinned external tool. `format-*` enforces canonical style (semantics-preserving); `fix-*` corrects content errors such as typos (semantics-altering). The [naming convention](#naming-conventions-for-automated-operations) table defines when to use each prefix.
+
+**Required properties:**
+
+1. **CLI command.** A `repomatic format-*` or `repomatic fix-*` command that wraps a pinned external tool (e.g., ruff, mdformat, jq, typos).
+2. **Workflow job.** A job in `autofix.yaml` with PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template verb-noun`).
+3. **Documentation.** Job description in `readme.md`. Changelog entry.
+
+**Invariants:**
+
+- No config toggle. Format jobs gate on metadata file-detection outputs (e.g., `python_files`, `markdown_files`, `json_files`) making them self-skipping when irrelevant. Fix jobs may run unconditionally when the tool applies to all file types.
+- The external tool version must be pinned in the CLI command for reproducibility.
+
+#### Lint job contract
+
+Every `lint-*` operation checks content without modifying it. Lint operations are **read-only**.
+
+**Required properties:**
+
+1. **CLI command.** A `repomatic lint-*` command. Returns exit code 0 on pass, non-zero on failure.
+2. **Workflow job.** A `lint-*` job in `lint.yaml` (not `autofix.yaml`). No PR creation — lints gate merges via status checks.
+3. **Documentation.** Job description in `readme.md`. Changelog entry.
+
+**Invariants:**
+
+- Read-only. No file writes, no PRs, no side effects beyond exit code and stdout/stderr output.
+- Lives in `lint.yaml`, not `autofix.yaml`.
 
 ### Ordering conventions
 
@@ -345,18 +392,7 @@ The `repomatic` ecosystem has two layers of automation:
 1. **Mechanical layer** — CLI commands and CI workflows that deterministically sync, lint, format, and fix files. These run automatically on every push to `main` via the `autofix.yaml` and `lint.yaml` workflows.
 2. **Analytical layer** — Judgment-based tasks that require comparing context, weighing trade-offs, and making recommendations. These cannot be automated by the CLI.
 
-**What the autofix workflow already handles mechanically** (no skill needed to trigger these — they run on every push to `main`):
-
-| Autofix job | What it does |
-|---|---|
-| `sync-workflows` | Re-creates thin-caller workflows, syncs header-only workflow headers |
-| `sync-gitignore` | Syncs `.gitignore` from template |
-| `sync-bumpversion` | Syncs bumpversion config |
-| `sync-zizmor` | Syncs `zizmor.yaml` config |
-| `sync-renovate` | Syncs `renovate.json5` base config |
-| `sync-mailmap` | Syncs `.mailmap` from git history |
-| `update-deps-graph` | Regenerates dependency graph from lockfile |
-| `format-*` / `fix-*` | Formats Python, Markdown, JSON; fixes typos |
+**What the autofix workflow already handles mechanically:** All `sync-*`, `update-*`, `format-*`, and `fix-*` jobs in `autofix.yaml` run on every push to `main` — no skill needed to trigger them. See [§ Automated operation contracts](#automated-operation-contracts) for the structural requirements of each operation type and the workflow files for the current inventory of jobs.
 
 **What skills should focus on** — the gaps the mechanical layer cannot cover:
 
