@@ -85,7 +85,7 @@ Each piece of knowledge has one canonical home, chosen by audience. Other locati
 | Developers            | Python docstrings         | Design decisions, trade-offs, "why" explanations.          |
 | Workflow maintainers  | YAML comments             | Brief "what" + pointer to Python code for "why."           |
 | Bug reporters         | `.github/ISSUE_TEMPLATE/` | Reproduction steps, version commands.                      |
-| Contributors / Claude | `CLAUDE.md`               | Conventions, policies, non-obvious rules.                  |
+| Contributors / Claude | `claude.md`               | Conventions, policies, non-obvious rules.                  |
 
 **YAML → Python distillation:** When workflow YAML files contain lengthy "why" explanations, migrate the rationale to Python module, class, or constant docstrings (using reST admonitions like `.. note::` and `.. warning::`). Trim the YAML comment to a one-line "what" plus a pointer: `# See repomatic/module.py for rationale.`
 
@@ -252,6 +252,25 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 1. **Pick the verb that matches the data source.** If the operation pulls from an external template, API, or canonical reference, it is a `sync`. If it computes from local project state (lockfiles, git history, source code), it is an `update`. If it reformats existing content, it is a `format`.
 2. **All four dimensions must agree.** When adding a new automated operation, the CLI command, workflow job ID, PR branch name, and PR body template file name must all use the same `verb-noun` identifier (e.g., `sync-gitignore` everywhere).
 3. **Function names follow the CLI name.** The Python function backing a CLI command uses the underscore equivalent of the CLI name (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter to override (e.g., `@repomatic.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
+
+### Sync job contract
+
+Every `sync-*` operation modifies or overwrites user-controlled files or resources. Users must retain full control: each sync operation must be individually disableable via `[tool.repomatic]`.
+
+**Required properties** (checklist for adding or auditing a sync job):
+
+1. **Config toggle.** A `*_sync: bool = True` field in the `Config` dataclass. Kebab-case key in `[tool.repomatic]` (e.g., `gitignore-sync = false`). Alphabetically sorted among existing sync fields.
+2. **CLI command.** A `repomatic sync-*` command that loads config, checks the toggle, and exits cleanly (`ctx.exit(0)`) when disabled. Uses `@pass_context` to receive `ctx`.
+3. **Toggle enforcement.** For CLI-based syncs: the toggle field goes in `SUBCOMMAND_CONFIG_FIELDS` (checked in the CLI, not exposed as metadata). For workflow-only syncs (no CLI command): the toggle is exposed as a metadata output and checked in the job's `if:` condition.
+4. **Workflow job.** A `sync-*` job with: metadata `needs:` when required, prerequisite `if:` conditions, PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template sync-*`). Exception: syncs targeting API resources (e.g., labels) rather than repo files apply changes directly.
+5. **Documentation.** Config table row and TOML example in `readme.md`. Job description with "Skipped if" clause in `readme.md`. Changelog entry.
+6. **Tests.** Default and custom value assertions in `test_repomatic_config_defaults` and `test_repomatic_config_custom_values`.
+
+**Invariants:**
+
+- All sync operations are **idempotent** (see [§ Idempotency by default](#idempotency-by-default)).
+- Naming across CLI command, job ID, branch name, and PR body template must agree (see naming conventions above).
+- A disabled toggle must produce **zero side effects**: no file writes, no API calls, no PRs.
 
 ### Ordering conventions
 

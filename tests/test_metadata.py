@@ -1183,6 +1183,12 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["extra-file-rules"] == ""
     assert metadata.config["extra-content-rules"] == ""
     assert metadata.config["pypi-package-history"] == []
+    assert metadata.config["awesome-template-sync"] is True
+    assert metadata.config["bumpversion-sync"] is True
+    assert metadata.config["gitignore-sync"] is True
+    assert metadata.config["labels-sync"] is True
+    assert metadata.config["linter-sync"] is True
+    assert metadata.config["mailmap-sync"] is True
     assert metadata.config["renovate-sync"] is True
     assert metadata.config["workflow-sync"] is True
     assert metadata.config["workflow-sync-exclude"] == []
@@ -1218,6 +1224,12 @@ extra-label-files = ["https://example.com/labels.toml"]
 extra-file-rules = "docs:\\n  - docs/**"
 extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
 pypi-package-history = ["old-name", "older-name"]
+awesome-template-sync = false
+bumpversion-sync = false
+gitignore-sync = false
+labels-sync = false
+linter-sync = false
+mailmap-sync = false
 renovate-sync = false
 workflow-sync = false
 workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
@@ -1254,6 +1266,12 @@ workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
         metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
     )
     assert metadata.config["pypi-package-history"] == ["old-name", "older-name"]
+    assert metadata.config["awesome-template-sync"] is False
+    assert metadata.config["bumpversion-sync"] is False
+    assert metadata.config["gitignore-sync"] is False
+    assert metadata.config["labels-sync"] is False
+    assert metadata.config["linter-sync"] is False
+    assert metadata.config["mailmap-sync"] is False
     assert metadata.config["renovate-sync"] is False
     assert metadata.config["workflow-sync"] is False
     assert metadata.config["workflow-sync-exclude"] == [

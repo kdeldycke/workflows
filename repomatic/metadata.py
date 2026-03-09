@@ -395,6 +395,48 @@ class Config:
     release workflow from succeeding.
     """
 
+    awesome_template_sync: bool = True
+    """Whether awesome-template sync is enabled for this project.
+
+    Repositories whose name starts with ``awesome-`` get their boilerplate synced
+    from ``kdeldycke/awesome-template``. Set to ``false`` to opt out.
+    """
+
+    bumpversion_sync: bool = True
+    """Whether bumpversion config sync is enabled for this project.
+
+    Projects that manage their own ``[tool.bumpversion]`` section and do not want
+    the autofix job to overwrite it can set this to ``false``.
+    """
+
+    gitignore_sync: bool = True
+    """Whether ``.gitignore`` sync is enabled for this project.
+
+    Projects that manage their own ``.gitignore`` and do not want the autofix job
+    to overwrite it can set this to ``false``.
+    """
+
+    linter_sync: bool = True
+    """Whether linter config sync is enabled for this project.
+
+    Projects that do not want the autofix job to sync ``zizmor.yaml`` can set
+    this to ``false``.
+    """
+
+    labels_sync: bool = True
+    """Whether label sync is enabled for this project.
+
+    Projects that manage their own repository labels and do not want the
+    labels workflow to overwrite them can set this to ``false``.
+    """
+
+    mailmap_sync: bool = True
+    """Whether ``.mailmap`` sync is enabled for this project.
+
+    Projects that manage their own ``.mailmap`` and do not want the autofix job
+    to overwrite it can set this to ``false``.
+    """
+
     renovate_sync: bool = True
     """Whether Renovate config sync is enabled for this project.
 
@@ -540,6 +582,8 @@ class Config:
 
 
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
+    "awesome_template_sync",
+    "bumpversion_sync",
     "dependency_graph_all_extras",
     "dependency_graph_all_groups",
     "dependency_graph_level",
@@ -552,7 +596,11 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "gitignore_extra_categories",
     "gitignore_extra_content",
     "gitignore_location",
+    "gitignore_sync",
     "init_exclude",
+    "labels_sync",
+    "linter_sync",
+    "mailmap_sync",
     "pypi_package_history",
     "renovate_sync",
     "test_plan",

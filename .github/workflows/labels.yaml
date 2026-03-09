@@ -38,29 +38,10 @@ jobs:
           mkdir -p /tmp/lm
           tar xJ --strip-components=1 --directory=/tmp/lm --file=/tmp/lm.tar.xz
           mv /tmp/lm/labelmaker /usr/local/bin/labelmaker
-      - name: Dump labels
-        run: uvx --no-progress --from . repomatic init labels
-      - name: Apply labels
+      - name: Sync labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Multiple file support for labelmaker apply is being discussed upstream at:
-        # https://github.com/jwodder/labelmaker/issues/125
-        run: |
-          # Apply default profile to all repositories.
-          labelmaker apply labels.toml --profile default "${{ github.repository }}"
-
-          # Apply awesome profile for awesome-* repositories.
-          # shellcheck disable=SC2193 # False positive: shellcheck doesn't understand GitHub expression templating.
-          if [[ "${{ github.event.repository.name }}" == "awesome-"* ]] && \
-             [[ "${{ github.event.repository.name }}" != "awesome-template" ]]; then
-            labelmaker apply labels.toml --profile awesome "${{ github.repository }}"
-          fi
-
-          # Apply extra label files.
-          for f in extra-labels/*; do
-            [ -f "$f" ] || continue
-            labelmaker apply "$f" "${{ github.repository }}"
-          done
+        run: uvx --no-progress --from . repomatic sync-labels
 
   project-metadata:
     name: 🧬 Project metadata

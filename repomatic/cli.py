@@ -650,7 +650,8 @@ GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
     default=None,
     help=("Output path. Defaults to gitignore-location from [tool.repomatic] config."),
 )
-def sync_gitignore(output_path: Path | None) -> None:
+@pass_context
+def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
     """Sync a ``.gitignore`` file from gitignore.io templates.
 
     Fetches templates for a base set of categories plus any extras from
@@ -672,6 +673,12 @@ def sync_gitignore(output_path: Path | None) -> None:
         repomatic sync-gitignore --output -
     """
     config = load_repomatic_config()
+    if not config.get("gitignore-sync", True):
+        logging.info(
+            "[tool.repomatic] gitignore-sync is disabled."
+            " Skipping .gitignore sync."
+        )
+        ctx.exit(0)
 
     # Combine base and extra categories, preserving order and deduplicating.
     extra = config.get("gitignore-extra-categories", [])
@@ -1094,6 +1101,13 @@ def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
     The updated results are sorted. But no attempts are made at regrouping new
     contributors. So you have to edit entries by hand to regroup them.
     """
+    config = load_repomatic_config()
+    if not config.get("mailmap-sync", True):
+        logging.info(
+            "[tool.repomatic] mailmap-sync is disabled. Skipping .mailmap sync."
+        )
+        ctx.exit(0)
+
     # Default destination to source path (in-place update).
     if destination_mailmap is None:
         destination_mailmap = source
@@ -1946,7 +1960,8 @@ def sync_uv_lock_cmd(lockfile: Path) -> None:
 @repomatic.command(
     short_help="Sync bumpversion config from bundled template", section=_section_sync
 )
-def sync_bumpversion() -> None:
+@pass_context
+def sync_bumpversion(ctx: Context) -> None:
     """Sync ``[tool.bumpversion]`` config in ``pyproject.toml`` from the bundled
     template.
 
@@ -1955,6 +1970,14 @@ def sync_bumpversion() -> None:
     The ``repomatic init bumpversion`` command remains available for interactive
     bootstrapping.
     """
+    config = load_repomatic_config()
+    if not config.get("bumpversion-sync", True):
+        logging.info(
+            "[tool.repomatic] bumpversion-sync is disabled."
+            " Skipping bumpversion config sync."
+        )
+        ctx.exit(0)
+
     result = run_init(
         output_dir=Path("."),
         components=("bumpversion",),
@@ -1971,13 +1994,21 @@ def sync_bumpversion() -> None:
     short_help="Sync linter config files from bundled definitions",
     section=_section_sync,
 )
-def sync_linter_configs() -> None:
+@pass_context
+def sync_linter_configs(ctx: Context) -> None:
     """Sync linter configuration files from the bundled definitions in ``repomatic``.
 
     Overwrites ``zizmor.yaml`` with the canonical configuration
     bundled in ``repomatic``. Designed for the ``sync-linter-configs`` autofix job.
     Use ``repomatic init linters`` for interactive bootstrapping.
     """
+    config = load_repomatic_config()
+    if not config.get("linter-sync", True):
+        logging.info(
+            "[tool.repomatic] linter-sync is disabled. Skipping linter config sync."
+        )
+        ctx.exit(0)
+
     result = run_init(
         output_dir=Path("."),
         components=("linters",),
@@ -2010,6 +2041,172 @@ def sync_skills() -> None:
             echo(f"Updated: {path}")
     else:
         echo("Skills are up to date.")
+
+
+@repomatic.command(
+    short_help="Sync awesome-template boilerplate files", section=_section_sync
+)
+@option(
+    "--source-repo",
+    default="kdeldycke/awesome-template",
+    show_default=True,
+    help="GitHub repository to sync files from.",
+)
+@pass_context
+def sync_awesome_template(ctx: Context, source_repo: str) -> None:
+    """Sync boilerplate files from an ``awesome-template`` repository.
+
+    Clones the source repository, copies all files into the working directory,
+    and rewrites URLs to match the current repository name.
+    Designed for the ``sync-awesome-template`` autofix job.
+    """
+    config = load_repomatic_config()
+    if not config.get("awesome-template-sync", True):
+        logging.info(
+            "[tool.repomatic] awesome-template-sync is disabled."
+            " Skipping awesome-template sync."
+        )
+        ctx.exit(0)
+
+    from .github.gh import get_repo_slug
+
+    # Detect current repository name for URL rewriting.
+    repo_slug = get_repo_slug()
+    repo_name = repo_slug.split("/")[-1]
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        clone_dir = tmp_path / "template"
+
+        # Shallow clone the source repository.
+        logging.info(f"Cloning {source_repo} into {clone_dir}")
+        subprocess.run(
+            ["git", "clone", "--depth", "1", "--single-branch",
+             f"https://github.com/{source_repo}.git", str(clone_dir)],
+            check=True,
+            capture_output=True,
+        )
+
+        # Record the template commit hash for logging.
+        git_result = subprocess.run(
+            ["git", "-C", str(clone_dir), "rev-parse", "--short", "HEAD"],
+            check=True,
+            capture_output=True,
+            encoding="UTF-8",
+        )
+        template_hash = git_result.stdout.strip()
+        logging.info(f"Template at commit {template_hash}")
+
+        # Copy files from clone to working directory, skipping .git.
+        cwd = Path(".")
+        for src_file in clone_dir.rglob("*"):
+            if not src_file.is_file():
+                continue
+            rel = src_file.relative_to(clone_dir)
+            if rel.parts[0] == ".git":
+                continue
+            dest = cwd / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(src_file.read_bytes())
+            logging.info(f"Synced: {rel}")
+
+        # Rewrite template URLs in .github/ markdown and YAML files.
+        source_slug = source_repo.rstrip("/")
+        github_dir = cwd / ".github"
+        if github_dir.is_dir():
+            count = 0
+            for path in github_dir.rglob("*"):
+                if not path.is_file() or path.suffix not in (".md", ".yaml"):
+                    continue
+                content = path.read_text(encoding="UTF-8")
+                new_content = content.replace(
+                    f"/{source_slug}/", f"/{repo_slug}/"
+                )
+                if new_content != content:
+                    path.write_text(new_content, encoding="UTF-8")
+                    count += 1
+                    logging.info(f"Rewrote URLs in: {path}")
+            if count:
+                echo(f"Rewrote URLs in {count} file(s).")
+
+    echo(f"Synced from {source_repo}@{template_hash}.")
+
+
+@repomatic.command(
+    short_help="Sync repository labels via labelmaker", section=_section_sync
+)
+@option(
+    "--repo",
+    "repository",
+    default=None,
+    help="GitHub repository (owner/name). Auto-detected if omitted.",
+)
+@pass_context
+def sync_labels(ctx: Context, repository: str | None) -> None:
+    """Sync repository labels from bundled definitions using ``labelmaker``.
+
+    Exports label definitions via ``repomatic init labels``, then applies them
+    to the repository using ``labelmaker``. Applies the ``default`` profile to
+    all repositories, plus the ``awesome`` profile for ``awesome-*`` repos.
+
+    Requires ``labelmaker`` on ``PATH`` and ``GITHUB_TOKEN`` in the environment.
+    """
+    config = load_repomatic_config()
+    if not config.get("labels-sync", True):
+        logging.info(
+            "[tool.repomatic] labels-sync is disabled. Skipping label sync."
+        )
+        ctx.exit(0)
+
+    from .github.gh import get_repo_slug
+
+    # Auto-detect repository.
+    if repository is None:
+        repository = get_repo_slug()
+    repo_name = repository.split("/")[-1]
+
+    # Dump label files.
+    result = run_init(output_dir=Path("."), components=("labels",))
+    for path in [*result.created, *result.updated]:
+        logging.info(f"Exported: {path}")
+
+    # Apply default profile.
+    _run_labelmaker(["apply", "labels.toml", "--profile", "default", repository])
+
+    # Apply awesome profile for awesome-* repos.
+    if repo_name.startswith("awesome-") and repo_name != "awesome-template":
+        _run_labelmaker(
+            ["apply", "labels.toml", "--profile", "awesome", repository]
+        )
+
+    # Apply extra label files.
+    extra_dir = Path("extra-labels")
+    if extra_dir.is_dir():
+        for label_file in sorted(extra_dir.iterdir()):
+            if label_file.is_file():
+                _run_labelmaker(["apply", str(label_file), repository])
+
+    echo("Labels synced.")
+
+
+def _run_labelmaker(args: list[str]) -> None:
+    """Run a ``labelmaker`` command.
+
+    :raises ClickException: If ``labelmaker`` is not found or fails.
+    """
+    cmd = ["labelmaker", *args]
+    logging.info(f"Running: {' '.join(cmd)}")
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, encoding="UTF-8", check=False,
+        )
+    except FileNotFoundError:
+        msg = "labelmaker is not installed. See https://github.com/jwodder/labelmaker"
+        raise ClickException(msg)
+    if result.returncode:
+        raise ClickException(f"labelmaker failed: {result.stderr}")
+    if result.stdout:
+        logging.debug(result.stdout)
 
 
 # Lifecycle phases for skill grouping. Each skill name maps to a phase.

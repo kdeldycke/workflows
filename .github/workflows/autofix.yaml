@@ -48,6 +48,7 @@ jobs:
       mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
       renovate_config_exists: ${{ steps.project-metadata.outputs.renovate_config_exists }}
       image_files: ${{ steps.project-metadata.outputs.image_files }}
+      workflow_files: ${{ steps.project-metadata.outputs.workflow_files }}
       active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
       release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
     steps:
@@ -369,6 +370,9 @@ jobs:
 
   sync-linter-configs:
     name: 🔄 Sync linter configs
+    needs:
+      - project-metadata
+    if: needs.project-metadata.outputs.workflow_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -547,41 +551,24 @@ jobs:
       startsWith(github.event.repository.name, 'awesome-')
       && github.event.repository.name != 'awesome-template'
     runs-on: ubuntu-slim
-    # We need custom PAT through the whole job so we get workflow permissions to update all the boilerplate .github
-    # files from awesome-template.
     steps:
-      - name: Initial checkout
-        uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.2
         with:
           token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
       - uses: astral-sh/setup-uv@v7.3.1
+      - name: Sync awesome template
+        run: uvx --no-progress --from . repomatic sync-awesome-template
       - id: pr-metadata
-        # Template variables are substituted by the template-sync action.
-        env:
-          GHA_PR_BODY_PREFIX: |
-            Files synced from [`kdeldycke/awesome-template@${TEMPLATE_GIT_HASH}`
-            repository](${SOURCE_REPO}/tree/${TEMPLATE_GIT_HASH}).
-        run: uvx --no-progress --from . repomatic pr-body --output "$GITHUB_OUTPUT"
-      - name: Sync from template repo
-        id: template_sync
-        uses: AndreasAugustin/actions-template-sync@v2.5.2
+        run: >
+          uvx --no-progress --from . repomatic pr-body
+          --template sync-awesome-template
+          --output "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v8.1.0
         with:
-          github_token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-          source_repo_path: kdeldycke/awesome-template
-          # Action will update PR only if there is file changes. is_force_push_pr also force the PR to be updated
-          # only if metadata changes.
-          is_force_push_pr: true
-          is_allow_hooks: true
-          is_pr_cleanup: true
-          # Replace "/kdeldycke/awesome-template/" in URLs by "/kdeldycke/awesome-<repo_id>/".
-          hooks: >
-            precommit:
-              commands:
-                - find ./.github/ -type f -iregex ".*\.\(md\|yaml\)$" -print -exec sed -i
-                  "s/\/kdeldycke\/awesome-template\//\/kdeldycke\/${{ github.event.repository.name }}\//g" "{}" \;
-          pr_title: Sync from `awesome-template`
-          pr_commit_msg: Sync from `awesome-template`
-          pr_branch_name_prefix: "sync-awesome-template"
-          pr_body: ${{ steps.pr-metadata.outputs.body }}
-          pr_labels: "📚 documentation"
+          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          assignees: ${{ github.actor }}
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "📚 documentation"
+          branch: sync-awesome-template
