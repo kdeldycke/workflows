@@ -3,11 +3,11 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-02T15:40:18.554652544Z"
+exclude-newer = "2026-03-02T17:25:06.375499118Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-repomatic = { timestamp = "2026-03-09T15:40:18.554660609Z", span = "PT0S" }
+repomatic = { timestamp = "2026-03-09T17:25:06.37550575Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -191,7 +191,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.6.2"
+version = "7.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -204,9 +204,9 @@ dependencies = [
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/17/fc/dd0c29147f5dea75395eb0b5401b9c9dbf621a2a1651dba6b6fc66e01372/click_extra-7.6.2.tar.gz", hash = "sha256:4b67af523a53144e025eb09a91b359a5534a9cf6994569478b97a8a7d876c100", size = 102154, upload-time = "2026-02-27T15:54:32.785Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/99/12/d9ec0a4328d15dc9f3265561248bcdd64cc7f2d72ed83c3601d8852bed6e/click_extra-7.6.3.tar.gz", hash = "sha256:05c44101eeceff46f7880ce8fe342470dc5754a72a0a60476b62b4fdd58b3589", size = 102158, upload-time = "2026-03-02T09:59:13.754Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/a5/5b284926865577fb6b6fa9596bed15d7471032a0e5f1e8fcd656536ed677/click_extra-7.6.2-py3-none-any.whl", hash = "sha256:cdd1185cb8d4a7fa8604e561bc56d30e56ae25dee0d3552b401bda183aadefad", size = 116566, upload-time = "2026-02-27T15:54:31.577Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/1f/05a49c9e278221a65b5f16971a42da20f08fee0bd071e78273b40fb89fc2/click_extra-7.6.3-py3-none-any.whl", hash = "sha256:ab3cd74241e4507457d8030d6147ee641c17a5d4de552cebfaa45464c2540295", size = 116565, upload-time = "2026-03-02T09:59:12.227Z" },
 ]
 
 [[package]]
@@ -472,15 +472,15 @@ wheels = [
 
 [[package]]
 name = "lizard"
-version = "1.21.0"
+version = "1.21.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pathspec" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fd/09/52deafdd70a33461022bbc72e494d1e88e99e16818d09beda4fc001aaf31/lizard-1.21.0.tar.gz", hash = "sha256:35e62e2a42e06d379de4545f5866eb562c0b4fce5aeae779ec9dbda946e0b958", size = 89620, upload-time = "2026-02-03T09:50:36.866Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/d5/7af5493043af4f10ad52b46b6271f0d3ba3d04500fdc835f27bfd606604d/lizard-1.21.2.tar.gz", hash = "sha256:bb45c354cd30bf9081bb81e2b22d26774f5974937c6a742903180d4c1bbb7602", size = 90385, upload-time = "2026-03-02T07:11:31.22Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/af/df81c6e824fab14fc5d3e961c3c4812309ff582f9f8125d10d58b5b6a78c/lizard-1.21.0-py2.py3-none-any.whl", hash = "sha256:0d47e603bee2616790c73a2fa415bbba720926f72997008c9a738ff560ba78ae", size = 97762, upload-time = "2026-02-03T09:50:34.925Z" },
+    { url = "https://files.pythonhosted.org/packages/72/5b/622b5e2577aacbe20a002e71b3ac9c9a4428cf3c312d648c4ec6950750b8/lizard-1.21.2-py2.py3-none-any.whl", hash = "sha256:d628a63fe0ad1ccff8e8f648e8dc9621f3a85ff754106dcc32b62cd0fc877802", size = 98235, upload-time = "2026-03-02T07:11:28.523Z" },
 ]
 
 [[package]]
@@ -819,11 +819,11 @@ wheels = [
 
 [[package]]
 name = "python-dotenv"
-version = "1.2.1"
+version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f0/26/19cadc79a718c5edbec86fd4919a6b6d3f681039a2f6d66d14be94e75fb9/python_dotenv-1.2.1.tar.gz", hash = "sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6", size = 44221, upload-time = "2025-10-26T15:12:10.434Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3", size = 50135, upload-time = "2026-03-01T16:00:26.196Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/1b/a298b06749107c305e1fe0f814c6c74aea7b2f1e10989cb30f544a1b3253/python_dotenv-1.2.1-py3-none-any.whl", hash = "sha256:b81ee9561e9ca4004139c6cbba3a238c32b03e4894671e181b671e8cb8425d61", size = 21230, upload-time = "2025-10-26T15:12:09.109Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a", size = 22101, upload-time = "2026-03-01T16:00:25.09Z" },
 ]
 
 [[package]]
