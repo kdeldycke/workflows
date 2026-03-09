@@ -179,7 +179,7 @@ lint.future-annotations = true
 [tool.typos]
 default.extend-identifiers = { Github = "GitHub", IOS = "iOS", Javascript = "JavaScript", MacOS = "macOS", PyPi = "PyPI", Typescript = "TypeScript" }
 # Skip content between <!-- typos:off --> and <!-- typos:on --> markers.
-default.extend-ignore-re = ["(?s)<!-- typos:off -->.*?<!-- typos:on -->"]
+default.extend-ignore-re = [ "(?s)<!-- typos:off -->.*?<!-- typos:on -->" ]
 default.extend-ignore-identifiers-re = [
   # error: `certifi` should be `certify`, `certifies`, `certified`
   #     ╭▸ ./docs/assets/dependencies.mmd:184:11
