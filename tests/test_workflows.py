@@ -306,20 +306,20 @@ def test_release_commit_prefix_in_changelog_workflow() -> None:
 
 
 def test_version_increments_runs_on_expected_events() -> None:
-    """Verify that bump-versions job runs on all expected event types.
+    """Verify that bump-version job runs on all expected event types.
 
-    The bump-versions job depends on project-metadata, which gates execution.
+    The bump-version job depends on project-metadata, which gates execution.
     It runs on push events (to recreate PRs before they conflict), schedule,
     workflow_dispatch, and successful workflow_run events.
     """
     workflow = load_workflow("changelog.yaml")
     jobs = workflow.get("jobs", {})
 
-    # Verify bump-versions depends on project-metadata.
-    version_increments = jobs.get("bump-versions", {})
+    # Verify bump-version depends on project-metadata.
+    version_increments = jobs.get("bump-version", {})
     needs = version_increments.get("needs", [])
     assert "project-metadata" in needs, (
-        "bump-versions job must depend on project-metadata"
+        "bump-version job must depend on project-metadata"
     )
 
     # Verify project-metadata runs on expected events.
@@ -366,7 +366,7 @@ def test_version_bump_commit_in_changelog_workflow() -> None:
     workflow = load_workflow("changelog.yaml")
 
     jobs = workflow.get("jobs", {})
-    version_increments = jobs.get("bump-versions", {})
+    version_increments = jobs.get("bump-version", {})
     steps = version_increments.get("steps", [])
 
     # Look for the create-pull-request step which contains the commit message.
@@ -377,13 +377,13 @@ def test_version_bump_commit_in_changelog_workflow() -> None:
             break
 
     assert create_pr_step is not None, (
-        "changelog.yaml bump-versions job must have a create-pull-request step"
+        "changelog.yaml bump-version job must have a create-pull-request step"
     )
 
     commit_message = create_pr_step.get("with", {}).get("commit-message", "")
     # The commit message is now sourced from the pr-metadata step output.
     assert "pr-metadata.outputs.commit_message" in commit_message, (
-        "bump-versions commit message must reference pr-metadata output. "
+        "bump-version commit message must reference pr-metadata output. "
         f"Found: {commit_message}"
     )
 

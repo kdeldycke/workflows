@@ -166,7 +166,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Generate zizmor config if missing
         if: hashFiles('zizmor.yaml') == ''
-        run: uvx --no-progress --from . repomatic init linters
+        run: uvx --no-progress --from . repomatic init zizmor
       - name: Run zizmor
         run: uvx --no-progress 'zizmor==1.22.0' --format github --offline .
 

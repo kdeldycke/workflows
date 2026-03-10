@@ -157,7 +157,7 @@ junit.xml
 .claude/
 '''
 
-init.exclude = ["linters", "skills"]
+init.exclude = ["skills", "zizmor"]
 
 labels.extra-files = ["https://example.com/my-labels.toml"]
 labels.extra-file-rules = "docs:\n  - docs/**"
@@ -194,7 +194,7 @@ workflow.sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `gitignore.extra-content`     | str       | *(see example)*                    | Additional content to append at the end of the generated `.gitignore` file.                  |
 | `gitignore.location`          | str       | `"./.gitignore"`                   | File path of the `.gitignore` to update, relative to the root of the repository.             |
 | `gitignore.sync`              | bool      | `true`                             | Whether `.gitignore` sync is enabled for this project.                                       |
-| `init.exclude`                | list[str] | `['labels', 'linters', 'skills']`  | Component names to exclude from `repomatic init` default selection.                          |
+| `init.exclude`                | list[str] | `['labels', 'skills', 'zizmor']`   | Component names to exclude from `repomatic init` default selection.                          |
 | `labels.extra-content-rules`  | str       | `""`                               | Additional YAML rules appended to the content-based labeller configuration.                  |
 | `labels.extra-file-rules`     | str       | `""`                               | Additional YAML rules appended to the file-based labeller configuration.                     |
 | `labels.extra-files`          | list[str] | `[]`                               | URLs of additional label definition files (JSON, JSON5, TOML, or YAML).                      |
@@ -423,7 +423,7 @@ GitHub Actions has several design limitations that the workflows work around:
 
 ### 🆙 [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/changelog.yaml)
 
-- 🆙 **Bump versions** (`bump-versions`)
+- 🆙 **Bump version** (`bump-version`)
 
   - Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
   - Syncs `uv.lock` to include the new version in the same commit

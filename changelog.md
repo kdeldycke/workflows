@@ -7,6 +7,8 @@
 
 - Add key filtering to `repomatic metadata`. Pass key names as arguments to output only specific metadata values.
 - Add `--list-keys` flag to `repomatic metadata` to display all available keys with descriptions.
+- Rename `linters` init component to `zizmor`, aligning with the `sync-zizmor` CLI command and workflow job. Default `init.exclude` updated to `["labels", "skills", "zizmor"]`.
+- Rename `bump-versions` job to `bump-version` in `changelog.yaml`, matching the PR body template name.
 
 ## [`6.4.0` (2026-03-10)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...v6.4.0)
 

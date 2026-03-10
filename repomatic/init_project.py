@@ -594,7 +594,7 @@ def default_version_pin() -> str:
 FILE_COMPONENTS: dict[str, str] = {
     "changelog": "Minimal changelog.md",
     "labels": "Label config files (labels.toml + labeller rules)",
-    "linters": "Linter config files (zizmor.yaml)",
+    "zizmor": "Zizmor config (zizmor.yaml)",
     "renovate": "Renovate config (renovate.json5)",
     "skills": "Claude Code skill definitions (.claude/skills/)",
     "workflows": "Thin-caller workflow files",
@@ -618,7 +618,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
         ("labels.toml", "labels.toml"),
     ),
-    "linters": (("zizmor.yaml", "zizmor.yaml"),),
+    "zizmor": (("zizmor.yaml", "zizmor.yaml"),),
     "renovate": (("renovate.json5", "renovate.json5"),),
     "skills": (
         ("skill-repomatic-audit.md", ".claude/skills/repomatic-audit/SKILL.md"),
@@ -713,7 +713,7 @@ def run_init(
         config = load_repomatic_config()
         init_exclude: list[str] = config.get(
             "init.exclude",
-            ["labels", "linters", "skills"],
+            ["labels", "skills", "zizmor"],
         )
         if init_exclude:
             exclude_set = set(init_exclude)
@@ -749,8 +749,8 @@ def run_init(
     if "workflows" in selected:
         _init_workflows(output_dir, repo, version, result, exclude=workflow_exclude)
 
-    # Config file components (labels, linters, renovate, skills).
-    for component_name in ("labels", "linters", "renovate", "skills"):
+    # Config file components (labels, renovate, skills, zizmor).
+    for component_name in ("labels", "renovate", "skills", "zizmor"):
         if component_name in selected:
             _init_config_files(output_dir, component_name, result)
 

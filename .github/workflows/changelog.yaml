@@ -7,7 +7,7 @@ name: 🆙 Changelog & versions
         required: false
   workflow_dispatch:
   schedule:
-    # Run daily at 6:00 UTC for bump-versions job.
+    # Run daily at 6:00 UTC for bump-version job.
     - cron: "0 6 * * *"
   push:
     branches:
@@ -17,9 +17,9 @@ name: 🆙 Changelog & versions
       - "**/pyproject.toml"
       # Trigger on any workflow change to make sure version gets hard-coded everywhere.
       - .github/workflows/*.yaml
-      # Trigger on lockfile changes so bump-versions recreates its PRs before they conflict.
+      # Trigger on lockfile changes so bump-version recreates its PRs before they conflict.
       - uv.lock
-  # Trigger after release workflow completes to ensure tags exist before bump-versions.
+  # Trigger after release workflow completes to ensure tags exist before bump-version.
   # This avoids race conditions where changelog workflow checks for tags before they're pushed.
   workflow_run:
     workflows:
@@ -104,7 +104,7 @@ jobs:
           base: main
           branch: fix-changelog
 
-  bump-versions:
+  bump-version:
     name: 🆙 Bump versions
     needs:
       - project-metadata
@@ -157,7 +157,7 @@ jobs:
 
   prepare-release:
     name: 🎬 Prepare release
-    # Skip schedule (exists for bump-versions only) and workflow_run (would double-run
+    # Skip schedule (exists for bump-version only) and workflow_run (would double-run
     # on every push to main, since push already triggers this job directly).
     if: github.event_name != 'schedule' && github.event_name != 'workflow_run'
     runs-on: ubuntu-slim

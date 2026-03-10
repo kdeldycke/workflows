@@ -296,7 +296,7 @@ def test_render_bump_version():
     assert "### To bump version to `v1.2.0`" in result
     assert "Ready for review" in result
     assert "Rebase and merge" in result
-    assert "bump-versions" in result
+    assert "bump-version" in result
     assert "changelogyaml-jobs" in result
 
 

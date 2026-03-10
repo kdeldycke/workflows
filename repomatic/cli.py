@@ -2071,7 +2071,7 @@ def sync_zizmor(ctx: Context) -> None:
 
     Overwrites ``zizmor.yaml`` with the canonical configuration
     bundled in ``repomatic``. Designed for the ``sync-zizmor`` autofix job.
-    Use ``repomatic init linters`` for interactive bootstrapping.
+    Use ``repomatic init zizmor`` for interactive bootstrapping.
     """
     config = load_repomatic_config()
     if not config.get("zizmor.sync", True):
@@ -2082,7 +2082,7 @@ def sync_zizmor(ctx: Context) -> None:
 
     result = run_init(
         output_dir=Path("."),
-        components=("linters",),
+        components=("zizmor",),
     )
     changed = [*result.created, *result.updated]
     if changed:

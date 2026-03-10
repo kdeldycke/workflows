@@ -518,7 +518,7 @@ def test_init_creates_all_default_files(
 
     result = run_init(output_dir=tmp_path)
 
-    # All components: changelog, labels, linters, renovate, skills, workflows.
+    # All components: changelog, labels, renovate, skills, workflows, zizmor.
     config_file_count = sum(len(v) for v in COMPONENT_FILES.values())
     expected_count = len(REUSABLE_WORKFLOWS) + config_file_count + 1
     assert len(result.created) == expected_count
@@ -1053,7 +1053,7 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
 def test_init_default_excludes_workflow_regenerated_components(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify default init.exclude skips labels, linters, and skills."""
+    """Verify default init.exclude skips labels, skills, and zizmor."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n',
@@ -1064,7 +1064,7 @@ def test_init_default_excludes_workflow_regenerated_components(
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Labels, linters, and skills are excluded by default.
+    # Labels, skills, and zizmor are excluded by default.
     assert "labels.toml" not in created_set
     assert "zizmor.yaml" not in created_set
     for _, rel_path in COMPONENT_FILES.get("skills", ()):
@@ -1074,7 +1074,7 @@ def test_init_default_excludes_workflow_regenerated_components(
     assert "changelog.md" in created_set
     assert "renovate.json5" in created_set
 
-    assert result.excluded_components == ["labels", "linters", "skills"]
+    assert result.excluded_components == ["labels", "skills", "zizmor"]
 
 
 def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -1083,7 +1083,7 @@ def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init.exclude = ["linters", "skills"]\n',
+        'init.exclude = ["skills", "zizmor"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1091,7 +1091,7 @@ def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Linter and skill files should not be created.
+    # Zizmor and skill files should not be created.
     assert "zizmor.yaml" not in created_set
     for _, rel_path in COMPONENT_FILES.get("skills", ()):
         assert rel_path not in created_set
@@ -1101,7 +1101,7 @@ def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     assert "renovate.json5" in created_set
 
     # Verify excluded_components is populated.
-    assert result.excluded_components == ["linters", "skills"]
+    assert result.excluded_components == ["skills", "zizmor"]
     assert result.excluded_workflows == []
 
 
@@ -1130,7 +1130,7 @@ def test_init_respects_workflow_sync_exclude(
     assert ".github/workflows/release.yaml" in created_set
 
     # Verify excluded_workflows is populated.
-    assert result.excluded_components == ["labels", "linters", "skills"]
+    assert result.excluded_components == ["labels", "skills", "zizmor"]
     assert result.excluded_workflows == ["debug.yaml", "docs.yaml"]
 
 
@@ -1142,14 +1142,14 @@ def test_init_explicit_components_bypass_exclude(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init.exclude = ["linters", "skills", "changelog"]\n'
+        'init.exclude = ["zizmor", "skills", "changelog"]\n'
         'workflow.sync-exclude = ["debug.yaml"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
 
     # Explicitly request excluded components.
-    result = run_init(output_dir=tmp_path, components=("linters", "changelog"))
+    result = run_init(output_dir=tmp_path, components=("zizmor", "changelog"))
 
     created_set = set(result.created)
     # Explicitly requested components should be created despite exclusion.
@@ -1316,7 +1316,7 @@ def test_init_migrates_legacy_config_section(
         "[project]\n"
         'name = "test"\n\n'
         f"[tool.{old_name}]\n"
-        'init.exclude = ["labels", "linters", "skills", "workflows"]\n',
+        'init.exclude = ["labels", "skills", "workflows", "zizmor"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1362,7 +1362,7 @@ def test_init_removes_legacy_zizmor(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     legacy.write_text("rules: {}\n", encoding="UTF-8")
     monkeypatch.chdir(tmp_path)
 
-    result = run_init(output_dir=tmp_path, components=("linters",))
+    result = run_init(output_dir=tmp_path, components=("zizmor",))
 
     assert not legacy.exists()
     assert any("Removed legacy zizmor" in w for w in result.warnings)
