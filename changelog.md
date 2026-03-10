@@ -12,6 +12,7 @@
 - Add `--list-keys` flag to `repomatic metadata` to display all available keys with descriptions.
 - Rename `linters` init component to `zizmor`, aligning with the `sync-zizmor` CLI command and workflow job. Default `init.exclude` updated to `["labels", "skills", "zizmor"]`.
 - Rename `bump-versions` job to `bump-version` in `changelog.yaml`, matching the PR body template name.
+- Upgrade zizmor from `1.22.0` to `1.23.0`. Re-enable the `template-injection` audit now that the multiline expression crash is fixed upstream ([zizmor#1669](https://github.com/zizmorcore/zizmor/issues/1669)).
 - Fix `repomatic workflow sync --format header-only` failing when a target workflow file does not exist in the downstream repo. Missing files in the default set are now silently filtered out, and explicitly named missing files produce a warning instead of an error.
 
 ## [`6.4.0` (2026-03-10)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...v6.4.0)
