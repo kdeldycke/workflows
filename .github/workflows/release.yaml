@@ -193,11 +193,12 @@ jobs:
           NUITKA_EXTRA_ARGS: ${{ matrix.nuitka_extra_args }}
           BIN_NAME: ${{ matrix.bin_name }}
           MODULE_PATH: ${{ matrix.module_path }}
-        run: >
-          uv --no-progress run --frozen -- nuitka
-          --onefile --assume-yes-for-downloads
-          ${NUITKA_EXTRA_ARGS}
-          --output-filename="${BIN_NAME}" "${MODULE_PATH}"
+        run: |
+          # shellcheck disable=SC2086
+          uv --no-progress run --frozen -- nuitka \
+            --onefile --assume-yes-for-downloads \
+            ${NUITKA_EXTRA_ARGS} \
+            --output-filename="${BIN_NAME}" "${MODULE_PATH}"
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v6.0.0
         with:

@@ -249,7 +249,10 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
             )
 
     elif isinstance(expected, OptionalString):
-        # Allow empty string or space-separated quoted items matching the pattern.
+        # Allow None, empty string, or space-separated items matching the pattern.
+        # None occurs in github_json format (JSON null); empty string in github format.
+        if metadata is None:
+            return
         assert isinstance(metadata, str), (
             f"{metadata!r} should be a string in {context!r}"
         )
@@ -877,7 +880,10 @@ def test_metadata_github_json_format():
     # dict lists become JSON strings.
     github_json_expected = dict(expected)
     for key, value in github_json_expected.items():
-        if isinstance(value, list):
+        if isinstance(value, OptionalList):
+            # Convert OptionalList to OptionalString for github_json format.
+            github_json_expected[key] = OptionalString(value.item_pattern)
+        elif isinstance(value, list):
             if not value:
                 github_json_expected[key] = ""
             elif all(isinstance(i, str) for i in value):
