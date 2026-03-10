@@ -1099,9 +1099,7 @@ def test_thin_caller_release_with_source_paths() -> None:
 
     In release.yaml, ``paths:`` is on ``pull_request``, not ``push``.
     """
-    content = generate_thin_caller(
-        "release.yaml", source_paths=["extra_platforms"]
-    )
+    content = generate_thin_caller("release.yaml", source_paths=["extra_platforms"])
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
     pr_config = triggers.get("pull_request", {})
@@ -1115,9 +1113,7 @@ def test_thin_caller_release_with_source_paths() -> None:
 
 def test_thin_caller_renovate_with_source_paths() -> None:
     """Verify renovate.yaml thin caller drops upstream-specific paths."""
-    content = generate_thin_caller(
-        "renovate.yaml", source_paths=["extra_platforms"]
-    )
+    content = generate_thin_caller("renovate.yaml", source_paths=["extra_platforms"])
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
     push_config = triggers.get("push", {})
@@ -1138,9 +1134,7 @@ def test_thin_caller_changelog_with_source_paths() -> None:
     changelog.yaml has no upstream source glob, so source_paths has no effect
     beyond keeping all paths intact.
     """
-    content = generate_thin_caller(
-        "changelog.yaml", source_paths=["extra_platforms"]
-    )
+    content = generate_thin_caller("changelog.yaml", source_paths=["extra_platforms"])
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
     push_config = triggers.get("push", {})
@@ -1150,9 +1144,7 @@ def test_thin_caller_changelog_with_source_paths() -> None:
 
 def test_thin_caller_lint_no_paths_with_source_paths() -> None:
     """Verify workflows without paths don't gain paths from source_paths."""
-    content = generate_thin_caller(
-        "lint.yaml", source_paths=["extra_platforms"]
-    )
+    content = generate_thin_caller("lint.yaml", source_paths=["extra_platforms"])
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
     push_config = triggers.get("push", {})
@@ -1193,9 +1185,7 @@ def test_header_without_source_paths_unchanged() -> None:
 
 def test_header_with_source_paths_drops_upstream_specific() -> None:
     """Verify header generation drops upstream-specific paths."""
-    header = generate_workflow_header(
-        "renovate.yaml", source_paths=["my_pkg"]
-    )
+    header = generate_workflow_header("renovate.yaml", source_paths=["my_pkg"])
     assert f"{UPSTREAM_SOURCE_PREFIX}data" not in header
     assert "renovate.json5" in header
 

@@ -415,9 +415,7 @@ def _adapt_trigger_paths(
         return result
     # No source paths: strip paths entirely (conservative but correct).
     return {
-        k: v
-        for k, v in trigger_config.items()
-        if k not in {"paths", "paths-ignore"}
+        k: v for k, v in trigger_config.items() if k not in {"paths", "paths-ignore"}
     }
 
 
@@ -856,12 +854,8 @@ def generate_workflow_header(
     header = _extract_raw_header(content)
     if source_paths is not None:
         # Replace the upstream source glob with downstream equivalents.
-        replacement = "\n".join(
-            f"      - {sp}/**" for sp in source_paths
-        )
-        header = header.replace(
-            f"      - {UPSTREAM_SOURCE_GLOB}", replacement
-        )
+        replacement = "\n".join(f"      - {sp}/**" for sp in source_paths)
+        header = header.replace(f"      - {UPSTREAM_SOURCE_GLOB}", replacement)
         # Drop upstream-specific path lines (e.g., repomatic/data/...).
         header = "\n".join(
             line
