@@ -2754,7 +2754,7 @@ def pr_body(
         return ver
 
     # Map argument names to their values or callables.
-    arg_sources: dict[str, str | None | Callable[[], str]] = {
+    arg_sources: dict[str, str | None | Callable[[], str | None]] = {
         "part": part,
         "pr_ref": pr_ref,
         "repo_url": _repo_url,  # Callable, will be invoked if needed.
@@ -2765,7 +2765,7 @@ def pr_body(
     commit_msg_str = ""
 
     if template:
-        kwargs: dict[str, str] = {}
+        kwargs: dict[str, str | None] = {}
         for arg in template_args(template):
             value = arg_sources.get(arg)
             if value is None:

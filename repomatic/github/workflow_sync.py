@@ -440,7 +440,7 @@ def _substitute_source_paths(
     :param source_paths: Downstream source directory names.
     :return: New paths list with substitutions applied.
     """
-    result = []
+    result: list[str] = []
     for path in paths:
         if path == UPSTREAM_SOURCE_GLOB:
             result.extend(f"{sp}/**" for sp in source_paths)

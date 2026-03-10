@@ -50,6 +50,10 @@ from repomatic.github.workflow_sync import (
 )
 from repomatic.metadata import derive_source_paths, resolve_source_paths
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any
+
 
 def test_reusable_workflows_sorted() -> None:
     """Verify reusable workflows are sorted."""
@@ -1224,7 +1228,7 @@ def test_derive_source_paths_simple_name() -> None:
 
 def test_derive_source_paths_no_name() -> None:
     """Return empty list when no project name defined."""
-    pyproject_data = {"project": {}}
+    pyproject_data: dict[str, Any] = {"project": {}}
     result = derive_source_paths(pyproject_data)
     assert result == []
 
@@ -1257,7 +1261,7 @@ def test_resolve_source_paths_none_derives() -> None:
 
 def test_resolve_source_paths_empty_list_returns_none() -> None:
     """Return None when explicitly set to empty list."""
-    config = {"workflow.source-paths": []}
+    config: dict[str, Any] = {"workflow.source-paths": []}
     result = resolve_source_paths(config)
     assert result is None
 
@@ -1265,6 +1269,6 @@ def test_resolve_source_paths_empty_list_returns_none() -> None:
 def test_resolve_source_paths_no_name_returns_none() -> None:
     """Return None when no project name and no config."""
     config = {"workflow.source-paths": None}
-    pyproject_data = {"project": {}}
+    pyproject_data: dict[str, Any] = {"project": {}}
     result = resolve_source_paths(config, pyproject_data)
     assert result is None

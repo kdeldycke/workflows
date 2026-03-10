@@ -106,7 +106,7 @@ def _substitute(text: str, kwargs: dict[str, str | None]) -> str:
     return text
 
 
-def _render_single(name: str, kwargs: dict[str, str]) -> tuple[str, bool]:
+def _render_single(name: str, kwargs: dict[str, str | None]) -> tuple[str, bool]:
     """Render a single template and return its body with footer preference.
 
     :param name: Template name without ``.md`` extension.
@@ -119,7 +119,7 @@ def _render_single(name: str, kwargs: dict[str, str]) -> tuple[str, bool]:
     return result, wants_footer
 
 
-def render_template(*names: str, **kwargs: str) -> str:
+def render_template(*names: str, **kwargs: str | None) -> str:
     """Load and render one or more templates with variable substitution.
 
     When multiple template names are given, each is rendered and joined with
@@ -154,7 +154,7 @@ def render_template(*names: str, **kwargs: str) -> str:
     return result
 
 
-def render_title(name: str, **kwargs: str) -> str:
+def render_title(name: str, **kwargs: str | None) -> str:
     """Load and render a template's PR title with variable substitution.
 
     :param name: Template name without ``.md`` extension.
@@ -170,7 +170,7 @@ def render_title(name: str, **kwargs: str) -> str:
     return _substitute(title, kwargs)
 
 
-def render_commit_message(name: str, **kwargs: str) -> str:
+def render_commit_message(name: str, **kwargs: str | None) -> str:
     """Load and render a template's commit message with variable substitution.
 
     Falls back to the ``title`` if no ``commit_message`` is defined.
@@ -214,7 +214,7 @@ def get_template_names() -> list[str]:
     return sorted(names)
 
 
-def extract_workflow_filename(workflow_ref: str) -> str:
+def extract_workflow_filename(workflow_ref: str | None) -> str:
     """Extract the workflow filename from ``GITHUB_WORKFLOW_REF``.
 
     :param workflow_ref: The full workflow reference, e.g.
@@ -264,7 +264,7 @@ def generate_pr_metadata_block() -> str:
     )
 
 
-def _repo_url() -> str:
+def _repo_url() -> str | None:
     """Build repository URL from CI context.
 
     Delegates to :attr:`Metadata.repo_url <repomatic.metadata.Metadata.repo_url>`.
