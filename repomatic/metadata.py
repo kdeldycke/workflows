@@ -306,6 +306,7 @@ from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
 from git.exc import GitCommandError
 from gitdb.exc import BadName  # type: ignore[import-untyped]
+from packaging.utils import canonicalize_name
 from packaging.version import Version
 from py_walk import get_parser_from_file
 from py_walk.models import Parser
@@ -478,6 +479,19 @@ class Config:
     Explicit CLI positional arguments override this list.
     """
 
+    workflow_source_paths: list[str] | None = None
+    """Source code directory names for workflow trigger ``paths:`` filters.
+
+    When set, thin-caller and header-only workflows include ``paths:`` filters
+    using these directory names (as ``name/**`` globs) alongside universal paths
+    like ``pyproject.toml`` and ``uv.lock``.
+
+    When ``None`` (default), source paths are auto-derived from
+    ``[project.name]`` in ``pyproject.toml`` by replacing hyphens with
+    underscores — the universal Python convention. For example,
+    ``name = "extra-platforms"`` automatically uses ``["extra_platforms"]``.
+    """
+
     workflow_sync_exclude: list[str] = field(default_factory=list)
     """Workflow filenames to exclude from ``repomatic init``, ``workflow sync``, and
     ``workflow create``.
@@ -627,6 +641,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "test_plan",
     "test_plan_file",
     "timeout",
+    "workflow_source_paths",
     "workflow_sync",
     "workflow_sync_exclude",
     "zizmor_sync",
@@ -680,6 +695,53 @@ def load_repomatic_config(
     config = {f.name.replace("_", "-"): getattr(schema, f.name) for f in fields(Config)}
     config.update(user_config)
     return config
+
+
+def derive_source_paths(
+    pyproject_data: dict[str, Any] | None = None,
+) -> list[str]:
+    """Derive source code directory name from ``[project.name]``.
+
+    Converts the project name to its importable form by replacing hyphens with
+    underscores — the universal Python convention that all build backends
+    (setuptools, hatchling, flit, uv) follow by default. For example,
+    ``name = "extra-platforms"`` yields ``["extra_platforms"]``.
+
+    :param pyproject_data: Pre-parsed ``pyproject.toml`` dict. If ``None``,
+        reads from the current working directory.
+    :return: Single-element list with the source directory name, or an empty
+        list if no project name is defined.
+    """
+    if pyproject_data is None:
+        pyproject_path = Path() / "pyproject.toml"
+        if not (pyproject_path.exists() and pyproject_path.is_file()):
+            return []
+        pyproject_data = tomllib.loads(pyproject_path.read_text(encoding="UTF-8"))
+
+    name = pyproject_data.get("project", {}).get("name")
+    if not name:
+        return []
+    # PEP 503 normalization (lowercases, collapses [-_.] to hyphens), then
+    # convert to the Python import form (underscores).
+    return [canonicalize_name(name).replace("-", "_")]
+
+
+def resolve_source_paths(
+    config: dict[str, Any],
+    pyproject_data: dict[str, Any] | None = None,
+) -> list[str] | None:
+    """Resolve workflow source paths from config or auto-derivation.
+
+    :param config: Loaded ``[tool.repomatic]`` config dict.
+    :param pyproject_data: Pre-parsed ``pyproject.toml`` dict for derivation.
+    :return: List of source directory names, or ``None`` when no source paths
+        can be determined (paths should be stripped entirely).
+    """
+    configured = config.get("workflow-source-paths")
+    if configured is not None:
+        return configured if configured else None
+    derived = derive_source_paths(pyproject_data)
+    return derived if derived else None
 
 
 def get_project_name(

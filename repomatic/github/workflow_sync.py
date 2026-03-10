@@ -123,6 +123,21 @@ ALL_WORKFLOW_FILES: Final[tuple[str, ...]] = tuple(
 )
 """All workflow filenames (reusable and non-reusable)."""
 
+UPSTREAM_SOURCE_GLOB: Final[str] = "repomatic/**"
+"""Path glob for the upstream source directory in canonical workflows.
+
+Canonical workflow ``paths:`` filters use this glob to match source code changes.
+In downstream repos, this is replaced with the project's own source directory.
+"""
+
+UPSTREAM_SOURCE_PREFIX: Final[str] = "repomatic/"
+"""Path prefix for upstream-specific files in canonical workflows.
+
+Paths starting with this prefix (but not matching :data:`UPSTREAM_SOURCE_GLOB`)
+are dropped in downstream thin callers because they reference files that only
+exist in the upstream repository (e.g., ``repomatic/data/renovate.json5``).
+"""
+
 
 def _extract_raw_section(content: str, section_name: str) -> str | None:
     """Extract a top-level YAML section as raw text.
@@ -378,10 +393,70 @@ def _render_triggers(triggers: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _adapt_trigger_paths(
+    trigger_config: dict[str, Any],
+    source_paths: list[str] | None,
+) -> dict[str, Any]:
+    """Adapt ``paths`` and ``paths-ignore`` in a trigger for downstream use.
+
+    When *source_paths* is provided, replaces upstream source paths with
+    downstream equivalents via :func:`_substitute_source_paths`. When
+    ``None``, strips ``paths`` and ``paths-ignore`` entirely.
+
+    :param trigger_config: Trigger configuration dict (e.g., push config).
+    :param source_paths: Downstream source directory names, or ``None``.
+    :return: New trigger config dict with adapted path filters.
+    """
+    if source_paths is not None:
+        result = dict(trigger_config)
+        for key in ("paths", "paths-ignore"):
+            if key in result:
+                result[key] = _substitute_source_paths(result[key], source_paths)
+        return result
+    # No source paths: strip paths entirely (conservative but correct).
+    return {
+        k: v
+        for k, v in trigger_config.items()
+        if k not in {"paths", "paths-ignore"}
+    }
+
+
+def _substitute_source_paths(
+    paths: list[str],
+    source_paths: list[str],
+) -> list[str]:
+    """Replace upstream source directory paths with downstream source paths.
+
+    For each path in the canonical workflow's ``paths:`` list:
+
+    - :data:`UPSTREAM_SOURCE_GLOB` (``repomatic/**``) is replaced with
+      ``{source}/**`` for each entry in *source_paths*.
+    - Other paths starting with :data:`UPSTREAM_SOURCE_PREFIX` are dropped
+      (upstream-specific files like ``repomatic/data/renovate.json5``).
+    - All other paths (universal paths like ``pyproject.toml``, ``tests/**``)
+      are kept as-is.
+
+    :param paths: Original paths list from a canonical workflow trigger.
+    :param source_paths: Downstream source directory names.
+    :return: New paths list with substitutions applied.
+    """
+    result = []
+    for path in paths:
+        if path == UPSTREAM_SOURCE_GLOB:
+            result.extend(f"{sp}/**" for sp in source_paths)
+        elif path.startswith(UPSTREAM_SOURCE_PREFIX):
+            # Drop upstream-specific paths.
+            continue
+        else:
+            result.append(path)
+    return result
+
+
 def generate_thin_caller(
     filename: str,
     repo: str = DEFAULT_REPO,
     version: str = DEFAULT_VERSION,
+    source_paths: list[str] | None = None,
 ) -> str:
     """Generate a thin caller workflow for a reusable canonical workflow.
 
@@ -389,9 +464,16 @@ def generate_thin_caller(
     canonical workflow, always ensures ``workflow_dispatch`` is present, and
     delegates to the upstream workflow via ``uses:``.
 
+    When *source_paths* is provided, canonical ``paths:`` filters are adapted
+    for the downstream project by replacing the upstream source directory glob
+    with downstream equivalents. When ``None``, paths are stripped entirely
+    (conservative but correct — triggers on any file change).
+
     :param filename: Canonical workflow filename (e.g., ``release.yaml``).
     :param repo: Upstream repository (default: ``kdeldycke/repomatic``).
     :param version: Version reference (default: ``main``).
+    :param source_paths: Downstream source directory names (e.g.,
+        ``["extra_platforms"]``). ``None`` strips all path filters.
     :return: Complete YAML content for the thin caller workflow.
     :raises ValueError: If the workflow does not support ``workflow_call``.
     """
@@ -405,17 +487,10 @@ def generate_thin_caller(
         raise ValueError(msg)
 
     # Build trigger dict, ensuring workflow_dispatch is present.
-    # Strip paths/paths-ignore: canonical paths reference the repomatic source
-    # tree and are wrong in downstream thin callers. Callers trigger on any
-    # file change within the matching branches — conservative but correct.
     triggers: dict[str, Any] = {}
     for trigger_name, trigger_config in info.non_call_triggers.items():
         if isinstance(trigger_config, dict):
-            trigger_config = {
-                k: v
-                for k, v in trigger_config.items()
-                if k not in {"paths", "paths-ignore"}
-            }
+            trigger_config = _adapt_trigger_paths(trigger_config, source_paths)
         triggers[trigger_name] = trigger_config
     if "workflow_dispatch" not in triggers:
         triggers["workflow_dispatch"] = None
@@ -757,19 +832,47 @@ def check_concurrency_match(
     )
 
 
-def generate_workflow_header(filename: str) -> str:
+def generate_workflow_header(
+    filename: str,
+    source_paths: list[str] | None = None,
+) -> str:
     """Return the raw header of a canonical workflow.
 
     The header is everything before the ``jobs:`` line: ``name``, ``on``
     triggers, ``concurrency``, and any comments.
 
+    When *source_paths* is provided, upstream source directory references in
+    ``paths:`` filters are replaced with downstream equivalents via text
+    substitution. When ``None``, the header is returned unmodified.
+
     :param filename: Canonical workflow filename (e.g., ``tests.yaml``).
+    :param source_paths: Downstream source directory names (e.g.,
+        ``["extra_platforms"]``). ``None`` leaves paths unmodified.
     :return: Raw header text.
     :raises FileNotFoundError: If the workflow file is not bundled.
     :raises ValueError: If no ``jobs:`` line is found.
     """
     content = get_data_content(filename)
-    return _extract_raw_header(content)
+    header = _extract_raw_header(content)
+    if source_paths is not None:
+        # Replace the upstream source glob with downstream equivalents.
+        replacement = "\n".join(
+            f"      - {sp}/**" for sp in source_paths
+        )
+        header = header.replace(
+            f"      - {UPSTREAM_SOURCE_GLOB}", replacement
+        )
+        # Drop upstream-specific path lines (e.g., repomatic/data/...).
+        header = "\n".join(
+            line
+            for line in header.split("\n")
+            if not (
+                line.strip().startswith("- ")
+                and UPSTREAM_SOURCE_PREFIX in line
+                and UPSTREAM_SOURCE_GLOB not in line
+            )
+        )
+    return header
 
 
 def run_workflow_lint(
@@ -853,6 +956,7 @@ def generate_workflows(
     repo: str,
     output_dir: Path,
     overwrite: bool,
+    source_paths: list[str] | None = None,
 ) -> int:
     """Generate workflow files in the specified format.
 
@@ -864,6 +968,8 @@ def generate_workflows(
     :param repo: Upstream repository.
     :param output_dir: Directory to write files to.
     :param overwrite: Whether to overwrite existing files.
+    :param source_paths: Downstream source directory names for ``paths:``
+        filters. ``None`` strips all path filters (conservative default).
     :return: Exit code (0 for success, 1 for errors).
     """
     # Default to all reusable workflows for thin-caller, non-reusable for
@@ -897,7 +1003,9 @@ def generate_workflows(
                 continue
 
             try:
-                content = generate_thin_caller(filename, repo, version)
+                content = generate_thin_caller(
+                    filename, repo, version, source_paths=source_paths
+                )
             except ValueError as e:
                 logging.error(str(e))
                 errors += 1
@@ -916,7 +1024,9 @@ def generate_workflows(
                 continue
 
             try:
-                canonical_header = generate_workflow_header(filename)
+                canonical_header = generate_workflow_header(
+                    filename, source_paths=source_paths
+                )
             except (ValueError, FileNotFoundError) as e:
                 logging.error(f"Failed to extract header for {filename}: {e}")
                 errors += 1

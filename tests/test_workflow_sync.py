@@ -30,9 +30,13 @@ from repomatic.github.workflow_sync import (
     DEFAULT_REPO,
     NON_REUSABLE_WORKFLOWS,
     REUSABLE_WORKFLOWS,
+    UPSTREAM_SOURCE_GLOB,
+    UPSTREAM_SOURCE_PREFIX,
     LintResult,
     WorkflowFormat,
     WorkflowTriggerInfo,
+    _adapt_trigger_paths,
+    _substitute_source_paths,
     check_has_workflow_dispatch,
     check_secrets_passed,
     check_triggers_match,
@@ -44,6 +48,7 @@ from repomatic.github.workflow_sync import (
     identify_canonical_workflow,
     run_workflow_lint,
 )
+from repomatic.metadata import derive_source_paths, resolve_source_paths
 
 
 def test_reusable_workflows_sorted() -> None:
@@ -1005,3 +1010,261 @@ workflow-sync-exclude = ["debug.yaml"]
     # Other workflows are created.
     assert (output_dir / "lint.yaml").exists()
     assert (output_dir / "release.yaml").exists()
+
+
+# ---------------------------------------------------------------------------
+# Source path substitution tests
+# ---------------------------------------------------------------------------
+
+
+def test_substitute_replaces_upstream_glob() -> None:
+    """Replace upstream source glob with downstream source paths."""
+    paths = [UPSTREAM_SOURCE_GLOB, "tests/**", "pyproject.toml"]
+    result = _substitute_source_paths(paths, ["extra_platforms"])
+    assert result == ["extra_platforms/**", "tests/**", "pyproject.toml"]
+
+
+def test_substitute_multiple_source_paths() -> None:
+    """Replace upstream source glob with multiple downstream paths."""
+    paths = [UPSTREAM_SOURCE_GLOB, "pyproject.toml"]
+    result = _substitute_source_paths(paths, ["pkg_a", "pkg_b"])
+    assert result == ["pkg_a/**", "pkg_b/**", "pyproject.toml"]
+
+
+def test_substitute_drops_upstream_specific() -> None:
+    """Drop upstream-specific paths that aren't the source glob."""
+    paths = [
+        UPSTREAM_SOURCE_GLOB,
+        f"{UPSTREAM_SOURCE_PREFIX}data/renovate.json5",
+        "renovate.json5",
+    ]
+    result = _substitute_source_paths(paths, ["my_pkg"])
+    assert result == ["my_pkg/**", "renovate.json5"]
+
+
+def test_substitute_keeps_universal_paths() -> None:
+    """Keep universal paths unchanged."""
+    paths = ["tests/**", "pyproject.toml", "uv.lock", "changelog.md"]
+    result = _substitute_source_paths(paths, ["my_pkg"])
+    assert result == ["tests/**", "pyproject.toml", "uv.lock", "changelog.md"]
+
+
+def test_substitute_empty_source_paths() -> None:
+    """Return only universal paths when source_paths is empty."""
+    paths = [UPSTREAM_SOURCE_GLOB, "pyproject.toml"]
+    result = _substitute_source_paths(paths, [])
+    assert result == ["pyproject.toml"]
+
+
+def test_adapt_trigger_paths_with_source_paths() -> None:
+    """Adapt trigger config with source paths substitution."""
+    config = {
+        "branches": ["main"],
+        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml"],
+    }
+    result = _adapt_trigger_paths(config, ["extra_platforms"])
+    assert result["branches"] == ["main"]
+    assert result["paths"] == ["extra_platforms/**", "pyproject.toml"]
+
+
+def test_adapt_trigger_paths_none_strips() -> None:
+    """Strip paths when source_paths is None."""
+    config = {
+        "branches": ["main"],
+        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml"],
+    }
+    result = _adapt_trigger_paths(config, None)
+    assert "paths" not in result
+    assert result["branches"] == ["main"]
+
+
+def test_adapt_trigger_paths_no_paths_key() -> None:
+    """Pass through trigger config that has no paths key."""
+    config = {"branches": ["main"]}
+    result = _adapt_trigger_paths(config, ["extra_platforms"])
+    assert result == {"branches": ["main"]}
+
+
+# ---------------------------------------------------------------------------
+# Thin caller with source paths
+# ---------------------------------------------------------------------------
+
+
+def test_thin_caller_release_with_source_paths() -> None:
+    """Verify release.yaml thin caller includes adapted paths filter.
+
+    In release.yaml, ``paths:`` is on ``pull_request``, not ``push``.
+    """
+    content = generate_thin_caller(
+        "release.yaml", source_paths=["extra_platforms"]
+    )
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    pr_config = triggers.get("pull_request", {})
+    assert "paths" in pr_config
+    assert "extra_platforms/**" in pr_config["paths"]
+    assert "pyproject.toml" in pr_config["paths"]
+    assert "uv.lock" in pr_config["paths"]
+    # Upstream source glob must not appear.
+    assert UPSTREAM_SOURCE_GLOB not in pr_config["paths"]
+
+
+def test_thin_caller_renovate_with_source_paths() -> None:
+    """Verify renovate.yaml thin caller drops upstream-specific paths."""
+    content = generate_thin_caller(
+        "renovate.yaml", source_paths=["extra_platforms"]
+    )
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    push_config = triggers.get("push", {})
+    assert "paths" in push_config
+    # Universal paths kept.
+    assert "renovate.json5" in push_config["paths"]
+    assert ".github/workflows/renovate.yaml" in push_config["paths"]
+    # Upstream-specific path dropped.
+    for path in push_config["paths"]:
+        assert not path.startswith(UPSTREAM_SOURCE_PREFIX)
+    # Only 2 paths remain (self-reference + renovate.json5).
+    assert len(push_config["paths"]) == 2
+
+
+def test_thin_caller_changelog_with_source_paths() -> None:
+    """Verify changelog.yaml thin caller keeps universal paths unchanged.
+
+    changelog.yaml has no upstream source glob, so source_paths has no effect
+    beyond keeping all paths intact.
+    """
+    content = generate_thin_caller(
+        "changelog.yaml", source_paths=["extra_platforms"]
+    )
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    push_config = triggers.get("push", {})
+    assert "paths" in push_config
+    assert "changelog.md" in push_config["paths"]
+
+
+def test_thin_caller_lint_no_paths_with_source_paths() -> None:
+    """Verify workflows without paths don't gain paths from source_paths."""
+    content = generate_thin_caller(
+        "lint.yaml", source_paths=["extra_platforms"]
+    )
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    push_config = triggers.get("push", {})
+    # lint.yaml has no paths filter in canonical, so none in thin caller.
+    assert "paths" not in push_config
+
+
+@pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
+def test_thin_caller_no_source_paths_strips_all(filename: str) -> None:
+    """Verify thin callers without source_paths strip all paths filters."""
+    content = generate_thin_caller(filename, source_paths=None)
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    for trigger_name, trigger_config in triggers.items():
+        if isinstance(trigger_config, dict):
+            assert "paths" not in trigger_config, (
+                f"{filename}: trigger '{trigger_name}' has a paths filter."
+            )
+
+
+# ---------------------------------------------------------------------------
+# Header generation with source paths
+# ---------------------------------------------------------------------------
+
+
+def test_header_with_source_paths_substitutes() -> None:
+    """Verify header generation replaces upstream source paths."""
+    header = generate_workflow_header("tests.yaml", source_paths=["my_pkg"])
+    assert "my_pkg/**" in header
+    assert UPSTREAM_SOURCE_GLOB not in header
+
+
+def test_header_without_source_paths_unchanged() -> None:
+    """Verify header generation without source_paths is unmodified."""
+    header = generate_workflow_header("tests.yaml")
+    assert UPSTREAM_SOURCE_GLOB in header
+
+
+def test_header_with_source_paths_drops_upstream_specific() -> None:
+    """Verify header generation drops upstream-specific paths."""
+    header = generate_workflow_header(
+        "renovate.yaml", source_paths=["my_pkg"]
+    )
+    assert f"{UPSTREAM_SOURCE_PREFIX}data" not in header
+    assert "renovate.json5" in header
+
+
+# ---------------------------------------------------------------------------
+# derive_source_paths tests
+# ---------------------------------------------------------------------------
+
+
+def test_derive_source_paths_from_name() -> None:
+    """Derive source paths from [project.name]."""
+    pyproject_data = {"project": {"name": "extra-platforms"}}
+    result = derive_source_paths(pyproject_data)
+    assert result == ["extra_platforms"]
+
+
+def test_derive_source_paths_underscore_name() -> None:
+    """Derive source paths when name already uses underscores."""
+    pyproject_data = {"project": {"name": "meta_package_manager"}}
+    result = derive_source_paths(pyproject_data)
+    assert result == ["meta_package_manager"]
+
+
+def test_derive_source_paths_simple_name() -> None:
+    """Derive source paths from a simple name without hyphens."""
+    pyproject_data = {"project": {"name": "repomatic"}}
+    result = derive_source_paths(pyproject_data)
+    assert result == ["repomatic"]
+
+
+def test_derive_source_paths_no_name() -> None:
+    """Return empty list when no project name defined."""
+    pyproject_data = {"project": {}}
+    result = derive_source_paths(pyproject_data)
+    assert result == []
+
+
+def test_derive_source_paths_empty_pyproject() -> None:
+    """Return empty list for empty pyproject data."""
+    result = derive_source_paths({})
+    assert result == []
+
+
+# ---------------------------------------------------------------------------
+# resolve_source_paths tests
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_source_paths_explicit_config() -> None:
+    """Use explicitly configured source paths."""
+    config = {"workflow-source-paths": ["custom_src"]}
+    result = resolve_source_paths(config)
+    assert result == ["custom_src"]
+
+
+def test_resolve_source_paths_none_derives() -> None:
+    """Auto-derive when config is None."""
+    config = {"workflow-source-paths": None}
+    pyproject_data = {"project": {"name": "my-pkg"}}
+    result = resolve_source_paths(config, pyproject_data)
+    assert result == ["my_pkg"]
+
+
+def test_resolve_source_paths_empty_list_returns_none() -> None:
+    """Return None when explicitly set to empty list."""
+    config = {"workflow-source-paths": []}
+    result = resolve_source_paths(config)
+    assert result is None
+
+
+def test_resolve_source_paths_no_name_returns_none() -> None:
+    """Return None when no project name and no config."""
+    config = {"workflow-source-paths": None}
+    pyproject_data = {"project": {}}
+    result = resolve_source_paths(config, pyproject_data)
+    assert result is None

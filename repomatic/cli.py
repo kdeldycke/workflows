@@ -115,6 +115,7 @@ from .metadata import (
     get_project_name,
     is_version_bump_allowed,
     load_repomatic_config,
+    resolve_source_paths,
 )
 from .release_prep import ReleasePrep
 from .renovate import (
@@ -977,6 +978,7 @@ def create(ctx, output_format, version, repo, output_dir, workflow_names):
         )
         ctx.exit(0)
 
+    source_paths = resolve_source_paths(load_repomatic_config())
     exit_code = generate_workflows(
         names=filtered,
         output_format=output_format,
@@ -984,6 +986,7 @@ def create(ctx, output_format, version, repo, output_dir, workflow_names):
         repo=repo,
         output_dir=output_dir,
         overwrite=False,
+        source_paths=source_paths,
     )
     ctx.exit(exit_code)
 
@@ -1012,6 +1015,7 @@ def sync(ctx, output_format, version, repo, output_dir, workflow_names):
         )
         ctx.exit(0)
 
+    source_paths = resolve_source_paths(load_repomatic_config())
     exit_code = generate_workflows(
         names=filtered,
         output_format=output_format,
@@ -1019,6 +1023,7 @@ def sync(ctx, output_format, version, repo, output_dir, workflow_names):
         repo=repo,
         output_dir=output_dir,
         overwrite=True,
+        source_paths=source_paths,
     )
     ctx.exit(exit_code)
 
