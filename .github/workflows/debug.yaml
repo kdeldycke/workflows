@@ -40,8 +40,10 @@ jobs:
           build_targets
       - name: Extend matrix with ubuntu-slim
         id: extend-matrix
+        env:
+          METADATA: ${{ steps.metadata.outputs.metadata }}
         run: |
-          targets=$(echo '${{ steps.metadata.outputs.metadata }}' | jq -c '.build_targets + [{"os":"ubuntu-slim"}]')
+          targets=$(echo "${METADATA}" | jq -c '.build_targets + [{"os":"ubuntu-slim"}]')
           echo "targets=$targets" >> "$GITHUB_OUTPUT"
 
   dump-context:

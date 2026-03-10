@@ -65,10 +65,13 @@ jobs:
         run: uv --no-progress sync --frozen --all-extras --all-groups
       - name: Run Mypy
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
+        env:
+          MYPY_PARAMS: ${{ fromJSON(needs.metadata.outputs.metadata).mypy_params }}
+          PYTHON_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
         run: >
           uv --no-progress run --frozen --with 'mypy==1.19.1' --
-          mypy --color-output ${{ fromJSON(needs.metadata.outputs.metadata).mypy_params }}
-          ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
+          mypy --color-output ${MYPY_PARAMS}
+          ${PYTHON_FILES}
 
   lint-yaml:
     name: 📄 Lint YAML
@@ -107,7 +110,9 @@ jobs:
           sudo apt update
           sudo apt install --yes zsh
       - name: Lint
-        run: for file in ${{ fromJSON(needs.metadata.outputs.metadata).zsh_files }}; do zsh --no-exec "$file"; done
+        env:
+          ZSH_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).zsh_files }}
+        run: for file in ${ZSH_FILES}; do zsh --no-exec "$file"; done
 
   lint-github-actions:
     name: ⚡ Lint GitHub Actions

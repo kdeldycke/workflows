@@ -185,7 +185,9 @@ jobs:
           git config --global user.email "$GIT_AUTHOR@users.noreply.github.com"
           git clean -fd
       - name: Create freeze commit
-        run: git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
+        env:
+          CURRENT_VERSION: ${{ steps.get_version.outputs.current_version }}
+        run: git commit --all --message="[changelog] Release v${CURRENT_VERSION}"
       # --- Unfreeze commit: revert to development references. ---
       - name: Re-target main branch in workflows
         # This step is only used in the original repository to automate remote URL tagging.
@@ -198,14 +200,18 @@ jobs:
       - name: Sync uv.lock
         run: uv --no-progress sync
       - name: Create unfreeze commit
+        env:
+          CURRENT_VERSION: ${{ steps.get_version.outputs.current_version }}
         run: >
           git commit --all --message="[changelog] Post-release bump
-          v${{ steps.get_version.outputs.current_version }} → v$(bump-my-version show current_version)"
+          v${CURRENT_VERSION} → v$(bump-my-version show current_version)"
       - id: pr-metadata
+        env:
+          CURRENT_VERSION: ${{ steps.get_version.outputs.current_version }}
         run: >
           uvx --no-progress --from . repomatic pr-body
           --template prepare-release
-          --version "${{ steps.get_version.outputs.current_version }}"
+          --version "${CURRENT_VERSION}"
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:

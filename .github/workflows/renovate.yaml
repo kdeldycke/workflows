@@ -87,7 +87,9 @@ jobs:
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''
-        run: rm -f "${{ steps.checks.outputs.dependabot_config_path }}"
+        env:
+          DEPENDABOT_PATH: ${{ steps.checks.outputs.dependabot_config_path }}
+        run: rm -f "${DEPENDABOT_PATH}"
 
       - uses: peter-evans/create-pull-request@v8.1.0
         with:

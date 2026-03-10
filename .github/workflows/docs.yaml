@@ -104,17 +104,18 @@ jobs:
         id: lychee_run
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          DOC_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).doc_files }}
         run: |
           exit_code=0
+          # shellcheck disable=SC2086
           lychee --format markdown --output ./lychee/out.md \
             --hidden --suggest --no-progress --include-fragments --exclude-all-private \
-            ${{ fromJSON(needs.metadata.outputs.metadata).doc_files }} || exit_code=$?
+            ${DOC_FILES} || exit_code=$?
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
       - name: Manage broken links issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: >
-          uvx --no-progress --from . repomatic broken-links
-          ${{ steps.lychee_run.outputs.exit_code != '' && format(
-            '--lychee-exit-code {0}',
-            steps.lychee_run.outputs.exit_code) || '' }}
+          LYCHEE_EXIT_CODE: ${{ steps.lychee_run.outputs.exit_code }}
+        run: |
+          uvx --no-progress --from . repomatic broken-links \
+            ${LYCHEE_EXIT_CODE:+--lychee-exit-code "${LYCHEE_EXIT_CODE}"}
