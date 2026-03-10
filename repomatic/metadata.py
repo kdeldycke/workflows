@@ -838,7 +838,7 @@ def metadata_keys_reference() -> list[tuple[str, str]]:
     :meth:`Metadata.dump`, including ``[tool.repomatic]`` config fields that are
     exposed as metadata outputs.
     """
-    rows = [(f"`{k}`", v) for k, v in _METADATA_KEY_DESCRIPTIONS.items()]
+    rows = [(k, v) for k, v in _METADATA_KEY_DESCRIPTIONS.items()]
 
     # Add config fields exposed as metadata (same filter as dump()).
     docstrings = _extract_field_docstrings()
@@ -848,7 +848,7 @@ def metadata_keys_reference() -> list[tuple[str, str]]:
             and f.name not in SUBCOMMAND_CONFIG_FIELDS
         ):
             desc = docstrings.get(f.name, "").replace("``", "`")
-            rows.append((f"`{f.name}`", desc))
+            rows.append((f.name, desc))
 
     return rows
 
