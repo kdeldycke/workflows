@@ -178,9 +178,11 @@ jobs:
         # Also hard-codes version in workflow URLs for kdeldycke/repomatic repository.
         run: uvx --no-progress --from . repomatic release-prep
       - name: Prepare repository
+        env:
+          GIT_AUTHOR: ${{ github.actor }}
         run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "$GIT_AUTHOR"
+          git config --global user.email "$GIT_AUTHOR@users.noreply.github.com"
           git clean -fd
       - name: Create freeze commit
         run: git commit --all --message="[changelog] Release v${{ steps.get_version.outputs.current_version }}"
