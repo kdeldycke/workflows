@@ -286,7 +286,9 @@ def generate_refresh_tip() -> str:
     if not workflow_file:
         return ""
     return render_template(
-        "refresh-tip", repo_url=md.repo_url, workflow_file=workflow_file,
+        "refresh-tip",
+        repo_url=md.repo_url,
+        workflow_file=workflow_file,
     )
 
 

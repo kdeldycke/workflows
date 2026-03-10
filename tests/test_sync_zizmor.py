@@ -28,9 +28,7 @@ MINIMAL_PYPROJECT = "[project]\nname = 'test'\nversion = '0.1.0'\n"
 
 
 @pytest.mark.parametrize("pre_existing", [True, False])
-def test_sync_zizmor_writes_canonical_config(
-    tmp_path, monkeypatch, pre_existing
-):
+def test_sync_zizmor_writes_canonical_config(tmp_path, monkeypatch, pre_existing):
     """Sync writes the canonical bundled config whether the file exists or not."""
     monkeypatch.chdir(tmp_path)
     target = tmp_path / "zizmor.yaml"
@@ -40,9 +38,10 @@ def test_sync_zizmor_writes_canonical_config(
 
     result = CliRunner().invoke(sync_zizmor)
     assert result.exit_code == 0
-    assert target.read_text(encoding="utf-8").rstrip() == export_content(
-        "zizmor.yaml"
-    ).rstrip()
+    assert (
+        target.read_text(encoding="utf-8").rstrip()
+        == export_content("zizmor.yaml").rstrip()
+    )
 
 
 def test_sync_zizmor_config_toggle_off(tmp_path, monkeypatch):

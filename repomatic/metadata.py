@@ -314,6 +314,7 @@ from py_walk import get_parser_from_file
 from py_walk.models import Parser
 from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
 from pyproject_metadata import ConfigurationError, StandardMetadata
+from typing_extensions import Self
 from wcmatch.glob import (
     BRACE,
     DOTGLOB,
@@ -744,7 +745,7 @@ def _format_default(value: object) -> str:
     if isinstance(value, list):
         if not value:
             return "`[]`"
-        return f'`{value!r}`'
+        return f"`{value!r}`"
     return str(value)
 
 
@@ -1236,7 +1237,7 @@ class Metadata:
 
     _instance: Metadata | None = None
 
-    def __new__(cls) -> Metadata:
+    def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -1613,16 +1614,19 @@ class Metadata:
         slug = os.environ.get("GITHUB_REPOSITORY") or None
         if not slug:
             try:
-                slug = run_gh_command(
-                    [
-                        "repo",
-                        "view",
-                        "--json",
-                        "nameWithOwner",
-                        "--jq",
-                        ".nameWithOwner",
-                    ],
-                ).strip() or None
+                slug = (
+                    run_gh_command(
+                        [
+                            "repo",
+                            "view",
+                            "--json",
+                            "nameWithOwner",
+                            "--jq",
+                            ".nameWithOwner",
+                        ],
+                    ).strip()
+                    or None
+                )
             except RuntimeError:
                 logging.debug("Failed to detect repository slug via gh CLI.")
         return slug

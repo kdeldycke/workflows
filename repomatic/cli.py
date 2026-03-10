@@ -695,8 +695,7 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
     config = load_repomatic_config()
     if not config.get("gitignore.sync", True):
         logging.info(
-            "[tool.repomatic] gitignore.sync is disabled."
-            " Skipping .gitignore sync."
+            "[tool.repomatic] gitignore.sync is disabled. Skipping .gitignore sync."
         )
         ctx.exit(0)
 
@@ -823,8 +822,7 @@ def sync_dev_release(
     config = load_repomatic_config()
     if not config.get("dev-release.sync", True):
         logging.info(
-            "[tool.repomatic] dev-release.sync is disabled."
-            " Skipping dev release sync."
+            "[tool.repomatic] dev-release.sync is disabled. Skipping dev release sync."
         )
         ctx.exit(0)
 
@@ -1986,8 +1984,7 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path) -> None:
     config = load_repomatic_config()
     if not config.get("uv-lock.sync", True):
         logging.info(
-            "[tool.repomatic] uv-lock.sync is disabled."
-            " Skipping uv.lock sync."
+            "[tool.repomatic] uv-lock.sync is disabled. Skipping uv.lock sync."
         )
         ctx.exit(0)
 
@@ -2121,8 +2118,15 @@ def sync_awesome_template(ctx: Context, source_repo: str) -> None:
         # Shallow clone the source repository.
         logging.info(f"Cloning {source_repo} into {clone_dir}")
         subprocess.run(
-            ["git", "clone", "--depth", "1", "--single-branch",
-             f"https://github.com/{source_repo}.git", str(clone_dir)],
+            [
+                "git",
+                "clone",
+                "--depth",
+                "1",
+                "--single-branch",
+                f"https://github.com/{source_repo}.git",
+                str(clone_dir),
+            ],
             check=True,
             capture_output=True,
         )
@@ -2159,9 +2163,7 @@ def sync_awesome_template(ctx: Context, source_repo: str) -> None:
                 if not path.is_file() or path.suffix not in (".md", ".yaml"):
                     continue
                 content = path.read_text(encoding="UTF-8")
-                new_content = content.replace(
-                    f"/{source_slug}/", f"/{md.repo_slug}/"
-                )
+                new_content = content.replace(f"/{source_slug}/", f"/{md.repo_slug}/")
                 if new_content != content:
                     path.write_text(new_content, encoding="UTF-8")
                     count += 1
@@ -2193,9 +2195,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     """
     config = load_repomatic_config()
     if not config.get("labels.sync", True):
-        logging.info(
-            "[tool.repomatic] labels.sync is disabled. Skipping label sync."
-        )
+        logging.info("[tool.repomatic] labels.sync is disabled. Skipping label sync.")
         ctx.exit(0)
 
     # Auto-detect repository.
@@ -2215,9 +2215,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
 
     # Apply awesome profile for awesome-* repos.
     if repo_name.startswith("awesome-") and repo_name != "awesome-template":
-        _run_labelmaker(
-            ["apply", "labels.toml", "--profile", "awesome", repository]
-        )
+        _run_labelmaker(["apply", "labels.toml", "--profile", "awesome", repository])
 
     # Apply extra label files.
     extra_dir = Path("extra-labels")
@@ -2238,7 +2236,10 @@ def _run_labelmaker(args: list[str]) -> None:
     logging.info(f"Running: {' '.join(cmd)}")
     try:
         result = subprocess.run(
-            cmd, capture_output=True, encoding="UTF-8", check=False,
+            cmd,
+            capture_output=True,
+            encoding="UTF-8",
+            check=False,
         )
     except FileNotFoundError:
         msg = "labelmaker is not installed. See https://github.com/jwodder/labelmaker"
