@@ -348,6 +348,8 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any, Final, Literal
 
+    from typing_extensions import Self
+
 
 REPOMATIC_CONFIG_RENAME_FROM: Final[tuple[str, ...]] = ("gha-utils", "repokit")
 """Legacy ``[tool.*]`` section names from previous project names.
@@ -706,6 +708,7 @@ def _extract_field_docstrings() -> dict[str, str]:
     source = inspect.getsource(Config)
     tree = ast.parse(textwrap.dedent(source))
     cls_node = tree.body[0]
+    assert isinstance(cls_node, ast.ClassDef)
 
     docstrings: dict[str, str] = {}
     current_field = None
@@ -1240,7 +1243,7 @@ class Metadata:
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-        return cls._instance
+        return cls._instance  # type: ignore[return-value]
 
     def __init__(self) -> None:
         """Initialize internal variables."""
