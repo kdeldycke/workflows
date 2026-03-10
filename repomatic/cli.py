@@ -2143,7 +2143,7 @@ def sync_awesome_template(ctx: Context, source_repo: str) -> None:
                     continue
                 content = path.read_text(encoding="UTF-8")
                 new_content = content.replace(
-                    f"/{source_slug}/", f"/{repo_slug}/"
+                    f"/{source_slug}/", f"/{md.repo_slug}/"
                 )
                 if new_content != content:
                     path.write_text(new_content, encoding="UTF-8")
