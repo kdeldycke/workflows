@@ -9,13 +9,13 @@ Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore
 
 ### Configuration
 
-Customize `.gitignore` generation in your `pyproject.toml`:
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
 
 ```toml
 [tool.repomatic]
-gitignore.sync = true                            # Set to false to disable (default: true)
-gitignore.location = "./.gitignore"              # File path (default)
-gitignore.extra-categories = ["terraform", "go"] # Extra gitignore.io categories
+gitignore.sync = true
+gitignore.location = "./.gitignore"
+gitignore.extra-categories = ["terraform", "go"]
 gitignore.extra-content = '''
 junit.xml
 

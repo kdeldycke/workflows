@@ -9,7 +9,9 @@ Initializes the `[tool.bumpversion]` configuration in `pyproject.toml` from the 
 
 ### Configuration
 
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+
 ```toml
 [tool.repomatic]
-bumpversion.sync = true # Set to false to disable (default: true)
+bumpversion.sync = true
 ```

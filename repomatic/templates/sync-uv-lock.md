@@ -9,7 +9,9 @@ Runs `uv lock --upgrade` to update transitive dependencies to their latest allow
 
 ### Configuration
 
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+
 ```toml
 [tool.repomatic]
-uv-lock.sync = true # Set to false to disable (default: true)
+uv-lock.sync = true
 ```

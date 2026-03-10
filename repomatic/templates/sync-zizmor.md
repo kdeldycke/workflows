@@ -9,7 +9,9 @@ Syncs `zizmor.yaml` with the canonical reference from [`kdeldycke/repomatic`](ht
 
 ### Configuration
 
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+
 ```toml
 [tool.repomatic]
-zizmor.sync = true # Set to false to disable (default: true)
+zizmor.sync = true
 ```

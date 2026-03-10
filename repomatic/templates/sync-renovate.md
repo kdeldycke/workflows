@@ -9,7 +9,9 @@ Syncs the local `renovate.json5` with the canonical reference from [`kdeldycke/r
 
 ### Configuration
 
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+
 ```toml
 [tool.repomatic]
-renovate.sync = true # Set to false to disable (default: true)
+renovate.sync = true
 ```

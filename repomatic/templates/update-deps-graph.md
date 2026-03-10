@@ -9,14 +9,14 @@ Regenerates the Mermaid dependency graph from the `uv` lockfile. See the [`updat
 
 ### Configuration
 
-Customize dependency graph generation in your `pyproject.toml`:
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
 
 ```toml
 [tool.repomatic]
-dependency-graph.output = "docs/dependency-graph.md" # Output file path
-dependency-graph.all-groups = true                   # Include all dependency groups (default: true)
-dependency-graph.all-extras = true                   # Include all optional extras (default: true)
-dependency-graph.no-groups = []                      # Groups to exclude
-dependency-graph.no-extras = []                      # Extras to exclude
-dependency-graph.level = 0                           # Max depth (0 or omit = unlimited)
+dependency-graph.output = "docs/dependency-graph.md"
+dependency-graph.all-groups = true
+dependency-graph.all-extras = true
+dependency-graph.no-groups = []
+dependency-graph.no-extras = []
+dependency-graph.level = 0
 ```

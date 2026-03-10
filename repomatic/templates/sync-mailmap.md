@@ -9,7 +9,9 @@ Synchronizes the `.mailmap` file with the project's Git contributors. See the [`
 
 ### Configuration
 
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+
 ```toml
 [tool.repomatic]
-mailmap.sync = true # Set to false to disable (default: true)
+mailmap.sync = true
 ```

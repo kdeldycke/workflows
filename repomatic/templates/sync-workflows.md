@@ -9,9 +9,11 @@ Syncs [thin-caller workflow files](https://github.com/kdeldycke/repomatic?tab=re
 
 ### Configuration
 
+Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+
 ```toml
 [tool.repomatic]
-workflow.sync = true                    # Set to false to disable (default: true)
-workflow.sync-exclude = ["debug.yaml"]  # Workflow files to skip
-workflow.source-paths = ["src", "lib"]  # Source dirs for paths: filters (default: auto-derived)
+workflow.sync = true
+workflow.sync-exclude = ["debug.yaml"]
+workflow.source-paths = ["src", "lib"]
 ```
