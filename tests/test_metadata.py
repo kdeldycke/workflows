@@ -802,8 +802,7 @@ expected = {
             # auto-detected --python-flag=-m for __main__.py packages.
             {
                 "nuitka_extra_args": (
-                    "--include-package-data=extra_platforms"
-                    " --include-data-files=repomatic/templates/*.md=repomatic/templates/"
+                    "--include-data-files=repomatic/templates/*.md=repomatic/templates/"
                     " --python-flag=-m"
                 ),
             },

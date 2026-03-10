@@ -15,6 +15,7 @@
 - Add `repomatic sync-labels` CLI command wrapping `labelmaker` invocation with toggle check, profile detection, and extra label file handling.
 - Replace `AndreasAugustin/actions-template-sync` with native `repomatic sync-awesome-template` CLI command. Removes a third-party action dependency and aligns the job with the standard sync pattern.
 - Centralize all CI context reads (repository slug, server URL, SHA, run ID, actor, etc.) into `Metadata` cached properties. Modules no longer read `GITHUB_*` environment variables directly.
+- Remove `--include-package-data=extra_platforms` from Nuitka extra args. `extra-platforms` 11.0.0 has no non-Python data files — all `*_data` modules are regular imports traced by Nuitka automatically.
 - Make `Metadata` a singleton: every `Metadata()` call returns the same instance within a process, eliminating redundant instantiation across the codebase.
 - Remove `get_repo_slug()` from `gh.py` in favor of `Metadata.repo_slug`.
 - Skip `init ruff` config injection in `format-python` job for non-Python projects. Doc-only repos use Ruff for code-block formatting without needing a `[tool.ruff]` section.
