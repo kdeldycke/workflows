@@ -356,6 +356,7 @@ A complete release consists of all of the following. If any are missing, the rel
 - Tests should be sorted logically and alphabetically where applicable.
 - Test coverage is tracked with `pytest-cov` and reported to Codecov.
 - Do not use classes for grouping tests. Write test functions as top-level module functions. Only use test classes when they provide shared fixtures, setup/teardown methods, or class-level state.
+- **`@pytest.mark.once` for run-once tests.** Downstream repos can define a custom `once` marker (in `[tool.pytest].markers`) to tag tests that only need to run once — not across the full CI matrix. Typical candidates: CLI entry point invocability, plugin registration, package metadata checks. The main test matrix filters them out with `pytest -m "not once"`, while a dedicated `once-tests` job runs them on a single runner. This avoids wasting CI minutes on redundant cross-platform runs.
 
 ## Agent conventions
 
@@ -539,3 +540,4 @@ When invoking `uv` and `uvx` commands in GitHub Actions workflows:
 - **Flag placement:** `uv --no-progress run --frozen -- command` (not `uv run --no-progress`).
 - **Exceptions:** Omit `--frozen` for `uvx` with pinned versions, `uv tool install`, CLI invocability tests, and local development examples.
 - **Prefer explicit flags over environment variables** (`UV_NO_PROGRESS`, `UV_FROZEN`). Flags are self-documenting, visible in logs, avoid conflicts (e.g., `UV_FROZEN` vs `--locked`), and align with the long-form option principle.
+- **Per-group `requires-python` in `[tool.uv]`:** Downstream repos whose docs or other dependency groups require newer Python features can restrict specific groups with `dependency-groups.docs = { requires-python = ">= 3.14" }`. This prevents uv from installing incompatible dependencies when running on older Python versions.
