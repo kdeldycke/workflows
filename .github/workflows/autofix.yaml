@@ -212,9 +212,9 @@ jobs:
       - name: Install Biome
         run: |
           curl -fsSL \
-            "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%402.4.4/biome-linux-x64" \
+            "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%402.4.5/biome-linux-x64" \
             --output /tmp/biome
-          echo "ba5073017ec03a700e5b9270b2454df7dbec6a5124611bb785b68ae717506d45  /tmp/biome" | sha256sum --check
+          echo "a31815f19b0b90fa043eb23fbf769ed931fbcde6d98bb89894ea8be1387d8394  /tmp/biome" | sha256sum --check
           install /tmp/biome /usr/local/bin/biome
       - name: Format JSON
         # Allow comments and trailing commas for JSONC files.
