@@ -365,31 +365,6 @@ jobs:
           labels: "🤖 ci"
           branch: sync-bumpversion
 
-  sync-zizmor:
-    name: 🔄 Sync zizmor.yaml
-    needs:
-      - metadata
-    if: fromJSON(needs.metadata.outputs.metadata).workflow_files
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
-      - name: Sync zizmor config
-        run: uvx --no-progress --from . repomatic sync-zizmor
-      - id: pr-metadata
-        run: >
-          uvx --no-progress --from . repomatic pr-body
-          --template sync-zizmor
-          --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
-        with:
-          assignees: ${{ github.actor }}
-          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
-          title: ${{ steps.pr-metadata.outputs.title }}
-          body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "🤖 ci"
-          branch: sync-zizmor
-
   sync-renovate:
     name: 🔄 Sync renovate.json5
     needs:

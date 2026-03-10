@@ -484,7 +484,6 @@ expected = {
         "tests/test_release_sync.py",
         "tests/test_renovate.py",
         "tests/test_sync_renovate.py",
-        "tests/test_sync_zizmor.py",
         "tests/test_workflow_sync.py",
         "tests/test_workflows.py",
     ],
@@ -576,7 +575,6 @@ expected = {
         "repomatic/templates/sync-renovate.md",
         "repomatic/templates/sync-uv-lock.md",
         "repomatic/templates/sync-workflows.md",
-        "repomatic/templates/sync-zizmor.md",
         "repomatic/templates/unavailable-admonition.md",
         "repomatic/templates/unsubscribe-phase1.md",
         "repomatic/templates/unsubscribe-phase2.md",
@@ -628,7 +626,6 @@ expected = {
         "repomatic/templates/sync-renovate.md",
         "repomatic/templates/sync-uv-lock.md",
         "repomatic/templates/sync-workflows.md",
-        "repomatic/templates/sync-zizmor.md",
         "repomatic/templates/unavailable-admonition.md",
         "repomatic/templates/unsubscribe-phase1.md",
         "repomatic/templates/unsubscribe-phase2.md",
@@ -1352,7 +1349,6 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["workflow.source-paths"] is None
     assert metadata.config["workflow.sync"] is True
     assert metadata.config["workflow.sync-exclude"] == []
-    assert metadata.config["zizmor.sync"] is True
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1396,7 +1392,6 @@ uv-lock.sync = false
 workflow.source-paths = ["extra_platforms"]
 workflow.sync = false
 workflow.sync-exclude = ["debug.yaml", "autolock.yaml"]
-zizmor.sync = false
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1445,7 +1440,6 @@ zizmor.sync = false
         "debug.yaml",
         "autolock.yaml",
     ]
-    assert metadata.config["zizmor.sync"] is False
 
 
 def test_unstable_targets_default(tmp_path, monkeypatch):

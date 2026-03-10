@@ -2063,37 +2063,6 @@ def sync_bumpversion(ctx: Context) -> None:
 
 
 @repomatic.command(
-    short_help="Sync zizmor.yaml from bundled definition",
-    section=_section_sync,
-)
-@pass_context
-def sync_zizmor(ctx: Context) -> None:
-    """Sync ``zizmor.yaml`` from the bundled definition in ``repomatic``.
-
-    Overwrites ``zizmor.yaml`` with the canonical configuration
-    bundled in ``repomatic``. Designed for the ``sync-zizmor`` autofix job.
-    Use ``repomatic init zizmor`` for interactive bootstrapping.
-    """
-    config = load_repomatic_config()
-    if not config.get("zizmor.sync", True):
-        logging.info(
-            "[tool.repomatic] zizmor.sync is disabled. Skipping zizmor config sync."
-        )
-        ctx.exit(0)
-
-    result = run_init(
-        output_dir=Path("."),
-        components=("zizmor",),
-    )
-    changed = [*result.created, *result.updated]
-    if changed:
-        for path in changed:
-            echo(f"Updated: {path}")
-    else:
-        echo("Zizmor config is up to date.")
-
-
-@repomatic.command(
     short_help="Sync Claude Code skills from bundled definitions", section=_section_sync
 )
 def sync_skills() -> None:

@@ -671,8 +671,8 @@ def run_init(
 
     Creates thin-caller workflow files, exports configuration files, and
     generates a minimal ``changelog.md`` if missing. Managed files (workflows,
-    configs, skills) are always overwritten. The changelog stub is never
-    overwritten — once a real changelog exists, it is preserved.
+    configs, skills) are always overwritten. User-owned files (``changelog.md``,
+    ``zizmor.yaml``) are created once and never overwritten.
 
     :param output_dir: Root directory of the target repository.
     :param components: Components to initialize. Empty means all defaults.
@@ -749,10 +749,14 @@ def run_init(
     if "workflows" in selected:
         _init_workflows(output_dir, repo, version, result, exclude=workflow_exclude)
 
-    # Config file components (labels, renovate, skills, zizmor).
-    for component_name in ("labels", "renovate", "skills", "zizmor"):
+    # Config file components (labels, renovate, skills).
+    for component_name in ("labels", "renovate", "skills"):
         if component_name in selected:
             _init_config_files(output_dir, component_name, result)
+
+    # Zizmor: user-owned after initial creation — skip if exists.
+    if "zizmor" in selected:
+        _init_config_files(output_dir, "zizmor", result, skip_if_exists=True)
 
     # Fetch extra label files from [tool.repomatic] config.
     if "labels" in selected:
@@ -824,11 +828,22 @@ def _init_config_files(
     output_dir: Path,
     component_name: str,
     result: InitResult,
+    *,
+    skip_if_exists: bool = False,
 ) -> None:
-    """Export bundled config files for a component."""
+    """Export bundled config files for a component.
+
+    :param skip_if_exists: When ``True``, skip files that already exist on disk
+        instead of overwriting. Used for user-owned configs like ``zizmor.yaml``
+        that should only be created once as a starting point.
+    """
     for source_name, rel_path in COMPONENT_FILES[component_name]:
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()
+        if skip_if_exists and target.exists():
+            result.skipped.append(rel)
+            logging.debug(f"Skipped existing: {rel}")
+            continue
         existed = target.exists()
         target.parent.mkdir(parents=True, exist_ok=True)
         content = export_content(source_name)

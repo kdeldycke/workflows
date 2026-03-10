@@ -91,7 +91,6 @@ Commands:
   sync-gitignore       Sync .gitignore from gitignore.io templates
   sync-dev-release     Sync rolling dev pre-release on GitHub
   sync-github-releases Sync GitHub release notes from changelog
-  sync-zizmor          Sync zizmor.yaml from bundled definition
   sync-mailmap         Sync Git's .mailmap file with missing contributors
   sync-renovate        Sync Renovate config from canonical reference
   sync-skills          Sync Claude Code skills from bundled definitions
@@ -139,7 +138,6 @@ labels.sync = false
 mailmap.sync = false
 renovate.sync = false
 uv-lock.sync = false
-zizmor.sync = false
 
 dependency-graph.output = "./docs/assets/dependencies.mmd"
 dependency-graph.all-groups = true
@@ -212,7 +210,6 @@ workflow.sync-exclude = ["debug.yaml", "autolock.yaml"]
 | `workflow.source-paths`       | list[str] | *(none)*                           | Source code directory names for workflow trigger `paths:` filters.                           |
 | `workflow.sync`               | bool      | `true`                             | Whether workflow sync is enabled for this project.                                           |
 | `workflow.sync-exclude`       | list[str] | `[]`                               | Workflow filenames to exclude from `repomatic init`, `workflow sync`, and `workflow create`. |
-| `zizmor.sync`                 | bool      | `true`                             | Whether `zizmor.yaml` sync is enabled for this project.                                      |
 <!-- End of generated table. -->
 
 > [!TIP]
@@ -341,12 +338,6 @@ GitHub Actions has several design limitations that the workflows work around:
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
     - `bumpversion.sync = false` in `[tool.repomatic]`
-
-- 🔄 **Sync `zizmor.yaml`** (`sync-zizmor`)
-
-  - Syncs `zizmor.yaml` with the canonical reference from [`repomatic`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/zizmor.yaml)
-  - **Skipped if**:
-    - `zizmor.sync = false` in `[tool.repomatic]`
 
 - 🔄 **Sync `renovate.json5`** (`sync-renovate`)
 

@@ -733,6 +733,24 @@ def test_init_changelog_never_overwritten(tmp_path: Path):
     assert content == "# Old content\n"
 
 
+def test_init_zizmor_never_overwritten(tmp_path: Path):
+    """Verify an existing zizmor.yaml is never overwritten."""
+    zizmor = tmp_path / "zizmor.yaml"
+    zizmor.write_text("# Custom config\n", encoding="UTF-8")
+
+    result = run_init(
+        output_dir=tmp_path,
+        components=("zizmor",),
+    )
+
+    assert "zizmor.yaml" in result.skipped
+    assert len(result.created) == 0
+    assert len(result.updated) == 0
+    # Content should be preserved.
+    content = zizmor.read_text(encoding="UTF-8")
+    assert content == "# Custom config\n"
+
+
 def test_init_tool_configs_no_pyproject(tmp_path: Path):
     """Verify warning when pyproject.toml is missing."""
     result = run_init(
