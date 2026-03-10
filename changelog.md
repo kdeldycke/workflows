@@ -22,6 +22,9 @@
 
 ## [`6.4.0` (2026-03-10)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...v6.4.0)
 
+> [!NOTE]
+> `6.4.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.4.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.4.0).
+
 - Rename `optimize-images` to `format-images`. Image lossless optimization is a format operation (semantics-preserving rewrite using external tools), aligning it with the `format-*` naming convention.
 - Add `format-images` PR body template and use `--template format-images` in the workflow, aligning with the standard format job pattern.
 - Allow `--prefix` and `--template` to be combined in `repomatic pr-body`. When both are given, the prefix is prepended before the rendered template content.
