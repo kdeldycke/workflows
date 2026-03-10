@@ -318,9 +318,7 @@ def test_version_increments_runs_on_expected_events() -> None:
     # Verify bump-version depends on metadata.
     version_increments = jobs.get("bump-version", {})
     needs = version_increments.get("needs", [])
-    assert "metadata" in needs, (
-        "bump-version job must depend on metadata"
-    )
+    assert "metadata" in needs, "bump-version job must depend on metadata"
 
     # Verify metadata runs on expected events.
     metadata_job = jobs.get("metadata", {})
@@ -330,9 +328,7 @@ def test_version_increments_runs_on_expected_events() -> None:
     assert "workflow_dispatch" in condition, (
         "metadata job should run on workflow_dispatch events"
     )
-    assert "workflow_run" in condition, (
-        "metadata job should run on workflow_run events"
-    )
+    assert "workflow_run" in condition, "metadata job should run on workflow_run events"
 
 
 def test_post_release_commit_in_changelog_workflow() -> None:

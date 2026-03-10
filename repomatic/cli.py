@@ -419,9 +419,7 @@ def metadata(ctx, format, overwrite, output, list_keys, keys):
         $ repomatic metadata --format github-json --output "$GITHUB_OUTPUT" current_version is_python_project
     """
     if list_keys:
-        ctx.find_root().print_table(
-            metadata_keys_reference(), METADATA_KEYS_HEADERS
-        )
+        ctx.find_root().print_table(metadata_keys_reference(), METADATA_KEYS_HEADERS)
         ctx.exit(0)
 
     # Validate requested keys.
