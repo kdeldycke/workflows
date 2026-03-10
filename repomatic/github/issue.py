@@ -42,40 +42,52 @@ if TYPE_CHECKING:
     from typing import Any
 
 
-ISSUE_AUTHOR = "github-actions[bot]"
-"""GitHub username of the bot that creates and manages issues."""
+def list_issues(title: str = "") -> list[dict[str, Any]]:
+    """List all issues (open and closed), optionally filtered by title.
 
+    .. note::
 
-def list_issues() -> list[dict[str, Any]]:
-    """List all issues (open and closed) by the bot author.
+        No ``--author`` filter is applied. When ``WORKFLOW_UPDATE_GITHUB_PAT``
+        is configured, ``gh`` authenticates as the token owner (not
+        ``github-actions[bot]``), so issues may be authored by either identity.
+        Filtering by author would miss issues created under the other identity,
+        breaking deduplication. The caller (:func:`triage_issues`) already
+        matches by exact title, so author-agnostic listing is safe.
 
+    :param title: If provided, only return issues whose title matches exactly.
     :return: List of issue dicts with ``number``, ``title``, ``createdAt``,
         and ``state``.
     """
-    output = run_gh_command([
+    args = [
         "issue",
         "list",
         "--state",
         "all",
-        "--author",
-        ISSUE_AUTHOR,
         "--json",
         "number,title,createdAt,state",
-    ])
-    return json.loads(output)  # type: ignore[no-any-return]
+    ]
+    if title:
+        args.extend(["--search", f"{title} in:title"])
+    output = run_gh_command(args)
+    issues: list[dict[str, Any]] = json.loads(output)
+    # ``--search`` is full-text, not exact match. Filter to exact title.
+    if title:
+        issues = [i for i in issues if i["title"] == title]
+    return issues
 
 
-def list_open_issues() -> list[dict[str, Any]]:
-    """List open issues by the bot author.
+def list_open_issues(title: str = "") -> list[dict[str, Any]]:
+    """List open issues, optionally filtered by title.
 
     Convenience wrapper around :func:`list_issues` that filters to open issues
     only and strips the ``state`` field for backward compatibility.
 
+    :param title: If provided, only return issues whose title matches exactly.
     :return: List of issue dicts with ``number``, ``title``, and ``createdAt``.
     """
     return [
         {k: v for k, v in issue.items() if k != "state"}
-        for issue in list_issues()
+        for issue in list_issues(title)
         if issue["state"] == "OPEN"
     ]
 
@@ -229,9 +241,9 @@ def manage_issue_lifecycle(
     :param no_issues_comment: Comment to add when closing issues because
         the condition no longer applies.
     """
-    # List all issues (open and closed).
-    issues = list_issues()
-    logging.info(f"Found {len(issues)} issues by {ISSUE_AUTHOR}")
+    # List all issues (open and closed) matching this title.
+    issues = list_issues(title)
+    logging.info(f"Found {len(issues)} issues matching {title!r}")
 
     # Triage issues.
     _, issue_to_update, issue_state, issues_to_close = triage_issues(
