@@ -32,7 +32,7 @@ This skill is a **mechanical convenience** for previewing or applying sync chang
 ### After running
 
 - Show the diff of changed files.
-- Report any files excluded via `workflow-sync-exclude` in `[tool.repomatic]`.
+- Report any files excluded via `workflow.sync-exclude` in `[tool.repomatic]`.
 - Warn about any breaking changes (removed inputs, renamed jobs, changed defaults).
 
 ### Next steps

@@ -864,8 +864,8 @@ def test_apply_config_explicit_names_bypass(
     """Explicit CLI args bypass config filtering entirely."""
     pyproject_content = """\
 [tool.repomatic]
-workflow-sync = false
-workflow-sync-exclude = ["lint.yaml"]
+workflow.sync = false
+workflow.sync-exclude = ["lint.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -899,10 +899,10 @@ def test_apply_config_no_explicit_names_no_config(
 def test_apply_config_global_toggle_off(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Returns None when workflow-sync is false and no explicit args."""
+    """Returns None when workflow.sync is false and no explicit args."""
     pyproject_content = """\
 [tool.repomatic]
-workflow-sync = false
+workflow.sync = false
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -920,7 +920,7 @@ def test_apply_config_excludes_thin_caller(
     """Exclude list removes workflows from thin-caller defaults."""
     pyproject_content = """\
 [tool.repomatic]
-workflow-sync-exclude = ["debug.yaml"]
+workflow.sync-exclude = ["debug.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -942,7 +942,7 @@ def test_apply_config_excludes_header_only(
     """Exclude list removes workflows from header-only defaults."""
     pyproject_content = """\
 [tool.repomatic]
-workflow-sync-exclude = ["tests.yaml"]
+workflow.sync-exclude = ["tests.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -961,7 +961,7 @@ def test_apply_config_warns_unknown(
     """Warning logged for unknown workflow in exclude list."""
     pyproject_content = """\
 [tool.repomatic]
-workflow-sync-exclude = ["nonexistent.yaml"]
+workflow.sync-exclude = ["nonexistent.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -985,7 +985,7 @@ def test_generate_with_exclude_integration(
     """End-to-end: excluded workflow is not created."""
     pyproject_content = """\
 [tool.repomatic]
-workflow-sync-exclude = ["debug.yaml"]
+workflow.sync-exclude = ["debug.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -1242,14 +1242,14 @@ def test_derive_source_paths_empty_pyproject() -> None:
 
 def test_resolve_source_paths_explicit_config() -> None:
     """Use explicitly configured source paths."""
-    config = {"workflow-source-paths": ["custom_src"]}
+    config = {"workflow.source-paths": ["custom_src"]}
     result = resolve_source_paths(config)
     assert result == ["custom_src"]
 
 
 def test_resolve_source_paths_none_derives() -> None:
     """Auto-derive when config is None."""
-    config = {"workflow-source-paths": None}
+    config = {"workflow.source-paths": None}
     pyproject_data = {"project": {"name": "my-pkg"}}
     result = resolve_source_paths(config, pyproject_data)
     assert result == ["my_pkg"]
@@ -1257,14 +1257,14 @@ def test_resolve_source_paths_none_derives() -> None:
 
 def test_resolve_source_paths_empty_list_returns_none() -> None:
     """Return None when explicitly set to empty list."""
-    config = {"workflow-source-paths": []}
+    config = {"workflow.source-paths": []}
     result = resolve_source_paths(config)
     assert result is None
 
 
 def test_resolve_source_paths_no_name_returns_none() -> None:
     """Return None when no project name and no config."""
-    config = {"workflow-source-paths": None}
+    config = {"workflow.source-paths": None}
     pyproject_data = {"project": {}}
     result = resolve_source_paths(config, pyproject_data)
     assert result is None

@@ -329,9 +329,9 @@ def test_render_sync_gitignore():
     assert "gitignore.io" in result
     assert "sync-gitignore" in result
     assert "### Configuration" in result
-    assert "gitignore-extra-categories" in result
-    assert "gitignore-extra-content" in result
-    assert "gitignore-location" in result
+    assert "gitignore.extra-categories" in result
+    assert "gitignore.extra-content" in result
+    assert "gitignore.location" in result
     assert "[tool.repomatic]" in result
 
 
@@ -399,7 +399,7 @@ def test_render_update_deps_graph():
     assert "Mermaid" in result
     assert "autofixyaml-jobs" in result
     assert "### Configuration" in result
-    assert "dependency-graph-output" in result
+    assert "dependency-graph.output" in result
     assert "[tool.repomatic]" in result
 
 

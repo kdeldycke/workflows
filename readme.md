@@ -128,81 +128,89 @@ Downstream projects can customize workflow behavior by adding a `[tool.repomatic
 
 ```toml
 [tool.repomatic]
-nuitka = false
-nuitka-extra-args = [
-  "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
-]
-unstable-targets = ["linux-arm64", "windows-arm64"]
-test-plan-file = "./tests/cli-test-plan.yaml"
-timeout = 120
-test-plan = "- args: --version"
-gitignore-location = "./.gitignore"
-gitignore-extra-categories = ["terraform", "go"]
-gitignore-extra-content = '''
+pypi-package-history = ["old-name", "older-name"]
+
+awesome-template.sync = false
+bumpversion.sync = false
+dev-release.sync = false
+gitignore.sync = false
+labels.sync = false
+mailmap.sync = false
+renovate.sync = false
+uv-lock.sync = false
+zizmor.sync = false
+
+dependency-graph.output = "./docs/assets/dependencies.mmd"
+dependency-graph.all-groups = true
+dependency-graph.all-extras = true
+dependency-graph.no-groups = []
+dependency-graph.no-extras = []
+dependency-graph.level = 0
+
+gitignore.location = "./.gitignore"
+gitignore.extra-categories = ["terraform", "go"]
+gitignore.extra-content = '''
 junit.xml
 
 # Claude Code
 .claude/
 '''
-dependency-graph-output = "./docs/assets/dependencies.mmd"
-dependency-graph-all-groups = true
-dependency-graph-all-extras = true
-dependency-graph-no-groups = []
-dependency-graph-no-extras = []
-dependency-graph-level = 0
-extra-label-files = ["https://example.com/my-labels.toml"]
-extra-file-rules = "docs:\n  - docs/**"
-extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
-pypi-package-history = ["old-name", "older-name"]
-awesome-template-sync = false
-bumpversion-sync = false
-dev-release-sync = false
-gitignore-sync = false
-labels-sync = false
-mailmap-sync = false
-renovate-sync = false
-uv-lock-sync = false
-workflow-source-paths = ["extra_platforms"]
-workflow-sync = false
-workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
-zizmor-sync = false
-init-exclude = ["linters", "skills"]
+
+init.exclude = ["linters", "skills"]
+
+labels.extra-files = ["https://example.com/my-labels.toml"]
+labels.extra-file-rules = "docs:\n  - docs/**"
+labels.extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
+
+nuitka.enabled = false
+nuitka.extra-args = [
+  "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
+]
+nuitka.unstable-targets = ["linux-arm64", "windows-arm64"]
+
+test-plan.file = "./tests/cli-test-plan.yaml"
+test-plan.timeout = 120
+test-plan.inline = "- args: --version"
+
+workflow.sync = false
+workflow.source-paths = ["extra_platforms"]
+workflow.sync-exclude = ["debug.yaml", "autolock.yaml"]
 ```
 
-| Option                        | Type      | Default                                           | Description                                                                                                                                                                                                  |
-| :---------------------------- | :-------- | :------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nuitka`                      | bool      | `true`                                            | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries.                                                         |
-| `nuitka-extra-args`           | list[str] | `[]`                                              | Extra Nuitka CLI arguments for binary compilation (e.g., `--include-data-files`, `--include-package-data`). Passed via the build matrix.                                                                     |
-| `unstable-targets`            | list[str] | `[]`                                              | Nuitka build targets allowed to fail without blocking the release (e.g., `["linux-arm64"]`).                                                                                                                 |
-| `test-plan-file`              | str       | `"./tests/cli-test-plan.yaml"`                    | Path to the YAML test plan file for binary testing. Read directly by `test-plan` subcommand; CLI args override.                                                                                              |
-| `timeout`                     | int       | *(none)*                                          | Timeout in seconds for each binary test. Read directly by `test-plan` subcommand; CLI `--timeout` overrides.                                                                                                 |
-| `test-plan`                   | str       | *(none)*                                          | Inline YAML test plan for binary testing. Read directly by `test-plan` subcommand; CLI `--plan-file`/`--plan-envvar` override.                                                                               |
-| `gitignore-location`          | str       | `"./.gitignore"`                                  | File path of the `.gitignore` to update.                                                                                                                                                                     |
-| `gitignore-extra-categories`  | list[str] | `[]`                                              | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`).                                                                                                                         |
-| `gitignore-extra-content`     | str       | See [example above](#toolrepomatic-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`).                                                                                          |
-| `dependency-graph-output`     | str       | `"./docs/assets/dependencies.mmd"`                | Location of the generated dependency graph file. Read directly by `update-deps-graph` subcommand; CLI `--output` overrides.                                                                                  |
-| `dependency-graph-all-groups` | bool      | `true`                                            | Include all dependency groups in the graph. Set to `false` to exclude development groups (docs, test, typing). CLI `--all-groups` overrides.                                                                 |
-| `dependency-graph-all-extras` | bool      | `true`                                            | Include all optional extras in the graph. CLI `--all-extras` overrides.                                                                                                                                      |
-| `dependency-graph-no-groups`  | list[str] | `[]`                                              | Dependency groups to exclude from the graph. Equivalent to `--no-group` for each entry. Takes precedence over `dependency-graph-all-groups`.                                                                 |
-| `dependency-graph-no-extras`  | list[str] | `[]`                                              | Optional extras to exclude from the graph. Equivalent to `--no-extra` for each entry. Takes precedence over `dependency-graph-all-extras`.                                                                   |
-| `dependency-graph-level`      | int       | *(none)*                                          | Maximum depth of the dependency graph. `1` = primary deps only, `2` = primary + their deps, etc. CLI `--level` overrides.                                                                                    |
-| `extra-label-files`           | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                                                                               |
-| `extra-file-rules`            | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                                                                             |
-| `extra-content-rules`         | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                                                                          |
-| `pypi-package-history`        | list[str] | `[]`                                              | Former PyPI package names for renamed projects. `lint-changelog` fetches releases from each name and generates correct PyPI URLs per version.                                                                |
-| `awesome-template-sync`       | bool      | `true`                                            | Enable awesome-template sync. Set to `false` to skip `sync-awesome-template` in the autofix workflow.                                                                                                        |
-| `bumpversion-sync`            | bool      | `true`                                            | Enable bumpversion config sync. Set to `false` to skip `sync-bumpversion` in the autofix workflow.                                                                                                           |
-| `dev-release-sync`            | bool      | `true`                                            | Enable dev pre-release sync. Set to `false` to skip `sync-dev-release` in the release workflow.                                                                                                              |
-| `gitignore-sync`              | bool      | `true`                                            | Enable `.gitignore` sync. Set to `false` to skip `sync-gitignore` in the autofix workflow.                                                                                                                   |
-| `labels-sync`                 | bool      | `true`                                            | Enable label sync. Set to `false` to skip `sync-labels` in the labels workflow.                                                                                                                              |
-| `mailmap-sync`                | bool      | `true`                                            | Enable `.mailmap` sync. Set to `false` to skip `sync-mailmap` in the autofix workflow.                                                                                                                       |
-| `renovate-sync`               | bool      | `true`                                            | Enable Renovate config sync. Set to `false` to skip `sync-renovate` in the autofix workflow.                                                                                                                 |
-| `uv-lock-sync`                | bool      | `true`                                            | Enable `uv.lock` sync. Set to `false` to skip `sync-uv-lock` in the renovate workflow.                                                                                                                      |
-| `workflow-source-paths`       | list[str] | *(auto-derived)*                                  | Source code directory names for workflow `paths:` filters (e.g., `["extra_platforms"]`). Auto-derived from `[project.name]` (hyphens → underscores) when not set. Thin-caller and header-only workflows use these to scope CI triggers to relevant file changes. |
-| `workflow-sync`               | bool      | `true`                                            | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                                                                                     |
-| `init-exclude`                | list[str] | `["labels", "linters", "skills"]`                 | Component names to exclude from `repomatic init` default selection. Defaults to components whose files are regenerated by workflows at execution time. Explicit CLI positional arguments override this list. |
-| `workflow-sync-exclude`       | list[str] | `[]`                                              | Workflow filenames to exclude from init/sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                                                                          |
-| `zizmor-sync`                 | bool      | `true`                                            | Enable `zizmor.yaml` sync. Set to `false` to skip `sync-zizmor` in the autofix workflow.                                                                                                                     |
+| Option                          | Type      | Default                                           | Description                                                                                                                                                                                                  |
+| :------------------------------ | :-------- | :------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pypi-package-history`          | list[str] | `[]`                                              | Former PyPI package names for renamed projects. `lint-changelog` fetches releases from each name and generates correct PyPI URLs per version.                                                                |
+| `awesome-template.sync`         | bool      | `true`                                            | Enable awesome-template sync. Set to `false` to skip `sync-awesome-template` in the autofix workflow.                                                                                                        |
+| `bumpversion.sync`              | bool      | `true`                                            | Enable bumpversion config sync. Set to `false` to skip `sync-bumpversion` in the autofix workflow.                                                                                                           |
+| `dependency-graph.output`       | str       | `"./docs/assets/dependencies.mmd"`                | Location of the generated dependency graph file. Read directly by `update-deps-graph` subcommand; CLI `--output` overrides.                                                                                  |
+| `dependency-graph.all-groups`   | bool      | `true`                                            | Include all dependency groups in the graph. Set to `false` to exclude development groups (docs, test, typing). CLI `--all-groups` overrides.                                                                 |
+| `dependency-graph.all-extras`   | bool      | `true`                                            | Include all optional extras in the graph. CLI `--all-extras` overrides.                                                                                                                                      |
+| `dependency-graph.no-groups`    | list[str] | `[]`                                              | Dependency groups to exclude from the graph. Equivalent to `--no-group` for each entry. Takes precedence over `dependency-graph.all-groups`.                                                                 |
+| `dependency-graph.no-extras`    | list[str] | `[]`                                              | Optional extras to exclude from the graph. Equivalent to `--no-extra` for each entry. Takes precedence over `dependency-graph.all-extras`.                                                                   |
+| `dependency-graph.level`        | int       | *(none)*                                          | Maximum depth of the dependency graph. `1` = primary deps only, `2` = primary + their deps, etc. CLI `--level` overrides.                                                                                    |
+| `dev-release.sync`              | bool      | `true`                                            | Enable dev pre-release sync. Set to `false` to skip `sync-dev-release` in the release workflow.                                                                                                              |
+| `gitignore.sync`                | bool      | `true`                                            | Enable `.gitignore` sync. Set to `false` to skip `sync-gitignore` in the autofix workflow.                                                                                                                   |
+| `gitignore.location`            | str       | `"./.gitignore"`                                  | File path of the `.gitignore` to update.                                                                                                                                                                     |
+| `gitignore.extra-categories`    | list[str] | `[]`                                              | Additional categories to add to the `.gitignore` file (e.g., `["terraform", "go"]`).                                                                                                                         |
+| `gitignore.extra-content`       | str       | See [example above](#toolrepomatic-configuration) | Additional content to append to the generated `.gitignore`. Supports TOML multi-line literal strings (`'''...'''`).                                                                                          |
+| `init.exclude`                  | list[str] | `["labels", "linters", "skills"]`                 | Component names to exclude from `repomatic init` default selection. Defaults to components whose files are regenerated by workflows at execution time. Explicit CLI positional arguments override this list. |
+| `labels.sync`                   | bool      | `true`                                            | Enable label sync. Set to `false` to skip `sync-labels` in the labels workflow.                                                                                                                              |
+| `labels.extra-files`            | list[str] | `[]`                                              | URLs of additional label definition files (JSON, JSON5, TOML, or YAML) downloaded and applied by `labelmaker`.                                                                                               |
+| `labels.extra-file-rules`       | str       | `""`                                              | Additional YAML rules appended to the bundled file-based labeller configuration.                                                                                                                             |
+| `labels.extra-content-rules`    | str       | `""`                                              | Additional YAML rules appended to the bundled content-based labeller configuration.                                                                                                                          |
+| `mailmap.sync`                  | bool      | `true`                                            | Enable `.mailmap` sync. Set to `false` to skip `sync-mailmap` in the autofix workflow.                                                                                                                       |
+| `nuitka.enabled`                | bool      | `true`                                            | Enable [Nuitka binary compilation](#githubworkflowsreleaseyaml-jobs). Set to `false` for projects with `[project.scripts]` that don't need binaries.                                                         |
+| `nuitka.extra-args`             | list[str] | `[]`                                              | Extra Nuitka CLI arguments for binary compilation (e.g., `--include-data-files`, `--include-package-data`). Passed via the build matrix.                                                                     |
+| `nuitka.unstable-targets`       | list[str] | `[]`                                              | Nuitka build targets allowed to fail without blocking the release (e.g., `["linux-arm64"]`).                                                                                                                 |
+| `renovate.sync`                 | bool      | `true`                                            | Enable Renovate config sync. Set to `false` to skip `sync-renovate` in the autofix workflow.                                                                                                                 |
+| `test-plan.file`                | str       | `"./tests/cli-test-plan.yaml"`                    | Path to the YAML test plan file for binary testing. Read directly by `test-plan` subcommand; CLI args override.                                                                                              |
+| `test-plan.timeout`             | int       | *(none)*                                          | Timeout in seconds for each binary test. Read directly by `test-plan` subcommand; CLI `--timeout` overrides.                                                                                                 |
+| `test-plan.inline`              | str       | *(none)*                                          | Inline YAML test plan for binary testing. Read directly by `test-plan` subcommand; CLI `--plan-file`/`--plan-envvar` override.                                                                               |
+| `uv-lock.sync`                  | bool      | `true`                                            | Enable `uv.lock` sync. Set to `false` to skip `sync-uv-lock` in the renovate workflow.                                                                                                                      |
+| `workflow.sync`                 | bool      | `true`                                            | Enable workflow sync. Set to `false` to skip `workflow create` and `workflow sync` when no explicit filenames are given.                                                                                     |
+| `workflow.source-paths`         | list[str] | *(auto-derived)*                                  | Source code directory names for workflow `paths:` filters (e.g., `["extra_platforms"]`). Auto-derived from `[project.name]` (hyphens → underscores) when not set. Thin-caller and header-only workflows use these to scope CI triggers to relevant file changes. |
+| `workflow.sync-exclude`         | list[str] | `[]`                                              | Workflow filenames to exclude from init/sync/create (e.g., `["debug.yaml"]`). Explicit CLI positional arguments override this list.                                                                          |
+| `zizmor.sync`                   | bool      | `true`                                            | Enable `zizmor.yaml` sync. Set to `false` to skip `sync-zizmor` in the autofix workflow.                                                                                                                     |
 
 > [!TIP]
 > The workflows also invoke tools that read their own `[tool.*]` sections from your `pyproject.toml`. You can customize their behavior in your project without forking or patching the workflows:
@@ -322,20 +330,20 @@ GitHub Actions has several design limitations that the workflows work around:
   - **Requires**:
     - A `.gitignore` file in the repository
   - **Skipped if**:
-    - `gitignore-sync = false` in `[tool.repomatic]`
+    - `gitignore.sync = false` in `[tool.repomatic]`
 
 - 🔄 **Sync bumpversion config** (`sync-bumpversion`)
 
   - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`repomatic sync-bumpversion`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py)
   - **Skipped if**:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
-    - `bumpversion-sync = false` in `[tool.repomatic]`
+    - `bumpversion.sync = false` in `[tool.repomatic]`
 
 - 🔄 **Sync `zizmor.yaml`** (`sync-zizmor`)
 
   - Syncs `zizmor.yaml` with the canonical reference from [`repomatic`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/zizmor.yaml)
   - **Skipped if**:
-    - `zizmor-sync = false` in `[tool.repomatic]`
+    - `zizmor.sync = false` in `[tool.repomatic]`
 
 - 🔄 **Sync `renovate.json5`** (`sync-renovate`)
 
@@ -343,14 +351,14 @@ GitHub Actions has several design limitations that the workflows work around:
   - **Skipped if**:
     - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
     - No `renovate.json5` file in the repository root
-    - `renovate-sync = false` in `[tool.repomatic]`
+    - `renovate.sync = false` in `[tool.repomatic]`
 
 - 🪢 **Sync workflows** (`sync-workflows`)
 
   - Syncs [workflows from the upstream `kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/tree/main/.github/workflows) repository using [`repomatic workflow sync`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/github/workflow_sync.py)
   - **Skipped if**:
     - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
-    - `workflow-sync = false` in `[tool.repomatic]`
+    - `workflow.sync = false` in `[tool.repomatic]`
 
 - 📬 **Sync `.mailmap`** (`sync-mailmap`)
 
@@ -358,7 +366,7 @@ GitHub Actions has several design limitations that the workflows work around:
   - **Requires**:
     - A `.mailmap` file in the repository root
   - **Skipped if**:
-    - `mailmap-sync = false` in `[tool.repomatic]`
+    - `mailmap.sync = false` in `[tool.repomatic]`
 
 - 🕸️ **Update dependency graph** (`update-deps-graph`)
 
@@ -382,7 +390,7 @@ GitHub Actions has several design limitations that the workflows work around:
     - Repository name starts with `awesome-`
     - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
   - **Skipped if**:
-    - `awesome-template-sync = false` in `[tool.repomatic]`
+    - `awesome-template.sync = false` in `[tool.repomatic]`
 
 ### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autolock.yaml)
 
@@ -500,7 +508,7 @@ docs = [
     - `default` profile applied to all repositories
     - `awesome` profile additionally applied to `awesome-*` repositories
   - **Skipped if**:
-    - `labels-sync = false` in `[tool.repomatic]`
+    - `labels.sync = false` in `[tool.repomatic]`
 
 - 📁 **File-based PR labeller** (`file-labeller`)
 
@@ -674,7 +682,7 @@ docs = [
   - **Requires**:
     - `build-package` and `compile-binaries` jobs (uses `always()` for resilience)
   - **Skipped if**:
-    - `dev-release-sync = false` in `[tool.repomatic]`
+    - `dev-release.sync = false` in `[tool.repomatic]`
 
 ### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
 
@@ -717,7 +725,7 @@ docs = [
   - **Requires**:
     - Python package with a `pyproject.toml` file
   - **Skipped if**:
-    - `uv-lock-sync = false` in `[tool.repomatic]`
+    - `uv-lock.sync = false` in `[tool.repomatic]`
 
 ### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/tests.yaml)
 

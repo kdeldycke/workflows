@@ -511,7 +511,7 @@ def test_init_creates_all_default_files(
     """Verify all default component files are created (with no exclusions)."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\ninit-exclude = []\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninit.exclude = []\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1053,7 +1053,7 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
 def test_init_default_excludes_workflow_regenerated_components(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify default init-exclude skips labels, linters, and skills."""
+    """Verify default init.exclude skips labels, linters, and skills."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n',
@@ -1078,12 +1078,12 @@ def test_init_default_excludes_workflow_regenerated_components(
 
 
 def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Verify init-exclude config skips listed components."""
+    """Verify init.exclude config skips listed components."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init-exclude = ["linters", "skills"]\n',
+        'init.exclude = ["linters", "skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1108,12 +1108,12 @@ def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 def test_init_respects_workflow_sync_exclude(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify workflow-sync-exclude config skips listed workflows during init."""
+    """Verify workflow.sync-exclude config skips listed workflows during init."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'workflow-sync-exclude = ["debug.yaml", "docs.yaml"]\n',
+        'workflow.sync-exclude = ["debug.yaml", "docs.yaml"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1142,8 +1142,8 @@ def test_init_explicit_components_bypass_exclude(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init-exclude = ["linters", "skills", "changelog"]\n'
-        'workflow-sync-exclude = ["debug.yaml"]\n',
+        'init.exclude = ["linters", "skills", "changelog"]\n'
+        'workflow.sync-exclude = ["debug.yaml"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1164,12 +1164,12 @@ def test_init_explicit_components_bypass_exclude(
 def test_init_exclude_unknown_warns(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ):
-    """Verify unknown component name in init-exclude logs a warning."""
+    """Verify unknown component name in init.exclude logs a warning."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init-exclude = ["nonexistent-component"]\n',
+        'init.exclude = ["nonexistent-component"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1177,18 +1177,18 @@ def test_init_exclude_unknown_warns(
     with caplog.at_level("WARNING"):
         run_init(output_dir=tmp_path)
 
-    assert "Unknown component in init-exclude: 'nonexistent-component'" in caplog.text
+    assert "Unknown component in init.exclude: 'nonexistent-component'" in caplog.text
 
 
 def test_init_workflow_exclude_unknown_warns(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ):
-    """Verify unknown workflow name in workflow-sync-exclude logs a warning."""
+    """Verify unknown workflow name in workflow.sync-exclude logs a warning."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'workflow-sync-exclude = ["nonexistent.yaml"]\n',
+        'workflow.sync-exclude = ["nonexistent.yaml"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1197,7 +1197,7 @@ def test_init_workflow_exclude_unknown_warns(
         run_init(output_dir=tmp_path)
 
     assert (
-        "Unknown workflow in workflow-sync-exclude: 'nonexistent.yaml'" in caplog.text
+        "Unknown workflow in workflow.sync-exclude: 'nonexistent.yaml'" in caplog.text
     )
 
 
@@ -1241,7 +1241,7 @@ def test_migrate_config_section_already_repomatic(tmp_path: Path, old_name: str)
     """[tool.repomatic] already exists — returns False."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\ntimeout = 120\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ntest-plan.timeout = 120\n',
         encoding="UTF-8",
     )
 
@@ -1310,13 +1310,13 @@ def test_migrate_config_section_idempotent(tmp_path: Path, old_name: str):
 def test_init_migrates_legacy_config_section(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, old_name: str
 ):
-    """run_init() migrates legacy config section and reads init-exclude correctly."""
+    """run_init() migrates legacy config section and reads init.exclude correctly."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         "[project]\n"
         'name = "test"\n\n'
         f"[tool.{old_name}]\n"
-        'init-exclude = ["labels", "linters", "skills", "workflows"]\n',
+        'init.exclude = ["labels", "linters", "skills", "workflows"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)

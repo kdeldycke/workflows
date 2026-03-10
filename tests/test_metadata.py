@@ -32,6 +32,7 @@ from repomatic.metadata import (
     Config,
     Dialect,
     Metadata,
+    _field_to_key,
     get_latest_tag_version,
     get_project_name,
     get_release_version_from_commits,
@@ -636,7 +637,7 @@ expected = {
     "image_files": [],
     "zsh_files": [],
     "is_python_project": True,
-    "nuitka": True,
+    "nuitka_enabled": True,
     "package_name": "repomatic",
     "cli_scripts": StringList(["repomatic"]),
     "project_description": "🏭 Automate repository maintenance, releases, and CI/CD workflows",
@@ -1067,9 +1068,9 @@ def test_skip_binary_build_property_is_bool():
 
 
 def test_nuitka_enabled_default():
-    """Test that nuitka config defaults to True."""
+    """Test that nuitka.enabled config defaults to True."""
     metadata = Metadata()
-    assert metadata.config["nuitka"] is True
+    assert metadata.config["nuitka.enabled"] is True
 
 
 def test_nuitka_disabled_skips_matrix(tmp_path, monkeypatch):
@@ -1083,7 +1084,7 @@ version = "1.0.0"
 my-cli = "my_package.__main__:main"
 
 [tool.repomatic]
-nuitka = false
+nuitka.enabled = false
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1092,7 +1093,7 @@ nuitka = false
     monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
 
     metadata = Metadata()
-    assert metadata.config["nuitka"] is False
+    assert metadata.config["nuitka.enabled"] is False
     assert metadata.nuitka_matrix is None
 
 
@@ -1296,38 +1297,38 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     pyproject_file.write_text('[project]\nname = "test-project"\nversion = "1.0.0"\n')
     monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
     metadata = Metadata()
-    assert metadata.config["test-plan-file"] == "./tests/cli-test-plan.yaml"
-    assert metadata.config["timeout"] is None
-    assert metadata.config["test-plan"] is None
-    assert metadata.config["gitignore-location"] == "./.gitignore"
-    assert metadata.config["gitignore-extra-categories"] == []
-    assert metadata.config["gitignore-extra-content"] == (
+    assert metadata.config["test-plan.file"] == "./tests/cli-test-plan.yaml"
+    assert metadata.config["test-plan.timeout"] is None
+    assert metadata.config["test-plan.inline"] is None
+    assert metadata.config["gitignore.location"] == "./.gitignore"
+    assert metadata.config["gitignore.extra-categories"] == []
+    assert metadata.config["gitignore.extra-content"] == (
         "junit.xml\n\n# Claude Code local settings.\n.claude/settings.local.json"
     )
     assert (
-        metadata.config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
+        metadata.config["dependency-graph.output"] == "./docs/assets/dependencies.mmd"
     )
-    assert metadata.config["dependency-graph-all-groups"] is True
-    assert metadata.config["dependency-graph-all-extras"] is True
-    assert metadata.config["dependency-graph-no-groups"] == []
-    assert metadata.config["dependency-graph-no-extras"] == []
-    assert metadata.config["dependency-graph-level"] is None
-    assert metadata.config["extra-label-files"] == []
-    assert metadata.config["extra-file-rules"] == ""
-    assert metadata.config["extra-content-rules"] == ""
+    assert metadata.config["dependency-graph.all-groups"] is True
+    assert metadata.config["dependency-graph.all-extras"] is True
+    assert metadata.config["dependency-graph.no-groups"] == []
+    assert metadata.config["dependency-graph.no-extras"] == []
+    assert metadata.config["dependency-graph.level"] is None
+    assert metadata.config["labels.extra-files"] == []
+    assert metadata.config["labels.extra-file-rules"] == ""
+    assert metadata.config["labels.extra-content-rules"] == ""
     assert metadata.config["pypi-package-history"] == []
-    assert metadata.config["awesome-template-sync"] is True
-    assert metadata.config["bumpversion-sync"] is True
-    assert metadata.config["dev-release-sync"] is True
-    assert metadata.config["gitignore-sync"] is True
-    assert metadata.config["labels-sync"] is True
-    assert metadata.config["mailmap-sync"] is True
-    assert metadata.config["renovate-sync"] is True
-    assert metadata.config["uv-lock-sync"] is True
-    assert metadata.config["workflow-source-paths"] is None
-    assert metadata.config["workflow-sync"] is True
-    assert metadata.config["workflow-sync-exclude"] == []
-    assert metadata.config["zizmor-sync"] is True
+    assert metadata.config["awesome-template.sync"] is True
+    assert metadata.config["bumpversion.sync"] is True
+    assert metadata.config["dev-release.sync"] is True
+    assert metadata.config["gitignore.sync"] is True
+    assert metadata.config["labels.sync"] is True
+    assert metadata.config["mailmap.sync"] is True
+    assert metadata.config["renovate.sync"] is True
+    assert metadata.config["uv-lock.sync"] is True
+    assert metadata.config["workflow.source-paths"] is None
+    assert metadata.config["workflow.sync"] is True
+    assert metadata.config["workflow.sync-exclude"] == []
+    assert metadata.config["zizmor.sync"] is True
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1338,88 +1339,89 @@ name = "test-project"
 version = "1.0.0"
 
 [tool.repomatic]
-test-plan-file = "./custom/test-plan.yaml"
-timeout = 120
-test-plan = "- args: --version"
-gitignore-location = "./custom/.gitignore"
-gitignore-extra-categories = ["terraform", "go"]
-gitignore-extra-content = '''
+test-plan.file = "./custom/test-plan.yaml"
+test-plan.timeout = 120
+test-plan.inline = "- args: --version"
+gitignore.location = "./custom/.gitignore"
+gitignore.extra-categories = ["terraform", "go"]
+gitignore.extra-content = '''
 junit.xml
 
 # Claude Code
 .claude/
 '''
-dependency-graph-output = "./custom/deps.mmd"
-dependency-graph-all-groups = false
-dependency-graph-all-extras = true
-dependency-graph-no-groups = ["typing"]
-dependency-graph-no-extras = ["xml"]
-dependency-graph-level = 2
-unstable-targets = ["linux-arm64", "windows-x64"]
-extra-label-files = ["https://example.com/labels.toml"]
-extra-file-rules = "docs:\\n  - docs/**"
-extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
+dependency-graph.output = "./custom/deps.mmd"
+dependency-graph.all-groups = false
+dependency-graph.all-extras = true
+dependency-graph.no-groups = ["typing"]
+dependency-graph.no-extras = ["xml"]
+dependency-graph.level = 2
+nuitka.unstable-targets = ["linux-arm64", "windows-x64"]
+labels.extra-files = ["https://example.com/labels.toml"]
+labels.extra-file-rules = "docs:\\n  - docs/**"
+labels.extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
 pypi-package-history = ["old-name", "older-name"]
-awesome-template-sync = false
-bumpversion-sync = false
-dev-release-sync = false
-gitignore-sync = false
-labels-sync = false
-mailmap-sync = false
-renovate-sync = false
-uv-lock-sync = false
-workflow-source-paths = ["extra_platforms"]
-workflow-sync = false
-workflow-sync-exclude = ["debug.yaml", "autolock.yaml"]
-zizmor-sync = false
+awesome-template.sync = false
+bumpversion.sync = false
+dev-release.sync = false
+gitignore.sync = false
+labels.sync = false
+mailmap.sync = false
+renovate.sync = false
+uv-lock.sync = false
+workflow.source-paths = ["extra_platforms"]
+workflow.sync = false
+workflow.sync-exclude = ["debug.yaml", "autolock.yaml"]
+zizmor.sync = false
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
     monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
 
     metadata = Metadata()
-    assert metadata.config["test-plan-file"] == "./custom/test-plan.yaml"
-    assert metadata.config["timeout"] == 120
-    assert metadata.config["test-plan"] == "- args: --version"
-    assert metadata.config["gitignore-location"] == "./custom/.gitignore"
-    assert metadata.config["gitignore-extra-categories"] == [
+    assert metadata.config["test-plan.file"] == "./custom/test-plan.yaml"
+    assert metadata.config["test-plan.timeout"] == 120
+    assert metadata.config["test-plan.inline"] == "- args: --version"
+    assert metadata.config["gitignore.location"] == "./custom/.gitignore"
+    assert metadata.config["gitignore.extra-categories"] == [
         "terraform",
         "go",
     ]
     assert (
-        metadata.config["gitignore-extra-content"]
+        metadata.config["gitignore.extra-content"]
         == "junit.xml\n\n# Claude Code\n.claude/\n"
     )
-    assert metadata.config["dependency-graph-output"] == "./custom/deps.mmd"
-    assert metadata.config["dependency-graph-all-groups"] is False
-    assert metadata.config["dependency-graph-all-extras"] is True
-    assert metadata.config["dependency-graph-no-groups"] == ["typing"]
-    assert metadata.config["dependency-graph-no-extras"] == ["xml"]
-    assert metadata.config["dependency-graph-level"] == 2
+    assert metadata.config["dependency-graph.output"] == "./custom/deps.mmd"
+    assert metadata.config["dependency-graph.all-groups"] is False
+    assert metadata.config["dependency-graph.all-extras"] is True
+    assert metadata.config["dependency-graph.no-groups"] == ["typing"]
+    assert metadata.config["dependency-graph.no-extras"] == ["xml"]
+    assert metadata.config["dependency-graph.level"] == 2
     assert metadata.unstable_targets == {"linux-arm64", "windows-x64"}
-    assert metadata.config["extra-label-files"] == [
+    assert metadata.config["labels.extra-files"] == [
         "https://example.com/labels.toml",
     ]
-    assert metadata.config["extra-file-rules"] == "docs:\n  - docs/**"
+    assert metadata.config["labels.extra-file-rules"] == "docs:\n  - docs/**"
     assert (
-        metadata.config["extra-content-rules"] == "security:\n  - '(CVE|vulnerability)'"
+        metadata.config["labels.extra-content-rules"]
+        == "security:\n  - '(CVE|vulnerability)'"
     )
     assert metadata.config["pypi-package-history"] == ["old-name", "older-name"]
-    assert metadata.config["awesome-template-sync"] is False
-    assert metadata.config["bumpversion-sync"] is False
-    assert metadata.config["dev-release-sync"] is False
-    assert metadata.config["gitignore-sync"] is False
-    assert metadata.config["labels-sync"] is False
-    assert metadata.config["mailmap-sync"] is False
-    assert metadata.config["renovate-sync"] is False
-    assert metadata.config["uv-lock-sync"] is False
-    assert metadata.config["workflow-source-paths"] == ["extra_platforms"]
-    assert metadata.config["workflow-sync"] is False
-    assert metadata.config["workflow-sync-exclude"] == [
+    assert metadata.config["awesome-template.sync"] is False
+    assert metadata.config["bumpversion.sync"] is False
+    assert metadata.config["dev-release.sync"] is False
+    assert metadata.config["gitignore.sync"] is False
+    assert metadata.config["labels.sync"] is False
+    assert metadata.config["mailmap.sync"] is False
+    assert metadata.config["renovate.sync"] is False
+    assert metadata.config["uv-lock.sync"] is False
+    assert metadata.config["workflow.source-paths"] == ["extra_platforms"]
+    assert metadata.config["workflow.sync"] is False
+    assert metadata.config["workflow.sync-exclude"] == [
         "debug.yaml",
         "autolock.yaml",
     ]
-    assert metadata.config["zizmor-sync"] is False
+    assert metadata.config["zizmor.sync"] is False
 
 
 def test_unstable_targets_default(tmp_path, monkeypatch):
@@ -1439,7 +1441,7 @@ name = "test-project"
 version = "1.0.0"
 
 [tool.repomatic]
-unstable-targets = ["linux-arm64", "unknown-target"]
+nuitka.unstable-targets = ["linux-arm64", "unknown-target"]
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1451,21 +1453,21 @@ unstable-targets = ["linux-arm64", "unknown-target"]
 
 
 def test_nuitka_extra_args_default(tmp_path, monkeypatch):
-    """Test that nuitka-extra-args defaults to an empty list."""
+    """Test that nuitka.extra-args defaults to an empty list."""
     monkeypatch.chdir(tmp_path)
     config = load_repomatic_config()
-    assert config["nuitka-extra-args"] == []
+    assert config["nuitka.extra-args"] == []
 
 
 def test_nuitka_extra_args_custom(tmp_path, monkeypatch):
-    """Test that nuitka-extra-args reads custom values from pyproject.toml."""
+    """Test that nuitka.extra-args reads custom values from pyproject.toml."""
     pyproject_content = """\
 [project]
 name = "test-project"
 version = "1.0.0"
 
 [tool.repomatic]
-nuitka-extra-args = [
+nuitka.extra-args = [
   "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
   "--include-package-data=my_pkg",
 ]
@@ -1475,7 +1477,7 @@ nuitka-extra-args = [
     monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
 
     metadata = Metadata()
-    assert metadata.config["nuitka-extra-args"] == [
+    assert metadata.config["nuitka.extra-args"] == [
         "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
         "--include-package-data=my_pkg",
     ]
@@ -1489,25 +1491,25 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     from dataclasses import fields as dc_fields
 
     for f in dc_fields(Config):
-        key = f.name.replace("_", "-")
+        key = _field_to_key(f.name)
         assert key in config, f"Missing config key: {key}"
-    assert config["test-plan-file"] == "./tests/cli-test-plan.yaml"
-    assert config["timeout"] is None
-    assert config["test-plan"] is None
-    assert config["dependency-graph-output"] == "./docs/assets/dependencies.mmd"
-    assert config["dependency-graph-all-groups"] is True
-    assert config["dependency-graph-all-extras"] is True
-    assert config["dependency-graph-no-groups"] == []
-    assert config["dependency-graph-no-extras"] == []
-    assert config["dependency-graph-level"] is None
-    assert config["nuitka"] is True
-    assert config["nuitka-extra-args"] == []
-    assert config["extra-label-files"] == []
-    assert config["extra-file-rules"] == ""
-    assert config["extra-content-rules"] == ""
+    assert config["test-plan.file"] == "./tests/cli-test-plan.yaml"
+    assert config["test-plan.timeout"] is None
+    assert config["test-plan.inline"] is None
+    assert config["dependency-graph.output"] == "./docs/assets/dependencies.mmd"
+    assert config["dependency-graph.all-groups"] is True
+    assert config["dependency-graph.all-extras"] is True
+    assert config["dependency-graph.no-groups"] == []
+    assert config["dependency-graph.no-extras"] == []
+    assert config["dependency-graph.level"] is None
+    assert config["nuitka.enabled"] is True
+    assert config["nuitka.extra-args"] == []
+    assert config["labels.extra-files"] == []
+    assert config["labels.extra-file-rules"] == ""
+    assert config["labels.extra-content-rules"] == ""
     assert config["pypi-package-history"] == []
-    assert config["workflow-sync"] is True
-    assert config["workflow-sync-exclude"] == []
+    assert config["workflow.sync"] is True
+    assert config["workflow.sync-exclude"] == []
 
 
 def test_load_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1518,19 +1520,19 @@ name = "test-project"
 version = "1.0.0"
 
 [tool.repomatic]
-timeout = 120
-test-plan-file = "./custom/test-plan.yaml"
-dependency-graph-output = "./custom/deps.mmd"
-nuitka = false
+test-plan.timeout = 120
+test-plan.file = "./custom/test-plan.yaml"
+dependency-graph.output = "./custom/deps.mmd"
+nuitka.enabled = false
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
     config = load_repomatic_config()
-    assert config["timeout"] == 120
-    assert config["test-plan-file"] == "./custom/test-plan.yaml"
-    assert config["dependency-graph-output"] == "./custom/deps.mmd"
-    assert config["nuitka"] is False
+    assert config["test-plan.timeout"] == 120
+    assert config["test-plan.file"] == "./custom/test-plan.yaml"
+    assert config["dependency-graph.output"] == "./custom/deps.mmd"
+    assert config["nuitka.enabled"] is False
 
 
 def test_load_repomatic_config_with_preloaded_data():
@@ -1538,14 +1540,14 @@ def test_load_repomatic_config_with_preloaded_data():
     data = {
         "tool": {
             "repomatic": {
-                "timeout": 60,
+                "test-plan": {"timeout": 60},
             },
         },
     }
     config = load_repomatic_config(data)
-    assert config["timeout"] == 60
+    assert config["test-plan.timeout"] == 60
     # Other defaults are still present.
-    assert config["test-plan-file"] == "./tests/cli-test-plan.yaml"
+    assert config["test-plan.file"] == "./tests/cli-test-plan.yaml"
 
 
 @pytest.mark.parametrize("old_name", ["gha-utils", "repokit"])
@@ -1558,7 +1560,7 @@ def test_load_repomatic_config_falls_back_to_legacy(
         'name = "test-project"\n'
         'version = "1.0.0"\n\n'
         f"[tool.{old_name}]\n"
-        "timeout = 90\n"
+        "test-plan.timeout = 90\n"
     )
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -1566,7 +1568,7 @@ def test_load_repomatic_config_falls_back_to_legacy(
     with caplog.at_level("WARNING"):
         config = load_repomatic_config()
 
-    assert config["timeout"] == 90
+    assert config["test-plan.timeout"] == 90
     assert f"[tool.{old_name}] is deprecated" in caplog.text
     assert "repomatic init" in caplog.text
 
@@ -1581,9 +1583,9 @@ def test_load_repomatic_config_prefers_repomatic_over_legacy(
         'name = "test-project"\n'
         'version = "1.0.0"\n\n'
         "[tool.repomatic]\n"
-        "timeout = 120\n\n"
+        "test-plan.timeout = 120\n\n"
         f"[tool.{old_name}]\n"
-        "timeout = 90\n"
+        "test-plan.timeout = 90\n"
     )
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -1591,7 +1593,7 @@ def test_load_repomatic_config_prefers_repomatic_over_legacy(
     with caplog.at_level("WARNING"):
         config = load_repomatic_config()
 
-    assert config["timeout"] == 120
+    assert config["test-plan.timeout"] == 120
     assert f"[tool.{old_name}] is obsolete" in caplog.text
 
 
@@ -1601,7 +1603,7 @@ def test_load_repomatic_config_preloaded_falls_back(caplog, old_name):
     data: dict[str, Any] = {
         "tool": {
             old_name: {
-                "timeout": 75,
+                "test-plan": {"timeout": 75},
             },
         },
     }
@@ -1609,8 +1611,25 @@ def test_load_repomatic_config_preloaded_falls_back(caplog, old_name):
     with caplog.at_level("WARNING"):
         config = load_repomatic_config(data)
 
-    assert config["timeout"] == 75
+    assert config["test-plan.timeout"] == 75
     assert f"[tool.{old_name}] is deprecated" in caplog.text
+
+
+def test_load_repomatic_config_rejects_unknown_keys(tmp_path, monkeypatch):
+    """Unknown keys in [tool.repomatic] raise ValueError."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.repomatic]
+nonexistent-option = true
+"""
+    (tmp_path / "pyproject.toml").write_text(pyproject_content)
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(ValueError, match="Unknown.*nonexistent-option"):
+        load_repomatic_config()
 
 
 def test_get_project_name_from_cwd(tmp_path, monkeypatch):

@@ -371,7 +371,7 @@ class Config:
     Each field has a docstring explaining its purpose.
     """
 
-    nuitka: bool = True
+    nuitka_enabled: bool = True
     """Whether Nuitka binary compilation is enabled for this project.
 
     Projects with ``[project.scripts]`` entries that are not intended to produce
@@ -394,7 +394,7 @@ class Config:
     release metadata from all names and generate correct PyPI URLs.
     """
 
-    unstable_targets: list[str] = field(default_factory=list)
+    nuitka_unstable_targets: list[str] = field(default_factory=list)
     """Nuitka build targets allowed to fail without blocking the release.
 
     List of target names (e.g., ``["linux-arm64", "windows-x64"]``) that are marked as
@@ -515,14 +515,14 @@ class Config:
     Each test case specifies command-line arguments and expected output patterns.
     """
 
-    timeout: int | None = None
+    test_plan_timeout: int | None = None
     """Timeout in seconds for each binary test.
 
     If set, each test command will be terminated after this duration. ``None`` means no
     timeout (tests can run indefinitely).
     """
 
-    test_plan: str | None = None
+    test_plan_inline: str | None = None
     """Inline YAML test plan for binaries.
 
     Alternative to ``test_plan_file``. Allows specifying the test plan directly in
@@ -579,14 +579,14 @@ class Config:
     """Dependency groups to exclude from the graph.
 
     Equivalent to passing ``--no-group`` for each entry. Takes precedence
-    over ``dependency-graph-all-groups``.
+    over ``dependency-graph.all-groups``.
     """
 
     dependency_graph_no_extras: list[str] = field(default_factory=list)
     """Optional extras to exclude from the graph.
 
     Equivalent to passing ``--no-extra`` for each entry. Takes precedence
-    over ``dependency-graph-all-extras``.
+    over ``dependency-graph.all-extras``.
     """
 
     dependency_graph_level: int | None = None
@@ -596,19 +596,19 @@ class Config:
     their deps, etc. Equivalent to ``--level``.
     """
 
-    extra_label_files: list[str] = field(default_factory=list)
+    labels_extra_files: list[str] = field(default_factory=list)
     """URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
 
     Each URL is downloaded and applied separately by ``labelmaker``.
     """
 
-    extra_file_rules: str = ""
+    labels_extra_file_rules: str = ""
     """Additional YAML rules appended to the file-based labeller configuration.
 
     Appended to the bundled ``labeller-file-based.yaml`` during export.
     """
 
-    extra_content_rules: str = ""
+    labels_extra_content_rules: str = ""
     """Additional YAML rules appended to the content-based labeller configuration.
 
     Appended to the bundled ``labeller-content-based.yaml`` during export.
@@ -618,29 +618,29 @@ class Config:
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "awesome_template_sync",
     "bumpversion_sync",
-    "dev_release_sync",
     "dependency_graph_all_extras",
     "dependency_graph_all_groups",
     "dependency_graph_level",
     "dependency_graph_no_extras",
     "dependency_graph_no_groups",
     "dependency_graph_output",
-    "extra_content_rules",
-    "extra_file_rules",
-    "extra_label_files",
+    "dev_release_sync",
     "gitignore_extra_categories",
     "gitignore_extra_content",
     "gitignore_location",
     "gitignore_sync",
     "init_exclude",
+    "labels_extra_content_rules",
+    "labels_extra_file_rules",
+    "labels_extra_files",
     "labels_sync",
     "mailmap_sync",
     "pypi_package_history",
     "renovate_sync",
-    "uv_lock_sync",
-    "test_plan",
     "test_plan_file",
-    "timeout",
+    "test_plan_inline",
+    "test_plan_timeout",
+    "uv_lock_sync",
     "workflow_source_paths",
     "workflow_sync",
     "workflow_sync_exclude",
@@ -652,6 +652,64 @@ The ``test-plan`` and ``deps-graph`` subcommands now read these values directly 
 ``[tool.repomatic]`` in ``pyproject.toml``, so they no longer need to be passed through
 workflow metadata outputs.
 """
+
+
+_NESTED_PREFIXES: Final[dict[str, str]] = {
+    "awesome_template": "awesome-template",
+    "bumpversion": "bumpversion",
+    "dependency_graph": "dependency-graph",
+    "dev_release": "dev-release",
+    "gitignore": "gitignore",
+    "init": "init",
+    "labels": "labels",
+    "mailmap": "mailmap",
+    "nuitka": "nuitka",
+    "renovate": "renovate",
+    "test_plan": "test-plan",
+    "uv_lock": "uv-lock",
+    "workflow": "workflow",
+    "zizmor": "zizmor",
+}
+"""Map Python field name prefixes to TOML sub-table names.
+
+Fields whose name starts with ``{prefix}_`` are serialized as TOML dotted keys
+under the corresponding sub-table (e.g., ``dependency_graph_output`` becomes
+``dependency-graph.output``).
+"""
+
+
+def _field_to_key(name: str) -> str:
+    """Convert a ``Config`` field name to its TOML config key.
+
+    Matches the longest prefix in ``_NESTED_PREFIXES`` to produce dotted
+    sub-keys (e.g., ``dependency_graph_output`` → ``dependency-graph.output``).
+    Falls back to simple kebab-case for flat fields (e.g.,
+    ``pypi_package_history`` → ``pypi-package-history``).
+    """
+    for prefix, toml_prefix in _NESTED_PREFIXES.items():
+        if name.startswith(prefix + "_"):
+            suffix = name[len(prefix) + 1 :].replace("_", "-")
+            return f"{toml_prefix}.{suffix}"
+    return name.replace("_", "-")
+
+
+def _flatten_config(
+    d: dict[str, Any],
+    parent: str = "",
+) -> dict[str, Any]:
+    """Flatten nested TOML tables into dot-separated keys.
+
+    ``{"dependency-graph": {"output": "path"}}`` becomes
+    ``{"dependency-graph.output": "path"}``.
+    """
+    items: dict[str, Any] = {}
+    for k, v in d.items():
+        key = f"{parent}.{k}" if parent else k
+        if isinstance(v, dict):
+            items.update(_flatten_config(v, key))
+        else:
+            items[key] = v
+    return items
 
 
 def load_repomatic_config(
@@ -692,8 +750,18 @@ def load_repomatic_config(
                 )
 
     schema = Config()
-    config = {f.name.replace("_", "-"): getattr(schema, f.name) for f in fields(Config)}
-    config.update(user_config)
+    config = {_field_to_key(f.name): getattr(schema, f.name) for f in fields(Config)}
+
+    flat_user = _flatten_config(user_config)
+    unknown = set(flat_user) - set(config)
+    if unknown:
+        msg = (
+            f"Unknown [tool.repomatic] option(s): {', '.join(sorted(unknown))}. "
+            f"Valid options: {', '.join(sorted(config))}"
+        )
+        raise ValueError(msg)
+
+    config.update(flat_user)
     return config
 
 
@@ -737,7 +805,7 @@ def resolve_source_paths(
     :return: List of source directory names, or ``None`` when no source paths
         can be determined (paths should be stripped entirely).
     """
-    configured = config.get("workflow-source-paths")
+    configured = config.get("workflow.source-paths")
     if configured is not None:
         return configured if configured else None
     derived = derive_source_paths(pyproject_data)
@@ -1994,12 +2062,12 @@ class Metadata:
     def unstable_targets(self) -> set[str]:
         """Nuitka build targets allowed to fail without blocking the release.
 
-        Reads ``[tool.repomatic].unstable-targets`` from ``pyproject.toml``. Defaults
-        to an empty set.
+        Reads ``[tool.repomatic].nuitka.unstable-targets`` from ``pyproject.toml``.
+        Defaults to an empty set.
 
         Unrecognized target names are logged as warnings and discarded.
         """
-        raw = self.config["unstable-targets"]
+        raw = self.config["nuitka.unstable-targets"]
         targets = set(raw)
         if targets:
             unknown = targets - set(NUITKA_BUILD_TARGETS)
@@ -2360,9 +2428,10 @@ class Metadata:
             return None
 
         # Allow projects to opt out of Nuitka compilation via pyproject.toml.
-        if not self.config["nuitka"]:
+        if not self.config["nuitka.enabled"]:
             logging.info(
-                "[tool.repomatic] nuitka is disabled. Skipping binary compilation."
+                "[tool.repomatic] nuitka.enabled is disabled."
+                " Skipping binary compilation."
             )
             return None
 
@@ -2377,7 +2446,7 @@ class Metadata:
             matrix.add_includes(target_data)
 
         # Collect extra Nuitka flags from config, plus any auto-detected ones.
-        nuitka_extra_args_list = list(self.config["nuitka-extra-args"])
+        nuitka_extra_args_list = list(self.config["nuitka.extra-args"])
 
         # Augment each entry point with some metadata.
         for cli_id, module_id, callable_id in self.script_entries:
@@ -2635,14 +2704,14 @@ class Metadata:
 
         # Add config from [tool.repomatic] in pyproject.toml.
         # Convert kebab-case config keys to snake_case metadata keys.
-        # Exclude unstable-targets (dedicated property with validation logic) and
+        # Exclude nuitka.unstable-targets (dedicated property with validation logic) and
         # subcommand config fields (read directly by test-plan and deps-graph).
         for f in fields(Config):
             if (
-                f.name not in ("unstable_targets", "nuitka_extra_args")
+                f.name not in ("nuitka_unstable_targets", "nuitka_extra_args")
                 and f.name not in SUBCOMMAND_CONFIG_FIELDS
             ):
-                config_key = f.name.replace("_", "-")
+                config_key = _field_to_key(f.name)
                 metadata[f.name] = self.config[config_key]
 
         logging.debug(f"Raw metadata: {metadata!r}")

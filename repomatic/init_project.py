@@ -649,10 +649,10 @@ class InitResult:
     """Relative paths of skipped (already existing) files."""
 
     excluded_components: list[str] = field(default_factory=list)
-    """Component names excluded by ``init-exclude`` config."""
+    """Component names excluded by ``init.exclude`` config."""
 
     excluded_workflows: list[str] = field(default_factory=list)
-    """Workflow filenames excluded by ``workflow-sync-exclude`` config."""
+    """Workflow filenames excluded by ``workflow.sync-exclude`` config."""
 
     excluded_existing: list[str] = field(default_factory=list)
     """Relative paths of excluded files that still exist on disk."""
@@ -712,7 +712,7 @@ def run_init(
     if not components:
         config = load_repomatic_config()
         init_exclude: list[str] = config.get(
-            "init-exclude",
+            "init.exclude",
             ["labels", "linters", "skills"],
         )
         if init_exclude:
@@ -720,7 +720,7 @@ def run_init(
             unknown = exclude_set - set(ALL_COMPONENTS)
             for name in sorted(unknown):
                 logging.warning(
-                    f"Unknown component in init-exclude: {name!r}. "
+                    f"Unknown component in init.exclude: {name!r}. "
                     f"Known components: {', '.join(sorted(ALL_COMPONENTS))}"
                 )
             actually_excluded = exclude_set & selected
@@ -741,7 +741,7 @@ def run_init(
                         result.excluded_existing.append("changelog.md")
                         logging.warning("Excluded but still on disk: changelog.md")
 
-        wf_exclude: list[str] = config.get("workflow-sync-exclude", [])
+        wf_exclude: list[str] = config.get("workflow.sync-exclude", [])
         if wf_exclude:
             workflow_exclude = frozenset(wf_exclude)
 
@@ -788,7 +788,7 @@ def _init_workflows(
         unknown = exclude - all_known
         for name in sorted(unknown):
             logging.warning(
-                f"Unknown workflow in workflow-sync-exclude: {name!r}. "
+                f"Unknown workflow in workflow.sync-exclude: {name!r}. "
                 f"Known workflows: {', '.join(sorted(all_known))}"
             )
         actually_excluded = exclude & all_known
@@ -873,14 +873,14 @@ def _fetch_extra_labels(
 ) -> None:
     """Download extra label files from ``[tool.repomatic]`` config.
 
-    Reads ``extra-label-files`` URLs and downloads each file to an
+    Reads ``labels.extra-files`` URLs and downloads each file to an
     ``extra-labels/`` subdirectory under ``output_dir``.
     Does nothing if no URLs are configured.
     """
     config = load_repomatic_config()
-    urls = config.get("extra-label-files", [])
+    urls = config.get("labels.extra-files", [])
     if not urls:
-        logging.debug("No extra-label-files configured.")
+        logging.debug("No labels.extra-files configured.")
         return
 
     target_dir = output_dir / "extra-labels"

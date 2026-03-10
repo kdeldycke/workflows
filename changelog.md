@@ -19,6 +19,7 @@
 - Remove `get_repo_slug()` from `gh.py` in favor of `Metadata.repo_slug`.
 - Skip `init ruff` config injection in `format-python` job for non-Python projects. Doc-only repos use Ruff for code-block formatting without needing a `[tool.ruff]` section.
 - Add `repomatic init typos` to sync shared typos spell checker configuration into `pyproject.toml`. Includes proper noun corrections and `<!-- typos:off -->` / `<!-- typos:on -->` block markers for section-level suppression.
+- Use TOML sub-keys for all grouped options in `[tool.repomatic]`. Fields sharing a feature area are now nested under a common prefix (e.g., `nuitka.enabled`, `gitignore.location`, `test-plan.file`, `labels.extra-files`, `workflow.sync-exclude`). Only `pypi-package-history` remains flat.
 - Add `workflow-source-paths` option to `[tool.repomatic]`. Thin-caller and header-only workflows now include `paths:` filters adapted for the downstream project's source directory, reducing unnecessary CI runs. Auto-derived from `[project.name]` when not explicitly configured.
 
 ## [`6.3.2` (2026-03-08)](https://github.com/kdeldycke/repomatic/compare/v6.3.1...v6.3.2)

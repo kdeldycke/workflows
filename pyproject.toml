@@ -280,7 +280,7 @@ pretty = true
 overrides = [ { ignore_missing_imports = true, module = [ "py_walk.*" ] } ]
 
 [tool.repomatic]
-nuitka-extra-args = [
+nuitka.extra-args = [
   "--include-package-data=extra_platforms",
   "--include-data-files=repomatic/templates/*.md=repomatic/templates/",
 ]

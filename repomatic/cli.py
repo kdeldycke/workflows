@@ -67,12 +67,12 @@ from .deps_graph import (
 from .git_ops import create_and_push_tag
 from .github import token as _token_mod, unsubscribe as _unsub_mod
 from .github.actions import format_multiline_output
-from .github.gh import run_gh_command
-from .github.issue import manage_issue_lifecycle
 from .github.dev_release import (
     cleanup_dev_releases as _cleanup_dev_releases,
     sync_dev_release as _sync_dev_release,
 )
+from .github.gh import run_gh_command
+from .github.issue import manage_issue_lifecycle
 from .github.pr_body import (
     _repo_url,
     build_pr_body,
@@ -318,7 +318,7 @@ def init_project(
         )
     if result.excluded_workflows:
         echo(
-            "Excluded by workflow-sync-exclude config: "
+            "Excluded by workflow.sync-exclude config: "
             + ", ".join(result.excluded_workflows)
         )
     if result.created:
@@ -676,15 +676,15 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         repomatic sync-gitignore --output -
     """
     config = load_repomatic_config()
-    if not config.get("gitignore-sync", True):
+    if not config.get("gitignore.sync", True):
         logging.info(
-            "[tool.repomatic] gitignore-sync is disabled."
+            "[tool.repomatic] gitignore.sync is disabled."
             " Skipping .gitignore sync."
         )
         ctx.exit(0)
 
     # Combine base and extra categories, preserving order and deduplicating.
-    extra = config.get("gitignore-extra-categories", [])
+    extra = config.get("gitignore.extra-categories", [])
     all_categories = list(dict.fromkeys((*GITIGNORE_BASE_CATEGORIES, *extra)))
 
     # Fetch from gitignore.io API.
@@ -695,13 +695,13 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         content = response.read().decode("UTF-8")
 
     # Append extra content.
-    extra_content = config.get("gitignore-extra-content", "")
+    extra_content = config.get("gitignore.extra-content", "")
     if extra_content:
         content += "\n" + extra_content + "\n"
 
     # Resolve output path.
     if output_path is None:
-        output_path = Path(config.get("gitignore-location", "./.gitignore"))
+        output_path = Path(config.get("gitignore.location", "./.gitignore"))
 
     if is_stdout(output_path):
         logging.info(f"Print to {sys.stdout.name}")
@@ -804,9 +804,9 @@ def sync_dev_release(
         repomatic sync-dev-release --live --delete
     """
     config = load_repomatic_config()
-    if not config.get("dev-release-sync", True):
+    if not config.get("dev-release.sync", True):
         logging.info(
-            "[tool.repomatic] dev-release-sync is disabled."
+            "[tool.repomatic] dev-release.sync is disabled."
             " Skipping dev release sync."
         )
         ctx.exit(0)
@@ -855,7 +855,7 @@ def _apply_workflow_config(
     """Apply ``[tool.repomatic]`` config filtering to workflow names.
 
     When explicit CLI positional arguments are given, they bypass config entirely.
-    Otherwise, the global ``workflow-sync`` toggle and ``workflow-sync-exclude``
+    Otherwise, the global ``workflow-sync`` toggle and ``workflow.sync-exclude``
     list are applied.
 
     :param names: Workflow filenames from CLI positional args (empty = defaults).
@@ -869,7 +869,7 @@ def _apply_workflow_config(
     config = load_repomatic_config()
 
     # Global toggle: if disabled, skip all work.
-    if not config.get("workflow-sync", True):
+    if not config.get("workflow.sync", True):
         return None
 
     # Compute format-specific defaults.
@@ -881,7 +881,7 @@ def _apply_workflow_config(
         default_names = ALL_WORKFLOW_FILES
 
     # Apply exclude list.
-    exclude: list[str] = config.get("workflow-sync-exclude", [])
+    exclude: list[str] = config.get("workflow.sync-exclude", [])
     if exclude:
         exclude_set = set(exclude)
         # Warn about unknown workflow names in the exclude list.
@@ -889,7 +889,7 @@ def _apply_workflow_config(
         unknown = exclude_set - all_known
         for name in sorted(unknown):
             logging.warning(
-                f"Unknown workflow in workflow-sync-exclude: {name!r}. "
+                f"Unknown workflow in workflow.sync-exclude: {name!r}. "
                 f"Known workflows: {', '.join(sorted(all_known))}"
             )
         default_names = tuple(n for n in default_names if n not in exclude_set)
@@ -1119,9 +1119,9 @@ def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
     contributors. So you have to edit entries by hand to regroup them.
     """
     config = load_repomatic_config()
-    if not config.get("mailmap-sync", True):
+    if not config.get("mailmap.sync", True):
         logging.info(
-            "[tool.repomatic] mailmap-sync is disabled. Skipping .mailmap sync."
+            "[tool.repomatic] mailmap.sync is disabled. Skipping .mailmap sync."
         )
         ctx.exit(0)
 
@@ -1270,14 +1270,14 @@ def test_plan(
 
     else:
         # Fall back to [tool.repomatic] config.
-        config_test_plan = config.get("test-plan")
+        config_test_plan = config.get("test-plan.inline")
         if config_test_plan:
-            logging.info("Get test plan from [tool.repomatic] test-plan config.")
+            logging.info("Get test plan from [tool.repomatic] test-plan.inline config.")
             tests = list(parse_test_plan(config_test_plan))
             logging.info(f"{len(tests)} test cases found.")
             test_list.extend(tests)
 
-        config_plan_file = config.get("test-plan-file")
+        config_plan_file = config.get("test-plan.file")
         if config_plan_file:
             plan_path = Path(config_plan_file)
             if plan_path.exists():
@@ -1295,7 +1295,7 @@ def test_plan(
 
     # Fall back to config timeout if not provided via CLI.
     if timeout is None:
-        config_timeout = config.get("timeout")
+        config_timeout = config.get("test-plan.timeout")
         if config_timeout is not None:
             timeout = float(config_timeout)
 
@@ -1614,7 +1614,7 @@ def deps_graph(
 
     # Resolve output: CLI > config > stdout.
     if output is None:
-        config_output = config.get("dependency-graph-output")
+        config_output = config.get("dependency-graph.output")
         if config_output:
             output = Path(config_output).resolve()
         else:
@@ -1622,19 +1622,19 @@ def deps_graph(
 
     # Apply config defaults when CLI flags are not explicitly provided.
     if not all_groups and not groups and not only_groups:
-        all_groups = config.get("dependency-graph-all-groups", True)
+        all_groups = config.get("dependency-graph.all-groups", True)
     if not all_extras and not extras and not only_extras:
-        all_extras = config.get("dependency-graph-all-extras", True)
+        all_extras = config.get("dependency-graph.all-extras", True)
     if not excluded_groups:
-        config_no_groups = config.get("dependency-graph-no-groups", [])
+        config_no_groups = config.get("dependency-graph.no-groups", [])
         if config_no_groups:
             excluded_groups = tuple(config_no_groups)
     if not excluded_extras:
-        config_no_extras = config.get("dependency-graph-no-extras", [])
+        config_no_extras = config.get("dependency-graph.no-extras", [])
         if config_no_extras:
             excluded_extras = tuple(config_no_extras)
     if level is None:
-        level = config.get("dependency-graph-level")
+        level = config.get("dependency-graph.level")
 
     # Resolve --only-group/--only-extra (exclusive mode: no main deps).
     exclude_base = bool(only_groups or only_extras)
@@ -1967,9 +1967,9 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path) -> None:
         repomatic sync-uv-lock --lockfile path/to/uv.lock
     """
     config = load_repomatic_config()
-    if not config.get("uv-lock-sync", True):
+    if not config.get("uv-lock.sync", True):
         logging.info(
-            "[tool.repomatic] uv-lock-sync is disabled."
+            "[tool.repomatic] uv-lock.sync is disabled."
             " Skipping uv.lock sync."
         )
         ctx.exit(0)
@@ -1994,9 +1994,9 @@ def sync_bumpversion(ctx: Context) -> None:
     bootstrapping.
     """
     config = load_repomatic_config()
-    if not config.get("bumpversion-sync", True):
+    if not config.get("bumpversion.sync", True):
         logging.info(
-            "[tool.repomatic] bumpversion-sync is disabled."
+            "[tool.repomatic] bumpversion.sync is disabled."
             " Skipping bumpversion config sync."
         )
         ctx.exit(0)
@@ -2026,9 +2026,9 @@ def sync_zizmor(ctx: Context) -> None:
     Use ``repomatic init linters`` for interactive bootstrapping.
     """
     config = load_repomatic_config()
-    if not config.get("zizmor-sync", True):
+    if not config.get("zizmor.sync", True):
         logging.info(
-            "[tool.repomatic] zizmor-sync is disabled. Skipping zizmor config sync."
+            "[tool.repomatic] zizmor.sync is disabled. Skipping zizmor config sync."
         )
         ctx.exit(0)
 
@@ -2084,9 +2084,9 @@ def sync_awesome_template(ctx: Context, source_repo: str) -> None:
     Designed for the ``sync-awesome-template`` autofix job.
     """
     config = load_repomatic_config()
-    if not config.get("awesome-template-sync", True):
+    if not config.get("awesome-template.sync", True):
         logging.info(
-            "[tool.repomatic] awesome-template-sync is disabled."
+            "[tool.repomatic] awesome-template.sync is disabled."
             " Skipping awesome-template sync."
         )
         ctx.exit(0)
@@ -2175,9 +2175,9 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     Requires ``labelmaker`` on ``PATH`` and ``GITHUB_TOKEN`` in the environment.
     """
     config = load_repomatic_config()
-    if not config.get("labels-sync", True):
+    if not config.get("labels.sync", True):
         logging.info(
-            "[tool.repomatic] labels-sync is disabled. Skipping label sync."
+            "[tool.repomatic] labels.sync is disabled. Skipping label sync."
         )
         ctx.exit(0)
 
@@ -2337,9 +2337,9 @@ def sync_renovate(ctx: Context, output_path: Path) -> None:
         ``renovate.json5`` itself, so they are safe to sync.
     """
     config = load_repomatic_config()
-    if not config.get("renovate-sync", True):
+    if not config.get("renovate.sync", True):
         logging.info(
-            "[tool.repomatic] renovate-sync is disabled. Skipping Renovate config sync."
+            "[tool.repomatic] renovate.sync is disabled. Skipping Renovate config sync."
         )
         ctx.exit(0)
 

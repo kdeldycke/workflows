@@ -46,12 +46,12 @@ def test_sync_zizmor_writes_canonical_config(
 
 
 def test_sync_zizmor_config_toggle_off(tmp_path, monkeypatch):
-    """Exit 0 when ``zizmor-sync = false`` in ``[tool.repomatic]``."""
+    """Exit 0 when ``zizmor.sync = false`` in ``[tool.repomatic]``."""
     monkeypatch.chdir(tmp_path)
     target = tmp_path / "zizmor.yaml"
     target.write_text("# old content")
     (tmp_path / "pyproject.toml").write_text(
-        MINIMAL_PYPROJECT + "\n[tool.repomatic]\nzizmor-sync = false\n"
+        MINIMAL_PYPROJECT + "\n[tool.repomatic]\nzizmor.sync = false\n"
     )
 
     result = CliRunner().invoke(sync_zizmor)

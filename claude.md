@@ -266,7 +266,7 @@ Every `sync-*` operation modifies or overwrites user-controlled files or resourc
 
 **Required properties** (checklist for adding or auditing a sync job):
 
-1. **Config toggle.** A `*_sync: bool = True` field in the `Config` dataclass. Kebab-case key in `[tool.repomatic]` (e.g., `gitignore-sync = false`). Alphabetically sorted among existing sync fields.
+1. **Config toggle.** A `*_sync: bool = True` field in the `Config` dataclass. Dotted sub-key in `[tool.repomatic]` (e.g., `gitignore.sync = false`). Alphabetically sorted among existing sync fields.
 2. **CLI command.** A `repomatic sync-*` command that loads config, checks the toggle, and exits cleanly (`ctx.exit(0)`) when disabled. Uses `@pass_context` to receive `ctx`.
 3. **Toggle enforcement.** For CLI-based syncs: the toggle field goes in `SUBCOMMAND_CONFIG_FIELDS` (checked in the CLI, not exposed as metadata). For workflow-only syncs (no CLI command): the toggle is exposed as a metadata output and checked in the job's `if:` condition.
 4. **Workflow job.** A `sync-*` job in the appropriate workflow file (usually `autofix.yaml`, but lifecycle-specific syncs may live elsewhere — e.g., `sync-dev-release` in `release.yaml`, `sync-labels` in `labels.yaml`). Requires: metadata `needs:` when applicable, prerequisite `if:` conditions, PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template sync-*`). Exception: syncs targeting API resources (e.g., labels) rather than repo files apply changes directly.
@@ -291,7 +291,7 @@ Every `update-*` operation computes derived artifacts from project state (lockfi
 
 - **CLI command.** A CLI wrapper is only required when the update runs custom repomatic Python logic (e.g., `update-deps-graph`). Updates that invoke external tools or standalone scripts (e.g., `sphinx-apidoc`) may call them directly from the workflow without a `repomatic update-*` wrapper.
 - **Config toggle.** Add a `*_update: bool = True` toggle only when the generated output involves files the user may want to manage independently. If added, follow the sync toggle pattern (Config field, `SUBCOMMAND_CONFIG_FIELDS`, tests).
-- **Config parameters.** Output paths, filtering options, or depth limits belong as Config fields (e.g., `dependency-graph-output`, `dependency-graph-groups`). These configure behavior without enabling/disabling the operation.
+- **Config parameters.** Output paths, filtering options, or depth limits belong as Config fields (e.g., `dependency-graph.output`, `dependency-graph.level`). These configure behavior without enabling/disabling the operation.
 
 #### Format and fix job contract
 
