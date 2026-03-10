@@ -866,7 +866,7 @@ def test_metadata_github_json_format():
     assert len(lines) == 1
     assert lines[0].startswith("metadata=")
 
-    json_str = lines[0][len("metadata="):]
+    json_str = lines[0][len("metadata=") :]
     metadata = json.loads(json_str)
 
     # In github_json format, list/tuple values are pre-formatted via
@@ -893,7 +893,9 @@ def test_metadata_github_json_format():
 
 
 def test_metadata_github_json_format_key_filtering():
-    raw = Metadata().dump(Dialect.github_json, keys=("is_python_project", "current_version"))
+    raw = Metadata().dump(
+        Dialect.github_json, keys=("is_python_project", "current_version")
+    )
     json_str = raw.strip().removeprefix("metadata=")
     metadata = json.loads(json_str)
 

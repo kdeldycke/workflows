@@ -1016,9 +1016,7 @@ def generate_workflows(
 
         elif output_format == WorkflowFormat.HEADER_ONLY:
             if not target.exists():
-                logging.warning(
-                    f"{target} does not exist. Skipping header-only sync."
-                )
+                logging.warning(f"{target} does not exist. Skipping header-only sync.")
                 continue
 
             try:
