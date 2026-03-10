@@ -8,6 +8,8 @@ In other words, downstream repositories should mirror the patterns established h
 
 **Contributing upstream:** If Claude spots inefficiencies, potential improvements, performance bottlenecks, missing features, or opportunities for better adaptability in the `repomatic` CLI, its configuration, the reusable workflows, or this `claude.md` file itself, it should propose these changes upstream via a pull request or issue at [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/issues). This benefits all downstream repositories.
 
+**Upstream runtime dependency boundary:** Downstream repos must have only **one runtime dependency** on the upstream repository: reusable workflow `uses:` calls (e.g., `kdeldycke/repomatic/.github/workflows/autofix.yaml@vX.Y.Z`). These are version-pinned to a git tag, giving downstream repos control over when to upgrade. All other references to the upstream (documentation links in PR body templates, footer attribution) are **informational only** — they do not affect functionality if the upstream is unavailable. Do not introduce new runtime dependencies on the upstream repo (e.g., Renovate shareable presets, remote config extends, API calls to upstream) as they create unversioned coupling where an upstream breakage would cascade to all downstream repos simultaneously.
+
 ## Commands
 
 ### Testing
