@@ -288,11 +288,13 @@ nuitka_matrix={
 from __future__ import annotations
 
 import ast
+import inspect
 import json
 import logging
 import os
 import re
 import sys
+import textwrap
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
 from functools import cached_property
@@ -691,6 +693,96 @@ def _field_to_key(name: str) -> str:
             suffix = name[len(prefix) + 1 :].replace("_", "-")
             return f"{toml_prefix}.{suffix}"
     return name.replace("_", "-")
+
+
+def _extract_field_docstrings() -> dict[str, str]:
+    """Extract attribute docstrings from the ``Config`` dataclass via AST.
+
+    Attribute docstrings are string literals immediately following an annotated
+    assignment in a class body (PEP 257 convention). Returns a mapping of field
+    name to the first paragraph of its docstring (stripped and dedented).
+    """
+    source = inspect.getsource(Config)
+    tree = ast.parse(textwrap.dedent(source))
+    cls_node = tree.body[0]
+
+    docstrings: dict[str, str] = {}
+    current_field = None
+    for node in cls_node.body:
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            current_field = node.target.id
+        elif (
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Constant)
+            and isinstance(node.value.value, str)
+        ):
+            if current_field:
+                # Take the first paragraph only.
+                full = textwrap.dedent(node.value.value).strip()
+                first_para = full.split("\n\n")[0]
+                # Collapse internal newlines into a single space.
+                docstrings[current_field] = " ".join(first_para.split())
+                current_field = None
+        else:
+            current_field = None
+
+    return docstrings
+
+
+def _format_default(value: object) -> str:
+    """Format a ``Config`` field default for the reference table."""
+    if value is None:
+        return "*(none)*"
+    if isinstance(value, bool):
+        return f"`{str(value).lower()}`"
+    if isinstance(value, int):
+        return f"`{value}`"
+    if isinstance(value, str):
+        if "\n" in value:
+            return "*(see example)*"
+        return f'`"{value}"`'
+    if isinstance(value, list):
+        if not value:
+            return "`[]`"
+        return f'`{value!r}`'
+    return str(value)
+
+
+def _format_type(annotation: str) -> str:
+    """Simplify a type annotation string for the reference table.
+
+    Strips ``| None`` suffixes since the default column already shows whether
+    ``None`` is the default.
+    """
+    return annotation.replace(" | None", "")
+
+
+CONFIG_REFERENCE_HEADERS = ("Option", "Type", "Default", "Description")
+"""Column headers for the ``[tool.repomatic]`` configuration reference table."""
+
+
+def config_reference() -> list[tuple[str, str, str, str]]:
+    """Build the ``[tool.repomatic]`` configuration reference as table rows.
+
+    Introspects the ``Config`` dataclass fields, their type annotations,
+    defaults, and attribute docstrings. Returns a list of
+    ``(option, type, default, description)`` tuples suitable for
+    ``click_extra.table.print_table``.
+    """
+    schema = Config()
+    docstrings = _extract_field_docstrings()
+    sorted_fields = sorted(fields(Config), key=lambda f: _field_to_key(f.name))
+
+    rows = []
+    for f in sorted_fields:
+        key = f"`{_field_to_key(f.name)}`"
+        ftype = _format_type(Config.__annotations__[f.name])
+        default = _format_default(getattr(schema, f.name))
+        # Convert reST double backticks to markdown single backticks.
+        desc = docstrings.get(f.name, "").replace("``", "`")
+        rows.append((key, ftype, default, desc))
+
+    return rows
 
 
 def _flatten_config(

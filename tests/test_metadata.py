@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import fields as dc_fields
 from string import ascii_lowercase, digits
 from typing import Any
 
@@ -33,6 +34,7 @@ from repomatic.metadata import (
     Dialect,
     Metadata,
     _field_to_key,
+    config_reference,
     get_latest_tag_version,
     get_project_name,
     get_release_version_from_commits,
@@ -1630,6 +1632,25 @@ nonexistent-option = true
 
     with pytest.raises(ValueError, match="Unknown.*nonexistent-option"):
         load_repomatic_config()
+
+
+def test_config_reference():
+    """Config reference table covers all Config fields with descriptions."""
+    rows = config_reference()
+
+    # One row per Config field.
+    all_fields = dc_fields(Config)
+    assert len(rows) == len(all_fields)
+
+    # Every Config field appears as a TOML key in the table.
+    keys_in_table = {row[0] for row in rows}
+    for f in all_fields:
+        key = f"`{_field_to_key(f.name)}`"
+        assert key in keys_in_table, f"Missing config key {key} in reference table"
+
+    # Every row has a non-empty description.
+    for option, ftype, default, desc in rows:
+        assert desc, f"Empty description for {option}"
 
 
 def test_get_project_name_from_cwd(tmp_path, monkeypatch):

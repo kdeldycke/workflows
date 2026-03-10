@@ -110,8 +110,10 @@ from .init_project import ALL_COMPONENTS, COMPONENT_FILES, export_content, run_i
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
+    CONFIG_REFERENCE_HEADERS,
     Dialect,
     Metadata,
+    config_reference,
     get_project_name,
     is_version_bump_allowed,
     load_repomatic_config,
@@ -426,6 +428,21 @@ def metadata(ctx, format, overwrite, output):
 
     content = metadata.dump(dialect=format)
     echo(content, file=prep_path(output))
+
+
+@repomatic.command(
+    short_help="Print [tool.repomatic] configuration reference",
+    section=_section_setup,
+)
+@pass_context
+def config(ctx):
+    """Print the ``[tool.repomatic]`` configuration reference table.
+
+    Renders a table of all available options, their types, defaults,
+    and descriptions — generated from the ``Config`` dataclass docstrings.
+    Respects the global ``--table-format`` option.
+    """
+    ctx.find_root().print_table(config_reference(), CONFIG_REFERENCE_HEADERS)
 
 
 @repomatic.command(

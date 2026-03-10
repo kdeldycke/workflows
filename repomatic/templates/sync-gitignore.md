@@ -13,7 +13,8 @@ Customize `.gitignore` generation in your `pyproject.toml`:
 
 ```toml
 [tool.repomatic]
-gitignore.location = "./.gitignore" # File path (default)
+gitignore.sync = true                            # Set to false to disable (default: true)
+gitignore.location = "./.gitignore"              # File path (default)
 gitignore.extra-categories = ["terraform", "go"] # Extra gitignore.io categories
 gitignore.extra-content = '''
 junit.xml
