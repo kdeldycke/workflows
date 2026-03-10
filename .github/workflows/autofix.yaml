@@ -35,43 +35,37 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . repomatic setup-guide
 
-  project-metadata:
+  metadata:
     name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
-      gitignore_exists: ${{ steps.project-metadata.outputs.gitignore_exists }}
-      python_files: ${{ steps.project-metadata.outputs.python_files }}
-      json_files: ${{ steps.project-metadata.outputs.json_files }}
-      doc_files: ${{ steps.project-metadata.outputs.doc_files }}
-      markdown_files: ${{ steps.project-metadata.outputs.markdown_files }}
-      is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      mailmap_exists: ${{ steps.project-metadata.outputs.mailmap_exists }}
-      renovate_config_exists: ${{ steps.project-metadata.outputs.renovate_config_exists }}
-      image_files: ${{ steps.project-metadata.outputs.image_files }}
-      workflow_files: ${{ steps.project-metadata.outputs.workflow_files }}
-      active_autodoc: ${{ steps.project-metadata.outputs.active_autodoc }}
-      release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
-        id: project-metadata
-        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          gitignore_exists python_files json_files doc_files markdown_files
+          is_python_project mailmap_exists renovate_config_exists
+          image_files workflow_files active_autodoc release_commits_matrix
 
   # --- Formatters: rewrite files to enforce canonical style. ---
 
   format-python:
     name: 🐍 Format Python
     needs:
-      - project-metadata
+      - metadata
     # Ruff can format code in both Python and Markdown files.
-    if: needs.project-metadata.outputs.python_files || needs.project-metadata.outputs.doc_files
+    if: fromJSON(needs.metadata.outputs.metadata).python_files || fromJSON(needs.metadata.outputs.metadata).doc_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run autopep8
-        if: needs.project-metadata.outputs.python_files
+        if: fromJSON(needs.metadata.outputs.metadata).python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
         # We use autopep8 to only wrap long-line comments:
         #  - E501 is "Try to make lines fit within --max-line-length characters."
@@ -79,13 +73,13 @@ jobs:
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         run: >
           uvx --no-progress 'autopep8==2.3.2' --recursive --in-place --max-line-length 88 --select E501 --aggressive
-          ${{ needs.project-metadata.outputs.python_files }}
+          ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
       - name: Install Ruff
         run: uv tool install 'ruff==0.15.5'
       - name: Init Ruff config
         # Initialize [tool.ruff] in pyproject.toml if missing. Only for Python projects;
         # doc-only repos use Ruff for code-block formatting without needing project config.
-        if: needs.project-metadata.outputs.python_files
+        if: fromJSON(needs.metadata.outputs.metadata).python_files
         run: uvx --no-progress --from . repomatic init ruff
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
@@ -110,8 +104,8 @@ jobs:
   format-pyproject:
     name: 📐 Format pyproject.toml
     needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_python_project)
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -140,8 +134,8 @@ jobs:
   format-markdown:
     name: ✍️ Format Markdown
     needs:
-      - project-metadata
-    if: needs.project-metadata.outputs.markdown_files
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).markdown_files
     # Cannot use "ubuntu-slim" because shfmt is not available there.
     runs-on: ubuntu-24.04
     steps:
@@ -177,7 +171,7 @@ jobs:
         run: mdformat --version
       - name: Auto-format Markdown
         run: >
-          for file in ${{ needs.project-metadata.outputs.markdown_files }}; do
+          for file in ${{ fromJSON(needs.metadata.outputs.metadata).markdown_files }}; do
           mdformat --number --strict-front-matter "$file";
           done
       - name: Markdown fixes for Awesome Lists
@@ -209,8 +203,8 @@ jobs:
   format-json:
     name: 🔧 Format JSON
     needs:
-      - project-metadata
-    if: needs.project-metadata.outputs.json_files
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).json_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -230,7 +224,7 @@ jobs:
           --no-errors-on-unmatched
           --json-parse-allow-comments=true
           --json-parse-allow-trailing-commas=true
-          ${{ needs.project-metadata.outputs.json_files }}
+          ${{ fromJSON(needs.metadata.outputs.metadata).json_files }}
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body
@@ -286,8 +280,8 @@ jobs:
   format-images:
     name: 🖼️ Format images
     needs:
-      - project-metadata
-    if: needs.project-metadata.outputs.image_files
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).image_files
     # Cannot use "ubuntu-slim" because oxipng is not available there.
     runs-on: ubuntu-24.04
     steps:
@@ -324,8 +318,8 @@ jobs:
   sync-gitignore:
     name: 🙈 Sync .gitignore
     needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.gitignore_exists)
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).gitignore_exists
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -349,8 +343,8 @@ jobs:
   sync-bumpversion:
     name: 🔄 Sync bumpversion config
     needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_python_project)
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -374,8 +368,8 @@ jobs:
   sync-zizmor:
     name: 🔄 Sync zizmor.yaml
     needs:
-      - project-metadata
-    if: needs.project-metadata.outputs.workflow_files
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).workflow_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -399,10 +393,10 @@ jobs:
   sync-renovate:
     name: 🔄 Sync renovate.json5
     needs:
-      - project-metadata
+      - metadata
     if: >-
       github.repository != 'kdeldycke/repomatic'
-      && fromJSON(needs.project-metadata.outputs.renovate_config_exists)
+      && fromJSON(needs.metadata.outputs.metadata).renovate_config_exists
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -426,8 +420,8 @@ jobs:
   sync-mailmap:
     name: 📬 Sync .mailmap
     needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.mailmap_exists)
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).mailmap_exists
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -454,11 +448,11 @@ jobs:
   update-deps-graph:
     name: 🕸️ Update dependency graph
     needs:
-      - project-metadata
+      - metadata
     # Only update dependency graph on release to avoid noise from transitive dependency changes.
     if: >
-      fromJSON(needs.project-metadata.outputs.is_python_project)
-      && needs.project-metadata.outputs.release_commits_matrix
+      fromJSON(needs.metadata.outputs.metadata).is_python_project
+      && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -483,10 +477,10 @@ jobs:
   update-docs:
     name: 📚 Update docs
     needs:
-      - project-metadata
+      - metadata
     if: >
-      fromJSON(needs.project-metadata.outputs.is_python_project)
-      && fromJSON(needs.project-metadata.outputs.active_autodoc)
+      fromJSON(needs.metadata.outputs.metadata).is_python_project
+      && fromJSON(needs.metadata.outputs.metadata).active_autodoc
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2

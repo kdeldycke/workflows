@@ -43,27 +43,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . repomatic sync-labels
 
-  project-metadata:
+  metadata:
     name: 🧬 Project metadata
-    # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
+    # All jobs depending on metadata in this workflow are skipped on prepare-release branch.
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
     outputs:
-      is_bot: ${{ steps.project-metadata.outputs.is_bot }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
-        id: project-metadata
-        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          is_bot
 
   file-labeller:
     name: 📁 File-based PR labeller
     needs:
-      - project-metadata
+      - metadata
     if: >
       github.event_name == 'pull_request'
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -78,10 +81,10 @@ jobs:
   content-labeller:
     name: 📝 Content-based labeller
     needs:
-      - project-metadata
+      - metadata
     if: >
       (github.event_name == 'pull_request' || github.event_name == 'issues')
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -98,10 +101,10 @@ jobs:
   sponsor-labeller:
     name: 💝 Tag sponsors
     needs:
-      - project-metadata
+      - metadata
     if: >
       (github.event_name == 'pull_request' || github.event_name == 'issues')
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
+      && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
     runs-on: ubuntu-slim
     steps:
       - uses: astral-sh/setup-uv@v7.3.1

@@ -13,25 +13,26 @@ concurrency:
 
 jobs:
 
-  project-metadata:
+  metadata:
     name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
-      is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      is_sphinx: ${{ steps.project-metadata.outputs.is_sphinx }}
-      doc_files: ${{ steps.project-metadata.outputs.doc_files }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
-        id: project-metadata
-        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          is_python_project is_sphinx doc_files
 
   deploy-docs:
     name: 📖 Deploy Sphinx doc
     needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_python_project) && fromJSON(needs.project-metadata.outputs.is_sphinx)
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).is_python_project && fromJSON(needs.metadata.outputs.metadata).is_sphinx
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -55,7 +56,7 @@ jobs:
   check-broken-links:
     name: 💔 Check broken links
     needs:
-      - project-metadata
+      - metadata
     # Skip all PRs as we won't have permissions to create issues.
     # Skip the prepare-release branch as it contains URLs pointing to tags that don't exist yet.
     # Skip any push containing a post-release bump commit as a precautionary measure.
@@ -63,17 +64,17 @@ jobs:
       github.event_name != 'pull_request'
       && github.ref != 'refs/heads/prepare-release'
       && (! contains(toJSON(github.event.commits.*.message), '[changelog] Post-release bump'))
-      && (needs.project-metadata.outputs.doc_files
-        || (fromJSON(needs.project-metadata.outputs.is_python_project)
-          && fromJSON(needs.project-metadata.outputs.is_sphinx)))
+      && (fromJSON(needs.metadata.outputs.metadata).doc_files
+        || (fromJSON(needs.metadata.outputs.metadata).is_python_project
+          && fromJSON(needs.metadata.outputs.metadata).is_sphinx))
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Install Graphviz
         if: >
-          fromJSON(needs.project-metadata.outputs.is_python_project)
-          && fromJSON(needs.project-metadata.outputs.is_sphinx)
+          fromJSON(needs.metadata.outputs.metadata).is_python_project
+          && fromJSON(needs.metadata.outputs.metadata).is_sphinx
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
         run: |
@@ -81,15 +82,15 @@ jobs:
           sudo apt install --yes graphviz
       - name: Run Sphinx linkcheck
         if: >
-          fromJSON(needs.project-metadata.outputs.is_python_project)
-          && fromJSON(needs.project-metadata.outputs.is_sphinx)
+          fromJSON(needs.metadata.outputs.metadata).is_python_project
+          && fromJSON(needs.metadata.outputs.metadata).is_sphinx
         # Do not use -W: we parse output.json directly instead of relying on exit codes.
         run: >
           uv --no-progress run --frozen --all-extras --group docs --
           sphinx-build -b linkcheck ./docs ./docs/linkcheck
         continue-on-error: true
       - name: Install lychee
-        if: needs.project-metadata.outputs.doc_files
+        if: fromJSON(needs.metadata.outputs.metadata).doc_files
         run: |
           curl -fsSL --output /tmp/lychee.tar.gz \
             "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.23.0/lychee-x86_64-unknown-linux-gnu.tar.gz"
@@ -97,7 +98,7 @@ jobs:
             | sha256sum --check
           tar xzf /tmp/lychee.tar.gz -C /usr/local/bin lychee
       - name: Run lychee
-        if: needs.project-metadata.outputs.doc_files
+        if: fromJSON(needs.metadata.outputs.metadata).doc_files
         id: lychee_run
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -105,7 +106,7 @@ jobs:
           exit_code=0
           lychee --format markdown --output ./lychee/out.md \
             --hidden --suggest --no-progress --include-fragments --exclude-all-private \
-            ${{ needs.project-metadata.outputs.doc_files }} || exit_code=$?
+            ${{ fromJSON(needs.metadata.outputs.metadata).doc_files }} || exit_code=$?
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
       - name: Manage broken links issue
         env:

@@ -38,7 +38,7 @@ class Matrix:
     workflow
     <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow>`_.
 
-    .. note:: Why matrices are pre-computed in ``project-metadata``
+    .. note:: Why matrices are pre-computed in the ``metadata`` job
 
        GitHub Actions matrix outputs are not cumulative — the last job in a
        matrix wins (`community discussion
@@ -46,9 +46,9 @@ class Matrix:
        This makes a matrix-based job terminal in a dependency graph: no
        downstream job can depend on its aggregated outputs.
 
-       The workaround is a single preliminary ``project-metadata`` job that
-       computes all matrices upfront. Downstream jobs depend on that job and
-       consume the pre-built matrices, rather than computing them themselves.
+       The workaround is a single preliminary ``metadata`` job that computes
+       all matrices upfront. Downstream jobs depend on that job and consume
+       the pre-built matrices, rather than computing them themselves.
 
     This Matrix behave like a ``dict`` and works everywhere a ``dict`` would. Only that
     it is immutable and based on :class:`FrozenDict`. If you want to populate the matrix

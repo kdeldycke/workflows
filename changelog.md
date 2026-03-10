@@ -5,6 +5,9 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `github-json` output dialect for `repomatic metadata`. Bundles all metadata keys into a single `metadata` JSON output, eliminating manual per-key `outputs:` declarations in GitHub Actions workflows. Downstream jobs access values via `fromJSON(needs.metadata.outputs.metadata).key_name`.
+- Migrate all workflow `metadata` jobs to `--format github-json` with explicit key filtering, reducing each job's `outputs:` section to a single static line.
+- Rename `project-metadata` job and step IDs to `metadata` in all workflows, shortening downstream expressions.
 - Add key filtering to `repomatic metadata`. Pass key names as arguments to output only specific metadata values.
 - Add `--list-keys` flag to `repomatic metadata` to display all available keys with descriptions.
 - Rename `linters` init component to `zizmor`, aligning with the `sync-zizmor` CLI command and workflow job. Default `init.exclude` updated to `["labels", "skills", "zizmor"]`.

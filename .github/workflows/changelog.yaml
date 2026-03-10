@@ -40,7 +40,7 @@ concurrency:
 
 jobs:
 
-  project-metadata:
+  metadata:
     name: 🧬 Project metadata
     # Run on schedule, manual dispatch, push, or after release workflow completes successfully.
     # Push events keep bump-version PRs conflict-free by recreating them on every main change.
@@ -51,10 +51,7 @@ jobs:
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-slim
     outputs:
-      # Bump eligibility to prevent double version increments within a development cycle.
-      minor_bump_allowed: ${{ steps.project-metadata.outputs.minor_bump_allowed }}
-      major_bump_allowed: ${{ steps.project-metadata.outputs.major_bump_allowed }}
-      release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -64,20 +61,23 @@ jobs:
           fetch-tags: true
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
-        id: project-metadata
-        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          minor_bump_allowed major_bump_allowed release_commits_matrix
 
   fix-changelog:
     name: 📋 Fix changelog
     needs:
-      - project-metadata
+      - metadata
     # Skip during release cycle (push event with release commits).
     # The workflow_run event after "Build & release" completes handles
     # the post-release case, when the GitHub release is published and
     # visible to the public API.
     if: >-
       github.event_name == 'workflow_run'
-      || !needs.project-metadata.outputs.release_commits_matrix
+      || !fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -107,8 +107,8 @@ jobs:
   bump-version:
     name: 🆙 Bump versions
     needs:
-      - project-metadata
-    # Always run since project-metadata already filters appropriate events.
+      - metadata
+    # Always run since metadata already filters appropriate events.
     runs-on: ubuntu-slim
     strategy:
       matrix:
@@ -120,30 +120,30 @@ jobs:
     # 2. GitHub Actions lacks conditional step groups to skip multiple steps with one condition
     steps:
       - uses: actions/checkout@v6.0.2
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
         with:
           # Use github.sha, not workflow_run.head_sha (stale after release cycle).
           ref: ${{ github.sha }}
       - uses: astral-sh/setup-uv@v7.3.1
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
       - name: Install bump-my-version
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
         run: uv tool install 'bump-my-version==1.2.7'
       - name: ${{ matrix.part }} version bump
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
         run: bump-my-version bump --verbose ${{ matrix.part }}
       - name: Sync uv.lock
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
         run: uv --no-progress sync
       - id: pr-metadata
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
         run: >
           uvx --no-progress --from . repomatic pr-body
           --template bump-version
           --part "${{ matrix.part }}"
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
-        if: needs.project-metadata.outputs[format('{0}_bump_allowed', matrix.part)] == 'true'
+        if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}

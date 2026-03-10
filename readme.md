@@ -260,16 +260,16 @@ GitHub Actions has several design limitations that the workflows work around:
 
 | Limitation                                                  | Status             | Addressed by                                                                                                                                                      |
 | :---------------------------------------------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No conditional step groups                                  | ✅ Addressed       | [`project-metadata` job](#what-is-this-project-metadata-job) + [`repomatic metadata`](#repomatic-cli)                                                             |
+| No conditional step groups                                  | ✅ Addressed       | [`metadata` job](#what-is-this-metadata-job) + [`repomatic metadata`](#repomatic-cli)                                                             |
 | Workflow inputs only accept strings                         | ✅ Addressed       | String parsing in [`repomatic`](#repomatic-cli)                                                                                                                   |
-| Matrix outputs not cumulative                               | ✅ Addressed       | [`project-metadata`](#what-is-this-project-metadata-job) pre-computes matrices                                                                                    |
+| Matrix outputs not cumulative                               | ✅ Addressed       | [`metadata`](#what-is-this-metadata-job) pre-computes matrices                                                                                    |
 | `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed       | [SHA-based concurrency groups](#concurrency-and-cancellation) in [`release.yaml`](#githubworkflowsreleaseyaml-jobs)                                               |
 | Cross-event concurrency cancellation                        | ✅ Addressed       | [`event_name` in `changelog.yaml` concurrency group](#concurrency-and-cancellation)                                                                               |
 | PR close doesn't cancel runs                                | ✅ Addressed       | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                                        |
 | `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT](#permissions-and-token)                                                                                           |
 | Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | [Custom PAT](#permissions-and-token) for tag operations                                                                                                           |
 | Default input values not propagated across events           | ✅ Addressed       | Manual defaults in `env:` section                                                                                                                                 |
-| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-project-metadata-job) extracts full commit range                                                                             |
+| `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-metadata-job) extracts full commit range                                                                             |
 | `actions/checkout` uses merge commit for PRs                | ✅ Addressed       | Explicit `ref: github.event.pull_request.head.sha`                                                                                                                |
 | Multiline output encoding fragile                           | ✅ Addressed       | Random delimiters in `repomatic/github.py`                                                                                                                        |
 | Branch deletion doesn't cancel runs                         | ❌ Not addressed   | Same root cause as PR close; partially mitigated by [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) since branch deletion typically follows PR closure |
@@ -738,7 +738,7 @@ docs = [
   - Tests both the latest PyPI release and the current `main` branch from GitHub
   - Runs once on a single stable OS/Python — install correctness does not vary by platform
   - **Requires**:
-    - `cli_scripts` from `project-metadata` job (skipped if no `[project.scripts]` entries)
+    - `cli_scripts` from `metadata` job (skipped if no `[project.scripts]` entries)
 
 - 🔬 **Run tests** (`tests`)
 
@@ -753,11 +753,11 @@ docs = [
   - Checks that the detected CPU architecture matches what the runner image advertises
   - Ensures runners are not silently using emulation (e.g., x86_64 on aarch64)
   - **Requires**:
-    - Build targets from `project-metadata` job
+    - Build targets from `metadata` job
 
-### 🧬 What is this `project-metadata` job?
+### 🧬 What is this `metadata` job?
 
-Most jobs in this repository depend on a shared parent job called `project-metadata`. It runs first to extract contextual information, reconcile and combine it, and expose it for downstream jobs to consume.
+Most jobs in this repository depend on a shared parent job called `metadata`. It runs first to extract contextual information, reconcile and combine it, and expose it for downstream jobs to consume.
 
 This expands the capabilities of GitHub Actions, since it allows to:
 

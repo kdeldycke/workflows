@@ -860,6 +860,29 @@ expected = {
 }
 
 
+def test_metadata_github_json_format():
+    raw = Metadata().dump(Dialect.github_json)
+    assert isinstance(raw, str)
+
+    # Output must be a single line starting with "metadata=".
+    lines = raw.strip().splitlines()
+    assert len(lines) == 1
+    assert lines[0].startswith("metadata=")
+
+    json_str = lines[0][len("metadata="):]
+    metadata = json.loads(json_str)
+
+    iter_checks(metadata, expected, raw)
+
+
+def test_metadata_github_json_format_key_filtering():
+    raw = Metadata().dump(Dialect.github_json, keys=("is_python_project", "current_version"))
+    json_str = raw.strip().removeprefix("metadata=")
+    metadata = json.loads(json_str)
+
+    assert set(metadata.keys()) == {"is_python_project", "current_version"}
+
+
 def test_metadata_json_format():
     metadata = Metadata().dump(Dialect.json)
     assert isinstance(metadata, str)

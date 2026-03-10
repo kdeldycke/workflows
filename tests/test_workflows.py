@@ -308,30 +308,30 @@ def test_release_commit_prefix_in_changelog_workflow() -> None:
 def test_version_increments_runs_on_expected_events() -> None:
     """Verify that bump-version job runs on all expected event types.
 
-    The bump-version job depends on project-metadata, which gates execution.
+    The bump-version job depends on the metadata job, which gates execution.
     It runs on push events (to recreate PRs before they conflict), schedule,
     workflow_dispatch, and successful workflow_run events.
     """
     workflow = load_workflow("changelog.yaml")
     jobs = workflow.get("jobs", {})
 
-    # Verify bump-version depends on project-metadata.
+    # Verify bump-version depends on metadata.
     version_increments = jobs.get("bump-version", {})
     needs = version_increments.get("needs", [])
-    assert "project-metadata" in needs, (
-        "bump-version job must depend on project-metadata"
+    assert "metadata" in needs, (
+        "bump-version job must depend on metadata"
     )
 
-    # Verify project-metadata runs on expected events.
-    project_metadata = jobs.get("project-metadata", {})
-    condition = project_metadata.get("if", "")
-    assert "push" in condition, "project-metadata should run on push events"
-    assert "schedule" in condition, "project-metadata should run on schedule events"
+    # Verify metadata runs on expected events.
+    metadata_job = jobs.get("metadata", {})
+    condition = metadata_job.get("if", "")
+    assert "push" in condition, "metadata job should run on push events"
+    assert "schedule" in condition, "metadata job should run on schedule events"
     assert "workflow_dispatch" in condition, (
-        "project-metadata should run on workflow_dispatch events"
+        "metadata job should run on workflow_dispatch events"
     )
     assert "workflow_run" in condition, (
-        "project-metadata should run on workflow_run events"
+        "metadata job should run on workflow_run events"
     )
 
 

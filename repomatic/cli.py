@@ -412,10 +412,11 @@ def metadata(ctx, format, overwrite, output, list_keys, keys):
 
         $ repomatic metadata --list-keys
 
-    For GitHub you want to output to the standard environment file pointed to by the
-    `$GITHUB_OUTPUT` variable. I.e.:
+    For GitHub Actions, use the `github-json` format to bundle all requested keys into a
+    single `metadata` output. Downstream jobs access values via
+    `fromJSON(needs.metadata.outputs.metadata).key_name`:
 
-        $ repomatic metadata --output "$GITHUB_OUTPUT"
+        $ repomatic metadata --format github-json --output "$GITHUB_OUTPUT" current_version is_python_project
     """
     if list_keys:
         ctx.find_root().print_table(

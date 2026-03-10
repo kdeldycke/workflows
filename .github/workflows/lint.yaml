@@ -17,31 +17,29 @@ concurrency:
 
 jobs:
 
-  project-metadata:
+  metadata:
     name: 🧬 Project metadata
-    # All jobs depending on project-metadata in this workflow are skipped on prepare-release branch.
+    # All jobs depending on metadata in this workflow are skipped on prepare-release branch.
     if: github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
     outputs:
-      is_bot: ${{ steps.project-metadata.outputs.is_bot }}
-      python_files: ${{ steps.project-metadata.outputs.python_files }}
-      yaml_files: ${{ steps.project-metadata.outputs.yaml_files }}
-      workflow_files: ${{ steps.project-metadata.outputs.workflow_files }}
-      zsh_files: ${{ steps.project-metadata.outputs.zsh_files }}
-      is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      mypy_params: ${{ steps.project-metadata.outputs.mypy_params }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
-        id: project-metadata
-        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          is_bot python_files yaml_files workflow_files zsh_files
+          is_python_project mypy_params
 
   lint-repo:
     name: 🏠 Lint repo
     needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_python_project)
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -54,9 +52,9 @@ jobs:
   lint-types:
     name: 🛡️ Lint types
     needs:
-      - project-metadata
+      - metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
-    if: github.head_ref != 'prepare-release' && needs.project-metadata.outputs.python_files
+    if: github.head_ref != 'prepare-release' && fromJSON(needs.metadata.outputs.metadata).python_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -69,19 +67,19 @@ jobs:
         # --color-output - Force colorized output as in CI, Mypy defaults to no color in CI.
         run: >
           uv --no-progress run --frozen --with 'mypy==1.19.1' --
-          mypy --color-output ${{ needs.project-metadata.outputs.mypy_params }}
-          ${{ needs.project-metadata.outputs.python_files }}
+          mypy --color-output ${{ fromJSON(needs.metadata.outputs.metadata).mypy_params }}
+          ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
 
   lint-yaml:
     name: 📄 Lint YAML
     needs:
-      - project-metadata
+      - metadata
     # Skip linting on prepare-release branch as it points to a tagged URL that does not exist yet.
     # Also skip dependency update PRs which do not heavily alter YAML files.
     if: >
       github.head_ref != 'prepare-release'
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
-      && needs.project-metadata.outputs.yaml_files
+      && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
+      && fromJSON(needs.metadata.outputs.metadata).yaml_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -95,12 +93,12 @@ jobs:
   lint-zsh:
     name: 🐚 Lint Zsh
     needs:
-      - project-metadata
+      - metadata
     # Skip linting on prepare-release branch and bots PRs because they do not alter Zsh files.
     if: >
       github.head_ref != 'prepare-release'
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
-      && needs.project-metadata.outputs.zsh_files
+      && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
+      && fromJSON(needs.metadata.outputs.metadata).zsh_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -109,17 +107,17 @@ jobs:
           sudo apt update
           sudo apt install --yes zsh
       - name: Lint
-        run: for file in ${{ needs.project-metadata.outputs.zsh_files }}; do zsh --no-exec "$file"; done
+        run: for file in ${{ fromJSON(needs.metadata.outputs.metadata).zsh_files }}; do zsh --no-exec "$file"; done
 
   lint-github-actions:
     name: ⚡ Lint GitHub Actions
     needs:
-      - project-metadata
+      - metadata
     # Skip linting on prepare-release branch and dependency update PRs because they do not heavily alter GitHub Actions.
     if: >
       github.head_ref != 'prepare-release'
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
-      && needs.project-metadata.outputs.workflow_files
+      && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
+      && fromJSON(needs.metadata.outputs.metadata).workflow_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -154,12 +152,12 @@ jobs:
   lint-workflow-security:
     name: 🔒 Lint workflow security
     needs:
-      - project-metadata
+      - metadata
     # Skip linting on prepare-release branch and dependency update PRs because they do not heavily alter GitHub Actions.
     if: >
       github.head_ref != 'prepare-release'
-      && (! fromJson(needs.project-metadata.outputs.is_bot))
-      && needs.project-metadata.outputs.workflow_files
+      && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
+      && fromJSON(needs.metadata.outputs.metadata).workflow_files
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -195,9 +193,9 @@ jobs:
   lint-secrets:
     name: 🔐 Lint secrets
     needs:
-      - project-metadata
+      - metadata
     # Skip secret checks on prepare-release branch and dependency update PRs.
-    if: github.head_ref != 'prepare-release' && ! fromJson(needs.project-metadata.outputs.is_bot)
+    if: github.head_ref != 'prepare-release' && ! fromJSON(needs.metadata.outputs.metadata).is_bot
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2

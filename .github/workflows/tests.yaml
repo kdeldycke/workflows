@@ -121,29 +121,30 @@ jobs:
         # test-plan-file is auto-detected from [tool.repomatic] in pyproject.toml.
         run: uv run --frozen --no-progress -- repomatic test-plan --command "uv run -- repomatic"
 
-  project-metadata:
+  metadata:
     name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
-      build_targets: ${{ steps.project-metadata.outputs.build_targets }}
-      cli_scripts: ${{ steps.project-metadata.outputs.cli_scripts }}
-      package_name: ${{ steps.project-metadata.outputs.package_name }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
-        id: project-metadata
-        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          build_targets cli_scripts package_name
 
   test-package-install:
     name: 📦 Package install
     needs:
-      - project-metadata
-    if: needs.project-metadata.outputs.cli_scripts
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).cli_scripts
     runs-on: ubuntu-slim
     env:
-      PACKAGE: ${{ needs.project-metadata.outputs.package_name }}
-      CLI_SCRIPTS: ${{ needs.project-metadata.outputs.cli_scripts }}
+      PACKAGE: ${{ fromJSON(needs.metadata.outputs.metadata).package_name }}
+      CLI_SCRIPTS: ${{ fromJSON(needs.metadata.outputs.metadata).cli_scripts }}
       GIT_URL: git+https://github.com/${{ github.repository }}
     steps:
       - uses: astral-sh/setup-uv@v7.3.1
@@ -198,11 +199,11 @@ jobs:
     # https://docs.astral.sh/uv/concepts/python-versions/#transparent-x86_64-emulation-on-aarch64
     name: 🖥️ Validate ${{ matrix.os }} / ${{ matrix.arch }}
     needs:
-      - project-metadata
-    if: needs.project-metadata.outputs.build_targets
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).build_targets
     strategy:
       matrix:
-        include: ${{ fromJSON(needs.project-metadata.outputs.build_targets) }}
+        include: ${{ fromJSON(fromJSON(needs.metadata.outputs.metadata).build_targets) }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check Python version

@@ -365,6 +365,7 @@ class Dialect(StrEnum):
     """Output dialect for metadata serialization."""
 
     github = "github"
+    github_json = "github-json"
     json = "json"
 
 
@@ -2911,6 +2912,13 @@ class Metadata:
                     # Use a random unique delimiter to encode multiline value.
                     delimiter = generate_delimiter()
                     content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
+        elif dialect == Dialect.github_json:
+            # Bundle all metadata into a single ``metadata`` output key as JSON.
+            # Downstream jobs access values via
+            # ``fromJSON(needs.metadata.outputs.metadata).key``,
+            # eliminating the need for per-key ``outputs:`` declarations.
+            json_str = json.dumps(metadata, cls=JSONMetadata, separators=(",", ":"))
+            content = f"metadata={json_str}\n"
         else:
             assert dialect == Dialect.json
             content = json.dumps(metadata, cls=JSONMetadata, indent=2)

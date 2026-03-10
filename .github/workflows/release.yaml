@@ -11,7 +11,7 @@ name: 🚀 Build & release
     outputs:
       nuitka_matrix:
         description: Nuitka build matrix
-        value: ${{ jobs.project-metadata.outputs.nuitka_matrix }}
+        value: ${{ toJSON(fromJSON(jobs.metadata.outputs.metadata).nuitka_matrix) }}
 
   # Targets are chosen so that all commits get a chance to have their package tested.
   push:
@@ -88,24 +88,11 @@ jobs:
           echo "::error::Squash merge detected. Release was skipped. See ${{ steps.issue.outputs.issue_url }}"
           exit 1
 
-  project-metadata:
+  metadata:
     name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
-      # Matrix outputs are non-cumulative (last job wins), so all matrices
-      # must be pre-computed here. See repomatic/github/matrix.py for details.
-      new_commits_matrix: ${{ steps.project-metadata.outputs.new_commits_matrix }}
-      release_commits_matrix: ${{ steps.project-metadata.outputs.release_commits_matrix }}
-      # Export Python project metadata.
-      build_targets: ${{ steps.project-metadata.outputs.build_targets }}
-      nuitka_matrix: ${{ steps.project-metadata.outputs.nuitka_matrix }}
-      is_python_project: ${{ steps.project-metadata.outputs.is_python_project }}
-      package_name: ${{ steps.project-metadata.outputs.package_name }}
-      current_version: ${{ steps.project-metadata.outputs.current_version }}
-      released_version: ${{ steps.project-metadata.outputs.released_version }}
-      release_notes: ${{ steps.project-metadata.outputs.release_notes }}
-      release_notes_with_admonition: ${{ steps.project-metadata.outputs.release_notes_with_admonition }}
-      skip_binary_build: ${{ steps.project-metadata.outputs.skip_binary_build }}
+      metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -120,18 +107,23 @@ jobs:
         run: git log --decorate=full --oneline
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run repomatic metadata
-        id: project-metadata
-        run: uvx --no-progress --from . repomatic metadata --output "$GITHUB_OUTPUT"
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          new_commits_matrix release_commits_matrix build_targets nuitka_matrix
+          is_python_project package_name current_version released_version
+          release_notes release_notes_with_admonition skip_binary_build
 
   build-package:
     name: 📦 Build package (${{ matrix.short_sha }})
     needs:
-      - project-metadata
-    if: fromJSON(needs.project-metadata.outputs.is_python_project)
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     strategy:
       matrix: >-
-        ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix
-        || needs.project-metadata.outputs.new_commits_matrix) }}
+        ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
+        || fromJSON(needs.metadata.outputs.metadata).new_commits_matrix }}
     runs-on: ubuntu-slim
     permissions:
       id-token: write
@@ -156,17 +148,17 @@ jobs:
   compile-binaries:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} build"
     needs:
-      - project-metadata
+      - metadata
       - create-release
     # Skip binary compilation for branches that don't affect code (e.g., update-mailmap, format-markdown).
     # Use always() because create-release is skipped on non-release pushes and PRs.
     if: >-
       always()
-      && needs.project-metadata.result == 'success'
-      && needs.project-metadata.outputs.nuitka_matrix
-      && !fromJSON(needs.project-metadata.outputs.skip_binary_build || 'false')
+      && needs.metadata.result == 'success'
+      && fromJSON(needs.metadata.outputs.metadata).nuitka_matrix
+      && !(fromJSON(needs.metadata.outputs.metadata).skip_binary_build || false)
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
+      matrix: ${{ fromJSON(needs.metadata.outputs.metadata).nuitka_matrix }}
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
@@ -234,14 +226,14 @@ jobs:
       - name: Generate binary attestation
         if: >-
           github.ref == 'refs/heads/main'
-          && needs.project-metadata.outputs.release_commits_matrix
+          && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
         uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: ${{ matrix.bin_name }}
       - name: Upload binary to GitHub release
         if: >-
           github.ref == 'refs/heads/main'
-          && needs.project-metadata.outputs.release_commits_matrix
+          && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: >
@@ -252,14 +244,14 @@ jobs:
   test-binaries:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} test"
     needs:
-      - project-metadata
+      - metadata
       - compile-binaries
     # Skip binary tests for branches that don't affect code (e.g., update-mailmap, format-markdown).
     if: >
-      needs.project-metadata.outputs.nuitka_matrix
-      && !fromJSON(needs.project-metadata.outputs.skip_binary_build || 'false')
+      fromJSON(needs.metadata.outputs.metadata).nuitka_matrix
+      && !(fromJSON(needs.metadata.outputs.metadata).skip_binary_build || false)
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.nuitka_matrix) }}
+      matrix: ${{ fromJSON(needs.metadata.outputs.metadata).nuitka_matrix }}
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
@@ -284,11 +276,11 @@ jobs:
   create-tag:
     name: 📌 Tag release (${{ matrix.short_sha }})
     needs:
-      - project-metadata
+      - metadata
     # Only consider pushes to main branch as triggers for releases.
-    if: github.ref == 'refs/heads/main' && needs.project-metadata.outputs.release_commits_matrix
+    if: github.ref == 'refs/heads/main' && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
@@ -310,12 +302,12 @@ jobs:
   publish-pypi:
     name: 🐍 Publish to PyPI (${{ matrix.short_sha }})
     needs:
-      - project-metadata
+      - metadata
       - build-package
       - create-tag
-    if: needs.project-metadata.outputs.package_name
+    if: fromJSON(needs.metadata.outputs.metadata).package_name
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
     runs-on: ubuntu-slim
     permissions:
       # Allow GitHub's OIDC provider to create a JSON Web Token:
@@ -342,14 +334,14 @@ jobs:
   create-release:
     name: 🐙 Create GitHub release draft (${{ matrix.short_sha }})
     needs:
-      - project-metadata
+      - metadata
       - build-package
       - create-tag
       - publish-pypi
     # Make sure this job always starts if create-tag ran and succeeded.
     if: always() && needs.create-tag.result == 'success'
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
     runs-on: ubuntu-slim
     permissions:
       # Allow GitHub's OIDC provider to create a JSON Web Token:
@@ -393,8 +385,8 @@ jobs:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           RELEASE_NOTES: >-
             ${{ needs.publish-pypi.result == 'success'
-                && needs.project-metadata.outputs.release_notes_with_admonition
-                || needs.project-metadata.outputs.release_notes }}
+                && fromJSON(needs.metadata.outputs.metadata).release_notes_with_admonition
+                || fromJSON(needs.metadata.outputs.metadata).release_notes }}
         run: |
           tag="v${{ matrix.current_version }}"
           if gh release view "${tag}" --repo "${{ github.repository }}" > /dev/null 2>&1; then
@@ -414,7 +406,7 @@ jobs:
   publish-release:
     name: 🎉 Publish GitHub release (${{ matrix.short_sha }})
     needs:
-      - project-metadata
+      - metadata
       - create-release
       - compile-binaries
     # Wait for all upstream jobs regardless of result, but only publish if the draft was created.
@@ -422,7 +414,7 @@ jobs:
       always()
       && needs.create-release.result == 'success'
     strategy:
-      matrix: ${{ fromJSON(needs.project-metadata.outputs.release_commits_matrix) }}
+      matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
     runs-on: ubuntu-slim
     permissions:
       contents: write
@@ -438,7 +430,7 @@ jobs:
   sync-dev-release:
     name: 🔄 Sync dev pre-release
     needs:
-      - project-metadata
+      - metadata
       - build-package
       - compile-binaries
     # Run on non-release pushes to main after builds complete.
@@ -446,8 +438,8 @@ jobs:
     if: >-
       always()
       && github.ref == 'refs/heads/main'
-      && !needs.project-metadata.outputs.release_commits_matrix
-      && needs.project-metadata.outputs.current_version
+      && !fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
+      && fromJSON(needs.metadata.outputs.metadata).current_version
     runs-on: ubuntu-slim
     permissions:
       contents: write
