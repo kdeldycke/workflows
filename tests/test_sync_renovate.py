@@ -35,8 +35,10 @@ def test_sync_renovate_writes_canonical_config(tmp_path, monkeypatch):
     runner = CliRunner()
     result = runner.invoke(sync_renovate, ["--output", str(target)])
     assert result.exit_code == 0
-    expected = export_content("renovate.json5").rstrip()
-    assert target.read_text(encoding="utf-8").rstrip() == expected
+    # Exact match including trailing whitespace: sync must produce the same
+    # output as init to avoid the two jobs reverting each other's changes.
+    expected = export_content("renovate.json5").rstrip() + "\n"
+    assert target.read_text(encoding="utf-8") == expected
 
 
 def test_sync_renovate_skips_when_missing(tmp_path, monkeypatch):
@@ -81,7 +83,7 @@ def test_sync_renovate_overwrites_existing(tmp_path, monkeypatch):
     runner = CliRunner()
     result = runner.invoke(sync_renovate, ["--output", str(target)])
     assert result.exit_code == 0
-    expected = export_content("renovate.json5").rstrip()
-    assert target.read_text(encoding="utf-8").rstrip() == expected
+    expected = export_content("renovate.json5").rstrip() + "\n"
+    assert target.read_text(encoding="utf-8") == expected
     # The stale key should be gone.
     assert "lockFileMaintenance" not in target.read_text(encoding="utf-8")

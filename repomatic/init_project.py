@@ -832,7 +832,9 @@ def _init_config_files(
         existed = target.exists()
         target.parent.mkdir(parents=True, exist_ok=True)
         content = export_content(source_name)
-        target.write_text(content, encoding="UTF-8")
+        # Normalize trailing whitespace to a single newline, matching the
+        # convention used by sync commands (echo(content.rstrip(), ...)).
+        target.write_text(content.rstrip() + "\n", encoding="UTF-8")
         if existed:
             result.updated.append(rel)
             logging.info(f"Updated: {rel}")
