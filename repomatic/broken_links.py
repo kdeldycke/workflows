@@ -262,10 +262,9 @@ def manage_combined_broken_links_issue(
         logging.info(f"Auto-detected Sphinx output: {sphinx_output_json}")
 
     # Auto-compose Sphinx source URL from CI context.
-    if sphinx_output_json is not None and sphinx_source_url is None:
-        if md.repo_url and md.sha:
-            sphinx_source_url = f"{md.repo_url}/blob/{md.sha}/docs"
-            logging.info(f"Auto-composed source URL: {sphinx_source_url}")
+    if sphinx_output_json is not None and sphinx_source_url is None and md.repo_url and md.sha:
+        sphinx_source_url = f"{md.repo_url}/blob/{md.sha}/docs"
+        logging.info(f"Auto-composed source URL: {sphinx_source_url}")
 
     # Interpret lychee exit code.
     # Exit codes: 0 = success, 1 = unexpected failure, 2 = broken links,
