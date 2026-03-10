@@ -137,6 +137,8 @@ test = [
   "pytest-github-actions-annotate-failures>=0.3",
   # pytest-randomly 4.0.0 is the first version to support Python 3.14.
   "pytest-randomly>=4",
+  # pytest-xdist 3.7.0 is the first version to support Python 3.14.
+  "pytest-xdist[psutil]>=3.7",
 ]
 typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 
@@ -206,6 +208,7 @@ addopts = [
   "--durations=10",
   "--cov",
   "--cov-report=term",
+  "--numprocesses=auto",
 ]
 # Make sure tests that are expected to fail do not resurrect and start working all of a sudden.
 xfail_strict = true

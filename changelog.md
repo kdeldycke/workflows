@@ -18,6 +18,7 @@
 - Fix YAML line-length violation in `docs.yaml` workflow template.
 - Fix `repomatic workflow sync --format header-only` failing when a target workflow file does not exist in the downstream repo. Missing files in the default set are now silently filtered out, and explicitly named missing files produce a warning instead of an error.
 - Remove unused `pytest-cases` test dependency.
+- Add `pytest-xdist` test dependency and enable parallel test execution by default via `--numprocesses=auto` in `addopts`.
 
 ## [`6.4.0` (2026-03-10)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...v6.4.0)
 

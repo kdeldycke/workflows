@@ -23,6 +23,9 @@ $ uv run --group test pytest tests/test_changelog.py
 
 # Run a specific test.
 $ uv run --group test pytest tests/test_changelog.py::test_function_name
+
+# Run tests in parallel.
+$ uv run --group test pytest -n auto
 ```
 
 ### Type checking
