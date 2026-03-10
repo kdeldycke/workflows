@@ -56,6 +56,7 @@ def test_supported_config_types() -> None:
     assert "ruff" in INIT_CONFIGS
     assert "pytest" in INIT_CONFIGS
     assert "bumpversion" in INIT_CONFIGS
+    assert "typos" in INIT_CONFIGS
 
 
 def test_config_type_has_required_fields() -> None:
@@ -116,12 +117,14 @@ _TEMPLATE_EXCLUDE_KEYS: dict[str, frozenset[str]] = {
     "mypy": frozenset(),
     "pytest": frozenset({"addopts"}),
     "ruff": frozenset({"extend-include"}),
+    "typos": frozenset(),
 }
 _TEMPLATE_SUPERSET_KEYS: dict[str, frozenset[str]] = {
     "bumpversion": frozenset({"files"}),
     "mypy": frozenset(),
     "pytest": frozenset(),
     "ruff": frozenset(),
+    "typos": frozenset(),
 }
 
 

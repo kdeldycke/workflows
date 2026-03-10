@@ -94,6 +94,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "ruff.toml": None,
     "pytest.toml": None,
     "bumpversion.toml": None,
+    "typos.toml": None,
     # Renovate configuration.
     "renovate.json5": "./renovate.json5",
     # Label configuration files.
@@ -156,6 +157,13 @@ INIT_CONFIGS: dict[str, InitConfig] = {
         insert_after=("tool.nuitka", "tool.mypy"),
         insert_before=("tool.typos",),
         description="bump-my-version configuration",
+    ),
+    "typos": InitConfig(
+        filename="typos.toml",
+        tool_section="tool.typos",
+        insert_after=("tool.bumpversion",),
+        insert_before=("tool.pytest",),
+        description="Typos spell checker configuration",
     ),
 }
 

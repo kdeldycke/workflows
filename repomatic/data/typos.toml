@@ -1,0 +1,10 @@
+# Typos spell checker configuration for Python projects.
+#
+# Native format - can be used standalone as typos.toml or _typos.toml.
+# When merged into pyproject.toml via `repomatic init typos`,
+# the [tool.typos] prefix is added automatically.
+
+# Correct capitalization for proper nouns referenced in claude.md.
+default.extend-identifiers = { Github = "GitHub", IOS = "iOS", Javascript = "JavaScript", MacOS = "macOS", PyPi = "PyPI", Typescript = "TypeScript" }
+# Skip content between <!-- typos:off --> and <!-- typos:on --> markers.
+default.extend-ignore-re = [ "(?s)<!-- typos:off -->.*?<!-- typos:on -->" ]

@@ -18,6 +18,7 @@
 - Make `Metadata` a singleton: every `Metadata()` call returns the same instance within a process, eliminating redundant instantiation across the codebase.
 - Remove `get_repo_slug()` from `gh.py` in favor of `Metadata.repo_slug`.
 - Skip `init ruff` config injection in `format-python` job for non-Python projects. Doc-only repos use Ruff for code-block formatting without needing a `[tool.ruff]` section.
+- Add `repomatic init typos` to sync shared typos spell checker configuration into `pyproject.toml`. Includes proper noun corrections and `<!-- typos:off -->` / `<!-- typos:on -->` block markers for section-level suppression.
 
 ## [`6.3.2` (2026-03-08)](https://github.com/kdeldycke/repomatic/compare/v6.3.1...v6.3.2)
 
