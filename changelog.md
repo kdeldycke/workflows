@@ -26,6 +26,9 @@
 
 ## [`6.3.2` (2026-03-08)](https://github.com/kdeldycke/repomatic/compare/v6.3.1...v6.3.2)
 
+> [!NOTE]
+> `6.3.2` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.3.2/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.3.2).
+
 - Add `--all-extras` to the `uv sync` step in `tests.yaml` to catch incompatibilities between optional dependency groups. No-op for projects with no extras.
 - Add `test-package-install` job to `tests.yaml`: verifies all `[project.scripts]` entry points install and run correctly via `uvx`, `uv run --with`, module invocation, `uv tool install`, and `pipx run`, from both PyPI and GitHub. Runs once on a single stable OS/Python instead of repeating across the full matrix. Add `cli_scripts` output to `repomatic metadata`.
 - Sync `customManagers` to downstream `renovate.json5` so Renovate can update inline version pins in workflow files (Python packages in `uvx`/`uv pip` commands, binary tool versions in download URLs, npm packages). Only the self-referencing uv entry (which targets `renovate.json5` itself) is excluded to prevent an endless sync loop.
