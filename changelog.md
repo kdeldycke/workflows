@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.4.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.4.0` (2026-03-10)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...v6.4.0)
 
 - Rename `optimize-images` to `format-images`. Image lossless optimization is a format operation (semantics-preserving rewrite using external tools), aligning it with the `format-*` naming convention.
 - Add `format-images` PR body template and use `--template format-images` in the workflow, aligning with the standard format job pattern.
