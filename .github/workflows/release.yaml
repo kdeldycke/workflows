@@ -177,9 +177,11 @@ jobs:
         run: uv --no-progress pip install 'nuitka[onefile]==2.8.10'
       - name: Pre-bake version with commit hash
         if: contains(matrix.current_version, '.dev')
+        env:
+          SHORT_SHA: ${{ matrix.short_sha }}
         run: >
           uvx --no-progress --from . repomatic
-          prebake-version --hash "${{ matrix.short_sha }}"
+          prebake-version --hash "${SHORT_SHA}"
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
@@ -187,11 +189,15 @@ jobs:
         continue-on-error: true
         # Project-specific Nuitka flags come from [tool.repomatic]
         # nuitka-extra-args in pyproject.toml, passed via the build matrix.
+        env:
+          NUITKA_EXTRA_ARGS: ${{ matrix.nuitka_extra_args }}
+          BIN_NAME: ${{ matrix.bin_name }}
+          MODULE_PATH: ${{ matrix.module_path }}
         run: >
           uv --no-progress run --frozen -- nuitka
           --onefile --assume-yes-for-downloads
-          ${{ matrix.nuitka_extra_args }}
-          --output-filename=${{ matrix.bin_name }} ${{ matrix.module_path }}
+          ${NUITKA_EXTRA_ARGS}
+          --output-filename="${BIN_NAME}" "${MODULE_PATH}"
       - name: Upload Nuitka crash report
         uses: actions/upload-artifact@v6.0.0
         with:
@@ -212,9 +218,12 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install exiftool --no-progress --yes --retry-count=3
       - name: Verify binary architecture
+        env:
+          TARGET: ${{ matrix.target }}
+          BIN_NAME: ${{ matrix.bin_name }}
         run: >
           uvx --no-progress --from . repomatic
-          verify-binary --target "${{ matrix.target }}" --binary "${{ matrix.bin_name }}"
+          verify-binary --target "${TARGET}" --binary "${BIN_NAME}"
       - name: Upload binaries
         uses: actions/upload-artifact@v6.0.0
         with:
@@ -236,9 +245,11 @@ jobs:
           && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          BIN_NAME: ${{ matrix.bin_name }}
         run: >
-          gh release upload "v${{ matrix.current_version }}"
-          "${{ matrix.bin_name }}"
+          gh release upload "v${CURRENT_VERSION}"
+          "${BIN_NAME}"
           --repo "${{ github.repository }}"
 
   test-binaries:
@@ -266,12 +277,18 @@ jobs:
           name: ${{ matrix.bin_name }}-${{ matrix.short_sha }}
       - name: Set binary permissions
         if: runner.os != 'Windows'
-        run: chmod +x ${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}
+        env:
+          DOWNLOAD_PATH: ${{ steps.artifacts.outputs.download-path }}
+          BIN_NAME: ${{ matrix.bin_name }}
+        run: chmod +x "${DOWNLOAD_PATH}/${BIN_NAME}"
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run test plan for binary
+        env:
+          DOWNLOAD_PATH: ${{ steps.artifacts.outputs.download-path }}
+          BIN_NAME: ${{ matrix.bin_name }}
         run: >
           uvx --no-progress --from . repomatic test-plan
-          --binary "${{ steps.artifacts.outputs.download-path }}/${{ matrix.bin_name }}"
+          --binary "${DOWNLOAD_PATH}/${BIN_NAME}"
 
   create-tag:
     name: 📌 Tag release (${{ matrix.short_sha }})
@@ -293,10 +310,13 @@ jobs:
       - name: Create and push tag
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
+        env:
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          COMMIT: ${{ matrix.commit }}
         run: >
           uvx --no-progress --from . repomatic git-tag
-          --tag "v${{ matrix.current_version }}"
-          --commit "${{ matrix.commit }}"
+          --tag "v${CURRENT_VERSION}"
+          --commit "${COMMIT}"
           --skip-existing
 
   publish-pypi:
@@ -327,9 +347,12 @@ jobs:
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          DOWNLOAD_PATH: ${{ steps.download.outputs.download-path }}
         run: >
-          uv --no-progress publish --token "${{ secrets.PYPI_TOKEN }}"
-          "${{ steps.download.outputs.download-path }}/*"
+          uv --no-progress publish --token "${PYPI_TOKEN}"
+          "${DOWNLOAD_PATH}/*"
 
   create-release:
     name: 🐙 Create GitHub release draft (${{ matrix.short_sha }})
@@ -383,22 +406,25 @@ jobs:
         # Idempotent: skips if release already exists (e.g. workflow re-run).
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          COMMIT: ${{ matrix.commit }}
+          REPO: ${{ github.repository }}
           RELEASE_NOTES: >-
             ${{ needs.publish-pypi.result == 'success'
                 && fromJSON(needs.metadata.outputs.metadata).release_notes_with_admonition
                 || fromJSON(needs.metadata.outputs.metadata).release_notes }}
         run: |
-          tag="v${{ matrix.current_version }}"
-          if gh release view "${tag}" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+          tag="v${CURRENT_VERSION}"
+          if gh release view "${tag}" --repo "${REPO}" > /dev/null 2>&1; then
             echo "Release ${tag} already exists, skipping creation."
           else
             shopt -s nullglob
             files=(release_artifact/*)
             gh release create "${tag}" \
               --draft \
-              --target "${{ matrix.commit }}" \
+              --target "${COMMIT}" \
               --title "${tag}" \
-              --repo "${{ github.repository }}" \
+              --repo "${REPO}" \
               --notes-file - \
               "${files[@]}" <<< "${RELEASE_NOTES}"
           fi
@@ -422,10 +448,12 @@ jobs:
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          REPO: ${{ github.repository }}
         run: >
-          gh release edit "v${{ matrix.current_version }}"
+          gh release edit "v${CURRENT_VERSION}"
           --draft=false
-          --repo "${{ github.repository }}"
+          --repo "${REPO}"
 
   sync-dev-release:
     name: 🔄 Sync dev pre-release

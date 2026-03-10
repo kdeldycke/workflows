@@ -13,6 +13,11 @@ rules:
   excessive-permissions:
     disable: true
 
+  # Secrets are intentionally used without dedicated GitHub environments. Adding environments
+  # would require per-repo settings configuration across all downstream repositories.
+  ref-env-no-env:
+    disable: true
+
   # Repo uses tag-based pins by design; Renovate manages version updates.
   unpinned-uses:
     config:
