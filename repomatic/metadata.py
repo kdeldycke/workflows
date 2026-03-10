@@ -2909,7 +2909,21 @@ class Metadata:
             # Downstream jobs access values via
             # ``fromJSON(needs.metadata.outputs.metadata).key``,
             # eliminating the need for per-key ``outputs:`` declarations.
-            json_str = json.dumps(metadata, cls=JSONMetadata, separators=(",", ":"))
+            #
+            # Pre-format list/tuple values via format_github_value(). GitHub
+            # Actions stringifies JSON arrays as "Array" when interpolated in
+            # ${{ }} expressions, so workflows that splice lists into ``run:``
+            # or ``env:`` contexts would receive the literal word "Array".
+            # Matrix objects are excluded: they serialize to JSON objects via
+            # JSONMetadata and are consumed directly in ``strategy: matrix:``
+            # blocks, which accept expression objects without string coercion.
+            formatted = {}
+            for k, v in metadata.items():
+                if isinstance(v, (list, tuple)):
+                    formatted[k] = self.format_github_value(v)
+                else:
+                    formatted[k] = v
+            json_str = json.dumps(formatted, cls=JSONMetadata, separators=(",", ":"))
             content = f"metadata={json_str}\n"
         else:
             assert dialect == Dialect.json

@@ -32,7 +32,9 @@ jobs:
     name: 📖 Deploy Sphinx doc
     needs:
       - metadata
-    if: fromJSON(needs.metadata.outputs.metadata).is_python_project && fromJSON(needs.metadata.outputs.metadata).is_sphinx
+    if: >-
+      fromJSON(needs.metadata.outputs.metadata).is_python_project
+      && fromJSON(needs.metadata.outputs.metadata).is_sphinx
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2

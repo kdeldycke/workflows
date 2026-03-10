@@ -14,6 +14,8 @@
 - Remove `sync-zizmor` autofix job, CLI command, and `zizmor.sync` config toggle. `zizmor.yaml` is now user-owned: `repomatic init zizmor` creates a default if missing, the lint workflow generates an ephemeral default at CI time, and downstream repos have full control of their config without overwrite.
 - Rename `bump-versions` job to `bump-version` in `changelog.yaml`, matching the PR body template name.
 - Upgrade zizmor from `1.22.0` to `1.23.0`. Re-enable the `template-injection` audit now that the multiline expression crash is fixed upstream ([zizmor#1669](https://github.com/zizmorcore/zizmor/issues/1669)).
+- Fix `github-json` metadata dialect serializing list values as JSON arrays. GitHub Actions stringifies arrays as the literal word "Array" when interpolated in `${{ }}` expressions, breaking jobs that pass file lists, `cli_scripts`, or `build_targets` to shell commands or environment variables. All list/tuple metadata values are now pre-formatted via `format_github_value()`: file lists become space-separated quoted strings, plain string lists become space-separated unquoted strings, and dict lists become JSON strings (enabling the double `fromJSON()` pattern for matrix inclusion).
+- Fix YAML line-length violation in `docs.yaml` workflow template.
 - Fix `repomatic workflow sync --format header-only` failing when a target workflow file does not exist in the downstream repo. Missing files in the default set are now silently filtered out, and explicitly named missing files produce a warning instead of an error.
 - Remove unused `pytest-cases` test dependency.
 

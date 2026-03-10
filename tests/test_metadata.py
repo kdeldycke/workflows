@@ -869,7 +869,27 @@ def test_metadata_github_json_format():
     json_str = lines[0][len("metadata="):]
     metadata = json.loads(json_str)
 
-    iter_checks(metadata, expected, raw)
+    # In github_json format, list/tuple values are pre-formatted via
+    # format_github_value() because GitHub Actions stringifies JSON arrays
+    # as "Array" when interpolated in ${{ }} expressions. Transform expected
+    # values to match: file lists become space-separated quoted strings,
+    # plain string lists become space-separated unquoted strings, and
+    # dict lists become JSON strings.
+    github_json_expected = dict(expected)
+    for key, value in github_json_expected.items():
+        if isinstance(value, list):
+            if not value:
+                github_json_expected[key] = ""
+            elif all(isinstance(i, str) for i in value):
+                # StringList items are unquoted; file list items are double-quoted.
+                if key.endswith("_files"):
+                    github_json_expected[key] = " ".join(f'"{v}"' for v in value)
+                else:
+                    github_json_expected[key] = " ".join(value)
+            elif all(isinstance(i, dict) for i in value):
+                github_json_expected[key] = json.dumps(value)
+
+    iter_checks(metadata, github_json_expected, raw)
 
 
 def test_metadata_github_json_format_key_filtering():
