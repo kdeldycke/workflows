@@ -13,11 +13,6 @@ rules:
   excessive-permissions:
     disable: true
 
-  # zizmor crashes on multiline `${{ }}` expressions in autofix.yaml and changelog.yaml.
-  # See: https://github.com/zizmorcore/zizmor/issues/1664
-  template-injection:
-    disable: true
-
   # Repo uses tag-based pins by design; Renovate manages version updates.
   unpinned-uses:
     config:

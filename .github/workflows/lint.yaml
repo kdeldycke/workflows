@@ -166,7 +166,7 @@ jobs:
         if: hashFiles('zizmor.yaml') == ''
         run: uvx --no-progress --from . repomatic init zizmor
       - name: Run zizmor
-        run: uvx --no-progress 'zizmor==1.22.0' --format github --offline .
+        run: uvx --no-progress 'zizmor==1.23.0' --format github --offline .
 
   lint-awesome:
     name: 🌟 Lint awesome
