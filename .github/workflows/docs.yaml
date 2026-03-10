@@ -107,10 +107,10 @@ jobs:
           DOC_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).doc_files }}
         run: |
           exit_code=0
-          # shellcheck disable=SC2086
-          lychee --format markdown --output ./lychee/out.md \
+          echo "${DOC_FILES}" | xargs \
+            lychee --format markdown --output ./lychee/out.md \
             --hidden --suggest --no-progress --include-fragments --exclude-all-private \
-            ${DOC_FILES} || exit_code=$?
+            || exit_code=$?
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
       - name: Manage broken links issue
         env:

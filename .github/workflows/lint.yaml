@@ -68,10 +68,11 @@ jobs:
         env:
           MYPY_PARAMS: ${{ fromJSON(needs.metadata.outputs.metadata).mypy_params }}
           PYTHON_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
-        run: >
-          uv --no-progress run --frozen --with 'mypy==1.19.1' --
-          mypy --color-output ${MYPY_PARAMS}
-          ${PYTHON_FILES}
+        run: |
+          # shellcheck disable=SC2086
+          echo "${PYTHON_FILES}" | xargs \
+            uv --no-progress run --frozen --with 'mypy==1.19.1' -- \
+            mypy --color-output ${MYPY_PARAMS}
 
   lint-yaml:
     name: 📄 Lint YAML
@@ -112,7 +113,7 @@ jobs:
       - name: Lint
         env:
           ZSH_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).zsh_files }}
-        run: for file in ${ZSH_FILES}; do zsh --no-exec "$file"; done
+        run: echo "${ZSH_FILES}" | xargs -n1 zsh --no-exec
 
   lint-github-actions:
     name: ⚡ Lint GitHub Actions
