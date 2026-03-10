@@ -3,11 +3,11 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-03T13:51:07.054450947Z"
+exclude-newer = "2026-03-03T15:15:00.829795Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-repomatic = { timestamp = "2026-03-10T13:51:07.054457038Z", span = "PT0S" }
+repomatic = { timestamp = "2026-03-10T15:15:00.829801Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -350,18 +350,6 @@ toml = [
 ]
 
 [[package]]
-name = "decopatch"
-version = "1.4.10"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "makefun" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/90/4c/8ca1f193428cbc4d63d0f07db9b8bd96be2db8ee5deefa93e7e8a28f2812/decopatch-1.4.10.tar.gz", hash = "sha256:957f49c93f4150182c23f8fb51d13bb3213e0f17a79e09c8cca7057598b55720", size = 69538, upload-time = "2022-03-01T08:57:21.79Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7b/fa/8e4a51e1afda8d4bd73d784bfe4a60cfdeeced9bea419eff5c271180377e/decopatch-1.4.10-py2.py3-none-any.whl", hash = "sha256:e151f7f93de2b1b3fd3f3272dcc7cefd1a69f68ec1c2d8e288ecd9deb36dc5f7", size = 18015, upload-time = "2022-03-01T08:57:20.676Z" },
-]
-
-[[package]]
 name = "deepmerge"
 version = "2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -481,15 +469,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a7/d5/7af5493043af4f10ad52b46b6271f0d3ba3d04500fdc835f27bfd606604d/lizard-1.21.2.tar.gz", hash = "sha256:bb45c354cd30bf9081bb81e2b22d26774f5974937c6a742903180d4c1bbb7602", size = 90385, upload-time = "2026-03-02T07:11:31.22Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/72/5b/622b5e2577aacbe20a002e71b3ac9c9a4428cf3c312d648c4ec6950750b8/lizard-1.21.2-py2.py3-none-any.whl", hash = "sha256:d628a63fe0ad1ccff8e8f648e8dc9621f3a85ff754106dcc32b62cd0fc877802", size = 98235, upload-time = "2026-03-02T07:11:28.523Z" },
-]
-
-[[package]]
-name = "makefun"
-version = "1.16.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7b/cf/6780ab8bc3b84a1cce3e4400aed3d64b6db7d5e227a2f75b6ded5674701a/makefun-1.16.0.tar.gz", hash = "sha256:e14601831570bff1f6d7e68828bcd30d2f5856f24bad5de0ccb22921ceebc947", size = 73565, upload-time = "2025-05-09T15:00:42.313Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/c0/4bc973defd1270b89ccaae04cef0d5fa3ea85b59b108ad2c08aeea9afb76/makefun-1.16.0-py2.py3-none-any.whl", hash = "sha256:43baa4c3e7ae2b17de9ceac20b669e9a67ceeadff31581007cca20a07bbe42c4", size = 22923, upload-time = "2025-05-09T15:00:41.042Z" },
 ]
 
 [[package]]
@@ -765,21 +744,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pytest-cases"
-version = "3.10.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "decopatch" },
-    { name = "makefun" },
-    { name = "packaging" },
-    { name = "pytest" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c1/a2/c7abc3b606125cf3732e8e613092b0e2549365e824b5f37972125c22806b/pytest_cases-3.10.1.tar.gz", hash = "sha256:451f9e3ecd5d2d81a4362c10c441126f5b3d1ae3a7efaf59f60b1fb930df2d69", size = 1095867, upload-time = "2026-03-02T23:05:33.824Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/f2/7a29fb0571562034b05c38dceabba48dcc622be5d6c5448db80779e55de7/pytest_cases-3.10.1-py2.py3-none-any.whl", hash = "sha256:0deb8a85b6132e44adbc1cfc57897c6a624ec23f48ab445a43c7d56a6b9315a4", size = 108870, upload-time = "2026-03-02T23:05:32.663Z" },
-]
-
-[[package]]
 name = "pytest-cov"
 version = "7.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -934,7 +898,6 @@ dependencies = [
 test = [
     { name = "coverage", extra = ["toml"] },
     { name = "pytest" },
-    { name = "pytest-cases" },
     { name = "pytest-cov" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-randomly" },
@@ -964,7 +927,6 @@ requires-dist = [
 test = [
     { name = "coverage", extras = ["toml"], specifier = ">=7.11" },
     { name = "pytest", specifier = ">=9" },
-    { name = "pytest-cases", specifier = ">=3.9" },
     { name = "pytest-cov", specifier = ">=7" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3" },
     { name = "pytest-randomly", specifier = ">=4" },

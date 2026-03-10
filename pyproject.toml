@@ -131,8 +131,6 @@ test = [
   "coverage[toml]>=7.11",
   # Pytest 9.0.0 introduce support for native TOML configuration files.
   "pytest>=9",
-  # pytest-cases 3.9.0 is the first version to support Python 3.14.
-  "pytest-cases>=3.9",
   # pytest-cov 7.0.0 is the first version to be repackaged with pyproject-metadata.
   "pytest-cov>=7",
   # pytest-github-actions-annotate-failures 0.3.0 is the first version to support Python 3.13.
