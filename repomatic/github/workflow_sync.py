@@ -968,6 +968,7 @@ def generate_workflows(
     """
     # Default to all reusable workflows for thin-caller, non-reusable for
     # header-only, all for other modes.
+    names_defaulted = not names
     if not names:
         if output_format == WorkflowFormat.THIN_CALLER:
             names = REUSABLE_WORKFLOWS
@@ -977,6 +978,11 @@ def generate_workflows(
             names = ALL_WORKFLOW_FILES
 
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    # For header-only with defaulted names, filter to existing files.
+    # Downstream repos may not have all non-reusable workflows.
+    if names_defaulted and output_format == WorkflowFormat.HEADER_ONLY:
+        names = tuple(n for n in names if (output_dir / n).exists())
 
     errors = 0
 
@@ -1010,11 +1016,9 @@ def generate_workflows(
 
         elif output_format == WorkflowFormat.HEADER_ONLY:
             if not target.exists():
-                logging.error(
-                    f"{target} does not exist. header-only mode requires"
-                    " an existing file with a jobs: section."
+                logging.warning(
+                    f"{target} does not exist. Skipping header-only sync."
                 )
-                errors += 1
                 continue
 
             try:

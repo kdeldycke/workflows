@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import pytest
@@ -805,17 +806,21 @@ def test_header_only_syncs_header(tmp_path: Path) -> None:
     assert "echo hello" in content
 
 
-def test_header_only_errors_on_missing_file(tmp_path: Path) -> None:
-    """Error when target file does not exist in header-only mode."""
-    exit_code = generate_workflows(
-        names=("tests.yaml",),
-        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
-        version="main",
-        repo=DEFAULT_REPO,
-        output_dir=tmp_path,
-        overwrite=True,
-    )
-    assert exit_code == 1
+def test_header_only_warns_on_missing_file(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Warning when target file does not exist in header-only mode."""
+    with caplog.at_level(logging.WARNING):
+        exit_code = generate_workflows(
+            names=("tests.yaml",),
+            output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+            version="main",
+            repo=DEFAULT_REPO,
+            output_dir=tmp_path,
+            overwrite=True,
+        )
+    assert exit_code == 0
+    assert "does not exist" in caplog.text
 
 
 def test_header_only_errors_on_no_jobs(tmp_path: Path) -> None:
@@ -831,6 +836,19 @@ def test_header_only_errors_on_no_jobs(tmp_path: Path) -> None:
         overwrite=True,
     )
     assert exit_code == 1
+
+
+def test_header_only_defaults_filter_to_existing(tmp_path: Path) -> None:
+    """Header-only defaults skip non-existent workflows silently."""
+    exit_code = generate_workflows(
+        names=(),
+        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+    )
+    assert exit_code == 0
 
 
 def test_header_only_defaults_to_non_reusable(tmp_path: Path) -> None:
