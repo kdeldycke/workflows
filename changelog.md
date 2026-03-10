@@ -5,6 +5,9 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add key filtering to `repomatic metadata`. Pass key names as arguments to output only specific metadata values.
+- Add `--list-keys` flag to `repomatic metadata` to display all available keys with descriptions.
+
 ## [`6.4.0` (2026-03-10)](https://github.com/kdeldycke/repomatic/compare/v6.3.2...v6.4.0)
 
 - Rename `optimize-images` to `format-images`. Image lossless optimization is a format operation (semantics-preserving rewrite using external tools), aligning it with the `format-*` naming convention.

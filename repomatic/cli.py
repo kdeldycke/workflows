@@ -111,12 +111,15 @@ from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
     CONFIG_REFERENCE_HEADERS,
+    METADATA_KEYS_HEADERS,
     Dialect,
     Metadata,
+    all_metadata_keys,
     config_reference,
     get_project_name,
     is_version_bump_allowed,
     load_repomatic_config,
+    metadata_keys_reference,
     resolve_source_paths,
 )
 from .release_prep import ReleasePrep
@@ -386,19 +389,50 @@ def init_project(
     default="-",
     help="Output file path. Defaults to stdout.",
 )
+@option(
+    "--list-keys",
+    is_flag=True,
+    default=False,
+    help="List all available metadata keys with descriptions and exit.",
+)
+@argument("keys", nargs=-1)
 @pass_context
-def metadata(ctx, format, overwrite, output):
+def metadata(ctx, format, overwrite, output, list_keys, keys):
     """Dump project metadata to a file.
 
     By default the metadata produced are displayed directly to the console output.
     To have the results written in a file on disk, specify the output file like so:
     `repomatic metadata --output dump.txt`.
 
+    You can filter the output to specific keys by passing them as arguments:
+
+        $ repomatic metadata current_version is_python_project
+
+    To list all available keys with descriptions:
+
+        $ repomatic metadata --list-keys
+
     For GitHub you want to output to the standard environment file pointed to by the
     `$GITHUB_OUTPUT` variable. I.e.:
 
         $ repomatic metadata --output "$GITHUB_OUTPUT"
     """
+    if list_keys:
+        ctx.find_root().print_table(
+            metadata_keys_reference(), METADATA_KEYS_HEADERS
+        )
+        ctx.exit(0)
+
+    # Validate requested keys.
+    if keys:
+        valid_keys = all_metadata_keys()
+        unknown = sorted(set(keys) - valid_keys)
+        if unknown:
+            raise UsageError(
+                f"Unknown metadata key(s): {', '.join(unknown)}. "
+                "Use --list-keys to see all available keys."
+            )
+
     if is_stdout(output):
         if overwrite:
             logging.warning("Ignore the --overwrite/--force/--replace option.")
@@ -414,7 +448,7 @@ def metadata(ctx, format, overwrite, output):
                 logging.critical(msg)
                 ctx.exit(2)
 
-    metadata = Metadata()
+    meta = Metadata()
 
     # Output a warning in GitHub runners if metadata are not saved to $GITHUB_OUTPUT.
     if is_github_ci():
@@ -426,7 +460,7 @@ def metadata(ctx, format, overwrite, output):
                 " other jobs to consume the produced metadata."
             )
 
-    content = metadata.dump(dialect=format)
+    content = meta.dump(dialect=format, keys=keys)
     echo(content, file=prep_path(output))
 
 

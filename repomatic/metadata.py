@@ -789,6 +789,81 @@ def config_reference() -> list[tuple[str, str, str, str]]:
     return rows
 
 
+_METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
+    "is_bot": "Workflow was triggered by a bot or automated process.",
+    "skip_binary_build": "Binary builds should be skipped for this event.",
+    "new_commits": "Hashes of new commits in the push event.",
+    "release_commits": "Hashes of release commits in the push event.",
+    "mailmap_exists": "Whether a .mailmap file exists in the repository.",
+    "gitignore_exists": "Whether a .gitignore file exists in the repository.",
+    "renovate_config_exists": "Whether a Renovate configuration file exists.",
+    "python_files": "List of Python files in the repository.",
+    "json_files": "List of JSON files in the repository.",
+    "yaml_files": "List of YAML files in the repository.",
+    "toml_files": "List of TOML files in the repository.",
+    "workflow_files": "List of GitHub workflow files.",
+    "doc_files": "List of documentation files.",
+    "markdown_files": "List of Markdown files.",
+    "image_files": "List of image files.",
+    "zsh_files": "List of Zsh files.",
+    "is_python_project": "Repository is a Python project with pyproject.toml.",
+    "package_name": "Package name as published on PyPI.",
+    "cli_scripts": "CLI script entry points from pyproject.toml.",
+    "project_description": "Project description from pyproject.toml.",
+    "mypy_params": "Generated mypy command-line parameters.",
+    "current_version": "Current version from pyproject.toml.",
+    "released_version": "Version of the release commit, if any.",
+    "is_sphinx": "Sphinx configuration file is present.",
+    "active_autodoc": "Active Sphinx autodoc extensions detected.",
+    "release_notes": "Release notes for the GitHub release.",
+    "release_notes_with_admonition": "Release notes with PyPI availability admonition.",
+    "new_commits_matrix": "Matrix of new commits with long and short SHA values.",
+    "release_commits_matrix": "Matrix of release commits with long and short SHA values.",
+    "build_targets": "List of Nuitka build targets for all platforms.",
+    "nuitka_matrix": "Matrix for Nuitka compilation workflows.",
+    "minor_bump_allowed": "Minor version bump is allowed by commit history.",
+    "major_bump_allowed": "Major version bump is allowed by commit history.",
+}
+"""One-liner descriptions for each metadata key produced by :meth:`Metadata.dump`."""
+
+
+METADATA_KEYS_HEADERS = ("Key", "Description")
+"""Column headers for the metadata keys reference table."""
+
+
+def metadata_keys_reference() -> list[tuple[str, str]]:
+    """Build the metadata keys reference as table rows.
+
+    Returns a list of ``(key, description)`` tuples for all keys produced by
+    :meth:`Metadata.dump`, including ``[tool.repomatic]`` config fields that are
+    exposed as metadata outputs.
+    """
+    rows = [(f"`{k}`", v) for k, v in _METADATA_KEY_DESCRIPTIONS.items()]
+
+    # Add config fields exposed as metadata (same filter as dump()).
+    docstrings = _extract_field_docstrings()
+    for f in sorted(fields(Config), key=lambda f: f.name):
+        if (
+            f.name not in ("nuitka_unstable_targets", "nuitka_extra_args")
+            and f.name not in SUBCOMMAND_CONFIG_FIELDS
+        ):
+            desc = docstrings.get(f.name, "").replace("``", "`")
+            rows.append((f"`{f.name}`", desc))
+
+    return rows
+
+
+def all_metadata_keys() -> frozenset[str]:
+    """Returns the set of all valid metadata key names."""
+    config_keys = frozenset(
+        f.name
+        for f in fields(Config)
+        if f.name not in ("nuitka_unstable_targets", "nuitka_extra_args")
+        and f.name not in SUBCOMMAND_CONFIG_FIELDS
+    )
+    return frozenset(_METADATA_KEY_DESCRIPTIONS) | config_keys
+
+
 def _flatten_config(
     d: dict[str, Any],
     parent: str = "",
@@ -2760,10 +2835,12 @@ class Metadata:
     def dump(
         self,
         dialect: Dialect = Dialect.github,  # type: ignore[assignment]
+        keys: tuple[str, ...] = (),
     ) -> str:
-        """Returns all metadata in the specified format.
+        """Returns metadata in the specified format.
 
-        Defaults to GitHub dialect.
+        Defaults to GitHub dialect. When *keys* is non-empty, only the
+        requested keys are included in the output.
         """
         metadata: dict[str, Any] = {
             "is_bot": self.is_bot,
@@ -2812,6 +2889,9 @@ class Metadata:
             ):
                 config_key = _field_to_key(f.name)
                 metadata[f.name] = self.config[config_key]
+
+        if keys:
+            metadata = {k: v for k, v in metadata.items() if k in keys}
 
         logging.debug(f"Raw metadata: {metadata!r}")
         logging.debug(f"Format metadata into {dialect} format.")
