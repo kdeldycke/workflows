@@ -24,20 +24,25 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from repomatic.github.workflow_sync import REUSABLE_WORKFLOWS
+from repomatic.github.workflow_sync import ALL_WORKFLOW_FILES, REUSABLE_WORKFLOWS
 from repomatic.init_project import (
+    ALL_COMPONENTS,
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     EXPORTABLE_FILES,
+    FILE_COMPONENTS,
     INIT_CONFIGS,
+    _file_id,
     _migrate_repomatic_config_section,
     _remove_legacy_zizmor,
     _to_pyproject_format,
     _update_bumpversion_config,
+    _valid_file_ids,
     default_version_pin,
     export_content,
     get_data_content,
     init_config,
+    parse_exclude,
     run_init,
 )
 
@@ -1278,6 +1283,163 @@ def test_init_exclude_unknown_file_raises(
 
     with pytest.raises(ValueError, match="Unknown file"):
         run_init(output_dir=tmp_path)
+
+
+# --- Data file registry and exclude validation tests ---
+
+
+def test_all_data_files_registered_in_exportable_files() -> None:
+    """Every non-infrastructure file in data/ must appear in EXPORTABLE_FILES."""
+    from importlib.resources import as_file, files
+
+    data_dir = files("repomatic.data")
+    with as_file(data_dir) as data_path:
+        on_disk = {
+            p.name
+            for p in Path(data_path).iterdir()
+            if p.name != "__init__.py"
+            and not p.name.startswith(".")
+            and not p.name.startswith("__")
+            and not p.is_dir()
+        }
+
+    registered = set(EXPORTABLE_FILES.keys())
+    unregistered = on_disk - registered
+    assert not unregistered, f"Data files not in EXPORTABLE_FILES: {sorted(unregistered)}"
+
+
+def test_every_data_file_maps_to_a_component() -> None:
+    """Every file in EXPORTABLE_FILES belongs to exactly one component or INIT_CONFIGS."""
+    # Collect all filenames claimed by FILE_COMPONENTS.
+    component_filenames: set[str] = set()
+    for entries in COMPONENT_FILES.values():
+        for source_filename, _ in entries:
+            component_filenames.add(source_filename)
+
+    # Collect all filenames claimed by INIT_CONFIGS (tool components).
+    tool_filenames = {cfg.filename for cfg in INIT_CONFIGS.values()}
+
+    # Collect workflow filenames from EXPORTABLE_FILES.
+    workflow_filenames = {
+        fname
+        for fname, path in EXPORTABLE_FILES.items()
+        if path and path.startswith("./.github/workflows/")
+    }
+
+    covered = component_filenames | tool_filenames | workflow_filenames
+    uncovered = set(EXPORTABLE_FILES.keys()) - covered
+    assert not uncovered, f"EXPORTABLE_FILES entries not mapped to any component: {sorted(uncovered)}"
+
+
+def test_no_data_file_claimed_by_multiple_components() -> None:
+    """Each data filename must belong to at most one component."""
+    seen: dict[str, str] = {}
+    duplicates: list[str] = []
+
+    # Check FILE_COMPONENTS.
+    for component, entries in COMPONENT_FILES.items():
+        for source_filename, _ in entries:
+            if source_filename in seen:
+                duplicates.append(
+                    f"{source_filename!r} claimed by both"
+                    f" {seen[source_filename]!r} and {component!r}"
+                )
+            seen[source_filename] = component
+
+    # Check INIT_CONFIGS.
+    for component, cfg in INIT_CONFIGS.items():
+        if cfg.filename in seen:
+            duplicates.append(
+                f"{cfg.filename!r} claimed by both"
+                f" {seen[cfg.filename]!r} and {component!r}"
+            )
+        seen[cfg.filename] = component
+
+    assert not duplicates, f"Duplicate file mappings: {duplicates}"
+
+
+def test_valid_file_ids_cover_all_multi_file_components() -> None:
+    """Components with multiple files must report valid file identifiers."""
+    for component in ("workflows", "labels", "skills"):
+        ids = _valid_file_ids(component)
+        assert ids, f"_valid_file_ids({component!r}) returned empty set"
+
+
+def test_workflow_file_ids_match_all_workflow_files() -> None:
+    """_valid_file_ids('workflows') must match ALL_WORKFLOW_FILES."""
+    assert _valid_file_ids("workflows") == frozenset(ALL_WORKFLOW_FILES)
+
+
+def test_component_file_ids_match_component_files() -> None:
+    """_valid_file_ids must return identifiers matching COMPONENT_FILES entries."""
+    for component in COMPONENT_FILES:
+        expected = frozenset(
+            _file_id(component, rel) for _, rel in COMPONENT_FILES[component]
+        )
+        assert _valid_file_ids(component) == expected
+
+
+def test_tool_components_have_no_file_ids() -> None:
+    """Tool components (ruff, pytest, etc.) do not support file-level exclusion."""
+    for component in INIT_CONFIGS:
+        assert _valid_file_ids(component) == frozenset()
+
+
+@pytest.mark.parametrize(
+    "entry",
+    [
+        "workflows/debug.yaml",
+        "workflows/tests.yaml",
+        "workflows/autofix.yaml",
+        "skills/repomatic-audit",
+        "labels/labels.toml",
+        "labels/labeller-content-based.yaml",
+    ],
+)
+def test_parse_exclude_accepts_valid_qualified_entries(entry: str) -> None:
+    """Qualified component/file entries are accepted by parse_exclude."""
+    components, files = parse_exclude([entry])
+    assert not components
+    component = entry.split("/")[0]
+    file_id = entry.split("/")[1]
+    assert file_id in files[component]
+
+
+@pytest.mark.parametrize("component", sorted(ALL_COMPONENTS.keys()))
+def test_parse_exclude_accepts_all_bare_components(component: str) -> None:
+    """Every component name is accepted as a bare exclude entry."""
+    components, files = parse_exclude([component])
+    assert component in components
+    assert not files
+
+
+def test_parse_exclude_bare_filename_without_component_fails() -> None:
+    """Bare filenames like 'debug.yaml' must fail — qualified form required."""
+    with pytest.raises(ValueError, match="Unknown exclude entry"):
+        parse_exclude(["debug.yaml"])
+
+
+def test_parse_exclude_bare_skill_name_without_component_fails() -> None:
+    """Bare skill identifiers like 'repomatic-audit' must fail."""
+    with pytest.raises(ValueError, match="Unknown exclude entry"):
+        parse_exclude(["repomatic-audit"])
+
+
+@pytest.mark.parametrize(
+    ("entry", "match"),
+    [
+        ("nonexistent", "Unknown exclude entry"),
+        ("workflows/nonexistent.yaml", "Unknown file"),
+        ("labels/nonexistent.toml", "Unknown file"),
+        ("skills/nonexistent-skill", "Unknown file"),
+        ("ruff/something", "does not support file-level"),
+        ("pytest/something", "does not support file-level"),
+    ],
+)
+def test_parse_exclude_rejects_invalid_entries(entry: str, match: str) -> None:
+    """Invalid exclude entries produce hard ValueError failures."""
+    with pytest.raises(ValueError, match=match):
+        parse_exclude([entry])
 
 
 # --- Legacy config section migration tests ---
