@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.4.2.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.4.1...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 
 - Add `github-json` output dialect for `repomatic metadata`. Bundles all metadata keys into a single `metadata` JSON output, eliminating manual per-key `outputs:` declarations in GitHub Actions workflows. Downstream jobs access values via `fromJSON(needs.metadata.outputs.metadata).key_name`.
