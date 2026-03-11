@@ -183,6 +183,7 @@ jobs:
         if: contains(matrix.current_version, '.dev')
         env:
           SHORT_SHA: ${{ matrix.short_sha }}
+        shell: bash
         run: >
           uvx --no-progress --from . repomatic
           prebake-version --hash "${SHORT_SHA}"
@@ -227,6 +228,7 @@ jobs:
         env:
           TARGET: ${{ matrix.target }}
           BIN_NAME: ${{ matrix.bin_name }}
+        shell: bash
         run: >
           uvx --no-progress --from . repomatic
           verify-binary --target "${TARGET}" --binary "${BIN_NAME}"
@@ -253,6 +255,7 @@ jobs:
           GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           CURRENT_VERSION: ${{ matrix.current_version }}
           BIN_NAME: ${{ matrix.bin_name }}
+        shell: bash
         run: >
           gh release upload "v${CURRENT_VERSION}"
           "${BIN_NAME}"
@@ -292,6 +295,7 @@ jobs:
         env:
           DOWNLOAD_PATH: ${{ steps.artifacts.outputs.download-path }}
           BIN_NAME: ${{ matrix.bin_name }}
+        shell: bash
         run: >
           uvx --no-progress --from . repomatic test-plan
           --binary "${DOWNLOAD_PATH}/${BIN_NAME}"
