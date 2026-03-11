@@ -105,6 +105,7 @@ jobs:
         if: github.head_ref != 'prepare-release'
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        shell: bash
         run: >
           uvx --no-progress 'codecov-cli==11.2.6'
           --auto-load-params-from githubactions
@@ -116,6 +117,7 @@ jobs:
         if: github.head_ref != 'prepare-release'
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        shell: bash
         run: >
           uvx --no-progress 'codecov-cli==11.2.6'
           --auto-load-params-from githubactions
