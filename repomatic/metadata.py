@@ -471,18 +471,17 @@ class Config:
     to sync thin callers or headers can set this to ``false``.
     """
 
-    init_exclude: list[str] = field(
+    exclude: list[str] = field(
         default_factory=lambda: ["labels", "skills", "zizmor"],
     )
-    """Component names to exclude from ``repomatic init`` default selection.
+    """Components and files to exclude from repomatic operations.
 
-    Defaults to ``["labels", "skills", "zizmor"]`` because these files are
-    generated at workflow execution time when missing. Labels and skills are
-    synced automatically; zizmor is user-owned after initial creation (the lint
-    workflow generates an ephemeral default if no committed config exists).
+    Bare names exclude an entire component (e.g., ``"skills"``). Qualified
+    ``component/identifier`` entries exclude a specific file within a component
+    (e.g., ``"workflows/debug.yaml"``, ``"skills/repomatic-audit"``,
+    ``"labels/labeller-content-based.yaml"``).
 
-    Each entry is a component name (e.g., ``"zizmor"``, ``"skills"``) that will be
-    skipped when running ``repomatic init`` without explicit positional arguments.
+    Affects ``repomatic init``, ``workflow sync``, and ``workflow create``.
     Explicit CLI positional arguments override this list.
     """
 
@@ -497,15 +496,6 @@ class Config:
     ``[project.name]`` in ``pyproject.toml`` by replacing hyphens with
     underscores — the universal Python convention. For example,
     ``name = "extra-platforms"`` automatically uses ``["extra_platforms"]``.
-    """
-
-    workflow_sync_exclude: list[str] = field(default_factory=list)
-    """Workflow filenames to exclude from ``repomatic init``, ``workflow sync``, and
-    ``workflow create``.
-
-    Each entry is a workflow filename (e.g., ``"debug.yaml"``) that will be skipped
-    when initializing, syncing, or creating workflow files without explicit positional
-    arguments. Explicit CLI positional arguments override this list.
     """
 
     test_plan_file: str = "./tests/cli-test-plan.yaml"
@@ -625,11 +615,11 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "dependency_graph_no_groups",
     "dependency_graph_output",
     "dev_release_sync",
+    "exclude",
     "gitignore_extra_categories",
     "gitignore_extra_content",
     "gitignore_location",
     "gitignore_sync",
-    "init_exclude",
     "labels_extra_content_rules",
     "labels_extra_file_rules",
     "labels_extra_files",
@@ -643,7 +633,6 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "uv_lock_sync",
     "workflow_source_paths",
     "workflow_sync",
-    "workflow_sync_exclude",
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.
 
@@ -659,7 +648,6 @@ _NESTED_PREFIXES: Final[dict[str, str]] = {
     "dependency_graph": "dependency-graph",
     "dev_release": "dev-release",
     "gitignore": "gitignore",
-    "init": "init",
     "labels": "labels",
     "mailmap": "mailmap",
     "nuitka": "nuitka",

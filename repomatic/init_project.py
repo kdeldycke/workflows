@@ -639,6 +639,89 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
 """Bundled config files per component, with their output paths."""
 
 
+def _file_id(component: str, rel_path: str) -> str:
+    """Return the exclude identifier for a file within a component.
+
+    Skills use the directory name (e.g., ``repomatic-audit``). All other
+    components use the output filename (e.g., ``debug.yaml``, ``labels.toml``).
+    """
+    if component == "skills":
+        return Path(rel_path).parent.name
+    return Path(rel_path).name
+
+
+def _valid_file_ids(component: str) -> frozenset[str]:
+    """Return valid file identifiers for a component.
+
+    For ``workflows``, returns all known workflow filenames. For components in
+    ``COMPONENT_FILES``, derives identifiers via ``_file_id()``. Returns an
+    empty set for single-file and tool components.
+    """
+    if component == "workflows":
+        from .github.workflow_sync import ALL_WORKFLOW_FILES
+
+        return frozenset(ALL_WORKFLOW_FILES)
+    if component in COMPONENT_FILES:
+        return frozenset(
+            _file_id(component, rel) for _, rel in COMPONENT_FILES[component]
+        )
+    return frozenset()
+
+
+def parse_exclude(
+    entries: list[str],
+) -> tuple[set[str], dict[str, set[str]]]:
+    """Parse ``exclude`` config entries into component and file exclusions.
+
+    Bare names (no ``/``) must be component names from ``ALL_COMPONENTS``.
+    Qualified ``component/identifier`` entries target individual files.
+    Raises ``ValueError`` on unknown entries.
+
+    :return: ``(excluded_components, excluded_files)`` where
+        ``excluded_files`` maps component names to sets of file identifiers.
+    """
+    excluded_components: set[str] = set()
+    excluded_files: dict[str, set[str]] = {}
+
+    for entry in entries:
+        if "/" in entry:
+            component, file_id = entry.split("/", 1)
+            if component not in ALL_COMPONENTS:
+                msg = (
+                    f"Unknown component {component!r} in exclude entry"
+                    f" {entry!r}. Valid components:"
+                    f" {', '.join(sorted(ALL_COMPONENTS))}"
+                )
+                raise ValueError(msg)
+            valid = _valid_file_ids(component)
+            if not valid:
+                msg = (
+                    f"Component {component!r} does not support file-level"
+                    f" exclusion in {entry!r}. Use the bare component name"
+                    f" {component!r} instead."
+                )
+                raise ValueError(msg)
+            if file_id not in valid:
+                msg = (
+                    f"Unknown file {file_id!r} in exclude entry {entry!r}."
+                    f" Valid identifiers for {component!r}:"
+                    f" {', '.join(sorted(valid))}"
+                )
+                raise ValueError(msg)
+            excluded_files.setdefault(component, set()).add(file_id)
+        elif entry in ALL_COMPONENTS:
+            excluded_components.add(entry)
+        else:
+            msg = (
+                f"Unknown exclude entry {entry!r}. Use a component name"
+                f" ({', '.join(sorted(ALL_COMPONENTS))}) or a qualified"
+                " component/file entry (e.g., 'workflows/debug.yaml')."
+            )
+            raise ValueError(msg)
+
+    return excluded_components, excluded_files
+
+
 @dataclass
 class InitResult:
     """Result of a repository initialization run."""
@@ -652,11 +735,8 @@ class InitResult:
     skipped: list[str] = field(default_factory=list)
     """Relative paths of skipped (already existing) files."""
 
-    excluded_components: list[str] = field(default_factory=list)
-    """Component names excluded by ``init.exclude`` config."""
-
-    excluded_workflows: list[str] = field(default_factory=list)
-    """Workflow filenames excluded by ``workflow.sync-exclude`` config."""
+    excluded: list[str] = field(default_factory=list)
+    """Exclude entries that were applied."""
 
     excluded_existing: list[str] = field(default_factory=list)
     """Relative paths of excluded files that still exist on disk."""
@@ -675,8 +755,8 @@ def run_init(
 
     Creates thin-caller workflow files, exports configuration files, and
     generates a minimal ``changelog.md`` if missing. Managed files (workflows,
-    configs, skills) are always overwritten. User-owned files (``changelog.md``,
-    ``zizmor.yaml``) are created once and never overwritten.
+    configs, skills) are always overwritten. User-owned files
+    (``changelog.md``, ``zizmor.yaml``) are created once and never overwritten.
 
     :param output_dir: Root directory of the target repository.
     :param components: Components to initialize. Empty means all defaults.
@@ -715,42 +795,36 @@ def run_init(
     config = load_repomatic_config()
     source_paths = resolve_source_paths(config)
 
-    # Apply config exclusions when no explicit components given.
-    workflow_exclude: frozenset[str] = frozenset()
+    # Parse exclude config. Raises ValueError on unknown entries.
+    exclude_entries: list[str] = config.get(
+        "exclude", ["labels", "skills", "zizmor"]
+    )
+    excluded_components, excluded_files = parse_exclude(exclude_entries)
+
+    # Apply exclusions when no explicit components given.
     if not components:
-        init_exclude: list[str] = config.get(
-            "init.exclude",
-            ["labels", "skills", "zizmor"],
+        actually_excluded = excluded_components & selected
+        selected -= excluded_components
+        result.excluded = sorted(
+            list(actually_excluded)
+            + [f"{c}/{f}" for c, fs in sorted(excluded_files.items()) for f in sorted(fs)]
         )
-        if init_exclude:
-            exclude_set = set(init_exclude)
-            unknown = exclude_set - set(ALL_COMPONENTS)
-            for name in sorted(unknown):
-                logging.warning(
-                    f"Unknown component in init.exclude: {name!r}. "
-                    f"Known components: {', '.join(sorted(ALL_COMPONENTS))}"
-                )
-            actually_excluded = exclude_set & selected
-            selected -= exclude_set
-            result.excluded_components = sorted(actually_excluded)
 
-            # Warn about excluded components whose files still exist on disk.
-            for comp in sorted(actually_excluded):
-                if comp in COMPONENT_FILES:
-                    for _, rel_path in COMPONENT_FILES[comp]:
-                        target = output_dir / rel_path
-                        if target.exists():
-                            result.excluded_existing.append(rel_path)
-                            logging.warning(f"Excluded but still on disk: {rel_path}")
-                elif comp == "changelog":
-                    changelog = output_dir / "changelog.md"
-                    if changelog.exists():
-                        result.excluded_existing.append("changelog.md")
-                        logging.warning("Excluded but still on disk: changelog.md")
+        # Warn about excluded components whose files still exist on disk.
+        for comp in sorted(actually_excluded):
+            if comp in COMPONENT_FILES:
+                for _, rel_path in COMPONENT_FILES[comp]:
+                    target = output_dir / rel_path
+                    if target.exists():
+                        result.excluded_existing.append(rel_path)
+                        logging.warning(f"Excluded but still on disk: {rel_path}")
+            elif comp == "changelog":
+                changelog = output_dir / "changelog.md"
+                if changelog.exists():
+                    result.excluded_existing.append("changelog.md")
+                    logging.warning("Excluded but still on disk: changelog.md")
 
-        wf_exclude: list[str] = config.get("workflow.sync-exclude", [])
-        if wf_exclude:
-            workflow_exclude = frozenset(wf_exclude)
+    workflow_file_exclude = frozenset(excluded_files.get("workflows", set()))
 
     # Workflows.
     if "workflows" in selected:
@@ -759,14 +833,17 @@ def run_init(
             repo,
             version,
             result,
-            exclude=workflow_exclude,
+            exclude=workflow_file_exclude,
             source_paths=source_paths,
         )
 
     # Config file components (labels, renovate, skills).
     for component_name in ("labels", "renovate", "skills"):
         if component_name in selected:
-            _init_config_files(output_dir, component_name, result)
+            file_exclude = frozenset(excluded_files.get(component_name, set()))
+            _init_config_files(
+                output_dir, component_name, result, exclude_ids=file_exclude
+            )
 
     # Zizmor: user-owned after initial creation — skip if exists.
     if "zizmor" in selected:
@@ -803,25 +880,7 @@ def _init_workflows(
 
     workflows = REUSABLE_WORKFLOWS
     if exclude:
-        all_known = set(REUSABLE_WORKFLOWS)
-        unknown = exclude - all_known
-        for name in sorted(unknown):
-            logging.warning(
-                f"Unknown workflow in workflow.sync-exclude: {name!r}. "
-                f"Known workflows: {', '.join(sorted(all_known))}"
-            )
-        actually_excluded = exclude & all_known
         workflows = tuple(w for w in workflows if w not in exclude)
-        result.excluded_workflows = sorted(actually_excluded)
-
-        # Warn about excluded workflows that still exist on disk.
-        workflows_dir_check = output_dir / ".github" / "workflows"
-        for filename in sorted(actually_excluded):
-            target = workflows_dir_check / filename
-            if target.exists():
-                rel = target.relative_to(output_dir).as_posix()
-                result.excluded_existing.append(rel)
-                logging.warning(f"Excluded but still on disk: {rel}")
 
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)
@@ -847,14 +906,18 @@ def _init_config_files(
     result: InitResult,
     *,
     skip_if_exists: bool = False,
+    exclude_ids: frozenset[str] = frozenset(),
 ) -> None:
     """Export bundled config files for a component.
 
     :param skip_if_exists: When ``True``, skip files that already exist on disk
         instead of overwriting. Used for user-owned configs like ``zizmor.yaml``
         that should only be created once as a starting point.
+    :param exclude_ids: File identifiers to skip within this component.
     """
     for source_name, rel_path in COMPONENT_FILES[component_name]:
+        if exclude_ids and _file_id(component_name, rel_path) in exclude_ids:
+            continue
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()
         if skip_if_exists and target.exists():

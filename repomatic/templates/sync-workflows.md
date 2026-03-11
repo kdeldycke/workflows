@@ -13,7 +13,7 @@ Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-
 
 ```toml
 [tool.repomatic]
+exclude = ["workflows/debug.yaml"]
 workflow.sync = true
-workflow.sync-exclude = ["debug.yaml"]
 workflow.source-paths = ["src", "lib"]
 ```

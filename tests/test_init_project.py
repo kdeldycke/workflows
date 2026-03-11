@@ -511,7 +511,7 @@ def test_init_creates_all_default_files(
     """Verify all default component files are created (with no exclusions)."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\ninit.exclude = []\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1068,10 +1068,10 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
 # --- Init exclusion tests ---
 
 
-def test_init_default_excludes_workflow_regenerated_components(
+def test_init_default_excludes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify default init.exclude skips labels, skills, and zizmor."""
+    """Verify default exclude skips labels, skills, and zizmor."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n',
@@ -1092,16 +1092,18 @@ def test_init_default_excludes_workflow_regenerated_components(
     assert "changelog.md" in created_set
     assert "renovate.json5" in created_set
 
-    assert result.excluded_components == ["labels", "skills", "zizmor"]
+    assert result.excluded == ["labels", "skills", "zizmor"]
 
 
-def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Verify init.exclude config skips listed components."""
+def test_init_respects_exclude_components(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify exclude config skips listed components."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init.exclude = ["skills", "zizmor"]\n',
+        'exclude = ["skills", "zizmor"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1118,20 +1120,18 @@ def test_init_respects_init_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     assert "changelog.md" in created_set
     assert "renovate.json5" in created_set
 
-    # Verify excluded_components is populated.
-    assert result.excluded_components == ["skills", "zizmor"]
-    assert result.excluded_workflows == []
+    assert result.excluded == ["skills", "zizmor"]
 
 
-def test_init_respects_workflow_sync_exclude(
+def test_init_respects_exclude_workflow_files(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify workflow.sync-exclude config skips listed workflows during init."""
+    """Verify exclude config with workflow file entries skips those workflows."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'workflow.sync-exclude = ["debug.yaml", "docs.yaml"]\n',
+        'exclude = ["workflows/debug.yaml", "workflows/docs.yaml"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1147,21 +1147,89 @@ def test_init_respects_workflow_sync_exclude(
     assert ".github/workflows/lint.yaml" in created_set
     assert ".github/workflows/release.yaml" in created_set
 
-    # Verify excluded_workflows is populated.
-    assert result.excluded_components == ["labels", "skills", "zizmor"]
-    assert result.excluded_workflows == ["debug.yaml", "docs.yaml"]
+
+def test_init_respects_exclude_skill_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify exclude config with skill file entries skips those skills."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["skills/repomatic-audit", "skills/repomatic-topics"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    # Excluded skills should not be created.
+    assert ".claude/skills/repomatic-audit/SKILL.md" not in created_set
+    assert ".claude/skills/repomatic-topics/SKILL.md" not in created_set
+
+    # Other skills should still be created.
+    assert ".claude/skills/repomatic-init/SKILL.md" in created_set
+
+
+def test_init_respects_exclude_label_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify exclude config with label file entries skips those label files."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["labels/labeller-content-based.yaml"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    # Excluded label file should not be created.
+    assert ".github/labeller-content-based.yaml" not in created_set
+
+    # Other label files should still be created.
+    assert "labels.toml" in created_set
+    assert ".github/labeller-file-based.yaml" in created_set
+
+
+def test_init_mixed_exclude(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify exclude with both component and file entries."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["zizmor", "workflows/debug.yaml", "skills/repomatic-audit"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    assert "zizmor.yaml" not in created_set
+    assert ".github/workflows/debug.yaml" not in created_set
+    assert ".claude/skills/repomatic-audit/SKILL.md" not in created_set
+
+    # Non-excluded items should be created.
+    assert ".github/workflows/lint.yaml" in created_set
+    assert ".claude/skills/repomatic-init/SKILL.md" in created_set
 
 
 def test_init_explicit_components_bypass_exclude(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify explicit CLI components override both exclusion lists."""
+    """Verify explicit CLI components override exclusion."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init.exclude = ["zizmor", "skills", "changelog"]\n'
-        'workflow.sync-exclude = ["debug.yaml"]\n',
+        'exclude = ["zizmor", "skills", "changelog"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1174,49 +1242,42 @@ def test_init_explicit_components_bypass_exclude(
     assert "zizmor.yaml" in created_set
     assert "changelog.md" in created_set
 
-    # Exclusion lists should be empty when explicit components given.
-    assert result.excluded_components == []
-    assert result.excluded_workflows == []
+    # Exclusion list should be empty when explicit components given.
+    assert result.excluded == []
 
 
-def test_init_exclude_unknown_warns(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+def test_init_exclude_unknown_component_raises(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify unknown component name in init.exclude logs a warning."""
+    """Verify unknown component name in exclude raises ValueError."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'init.exclude = ["nonexistent-component"]\n',
+        'exclude = ["nonexistent-component"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
 
-    with caplog.at_level("WARNING"):
+    with pytest.raises(ValueError, match="Unknown exclude entry"):
         run_init(output_dir=tmp_path)
 
-    assert "Unknown component in init.exclude: 'nonexistent-component'" in caplog.text
 
-
-def test_init_workflow_exclude_unknown_warns(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+def test_init_exclude_unknown_file_raises(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify unknown workflow name in workflow.sync-exclude logs a warning."""
+    """Verify unknown file identifier in exclude raises ValueError."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'workflow.sync-exclude = ["nonexistent.yaml"]\n',
+        'exclude = ["workflows/nonexistent.yaml"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
 
-    with caplog.at_level("WARNING"):
+    with pytest.raises(ValueError, match="Unknown file"):
         run_init(output_dir=tmp_path)
-
-    assert (
-        "Unknown workflow in workflow.sync-exclude: 'nonexistent.yaml'" in caplog.text
-    )
 
 
 # --- Legacy config section migration tests ---
@@ -1328,13 +1389,13 @@ def test_migrate_config_section_idempotent(tmp_path: Path, old_name: str):
 def test_init_migrates_legacy_config_section(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, old_name: str
 ):
-    """run_init() migrates legacy config section and reads init.exclude correctly."""
+    """run_init() migrates legacy config section and reads exclude correctly."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         "[project]\n"
         'name = "test"\n\n'
         f"[tool.{old_name}]\n"
-        'init.exclude = ["labels", "skills", "workflows", "zizmor"]\n',
+        'exclude = ["labels", "skills", "workflows", "zizmor"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)

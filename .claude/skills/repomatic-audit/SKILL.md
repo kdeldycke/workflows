@@ -34,7 +34,7 @@ Use `gh api repos/kdeldycke/repomatic/contents/{path} --jq '.content' | base64 -
 
 #### Thin-caller workflows
 
-Compare each local thin-caller workflow against its reference. These should be identical (except for files listed in `workflow.sync-exclude`). Flag:
+Compare each local thin-caller workflow against its reference. These should be identical (except for files listed in `exclude`). Flag:
 
 - Extra triggers (e.g., spurious `workflow_dispatch`).
 - Missing triggers.
@@ -53,7 +53,7 @@ The header (name, `on:`, `concurrency:`) is synced automatically, but custom job
 
 #### Excluded workflows
 
-Respect `workflow.sync-exclude` from `[tool.repomatic]` in `pyproject.toml`. Report excluded files but do not flag them as drift.
+Respect `exclude` entries from `[tool.repomatic]` in `pyproject.toml`. Report excluded files but do not flag them as drift.
 
 ### 2. Config file audit (`configs`)
 
@@ -72,7 +72,7 @@ Compare these files against the upstream reference:
 | `.gitignore` | Compare with reference |
 | `lychee.toml` | Note differences (usually project-specific, just flag for review) |
 
-Skip files that are intentionally excluded via `init.exclude` in `[tool.repomatic]`.
+Skip files that are intentionally excluded via `exclude` in `[tool.repomatic]`.
 
 ### 3. `claude.md` audit (`claude`)
 

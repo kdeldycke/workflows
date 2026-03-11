@@ -106,7 +106,13 @@ from .images import (
     generate_markdown_summary,
     optimize_images,
 )
-from .init_project import ALL_COMPONENTS, COMPONENT_FILES, export_content, run_init
+from .init_project import (
+    ALL_COMPONENTS,
+    COMPONENT_FILES,
+    export_content,
+    parse_exclude,
+    run_init,
+)
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
@@ -317,15 +323,8 @@ def init_project(
     )
 
     # Print summary.
-    if result.excluded_components:
-        echo(
-            "Excluded by init-exclude config: " + ", ".join(result.excluded_components)
-        )
-    if result.excluded_workflows:
-        echo(
-            "Excluded by workflow.sync-exclude config: "
-            + ", ".join(result.excluded_workflows)
-        )
+    if result.excluded:
+        echo("Excluded by config: " + ", ".join(result.excluded))
     if result.created:
         echo(f"Created {len(result.created)} file(s):")
         for path in result.created:
@@ -903,8 +902,8 @@ def _apply_workflow_config(
     """Apply ``[tool.repomatic]`` config filtering to workflow names.
 
     When explicit CLI positional arguments are given, they bypass config entirely.
-    Otherwise, the global ``workflow-sync`` toggle and ``workflow.sync-exclude``
-    list are applied.
+    Otherwise, the global ``workflow.sync`` toggle and ``exclude`` list are
+    applied.
 
     :param names: Workflow filenames from CLI positional args (empty = defaults).
     :param output_format: The output format, used to determine default names.
@@ -929,18 +928,21 @@ def _apply_workflow_config(
         default_names = ALL_WORKFLOW_FILES
 
     # Apply exclude list.
-    exclude: list[str] = config.get("workflow.sync-exclude", [])
-    if exclude:
-        exclude_set = set(exclude)
-        # Warn about unknown workflow names in the exclude list.
-        all_known = set(ALL_WORKFLOW_FILES)
-        unknown = exclude_set - all_known
-        for name in sorted(unknown):
-            logging.warning(
-                f"Unknown workflow in workflow.sync-exclude: {name!r}. "
-                f"Known workflows: {', '.join(sorted(all_known))}"
-            )
-        default_names = tuple(n for n in default_names if n not in exclude_set)
+    exclude_entries: list[str] = config.get(
+        "exclude", ["labels", "skills", "zizmor"]
+    )
+    excluded_components, excluded_files = parse_exclude(exclude_entries)
+
+    # If "workflows" component is fully excluded, skip all.
+    if "workflows" in excluded_components:
+        return ()
+
+    # Filter individual workflow files.
+    workflow_file_exclude = excluded_files.get("workflows", set())
+    if workflow_file_exclude:
+        default_names = tuple(
+            n for n in default_names if n not in workflow_file_exclude
+        )
 
     return default_names
 

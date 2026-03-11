@@ -1376,7 +1376,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["uv-lock.sync"] is True
     assert metadata.config["workflow.source-paths"] is None
     assert metadata.config["workflow.sync"] is True
-    assert metadata.config["workflow.sync-exclude"] == []
+    assert metadata.config["exclude"] == ["labels", "skills", "zizmor"]
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1419,7 +1419,7 @@ renovate.sync = false
 uv-lock.sync = false
 workflow.source-paths = ["extra_platforms"]
 workflow.sync = false
-workflow.sync-exclude = ["debug.yaml", "autolock.yaml"]
+exclude = ["skills", "workflows/debug.yaml", "workflows/autolock.yaml"]
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1464,9 +1464,10 @@ workflow.sync-exclude = ["debug.yaml", "autolock.yaml"]
     assert metadata.config["uv-lock.sync"] is False
     assert metadata.config["workflow.source-paths"] == ["extra_platforms"]
     assert metadata.config["workflow.sync"] is False
-    assert metadata.config["workflow.sync-exclude"] == [
-        "debug.yaml",
-        "autolock.yaml",
+    assert metadata.config["exclude"] == [
+        "skills",
+        "workflows/debug.yaml",
+        "workflows/autolock.yaml",
     ]
 
 
@@ -1555,7 +1556,7 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     assert config["labels.extra-content-rules"] == ""
     assert config["pypi-package-history"] == []
     assert config["workflow.sync"] is True
-    assert config["workflow.sync-exclude"] == []
+    assert config["exclude"] == ["labels", "skills", "zizmor"]
 
 
 def test_load_repomatic_config_custom_values(tmp_path, monkeypatch):

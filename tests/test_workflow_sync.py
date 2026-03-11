@@ -887,7 +887,7 @@ def test_apply_config_explicit_names_bypass(
     pyproject_content = """\
 [tool.repomatic]
 workflow.sync = false
-workflow.sync-exclude = ["lint.yaml"]
+exclude = ["workflows/lint.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -909,7 +909,9 @@ def test_apply_config_no_explicit_names_no_config(
         (),
         WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
     )
-    assert result == REUSABLE_WORKFLOWS
+    assert result is not None
+    # Default exclude is ["labels", "skills", "zizmor"] — no workflow exclusions.
+    assert set(REUSABLE_WORKFLOWS) == set(result)
 
     result = _apply_workflow_config(
         (),
@@ -942,7 +944,7 @@ def test_apply_config_excludes_thin_caller(
     """Exclude list removes workflows from thin-caller defaults."""
     pyproject_content = """\
 [tool.repomatic]
-workflow.sync-exclude = ["debug.yaml"]
+exclude = ["workflows/debug.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -964,7 +966,7 @@ def test_apply_config_excludes_header_only(
     """Exclude list removes workflows from header-only defaults."""
     pyproject_content = """\
 [tool.repomatic]
-workflow.sync-exclude = ["tests.yaml"]
+exclude = ["workflows/tests.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
@@ -977,28 +979,22 @@ workflow.sync-exclude = ["tests.yaml"]
     assert "tests.yaml" not in result
 
 
-def test_apply_config_warns_unknown(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+def test_apply_config_exclude_unknown_file_raises(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Warning logged for unknown workflow in exclude list."""
+    """ValueError raised for unknown workflow file in exclude."""
     pyproject_content = """\
 [tool.repomatic]
-workflow.sync-exclude = ["nonexistent.yaml"]
+exclude = ["workflows/nonexistent.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
-    import logging
-
-    with caplog.at_level(logging.WARNING):
-        result = _apply_workflow_config(
+    with pytest.raises(ValueError, match="Unknown file"):
+        _apply_workflow_config(
             (),
             WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
         )
-
-    assert result is not None
-    assert "nonexistent.yaml" in caplog.text
-    assert "Unknown workflow" in caplog.text
 
 
 def test_generate_with_exclude_integration(
@@ -1007,7 +1003,7 @@ def test_generate_with_exclude_integration(
     """End-to-end: excluded workflow is not created."""
     pyproject_content = """\
 [tool.repomatic]
-workflow.sync-exclude = ["debug.yaml"]
+exclude = ["workflows/debug.yaml"]
 """
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
