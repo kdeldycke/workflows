@@ -46,7 +46,11 @@ from pathlib import Path, PurePosixPath
 from urllib.request import urlretrieve
 
 from . import __version__
-from .metadata import REPOMATIC_CONFIG_RENAME_FROM, load_repomatic_config
+from .metadata import (
+    REPOMATIC_CONFIG_RENAME_FROM,
+    load_repomatic_config,
+    resolve_source_paths,
+)
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -707,10 +711,13 @@ def run_init(
             "Removed legacy zizmor config files: " + ", ".join(removed_zizmor)
         )
 
+    # Load config for source path resolution and exclusion rules.
+    config = load_repomatic_config()
+    source_paths = resolve_source_paths(config)
+
     # Apply config exclusions when no explicit components given.
     workflow_exclude: frozenset[str] = frozenset()
     if not components:
-        config = load_repomatic_config()
         init_exclude: list[str] = config.get(
             "init.exclude",
             ["labels", "skills", "zizmor"],
@@ -747,7 +754,14 @@ def run_init(
 
     # Workflows.
     if "workflows" in selected:
-        _init_workflows(output_dir, repo, version, result, exclude=workflow_exclude)
+        _init_workflows(
+            output_dir,
+            repo,
+            version,
+            result,
+            exclude=workflow_exclude,
+            source_paths=source_paths,
+        )
 
     # Config file components (labels, renovate, skills).
     for component_name in ("labels", "renovate", "skills"):
@@ -781,6 +795,7 @@ def _init_workflows(
     result: InitResult,
     *,
     exclude: frozenset[str] = frozenset(),
+    source_paths: list[str] | None = None,
 ) -> None:
     """Generate thin-caller workflow files."""
     # Lazy import to avoid circular dependency with workflow_sync.
@@ -814,7 +829,9 @@ def _init_workflows(
         target = workflows_dir / filename
         rel = target.relative_to(output_dir).as_posix()
         existed = target.exists()
-        content = generate_thin_caller(filename, repo, version)
+        content = generate_thin_caller(
+            filename, repo, version, source_paths=source_paths
+        )
         target.write_text(content, encoding="UTF-8")
         if existed:
             result.updated.append(rel)
