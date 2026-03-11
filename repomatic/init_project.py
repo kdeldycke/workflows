@@ -38,7 +38,6 @@ from __future__ import annotations
 import glob as globmod
 import logging
 import re
-import shutil
 import sys
 from dataclasses import dataclass, field
 from importlib.resources import as_file, files
@@ -47,7 +46,6 @@ from urllib.request import urlretrieve
 
 from . import __version__
 from .metadata import (
-    REPOMATIC_CONFIG_RENAME_FROM,
     load_repomatic_config,
     resolve_source_paths,
 )
@@ -770,27 +768,6 @@ def run_init(
     selected = set(components) if components else set(DEFAULT_COMPONENTS)
     result = InitResult()
 
-    # Migrate legacy [tool.gha-utils] or [tool.repokit] before reading config.
-    pyproject_path = output_dir / "pyproject.toml"
-    if pyproject_path.exists() and _migrate_repomatic_config_section(pyproject_path):
-        result.warnings.append(
-            "Migrated legacy [tool.*] section to [tool.repomatic] in pyproject.toml."
-        )
-
-    # Remove old gha-* skill directories from the rename.
-    removed_skills = _remove_legacy_skills(output_dir)
-    if removed_skills:
-        result.warnings.append(
-            "Removed legacy skill directories: " + ", ".join(removed_skills)
-        )
-
-    # Remove old .github/zizmor.{yml,yaml} from before the move to root-level.
-    removed_zizmor = _remove_legacy_zizmor(output_dir)
-    if removed_zizmor:
-        result.warnings.append(
-            "Removed legacy zizmor config files: " + ", ".join(removed_zizmor)
-        )
-
     # Load config for source path resolution and exclusion rules.
     config = load_repomatic_config()
     source_paths = resolve_source_paths(config)
@@ -1030,90 +1007,3 @@ def _init_tool_configs(
                     result.created.append(rel)
 
 
-def _remove_legacy_zizmor(output_dir: Path) -> list[str]:
-    """Remove old ``.github/zizmor.yml`` and ``.github/zizmor.yaml`` files.
-
-    The zizmor config was moved from ``.github/zizmor.{yml,yaml}`` to the
-    root-level ``zizmor.yaml`` in ``6.3.2``. Remove the old files to prevent
-    zizmor from picking them up from the legacy location.
-
-    :param output_dir: Root directory of the target repository.
-    :return: List of relative paths of removed files.
-    """
-    removed: list[str] = []
-    github_dir = output_dir / ".github"
-    for filename in ("zizmor.yml", "zizmor.yaml"):
-        legacy = github_dir / filename
-        if legacy.is_file():
-            rel = legacy.relative_to(output_dir).as_posix()
-            legacy.unlink()
-            removed.append(rel)
-            logging.info(f"Removed legacy zizmor config: {rel}")
-    return removed
-
-
-def _remove_legacy_skills(output_dir: Path) -> list[str]:
-    """Remove old ``gha-*`` skill directories left over from the rename.
-
-    The project was renamed from ``gha-utils`` to ``repomatic`` in ``6.0.1``.
-    Old skill directories (e.g., ``.claude/skills/gha-init/``) are no longer
-    managed and should be cleaned up.
-
-    :param output_dir: Root directory of the target repository.
-    :return: List of relative paths of removed directories.
-    """
-    removed: list[str] = []
-    skills_dir = output_dir / ".claude" / "skills"
-    if not skills_dir.is_dir():
-        return removed
-
-    for entry in sorted(skills_dir.iterdir()):
-        if entry.is_dir() and entry.name.startswith("gha-"):
-            rel = entry.relative_to(output_dir).as_posix()
-            shutil.rmtree(entry)
-            removed.append(rel)
-            logging.info(f"Removed legacy skill directory: {rel}")
-
-    return removed
-
-
-def _migrate_repomatic_config_section(pyproject_path: Path) -> bool:
-    """Rename a legacy ``[tool.gha-utils]`` or ``[tool.repokit]`` section header.
-
-    Performs a text-based replacement of the first matching legacy section header
-    to ``[tool.repomatic]``, preserving comments and formatting. If
-    ``[tool.repomatic]`` already exists, no rename is performed.
-
-    :param pyproject_path: Path to the ``pyproject.toml`` file.
-    :return: ``True`` if a rename was performed, ``False`` otherwise.
-    """
-    content = pyproject_path.read_text(encoding="UTF-8")
-
-    has_new = bool(re.search(r"^\[tool\.repomatic\]", content, re.MULTILINE))
-
-    if has_new:
-        # Warn about leftover legacy sections.
-        for old_name in REPOMATIC_CONFIG_RENAME_FROM:
-            if re.search(rf"^\[tool\.{re.escape(old_name)}\]", content, re.MULTILINE):
-                logging.warning(
-                    f"[tool.{old_name}] is obsolete and can be removed. "
-                    "[tool.repomatic] already exists."
-                )
-        return False
-
-    for old_name in REPOMATIC_CONFIG_RENAME_FROM:
-        new_content, count = re.subn(
-            rf"^\[tool\.{re.escape(old_name)}\]",
-            "[tool.repomatic]",
-            content,
-            count=1,
-            flags=re.MULTILINE,
-        )
-        if count:
-            pyproject_path.write_text(new_content, encoding="UTF-8")
-            logging.info(
-                f"Migrated [tool.{old_name}] to [tool.repomatic] in {pyproject_path}."
-            )
-            return True
-
-    return False

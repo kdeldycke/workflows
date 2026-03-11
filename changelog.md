@@ -6,6 +6,8 @@
 > This version is **not released yet** and is under active development.
 
 - Replace `init.exclude` and `workflow.sync-exclude` config keys with a unified `exclude` key. Bare names exclude entire components (e.g., `"skills"`); qualified `component/identifier` entries exclude specific files (e.g., `"workflows/debug.yaml"`, `"skills/repomatic-audit"`, `"labels/labeller-content-based.yaml"`). Old keys are no longer recognized and will produce a hard error.
+- Remove legacy `[tool.gha-utils]` and `[tool.repokit]` config section migration. Projects still using old section names must manually rename to `[tool.repomatic]`.
+- Remove automatic cleanup of legacy `.github/zizmor.{yml,yaml}` files and `.claude/skills/gha-*/` directories during init.
 
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 
