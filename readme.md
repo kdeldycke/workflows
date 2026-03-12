@@ -225,6 +225,27 @@ workflow.source-paths = ["extra_platforms"]
 >
 > See [click-extra's inventory of `pyproject.toml`-aware tools](https://kdeldycke.github.io/click-extra/config.html#pyproject-toml) for a broader list.
 
+### `[tool.X]` bridge for third-party tools
+
+Some tools (yamllint, zizmor, …) have long-standing requests to read configuration from `pyproject.toml` but haven't shipped native support yet. `repomatic run` bridges the gap: write your config in `[tool.<name>]` and repomatic translates it to the tool's native format at invocation time.
+
+```toml
+# pyproject.toml
+[tool.yamllint.rules.line-length]
+max = 120
+
+[tool.yamllint.rules.truthy]
+check-keys = false
+```
+
+```shell-session
+$ uvx -- repomatic run yamllint -- .
+```
+
+repomatic writes a temporary YAML config file, passes it via `--config-file`, and cleans it up after the run. No dotfiles needed.
+
+The same mechanism works for any registered tool that accepts a config file. If a native config file (e.g., `.yamllint.yaml`) is already present, repomatic defers to it — your repo stays in control.
+
 ## Reusable workflows
 
 The `repomatic` CLI operates in CI through [reusable GitHub Actions workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows). You configure behavior via [`[tool.repomatic]`](#toolrepomatic-configuration) in `pyproject.toml`; the workflows are the execution layer.
