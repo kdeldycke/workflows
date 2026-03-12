@@ -27,7 +27,6 @@ import yaml
 from repomatic.tool_runner import (
     TOOL_REGISTRY,
     ToolSpec,
-    _resolve_computed_params,
     get_data_file_path,
     resolve_config,
     resolve_config_source,
@@ -389,13 +388,14 @@ def test_run_tool_mdformat_with_packages(mock_ci, mock_run, tmp_path, monkeypatc
 
 
 @patch("repomatic.tool_runner.subprocess.run")
-@patch("repomatic.tool_runner._resolve_computed_params", return_value=["--python-version", "3.10"])
+@patch("repomatic.metadata.Metadata")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_mypy_with_computed_params(
-    mock_ci, mock_params, mock_run, tmp_path, monkeypatch,
+    mock_ci, mock_metadata_cls, mock_run, tmp_path, monkeypatch,
 ):
     """mypy runs via uv run with computed --python-version param."""
     monkeypatch.chdir(tmp_path)
+    mock_metadata_cls.return_value.mypy_params = ["--python-version", "3.10"]
     mock_run.return_value = MagicMock(returncode=0)
 
     run_tool("mypy", extra_args=("repomatic/",))
@@ -413,13 +413,14 @@ def test_run_tool_mypy_with_computed_params(
 
 
 @patch("repomatic.tool_runner.subprocess.run")
-@patch("repomatic.tool_runner._resolve_computed_params", return_value=[])
+@patch("repomatic.metadata.Metadata")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_mypy_without_computed_params(
-    mock_ci, mock_params, mock_run, tmp_path, monkeypatch,
+    mock_ci, mock_metadata_cls, mock_run, tmp_path, monkeypatch,
 ):
     """mypy runs without computed params when Metadata returns None."""
     monkeypatch.chdir(tmp_path)
+    mock_metadata_cls.return_value.mypy_params = None
     mock_run.return_value = MagicMock(returncode=0)
 
     run_tool("mypy", extra_args=("repomatic/",))
@@ -427,45 +428,6 @@ def test_run_tool_mypy_without_computed_params(
     cmd = mock_run.call_args[0][0]
     assert "--color-output" in cmd
     assert "--python-version" not in cmd
-
-
-# ---------------------------------------------------------------------------
-# _resolve_computed_params
-# ---------------------------------------------------------------------------
-
-
-def test_resolve_computed_params_no_params():
-    """Tools without computed_params return empty list."""
-    spec = ToolSpec(name="test", version="1.0", package="test")
-    assert _resolve_computed_params(spec) == []
-
-
-@patch("repomatic.metadata.Metadata")
-def test_resolve_computed_params_with_value(mock_metadata_cls):
-    """Computed params splits Metadata property value into args."""
-    mock_metadata_cls.return_value.mypy_params = "--python-version 3.10"
-    spec = ToolSpec(
-        name="mypy",
-        version="1.19.1",
-        package="mypy",
-        computed_params="mypy_params",
-    )
-    result = _resolve_computed_params(spec)
-    assert result == ["--python-version", "3.10"]
-
-
-@patch("repomatic.metadata.Metadata")
-def test_resolve_computed_params_none_value(mock_metadata_cls):
-    """Computed params returns empty list when Metadata property is None."""
-    mock_metadata_cls.return_value.mypy_params = None
-    spec = ToolSpec(
-        name="mypy",
-        version="1.19.1",
-        package="mypy",
-        computed_params="mypy_params",
-    )
-    result = _resolve_computed_params(spec)
-    assert result == []
 
 
 # ---------------------------------------------------------------------------

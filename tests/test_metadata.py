@@ -648,7 +648,7 @@ expected = {
     "package_name": "repomatic",
     "cli_scripts": StringList(["repomatic"]),
     "project_description": "🏭 Automate repository maintenance, releases, and CI/CD workflows",
-    "mypy_params": "--python-version 3.10",
+    "mypy_params": StringList(["--python-version", "3.10"]),
     "current_version": regex(r"[0-9\.]+(\.dev[0-9]+)?"),
     # released_version is None during development, but contains a version string
     # on release branches (e.g., "5.5.0" when a "[changelog] Release v5.5.0"

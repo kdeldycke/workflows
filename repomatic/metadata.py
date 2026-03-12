@@ -2248,7 +2248,7 @@ class Metadata:
         return entries
 
     @cached_property
-    def mypy_params(self) -> str | None:
+    def mypy_params(self) -> list[str] | None:
         """Generates ``mypy`` parameters.
 
         Mypy needs to be fed with this parameter: ``--python-version 3.x``.
@@ -2272,7 +2272,7 @@ class Metadata:
 
         # Compare to Mypy's lowest supported version of Python dialect.
         major, minor = max(MYPY_VERSION_MIN, min_version)
-        return f"--python-version {major}.{minor}"
+        return ["--python-version", f"{major}.{minor}"]
 
     @staticmethod
     def get_current_version() -> str | None:

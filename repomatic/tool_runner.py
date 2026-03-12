@@ -52,8 +52,10 @@ else:
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Callable, Iterator, Sequence
     from typing import Any
+
+    from .metadata import Metadata
 
 
 @dataclass(frozen=True)
@@ -119,9 +121,10 @@ class ToolSpec:
     Required when the tool imports project code (mypy, pytest).
     """
 
-    computed_params: str | None = None
-    """Name of a ``Metadata`` property that returns extra CLI args for this tool
-    (e.g., ``'mypy_params'``). ``None`` if no computed params.
+    computed_params: Callable[[Metadata], list[str]] | None = None
+    """Callable that receives a ``Metadata`` instance and returns extra CLI args
+    derived from project metadata (e.g., mypy's ``--python-version`` from
+    ``requires-python``). ``None`` if no computed params.
     """
 
 
@@ -195,7 +198,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         reads_pyproject=True,
         needs_venv=True,
         default_flags=("--color-output",),
-        computed_params="mypy_params",
+        computed_params=lambda m: m.mypy_params or [],
     ),
     # pyproject-fmt configuration reference:
     # - CLI flags: https://pyproject-fmt.readthedocs.io/en/latest/
@@ -403,26 +406,6 @@ def _build_install_args(spec: ToolSpec) -> list[str]:
     return cmd
 
 
-def _resolve_computed_params(spec: ToolSpec) -> list[str]:
-    """Resolve computed parameters from a ``Metadata`` property.
-
-    Lazily imports ``Metadata`` to avoid circular imports and keep startup fast
-    for tools that don't use computed parameters.
-    """
-    if not spec.computed_params:
-        return []
-
-    from .metadata import Metadata
-
-    metadata = Metadata()
-    value: str | None = getattr(metadata, spec.computed_params, None)
-    if value is None:
-        return []
-
-    # The property returns a string like ``"--python-version 3.10"``.
-    return value.split()
-
-
 def run_tool(
     name: str,
     extra_args: Sequence[str] = (),
@@ -454,8 +437,11 @@ def run_tool(
         if spec.ci_flags and is_github_ci():
             cmd.extend(spec.ci_flags)
 
-        # Computed parameters from Metadata properties.
-        cmd.extend(_resolve_computed_params(spec))
+        # Computed parameters derived from project metadata.
+        if spec.computed_params:
+            from .metadata import Metadata
+
+            cmd.extend(spec.computed_params(Metadata()))
 
         # Config args from resolution.
         if config_args == ["__bundled__"]:
