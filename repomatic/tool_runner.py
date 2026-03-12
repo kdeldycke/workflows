@@ -341,14 +341,13 @@ def resolve_config(
 
         # Write to temp file. Caller is responsible for cleanup via the
         # returned path.
-        tmp = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             mode="w",
             suffix=f".{spec.native_format}",
             prefix=f"repomatic-{spec.name}-",
             delete=False,
-        )
-        tmp.write(content)
-        tmp.close()
+        ) as tmp:
+            tmp.write(content)
         tmp_path = Path(tmp.name)
         logging.debug("Wrote temp config: %s", tmp_path)
 

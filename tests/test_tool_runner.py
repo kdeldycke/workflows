@@ -423,6 +423,5 @@ def test_get_data_file_path_existing():
 
 def test_get_data_file_path_missing():
     """Missing data files raise FileNotFoundError."""
-    with pytest.raises(FileNotFoundError, match="not found"):
-        with get_data_file_path("nonexistent.yaml"):
-            pass
+    with pytest.raises(FileNotFoundError, match="not found"), get_data_file_path("nonexistent.yaml"):
+        pass
