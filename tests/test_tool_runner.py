@@ -31,7 +31,6 @@ from repomatic.tool_runner import (
     resolve_config,
     resolve_config_source,
     run_tool,
-    serialize_yaml,
 )
 
 
@@ -69,27 +68,6 @@ def test_tool_registry_sorted_alphabetically():
     """Registry keys are sorted alphabetically."""
     keys = list(TOOL_REGISTRY.keys())
     assert keys == sorted(keys)
-
-
-# ---------------------------------------------------------------------------
-# Serialization
-# ---------------------------------------------------------------------------
-
-
-def test_serialize_yaml_roundtrip():
-    """Dict serializes to YAML and parses back identically."""
-    data = {"rules": {"line-length": {"max": 120}}}
-    result = serialize_yaml(data)
-    assert yaml.safe_load(result) == data
-
-
-def test_serialize_yaml_preserves_key_order():
-    """Key order is preserved (sort_keys=False)."""
-    data = {"zebra": 1, "alpha": 2}
-    result = serialize_yaml(data)
-    lines = result.strip().splitlines()
-    assert lines[0].startswith("zebra")
-    assert lines[1].startswith("alpha")
 
 
 # ---------------------------------------------------------------------------

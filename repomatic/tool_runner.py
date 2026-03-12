@@ -279,16 +279,6 @@ def get_data_file_path(filename: str) -> Iterator[Path]:
 
 
 # ---------------------------------------------------------------------------
-# Serialization
-# ---------------------------------------------------------------------------
-
-
-def serialize_yaml(data: dict[str, Any]) -> str:
-    """Serialize a dict to YAML string."""
-    return yaml.safe_dump(data, default_flow_style=False, sort_keys=False)
-
-
-# ---------------------------------------------------------------------------
 # Config resolution
 # ---------------------------------------------------------------------------
 
@@ -335,7 +325,9 @@ def resolve_config(
 
     if tool_config:
         if spec.native_format == "yaml":
-            content = serialize_yaml(tool_config)
+            content = yaml.safe_dump(
+                tool_config, default_flow_style=False, sort_keys=False
+            )
         else:
             msg = f"Unsupported native format for translation: {spec.native_format}"
             raise ValueError(msg)
