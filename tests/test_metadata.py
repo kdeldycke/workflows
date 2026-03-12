@@ -466,6 +466,7 @@ expected = {
         "repomatic/sponsor.py",
         "repomatic/templates/__init__.py",
         "repomatic/test_plan.py",
+        "repomatic/tool_runner.py",
         "tests/__init__.py",
         "tests/conftest.py",
         "tests/test_binary.py",
@@ -487,6 +488,7 @@ expected = {
         "tests/test_release_sync.py",
         "tests/test_renovate.py",
         "tests/test_sync_renovate.py",
+        "tests/test_tool_runner.py",
         "tests/test_workflow_sync.py",
         "tests/test_workflows.py",
     ],
@@ -507,6 +509,7 @@ expected = {
         ".github/workflows/tests.yaml",
         "repomatic/data/labeller-content-based.yaml",
         "repomatic/data/labeller-file-based.yaml",
+        "repomatic/data/yamllint.yaml",
         "repomatic/data/zizmor.yaml",
         "tests/cli-test-plan.yaml",
         "zizmor.yaml",
@@ -549,6 +552,7 @@ expected = {
         ".github/code-of-conduct.md",
         "changelog.md",
         "claude.md",
+        "docs/specs/tool-runner.md",
         "readme.md",
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
@@ -600,6 +604,7 @@ expected = {
         ".github/code-of-conduct.md",
         "changelog.md",
         "claude.md",
+        "docs/specs/tool-runner.md",
         "readme.md",
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
@@ -1376,7 +1381,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["uv-lock.sync"] is True
     assert metadata.config["workflow.source-paths"] is None
     assert metadata.config["workflow.sync"] is True
-    assert metadata.config["exclude"] == ["labels", "skills", "zizmor"]
+    assert metadata.config["exclude"] == ["labels", "skills", "yamllint", "zizmor"]
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1556,7 +1561,7 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     assert config["labels.extra-content-rules"] == ""
     assert config["pypi-package-history"] == []
     assert config["workflow.sync"] is True
-    assert config["exclude"] == ["labels", "skills", "zizmor"]
+    assert config["exclude"] == ["labels", "skills", "yamllint", "zizmor"]
 
 
 def test_load_repomatic_config_custom_values(tmp_path, monkeypatch):

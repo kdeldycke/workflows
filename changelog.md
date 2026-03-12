@@ -8,6 +8,9 @@
 - Replace `init.exclude` and `workflow.sync-exclude` config keys with a unified `exclude` key. Bare names exclude entire components (e.g., `"skills"`); qualified `component/identifier` entries exclude specific files (e.g., `"workflows/debug.yaml"`, `"skills/repomatic-audit"`, `"labels/labeller-content-based.yaml"`). Old keys are no longer recognized and will produce a hard error.
 - Remove legacy `[tool.gha-utils]` and `[tool.repokit]` config section migration. Projects still using old section names must manually rename to `[tool.repomatic]`.
 - Remove automatic cleanup of legacy `.github/zizmor.{yml,yaml}` files and `.claude/skills/gha-*/` directories during init.
+- Add `repomatic run <tool>` command for unified tool invocation with managed config resolution. Resolves config through a 4-level precedence chain: native config file, `[tool.X]` in `pyproject.toml`, bundled default, bare invocation. Use `--list` to see all managed tools and their active config source.
+- Add `yamllint` init component with bundled default config (`data/yamllint.yaml`). Excluded from init by default like `zizmor`.
+- Migrate yamllint and zizmor workflow steps to `repomatic run`, replacing inline `--config-data` and conditional `repomatic init` steps.
 
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 

@@ -38,6 +38,7 @@ from click_extra import (
     FloatRange,
     IntRange,
     Section,
+    UNPROCESSED,
     UsageError,
     argument,
     dir_path,
@@ -144,6 +145,7 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
+from .tool_runner import TOOL_REGISTRY, resolve_config_source, run_tool
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -2601,6 +2603,51 @@ def lint_changelog(
         fix=fix,
         pypi_package_history=pypi_package_history,
     )
+    ctx.exit(exit_code)
+
+
+TOOL_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Config source")
+"""Column headers for the ``repomatic run --list`` table."""
+
+
+@repomatic.command(
+    name="run",
+    short_help="Run an external tool with managed config",
+    section=_section_lint,
+    context_settings={"ignore_unknown_options": True},
+)
+@argument("tool_name", required=False, default=None)
+@argument("extra_args", nargs=-1, type=UNPROCESSED)
+@option("--list", "list_tools", is_flag=True, help="List all managed tools.")
+@pass_context
+def run_cmd(ctx, tool_name, extra_args, list_tools):
+    """Run an external tool with managed configuration.
+
+    Installs the tool at a pinned version, resolves config through a 4-level
+    precedence chain (native config file, ``[tool.X]`` in ``pyproject.toml``,
+    bundled default, bare invocation), and invokes the tool.
+
+    \b
+    Pass extra arguments to the tool after ``--``:
+        repomatic run yamllint -- --strict .
+        repomatic run zizmor -- --offline .
+
+    \b
+    List all managed tools and their resolved config source:
+        repomatic run --list
+    """
+    if list_tools:
+        rows = [
+            (spec.name, spec.version, resolve_config_source(spec))
+            for spec in sorted(TOOL_REGISTRY.values(), key=lambda s: s.name)
+        ]
+        ctx.find_root().print_table(rows, TOOL_LIST_HEADERS)
+        ctx.exit(0)
+
+    if tool_name is None:
+        raise UsageError("Missing argument 'TOOL_NAME'. Use --list to see available tools.")
+
+    exit_code = run_tool(tool_name, extra_args=extra_args)
     ctx.exit(exit_code)
 
 

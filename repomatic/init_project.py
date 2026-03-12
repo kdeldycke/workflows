@@ -104,6 +104,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "labeller-file-based.yaml": "./.github/labeller-file-based.yaml",
     "labeller-content-based.yaml": "./.github/labeller-content-based.yaml",
     # Linter configuration files.
+    "yamllint.yaml": "./.yamllint.yaml",
     "zizmor.yaml": "./zizmor.yaml",
     # Claude Code skill definitions.
     "skill-repomatic-audit.md": "./.claude/skills/repomatic-audit/SKILL.md",
@@ -596,6 +597,7 @@ def default_version_pin() -> str:
 FILE_COMPONENTS: dict[str, str] = {
     "changelog": "Minimal changelog.md",
     "labels": "Label config files (labels.toml + labeller rules)",
+    "yamllint": "yamllint config (.yamllint.yaml)",
     "zizmor": "Zizmor config (zizmor.yaml)",
     "renovate": "Renovate config (renovate.json5)",
     "skills": "Claude Code skill definitions (.claude/skills/)",
@@ -620,6 +622,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
         ("labels.toml", "labels.toml"),
     ),
+    "yamllint": (("yamllint.yaml", ".yamllint.yaml"),),
     "zizmor": (("zizmor.yaml", "zizmor.yaml"),),
     "renovate": (("renovate.json5", "renovate.json5"),),
     "skills": (
@@ -774,7 +777,7 @@ def run_init(
 
     # Parse exclude config. Raises ValueError on unknown entries.
     exclude_entries: list[str] = config.get(
-        "exclude", ["labels", "skills", "zizmor"]
+        "exclude", ["labels", "skills", "yamllint", "zizmor"]
     )
     excluded_components, excluded_files = parse_exclude(exclude_entries)
 
@@ -822,9 +825,10 @@ def run_init(
                 output_dir, component_name, result, exclude_ids=file_exclude
             )
 
-    # Zizmor: user-owned after initial creation — skip if exists.
-    if "zizmor" in selected:
-        _init_config_files(output_dir, "zizmor", result, skip_if_exists=True)
+    # Linter configs: user-owned after initial creation — skip if exists.
+    for linter in ("yamllint", "zizmor"):
+        if linter in selected:
+            _init_config_files(output_dir, linter, result, skip_if_exists=True)
 
     # Fetch extra label files from [tool.repomatic] config.
     if "labels" in selected:

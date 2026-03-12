@@ -1,0 +1,6 @@
+# Bundled default yamllint configuration for repomatic.
+# Used as a fallback when no native .yamllint.yaml or [tool.yamllint] exists.
+rules:
+  line-length:
+    max: 120
+    allow-non-breakable-words: true

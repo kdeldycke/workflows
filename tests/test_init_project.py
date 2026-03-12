@@ -1085,7 +1085,8 @@ def test_init_default_excludes(
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Labels, skills, and zizmor are excluded by default.
+    # Labels, skills, yamllint, and zizmor are excluded by default.
+    assert ".yamllint.yaml" not in created_set
     assert "labels.toml" not in created_set
     assert "zizmor.yaml" not in created_set
     for _, rel_path in COMPONENT_FILES.get("skills", ()):
@@ -1095,7 +1096,7 @@ def test_init_default_excludes(
     assert "changelog.md" in created_set
     assert "renovate.json5" in created_set
 
-    assert result.excluded == ["labels", "skills", "zizmor"]
+    assert result.excluded == ["labels", "skills", "yamllint", "zizmor"]
 
 
 def test_init_respects_exclude_components(

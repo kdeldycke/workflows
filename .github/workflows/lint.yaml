@@ -89,10 +89,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Run yamllint
-        run: >
-          uvx --no-progress 'yamllint==1.38.0'
-          --strict --format github
-          --config-data "{rules: {line-length: {max: 120, allow-non-breakable-words: true}}}" .
+        run: uvx --no-progress --from . repomatic run yamllint -- .
 
   lint-zsh:
     name: 🐚 Lint Zsh
@@ -168,11 +165,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.3.1
-      - name: Generate zizmor config if missing
-        if: hashFiles('zizmor.yaml') == ''
-        run: uvx --no-progress --from . repomatic init zizmor
       - name: Run zizmor
-        run: uvx --no-progress 'zizmor==1.23.0' --format github --offline .
+        run: uvx --no-progress --from . repomatic run zizmor -- .
 
   lint-awesome:
     name: 🌟 Lint awesome
