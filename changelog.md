@@ -11,6 +11,9 @@
 - Add `repomatic run <tool>` command for unified tool invocation with managed config resolution. Resolves config through a 4-level precedence chain: native config file, `[tool.X]` in `pyproject.toml`, bundled default, bare invocation. Use `--list` to see all managed tools and their active config source.
 - Add `yamllint` init component with bundled default config (`data/yamllint.yaml`). Excluded from init by default like `zizmor`.
 - Migrate yamllint and zizmor workflow steps to `repomatic run`, replacing inline `--config-data` and conditional `repomatic init` steps.
+- Add `autopep8`, `mdformat`, `mypy`, and `pyproject-fmt` to `repomatic run` tool registry with pinned versions and default flags.
+- Add `computed_params` support to `repomatic run` for tools that need parameters derived from project metadata (e.g., mypy's `--python-version` from `requires-python`).
+- Migrate autopep8, mypy, pyproject-fmt, and mdformat workflow steps to `repomatic run`, replacing inline version pins and flag lists.
 
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 

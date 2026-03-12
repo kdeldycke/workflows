@@ -323,23 +323,33 @@ Config lives directly under `[tool.X]` (e.g., `[tool.zizmor]`). If a tool later 
 - Workflow migration: yamllint and zizmor steps in `lint.yaml` use `repomatic run`.
 - `resolve_config_source()` for `--list` diagnostics.
 
-### Phase 2: Remaining formats + binary installs
+### Phase 2: PyPI tools + computed parameters
 
-- TOML serialization (lychee, taplo, mdformat).
-- JSON serialization (biome).
-- CLI-flags adapters (shfmt, autopep8, pyproject-fmt) — these are the only per-tool code, kept minimal.
-- Binary download + SHA-256 verification for actionlint, biome, typos.
-- ToolSpec entries for all remaining tools.
-- Bundled defaults for newly supported tools.
+**Partially implemented.**
 
-### Phase 3: Full workflow migration
+Done:
 
-- Migrate all tool invocations in all workflows to `repomatic run`.
+- `computed_params` support in `run_tool()` via `_resolve_computed_params()`. Lazily imports `Metadata` to avoid circular imports.
+- Registry entries for autopep8, mdformat, mypy, pyproject-fmt.
+- Workflow migration: autopep8, mypy, pyproject-fmt, mdformat steps in `autofix.yaml` and `lint.yaml` use `repomatic run`.
+- mypy uses `computed_params="mypy_params"` for automatic `--python-version` from `requires-python`.
+- mdformat uses `with_packages` for all 17 plugins.
+
+Remaining:
+
+- TOML serialization (lychee, taplo, mdformat `[tool.X]` translation).
+- JSON serialization (biome `[tool.X]` translation).
+- Additional PyPI tool entries (ruff — deferred due to subcommand flag ordering).
+
+### Phase 3: Binary download infrastructure
+
+- Platform detection, download URL templates, SHA-256 verification.
+- Binary tool entries: actionlint, biome, typos, lychee.
+- Workflow migration for binary-installed tools.
+
+### Phase 4: Full workflow migration
+
+- Migrate all remaining tool invocations in all workflows to `repomatic run`.
 - Remove version strings, install steps, and inline configs from workflow YAML.
 - Update Renovate `customManagers` to target the Python registry.
-
-### Phase 4: Computed parameters generalization
-
-- Wire `computed_params` into `repomatic run`.
 - Add computed params for ruff (`target-version`), others as needed.
-- Deprecate `mypy_params` metadata property.

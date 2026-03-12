@@ -130,6 +130,87 @@ class ToolSpec:
 # ---------------------------------------------------------------------------
 
 TOOL_REGISTRY: dict[str, ToolSpec] = {
+    # autopep8 configuration reference:
+    # - CLI flags: https://pypi.org/project/autopep8/
+    #   No config file support; all options via CLI flags.
+    # - Source: https://github.com/hhatto/autopep8
+    "autopep8": ToolSpec(
+        name="autopep8",
+        version="2.3.2",
+        package="autopep8",
+        default_flags=(
+            "--recursive",
+            "--in-place",
+            "--max-line-length",
+            "88",
+            "--select",
+            "E501",
+            "--aggressive",
+        ),
+    ),
+    # mdformat configuration reference:
+    # - Config discovery: https://mdformat.readthedocs.io/en/stable/users/configuration_file.html
+    #   Searches .mdformat.toml in CWD and parents.
+    # - CLI flags: https://mdformat.readthedocs.io/en/stable/users/cli.html
+    #   --number for ordered list numbering; --strict-front-matter for YAML
+    #   front matter validation.
+    # - Source: https://github.com/hukkin/mdformat
+    "mdformat": ToolSpec(
+        name="mdformat",
+        version="1.0.0",
+        package="mdformat",
+        native_config_files=(".mdformat.toml",),
+        native_format="toml",
+        default_flags=("--number", "--strict-front-matter"),
+        with_packages=(
+            "mdformat_admon==2.1.1",
+            "mdformat-config==0.2.1",
+            "mdformat_deflist==0.1.4",
+            "mdformat_footnote==0.1.3",
+            "mdformat-front-matters==2.0.0",
+            "mdformat-gfm==1.0.0",
+            "mdformat_gfm_alerts==2.0.0",
+            "mdformat_myst==0.3.0",
+            "mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@fix-mdformat-1.0.0",
+            "mdformat_pyproject==0.1.1",
+            "mdformat-recover-urls==0.0.2",
+            "mdformat-ruff==0.1.3",
+            "mdformat-shfmt==0.2.0",
+            "mdformat_simple_breaks==0.1.0",
+            "mdformat-toc==0.5.0",
+            "mdformat-web==0.2.0",
+            "ruff==0.15.5",
+        ),
+    ),
+    # mypy configuration reference:
+    # - Config discovery: https://mypy.readthedocs.io/en/stable/config_file.html
+    #   Reads [tool.mypy] from pyproject.toml natively.
+    # - CLI flags: https://mypy.readthedocs.io/en/stable/command_line.html
+    #   --python-version for target version; --color-output for colored output.
+    # - Source: https://github.com/python/mypy
+    "mypy": ToolSpec(
+        name="mypy",
+        version="1.19.1",
+        package="mypy",
+        reads_pyproject=True,
+        needs_venv=True,
+        default_flags=("--color-output",),
+        computed_params="mypy_params",
+    ),
+    # pyproject-fmt configuration reference:
+    # - CLI flags: https://pyproject-fmt.readthedocs.io/en/latest/
+    #   --expand-tables for table expansion. Returns exit code 1 when file is
+    #   reformatted.
+    # - Source: https://github.com/tox-dev/pyproject-fmt
+    "pyproject-fmt": ToolSpec(
+        name="pyproject-fmt",
+        version="2.16.2",
+        package="pyproject-fmt",
+        default_flags=(
+            "--expand-tables",
+            "project.entry-points,project.optional-dependencies,project.urls,project.scripts",
+        ),
+    ),
     # yamllint configuration reference:
     # - Config discovery: https://yamllint.readthedocs.io/en/stable/configuration.html
     #   Searches .yamllint, .yamllint.yaml, .yamllint.yml in CWD and parents.
@@ -322,6 +403,26 @@ def _build_install_args(spec: ToolSpec) -> list[str]:
     return cmd
 
 
+def _resolve_computed_params(spec: ToolSpec) -> list[str]:
+    """Resolve computed parameters from a ``Metadata`` property.
+
+    Lazily imports ``Metadata`` to avoid circular imports and keep startup fast
+    for tools that don't use computed parameters.
+    """
+    if not spec.computed_params:
+        return []
+
+    from .metadata import Metadata
+
+    metadata = Metadata()
+    value: str | None = getattr(metadata, spec.computed_params, None)
+    if value is None:
+        return []
+
+    # The property returns a string like ``"--python-version 3.10"``.
+    return value.split()
+
+
 def run_tool(
     name: str,
     extra_args: Sequence[str] = (),
@@ -352,6 +453,9 @@ def run_tool(
         # CI output format flags.
         if spec.ci_flags and is_github_ci():
             cmd.extend(spec.ci_flags)
+
+        # Computed parameters from Metadata properties.
+        cmd.extend(_resolve_computed_params(spec))
 
         # Config args from resolution.
         if config_args == ["__bundled__"]:

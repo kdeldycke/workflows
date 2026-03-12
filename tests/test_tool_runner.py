@@ -27,6 +27,7 @@ import yaml
 from repomatic.tool_runner import (
     TOOL_REGISTRY,
     ToolSpec,
+    _resolve_computed_params,
     get_data_file_path,
     resolve_config,
     resolve_config_source,
@@ -63,6 +64,12 @@ def test_tool_registry_config_flag_required_for_default_config():
             assert spec.config_flag, (
                 f"{spec.name} has default_config but no config_flag"
             )
+
+
+def test_tool_registry_sorted_alphabetically():
+    """Registry keys are sorted alphabetically."""
+    keys = list(TOOL_REGISTRY.keys())
+    assert keys == sorted(keys)
 
 
 # ---------------------------------------------------------------------------
@@ -320,6 +327,145 @@ def test_run_tool_forwards_exit_code(mock_ci, mock_run, tmp_path, monkeypatch):
 
     exit_code = run_tool("yamllint", extra_args=(".",))
     assert exit_code == 42
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_autopep8_default_flags(mock_ci, mock_run, tmp_path, monkeypatch):
+    """autopep8 runs with all default flags via uvx."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("autopep8", extra_args=("file.py",))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "uvx"
+    assert "autopep8==2.3.2" in " ".join(cmd)
+    assert "--recursive" in cmd
+    assert "--in-place" in cmd
+    assert "--max-line-length" in cmd
+    assert "88" in cmd
+    assert "--select" in cmd
+    assert "E501" in cmd
+    assert "--aggressive" in cmd
+    assert "file.py" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_pyproject_fmt_default_flags(mock_ci, mock_run, tmp_path, monkeypatch):
+    """pyproject-fmt runs with --expand-tables flag via uvx."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("pyproject-fmt", extra_args=("pyproject.toml",))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "uvx"
+    assert "pyproject-fmt==2.16.2" in " ".join(cmd)
+    assert "--expand-tables" in cmd
+    assert "pyproject.toml" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_mdformat_with_packages(mock_ci, mock_run, tmp_path, monkeypatch):
+    """mdformat runs via uvx with all plugin packages."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("mdformat", extra_args=("readme.md",))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "uvx"
+    assert "mdformat==1.0.0" in " ".join(cmd)
+    assert "--number" in cmd
+    assert "--strict-front-matter" in cmd
+    assert "readme.md" in cmd
+    # Verify plugins are passed as --with flags.
+    with_count = cmd.count("--with")
+    spec = TOOL_REGISTRY["mdformat"]
+    assert with_count == len(spec.with_packages)
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner._resolve_computed_params", return_value=["--python-version", "3.10"])
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_mypy_with_computed_params(
+    mock_ci, mock_params, mock_run, tmp_path, monkeypatch,
+):
+    """mypy runs via uv run with computed --python-version param."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("mypy", extra_args=("repomatic/",))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "uv"
+    assert "--no-progress" in cmd
+    assert "run" in cmd
+    assert "--frozen" in cmd
+    assert "mypy==1.19.1" in " ".join(cmd)
+    assert "--color-output" in cmd
+    assert "--python-version" in cmd
+    assert "3.10" in cmd
+    assert "repomatic/" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner._resolve_computed_params", return_value=[])
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_mypy_without_computed_params(
+    mock_ci, mock_params, mock_run, tmp_path, monkeypatch,
+):
+    """mypy runs without computed params when Metadata returns None."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("mypy", extra_args=("repomatic/",))
+
+    cmd = mock_run.call_args[0][0]
+    assert "--color-output" in cmd
+    assert "--python-version" not in cmd
+
+
+# ---------------------------------------------------------------------------
+# _resolve_computed_params
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_computed_params_no_params():
+    """Tools without computed_params return empty list."""
+    spec = ToolSpec(name="test", version="1.0", package="test")
+    assert _resolve_computed_params(spec) == []
+
+
+@patch("repomatic.metadata.Metadata")
+def test_resolve_computed_params_with_value(mock_metadata_cls):
+    """Computed params splits Metadata property value into args."""
+    mock_metadata_cls.return_value.mypy_params = "--python-version 3.10"
+    spec = ToolSpec(
+        name="mypy",
+        version="1.19.1",
+        package="mypy",
+        computed_params="mypy_params",
+    )
+    result = _resolve_computed_params(spec)
+    assert result == ["--python-version", "3.10"]
+
+
+@patch("repomatic.metadata.Metadata")
+def test_resolve_computed_params_none_value(mock_metadata_cls):
+    """Computed params returns empty list when Metadata property is None."""
+    mock_metadata_cls.return_value.mypy_params = None
+    spec = ToolSpec(
+        name="mypy",
+        version="1.19.1",
+        package="mypy",
+        computed_params="mypy_params",
+    )
+    result = _resolve_computed_params(spec)
+    assert result == []
 
 
 # ---------------------------------------------------------------------------
