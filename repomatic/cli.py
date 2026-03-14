@@ -59,7 +59,7 @@ from .binary import (
 )
 from .broken_links import manage_combined_broken_links_issue
 from .changelog import Changelog, lint_changelog_dates
-from .checksums import update_checksums
+from .checksums import update_checksums, update_registry_checksums
 from .deps_graph import (
     generate_dependency_graph,
     get_available_extras,
@@ -2887,13 +2887,23 @@ def pr_body(
 @argument(
     "workflow_file",
     type=file_path(exists=True, readable=True, writable=True, resolve_path=True),
+    required=False,
 )
-def update_checksums_cmd(workflow_file: Path) -> None:
-    """Update SHA-256 checksums for direct binary downloads in a workflow file.
+@option(
+    "--registry",
+    is_flag=True,
+    default=False,
+    help="Update checksums in the tool runner registry instead of a workflow file.",
+)
+def update_checksums_cmd(workflow_file: Path | None, registry: bool) -> None:
+    """Update SHA-256 checksums for direct binary downloads.
 
-    Scans the file for GitHub release download URLs paired with
-    ``sha256sum --check`` verification lines. Downloads each binary,
+    By default, scans a workflow YAML file for GitHub release download URLs
+    paired with ``sha256sum --check`` verification lines. Downloads each binary,
     computes the SHA-256, and replaces stale hashes in-place.
+
+    With ``--registry``, updates checksums in the ``repomatic run`` tool registry
+    for all binary-distributed tools.
 
     \b
     Designed for Renovate ``postUpgradeTasks``: after a version bump changes a
@@ -2905,10 +2915,18 @@ def update_checksums_cmd(workflow_file: Path) -> None:
         repomatic update-checksums .github/workflows/docs.yaml
 
     \b
-        # Verify all checksums are current (no output if all match)
-        repomatic update-checksums .github/workflows/autofix.yaml
+        # Update checksums in the tool runner registry
+        repomatic update-checksums --registry
     """
-    updated = update_checksums(workflow_file)
+    if registry:
+        registry_path = Path(__file__).parent / "tool_runner.py"
+        updated = update_registry_checksums(registry_path)
+    elif workflow_file is not None:
+        updated = update_checksums(workflow_file)
+    else:
+        msg = "Either a workflow file argument or --registry flag is required."
+        raise UsageError(msg)
+
     for url, old_hash, new_hash in updated:
         echo(f"Updated: {url}")
         echo(f"  Old: {old_hash}")

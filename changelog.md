@@ -14,6 +14,10 @@
 - Add `autopep8`, `mdformat`, `mypy`, and `pyproject-fmt` to `repomatic run` tool registry with pinned versions and default flags.
 - Add `computed_params` support to `repomatic run` for tools that need parameters derived from project metadata (e.g., mypy's `--python-version` from `requires-python`).
 - Migrate autopep8, mypy, pyproject-fmt, and mdformat workflow steps to `repomatic run`, replacing inline version pins and flag lists.
+- Add binary download infrastructure to `repomatic run` for tools distributed as platform binaries. Downloads are SHA-256 verified with streaming checksums.
+- Add `actionlint`, `biome`, `lychee`, and `typos` to `repomatic run` tool registry as binary-distributed tools (Linux x64).
+- Migrate actionlint, biome, lychee, and typos workflow steps to `repomatic run`, replacing `curl`/`sha256sum`/`tar` install steps.
+- Extend `repomatic update-checksums --registry` to update SHA-256 hashes in the tool runner registry.
 
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 

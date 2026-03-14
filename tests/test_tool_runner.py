@@ -18,6 +18,10 @@
 
 from __future__ import annotations
 
+import gzip
+import hashlib
+import io
+import tarfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -26,7 +30,13 @@ import yaml
 
 from repomatic.tool_runner import (
     TOOL_REGISTRY,
+    ArchiveFormat,
+    BinarySpec,
     ToolSpec,
+    _download_and_verify,
+    _extract_binary,
+    _get_platform_key,
+    _install_binary,
     get_data_file_path,
     resolve_config,
     resolve_config_source,
@@ -64,10 +74,328 @@ def test_tool_registry_config_flag_required_for_default_config():
             )
 
 
+def test_tool_registry_binary_specs_have_matching_keys():
+    """Every binary tool has matching URL and checksum platform keys."""
+    for name, spec in TOOL_REGISTRY.items():
+        if spec.binary is None:
+            continue
+        assert "linux-x64" in spec.binary.urls, (
+            f"{name} binary missing linux-x64 URL"
+        )
+        assert "linux-x64" in spec.binary.checksums, (
+            f"{name} binary missing linux-x64 checksum"
+        )
+        assert set(spec.binary.checksums.keys()) <= set(spec.binary.urls.keys()), (
+            f"{name} has checksum keys without matching URL keys"
+        )
+
+
+def test_tool_registry_binary_tar_has_archive_executable():
+    """Tar-based binary tools must specify archive_executable."""
+    for name, spec in TOOL_REGISTRY.items():
+        if spec.binary is None:
+            continue
+        if spec.binary.archive_format in (ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_XZ):
+            assert spec.binary.archive_executable is not None, (
+                f"{name} uses tar format but has no archive_executable"
+            )
+
+
 def test_tool_registry_sorted_alphabetically():
     """Registry keys are sorted alphabetically."""
     keys = list(TOOL_REGISTRY.keys())
     assert keys == sorted(keys)
+
+
+# ---------------------------------------------------------------------------
+# Binary download infrastructure
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("platform", "macos", "x64", "arm64", "expected"),
+    [
+        ("linux", False, True, False, "linux-x64"),
+        ("linux", False, False, True, "linux-arm64"),
+        ("not-linux", True, True, False, "macos-x64"),
+        ("not-linux", True, False, True, "macos-arm64"),
+    ],
+)
+def test_get_platform_key(platform, macos, x64, arm64, expected):
+    """Platform key reflects OS and architecture."""
+    with (
+        patch("repomatic.tool_runner.sys") as mock_sys,
+        patch("repomatic.tool_runner.is_macos", return_value=macos),
+        patch("repomatic.tool_runner.is_x86_64", return_value=x64),
+        patch("repomatic.tool_runner.is_aarch64", return_value=arm64),
+    ):
+        mock_sys.platform = platform
+        mock_sys.version_info = (3, 14)
+        assert _get_platform_key() == expected
+
+
+def test_get_platform_key_unsupported_os():
+    """Unsupported OS raises RuntimeError."""
+    with (
+        patch("repomatic.tool_runner.sys") as mock_sys,
+        patch("repomatic.tool_runner.is_macos", return_value=False),
+    ):
+        mock_sys.platform = "win32"
+        with pytest.raises(RuntimeError, match="Linux and macOS"):
+            _get_platform_key()
+
+
+def test_get_platform_key_unsupported_arch():
+    """Unsupported architecture raises RuntimeError."""
+    with (
+        patch("repomatic.tool_runner.sys") as mock_sys,
+        patch("repomatic.tool_runner.is_x86_64", return_value=False),
+        patch("repomatic.tool_runner.is_aarch64", return_value=False),
+    ):
+        mock_sys.platform = "linux"
+        with pytest.raises(RuntimeError, match="x64 and arm64"):
+            _get_platform_key()
+
+
+def test_download_and_verify_success(tmp_path):
+    """Successful download with matching checksum writes the file."""
+    content = b"hello binary world"
+    expected = hashlib.sha256(content).hexdigest()
+    dest = tmp_path / "downloaded"
+
+    mock_response = MagicMock()
+    mock_response.read = MagicMock(side_effect=[content, b""])
+    mock_response.__enter__ = MagicMock(return_value=mock_response)
+    mock_response.__exit__ = MagicMock(return_value=False)
+
+    with patch("repomatic.tool_runner.urlopen", return_value=mock_response):
+        _download_and_verify("https://example.com/file", expected, dest)
+
+    assert dest.exists()
+    assert dest.read_bytes() == content
+
+
+def test_download_and_verify_mismatch(tmp_path):
+    """Checksum mismatch raises ValueError and cleans up."""
+    content = b"hello binary world"
+    dest = tmp_path / "downloaded"
+
+    mock_response = MagicMock()
+    mock_response.read = MagicMock(side_effect=[content, b""])
+    mock_response.__enter__ = MagicMock(return_value=mock_response)
+    mock_response.__exit__ = MagicMock(return_value=False)
+
+    with (
+        patch("repomatic.tool_runner.urlopen", return_value=mock_response),
+        pytest.raises(ValueError, match="SHA-256 mismatch"),
+    ):
+        _download_and_verify("https://example.com/file", "bad" * 16, dest)
+
+    assert not dest.exists()
+
+
+def test_extract_binary_raw(tmp_path):
+    """RAW format renames the archive to the executable name."""
+    archive = tmp_path / "biome-linux-x64"
+    archive.write_bytes(b"\x7fELF fake binary")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.RAW,
+        archive_executable="biome",
+    )
+    result = _extract_binary(archive, spec, tmp_path)
+
+    assert result == tmp_path / "biome"
+    assert result.exists()
+    assert result.stat().st_mode & 0o755
+
+
+def _create_tar_gz(tmp_path, member_name, content=b"#!/bin/sh\necho hi"):
+    """Create a tar.gz archive with a single member."""
+    archive_path = tmp_path / "tool.tar.gz"
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        info = tarfile.TarInfo(name=member_name)
+        info.size = len(content)
+        tar.addfile(info, io.BytesIO(content))
+    archive_path.write_bytes(buf.getvalue())
+    return archive_path
+
+
+def test_extract_binary_tar_gz(tmp_path):
+    """TAR_GZ extracts the named executable and makes it executable."""
+    archive = _create_tar_gz(tmp_path, "actionlint")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.TAR_GZ,
+        archive_executable="actionlint",
+    )
+    result = _extract_binary(archive, spec, tmp_path)
+
+    assert result == tmp_path / "actionlint"
+    assert result.exists()
+    assert result.stat().st_mode & 0o755
+
+
+def test_extract_binary_tar_gz_with_strip_components(tmp_path):
+    """TAR_GZ with strip_components strips leading path components."""
+    archive = _create_tar_gz(tmp_path, "subdir/bin/mytool")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.TAR_GZ,
+        archive_executable="bin/mytool",
+        strip_components=1,
+    )
+    result = _extract_binary(archive, spec, tmp_path)
+
+    assert result.name == "mytool"
+    assert result.exists()
+    assert result.stat().st_mode & 0o755
+
+
+def test_extract_binary_tar_xz(tmp_path):
+    """TAR_XZ extracts the named executable."""
+    archive_path = tmp_path / "tool.tar.xz"
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:xz") as tar:
+        content = b"#!/bin/sh\necho hi"
+        info = tarfile.TarInfo(name="lychee")
+        info.size = len(content)
+        tar.addfile(info, io.BytesIO(content))
+    archive_path.write_bytes(buf.getvalue())
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.TAR_XZ,
+        archive_executable="lychee",
+    )
+    result = _extract_binary(archive_path, spec, tmp_path)
+
+    assert result == tmp_path / "lychee"
+    assert result.exists()
+
+
+def test_extract_binary_tar_missing_executable(tmp_path):
+    """Missing executable in tar archive raises FileNotFoundError."""
+    archive = _create_tar_gz(tmp_path, "other_binary")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.TAR_GZ,
+        archive_executable="nonexistent",
+    )
+    with pytest.raises(FileNotFoundError, match="not found in archive"):
+        _extract_binary(archive, spec, tmp_path)
+
+
+def test_extract_binary_tar_unsafe_path(tmp_path):
+    """Archive member with path traversal raises ValueError."""
+    archive = _create_tar_gz(tmp_path, "../../../etc/passwd")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.TAR_GZ,
+        archive_executable="../../../etc/passwd",
+    )
+    with pytest.raises(ValueError, match="Unsafe archive member"):
+        _extract_binary(archive, spec, tmp_path)
+
+
+def test_install_binary_missing_platform():
+    """Missing platform key in binary spec raises RuntimeError."""
+    spec = ToolSpec(
+        name="testtool",
+        version="1.0.0",
+        package="testtool",
+        binary=BinarySpec(
+            urls={"linux-arm64": "https://example.com/{version}/tool"},
+            checksums={"linux-arm64": "a" * 64},
+            archive_format=ArchiveFormat.RAW,
+            archive_executable="testtool",
+        ),
+    )
+    with (
+        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        pytest.raises(RuntimeError, match="No binary available"),
+    ):
+        _install_binary(spec, Path("/tmp"))
+
+
+# ---------------------------------------------------------------------------
+# run_tool with binary tools
+# ---------------------------------------------------------------------------
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner._install_binary")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_binary_uses_direct_path(
+    mock_ci, mock_install, mock_run, tmp_path, monkeypatch,
+):
+    """Binary tools use the downloaded binary path, not uvx."""
+    monkeypatch.chdir(tmp_path)
+    bin_path = tmp_path / "typos"
+    bin_path.touch()
+    mock_install.return_value = bin_path
+    mock_run.return_value = MagicMock(returncode=0)
+
+    exit_code = run_tool("typos")
+
+    assert exit_code == 0
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == str(bin_path)
+    assert "uvx" not in cmd
+    assert "--write-changes" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner._install_binary")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_binary_forwards_extra_args(
+    mock_ci, mock_install, mock_run, tmp_path, monkeypatch,
+):
+    """Extra args are appended after default flags for binary tools."""
+    monkeypatch.chdir(tmp_path)
+    bin_path = tmp_path / "biome"
+    bin_path.touch()
+    mock_install.return_value = bin_path
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("biome", extra_args=("format", "--write", "file.json"))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == str(bin_path)
+    assert "format" in cmd
+    assert "--write" in cmd
+    assert "file.json" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner._install_binary")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_binary_default_flags(
+    mock_ci, mock_install, mock_run, tmp_path, monkeypatch,
+):
+    """Binary tools include default_flags in the command."""
+    monkeypatch.chdir(tmp_path)
+    bin_path = tmp_path / "actionlint"
+    bin_path.touch()
+    mock_install.return_value = bin_path
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("actionlint")
+
+    cmd = mock_run.call_args[0][0]
+    assert "-color" in cmd
 
 
 # ---------------------------------------------------------------------------

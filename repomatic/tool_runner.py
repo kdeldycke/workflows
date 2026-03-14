@@ -33,17 +33,21 @@ the resolved config.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import subprocess
 import sys
+import tarfile
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
+from enum import Enum
 from importlib.resources import as_file, files
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 import yaml
-from extra_platforms import is_github_ci
+from extra_platforms import is_aarch64, is_github_ci, is_macos, is_x86_64
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -56,6 +60,37 @@ if TYPE_CHECKING:
     from typing import Any
 
     from .metadata import Metadata
+
+
+class ArchiveFormat(Enum):
+    """Archive format for binary tool downloads."""
+
+    RAW = "raw"
+    TAR_GZ = "tar.gz"
+    TAR_XZ = "tar.xz"
+
+
+@dataclass(frozen=True)
+class BinarySpec:
+    """Platform-specific binary download specification.
+
+    Platform keys: ``linux-x64``, ``linux-arm64``, ``macos-x64``, ``macos-arm64``.
+    """
+
+    urls: dict[str, str]
+    """Platform key to URL template mapping. URLs use ``{version}`` placeholders."""
+
+    checksums: dict[str, str]
+    """Platform key to SHA-256 hex digest mapping."""
+
+    archive_format: ArchiveFormat
+    """Archive format of the downloaded file."""
+
+    archive_executable: str | None = None
+    """Path of the executable inside the archive. ``None`` for ``RAW`` format."""
+
+    strip_components: int = 0
+    """Number of leading path components to strip when extracting."""
 
 
 @dataclass(frozen=True)
@@ -127,12 +162,39 @@ class ToolSpec:
     ``requires-python``). ``None`` if no computed params.
     """
 
+    binary: BinarySpec | None = None
+    """Platform-specific binary download spec. When set, the tool is downloaded
+    as a binary instead of installed via ``uvx`` or ``uv run``.
+    """
+
 
 # ---------------------------------------------------------------------------
 # Tool registry
 # ---------------------------------------------------------------------------
 
 TOOL_REGISTRY: dict[str, ToolSpec] = {
+    # actionlint configuration reference:
+    # - Config discovery: https://github.com/rhysd/actionlint/blob/main/docs/config.md
+    #   Searches .github/actionlint.yaml, .github/actionlint.yml.
+    # - CLI flags: https://github.com/rhysd/actionlint/blob/main/docs/usage.md
+    #   -color for colored output; -ignore for suppressing specific errors.
+    # - Source: https://github.com/rhysd/actionlint
+    "actionlint": ToolSpec(
+        name="actionlint",
+        version="1.7.11",
+        package="actionlint",
+        default_flags=("-color",),
+        binary=BinarySpec(
+            urls={
+                "linux-x64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_linux_amd64.tar.gz",
+            },
+            checksums={
+                "linux-x64": "900919a84f2229bac68ca9cd4103ea297abc35e9689ebb842c6e34a3d1b01b0a",
+            },
+            archive_format=ArchiveFormat.TAR_GZ,
+            archive_executable="actionlint",
+        ),
+    ),
     # autopep8 configuration reference:
     # - CLI flags: https://pypi.org/project/autopep8/
     #   No config file support; all options via CLI flags.
@@ -149,6 +211,48 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             "--select",
             "E501",
             "--aggressive",
+        ),
+    ),
+    # biome configuration reference:
+    # - Config discovery: https://biomejs.dev/reference/configuration/
+    #   Searches biome.json, biome.jsonc in CWD and parents.
+    # - CLI flags: https://biomejs.dev/reference/cli/
+    #   format --write for formatting; --no-errors-on-unmatched to skip unknown files.
+    # - Source: https://github.com/biomejs/biome
+    "biome": ToolSpec(
+        name="biome",
+        version="2.4.5",
+        package="biome",
+        binary=BinarySpec(
+            urls={
+                "linux-x64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-linux-x64",
+            },
+            checksums={
+                "linux-x64": "a31815f19b0b90fa043eb23fbf769ed931fbcde6d98bb89894ea8be1387d8394",
+            },
+            archive_format=ArchiveFormat.RAW,
+            archive_executable="biome",
+        ),
+    ),
+    # lychee configuration reference:
+    # - Config discovery: https://lychee.cli.rs/configuration/
+    #   Searches lychee.toml, .lycheerc in CWD.
+    # - CLI flags: https://lychee.cli.rs/usage/cli/
+    #   --format for output format; --hidden to check hidden files.
+    # - Source: https://github.com/lycheeverse/lychee
+    "lychee": ToolSpec(
+        name="lychee",
+        version="0.23.0",
+        package="lychee",
+        binary=BinarySpec(
+            urls={
+                "linux-x64": "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-unknown-linux-gnu.tar.gz",
+            },
+            checksums={
+                "linux-x64": "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81",
+            },
+            archive_format=ArchiveFormat.TAR_GZ,
+            archive_executable="lychee",
         ),
     ),
     # mdformat configuration reference:
@@ -212,6 +316,29 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         default_flags=(
             "--expand-tables",
             "project.entry-points,project.optional-dependencies,project.urls,project.scripts",
+        ),
+    ),
+    # typos configuration reference:
+    # - Config discovery: https://github.com/crate-ci/typos/blob/master/docs/reference.md
+    #   Reads [tool.typos] from pyproject.toml, typos.toml, .typos.toml, _typos.toml.
+    # - CLI flags: https://github.com/crate-ci/typos/blob/master/docs/reference.md
+    #   --write-changes for in-place fixes.
+    # - Source: https://github.com/crate-ci/typos
+    "typos": ToolSpec(
+        name="typos",
+        version="1.44.0",
+        package="typos",
+        reads_pyproject=True,
+        default_flags=("--write-changes",),
+        binary=BinarySpec(
+            urls={
+                "linux-x64": "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-x86_64-unknown-linux-musl.tar.gz",
+            },
+            checksums={
+                "linux-x64": "1b788b7d764e2f20fe089487428a3944ed218d1fb6fcd8eac4230b5893a38779",
+            },
+            archive_format=ArchiveFormat.TAR_GZ,
+            archive_executable="typos",
         ),
     ),
     # yamllint configuration reference:
@@ -368,6 +495,144 @@ def resolve_config(
 
 
 # ---------------------------------------------------------------------------
+# Binary download infrastructure
+# ---------------------------------------------------------------------------
+
+
+def _get_platform_key() -> str:
+    """Return platform key for the current OS and architecture.
+
+    :return: One of ``linux-x64``, ``linux-arm64``, ``macos-x64``, ``macos-arm64``.
+    :raises RuntimeError: If the current platform is not supported.
+    """
+    if sys.platform == "linux":
+        os_part = "linux"
+    elif is_macos():
+        os_part = "macos"
+    else:
+        msg = "Binary downloads are only supported on Linux and macOS."
+        raise RuntimeError(msg)
+
+    if is_x86_64():
+        arch_part = "x64"
+    elif is_aarch64():
+        arch_part = "arm64"
+    else:
+        msg = "Binary downloads are only supported on x64 and arm64 architectures."
+        raise RuntimeError(msg)
+
+    return f"{os_part}-{arch_part}"
+
+
+def _download_and_verify(url: str, expected_sha256: str, dest_path: Path) -> None:
+    """Download a file and verify its SHA-256 checksum.
+
+    Uses streaming download with chunked hash computation to handle large
+    binaries without loading the entire file into memory.
+
+    :param url: URL to download.
+    :param expected_sha256: Expected lowercase hex SHA-256 digest.
+    :param dest_path: Where to write the downloaded file.
+    :raises ValueError: If the checksum does not match.
+    """
+    request = Request(url)
+    sha256 = hashlib.sha256()
+    with urlopen(request) as response, dest_path.open("wb") as f:
+        while chunk := response.read(65536):
+            f.write(chunk)
+            sha256.update(chunk)
+    actual = sha256.hexdigest()
+    if actual != expected_sha256:
+        dest_path.unlink(missing_ok=True)
+        msg = (
+            f"SHA-256 mismatch for {url}: "
+            f"expected {expected_sha256}, got {actual}"
+        )
+        raise ValueError(msg)
+    logging.debug("SHA-256 verified for %s: %s", url, actual)
+
+
+def _extract_binary(archive_path: Path, spec: BinarySpec, dest_dir: Path) -> Path:
+    """Extract the tool executable from a downloaded archive.
+
+    :param archive_path: Path to the downloaded archive file.
+    :param spec: Binary specification with format and executable info.
+    :param dest_dir: Directory to extract into.
+    :return: Path to the extracted executable.
+    :raises FileNotFoundError: If the executable is not found in the archive.
+    """
+    if spec.archive_format == ArchiveFormat.RAW:
+        dest = dest_dir / (spec.archive_executable or "binary")
+        archive_path.rename(dest)
+        dest.chmod(0o755)
+        return dest
+
+    # TAR_GZ or TAR_XZ.
+    target = spec.archive_executable
+    assert target is not None, "archive_executable required for tar archives"
+
+    with tarfile.open(
+        str(archive_path),
+        "r:gz" if spec.archive_format == ArchiveFormat.TAR_GZ else "r:xz",
+    ) as tar:
+        for member in tar.getmembers():
+            parts = Path(member.name).parts
+            if len(parts) <= spec.strip_components:
+                continue
+            stripped = str(Path(*parts[spec.strip_components:]))
+            if stripped == target:
+                # Security: validate member path before extraction.
+                if ".." in Path(member.name).parts or member.name.startswith("/"):
+                    msg = f"Unsafe archive member path: {member.name}"
+                    raise ValueError(msg)
+                if sys.version_info >= (3, 12):
+                    tar.extract(member, dest_dir, filter="data")
+                else:
+                    tar.extract(member, dest_dir)
+                extracted = dest_dir / member.name
+                final = dest_dir / Path(target).name
+                if extracted != final:
+                    extracted.rename(final)
+                final.chmod(0o755)
+                return final
+
+    msg = f"Executable {target!r} not found in archive"
+    raise FileNotFoundError(msg)
+
+
+def _install_binary(spec: ToolSpec, tmp_dir: Path) -> Path:
+    """Download, verify, and extract a binary tool.
+
+    :param spec: Tool specification with ``binary`` set.
+    :param tmp_dir: Temporary directory for download and extraction.
+    :return: Path to the ready-to-run executable.
+    :raises RuntimeError: If no binary is available for the current platform.
+    """
+    binary = spec.binary
+    assert binary is not None
+
+    platform_key = _get_platform_key()
+    if platform_key not in binary.urls:
+        msg = (
+            f"No binary available for platform {platform_key!r}. "
+            f"Available: {', '.join(sorted(binary.urls))}"
+        )
+        raise RuntimeError(msg)
+
+    url = binary.urls[platform_key].format(version=spec.version)
+    checksum = binary.checksums[platform_key]
+
+    # Derive archive filename from URL.
+    archive_name = url.rsplit("/", 1)[-1]
+    archive_path = tmp_dir / archive_name
+
+    logging.info("Downloading %s %s for %s...", spec.name, spec.version, platform_key)
+    _download_and_verify(url, checksum, archive_path)
+
+    return _extract_binary(archive_path, binary, tmp_dir)
+
+
+# ---------------------------------------------------------------------------
 # Tool invocation
 # ---------------------------------------------------------------------------
 
@@ -417,8 +682,17 @@ def run_tool(
     spec = TOOL_REGISTRY[name]
     config_args, tmp_path = resolve_config(spec)
 
+    bin_dir = None
     try:
-        cmd = _build_install_args(spec)
+        # Build command prefix: binary download or uvx/uv-run.
+        if spec.binary is not None:
+            bin_dir = tempfile.TemporaryDirectory(
+                prefix=f"repomatic-{name}-bin-",
+            )
+            bin_path = _install_binary(spec, Path(bin_dir.name))
+            cmd = [str(bin_path)]
+        else:
+            cmd = _build_install_args(spec)
 
         # Default flags (always applied).
         if spec.default_flags:
@@ -455,6 +729,8 @@ def run_tool(
         return result.returncode
 
     finally:
+        if bin_dir is not None:
+            bin_dir.cleanup()
         if tmp_path is not None:
             logging.debug("Cleaning up temp config: %s", tmp_path)
             tmp_path.unlink(missing_ok=True)

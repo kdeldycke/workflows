@@ -22,7 +22,11 @@ from unittest.mock import patch
 
 import pytest
 
-from repomatic.checksums import _find_checksum_pairs, update_checksums
+from repomatic.checksums import (
+    _find_checksum_pairs,
+    update_checksums,
+    update_registry_checksums,
+)
 
 FAKE_HASH_OLD = "a" * 64
 FAKE_HASH_NEW = "b" * 64
@@ -114,3 +118,69 @@ def test_update_checksums_noop_when_hash_matches(tmp_path):
 
     assert updated == []
     assert workflow.read_text(encoding="UTF-8") == content
+
+
+# ---------------------------------------------------------------------------
+# Registry checksum updates
+# ---------------------------------------------------------------------------
+
+
+def test_update_registry_checksums_replaces_stale_hash(tmp_path):
+    """update_registry_checksums replaces stale hashes in Python source."""
+    from repomatic.tool_runner import TOOL_REGISTRY
+
+    # Pick the first binary tool's checksum to test replacement.
+    binary_spec = None
+    for spec in TOOL_REGISTRY.values():
+        if spec.binary is not None:
+            binary_spec = spec
+            break
+    assert binary_spec is not None
+
+    old_hash = next(iter(binary_spec.binary.checksums.values()))
+
+    # Write a fake registry file containing the real checksum.
+    registry = tmp_path / "tool_runner.py"
+    registry.write_text(
+        f'    checksums={{\n'
+        f'        "linux-x64": "{old_hash}",\n'
+        f'    }},\n',
+        encoding="UTF-8",
+    )
+
+    with patch("repomatic.checksums._download_sha256", return_value=FAKE_HASH_NEW):
+        updated = update_registry_checksums(registry)
+
+    # All binary tools get updated because mock returns a different hash.
+    assert len(updated) >= 1
+    content = registry.read_text(encoding="UTF-8")
+    # The old checksum from the picked tool should be replaced.
+    assert old_hash not in content
+    assert FAKE_HASH_NEW in content
+
+
+def test_update_registry_checksums_noop_when_current(tmp_path):
+    """update_registry_checksums does not rewrite when all hashes match."""
+    registry = tmp_path / "tool_runner.py"
+    content = "# no checksums to update\n"
+    registry.write_text(content, encoding="UTF-8")
+
+    # Mock _download_sha256 to return the same hash for all tools.
+    def same_hash(url):
+        # Return the actual checksum from the registry so nothing changes.
+        from repomatic.tool_runner import TOOL_REGISTRY
+
+        for spec in TOOL_REGISTRY.values():
+            if spec.binary is None:
+                continue
+            for platform_key, url_template in spec.binary.urls.items():
+                resolved = url_template.format(version=spec.version)
+                if resolved == url:
+                    return spec.binary.checksums[platform_key]
+        return FAKE_HASH_OLD
+
+    with patch("repomatic.checksums._download_sha256", side_effect=same_hash):
+        updated = update_registry_checksums(registry)
+
+    assert updated == []
+    assert registry.read_text(encoding="UTF-8") == content

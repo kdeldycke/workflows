@@ -14,11 +14,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Update SHA-256 checksums for direct binary downloads in workflow files.
+"""Update SHA-256 checksums for binary downloads.
 
-Scans workflow files for GitHub release download URLs paired with
-``sha256sum --check`` verification lines. Downloads each binary, computes
-the SHA-256, and replaces stale hashes in-place.
+Two update modes:
+
+1. **Workflow files** — scans for GitHub release download URLs paired with
+   ``sha256sum --check`` verification lines. Replaces stale hashes in-place.
+2. **Tool registry** — iterates ``TOOL_REGISTRY`` entries with ``binary``
+   specs, downloads each URL, and replaces stale hashes in ``tool_runner.py``.
 
 Designed to be called by Renovate ``postUpgradeTasks`` after version bumps,
 but also works standalone for manual checksum updates.
@@ -31,6 +34,8 @@ import logging
 import re
 from pathlib import Path
 from urllib.request import Request, urlopen
+
+from .tool_runner import TOOL_REGISTRY
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -114,5 +119,41 @@ def update_checksums(file_path: Path) -> list[tuple[str, str, str]]:
 
     if updated:
         file_path.write_text("\n".join(lines) + "\n", encoding="UTF-8")
+
+    return updated
+
+
+def update_registry_checksums(registry_path: Path) -> list[tuple[str, str, str]]:
+    """Update SHA-256 checksums for binary tools in the tool runner registry.
+
+    Iterates all ``TOOL_REGISTRY`` entries with ``binary`` specs, downloads
+    each URL, computes the SHA-256, and replaces stale hashes in-place in the
+    Python source file.
+
+    :param registry_path: Path to ``tool_runner.py``.
+    :return: List of (url, old_hash, new_hash) for each updated checksum.
+        Empty if all checksums are already correct.
+    """
+    content = registry_path.read_text(encoding="UTF-8")
+    updated: list[tuple[str, str, str]] = []
+
+    for spec in TOOL_REGISTRY.values():
+        if spec.binary is None:
+            continue
+        for platform_key, url_template in spec.binary.urls.items():
+            url = url_template.format(version=spec.version)
+            old_hash = spec.binary.checksums[platform_key]
+            logging.info(f"Verifying registry checksum for {spec.name} ({platform_key})")
+            new_hash = _download_sha256(url)
+
+            if old_hash != new_hash:
+                content = content.replace(old_hash, new_hash)
+                updated.append((url, old_hash, new_hash))
+                logging.info(f"Updated checksum: {old_hash} -> {new_hash}")
+            else:
+                logging.info("Checksum unchanged.")
+
+    if updated:
+        registry_path.write_text(content, encoding="UTF-8")
 
     return updated

@@ -91,14 +91,6 @@ jobs:
           uv --no-progress run --frozen --all-extras --group docs --
           sphinx-build -b linkcheck ./docs ./docs/linkcheck
         continue-on-error: true
-      - name: Install lychee
-        if: fromJSON(needs.metadata.outputs.metadata).doc_files
-        run: |
-          curl -fsSL --output /tmp/lychee.tar.gz \
-            "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.23.0/lychee-x86_64-unknown-linux-gnu.tar.gz"
-          echo "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81  /tmp/lychee.tar.gz" \
-            | sha256sum --check
-          tar xzf /tmp/lychee.tar.gz -C /usr/local/bin lychee
       - name: Run lychee
         if: fromJSON(needs.metadata.outputs.metadata).doc_files
         id: lychee_run
@@ -108,7 +100,8 @@ jobs:
         run: |
           exit_code=0
           echo "${DOC_FILES}" | xargs \
-            lychee --format markdown --output ./lychee/out.md \
+            uvx --no-progress --from . repomatic run lychee -- \
+            --format markdown --output ./lychee/out.md \
             --hidden --suggest --no-progress --include-fragments --exclude-all-private \
             || exit_code=$?
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"

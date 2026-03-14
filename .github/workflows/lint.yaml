@@ -118,15 +118,9 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Install actionlint and shellcheck
-        run: |
-          curl -fsSL --output /tmp/actionlint.tar.gz \
-            "https://github.com/rhysd/actionlint/releases/download/v1.7.11/actionlint_1.7.11_linux_amd64.tar.gz"
-          echo "900919a84f2229bac68ca9cd4103ea297abc35e9689ebb842c6e34a3d1b01b0a  /tmp/actionlint.tar.gz" \
-            | sha256sum --check
-          tar xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
-          sudo apt update
-          sudo apt install --yes shellcheck
+      - uses: astral-sh/setup-uv@v7.3.1
+      - name: Install shellcheck
+        run: sudo apt update && sudo apt install --yes shellcheck
       - name: Setup problem matcher
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
         run: |
@@ -143,7 +137,7 @@ jobs:
         #     |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # See: https://github.com/rhysd/actionlint/issues/148
         run: >
-          actionlint -color
+          uvx --no-progress --from . repomatic run actionlint --
           -ignore 'property "workflow_update_github_pat" is not defined in .+'
 
   lint-workflow-security:

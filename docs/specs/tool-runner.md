@@ -343,9 +343,22 @@ Remaining:
 
 ### Phase 3: Binary download infrastructure
 
-- Platform detection, download URL templates, SHA-256 verification.
-- Binary tool entries: actionlint, biome, typos, lychee.
-- Workflow migration for binary-installed tools.
+**Implemented.** See `repomatic/tool_runner.py` for `ArchiveFormat`, `BinarySpec`, and download infrastructure.
+
+Done:
+
+- `ArchiveFormat` enum (RAW, TAR_GZ, TAR_XZ) and `BinarySpec` dataclass for platform-specific binary downloads.
+- `binary` field on `ToolSpec` for binary-distributed tools.
+- Platform detection (`_get_platform_key()`), streaming download with SHA-256 verification (`_download_and_verify()`), archive extraction (`_extract_binary()`), and orchestration (`_install_binary()`).
+- Registry entries for actionlint, biome, lychee, typos (Linux x64 only).
+- `run_tool()` binary code path: downloads to temp directory, runs binary directly (no uvx), cleans up after.
+- Workflow migration: actionlint (`lint.yaml`), biome and typos (`autofix.yaml`), lychee (`docs.yaml`) — `curl`/`sha256sum`/`tar` install steps replaced with `repomatic run`.
+- `update_registry_checksums()` in `checksums.py` for updating binary tool checksums in the Python source file.
+- `repomatic update-checksums --registry` CLI flag.
+
+Remaining:
+
+- Multi-platform URLs/checksums (linux-arm64, macos-x64, macos-arm64) for binary tools.
 
 ### Phase 4: Full workflow migration
 
