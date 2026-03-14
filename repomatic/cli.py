@@ -30,6 +30,7 @@ from urllib.request import Request, urlopen
 
 from boltons.iterutils import unique
 from click_extra import (
+    UNPROCESSED,
     Choice,
     ClickException,
     Context,
@@ -38,7 +39,6 @@ from click_extra import (
     FloatRange,
     IntRange,
     Section,
-    UNPROCESSED,
     UsageError,
     argument,
     dir_path,
@@ -930,9 +930,7 @@ def _apply_workflow_config(
         default_names = ALL_WORKFLOW_FILES
 
     # Apply exclude list.
-    exclude_entries: list[str] = config.get(
-        "exclude", ["labels", "skills", "zizmor"]
-    )
+    exclude_entries: list[str] = config.get("exclude", ["labels", "skills", "zizmor"])
     excluded_components, excluded_files = parse_exclude(exclude_entries)
 
     # If "workflows" component is fully excluded, skip all.
@@ -2645,7 +2643,9 @@ def run_cmd(ctx, tool_name, extra_args, list_tools):
         ctx.exit(0)
 
     if tool_name is None:
-        raise UsageError("Missing argument 'TOOL_NAME'. Use --list to see available tools.")
+        raise UsageError(
+            "Missing argument 'TOOL_NAME'. Use --list to see available tools."
+        )
 
     exit_code = run_tool(tool_name, extra_args=extra_args)
     ctx.exit(exit_code)

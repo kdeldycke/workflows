@@ -437,7 +437,9 @@ def resolve_config(
     """
     # Tools that read pyproject.toml natively need no config resolution.
     if spec.reads_pyproject:
-        logging.debug("%s reads pyproject.toml natively. Skipping resolution.", spec.name)
+        logging.debug(
+            "%s reads pyproject.toml natively. Skipping resolution.", spec.name
+        )
         return [], None
 
     # Level 1: Native config file exists in the repo.
@@ -544,10 +546,7 @@ def _download_and_verify(url: str, expected_sha256: str, dest_path: Path) -> Non
     actual = sha256.hexdigest()
     if actual != expected_sha256:
         dest_path.unlink(missing_ok=True)
-        msg = (
-            f"SHA-256 mismatch for {url}: "
-            f"expected {expected_sha256}, got {actual}"
-        )
+        msg = f"SHA-256 mismatch for {url}: expected {expected_sha256}, got {actual}"
         raise ValueError(msg)
     logging.debug("SHA-256 verified for %s: %s", url, actual)
 
@@ -579,7 +578,7 @@ def _extract_binary(archive_path: Path, spec: BinarySpec, dest_dir: Path) -> Pat
             parts = Path(member.name).parts
             if len(parts) <= spec.strip_components:
                 continue
-            stripped = str(Path(*parts[spec.strip_components:]))
+            stripped = str(Path(*parts[spec.strip_components :]))
             if stripped == target:
                 # Security: validate member path before extraction.
                 if ".." in Path(member.name).parts or member.name.startswith("/"):

@@ -142,9 +142,7 @@ def test_update_registry_checksums_replaces_stale_hash(tmp_path):
     # Write a fake registry file containing the real checksum.
     registry = tmp_path / "tool_runner.py"
     registry.write_text(
-        f'    checksums={{\n'
-        f'        "linux-x64": "{old_hash}",\n'
-        f'    }},\n',
+        f'    checksums={{\n        "linux-x64": "{old_hash}",\n    }},\n',
         encoding="UTF-8",
     )
 

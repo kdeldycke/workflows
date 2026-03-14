@@ -18,7 +18,6 @@
 
 from __future__ import annotations
 
-import gzip
 import hashlib
 import io
 import tarfile
@@ -42,7 +41,6 @@ from repomatic.tool_runner import (
     resolve_config_source,
     run_tool,
 )
-
 
 # ---------------------------------------------------------------------------
 # ToolSpec and registry validation
@@ -79,9 +77,7 @@ def test_tool_registry_binary_specs_have_matching_keys():
     for name, spec in TOOL_REGISTRY.items():
         if spec.binary is None:
             continue
-        assert "linux-x64" in spec.binary.urls, (
-            f"{name} binary missing linux-x64 URL"
-        )
+        assert "linux-x64" in spec.binary.urls, f"{name} binary missing linux-x64 URL"
         assert "linux-x64" in spec.binary.checksums, (
             f"{name} binary missing linux-x64 checksum"
         )
@@ -339,7 +335,11 @@ def test_install_binary_missing_platform():
 @patch("repomatic.tool_runner._install_binary")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_binary_uses_direct_path(
-    mock_ci, mock_install, mock_run, tmp_path, monkeypatch,
+    mock_ci,
+    mock_install,
+    mock_run,
+    tmp_path,
+    monkeypatch,
 ):
     """Binary tools use the downloaded binary path, not uvx."""
     monkeypatch.chdir(tmp_path)
@@ -361,7 +361,11 @@ def test_run_tool_binary_uses_direct_path(
 @patch("repomatic.tool_runner._install_binary")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_binary_forwards_extra_args(
-    mock_ci, mock_install, mock_run, tmp_path, monkeypatch,
+    mock_ci,
+    mock_install,
+    mock_run,
+    tmp_path,
+    monkeypatch,
 ):
     """Extra args are appended after default flags for binary tools."""
     monkeypatch.chdir(tmp_path)
@@ -383,7 +387,11 @@ def test_run_tool_binary_forwards_extra_args(
 @patch("repomatic.tool_runner._install_binary")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_binary_default_flags(
-    mock_ci, mock_install, mock_run, tmp_path, monkeypatch,
+    mock_ci,
+    mock_install,
+    mock_run,
+    tmp_path,
+    monkeypatch,
 ):
     """Binary tools include default_flags in the command."""
     monkeypatch.chdir(tmp_path)
@@ -422,7 +430,9 @@ def test_resolve_config_native_file_wins(tmp_path, monkeypatch):
     (tmp_path / ".yamllint.yaml").write_text("rules: {}")
 
     spec = TOOL_REGISTRY["yamllint"]
-    args, tmp = resolve_config(spec, tool_config={"rules": {"line-length": {"max": 80}}})
+    args, tmp = resolve_config(
+        spec, tool_config={"rules": {"line-length": {"max": 80}}}
+    )
     assert args == []
     assert tmp is None
 
@@ -513,7 +523,7 @@ def test_resolve_config_source_pyproject_section(tmp_path, monkeypatch):
     """Reports [tool.X] when pyproject.toml has the section."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
-        '[tool.yamllint]\nrules = {line-length = {max = 80}}\n'
+        "[tool.yamllint]\nrules = {line-length = {max = 80}}\n"
     )
 
     result = resolve_config_source(TOOL_REGISTRY["yamllint"])
@@ -587,7 +597,9 @@ def test_run_tool_ci_flags(mock_ci, mock_run, tmp_path, monkeypatch):
 
 @patch("repomatic.tool_runner.subprocess.run")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
-def test_run_tool_native_config_no_extra_flags(mock_ci, mock_run, tmp_path, monkeypatch):
+def test_run_tool_native_config_no_extra_flags(
+    mock_ci, mock_run, tmp_path, monkeypatch
+):
     """Tool with native config file gets no config flags from repomatic."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "zizmor.yaml").write_text("rules: {}")
@@ -607,9 +619,7 @@ def test_run_tool_pyproject_section_temp_file(mock_ci, mock_run, tmp_path, monke
     """[tool.X] translation creates a temp file and cleans it up."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text(
-        "[tool.zizmor]\n"
-        "[tool.zizmor.rules.artipacked]\n"
-        "disable = true\n"
+        "[tool.zizmor]\n[tool.zizmor.rules.artipacked]\ndisable = true\n"
     )
     mock_run.return_value = MagicMock(returncode=0)
 
@@ -697,7 +707,11 @@ def test_run_tool_mdformat_with_packages(mock_ci, mock_run, tmp_path, monkeypatc
 @patch("repomatic.metadata.Metadata")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_mypy_with_computed_params(
-    mock_ci, mock_metadata_cls, mock_run, tmp_path, monkeypatch,
+    mock_ci,
+    mock_metadata_cls,
+    mock_run,
+    tmp_path,
+    monkeypatch,
 ):
     """mypy runs via uv run with computed --python-version param."""
     monkeypatch.chdir(tmp_path)
@@ -722,7 +736,11 @@ def test_run_tool_mypy_with_computed_params(
 @patch("repomatic.metadata.Metadata")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_mypy_without_computed_params(
-    mock_ci, mock_metadata_cls, mock_run, tmp_path, monkeypatch,
+    mock_ci,
+    mock_metadata_cls,
+    mock_run,
+    tmp_path,
+    monkeypatch,
 ):
     """mypy runs without computed params when Metadata returns None."""
     monkeypatch.chdir(tmp_path)
@@ -751,5 +769,8 @@ def test_get_data_file_path_existing():
 
 def test_get_data_file_path_missing():
     """Missing data files raise FileNotFoundError."""
-    with pytest.raises(FileNotFoundError, match="not found"), get_data_file_path("nonexistent.yaml"):
+    with (
+        pytest.raises(FileNotFoundError, match="not found"),
+        get_data_file_path("nonexistent.yaml"),
+    ):
         pass

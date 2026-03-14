@@ -787,7 +787,11 @@ def run_init(
         selected -= excluded_components
         result.excluded = sorted(
             list(actually_excluded)
-            + [f"{c}/{f}" for c, fs in sorted(excluded_files.items()) for f in sorted(fs)]
+            + [
+                f"{c}/{f}"
+                for c, fs in sorted(excluded_files.items())
+                for f in sorted(fs)
+            ]
         )
 
         # Warn about excluded components whose files still exist on disk.
@@ -1009,5 +1013,3 @@ def _init_tool_configs(
                 logging.info(f"Merged [{section}].")
                 if rel not in result.created:
                     result.created.append(rel)
-
-
