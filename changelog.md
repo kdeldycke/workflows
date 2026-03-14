@@ -21,6 +21,9 @@
 
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 
+> [!NOTE]
+> `6.4.1` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.4.1/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.4.1).
+
 - Add `github-json` output dialect for `repomatic metadata`. Bundles all metadata keys into a single `metadata` JSON output, eliminating manual per-key `outputs:` declarations in GitHub Actions workflows. Downstream jobs access values via `fromJSON(needs.metadata.outputs.metadata).key_name`.
 - Migrate all workflow `metadata` jobs to `--format github-json` with explicit key filtering, reducing each job's `outputs:` section to a single static line.
 - Rename `project-metadata` job and step IDs to `metadata` in all workflows, shortening downstream expressions.
