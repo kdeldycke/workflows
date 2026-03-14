@@ -139,22 +139,22 @@ Notable simplifications vs. the previous draft:
 
 ### Which tools need translation?
 
-| Tool | `reads_pyproject` | `native_config_files` | `native_format` | `config_flag` |
-|---|---|---|---|---|
-| mypy | True | `mypy.ini` | — | — |
-| ruff | True | `ruff.toml`, `.ruff.toml` | — | — |
-| typos | True | `typos.toml`, `.typos.toml` | — | — |
-| pytest | True | `pytest.ini` | — | — |
-| yamllint | False | `.yamllint.yaml`, `.yamllint.yml` | yaml | `--config-file` |
-| zizmor | False | `zizmor.yaml` | yaml | `--config` |
-| actionlint | False | `.github/actionlint.yaml` | yaml | `-config-file` |
-| lychee | False | `lychee.toml`, `.lycheerc` | toml | `--config` |
-| biome | False | `biome.json`, `biome.jsonc` | json | `--config-path` |
-| taplo | False | `.taplo.toml`, `taplo.toml` | toml | `--config` |
-| shfmt | False | — | cli-flags | — |
-| autopep8 | False | — | cli-flags | — |
-| pyproject-fmt | False | — | cli-flags | — |
-| mdformat | False | `.mdformat.toml` | toml | — |
+| Tool          | `reads_pyproject` | `native_config_files`             | `native_format` | `config_flag`   |
+| ------------- | ----------------- | --------------------------------- | --------------- | --------------- |
+| mypy          | True              | `mypy.ini`                        | —               | —               |
+| ruff          | True              | `ruff.toml`, `.ruff.toml`         | —               | —               |
+| typos         | True              | `typos.toml`, `.typos.toml`       | —               | —               |
+| pytest        | True              | `pytest.ini`                      | —               | —               |
+| yamllint      | False             | `.yamllint.yaml`, `.yamllint.yml` | yaml            | `--config-file` |
+| zizmor        | False             | `zizmor.yaml`                     | yaml            | `--config`      |
+| actionlint    | False             | `.github/actionlint.yaml`         | yaml            | `-config-file`  |
+| lychee        | False             | `lychee.toml`, `.lycheerc`        | toml            | `--config`      |
+| biome         | False             | `biome.json`, `biome.jsonc`       | json            | `--config-path` |
+| taplo         | False             | `.taplo.toml`, `taplo.toml`       | toml            | `--config`      |
+| shfmt         | False             | —                                 | cli-flags       | —               |
+| autopep8      | False             | —                                 | cli-flags       | —               |
+| pyproject-fmt | False             | —                                 | cli-flags       | —               |
+| mdformat      | False             | `.mdformat.toml`                  | toml            | —               |
 
 ### Config resolution logic
 
@@ -178,67 +178,67 @@ For tools that don't read `pyproject.toml`, new bundled defaults in native forma
 Before (zizmor — 5 lines, conditional init + separate invocation):
 
 ```yaml
-- name: Generate zizmor config if missing
-  if: hashFiles('zizmor.yaml') == ''
-  run: uvx --no-progress --from . repomatic init zizmor
-- name: Run zizmor
-  run: uvx --no-progress 'zizmor==1.23.0' --format github --offline .
+  - name: Generate zizmor config if missing
+    if: hashFiles('zizmor.yaml') == ''
+    run: uvx --no-progress --from . repomatic init zizmor
+  - name: Run zizmor
+    run: uvx --no-progress 'zizmor==1.23.0' --format github --offline .
 ```
 
 After (1 line — `--offline` is a `default_flags` so it's automatic):
 
 ```yaml
-- name: Run zizmor
-  run: uvx --no-progress --from . repomatic run zizmor -- .
+  - name: Run zizmor
+    run: uvx --no-progress --from . repomatic run zizmor -- .
 ```
 
 Before (yamllint — inline config baked into YAML):
 
 ```yaml
-- name: Run yamllint
-  run: >
-    uvx --no-progress 'yamllint==1.38.0'
-    --strict --format github
-    --config-data "{rules: {line-length: {max: 120}}}" .
+  - name: Run yamllint
+    run: >
+      uvx --no-progress 'yamllint==1.38.0'
+      --strict --format github
+      --config-data "{rules: {line-length: {max: 120}}}" .
 ```
 
 After (`--strict` is a `default_flags` so it's automatic):
 
 ```yaml
-- name: Run yamllint
-  run: uvx --no-progress --from . repomatic run yamllint -- .
+  - name: Run yamllint
+    run: uvx --no-progress --from . repomatic run yamllint -- .
 ```
 
 Before (actionlint — 15+ lines for install + checksums + matcher + run):
 
 ```yaml
-- name: Install actionlint and shellcheck
-  run: |
-    curl -fsSL --output /tmp/actionlint.tar.gz \
-      "https://github.com/rhysd/actionlint/.../actionlint_1.7.11_linux_amd64.tar.gz"
-    echo "900919a8...  /tmp/actionlint.tar.gz" | sha256sum --check
-    tar xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
-    sudo apt update && sudo apt install --yes shellcheck
-- name: Setup problem matcher
-  run: |
-    curl -fsSL --output ./.github/actionlint-matcher.json \
-      https://raw.githubusercontent.com/.../actionlint-matcher.json
-    echo "::add-matcher::.github/actionlint-matcher.json"
-- name: Run actionlint
-  run: >
-    actionlint -color
-    -ignore 'property "workflow_update_github_pat" is not defined in .+'
+  - name: Install actionlint and shellcheck
+    run: |
+      curl -fsSL --output /tmp/actionlint.tar.gz \
+        "https://github.com/rhysd/actionlint/.../actionlint_1.7.11_linux_amd64.tar.gz"
+      echo "900919a8...  /tmp/actionlint.tar.gz" | sha256sum --check
+      tar xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
+      sudo apt update && sudo apt install --yes shellcheck
+  - name: Setup problem matcher
+    run: |
+      curl -fsSL --output ./.github/actionlint-matcher.json \
+        https://raw.githubusercontent.com/.../actionlint-matcher.json
+      echo "::add-matcher::.github/actionlint-matcher.json"
+  - name: Run actionlint
+    run: >
+      actionlint -color
+      -ignore 'property "workflow_update_github_pat" is not defined in .+'
 ```
 
 After (phase 2 with binary support):
 
 ```yaml
-- name: Install shellcheck
-  run: sudo apt install --yes shellcheck
-- name: Run actionlint
-  run: >
-    uvx --no-progress --from . repomatic run actionlint
-    -- -ignore 'property "workflow_update_github_pat" is not defined in .+'
+  - name: Install shellcheck
+    run: sudo apt install --yes shellcheck
+  - name: Run actionlint
+    run: >
+      uvx --no-progress --from . repomatic run actionlint
+      -- -ignore 'property "workflow_update_github_pat" is not defined in .+'
 ```
 
 System dependencies (shellcheck) remain as separate workflow steps — repomatic manages tool binaries, not OS packages.
