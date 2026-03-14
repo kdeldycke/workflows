@@ -30,7 +30,6 @@ from repomatic.init_project import (
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     EXPORTABLE_FILES,
-    FILE_COMPONENTS,
     INIT_CONFIGS,
     _file_id,
     _to_pyproject_format,
@@ -1071,9 +1070,7 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
 # --- Init exclusion tests ---
 
 
-def test_init_default_excludes(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
+def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify default exclude skips labels, skills, and zizmor."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -1200,9 +1197,7 @@ def test_init_respects_exclude_label_files(
     assert ".github/labeller-file-based.yaml" in created_set
 
 
-def test_init_mixed_exclude(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
+def test_init_mixed_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify exclude with both component and file entries."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -1304,7 +1299,9 @@ def test_all_data_files_registered_in_exportable_files() -> None:
 
     registered = set(EXPORTABLE_FILES.keys())
     unregistered = on_disk - registered
-    assert not unregistered, f"Data files not in EXPORTABLE_FILES: {sorted(unregistered)}"
+    assert not unregistered, f"Data files not in EXPORTABLE_FILES: {
+        sorted(unregistered)
+    }"
 
 
 def test_every_data_file_maps_to_a_component() -> None:
@@ -1327,7 +1324,9 @@ def test_every_data_file_maps_to_a_component() -> None:
 
     covered = component_filenames | tool_filenames | workflow_filenames
     uncovered = set(EXPORTABLE_FILES.keys()) - covered
-    assert not uncovered, f"EXPORTABLE_FILES entries not mapped to any component: {sorted(uncovered)}"
+    assert not uncovered, f"EXPORTABLE_FILES entries not mapped to any component: {
+        sorted(uncovered)
+    }"
 
 
 def test_no_data_file_claimed_by_multiple_components() -> None:
@@ -1439,5 +1438,3 @@ def test_parse_exclude_rejects_invalid_entries(entry: str, match: str) -> None:
     """Invalid exclude entries produce hard ValueError failures."""
     with pytest.raises(ValueError, match=match):
         parse_exclude([entry])
-
-
