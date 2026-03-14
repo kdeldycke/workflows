@@ -143,7 +143,9 @@ def update_registry_checksums(registry_path: Path) -> list[tuple[str, str, str]]
         for platform_key, url_template in spec.binary.urls.items():
             url = url_template.format(version=spec.version)
             old_hash = spec.binary.checksums[platform_key]
-            logging.info(f"Verifying registry checksum for {spec.name} ({platform_key})")
+            logging.info(
+                f"Verifying registry checksum for {spec.name} ({platform_key})"
+            )
             new_hash = _download_sha256(url)
 
             if old_hash != new_hash:
