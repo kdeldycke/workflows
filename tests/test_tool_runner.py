@@ -36,6 +36,7 @@ from repomatic.tool_runner import (
     _extract_binary,
     _get_platform_key,
     _install_binary,
+    binary_tool_context,
     get_data_file_path,
     resolve_config,
     resolve_config_source,
@@ -404,6 +405,64 @@ def test_run_tool_binary_default_flags(
 
     cmd = mock_run.call_args[0][0]
     assert "-color" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_ruff_via_uvx(mock_ci, mock_run, tmp_path, monkeypatch):
+    """ruff runs via uvx with extra_args for subcommand."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("ruff", extra_args=("check", "--output-format", "github"))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "uvx"
+    assert "ruff==0.15.5" in " ".join(cmd)
+    assert "check" in cmd
+    assert "--output-format" in cmd
+    assert "github" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_bump_my_version_via_uvx(mock_ci, mock_run, tmp_path, monkeypatch):
+    """bump-my-version runs via uvx with subcommand extra_args."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("bump-my-version", extra_args=("bump", "--verbose", "patch"))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "uvx"
+    assert "bump-my-version==1.2.7" in " ".join(cmd)
+    assert "bump" in cmd
+    assert "--verbose" in cmd
+    assert "patch" in cmd
+
+
+# ---------------------------------------------------------------------------
+# binary_tool_context
+# ---------------------------------------------------------------------------
+
+
+@patch("repomatic.tool_runner._install_binary")
+def test_binary_tool_context_yields_path(mock_install, tmp_path):
+    """binary_tool_context yields the installed binary path."""
+    bin_path = tmp_path / "labelmaker"
+    bin_path.touch()
+    mock_install.return_value = bin_path
+
+    with binary_tool_context("labelmaker") as lm:
+        assert lm == bin_path
+        assert lm.exists()
+
+
+def test_binary_tool_context_no_binary_spec():
+    """binary_tool_context raises for tools without a binary spec."""
+    with pytest.raises(AssertionError, match="no binary spec"):
+        with binary_tool_context("ruff"):
+            pass
 
 
 # ---------------------------------------------------------------------------

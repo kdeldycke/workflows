@@ -90,15 +90,10 @@
       datasourceTemplate: "npm",
     },
     {
-      description: "Update actionlint version in download URL and matcher URL.",
+      description: "Update actionlint version in matcher URL.",
       customType: "regex",
       fileMatch: ["\\.github/workflows/.+\\.yaml$"],
       matchStrings: [
-        // The download URL contains the version twice:
-        //   actionlint/releases/download/v1.7.10/actionlint_1.7.10_linux_amd64.tar.gz
-        // Both patterns are needed so Renovate updates both occurrences.
-        "actionlint/releases/download/v(?<currentValue>[0-9.]+)/",
-        "actionlint_(?<currentValue>[0-9.]+)_linux",
         // Matches: actionlint/refs/tags/v1.7.10/
         "actionlint/refs/tags/v(?<currentValue>[0-9.]+)/",
       ],
@@ -106,15 +101,57 @@
       datasourceTemplate: "github-releases",
     },
     {
-      description: "Update labelmaker version in download URL.",
+      description: "Update actionlint version in tool runner registry.",
       customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      fileMatch: ["repomatic/tool_runner\\.py$"],
       matchStrings: [
-        // Matches: labelmaker/releases/download/v0.6.4/
-        "labelmaker/releases/download/v(?<currentValue>[0-9.]+)/",
+        // Matches the version field in the actionlint ToolSpec entry.
+        "\"actionlint\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
+      ],
+      depNameTemplate: "rhysd/actionlint",
+      datasourceTemplate: "github-releases",
+    },
+    {
+      description: "Update labelmaker version in tool runner registry.",
+      customType: "regex",
+      fileMatch: ["repomatic/tool_runner\\.py$"],
+      matchStrings: [
+        "\"labelmaker\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
       ],
       depNameTemplate: "jwodder/labelmaker",
       datasourceTemplate: "github-releases",
+    },
+    {
+      description: "Update lychee version in tool runner registry.",
+      customType: "regex",
+      fileMatch: ["repomatic/tool_runner\\.py$"],
+      matchStrings: [
+        "\"lychee\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
+      ],
+      depNameTemplate: "lycheeverse/lychee",
+      datasourceTemplate: "github-releases",
+      extractVersionTemplate: "^lychee-v(?<version>.*)$",
+    },
+    {
+      description: "Update typos version in tool runner registry.",
+      customType: "regex",
+      fileMatch: ["repomatic/tool_runner\\.py$"],
+      matchStrings: [
+        "\"typos\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
+      ],
+      depNameTemplate: "crate-ci/typos",
+      datasourceTemplate: "github-releases",
+    },
+    {
+      description: "Update Biome version in tool runner registry.",
+      customType: "regex",
+      fileMatch: ["repomatic/tool_runner\\.py$"],
+      matchStrings: [
+        "\"biome\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
+      ],
+      depNameTemplate: "biomejs/biome",
+      datasourceTemplate: "github-releases",
+      extractVersionTemplate: "^@biomejs/biome@(?<version>.*)$",
     },
     {
       description: "Update Python packages in uv/uvx commands.",
@@ -128,44 +165,6 @@
         "(?:uvx?|--with)[^'\\n]*'(?<depName>[a-z][a-z0-9_-]*)(?:\\[[^\\]]+\\])?==(?<currentValue>[0-9.]+)'",
       ],
       datasourceTemplate: "pypi",
-    },
-    {
-      description: "Update lychee version in download URL.",
-      customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
-      matchStrings: [
-        // Matches: lychee/releases/download/lychee-v0.23.0/
-        "lychee/releases/download/lychee-v(?<currentValue>[0-9.]+)/",
-      ],
-      depNameTemplate: "lycheeverse/lychee",
-      datasourceTemplate: "github-releases",
-      extractVersionTemplate: "^lychee-v(?<version>.*)$",
-    },
-    {
-      description: "Update typos version in download URL.",
-      customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
-      matchStrings: [
-        // The download URL contains the version twice:
-        //   typos/releases/download/v1.43.3/typos-v1.43.3-x86_64-...
-        // Both patterns are needed so Renovate updates both occurrences.
-        "typos/releases/download/v(?<currentValue>[0-9.]+)/",
-        "typos-v(?<currentValue>[0-9.]+)-",
-      ],
-      depNameTemplate: "crate-ci/typos",
-      datasourceTemplate: "github-releases",
-    },
-    {
-      description: "Update Biome version in download URL.",
-      customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
-      matchStrings: [
-        // Matches: biome/releases/download/%40biomejs%2Fbiome%402.3.12/
-        "biome/releases/download/%40biomejs%2Fbiome%40(?<currentValue>[0-9.]+)/",
-      ],
-      depNameTemplate: "biomejs/biome",
-      datasourceTemplate: "github-releases",
-      extractVersionTemplate: "^@biomejs/biome@(?<version>.*)$",
     },
     {
       description: "Update uv version in postUpgradeTasks download URL.",

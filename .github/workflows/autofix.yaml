@@ -72,8 +72,6 @@ jobs:
         env:
           PYTHON_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
         run: echo "${PYTHON_FILES}" | xargs uvx --no-progress --from . repomatic run autopep8 --
-      - name: Install Ruff
-        run: uv tool install 'ruff==0.15.5'
       - name: Init Ruff config
         # Initialize [tool.ruff] in pyproject.toml if missing. Only for Python projects;
         # doc-only repos use Ruff for code-block formatting without needing project config.
@@ -83,8 +81,8 @@ jobs:
       #     See: https://github.com/astral-sh/ruff/issues/8232
       - name: Run Ruff
         run: |
-          ruff check --output-format github
-          ruff format --output-format github
+          uvx --no-progress --from . repomatic run ruff -- check --output-format github
+          uvx --no-progress --from . repomatic run ruff -- format --output-format github
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body

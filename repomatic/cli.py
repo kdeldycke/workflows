@@ -145,7 +145,12 @@ from .sponsor import (
     is_sponsor,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
-from .tool_runner import TOOL_REGISTRY, resolve_config_source, run_tool
+from .tool_runner import (
+    TOOL_REGISTRY,
+    binary_tool_context,
+    resolve_config_source,
+    run_tool,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -2195,7 +2200,8 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     to the repository using ``labelmaker``. Applies the ``default`` profile to
     all repositories, plus the ``awesome`` profile for ``awesome-*`` repos.
 
-    Requires ``labelmaker`` on ``PATH`` and ``GITHUB_TOKEN`` in the environment.
+    Requires ``GITHUB_TOKEN`` in the environment. Downloads ``labelmaker``
+    automatically via the tool registry.
     """
     config = load_repomatic_config()
     if not config.get("labels.sync", True):
@@ -2214,40 +2220,41 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     for path in [*result.created, *result.updated]:
         logging.info(f"Exported: {path}")
 
-    # Apply default profile.
-    _run_labelmaker(["apply", "labels.toml", "--profile", "default", repository])
+    with binary_tool_context("labelmaker") as lm:
+        # Apply default profile.
+        _run_labelmaker(lm, "apply", "labels.toml", "--profile", "default", repository)
 
-    # Apply awesome profile for awesome-* repos.
-    if repo_name.startswith("awesome-") and repo_name != "awesome-template":
-        _run_labelmaker(["apply", "labels.toml", "--profile", "awesome", repository])
+        # Apply awesome profile for awesome-* repos.
+        if repo_name.startswith("awesome-") and repo_name != "awesome-template":
+            _run_labelmaker(
+                lm, "apply", "labels.toml", "--profile", "awesome", repository
+            )
 
-    # Apply extra label files.
-    extra_dir = Path("extra-labels")
-    if extra_dir.is_dir():
-        for label_file in sorted(extra_dir.iterdir()):
-            if label_file.is_file():
-                _run_labelmaker(["apply", str(label_file), repository])
+        # Apply extra label files.
+        extra_dir = Path("extra-labels")
+        if extra_dir.is_dir():
+            for label_file in sorted(extra_dir.iterdir()):
+                if label_file.is_file():
+                    _run_labelmaker(lm, "apply", str(label_file), repository)
 
     echo("Labels synced.")
 
 
-def _run_labelmaker(args: list[str]) -> None:
+def _run_labelmaker(labelmaker_path: Path, *args: str) -> None:
     """Run a ``labelmaker`` command.
 
-    :raises ClickException: If ``labelmaker`` is not found or fails.
+    :param labelmaker_path: Path to the labelmaker binary.
+    :param args: Arguments to pass to labelmaker.
+    :raises ClickException: If labelmaker fails.
     """
-    cmd = ["labelmaker", *args]
+    cmd = [str(labelmaker_path), *args]
     logging.info(f"Running: {' '.join(cmd)}")
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            encoding="UTF-8",
-            check=False,
-        )
-    except FileNotFoundError:
-        msg = "labelmaker is not installed. See https://github.com/jwodder/labelmaker"
-        raise ClickException(msg)
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        encoding="UTF-8",
+        check=False,
+    )
     if result.returncode:
         raise ClickException(f"labelmaker failed: {result.stderr}")
     if result.stdout:

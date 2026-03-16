@@ -234,6 +234,38 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             archive_executable="biome",
         ),
     ),
+    # bump-my-version configuration reference:
+    # - Config discovery: https://callowayproject.github.io/bump-my-version/reference/configuration/
+    #   Reads [tool.bumpversion] from pyproject.toml, .bumpversion.toml.
+    # - CLI flags: https://callowayproject.github.io/bump-my-version/reference/cli/
+    #   bump and show are subcommands; --verbose for detailed output.
+    # - Source: https://github.com/callowayproject/bump-my-version
+    "bump-my-version": ToolSpec(
+        name="bump-my-version",
+        version="1.2.7",
+        package="bump-my-version",
+        reads_pyproject=True,
+    ),
+    # labelmaker configuration reference:
+    # - CLI flags: https://github.com/jwodder/labelmaker
+    #   apply subcommand with label file and repository arguments.
+    # - Source: https://github.com/jwodder/labelmaker
+    "labelmaker": ToolSpec(
+        name="labelmaker",
+        version="0.6.4",
+        package="labelmaker",
+        binary=BinarySpec(
+            urls={
+                "linux-x64": "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-unknown-linux-gnu.tar.xz",
+            },
+            checksums={
+                "linux-x64": "d76f8e64f9671884dac1758fe54a28a6680c5d9bf0ffd593a2c68ba558cc49a2",
+            },
+            archive_format=ArchiveFormat.TAR_XZ,
+            archive_executable="labelmaker",
+            strip_components=1,
+        ),
+    ),
     # lychee configuration reference:
     # - Config discovery: https://lychee.cli.rs/configuration/
     #   Searches lychee.toml, .lycheerc in CWD.
@@ -317,6 +349,18 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             "--expand-tables",
             "project.entry-points,project.optional-dependencies,project.urls,project.scripts",
         ),
+    ),
+    # ruff configuration reference:
+    # - Config discovery: https://docs.astral.sh/ruff/configuration/
+    #   Reads [tool.ruff] from pyproject.toml, ruff.toml, .ruff.toml.
+    # - CLI flags: https://docs.astral.sh/ruff/configuration/#command-line-interface
+    #   check and format are subcommands; --output-format for CI annotations.
+    # - Source: https://github.com/astral-sh/ruff
+    "ruff": ToolSpec(
+        name="ruff",
+        version="0.15.5",
+        package="ruff",
+        reads_pyproject=True,
     ),
     # typos configuration reference:
     # - Config discovery: https://github.com/crate-ci/typos/blob/master/docs/reference.md
@@ -631,6 +675,23 @@ def _install_binary(spec: ToolSpec, tmp_dir: Path) -> Path:
     _download_and_verify(url, checksum, archive_path)
 
     return _extract_binary(archive_path, binary, tmp_dir)
+
+
+@contextmanager
+def binary_tool_context(name: str) -> Iterator[Path]:
+    """Download a binary tool and yield its executable path.
+
+    For tools invoked indirectly by repomatic commands (e.g., labelmaker
+    called by ``sync-labels``) rather than via ``run_tool()``. Downloads
+    once; the binary stays valid for the context's duration.
+
+    :param name: Tool name (must be in ``TOOL_REGISTRY`` with ``binary`` set).
+    :yields: Path to the ready-to-run executable.
+    """
+    spec = TOOL_REGISTRY[name]
+    assert spec.binary is not None, f"{name} has no binary spec"
+    with tempfile.TemporaryDirectory(prefix=f"repomatic-{name}-bin-") as bin_dir:
+        yield _install_binary(spec, Path(bin_dir))
 
 
 # ---------------------------------------------------------------------------

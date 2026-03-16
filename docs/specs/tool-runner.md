@@ -362,7 +362,18 @@ Remaining:
 
 ### Phase 4: Full workflow migration
 
-- Migrate all remaining tool invocations in all workflows to `repomatic run`.
-- Remove version strings, install steps, and inline configs from workflow YAML.
-- Update Renovate `customManagers` to target the Python registry.
-- Add computed params for ruff (`target-version`), others as needed.
+**Implemented.** See `repomatic/tool_runner.py` for new registry entries and `binary_tool_context()`.
+
+Done:
+
+- Registry entries for ruff, bump-my-version (PyPI tools) and labelmaker (binary, TAR_XZ with `strip_components=1`).
+- `binary_tool_context()` context manager for tools invoked indirectly by repomatic commands (e.g., labelmaker by `sync-labels`).
+- Workflow migration: ruff (`autofix.yaml`), bump-my-version (`changelog.yaml`), labelmaker (`labels.yaml`) — `uv tool install` and `curl`/`tar` install steps removed.
+- Renovate `customManagers` updated to target `tool_runner.py` for binary tool version detection.
+
+Remaining:
+
+- TOML serialization (`[tool.X]` translation for mdformat, lychee — Phase 2 remaining work).
+- JSON serialization (`[tool.X]` translation for biome — Phase 2 remaining work).
+- Multi-platform binary URLs (linux-arm64, macos-x64, macos-arm64 — Phase 3 remaining work).
+- awesome-lint (npm package, niche — only used in awesome-* repos).
