@@ -43,7 +43,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from importlib.resources import as_file, files
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
 import yaml
@@ -575,13 +575,15 @@ def _extract_binary(archive_path: Path, spec: BinarySpec, dest_dir: Path) -> Pat
         "r:gz" if spec.archive_format == ArchiveFormat.TAR_GZ else "r:xz",
     ) as tar:
         for member in tar.getmembers():
-            parts = Path(member.name).parts
+            # Tar member names always use forward slashes. Use PurePosixPath
+            # to avoid backslash issues on Windows.
+            parts = PurePosixPath(member.name).parts
             if len(parts) <= spec.strip_components:
                 continue
-            stripped = str(Path(*parts[spec.strip_components :]))
+            stripped = str(PurePosixPath(*parts[spec.strip_components :]))
             if stripped == target:
                 # Security: validate member path before extraction.
-                if ".." in Path(member.name).parts or member.name.startswith("/"):
+                if ".." in parts or member.name.startswith("/"):
                     msg = f"Unsafe archive member path: {member.name}"
                     raise ValueError(msg)
                 if sys.version_info >= (3, 12):
@@ -589,7 +591,7 @@ def _extract_binary(archive_path: Path, spec: BinarySpec, dest_dir: Path) -> Pat
                 else:
                     tar.extract(member, dest_dir)
                 extracted = dest_dir / member.name
-                final = dest_dir / Path(target).name
+                final = dest_dir / PurePosixPath(target).name
                 if extracted != final:
                     extracted.rename(final)
                 final.chmod(0o755)
