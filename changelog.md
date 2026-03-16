@@ -10,14 +10,11 @@
 - Remove automatic cleanup of legacy `.github/zizmor.{yml,yaml}` files and `.claude/skills/gha-*/` directories during init.
 - Add `repomatic run <tool>` command for unified tool invocation with managed config resolution. Resolves config through a 4-level precedence chain: native config file, `[tool.X]` in `pyproject.toml`, bundled default, bare invocation. Use `--list` to see all managed tools and their active config source.
 - Add `yamllint` init component with bundled default config (`data/yamllint.yaml`). Excluded from init by default like `zizmor`.
-- Migrate yamllint and zizmor workflow steps to `repomatic run`, replacing inline `--config-data` and conditional `repomatic init` steps.
-- Add `autopep8`, `mdformat`, `mypy`, and `pyproject-fmt` to `repomatic run` tool registry with pinned versions and default flags.
-- Add `computed_params` support to `repomatic run` for tools that need parameters derived from project metadata (e.g., mypy's `--python-version` from `requires-python`).
-- Migrate autopep8, mypy, pyproject-fmt, and mdformat workflow steps to `repomatic run`, replacing inline version pins and flag lists.
-- Add binary download infrastructure to `repomatic run` for tools distributed as platform binaries. Downloads are SHA-256 verified with streaming checksums.
-- Add `actionlint`, `biome`, `lychee`, and `typos` to `repomatic run` tool registry as binary-distributed tools (Linux x64).
-- Migrate actionlint, biome, lychee, and typos workflow steps to `repomatic run`, replacing `curl`/`sha256sum`/`tar` install steps.
-- Extend `repomatic update-checksums --registry` to update SHA-256 hashes in the tool runner registry.
+- Add 13 tools to the `repomatic run` registry: actionlint, autopep8, biome, bump-my-version, labelmaker, lychee, mdformat, mypy, pyproject-fmt, ruff, typos, yamllint, zizmor. Includes `computed_params` support for tools that derive CLI args from project metadata (e.g., mypy's `--python-version` from `requires-python`).
+- Add binary download infrastructure for tools distributed as platform binaries (actionlint, biome, labelmaker, lychee, typos). Downloads are SHA-256 verified with streaming checksums. `sync-labels` downloads labelmaker on-demand via `binary_tool_context()`.
+- Migrate all workflow tool invocations to `repomatic run`, removing `uv tool install`, `curl`/`sha256sum`/`tar` install steps, and inline version pins from workflow YAML.
+- Add `repomatic update-checksums --registry` to update SHA-256 hashes in the tool runner registry.
+- Update Renovate custom managers to target the tool runner registry for binary tool versions.
 
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 
