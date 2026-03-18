@@ -460,9 +460,11 @@ def test_binary_tool_context_yields_path(mock_install, tmp_path):
 
 def test_binary_tool_context_no_binary_spec():
     """binary_tool_context raises for tools without a binary spec."""
-    with pytest.raises(AssertionError, match="no binary spec"):
-        with binary_tool_context("ruff"):
-            pass
+    with (
+        pytest.raises(AssertionError, match="no binary spec"),
+        binary_tool_context("ruff"),
+    ):
+        pass
 
 
 # ---------------------------------------------------------------------------

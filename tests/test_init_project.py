@@ -1299,9 +1299,10 @@ def test_all_data_files_registered_in_exportable_files() -> None:
 
     registered = set(EXPORTABLE_FILES.keys())
     unregistered = on_disk - registered
-    assert not unregistered, f"Data files not in EXPORTABLE_FILES: {
-        sorted(unregistered)
-    }"
+    assert not unregistered, (
+        "Data files not in EXPORTABLE_FILES: "
+        f"{sorted(unregistered)}"
+    )
 
 
 def test_every_data_file_maps_to_a_component() -> None:
