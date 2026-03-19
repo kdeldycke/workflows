@@ -1325,9 +1325,10 @@ def test_every_data_file_maps_to_a_component() -> None:
 
     covered = component_filenames | tool_filenames | workflow_filenames
     uncovered = set(EXPORTABLE_FILES.keys()) - covered
-    assert not uncovered, f"EXPORTABLE_FILES entries not mapped to any component: {
-        sorted(uncovered)
-    }"
+    assert not uncovered, (
+        "EXPORTABLE_FILES entries not mapped to any component: "
+        f"{sorted(uncovered)}"
+    )
 
 
 def test_no_data_file_claimed_by_multiple_components() -> None:
