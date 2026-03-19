@@ -47,7 +47,7 @@ from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
 import yaml
-from extra_platforms import is_aarch64, is_github_ci, is_linux, is_macos, is_x86_64
+from extra_platforms import is_aarch64, is_github_ci, is_linux, is_macos, is_x86_64  # type: ignore[attr-defined]
 
 if sys.version_info >= (3, 11):
     import tomllib
