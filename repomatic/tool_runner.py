@@ -221,7 +221,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     # - Source: https://github.com/biomejs/biome
     "biome": ToolSpec(
         name="biome",
-        version="2.4.5",
+        version="2.4.6",
         package="biome",
         binary=BinarySpec(
             urls={
