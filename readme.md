@@ -51,56 +51,74 @@ $ uvx -- repomatic
 Usage: repomatic [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  --time / --no-time    Measure and print elapsed execution time.  [default:
-                        no-time]
+  --time / --no-time      Measure and print elapsed execution time.  [default:
+                          no-time]
   --color, --ansi / --no-color, --no-ansi
-                        Strip out all colors and all ANSI codes from output.
-                        [default: color]
-  --config CONFIG_PATH  Location of the configuration file. Supports local path
-                        with glob patterns or remote URL.  [default:
-                        ~/Library/Application
-                        Support/repomatic/*.toml|*.yaml|*.yml|*.json|*.ini]
-  --no-config           Ignore all configuration files and only use command
-                        line parameters and environment variables.
-  --show-params         Show all CLI parameters, their provenance, defaults and
-                        value, then exit.
-  --table-format [aligned|asciidoc|csv|csv-excel|csv-excel-tab|csv-unix|double-grid|double-outline|fancy-grid|fancy-outline|github|grid|heavy-grid|heavy-outline|html|jira|latex|latex-booktabs|latex-longtable|latex-raw|mediawiki|mixed-grid|mixed-outline|moinmoin|orgtbl|outline|pipe|plain|presto|pretty|psql|rounded-grid|rounded-outline|rst|simple|simple-grid|simple-outline|textile|tsv|unsafehtml|vertical|youtrack]
-                        Rendering style of tables.  [default: rounded-outline]
-  --verbosity LEVEL     Either CRITICAL, ERROR, WARNING, INFO, DEBUG.
-                        [default: WARNING]
-  -v, --verbose         Increase the default WARNING verbosity by one level for
-                        each additional repetition of the option.  [default: 0]
-  --version             Show the version and exit.
-  -h, --help            Show this message and exit.
+                          Strip out all colors and all ANSI codes from output.
+                          [default: color]
+  --config CONFIG_PATH    Location of the configuration file. Supports local
+                          path with glob patterns or remote URL.  [default:
+                          ~/Library/Application Support/repomatic/{*.toml,*.yam
+                          l,*.yml,*.json,*.ini,pyproject.toml}]
+  --no-config             Ignore all configuration files and only use command
+                          line parameters and environment variables.
+  --validate-config FILE  Validate the configuration file and exit.
+  --show-params           Show all CLI parameters, their provenance, defaults
+                          and value, then exit.
+  --table-format [aligned|asciidoc|colon-grid|csv|csv-excel|csv-excel-tab|csv-unix|double-grid|double-outline|fancy-grid|fancy-outline|github|grid|heavy-grid|heavy-outline|hjson|html|jira|json|json5|jsonc|latex|latex-booktabs|latex-longtable|latex-raw|mediawiki|mixed-grid|mixed-outline|moinmoin|orgtbl|outline|pipe|plain|presto|pretty|psql|rounded-grid|rounded-outline|rst|simple|simple-grid|simple-outline|textile|toml|tsv|unsafehtml|vertical|xml|yaml|youtrack]
+                          Rendering style of tables.  [default: rounded-
+                          outline]
+  --verbosity LEVEL       Either CRITICAL, ERROR, WARNING, INFO, DEBUG.
+                          [default: WARNING]
+  -v, --verbose           Increase the default WARNING verbosity by one level
+                          for each additional repetition of the option.
+                          [default: 0]
+  --version               Show the version and exit.
+  -h, --help              Show this message and exit.
 
-Commands:
-  broken-links       Manage broken links issue lifecycle
-  changelog          Maintain a Markdown-formatted changelog
-  check-renovate     Check Renovate migration prerequisites
-  config               Print [tool.repomatic] configuration reference
-  git-tag              Create and push a Git tag
-  init                 Bootstrap a repository to use reusable workflows
-  lint-changelog       Check changelog dates against release dates
-  lint-repo            Run repository consistency checks
-  metadata             Output project metadata
-  pr-body              Generate PR body with workflow metadata
-  release-prep         Prepare files for a release
-  setup-guide          Manage setup guide issue lifecycle
-  sponsor-label        Label issues/PRs from GitHub sponsors
-  sync-bumpversion     Sync bumpversion config from bundled template
-  sync-gitignore       Sync .gitignore from gitignore.io templates
-  sync-dev-release     Sync rolling dev pre-release on GitHub
-  sync-github-releases Sync GitHub release notes from changelog
-  sync-mailmap         Sync Git's .mailmap file with missing contributors
-  sync-renovate        Sync Renovate config from canonical reference
-  sync-skills          Sync Claude Code skills from bundled definitions
-  sync-uv-lock         Re-lock and revert if only timestamp noise changed
-  test-plan            Run a test plan from a file against a binary
-  update-checksums     Update SHA-256 checksums for binary downloads
-  update-deps-graph    Generate dependency graph from uv lockfile
-  verify-binary        Verify binary architecture using exiftool
-  version-check      Check if a version bump is allowed
-  workflow           Manage downstream workflow caller files
+Project setup:
+  init                   Bootstrap a repository to use reusable workflows
+  metadata               Output project metadata
+  config                 Print [tool.repomatic] configuration reference
+  workflow               Manage downstream workflow caller files
+  update-deps-graph      Generate dependency graph from uv lockfile
+  list-skills            List available Claude Code skills
+  update-checksums       Update SHA-256 checksums for binary downloads
+  format-images          Format images with lossless optimization
+
+Release & versioning:
+  changelog              Maintain a Markdown-formatted changelog
+  release-prep           Prepare files for a release
+  version-check          Check if a version bump is allowed
+  git-tag                Create and push a Git tag
+  prebake-version        Pre-bake __version__ with Git commit hash
+
+Sync:
+  sync-gitignore         Sync .gitignore from gitignore.io templates
+  sync-github-releases   Sync GitHub release notes from changelog
+  sync-dev-release       Sync rolling dev pre-release on GitHub
+  sync-mailmap           Sync Git's .mailmap file with missing contributors
+  sync-uv-lock           Re-lock and revert if only timestamp noise changed
+  sync-bumpversion       Sync bumpversion config from bundled template
+  sync-skills            Sync Claude Code skills from bundled definitions
+  sync-awesome-template  Sync awesome-template boilerplate files
+  sync-labels            Sync repository labels via labelmaker
+  sync-renovate          Sync Renovate config from canonical reference
+
+Linting & checks:
+  test-plan              Run a test plan from a file against a binary
+  verify-binary          Verify binary architecture using exiftool
+  check-renovate         Check Renovate migration prerequisites
+  lint-repo              Run repository consistency checks
+  lint-changelog         Check changelog dates against release dates
+  run                    Run an external tool with managed config
+
+GitHub issues & PRs:
+  sponsor-label          Label issues/PRs from GitHub sponsors
+  broken-links           Manage broken links issue lifecycle
+  setup-guide            Manage setup guide issue lifecycle
+  unsubscribe-threads    Unsubscribe from closed, inactive notification threads
+  pr-body                Generate PR body with workflow metadata
 ```
 
 ```shell-session
