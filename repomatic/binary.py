@@ -24,8 +24,9 @@ from __future__ import annotations
 import json
 import logging
 import subprocess
-import sys
 from pathlib import Path
+
+from extra_platforms import is_windows
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -71,7 +72,7 @@ def get_exiftool_command() -> str:
 
     On Windows, exiftool is installed as ``exiftool.exe``.
     """
-    return "exiftool.exe" if sys.platform == "win32" else "exiftool"
+    return "exiftool.exe" if is_windows() else "exiftool"
 
 
 def run_exiftool(binary_path: Path) -> dict[str, str]:

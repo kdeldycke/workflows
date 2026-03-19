@@ -20,7 +20,6 @@ import logging
 import os
 import re
 import shlex
-import sys
 from collections.abc import Sequence
 from dataclasses import dataclass, field, fields
 from pathlib import Path
@@ -35,7 +34,7 @@ from click_extra.testing import (
     regex_fullmatch_line_by_line,
     render_cli_run,
 )
-from extra_platforms import current_platform, extract_members
+from extra_platforms import current_platform, extract_members, is_windows
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -55,7 +54,7 @@ def _split_args(cli: str) -> list[str]:
         Evaluate better Windows CLI parsing with:
         `w32lex <https://github.com/maxpat78/w32lex>`_.
     """
-    if sys.platform == "win32":
+    if is_windows():
         return cli.split()
     # For Unix platforms, we have the dedicated shlex module.
     else:

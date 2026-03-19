@@ -110,34 +110,31 @@ def test_tool_registry_sorted_alphabetically():
 
 
 @pytest.mark.parametrize(
-    ("platform", "macos", "x64", "arm64", "expected"),
+    ("linux", "macos", "x64", "arm64", "expected"),
     [
-        ("linux", False, True, False, "linux-x64"),
-        ("linux", False, False, True, "linux-arm64"),
-        ("not-linux", True, True, False, "macos-x64"),
-        ("not-linux", True, False, True, "macos-arm64"),
+        (True, False, True, False, "linux-x64"),
+        (True, False, False, True, "linux-arm64"),
+        (False, True, True, False, "macos-x64"),
+        (False, True, False, True, "macos-arm64"),
     ],
 )
-def test_get_platform_key(platform, macos, x64, arm64, expected):
+def test_get_platform_key(linux, macos, x64, arm64, expected):
     """Platform key reflects OS and architecture."""
     with (
-        patch("repomatic.tool_runner.sys") as mock_sys,
+        patch("repomatic.tool_runner.is_linux", return_value=linux),
         patch("repomatic.tool_runner.is_macos", return_value=macos),
         patch("repomatic.tool_runner.is_x86_64", return_value=x64),
         patch("repomatic.tool_runner.is_aarch64", return_value=arm64),
     ):
-        mock_sys.platform = platform
-        mock_sys.version_info = (3, 14)
         assert _get_platform_key() == expected
 
 
 def test_get_platform_key_unsupported_os():
     """Unsupported OS raises RuntimeError."""
     with (
-        patch("repomatic.tool_runner.sys") as mock_sys,
+        patch("repomatic.tool_runner.is_linux", return_value=False),
         patch("repomatic.tool_runner.is_macos", return_value=False),
     ):
-        mock_sys.platform = "win32"
         with pytest.raises(RuntimeError, match="Linux and macOS"):
             _get_platform_key()
 
@@ -145,11 +142,10 @@ def test_get_platform_key_unsupported_os():
 def test_get_platform_key_unsupported_arch():
     """Unsupported architecture raises RuntimeError."""
     with (
-        patch("repomatic.tool_runner.sys") as mock_sys,
+        patch("repomatic.tool_runner.is_linux", return_value=True),
         patch("repomatic.tool_runner.is_x86_64", return_value=False),
         patch("repomatic.tool_runner.is_aarch64", return_value=False),
     ):
-        mock_sys.platform = "linux"
         with pytest.raises(RuntimeError, match="x64 and arm64"):
             _get_platform_key()
 
