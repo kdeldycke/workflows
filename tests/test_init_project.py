@@ -1300,8 +1300,7 @@ def test_all_data_files_registered_in_exportable_files() -> None:
     registered = set(EXPORTABLE_FILES.keys())
     unregistered = on_disk - registered
     assert not unregistered, (
-        "Data files not in EXPORTABLE_FILES: "
-        f"{sorted(unregistered)}"
+        f"Data files not in EXPORTABLE_FILES: {sorted(unregistered)}"
     )
 
 
@@ -1326,8 +1325,7 @@ def test_every_data_file_maps_to_a_component() -> None:
     covered = component_filenames | tool_filenames | workflow_filenames
     uncovered = set(EXPORTABLE_FILES.keys()) - covered
     assert not uncovered, (
-        "EXPORTABLE_FILES entries not mapped to any component: "
-        f"{sorted(uncovered)}"
+        f"EXPORTABLE_FILES entries not mapped to any component: {sorted(uncovered)}"
     )
 
 
