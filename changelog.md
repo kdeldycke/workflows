@@ -15,6 +15,7 @@
 - Migrate all workflow tool invocations to `repomatic run`, removing `uv tool install`, `curl`/`sha256sum`/`tar` install steps, and inline version pins from workflow YAML.
 - Add `repomatic update-checksums --registry` to update SHA-256 hashes in the tool runner registry.
 - Update Renovate custom managers to target the tool runner registry for binary tool versions.
+- Add TOML and JSON serialization for `[tool.X]` config translation. Downstream repos can now configure lychee via `[tool.lychee]` and biome via `[tool.biome]` in `pyproject.toml` without creating separate config files.
 
 ## [`6.4.1` (2026-03-11)](https://github.com/kdeldycke/repomatic/compare/v6.4.0...v6.4.1)
 

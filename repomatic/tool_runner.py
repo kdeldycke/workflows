@@ -34,6 +34,7 @@ the resolved config.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import subprocess
 import sys
@@ -223,6 +224,9 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         name="biome",
         version="2.4.5",
         package="biome",
+        native_config_files=("biome.json", "biome.jsonc"),
+        config_flag="--config-path",
+        native_format="json",
         binary=BinarySpec(
             urls={
                 "linux-x64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-linux-x64",
@@ -276,6 +280,9 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         name="lychee",
         version="0.23.0",
         package="lychee",
+        native_config_files=("lychee.toml",),
+        config_flag="--config",
+        native_format="toml",
         binary=BinarySpec(
             urls={
                 "linux-x64": "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-unknown-linux-gnu.tar.gz",
@@ -467,6 +474,42 @@ def load_pyproject_tool_section(tool_name: str) -> dict[str, Any]:
     return tool_section
 
 
+def _dict_to_toml(data: dict[str, Any], prefix: str = "") -> str:
+    """Serialize a dict to TOML format.
+
+    Handles the subset of TOML used by tool configs: scalars, arrays, and
+    nested tables. Does not support inline tables or multiline strings.
+
+    :param data: Dict to serialize.
+    :param prefix: Dotted key prefix for nested tables.
+    :return: TOML-formatted string.
+    """
+    lines: list[str] = []
+    tables: list[tuple[str, dict[str, Any]]] = []
+
+    for key, value in data.items():
+        if isinstance(value, dict):
+            tables.append((key, value))
+        elif isinstance(value, bool):
+            lines.append(f"{key} = {str(value).lower()}")
+        elif isinstance(value, (int, float)):
+            lines.append(f"{key} = {value}")
+        elif isinstance(value, str):
+            lines.append(f'{key} = "{value}"')
+        elif isinstance(value, list):
+            formatted = ", ".join(
+                f'"{v}"' if isinstance(v, str) else str(v) for v in value
+            )
+            lines.append(f"{key} = [{formatted}]")
+
+    for table_key, table_value in tables:
+        full_key = f"{prefix}.{table_key}" if prefix else table_key
+        lines.append(f"\n[{full_key}]")
+        lines.append(_dict_to_toml(table_value, prefix=full_key))
+
+    return "\n".join(lines)
+
+
 def resolve_config(
     spec: ToolSpec,
     tool_config: dict[str, Any] | None = None,
@@ -497,10 +540,22 @@ def resolve_config(
         tool_config = load_pyproject_tool_section(spec.name)
 
     if tool_config:
+        if not spec.config_flag:
+            msg = (
+                f"{spec.name} has [tool.{spec.name}] config but no config_flag "
+                f"to pass a translated config file. Configure the tool via its "
+                f"native config file ({', '.join(spec.native_config_files)}) instead."
+            )
+            raise NotImplementedError(msg)
+
         if spec.native_format == "yaml":
             content = yaml.safe_dump(
                 tool_config, default_flow_style=False, sort_keys=False
             )
+        elif spec.native_format == "toml":
+            content = _dict_to_toml(tool_config) + "\n"
+        elif spec.native_format == "json":
+            content = json.dumps(tool_config, indent=2) + "\n"
         else:
             msg = f"Unsupported native format for translation: {spec.native_format}"
             raise ValueError(msg)

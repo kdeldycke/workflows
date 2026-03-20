@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import tarfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -517,6 +518,95 @@ def test_resolve_config_pyproject_section(tmp_path, monkeypatch):
     finally:
         if tmp:
             tmp.unlink(missing_ok=True)
+
+
+def test_resolve_config_toml_translation(tmp_path, monkeypatch):
+    """[tool.X] with native_format='toml' produces a valid TOML temp file."""
+    monkeypatch.chdir(tmp_path)
+
+    spec = ToolSpec(
+        name="lychee",
+        version="0.23.0",
+        package="lychee",
+        config_flag="--config",
+        native_format="toml",
+    )
+    tool_config = {"max_redirects": 5, "exclude": ["example.com"]}
+    args, tmp = resolve_config(spec, tool_config=tool_config)
+
+    try:
+        assert len(args) == 2
+        assert args[0] == "--config"
+        content = Path(args[1]).read_text(encoding="UTF-8")
+        assert "max_redirects = 5" in content
+        assert '"example.com"' in content
+    finally:
+        if tmp:
+            tmp.unlink(missing_ok=True)
+
+
+def test_resolve_config_toml_nested_tables(tmp_path, monkeypatch):
+    """Nested dicts in [tool.X] produce TOML table sections."""
+    monkeypatch.chdir(tmp_path)
+
+    spec = ToolSpec(
+        name="lychee",
+        version="0.23.0",
+        package="lychee",
+        config_flag="--config",
+        native_format="toml",
+    )
+    tool_config = {"cache": {"enable": True, "max_age": 3600}}
+    args, tmp = resolve_config(spec, tool_config=tool_config)
+
+    try:
+        content = Path(args[1]).read_text(encoding="UTF-8")
+        assert "[cache]" in content
+        assert "enable = true" in content
+        assert "max_age = 3600" in content
+    finally:
+        if tmp:
+            tmp.unlink(missing_ok=True)
+
+
+def test_resolve_config_json_translation(tmp_path, monkeypatch):
+    """[tool.X] with native_format='json' produces a valid JSON temp file."""
+    monkeypatch.chdir(tmp_path)
+
+    spec = ToolSpec(
+        name="biome",
+        version="2.4.5",
+        package="biome",
+        config_flag="--config-path",
+        native_format="json",
+    )
+    tool_config = {"formatter": {"indentStyle": "space", "indentWidth": 2}}
+    args, tmp = resolve_config(spec, tool_config=tool_config)
+
+    try:
+        assert len(args) == 2
+        assert args[0] == "--config-path"
+        content = Path(args[1]).read_text(encoding="UTF-8")
+        parsed = json.loads(content)
+        assert parsed == tool_config
+    finally:
+        if tmp:
+            tmp.unlink(missing_ok=True)
+
+
+def test_resolve_config_no_config_flag_raises(tmp_path, monkeypatch):
+    """Tools without config_flag raise NotImplementedError on [tool.X] translation."""
+    monkeypatch.chdir(tmp_path)
+
+    spec = ToolSpec(
+        name="mdformat",
+        version="1.0.0",
+        package="mdformat",
+        native_config_files=(".mdformat.toml",),
+        native_format="toml",
+    )
+    with pytest.raises(NotImplementedError, match="no config_flag"):
+        resolve_config(spec, tool_config={"number": True})
 
 
 def test_resolve_config_bundled_default(tmp_path, monkeypatch):
