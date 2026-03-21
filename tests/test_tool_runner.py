@@ -97,6 +97,21 @@ def test_tool_spec_integrity(name, spec):
                 f"{name}: short flag {flag!r} in ci_flags — use long form"
             )
 
+    # computed_params must also produce long-form flags.
+    if spec.computed_params:
+        from repomatic.metadata import Metadata
+
+        with patch.object(Metadata, "__init__", lambda self: None):
+            m = Metadata()
+            # Provide minimal stubs for mypy_params.
+            m.pyproject = None  # type: ignore[attr-defined]
+            params = spec.computed_params(m) or []
+            for flag in params:
+                if flag.startswith("-"):
+                    assert flag.startswith("--") or len(flag) > 2, (
+                        f"{name}: short flag {flag!r} from computed_params — use long form"
+                    )
+
     # No flag should appear in more than one of the flag-carrying fields.
     flag_fields = {
         "config_flag": {spec.config_flag} if spec.config_flag else set(),
@@ -137,8 +152,8 @@ def test_tool_spec_integrity(name, spec):
         assert "linux-x64" in spec.binary.checksums, (
             f"{name} binary missing linux-x64 checksum"
         )
-        assert set(spec.binary.checksums.keys()) <= set(spec.binary.urls.keys()), (
-            f"{name} has checksum keys without matching URL keys"
+        assert set(spec.binary.checksums.keys()) == set(spec.binary.urls.keys()), (
+            f"{name}: checksum keys must match URL keys exactly"
         )
 
         # Platform keys must be from the known set.
@@ -159,12 +174,27 @@ def test_tool_spec_integrity(name, spec):
                 f"{name}/{platform_key}: checksum is not a 64-char lowercase hex digest"
             )
 
+        # URLs must be HTTPS.
+        for platform_key, url in spec.binary.urls.items():
+            assert url.startswith("https://"), (
+                f"{name}/{platform_key}: URL must use HTTPS"
+            )
+
         # strip_components only applies to tar archives.
         if spec.binary.strip_components:
             assert spec.binary.archive_format in (
                 ArchiveFormat.TAR_GZ,
                 ArchiveFormat.TAR_XZ,
             ), f"{name}: strip_components is only valid for tar archive formats"
+
+        # RAW archives should not have path separators in archive_executable.
+        if (
+            spec.binary.archive_format == ArchiveFormat.RAW
+            and spec.binary.archive_executable is not None
+        ):
+            assert "/" not in spec.binary.archive_executable, (
+                f"{name}: RAW archive_executable must not contain path separators"
+            )
 
 
 def test_tool_registry_sorted_alphabetically():
