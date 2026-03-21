@@ -22,17 +22,26 @@ import hashlib
 import io
 import json
 import re
+import sys
 import tarfile
+from itertools import combinations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
 
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found]
+
 from repomatic.tool_runner import (
     TOOL_REGISTRY,
     ArchiveFormat,
     BinarySpec,
+    NativeFormat,
+    VALID_PLATFORM_KEYS,
     ToolSpec,
     _download_and_verify,
     _extract_binary,
@@ -48,15 +57,6 @@ from repomatic.tool_runner import (
 # ---------------------------------------------------------------------------
 # ToolSpec and registry validation
 # ---------------------------------------------------------------------------
-
-_VALID_PLATFORM_KEYS = frozenset({
-    "linux-x64",
-    "linux-arm64",
-    "macos-x64",
-    "macos-arm64",
-    "windows-x64",
-    "windows-arm64",
-})
 
 
 @pytest.mark.parametrize(("name", "spec"), TOOL_REGISTRY.items())
@@ -97,6 +97,18 @@ def test_tool_spec_integrity(name, spec):
                 f"{name}: short flag {flag!r} in ci_flags — use long form"
             )
 
+    # No flag should appear in more than one of the flag-carrying fields.
+    flag_fields = {
+        "config_flag": {spec.config_flag} if spec.config_flag else set(),
+        "default_flags": {f for f in spec.default_flags if f.startswith("-")},
+        "ci_flags": {f for f in spec.ci_flags if f.startswith("-")},
+    }
+    for (field_a, flags_a), (field_b, flags_b) in combinations(flag_fields.items(), 2):
+        overlap = flags_a & flags_b
+        assert not overlap, (
+            f"{name}: {field_a} and {field_b} share flags: {overlap}"
+        )
+
     # needs_venv and binary are mutually exclusive.
     assert not (spec.needs_venv and spec.binary is not None), (
         f"{name}: needs_venv and binary are mutually exclusive"
@@ -111,6 +123,13 @@ def test_tool_spec_integrity(name, spec):
     if spec.default_config:
         with get_data_file_path(spec.default_config) as path:
             assert path.exists(), f"{spec.default_config} not found in data/"
+            content = path.read_text(encoding="UTF-8")
+            if spec.native_format == NativeFormat.YAML:
+                yaml.safe_load(content)
+            elif spec.native_format == NativeFormat.TOML:
+                tomllib.loads(content)
+            elif spec.native_format == NativeFormat.JSON:
+                json.loads(content)
         assert spec.config_flag, f"{name} has default_config but no config_flag"
 
     if spec.binary is not None:
@@ -123,9 +142,9 @@ def test_tool_spec_integrity(name, spec):
         )
 
         # Platform keys must be from the known set.
-        assert set(spec.binary.urls.keys()) <= _VALID_PLATFORM_KEYS, (
+        assert set(spec.binary.urls.keys()) <= VALID_PLATFORM_KEYS, (
             f"{name}: unknown platform keys: "
-            f"{set(spec.binary.urls.keys()) - _VALID_PLATFORM_KEYS}"
+            f"{set(spec.binary.urls.keys()) - VALID_PLATFORM_KEYS}"
         )
 
         # Every URL must contain a {version} placeholder.
@@ -160,19 +179,22 @@ def test_tool_registry_sorted_alphabetically():
 
 
 @pytest.mark.parametrize(
-    ("linux", "macos", "x64", "arm64", "expected"),
+    ("linux", "macos", "windows", "x64", "arm64", "expected"),
     [
-        (True, False, True, False, "linux-x64"),
-        (True, False, False, True, "linux-arm64"),
-        (False, True, True, False, "macos-x64"),
-        (False, True, False, True, "macos-arm64"),
+        (True, False, False, True, False, "linux-x64"),
+        (True, False, False, False, True, "linux-arm64"),
+        (False, True, False, True, False, "macos-x64"),
+        (False, True, False, False, True, "macos-arm64"),
+        (False, False, True, True, False, "windows-x64"),
+        (False, False, True, False, True, "windows-arm64"),
     ],
 )
-def test_get_platform_key(linux, macos, x64, arm64, expected):
+def test_get_platform_key(linux, macos, windows, x64, arm64, expected):
     """Platform key reflects OS and architecture."""
     with (
         patch("repomatic.tool_runner.is_linux", return_value=linux),
         patch("repomatic.tool_runner.is_macos", return_value=macos),
+        patch("repomatic.tool_runner.is_windows", return_value=windows),
         patch("repomatic.tool_runner.is_x86_64", return_value=x64),
         patch("repomatic.tool_runner.is_aarch64", return_value=arm64),
     ):
@@ -184,8 +206,9 @@ def test_get_platform_key_unsupported_os():
     with (
         patch("repomatic.tool_runner.is_linux", return_value=False),
         patch("repomatic.tool_runner.is_macos", return_value=False),
+        patch("repomatic.tool_runner.is_windows", return_value=False),
     ):
-        with pytest.raises(RuntimeError, match="Linux and macOS"):
+        with pytest.raises(RuntimeError, match="Unsupported OS"):
             _get_platform_key()
 
 
@@ -248,7 +271,7 @@ def test_extract_binary_raw(tmp_path):
         archive_format=ArchiveFormat.RAW,
         archive_executable="biome",
     )
-    result = _extract_binary(archive, spec, tmp_path)
+    result = _extract_binary(archive, spec, tmp_path, "testtool")
 
     assert result == tmp_path / "biome"
     assert result.exists()
@@ -277,7 +300,7 @@ def test_extract_binary_tar_gz(tmp_path):
         archive_format=ArchiveFormat.TAR_GZ,
         archive_executable="actionlint",
     )
-    result = _extract_binary(archive, spec, tmp_path)
+    result = _extract_binary(archive, spec, tmp_path, "testtool")
 
     assert result == tmp_path / "actionlint"
     assert result.exists()
@@ -295,7 +318,7 @@ def test_extract_binary_tar_gz_with_strip_components(tmp_path):
         archive_executable="bin/mytool",
         strip_components=1,
     )
-    result = _extract_binary(archive, spec, tmp_path)
+    result = _extract_binary(archive, spec, tmp_path, "testtool")
 
     assert result.name == "mytool"
     assert result.exists()
@@ -319,7 +342,7 @@ def test_extract_binary_tar_xz(tmp_path):
         archive_format=ArchiveFormat.TAR_XZ,
         archive_executable="lychee",
     )
-    result = _extract_binary(archive_path, spec, tmp_path)
+    result = _extract_binary(archive_path, spec, tmp_path, "testtool")
 
     assert result == tmp_path / "lychee"
     assert result.exists()
@@ -336,7 +359,7 @@ def test_extract_binary_tar_missing_executable(tmp_path):
         archive_executable="nonexistent",
     )
     with pytest.raises(FileNotFoundError, match="not found in archive"):
-        _extract_binary(archive, spec, tmp_path)
+        _extract_binary(archive, spec, tmp_path, "testtool")
 
 
 def test_extract_binary_tar_unsafe_path(tmp_path):
@@ -350,7 +373,7 @@ def test_extract_binary_tar_unsafe_path(tmp_path):
         archive_executable="../../../etc/passwd",
     )
     with pytest.raises(ValueError, match="Unsafe archive member"):
-        _extract_binary(archive, spec, tmp_path)
+        _extract_binary(archive, spec, tmp_path, "testtool")
 
 
 def test_install_binary_missing_platform():
@@ -578,7 +601,7 @@ def test_resolve_config_toml_translation(tmp_path, monkeypatch):
         version="0.23.0",
         package="lychee",
         config_flag="--config",
-        native_format="toml",
+        native_format=NativeFormat.TOML,
     )
     tool_config = {"max_redirects": 5, "exclude": ["example.com"]}
     args, tmp = resolve_config(spec, tool_config=tool_config)
@@ -603,7 +626,7 @@ def test_resolve_config_toml_nested_tables(tmp_path, monkeypatch):
         version="0.23.0",
         package="lychee",
         config_flag="--config",
-        native_format="toml",
+        native_format=NativeFormat.TOML,
     )
     tool_config = {"cache": {"enable": True, "max_age": 3600}}
     args, tmp = resolve_config(spec, tool_config=tool_config)
@@ -627,7 +650,7 @@ def test_resolve_config_json_translation(tmp_path, monkeypatch):
         version="2.4.5",
         package="biome",
         config_flag="--config-path",
-        native_format="json",
+        native_format=NativeFormat.JSON,
     )
     tool_config = {"formatter": {"indentStyle": "space", "indentWidth": 2}}
     args, tmp = resolve_config(spec, tool_config=tool_config)
@@ -652,7 +675,7 @@ def test_resolve_config_no_config_flag_raises(tmp_path, monkeypatch):
         version="1.0.0",
         package="mdformat",
         native_config_files=(".mdformat.toml",),
-        native_format="toml",
+        native_format=NativeFormat.TOML,
     )
     with pytest.raises(NotImplementedError, match="no config_flag"):
         resolve_config(spec, tool_config={"number": True})
@@ -676,7 +699,7 @@ def test_resolve_config_bare_invocation(tmp_path, monkeypatch):
         name="sometool",
         version="1.0.0",
         package="sometool",
-        native_format="yaml",
+        native_format=NativeFormat.YAML,
     )
     args, tmp = resolve_config(spec, tool_config={})
     assert args == []

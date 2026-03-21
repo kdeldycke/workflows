@@ -48,7 +48,14 @@ from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
 import yaml
-from extra_platforms import is_aarch64, is_github_ci, is_linux, is_macos, is_x86_64  # type: ignore[attr-defined]
+from extra_platforms import (
+    is_aarch64,
+    is_github_ci,
+    is_linux,  # type: ignore[attr-defined]  # Dynamically generated group detector.
+    is_macos,
+    is_windows,
+    is_x86_64,
+)
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -71,11 +78,20 @@ class ArchiveFormat(Enum):
     TAR_XZ = "tar.xz"
 
 
+class NativeFormat(Enum):
+    """Target format for ``[tool.X]`` translation."""
+
+    YAML = "yaml"
+    TOML = "toml"
+    JSON = "json"
+
+
 @dataclass(frozen=True)
 class BinarySpec:
     """Platform-specific binary download specification.
 
-    Platform keys: ``linux-x64``, ``linux-arm64``, ``macos-x64``, ``macos-arm64``.
+    Platform keys: ``linux-x64``, ``linux-arm64``, ``macos-x64``,
+    ``macos-arm64``, ``windows-x64``, ``windows-arm64``.
     """
 
     urls: dict[str, str]
@@ -88,10 +104,23 @@ class BinarySpec:
     """Archive format of the downloaded file."""
 
     archive_executable: str | None = None
-    """Path of the executable inside the archive. ``None`` for ``RAW`` format."""
+    """Path of the executable inside the archive. ``None`` defaults to the
+    tool name. For ``RAW`` format, used as the final filename.
+    """
 
     strip_components: int = 0
     """Number of leading path components to strip when extracting."""
+
+
+VALID_PLATFORM_KEYS = frozenset({
+    "linux-arm64",
+    "linux-x64",
+    "macos-arm64",
+    "macos-x64",
+    "windows-arm64",
+    "windows-x64",
+})
+"""Recognized platform keys for ``BinarySpec.urls`` and ``BinarySpec.checksums``."""
 
 
 @dataclass(frozen=True)
@@ -99,16 +128,22 @@ class ToolSpec:
     """Specification for an external tool managed by repomatic."""
 
     name: str
-    """CLI name: ``repomatic run <name>``."""
+    """Tool identity: CLI name for ``repomatic run <name>``, default PyPI
+    package name, and default executable name.
+    """
 
     version: str
     """Pinned version (e.g., ``'1.38.0'``)."""
 
-    package: str
-    """PyPI package name (e.g., ``'yamllint'``). May differ from ``name``."""
+    package: str | None = None
+    """PyPI package name. ``None`` defaults to ``name``. Only set when the
+    package name differs from the tool name.
+    """
 
     executable: str | None = None
-    """Executable name if different from ``name``. ``None`` defaults to ``name``."""
+    """Executable name if different from the tool name. ``None`` defaults to
+    the registry key.
+    """
 
     native_config_files: tuple[str, ...] = ()
     """Config filenames the tool auto-discovers, checked in order.
@@ -122,10 +157,8 @@ class ToolSpec:
     ``'--config-file'``). ``None`` if the tool only reads from fixed paths.
     """
 
-    native_format: str = "yaml"
-    """Target format for ``[tool.X]`` translation: ``'yaml'``, ``'toml'``,
-    ``'json'``, ``'jsonc'``, ``'cli-flags'``.
-    """
+    native_format: NativeFormat = NativeFormat.YAML
+    """Target format for ``[tool.X]`` translation."""
 
     default_config: str | None = None
     """Filename in ``repomatic/data/`` for bundled defaults, stored in
@@ -183,7 +216,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "actionlint": ToolSpec(
         name="actionlint",
         version="1.7.11",
-        package="actionlint",
         default_flags=("-color",),
         binary=BinarySpec(
             urls={
@@ -193,7 +225,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 "linux-x64": "900919a84f2229bac68ca9cd4103ea297abc35e9689ebb842c6e34a3d1b01b0a",
             },
             archive_format=ArchiveFormat.TAR_GZ,
-            archive_executable="actionlint",
         ),
     ),
     # autopep8 configuration reference:
@@ -203,7 +234,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "autopep8": ToolSpec(
         name="autopep8",
         version="2.3.2",
-        package="autopep8",
         default_flags=(
             "--recursive",
             "--in-place",
@@ -223,10 +253,9 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "biome": ToolSpec(
         name="biome",
         version="2.4.5",
-        package="biome",
         native_config_files=("biome.json", "biome.jsonc"),
         config_flag="--config-path",
-        native_format="json",
+        native_format=NativeFormat.JSON,
         binary=BinarySpec(
             urls={
                 "linux-x64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-linux-x64",
@@ -235,7 +264,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 "linux-x64": "a31815f19b0b90fa043eb23fbf769ed931fbcde6d98bb89894ea8be1387d8394",
             },
             archive_format=ArchiveFormat.RAW,
-            archive_executable="biome",
         ),
     ),
     # bump-my-version configuration reference:
@@ -247,7 +275,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "bump-my-version": ToolSpec(
         name="bump-my-version",
         version="1.2.7",
-        package="bump-my-version",
         reads_pyproject=True,
     ),
     # labelmaker configuration reference:
@@ -257,7 +284,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "labelmaker": ToolSpec(
         name="labelmaker",
         version="0.6.4",
-        package="labelmaker",
         binary=BinarySpec(
             urls={
                 "linux-x64": "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-unknown-linux-gnu.tar.xz",
@@ -266,7 +292,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 "linux-x64": "d76f8e64f9671884dac1758fe54a28a6680c5d9bf0ffd593a2c68ba558cc49a2",
             },
             archive_format=ArchiveFormat.TAR_XZ,
-            archive_executable="labelmaker",
             strip_components=1,
         ),
     ),
@@ -279,10 +304,9 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "lychee": ToolSpec(
         name="lychee",
         version="0.23.0",
-        package="lychee",
         native_config_files=("lychee.toml",),
         config_flag="--config",
-        native_format="toml",
+        native_format=NativeFormat.TOML,
         binary=BinarySpec(
             urls={
                 "linux-x64": "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-unknown-linux-gnu.tar.gz",
@@ -291,7 +315,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 "linux-x64": "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81",
             },
             archive_format=ArchiveFormat.TAR_GZ,
-            archive_executable="lychee",
         ),
     ),
     # mdformat configuration reference:
@@ -304,9 +327,8 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "mdformat": ToolSpec(
         name="mdformat",
         version="1.0.0",
-        package="mdformat",
         native_config_files=(".mdformat.toml",),
-        native_format="toml",
+        native_format=NativeFormat.TOML,
         default_flags=("--number", "--strict-front-matter"),
         with_packages=(
             "mdformat_admon==2.1.1",
@@ -337,7 +359,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "mypy": ToolSpec(
         name="mypy",
         version="1.19.1",
-        package="mypy",
         reads_pyproject=True,
         needs_venv=True,
         default_flags=("--color-output",),
@@ -351,7 +372,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "pyproject-fmt": ToolSpec(
         name="pyproject-fmt",
         version="2.16.2",
-        package="pyproject-fmt",
         default_flags=(
             "--expand-tables",
             "project.entry-points,project.optional-dependencies,project.urls,project.scripts",
@@ -366,7 +386,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "ruff": ToolSpec(
         name="ruff",
         version="0.15.5",
-        package="ruff",
         reads_pyproject=True,
     ),
     # typos configuration reference:
@@ -378,7 +397,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "typos": ToolSpec(
         name="typos",
         version="1.44.0",
-        package="typos",
         reads_pyproject=True,
         default_flags=("--write-changes",),
         binary=BinarySpec(
@@ -389,7 +407,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 "linux-x64": "1b788b7d764e2f20fe089487428a3944ed218d1fb6fcd8eac4230b5893a38779",
             },
             archive_format=ArchiveFormat.TAR_GZ,
-            archive_executable="typos",
         ),
     ),
     # yamllint configuration reference:
@@ -401,14 +418,12 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "yamllint": ToolSpec(
         name="yamllint",
         version="1.38.0",
-        package="yamllint",
         native_config_files=(
             ".yamllint.yaml",
             ".yamllint.yml",
             ".yamllint",
         ),
         config_flag="--config-file",
-        native_format="yaml",
         default_config="yamllint.yaml",
         default_flags=("--strict",),
         ci_flags=("--format", "github"),
@@ -424,10 +439,8 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "zizmor": ToolSpec(
         name="zizmor",
         version="1.23.0",
-        package="zizmor",
         native_config_files=("zizmor.yaml",),
         config_flag="--config",
-        native_format="yaml",
         default_config="zizmor.yaml",
         default_flags=("--offline",),
         ci_flags=("--format", "github"),
@@ -548,13 +561,13 @@ def resolve_config(
             )
             raise NotImplementedError(msg)
 
-        if spec.native_format == "yaml":
+        if spec.native_format == NativeFormat.YAML:
             content = yaml.safe_dump(
                 tool_config, default_flow_style=False, sort_keys=False
             )
-        elif spec.native_format == "toml":
+        elif spec.native_format == NativeFormat.TOML:
             content = _dict_to_toml(tool_config) + "\n"
-        elif spec.native_format == "json":
+        elif spec.native_format == NativeFormat.JSON:
             content = json.dumps(tool_config, indent=2) + "\n"
         else:
             msg = f"Unsupported native format for translation: {spec.native_format}"
@@ -571,7 +584,7 @@ def resolve_config(
         # returned path.
         with tempfile.NamedTemporaryFile(
             mode="w",
-            suffix=f".{spec.native_format}",
+            suffix=f".{spec.native_format.value}",
             prefix=f"repomatic-{spec.name}-",
             delete=False,
         ) as tmp:
@@ -603,15 +616,18 @@ def resolve_config(
 def _get_platform_key() -> str:
     """Return platform key for the current OS and architecture.
 
-    :return: One of ``linux-x64``, ``linux-arm64``, ``macos-x64``, ``macos-arm64``.
+    :return: One of ``linux-x64``, ``linux-arm64``, ``macos-x64``,
+        ``macos-arm64``, ``windows-x64``, ``windows-arm64``.
     :raises RuntimeError: If the current platform is not supported.
     """
     if is_linux():
         os_part = "linux"
     elif is_macos():
         os_part = "macos"
+    elif is_windows():
+        os_part = "windows"
     else:
-        msg = "Binary downloads are only supported on Linux and macOS."
+        msg = f"Unsupported OS for binary downloads: {sys.platform}"
         raise RuntimeError(msg)
 
     if is_x86_64():
@@ -650,24 +666,31 @@ def _download_and_verify(url: str, expected_sha256: str, dest_path: Path) -> Non
     logging.debug("SHA-256 verified for %s: %s", url, actual)
 
 
-def _extract_binary(archive_path: Path, spec: BinarySpec, dest_dir: Path) -> Path:
+def _extract_binary(
+    archive_path: Path,
+    spec: BinarySpec,
+    dest_dir: Path,
+    tool_name: str,
+) -> Path:
     """Extract the tool executable from a downloaded archive.
 
     :param archive_path: Path to the downloaded archive file.
     :param spec: Binary specification with format and executable info.
     :param dest_dir: Directory to extract into.
+    :param tool_name: Tool name, used as default for ``archive_executable``.
     :return: Path to the extracted executable.
     :raises FileNotFoundError: If the executable is not found in the archive.
     """
+    executable = spec.archive_executable or tool_name
+
     if spec.archive_format == ArchiveFormat.RAW:
-        dest = dest_dir / (spec.archive_executable or "binary")
+        dest = dest_dir / executable
         archive_path.rename(dest)
         dest.chmod(0o755)
         return dest
 
     # TAR_GZ or TAR_XZ.
-    target = spec.archive_executable
-    assert target is not None, "archive_executable required for tar archives"
+    target = executable
 
     with tarfile.open(
         str(archive_path),
@@ -729,7 +752,7 @@ def _install_binary(spec: ToolSpec, tmp_dir: Path) -> Path:
     logging.info("Downloading %s %s for %s...", spec.name, spec.version, platform_key)
     _download_and_verify(url, checksum, archive_path)
 
-    return _extract_binary(archive_path, binary, tmp_dir)
+    return _extract_binary(archive_path, binary, tmp_dir, spec.name)
 
 
 @contextmanager
@@ -756,7 +779,7 @@ def binary_tool_context(name: str) -> Iterator[Path]:
 
 def _build_install_args(spec: ToolSpec) -> list[str]:
     """Build the command prefix for installing and running a tool."""
-    package_pin = f"{spec.package}=={spec.version}"
+    package_pin = f"{spec.package or spec.name}=={spec.version}"
     executable = spec.executable or spec.name
 
     if spec.needs_venv:
@@ -863,6 +886,9 @@ def resolve_config_source(spec: ToolSpec) -> str:
 
     Used by ``repomatic run --list`` to show which precedence level is active
     for each tool in the current repo.
+
+    :param name: Tool name (registry key).
+    :param spec: Tool specification.
     """
     if spec.reads_pyproject:
         pyproject_path = Path("pyproject.toml")
