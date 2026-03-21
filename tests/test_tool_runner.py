@@ -21,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import re
 import tarfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -48,37 +49,71 @@ from repomatic.tool_runner import (
 # ToolSpec and registry validation
 # ---------------------------------------------------------------------------
 
-
-def test_tool_registry_entries_have_required_fields():
-    """Every registry entry has a name, version, and package."""
-    for name, spec in TOOL_REGISTRY.items():
-        assert spec.name == name
-        assert spec.version
-        assert spec.package
-
-
-def test_tool_registry_default_configs_exist():
-    """Every ToolSpec with a default_config references a real data file."""
-    for spec in TOOL_REGISTRY.values():
-        if spec.default_config:
-            with get_data_file_path(spec.default_config) as path:
-                assert path.exists(), f"{spec.default_config} not found in data/"
+_VALID_PLATFORM_KEYS = frozenset({
+    "linux-x64",
+    "linux-arm64",
+    "macos-x64",
+    "macos-arm64",
+    "windows-x64",
+    "windows-arm64",
+})
 
 
-def test_tool_registry_config_flag_required_for_default_config():
-    """Tools with a default_config must have a config_flag to pass it."""
-    for spec in TOOL_REGISTRY.values():
-        if spec.default_config:
-            assert spec.config_flag, (
-                f"{spec.name} has default_config but no config_flag"
+@pytest.mark.parametrize(("name", "spec"), TOOL_REGISTRY.items())
+def test_tool_spec_integrity(name, spec):
+    """Each registry entry passes structural integrity checks."""
+    # name matches registry key, is ASCII lowercase alphanumeric + hyphens.
+    assert spec.name == name
+    assert re.fullmatch(r"[a-z][a-z0-9-]*", name), f"{name}: invalid name format"
+
+    # version is non-empty semver.
+    assert re.fullmatch(r"\d+\.\d+\.\d+", spec.version), (
+        f"{name}: version {spec.version!r} is not semver"
+    )
+
+    # package, when set, must differ from name (otherwise use None).
+    if spec.package is not None:
+        assert spec.package != spec.name, (
+            f"{name}: package equals name — set package=None instead"
+        )
+
+    # config_flag uses the long-form double-dash convention.
+    if spec.config_flag is not None:
+        assert spec.config_flag.startswith("--"), (
+            f"{name}: config_flag {spec.config_flag!r} must start with --"
+        )
+
+    # Flags in default_flags and ci_flags that begin with "-" must use long form:
+    # either POSIX "--foo" or Go-style "-foo" (more than one char after the dash).
+    # Bare values like "88" or "github" interspersed with flags are left unchecked.
+    for flag in spec.default_flags:
+        if flag.startswith("-"):
+            assert flag.startswith("--") or len(flag) > 2, (
+                f"{name}: short flag {flag!r} in default_flags — use long form"
+            )
+    for flag in spec.ci_flags:
+        if flag.startswith("-"):
+            assert flag.startswith("--") or len(flag) > 2, (
+                f"{name}: short flag {flag!r} in ci_flags — use long form"
             )
 
+    # needs_venv and binary are mutually exclusive.
+    assert not (spec.needs_venv and spec.binary is not None), (
+        f"{name}: needs_venv and binary are mutually exclusive"
+    )
 
-def test_tool_registry_binary_specs_have_matching_keys():
-    """Every binary tool has matching URL and checksum platform keys."""
-    for name, spec in TOOL_REGISTRY.items():
-        if spec.binary is None:
-            continue
+    # with_packages is only meaningful for uvx-invoked tools.
+    if spec.binary is not None:
+        assert not spec.with_packages, (
+            f"{name}: binary tools cannot use with_packages"
+        )
+
+    if spec.default_config:
+        with get_data_file_path(spec.default_config) as path:
+            assert path.exists(), f"{spec.default_config} not found in data/"
+        assert spec.config_flag, f"{name} has default_config but no config_flag"
+
+    if spec.binary is not None:
         assert "linux-x64" in spec.binary.urls, f"{name} binary missing linux-x64 URL"
         assert "linux-x64" in spec.binary.checksums, (
             f"{name} binary missing linux-x64 checksum"
@@ -87,16 +122,30 @@ def test_tool_registry_binary_specs_have_matching_keys():
             f"{name} has checksum keys without matching URL keys"
         )
 
+        # Platform keys must be from the known set.
+        assert set(spec.binary.urls.keys()) <= _VALID_PLATFORM_KEYS, (
+            f"{name}: unknown platform keys: "
+            f"{set(spec.binary.urls.keys()) - _VALID_PLATFORM_KEYS}"
+        )
 
-def test_tool_registry_binary_tar_has_archive_executable():
-    """Tar-based binary tools must specify archive_executable."""
-    for name, spec in TOOL_REGISTRY.items():
-        if spec.binary is None:
-            continue
-        if spec.binary.archive_format in (ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_XZ):
-            assert spec.binary.archive_executable is not None, (
-                f"{name} uses tar format but has no archive_executable"
+        # Every URL must contain a {version} placeholder.
+        for platform_key, url in spec.binary.urls.items():
+            assert "{version}" in url, (
+                f"{name}/{platform_key}: URL missing {{version}} placeholder"
             )
+
+        # Checksums must be valid SHA-256 hex digests (64 lowercase hex chars).
+        for platform_key, checksum in spec.binary.checksums.items():
+            assert re.fullmatch(r"[0-9a-f]{64}", checksum), (
+                f"{name}/{platform_key}: checksum is not a 64-char lowercase hex digest"
+            )
+
+        # strip_components only applies to tar archives.
+        if spec.binary.strip_components:
+            assert spec.binary.archive_format in (
+                ArchiveFormat.TAR_GZ,
+                ArchiveFormat.TAR_XZ,
+            ), f"{name}: strip_components is only valid for tar archive formats"
 
 
 def test_tool_registry_sorted_alphabetically():
