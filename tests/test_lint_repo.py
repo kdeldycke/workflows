@@ -18,10 +18,12 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import patch
 
 from repomatic.lint_repo import (
     check_description_matches,
+    check_funding_file,
     check_package_name_vs_repo,
     check_topics_subset_of_keywords,
     check_website_for_sphinx,
@@ -277,5 +279,86 @@ def test_topics_empty_response():
         warning, msg = check_topics_subset_of_keywords(
             "owner/repo", keywords=["python"]
         )
+        assert warning is None
+        assert "skipped" in msg
+
+
+def _graphql_response(*, is_fork: bool = False, has_sponsors: bool = True) -> str:
+    """Build a mock GraphQL response for funding checks."""
+    return json.dumps({
+        "data": {
+            "repository": {"isFork": is_fork},
+            "repositoryOwner": {"hasSponsorsListing": has_sponsors},
+        },
+    })
+
+
+def test_funding_file_exists(tmp_path, monkeypatch):
+    """No warning when funding file already exists."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".github").mkdir()
+    (tmp_path / ".github" / "FUNDING.yml").write_text("github: owner\n")
+    warning, msg = check_funding_file("owner/repo")
+    assert warning is None
+    assert "found" in msg
+
+
+def test_funding_file_exists_lowercase(tmp_path, monkeypatch):
+    """Detect funding file regardless of case."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".github").mkdir()
+    (tmp_path / ".github" / "funding.yml").write_text("github: owner\n")
+    warning, msg = check_funding_file("owner/repo")
+    assert warning is None
+    assert "found" in msg
+
+
+def test_funding_missing_with_sponsors(tmp_path, monkeypatch):
+    """Warning when owner has sponsors but no funding file."""
+    monkeypatch.chdir(tmp_path)
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = _graphql_response(has_sponsors=True)
+        warning, _msg = check_funding_file("owner/repo")
+        assert warning is not None
+        assert "FUNDING.yml" in warning
+        assert "Sponsor" in warning
+
+
+def test_funding_skipped_for_fork(tmp_path, monkeypatch):
+    """Skip funding check for forked repositories."""
+    monkeypatch.chdir(tmp_path)
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = _graphql_response(is_fork=True)
+        warning, msg = check_funding_file("owner/repo")
+        assert warning is None
+        assert "fork" in msg
+
+
+def test_funding_skipped_no_sponsors(tmp_path, monkeypatch):
+    """Skip when owner has no GitHub Sponsors listing."""
+    monkeypatch.chdir(tmp_path)
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = _graphql_response(has_sponsors=False)
+        warning, msg = check_funding_file("owner/repo")
+        assert warning is None
+        assert "no GitHub Sponsors" in msg
+
+
+def test_funding_api_failure(tmp_path, monkeypatch):
+    """Skip gracefully when GraphQL API call fails."""
+    monkeypatch.chdir(tmp_path)
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.side_effect = RuntimeError("gh command failed")
+        warning, msg = check_funding_file("owner/repo")
+        assert warning is None
+        assert "skipped" in msg
+
+
+def test_funding_json_parse_error(tmp_path, monkeypatch):
+    """Skip gracefully when API returns invalid JSON."""
+    monkeypatch.chdir(tmp_path)
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = "not json"
+        warning, msg = check_funding_file("owner/repo")
         assert warning is None
         assert "skipped" in msg

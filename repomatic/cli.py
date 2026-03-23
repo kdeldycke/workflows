@@ -2498,6 +2498,7 @@ def lint_repo(
     - Package name vs repository name (warning).
     - Website field set for Sphinx projects (warning).
     - Repository description matches project description (error).
+    - Funding file present when owner has GitHub Sponsors (warning).
 
     \b
     Examples:

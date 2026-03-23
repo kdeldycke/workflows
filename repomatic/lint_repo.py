@@ -17,13 +17,14 @@
 """Repository linting for GitHub Actions workflows.
 
 This module provides consistency checks for repository metadata,
-including package names, website fields, and descriptions.
+including package names, website fields, descriptions, and funding configuration.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
@@ -128,6 +129,70 @@ def check_description_matches(
     return None, "Repository description matches project description."
 
 
+def _funding_file_exists() -> bool:
+    """Check whether a ``.github/FUNDING.yml`` file exists (case-insensitive).
+
+    GitHub accepts any casing of the filename.
+    """
+    github_dir = Path(".github")
+    if not github_dir.is_dir():
+        return False
+    return any(
+        f.name.upper() == "FUNDING.YML"
+        for f in github_dir.iterdir()
+        if f.is_file()
+    )
+
+
+def check_funding_file(repo: str) -> tuple[str | None, str]:
+    """Check that repos with GitHub Sponsors have a ``FUNDING.yml``.
+
+    Skips forks (they inherit the parent's sponsor button) and owners
+    without a Sponsors listing. Uses the GraphQL API because the REST API
+    does not expose ``hasSponsorsListing``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (warning_message or None, info_message).
+    """
+    if _funding_file_exists():
+        return None, "Funding file found."
+
+    owner, name = repo.split("/", 1)
+
+    # Single GraphQL query for both isFork and hasSponsorsListing.
+    query = (
+        "{ repository(owner: %s, name: %s) { isFork }"
+        " repositoryOwner(login: %s) {"
+        " ... on Sponsorable { hasSponsorsListing } } }"
+    ) % (json.dumps(owner), json.dumps(name), json.dumps(owner))
+
+    try:
+        output = run_gh_command(["api", "graphql", "--field", f"query={query}"])
+    except RuntimeError as e:
+        logging.warning(f"Could not query GitHub Sponsors status: {e}")
+        return None, "Funding check: skipped (could not query GitHub API)"
+
+    try:
+        data = json.loads(output)
+    except json.JSONDecodeError:
+        return None, "Funding check: skipped (could not parse API response)"
+
+    repo_data = data.get("data", {}).get("repository", {})
+    owner_data = data.get("data", {}).get("repositoryOwner", {})
+
+    if repo_data.get("isFork"):
+        return None, "Funding check: skipped (repository is a fork)"
+
+    if not owner_data.get("hasSponsorsListing"):
+        return None, "Funding check: skipped (owner has no GitHub Sponsors listing)"
+
+    msg = (
+        "Owner has GitHub Sponsors enabled but .github/FUNDING.yml is missing."
+        " Create it to display the Sponsor button on the repository."
+    )
+    return msg, msg
+
+
 def check_topics_subset_of_keywords(
     repo: str,
     keywords: list[str] | None = None,
@@ -230,6 +295,13 @@ def run_repo_lint(
     # Check 5: GitHub topics are a subset of pyproject.toml keywords.
     if keywords and repo:
         warning, msg = check_topics_subset_of_keywords(repo, keywords)
+        if warning:
+            emit_annotation(AnnotationLevel.WARNING, warning)
+        print(f"{'⚠' if warning else '✓'} {msg}")
+
+    # Check 6: Funding file present when owner has GitHub Sponsors.
+    if repo:
+        warning, msg = check_funding_file(repo)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")

@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Remove `yamllint` and `zizmor` init components. The tool runner already falls back to bundled default configs at runtime, so copying them into downstream repos was redundant. Default `exclude` reduced to `["labels", "skills"]`. Downstream repos with `yamllint` or `zizmor` in their `[tool.repomatic] exclude` list must remove those entries.
+- Add `lint-repo` check that warns when the repository owner has GitHub Sponsors enabled but `.github/FUNDING.yml` is missing. Skips forks and owners without a Sponsors listing.
 
 ## [`6.5.0` (2026-03-21)](https://github.com/kdeldycke/repomatic/compare/v6.4.1...v6.5.0)
 
