@@ -1483,9 +1483,7 @@ def test_find_redundant_init_files_renovate(
     """Renovate redundancy check uses export_content (with stripping)."""
     monkeypatch.chdir(tmp_path)
     content = export_content("renovate.json5")
-    (tmp_path / "renovate.json5").write_text(
-        content.rstrip() + "\n", encoding="UTF-8"
-    )
+    (tmp_path / "renovate.json5").write_text(content.rstrip() + "\n", encoding="UTF-8")
 
     from repomatic.init_project import find_redundant_init_files
 
