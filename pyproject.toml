@@ -275,6 +275,17 @@ regex = true
 search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
 replace = "date-released: {utcnow:%Y-%m-%d}"
 
+[tool.lychee]
+# https://lychee.cli.rs/configuration/
+# Upstream pyproject.toml support tracked at:
+# https://github.com/lycheeverse/lychee/issues/1930
+exclude = [
+  # GitHub issue comment fragments are dynamically loaded and can't be verified.
+  "^https://github.com/.+/issues/[0-9]+#issuecomment-.*$",
+  # Release binary download URLs redirect to the GitHub CDN (objects.githubusercontent.com).
+  "^https://github.com/.+/releases/.+/download/.*$",
+]
+
 [tool.mypy]
 warn_unused_configs = true
 warn_redundant_casts = true
