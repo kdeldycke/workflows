@@ -104,7 +104,7 @@ def test_tool_spec_integrity(name, spec):
         with patch.object(Metadata, "__init__", lambda self: None):
             m = Metadata()
             # Provide minimal stubs for mypy_params.
-            m.pyproject = None  # type: ignore[attr-defined]
+            m.pyproject = None
             params = spec.computed_params(m) or []
             for flag in params:
                 if flag.startswith("-"):
@@ -237,9 +237,9 @@ def test_get_platform_key_unsupported_os():
         patch("repomatic.tool_runner.is_linux", return_value=False),
         patch("repomatic.tool_runner.is_macos", return_value=False),
         patch("repomatic.tool_runner.is_windows", return_value=False),
+        pytest.raises(RuntimeError, match="Unsupported OS"),
     ):
-        with pytest.raises(RuntimeError, match="Unsupported OS"):
-            _get_platform_key()
+        _get_platform_key()
 
 
 def test_get_platform_key_unsupported_arch():
@@ -248,9 +248,9 @@ def test_get_platform_key_unsupported_arch():
         patch("repomatic.tool_runner.is_linux", return_value=True),
         patch("repomatic.tool_runner.is_x86_64", return_value=False),
         patch("repomatic.tool_runner.is_aarch64", return_value=False),
+        pytest.raises(RuntimeError, match="x64 and arm64"),
     ):
-        with pytest.raises(RuntimeError, match="x64 and arm64"):
-            _get_platform_key()
+        _get_platform_key()
 
 
 def test_download_and_verify_success(tmp_path):

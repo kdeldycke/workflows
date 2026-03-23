@@ -582,9 +582,6 @@ def resolve_config(
             content = _dict_to_toml(tool_config) + "\n"
         elif spec.native_format == NativeFormat.JSON:
             content = json.dumps(tool_config, indent=2) + "\n"
-        else:
-            msg = f"Unsupported native format for translation: {spec.native_format}"
-            raise ValueError(msg)
 
         logging.debug(
             "Translated [tool.%s] to %s:\n%s",
