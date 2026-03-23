@@ -1882,6 +1882,15 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
     md = Metadata()
     repo_name = md.repo_name
     repo_owner = md.repo_owner
+    repo_url = _repo_url()
+
+    # Include immutable releases step only when a changelog exists.
+    has_changelog = Path("./changelog.md").exists()
+    immutable_releases_step = (
+        render_template("immutable-releases", repo_url=repo_url)
+        if has_changelog
+        else ""
+    )
 
     # Detect if the repository owner is an organization.
     org_tip = ""
@@ -1904,9 +1913,10 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
 
     body = render_template(
         "setup-guide",
-        repo_url=_repo_url(),
+        repo_url=repo_url,
         repo_name=repo_name,
         repo_owner=repo_owner,
+        immutable_releases_step=immutable_releases_step,
         org_tip=org_tip,
     )
 

@@ -1,14 +1,14 @@
 ---
-args: [repo_url, repo_name, repo_owner, org_tip]
+args: [repo_url, repo_name, repo_owner, immutable_releases_step, org_tip]
 ---
 
 Some workflows need a **fine-grained personal access token** to create PRs that update files in `.github/workflows/`. Without it, those jobs will silently fail.
 
 ### Step 1: Create the token
 
-1. Open the [**pre-filled token form**](https://github.com/settings/personal-access-tokens/new?name=$repo_name-self-update&description=repomatic+automation+for+$repo_name&target_name=$repo_owner&contents=write&issues=write&metadata=read&pull_requests=write&statuses=write&vulnerability_alerts=read&workflows=write) (or go to **GitHub → Settings → Developer Settings → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)** and click **Generate new token**).
+1. Open the [**pre-filled token form**](https://github.com/settings/personal-access-tokens/new?name=$repo_name-repomatic&description=WORKFLOW_UPDATE_GITHUB_PAT+for+$repo_owner/$repo_name&target_name=$repo_owner&contents=write&issues=write&metadata=read&pull_requests=write&statuses=write&vulnerability_alerts=read&workflows=write) (or go to **GitHub → Settings → Developer Settings → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)** and click **Generate new token**).
 
-2. Review the pre-filled **Token name** (`$repo_name-self-update`). Alternatives: `$repo_name-repomatic`, `$repo_name-ci`.
+2. Review the pre-filled **Token name** (`$repo_name-repomatic`).
 
 3. Under **Repository access**, select **Only select repositories** and pick **$repo_name**. Do not grant access to other repositories.
 
@@ -47,16 +47,9 @@ Go to **this repo → [Settings → Advanced Security → Dependabot]($repo_url/
 | **Grouped security updates**    | ❌ Disabled | Not needed when security updates are disabled         |
 | **Dependabot version updates**  | ❌ Disabled | Renovate handles all version updates                  |
 
-### Step 4: Enable immutable releases
+$immutable_releases_step
 
-Go to **this repo → [Settings → General]($repo_url/settings)**, scroll to the **Releases** section, and enable **Release immutability**.
-
-This locks git tags and release assets after publication, preventing tampering. Release notes remain editable.
-
-> [!WARNING]
-> **Permanent tag reservation**: tags used for immutable releases are permanently reserved, even after deleting the release. If a release goes wrong, skip to the next version — don't try to reuse the tag.
-
-### Step 5: Verify
+### Final step: Verify
 
 Re-run the workflow. Jobs should now update `.github/workflows/` files without errors.
 

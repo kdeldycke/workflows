@@ -206,6 +206,7 @@ def test_get_template_names():
     assert "detect-squash-merge" in names
     assert "generated-footer" in names
     assert "github-releases" in names
+    assert "immutable-releases" in names
     assert "release-notes" in names
     assert "available-admonition" in names
     assert "broken-links-issue" in names
@@ -216,7 +217,7 @@ def test_get_template_names():
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
     assert "yanked-admonition" in names
-    assert len(names) == 34
+    assert len(names) == 36
 
 
 def test_load_template_frontmatter():
@@ -485,6 +486,7 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "development-warning",
     "generated-footer",
     "github-releases",
+    "immutable-releases",
     "pr-metadata",
     "refresh-tip",
     "release-notes",
