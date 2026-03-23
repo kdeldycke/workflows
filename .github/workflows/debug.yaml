@@ -31,7 +31,7 @@ jobs:
       build_targets: ${{ steps.extend-matrix.outputs.targets }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -57,5 +57,5 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: crazy-max/ghaction-dump-context@v2.3.0
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - run: uvx --no-progress 'extra-platforms==9.2.0'

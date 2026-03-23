@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Extract PR reference
         id: extract
         env:
@@ -112,7 +112,7 @@ jobs:
         run: git branch --all
       - name: List all commits
         run: git log --decorate=full --oneline
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -139,7 +139,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Build package
         run: uv --no-progress build
       - name: Generate build attestations
@@ -177,7 +177,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Setup venv
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
@@ -293,7 +293,7 @@ jobs:
           DOWNLOAD_PATH: ${{ steps.artifacts.outputs.download-path }}
           BIN_NAME: ${{ matrix.bin_name }}
         run: chmod +x "${DOWNLOAD_PATH}/${BIN_NAME}"
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Run test plan for binary
         env:
           DOWNLOAD_PATH: ${{ steps.artifacts.outputs.download-path }}
@@ -319,7 +319,7 @@ jobs:
           # PAT required so tag pushes trigger downstream on.push.tags workflows.
           # See repomatic/git_ops.py module docstring.
           token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Create and push tag
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
@@ -349,7 +349,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Download build artifacts
         uses: actions/download-artifact@v7.0.0
         id: download
@@ -391,7 +391,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
         with:
           enable-cache: false
       - name: Download Python package
@@ -486,7 +486,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Download all build artifacts
         uses: actions/download-artifact@v7.0.0
         with:

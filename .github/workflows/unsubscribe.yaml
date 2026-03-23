@@ -36,7 +36,7 @@ jobs:
       # is frozen to a PyPI pin, so no checkout is required.
       - if: github.repository == 'kdeldycke/repomatic'
         uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Unsubscribe from closed threads
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_NOTIFICATIONS_PAT }}
