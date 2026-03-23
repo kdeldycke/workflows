@@ -113,26 +113,26 @@ def test_returns_trigger_info(filename: str) -> None:
 def test_autofix_has_secrets() -> None:
     """Verify autofix.yaml defines secrets."""
     info = extract_trigger_info("autofix.yaml")
-    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
+    assert "REPOMATIC_PAT" in info.call_secrets
 
 
 def test_changelog_has_secrets() -> None:
     """Verify changelog.yaml defines secrets."""
     info = extract_trigger_info("changelog.yaml")
-    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
+    assert "REPOMATIC_PAT" in info.call_secrets
 
 
 def test_release_has_secrets() -> None:
     """Verify release.yaml defines secrets."""
     info = extract_trigger_info("release.yaml")
     assert "PYPI_TOKEN" in info.call_secrets
-    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
+    assert "REPOMATIC_PAT" in info.call_secrets
 
 
 def test_renovate_has_secrets() -> None:
     """Verify renovate.yaml defines secrets."""
     info = extract_trigger_info("renovate.yaml")
-    assert "WORKFLOW_UPDATE_GITHUB_PAT" in info.call_secrets
+    assert "REPOMATIC_PAT" in info.call_secrets
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
@@ -210,7 +210,7 @@ def test_autofix_passes_secrets_explicitly() -> None:
     content = generate_thin_caller("autofix.yaml")
     assert "secrets: inherit" not in content
     assert (
-        "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}"
+        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
         in content
     )
 
@@ -220,7 +220,7 @@ def test_changelog_passes_secrets_explicitly() -> None:
     content = generate_thin_caller("changelog.yaml")
     assert "secrets: inherit" not in content
     assert (
-        "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}"
+        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
         in content
     )
 
@@ -231,7 +231,7 @@ def test_release_passes_secrets_explicitly() -> None:
     assert "secrets: inherit" not in content
     assert "PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}" in content
     assert (
-        "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}"
+        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
         in content
     )
 
@@ -241,7 +241,7 @@ def test_renovate_passes_secrets_explicitly() -> None:
     content = generate_thin_caller("renovate.yaml")
     assert "secrets: inherit" not in content
     assert (
-        "WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}"
+        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
         in content
     )
 
@@ -419,6 +419,7 @@ def test_explicit_secrets_passed(tmp_path: Path) -> None:
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n"
         "    secrets:\n"
         "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n"
+        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n"
         "      WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}\n",
         encoding="UTF-8",
     )
@@ -464,7 +465,7 @@ def test_partial_secrets_missing(tmp_path: Path) -> None:
     )
     result = check_secrets_passed(wf, "release.yaml")
     assert result.is_issue is True
-    assert "WORKFLOW_UPDATE_GITHUB_PAT" in result.message
+    assert "REPOMATIC_PAT" in result.message
 
 
 def test_no_secrets_needed(tmp_path: Path) -> None:

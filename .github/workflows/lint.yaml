@@ -129,16 +129,16 @@ jobs:
           echo "::add-matcher::.github/actionlint-matcher.json"
       - name: Run actionlint
         # XXX actionlint triggers this error:
-        # .github/workflows/release.yaml:306:22: property "workflow_update_github_pat" is not defined in object type
-        # {actions_runner_debug: string; actions_step_debug: string; github_token: string; pypi_token: string}
-        # [expression]
+        # .github/workflows/release.yaml:308:22: property "repomatic_pat" is not defined in object type
+        # {actions_runner_debug: string; actions_step_debug: string; github_token: string; pypi_token: string;
+        # workflow_update_github_pat: string} [expression]
         #     |
-        # 306 | token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-        #     |            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # 308 | token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+        #     |            ^~~~~~~~~~~~~~~~~~~~~
         # See: https://github.com/rhysd/actionlint/issues/148
         run: >
           uvx --no-progress --from . repomatic run actionlint --
-          -ignore 'property "workflow_update_github_pat" is not defined in .+'
+          -ignore 'property "repomatic_pat" is not defined in .+'
 
   lint-workflow-security:
     name: 🔒 Lint workflow security

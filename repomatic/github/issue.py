@@ -47,7 +47,7 @@ def list_issues(title: str = "") -> list[dict[str, Any]]:
 
     .. note::
 
-        No ``--author`` filter is applied. When ``WORKFLOW_UPDATE_GITHUB_PAT``
+        No ``--author`` filter is applied. When ``REPOMATIC_PAT``
         is configured, ``gh`` authenticates as the token owner (not
         ``github-actions[bot]``), so issues may be authored by either identity.
         Filtering by author would miss issues created under the other identity,

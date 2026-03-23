@@ -36,7 +36,7 @@ $ uvx -- repomatic init
 $ git add . && git commit -m "Update repomatic files" && git push
 ```
 
-This **works for both new and existing repositories** — managed files (workflows, configs, skills) are always regenerated to the latest version. The only exception is `changelog.md`, which is never overwritten once it exists. The workflows will start running and guide you through any remaining setup (like [creating a `WORKFLOW_UPDATE_GITHUB_PAT` secret](#permissions-and-token)) via issues and PRs in your repository. After that, the [autofix workflow](#githubworkflowsautofixyaml-jobs) handles ongoing sync.
+This **works for both new and existing repositories** — managed files (workflows, configs, skills) are always regenerated to the latest version. The only exception is `changelog.md`, which is never overwritten once it exists. The workflows will start running and guide you through any remaining setup (like [creating a `REPOMATIC_PAT` secret](#permissions-and-token)) via issues and PRs in your repository. After that, the [autofix workflow](#githubworkflowsautofixyaml-jobs) handles ongoing sync.
 
 Run `repomatic init --help` to see available components and options.
 
@@ -302,7 +302,7 @@ GitHub Actions has several design limitations that the workflows work around:
 | `cancel-in-progress` evaluated on new run, not old          | ✅ Addressed       | [SHA-based concurrency groups](#concurrency-and-cancellation) in [`release.yaml`](#githubworkflowsreleaseyaml-jobs)                                               |
 | Cross-event concurrency cancellation                        | ✅ Addressed       | [`event_name` in `changelog.yaml` concurrency group](#concurrency-and-cancellation)                                                                               |
 | PR close doesn't cancel runs                                | ✅ Addressed       | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                                        |
-| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`WORKFLOW_UPDATE_GITHUB_PAT` fine-grained PAT](#permissions-and-token)                                                                                           |
+| `GITHUB_TOKEN` can't modify workflow files                  | ✅ Addressed       | [`REPOMATIC_PAT` fine-grained PAT](#permissions-and-token)                                                                                           |
 | Tag pushes from Actions don't trigger workflows             | ✅ Addressed       | [Custom PAT](#permissions-and-token) for tag operations                                                                                                           |
 | Default input values not propagated across events           | ✅ Addressed       | Manual defaults in `env:` section                                                                                                                                 |
 | `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-metadata-job) extracts full commit range                                                                             |
@@ -318,7 +318,7 @@ GitHub Actions has several design limitations that the workflows work around:
 
 - 📖 **Setup guide** (`setup-guide`)
 
-  - Detects missing `WORKFLOW_UPDATE_GITHUB_PAT` secret and opens an issue with step-by-step setup instructions
+  - Detects missing `REPOMATIC_PAT` secret and opens an issue with step-by-step setup instructions
   - Automatically closes the issue once the secret is configured
   - **Skipped if**:
     - upstream `kdeldycke/repomatic` repo, `workflow_call` events
@@ -750,7 +750,7 @@ docs = [
   - Creates PRs for outdated dependencies with stabilization periods
   - Handles security vulnerabilities via `vulnerabilityAlerts`
   - **Requires**:
-    - `WORKFLOW_UPDATE_GITHUB_PAT` secret with Dependabot alerts permission
+    - `REPOMATIC_PAT` secret with Dependabot alerts permission
 
 - ⛓️ **Sync `uv.lock`** (`sync-uv-lock`)
 
@@ -838,7 +838,7 @@ Safe to re-run: tag creation skips if already exists, version bumps have eligibi
 
 ### Graceful degradation
 
-Fallback tokens (`secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN`) and `continue-on-error` for unstable targets. Job names use emoji prefixes for at-a-glance status: **✅** for stable jobs that must pass, **⁉️** for unstable jobs (e.g., experimental Python versions, unreleased platforms) that are expected to fail and won't block the workflow.
+Fallback tokens (`secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN`) and `continue-on-error` for unstable targets. Job names use emoji prefixes for at-a-glance status: **✅** for stable jobs that must pass, **⁉️** for unstable jobs (e.g., experimental Python versions, unreleased platforms) that are expected to fail and won't block the workflow.
 
 ### Dogfooding
 
@@ -887,7 +887,7 @@ Workflows in this repository are **self-referential**. The [`prepare-release`](h
 
 ### Permissions and token
 
-Several workflows need a `WORKFLOW_UPDATE_GITHUB_PAT` secret to create PRs that modify files in `.github/workflows/` and to trigger downstream workflows. Without it, those jobs silently fall back to the default `GITHUB_TOKEN`, which lacks the required permissions.
+Several workflows need a `REPOMATIC_PAT` secret to create PRs that modify files in `.github/workflows/` and to trigger downstream workflows. Without it, those jobs silently fall back to the default `GITHUB_TOKEN`, which lacks the required permissions.
 
 After your first push, the [`setup-guide` job](#githubworkflowsautofixyaml-jobs) automatically opens an issue with [step-by-step instructions](https://github.com/kdeldycke/repomatic/blob/main/repomatic/templates/setup-guide.md) to create and configure the token.
 

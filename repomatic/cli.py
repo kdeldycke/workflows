@@ -1844,18 +1844,18 @@ def broken_links(
     "--has-pat",
     is_flag=True,
     default=False,
-    envvar="HAS_WORKFLOW_PAT",
-    help="Whether WORKFLOW_UPDATE_GITHUB_PAT is configured.",
+    envvar="HAS_REPOMATIC_PAT",
+    help="Whether REPOMATIC_PAT is configured.",
 )
 @_require_token(_token_mod, "validate_gh_token_env")
 @pass_context
 def setup_guide(ctx: Context, has_pat: bool) -> None:
-    """Manage the setup guide issue for WORKFLOW_UPDATE_GITHUB_PAT.
+    """Manage the setup guide issue for REPOMATIC_PAT.
 
     Opens (or reopens) an issue with PAT setup instructions when the secret
     is missing. Closes the issue when the secret is detected.
 
-    The ``--has-pat`` flag can also be set via the ``HAS_WORKFLOW_PAT``
+    The ``--has-pat`` flag can also be set via the ``HAS_REPOMATIC_PAT``
     environment variable (any non-empty value is truthy). Workflows set this
     env var at the workflow level so individual steps don't need to repeat the
     ``secrets.*`` ternary.
@@ -1935,7 +1935,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         has_issues=not has_pat,
         body_file=body_file,
         labels=["🤖 ci"],
-        title="Set up `WORKFLOW_UPDATE_GITHUB_PAT` to enable workflow auto-updates",
+        title="Set up `REPOMATIC_PAT` to enable workflow auto-updates",
         no_issues_comment="PAT secret detected.",
     )
 

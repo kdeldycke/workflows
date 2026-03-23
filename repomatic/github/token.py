@@ -20,7 +20,7 @@ Provides early validation for CLI commands that depend on the GitHub API,
 so users get clear error messages at startup rather than opaque failures
 mid-execution.
 
-.. note:: Why ``WORKFLOW_UPDATE_GITHUB_PAT`` is needed
+.. note:: Why ``REPOMATIC_PAT`` is needed
 
    GitHub's ``GITHUB_TOKEN`` cannot modify workflow files in ``.github/``.
    Neither ``contents: write``, ``actions: write``, nor ``permissions:
@@ -41,7 +41,7 @@ mid-execution.
    no effect on this limitation — it's a hard security boundary enforced by
    GitHub regardless of repository-level settings.
 
-   Jobs that use ``WORKFLOW_UPDATE_GITHUB_PAT``:
+   Jobs that use ``REPOMATIC_PAT``:
 
    - ``autofix.yaml``: fix-typos, sync-workflows, sync-awesome-template
      (PRs touching ``.github/workflows/`` files).
@@ -52,7 +52,7 @@ mid-execution.
      vulnerability alerts).
 
    All jobs fall back to ``GITHUB_TOKEN`` when the PAT is unavailable
-   (``secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN``), but
+   (``secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN``), but
    operations requiring the ``workflows`` permission or workflow triggering
    will silently fail.
 

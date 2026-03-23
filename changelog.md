@@ -7,7 +7,10 @@
 
 - Remove `yamllint` and `zizmor` init components. The tool runner already falls back to bundled default configs at runtime, so copying them into downstream repos was redundant. Default `exclude` reduced to `["labels", "skills"]`. Downstream repos with `yamllint` or `zizmor` in their `[tool.repomatic] exclude` list must remove those entries.
 - Add `repomatic clean-redundant-configs` command and autofix workflow job. Detects native config files (`.yamllint.yaml`, `zizmor.yaml`, etc.) that are identical to bundled defaults and removes them. `repomatic init` now warns about redundant configs found on disk.
-- Add `setup-guide` config toggle to `[tool.repomatic]`. Downstream repos can set `setup-guide = false` to suppress the setup guide issue for `WORKFLOW_UPDATE_GITHUB_PAT`.
+- Add `setup-guide` config toggle to `[tool.repomatic]`. Downstream repos can set `setup-guide = false` to suppress the setup guide issue for `REPOMATIC_PAT`.
+- Rename `WORKFLOW_UPDATE_GITHUB_PAT` secret to `REPOMATIC_PAT`. Workflows accept both names for backward compatibility; downstream repos can migrate at their own pace.
+- Pre-fill the fine-grained PAT creation form via URL parameters (token name, description, owner, permissions). Setup guide now provides `gh` CLI commands for adding the secret, configuring Dependabot, and triggering a verify run.
+- Skip the immutable releases setup step for repositories without a `changelog.md`.
 - Add `lint-repo` check that warns when the repository owner has GitHub Sponsors enabled but `.github/FUNDING.yml` is missing. Skips forks and owners without a Sponsors listing.
 
 ## [`6.5.0` (2026-03-21)](https://github.com/kdeldycke/repomatic/compare/v6.4.1...v6.5.0)

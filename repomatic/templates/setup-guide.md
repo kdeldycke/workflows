@@ -6,7 +6,7 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
 
 ### Step 1: Create the token
 
-1. Open the [**pre-filled token form**](https://github.com/settings/personal-access-tokens/new?name=$repo_name-repomatic&description=WORKFLOW_UPDATE_GITHUB_PAT+for+$repo_owner/$repo_name&target_name=$repo_owner&contents=write&issues=write&metadata=read&pull_requests=write&statuses=write&vulnerability_alerts=read&workflows=write) (or go to **GitHub → Settings → Developer Settings → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)** and click **Generate new token**).
+1. Open the [**pre-filled token form**](https://github.com/settings/personal-access-tokens/new?name=$repo_name-repomatic&description=REPOMATIC_PAT+for+$repo_owner/$repo_name&target_name=$repo_owner&contents=write&issues=write&metadata=read&pull_requests=write&statuses=write&vulnerability_alerts=read&workflows=write) (or go to **GitHub → Settings → Developer Settings → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)** and click **Generate new token**).
 
 2. Review the pre-filled **Token name** (`$repo_name-repomatic`).
 
@@ -34,10 +34,10 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
 Run this command and paste the token when prompted:
 
 ```shell
-gh secret set WORKFLOW_UPDATE_GITHUB_PAT --repo $repo_slug
+gh secret set REPOMATIC_PAT --repo $repo_slug
 ```
 
-Or add it manually: **this repo → [Settings → Secrets → Actions]($repo_url/settings/secrets/actions)** → **New repository secret** → name it `WORKFLOW_UPDATE_GITHUB_PAT` → paste the token.
+Or add it manually: **this repo → [Settings → Secrets → Actions]($repo_url/settings/secrets/actions)** → **New repository secret** → name it `REPOMATIC_PAT` → paste the token.
 
 ### Step 3: Configure Dependabot settings
 

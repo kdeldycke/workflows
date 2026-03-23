@@ -450,7 +450,7 @@ class Config:
     setup_guide: bool = True
     """Whether the setup guide issue is enabled for this project.
 
-    Projects that do not need ``WORKFLOW_UPDATE_GITHUB_PAT`` or manage their
+    Projects that do not need ``REPOMATIC_PAT`` or manage their
     own PAT setup can set this to ``false`` to suppress the setup guide issue.
     """
 

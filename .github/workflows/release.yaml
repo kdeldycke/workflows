@@ -6,7 +6,10 @@ name: 🚀 Build & release
     secrets:
       PYPI_TOKEN:
         required: false
+      REPOMATIC_PAT:
+        required: false
       WORKFLOW_UPDATE_GITHUB_PAT:
+        description: "Deprecated: use REPOMATIC_PAT instead."
         required: false
     outputs:
       nuitka_matrix:
@@ -252,7 +255,7 @@ jobs:
           github.ref == 'refs/heads/main'
           && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           CURRENT_VERSION: ${{ matrix.current_version }}
           BIN_NAME: ${{ matrix.bin_name }}
         shell: bash
@@ -315,7 +318,7 @@ jobs:
           ref: ${{ matrix.commit }}
           # PAT required so tag pushes trigger downstream on.push.tags workflows.
           # See repomatic/git_ops.py module docstring.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Create and push tag
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
@@ -382,7 +385,7 @@ jobs:
       # https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
       id-token: write
       attestations: write
-      # Allow project without WORKFLOW_UPDATE_GITHUB_PAT to create a GitHub release.
+      # Allow project without REPOMATIC_PAT to create a GitHub release.
       contents: write
     steps:
       - uses: actions/checkout@v6.0.2
@@ -410,12 +413,12 @@ jobs:
         # See repomatic/github/dev_release.py for rationale.
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . repomatic sync-dev-release --live --delete
       - name: Create GitHub release draft
         # Idempotent: skips if release already exists (e.g. workflow re-run).
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           CURRENT_VERSION: ${{ matrix.current_version }}
           COMMIT: ${{ matrix.commit }}
           REPO: ${{ github.repository }}
@@ -457,7 +460,7 @@ jobs:
     steps:
       - name: Publish release
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           CURRENT_VERSION: ${{ matrix.current_version }}
           REPO: ${{ github.repository }}
         run: >

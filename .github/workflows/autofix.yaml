@@ -3,7 +3,10 @@ name: 🪄 Autofix
 "on":
   workflow_call:
     secrets:
+      REPOMATIC_PAT:
+        required: false
       WORKFLOW_UPDATE_GITHUB_PAT:
+        description: "Deprecated: use REPOMATIC_PAT instead."
         required: false
   workflow_dispatch:
   push:
@@ -11,7 +14,7 @@ name: 🪄 Autofix
       - main
 
 env:
-  HAS_WORKFLOW_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || '' }}
+  HAS_REPOMATIC_PAT: ${{ (secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT) && 'true' || '' }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -218,7 +221,7 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}
@@ -226,11 +229,11 @@ jobs:
           labels: "📚 documentation"
           branch: fix-typos
       - name: PAT setup hint
-        if: failure() && !env.HAS_WORKFLOW_PAT
+        if: failure() && !env.HAS_REPOMATIC_PAT
         run: >
-          echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          echo "::error::REPOMATIC_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+WORKFLOW_UPDATE_GITHUB_PAT+in:title"
+          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
 
   clean-redundant-configs:
     name: 🧹 Clean redundant configs
@@ -480,7 +483,7 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           # We need custom PAT with workflows permissions to update .github/workflows/*.yaml files.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}
@@ -488,11 +491,11 @@ jobs:
           labels: "🤖 ci"
           branch: sync-workflows
       - name: PAT setup hint
-        if: failure() && !env.HAS_WORKFLOW_PAT
+        if: failure() && !env.HAS_REPOMATIC_PAT
         run: >
-          echo "::error::WORKFLOW_UPDATE_GITHUB_PAT is not configured.
+          echo "::error::REPOMATIC_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+WORKFLOW_UPDATE_GITHUB_PAT+in:title"
+          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
 
   sync-awesome-template:
     name: 🌟 Sync awesome template
@@ -503,7 +506,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
         with:
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
       - uses: astral-sh/setup-uv@v7.3.1
       - name: Sync awesome template
         run: uvx --no-progress --from . repomatic sync-awesome-template
@@ -514,7 +517,7 @@ jobs:
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}

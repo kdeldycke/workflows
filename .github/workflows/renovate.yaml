@@ -3,7 +3,10 @@ name: 🆕 Renovate
 "on":
   workflow_call:
     secrets:
+      REPOMATIC_PAT:
+        required: false
       WORKFLOW_UPDATE_GITHUB_PAT:
+        description: "Deprecated: use REPOMATIC_PAT instead."
         required: false
   schedule:
     # Run weekly.
@@ -78,7 +81,7 @@ jobs:
       - name: Check Renovate prerequisites
         id: checks
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . repomatic check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       - name: Export renovate.json5 if missing
@@ -112,14 +115,14 @@ jobs:
       # This ensures the repository is properly configured.
       - name: Validate Renovate prerequisites
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . repomatic check-renovate
 
       - uses: renovatebot/github-action@v46.1.4
         with:
           # Custom PAT required for Renovate to function fully.
           # See readme.md for full list of required permissions.
-          token: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
         env:
           # Self-hosted configuration.
           RENOVATE_PLATFORM: "github"

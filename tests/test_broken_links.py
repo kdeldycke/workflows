@@ -532,7 +532,7 @@ def test_setup_guide_missing_pat_opens_issue(mock_lifecycle, _mock_token):
     kwargs = mock_lifecycle.call_args[1]
     assert kwargs["has_issues"] is True
     assert kwargs["labels"] == ["🤖 ci"]
-    assert "WORKFLOW_UPDATE_GITHUB_PAT" in kwargs["title"]
+    assert "REPOMATIC_PAT" in kwargs["title"]
 
 
 @patch("repomatic.github.token.validate_gh_token_env")
@@ -555,7 +555,7 @@ def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
     runner.invoke(setup_guide, [])
     body_file = mock_lifecycle.call_args[1]["body_file"]
     content = body_file.read_text(encoding="UTF-8")
-    assert "WORKFLOW_UPDATE_GITHUB_PAT" in content
+    assert "REPOMATIC_PAT" in content
     assert "Fine-grained tokens" in content
 
 

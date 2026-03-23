@@ -25,7 +25,7 @@ guards (e.g. ``skip_existing`` on tag creation). This ensures correctness
 in the face of race conditions, API eventual consistency, and partial failures
 that are common in GitHub Actions.
 
-.. warning:: Tag push requires ``WORKFLOW_UPDATE_GITHUB_PAT``
+.. warning:: Tag push requires ``REPOMATIC_PAT``
 
    Tags pushed with the default ``GITHUB_TOKEN`` do not trigger downstream
    ``on.push.tags`` workflows. The custom PAT is required so that tagging
