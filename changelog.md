@@ -13,6 +13,7 @@
 - Close orphaned setup guide issues that still reference the old `WORKFLOW_UPDATE_GITHUB_PAT` title. The title change to `REPOMATIC_PAT` made old issues invisible to the exact-title matching in `manage_issue_lifecycle`.
 - Add `lint-repo` check that warns when the repository owner has GitHub Sponsors enabled but `.github/FUNDING.yml` is missing. Skips forks and owners without a Sponsors listing.
 - Drop `--aggressive` from autopep8 flags. It naively wraps lines inside f-string expressions, producing Python 3.12+-only syntax (PEP 701) that breaks on Python 3.10/3.11.
+- Surface actual `gh` CLI error messages in `unsubscribe-threads` warnings. Previously, `RuntimeError` details from failed API calls were discarded, making Phase 1 REST failures impossible to diagnose from CI logs.
 
 ## [`6.5.0` (2026-03-23)](https://github.com/kdeldycke/repomatic/compare/v6.4.1...v6.5.0)
 

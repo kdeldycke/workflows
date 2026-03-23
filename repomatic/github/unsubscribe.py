@@ -233,6 +233,8 @@ def _fetch_notification_threads(
     try:
         output = run_gh_command([
             "api",
+            "--method",
+            "GET",
             "/notifications",
             "--paginate",
             "--jq",
@@ -242,8 +244,8 @@ def _fetch_notification_threads(
             "-f",
             f"per_page={NOTIFICATION_PAGE_SIZE}",
         ])
-    except RuntimeError:
-        logging.warning("Failed to fetch notification threads.")
+    except RuntimeError as exc:
+        logging.warning("Failed to fetch notification threads: %s", exc)
         return 0, []
 
     threads = []
@@ -713,8 +715,8 @@ def unsubscribe_threads(
 
     try:
         username = _get_authenticated_username()
-    except RuntimeError:
-        logging.warning("Failed to get authenticated username. Skipping Phase 2.")
+    except RuntimeError as exc:
+        logging.warning("Failed to get authenticated username. Skipping Phase 2: %s", exc)
         p2.skipped = True
         p2.skip_reason = "Failed to get authenticated username. Skipping Phase 2."
         return result
@@ -786,10 +788,11 @@ def unsubscribe_threads(
                         updated_at=gql_updated_at,
                     )
                 )
-    except RuntimeError:
+    except RuntimeError as exc:
         logging.warning(
             "GraphQL search failed. Phase 2 may be incomplete. "
-            "Fine-grained PATs may not support GraphQL search."
+            "Fine-grained PATs may not support GraphQL search: %s",
+            exc,
         )
         p2.skipped = True
         p2.skip_reason = (
