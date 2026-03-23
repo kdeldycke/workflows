@@ -275,6 +275,15 @@ regex = true
 search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
 replace = "date-released: {utcnow:%Y-%m-%d}"
 
+[tool.mypy]
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+pretty = true
+overrides = [ { ignore_missing_imports = true, module = [ "py_walk.*" ] } ]
+
 [tool.lychee]
 # https://lychee.cli.rs/configuration/
 # Upstream pyproject.toml support tracked at:
@@ -285,15 +294,6 @@ exclude = [
   # Release binary download URLs redirect to the GitHub CDN (objects.githubusercontent.com).
   "^https://github.com/.+/releases/.+/download/.*$",
 ]
-
-[tool.mypy]
-warn_unused_configs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_return_any = true
-warn_unreachable = true
-pretty = true
-overrides = [ { ignore_missing_imports = true, module = [ "py_walk.*" ] } ]
 
 [tool.repomatic]
 nuitka.extra-args = [
