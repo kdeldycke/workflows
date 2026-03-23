@@ -276,7 +276,8 @@ def _get_thread_details(subject_url: str) -> dict[str, Any] | None:
             "--jq",
             "{state, updated_at, html_url, number}",
         ])
-        return json.loads(output)  # type: ignore[no-any-return]
+        result = json.loads(output)  # type: ignore[no-any-return]
+        return result
     except RuntimeError:
         logging.debug(f"Subject inaccessible: {subject_url}")
         return None

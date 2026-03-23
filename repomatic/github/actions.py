@@ -196,4 +196,6 @@ def get_github_event() -> dict[str, Any]:
     if not event_file.exists():
         logging.warning(f"Event file not found: {event_path}")
         return {}
-    return json.loads(event_file.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
+    return json.loads(  # type: ignore[no-any-return]
+        event_file.read_text(encoding="utf-8")
+    )
