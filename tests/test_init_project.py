@@ -30,6 +30,7 @@ from repomatic.init_project import (
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     EXPORTABLE_FILES,
+    FILE_COMPONENTS,
     INIT_CONFIGS,
     _file_id,
     _to_pyproject_format,
@@ -42,6 +43,7 @@ from repomatic.init_project import (
     parse_exclude,
     run_init,
 )
+from repomatic.tool_runner import TOOL_REGISTRY
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -520,7 +522,7 @@ def test_init_creates_all_default_files(
 
     result = run_init(output_dir=tmp_path)
 
-    # All components: changelog, labels, renovate, skills, workflows, zizmor.
+    # All components: changelog, labels, renovate, skills, workflows.
     config_file_count = sum(len(v) for v in COMPONENT_FILES.values())
     expected_count = len(REUSABLE_WORKFLOWS) + config_file_count + 1
     assert len(result.created) == expected_count
@@ -733,24 +735,6 @@ def test_init_changelog_never_overwritten(tmp_path: Path):
     # Content should be preserved.
     content = changelog.read_text(encoding="UTF-8")
     assert content == "# Old content\n"
-
-
-def test_init_zizmor_never_overwritten(tmp_path: Path):
-    """Verify an existing zizmor.yaml is never overwritten."""
-    zizmor = tmp_path / "zizmor.yaml"
-    zizmor.write_text("# Custom config\n", encoding="UTF-8")
-
-    result = run_init(
-        output_dir=tmp_path,
-        components=("zizmor",),
-    )
-
-    assert "zizmor.yaml" in result.skipped
-    assert len(result.created) == 0
-    assert len(result.updated) == 0
-    # Content should be preserved.
-    content = zizmor.read_text(encoding="UTF-8")
-    assert content == "# Custom config\n"
 
 
 def test_init_tool_configs_no_pyproject(tmp_path: Path):
@@ -1071,7 +1055,7 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
 
 
 def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Verify default exclude skips labels, skills, and zizmor."""
+    """Verify default exclude skips labels and skills."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n',
@@ -1082,10 +1066,8 @@ def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Labels, skills, yamllint, and zizmor are excluded by default.
-    assert ".yamllint.yaml" not in created_set
+    # Labels and skills are excluded by default.
     assert "labels.toml" not in created_set
-    assert "zizmor.yaml" not in created_set
     for _, rel_path in COMPONENT_FILES.get("skills", ()):
         assert rel_path not in created_set
 
@@ -1093,7 +1075,7 @@ def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert "changelog.md" in created_set
     assert "renovate.json5" in created_set
 
-    assert result.excluded == ["labels", "skills", "yamllint", "zizmor"]
+    assert result.excluded == ["labels", "skills"]
 
 
 def test_init_respects_exclude_components(
@@ -1104,7 +1086,7 @@ def test_init_respects_exclude_components(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'exclude = ["skills", "zizmor"]\n',
+        'exclude = ["skills", "labels"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1112,8 +1094,8 @@ def test_init_respects_exclude_components(
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Zizmor and skill files should not be created.
-    assert "zizmor.yaml" not in created_set
+    # Labels and skill files should not be created.
+    assert "labels.toml" not in created_set
     for _, rel_path in COMPONENT_FILES.get("skills", ()):
         assert rel_path not in created_set
 
@@ -1121,7 +1103,7 @@ def test_init_respects_exclude_components(
     assert "changelog.md" in created_set
     assert "renovate.json5" in created_set
 
-    assert result.excluded == ["skills", "zizmor"]
+    assert result.excluded == ["labels", "skills"]
 
 
 def test_init_respects_exclude_workflow_files(
@@ -1203,7 +1185,7 @@ def test_init_mixed_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'exclude = ["zizmor", "workflows/debug.yaml", "skills/repomatic-audit"]\n',
+        'exclude = ["labels", "workflows/debug.yaml", "skills/repomatic-audit"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1211,7 +1193,7 @@ def test_init_mixed_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    assert "zizmor.yaml" not in created_set
+    assert "labels.toml" not in created_set
     assert ".github/workflows/debug.yaml" not in created_set
     assert ".claude/skills/repomatic-audit/SKILL.md" not in created_set
 
@@ -1228,17 +1210,17 @@ def test_init_explicit_components_bypass_exclude(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'exclude = ["zizmor", "skills", "changelog"]\n',
+        'exclude = ["labels", "skills", "changelog"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
 
     # Explicitly request excluded components.
-    result = run_init(output_dir=tmp_path, components=("zizmor", "changelog"))
+    result = run_init(output_dir=tmp_path, components=("labels", "changelog"))
 
     created_set = set(result.created)
     # Explicitly requested components should be created despite exclusion.
-    assert "zizmor.yaml" in created_set
+    assert "labels.toml" in created_set
     assert "changelog.md" in created_set
 
     # Exclusion list should be empty when explicit components given.
@@ -1305,7 +1287,7 @@ def test_all_data_files_registered_in_exportable_files() -> None:
 
 
 def test_every_data_file_maps_to_a_component() -> None:
-    """Every file in EXPORTABLE_FILES belongs to exactly one component or INIT_CONFIGS."""
+    """Every file in EXPORTABLE_FILES belongs to a component, tool config, or tool runner."""
     # Collect all filenames claimed by FILE_COMPONENTS.
     component_filenames: set[str] = set()
     for entries in COMPONENT_FILES.values():
@@ -1322,7 +1304,16 @@ def test_every_data_file_maps_to_a_component() -> None:
         if path and path.startswith("./.github/workflows/")
     }
 
-    covered = component_filenames | tool_filenames | workflow_filenames
+    # Collect bundled default configs used by the tool runner at runtime.
+    bundled_defaults = {
+        spec.default_config
+        for spec in TOOL_REGISTRY.values()
+        if spec.default_config
+    }
+
+    covered = (
+        component_filenames | tool_filenames | workflow_filenames | bundled_defaults
+    )
     uncovered = set(EXPORTABLE_FILES.keys()) - covered
     assert not uncovered, (
         f"EXPORTABLE_FILES entries not mapped to any component: {sorted(uncovered)}"
@@ -1381,6 +1372,23 @@ def test_tool_components_have_no_file_ids() -> None:
     """Tool components (ruff, pytest, etc.) do not support file-level exclusion."""
     for component in INIT_CONFIGS:
         assert _valid_file_ids(component) == frozenset()
+
+
+def test_tools_with_bundled_defaults_not_init_components() -> None:
+    """Tools with a bundled default_config must not also be init components.
+
+    The tool runner already falls back to the bundled config at runtime when no
+    native config exists (Level 3 in resolve_config). Copying the same file
+    into downstream repos via init would be redundant pollution.
+    """
+    tools_with_defaults = {
+        name for name, spec in TOOL_REGISTRY.items() if spec.default_config
+    }
+    overlap = tools_with_defaults & set(FILE_COMPONENTS)
+    assert not overlap, (
+        f"Tools with default_config should not be FILE_COMPONENTS: {sorted(overlap)}."
+        " The tool runner already uses the bundled config as a fallback."
+    )
 
 
 @pytest.mark.parametrize(

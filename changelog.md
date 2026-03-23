@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Remove `yamllint` and `zizmor` init components. The tool runner already falls back to bundled default configs at runtime, so copying them into downstream repos was redundant. Default `exclude` reduced to `["labels", "skills"]`. Downstream repos with `yamllint` or `zizmor` in their `[tool.repomatic] exclude` list must remove those entries.
+
 ## [`6.5.0` (2026-03-21)](https://github.com/kdeldycke/repomatic/compare/v6.4.1...v6.5.0)
 
 - Replace `init.exclude` and `workflow.sync-exclude` config keys with a unified `exclude` key. Bare names exclude entire components (e.g., `"skills"`); qualified `component/identifier` entries exclude specific files (e.g., `"workflows/debug.yaml"`, `"skills/repomatic-audit"`, `"labels/labeller-content-based.yaml"`). Old keys are no longer recognized and will produce a hard error.

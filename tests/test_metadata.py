@@ -1379,7 +1379,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["uv-lock.sync"] is True
     assert metadata.config["workflow.source-paths"] is None
     assert metadata.config["workflow.sync"] is True
-    assert metadata.config["exclude"] == ["labels", "skills", "yamllint", "zizmor"]
+    assert metadata.config["exclude"] == ["labels", "skills"]
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1559,7 +1559,7 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     assert config["labels.extra-content-rules"] == ""
     assert config["pypi-package-history"] == []
     assert config["workflow.sync"] is True
-    assert config["exclude"] == ["labels", "skills", "yamllint", "zizmor"]
+    assert config["exclude"] == ["labels", "skills"]
 
 
 def test_load_repomatic_config_custom_values(tmp_path, monkeypatch):

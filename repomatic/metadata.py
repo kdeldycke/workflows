@@ -462,7 +462,7 @@ class Config:
     """
 
     exclude: list[str] = field(
-        default_factory=lambda: ["labels", "skills", "yamllint", "zizmor"],
+        default_factory=lambda: ["labels", "skills"],
     )
     """Components and files to exclude from repomatic operations.
 

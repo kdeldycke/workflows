@@ -597,8 +597,6 @@ def default_version_pin() -> str:
 FILE_COMPONENTS: dict[str, str] = {
     "changelog": "Minimal changelog.md",
     "labels": "Label config files (labels.toml + labeller rules)",
-    "yamllint": "yamllint config (.yamllint.yaml)",
-    "zizmor": "Zizmor config (zizmor.yaml)",
     "renovate": "Renovate config (renovate.json5)",
     "skills": "Claude Code skill definitions (.claude/skills/)",
     "workflows": "Thin-caller workflow files",
@@ -622,8 +620,6 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
         ("labels.toml", "labels.toml"),
     ),
-    "yamllint": (("yamllint.yaml", ".yamllint.yaml"),),
-    "zizmor": (("zizmor.yaml", "zizmor.yaml"),),
     "renovate": (("renovate.json5", "renovate.json5"),),
     "skills": (
         ("skill-repomatic-audit.md", ".claude/skills/repomatic-audit/SKILL.md"),
@@ -776,9 +772,7 @@ def run_init(
     source_paths = resolve_source_paths(config)
 
     # Parse exclude config. Raises ValueError on unknown entries.
-    exclude_entries: list[str] = config.get(
-        "exclude", ["labels", "skills", "yamllint", "zizmor"]
-    )
+    exclude_entries: list[str] = config.get("exclude", ["labels", "skills"])
     excluded_components, excluded_files = parse_exclude(exclude_entries)
 
     # Apply exclusions when no explicit components given.
@@ -828,11 +822,6 @@ def run_init(
             _init_config_files(
                 output_dir, component_name, result, exclude_ids=file_exclude
             )
-
-    # Linter configs: user-owned after initial creation — skip if exists.
-    for linter in ("yamllint", "zizmor"):
-        if linter in selected:
-            _init_config_files(output_dir, linter, result, skip_if_exists=True)
 
     # Fetch extra label files from [tool.repomatic] config.
     if "labels" in selected:
@@ -890,14 +879,10 @@ def _init_config_files(
     component_name: str,
     result: InitResult,
     *,
-    skip_if_exists: bool = False,
     exclude_ids: frozenset[str] = frozenset(),
 ) -> None:
     """Export bundled config files for a component.
 
-    :param skip_if_exists: When ``True``, skip files that already exist on disk
-        instead of overwriting. Used for user-owned configs like ``zizmor.yaml``
-        that should only be created once as a starting point.
     :param exclude_ids: File identifiers to skip within this component.
     """
     for source_name, rel_path in COMPONENT_FILES[component_name]:
@@ -905,10 +890,6 @@ def _init_config_files(
             continue
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()
-        if skip_if_exists and target.exists():
-            result.skipped.append(rel)
-            logging.debug(f"Skipped existing: {rel}")
-            continue
         existed = target.exists()
         target.parent.mkdir(parents=True, exist_ok=True)
         content = export_content(source_name)
