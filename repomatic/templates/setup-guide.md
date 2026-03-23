@@ -1,5 +1,5 @@
 ---
-args: [repo_url, repo_name, repo_owner, immutable_releases_step, org_tip]
+args: [repo_url, repo_name, repo_owner, repo_slug, immutable_releases_step, org_tip]
 ---
 
 Some workflows need a **fine-grained personal access token** to create PRs that update files in `.github/workflows/`. Without it, those jobs will silently fail.
@@ -31,27 +31,36 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
 
 ### Step 2: Add the secret
 
-1. Go to **this repo → [Settings → Secrets → Actions]($repo_url/settings/secrets/actions)**.
-2. Click **New repository secret**.
-3. Name: `WORKFLOW_UPDATE_GITHUB_PAT`
-4. Paste the token and click **Add secret**.
+Run this command and paste the token when prompted:
+
+```shell
+gh secret set WORKFLOW_UPDATE_GITHUB_PAT --repo $repo_slug
+```
+
+Or add it manually: **this repo → [Settings → Secrets → Actions]($repo_url/settings/secrets/actions)** → **New repository secret** → name it `WORKFLOW_UPDATE_GITHUB_PAT` → paste the token.
 
 ### Step 3: Configure Dependabot settings
 
-Go to **this repo → [Settings → Advanced Security → Dependabot]($repo_url/settings/security_analysis)** and configure:
+Enable vulnerability alerts (Renovate reads these via API) and disable everything else (Renovate handles updates):
 
-| Setting                         | Status      | Reason                                                |
-| :------------------------------ | :---------- | :---------------------------------------------------- |
-| **Dependabot alerts**           | ✅ Enabled  | Renovate reads these alerts to detect vulnerabilities |
-| **Dependabot security updates** | ❌ Disabled | Renovate creates security PRs instead                 |
-| **Grouped security updates**    | ❌ Disabled | Not needed when security updates are disabled         |
-| **Dependabot version updates**  | ❌ Disabled | Renovate handles all version updates                  |
+```shell
+gh api repos/$repo_slug/vulnerability-alerts --method PUT
+gh api repos/$repo_slug/automated-security-fixes --method DELETE
+```
+
+Disabling security updates also disables grouped security updates. Dependabot version updates are only active if `.github/dependabot.yml` exists — delete it if present. These two settings have no API; if either was manually enabled, disable them at **this repo → [Settings → Advanced Security → Dependabot]($repo_url/settings/security_analysis)**.
 
 $immutable_releases_step
 
 ### Final step: Verify
 
-Re-run the workflow. Jobs should now update `.github/workflows/` files without errors.
+Trigger a workflow re-run:
+
+```shell
+gh workflow run autofix.yaml --repo $repo_slug
+```
+
+Or re-run from the [**Actions tab**]($repo_url/actions). Jobs should now update `.github/workflows/` files without errors.
 
 \$org_tip
 

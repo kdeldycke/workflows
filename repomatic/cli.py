@@ -1882,6 +1882,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
     md = Metadata()
     repo_name = md.repo_name
     repo_owner = md.repo_owner
+    repo_slug = md.repo_slug
     repo_url = _repo_url()
 
     # Include immutable releases step only when a changelog exists.
@@ -1916,6 +1917,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         repo_url=repo_url,
         repo_name=repo_name,
         repo_owner=repo_owner,
+        repo_slug=repo_slug,
         immutable_releases_step=immutable_releases_step,
         org_tip=org_tip,
     )

@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Remove `yamllint` and `zizmor` init components. The tool runner already falls back to bundled default configs at runtime, so copying them into downstream repos was redundant. Default `exclude` reduced to `["labels", "skills"]`. Downstream repos with `yamllint` or `zizmor` in their `[tool.repomatic] exclude` list must remove those entries.
+- Add `repomatic clean-redundant-configs` command and autofix workflow job. Detects native config files (`.yamllint.yaml`, `zizmor.yaml`, etc.) that are identical to bundled defaults and removes them. `repomatic init` now warns about redundant configs found on disk.
 - Add `setup-guide` config toggle to `[tool.repomatic]`. Downstream repos can set `setup-guide = false` to suppress the setup guide issue for `WORKFLOW_UPDATE_GITHUB_PAT`.
 - Add `lint-repo` check that warns when the repository owner has GitHub Sponsors enabled but `.github/FUNDING.yml` is missing. Skips forks and owners without a Sponsors listing.
 
