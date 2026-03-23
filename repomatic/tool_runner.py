@@ -48,10 +48,10 @@ from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
 import yaml
-from extra_platforms import (  # type: ignore[attr-defined]
+from extra_platforms import (  # type: ignore[attr-defined,unused-ignore]
     is_aarch64,
     is_github_ci,
-    is_linux,
+    is_linux,  # Stubs added in extra_platforms 11.0.3.
     is_macos,
     is_windows,
     is_x86_64,
