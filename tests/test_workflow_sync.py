@@ -209,20 +209,14 @@ def test_autofix_passes_secrets_explicitly() -> None:
     """Verify autofix.yaml thin caller passes secrets explicitly."""
     content = generate_thin_caller("autofix.yaml")
     assert "secrets: inherit" not in content
-    assert (
-        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
-        in content
-    )
+    assert "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}" in content
 
 
 def test_changelog_passes_secrets_explicitly() -> None:
     """Verify changelog.yaml thin caller passes secrets explicitly."""
     content = generate_thin_caller("changelog.yaml")
     assert "secrets: inherit" not in content
-    assert (
-        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
-        in content
-    )
+    assert "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}" in content
 
 
 def test_release_passes_secrets_explicitly() -> None:
@@ -230,20 +224,14 @@ def test_release_passes_secrets_explicitly() -> None:
     content = generate_thin_caller("release.yaml")
     assert "secrets: inherit" not in content
     assert "PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}" in content
-    assert (
-        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
-        in content
-    )
+    assert "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}" in content
 
 
 def test_renovate_passes_secrets_explicitly() -> None:
     """Verify renovate.yaml thin caller passes secrets explicitly."""
     content = generate_thin_caller("renovate.yaml")
     assert "secrets: inherit" not in content
-    assert (
-        "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}"
-        in content
-    )
+    assert "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}" in content
 
 
 def test_lint_no_secrets() -> None:

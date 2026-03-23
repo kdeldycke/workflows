@@ -138,9 +138,7 @@ def _funding_file_exists() -> bool:
     if not github_dir.is_dir():
         return False
     return any(
-        f.name.upper() == "FUNDING.YML"
-        for f in github_dir.iterdir()
-        if f.is_file()
+        f.name.upper() == "FUNDING.YML" for f in github_dir.iterdir() if f.is_file()
     )
 
 
@@ -161,10 +159,10 @@ def check_funding_file(repo: str) -> tuple[str | None, str]:
 
     # Single GraphQL query for both isFork and hasSponsorsListing.
     query = (
-        "{ repository(owner: %s, name: %s) { isFork }"
-        " repositoryOwner(login: %s) {"
+        f"{{ repository(owner: {json.dumps(owner)}, name: {json.dumps(name)}) {{ isFork }}"
+        f" repositoryOwner(login: {json.dumps(owner)}) {{"
         " ... on Sponsorable { hasSponsorsListing } } }"
-    ) % (json.dumps(owner), json.dumps(name), json.dumps(owner))
+    )
 
     try:
         output = run_gh_command(["api", "graphql", "--field", f"query={query}"])

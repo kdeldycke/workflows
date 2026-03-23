@@ -278,8 +278,7 @@ def _get_thread_details(subject_url: str) -> dict[str, Any] | None:
             "--jq",
             "{state, updated_at, html_url, number}",
         ])
-        result = json.loads(output)  # type: ignore[no-any-return]
-        return result
+        return json.loads(output)  # type: ignore[no-any-return]
     except RuntimeError:
         logging.debug(f"Subject inaccessible: {subject_url}")
         return None
@@ -716,7 +715,9 @@ def unsubscribe_threads(
     try:
         username = _get_authenticated_username()
     except RuntimeError as exc:
-        logging.warning("Failed to get authenticated username. Skipping Phase 2: %s", exc)
+        logging.warning(
+            "Failed to get authenticated username. Skipping Phase 2: %s", exc
+        )
         p2.skipped = True
         p2.skip_reason = "Failed to get authenticated username. Skipping Phase 2."
         return result
