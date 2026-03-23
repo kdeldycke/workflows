@@ -247,7 +247,14 @@ workflow.source-paths = ["extra_platforms"]
 
 ### `[tool.X]` bridge for third-party tools
 
-Some tools (yamllint, zizmor, …) have long-standing requests to read configuration from `pyproject.toml` but haven't shipped native support yet. `repomatic run` bridges the gap: write your config in `[tool.<name>]` and repomatic translates it to the tool's native format at invocation time.
+Some tools have long-standing requests to read configuration from `pyproject.toml` but haven't shipped native support yet. `repomatic run` bridges the gap: write your config in `[tool.<name>]` and repomatic translates it to the tool's native format at invocation time.
+
+| Tool | `[tool.X]` section | Translated to |
+| :--- | :--- | :--- |
+| [biome](https://biomejs.dev) | `[tool.biome]` | JSON |
+| [lychee](https://lychee.cli.rs) | `[tool.lychee]` | TOML |
+| [yamllint](https://yamllint.readthedocs.io) | `[tool.yamllint]` | YAML |
+| [zizmor](https://docs.zizmor.sh) | `[tool.zizmor]` | YAML |
 
 ```toml
 # pyproject.toml
@@ -262,9 +269,9 @@ check-keys = false
 $ uvx -- repomatic run yamllint -- .
 ```
 
-repomatic writes a temporary YAML config file, passes it via `--config-file`, and cleans it up after the run. No dotfiles needed.
+repomatic writes a temporary config file in the tool's native format, passes it via the appropriate CLI flag, and cleans it up after the run. No dotfiles needed.
 
-The same mechanism works for any registered tool that accepts a config file. If a native config file (e.g., `.yamllint.yaml`) is already present, repomatic defers to it — your repo stays in control.
+If a native config file (e.g., `.yamllint.yaml`, `biome.json`) is already present, repomatic defers to it — your repo stays in control.
 
 ## Reusable workflows
 
