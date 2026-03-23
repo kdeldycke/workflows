@@ -9,6 +9,7 @@
 - Add `unsubscribe.yaml` reusable workflow for scheduled cleanup of closed notification threads. Opt-in via `notification.unsubscribe = true` in `[tool.repomatic]`. Requires a classic PAT with `notifications` scope stored as `REPOMATIC_NOTIFICATIONS_PAT`. Introduce `OPT_IN_WORKFLOWS` mechanism for workflows that are excluded from thin-caller generation unless explicitly enabled.
 - Surface actual `gh` CLI error messages in `unsubscribe-threads` warnings. Previously, `RuntimeError` details from failed API calls were discarded, making Phase 1 REST failures impossible to diagnose from CI logs.
 - Enable `delete-branch: true` on all `peter-evans/create-pull-request` invocations. Stale automation PRs are now auto-closed when a subsequent workflow run finds no changes to commit.
+- Add `gitleaks` to the tool runner registry with binary download support and `[tool.gitleaks]` configuration bridge. Migrate `lint-secrets` workflow job from `gitleaks/gitleaks-action` to `repomatic run gitleaks`.
 
 ## [`6.6.0` (2026-03-23)](https://github.com/kdeldycke/repomatic/compare/v6.5.0...v6.6.0)
 

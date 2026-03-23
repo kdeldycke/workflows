@@ -189,8 +189,6 @@ jobs:
       - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2.3.9
-        with:
-          config-path: .github/gitleaks.toml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: astral-sh/setup-uv@v7.3.1
+      - name: Run gitleaks
+        run: uvx --no-progress --from . repomatic run gitleaks -- detect --source .

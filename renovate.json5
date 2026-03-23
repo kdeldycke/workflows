@@ -123,6 +123,16 @@
       datasourceTemplate: "github-releases",
     },
     {
+      description: "Update gitleaks version in tool runner registry.",
+      customType: "regex",
+      fileMatch: ["repomatic/tool_runner\\.py$"],
+      matchStrings: [
+        "\"gitleaks\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
+      ],
+      depNameTemplate: "gitleaks/gitleaks",
+      datasourceTemplate: "github-releases",
+    },
+    {
       description: "Update labelmaker version in tool runner registry.",
       customType: "regex",
       fileMatch: ["repomatic/tool_runner\\.py$"],

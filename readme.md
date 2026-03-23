@@ -252,6 +252,7 @@ Some tools have long-standing requests to read configuration from `pyproject.tom
 | Tool | `[tool.X]` section | Translated to |
 | :--- | :--- | :--- |
 | [biome](https://biomejs.dev) | `[tool.biome]` | JSON |
+| [gitleaks](https://github.com/gitleaks/gitleaks) | `[tool.gitleaks]` | TOML |
 | [lychee](https://lychee.cli.rs) | `[tool.lychee]` | TOML |
 | [yamllint](https://yamllint.readthedocs.io) | `[tool.yamllint]` | YAML |
 | [zizmor](https://docs.zizmor.sh) | `[tool.zizmor]` | YAML |

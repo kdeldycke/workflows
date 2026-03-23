@@ -289,6 +289,29 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         version="1.2.7",
         reads_pyproject=True,
     ),
+    # gitleaks configuration reference:
+    # - Config discovery: https://github.com/gitleaks/gitleaks#configuration
+    #   Searches .gitleaks.toml in CWD.
+    # - CLI flags: https://github.com/gitleaks/gitleaks#usage
+    #   detect subcommand; -c / --config for explicit config; --report-format
+    #   for output format (json, csv, junit, sarif).
+    # - Source: https://github.com/gitleaks/gitleaks
+    "gitleaks": ToolSpec(
+        name="gitleaks",
+        version="8.30.1",
+        native_config_files=(".gitleaks.toml", ".github/gitleaks.toml"),
+        config_flag="--config",
+        native_format=NativeFormat.TOML,
+        binary=BinarySpec(
+            urls={
+                "linux-x64": "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_linux_x64.tar.gz",
+            },
+            checksums={
+                "linux-x64": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
+            },
+            archive_format=ArchiveFormat.TAR_GZ,
+        ),
+    ),
     # labelmaker configuration reference:
     # - CLI flags: https://github.com/jwodder/labelmaker
     #   apply subcommand with label file and repository arguments.
