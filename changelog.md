@@ -10,7 +10,10 @@
 - Add `setup-guide` config toggle to `[tool.repomatic]`. Downstream repos can set `setup-guide = false` to suppress the setup guide issue for `WORKFLOW_UPDATE_GITHUB_PAT`.
 - Add `lint-repo` check that warns when the repository owner has GitHub Sponsors enabled but `.github/FUNDING.yml` is missing. Skips forks and owners without a Sponsors listing.
 
-## [`6.5.0` (2026-03-21)](https://github.com/kdeldycke/repomatic/compare/v6.4.1...v6.5.0)
+## [`6.5.0` (2026-03-23)](https://github.com/kdeldycke/repomatic/compare/v6.4.1...v6.5.0)
+
+> [!NOTE]
+> `6.5.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.5.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.5.0).
 
 - Replace `init.exclude` and `workflow.sync-exclude` config keys with a unified `exclude` key. Bare names exclude entire components (e.g., `"skills"`); qualified `component/identifier` entries exclude specific files (e.g., `"workflows/debug.yaml"`, `"skills/repomatic-audit"`, `"labels/labeller-content-based.yaml"`). Old keys are no longer recognized and will produce a hard error.
 - Remove legacy `[tool.gha-utils]` and `[tool.repokit]` config section migration. Projects still using old section names must manually rename to `[tool.repomatic]`.
