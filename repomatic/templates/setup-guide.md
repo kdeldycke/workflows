@@ -52,6 +52,21 @@ Disabling security updates also disables grouped security updates. Dependabot ve
 
 $immutable_releases_step
 
+### Protect the `main` branch
+
+Create a [**branch ruleset**]($repo_url/settings/rules/new?target=branch&enforcement=active) to prevent accidental force-pushes or deletions:
+
+1. **Ruleset name**: `main`
+2. **Enforcement status**: Active
+3. Under **Target branches**, click **Add target** → **Include default branch**
+4. Check **Restrict deletions** and **Block force pushes** (both are on by default for new rulesets)
+5. Click **Create**
+
+No status checks are required — the above is enough to protect commit history.
+
+> [!NOTE]
+> GitHub shows a banner warning on repositories without branch protection. This step silences it and guards against irreversible mistakes.
+
 ### Final step: Verify
 
 Trigger a workflow re-run:

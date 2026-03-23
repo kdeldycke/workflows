@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add branch protection checklist to the setup guide issue. Links to a pre-filled ruleset creation form targeting the default branch with force-push and deletion protection.
+
 ## [`6.6.0` (2026-03-23)](https://github.com/kdeldycke/repomatic/compare/v6.5.0...v6.6.0)
 
 > [!NOTE]
