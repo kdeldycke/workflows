@@ -1391,6 +1391,40 @@ def test_tools_with_bundled_defaults_not_init_components() -> None:
     )
 
 
+def test_init_reports_redundant_configs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Init reports native config files that match bundled defaults."""
+    from repomatic.tool_runner import get_data_file_path
+
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    with get_data_file_path("yamllint.yaml") as bundled:
+        content = bundled.read_text(encoding="UTF-8")
+    (tmp_path / ".yamllint.yaml").write_text(content, encoding="UTF-8")
+
+    result = run_init(output_dir=tmp_path)
+    assert ".yamllint.yaml" in result.redundant_configs
+
+
+def test_init_no_redundant_when_different(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Init does not flag modified config files as redundant."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    (tmp_path / ".yamllint.yaml").write_text(
+        "rules:\n  line-length:\n    max: 80\n", encoding="UTF-8"
+    )
+
+    result = run_init(output_dir=tmp_path)
+    assert result.redundant_configs == []
+
+
 @pytest.mark.parametrize(
     "entry",
     [

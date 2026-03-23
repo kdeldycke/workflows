@@ -232,6 +232,28 @@ jobs:
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
           See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+WORKFLOW_UPDATE_GITHUB_PAT+in:title"
 
+  clean-redundant-configs:
+    name: 🧹 Clean redundant configs
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.3.1
+      - name: Remove redundant config files
+        run: uvx --no-progress --from . repomatic clean-redundant-configs
+      - id: pr-metadata
+        run: >
+          uvx --no-progress --from . repomatic pr-body
+          --template clean-redundant-configs
+          --output "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          assignees: ${{ github.actor }}
+          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
+          title: ${{ steps.pr-metadata.outputs.title }}
+          body: ${{ steps.pr-metadata.outputs.body }}
+          labels: "🤖 ci"
+          branch: clean-redundant-configs
+
   format-images:
     name: 🖼️ Format images
     needs:

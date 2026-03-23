@@ -738,6 +738,9 @@ class InitResult:
     excluded_existing: list[str] = field(default_factory=list)
     """Relative paths of excluded files that still exist on disk."""
 
+    redundant_configs: list[str] = field(default_factory=list)
+    """Relative paths of native config files identical to bundled defaults."""
+
     warnings: list[str] = field(default_factory=list)
     """Warning messages emitted during initialization."""
 
@@ -835,6 +838,13 @@ def run_init(
     tool_configs = selected & set(INIT_CONFIGS.keys())
     if tool_configs:
         _init_tool_configs(output_dir, sorted(tool_configs), result)
+
+    # Check for native config files identical to bundled defaults.
+    from .tool_runner import find_redundant_configs
+
+    for _tool_name, rel_path in find_redundant_configs():
+        result.redundant_configs.append(rel_path)
+        logging.warning(f"Redundant config (matches bundled default): {rel_path}")
 
     return result
 

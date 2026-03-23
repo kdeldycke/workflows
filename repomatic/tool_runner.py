@@ -920,3 +920,37 @@ def resolve_config_source(spec: ToolSpec) -> str:
         return "bundled default"
 
     return "(bare)"
+
+
+def find_redundant_configs() -> list[tuple[str, str]]:
+    """Find native config files identical to their bundled defaults.
+
+    Iterates over every tool in :data:`TOOL_REGISTRY` that has a
+    ``default_config``.  For each, checks whether any of its
+    ``native_config_files`` exists on disk and is content-identical
+    to the bundled default after trailing-whitespace normalization.
+
+    The normalization (``rstrip() + "\\n"``) matches the convention
+    used by ``_init_config_files`` when writing files during ``init``.
+
+    :return: List of ``(tool_name, relative_path)`` tuples for each
+        redundant file found.
+    """
+    redundant: list[tuple[str, str]] = []
+
+    for name, spec in sorted(TOOL_REGISTRY.items()):
+        if not spec.default_config:
+            continue
+
+        with get_data_file_path(spec.default_config) as bundled_path:
+            bundled = bundled_path.read_text(encoding="UTF-8").rstrip() + "\n"
+
+        for config_file in spec.native_config_files:
+            path = Path(config_file)
+            if not path.exists():
+                continue
+            native = path.read_text(encoding="UTF-8").rstrip() + "\n"
+            if native == bundled:
+                redundant.append((name, config_file))
+
+    return redundant
