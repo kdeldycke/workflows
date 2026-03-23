@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Sync labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Dump default rules
         run: uvx --no-progress --from . repomatic init labels
       - name: Apply rules
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Dump default rules
         run: uvx --no-progress --from . repomatic init labels
       - name: Apply rules
@@ -99,7 +99,7 @@ jobs:
       && (! fromJSON(needs.metadata.outputs.metadata).is_bot)
     runs-on: ubuntu-slim
     steps:
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Add sponsor label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

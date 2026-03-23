@@ -20,7 +20,7 @@ jobs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Install Graphviz
         # So we can use the sphinx.ext.graphviz plugin.
         # See: https://www.sphinx-doc.org/en/master/usage/extensions/graphviz.html
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.3.1
+      - uses: astral-sh/setup-uv@v7.4.0
       - name: Install Graphviz
         if: >
           fromJSON(needs.metadata.outputs.metadata).is_python_project
