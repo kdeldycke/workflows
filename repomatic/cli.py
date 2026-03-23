@@ -1927,6 +1927,23 @@ def setup_guide(ctx: Context, has_pat: bool, has_legacy_pat: bool) -> None:
         except RuntimeError:
             logging.debug(f"Failed to detect owner type for {owner!r}.")
 
+    # --- Close orphaned issues from the deprecated title ---
+    # The setup guide title changed from WORKFLOW_UPDATE_GITHUB_PAT to
+    # REPOMATIC_PAT. Since manage_issue_lifecycle matches by exact title, old
+    # issues are invisible to the current code. Close them unconditionally.
+    manage_issue_lifecycle(
+        has_issues=False,
+        body_file=Path("/dev/null"),
+        labels=[],
+        title=(
+            "Set up `WORKFLOW_UPDATE_GITHUB_PAT`"
+            " to enable workflow auto-updates"
+        ),
+        no_issues_comment=(
+            "Superseded by the `REPOMATIC_PAT` setup guide."
+        ),
+    )
+
     # --- Setup guide issue (no PAT at all) ---
     setup_body = render_template(
         "setup-guide",

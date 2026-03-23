@@ -528,14 +528,18 @@ def test_setup_guide_no_pat_opens_setup_issue(mock_lifecycle, _mock_token):
     runner = CliRunner()
     result = runner.invoke(setup_guide, [])
     assert result.exit_code == 0
-    assert mock_lifecycle.call_count == 2
-    # First call: setup guide issue (opened).
-    setup_kwargs = mock_lifecycle.call_args_list[0][1]
+    assert mock_lifecycle.call_count == 3
+    # First call: close orphaned issues with the deprecated title.
+    deprecated_kwargs = mock_lifecycle.call_args_list[0][1]
+    assert deprecated_kwargs["has_issues"] is False
+    assert "WORKFLOW_UPDATE_GITHUB_PAT" in deprecated_kwargs["title"]
+    # Second call: setup guide issue (opened).
+    setup_kwargs = mock_lifecycle.call_args_list[1][1]
     assert setup_kwargs["has_issues"] is True
     assert setup_kwargs["labels"] == ["🤖 ci"]
     assert "Set up" in setup_kwargs["title"]
-    # Second call: migration issue (closed).
-    migration_kwargs = mock_lifecycle.call_args_list[1][1]
+    # Third call: migration issue (closed).
+    migration_kwargs = mock_lifecycle.call_args_list[2][1]
     assert migration_kwargs["has_issues"] is False
 
 
@@ -546,12 +550,15 @@ def test_setup_guide_legacy_pat_opens_migration_issue(mock_lifecycle, _mock_toke
     runner = CliRunner()
     result = runner.invoke(setup_guide, ["--has-legacy-pat"])
     assert result.exit_code == 0
-    assert mock_lifecycle.call_count == 2
-    # First call: setup guide issue (closed).
-    setup_kwargs = mock_lifecycle.call_args_list[0][1]
+    assert mock_lifecycle.call_count == 3
+    # First call: close orphaned issues with the deprecated title.
+    deprecated_kwargs = mock_lifecycle.call_args_list[0][1]
+    assert deprecated_kwargs["has_issues"] is False
+    # Second call: setup guide issue (closed).
+    setup_kwargs = mock_lifecycle.call_args_list[1][1]
     assert setup_kwargs["has_issues"] is False
-    # Second call: migration issue (opened).
-    migration_kwargs = mock_lifecycle.call_args_list[1][1]
+    # Third call: migration issue (opened).
+    migration_kwargs = mock_lifecycle.call_args_list[2][1]
     assert migration_kwargs["has_issues"] is True
     assert "Rename" in migration_kwargs["title"]
 
@@ -559,11 +566,11 @@ def test_setup_guide_legacy_pat_opens_migration_issue(mock_lifecycle, _mock_toke
 @patch("repomatic.github.token.validate_gh_token_env")
 @patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_new_pat_closes_all(mock_lifecycle, _mock_token):
-    """When REPOMATIC_PAT is configured, both issues close."""
+    """When REPOMATIC_PAT is configured, all issues close."""
     runner = CliRunner()
     result = runner.invoke(setup_guide, ["--has-pat"])
     assert result.exit_code == 0
-    assert mock_lifecycle.call_count == 2
+    assert mock_lifecycle.call_count == 3
     for call in mock_lifecycle.call_args_list:
         assert call[1]["has_issues"] is False
 
@@ -574,8 +581,8 @@ def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
     """The setup body file contains the setup guide template content."""
     runner = CliRunner()
     runner.invoke(setup_guide, [])
-    # First call is the setup guide issue.
-    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
+    # Second call is the setup guide issue (first is deprecated-title cleanup).
+    body_file = mock_lifecycle.call_args_list[1][1]["body_file"]
     content = body_file.read_text(encoding="UTF-8")
     assert "REPOMATIC_PAT" in content
     assert "Fine-grained tokens" in content
@@ -587,8 +594,8 @@ def test_setup_guide_migration_body_contains_template(mock_lifecycle, _mock_toke
     """The migration body file contains the pat-migration template content."""
     runner = CliRunner()
     runner.invoke(setup_guide, ["--has-legacy-pat"])
-    # Second call is the migration issue.
-    body_file = mock_lifecycle.call_args_list[1][1]["body_file"]
+    # Third call is the migration issue (first is deprecated-title cleanup).
+    body_file = mock_lifecycle.call_args_list[2][1]["body_file"]
     content = body_file.read_text(encoding="UTF-8")
     assert "WORKFLOW_UPDATE_GITHUB_PAT" in content
     assert "REPOMATIC_PAT" in content
