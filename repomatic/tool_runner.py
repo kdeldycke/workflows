@@ -254,7 +254,6 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             "88",
             "--select",
             "E501",
-            "--aggressive",
         ),
     ),
     # biome configuration reference:
