@@ -48,10 +48,10 @@ from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
 import yaml
-from extra_platforms import (
+from extra_platforms import (  # type: ignore[attr-defined]
     is_aarch64,
     is_github_ci,
-    is_linux,  # type: ignore[attr-defined]  # Dynamically generated group detector.
+    is_linux,
     is_macos,
     is_windows,
     is_x86_64,
