@@ -97,6 +97,7 @@ from .github.workflow_sync import (
     DEFAULT_REPO,
     DEFAULT_VERSION,
     NON_REUSABLE_WORKFLOWS,
+    OPT_IN_WORKFLOWS,
     REUSABLE_WORKFLOWS,
     WorkflowFormat,
     generate_workflows,
@@ -955,6 +956,11 @@ def _apply_workflow_config(
         default_names = tuple(
             n for n in default_names if n not in workflow_file_exclude
         )
+
+    # Exclude opt-in workflows whose toggle is off.
+    for wf_name, config_key in OPT_IN_WORKFLOWS.items():
+        if wf_name in default_names and not config.get(config_key, False):
+            default_names = tuple(n for n in default_names if n != wf_name)
 
     return default_names
 

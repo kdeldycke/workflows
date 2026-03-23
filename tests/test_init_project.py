@@ -24,7 +24,11 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from repomatic.github.workflow_sync import ALL_WORKFLOW_FILES, REUSABLE_WORKFLOWS
+from repomatic.github.workflow_sync import (
+    ALL_WORKFLOW_FILES,
+    OPT_IN_WORKFLOWS,
+    REUSABLE_WORKFLOWS,
+)
 from repomatic.init_project import (
     ALL_COMPONENTS,
     COMPONENT_FILES,
@@ -506,15 +510,18 @@ def test_init_creates_all_default_files(
     result = run_init(output_dir=tmp_path)
 
     # All components: changelog, labels, renovate, skills, workflows.
+    # Opt-in workflows are excluded by default.
     config_file_count = sum(len(v) for v in COMPONENT_FILES.values())
-    expected_count = len(REUSABLE_WORKFLOWS) + config_file_count + 1
+    default_workflows = len(REUSABLE_WORKFLOWS) - len(OPT_IN_WORKFLOWS)
+    expected_count = default_workflows + config_file_count + 1
     assert len(result.created) == expected_count
     assert len(result.skipped) == 0
     assert len(result.warnings) == 0
 
-    # Verify workflow files exist.
+    # Verify workflow files exist (excluding opt-in workflows).
     for filename in REUSABLE_WORKFLOWS:
-        assert (tmp_path / ".github" / "workflows" / filename).exists()
+        if filename not in OPT_IN_WORKFLOWS:
+            assert (tmp_path / ".github" / "workflows" / filename).exists()
 
     # Verify config files exist.
     assert (tmp_path / "renovate.json5").exists()
@@ -674,8 +681,12 @@ def test_init_only_workflows(tmp_path: Path):
     result = run_init(output_dir=tmp_path, components=("workflows",))
 
     created_set = set(result.created)
+    # Opt-in workflows are excluded by default.
     for filename in REUSABLE_WORKFLOWS:
-        assert f".github/workflows/{filename}" in created_set
+        if filename in OPT_IN_WORKFLOWS:
+            assert f".github/workflows/{filename}" not in created_set
+        else:
+            assert f".github/workflows/{filename}" in created_set
 
     # No config files or changelog.
     assert "renovate.json5" not in created_set
@@ -740,7 +751,10 @@ def test_init_version_pinned(tmp_path: Path):
     )
 
     # Check that generated workflow files contain the version pin.
+    # Opt-in workflows are excluded by default.
     for filename in REUSABLE_WORKFLOWS:
+        if filename in OPT_IN_WORKFLOWS:
+            continue
         wf_path = tmp_path / ".github" / "workflows" / filename
         content = wf_path.read_text(encoding="UTF-8")
         assert "@v5.9.1" in content

@@ -507,6 +507,7 @@ expected = {
         ".github/workflows/release.yaml",
         ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
+        ".github/workflows/unsubscribe.yaml",
         "repomatic/data/labeller-content-based.yaml",
         "repomatic/data/labeller-file-based.yaml",
         "repomatic/data/yamllint.yaml",
@@ -535,6 +536,7 @@ expected = {
         ".github/workflows/release.yaml",
         ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
+        ".github/workflows/unsubscribe.yaml",
     ],
     "doc_files": [
         ".claude/agents/grunt-qa.md",
@@ -1374,6 +1376,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["labels.extra-file-rules"] == ""
     assert metadata.config["labels.extra-content-rules"] == ""
     assert metadata.config["pypi-package-history"] == []
+    assert metadata.config["notification.unsubscribe"] is False
     assert metadata.config["awesome-template.sync"] is True
     assert metadata.config["bumpversion.sync"] is True
     assert metadata.config["dev-release.sync"] is True
@@ -1418,6 +1421,7 @@ labels.extra-files = ["https://example.com/labels.toml"]
 labels.extra-file-rules = "docs:\\n  - docs/**"
 labels.extra-content-rules = "security:\\n  - '(CVE|vulnerability)'"
 pypi-package-history = ["old-name", "older-name"]
+notification.unsubscribe = true
 awesome-template.sync = false
 bumpversion.sync = false
 dev-release.sync = false
@@ -1464,6 +1468,7 @@ exclude = ["skills", "workflows/debug.yaml", "workflows/autolock.yaml"]
         == "security:\n  - '(CVE|vulnerability)'"
     )
     assert metadata.config["pypi-package-history"] == ["old-name", "older-name"]
+    assert metadata.config["notification.unsubscribe"] is True
     assert metadata.config["awesome-template.sync"] is False
     assert metadata.config["bumpversion.sync"] is False
     assert metadata.config["dev-release.sync"] is False

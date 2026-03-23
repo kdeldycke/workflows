@@ -54,6 +54,7 @@ WORKFLOWS_WITHOUT_CONCURRENCY = frozenset((
     "autolock.yaml",  # Scheduled only, no concurrent execution possible.
     "cancel-runs.yaml",  # Fires on PR close, must always run to completion.
     "debug.yaml",  # Debug-only workflow, not for production use.
+    "unsubscribe.yaml",  # Scheduled only, no concurrent execution possible.
 ))
 
 # Workflows that protect releases using unique concurrency groups (github.sha)

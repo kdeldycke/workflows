@@ -115,8 +115,18 @@ REUSABLE_WORKFLOWS: Final[tuple[str, ...]] = (
     "lint.yaml",
     "release.yaml",
     "renovate.yaml",
+    "unsubscribe.yaml",
 )
 """Workflow filenames that support ``workflow_call`` triggers."""
+
+OPT_IN_WORKFLOWS: Final[dict[str, str]] = {
+    "unsubscribe.yaml": "notification.unsubscribe",
+}
+"""Workflows excluded from thin-caller generation unless explicitly enabled.
+
+Maps workflow filename to its ``[tool.repomatic]`` config key. The workflow is
+only included in init/sync when the key is ``true``.
+"""
 
 ALL_WORKFLOW_FILES: Final[tuple[str, ...]] = tuple(
     sorted(set(REUSABLE_WORKFLOWS) | NON_REUSABLE_WORKFLOWS)

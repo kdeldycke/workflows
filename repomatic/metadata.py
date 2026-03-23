@@ -398,6 +398,14 @@ class Config:
     release workflow from succeeding.
     """
 
+    notification_unsubscribe: bool = False
+    """Whether the unsubscribe-threads workflow is enabled.
+
+    Notifications are per-user across all repos. Enable on the single repo where
+    you want scheduled cleanup of closed notification threads. Requires a classic
+    PAT with ``notifications`` scope stored as ``REPOMATIC_NOTIFICATIONS_PAT``.
+    """
+
     awesome_template_sync: bool = True
     """Whether awesome-template sync is enabled for this project.
 
@@ -622,6 +630,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "labels_extra_files",
     "labels_sync",
     "mailmap_sync",
+    "notification_unsubscribe",
     "pypi_package_history",
     "renovate_sync",
     "setup_guide",
@@ -648,6 +657,7 @@ _NESTED_PREFIXES: Final[dict[str, str]] = {
     "gitignore": "gitignore",
     "labels": "labels",
     "mailmap": "mailmap",
+    "notification": "notification",
     "nuitka": "nuitka",
     "renovate": "renovate",
     "test_plan": "test-plan",

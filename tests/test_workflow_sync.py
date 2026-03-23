@@ -30,6 +30,7 @@ from repomatic.github.workflow_sync import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,
     NON_REUSABLE_WORKFLOWS,
+    OPT_IN_WORKFLOWS,
     REUSABLE_WORKFLOWS,
     UPSTREAM_SOURCE_GLOB,
     UPSTREAM_SOURCE_PREFIX,
@@ -133,6 +134,12 @@ def test_renovate_has_secrets() -> None:
     """Verify renovate.yaml defines secrets."""
     info = extract_trigger_info("renovate.yaml")
     assert "REPOMATIC_PAT" in info.call_secrets
+
+
+def test_unsubscribe_has_secrets() -> None:
+    """Verify unsubscribe.yaml defines secrets."""
+    info = extract_trigger_info("unsubscribe.yaml")
+    assert "REPOMATIC_NOTIFICATIONS_PAT" in info.call_secrets
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
@@ -900,7 +907,8 @@ def test_apply_config_no_explicit_names_no_config(
     )
     assert result is not None
     # Default exclude is ["labels", "skills", "zizmor"] — no workflow exclusions.
-    assert set(REUSABLE_WORKFLOWS) == set(result)
+    # Opt-in workflows (e.g., unsubscribe.yaml) are excluded by default.
+    assert set(REUSABLE_WORKFLOWS) - set(OPT_IN_WORKFLOWS) == set(result)
 
     result = _apply_workflow_config(
         (),

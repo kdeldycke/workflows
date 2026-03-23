@@ -128,6 +128,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "release.yaml": "./.github/workflows/release.yaml",
     "renovate.yaml": "./.github/workflows/renovate.yaml",
     "tests.yaml": "./.github/workflows/tests.yaml",
+    "unsubscribe.yaml": "./.github/workflows/unsubscribe.yaml",
 }
 
 # Registry of configs that support `init` (merging into pyproject.toml).
@@ -860,11 +861,21 @@ def _init_workflows(
 ) -> None:
     """Generate thin-caller workflow files."""
     # Lazy import to avoid circular dependency with workflow_sync.
-    from .github.workflow_sync import REUSABLE_WORKFLOWS, generate_thin_caller
+    from .github.workflow_sync import (
+        OPT_IN_WORKFLOWS,
+        REUSABLE_WORKFLOWS,
+        generate_thin_caller,
+    )
 
     workflows = REUSABLE_WORKFLOWS
     if exclude:
         workflows = tuple(w for w in workflows if w not in exclude)
+
+    # Exclude opt-in workflows whose toggle is off.
+    config = load_repomatic_config()
+    for wf_name, config_key in OPT_IN_WORKFLOWS.items():
+        if wf_name in workflows and not config.get(config_key, False):
+            workflows = tuple(w for w in workflows if w != wf_name)
 
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)
