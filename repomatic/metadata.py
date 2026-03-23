@@ -447,6 +447,13 @@ class Config:
     autofix job to overwrite it can set this to ``false``.
     """
 
+    setup_guide: bool = True
+    """Whether the setup guide issue is enabled for this project.
+
+    Projects that do not need ``WORKFLOW_UPDATE_GITHUB_PAT`` or manage their
+    own PAT setup can set this to ``false`` to suppress the setup guide issue.
+    """
+
     uv_lock_sync: bool = True
     """Whether ``uv.lock`` sync is enabled for this project.
 
@@ -617,6 +624,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "mailmap_sync",
     "pypi_package_history",
     "renovate_sync",
+    "setup_guide",
     "test_plan_file",
     "test_plan_inline",
     "test_plan_timeout",

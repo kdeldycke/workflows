@@ -1841,7 +1841,8 @@ def broken_links(
     help="Whether WORKFLOW_UPDATE_GITHUB_PAT is configured.",
 )
 @_require_token(_token_mod, "validate_gh_token_env")
-def setup_guide(has_pat: bool) -> None:
+@pass_context
+def setup_guide(ctx: Context, has_pat: bool) -> None:
     """Manage the setup guide issue for WORKFLOW_UPDATE_GITHUB_PAT.
 
     Opens (or reopens) an issue with PAT setup instructions when the secret
@@ -1863,6 +1864,13 @@ def setup_guide(has_pat: bool) -> None:
         # Secret is configured — close the setup issue
         repomatic setup-guide --has-pat
     """
+    config = load_repomatic_config()
+    if not config.get("setup-guide", True):
+        logging.info(
+            "[tool.repomatic] setup-guide is disabled. Skipping setup guide."
+        )
+        ctx.exit(0)
+
     # Detect if the repository owner is an organization.
     org_tip = ""
     owner = Metadata().repo_owner

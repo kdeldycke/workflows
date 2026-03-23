@@ -1376,6 +1376,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["labels.sync"] is True
     assert metadata.config["mailmap.sync"] is True
     assert metadata.config["renovate.sync"] is True
+    assert metadata.config["setup-guide"] is True
     assert metadata.config["uv-lock.sync"] is True
     assert metadata.config["workflow.source-paths"] is None
     assert metadata.config["workflow.sync"] is True
@@ -1419,6 +1420,7 @@ gitignore.sync = false
 labels.sync = false
 mailmap.sync = false
 renovate.sync = false
+setup-guide = false
 uv-lock.sync = false
 workflow.source-paths = ["extra_platforms"]
 workflow.sync = false
@@ -1464,6 +1466,7 @@ exclude = ["skills", "workflows/debug.yaml", "workflows/autolock.yaml"]
     assert metadata.config["labels.sync"] is False
     assert metadata.config["mailmap.sync"] is False
     assert metadata.config["renovate.sync"] is False
+    assert metadata.config["setup-guide"] is False
     assert metadata.config["uv-lock.sync"] is False
     assert metadata.config["workflow.source-paths"] == ["extra_platforms"]
     assert metadata.config["workflow.sync"] is False
@@ -1558,6 +1561,7 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     assert config["labels.extra-file-rules"] == ""
     assert config["labels.extra-content-rules"] == ""
     assert config["pypi-package-history"] == []
+    assert config["setup-guide"] is True
     assert config["workflow.sync"] is True
     assert config["exclude"] == ["labels", "skills"]
 

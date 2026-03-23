@@ -557,3 +557,15 @@ def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
     content = body_file.read_text(encoding="UTF-8")
     assert "WORKFLOW_UPDATE_GITHUB_PAT" in content
     assert "Fine-grained tokens" in content
+
+
+@patch("repomatic.cli.load_repomatic_config")
+@patch("repomatic.github.token.validate_gh_token_env")
+@patch("repomatic.cli.manage_issue_lifecycle")
+def test_setup_guide_disabled_skips(mock_lifecycle, _mock_token, mock_config):
+    """When setup-guide is disabled in config, the command exits without action."""
+    mock_config.return_value = {"setup-guide": False}
+    runner = CliRunner()
+    result = runner.invoke(setup_guide, [])
+    assert result.exit_code == 0
+    mock_lifecycle.assert_not_called()

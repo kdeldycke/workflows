@@ -155,6 +155,7 @@ gitignore.sync = false
 labels.sync = false
 mailmap.sync = false
 renovate.sync = false
+setup-guide = false
 uv-lock.sync = false
 
 dependency-graph.output = "./docs/assets/dependencies.mmd"
@@ -220,6 +221,7 @@ workflow.source-paths = ["extra_platforms"]
 | `nuitka.unstable-targets`     | list[str] | `[]`                               | Nuitka build targets allowed to fail without blocking the release.                           |
 | `pypi-package-history`        | list[str] | `[]`                               | Former PyPI package names for projects that were renamed.                                    |
 | `renovate.sync`               | bool      | `true`                             | Whether Renovate config sync is enabled for this project.                                    |
+| `setup-guide`                 | bool      | `true`                             | Whether the setup guide issue is enabled for this project.                                   |
 | `test-plan.file`              | str       | `"./tests/cli-test-plan.yaml"`     | Path to the YAML test plan file for binary testing.                                          |
 | `test-plan.inline`            | str       | *(none)*                           | Inline YAML test plan for binaries.                                                          |
 | `test-plan.timeout`           | int       | *(none)*                           | Timeout in seconds for each binary test.                                                     |
@@ -318,7 +320,9 @@ GitHub Actions has several design limitations that the workflows work around:
 
   - Detects missing `WORKFLOW_UPDATE_GITHUB_PAT` secret and opens an issue with step-by-step setup instructions
   - Automatically closes the issue once the secret is configured
-  - **Skip**: upstream `kdeldycke/repomatic` repo, `workflow_call` events
+  - **Skipped if**:
+    - upstream `kdeldycke/repomatic` repo, `workflow_call` events
+    - `setup-guide = false` in `[tool.repomatic]`
 
 *Formatters* — rewrite files to enforce canonical style:
 
