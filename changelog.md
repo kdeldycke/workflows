@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.6.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.6.0` (2026-03-23)](https://github.com/kdeldycke/repomatic/compare/v6.5.0...v6.6.0)
 
 - Remove `yamllint` and `zizmor` init components. The tool runner already falls back to bundled default configs at runtime, so copying them into downstream repos was redundant. Default `exclude` reduced to `["labels", "skills"]`. Downstream repos with `yamllint` or `zizmor` in their `[tool.repomatic] exclude` list must remove those entries.
