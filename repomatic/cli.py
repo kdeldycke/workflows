@@ -1878,9 +1878,14 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         )
         ctx.exit(0)
 
+    # Resolve repo identity for template variables.
+    md = Metadata()
+    repo_name = md.repo_name
+    repo_owner = md.repo_owner
+
     # Detect if the repository owner is an organization.
     org_tip = ""
-    owner = Metadata().repo_owner
+    owner = repo_owner
     if owner:
         try:
             owner_type = run_gh_command(
@@ -1897,7 +1902,13 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         except RuntimeError:
             logging.debug(f"Failed to detect owner type for {owner!r}.")
 
-    body = render_template("setup-guide", repo_url=_repo_url(), org_tip=org_tip)
+    body = render_template(
+        "setup-guide",
+        repo_url=_repo_url(),
+        repo_name=repo_name,
+        repo_owner=repo_owner,
+        org_tip=org_tip,
+    )
 
     with tempfile.NamedTemporaryFile(
         mode="w",

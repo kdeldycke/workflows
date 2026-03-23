@@ -1,18 +1,18 @@
 ---
-args: [repo_url, org_tip]
+args: [repo_url, repo_name, repo_owner, org_tip]
 ---
 
 Some workflows need a **fine-grained personal access token** to create PRs that update files in `.github/workflows/`. Without it, those jobs will silently fail.
 
 ### Step 1: Create the token
 
-1. Go to **GitHub → Settings → Developer Settings → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)**.
+1. Open the [**pre-filled token form**](https://github.com/settings/personal-access-tokens/new?name=$repo_name-self-update&description=repomatic+automation+for+$repo_name&target_name=$repo_owner&contents=write&issues=write&metadata=read&pull_requests=write&statuses=write&vulnerability_alerts=read&workflows=write) (or go to **GitHub → Settings → Developer Settings → [Fine-grained tokens](https://github.com/settings/personal-access-tokens)** and click **Generate new token**).
 
-2. Click **Generate new token**.
+2. Review the pre-filled **Token name** (`$repo_name-self-update`). Alternatives: `$repo_name-repomatic`, `$repo_name-ci`.
 
-3. Under **Repository access**, select this repository.
+3. Under **Repository access**, select **Only select repositories** and pick **$repo_name**. Do not grant access to other repositories.
 
-4. Add these permissions:
+4. Verify these permissions (pre-filled by the link above):
 
    | Permission            | Access                  | Reason                                                                                    |
    | :-------------------- | :---------------------- | :---------------------------------------------------------------------------------------- |
@@ -25,6 +25,9 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
    | **Workflows**         | Read and Write          | Push changes to `.github/workflows/` files — not available via YAML `permissions:` at all |
 
 5. Click **Generate token** and copy it.
+
+> [!TIP]
+> **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token, or workflows will fail silently.
 
 ### Step 2: Add the secret
 
@@ -44,9 +47,6 @@ Go to **this repo → [Settings → Advanced Security → Dependabot]($repo_url/
 | **Grouped security updates**    | ❌ Disabled | Not needed when security updates are disabled         |
 | **Dependabot version updates**  | ❌ Disabled | Renovate handles all version updates                  |
 
-> [!WARNING]
-> Keep **Dependabot alerts** enabled — Renovate reads them via the API. Disable all other Dependabot features.
-
 ### Step 4: Enable immutable releases
 
 Go to **this repo → [Settings → General]($repo_url/settings)**, scroll to the **Releases** section, and enable **Release immutability**.
@@ -59,9 +59,6 @@ This locks git tags and release assets after publication, preventing tampering. 
 ### Step 5: Verify
 
 Re-run the workflow. Jobs should now update `.github/workflows/` files without errors.
-
-> [!WARNING]
-> **Token expiration**: Fine-grained PATs expire. Set a calendar reminder to rotate the token, or workflows will fail silently.
 
 \$org_tip
 
