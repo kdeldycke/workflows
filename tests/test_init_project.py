@@ -565,7 +565,8 @@ def test_init_existing_changelog_skipped(tmp_path: Path):
 
 
 def test_init_idempotent(tmp_path: Path):
-    """Verify second run updates managed files and skips changelog."""
+    """Verify second run updates managed files, skips changelog, and
+    detects identical init configs as redundant."""
     result1 = run_init(output_dir=tmp_path)
     assert len(result1.created) > 0
     assert len(result1.updated) == 0
@@ -573,11 +574,16 @@ def test_init_idempotent(tmp_path: Path):
 
     result2 = run_init(output_dir=tmp_path)
     assert len(result2.created) == 0
-    # Managed files are always overwritten (reported as updated).
+    # Managed files are overwritten (reported as updated), except
+    # init config files identical to bundled defaults (redundant).
     managed_count = len(result1.created) - 1  # Minus changelog.
-    assert len(result2.updated) == managed_count
+    redundant_count = len(result2.redundant_configs)
+    assert redundant_count > 0  # At least renovate.json5.
+    assert len(result2.updated) == managed_count - redundant_count
     # Only changelog is skipped (never overwritten).
     assert result2.skipped == ["changelog.md"]
+    # Redundant init configs are reported.
+    assert "renovate.json5" in result2.redundant_configs
 
 
 def test_init_only_labels(tmp_path: Path):
@@ -1418,6 +1424,110 @@ def test_init_no_redundant_when_different(
 
     result = run_init(output_dir=tmp_path)
     assert result.redundant_configs == []
+
+
+# ---------------------------------------------------------------------------
+# find_redundant_init_files
+# ---------------------------------------------------------------------------
+
+
+def test_find_redundant_init_files_detects_identical(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Init-managed file matching bundled default is flagged as redundant."""
+    monkeypatch.chdir(tmp_path)
+    content = export_content("labels.toml")
+    (tmp_path / "labels.toml").write_text(content.rstrip() + "\n", encoding="UTF-8")
+
+    from repomatic.init_project import find_redundant_init_files
+
+    result = find_redundant_init_files()
+    paths = [p for _, p in result]
+    assert "labels.toml" in paths
+
+
+def test_find_redundant_init_files_ignores_modified(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Modified init-managed file is not flagged."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "labels.toml").write_text("# custom labels\n", encoding="UTF-8")
+
+    from repomatic.init_project import find_redundant_init_files
+
+    result = find_redundant_init_files()
+    paths = [p for _, p in result]
+    assert "labels.toml" not in paths
+
+
+def test_find_redundant_init_files_skips_skills(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Skills are not checked for redundancy."""
+    monkeypatch.chdir(tmp_path)
+    content = export_content("skill-repomatic-audit.md")
+    skill_dir = tmp_path / ".claude" / "skills" / "repomatic-audit"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(content.rstrip() + "\n", encoding="UTF-8")
+
+    from repomatic.init_project import find_redundant_init_files
+
+    result = find_redundant_init_files()
+    paths = [p for _, p in result]
+    assert not any("skills" in p for p in paths)
+
+
+def test_find_redundant_init_files_renovate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Renovate redundancy check uses export_content (with stripping)."""
+    monkeypatch.chdir(tmp_path)
+    content = export_content("renovate.json5")
+    (tmp_path / "renovate.json5").write_text(
+        content.rstrip() + "\n", encoding="UTF-8"
+    )
+
+    from repomatic.init_project import find_redundant_init_files
+
+    result = find_redundant_init_files()
+    paths = [p for _, p in result]
+    assert "renovate.json5" in paths
+
+
+def test_find_redundant_init_files_multiple(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Redundant files across multiple components are all detected."""
+    monkeypatch.chdir(tmp_path)
+
+    for source_name, rel_path in (
+        ("labels.toml", "labels.toml"),
+        ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
+        ("labeller-content-based.yaml", ".github/labeller-content-based.yaml"),
+    ):
+        path = tmp_path / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        content = export_content(source_name)
+        path.write_text(content.rstrip() + "\n", encoding="UTF-8")
+
+    from repomatic.init_project import find_redundant_init_files
+
+    result = find_redundant_init_files()
+    paths = [p for _, p in result]
+    assert "labels.toml" in paths
+    assert ".github/labeller-file-based.yaml" in paths
+    assert ".github/labeller-content-based.yaml" in paths
+
+
+def test_init_skips_identical_config(tmp_path: Path):
+    """Init skips writing when downstream file matches bundled content."""
+    result1 = run_init(output_dir=tmp_path, components=("renovate",))
+    assert "renovate.json5" in result1.created
+
+    result2 = run_init(output_dir=tmp_path, components=("renovate",))
+    assert "renovate.json5" not in result2.updated
+    assert "renovate.json5" not in result2.created
+    assert "renovate.json5" in result2.redundant_configs
 
 
 @pytest.mark.parametrize(

@@ -636,6 +636,12 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
 }
 """Bundled config files per component, with their output paths."""
 
+REDUNDANCY_COMPONENTS: frozenset[str] = frozenset(COMPONENT_FILES) - {"skills"}
+"""Components whose files are checked for redundancy against bundled defaults.
+
+Skills are excluded because they are user-facing documents, not machine configs.
+"""
+
 
 def _file_id(component: str, rel_path: str) -> str:
     """Return the exclude identifier for a file within a component.
@@ -840,10 +846,8 @@ def run_init(
     if tool_configs:
         _init_tool_configs(output_dir, sorted(tool_configs), result)
 
-    # Check for native config files identical to bundled defaults.
-    from .tool_runner import find_redundant_configs
-
-    for _tool_name, rel_path in find_redundant_configs():
+    # Check for config files identical to bundled defaults.
+    for _label, rel_path in find_all_redundant_configs():
         result.redundant_configs.append(rel_path)
         logging.warning(f"Redundant config (matches bundled default): {rel_path}")
 
@@ -904,6 +908,10 @@ def _init_config_files(
 ) -> None:
     """Export bundled config files for a component.
 
+    For components in :data:`REDUNDANCY_COMPONENTS`, files already on disk
+    that are identical to the bundled template are flagged as redundant and
+    not overwritten.
+
     :param exclude_ids: File identifiers to skip within this component.
     """
     for source_name, rel_path in COMPONENT_FILES[component_name]:
@@ -911,18 +919,66 @@ def _init_config_files(
             continue
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()
-        existed = target.exists()
-        target.parent.mkdir(parents=True, exist_ok=True)
         content = export_content(source_name)
         # Normalize trailing whitespace to a single newline, matching the
         # convention used by sync commands (echo(content.rstrip(), ...)).
-        target.write_text(content.rstrip() + "\n", encoding="UTF-8")
-        if existed:
+        normalized = content.rstrip() + "\n"
+
+        if target.exists():
+            existing = target.read_text(encoding="UTF-8").rstrip() + "\n"
+            if component_name in REDUNDANCY_COMPONENTS and existing == normalized:
+                result.redundant_configs.append(rel)
+                logging.info(f"Redundant (matches bundled default): {rel}")
+                continue
+            target.write_text(normalized, encoding="UTF-8")
             result.updated.append(rel)
             logging.info(f"Updated: {rel}")
         else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(normalized, encoding="UTF-8")
             result.created.append(rel)
             logging.info(f"Created: {rel}")
+
+
+def find_redundant_init_files() -> list[tuple[str, str]]:
+    """Find init-managed config files identical to their bundled defaults.
+
+    Checks components in :data:`REDUNDANCY_COMPONENTS` for files on disk
+    whose content matches the bundled template (via :func:`export_content`)
+    after trailing-whitespace normalization (``.rstrip() + "\\n"``).
+
+    Mirrors the API of :func:`tool_runner.find_redundant_configs`, returning
+    ``(component_name, relative_path)`` tuples.
+
+    :return: List of ``(component_name, relative_path)`` tuples for each
+        redundant file found.
+    """
+    redundant: list[tuple[str, str]] = []
+    for component_name in sorted(REDUNDANCY_COMPONENTS):
+        for source_name, rel_path in COMPONENT_FILES[component_name]:
+            path = Path(rel_path)
+            if not path.exists():
+                continue
+            bundled = export_content(source_name).rstrip() + "\n"
+            on_disk = path.read_text(encoding="UTF-8").rstrip() + "\n"
+            if on_disk == bundled:
+                redundant.append((component_name, rel_path))
+    return redundant
+
+
+def find_all_redundant_configs() -> list[tuple[str, str]]:
+    """Find all config files identical to their bundled defaults.
+
+    Combines tool configs (yamllint, zizmor, etc.) from
+    :func:`tool_runner.find_redundant_configs` and init-managed configs
+    (labels, renovate) from :func:`find_redundant_init_files`.
+
+    :return: List of ``(label, relative_path)`` tuples for each redundant
+        file found.
+    """
+    from .tool_runner import find_redundant_configs
+
+    return find_redundant_configs() + find_redundant_init_files()
 
 
 def _init_changelog(

@@ -2189,25 +2189,24 @@ def sync_skills() -> None:
     section=_section_sync,
 )
 def clean_redundant_configs() -> None:
-    """Remove native config files identical to their bundled defaults.
+    """Remove config files identical to their bundled defaults.
 
-    Scans tools with bundled fallback configs (yamllint, zizmor, etc.)
-    and deletes any native config file whose content matches the bundled
-    default after whitespace normalization.  The tool runner already uses
-    bundled defaults as a fallback, so these files are redundant.
+    Scans both tool configs (yamllint, zizmor, etc.) and init-managed
+    configs (labels, renovate) and deletes any file whose content matches
+    the bundled default after whitespace normalization.
 
     Designed for the ``clean-redundant-configs`` autofix job.
     """
-    from .tool_runner import find_redundant_configs
+    from .init_project import find_all_redundant_configs
 
-    redundant = find_redundant_configs()
+    redundant = find_all_redundant_configs()
     if not redundant:
         echo("No redundant config files found.")
         return
 
-    for tool_name, rel_path in redundant:
+    for label, rel_path in redundant:
         Path(rel_path).unlink()
-        echo(f"Removed: {rel_path} (redundant {tool_name} config)")
+        echo(f"Removed: {rel_path} (redundant {label} config)")
 
 
 @repomatic.command(
