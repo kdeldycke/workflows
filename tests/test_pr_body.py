@@ -207,6 +207,7 @@ def test_get_template_names():
     assert "generated-footer" in names
     assert "github-releases" in names
     assert "immutable-releases" in names
+    assert "pat-migration" in names
     assert "release-notes" in names
     assert "available-admonition" in names
     assert "broken-links-issue" in names
@@ -217,7 +218,7 @@ def test_get_template_names():
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
     assert "yanked-admonition" in names
-    assert len(names) == 36
+    assert len(names) == 37
 
 
 def test_load_template_frontmatter():
@@ -487,6 +488,7 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "generated-footer",
     "github-releases",
     "immutable-releases",
+    "pat-migration",
     "pr-metadata",
     "refresh-tip",
     "release-notes",

@@ -33,7 +33,8 @@ name: 🆙 Changelog & versions
       - main
 
 env:
-  HAS_REPOMATIC_PAT: ${{ (secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT) && 'true' || '' }}
+  HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
+  HAS_LEGACY_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || '' }}
 
 concurrency:
   # Include event_name to prevent cross-event cancellation.
@@ -229,7 +230,7 @@ jobs:
           delete-branch: true
           draft: always-true
       - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT
+        if: failure() && !env.HAS_REPOMATIC_PAT && !env.HAS_LEGACY_PAT
         run: >
           echo "::error::REPOMATIC_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
