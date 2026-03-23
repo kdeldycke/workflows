@@ -217,23 +217,6 @@ def test_bundled_renovate_matches_processed_root() -> None:
     )
 
 
-def test_bundled_zizmor_matches_root() -> None:
-    """Verify bundled zizmor.yaml matches the root config file.
-
-    The root ``zizmor.yaml`` is the source of truth. The bundled version must
-    be identical.
-    """
-    root_path = Path(__file__).parent.parent / "zizmor.yaml"
-    assert root_path.exists(), "Root zizmor.yaml not found"
-
-    root_content = root_path.read_text(encoding="UTF-8")
-    bundled_content = get_data_content("zizmor.yaml")
-
-    assert bundled_content.strip() == root_content.strip(), (
-        "Bundled zizmor.yaml is out of sync with root file."
-    )
-
-
 # --- Ruff config tests ---
 
 

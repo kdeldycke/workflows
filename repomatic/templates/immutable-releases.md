@@ -1,6 +1,6 @@
 ---
-footer: "false"
 args: [repo_url]
+footer: "false"
 ---
 ### Step 4: Enable immutable releases
 

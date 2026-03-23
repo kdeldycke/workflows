@@ -1,6 +1,6 @@
 ---
-footer: "false"
 args: [repo_name, repo_owner, repo_slug]
+footer: "false"
 ---
 ### Rename the secret
 
