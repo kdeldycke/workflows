@@ -38,10 +38,10 @@ else:
 
 from repomatic.tool_runner import (
     TOOL_REGISTRY,
+    VALID_PLATFORM_KEYS,
     ArchiveFormat,
     BinarySpec,
     NativeFormat,
-    VALID_PLATFORM_KEYS,
     ToolSpec,
     _download_and_verify,
     _extract_binary,
@@ -121,9 +121,7 @@ def test_tool_spec_integrity(name, spec):
     }
     for (field_a, flags_a), (field_b, flags_b) in combinations(flag_fields.items(), 2):
         overlap = flags_a & flags_b
-        assert not overlap, (
-            f"{name}: {field_a} and {field_b} share flags: {overlap}"
-        )
+        assert not overlap, f"{name}: {field_a} and {field_b} share flags: {overlap}"
 
     # needs_venv and binary are mutually exclusive.
     assert not (spec.needs_venv and spec.binary is not None), (
@@ -132,9 +130,7 @@ def test_tool_spec_integrity(name, spec):
 
     # with_packages is only meaningful for uvx-invoked tools.
     if spec.binary is not None:
-        assert not spec.with_packages, (
-            f"{name}: binary tools cannot use with_packages"
-        )
+        assert not spec.with_packages, f"{name}: binary tools cannot use with_packages"
 
     if spec.default_config:
         with get_data_file_path(spec.default_config) as path:

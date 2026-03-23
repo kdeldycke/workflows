@@ -1289,9 +1289,7 @@ def test_every_data_file_maps_to_a_component() -> None:
 
     # Collect bundled default configs used by the tool runner at runtime.
     bundled_defaults = {
-        spec.default_config
-        for spec in TOOL_REGISTRY.values()
-        if spec.default_config
+        spec.default_config for spec in TOOL_REGISTRY.values() if spec.default_config
     }
 
     covered = (

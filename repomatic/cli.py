@@ -1888,9 +1888,7 @@ def setup_guide(ctx: Context, has_pat: bool, has_legacy_pat: bool) -> None:
     """
     config = load_repomatic_config()
     if not config.get("setup-guide", True):
-        logging.info(
-            "[tool.repomatic] setup-guide is disabled. Skipping setup guide."
-        )
+        logging.info("[tool.repomatic] setup-guide is disabled. Skipping setup guide.")
         ctx.exit(0)
 
     # Resolve repo identity for template variables.
@@ -1935,13 +1933,8 @@ def setup_guide(ctx: Context, has_pat: bool, has_legacy_pat: bool) -> None:
         has_issues=False,
         body_file=Path("/dev/null"),
         labels=[],
-        title=(
-            "Set up `WORKFLOW_UPDATE_GITHUB_PAT`"
-            " to enable workflow auto-updates"
-        ),
-        no_issues_comment=(
-            "Superseded by the `REPOMATIC_PAT` setup guide."
-        ),
+        title=("Set up `WORKFLOW_UPDATE_GITHUB_PAT` to enable workflow auto-updates"),
+        no_issues_comment=("Superseded by the `REPOMATIC_PAT` setup guide."),
     )
 
     # --- Setup guide issue (no PAT at all) ---
