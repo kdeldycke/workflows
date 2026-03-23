@@ -42,6 +42,7 @@ from click_extra import TableFormat, render_table
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
 from .github.pr_body import render_template
+from .tool_runner import uv_cmd
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -494,7 +495,7 @@ def sync_uv_lock(lock_path: Path) -> bool:
     """
     # Step 1: Run uv lock --upgrade.
     logging.info("Running uv lock --upgrade...")
-    subprocess.run(["uv", "--no-progress", "lock", "--upgrade"], check=True)
+    subprocess.run([*uv_cmd("lock"), "--upgrade"], check=True)
 
     # Step 2: Revert uv.lock if only timestamp noise changed.
     return revert_lock_if_noise(lock_path)

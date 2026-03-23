@@ -30,6 +30,8 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
+from repomatic.tool_runner import uv_cmd
+
 if sys.version_info >= (3, 11):
     import tomllib
 else:
@@ -51,17 +53,14 @@ def _get_cyclonedx_sbom_cached(
 
     Returns the raw JSON string to allow caching (dicts are not hashable).
     """
-    cmd = [
-        "uv",
-        "export",
+    cmd = uv_cmd("export", frozen=frozen)
+    cmd.extend([
         "--format",
         "cyclonedx1.5",
         "--no-hashes",
         "--preview-features",
         "sbom-export",
-    ]
-    if frozen:
-        cmd.append("--frozen")
+    ])
     if package:
         cmd.extend(["--package", package])
     if groups:

@@ -805,6 +805,28 @@ def binary_tool_context(name: str) -> Iterator[Path]:
 
 
 # ---------------------------------------------------------------------------
+# uv command builders
+# ---------------------------------------------------------------------------
+
+
+def uv_cmd(subcommand: str, *, frozen: bool = False) -> list[str]:
+    """Build a ``uv <subcommand>`` command prefix with standard flags.
+
+    Always includes ``--no-progress``.  Adds ``--frozen`` when requested
+    (appropriate for ``run``, ``export``, ``sync`` — not for ``lock``).
+    """
+    cmd = ["uv", "--no-progress", subcommand]
+    if frozen:
+        cmd.append("--frozen")
+    return cmd
+
+
+def uvx_cmd() -> list[str]:
+    """Build a ``uvx`` command prefix with standard flags."""
+    return ["uvx", "--no-progress"]
+
+
+# ---------------------------------------------------------------------------
 # Tool invocation
 # ---------------------------------------------------------------------------
 
@@ -815,18 +837,10 @@ def _build_install_args(spec: ToolSpec) -> list[str]:
     executable = spec.executable or spec.name
 
     if spec.needs_venv:
-        cmd = [
-            "uv",
-            "--no-progress",
-            "run",
-            "--frozen",
-            "--with",
-            package_pin,
-            "--",
-            executable,
-        ]
+        cmd = uv_cmd("run", frozen=True)
+        cmd.extend(["--with", package_pin, "--", executable])
     else:
-        cmd = ["uvx", "--no-progress"]
+        cmd = uvx_cmd()
         for pkg in spec.with_packages:
             cmd.extend(["--with", pkg])
         cmd.extend(["--from", package_pin, executable])
