@@ -100,6 +100,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: format-python
+          delete-branch: true
 
   format-pyproject:
     name: 📐 Format pyproject.toml
@@ -127,6 +128,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: format-pyproject
+          delete-branch: true
 
   format-markdown:
     name: ✍️ Format Markdown
@@ -170,6 +172,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: format-markdown
+          delete-branch: true
 
   format-json:
     name: 🔧 Format JSON
@@ -203,6 +206,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: format-json
+          delete-branch: true
 
   # --- Fixers: correct or improve existing content in-place. ---
 
@@ -229,6 +233,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: fix-typos
+          delete-branch: true
       - name: PAT setup hint
         if: failure() && !env.HAS_REPOMATIC_PAT && !env.HAS_LEGACY_PAT
         run: >
@@ -257,6 +262,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: clean-redundant-configs
+          delete-branch: true
 
   format-images:
     name: 🖼️ Format images
@@ -293,6 +299,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: format-images
+          delete-branch: true
 
   # --- Syncers: regenerate files from external sources or project state. ---
 
@@ -320,6 +327,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-gitignore
+          delete-branch: true
 
   sync-bumpversion:
     name: 🔄 Sync bumpversion config
@@ -345,6 +353,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-bumpversion
+          delete-branch: true
 
   sync-renovate:
     name: 🔄 Sync renovate.json5
@@ -372,6 +381,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-renovate
+          delete-branch: true
 
   sync-mailmap:
     name: 📬 Sync .mailmap
@@ -400,6 +410,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: sync-mailmap
+          delete-branch: true
 
   update-deps-graph:
     name: 🕸️ Update dependency graph
@@ -429,6 +440,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-deps-graph
+          delete-branch: true
 
   update-docs:
     name: 📚 Update docs
@@ -464,6 +476,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: update-docs
+          delete-branch: true
 
   sync-workflows:
     name: 🪢 Sync workflows
@@ -491,6 +504,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-workflows
+          delete-branch: true
       - name: PAT setup hint
         if: failure() && !env.HAS_REPOMATIC_PAT && !env.HAS_LEGACY_PAT
         run: >
@@ -525,3 +539,4 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📚 documentation"
           branch: sync-awesome-template
+          delete-branch: true

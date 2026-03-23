@@ -107,6 +107,7 @@ jobs:
           labels: "🆙 changelog"
           base: main
           branch: fix-changelog
+          delete-branch: true
 
   bump-version:
     name: 🆙 Bump versions

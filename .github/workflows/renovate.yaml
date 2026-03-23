@@ -70,6 +70,7 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-renovate
+          delete-branch: true
 
   migrate-to-renovate:
     name: 🚚 Migrate to Renovate
@@ -102,6 +103,7 @@ jobs:
           body: ${{ steps.checks.outputs.pr_body }}
           labels: "📦 dependencies"
           branch: migrate-to-renovate
+          delete-branch: true
 
   renovate:
     name: 🆕 Renovate
@@ -190,3 +192,4 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "📦 dependencies"
           branch: sync-uv-lock
+          delete-branch: true
