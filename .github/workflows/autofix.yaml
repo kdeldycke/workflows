@@ -493,13 +493,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
-      - name: Re-create thin caller workflows
-        run: uvx --no-progress --from . repomatic workflow sync --format thin-caller
-      - name: Sync non-reusable workflow headers
-        run: uvx --no-progress --from . repomatic workflow sync --format header-only
-      - name: Sync awesome-template boilerplate
-        if: startsWith(github.event.repository.name, 'awesome-')
-        run: uvx --no-progress --from . repomatic init awesome-template
+      - name: Sync workflows
+        run: uvx --no-progress --from . repomatic init workflows
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body

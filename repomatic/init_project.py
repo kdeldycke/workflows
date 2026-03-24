@@ -795,7 +795,7 @@ def run_init(
     result = InitResult()
 
     # Auto-include awesome-template for awesome-* repositories.
-    if not components and not repo_slug:
+    if not repo_slug:
         from .metadata import Metadata
 
         repo_slug = Metadata().repo_slug
@@ -904,12 +904,14 @@ def _init_workflows(
     exclude: frozenset[str] = frozenset(),
     source_paths: list[str] | None = None,
 ) -> None:
-    """Generate thin-caller workflow files."""
+    """Generate thin-caller workflows and sync non-reusable workflow headers."""
     # Lazy import to avoid circular dependency with workflow_sync.
     from .github.workflow_sync import (
+        NON_REUSABLE_WORKFLOWS,
         OPT_IN_WORKFLOWS,
         REUSABLE_WORKFLOWS,
         generate_thin_caller,
+        generate_workflow_header,
     )
 
     workflows = REUSABLE_WORKFLOWS
@@ -924,6 +926,8 @@ def _init_workflows(
 
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate thin-caller workflows for reusable workflows.
     for filename in workflows:
         target = workflows_dir / filename
         rel = target.relative_to(output_dir).as_posix()
@@ -938,6 +942,30 @@ def _init_workflows(
         else:
             result.created.append(rel)
             logging.info(f"Created: {rel}")
+
+    # Sync headers for non-reusable workflows that already exist on disk.
+    for filename in sorted(NON_REUSABLE_WORKFLOWS):
+        if exclude and filename in exclude:
+            continue
+        target = workflows_dir / filename
+        if not target.exists():
+            continue
+        rel = target.relative_to(output_dir).as_posix()
+        try:
+            canonical_header = generate_workflow_header(
+                filename, source_paths=source_paths
+            )
+        except (ValueError, FileNotFoundError):
+            logging.warning(f"Cannot extract header for {filename}. Skipping.")
+            continue
+        existing = target.read_text(encoding="UTF-8")
+        jobs_match = re.search(r"^jobs:", existing, re.MULTILINE)
+        if jobs_match is None:
+            continue
+        content = canonical_header + existing[jobs_match.start():]
+        target.write_text(content, encoding="UTF-8")
+        result.updated.append(rel)
+        logging.info(f"Synced header: {rel}")
 
 
 def _init_config_files(
