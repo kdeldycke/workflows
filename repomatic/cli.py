@@ -92,17 +92,7 @@ from .github.unsubscribe import (
     render_report as _render_report,
     unsubscribe_threads as _unsubscribe_threads,
 )
-from .github.workflow_sync import (
-    ALL_WORKFLOW_FILES,
-    DEFAULT_REPO,
-    DEFAULT_VERSION,
-    NON_REUSABLE_WORKFLOWS,
-    OPT_IN_WORKFLOWS,
-    REUSABLE_WORKFLOWS,
-    WorkflowFormat,
-    generate_workflows,
-    run_workflow_lint,
-)
+from .github.workflow_sync import DEFAULT_REPO, run_workflow_lint
 from .images import (
     DEFAULT_MIN_SAVINGS_PCT,
     generate_markdown_summary,
@@ -910,190 +900,17 @@ def sync_dev_release(
         echo(f"[{mode}] Dev release v{version} synced.")
 
 
-def _apply_workflow_config(
-    names: tuple[str, ...],
-    output_format: WorkflowFormat,
-) -> tuple[str, ...] | None:
-    """Apply ``[tool.repomatic]`` config filtering to workflow names.
-
-    When explicit CLI positional arguments are given, they bypass config entirely.
-    Otherwise, the global ``workflow.sync`` toggle and ``exclude`` list are
-    applied.
-
-    :param names: Workflow filenames from CLI positional args (empty = defaults).
-    :param output_format: The output format, used to determine default names.
-    :return: Filtered workflow names, or ``None`` if the global toggle is off.
-    """
-    # Explicit CLI args bypass all config filtering.
-    if names:
-        return names
-
-    config = load_repomatic_config()
-
-    # Global toggle: if disabled, skip all work.
-    if not config.get("workflow.sync", True):
-        return None
-
-    # Compute format-specific defaults.
-    if output_format == WorkflowFormat.THIN_CALLER:
-        default_names: tuple[str, ...] = REUSABLE_WORKFLOWS
-    elif output_format == WorkflowFormat.HEADER_ONLY:
-        default_names = tuple(sorted(NON_REUSABLE_WORKFLOWS))
-    else:
-        default_names = ALL_WORKFLOW_FILES
-
-    # Apply exclude list.
-    exclude_entries: list[str] = config.get("exclude", ["labels", "skills", "zizmor"])
-    excluded_components, excluded_files = parse_exclude(exclude_entries)
-
-    # If "workflows" component is fully excluded, skip all.
-    if "workflows" in excluded_components:
-        return ()
-
-    # Filter individual workflow files.
-    workflow_file_exclude = excluded_files.get("workflows", set())
-    if workflow_file_exclude:
-        default_names = tuple(
-            n for n in default_names if n not in workflow_file_exclude
-        )
-
-    # Exclude opt-in workflows whose toggle is off.
-    for wf_name, config_key in OPT_IN_WORKFLOWS.items():
-        if wf_name in default_names and not config.get(config_key, False):
-            default_names = tuple(n for n in default_names if n != wf_name)
-
-    return default_names
-
 
 @repomatic.group(
-    short_help="Manage downstream workflow caller files", section=_section_setup
+    short_help="Lint downstream workflow caller files", section=_section_setup
 )
 def workflow():
-    """Manage downstream workflow caller files.
+    """Lint downstream workflow caller files.
 
-    Generate, synchronize, and lint thin caller workflows that delegate to
-    the canonical reusable workflows in ``kdeldycke/repomatic``.
-
-    \b
-    Subcommands:
-        create - Generate new workflow files (errors if file exists)
-        sync   - Generate or overwrite workflow files
-        lint   - Check existing workflow files for common issues
+    Check thin caller workflows that delegate to the canonical reusable
+    workflows in ``kdeldycke/repomatic``. Use ``repomatic init workflows``
+    to generate or sync workflow files.
     """
-
-
-def _workflow_options(func):
-    """Shared options for workflow create and sync commands."""
-    func = argument("workflow_names", nargs=-1)(func)
-    func = option(
-        "--output-dir",
-        type=dir_path(resolve_path=True),
-        default=".github/workflows",
-        help="Directory to write workflow files to.",
-    )(func)
-    func = option(
-        "--repo",
-        default=DEFAULT_REPO,
-        help="Upstream repository containing reusable workflows.",
-    )(func)
-    func = option(
-        "--version",
-        default=DEFAULT_VERSION,
-        help="Version reference for the upstream workflows (tag or branch).",
-    )(func)
-    return option(
-        "--format",
-        "output_format",
-        type=EnumChoice(WorkflowFormat),
-        default=WorkflowFormat.THIN_CALLER,
-        help="Output format for generated workflows.",
-    )(func)
-
-
-@workflow.command(short_help="Generate new workflow caller files")
-@_workflow_options
-@pass_context
-def create(ctx, output_format, version, repo, output_dir, workflow_names):
-    """Generate new workflow caller files.
-
-    Creates workflow files in the specified format. Errors if a target file
-    already exists. Use ``sync`` to overwrite existing files.
-
-    WORKFLOW_NAMES are optional filenames to generate. If omitted, generates
-    all reusable workflows.
-
-    \b
-    Examples:
-        # Generate all thin caller workflows
-        repomatic workflow create
-
-    \b
-        # Generate specific workflows
-        repomatic workflow create release.yaml lint.yaml
-
-    \b
-        # Generate with a pinned version
-        repomatic workflow create --version v5.8.0
-
-    \b
-        # Full copy mode
-        repomatic workflow create --format full-copy
-    """
-    filtered = _apply_workflow_config(workflow_names, output_format)
-    if filtered is None:
-        logging.info(
-            "[tool.repomatic] workflow-sync is disabled. Skipping workflow create."
-        )
-        ctx.exit(0)
-
-    source_paths = resolve_source_paths(load_repomatic_config())
-    exit_code = generate_workflows(
-        names=filtered,
-        output_format=output_format,
-        version=version,
-        repo=repo,
-        output_dir=output_dir,
-        overwrite=False,
-        source_paths=source_paths,
-    )
-    ctx.exit(exit_code)
-
-
-@workflow.command(short_help="Sync workflow caller files (overwrites existing)")
-@_workflow_options
-@pass_context
-def sync(ctx, output_format, version, repo, output_dir, workflow_names):
-    """Sync workflow caller files, overwriting existing files.
-
-    Same as ``create`` but overwrites existing files instead of erroring.
-
-    \b
-    Examples:
-        # Update all thin caller workflows to latest version
-        repomatic workflow sync --version v5.9.0
-
-    \b
-        # Sync specific workflows
-        repomatic workflow sync release.yaml lint.yaml
-    """
-    filtered = _apply_workflow_config(workflow_names, output_format)
-    if filtered is None:
-        logging.info(
-            "[tool.repomatic] workflow-sync is disabled. Skipping workflow sync."
-        )
-        ctx.exit(0)
-
-    source_paths = resolve_source_paths(load_repomatic_config())
-    exit_code = generate_workflows(
-        names=filtered,
-        output_format=output_format,
-        version=version,
-        repo=repo,
-        output_dir=output_dir,
-        overwrite=True,
-        source_paths=source_paths,
-    )
-    ctx.exit(exit_code)
 
 
 @workflow.command(short_help="Lint workflow files for common issues")
@@ -2160,28 +1977,6 @@ def sync_bumpversion(ctx: Context) -> None:
             echo(f"Updated: {path}")
     else:
         echo("bumpversion config is up to date.")
-
-
-@repomatic.command(
-    short_help="Sync Claude Code skills from bundled definitions", section=_section_sync
-)
-def sync_skills() -> None:
-    """Sync Claude Code skill files from the bundled definitions in ``repomatic``.
-
-    Overwrites ``.claude/skills/`` with the canonical skill definitions
-    bundled in ``repomatic``. Designed for the ``sync-skills`` autofix job.
-    Use ``repomatic init skills`` for interactive bootstrapping.
-    """
-    result = run_init(
-        output_dir=Path("."),
-        components=("skills",),
-    )
-    changed = [*result.created, *result.updated]
-    if changed:
-        for path in changed:
-            echo(f"Updated: {path}")
-    else:
-        echo("Skills are up to date.")
 
 
 @repomatic.command(

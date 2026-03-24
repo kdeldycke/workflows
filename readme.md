@@ -80,7 +80,7 @@ Project setup:
   init                   Bootstrap a repository to use reusable workflows
   metadata               Output project metadata
   config                 Print [tool.repomatic] configuration reference
-  workflow               Manage downstream workflow caller files
+  workflow               Lint downstream workflow caller files
   update-deps-graph      Generate dependency graph from uv lockfile
   list-skills            List available Claude Code skills
   update-checksums       Update SHA-256 checksums for binary downloads
@@ -100,7 +100,6 @@ Sync:
   sync-mailmap           Sync Git's .mailmap file with missing contributors
   sync-uv-lock           Re-lock and revert if only timestamp noise changed
   sync-bumpversion       Sync bumpversion config from bundled template
-  sync-skills            Sync Claude Code skills from bundled definitions
   sync-labels            Sync repository labels via labelmaker
   sync-renovate          Sync Renovate config from canonical reference
 
@@ -397,7 +396,7 @@ GitHub Actions has several design limitations that the workflows work around:
 
 - 🪢 **Sync workflows** (`sync-workflows`)
 
-  - Syncs [workflows from the upstream `kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/tree/main/.github/workflows) repository using [`repomatic workflow sync`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/github/workflow_sync.py)
+  - Syncs [workflows from the upstream `kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/tree/main/.github/workflows) repository using [`repomatic init workflows`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py)
   - For `awesome-*` repositories, also syncs awesome-template boilerplate via [`repomatic init awesome-template`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py), with URLs rewritten to match the current repo
   - **Skipped if**:
     - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
@@ -917,7 +916,7 @@ $ uvx -- repomatic init skills
 To keep skills in sync with the latest version:
 
 ```shell-session
-$ uvx -- repomatic sync-skills
+$ uvx -- repomatic init skills
 ```
 
 To list all available skills with descriptions:

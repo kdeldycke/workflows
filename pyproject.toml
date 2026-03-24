@@ -276,6 +276,7 @@ search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
 replace = "date-released: {utcnow:%Y-%m-%d}"
 
 [tool.mypy]
+exclude = [ "repomatic/data/awesome-template" ]
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
