@@ -652,9 +652,7 @@ def test_skills_consistency():
 
     # Collect data symlinks.
     data_dir = Path(__file__).resolve().parents[1] / "repomatic" / "data"
-    data_skills = {
-        p.stem.removeprefix("skill-") for p in data_dir.glob("skill-*.md")
-    }
+    data_skills = {p.stem.removeprefix("skill-") for p in data_dir.glob("skill-*.md")}
 
     assert fs_skills == component_skills, (
         f"COMPONENT_FILES mismatch: "

@@ -102,7 +102,6 @@ from .init_project import (
     ALL_COMPONENTS,
     COMPONENT_FILES,
     export_content,
-    parse_exclude,
     run_init,
 )
 from .lint_repo import run_repo_lint
@@ -118,7 +117,6 @@ from .metadata import (
     is_version_bump_allowed,
     load_repomatic_config,
     metadata_keys_reference,
-    resolve_source_paths,
 )
 from .release_prep import ReleasePrep
 from .renovate import (
@@ -898,7 +896,6 @@ def sync_dev_release(
     ):
         mode = "dry-run" if dry_run else "live"
         echo(f"[{mode}] Dev release v{version} synced.")
-
 
 
 @repomatic.group(
@@ -2002,7 +1999,6 @@ def clean_redundant_configs() -> None:
     for label, rel_path in redundant:
         Path(rel_path).unlink()
         echo(f"Removed: {rel_path} (redundant {label} config)")
-
 
 
 @repomatic.command(
