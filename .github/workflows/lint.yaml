@@ -30,7 +30,7 @@ jobs:
       - name: Run repomatic metadata
         id: metadata
         run: >
-          uvx --no-progress --from . repomatic metadata
+          uvx --no-progress 'repomatic==6.7.0' metadata
           --format github-json --output "$GITHUB_OUTPUT"
           is_bot python_files yaml_files workflow_files zsh_files
           is_python_project
@@ -47,7 +47,7 @@ jobs:
       - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ github.token }}
-        run: uvx --no-progress --from . repomatic lint-repo
+        run: uvx --no-progress 'repomatic==6.7.0' lint-repo
 
   lint-types:
     name: 🛡️ Lint types
@@ -66,7 +66,7 @@ jobs:
       - name: Run Mypy
         env:
           PYTHON_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
-        run: echo "${PYTHON_FILES}" | xargs uvx --no-progress --from . repomatic run mypy --
+        run: echo "${PYTHON_FILES}" | xargs uvx --no-progress 'repomatic==6.7.0' run mypy --
 
   lint-yaml:
     name: 📄 Lint YAML
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Run yamllint
-        run: uvx --no-progress --from . repomatic run yamllint -- .
+        run: uvx --no-progress 'repomatic==6.7.0' run yamllint -- .
 
   lint-zsh:
     name: 🐚 Lint Zsh
@@ -137,7 +137,7 @@ jobs:
         #     |            ^~~~~~~~~~~~~~~~~~~~~
         # See: https://github.com/rhysd/actionlint/issues/148
         run: >
-          uvx --no-progress --from . repomatic run actionlint --
+          uvx --no-progress 'repomatic==6.7.0' run actionlint --
           -ignore 'property "repomatic_pat" is not defined in .+'
 
   lint-workflow-security:
@@ -154,7 +154,7 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Run zizmor
-        run: uvx --no-progress --from . repomatic run zizmor -- .
+        run: uvx --no-progress 'repomatic==6.7.0' run zizmor -- .
 
   lint-awesome:
     name: 🌟 Lint awesome
@@ -189,4 +189,4 @@ jobs:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Run gitleaks
-        run: uvx --no-progress --from . repomatic run gitleaks -- detect --source .
+        run: uvx --no-progress 'repomatic==6.7.0' run gitleaks -- detect --source .

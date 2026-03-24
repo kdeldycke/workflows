@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.7.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 
 - Bundle awesome-template boilerplate files in `repomatic` instead of cloning from `kdeldycke/awesome-template` at runtime.
 - Add `pyproject_files` metadata key listing all `pyproject.toml` files. The `format-pyproject` job now formats all of them instead of only the root file.
