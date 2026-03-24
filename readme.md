@@ -101,7 +101,6 @@ Sync:
   sync-uv-lock           Re-lock and revert if only timestamp noise changed
   sync-bumpversion       Sync bumpversion config from bundled template
   sync-skills            Sync Claude Code skills from bundled definitions
-  sync-awesome-template  Sync awesome-template boilerplate files
   sync-labels            Sync repository labels via labelmaker
   sync-renovate          Sync Renovate config from canonical reference
 
@@ -399,9 +398,11 @@ GitHub Actions has several design limitations that the workflows work around:
 - 🪢 **Sync workflows** (`sync-workflows`)
 
   - Syncs [workflows from the upstream `kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/tree/main/.github/workflows) repository using [`repomatic workflow sync`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/github/workflow_sync.py)
+  - For `awesome-*` repositories, also syncs awesome-template boilerplate via [`repomatic init awesome-template`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py), with URLs rewritten to match the current repo
   - **Skipped if**:
     - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
     - `workflow.sync = false` in `[tool.repomatic]`
+    - Awesome-template sync skipped if `awesome-template.sync = false` in `[tool.repomatic]`
 
 - 📬 **Sync `.mailmap`** (`sync-mailmap`)
 
@@ -425,14 +426,6 @@ GitHub Actions has several design limitations that the workflows work around:
     - Python package with a `pyproject.toml` file
     - `docs` dependency group
     - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
-
-- 🌟 **Sync awesome template** (`sync-awesome-template`)
-
-  - Syncs awesome list boilerplate from files bundled in `repomatic` using [`repomatic sync-awesome-template`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py), with URLs rewritten to match the current repo
-  - **Requires**:
-    - Repository name starts with `awesome-`
-  - **Skipped if**:
-    - `awesome-template.sync = false` in `[tool.repomatic]`
 
 ### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autolock.yaml)
 

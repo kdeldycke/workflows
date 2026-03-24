@@ -43,7 +43,7 @@ mid-execution.
 
    Jobs that use ``REPOMATIC_PAT``:
 
-   - ``autofix.yaml``: fix-typos, sync-workflows, sync-awesome-template
+   - ``autofix.yaml``: fix-typos, sync-workflows
      (PRs touching ``.github/workflows/`` files).
    - ``changelog.yaml``: prepare-release (freezes versions in workflow files).
    - ``release.yaml``: create-tag (push triggers ``on.push.tags``),

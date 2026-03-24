@@ -497,6 +497,9 @@ jobs:
         run: uvx --no-progress --from . repomatic workflow sync --format thin-caller
       - name: Sync non-reusable workflow headers
         run: uvx --no-progress --from . repomatic workflow sync --format header-only
+      - name: Sync awesome-template boilerplate
+        if: startsWith(github.event.repository.name, 'awesome-')
+        run: uvx --no-progress --from . repomatic init awesome-template
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body
@@ -519,30 +522,3 @@ jobs:
           echo "::error::REPOMATIC_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
           See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
-
-  sync-awesome-template:
-    name: 🌟 Sync awesome template
-    if: startsWith(github.event.repository.name, 'awesome-')
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-        with:
-          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-      - uses: astral-sh/setup-uv@v7.4.0
-      - name: Sync awesome template
-        run: uvx --no-progress --from . repomatic sync-awesome-template
-      - id: pr-metadata
-        run: >
-          uvx --no-progress --from . repomatic pr-body
-          --template sync-awesome-template
-          --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
-        with:
-          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
-          assignees: ${{ github.actor }}
-          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
-          title: ${{ steps.pr-metadata.outputs.title }}
-          body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "📚 documentation"
-          branch: sync-awesome-template
-          delete-branch: true

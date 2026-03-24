@@ -19,9 +19,7 @@ from __future__ import annotations
 
 from importlib.resources import files
 
-import pytest
-
-from repomatic.cli import _copy_template_tree
+from repomatic.init_project import _copy_template_tree
 
 TEMPLATE_ROOT = files("repomatic.data").joinpath("awesome-template")
 
@@ -34,12 +32,6 @@ EXPECTED_FILES = {
     ".github/contributing.zh.md",
     ".github/funding.yml",
     ".github/pull_request_template.md",
-    ".github/workflows/autofix.yaml",
-    ".github/workflows/autolock.yaml",
-    ".github/workflows/docs.yaml",
-    ".github/workflows/label-sponsors.yaml",
-    ".github/workflows/labels.yaml",
-    ".github/workflows/lint.yaml",
     "license",
     "pyproject.toml",
 }
@@ -67,24 +59,30 @@ def test_bundled_files_exist():
 
 def test_copy_template_tree(tmp_path):
     """_copy_template_tree copies all files and skips __init__.py."""
-    count = _copy_template_tree(TEMPLATE_ROOT, tmp_path)
-    assert count == len(EXPECTED_FILES)
+    created, updated = _copy_template_tree(TEMPLATE_ROOT, tmp_path)
+    assert created == len(EXPECTED_FILES)
+    assert updated == 0
 
     # Verify key files exist at the expected paths.
     assert (tmp_path / "license").is_file()
     assert (tmp_path / "pyproject.toml").is_file()
     assert (tmp_path / ".github" / "contributing.md").is_file()
-    assert (tmp_path / ".github" / "workflows" / "lint.yaml").is_file()
+    assert (tmp_path / ".github" / "ISSUE_TEMPLATE" / "new-link.yaml").is_file()
 
     # __init__.py must not be copied.
     assert not (tmp_path / "__init__.py").exists()
+
+    # Second run reports updates, not creates.
+    created2, updated2 = _copy_template_tree(TEMPLATE_ROOT, tmp_path)
+    assert created2 == 0
+    assert updated2 == len(EXPECTED_FILES)
 
 
 def test_copy_template_tree_creates_directories(tmp_path):
     """_copy_template_tree creates parent directories as needed."""
     dest = tmp_path / "nested" / "deep"
-    count = _copy_template_tree(TEMPLATE_ROOT, dest)
-    assert count == len(EXPECTED_FILES)
+    created, _updated = _copy_template_tree(TEMPLATE_ROOT, dest)
+    assert created == len(EXPECTED_FILES)
     assert (dest / ".github" / "ISSUE_TEMPLATE" / "new-link.yaml").is_file()
 
 
@@ -104,19 +102,3 @@ def test_pyproject_toml_has_tool_sections(tmp_path):
     assert "[tool.lychee]" in content
     assert "allowlist" in content
     assert "exclude" in content
-
-
-@pytest.mark.parametrize(
-    "filename",
-    [
-        ".github/workflows/autofix.yaml",
-        ".github/workflows/lint.yaml",
-        ".github/workflows/labels.yaml",
-    ],
-)
-def test_workflow_files_reference_repomatic(tmp_path, filename):
-    """Bundled workflow files reference kdeldycke/repomatic, not kdeldycke/workflows."""
-    _copy_template_tree(TEMPLATE_ROOT, tmp_path)
-    content = (tmp_path / filename).read_text(encoding="UTF-8")
-    assert "kdeldycke/repomatic/" in content
-    assert "kdeldycke/workflows/" not in content

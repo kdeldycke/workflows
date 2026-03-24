@@ -31,6 +31,7 @@ Available components (``repomatic init <component>``):
 - ``mypy`` - Merges ``[tool.mypy]`` into pyproject.toml
 - ``bumpversion`` - Merges ``[tool.bumpversion]`` into pyproject.toml
 - ``skills`` - Claude Code skill definitions (.claude/skills/)
+- ``awesome-template`` - Boilerplate for ``awesome-*`` repositories
 """
 
 from __future__ import annotations
@@ -59,6 +60,7 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from importlib.abc import Traversable
 
 DEFAULT_REPO: str = "kdeldycke/repomatic"
 """Default upstream repository for reusable workflows."""
@@ -598,6 +600,7 @@ def default_version_pin() -> str:
 
 # Components that generate files (not tool config merges).
 FILE_COMPONENTS: dict[str, str] = {
+    "awesome-template": "Boilerplate for awesome-* repositories",
     "changelog": "Minimal changelog.md",
     "labels": "Label config files (labels.toml + labeller rules)",
     "renovate": "Renovate config (renovate.json5)",
@@ -613,7 +616,12 @@ TOOL_COMPONENTS: dict[str, str] = {k: v.description for k, v in INIT_CONFIGS.ite
 ALL_COMPONENTS: dict[str, str] = {**FILE_COMPONENTS, **TOOL_COMPONENTS}
 """All available init components."""
 
-DEFAULT_COMPONENTS: tuple[str, ...] = tuple(sorted(FILE_COMPONENTS.keys()))
+# awesome-template is auto-included for awesome-* repos, not all repos.
+_AUTO_ONLY_COMPONENTS: frozenset[str] = frozenset(("awesome-template",))
+
+DEFAULT_COMPONENTS: tuple[str, ...] = tuple(
+    sorted(k for k in FILE_COMPONENTS if k not in _AUTO_ONLY_COMPONENTS)
+)
 """Components included when no explicit selection is made."""
 
 # Maps component names to (source filename, relative output path) tuples.
@@ -760,6 +768,7 @@ def run_init(
     components: Sequence[str] = (),
     version: str | None = None,
     repo: str = DEFAULT_REPO,
+    repo_slug: str | None = None,
 ) -> InitResult:
     """Bootstrap a repository for use with ``kdeldycke/repomatic``.
 
@@ -768,10 +777,15 @@ def run_init(
     configs, skills) are always overwritten. User-owned files
     (``changelog.md``, ``zizmor.yaml``) are created once and never overwritten.
 
+    For ``awesome-*`` repositories, the ``awesome-template`` component is
+    auto-included when no explicit component selection is made.
+
     :param output_dir: Root directory of the target repository.
     :param components: Components to initialize. Empty means all defaults.
     :param version: Version pin for upstream workflows (e.g., ``v5.10.0``).
     :param repo: Upstream repository containing reusable workflows.
+    :param repo_slug: Repository ``owner/name`` slug for awesome-template URL
+        rewriting. Auto-detected via :class:`Metadata` if not provided.
     :return: Summary of created, updated, skipped, and warned items.
     """
     if version is None:
@@ -779,6 +793,14 @@ def run_init(
 
     selected = set(components) if components else set(DEFAULT_COMPONENTS)
     result = InitResult()
+
+    # Auto-include awesome-template for awesome-* repositories.
+    if not components and not repo_slug:
+        from .metadata import Metadata
+
+        repo_slug = Metadata().repo_slug
+    if repo_slug and repo_slug.split("/")[-1].startswith("awesome-"):
+        selected.add("awesome-template")
 
     # Load config for source path resolution and exclusion rules.
     config = load_repomatic_config()
@@ -839,6 +861,20 @@ def run_init(
     # Fetch extra label files from [tool.repomatic] config.
     if "labels" in selected:
         _fetch_extra_labels(output_dir, result)
+
+    # Awesome-template boilerplate for awesome-* repositories.
+    if "awesome-template" in selected:
+        if not config.get("awesome-template.sync", True):
+            logging.info(
+                "[tool.repomatic] awesome-template.sync is disabled. Skipping."
+            )
+        else:
+            if not repo_slug:
+                from .metadata import Metadata
+
+                repo_slug = Metadata().repo_slug
+            if repo_slug:
+                init_awesome_template(output_dir, repo_slug, result)
 
     # Changelog.
     if "changelog" in selected:
@@ -943,6 +979,78 @@ def _init_config_files(
             target.write_text(normalized, encoding="UTF-8")
             result.created.append(rel)
             logging.info(f"Created: {rel}")
+
+
+AWESOME_TEMPLATE_SLUG = "kdeldycke/awesome-template"
+"""Source slug embedded in bundled awesome-template files, rewritten at sync time."""
+
+
+def _copy_template_tree(
+    root: Traversable, dest: Path
+) -> tuple[int, int]:
+    """Recursively copy files from a traversable resource tree to disk.
+
+    Skips ``__init__.py`` and ``__pycache__`` entries. Returns
+    ``(created, updated)`` counts.
+    """
+    created = 0
+    updated = 0
+    for entry in root.iterdir():
+        if entry.name in ("__init__.py", "__pycache__"):
+            continue
+        if entry.is_dir():
+            c, u = _copy_template_tree(entry, dest / entry.name)
+            created += c
+            updated += u
+        else:
+            target = dest / entry.name
+            existed = target.exists()
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(entry.read_bytes())
+            if existed:
+                updated += 1
+                logging.info(f"Updated: {target}")
+            else:
+                created += 1
+                logging.info(f"Created: {target}")
+    return created, updated
+
+
+def init_awesome_template(
+    output_dir: Path,
+    repo_slug: str,
+    result: InitResult,
+) -> None:
+    """Copy bundled awesome-template files and rewrite URLs.
+
+    Copies all files from the ``repomatic/data/awesome-template/`` bundle into
+    *output_dir* and rewrites ``kdeldycke/awesome-template`` URLs in
+    ``.github/`` markdown and YAML files to match *repo_slug*.
+
+    :param output_dir: Root directory of the target repository.
+    :param repo_slug: Target ``owner/name`` slug for URL rewriting.
+    :param result: :class:`InitResult` accumulator for created/updated files.
+    """
+    template_root = files("repomatic.data").joinpath("awesome-template")
+    created, updated = _copy_template_tree(template_root, output_dir)
+    if created:
+        result.created.append(f"awesome-template ({created} files)")
+    if updated:
+        result.updated.append(f"awesome-template ({updated} files)")
+
+    # Rewrite template URLs in .github/ markdown and YAML files.
+    github_dir = output_dir / ".github"
+    if github_dir.is_dir():
+        for path in github_dir.rglob("*"):
+            if not path.is_file() or path.suffix not in (".md", ".yaml"):
+                continue
+            content = path.read_text(encoding="UTF-8")
+            new_content = content.replace(
+                f"/{AWESOME_TEMPLATE_SLUG}/", f"/{repo_slug}/"
+            )
+            if new_content != content:
+                path.write_text(new_content, encoding="UTF-8")
+                logging.info(f"Rewrote URLs in: {path}")
 
 
 def find_redundant_init_files() -> list[tuple[str, str]]:
