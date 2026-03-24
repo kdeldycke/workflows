@@ -276,7 +276,6 @@ search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
 replace = "date-released: {utcnow:%Y-%m-%d}"
 
 [tool.mypy]
-exclude = [ "repomatic/data/awesome-template" ]
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
@@ -298,7 +297,7 @@ exclude = [
 
 [tool.repomatic]
 nuitka.extra-args = [
-  "--include-data-dir=repomatic/data/awesome-template=repomatic/data/awesome-template",
+  "--include-data-dir=repomatic/data/awesome_template=repomatic/data/awesome_template",
   "--include-data-files=repomatic/templates/*.md=repomatic/templates/",
 ]
 pypi-package-history = [ "gha-utils", "repokit" ]

@@ -21,7 +21,7 @@ from importlib.resources import files
 
 from repomatic.init_project import _copy_template_tree
 
-TEMPLATE_ROOT = files("repomatic.data").joinpath("awesome-template")
+TEMPLATE_ROOT = files("repomatic.data").joinpath("awesome_template")
 
 # Key files that must be present in the bundled template.
 EXPECTED_FILES = {

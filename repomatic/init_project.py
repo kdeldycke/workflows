@@ -1051,7 +1051,7 @@ def init_awesome_template(
 ) -> None:
     """Copy bundled awesome-template files and rewrite URLs.
 
-    Copies all files from the ``repomatic/data/awesome-template/`` bundle into
+    Copies all files from the ``repomatic/data/awesome_template/`` bundle into
     *output_dir* and rewrites ``kdeldycke/awesome-template`` URLs in
     ``.github/`` markdown and YAML files to match *repo_slug*.
 
@@ -1059,7 +1059,7 @@ def init_awesome_template(
     :param repo_slug: Target ``owner/name`` slug for URL rewriting.
     :param result: :class:`InitResult` accumulator for created/updated files.
     """
-    template_root = files("repomatic.data").joinpath("awesome-template")
+    template_root = files("repomatic.data").joinpath("awesome_template")
     created, updated = _copy_template_tree(template_root, output_dir)
     if created:
         result.created.append(f"awesome-template ({created} files)")
