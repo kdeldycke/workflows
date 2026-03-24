@@ -962,7 +962,7 @@ def _init_workflows(
         jobs_match = re.search(r"^jobs:", existing, re.MULTILINE)
         if jobs_match is None:
             continue
-        content = canonical_header + existing[jobs_match.start():]
+        content = canonical_header + existing[jobs_match.start() :]
         target.write_text(content, encoding="UTF-8")
         result.updated.append(rel)
         logging.info(f"Synced header: {rel}")
@@ -1013,9 +1013,7 @@ AWESOME_TEMPLATE_SLUG = "kdeldycke/awesome-template"
 """Source slug embedded in bundled awesome-template files, rewritten at sync time."""
 
 
-def _copy_template_tree(
-    root: Traversable, dest: Path
-) -> tuple[int, int]:
+def _copy_template_tree(root: Traversable, dest: Path) -> tuple[int, int]:
     """Recursively copy files from a traversable resource tree to disk.
 
     Skips ``__init__.py`` and ``__pycache__`` entries. Returns
