@@ -442,6 +442,7 @@ expected = {
         "repomatic/checksums.py",
         "repomatic/cli.py",
         "repomatic/data/__init__.py",
+        "repomatic/data/awesome-template/__init__.py",
         "repomatic/deps_graph.py",
         "repomatic/git_ops.py",
         "repomatic/github/__init__.py",
@@ -469,6 +470,7 @@ expected = {
         "repomatic/tool_runner.py",
         "tests/__init__.py",
         "tests/conftest.py",
+        "tests/test_awesome_template.py",
         "tests/test_binary.py",
         "tests/test_broken_links.py",
         "tests/test_changelog.py",
@@ -508,6 +510,14 @@ expected = {
         ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
         ".github/workflows/unsubscribe.yaml",
+        "repomatic/data/awesome-template/.github/ISSUE_TEMPLATE/config.yml",
+        "repomatic/data/awesome-template/.github/ISSUE_TEMPLATE/new-link.yaml",
+        "repomatic/data/awesome-template/.github/workflows/autofix.yaml",
+        "repomatic/data/awesome-template/.github/workflows/autolock.yaml",
+        "repomatic/data/awesome-template/.github/workflows/docs.yaml",
+        "repomatic/data/awesome-template/.github/workflows/label-sponsors.yaml",
+        "repomatic/data/awesome-template/.github/workflows/labels.yaml",
+        "repomatic/data/awesome-template/.github/workflows/lint.yaml",
         "repomatic/data/labeller-content-based.yaml",
         "repomatic/data/labeller-file-based.yaml",
         "repomatic/data/yamllint.yaml",
@@ -516,6 +526,7 @@ expected = {
     ],
     "toml_files": [
         "pyproject.toml",
+        "repomatic/data/awesome-template/pyproject.toml",
         "repomatic/data/bumpversion.toml",
         "repomatic/data/labels.toml",
         "repomatic/data/mypy.toml",
@@ -553,6 +564,9 @@ expected = {
         "changelog.md",
         "claude.md",
         "readme.md",
+        "repomatic/data/awesome-template/.github/contributing.md",
+        "repomatic/data/awesome-template/.github/contributing.zh.md",
+        "repomatic/data/awesome-template/.github/pull_request_template.md",
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",
@@ -607,6 +621,9 @@ expected = {
         "changelog.md",
         "claude.md",
         "readme.md",
+        "repomatic/data/awesome-template/.github/contributing.md",
+        "repomatic/data/awesome-template/.github/contributing.zh.md",
+        "repomatic/data/awesome-template/.github/pull_request_template.md",
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",
@@ -811,7 +828,8 @@ expected = {
             # auto-detected --python-flag=-m for __main__.py packages.
             {
                 "nuitka_extra_args": (
-                    "--include-data-files=repomatic/templates/*.md=repomatic/templates/"
+                    "--include-data-dir=repomatic/data/awesome-template=repomatic/data/awesome-template"
+                    " --include-data-files=repomatic/templates/*.md=repomatic/templates/"
                     " --python-flag=-m"
                 ),
             },

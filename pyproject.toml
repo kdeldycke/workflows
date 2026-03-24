@@ -297,6 +297,7 @@ exclude = [
 
 [tool.repomatic]
 nuitka.extra-args = [
+  "--include-data-dir=repomatic/data/awesome-template=repomatic/data/awesome-template",
   "--include-data-files=repomatic/templates/*.md=repomatic/templates/",
 ]
 pypi-package-history = [ "gha-utils", "repokit" ]

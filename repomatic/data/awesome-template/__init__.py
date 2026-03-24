@@ -14,17 +14,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Bundled data files for repomatic.
+"""Bundled awesome-template boilerplate files.
 
-This package contains label configurations, labeller rules, bumpversion template,
-Ruff configuration, workflow templates, Claude Code skill definitions, and
-awesome-template boilerplate files.
-
-Configuration files (labels, labellers, bumpversion, ruff) are stored directly
-in this directory. Workflow templates are symlinked from ``.github/workflows/``
-and skill definitions from ``.claude/skills/`` to maintain a single source of
-truth while still being bundled in the package. The ``awesome-template/``
-sub-package contains boilerplate files for downstream ``awesome-*`` repositories.
+These files are synced into downstream ``awesome-*`` repositories by the
+``repomatic sync-awesome-template`` command. The directory structure mirrors
+the target repository layout. URLs containing ``kdeldycke/awesome-template``
+are rewritten to match the downstream repository at sync time.
 
 All files are accessible at runtime via ``importlib.resources``.
 """

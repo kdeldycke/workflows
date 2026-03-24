@@ -520,9 +520,7 @@ jobs:
 
   sync-awesome-template:
     name: 🌟 Sync awesome template
-    if: >
-      startsWith(github.event.repository.name, 'awesome-')
-      && github.event.repository.name != 'awesome-template'
+    if: startsWith(github.event.repository.name, 'awesome-')
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2

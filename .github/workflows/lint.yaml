@@ -158,12 +158,10 @@ jobs:
 
   lint-awesome:
     name: 🌟 Lint awesome
-    # Lint only "awesome-*" repositories except "awesome-template".
     # Skip linting on prepare-release branch to align the condition with other jobs, even if it does not really matter
     # here as "awesome-*" repositories don't trigger the release workflow.
     if: >
       startsWith(github.event.repository.name, 'awesome-')
-      && github.event.repository.name != 'awesome-template'
       && github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
     steps:

@@ -428,10 +428,9 @@ GitHub Actions has several design limitations that the workflows work around:
 
 - 🌟 **Sync awesome template** (`sync-awesome-template`)
 
-  - Syncs awesome list boilerplate from the [`awesome-template`](https://github.com/kdeldycke/awesome-template) repository using [`repomatic sync-awesome-template`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py), with URLs rewritten to match the current repo
+  - Syncs awesome list boilerplate from files bundled in `repomatic` using [`repomatic sync-awesome-template`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py), with URLs rewritten to match the current repo
   - **Requires**:
     - Repository name starts with `awesome-`
-    - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
   - **Skipped if**:
     - `awesome-template.sync = false` in `[tool.repomatic]`
 
@@ -631,7 +630,6 @@ docs = [
   - Lints awesome lists using [`awesome-lint`](https://github.com/sindresorhus/awesome-lint)
   - **Requires**:
     - Repository name starts with `awesome-`
-    - Repository is not [`awesome-template`](https://github.com/kdeldycke/awesome-template) itself
   - **Skipped for**:
     - `prepare-release` branch
 

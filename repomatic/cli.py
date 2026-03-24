@@ -25,6 +25,7 @@ import sys
 import tempfile
 from collections import Counter
 from datetime import datetime, timezone
+from importlib.resources import files
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -156,6 +157,7 @@ from .tool_runner import (
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from importlib.abc import Traversable
     from typing import IO
 
 
@@ -2209,20 +2211,35 @@ def clean_redundant_configs() -> None:
         echo(f"Removed: {rel_path} (redundant {label} config)")
 
 
+def _copy_template_tree(root: Traversable, dest: Path) -> int:
+    """Recursively copy files from a traversable resource tree to disk.
+
+    Skips ``__init__.py`` and ``__pycache__`` entries. Returns the number
+    of files copied.
+    """
+    count = 0
+    for entry in root.iterdir():
+        if entry.name in ("__init__.py", "__pycache__"):
+            continue
+        if entry.is_dir():
+            count += _copy_template_tree(entry, dest / entry.name)
+        else:
+            target = dest / entry.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(entry.read_bytes())
+            logging.info(f"Synced: {target}")
+            count += 1
+    return count
+
+
 @repomatic.command(
     short_help="Sync awesome-template boilerplate files", section=_section_sync
 )
-@option(
-    "--source-repo",
-    default="kdeldycke/awesome-template",
-    show_default=True,
-    help="GitHub repository to sync files from.",
-)
 @pass_context
-def sync_awesome_template(ctx: Context, source_repo: str) -> None:
-    """Sync boilerplate files from an ``awesome-template`` repository.
+def sync_awesome_template(ctx: Context) -> None:
+    """Sync boilerplate files from the bundled ``awesome-template`` data.
 
-    Clones the source repository, copies all files into the working directory,
+    Copies all bundled awesome-template files into the working directory
     and rewrites URLs to match the current repository name.
     Designed for the ``sync-awesome-template`` autofix job.
     """
@@ -2240,67 +2257,28 @@ def sync_awesome_template(ctx: Context, source_repo: str) -> None:
     if not repo_name:
         raise ClickException("Cannot detect repository name.")
 
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-        clone_dir = tmp_path / "template"
+    # Copy bundled template files to the working directory.
+    template_root = files("repomatic.data").joinpath("awesome-template")
+    cwd = Path(".")
+    count = _copy_template_tree(template_root, cwd)
+    echo(f"Synced {count} file(s) from bundled awesome-template.")
 
-        # Shallow clone the source repository.
-        logging.info(f"Cloning {source_repo} into {clone_dir}")
-        subprocess.run(
-            [
-                "git",
-                "clone",
-                "--depth",
-                "1",
-                "--single-branch",
-                f"https://github.com/{source_repo}.git",
-                str(clone_dir),
-            ],
-            check=True,
-            capture_output=True,
-        )
-
-        # Record the template commit hash for logging.
-        git_result = subprocess.run(
-            ["git", "-C", str(clone_dir), "rev-parse", "--short", "HEAD"],
-            check=True,
-            capture_output=True,
-            encoding="UTF-8",
-        )
-        template_hash = git_result.stdout.strip()
-        logging.info(f"Template at commit {template_hash}")
-
-        # Copy files from clone to working directory, skipping .git.
-        cwd = Path(".")
-        for src_file in clone_dir.rglob("*"):
-            if not src_file.is_file():
+    # Rewrite template URLs in .github/ markdown and YAML files.
+    source_slug = "kdeldycke/awesome-template"
+    github_dir = cwd / ".github"
+    if github_dir.is_dir():
+        rewritten = 0
+        for path in github_dir.rglob("*"):
+            if not path.is_file() or path.suffix not in (".md", ".yaml"):
                 continue
-            rel = src_file.relative_to(clone_dir)
-            if rel.parts[0] == ".git":
-                continue
-            dest = cwd / rel
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_bytes(src_file.read_bytes())
-            logging.info(f"Synced: {rel}")
-
-        # Rewrite template URLs in .github/ markdown and YAML files.
-        source_slug = source_repo.rstrip("/")
-        github_dir = cwd / ".github"
-        if github_dir.is_dir():
-            count = 0
-            for path in github_dir.rglob("*"):
-                if not path.is_file() or path.suffix not in (".md", ".yaml"):
-                    continue
-                content = path.read_text(encoding="UTF-8")
-                new_content = content.replace(f"/{source_slug}/", f"/{md.repo_slug}/")
-                if new_content != content:
-                    path.write_text(new_content, encoding="UTF-8")
-                    count += 1
-                    logging.info(f"Rewrote URLs in: {path}")
-            if count:
-                echo(f"Rewrote URLs in {count} file(s).")
-
-    echo(f"Synced from {source_repo}@{template_hash}.")
+            content = path.read_text(encoding="UTF-8")
+            new_content = content.replace(f"/{source_slug}/", f"/{md.repo_slug}/")
+            if new_content != content:
+                path.write_text(new_content, encoding="UTF-8")
+                rewritten += 1
+                logging.info(f"Rewrote URLs in: {path}")
+        if rewritten:
+            echo(f"Rewrote URLs in {rewritten} file(s).")
 
 
 @repomatic.command(
@@ -2345,7 +2323,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
         _run_labelmaker(lm, "apply", "labels.toml", "--profile", "default", repository)
 
         # Apply awesome profile for awesome-* repos.
-        if repo_name.startswith("awesome-") and repo_name != "awesome-template":
+        if repo_name.startswith("awesome-"):
             _run_labelmaker(
                 lm, "apply", "labels.toml", "--profile", "awesome", repository
             )

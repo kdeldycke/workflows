@@ -410,7 +410,7 @@ class Config:
     """Whether awesome-template sync is enabled for this project.
 
     Repositories whose name starts with ``awesome-`` get their boilerplate synced
-    from ``kdeldycke/awesome-template``. Set to ``false`` to opt out.
+    from files bundled in ``repomatic``. Set to ``false`` to opt out.
     """
 
     bumpversion_sync: bool = True

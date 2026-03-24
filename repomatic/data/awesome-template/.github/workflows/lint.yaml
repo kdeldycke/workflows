@@ -1,0 +1,9 @@
+---
+name: Lint
+"on":
+  push:
+
+jobs:
+
+  lint:
+    uses: kdeldycke/repomatic/.github/workflows/lint.yaml@v6.6.0
