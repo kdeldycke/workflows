@@ -37,7 +37,7 @@ jobs:
       - name: Manage setup guide issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . repomatic setup-guide
+        run: uvx --no-progress 'repomatic==6.7.0' setup-guide
 
   metadata:
     name: 🧬 Project metadata
@@ -50,7 +50,7 @@ jobs:
       - name: Run repomatic metadata
         id: metadata
         run: >
-          uvx --no-progress --from . repomatic metadata
+          uvx --no-progress 'repomatic==6.7.0' metadata
           --format github-json --output "$GITHUB_OUTPUT"
           gitignore_exists python_files json_files doc_files markdown_files
           is_python_project mailmap_exists renovate_config_exists
@@ -75,21 +75,21 @@ jobs:
         # Explicit list of files is provided, as autopep8 is not able to handle find files in ".github" subdirectory.
         env:
           PYTHON_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).python_files }}
-        run: echo "${PYTHON_FILES}" | xargs uvx --no-progress --from . repomatic run autopep8 --
+        run: echo "${PYTHON_FILES}" | xargs uvx --no-progress 'repomatic==6.7.0' run autopep8 --
       - name: Init Ruff config
         # Initialize [tool.ruff] in pyproject.toml if missing. Only for Python projects;
         # doc-only repos use Ruff for code-block formatting without needing project config.
         if: fromJSON(needs.metadata.outputs.metadata).python_files
-        run: uvx --no-progress --from . repomatic init ruff
+        run: uvx --no-progress 'repomatic==6.7.0' init ruff
       # XXX Ruff is planning to support linting and formatting in one unified command at one point.
       #     See: https://github.com/astral-sh/ruff/issues/8232
       - name: Run Ruff
         run: |
-          uvx --no-progress --from . repomatic run ruff -- check --output-format github
-          uvx --no-progress --from . repomatic run ruff -- format --output-format github
+          uvx --no-progress 'repomatic==6.7.0' run ruff -- check --output-format github
+          uvx --no-progress 'repomatic==6.7.0' run ruff -- format --output-format github
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template format-python
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -116,10 +116,10 @@ jobs:
         # We ignore this since changes are expected in an autofix workflow.
         env:
           PYPROJECT_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).pyproject_files }}
-        run: echo "${PYPROJECT_FILES}" | xargs uvx --no-progress --from . repomatic run pyproject-fmt -- || true
+        run: echo "${PYPROJECT_FILES}" | xargs uvx --no-progress 'repomatic==6.7.0' run pyproject-fmt -- || true
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template format-pyproject
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -148,7 +148,7 @@ jobs:
       - name: Auto-format Markdown
         env:
           MARKDOWN_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).markdown_files }}
-        run: echo "${MARKDOWN_FILES}" | xargs -n1 uvx --no-progress --from . repomatic run mdformat --
+        run: echo "${MARKDOWN_FILES}" | xargs -n1 uvx --no-progress 'repomatic==6.7.0' run mdformat --
       - name: Markdown fixes for Awesome Lists
         if: startsWith(github.event.repository.name, 'awesome-')
         # Remove forbidden TOC entries: https://github.com/sindresorhus/awesome-lint/blob/v2.2.2/rules/toc.js#L14-L18
@@ -163,7 +163,7 @@ jobs:
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes|Related Lists)\]\(#.+\)$/{print}' "{}" \;
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template format-markdown
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -192,12 +192,12 @@ jobs:
           JSON_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).json_files }}
         run: |
           echo "${JSON_FILES}" | xargs \
-            uvx --no-progress --from . repomatic run biome -- \
+            uvx --no-progress 'repomatic==6.7.0' run biome -- \
             format --write --no-errors-on-unmatched \
             --json-parse-allow-comments=true --json-parse-allow-trailing-commas=true
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template format-json
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -219,10 +219,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Fix typos
-        run: uvx --no-progress --from . repomatic run typos
+        run: uvx --no-progress 'repomatic==6.7.0' run typos
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template fix-typos
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -250,10 +250,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Remove redundant config files
-        run: uvx --no-progress --from . repomatic clean-redundant-configs
+        run: uvx --no-progress 'repomatic==6.7.0' clean-redundant-configs
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template clean-redundant-configs
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -290,13 +290,13 @@ jobs:
       - name: Format images
         id: format
         run: >
-          uvx --no-progress --from . repomatic format-images
+          uvx --no-progress 'repomatic==6.7.0' format-images
           --output "$GITHUB_OUTPUT"
       - id: pr-metadata
         env:
           GHA_PR_BODY_PREFIX: ${{ steps.format.outputs.markdown }}
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template format-images
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -321,10 +321,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Sync .gitignore
-        run: uvx --no-progress --from . repomatic sync-gitignore
+        run: uvx --no-progress 'repomatic==6.7.0' sync-gitignore
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template sync-gitignore
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -347,10 +347,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Sync bumpversion config
-        run: uvx --no-progress --from . repomatic sync-bumpversion
+        run: uvx --no-progress 'repomatic==6.7.0' sync-bumpversion
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template sync-bumpversion
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -375,10 +375,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Sync Renovate config
-        run: uvx --no-progress --from . repomatic sync-renovate
+        run: uvx --no-progress 'repomatic==6.7.0' sync-renovate
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template sync-renovate
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -404,10 +404,10 @@ jobs:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Sync .mailmap
-        run: uvx --no-progress --from . repomatic sync-mailmap --skip-if-missing
+        run: uvx --no-progress 'repomatic==6.7.0' sync-mailmap --skip-if-missing
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template sync-mailmap
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -434,10 +434,10 @@ jobs:
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Generate graph
         # Package name and output path are auto-detected from pyproject.toml.
-        run: uvx --no-progress --from . repomatic update-deps-graph
+        run: uvx --no-progress 'repomatic==6.7.0' update-deps-graph
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template update-deps-graph
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -473,7 +473,7 @@ jobs:
           fi
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template update-docs
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
@@ -494,10 +494,10 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Sync workflows
-        run: uvx --no-progress --from . repomatic init workflows
+        run: uvx --no-progress 'repomatic==6.7.0' init workflows
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.7.0' pr-body
           --template sync-workflows
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
