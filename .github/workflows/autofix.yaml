@@ -269,16 +269,22 @@ jobs:
     needs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).image_files
-    # Cannot use "ubuntu-slim" because oxipng is not available there.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Install image optimization tools
-        run: >
-          sudo apt-get update &&
-          sudo apt-get install --yes --no-install-recommends
-          oxipng jpegoptim
+        env:
+          # Version appears in both the tag path and the .deb filename,
+          # so an env var keeps both in sync when Renovate bumps it.
+          # renovate: datasource=github-releases depName=shssoichiro/oxipng
+          OXIPNG_VERSION: "10.1.0"
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends jpegoptim
+          curl --location --silent --output /tmp/oxipng.deb \
+            "https://github.com/shssoichiro/oxipng/releases/download/v${OXIPNG_VERSION}/oxipng_${OXIPNG_VERSION}-1_amd64.deb"
+          sudo dpkg --install /tmp/oxipng.deb
       - name: Format images
         id: format
         run: >
