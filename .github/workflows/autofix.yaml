@@ -114,7 +114,9 @@ jobs:
       - name: Run pyproject-fmt
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
-        run: uvx --no-progress --from . repomatic run pyproject-fmt -- pyproject.toml || true
+        run: >
+          uvx --no-progress --from . repomatic run pyproject-fmt --
+          ${{ fromJSON(needs.metadata.outputs.metadata).pyproject_files }} || true
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body

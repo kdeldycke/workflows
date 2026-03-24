@@ -790,6 +790,7 @@ _METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
     "json_files": "List of JSON files in the repository.",
     "yaml_files": "List of YAML files in the repository.",
     "toml_files": "List of TOML files in the repository.",
+    "pyproject_files": "List of pyproject.toml files in the repository.",
     "workflow_files": "List of GitHub workflow files.",
     "doc_files": "List of documentation files.",
     "markdown_files": "List of Markdown files.",
@@ -2120,6 +2121,11 @@ class Metadata:
         return self.glob_files("**/*.toml")
 
     @cached_property
+    def pyproject_files(self) -> list[Path]:
+        """Returns a list of ``pyproject.toml`` files."""
+        return self.glob_files("**/pyproject.toml")
+
+    @cached_property
     def workflow_files(self) -> list[Path]:
         """Returns a list of GitHub workflow files."""
         return self.glob_files(".github/workflows/**/*.{yaml,yml}")
@@ -2824,6 +2830,7 @@ class Metadata:
             "json_files": self.json_files,
             "yaml_files": self.yaml_files,
             "toml_files": self.toml_files,
+            "pyproject_files": self.pyproject_files,
             "workflow_files": self.workflow_files,
             "doc_files": self.doc_files,
             "markdown_files": self.markdown_files,

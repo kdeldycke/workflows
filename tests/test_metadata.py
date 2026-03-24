@@ -534,6 +534,10 @@ expected = {
         "repomatic/data/ruff.toml",
         "repomatic/data/typos.toml",
     ],
+    "pyproject_files": [
+        "pyproject.toml",
+        "repomatic/data/awesome-template/pyproject.toml",
+    ],
     "workflow_files": [
         ".github/workflows/autofix.yaml",
         ".github/workflows/autolock.yaml",

@@ -18,12 +18,10 @@
 from __future__ import annotations
 
 from importlib.resources import files
-from pathlib import Path
 
 import pytest
 
 from repomatic.cli import _copy_template_tree
-
 
 TEMPLATE_ROOT = files("repomatic.data").joinpath("awesome-template")
 
