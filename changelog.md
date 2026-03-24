@@ -11,6 +11,7 @@
 - Enable `delete-branch: true` on all `peter-evans/create-pull-request` invocations. Stale automation PRs are now auto-closed when a subsequent workflow run finds no changes to commit.
 - Add `gitleaks` to the tool runner registry with binary download support and `[tool.gitleaks]` configuration bridge. Migrate `lint-secrets` workflow job from `gitleaks/gitleaks-action` to `repomatic run gitleaks`.
 - Move lychee config from `lychee.toml` to `[tool.lychee]` in `pyproject.toml`. The tool runner's TOML bridge translates it to a native config file at runtime. Downstream repos with a standalone `lychee.toml` can do the same.
+- Fix `format-images` job failing because `oxipng` is not packaged in Ubuntu. Install from the GitHub release `.deb` instead, allowing the job to run on `ubuntu-slim`.
 
 ## [`6.6.0` (2026-03-23)](https://github.com/kdeldycke/repomatic/compare/v6.5.0...v6.6.0)
 
