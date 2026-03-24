@@ -108,6 +108,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "yamllint.yaml": "./.yamllint.yaml",
     "zizmor.yaml": "./zizmor.yaml",
     # Claude Code skill definitions.
+    "skill-awesome-triage.md": "./.claude/skills/awesome-triage/SKILL.md",
     "skill-repomatic-audit.md": "./.claude/skills/repomatic-audit/SKILL.md",
     "skill-repomatic-changelog.md": "./.claude/skills/repomatic-changelog/SKILL.md",
     "skill-repomatic-deps.md": "./.claude/skills/repomatic-deps/SKILL.md",
@@ -624,6 +625,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
     ),
     "renovate": (("renovate.json5", "renovate.json5"),),
     "skills": (
+        ("skill-awesome-triage.md", ".claude/skills/awesome-triage/SKILL.md"),
         ("skill-repomatic-audit.md", ".claude/skills/repomatic-audit/SKILL.md"),
         ("skill-repomatic-changelog.md", ".claude/skills/repomatic-changelog/SKILL.md"),
         ("skill-repomatic-deps.md", ".claude/skills/repomatic-deps/SKILL.md"),

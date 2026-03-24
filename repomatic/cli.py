@@ -2361,6 +2361,7 @@ def _run_labelmaker(labelmaker_path: Path, *args: str) -> None:
 
 # Lifecycle phases for skill grouping. Each skill name maps to a phase.
 _SKILL_PHASES: dict[str, str] = {
+    "awesome-triage": "Maintenance",
     "repomatic-init": "Setup",
     "repomatic-sync": "Setup",
     "repomatic-audit": "Maintenance",

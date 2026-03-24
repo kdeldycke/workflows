@@ -606,10 +606,11 @@ def test_init_only_skills(tmp_path: Path):
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 9
+    assert len(created_set) == 10
 
     # Verify all skill files are created.
     for name in (
+        "awesome-triage",
         "repomatic-audit",
         "repomatic-changelog",
         "repomatic-deps",
@@ -652,7 +653,7 @@ def test_skills_consistency():
     # Collect data symlinks.
     data_dir = Path(__file__).resolve().parents[1] / "repomatic" / "data"
     data_skills = {
-        p.stem.removeprefix("skill-") for p in data_dir.glob("skill-repomatic-*.md")
+        p.stem.removeprefix("skill-") for p in data_dir.glob("skill-*.md")
     }
 
     assert fs_skills == component_skills, (

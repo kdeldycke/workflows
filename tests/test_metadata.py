@@ -555,6 +555,7 @@ expected = {
     "doc_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/skills/awesome-triage/SKILL.md",
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
@@ -612,6 +613,7 @@ expected = {
     "markdown_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/skills/awesome-triage/SKILL.md",
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
