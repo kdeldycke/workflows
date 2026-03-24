@@ -515,7 +515,6 @@ expected = {
         "tests/cli-test-plan.yaml",
     ],
     "toml_files": [
-        "lychee.toml",
         "pyproject.toml",
         "repomatic/data/bumpversion.toml",
         "repomatic/data/labels.toml",

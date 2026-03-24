@@ -49,6 +49,7 @@ from .metadata import (
     load_repomatic_config,
     resolve_source_paths,
 )
+from .tool_runner import find_redundant_configs
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -846,8 +847,10 @@ def run_init(
     if tool_configs:
         _init_tool_configs(output_dir, sorted(tool_configs), result)
 
-    # Check for config files identical to bundled defaults.
-    for _label, rel_path in find_all_redundant_configs():
+    # Check for native tool config files identical to bundled defaults.
+    # Init-managed files (labels, renovate) are already handled inline by
+    # _init_config_files, so only check tool_runner configs here.
+    for _tool_name, rel_path in find_redundant_configs():
         result.redundant_configs.append(rel_path)
         logging.warning(f"Redundant config (matches bundled default): {rel_path}")
 
@@ -976,8 +979,6 @@ def find_all_redundant_configs() -> list[tuple[str, str]]:
     :return: List of ``(label, relative_path)`` tuples for each redundant
         file found.
     """
-    from .tool_runner import find_redundant_configs
-
     return find_redundant_configs() + find_redundant_init_files()
 
 

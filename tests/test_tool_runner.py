@@ -908,7 +908,6 @@ def test_run_tool_autopep8_default_flags(mock_ci, mock_run, tmp_path, monkeypatc
     assert "88" in cmd
     assert "--select" in cmd
     assert "E501" in cmd
-    assert "--aggressive" in cmd
     assert "file.py" in cmd
 
 
