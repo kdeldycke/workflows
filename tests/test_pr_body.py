@@ -218,7 +218,7 @@ def test_get_template_names():
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
     assert "yanked-admonition" in names
-    assert len(names) == 37
+    assert len(names) == 36
 
 
 def test_load_template_frontmatter():
