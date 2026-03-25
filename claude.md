@@ -440,7 +440,7 @@ Skills are grouped by lifecycle phase. Each skill includes a "Next steps" sectio
 
 - **Setup**: `/repomatic-init`
 - **Mechanical convenience** (run CI steps locally): `/repomatic-sync`, `/repomatic-lint`
-- **Development**: `/repomatic-deps`, `/repomatic-deps-review`, `/repomatic-test`
+- **Development**: `/repomatic-deps`, `/repomatic-test`
 - **Release**: `/repomatic-changelog`, `/repomatic-release`
 - **Maintenance**: `/awesome-triage`, `/repomatic-audit`, `/repomatic-topics`, `/sphinx-docs-sync`, `/translation-sync`
 

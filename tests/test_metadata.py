@@ -553,7 +553,6 @@ expected = {
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
-        ".claude/skills/repomatic-deps-review/SKILL.md",
         ".claude/skills/repomatic-init/SKILL.md",
         ".claude/skills/repomatic-lint/SKILL.md",
         ".claude/skills/repomatic-release/SKILL.md",
@@ -570,7 +569,7 @@ expected = {
         "repomatic/data/awesome_template/.github/contributing.md",
         "repomatic/data/awesome_template/.github/contributing.zh.md",
         "repomatic/data/awesome_template/.github/pull_request_template.md",
-        "repomatic/data/skill-repomatic-deps-review.md",
+
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",
@@ -613,7 +612,6 @@ expected = {
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
-        ".claude/skills/repomatic-deps-review/SKILL.md",
         ".claude/skills/repomatic-init/SKILL.md",
         ".claude/skills/repomatic-lint/SKILL.md",
         ".claude/skills/repomatic-release/SKILL.md",
@@ -630,7 +628,7 @@ expected = {
         "repomatic/data/awesome_template/.github/contributing.md",
         "repomatic/data/awesome_template/.github/contributing.zh.md",
         "repomatic/data/awesome_template/.github/pull_request_template.md",
-        "repomatic/data/skill-repomatic-deps-review.md",
+
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",

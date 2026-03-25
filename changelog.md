@@ -26,7 +26,7 @@
 - Auto-exclude `changelog.yaml`, `debug.yaml`, and `release.yaml` workflows for `awesome-*` repositories. These package-oriented workflows are irrelevant to curated lists.
 - Materialize bundled `renovate.json5` at runtime in the Renovate workflow when the file is absent. Downstream repos can safely delete their `renovate.json5` via `clean-redundant-configs` without breaking Renovate runs.
 - Remove `sync-renovate` CLI command, autofix job, `renovate.sync` config toggle, and PR body template. The `sync-repomatic` job (via `repomatic init --delete-redundant`) already handles Renovate config sync, and the Renovate workflow now materializes the bundled default at runtime when the file is absent.
-- Add `/repomatic-deps-review` skill to audit `pyproject.toml` dependency declarations against the version policy established across all `kdeldycke/*` repositories. Checks specifier style, comment coverage, ordering, group structure, and cross-repo consistency.
+- Merge `/repomatic-deps-review` into `/repomatic-deps`. The unified skill now supports two modes: `graph` (dependency tree visualization, previously the only mode) and `review` (declaration audit against version policy). Also checks for stale `exclude-newer-package` cooldown exceptions in `[tool.uv]`.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 

@@ -1,1 +1,0 @@
-../../.claude/skills/repomatic-deps-review/SKILL.md

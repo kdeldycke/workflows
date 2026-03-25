@@ -922,7 +922,7 @@ $ uvx -- repomatic list-skills
 | :---------- | :--------------------- | :------------------------------------------------------- |
 | Setup       | `/repomatic-init`      | Bootstrap a repository with reusable workflows           |
 | Setup       | `/repomatic-sync`      | Sync workflow caller files with upstream                 |
-| Development | `/repomatic-deps`      | Generate and analyze dependency graphs from uv lockfiles |
+| Development | `/repomatic-deps`      | Dependency graphs, tree analysis, and declaration audit  |
 | Development | `/repomatic-metadata`  | Extract and explain project metadata                     |
 | Quality     | `/repomatic-lint`      | Lint workflows and repository metadata                   |
 | Quality     | `/repomatic-test`      | Run and write YAML test plans for compiled binaries      |
