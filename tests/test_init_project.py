@@ -510,10 +510,13 @@ def test_init_creates_all_default_files(
     result = run_init(output_dir=tmp_path)
 
     # All components: changelog, labels, renovate, skills, workflows.
-    # Opt-in workflows are excluded by default.
+    # Opt-in workflows and awesome-triage skill are excluded by default.
     config_file_count = sum(len(v) for v in COMPONENT_FILES.values())
     default_workflows = len(REUSABLE_WORKFLOWS) - len(OPT_IN_WORKFLOWS)
-    expected_count = default_workflows + config_file_count + 1
+    awesome_triage_auto_excluded = 1
+    expected_count = (
+        default_workflows + config_file_count + 1 - awesome_triage_auto_excluded
+    )
     assert len(result.created) == expected_count
     assert len(result.skipped) == 0
     assert len(result.warnings) == 0
@@ -602,15 +605,17 @@ def test_init_only_labels(tmp_path: Path):
 
 
 def test_init_only_skills(tmp_path: Path):
-    """Verify only skill files are created."""
+    """Verify only skill files are created.
+
+    awesome-triage is auto-excluded for non-awesome repos.
+    """
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 10
+    assert len(created_set) == 9
 
-    # Verify all skill files are created.
+    # Verify all non-awesome skill files are created.
     for name in (
-        "awesome-triage",
         "repomatic-audit",
         "repomatic-changelog",
         "repomatic-deps",
@@ -624,6 +629,9 @@ def test_init_only_skills(tmp_path: Path):
         rel = f".claude/skills/{name}/SKILL.md"
         assert rel in created_set
         assert (tmp_path / ".claude" / "skills" / name / "SKILL.md").exists()
+
+    # awesome-triage is auto-excluded for non-awesome repos.
+    assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
 
     # No workflows or changelog should be created.
     assert "changelog.md" not in created_set
@@ -1154,6 +1162,50 @@ def test_init_respects_exclude_skill_files(
     assert ".claude/skills/repomatic-topics/SKILL.md" not in created_set
 
     # Other skills should still be created.
+    assert ".claude/skills/repomatic-init/SKILL.md" in created_set
+
+
+def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify awesome-triage skill is auto-excluded for non-awesome repos."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["labels"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(
+        output_dir=tmp_path, repo_slug="user/some-project"
+    )
+
+    created_set = set(result.created)
+    assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
+    assert ".claude/skills/repomatic-init/SKILL.md" in created_set
+
+
+def test_init_awesome_triage_included_for_awesome_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify awesome-triage skill is included for awesome-* repos."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["labels"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(
+        output_dir=tmp_path, repo_slug="user/awesome-python"
+    )
+
+    created_set = set(result.created)
+    assert ".claude/skills/awesome-triage/SKILL.md" in created_set
     assert ".claude/skills/repomatic-init/SKILL.md" in created_set
 
 

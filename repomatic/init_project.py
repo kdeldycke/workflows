@@ -799,7 +799,10 @@ def run_init(
         from .metadata import Metadata
 
         repo_slug = Metadata().repo_slug
-    if repo_slug and repo_slug.split("/")[-1].startswith("awesome-"):
+    is_awesome_repo = bool(
+        repo_slug and repo_slug.split("/")[-1].startswith("awesome-")
+    )
+    if is_awesome_repo:
         selected.add("awesome-template")
 
     # Load config for source path resolution and exclusion rules.
@@ -810,6 +813,10 @@ def run_init(
     exclude_entries: list[str] = config.get("exclude", ["labels", "skills"])
     excluded_components, excluded_files = parse_exclude(exclude_entries)
 
+    # Auto-exclude awesome-triage skill for non-awesome repositories.
+    if not is_awesome_repo:
+        excluded_files.setdefault("skills", set()).add("awesome-triage")
+
     # Apply exclusions when no explicit components given.
     if not components:
         actually_excluded = excluded_components & selected
@@ -819,6 +826,7 @@ def run_init(
             + [
                 f"{c}/{f}"
                 for c, fs in sorted(excluded_files.items())
+                if c not in actually_excluded
                 for f in sorted(fs)
             ]
         )
