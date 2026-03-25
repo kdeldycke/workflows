@@ -847,8 +847,8 @@ def run_init(
             selected_files.pop(comp, None)
         selected = selected_full | set(selected_files.keys())
     else:
-        selected_full: set[str] = set()
-        selected_files: dict[str, set[str]] = {}
+        selected_full = set()
+        selected_files = {}
         selected = set(DEFAULT_COMPONENTS)
     result = InitResult()
 

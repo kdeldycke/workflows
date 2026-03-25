@@ -254,10 +254,10 @@ class ComponentSelector(ParamType):
 
     name = "selector"
 
-    def get_metavar(self, param):  # type: ignore[override]
+    def get_metavar(self, param):
         return "[COMPONENT[/FILE]]"
 
-    def convert(self, value, param, ctx):  # type: ignore[override]
+    def convert(self, value, param, ctx):
         # --- bare component name ---
         if "/" not in value:
             for key in ALL_COMPONENTS:
@@ -301,7 +301,7 @@ class ComponentSelector(ParamType):
             )
         return f"{component}/{file_id}"
 
-    def shell_complete(self, ctx, param, incomplete):  # type: ignore[override]
+    def shell_complete(self, ctx, param, incomplete):
         from click.shell_completion import CompletionItem
 
         completions: list[CompletionItem] = [

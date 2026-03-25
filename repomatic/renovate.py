@@ -732,10 +732,11 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
         try:
             with urlopen(request, timeout=10) as response:
                 data = json.loads(response.read())
-            body = data.get("body", "")
-            return tag, body
         except (URLError, TimeoutError, json.JSONDecodeError):
             continue
+        else:
+            body = data.get("body", "")
+            return tag, body
     logging.debug(f"No GitHub release found for {repo_url} version {version}.")
     return "", ""
 
