@@ -238,7 +238,7 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
 
     :param repo: Repository in 'owner/repo' format.
     :param sha: Commit SHA to check.
-    :return: Tuple of (passed, message). This check never fails fatally.
+    :return: Tuple of (passed, message).
     """
     try:
         run_gh_command([
@@ -251,7 +251,7 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
             "Cannot verify commit statuses permission. "
             "Ensure the token has 'Commit statuses: Read and Write' permission."
         )
-        return True, msg  # Non-fatal.
+        return False, msg
     else:
         return True, "Commit statuses: token has access"
 

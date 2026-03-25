@@ -2,6 +2,9 @@
 name: 🧹 Lint
 "on":
   workflow_call:
+    secrets:
+      REPOMATIC_PAT:
+        required: false
   workflow_dispatch:
   push:
     branches:
@@ -46,7 +49,8 @@ jobs:
       - uses: astral-sh/setup-uv@v7.4.0
       - name: Lint repository metadata
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
         run: uvx --no-progress --from . repomatic lint-repo
 
   lint-types:

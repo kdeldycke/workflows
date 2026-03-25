@@ -2292,11 +2292,26 @@ def check_renovate(
     envvar="GITHUB_REPOSITORY",
     help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
 )
+@option(
+    "--has-pat",
+    is_flag=True,
+    default=False,
+    envvar="HAS_REPOMATIC_PAT",
+    help="Whether GH_TOKEN contains REPOMATIC_PAT. Enables PAT capability checks.",
+)
+@option(
+    "--sha",
+    default=None,
+    envvar="GITHUB_SHA",
+    help="Commit SHA for permission checks. Defaults to $GITHUB_SHA.",
+)
 @pass_context
 def lint_repo(
     ctx: Context,
     repo_name: str | None,
     repo: str | None,
+    has_pat: bool,
+    sha: str | None,
 ) -> None:
     """Run consistency checks on repository metadata.
 
@@ -2305,11 +2320,20 @@ def lint_repo(
 
     Checks:
     - Dependabot config file absent (error).
+    - Renovate config exists (error).
     - Dependabot security updates disabled (error).
     - Package name vs repository name (warning).
     - Website field set for Sphinx projects (warning).
     - Repository description matches project description (error).
+    - GitHub topics subset of pyproject.toml keywords (warning).
     - Funding file present when owner has GitHub Sponsors (warning).
+
+    When ``--has-pat`` is set, additional PAT capability checks are run:
+    - Contents permission (error).
+    - Issues permission (error).
+    - Pull requests permission (error).
+    - Dependabot alerts permission and alerts enabled (error).
+    - Commit statuses permission (error, requires ``--sha``).
 
     \b
     Examples:
@@ -2319,6 +2343,10 @@ def lint_repo(
     \b
         # Local run (derives repo from $GITHUB_REPOSITORY or --repo)
         repomatic lint-repo --repo owner/repo
+
+    \b
+        # With PAT capability checks
+        repomatic lint-repo --has-pat --sha abc123
     """
     if repo_name is None and repo:
         # Extract repo name from owner/repo format.
@@ -2338,6 +2366,8 @@ def lint_repo(
         project_description=project_description,
         keywords=keywords,
         repo=repo if repo else None,
+        has_pat=has_pat,
+        sha=sha,
     )
     ctx.exit(exit_code)
 

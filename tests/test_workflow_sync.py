@@ -256,10 +256,11 @@ def test_renovate_passes_secrets_explicitly() -> None:
     assert "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}" in content
 
 
-def test_lint_no_secrets() -> None:
-    """Verify lint.yaml thin caller has no secrets block."""
+def test_lint_passes_secrets_explicitly() -> None:
+    """Verify lint.yaml thin caller passes secrets explicitly."""
     content = generate_thin_caller("lint.yaml")
-    assert "secrets:" not in content
+    assert "secrets: inherit" not in content
+    assert "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}" in content
 
 
 def test_custom_version() -> None:
@@ -478,11 +479,13 @@ def test_partial_secrets_missing(tmp_path: Path) -> None:
 
 
 def test_no_secrets_needed(tmp_path: Path) -> None:
-    """Pass when canonical workflow has no secrets."""
+    """Pass when downstream passes all required secrets."""
     wf = tmp_path / "lint.yaml"
     wf.write_text(
         "---\njobs:\n  lint:\n"
-        f"    uses: {DEFAULT_REPO}/.github/workflows/lint.yaml@v5.8.0\n",
+        f"    uses: {DEFAULT_REPO}/.github/workflows/lint.yaml@v5.8.0\n"
+        "    secrets:\n"
+        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n",
         encoding="UTF-8",
     )
     result = check_secrets_passed(wf, "lint.yaml")

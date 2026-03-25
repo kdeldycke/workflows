@@ -75,6 +75,32 @@ import os
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+# Canonical list of fine-grained PAT permissions required by REPOMATIC_PAT.
+# Each tuple: (permission_name, access_level, reason).
+# This is the single source of truth — the setup guide template, pre-filled
+# token URL, and lint-repo capability checks must all agree with this list.
+REQUIRED_PAT_PERMISSIONS = (
+    ("Commit statuses", "Read and Write", "Renovate stability-days status checks."),
+    ("Contents", "Read and Write", "Tag pushes, release publishing, PR branch creation."),
+    (
+        "Dependabot alerts",
+        "Read-only",
+        "Renovate reads vulnerability alerts for security PRs.",
+    ),
+    ("Issues", "Read and Write", "Renovate Dependency Dashboard."),
+    ("Metadata", "Read-only", "Required for all fine-grained token API operations."),
+    (
+        "Pull requests",
+        "Read and Write",
+        "All PR-creating jobs (sync-repomatic, fix-typos, prepare-release, Renovate).",
+    ),
+    (
+        "Workflows",
+        "Read and Write",
+        "Push changes to .github/workflows/ files.",
+    ),
+)
+
 
 def validate_gh_token_env() -> None:
     """Check that a GitHub token environment variable is set.

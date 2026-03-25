@@ -28,7 +28,12 @@ from pathlib import Path
 
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
-from .renovate import check_dependabot_config_absent, check_dependabot_security_disabled
+from .renovate import (
+    check_commit_statuses_permission,
+    check_dependabot_config_absent,
+    check_dependabot_security_disabled,
+    check_renovate_config_exists,
+)
 
 
 def get_repo_metadata(repo: str) -> dict[str, str | None]:
@@ -224,6 +229,101 @@ def check_topics_subset_of_keywords(
     return None, f"All {len(topics)} GitHub topics are in pyproject.toml keywords."
 
 
+def check_pat_contents_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has contents permission.
+
+    Tests read access via ``GET /repos/{owner}/{repo}/contents/.github``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/contents/.github",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access repository contents. "
+            "Ensure the token has 'Contents: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Contents: token has access"
+
+
+def check_pat_issues_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has issues permission.
+
+    Tests read access via ``GET /repos/{owner}/{repo}/issues``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/issues?per_page=1&state=all",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access repository issues. "
+            "Ensure the token has 'Issues: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Issues: token has access"
+
+
+def check_pat_pull_requests_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has pull requests permission.
+
+    Tests read access via ``GET /repos/{owner}/{repo}/pulls``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/pulls?per_page=1&state=all",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access repository pull requests. "
+            "Ensure the token has 'Pull requests: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Pull requests: token has access"
+
+
+def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has Dependabot alerts permission and alerts are enabled.
+
+    Tests access via ``GET /repos/{owner}/{repo}/vulnerability-alerts``.
+    Returns 204 when alerts are enabled (pass). Fails on 403 (token lacks
+    the ``vulnerability_alerts`` permission) or 404 (alerts not enabled).
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/vulnerability-alerts",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access vulnerability alerts. "
+            "Either the token lacks 'Dependabot alerts: Read-only' permission "
+            "or vulnerability alerts are not enabled on the repository."
+        )
+        return False, msg
+    return True, "Dependabot alerts: token has access, alerts enabled"
+
+
 def run_repo_lint(
     package_name: str | None = None,
     repo_name: str | None = None,
@@ -231,6 +331,8 @@ def run_repo_lint(
     project_description: str | None = None,
     keywords: list[str] | None = None,
     repo: str | None = None,
+    has_pat: bool = False,
+    sha: str | None = None,
 ) -> int:
     """Run all repository lint checks.
 
@@ -242,6 +344,8 @@ def run_repo_lint(
     :param project_description: Description from pyproject.toml.
     :param keywords: Keywords list from pyproject.toml.
     :param repo: Repository in 'owner/repo' format.
+    :param has_pat: Whether ``GH_TOKEN`` contains ``REPOMATIC_PAT``.
+    :param sha: Commit SHA for permission checks.
     :return: Exit code (0 for success, 1 for errors).
     """
     fatal_error = False
@@ -255,7 +359,16 @@ def run_repo_lint(
         print(f"✗ {msg}")
         fatal_error = True
 
-    # Check 2: Dependabot security updates disabled (fatal).
+    # Check 2: Renovate config exists (fatal).
+    passed, msg = check_renovate_config_exists()
+    if passed:
+        print(f"✓ {msg}")
+    else:
+        emit_annotation(AnnotationLevel.ERROR, msg)
+        print(f"✗ {msg}")
+        fatal_error = True
+
+    # Check 3: Dependabot security updates disabled (fatal).
     if repo:
         passed, msg = check_dependabot_security_disabled(repo)
         if passed:
@@ -274,14 +387,14 @@ def run_repo_lint(
             logging.warning("No repo specified, skipping API-based checks.")
             repo_metadata = {"homepageUrl": None, "description": None}
 
-    # Check 3: Package name vs repo name.
+    # Check 4: Package name vs repo name.
     if package_name and repo_name:
         warning, msg = check_package_name_vs_repo(package_name, repo_name)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 4: Website for Sphinx projects.
+    # Check 5: Website for Sphinx projects.
     if is_sphinx:
         homepage_url = repo_metadata.get("homepageUrl") if repo_metadata else None
         warning, msg = check_website_for_sphinx(repo or "", is_sphinx, homepage_url)
@@ -289,7 +402,7 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 5: Description matches (fatal).
+    # Check 6: Description matches (fatal).
     if project_description:
         repo_description = repo_metadata.get("description") if repo_metadata else None
         error, msg = check_description_matches(
@@ -300,18 +413,43 @@ def run_repo_lint(
             fatal_error = True
         print(f"{'✗' if error else '✓'} {msg}")
 
-    # Check 6: GitHub topics are a subset of pyproject.toml keywords.
+    # Check 7: GitHub topics are a subset of pyproject.toml keywords.
     if keywords and repo:
         warning, msg = check_topics_subset_of_keywords(repo, keywords)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 7: Funding file present when owner has GitHub Sponsors.
+    # Check 8: Funding file present when owner has GitHub Sponsors.
     if repo:
         warning, msg = check_funding_file(repo)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
+
+    # PAT capability checks (only when REPOMATIC_PAT is configured).
+    if not has_pat or not repo:
+        if not has_pat:
+            print("ℹ PAT capability checks: skipped (no REPOMATIC_PAT)")
+        return 1 if fatal_error else 0
+
+    pat_checks: list[tuple[bool, str]] = [
+        check_pat_contents_permission(repo),
+        check_pat_issues_permission(repo),
+        check_pat_pull_requests_permission(repo),
+        check_pat_vulnerability_alerts_permission(repo),
+    ]
+    if sha:
+        pat_checks.append(check_commit_statuses_permission(repo, sha))
+    else:
+        print("ℹ Commit statuses check: skipped (no SHA provided)")
+
+    for passed, msg in pat_checks:
+        if passed:
+            print(f"✓ {msg}")
+        else:
+            emit_annotation(AnnotationLevel.ERROR, msg)
+            print(f"✗ {msg}")
+            fatal_error = True
 
     return 1 if fatal_error else 0

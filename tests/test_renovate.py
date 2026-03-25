@@ -101,12 +101,11 @@ def test_has_permission():
 
 
 def test_no_permission():
-    """Pass with warning when no permission (non-fatal)."""
+    """Fail when token lacks permission."""
     with patch("repomatic.renovate.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("gh command failed")
         passed, msg = check_commit_statuses_permission("owner/repo", "abc123")
-        # Non-fatal, passes but with warning.
-        assert passed is True
+        assert passed is False
         assert "permission" in msg.lower()
 
 

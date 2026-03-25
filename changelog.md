@@ -11,7 +11,7 @@
 - Add `--delete-excluded` flag to `repomatic init` to remove excluded files that still exist on disk. Detects component-level exclusions, file-level exclusions, auto-excluded files (e.g., `awesome-triage` on non-awesome repos), and disabled opt-in workflows.
 - Replace `sync-workflows` and `clean-redundant-configs` autofix jobs with a single `sync-repomatic` job. Runs `repomatic init --delete-redundant --delete-excluded` to sync all managed files and clean up stale ones in one PR.
 - Remove `PAT setup hint` steps and `HAS_REPOMATIC_PAT` env var from `autofix.yaml` and `changelog.yaml` workflows. The `setup-guide` job already creates an issue when the PAT is missing.
-- Add Dependabot security updates check to `lint-repo`. Previously only checked in the Renovate workflow, now also enforced by the lint pipeline.
+- Add PAT capability checks and repo configuration validation to `lint-repo`. Checks Renovate config exists, Dependabot security updates disabled, and vulnerability alerts enabled. When `REPOMATIC_PAT` is configured, validates contents, issues, pull requests, Dependabot alerts, and commit statuses permissions. Add `REQUIRED_PAT_PERMISSIONS` constant in `token.py` as the single source of truth for expected permissions.
 - Relax abandoned dependency threshold from 1 year to 2 years in Renovate config.
 - Fix thin-caller generation rendering `workflow_dispatch` input definitions as Python dict literals instead of block-style YAML.
 - Add `/sphinx-docs-sync` skill for cross-project Sphinx documentation comparison and synchronization.
