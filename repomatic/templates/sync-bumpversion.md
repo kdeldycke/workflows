@@ -5,7 +5,7 @@ footer: false
 
 ### Description
 
-Initializes the `[tool.bumpversion]` configuration in `pyproject.toml` from the bundled template. See the [`sync-bumpversion` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
+Initializes the `[tool.bumpversion]` configuration in `pyproject.toml` from the [bundled template](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/bumpversion.toml). See the [`sync-bumpversion` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
 
 ### Configuration
 
