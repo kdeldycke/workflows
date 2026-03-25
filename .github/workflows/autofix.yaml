@@ -60,6 +60,9 @@ jobs:
     # Ruff can format code in both Python and Markdown files.
     if: fromJSON(needs.metadata.outputs.metadata).python_files || fromJSON(needs.metadata.outputs.metadata).doc_files
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -98,6 +101,9 @@ jobs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -129,6 +135,9 @@ jobs:
     if: fromJSON(needs.metadata.outputs.metadata).markdown_files
     # Cannot use "ubuntu-slim" because shfmt is not available there.
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -172,6 +181,9 @@ jobs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).json_files
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -205,6 +217,9 @@ jobs:
   fix-typos:
     name: ✏️ Fix typos
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -230,6 +245,9 @@ jobs:
   sync-repomatic:
     name: 🔄 Sync repomatic
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -260,6 +278,9 @@ jobs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).image_files
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -305,6 +326,9 @@ jobs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).gitignore_exists
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -331,6 +355,9 @@ jobs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -357,6 +384,9 @@ jobs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).mailmap_exists
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -389,6 +419,9 @@ jobs:
       fromJSON(needs.metadata.outputs.metadata).is_python_project
       && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -418,6 +451,9 @@ jobs:
       fromJSON(needs.metadata.outputs.metadata).is_python_project
       && fromJSON(needs.metadata.outputs.metadata).active_autodoc
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0

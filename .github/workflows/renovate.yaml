@@ -43,6 +43,9 @@ jobs:
   migrate-to-renovate:
     name: 🚚 Migrate to Renovate
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -77,6 +80,10 @@ jobs:
     name: 🆕 Renovate
     # Cannot use "ubuntu-slim" here because renovatebot/github-action relies on Docker.
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -152,6 +159,9 @@ jobs:
       - metadata
     if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0

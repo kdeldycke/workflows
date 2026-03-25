@@ -78,6 +78,9 @@ jobs:
       github.event_name == 'workflow_run'
       || !fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -110,6 +113,9 @@ jobs:
       - metadata
     # Always run since metadata already filters appropriate events.
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     strategy:
       matrix:
         part:
@@ -158,6 +164,9 @@ jobs:
     # on every push to main, since push already triggers this job directly).
     if: github.event_name != 'schedule' && github.event_name != 'workflow_run'
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0

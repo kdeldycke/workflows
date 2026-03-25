@@ -45,7 +45,7 @@ jobs:
         env:
           METADATA: ${{ steps.metadata.outputs.metadata }}
         run: |
-          targets=$(echo "${METADATA}" | jq -c '.build_targets + [{"os":"ubuntu-slim"}]')
+          targets=$(echo "${METADATA}" | jq -c '(.build_targets | fromjson) + [{"os":"ubuntu-slim"}]')
           echo "targets=$targets" >> "$GITHUB_OUTPUT"
 
   dump-context:
