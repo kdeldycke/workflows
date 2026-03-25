@@ -339,15 +339,8 @@ def _render_trigger_value(value: Any, indent: int) -> str:
                         lines.append(f"{prefix}  - {_quote_yaml_list_item(item)}")
             elif isinstance(v, dict):
                 lines.append(f"{prefix}{k}:")
-                for sk, sv in v.items():
-                    if sv is None:
-                        lines.append(f"{prefix}  {sk}:")
-                    elif isinstance(sv, list):
-                        lines.append(f"{prefix}  {sk}:")
-                        for item in sv:
-                            lines.append(f"{prefix}    - {_quote_yaml_list_item(item)}")
-                    else:
-                        lines.append(f"{prefix}  {sk}: {_quote_yaml_value(sv)}")
+                # Recurse to handle arbitrarily nested dicts.
+                lines.append(_render_trigger_value(v, indent + 2))
             else:
                 lines.append(f"{prefix}{k}: {_quote_yaml_value(v)}")
         return "\n".join(lines)

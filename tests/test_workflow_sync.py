@@ -141,6 +141,23 @@ def test_unsubscribe_has_secrets() -> None:
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
+def test_no_python_literals_in_yaml(filename: str) -> None:
+    """Verify generated YAML contains no Python dict/list literals.
+
+    Regression test for a bug where ``_render_trigger_value`` fell through to
+    ``str()`` on nested dicts, producing ``{'key': 'value'}`` instead of
+    block-style YAML.
+
+    .. todo::
+        Run ``yamllint`` and ``actionlint`` on all generated thin-caller YAML
+        to catch structural issues beyond Python literal leaks.
+    """
+    content = generate_thin_caller(filename)
+    assert "{'" not in content, f"{filename}: Python dict literal found in output"
+    assert "'}" not in content, f"{filename}: Python dict literal found in output"
+
+
+@pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
 def test_no_workflow_call_inputs(filename: str) -> None:
     """Verify no reusable workflow defines ``workflow_call`` inputs.
 

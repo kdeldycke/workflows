@@ -7,6 +7,7 @@
 
 - Add `--delete-redundant` flag to `repomatic init` to automatically remove config files identical to bundled defaults instead of only reporting them.
 - Remove deprecated `WORKFLOW_UPDATE_GITHUB_PAT` secret and all backward-compatibility fallbacks. Downstream repos must use `REPOMATIC_PAT`.
+- Fix thin-caller generation rendering `workflow_dispatch` input definitions as Python dict literals instead of block-style YAML.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 
