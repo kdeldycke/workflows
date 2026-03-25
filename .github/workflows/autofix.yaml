@@ -239,28 +239,39 @@ jobs:
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
           See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
 
-  clean-redundant-configs:
-    name: 🧹 Clean redundant configs
+  sync-repomatic:
+    name: 🔄 Sync repomatic
+    if: github.repository != 'kdeldycke/repomatic'
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
-      - name: Remove redundant config files
-        run: uvx --no-progress --from . repomatic clean-redundant-configs
+      - name: Sync repomatic-managed files
+        run: >
+          uvx --no-progress --from . repomatic init
+          --delete-redundant --delete-excluded
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body
-          --template clean-redundant-configs
+          --template sync-repomatic
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
+          # We need custom PAT with workflows permissions to update .github/workflows/*.yaml files.
+          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
-          branch: clean-redundant-configs
+          branch: sync-repomatic
           delete-branch: true
+      - name: PAT setup hint
+        if: failure() && !env.HAS_REPOMATIC_PAT
+        run: >
+          echo "::error::REPOMATIC_PAT is not configured.
+          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
+          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
 
   format-images:
     name: 🖼️ Format images
@@ -482,34 +493,3 @@ jobs:
           branch: update-docs
           delete-branch: true
 
-  sync-workflows:
-    name: 🪢 Sync workflows
-    if: github.repository != 'kdeldycke/repomatic'
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
-      - name: Sync workflows
-        run: uvx --no-progress --from . repomatic init workflows
-      - id: pr-metadata
-        run: >
-          uvx --no-progress --from . repomatic pr-body
-          --template sync-workflows
-          --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
-        with:
-          # We need custom PAT with workflows permissions to update .github/workflows/*.yaml files.
-          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-          assignees: ${{ github.actor }}
-          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
-          title: ${{ steps.pr-metadata.outputs.title }}
-          body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "🤖 ci"
-          branch: sync-workflows
-          delete-branch: true
-      - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT
-        run: >
-          echo "::error::REPOMATIC_PAT is not configured.
-          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"

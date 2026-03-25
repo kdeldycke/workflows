@@ -394,14 +394,12 @@ GitHub Actions has several design limitations that the workflows work around:
     - No `renovate.json5` file in the repository root
     - `renovate.sync = false` in `[tool.repomatic]`
 
-- 🪢 **Sync workflows** (`sync-workflows`)
+- 🔄 **Sync repomatic** (`sync-repomatic`)
 
-  - Syncs [workflows from the upstream `kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/tree/main/.github/workflows) repository using [`repomatic init workflows`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py)
-  - For `awesome-*` repositories, also syncs awesome-template boilerplate via [`repomatic init awesome-template`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py), with URLs rewritten to match the current repo
+  - Runs [`repomatic init --delete-redundant --delete-excluded`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py) to sync all repomatic-managed files: thin-caller workflows, configuration files, and skill definitions
+  - Removes redundant config files identical to bundled defaults and cleans up excluded or stale files (disabled opt-in workflows, auto-excluded skills)
   - **Skipped if**:
     - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
-    - `workflow.sync = false` in `[tool.repomatic]`
-    - Awesome-template sync skipped if `awesome-template.sync = false` in `[tool.repomatic]`
 
 - 📬 **Sync `.mailmap`** (`sync-mailmap`)
 

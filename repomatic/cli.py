@@ -1975,7 +1975,8 @@ def clean_redundant_configs() -> None:
     configs (labels, renovate) and deletes any file whose content matches
     the bundled default after whitespace normalization.
 
-    Designed for the ``clean-redundant-configs`` autofix job.
+    Designed for standalone use. The ``sync-repomatic`` autofix job uses
+    ``repomatic init --delete-redundant`` instead.
     """
     from .init_project import find_all_redundant_configs
 

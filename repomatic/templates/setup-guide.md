@@ -21,7 +21,7 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
    | **Dependabot alerts** | Read-only               | Renovate reads vulnerability alerts to create security PRs                                |
    | **Issues**            | Read and Write          | Renovate [Dependency Dashboard](https://docs.renovatebot.com/key-concepts/dashboard/)     |
    | **Metadata**          | Read-only *(mandatory)* | Required for all fine-grained token API operations                                        |
-   | **Pull requests**     | Read and Write          | All PR-creating jobs (sync-workflows, fix-typos, prepare-release, Renovate)               |
+   | **Pull requests**     | Read and Write          | All PR-creating jobs (sync-repomatic, fix-typos, prepare-release, Renovate)               |
    | **Workflows**         | Read and Write          | Push changes to `.github/workflows/` files — not available via YAML `permissions:` at all |
 
 5. Click **Generate token** and copy it.

@@ -15,7 +15,7 @@ argument-hint: '[args]'
 
 ## Instructions
 
-You run `repomatic workflow sync` locally — the same command that the `autofix.yaml` workflow's `sync-workflows` job runs automatically on every push to `main`.
+You run `repomatic workflow sync` locally — the same command that the `autofix.yaml` workflow's `sync-repomatic` job runs automatically on every push to `main`.
 
 This skill is a **mechanical convenience** for previewing or applying sync changes before pushing. For deeper analysis of what the sync cannot fix (stale action versions in custom job content, missing workarounds, config drift), use `/repomatic-audit`.
 
