@@ -388,8 +388,7 @@ GitHub Actions has several design limitations that the workflows work around:
 
   - Runs [`repomatic init --delete-redundant --delete-excluded`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py) to sync all repomatic-managed files: thin-caller workflows, configuration files, and skill definitions
   - Removes redundant config files identical to bundled defaults and cleans up excluded or stale files (disabled opt-in workflows, auto-excluded skills)
-  - **Skipped if**:
-    - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
+  - In the upstream repository, regenerates the bundled `repomatic/data/renovate.json5` from the root config (workflows are excluded via `[tool.repomatic]`)
 
 - 📬 **Sync `.mailmap`** (`sync-mailmap`)
 
@@ -706,12 +705,6 @@ docs = [
     - `dev-release.sync = false` in `[tool.repomatic]`
 
 ### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
-
-- 🔄 **Sync bundled config** (`sync-bundled-config`)
-
-  - Keeps the bundled `repomatic/data/renovate.json5` in sync with the root `renovate.json5`
-  - **Only runs in**:
-    - The `kdeldycke/repomatic` repository
 
 - 🚚 **Migrate to Renovate** (`migrate-to-renovate`)
 

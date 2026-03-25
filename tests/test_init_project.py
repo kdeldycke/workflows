@@ -551,7 +551,7 @@ def test_init_creates_changelog(tmp_path: Path):
 def test_init_creates_parent_dirs(tmp_path: Path):
     """Verify .github/workflows/ is created automatically."""
     assert not (tmp_path / ".github").exists()
-    run_init(output_dir=tmp_path)
+    run_init(output_dir=tmp_path, components=("workflows",))
     assert (tmp_path / ".github" / "workflows").is_dir()
 
 

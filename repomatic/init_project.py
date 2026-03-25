@@ -1062,6 +1062,22 @@ def _init_workflows(
         logging.info(f"Synced header: {rel}")
 
 
+def _is_renovate_source_repo(output_dir: Path) -> bool:
+    """Detect whether ``output_dir`` is the repomatic source repository root.
+
+    Returns ``True`` when ``output_dir`` contains the root ``renovate.json5``
+    (the live Renovate config with repo-specific settings like ``assignees``)
+    and is the same directory that contains the ``repomatic/`` package. This
+    prevents the upstream path from triggering when ``repomatic init`` targets
+    a different directory (e.g., ``tmp_path`` in tests or a downstream repo).
+    """
+    source_root = Path(__file__).resolve().parent.parent
+    return (
+        output_dir.resolve() == source_root
+        and (source_root / "renovate.json5").exists()
+    )
+
+
 def _init_config_files(
     output_dir: Path,
     component_name: str,
@@ -1075,6 +1091,13 @@ def _init_config_files(
     For components in :data:`REDUNDANCY_COMPONENTS`, files already on disk
     that are identical to the bundled template are flagged as redundant and
     not overwritten.
+
+    **Upstream renovate handling:** When running in the repomatic source
+    repository, the root ``renovate.json5`` is the authoritative config (it
+    contains ``assignees`` and self-referencing ``customManagers``). Instead
+    of overwriting it with the stripped template, this function regenerates
+    ``repomatic/data/renovate.json5`` — the bundled copy shipped to downstream
+    repos.
 
     :param exclude_ids: File identifiers to skip within this component.
     :param include_ids: When not ``None``, only export files in this set.
@@ -1091,6 +1114,21 @@ def _init_config_files(
         # Normalize trailing whitespace to a single newline, matching the
         # convention used by sync commands (echo(content.rstrip(), ...)).
         normalized = content.rstrip() + "\n"
+
+        # In the repomatic source repo, the root renovate.json5 is
+        # authoritative. Regenerate the bundled data copy instead.
+        if component_name == "renovate" and _is_renovate_source_repo(output_dir):
+            bundled = Path(__file__).parent / "data" / source_name
+            existing = bundled.read_text(encoding="UTF-8").rstrip() + "\n"
+            bundled_rel = f"repomatic/data/{source_name}"
+            if existing == normalized:
+                result.redundant_configs.append(bundled_rel)
+                logging.info(f"Bundled config up to date: {bundled_rel}")
+            else:
+                bundled.write_text(normalized, encoding="UTF-8")
+                result.updated.append(bundled_rel)
+                logging.info(f"Regenerated bundled config: {bundled_rel}")
+            continue
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"

@@ -227,7 +227,6 @@ jobs:
 
   sync-repomatic:
     name: 🔄 Sync repomatic
-    if: github.repository != 'kdeldycke/repomatic'
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6.0.2
