@@ -34,6 +34,9 @@
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 
+> [!NOTE]
+> `6.7.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.7.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.7.0).
+
 - Bundle awesome-template boilerplate files in `repomatic` instead of cloning from `kdeldycke/awesome-template` at runtime.
 - Add `pyproject_files` metadata key listing all `pyproject.toml` files. The `format-pyproject` job now formats all of them instead of only the root file.
 - Remove `sync-skills`, `workflow create`, and `workflow sync` CLI commands. All three are superseded by `repomatic init` which handles skills, thin-caller generation, and header-only sync in a single invocation.
