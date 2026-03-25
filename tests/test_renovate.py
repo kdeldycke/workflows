@@ -550,6 +550,6 @@ def test_format_diff_table():
     ]
     table = format_diff_table(changes)
     assert "### Updated packages" in table
-    assert "| anyio | `4.12.0` -> `4.12.1` |" in table
-    assert "| new-pkg | (new) `2.0.0` |" in table
-    assert "| old-pkg | `1.0.0` (removed) |" in table
+    assert "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` -> `4.12.1` |" in table
+    assert "| [new-pkg](https://pypi.org/project/new-pkg/) | (new) `2.0.0` |" in table
+    assert "| [old-pkg](https://pypi.org/project/old-pkg/) | `1.0.0` (removed) |" in table

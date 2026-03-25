@@ -536,12 +536,13 @@ def format_diff_table(changes: list[tuple[str, str, str]]) -> str:
         "| :-- | :-- |",
     ]
     for name, old, new in changes:
+        link = f"[{name}](https://pypi.org/project/{name}/)"
         if old and new:
-            lines.append(f"| {name} | `{old}` -> `{new}` |")
+            lines.append(f"| {link} | `{old}` -> `{new}` |")
         elif new:
-            lines.append(f"| {name} | (new) `{new}` |")
+            lines.append(f"| {link} | (new) `{new}` |")
         else:
-            lines.append(f"| {name} | `{old}` (removed) |")
+            lines.append(f"| {link} | `{old}` (removed) |")
     return "\n".join(lines)
 
 
