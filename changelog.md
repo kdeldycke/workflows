@@ -18,6 +18,7 @@
 - Streamline Dependabot guidance in setup guide issue. Clarify that Renovate handles security PRs and that `renovate.yaml` auto-removes `dependabot.yml`. Link Actions tab directly to the `autofix.yaml` workflow.
 - Allow `repomatic init` to accept qualified `component/file` selectors (e.g., `repomatic init skills/repomatic-topics`). Uses the same syntax as the `exclude` config option. Rename `parse_exclude` to `parse_component_entries` and `_valid_file_ids` to `valid_file_ids` to support the shared parsing path.
 - Only auto-include `awesome-template` component for `awesome-*` repos when no explicit components are given. Previously, `repomatic init skills/repomatic-topics` on an awesome repo would also sync all awesome-template files.
+- Add package version diff table to `sync-uv-lock` PRs. Lists updated, added, and removed packages with their old and new versions.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 

@@ -45,8 +45,10 @@ from .github.pr_body import render_template
 from .tool_runner import uv_cmd
 
 if sys.version_info >= (3, 11):
+    import tomllib
     from enum import StrEnum
 else:
+    import tomli as tomllib  # type: ignore[import-not-found]
     from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
 
@@ -479,7 +481,71 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
     return True
 
 
-def sync_uv_lock(lock_path: Path) -> bool:
+def parse_lock_versions(lock_path: Path) -> dict[str, str]:
+    """Parse a ``uv.lock`` file and return a mapping of package names to versions.
+
+    :param lock_path: Path to the ``uv.lock`` file.
+    :return: A dict mapping normalized package names to their version strings.
+    """
+    if not lock_path.exists():
+        return {}
+    with lock_path.open("rb") as f:
+        data = tomllib.load(f)
+    return {
+        pkg["name"]: pkg["version"]
+        for pkg in data.get("package", [])
+        if "name" in pkg and "version" in pkg
+    }
+
+
+def diff_lock_versions(
+    before: dict[str, str],
+    after: dict[str, str],
+) -> list[tuple[str, str, str]]:
+    """Compare two version mappings and return the list of changes.
+
+    :param before: Package versions before the upgrade.
+    :param after: Package versions after the upgrade.
+    :return: A sorted list of ``(name, old_version, new_version)`` tuples.
+        ``old_version`` is empty for added packages; ``new_version`` is empty
+        for removed packages.
+    """
+    changes = []
+    for name in sorted(set(before) | set(after)):
+        old = before.get(name, "")
+        new = after.get(name, "")
+        if old != new:
+            changes.append((name, old, new))
+    return changes
+
+
+def format_diff_table(changes: list[tuple[str, str, str]]) -> str:
+    """Format version changes as a markdown table with heading.
+
+    :param changes: List of ``(name, old_version, new_version)`` tuples
+        as returned by :func:`diff_lock_versions`.
+    :return: A markdown string with a ``### Updated packages`` heading and
+        table, or an empty string if there are no changes.
+    """
+    if not changes:
+        return ""
+    lines = [
+        "### Updated packages",
+        "",
+        "| Package | Change |",
+        "| :-- | :-- |",
+    ]
+    for name, old, new in changes:
+        if old and new:
+            lines.append(f"| {name} | `{old}` -> `{new}` |")
+        elif new:
+            lines.append(f"| {name} | (new) `{new}` |")
+        else:
+            lines.append(f"| {name} | `{old}` (removed) |")
+    return "\n".join(lines)
+
+
+def sync_uv_lock(lock_path: Path) -> tuple[bool, str]:
     """Re-lock with ``--upgrade`` and revert if only timestamp noise changed.
 
     Runs ``uv lock --upgrade`` to update transitive dependencies to their
@@ -489,13 +555,27 @@ def sync_uv_lock(lock_path: Path) -> bool:
     ``uv.lock`` so ``peter-evans/create-pull-request`` sees no diff and
     skips creating a PR.
 
+    When real changes exist, computes a diff table comparing package versions
+    before and after the upgrade.
+
     :param lock_path: Path to the ``uv.lock`` file.
-    :return: ``True`` if the lock file was reverted (noise only),
-        ``False`` if it contains real dependency changes.
+    :return: A tuple of ``(reverted, diff_table)``. ``reverted`` is ``True``
+        if the lock file was reverted (noise only). ``diff_table`` is a
+        markdown-formatted table of version changes, or an empty string if
+        reverted or no version changes were found.
     """
-    # Step 1: Run uv lock --upgrade.
+    # Step 1: Snapshot versions before upgrading.
+    before = parse_lock_versions(lock_path)
+
+    # Step 2: Run uv lock --upgrade.
     logging.info("Running uv lock --upgrade...")
     subprocess.run([*uv_cmd("lock"), "--upgrade"], check=True)
 
-    # Step 2: Revert uv.lock if only timestamp noise changed.
-    return revert_lock_if_noise(lock_path)
+    # Step 3: Revert uv.lock if only timestamp noise changed.
+    if revert_lock_if_noise(lock_path):
+        return True, ""
+
+    # Step 4: Compute and format the version diff.
+    after = parse_lock_versions(lock_path)
+    changes = diff_lock_versions(before, after)
+    return False, format_diff_table(changes)

@@ -174,9 +174,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
-      - name: Sync uv.lock
-        run: uvx --no-progress --from . repomatic sync-uv-lock
+      - id: sync
+        name: Sync uv.lock
+        run: >
+          uvx --no-progress --from . repomatic sync-uv-lock
+          --output "$GITHUB_OUTPUT"
       - id: pr-metadata
+        env:
+          REPOMATIC_DIFF_TABLE: ${{ steps.sync.outputs.diff_table }}
         run: >
           uvx --no-progress --from . repomatic pr-body
           --template sync-uv-lock

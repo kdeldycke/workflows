@@ -1997,8 +1997,14 @@ def verify_binary(target: str, binary_path: Path) -> None:
     default="uv.lock",
     help="Path to the uv.lock file.",
 )
+@option(
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default=None,
+    help="Output file for the diff table (e.g., $GITHUB_OUTPUT).",
+)
 @pass_context
-def sync_uv_lock_cmd(ctx: Context, lockfile: Path) -> None:
+def sync_uv_lock_cmd(ctx: Context, lockfile: Path, output: Path | None) -> None:
     """Run ``uv lock --upgrade`` and revert if only timestamp noise changed.
 
     Runs ``uv lock --upgrade`` to update transitive dependencies to their
@@ -2006,10 +2012,18 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path) -> None:
     ``exclude-newer-package`` timestamp changes, reverts the lock file so
     ``peter-evans/create-pull-request`` sees no diff and skips creating a PR.
 
+    When real changes exist, prints a markdown table of updated package
+    versions. Use ``--output "$GITHUB_OUTPUT"`` to write the table as a
+    ``diff_table`` output variable for use in subsequent workflow steps.
+
     \b
     Examples:
         # Standard usage (from renovate.yaml sync-uv-lock job)
         repomatic sync-uv-lock
+
+    \b
+        # Write diff table to $GITHUB_OUTPUT
+        repomatic sync-uv-lock --output "$GITHUB_OUTPUT"
 
     \b
         # Check a different lock file
@@ -2022,10 +2036,26 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path) -> None:
         )
         ctx.exit(0)
 
-    if _sync_uv_lock(lockfile):
+    reverted, diff_table = _sync_uv_lock(lockfile)
+
+    if reverted:
         echo("Reverted uv.lock: only exclude-newer-package timestamp noise.")
     else:
         echo("Kept uv.lock: contains real dependency changes.")
+        if diff_table:
+            echo(diff_table)
+
+    if output and diff_table:
+        github_output_path = os.getenv("GITHUB_OUTPUT", "")
+        if (
+            not is_stdout(output)
+            and github_output_path
+            and str(output) == github_output_path
+        ):
+            content = format_multiline_output("diff_table", diff_table)
+        else:
+            content = diff_table
+        echo(content, file=prep_path(output))
 
 
 @repomatic.command(
@@ -2770,6 +2800,7 @@ def pr_body(
 
     # Map argument names to their values or callables.
     arg_sources: dict[str, str | None | Callable[[], str | None]] = {
+        "diff_table": os.getenv("REPOMATIC_DIFF_TABLE", ""),
         "part": part,
         "pr_ref": pr_ref,
         "repo_url": _repo_url,  # Callable, will be invoked if needed.

@@ -752,6 +752,7 @@ docs = [
 
   - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`repomatic sync-uv-lock`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/renovate.py)
   - Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
+  - PR body includes a table of updated packages with their previous and new versions
   - Replaces Renovate's `lockFileMaintenance`, which cannot reliably revert noise-only changes
   - **Requires**:
     - Python package with a `pyproject.toml` file

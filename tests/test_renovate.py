@@ -28,8 +28,11 @@ from repomatic.renovate import (
     check_dependabot_security_disabled,
     check_renovate_config_exists,
     collect_check_results,
+    diff_lock_versions,
+    format_diff_table,
     get_dependabot_config_path,
     is_lock_diff_only_timestamp_noise,
+    parse_lock_versions,
     revert_lock_if_noise,
     run_migration_checks,
     sync_uv_lock,
@@ -442,8 +445,9 @@ def test_sync_uv_lock_keeps_real_changes(tmp_path):
             "repomatic.renovate.is_lock_diff_only_timestamp_noise",
             return_value=False,
         ),
+        patch("repomatic.renovate.parse_lock_versions", return_value={}),
     ):
-        reverted = sync_uv_lock(lock_path)
+        reverted, diff_table = sync_uv_lock(lock_path)
         assert reverted is False
         # uv lock was called.
         mock_run.assert_called_once_with(
@@ -461,7 +465,91 @@ def test_sync_uv_lock_reverts_noise(tmp_path):
             return_value=True,
         ),
     ):
-        reverted = sync_uv_lock(lock_path)
+        reverted, diff_table = sync_uv_lock(lock_path)
         assert reverted is True
+        assert diff_table == ""
         # uv lock + git checkout were called.
         assert mock_run.call_count == 2
+
+
+def test_sync_uv_lock_returns_diff_table(tmp_path):
+    """Return a diff table when package versions changed."""
+    lock_path = tmp_path / "uv.lock"
+    before = {"anyio": "4.12.0", "boltons": "25.0.0"}
+    after = {"anyio": "4.12.1", "boltons": "25.0.0"}
+    with (
+        patch("repomatic.renovate.subprocess.run"),
+        patch(
+            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+            return_value=False,
+        ),
+        patch(
+            "repomatic.renovate.parse_lock_versions", side_effect=[before, after]
+        ),
+    ):
+        reverted, diff_table = sync_uv_lock(lock_path)
+        assert reverted is False
+        assert "anyio" in diff_table
+        assert "`4.12.0` -> `4.12.1`" in diff_table
+        # boltons is unchanged, should not appear.
+        assert "boltons" not in diff_table
+
+
+def test_parse_lock_versions(tmp_path):
+    """Parse package names and versions from a uv.lock file."""
+    lock_path = tmp_path / "uv.lock"
+    lock_path.write_text(
+        'version = 1\nrequires-python = ">=3.10"\n\n'
+        "[[package]]\n"
+        'name = "anyio"\n'
+        'version = "4.12.0"\n\n'
+        "[[package]]\n"
+        'name = "boltons"\n'
+        'version = "25.0.0"\n',
+        encoding="UTF-8",
+    )
+    versions = parse_lock_versions(lock_path)
+    assert versions == {"anyio": "4.12.0", "boltons": "25.0.0"}
+
+
+def test_parse_lock_versions_missing_file(tmp_path):
+    """Return empty dict when the lock file does not exist."""
+    lock_path = tmp_path / "uv.lock"
+    assert parse_lock_versions(lock_path) == {}
+
+
+def test_diff_lock_versions():
+    """Detect added, removed, and updated packages."""
+    before = {"anyio": "4.12.0", "boltons": "25.0.0", "old-pkg": "1.0.0"}
+    after = {"anyio": "4.12.1", "boltons": "25.0.0", "new-pkg": "2.0.0"}
+    changes = diff_lock_versions(before, after)
+    assert ("anyio", "4.12.0", "4.12.1") in changes
+    assert ("new-pkg", "", "2.0.0") in changes
+    assert ("old-pkg", "1.0.0", "") in changes
+    # Unchanged package is not in the diff.
+    assert all(name != "boltons" for name, _, _ in changes)
+
+
+def test_diff_lock_versions_no_changes():
+    """Return empty list when versions are identical."""
+    versions = {"anyio": "4.12.0"}
+    assert diff_lock_versions(versions, versions) == []
+
+
+def test_format_diff_table_empty():
+    """Return empty string for no changes."""
+    assert format_diff_table([]) == ""
+
+
+def test_format_diff_table():
+    """Format a markdown table with version changes."""
+    changes = [
+        ("anyio", "4.12.0", "4.12.1"),
+        ("new-pkg", "", "2.0.0"),
+        ("old-pkg", "1.0.0", ""),
+    ]
+    table = format_diff_table(changes)
+    assert "### Updated packages" in table
+    assert "| anyio | `4.12.0` -> `4.12.1` |" in table
+    assert "| new-pkg | (new) `2.0.0` |" in table
+    assert "| old-pkg | `1.0.0` (removed) |" in table
