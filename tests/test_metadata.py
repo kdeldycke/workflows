@@ -1402,7 +1402,8 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["uv-lock.sync"] is True
     assert metadata.config["workflow.source-paths"] is None
     assert metadata.config["workflow.sync"] is True
-    assert metadata.config["exclude"] == ["labels", "skills"]
+    assert metadata.config["exclude"] == []
+    assert metadata.config["include"] == []
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1447,6 +1448,7 @@ uv-lock.sync = false
 workflow.source-paths = ["extra_platforms"]
 workflow.sync = false
 exclude = ["skills", "workflows/debug.yaml", "workflows/autolock.yaml"]
+include = ["labels"]
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1497,6 +1499,7 @@ exclude = ["skills", "workflows/debug.yaml", "workflows/autolock.yaml"]
         "workflows/debug.yaml",
         "workflows/autolock.yaml",
     ]
+    assert metadata.config["include"] == ["labels"]
 
 
 def test_unstable_targets_default(tmp_path, monkeypatch):
@@ -1585,7 +1588,8 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     assert config["pypi-package-history"] == []
     assert config["setup-guide"] is True
     assert config["workflow.sync"] is True
-    assert config["exclude"] == ["labels", "skills"]
+    assert config["exclude"] == []
+    assert config["include"] == []
 
 
 def test_load_repomatic_config_custom_values(tmp_path, monkeypatch):

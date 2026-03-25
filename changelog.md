@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Make `exclude` config additive to default exclusions (`labels`, `skills`). User `exclude` entries now add to the defaults instead of replacing them. Add `include` config to force-include components that are excluded by default.
 - Add `--delete-redundant` flag to `repomatic init` to automatically remove config files identical to bundled defaults instead of only reporting them.
 - Remove deprecated `WORKFLOW_UPDATE_GITHUB_PAT` secret and all backward-compatibility fallbacks. Downstream repos must use `REPOMATIC_PAT`.
 - Auto-exclude `awesome-triage` skill for non-awesome repositories. The skill is only relevant to `awesome-*` repos and was previously installed in all downstream projects.

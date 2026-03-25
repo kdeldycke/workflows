@@ -489,7 +489,9 @@ def test_init_creates_all_default_files(
     """Verify all default component files are created (with no exclusions)."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["labels", "skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1138,6 +1140,7 @@ def test_init_respects_exclude_skill_files(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
+        'include = ["skills"]\n'
         'exclude = ["skills/repomatic-audit", "skills/repomatic-topics"]\n',
         encoding="UTF-8",
     )
@@ -1160,7 +1163,9 @@ def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
     """Verify awesome-triage skill is auto-excluded for non-awesome repos."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = ["labels"]\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1179,7 +1184,9 @@ def test_init_awesome_triage_included_for_awesome_repo(
     """Verify awesome-triage skill is included for awesome-* repos."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = ["labels"]\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1200,6 +1207,7 @@ def test_init_respects_exclude_label_files(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
+        'include = ["labels"]\n'
         'exclude = ["labels/labeller-content-based.yaml"]\n',
         encoding="UTF-8",
     )
@@ -1222,7 +1230,8 @@ def test_init_mixed_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'exclude = ["labels", "workflows/debug.yaml", "skills/repomatic-audit"]\n',
+        'include = ["skills"]\n'
+        'exclude = ["workflows/debug.yaml", "skills/repomatic-audit"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1243,10 +1252,12 @@ def test_init_detects_excluded_component_files(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """Verify init reports excluded component files that still exist on disk."""
-    # First init without exclusions to create all files.
+    # First init with labels included to create all files.
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["labels"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1255,9 +1266,9 @@ def test_init_detects_excluded_component_files(
     labels_toml = tmp_path / "labels.toml"
     assert labels_toml.exists()
 
-    # Now exclude labels and re-run init.
+    # Now re-run without include — labels falls back to default exclusion.
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = ["labels"]\n',
+        '[project]\nname = "test"\n',
         encoding="UTF-8",
     )
 
@@ -1272,10 +1283,12 @@ def test_init_detects_excluded_skill_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """Verify init reports a file-level excluded skill that still exists on disk."""
-    # First create all skills.
+    # First create all skills (include overrides default exclusion).
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1288,6 +1301,7 @@ def test_init_detects_excluded_skill_file(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
+        'include = ["skills"]\n'
         'exclude = ["skills/awesome-triage"]\n',
         encoding="UTF-8",
     )
@@ -1308,7 +1322,9 @@ def test_init_detects_auto_excluded_awesome_triage(
     # Create skills including awesome-triage (as an awesome repo).
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1333,7 +1349,6 @@ def test_init_detects_disabled_opt_in_workflow(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        "exclude = []\n"
         "notification.unsubscribe = true\n",
         encoding="UTF-8",
     )
@@ -1349,7 +1364,6 @@ def test_init_detects_disabled_opt_in_workflow(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        "exclude = []\n"
         "notification.unsubscribe = false\n",
         encoding="UTF-8",
     )
@@ -1371,7 +1385,9 @@ def test_init_cli_delete_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1384,6 +1400,7 @@ def test_init_cli_delete_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
+        'include = ["skills"]\n'
         'exclude = ["skills/awesome-triage"]\n',
         encoding="UTF-8",
     )
@@ -1412,7 +1429,9 @@ def test_init_cli_no_delete_excluded_warns(
 
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1425,6 +1444,7 @@ def test_init_cli_no_delete_excluded_warns(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
+        'include = ["skills"]\n'
         'exclude = ["skills/awesome-triage"]\n',
         encoding="UTF-8",
     )
@@ -1498,6 +1518,74 @@ def test_init_exclude_unknown_file_raises(
 
     with pytest.raises(ValueError, match="Unknown file"):
         run_init(output_dir=tmp_path)
+
+
+def test_init_include_unknown_component_raises(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify unknown component name in include raises ValueError."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["nonexistent-component"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(ValueError, match="Unknown include"):
+        run_init(output_dir=tmp_path)
+
+
+def test_init_include_overrides_default_exclusions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify include overrides default exclusions additively."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["labels"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    # Labels included via include, skills still excluded by default.
+    assert "labels.toml" in created_set
+    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+        assert rel_path not in created_set
+    # skills is the only remaining default exclusion.
+    assert result.excluded == ["skills"]
+
+
+def test_init_exclude_additive_to_defaults(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify user exclude is additive to default exclusions."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["workflows/debug.yaml"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    created_set = set(result.created)
+    # Default exclusions (labels, skills) still apply.
+    assert "labels.toml" not in created_set
+    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+        assert rel_path not in created_set
+    # User exclude is additive.
+    assert ".github/workflows/debug.yaml" not in created_set
+    assert "labels" in result.excluded
+    assert "skills" in result.excluded
+    assert "workflows/debug.yaml" in result.excluded
 
 
 # --- Data file registry and exclude validation tests ---

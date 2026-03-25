@@ -469,18 +469,25 @@ class Config:
     to sync thin callers or headers can set this to ``false``.
     """
 
-    exclude: list[str] = field(
-        default_factory=lambda: ["labels", "skills"],
-    )
-    """Components and files to exclude from repomatic operations.
+    exclude: list[str] = field(default_factory=list)
+    """Additional components and files to exclude from repomatic operations.
 
-    Bare names exclude an entire component (e.g., ``"skills"``). Qualified
+    Additive to the default exclusions (``labels``, ``skills``). Bare names
+    exclude an entire component (e.g., ``"workflows"``). Qualified
     ``component/identifier`` entries exclude a specific file within a component
     (e.g., ``"workflows/debug.yaml"``, ``"skills/repomatic-audit"``,
     ``"labels/labeller-content-based.yaml"``).
 
     Affects ``repomatic init``, ``workflow sync``, and ``workflow create``.
     Explicit CLI positional arguments override this list.
+    """
+
+    include: list[str] = field(default_factory=list)
+    """Components and files to force-include, overriding default exclusions.
+
+    Use this to opt into components that are excluded by default (``labels``,
+    ``skills``). Each entry is subtracted from the effective exclude set
+    (defaults + user ``exclude``). Same syntax as ``exclude``.
     """
 
     workflow_source_paths: list[str] | None = None
@@ -614,6 +621,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "dependency_graph_output",
     "dev_release_sync",
     "exclude",
+    "include",
     "gitignore_extra_categories",
     "gitignore_extra_content",
     "gitignore_location",

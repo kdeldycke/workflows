@@ -167,7 +167,7 @@ def test_generate_refresh_tip_with_workflow_ref(monkeypatch):
 
     tip = generate_refresh_tip()
 
-    assert "> [!TIP]" in tip
+    assert "> [!IMPORTANT]" in tip
     assert "Run workflow" in tip
     assert "https://github.com/owner/repo/actions/workflows/autofix.yaml" in tip
 
@@ -449,10 +449,10 @@ def test_build_pr_body_with_tip(monkeypatch):
     result = build_pr_body("Description.", FAKE_FOOTER)
 
     assert result.startswith("Description.")
-    assert "> [!TIP]" in result
+    assert "> [!IMPORTANT]" in result
     assert "Generated with [repomatic]" in result
-    assert result.index("Description.") < result.index("[!TIP]")
-    assert result.index("[!TIP]") < result.index("Generated with")
+    assert result.index("Description.") < result.index("[!IMPORTANT]")
+    assert result.index("[!IMPORTANT]") < result.index("Generated with")
     assert result.index("<details>") < result.index("Generated with")
 
 

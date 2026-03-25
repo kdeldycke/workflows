@@ -640,6 +640,13 @@ DEFAULT_COMPONENTS: tuple[str, ...] = tuple(
 )
 """Components included when no explicit selection is made."""
 
+DEFAULT_EXCLUSIONS: tuple[str, ...] = ("labels", "skills")
+"""Components excluded by default when no explicit selection is made.
+
+User ``exclude`` entries are additive to these defaults. User ``include``
+entries override both defaults and user excludes.
+"""
+
 # Maps component names to (source filename, relative output path) tuples.
 COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
     "labels": (
@@ -867,8 +874,15 @@ def run_init(
     config = load_repomatic_config()
     source_paths = resolve_source_paths(config)
 
-    # Parse exclude config. Raises ValueError on unknown entries.
-    exclude_entries: list[str] = config.get("exclude", ["labels", "skills"])
+    # Parse exclude/include config. User exclude is additive to defaults;
+    # user include overrides both.
+    user_exclude: list[str] = config.get("exclude", [])
+    user_include: list[str] = config.get("include", [])
+    if user_include:
+        parse_component_entries(user_include, context="include")
+    exclude_entries = sorted(
+        (set(DEFAULT_EXCLUSIONS) | set(user_exclude)) - set(user_include)
+    )
     excluded_components, excluded_files = parse_component_entries(
         exclude_entries, context="exclude"
     )
