@@ -24,8 +24,9 @@ You help users understand and maintain their project's dependencies. This skill 
 
 ### Mode selection
 
-- `graph` (default when `$ARGUMENTS` is empty): Generate and analyze the dependency graph.
-- `review [all|runtime|dev|policy]`: Audit `pyproject.toml` declarations.
+- No arguments: Run both `graph` and `review all`.
+- `graph`: Generate and analyze the dependency graph only.
+- `review [all|runtime|dev|policy]`: Audit `pyproject.toml` declarations only.
 - If `$ARGUMENTS` starts with `--level` or a number, treat it as `graph` mode with those arguments.
 
 ---
@@ -74,6 +75,11 @@ These conventions are derived from the `pyproject.toml` files across all `kdeldy
    "wcmatch>=10",
    ```
    A good floor comment answers: "if someone installed an older version, what would break and where?" If you cannot point to a concrete usage, the floor may be unnecessarily high.
+   **Security fixes are also a valid floor bump reason.** A CVE or advisory in an older version justifies raising the floor even when the API is unchanged. The comment should cite the CVE or advisory:
+   ```toml
+   # requests 2.32.0 fixes CVE-2024-35195 (session credential leak on redirects).
+   "requests>=2.32",
+   ```
 3. **Python version support is not a valid reason to bump a floor.** The dependency resolver already picks the right version via `requires-python` metadata. If `boltons>=20` works and boltons 25 merely adds Python 3.13 support, keep `>=20` — the resolver handles it. **Exception:** when a dependency *drops* a Python version your project still supports (or your project drops one, aligning minimum `requires-python`), that alignment is a valid floor bump reason. The comment should state the version range alignment, not the Python support:
    ```toml
    # boltons 25.0.0 dropped Python 3.9, matching our requires-python >= 3.10.
@@ -94,7 +100,7 @@ These conventions are derived from the `pyproject.toml` files across all `kdeldy
 
 11. **No upper bounds** (`<`, `<=`, `!=`, `~=` that implies an upper bound). The only exception is conditional markers like `python_version<'3.11'`.
 12. **Extras syntax** is fine: `"coverage[toml]>=7.11"`.
-13. **One dependency per line** for readable diffs.
+13. **One dependency per line** for readable diffs. Short groups that fit on one line are acceptable — the `format-json` workflow normalizes layout automatically.
 
 ### Audit procedure
 

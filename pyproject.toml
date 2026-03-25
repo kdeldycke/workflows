@@ -75,16 +75,6 @@ classifiers = [
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
-# Semantic versioning works in theory. In practice, it is hard to guarantee.
-# That's why we rely on >= specifier instead of ~= to relax constraints. This gives more freedom to packagers to
-# release hotfixes for security vulnerabilities in the future.
-# See also discussion about upper limits at: https://iscinumpy.dev/post/bound-version-constraints/#tldr
-# All minimal version choice are documented. Reasons to bump a minimal version are:
-# - bug fixes,
-# - security fixes,
-# - new code path we depends on,
-# - aligns minimal Python requirements to ours,
-# - adds new explicit support Python version.
 dependencies = [
   "backports-strenum>=1.3.1; python_version<'3.11'",
   # boltons 25.0.0 is the first version to support Python 3.13.
