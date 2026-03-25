@@ -1,6 +1,10 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended", "abandonments:recommended"],
+  extends: [
+    "config:recommended",
+    "abandonments:recommended",
+    "helpers:pinGitHubActionDigestsToSemver",
+  ],
 
   // PR and issue settings.
   labels: ["📦 dependencies"],
