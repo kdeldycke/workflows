@@ -92,7 +92,9 @@ def build_expected_body(
     if (
         not elements.changes
         and not elements.availability_admonition
+        and not elements.development_warning
         and not elements.editorial_admonition
+        and not elements.yanked_admonition
     ):
         return ""
 
