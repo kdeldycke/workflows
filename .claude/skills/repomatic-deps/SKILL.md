@@ -85,13 +85,13 @@ These conventions are derived from the `pyproject.toml` files across all `kdeldy
    # boltons 25.0.0 dropped Python 3.9, matching our requires-python >= 3.10.
    "boltons>=25",
    ```
-4. **Use conditional markers for Python-version-gated deps.** Example: `"tomli>=2.3; python_version<'3.11'"`.
+4. **Use conditional markers for Python-version-gated deps.** Example: `"tomli>=2; python_version<'3.11'"`. When a dep has a version marker, the floor rationale must make sense for the Python versions where the dep is actually installed — not for versions excluded by the marker.
 5. **Alphabetical order** within the list.
 
 #### Development dependencies (`[dependency-groups]`)
 
 6. **Prefer `[dependency-groups]`** (uv standard) over `[project.optional-dependencies]` for test, typing, and docs groups.
-7. **`>=` is preferred for dev deps too**, but `~=` is acceptable when stricter pinning reduces CI randomness. If a package also appears in runtime deps, the dev entry must use the same specifier style.
+7. **`>=` is preferred for dev deps too**, but `~=` is acceptable when stricter pinning reduces CI randomness. If a package also appears in runtime deps, the dev entry must use the same specifier style. The relaxation is about specifier *style* (`~=` allowed), not about floor *accuracy* — dev dep floors still need to be grounded in actual API or compatibility requirements, not adoption timestamps.
 8. **Standard group names:** `test`, `typing`, `docs` (lowercase, alphabetical).
 9. **Type stubs** go in the `typing` group with stub-specific versions: `"types-boltons>=25.0.0.20250822"`.
 10. **Alphabetical order** within each group.
@@ -112,12 +112,37 @@ Read the full `pyproject.toml`. For each dependency entry, check:
 | Missing comment | No comment above the entry explaining the version floor |
 | Weak comment | Comment cites Python version support instead of a concrete code dependency. Flag unless it documents a `requires-python` alignment or a Python version drop |
 | Stale comment | Comment references a reason that no longer applies (e.g., the cited method was replaced, or the Python version was dropped from the support matrix) |
+| Inflated floor | Floor higher than the oldest version providing the APIs actually used (see [floor verification](#floor-verification) below) |
+| Marker/rationale mismatch | Floor rationale contradicts the conditional marker (e.g., "Python 3.14 wheels" on a dep gated by `python_version<'3.11'` — that dep is never installed on 3.14) |
 | Ordering | Dependencies not in alphabetical order |
 | Group placement | Type stubs outside `typing` group, test deps outside `test` group |
 | Section style | `[project.optional-dependencies]` used where `[dependency-groups]` would be appropriate |
 | Bare dependency | No version specifier at all (e.g., `"requests"`) |
 | Conditional markers | Missing Python version marker for backport packages |
 | Stale cooldown exceptions | `exclude-newer-package` entries in `[tool.uv]` for packages that no longer need them (see below) |
+
+### Floor verification
+
+Comments and changelogs can lie; the codebase is the source of truth. For each dependency with a weak or suspicious comment, verify the floor against actual usage:
+
+1. **Grep for imports.** Search the source tree for all imports from the package. List the specific APIs used (functions, classes, constants).
+2. **Determine the oldest version providing those APIs.** Check when the API was introduced — changelogs, release notes, or `pip index versions <pkg>` to see what exists on PyPI.
+3. **Lower the floor** when it exceeds the oldest compatible version. Prefer conservative minimums (e.g., the major version that introduced the API) over aggressive ones. Update both the version specifier and the comment.
+4. **Run `uv lock`** after any floor change to verify the lock still resolves.
+
+#### Special cases
+
+- **Backport packages** (e.g., `backports-strenum`, `tomli`, `exceptiongroup`) exist solely to provide a stdlib class to older Python versions. Their entire API is the backported class itself, available in all versions. The floor is typically `>=1` (or the first release) unless a specific bug fix is needed for the Python versions where the dep is actually installed.
+- **Conditional deps with stale bug-fix floors.** A dep gated by `python_version<'3.11'` that has a floor set for a bug affecting Python <3.8.6 — if the project's `requires-python` is `>=3.10`, that bug is irrelevant and the floor can be lowered.
+- **pytest plugins** with no special API beyond auto-registration (e.g., `pytest-randomly`, `pytest-github-actions-annotate-failures`) have low effective floors — their basic functionality has been stable across major versions. Set the floor at the major version introducing the current plugin interface, not at the latest release.
+
+#### Red flag patterns in comments
+
+These comment patterns typically signal a floor set at adoption or auto-bump time, not at an API boundary:
+
+- "First version we used" / "first version when we last changed the requirement" — the floor is an artifact of when the dep was added or last bumped by Renovate/Dependabot, not a deliberate API minimum.
+- "First version to support Python 3.X" — unless it documents a `requires-python` drop alignment or a concrete build failure (e.g., missing wheels that cause install failures on that Python version), this is not a valid floor reason.
+- **The `~= → >=` conversion pipeline.** A common inflation path: (a) dep added as `~=X.Y` (latest at time), (b) Renovate bumps to `~=X.Z`, (c) a bulk "relax requirements" commit converts all `~=` to `>=`. Each step inflates the floor without API validation. Check `git log` for this pattern when a floor looks suspiciously high.
 
 ### `exclude-newer-package` cooldown audit
 
@@ -145,9 +170,9 @@ Produce:
 1. **Policy compliance summary**: A table with one row per dependency: name, specifier, has comment (yes/no), issues found.
 2. **Grouped findings** by severity:
    - **Errors**: Wrong specifier style, missing version, upper bounds.
-   - **Warnings**: Missing or stale comments, ordering issues.
-   - **Info**: Suggestions for tighter floors based on cross-repo data.
-3. **Suggested fixes**: For each error/warning, show the current line and the recommended replacement.
+   - **Warnings**: Missing or stale comments, ordering issues, inflated floors, marker/rationale mismatches.
+   - **Info**: Suggestions for floor adjustments based on API verification or cross-repo data.
+3. **Suggested fixes**: For each error/warning, show the current line and the recommended replacement. For inflated floors, include the verified API minimum and a rewritten comment.
 
 ---
 
