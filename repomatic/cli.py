@@ -269,11 +269,18 @@ _section_sync = Section("Sync")
     default=".",
     help="Root directory of the target repository.",
 )
+@option(
+    "--delete-redundant",
+    is_flag=True,
+    default=False,
+    help="Delete config files identical to bundled defaults.",
+)
 def init_project(
     components,
     version_pin,
     repo,
     output_dir,
+    delete_redundant,
 ):
     """Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
 
@@ -341,10 +348,18 @@ def init_project(
         for path in result.excluded_existing:
             echo(f"  {path}")
     if result.redundant_configs:
-        echo(
-            f"Redundant: {len(result.redundant_configs)} config file(s)"
-            " identical to bundled defaults (safe to delete):"
-        )
+        if delete_redundant:
+            for path in result.redundant_configs:
+                (output_dir / path).unlink()
+            echo(
+                f"Deleted {len(result.redundant_configs)} redundant config"
+                " file(s) identical to bundled defaults:"
+            )
+        else:
+            echo(
+                f"Redundant: {len(result.redundant_configs)} config file(s)"
+                " identical to bundled defaults (safe to delete):"
+            )
         for path in result.redundant_configs:
             echo(f"  {path}")
     if result.warnings:

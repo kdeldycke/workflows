@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `--delete-redundant` flag to `repomatic init` to automatically remove config files identical to bundled defaults instead of only reporting them.
+
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 
 - Bundle awesome-template boilerplate files in `repomatic` instead of cloning from `kdeldycke/awesome-template` at runtime.
