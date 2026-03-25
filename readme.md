@@ -738,8 +738,8 @@ docs = [
 
 - 🆕 **Renovate** (`renovate`)
 
+  - Materializes the bundled default `renovate.json5` at runtime when the file is absent, so downstream repos can safely remove redundant copies via `clean-redundant-configs`
   - Validates prerequisites before running (fails if not met):
-    - `renovate.json5` configuration exists
     - No Dependabot config file present
     - Dependabot security updates disabled
   - Runs self-hosted [Renovate](https://github.com/renovatebot/renovate) to update dependencies

@@ -110,8 +110,18 @@ jobs:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
 
-      # Validate prerequisites before running Renovate.
-      # This ensures the repository is properly configured.
+      # Materialize bundled default renovate.json5 when absent. Downstream
+      # repos that use clean-redundant-configs correctly delete on-disk
+      # copies identical to the bundled template; this step restores the
+      # config at runtime so Renovate can read it without requiring a
+      # committed copy. The file is ephemeral — discarded after the run.
+      - name: Export renovate.json5 if missing
+        run: >
+          test -f renovate.json5
+          || uvx --no-progress --from . repomatic init renovate
+
+      # Validate remaining prerequisites (Dependabot absent, security
+      # updates disabled, commit statuses permission).
       - name: Validate Renovate prerequisites
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
