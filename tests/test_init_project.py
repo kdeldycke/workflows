@@ -1914,3 +1914,16 @@ def test_init_qualified_selection_context_in_error():
     """Qualified selection uses 'selection' context in error messages."""
     with pytest.raises(ValueError, match="Unknown selection"):
         run_init(output_dir=Path("/tmp"), components=("nonexistent",))
+
+
+def test_init_awesome_template_not_auto_included_with_explicit_components(
+    tmp_path: Path,
+):
+    """awesome-template is not auto-included when explicit components are given."""
+    result = run_init(
+        output_dir=tmp_path,
+        components=("skills/repomatic-topics",),
+        repo_slug="user/awesome-list",
+    )
+    created_set = set(result.created)
+    assert created_set == {".claude/skills/repomatic-topics/SKILL.md"}

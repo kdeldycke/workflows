@@ -848,7 +848,7 @@ def run_init(
     is_awesome_repo = bool(
         repo_slug and repo_slug.split("/")[-1].startswith("awesome-")
     )
-    if is_awesome_repo:
+    if is_awesome_repo and not components:
         selected.add("awesome-template")
 
     # Load config for source path resolution and exclusion rules.
