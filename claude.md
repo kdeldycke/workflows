@@ -107,6 +107,31 @@ Each piece of knowledge has one canonical home, chosen by audience. Other locati
 
 Document design decisions, trade-offs, and non-obvious implementation choices directly in the code using docstring admonitions (reST `.. warning::`, `.. note::`, `.. caution::`), inline comments, and module-level docstrings for constants that need context.
 
+## File naming conventions
+
+### Extensions: prefer long form
+
+Use the longest, most explicit file extension available. For YAML, that means `.yaml` (not `.yml`). Apply the same principle to all extensions (e.g., `.html` not `.htm`, `.jpeg` not `.jpg`).
+
+### Filenames: lowercase
+
+Use lowercase filenames everywhere. Avoid shouting-case names like `FUNDING.YML` or `README.MD`.
+
+### GitHub exceptions
+
+GitHub silently ignores certain files unless they use the exact name it expects. These are the known hard constraints where you **cannot** use `.yaml` or lowercase:
+
+| File | Required name | Why |
+|---|---|---|
+| Issue form templates | `.github/ISSUE_TEMPLATE/*.yml` | `.yaml` is not recognized for issue forms |
+| Issue template config | `.github/ISSUE_TEMPLATE/config.yml` | `.yaml` not recognized |
+| Funding config | `.github/funding.yml` | Only `.yml` documented; no evidence `.yaml` works |
+| Release notes config | `.github/release.yml` | Only `.yml` documented |
+| Issue template directory | `.github/ISSUE_TEMPLATE/` | Must be uppercase; GitHub ignores lowercase |
+| Code owners | `CODEOWNERS` | Must be uppercase; no extension |
+
+Workflows (`.github/workflows/*.yaml`) and action metadata (`action.yaml`) officially support both `.yml` and `.yaml` — use `.yaml`.
+
 ## Code style
 
 ### Terminology and spelling

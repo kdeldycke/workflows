@@ -1161,7 +1161,7 @@ def init_awesome_template(
     github_dir = output_dir / ".github"
     if github_dir.is_dir():
         for path in github_dir.rglob("*"):
-            if not path.is_file() or path.suffix not in (".md", ".yaml"):
+            if not path.is_file() or path.suffix not in (".md", ".yaml", ".yml"):
                 continue
             content = path.read_text(encoding="UTF-8")
             new_content = content.replace(
