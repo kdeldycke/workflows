@@ -572,7 +572,15 @@ def _format_upload_date(iso_datetime: str) -> str:
         fails.
     """
     try:
-        dt = datetime.fromisoformat(iso_datetime.replace("Z", "+00:00"))
+        # Truncate fractional seconds to 6 digits (microseconds) for Python
+        # 3.10 compatibility. fromisoformat on 3.10 rejects nanosecond
+        # precision (9+ digits) that tools like uv emit.
+        normalized = re.sub(
+            r"(\.\d{6})\d+",
+            r"\1",
+            iso_datetime.replace("Z", "+00:00"),
+        )
+        dt = datetime.fromisoformat(normalized)
         return dt.strftime("%Y-%m-%d")
     except (ValueError, AttributeError):
         return iso_datetime
