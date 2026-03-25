@@ -364,6 +364,28 @@ Every `lint-*` operation checks content without modifying it. Lint operations ar
 - Read-only. No file writes, no PRs, no side effects beyond exit code and stdout/stderr output.
 - Lives in `lint.yaml`, not `autofix.yaml`.
 
+#### PR body template conventions
+
+PR body templates in `repomatic/templates/` are the downstream user's primary window into what an automated operation did and why. Each template should help users understand, verify, and customize the operation.
+
+**Required elements:**
+
+1. **Description.** What the job does, linking to the tool's homepage and the job documentation in `readme.md`.
+2. **Bundled defaults link.** When the operation uses a bundled default config from `repomatic/data/`, link to it so users can inspect the exact settings applied. Use the `blob/main` URL (e.g., `https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/ruff.toml`).
+3. **Customization tip.** A `> [!TIP]` block pointing users to the tool's own configuration documentation, mentioning the `[tool.X]` `pyproject.toml` section and/or native config file as the way to override defaults. Link to the tool's configuration reference (not just the homepage).
+
+**Example** (format job with bundled default):
+
+```markdown
+Auto-formats X files with [tool](https://example.com). When no `[tool.X]`
+section or `x.toml` is present, [repomatic's bundled defaults](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/x.toml)
+are applied at runtime. See the [`format-x` job documentation](...) for details.
+
+> [!TIP]
+> Customize formatting rules via [`[tool.X]`](https://example.com/configuration/)
+> in your `pyproject.toml`, or via a native `x.toml` file.
+```
+
 ### Ordering conventions
 
 Keep definitions sorted for readability and to minimize merge conflicts:
