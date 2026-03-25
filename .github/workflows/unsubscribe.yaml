@@ -28,6 +28,9 @@ name: "\U0001F515 Unsubscribe closed threads"
 jobs:
 
   unsubscribe-threads:
+    # Skip schedule/dispatch triggers in the upstream repo. Downstream repos
+    # call this via workflow_call, where github.repository is the caller.
+    if: github.repository != 'kdeldycke/repomatic'
     name: "\U0001F515 Unsubscribe"
     runs-on: ubuntu-slim
     steps:
