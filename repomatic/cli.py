@@ -2202,6 +2202,7 @@ _SKILL_PHASES: dict[str, str] = {
     "repomatic-sync": "Setup",
     "repomatic-audit": "Maintenance",
     "repomatic-deps": "Development",
+    "repomatic-deps-review": "Development",
     "repomatic-lint": "Quality",
     "repomatic-test": "Quality",
     "repomatic-topics": "Development",

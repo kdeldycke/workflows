@@ -180,7 +180,7 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 - All comments in Python files must end with a period.
 - Docstrings use reStructuredText format (vanilla style, not Google/NumPy).
 - Documentation in `./docs/` uses MyST markdown format where possible. Fallback to reStructuredText if necessary.
-- Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit.
+- Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit — do not hard-wrap prose in markdown. Each sentence or logical clause should flow as a single long line; let the renderer handle wrapping.
 - Titles in markdown use sentence case.
 
 ### Imports
@@ -440,7 +440,7 @@ Skills are grouped by lifecycle phase. Each skill includes a "Next steps" sectio
 
 - **Setup**: `/repomatic-init`
 - **Mechanical convenience** (run CI steps locally): `/repomatic-sync`, `/repomatic-lint`
-- **Development**: `/repomatic-deps`, `/repomatic-test`
+- **Development**: `/repomatic-deps`, `/repomatic-deps-review`, `/repomatic-test`
 - **Release**: `/repomatic-changelog`, `/repomatic-release`
 - **Maintenance**: `/awesome-triage`, `/repomatic-audit`, `/repomatic-topics`, `/sphinx-docs-sync`, `/translation-sync`
 
