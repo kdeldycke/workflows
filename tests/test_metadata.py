@@ -569,7 +569,6 @@ expected = {
         "repomatic/data/awesome_template/.github/contributing.md",
         "repomatic/data/awesome_template/.github/contributing.zh.md",
         "repomatic/data/awesome_template/.github/pull_request_template.md",
-
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",
@@ -627,7 +626,6 @@ expected = {
         "repomatic/data/awesome_template/.github/contributing.md",
         "repomatic/data/awesome_template/.github/contributing.zh.md",
         "repomatic/data/awesome_template/.github/pull_request_template.md",
-
         "repomatic/templates/available-admonition.md",
         "repomatic/templates/broken-links-issue.md",
         "repomatic/templates/bump-version.md",

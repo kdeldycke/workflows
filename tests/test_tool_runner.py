@@ -603,9 +603,7 @@ def test_resolve_config_reads_pyproject_with_section():
     assert tmp is None
 
 
-def test_resolve_config_reads_pyproject_falls_through_to_bundled(
-    tmp_path, monkeypatch
-):
+def test_resolve_config_reads_pyproject_falls_through_to_bundled(tmp_path, monkeypatch):
     """Tools with reads_pyproject=True use bundled default when no config exists."""
     monkeypatch.chdir(tmp_path)
     spec = ToolSpec(
@@ -816,9 +814,7 @@ def test_resolve_config_source_pyproject_section(tmp_path, monkeypatch):
     assert result == "[tool.yamllint] in pyproject.toml"
 
 
-def test_resolve_config_source_reads_pyproject_bundled_fallback(
-    tmp_path, monkeypatch
-):
+def test_resolve_config_source_reads_pyproject_bundled_fallback(tmp_path, monkeypatch):
     """Reports bundled default for reads_pyproject tool when no config exists."""
     monkeypatch.chdir(tmp_path)
 

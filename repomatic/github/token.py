@@ -81,7 +81,11 @@ from urllib.request import Request, urlopen
 # token URL, and lint-repo capability checks must all agree with this list.
 REQUIRED_PAT_PERMISSIONS = (
     ("Commit statuses", "Read and Write", "Renovate stability-days status checks."),
-    ("Contents", "Read and Write", "Tag pushes, release publishing, PR branch creation."),
+    (
+        "Contents",
+        "Read and Write",
+        "Tag pushes, release publishing, PR branch creation.",
+    ),
     (
         "Dependabot alerts",
         "Read-only",
