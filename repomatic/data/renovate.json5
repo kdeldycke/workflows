@@ -41,7 +41,7 @@
     },
     {
       description: "Flag dependencies with no recent releases.",
-      matchCurrentAge: "> 1 year",
+      matchCurrentAge: "> 2 years",
       addLabels: ["⚠️ stale dependency"],
     },
     {
