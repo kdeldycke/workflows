@@ -899,17 +899,20 @@ def run_init(
     # Auto-exclude files that don't belong in this repository. Added after
     # reporting so they don't appear in "Excluded by config" — they only
     # surface in excluded_existing when the file is actually on disk.
-    if is_awesome_repo:
-        for wf in ("changelog.yaml", "debug.yaml", "release.yaml"):
-            excluded_files.setdefault("workflows", set()).add(wf)
-    else:
-        excluded_files.setdefault("skills", set()).add("awesome-triage")
-        excluded_files.setdefault("skills", set()).add("translation-sync")
-    from .github.workflow_sync import OPT_IN_WORKFLOWS
+    # Skip auto-exclusion in the upstream source repo — it is the origin
+    # of all bundled files (skills, opt-in workflows, configs).
+    if not _is_source_repo(output_dir):
+        if is_awesome_repo:
+            for wf in ("changelog.yaml", "debug.yaml", "release.yaml"):
+                excluded_files.setdefault("workflows", set()).add(wf)
+        else:
+            excluded_files.setdefault("skills", set()).add("awesome-triage")
+            excluded_files.setdefault("skills", set()).add("translation-sync")
+        from .github.workflow_sync import OPT_IN_WORKFLOWS
 
-    for wf_name, config_key in OPT_IN_WORKFLOWS.items():
-        if not config.get(config_key, False):
-            excluded_files.setdefault("workflows", set()).add(wf_name)
+        for wf_name, config_key in OPT_IN_WORKFLOWS.items():
+            if not config.get(config_key, False):
+                excluded_files.setdefault("workflows", set()).add(wf_name)
 
     # Detect excluded files that still exist on disk.
     for comp, file_ids in sorted(excluded_files.items()):
@@ -1072,16 +1075,14 @@ def _init_workflows(
         logging.info(f"Synced header: {rel}")
 
 
-def _is_renovate_source_repo(output_dir: Path) -> bool:
+def _is_source_repo(output_dir: Path) -> bool:
     """Detect whether ``output_dir`` is the repomatic source repository root.
 
-    Returns ``True`` when ``output_dir`` contains both the root
-    ``renovate.json5`` (the live Renovate config with repo-specific settings
-    like ``assignees``) and the bundled data copy at
-    ``repomatic/data/renovate.json5``. Only the upstream source repo has both
-    files. This prevents the upstream path from triggering when
-    ``repomatic init`` targets a different directory (e.g., ``tmp_path`` in
-    tests or a downstream repo).
+    Returns ``True`` when ``output_dir`` contains the ``repomatic`` Python
+    package source tree (``repomatic/__init__.py`` and ``repomatic/data/``).
+    Only the upstream source repo has these. This prevents auto-exclusion from
+    deleting files that are the source of truth (skills, opt-in workflows,
+    bundled configs).
 
     .. note::
         Detection is based on ``output_dir`` contents, not on ``__file__``,
@@ -1090,9 +1091,20 @@ def _is_renovate_source_repo(output_dir: Path) -> bool:
     """
     resolved = output_dir.resolve()
     return (
-        (resolved / "renovate.json5").exists()
-        and (resolved / "repomatic" / "data" / "renovate.json5").exists()
+        (resolved / "repomatic" / "__init__.py").exists()
+        and (resolved / "repomatic" / "data").is_dir()
     )
+
+
+def _is_renovate_source_repo(output_dir: Path) -> bool:
+    """Detect whether ``output_dir`` has the upstream renovate config pair.
+
+    Returns ``True`` when the directory is the source repo and contains the
+    root ``renovate.json5``. Used by :func:`_init_config_files` to regenerate
+    the bundled copy instead of overwriting the root config.
+    """
+    resolved = output_dir.resolve()
+    return _is_source_repo(output_dir) and (resolved / "renovate.json5").exists()
 
 
 def _init_config_files(
@@ -1139,7 +1151,8 @@ def _init_config_files(
             existing = bundled.read_text(encoding="UTF-8").rstrip() + "\n"
             bundled_rel = f"repomatic/data/{source_name}"
             if existing == normalized:
-                result.redundant_configs.append(bundled_rel)
+                # Do not mark as redundant — it is package data, not a
+                # user-facing config that can be safely deleted.
                 logging.info(f"Bundled config up to date: {bundled_rel}")
             else:
                 bundled.write_text(normalized, encoding="UTF-8")
