@@ -10,6 +10,7 @@
 - Auto-exclude `awesome-triage` skill for non-awesome repositories. The skill is only relevant to `awesome-*` repos and was previously installed in all downstream projects.
 - Add `--delete-excluded` flag to `repomatic init` to remove excluded files that still exist on disk. Detects component-level exclusions, file-level exclusions, auto-excluded files (e.g., `awesome-triage` on non-awesome repos), and disabled opt-in workflows.
 - Replace `sync-workflows` and `clean-redundant-configs` autofix jobs with a single `sync-repomatic` job. Runs `repomatic init --delete-redundant --delete-excluded` to sync all managed files and clean up stale ones in one PR.
+- Remove `PAT setup hint` steps and `HAS_REPOMATIC_PAT` env var from `autofix.yaml` and `changelog.yaml` workflows. The `setup-guide` job already creates an issue when the PAT is missing.
 - Fix thin-caller generation rendering `workflow_dispatch` input definitions as Python dict literals instead of block-style YAML.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)

@@ -10,9 +10,6 @@ name: 🪄 Autofix
     branches:
       - main
 
-env:
-  HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
@@ -232,12 +229,6 @@ jobs:
           labels: "📚 documentation"
           branch: fix-typos
           delete-branch: true
-      - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT
-        run: >
-          echo "::error::REPOMATIC_PAT is not configured.
-          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
 
   sync-repomatic:
     name: 🔄 Sync repomatic
@@ -266,12 +257,6 @@ jobs:
           labels: "🤖 ci"
           branch: sync-repomatic
           delete-branch: true
-      - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT
-        run: >
-          echo "::error::REPOMATIC_PAT is not configured.
-          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
 
   format-images:
     name: 🖼️ Format images

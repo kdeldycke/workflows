@@ -29,9 +29,6 @@ name: 🆙 Changelog & versions
     branches:
       - main
 
-env:
-  HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
-
 concurrency:
   # Include event_name to prevent cross-event cancellation.
   # See repomatic/github/actions.py for rationale.
@@ -226,9 +223,3 @@ jobs:
           branch: prepare-release
           delete-branch: true
           draft: always-true
-      - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT
-        run: >
-          echo "::error::REPOMATIC_PAT is not configured.
-          The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
-          See ${{ github.server_url }}/${{ github.repository }}/issues?q=is:issue+REPOMATIC_PAT+in:title"
