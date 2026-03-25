@@ -1344,6 +1344,44 @@ def test_init_detects_auto_excluded_awesome_triage(
     assert ".claude/skills/awesome-triage/SKILL.md" in result.excluded_existing
 
 
+def test_init_detects_disabled_opt_in_workflow(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify disabled opt-in workflows on disk are detected as excluded."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = []\n'
+        "notification.unsubscribe = true\n",
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    # Create the opt-in workflow while it's enabled.
+    result = run_init(output_dir=tmp_path)
+    wf = tmp_path / ".github" / "workflows" / "unsubscribe.yaml"
+    assert wf.exists()
+    assert ".github/workflows/unsubscribe.yaml" not in result.excluded_existing
+
+    # Disable the opt-in workflow and re-run.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = []\n'
+        "notification.unsubscribe = false\n",
+        encoding="UTF-8",
+    )
+
+    result = run_init(output_dir=tmp_path)
+
+    # File is detected as stale but not deleted.
+    assert wf.exists()
+    assert ".github/workflows/unsubscribe.yaml" in result.excluded_existing
+    # Disabled opt-in workflows should not appear in "Excluded by config".
+    assert "workflows/unsubscribe.yaml" not in result.excluded
+
+
 def test_init_cli_delete_excluded(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

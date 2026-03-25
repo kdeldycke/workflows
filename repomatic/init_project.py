@@ -665,6 +665,23 @@ def _file_id(component: str, rel_path: str) -> str:
     return Path(rel_path).name
 
 
+def _excluded_rel_path(component: str, file_id: str) -> str | None:
+    """Map a component and file identifier to its relative output path.
+
+    Returns ``None`` when the identifier cannot be resolved (e.g., for tool
+    config components that have no file-level exclusion support).
+    """
+    if component == "workflows":
+        return f".github/workflows/{file_id}"
+    if component == "changelog":
+        return "changelog.md"
+    if component in COMPONENT_FILES:
+        for _, rel_path in COMPONENT_FILES[component]:
+            if _file_id(component, rel_path) == file_id:
+                return rel_path
+    return None
+
+
 def _valid_file_ids(component: str) -> frozenset[str]:
     """Return valid file identifiers for a component.
 
@@ -813,11 +830,7 @@ def run_init(
     exclude_entries: list[str] = config.get("exclude", ["labels", "skills"])
     excluded_components, excluded_files = parse_exclude(exclude_entries)
 
-    # Auto-exclude awesome-triage skill for non-awesome repositories.
-    if not is_awesome_repo:
-        excluded_files.setdefault("skills", set()).add("awesome-triage")
-
-    # Apply exclusions when no explicit components given.
+    # Apply user-configured exclusions when no explicit components given.
     if not components:
         actually_excluded = excluded_components & selected
         selected -= excluded_components
@@ -831,34 +844,32 @@ def run_init(
             ]
         )
 
-        # Detect excluded components whose files still exist on disk.
-        for comp in sorted(actually_excluded):
+        # Expand component-level exclusions into file-level entries so
+        # detection below is a single unified pass.
+        for comp in actually_excluded:
             if comp in COMPONENT_FILES:
-                for _, rel_path in COMPONENT_FILES[comp]:
-                    target = output_dir / rel_path
-                    if target.exists():
-                        result.excluded_existing.append(rel_path)
+                ids = {_file_id(comp, rp) for _, rp in COMPONENT_FILES[comp]}
+                excluded_files.setdefault(comp, set()).update(ids)
             elif comp == "changelog":
-                changelog = output_dir / "changelog.md"
-                if changelog.exists():
-                    result.excluded_existing.append("changelog.md")
+                excluded_files.setdefault("changelog", set()).add("changelog.md")
 
-    # Detect file-level excluded items that still exist on disk.
+    # Auto-exclude files that don't belong in this repository. Added after
+    # reporting so they don't appear in "Excluded by config" — they only
+    # surface in excluded_existing when the file is actually on disk.
+    if not is_awesome_repo:
+        excluded_files.setdefault("skills", set()).add("awesome-triage")
+    from .github.workflow_sync import OPT_IN_WORKFLOWS
+
+    for wf_name, config_key in OPT_IN_WORKFLOWS.items():
+        if not config.get(config_key, False):
+            excluded_files.setdefault("workflows", set()).add(wf_name)
+
+    # Detect excluded files that still exist on disk.
     for comp, file_ids in sorted(excluded_files.items()):
-        if comp in excluded_components:
-            continue
-        if comp == "workflows":
-            for file_id in sorted(file_ids):
-                target = output_dir / ".github" / "workflows" / file_id
-                if target.exists():
-                    rel = target.relative_to(output_dir).as_posix()
-                    result.excluded_existing.append(rel)
-        elif comp in COMPONENT_FILES:
-            for _, rel_path in COMPONENT_FILES[comp]:
-                if _file_id(comp, rel_path) in file_ids:
-                    target = output_dir / rel_path
-                    if target.exists():
-                        result.excluded_existing.append(rel_path)
+        for fid in sorted(file_ids):
+            rel = _excluded_rel_path(comp, fid)
+            if rel and (output_dir / rel).exists():
+                result.excluded_existing.append(rel)
 
     workflow_file_exclude = frozenset(excluded_files.get("workflows", set()))
 
