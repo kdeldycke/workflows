@@ -2080,6 +2080,7 @@ _SKILL_PHASES: dict[str, str] = {
     "repomatic-topics": "Development",
     "repomatic-changelog": "Release",
     "repomatic-release": "Release",
+    "sphinx-docs-sync": "Maintenance",
 }
 """Maps skill names to lifecycle phases for display grouping."""
 

@@ -120,6 +120,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "skill-repomatic-sync.md": "./.claude/skills/repomatic-sync/SKILL.md",
     "skill-repomatic-test.md": "./.claude/skills/repomatic-test/SKILL.md",
     "skill-repomatic-topics.md": "./.claude/skills/repomatic-topics/SKILL.md",
+    "skill-sphinx-docs-sync.md": "./.claude/skills/sphinx-docs-sync/SKILL.md",
     # Workflow templates.
     "autofix.yaml": "./.github/workflows/autofix.yaml",
     "autolock.yaml": "./.github/workflows/autolock.yaml",
@@ -643,6 +644,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("skill-repomatic-sync.md", ".claude/skills/repomatic-sync/SKILL.md"),
         ("skill-repomatic-test.md", ".claude/skills/repomatic-test/SKILL.md"),
         ("skill-repomatic-topics.md", ".claude/skills/repomatic-topics/SKILL.md"),
+        ("skill-sphinx-docs-sync.md", ".claude/skills/sphinx-docs-sync/SKILL.md"),
     ),
 }
 """Bundled config files per component, with their output paths."""

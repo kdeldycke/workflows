@@ -612,7 +612,7 @@ def test_init_only_skills(tmp_path: Path):
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 9
+    assert len(created_set) == 10
 
     # Verify all non-awesome skill files are created.
     for name in (
@@ -625,6 +625,7 @@ def test_init_only_skills(tmp_path: Path):
         "repomatic-sync",
         "repomatic-test",
         "repomatic-topics",
+        "sphinx-docs-sync",
     ):
         rel = f".claude/skills/{name}/SKILL.md"
         assert rel in created_set

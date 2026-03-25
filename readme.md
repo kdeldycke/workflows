@@ -933,6 +933,7 @@ $ uvx -- repomatic list-skills
 | Development | `/repomatic-metadata`  | Extract and explain project metadata                     |
 | Quality     | `/repomatic-lint`      | Lint workflows and repository metadata                   |
 | Quality     | `/repomatic-test`      | Run and write YAML test plans for compiled binaries      |
+| Maintenance | `/sphinx-docs-sync`    | Compare and sync Sphinx docs across sibling projects     |
 | Release     | `/repomatic-changelog` | Draft, validate, and fix changelog entries               |
 | Release     | `/repomatic-release`   | Pre-checks, release preparation, and post-release steps  |
 

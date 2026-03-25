@@ -14,6 +14,7 @@
 - Add Dependabot security updates check to `lint-repo`. Previously only checked in the Renovate workflow, now also enforced by the lint pipeline.
 - Relax abandoned dependency threshold from 1 year to 2 years in Renovate config.
 - Fix thin-caller generation rendering `workflow_dispatch` input definitions as Python dict literals instead of block-style YAML.
+- Add `/sphinx-docs-sync` skill for cross-project Sphinx documentation comparison and synchronization.
 - Streamline Dependabot guidance in setup guide issue. Clarify that Renovate handles security PRs and that `renovate.yaml` auto-removes `dependabot.yml`. Link Actions tab directly to the `autofix.yaml` workflow.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
