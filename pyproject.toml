@@ -297,5 +297,5 @@ nuitka.extra-args = [
   "--include-data-dir=repomatic/data/awesome_template=repomatic/data/awesome_template",
   "--include-data-files=repomatic/templates/*.md=repomatic/templates/",
 ]
-exclude = [ "workflows" ]
+exclude = [ "labeller-content-based", "labeller-file-based", "labels", "workflows" ]
 pypi-package-history = [ "gha-utils", "repokit" ]
