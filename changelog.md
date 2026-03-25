@@ -22,6 +22,7 @@
 - Add package version diff table to `sync-uv-lock` PRs. Lists updated, added, and removed packages with their old and new versions.
 - Document file naming conventions in `claude.md`: prefer `.yaml` over `.yml` and lowercase filenames everywhere, with a table of GitHub exceptions that require `.yml` or uppercase.
 - Fix awesome-template URL rewriting to also process `.yml` files in `.github/`.
+- Auto-exclude `changelog.yaml`, `debug.yaml`, and `release.yaml` workflows for `awesome-*` repositories. These package-oriented workflows are irrelevant to curated lists.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 

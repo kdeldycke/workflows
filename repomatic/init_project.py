@@ -887,7 +887,10 @@ def run_init(
     # Auto-exclude files that don't belong in this repository. Added after
     # reporting so they don't appear in "Excluded by config" — they only
     # surface in excluded_existing when the file is actually on disk.
-    if not is_awesome_repo:
+    if is_awesome_repo:
+        for wf in ("changelog.yaml", "debug.yaml", "release.yaml"):
+            excluded_files.setdefault("workflows", set()).add(wf)
+    else:
         excluded_files.setdefault("skills", set()).add("awesome-triage")
     from .github.workflow_sync import OPT_IN_WORKFLOWS
 
