@@ -32,6 +32,10 @@ Available components (``repomatic init <component>``):
 - ``bumpversion`` - Merges ``[tool.bumpversion]`` into pyproject.toml
 - ``skills`` - Claude Code skill definitions (.claude/skills/)
 - ``awesome-template`` - Boilerplate for ``awesome-*`` repositories
+
+Selectors use the same ``component[/file]`` syntax as the ``exclude``
+config option in ``[tool.repomatic]``.  Qualified entries like
+``skills/repomatic-topics`` select a single file within a component.
 """
 
 from __future__ import annotations
@@ -684,7 +688,7 @@ def _excluded_rel_path(component: str, file_id: str) -> str | None:
     return None
 
 
-def _valid_file_ids(component: str) -> frozenset[str]:
+def valid_file_ids(component: str) -> frozenset[str]:
     """Return valid file identifiers for a component.
 
     For ``workflows``, returns all known workflow filenames. For components in
@@ -702,58 +706,65 @@ def _valid_file_ids(component: str) -> frozenset[str]:
     return frozenset()
 
 
-def parse_exclude(
-    entries: list[str],
+def parse_component_entries(
+    entries: Sequence[str],
+    *,
+    context: str = "entry",
 ) -> tuple[set[str], dict[str, set[str]]]:
-    """Parse ``exclude`` config entries into component and file exclusions.
+    """Parse component entries into full-component and file-level sets.
 
     Bare names (no ``/``) must be component names from ``ALL_COMPONENTS``.
     Qualified ``component/identifier`` entries target individual files.
     Raises ``ValueError`` on unknown entries.
 
-    :return: ``(excluded_components, excluded_files)`` where
-        ``excluded_files`` maps component names to sets of file identifiers.
+    Used by both the ``exclude`` config path and the CLI positional
+    selection, with *context* controlling error message wording.
+
+    :param context: Label for error messages (e.g., ``"exclude"``,
+        ``"selection"``).
+    :return: ``(full_components, file_selections)`` where
+        ``file_selections`` maps component names to sets of file identifiers.
     """
-    excluded_components: set[str] = set()
-    excluded_files: dict[str, set[str]] = {}
+    full_components: set[str] = set()
+    file_selections: dict[str, set[str]] = {}
 
     for entry in entries:
         if "/" in entry:
             component, file_id = entry.split("/", 1)
             if component not in ALL_COMPONENTS:
                 msg = (
-                    f"Unknown component {component!r} in exclude entry"
+                    f"Unknown component {component!r} in {context}"
                     f" {entry!r}. Valid components:"
                     f" {', '.join(sorted(ALL_COMPONENTS))}"
                 )
                 raise ValueError(msg)
-            valid = _valid_file_ids(component)
+            valid = valid_file_ids(component)
             if not valid:
                 msg = (
                     f"Component {component!r} does not support file-level"
-                    f" exclusion in {entry!r}. Use the bare component name"
-                    f" {component!r} instead."
+                    f" selection in {context} {entry!r}. Use the bare"
+                    f" component name {component!r} instead."
                 )
                 raise ValueError(msg)
             if file_id not in valid:
                 msg = (
-                    f"Unknown file {file_id!r} in exclude entry {entry!r}."
+                    f"Unknown file {file_id!r} in {context} {entry!r}."
                     f" Valid identifiers for {component!r}:"
                     f" {', '.join(sorted(valid))}"
                 )
                 raise ValueError(msg)
-            excluded_files.setdefault(component, set()).add(file_id)
+            file_selections.setdefault(component, set()).add(file_id)
         elif entry in ALL_COMPONENTS:
-            excluded_components.add(entry)
+            full_components.add(entry)
         else:
             msg = (
-                f"Unknown exclude entry {entry!r}. Use a component name"
+                f"Unknown {context} {entry!r}. Use a component name"
                 f" ({', '.join(sorted(ALL_COMPONENTS))}) or a qualified"
                 " component/file entry (e.g., 'workflows/debug.yaml')."
             )
             raise ValueError(msg)
 
-    return excluded_components, excluded_files
+    return full_components, file_selections
 
 
 @dataclass
@@ -810,7 +821,23 @@ def run_init(
     if version is None:
         version = default_version_pin()
 
-    selected = set(components) if components else set(DEFAULT_COMPONENTS)
+    # Parse CLI selection.  Entries may be bare component names (e.g.,
+    # "skills") or qualified component/file selectors (e.g.,
+    # "skills/repomatic-topics").
+    if components:
+        selected_full, selected_files = parse_component_entries(
+            list(components), context="selection"
+        )
+        # Bare component name overrides file-level selection for the same
+        # component — "skills" means all skills even if "skills/x" also
+        # appears.
+        for comp in selected_full:
+            selected_files.pop(comp, None)
+        selected = selected_full | set(selected_files.keys())
+    else:
+        selected_full: set[str] = set()
+        selected_files: dict[str, set[str]] = {}
+        selected = set(DEFAULT_COMPONENTS)
     result = InitResult()
 
     # Auto-include awesome-template for awesome-* repositories.
@@ -830,7 +857,9 @@ def run_init(
 
     # Parse exclude config. Raises ValueError on unknown entries.
     exclude_entries: list[str] = config.get("exclude", ["labels", "skills"])
-    excluded_components, excluded_files = parse_exclude(exclude_entries)
+    excluded_components, excluded_files = parse_component_entries(
+        exclude_entries, context="exclude"
+    )
 
     # Apply user-configured exclusions when no explicit components given.
     if not components:
@@ -877,12 +906,18 @@ def run_init(
 
     # Workflows.
     if "workflows" in selected:
+        wf_include = (
+            frozenset(selected_files["workflows"])
+            if "workflows" in selected_files
+            else None
+        )
         _init_workflows(
             output_dir,
             repo,
             version,
             result,
             exclude=workflow_file_exclude,
+            include=wf_include,
             source_paths=source_paths,
         )
 
@@ -890,8 +925,17 @@ def run_init(
     for component_name in ("labels", "renovate", "skills"):
         if component_name in selected:
             file_exclude = frozenset(excluded_files.get(component_name, set()))
+            file_include = (
+                frozenset(selected_files[component_name])
+                if component_name in selected_files
+                else None
+            )
             _init_config_files(
-                output_dir, component_name, result, exclude_ids=file_exclude
+                output_dir,
+                component_name,
+                result,
+                exclude_ids=file_exclude,
+                include_ids=file_include,
             )
 
     # Fetch extra label files from [tool.repomatic] config.
@@ -938,9 +982,13 @@ def _init_workflows(
     result: InitResult,
     *,
     exclude: frozenset[str] = frozenset(),
+    include: frozenset[str] | None = None,
     source_paths: list[str] | None = None,
 ) -> None:
-    """Generate thin-caller workflows and sync non-reusable workflow headers."""
+    """Generate thin-caller workflows and sync non-reusable workflow headers.
+
+    :param include: When not ``None``, only generate files in this set.
+    """
     # Lazy import to avoid circular dependency with workflow_sync.
     from .github.workflow_sync import (
         NON_REUSABLE_WORKFLOWS,
@@ -951,6 +999,8 @@ def _init_workflows(
     )
 
     workflows = REUSABLE_WORKFLOWS
+    if include is not None:
+        workflows = tuple(w for w in workflows if w in include)
     if exclude:
         workflows = tuple(w for w in workflows if w not in exclude)
 
@@ -981,6 +1031,8 @@ def _init_workflows(
 
     # Sync headers for non-reusable workflows that already exist on disk.
     for filename in sorted(NON_REUSABLE_WORKFLOWS):
+        if include is not None and filename not in include:
+            continue
         if exclude and filename in exclude:
             continue
         target = workflows_dir / filename
@@ -1010,6 +1062,7 @@ def _init_config_files(
     result: InitResult,
     *,
     exclude_ids: frozenset[str] = frozenset(),
+    include_ids: frozenset[str] | None = None,
 ) -> None:
     """Export bundled config files for a component.
 
@@ -1018,9 +1071,13 @@ def _init_config_files(
     not overwritten.
 
     :param exclude_ids: File identifiers to skip within this component.
+    :param include_ids: When not ``None``, only export files in this set.
     """
     for source_name, rel_path in COMPONENT_FILES[component_name]:
-        if exclude_ids and _file_id(component_name, rel_path) in exclude_ids:
+        fid = _file_id(component_name, rel_path)
+        if include_ids is not None and fid not in include_ids:
+            continue
+        if exclude_ids and fid in exclude_ids:
             continue
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()

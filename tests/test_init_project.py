@@ -39,13 +39,13 @@ from repomatic.init_project import (
     _file_id,
     _to_pyproject_format,
     _update_bumpversion_config,
-    _valid_file_ids,
     default_version_pin,
     export_content,
     get_data_content,
     init_config,
-    parse_exclude,
+    parse_component_entries,
     run_init,
+    valid_file_ids,
 )
 from repomatic.tool_runner import TOOL_REGISTRY
 
@@ -1501,7 +1501,7 @@ def test_init_exclude_unknown_component_raises(
     )
     monkeypatch.chdir(tmp_path)
 
-    with pytest.raises(ValueError, match="Unknown exclude entry"):
+    with pytest.raises(ValueError, match="Unknown exclude"):
         run_init(output_dir=tmp_path)
 
 
@@ -1606,31 +1606,31 @@ def test_no_data_file_claimed_by_multiple_components() -> None:
     assert not duplicates, f"Duplicate file mappings: {duplicates}"
 
 
-def test_valid_file_ids_cover_all_multi_file_components() -> None:
+def testvalid_file_ids_cover_all_multi_file_components() -> None:
     """Components with multiple files must report valid file identifiers."""
     for component in ("workflows", "labels", "skills"):
-        ids = _valid_file_ids(component)
-        assert ids, f"_valid_file_ids({component!r}) returned empty set"
+        ids = valid_file_ids(component)
+        assert ids, f"valid_file_ids({component!r}) returned empty set"
 
 
 def test_workflow_file_ids_match_all_workflow_files() -> None:
-    """_valid_file_ids('workflows') must match ALL_WORKFLOW_FILES."""
-    assert _valid_file_ids("workflows") == frozenset(ALL_WORKFLOW_FILES)
+    """valid_file_ids('workflows') must match ALL_WORKFLOW_FILES."""
+    assert valid_file_ids("workflows") == frozenset(ALL_WORKFLOW_FILES)
 
 
 def test_component_file_ids_match_component_files() -> None:
-    """_valid_file_ids must return identifiers matching COMPONENT_FILES entries."""
+    """valid_file_ids must return identifiers matching COMPONENT_FILES entries."""
     for component in COMPONENT_FILES:
         expected = frozenset(
             _file_id(component, rel) for _, rel in COMPONENT_FILES[component]
         )
-        assert _valid_file_ids(component) == expected
+        assert valid_file_ids(component) == expected
 
 
 def test_tool_components_have_no_file_ids() -> None:
     """Tool components (ruff, pytest, etc.) do not support file-level exclusion."""
     for component in INIT_CONFIGS:
-        assert _valid_file_ids(component) == frozenset()
+        assert valid_file_ids(component) == frozenset()
 
 
 def test_tools_with_bundled_defaults_not_init_components() -> None:
@@ -1797,9 +1797,9 @@ def test_init_skips_identical_config(tmp_path: Path):
         "labels/labeller-content-based.yaml",
     ],
 )
-def test_parse_exclude_accepts_valid_qualified_entries(entry: str) -> None:
-    """Qualified component/file entries are accepted by parse_exclude."""
-    components, files = parse_exclude([entry])
+def test_parse_component_entries_accepts_valid_qualified_entries(entry: str) -> None:
+    """Qualified component/file entries are accepted by parse_component_entries."""
+    components, files = parse_component_entries([entry])
     assert not components
     component = entry.split("/")[0]
     file_id = entry.split("/")[1]
@@ -1807,29 +1807,29 @@ def test_parse_exclude_accepts_valid_qualified_entries(entry: str) -> None:
 
 
 @pytest.mark.parametrize("component", sorted(ALL_COMPONENTS.keys()))
-def test_parse_exclude_accepts_all_bare_components(component: str) -> None:
+def test_parse_component_entries_accepts_all_bare_components(component: str) -> None:
     """Every component name is accepted as a bare exclude entry."""
-    components, files = parse_exclude([component])
+    components, files = parse_component_entries([component])
     assert component in components
     assert not files
 
 
-def test_parse_exclude_bare_filename_without_component_fails() -> None:
+def test_parse_component_entries_bare_filename_without_component_fails() -> None:
     """Bare filenames like 'debug.yaml' must fail — qualified form required."""
-    with pytest.raises(ValueError, match="Unknown exclude entry"):
-        parse_exclude(["debug.yaml"])
+    with pytest.raises(ValueError, match="Unknown entry"):
+        parse_component_entries(["debug.yaml"])
 
 
-def test_parse_exclude_bare_skill_name_without_component_fails() -> None:
+def test_parse_component_entries_bare_skill_name_without_component_fails() -> None:
     """Bare skill identifiers like 'repomatic-audit' must fail."""
-    with pytest.raises(ValueError, match="Unknown exclude entry"):
-        parse_exclude(["repomatic-audit"])
+    with pytest.raises(ValueError, match="Unknown entry"):
+        parse_component_entries(["repomatic-audit"])
 
 
 @pytest.mark.parametrize(
     ("entry", "match"),
     [
-        ("nonexistent", "Unknown exclude entry"),
+        ("nonexistent", "Unknown entry"),
         ("workflows/nonexistent.yaml", "Unknown file"),
         ("labels/nonexistent.toml", "Unknown file"),
         ("skills/nonexistent-skill", "Unknown file"),
@@ -1837,7 +1837,80 @@ def test_parse_exclude_bare_skill_name_without_component_fails() -> None:
         ("pytest/something", "does not support file-level"),
     ],
 )
-def test_parse_exclude_rejects_invalid_entries(entry: str, match: str) -> None:
-    """Invalid exclude entries produce hard ValueError failures."""
+def test_parse_component_entries_rejects_invalid_entries(entry: str, match: str) -> None:
+    """Invalid entries produce hard ValueError failures."""
     with pytest.raises(ValueError, match=match):
-        parse_exclude([entry])
+        parse_component_entries([entry])
+
+
+# --- Qualified CLI selection tests ---
+
+
+def test_init_single_skill(tmp_path: Path):
+    """Qualified entry creates only the specified skill."""
+    result = run_init(output_dir=tmp_path, components=("skills/repomatic-topics",))
+    assert result.created == [".claude/skills/repomatic-topics/SKILL.md"]
+
+
+def test_init_multiple_qualified_same_component(tmp_path: Path):
+    """Multiple qualified entries for same component creates all specified."""
+    result = run_init(
+        output_dir=tmp_path,
+        components=("skills/repomatic-topics", "skills/repomatic-audit"),
+    )
+    created_set = set(result.created)
+    assert created_set == {
+        ".claude/skills/repomatic-topics/SKILL.md",
+        ".claude/skills/repomatic-audit/SKILL.md",
+    }
+
+
+def test_init_bare_overrides_qualified(tmp_path: Path):
+    """Bare component name includes all files, ignoring qualified filter."""
+    result = run_init(
+        output_dir=tmp_path,
+        components=("skills", "skills/repomatic-topics"),
+    )
+    # All skills created (minus auto-excluded awesome-triage for non-awesome).
+    total_skills = len(COMPONENT_FILES["skills"])
+    assert len(result.created) == total_skills - 1
+
+
+def test_init_mixed_bare_and_qualified(tmp_path: Path):
+    """Bare + qualified for different components work independently."""
+    result = run_init(
+        output_dir=tmp_path,
+        components=("labels", "skills/repomatic-topics"),
+    )
+    created_set = set(result.created)
+    assert "labels.toml" in created_set
+    assert ".github/labeller-file-based.yaml" in created_set
+    assert ".github/labeller-content-based.yaml" in created_set
+    assert ".claude/skills/repomatic-topics/SKILL.md" in created_set
+    assert len(created_set) == 4
+
+
+def test_init_qualified_workflow(tmp_path: Path):
+    """Single workflow file selection."""
+    result = run_init(
+        output_dir=tmp_path,
+        components=("workflows/autofix.yaml",),
+    )
+    assert len(result.created) == 1
+    assert result.created[0] == ".github/workflows/autofix.yaml"
+
+
+def test_init_qualified_auto_exclusion_still_applies(tmp_path: Path):
+    """awesome-triage is auto-excluded even when explicitly selected on non-awesome repo."""
+    result = run_init(
+        output_dir=tmp_path,
+        components=("skills/awesome-triage",),
+        repo_slug="user/some-project",
+    )
+    assert not result.created
+
+
+def test_init_qualified_selection_context_in_error():
+    """Qualified selection uses 'selection' context in error messages."""
+    with pytest.raises(ValueError, match="Unknown selection"):
+        run_init(output_dir=Path("/tmp"), components=("nonexistent",))

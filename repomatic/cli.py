@@ -38,6 +38,7 @@ from click_extra import (
     ExtraVersionOption,
     FloatRange,
     IntRange,
+    ParamType,
     Section,
     UsageError,
     argument,
@@ -103,6 +104,7 @@ from .init_project import (
     COMPONENT_FILES,
     export_content,
     run_init,
+    valid_file_ids,
 )
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
@@ -241,6 +243,83 @@ _section_setup = Section("Project setup")
 _section_sync = Section("Sync")
 
 
+class ComponentSelector(ParamType):
+    """Accepts bare component names or qualified ``component/file`` selectors.
+
+    Bare names (e.g., ``skills``) select an entire component.  Qualified
+    entries (e.g., ``skills/repomatic-topics``) select a single file within
+    a component.  The same syntax is used by the ``exclude`` config option
+    in ``[tool.repomatic]``.
+    """
+
+    name = "selector"
+
+    def get_metavar(self, param):  # type: ignore[override]
+        return "[COMPONENT[/FILE]]"
+
+    def convert(self, value, param, ctx):  # type: ignore[override]
+        # --- bare component name ---
+        if "/" not in value:
+            for key in ALL_COMPONENTS:
+                if key.lower() == value.lower():
+                    return key
+            choices = ", ".join(sorted(ALL_COMPONENTS))
+            self.fail(
+                f"Unknown component {value!r}. Choose from: {choices}",
+                param,
+                ctx,
+            )
+
+        # --- qualified component/file entry ---
+        component_part, file_id = value.split("/", 1)
+        component = None
+        for key in ALL_COMPONENTS:
+            if key.lower() == component_part.lower():
+                component = key
+                break
+        if component is None:
+            choices = ", ".join(sorted(ALL_COMPONENTS))
+            self.fail(
+                f"Unknown component {component_part!r} in {value!r}."
+                f" Choose from: {choices}",
+                param,
+                ctx,
+            )
+        valid = valid_file_ids(component)
+        if not valid:
+            self.fail(
+                f"Component {component!r} does not support"
+                " file-level selection.",
+                param,
+                ctx,
+            )
+        if file_id not in valid:
+            self.fail(
+                f"Unknown file {file_id!r} for {component!r}."
+                f" Choose from: {', '.join(sorted(valid))}",
+                param,
+                ctx,
+            )
+        return f"{component}/{file_id}"
+
+    def shell_complete(self, ctx, param, incomplete):  # type: ignore[override]
+        from click.shell_completion import CompletionItem
+
+        completions: list[CompletionItem] = []
+        for name in sorted(ALL_COMPONENTS):
+            if name.startswith(incomplete):
+                completions.append(CompletionItem(name))
+        if "/" in incomplete:
+            comp_part = incomplete.split("/", 1)[0]
+            for key in ALL_COMPONENTS:
+                if key.lower() == comp_part.lower():
+                    for fid in sorted(valid_file_ids(key)):
+                        qualified = f"{key}/{fid}"
+                        if qualified.startswith(incomplete):
+                            completions.append(CompletionItem(qualified))
+        return completions
+
+
 @repomatic.command(
     name="init",
     short_help="Bootstrap a repository to use reusable workflows",
@@ -249,7 +328,7 @@ _section_sync = Section("Sync")
 @argument(
     "components",
     nargs=-1,
-    type=Choice(list(ALL_COMPONENTS.keys()), case_sensitive=False),
+    type=ComponentSelector(),
 )
 @option(
     "--version",
@@ -295,17 +374,27 @@ def init_project(
     configuration files (Renovate, labels, labeller rules), and creates a
     minimal changelog. Specify COMPONENTS to initialize only selected parts.
 
+    Selectors use the same syntax as the ``exclude`` config in
+    ``[tool.repomatic]``: bare names select an entire component, qualified
+    ``component/file`` entries select a single file.
+
     \b
     Components:
-        workflows    Thin-caller workflow files
-        labels       Label config (labels.toml + labeller rules)
-        renovate     Renovate config (renovate.json5)
-        changelog    Minimal changelog.md
-        skills       Claude Code skill definitions (.claude/skills/)
-        ruff         Merge [tool.ruff] into pyproject.toml
-        pytest       Merge [tool.pytest] into pyproject.toml
-        mypy         Merge [tool.mypy] into pyproject.toml
-        bumpversion  Merge [tool.bumpversion] into pyproject.toml
+        workflows                 Thin-caller workflow files
+        labels                    Label config (labels.toml + labeller rules)
+        renovate                  Renovate config (renovate.json5)
+        changelog                 Minimal changelog.md
+        skills                    Claude Code skill definitions (.claude/skills/)
+        ruff                      Merge [tool.ruff] into pyproject.toml
+        pytest                    Merge [tool.pytest] into pyproject.toml
+        mypy                      Merge [tool.mypy] into pyproject.toml
+        bumpversion               Merge [tool.bumpversion] into pyproject.toml
+
+    \b
+    File-level selectors (workflows, labels, skills, renovate):
+        workflows/autofix.yaml    A single workflow
+        skills/repomatic-topics   A single skill
+        labels/labels.toml        A single label config file
 
     \b
     Examples:
@@ -315,6 +404,14 @@ def init_project(
     \b
         # Pin to a specific version
         repomatic init --version v5.9.1
+
+    \b
+        # Install a single skill
+        repomatic init skills/repomatic-topics
+
+    \b
+        # One workflow + all labels
+        repomatic init workflows/autofix.yaml labels
 
     \b
         # Only merge ruff config into pyproject.toml

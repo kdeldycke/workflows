@@ -204,7 +204,7 @@ workflow.source-paths = ["extra_platforms"]
 | `dependency-graph.no-groups`  | list[str] | `[]`                               | Dependency groups to exclude from the graph.                                                 |
 | `dependency-graph.output`     | str       | `"./docs/assets/dependencies.mmd"` | Path where the dependency graph Mermaid diagram should be written.                           |
 | `dev-release.sync`            | bool      | `true`                             | Whether dev pre-release sync is enabled for this project.                                    |
-| `exclude`                     | list[str] | `['labels', 'skills', 'zizmor']`   | Components and files to exclude from repomatic operations. Bare names exclude a component; `component/identifier` entries exclude a specific file. |
+| `exclude`                     | list[str] | `['labels', 'skills', 'zizmor']`   | Components and files to exclude from repomatic operations. Bare names exclude a component; `component/identifier` entries exclude a specific file. The same syntax is accepted by `repomatic init` positional arguments. |
 | `gitignore.extra-categories`  | list[str] | `[]`                               | Additional gitignore template categories to fetch from gitignore.io.                         |
 | `gitignore.extra-content`     | str       | *(see example)*                    | Additional content to append at the end of the generated `.gitignore` file.                  |
 | `gitignore.location`          | str       | `"./.gitignore"`                   | File path of the `.gitignore` to update, relative to the root of the repository.             |
@@ -911,11 +911,13 @@ This repository includes [Claude Code skills](https://docs.anthropic.com/en/docs
 $ uvx -- repomatic init skills
 ```
 
-To keep skills in sync with the latest version:
+To install a single skill:
 
 ```shell-session
-$ uvx -- repomatic init skills
+$ uvx -- repomatic init skills/repomatic-topics
 ```
+
+Selectors use the same `component[/file]` syntax as the `exclude` config option in `[tool.repomatic]`.
 
 To list all available skills with descriptions:
 
