@@ -270,6 +270,12 @@ _section_sync = Section("Sync")
     help="Root directory of the target repository.",
 )
 @option(
+    "--delete-excluded",
+    is_flag=True,
+    default=False,
+    help="Delete files that are excluded by config but still on disk.",
+)
+@option(
     "--delete-redundant",
     is_flag=True,
     default=False,
@@ -280,6 +286,7 @@ def init_project(
     version_pin,
     repo,
     output_dir,
+    delete_excluded,
     delete_redundant,
 ):
     """Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
@@ -341,10 +348,27 @@ def init_project(
         for path in result.skipped:
             echo(f"  {path}")
     if result.excluded_existing:
-        echo(
-            f"Warning: {len(result.excluded_existing)} excluded file(s)"
-            " still on disk (consider removing):"
-        )
+        if delete_excluded:
+            for path in result.excluded_existing:
+                target = output_dir / path
+                target.unlink()
+                # Remove empty parent directories up to output_dir.
+                parent = target.parent
+                while parent != output_dir:
+                    try:
+                        parent.rmdir()
+                    except OSError:
+                        break
+                    parent = parent.parent
+            echo(
+                f"Deleted {len(result.excluded_existing)} excluded"
+                " file(s) still on disk:"
+            )
+        else:
+            echo(
+                f"Excluded: {len(result.excluded_existing)} file(s)"
+                " still on disk (use --delete-excluded to remove):"
+            )
         for path in result.excluded_existing:
             echo(f"  {path}")
     if result.redundant_configs:
@@ -352,13 +376,14 @@ def init_project(
             for path in result.redundant_configs:
                 (output_dir / path).unlink()
             echo(
-                f"Deleted {len(result.redundant_configs)} redundant config"
+                f"Deleted {len(result.redundant_configs)} redundant"
                 " file(s) identical to bundled defaults:"
             )
         else:
             echo(
-                f"Redundant: {len(result.redundant_configs)} config file(s)"
-                " identical to bundled defaults (safe to delete):"
+                f"Redundant: {len(result.redundant_configs)} file(s)"
+                " identical to bundled defaults"
+                " (use --delete-redundant to remove):"
             )
         for path in result.redundant_configs:
             echo(f"  {path}")

@@ -1256,6 +1256,174 @@ def test_init_mixed_exclude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert ".claude/skills/repomatic-init/SKILL.md" in created_set
 
 
+def test_init_detects_excluded_component_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify init reports excluded component files that still exist on disk."""
+    # First init without exclusions to create all files.
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    run_init(output_dir=tmp_path)
+
+    labels_toml = tmp_path / "labels.toml"
+    assert labels_toml.exists()
+
+    # Now exclude labels and re-run init.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["labels"]\n',
+        encoding="UTF-8",
+    )
+
+    result = run_init(output_dir=tmp_path)
+
+    # File is detected but not deleted (deletion requires --delete-excluded).
+    assert labels_toml.exists()
+    assert "labels.toml" in result.excluded_existing
+
+
+def test_init_detects_excluded_skill_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify init reports a file-level excluded skill that still exists on disk."""
+    # First create all skills.
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    run_init(output_dir=tmp_path, repo_slug="user/awesome-list")
+
+    skill_file = tmp_path / ".claude" / "skills" / "awesome-triage" / "SKILL.md"
+    assert skill_file.exists()
+
+    # Now exclude just that skill and re-run.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["skills/awesome-triage"]\n',
+        encoding="UTF-8",
+    )
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-list")
+
+    # File is detected but not deleted.
+    assert skill_file.exists()
+    assert ".claude/skills/awesome-triage/SKILL.md" in result.excluded_existing
+    # Other skills should still exist.
+    assert (tmp_path / ".claude" / "skills" / "repomatic-init" / "SKILL.md").exists()
+
+
+def test_init_detects_auto_excluded_awesome_triage(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify awesome-triage is detected as excluded for non-awesome repos."""
+    # Create skills including awesome-triage (as an awesome repo).
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    run_init(output_dir=tmp_path, repo_slug="user/awesome-list")
+
+    skill_file = tmp_path / ".claude" / "skills" / "awesome-triage" / "SKILL.md"
+    assert skill_file.exists()
+
+    # Re-run as a non-awesome repo.
+    result = run_init(output_dir=tmp_path, repo_slug="user/regular-project")
+
+    # File is detected but not deleted.
+    assert skill_file.exists()
+    assert ".claude/skills/awesome-triage/SKILL.md" in result.excluded_existing
+
+
+def test_init_cli_delete_excluded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify --delete-excluded deletes excluded files and cleans empty dirs."""
+    from click.testing import CliRunner
+
+    from repomatic.cli import repomatic
+
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    run_init(output_dir=tmp_path, repo_slug="user/awesome-list")
+
+    skill_file = tmp_path / ".claude" / "skills" / "awesome-triage" / "SKILL.md"
+    assert skill_file.exists()
+
+    # Exclude awesome-triage and re-run with --delete-excluded.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["skills/awesome-triage"]\n',
+        encoding="UTF-8",
+    )
+
+    runner = CliRunner()
+    cli_result = runner.invoke(
+        repomatic,
+        ["init", "--output-dir", str(tmp_path), "--delete-excluded"],
+    )
+
+    assert cli_result.exit_code == 0
+    assert not skill_file.exists()
+    # Empty parent directory should also be removed.
+    assert not skill_file.parent.exists()
+    assert "Deleted" in cli_result.output
+    assert "excluded" in cli_result.output
+
+
+def test_init_cli_no_delete_excluded_warns(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify excluded files are reported but not deleted without --delete-excluded."""
+    from click.testing import CliRunner
+
+    from repomatic.cli import repomatic
+
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = []\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    run_init(output_dir=tmp_path, repo_slug="user/awesome-list")
+
+    skill_file = tmp_path / ".claude" / "skills" / "awesome-triage" / "SKILL.md"
+    assert skill_file.exists()
+
+    # Exclude awesome-triage and re-run without --delete-excluded.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'exclude = ["skills/awesome-triage"]\n',
+        encoding="UTF-8",
+    )
+
+    runner = CliRunner()
+    cli_result = runner.invoke(
+        repomatic,
+        ["init", "--output-dir", str(tmp_path)],
+    )
+
+    assert cli_result.exit_code == 0
+    # File is still on disk.
+    assert skill_file.exists()
+    assert "--delete-excluded" in cli_result.output
+
+
 def test_init_explicit_components_bypass_exclude(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

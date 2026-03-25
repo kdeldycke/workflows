@@ -831,19 +831,34 @@ def run_init(
             ]
         )
 
-        # Warn about excluded components whose files still exist on disk.
+        # Detect excluded components whose files still exist on disk.
         for comp in sorted(actually_excluded):
             if comp in COMPONENT_FILES:
                 for _, rel_path in COMPONENT_FILES[comp]:
                     target = output_dir / rel_path
                     if target.exists():
                         result.excluded_existing.append(rel_path)
-                        logging.warning(f"Excluded but still on disk: {rel_path}")
             elif comp == "changelog":
                 changelog = output_dir / "changelog.md"
                 if changelog.exists():
                     result.excluded_existing.append("changelog.md")
-                    logging.warning("Excluded but still on disk: changelog.md")
+
+    # Detect file-level excluded items that still exist on disk.
+    for comp, file_ids in sorted(excluded_files.items()):
+        if comp in excluded_components:
+            continue
+        if comp == "workflows":
+            for file_id in sorted(file_ids):
+                target = output_dir / ".github" / "workflows" / file_id
+                if target.exists():
+                    rel = target.relative_to(output_dir).as_posix()
+                    result.excluded_existing.append(rel)
+        elif comp in COMPONENT_FILES:
+            for _, rel_path in COMPONENT_FILES[comp]:
+                if _file_id(comp, rel_path) in file_ids:
+                    target = output_dir / rel_path
+                    if target.exists():
+                        result.excluded_existing.append(rel_path)
 
     workflow_file_exclude = frozenset(excluded_files.get("workflows", set()))
 
