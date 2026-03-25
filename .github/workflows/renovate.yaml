@@ -17,6 +17,8 @@ name: 🆕 Renovate
       - "renovate.json5"
       - "repomatic/data/renovate.json5"
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}

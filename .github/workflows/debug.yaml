@@ -12,6 +12,8 @@ name: 🩺 Debug
     # Run monthly on the 1st at 12:00 UTC to spot silent regressions.
     - cron: "0 12 1 * *"
 
+permissions: {}
+
 concurrency:
   group: >-
     ${{ github.workflow }}-${{

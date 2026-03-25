@@ -28,6 +28,8 @@ name: 🚀 Build & release
       - uv.lock
       - .github/workflows/release.yaml
 
+permissions: {}
+
 concurrency:
   # Release commits get a unique SHA-based group so they can never be cancelled.
   # See repomatic/github/actions.py for rationale.

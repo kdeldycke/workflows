@@ -12,12 +12,16 @@ name: ✂️ Cancel runs
     types:
       - closed
 
+permissions: {}
+
 jobs:
 
   cancel-runs:
     name: ✂️ Cancel PR runs
     if: github.event.pull_request.number
     runs-on: ubuntu-slim
+    permissions:
+      actions: write
     steps:
       - name: Cancel in-progress runs for PR branch
         env:

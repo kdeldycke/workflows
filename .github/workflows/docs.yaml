@@ -7,6 +7,8 @@ name: 📚 Docs
     branches:
       - main
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !startsWith(github.event.head_commit.message, '[changelog] Release') }}
@@ -36,6 +38,8 @@ jobs:
       fromJSON(needs.metadata.outputs.metadata).is_python_project
       && fromJSON(needs.metadata.outputs.metadata).is_sphinx
     runs-on: ubuntu-slim
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: astral-sh/setup-uv@v7.4.0
@@ -59,6 +63,8 @@ jobs:
     name: 💔 Check broken links
     needs:
       - metadata
+    permissions:
+      issues: write
     # Skip all PRs as we won't have permissions to create issues.
     # Skip the prepare-release branch as it contains URLs pointing to tags that don't exist yet.
     # Skip any push containing a post-release bump commit as a precautionary measure.

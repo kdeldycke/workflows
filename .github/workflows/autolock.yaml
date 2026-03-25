@@ -8,11 +8,16 @@ name: 🔒 Autolock
     # Run weekly, every Monday at 00:43.
     - cron: "43 0 * * 1"
 
+permissions: {}
+
 jobs:
 
   lock:
     name: 🔒 Lock inactive threads
     runs-on: ubuntu-slim
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - uses: dessant/lock-threads@v6.0.0
         with:

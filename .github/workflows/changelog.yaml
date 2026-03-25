@@ -29,6 +29,8 @@ name: 🆙 Changelog & versions
     branches:
       - main
 
+permissions: {}
+
 concurrency:
   # Include event_name to prevent cross-event cancellation.
   # See repomatic/github/actions.py for rationale.

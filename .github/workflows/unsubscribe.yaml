@@ -25,6 +25,8 @@ name: "\U0001F515 Unsubscribe closed threads"
     # Run weekly, every Monday at 9:13 UTC.
     - cron: "13 9 * * 1"
 
+permissions: {}
+
 jobs:
 
   unsubscribe-threads:
