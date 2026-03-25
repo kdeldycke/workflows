@@ -412,8 +412,7 @@ def test_explicit_secrets_passed(tmp_path: Path) -> None:
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n"
         "    secrets:\n"
         "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n"
-        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n"
-        "      WORKFLOW_UPDATE_GITHUB_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT }}\n",
+        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n",
         encoding="UTF-8",
     )
     result = check_secrets_passed(wf, "release.yaml")

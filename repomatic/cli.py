@@ -1682,29 +1682,19 @@ def broken_links(
     envvar="HAS_REPOMATIC_PAT",
     help="Whether REPOMATIC_PAT is configured.",
 )
-@option(
-    "--has-legacy-pat",
-    is_flag=True,
-    default=False,
-    envvar="HAS_LEGACY_PAT",
-    help="Whether the deprecated WORKFLOW_UPDATE_GITHUB_PAT is configured.",
-)
 @_require_token(_token_mod, "validate_gh_token_env")
 @pass_context
-def setup_guide(ctx: Context, has_pat: bool, has_legacy_pat: bool) -> None:
-    """Manage the setup guide and PAT migration issues.
+def setup_guide(ctx: Context, has_pat: bool) -> None:
+    """Manage the setup guide issue lifecycle.
 
-    Handles three states:
+    Handles two states:
 
     - **No PAT**: opens a setup guide issue with full instructions.
-    - **Legacy PAT only** (``WORKFLOW_UPDATE_GITHUB_PAT``): opens a migration
-      issue prompting the user to rename the secret to ``REPOMATIC_PAT``.
-    - **New PAT** (``REPOMATIC_PAT``): closes both issues.
+    - **PAT configured** (``REPOMATIC_PAT``): closes the issue.
 
-    The flags can also be set via ``HAS_REPOMATIC_PAT`` and ``HAS_LEGACY_PAT``
-    environment variables (any non-empty value is truthy). Workflows set these
-    env vars at the workflow level so individual steps don't need to repeat the
-    ``secrets.*`` ternary.
+    The flag can also be set via the ``HAS_REPOMATIC_PAT`` environment variable
+    (any non-empty value is truthy). Workflows set this env var at the workflow
+    level so individual steps don't need to repeat the ``secrets.*`` ternary.
 
     This command requires the ``gh`` CLI to be installed and authenticated.
 
@@ -1714,11 +1704,7 @@ def setup_guide(ctx: Context, has_pat: bool, has_legacy_pat: bool) -> None:
         repomatic setup-guide
 
     \b
-        # Legacy secret only — create migration issue
-        repomatic setup-guide --has-legacy-pat
-
-    \b
-        # New secret configured — close all issues
+        # Secret configured — close the issue
         repomatic setup-guide --has-pat
     """
     config = load_repomatic_config()
@@ -1760,19 +1746,7 @@ def setup_guide(ctx: Context, has_pat: bool, has_legacy_pat: bool) -> None:
         except RuntimeError:
             logging.debug(f"Failed to detect owner type for {owner!r}.")
 
-    # --- Close orphaned issues from the deprecated title ---
-    # The setup guide title changed from WORKFLOW_UPDATE_GITHUB_PAT to
-    # REPOMATIC_PAT. Since manage_issue_lifecycle matches by exact title, old
-    # issues are invisible to the current code. Close them unconditionally.
-    manage_issue_lifecycle(
-        has_issues=False,
-        body_file=Path("/dev/null"),
-        labels=[],
-        title=("Set up `WORKFLOW_UPDATE_GITHUB_PAT` to enable workflow auto-updates"),
-        no_issues_comment=("Superseded by the `REPOMATIC_PAT` setup guide."),
-    )
-
-    # --- Setup guide issue (no PAT at all) ---
+    # --- Setup guide issue ---
     setup_body = render_template(
         "setup-guide",
         repo_url=repo_url,
@@ -1791,38 +1765,12 @@ def setup_guide(ctx: Context, has_pat: bool, has_legacy_pat: bool) -> None:
         tmp.write(setup_body)
         setup_body_file = Path(tmp.name)
 
-    needs_setup = not has_pat and not has_legacy_pat
     manage_issue_lifecycle(
-        has_issues=needs_setup,
+        has_issues=not has_pat,
         body_file=setup_body_file,
         labels=["🤖 ci"],
         title="Set up `REPOMATIC_PAT` to enable workflow auto-updates",
         no_issues_comment="PAT secret detected.",
-    )
-
-    # --- Migration issue (legacy PAT only) ---
-    migration_body = render_template(
-        "pat-migration",
-        repo_name=repo_name,
-        repo_owner=repo_owner,
-        repo_slug=repo_slug,
-    )
-    with tempfile.NamedTemporaryFile(
-        mode="w",
-        suffix=".md",
-        delete=False,
-        encoding="UTF-8",
-    ) as tmp:
-        tmp.write(migration_body)
-        migration_body_file = Path(tmp.name)
-
-    needs_migration = not has_pat and has_legacy_pat
-    manage_issue_lifecycle(
-        has_issues=needs_migration,
-        body_file=migration_body_file,
-        labels=["🤖 ci"],
-        title="Rename `WORKFLOW_UPDATE_GITHUB_PAT` to `REPOMATIC_PAT`",
-        no_issues_comment="`REPOMATIC_PAT` secret detected.",
     )
 
 

@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add `--delete-redundant` flag to `repomatic init` to automatically remove config files identical to bundled defaults instead of only reporting them.
+- Remove deprecated `WORKFLOW_UPDATE_GITHUB_PAT` secret and all backward-compatibility fallbacks. Downstream repos must use `REPOMATIC_PAT`.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 

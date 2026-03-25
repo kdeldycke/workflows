@@ -5,9 +5,6 @@ name: 🆙 Changelog & versions
     secrets:
       REPOMATIC_PAT:
         required: false
-      WORKFLOW_UPDATE_GITHUB_PAT:
-        description: "Deprecated: use REPOMATIC_PAT instead."
-        required: false
   workflow_dispatch:
   schedule:
     # Run daily at 6:00 UTC for bump-version job.
@@ -34,7 +31,6 @@ name: 🆙 Changelog & versions
 
 env:
   HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
-  HAS_LEGACY_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || '' }}
 
 concurrency:
   # Include event_name to prevent cross-event cancellation.
@@ -220,7 +216,7 @@ jobs:
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in
           # .github/workflows/*.yaml files.
-          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}
@@ -231,7 +227,7 @@ jobs:
           delete-branch: true
           draft: always-true
       - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT && !env.HAS_LEGACY_PAT
+        if: failure() && !env.HAS_REPOMATIC_PAT
         run: >
           echo "::error::REPOMATIC_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.

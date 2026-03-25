@@ -5,9 +5,6 @@ name: 🪄 Autofix
     secrets:
       REPOMATIC_PAT:
         required: false
-      WORKFLOW_UPDATE_GITHUB_PAT:
-        description: "Deprecated: use REPOMATIC_PAT instead."
-        required: false
   workflow_dispatch:
   push:
     branches:
@@ -15,7 +12,6 @@ name: 🪄 Autofix
 
 env:
   HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
-  HAS_LEGACY_PAT: ${{ secrets.WORKFLOW_UPDATE_GITHUB_PAT && 'true' || '' }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -228,7 +224,7 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
-          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}
@@ -237,7 +233,7 @@ jobs:
           branch: fix-typos
           delete-branch: true
       - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT && !env.HAS_LEGACY_PAT
+        if: failure() && !env.HAS_REPOMATIC_PAT
         run: >
           echo "::error::REPOMATIC_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
@@ -503,7 +499,7 @@ jobs:
       - uses: peter-evans/create-pull-request@v8.1.0
         with:
           # We need custom PAT with workflows permissions to update .github/workflows/*.yaml files.
-          token: ${{ secrets.REPOMATIC_PAT || secrets.WORKFLOW_UPDATE_GITHUB_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}
@@ -512,7 +508,7 @@ jobs:
           branch: sync-workflows
           delete-branch: true
       - name: PAT setup hint
-        if: failure() && !env.HAS_REPOMATIC_PAT && !env.HAS_LEGACY_PAT
+        if: failure() && !env.HAS_REPOMATIC_PAT
         run: >
           echo "::error::REPOMATIC_PAT is not configured.
           The default GITHUB_TOKEN cannot push changes to .github/workflows/ files.
