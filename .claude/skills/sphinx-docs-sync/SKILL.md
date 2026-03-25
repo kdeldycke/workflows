@@ -90,6 +90,7 @@ After presenting the report, ask the user which items to implement. When they co
 - The list-table format for extra dependencies is only worth using when a project has 3+ extras. For 1-2 extras, keep the simple format.
 - Check `[tool.repomatic] nuitka.enabled` before suggesting a binaries section.
 - Always verify file existence before recommending changes based on cross-project patterns.
+- Flag `pip install` commands that should be `uv tool install` or `uv pip install` per `claude.md` § Prefer `uv` over `pip` in documentation.
 
 ### Next steps
 

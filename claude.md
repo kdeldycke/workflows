@@ -483,6 +483,10 @@ Always prefer long-form options over short-form for readability when invoking co
 
 The `repomatic` CLI defines both short and long-form options for convenience, but workflow files and scripts should use long-form options for clarity.
 
+### Prefer `uv` over `pip` in documentation
+
+Documentation and install pages must use `uv` as the default package installer. When showing how to install the package, use `uv tool install` (for CLI tools) or `uv pip install` (for libraries/extras). Alternative installers (`pip`, `pipx`, etc.) may appear as secondary options in tab sets or dedicated sections, but `uv` must be the primary/default command shown.
+
 ### uv flags in CI workflows
 
 When invoking `uv` and `uvx` commands in GitHub Actions workflows:
