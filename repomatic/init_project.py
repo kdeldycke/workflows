@@ -200,15 +200,11 @@ def get_data_content(filename: str) -> str:
     raise FileNotFoundError(msg)
 
 
-def _get_renovate_config() -> str:
-    """Get Renovate config, with repo-specific settings stripped.
+def _strip_renovate_repo_settings(content: str) -> str:
+    """Strip upstream repo-specific settings from a Renovate config.
 
-    When running from the source repository, reads the root ``renovate.json5``
-    and removes repo-specific settings (``assignees`` and the self-referencing
-    uv ``customManagers`` entry that targets ``renovate.json5`` itself).
-
-    When installed as a package, falls back to the pre-processed bundled file
-    in ``repomatic/data/renovate.json5``.
+    Removes ``assignees`` (repo-specific) and the self-referencing uv
+    ``customManagers`` entry that targets ``renovate.json5`` itself.
 
     .. note::
         The self-referencing uv ``customManagers`` entry is excluded because it
@@ -219,17 +215,9 @@ def _get_renovate_config() -> str:
         other ``customManagers`` entries are included since they target workflow
         files, not ``renovate.json5`` itself.
 
-    :return: The clean Renovate configuration content.
+    :param content: Raw Renovate config content.
+    :return: The config with repo-specific settings removed.
     """
-    root_path = Path(__file__).parent.parent / "renovate.json5"
-
-    # When installed as a package, the root file won't exist.
-    # Fall back to the bundled pre-processed version.
-    if not root_path.exists():
-        return get_data_content("renovate.json5")
-
-    content = root_path.read_text(encoding="UTF-8")
-
     # Remove assignees line (repo-specific).
     content = re.sub(r"\s*assignees:\s*\[[^\]]*\],?\n", "\n", content)
 
@@ -242,6 +230,28 @@ def _get_renovate_config() -> str:
         "",
         content,
         flags=re.DOTALL,
+    )
+
+
+def _get_renovate_config() -> str:
+    """Get Renovate config, with repo-specific settings stripped.
+
+    When running from the source repository (via ``uv run``), reads the root
+    ``renovate.json5`` and strips repo-specific settings. When installed as a
+    package (via ``uvx``), falls back to the pre-processed bundled file in
+    ``repomatic/data/renovate.json5``.
+
+    :return: The clean Renovate configuration content.
+    """
+    root_path = Path(__file__).parent.parent / "renovate.json5"
+
+    # When installed as a package, the root file won't exist.
+    # Fall back to the bundled pre-processed version.
+    if not root_path.exists():
+        return get_data_content("renovate.json5")
+
+    return _strip_renovate_repo_settings(
+        root_path.read_text(encoding="UTF-8"),
     )
 
 
@@ -1065,16 +1075,23 @@ def _init_workflows(
 def _is_renovate_source_repo(output_dir: Path) -> bool:
     """Detect whether ``output_dir`` is the repomatic source repository root.
 
-    Returns ``True`` when ``output_dir`` contains the root ``renovate.json5``
-    (the live Renovate config with repo-specific settings like ``assignees``)
-    and is the same directory that contains the ``repomatic/`` package. This
-    prevents the upstream path from triggering when ``repomatic init`` targets
-    a different directory (e.g., ``tmp_path`` in tests or a downstream repo).
+    Returns ``True`` when ``output_dir`` contains both the root
+    ``renovate.json5`` (the live Renovate config with repo-specific settings
+    like ``assignees``) and the bundled data copy at
+    ``repomatic/data/renovate.json5``. Only the upstream source repo has both
+    files. This prevents the upstream path from triggering when
+    ``repomatic init`` targets a different directory (e.g., ``tmp_path`` in
+    tests or a downstream repo).
+
+    .. note::
+        Detection is based on ``output_dir`` contents, not on ``__file__``,
+        because ``uvx --from .`` installs the package into a temp venv where
+        ``__file__`` no longer points to the source checkout.
     """
-    source_root = Path(__file__).resolve().parent.parent
+    resolved = output_dir.resolve()
     return (
-        output_dir.resolve() == source_root
-        and (source_root / "renovate.json5").exists()
+        (resolved / "renovate.json5").exists()
+        and (resolved / "repomatic" / "data" / "renovate.json5").exists()
     )
 
 
@@ -1110,15 +1127,15 @@ def _init_config_files(
             continue
         target = output_dir / rel_path
         rel = target.relative_to(output_dir).as_posix()
-        content = export_content(source_name)
-        # Normalize trailing whitespace to a single newline, matching the
-        # convention used by sync commands (echo(content.rstrip(), ...)).
-        normalized = content.rstrip() + "\n"
 
         # In the repomatic source repo, the root renovate.json5 is
-        # authoritative. Regenerate the bundled data copy instead.
+        # authoritative. Read it from output_dir (not __file__-relative,
+        # which breaks under uvx), strip repo-specific settings, and
+        # regenerate the bundled data copy instead of overwriting the root.
         if component_name == "renovate" and _is_renovate_source_repo(output_dir):
-            bundled = Path(__file__).parent / "data" / source_name
+            root_content = (output_dir / source_name).read_text(encoding="UTF-8")
+            normalized = _strip_renovate_repo_settings(root_content).rstrip() + "\n"
+            bundled = output_dir / "repomatic" / "data" / source_name
             existing = bundled.read_text(encoding="UTF-8").rstrip() + "\n"
             bundled_rel = f"repomatic/data/{source_name}"
             if existing == normalized:
@@ -1129,6 +1146,11 @@ def _init_config_files(
                 result.updated.append(bundled_rel)
                 logging.info(f"Regenerated bundled config: {bundled_rel}")
             continue
+
+        content = export_content(source_name)
+        # Normalize trailing whitespace to a single newline, matching the
+        # convention used by sync commands (echo(content.rstrip(), ...)).
+        normalized = content.rstrip() + "\n"
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"

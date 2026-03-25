@@ -17,7 +17,6 @@
 
 from __future__ import annotations
 
-import re
 import sys
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -37,6 +36,7 @@ from repomatic.init_project import (
     FILE_COMPONENTS,
     INIT_CONFIGS,
     _file_id,
+    _strip_renovate_repo_settings,
     _to_pyproject_format,
     _update_bumpversion_config,
     default_version_pin,
@@ -193,28 +193,15 @@ def test_bundled_renovate_matches_processed_root() -> None:
     If this test fails, regenerate the bundled file by running:
         uv run repomatic init renovate --output-dir repomatic/data
     """
-    # Read the root file and process it (same logic as _get_renovate_config).
     root_path = Path(__file__).parent.parent / "renovate.json5"
     assert root_path.exists(), "Root renovate.json5 not found"
 
     content = root_path.read_text(encoding="UTF-8")
+    processed = _strip_renovate_repo_settings(content)
 
-    # Remove assignees line.
-    content = re.sub(r"\s*assignees:\s*\[[^\]]*\],?\n", "\n", content)
-
-    # Remove the self-referencing uv customManagers entry.
-    content = re.sub(
-        r'\n    \{\n      description: "Update uv version in postUpgradeTasks'
-        r' download URL\.",\n.*?\n    \},',
-        "",
-        content,
-        flags=re.DOTALL,
-    )
-
-    # Read the bundled file and compare.
     bundled_content = get_data_content("renovate.json5")
 
-    assert bundled_content.strip() == content.strip(), (
+    assert bundled_content.strip() == processed.strip(), (
         "Bundled renovate.json5 is out of sync with root file.\n"
         "Regenerate with: uv run repomatic init renovate"
         " --output-dir repomatic/data"
