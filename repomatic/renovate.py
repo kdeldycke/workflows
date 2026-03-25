@@ -49,8 +49,9 @@ from .github.pr_body import render_template
 from .tool_runner import uv_cmd
 
 if sys.version_info >= (3, 11):
-    import tomllib
     from enum import StrEnum
+
+    import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
     from backports.strenum import StrEnum  # type: ignore[import-not-found]

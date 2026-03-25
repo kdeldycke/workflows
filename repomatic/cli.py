@@ -288,8 +288,7 @@ class ComponentSelector(ParamType):
         valid = valid_file_ids(component)
         if not valid:
             self.fail(
-                f"Component {component!r} does not support"
-                " file-level selection.",
+                f"Component {component!r} does not support file-level selection.",
                 param,
                 ctx,
             )
@@ -305,10 +304,11 @@ class ComponentSelector(ParamType):
     def shell_complete(self, ctx, param, incomplete):  # type: ignore[override]
         from click.shell_completion import CompletionItem
 
-        completions: list[CompletionItem] = []
-        for name in sorted(ALL_COMPONENTS):
-            if name.startswith(incomplete):
-                completions.append(CompletionItem(name))
+        completions: list[CompletionItem] = [
+            CompletionItem(name)
+            for name in sorted(ALL_COMPONENTS)
+            if name.startswith(incomplete)
+        ]
         if "/" in incomplete:
             comp_part = incomplete.split("/", 1)[0]
             for key in ALL_COMPONENTS:
@@ -2266,7 +2266,6 @@ def list_skills() -> None:
             echo(f"  /{name:<24s} {description}")
 
     echo("")
-
 
 
 @repomatic.command(

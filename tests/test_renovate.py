@@ -456,7 +456,7 @@ def test_sync_uv_lock_keeps_real_changes(tmp_path):
         ),
         patch("repomatic.renovate.parse_lock_versions", return_value={}),
     ):
-        reverted, diff_table = sync_uv_lock(lock_path)
+        reverted, _diff_table = sync_uv_lock(lock_path)
         assert reverted is False
         # uv lock was called.
         mock_run.assert_called_once_with(
@@ -492,9 +492,7 @@ def test_sync_uv_lock_returns_diff_table(tmp_path):
             "repomatic.renovate.is_lock_diff_only_timestamp_noise",
             return_value=False,
         ),
-        patch(
-            "repomatic.renovate.parse_lock_versions", side_effect=[before, after]
-        ),
+        patch("repomatic.renovate.parse_lock_versions", side_effect=[before, after]),
     ):
         reverted, diff_table = sync_uv_lock(lock_path)
         assert reverted is False

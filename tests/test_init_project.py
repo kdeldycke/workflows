@@ -1160,16 +1160,12 @@ def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
     """Verify awesome-triage skill is auto-excluded for non-awesome repos."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'exclude = ["labels"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = ["labels"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
 
-    result = run_init(
-        output_dir=tmp_path, repo_slug="user/some-project"
-    )
+    result = run_init(output_dir=tmp_path, repo_slug="user/some-project")
 
     created_set = set(result.created)
     assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
@@ -1183,16 +1179,12 @@ def test_init_awesome_triage_included_for_awesome_repo(
     """Verify awesome-triage skill is included for awesome-* repos."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'exclude = ["labels"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = ["labels"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
 
-    result = run_init(
-        output_dir=tmp_path, repo_slug="user/awesome-python"
-    )
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-python")
 
     created_set = set(result.created)
     assert ".claude/skills/awesome-triage/SKILL.md" in created_set
@@ -1265,9 +1257,7 @@ def test_init_detects_excluded_component_files(
 
     # Now exclude labels and re-run init.
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'exclude = ["labels"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\nexclude = ["labels"]\n',
         encoding="UTF-8",
     )
 
@@ -1343,7 +1333,7 @@ def test_init_detects_disabled_opt_in_workflow(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'exclude = []\n'
+        "exclude = []\n"
         "notification.unsubscribe = true\n",
         encoding="UTF-8",
     )
@@ -1359,7 +1349,7 @@ def test_init_detects_disabled_opt_in_workflow(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'exclude = []\n'
+        "exclude = []\n"
         "notification.unsubscribe = false\n",
         encoding="UTF-8",
     )
@@ -1373,9 +1363,7 @@ def test_init_detects_disabled_opt_in_workflow(
     assert "workflows/unsubscribe.yaml" not in result.excluded
 
 
-def test_init_cli_delete_excluded(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
+def test_init_cli_delete_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify --delete-excluded deletes excluded files and cleans empty dirs."""
     from click.testing import CliRunner
 
@@ -1827,7 +1815,9 @@ def test_parse_component_entries_bare_skill_name_without_component_fails() -> No
         ("pytest/something", "does not support file-level"),
     ],
 )
-def test_parse_component_entries_rejects_invalid_entries(entry: str, match: str) -> None:
+def test_parse_component_entries_rejects_invalid_entries(
+    entry: str, match: str
+) -> None:
     """Invalid entries produce hard ValueError failures."""
     with pytest.raises(ValueError, match=match):
         parse_component_entries([entry])
