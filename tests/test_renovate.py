@@ -609,7 +609,7 @@ def test_format_upload_date():
     assert _format_upload_date("2026-03-13T18:30:00Z") == "2026-03-13"
     assert _format_upload_date("2026-03-18T16:39:02.780682017Z") == "2026-03-18"
     assert _format_upload_date("2026-01-06T11:45:21.246Z") == "2026-01-06"
-    # Graceful fallback for unparseable input.
+    # Graceful fallback for unparsable input.
     assert _format_upload_date("not-a-date") == "not-a-date"
     assert _format_upload_date("") == ""
 
