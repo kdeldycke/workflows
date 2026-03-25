@@ -41,14 +41,14 @@ Or add it manually: **this repo → [Settings → Secrets → Actions]($repo_url
 
 ### Step 3: Configure Dependabot settings
 
-Enable vulnerability alerts (Renovate reads these via API) and disable everything else (Renovate handles updates):
+Enable vulnerability alerts (Renovate reads these via API) and disable automated security fixes (Renovate handles security PRs):
 
 ```shell
 gh api repos/$repo_slug/vulnerability-alerts --method PUT
 gh api repos/$repo_slug/automated-security-fixes --method DELETE
 ```
 
-Disabling security updates also disables grouped security updates. Dependabot version updates are only active if `.github/dependabot.yml` exists — delete it if present. These two settings have no API; if either was manually enabled, disable them at **this repo → [Settings → Advanced Security → Dependabot]($repo_url/settings/security_analysis)**.
+Disabling security updates also disables grouped security updates. Dependabot version updates and grouped security updates have no API — if either was manually enabled, disable them at **this repo → [Settings → Advanced Security → Dependabot]($repo_url/settings/security_analysis)**. (If `.github/dependabot.yml` exists, the `renovate.yaml` workflow will remove it automatically.)
 
 $immutable_releases_step
 
@@ -75,8 +75,8 @@ Trigger a workflow re-run:
 gh workflow run autofix.yaml --repo $repo_slug
 ```
 
-Or re-run from the [**Actions tab**]($repo_url/actions). Jobs should now update `.github/workflows/` files without errors.
+Or re-run from the [**Actions tab**]($repo_url/actions/workflows/autofix.yaml). Jobs should now update `.github/workflows/` files without errors.
 
 \$org_tip
 
-This issue will close automatically once the secret is detected.
+This issue will close automatically once the secret is detected. Repository state and configuration are continuously checked and enforced by the [`lint-repo` job]($repo_url/actions/workflows/lint.yaml).

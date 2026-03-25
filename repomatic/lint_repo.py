@@ -28,7 +28,7 @@ from pathlib import Path
 
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
-from .renovate import check_dependabot_config_absent
+from .renovate import check_dependabot_config_absent, check_dependabot_security_disabled
 
 
 def get_repo_metadata(repo: str) -> dict[str, str | None]:
@@ -255,6 +255,16 @@ def run_repo_lint(
         print(f"✗ {msg}")
         fatal_error = True
 
+    # Check 2: Dependabot security updates disabled (fatal).
+    if repo:
+        passed, msg = check_dependabot_security_disabled(repo)
+        if passed:
+            print(f"✓ {msg}")
+        else:
+            emit_annotation(AnnotationLevel.ERROR, msg)
+            print(f"✗ {msg}")
+            fatal_error = True
+
     # Fetch repo metadata once if we need it.
     repo_metadata: dict[str, str | None] | None = None
     if is_sphinx or project_description:
@@ -264,14 +274,14 @@ def run_repo_lint(
             logging.warning("No repo specified, skipping API-based checks.")
             repo_metadata = {"homepageUrl": None, "description": None}
 
-    # Check 2: Package name vs repo name.
+    # Check 3: Package name vs repo name.
     if package_name and repo_name:
         warning, msg = check_package_name_vs_repo(package_name, repo_name)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 3: Website for Sphinx projects.
+    # Check 4: Website for Sphinx projects.
     if is_sphinx:
         homepage_url = repo_metadata.get("homepageUrl") if repo_metadata else None
         warning, msg = check_website_for_sphinx(repo or "", is_sphinx, homepage_url)
@@ -279,7 +289,7 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 4: Description matches (fatal).
+    # Check 5: Description matches (fatal).
     if project_description:
         repo_description = repo_metadata.get("description") if repo_metadata else None
         error, msg = check_description_matches(
@@ -290,14 +300,14 @@ def run_repo_lint(
             fatal_error = True
         print(f"{'✗' if error else '✓'} {msg}")
 
-    # Check 5: GitHub topics are a subset of pyproject.toml keywords.
+    # Check 6: GitHub topics are a subset of pyproject.toml keywords.
     if keywords and repo:
         warning, msg = check_topics_subset_of_keywords(repo, keywords)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 6: Funding file present when owner has GitHub Sponsors.
+    # Check 7: Funding file present when owner has GitHub Sponsors.
     if repo:
         warning, msg = check_funding_file(repo)
         if warning:

@@ -2303,6 +2303,8 @@ def lint_repo(
     from ``pyproject.toml`` in the current directory.
 
     Checks:
+    - Dependabot config file absent (error).
+    - Dependabot security updates disabled (error).
     - Package name vs repository name (warning).
     - Website field set for Sphinx projects (warning).
     - Repository description matches project description (error).
