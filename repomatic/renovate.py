@@ -31,11 +31,15 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 from click_extra import TableFormat, render_table
 
@@ -387,6 +391,29 @@ def run_migration_checks(repo: str, sha: str) -> int:
     return 1 if fatal_error else 0
 
 
+GITHUB_API_RELEASE_BY_TAG_URL = (
+    "https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}"
+)
+"""GitHub API URL for fetching a single release by tag name."""
+
+PYPI_JSON_API_URL = "https://pypi.org/pypi/{package}/json"
+"""PyPI JSON API URL for fetching package metadata."""
+
+RELEASE_NOTES_MAX_LENGTH = 2000
+"""Maximum characters per package release body before truncation."""
+
+# Keys in PyPI ``project_urls`` that typically point to a GitHub repository,
+# checked in priority order.
+_PYPI_SOURCE_URL_KEYS = (
+    "Source",
+    "Source Code",
+    "Source code",
+    "Repository",
+    "Code",
+    "Homepage",
+)
+
+
 # Pattern matching exclude-newer timestamp lines in uv.lock diffs.
 # These lines appear in the ``[options]`` section (``exclude-newer``) and the
 # ``[options.exclude-newer-package]`` section (per-package entries) and represent
@@ -498,6 +525,58 @@ def parse_lock_versions(lock_path: Path) -> dict[str, str]:
     }
 
 
+def parse_lock_upload_times(lock_path: Path) -> dict[str, str]:
+    """Parse a ``uv.lock`` file and return a mapping of package names to upload times.
+
+    Extracts the ``upload-time`` field from each package's ``sdist`` entry.
+
+    :param lock_path: Path to the ``uv.lock`` file.
+    :return: A dict mapping normalized package names to ISO 8601 upload-time
+        strings. Packages without an ``sdist`` or ``upload-time`` are omitted.
+    """
+    if not lock_path.exists():
+        return {}
+    with lock_path.open("rb") as f:
+        data = tomllib.load(f)
+    result = {}
+    for pkg in data.get("package", []):
+        name = pkg.get("name", "")
+        upload_time = pkg.get("sdist", {}).get("upload-time", "")
+        if name and upload_time:
+            result[name] = upload_time
+    return result
+
+
+def parse_lock_exclude_newer(lock_path: Path) -> str:
+    """Parse the ``exclude-newer`` timestamp from a ``uv.lock`` file.
+
+    :param lock_path: Path to the ``uv.lock`` file.
+    :return: The ``exclude-newer`` ISO 8601 datetime string, or an empty string
+        if not present.
+    """
+    if not lock_path.exists():
+        return ""
+    with lock_path.open("rb") as f:
+        data = tomllib.load(f)
+    result: str = data.get("options", {}).get("exclude-newer", "")
+    return result
+
+
+def _format_upload_date(iso_datetime: str) -> str:
+    """Format an ISO 8601 datetime as a human-readable date string.
+
+    :param iso_datetime: An ISO 8601 datetime string (e.g.,
+        ``"2026-03-13T12:00:00Z"``).
+    :return: A formatted date like ``2026-03-13``, or the raw string if parsing
+        fails.
+    """
+    try:
+        dt = datetime.fromisoformat(iso_datetime.replace("Z", "+00:00"))
+        return dt.strftime("%Y-%m-%d")
+    except (ValueError, AttributeError):
+        return iso_datetime
+
+
 def diff_lock_versions(
     before: dict[str, str],
     after: dict[str, str],
@@ -519,31 +598,213 @@ def diff_lock_versions(
     return changes
 
 
-def format_diff_table(changes: list[tuple[str, str, str]]) -> str:
+def format_diff_table(
+    changes: list[tuple[str, str, str]],
+    upload_times: dict[str, str] | None = None,
+    exclude_newer: str = "",
+) -> str:
     """Format version changes as a markdown table with heading.
+
+    When ``upload_times`` is provided, a "Released" column is added so
+    reviewers can visually verify that all updated packages respect the
+    ``exclude-newer`` cutoff. The cutoff itself is shown above the table
+    when ``exclude_newer`` is non-empty.
 
     :param changes: List of ``(name, old_version, new_version)`` tuples
         as returned by :func:`diff_lock_versions`.
+    :param upload_times: Optional mapping of package names to ISO 8601
+        upload-time strings, as returned by :func:`parse_lock_upload_times`.
+    :param exclude_newer: Optional ``exclude-newer`` ISO 8601 datetime from
+        the lock file, as returned by :func:`parse_lock_exclude_newer`.
     :return: A markdown string with a ``### Updated packages`` heading and
         table, or an empty string if there are no changes.
     """
     if not changes:
         return ""
-    lines = [
-        "### Updated packages",
-        "",
-        "| Package | Change |",
-        "| :-- | :-- |",
-    ]
+    show_uploaded = bool(upload_times)
+    lines = ["### Updated packages", ""]
+    if exclude_newer:
+        cutoff = _format_upload_date(exclude_newer)
+        lines.append(f"Resolved with `exclude-newer` cutoff: `{cutoff}`.")
+        lines.append("")
+    if show_uploaded:
+        lines.append("| Package | Change | Released |")
+        lines.append("| :-- | :-- | :-- |")
+    else:
+        lines.append("| Package | Change |")
+        lines.append("| :-- | :-- |")
     for name, old, new in changes:
         link = f"[{name}](https://pypi.org/project/{name}/)"
         if old and new:
-            lines.append(f"| {link} | `{old}` -> `{new}` |")
+            change = f"`{old}` -> `{new}`"
         elif new:
-            lines.append(f"| {link} | (new) `{new}` |")
+            change = f"(new) `{new}`"
         else:
-            lines.append(f"| {link} | `{old}` (removed) |")
+            change = f"`{old}` (removed)"
+        if show_uploaded:
+            raw_time = upload_times.get(name, "")  # type: ignore[union-attr]
+            uploaded = _format_upload_date(raw_time) if raw_time else ""
+            lines.append(f"| {link} | {change} | {uploaded} |")
+        else:
+            lines.append(f"| {link} | {change} |")
     return "\n".join(lines)
+
+
+def _github_api_request(url: str) -> Request:
+    """Build a GitHub API request with optional token authentication.
+
+    Uses ``GITHUB_TOKEN`` or ``GH_TOKEN`` from the environment when available
+    to raise the rate limit from 60 to 1000 requests/hour.
+    """
+    headers = {"Accept": "application/vnd.github+json"}
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return Request(url, headers=headers)
+
+
+def _parse_github_owner_repo(repo_url: str) -> tuple[str, str] | None:
+    """Extract ``(owner, repo)`` from a GitHub URL.
+
+    :param repo_url: A GitHub repository URL (e.g.,
+        ``https://github.com/nedbat/coveragepy``).
+    :return: A tuple of ``(owner, repo)``, or ``None`` if parsing fails.
+    """
+    parts = repo_url.rstrip("/").removesuffix(".git").split("/")
+    if len(parts) < 2:
+        return None
+    return parts[-2], parts[-1]
+
+
+def get_pypi_source_url(package: str) -> str | None:
+    """Discover the GitHub repository URL for a PyPI package.
+
+    Queries the PyPI JSON API and scans ``project_urls`` for keys that
+    typically point to a source repository on GitHub.
+
+    :param package: The PyPI package name.
+    :return: The GitHub repository URL, or ``None`` if not found.
+    """
+    url = PYPI_JSON_API_URL.format(package=package)
+    request = Request(url, headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=10) as response:
+            data = json.loads(response.read())
+    except (URLError, TimeoutError, json.JSONDecodeError) as exc:
+        logging.debug(f"PyPI lookup failed for {package}: {exc}")
+        return None
+
+    project_urls: dict[str, str] = data.get("info", {}).get("project_urls") or {}
+    for key in _PYPI_SOURCE_URL_KEYS:
+        candidate = project_urls.get(key, "")
+        if "github.com" in candidate:
+            return candidate.rstrip("/").removesuffix(".git")
+    # Fallback: scan all values for a GitHub URL.
+    for candidate in project_urls.values():
+        if "github.com" in candidate:
+            return candidate.rstrip("/").removesuffix(".git")
+    return None
+
+
+def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
+    """Fetch the release notes body for a specific version from GitHub.
+
+    Tries ``v{version}`` first (most common for Python packages), then
+    the bare ``{version}`` tag.
+
+    :param repo_url: GitHub repository URL.
+    :param version: The version string (e.g., ``7.13.5``).
+    :return: A tuple of ``(tag, body)`` where ``tag`` is the matched tag name
+        and ``body`` is the release notes markdown. Both are empty strings if
+        no release is found.
+    """
+    parsed = _parse_github_owner_repo(repo_url)
+    if not parsed:
+        return "", ""
+    owner, repo = parsed
+
+    for tag in (f"v{version}", version):
+        url = GITHUB_API_RELEASE_BY_TAG_URL.format(
+            owner=owner, repo=repo, tag=tag,
+        )
+        request = _github_api_request(url)
+        try:
+            with urlopen(request, timeout=10) as response:
+                data = json.loads(response.read())
+            body = data.get("body", "")
+            return tag, body
+        except (URLError, TimeoutError, json.JSONDecodeError):
+            continue
+    logging.debug(f"No GitHub release found for {repo_url} version {version}.")
+    return "", ""
+
+
+def fetch_release_notes(
+    changes: list[tuple[str, str, str]],
+) -> dict[str, tuple[str, str, str]]:
+    """Fetch release notes for all updated packages.
+
+    For each package with a new version, discovers the GitHub repository via
+    PyPI and fetches the release notes from GitHub Releases.
+
+    :param changes: List of ``(name, old_version, new_version)`` tuples.
+    :return: A dict mapping package names to ``(repo_url, tag, body)`` tuples.
+        Only packages with non-empty release bodies are included.
+    """
+    notes: dict[str, tuple[str, str, str]] = {}
+    for name, _old, new in changes:
+        if not new:
+            # Skip removed packages.
+            continue
+        repo_url = get_pypi_source_url(name)
+        if not repo_url:
+            logging.debug(f"No GitHub URL found for {name}.")
+            continue
+        tag, body = get_github_release_body(repo_url, new)
+        if body:
+            notes[name] = (repo_url, tag, body)
+        else:
+            logging.debug(f"No release body for {name} {new}.")
+    return notes
+
+
+def format_release_notes(notes: dict[str, tuple[str, str, str]]) -> str:
+    """Render release notes as collapsible ``<details>`` blocks.
+
+    Follows Renovate's visual pattern: a "Release notes" heading with one
+    collapsible section per package. Long release bodies are truncated to
+    :data:`RELEASE_NOTES_MAX_LENGTH` characters with a link to the full release.
+
+    :param notes: A dict mapping package names to ``(repo_url, tag, body)``
+        tuples, as returned by :func:`fetch_release_notes`.
+    :return: A markdown string with the release notes section, or an empty
+        string if no notes are available.
+    """
+    if not notes:
+        return ""
+    lines = ["### Release notes", ""]
+    for name, (repo_url, tag, body) in sorted(notes.items()):
+        parsed = _parse_github_owner_repo(repo_url)
+        if not parsed:
+            continue
+        owner, repo = parsed
+        release_url = f"{repo_url}/releases/tag/{tag}"
+        lines.append("<details>")
+        lines.append(f"<summary>{owner}/{repo} ({name})</summary>")
+        lines.append("")
+        lines.append(f"#### [`{tag}`]({release_url})")
+        lines.append("")
+        if len(body) > RELEASE_NOTES_MAX_LENGTH:
+            truncated = body[:RELEASE_NOTES_MAX_LENGTH].rsplit("\n", 1)[0]
+            lines.append(truncated)
+            lines.append("")
+            lines.append(f"... [Full release notes]({release_url})")
+        else:
+            lines.append(body)
+        lines.append("")
+        lines.append("</details>")
+        lines.append("")
+    return "\n".join(lines).rstrip()
 
 
 def sync_uv_lock(lock_path: Path) -> tuple[bool, str]:
@@ -579,4 +840,15 @@ def sync_uv_lock(lock_path: Path) -> tuple[bool, str]:
     # Step 4: Compute and format the version diff.
     after = parse_lock_versions(lock_path)
     changes = diff_lock_versions(before, after)
-    return False, format_diff_table(changes)
+    upload_times = parse_lock_upload_times(lock_path)
+    exclude_newer = parse_lock_exclude_newer(lock_path)
+    diff_table = format_diff_table(changes, upload_times, exclude_newer)
+
+    # Step 5: Fetch and append release notes.
+    if changes:
+        notes = fetch_release_notes(changes)
+        notes_section = format_release_notes(notes)
+        if notes_section:
+            diff_table = diff_table + "\n\n" + notes_section
+
+    return False, diff_table

@@ -22,16 +22,25 @@ import json
 from unittest.mock import patch
 
 from repomatic.renovate import (
+    RELEASE_NOTES_MAX_LENGTH,
     RenovateCheckResult,
+    _format_upload_date,
+    _parse_github_owner_repo,
     check_commit_statuses_permission,
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
     check_renovate_config_exists,
     collect_check_results,
     diff_lock_versions,
+    fetch_release_notes,
     format_diff_table,
+    format_release_notes,
     get_dependabot_config_path,
+    get_github_release_body,
+    get_pypi_source_url,
     is_lock_diff_only_timestamp_noise,
+    parse_lock_exclude_newer,
+    parse_lock_upload_times,
     parse_lock_versions,
     revert_lock_if_noise,
     run_migration_checks,
@@ -542,7 +551,7 @@ def test_format_diff_table_empty():
 
 
 def test_format_diff_table():
-    """Format a markdown table with version changes."""
+    """Format a markdown table with version changes and no upload times."""
     changes = [
         ("anyio", "4.12.0", "4.12.1"),
         ("new-pkg", "", "2.0.0"),
@@ -550,6 +559,303 @@ def test_format_diff_table():
     ]
     table = format_diff_table(changes)
     assert "### Updated packages" in table
+    assert "| Package | Change |" in table
     assert "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` -> `4.12.1` |" in table
     assert "| [new-pkg](https://pypi.org/project/new-pkg/) | (new) `2.0.0` |" in table
     assert "| [old-pkg](https://pypi.org/project/old-pkg/) | `1.0.0` (removed) |" in table
+    assert "Released" not in table
+    assert "exclude-newer" not in table
+
+
+def test_format_diff_table_with_upload_times():
+    """Format a markdown table with upload times and exclude-newer cutoff."""
+    changes = [
+        ("coverage", "7.13.4", "7.13.5"),
+        ("anyio", "4.12.0", "4.12.1"),
+    ]
+    upload_times = {
+        "coverage": "2026-03-13T18:30:00Z",
+        "anyio": "2026-01-06T11:45:21.246Z",
+    }
+    table = format_diff_table(
+        changes,
+        upload_times=upload_times,
+        exclude_newer="2026-03-18T16:39:02.780682017Z",
+    )
+    assert "Resolved with `exclude-newer` cutoff: `2026-03-18`." in table
+    assert "| Package | Change | Released |" in table
+    assert (
+        "| [coverage](https://pypi.org/project/coverage/)"
+        " | `7.13.4` -> `7.13.5` | 2026-03-13 |"
+    ) in table
+    assert (
+        "| [anyio](https://pypi.org/project/anyio/)"
+        " | `4.12.0` -> `4.12.1` | 2026-01-06 |"
+    ) in table
+
+
+def test_format_diff_table_upload_times_without_exclude_newer():
+    """Upload times column appears even without exclude-newer."""
+    changes = [("pkg", "1.0", "2.0")]
+    upload_times = {"pkg": "2026-03-01T00:00:00Z"}
+    table = format_diff_table(changes, upload_times=upload_times)
+    assert "| Released |" in table
+    assert "2026-03-01" in table
+    assert "exclude-newer" not in table
+
+
+def test_format_upload_date():
+    """Format ISO 8601 datetime to date-only string."""
+    assert _format_upload_date("2026-03-13T18:30:00Z") == "2026-03-13"
+    assert _format_upload_date("2026-03-18T16:39:02.780682017Z") == "2026-03-18"
+    assert _format_upload_date("2026-01-06T11:45:21.246Z") == "2026-01-06"
+    # Graceful fallback for unparseable input.
+    assert _format_upload_date("not-a-date") == "not-a-date"
+    assert _format_upload_date("") == ""
+
+
+def test_parse_lock_exclude_newer(tmp_path):
+    """Extract exclude-newer from a lock file."""
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        'version = 1\n\n'
+        '[options]\n'
+        'exclude-newer = "2026-03-18T16:39:02.780682017Z"\n\n'
+        '[[package]]\nname = "foo"\nversion = "1.0"\n'
+    )
+    assert parse_lock_exclude_newer(lock) == "2026-03-18T16:39:02.780682017Z"
+
+
+def test_parse_lock_exclude_newer_missing(tmp_path):
+    """Return empty string when exclude-newer is absent."""
+    lock = tmp_path / "uv.lock"
+    lock.write_text('version = 1\n\n[[package]]\nname = "foo"\nversion = "1.0"\n')
+    assert parse_lock_exclude_newer(lock) == ""
+
+
+def test_parse_lock_upload_times(tmp_path):
+    """Extract upload times from a lock file's sdist entries."""
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        'version = 1\n\n'
+        '[[package]]\nname = "foo"\nversion = "1.0"\n'
+        '[package.sdist]\n'
+        'url = "https://example.com/foo-1.0.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2026-03-13T18:30:00Z"\n\n'
+        '[[package]]\nname = "bar"\nversion = "2.0"\n'
+    )
+    times = parse_lock_upload_times(lock)
+    assert times == {"foo": "2026-03-13T18:30:00Z"}
+    assert "bar" not in times
+
+
+# --- Release notes tests ---
+
+
+def test_parse_github_owner_repo():
+    """Extract owner/repo from various GitHub URL forms."""
+    assert _parse_github_owner_repo("https://github.com/nedbat/coveragepy") == (
+        "nedbat", "coveragepy",
+    )
+    assert _parse_github_owner_repo("https://github.com/foo/bar/") == ("foo", "bar")
+    assert _parse_github_owner_repo("https://github.com/foo/bar.git") == ("foo", "bar")
+    assert _parse_github_owner_repo("short") is None
+
+
+def _make_urlopen_mock(responses):
+    """Build a side_effect function for mocking ``urlopen``.
+
+    :param responses: A dict mapping URL substrings to (status, body) tuples.
+        If body is ``None``, a ``URLError`` is raised for that URL.
+    """
+    from io import BytesIO
+    from urllib.error import URLError
+
+    class FakeResponse:
+        def __init__(self, data):
+            self._data = BytesIO(data)
+
+        def read(self):
+            return self._data.read()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+    def side_effect(request, timeout=None):
+        url = request.full_url if hasattr(request, "full_url") else str(request)
+        for pattern, (body,) in responses.items():
+            if pattern in url:
+                if body is None:
+                    raise URLError(f"Mocked failure for {url}")
+                return FakeResponse(body)
+        raise URLError(f"No mock for {url}")
+
+    return side_effect
+
+
+def test_get_pypi_source_url_found():
+    """Discover GitHub URL from PyPI project_urls."""
+    pypi_data = json.dumps({
+        "info": {
+            "project_urls": {
+                "Homepage": "https://coverage.readthedocs.io",
+                "Source": "https://github.com/nedbat/coveragepy",
+            },
+        },
+    }).encode()
+    mock = _make_urlopen_mock({"pypi.org": (pypi_data,)})
+    with patch("repomatic.renovate.urlopen", side_effect=mock):
+        assert get_pypi_source_url("coverage") == "https://github.com/nedbat/coveragepy"
+
+
+def test_get_pypi_source_url_no_github():
+    """Return None when no GitHub URL in project_urls."""
+    pypi_data = json.dumps({
+        "info": {
+            "project_urls": {
+                "Homepage": "https://example.com",
+            },
+        },
+    }).encode()
+    mock = _make_urlopen_mock({"pypi.org": (pypi_data,)})
+    with patch("repomatic.renovate.urlopen", side_effect=mock):
+        assert get_pypi_source_url("somepkg") is None
+
+
+def test_get_pypi_source_url_api_failure():
+    """Return None on PyPI API failure."""
+    mock = _make_urlopen_mock({"pypi.org": (None,)})
+    with patch("repomatic.renovate.urlopen", side_effect=mock):
+        assert get_pypi_source_url("coverage") is None
+
+
+def test_get_github_release_body_found():
+    """Fetch release body from GitHub for v-prefixed tag."""
+    release_data = json.dumps({"body": "### Bug fixes\n- Fixed a bug."}).encode()
+    mock = _make_urlopen_mock({"releases/tags/v7.13.5": (release_data,)})
+    with patch("repomatic.renovate.urlopen", side_effect=mock):
+        tag, body = get_github_release_body(
+            "https://github.com/nedbat/coveragepy", "7.13.5",
+        )
+    assert tag == "v7.13.5"
+    assert "Fixed a bug" in body
+
+
+def test_get_github_release_body_bare_tag_fallback():
+    """Fall back to bare version tag when v-prefixed tag is not found."""
+    release_data = json.dumps({"body": "Release notes."}).encode()
+
+    def side_effect(request, timeout=None):
+        from io import BytesIO
+        from urllib.error import URLError
+
+        url = request.full_url if hasattr(request, "full_url") else str(request)
+        if "tags/v2.0" in url:
+            raise URLError("Not found")
+        if "tags/2.0" in url:
+
+            class FakeResp:
+                def read(self):
+                    return release_data
+
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *a):
+                    pass
+
+            return FakeResp()
+        raise URLError(f"No mock for {url}")
+
+    with patch("repomatic.renovate.urlopen", side_effect=side_effect):
+        tag, body = get_github_release_body(
+            "https://github.com/owner/repo", "2.0",
+        )
+    assert tag == "2.0"
+    assert body == "Release notes."
+
+
+def test_get_github_release_body_not_found():
+    """Return empty strings when no release exists for any tag variant."""
+    mock = _make_urlopen_mock({
+        "tags/v": (None,),
+        "tags/1": (None,),
+    })
+    with patch("repomatic.renovate.urlopen", side_effect=mock):
+        tag, body = get_github_release_body(
+            "https://github.com/owner/repo", "1.0",
+        )
+    assert tag == ""
+    assert body == ""
+
+
+def test_fetch_release_notes_skips_removals():
+    """Removed packages (empty new_version) are not fetched."""
+    changes = [("old-pkg", "1.0.0", "")]
+    with patch("repomatic.renovate.get_pypi_source_url") as mock_pypi:
+        notes = fetch_release_notes(changes)
+    mock_pypi.assert_not_called()
+    assert notes == {}
+
+
+def test_fetch_release_notes_aggregation():
+    """Aggregate release notes from multiple packages."""
+    changes = [
+        ("pkg-a", "1.0", "2.0"),
+        ("pkg-b", "3.0", "4.0"),
+    ]
+    with (
+        patch("repomatic.renovate.get_pypi_source_url") as mock_pypi,
+        patch("repomatic.renovate.get_github_release_body") as mock_gh,
+    ):
+        mock_pypi.side_effect = [
+            "https://github.com/owner/pkg-a",
+            "https://github.com/owner/pkg-b",
+        ]
+        mock_gh.side_effect = [
+            ("v2.0", "Notes for A."),
+            ("v4.0", ""),
+        ]
+        notes = fetch_release_notes(changes)
+    assert "pkg-a" in notes
+    assert notes["pkg-a"] == ("https://github.com/owner/pkg-a", "v2.0", "Notes for A.")
+    # pkg-b has empty body, so it should be excluded.
+    assert "pkg-b" not in notes
+
+
+def test_format_release_notes():
+    """Render release notes as collapsible details blocks."""
+    notes = {
+        "coverage": (
+            "https://github.com/nedbat/coveragepy",
+            "v7.13.5",
+            "### Bug fixes\n- Fixed a bug.",
+        ),
+    }
+    result = format_release_notes(notes)
+    assert "### Release notes" in result
+    assert "<details>" in result
+    assert "<summary>nedbat/coveragepy (coverage)</summary>" in result
+    assert "[`v7.13.5`](https://github.com/nedbat/coveragepy/releases/tag/v7.13.5)" in result
+    assert "Fixed a bug" in result
+    assert "</details>" in result
+
+
+def test_format_release_notes_empty():
+    """Return empty string when no notes are available."""
+    assert format_release_notes({}) == ""
+
+
+def test_format_release_notes_truncation():
+    """Truncate long release bodies with a link to the full release."""
+    long_body = "Line\n" * (RELEASE_NOTES_MAX_LENGTH // 5 + 100)
+    notes = {
+        "pkg": ("https://github.com/owner/pkg", "v1.0", long_body),
+    }
+    result = format_release_notes(notes)
+    assert "Full release notes" in result
+    assert "https://github.com/owner/pkg/releases/tag/v1.0" in result
