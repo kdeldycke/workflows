@@ -214,7 +214,7 @@ def _get_renovate_config() -> str:
     .. note::
         The self-referencing uv ``customManagers`` entry is excluded because it
         creates an endless update loop in downstream repos: Renovate bumps the
-        pinned uv version, the merged PR triggers ``sync-renovate``, which
+        pinned uv version, the merged PR triggers ``repomatic init``, which
         overwrites ``renovate.json5`` back to the bundled template (reverting
         the bump), and Renovate opens the same PR again — indefinitely. All
         other ``customManagers`` entries are included since they target workflow

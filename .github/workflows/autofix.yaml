@@ -46,7 +46,7 @@ jobs:
           uvx --no-progress --from . repomatic metadata
           --format github-json --output "$GITHUB_OUTPUT"
           gitignore_exists python_files json_files doc_files markdown_files
-          is_python_project mailmap_exists renovate_config_exists
+          is_python_project mailmap_exists
           image_files workflow_files active_autodoc release_commits_matrix
 
   # --- Formatters: rewrite files to enforce canonical style. ---
@@ -348,34 +348,6 @@ jobs:
           body: ${{ steps.pr-metadata.outputs.body }}
           labels: "🤖 ci"
           branch: sync-bumpversion
-          delete-branch: true
-
-  sync-renovate:
-    name: 🔄 Sync renovate.json5
-    needs:
-      - metadata
-    if: >-
-      github.repository != 'kdeldycke/repomatic'
-      && fromJSON(needs.metadata.outputs.metadata).renovate_config_exists
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
-      - name: Sync Renovate config
-        run: uvx --no-progress --from . repomatic sync-renovate
-      - id: pr-metadata
-        run: >
-          uvx --no-progress --from . repomatic pr-body
-          --template sync-renovate
-          --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
-        with:
-          assignees: ${{ github.actor }}
-          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
-          title: ${{ steps.pr-metadata.outputs.title }}
-          body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "🤖 ci"
-          branch: sync-renovate
           delete-branch: true
 
   sync-mailmap:

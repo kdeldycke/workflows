@@ -280,7 +280,7 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 
 | Prefix     | Semantics                                       | Source of truth      | Idempotent? | Examples                                          |
 | :--------- | :---------------------------------------------- | :------------------- | :---------- | :------------------------------------------------ |
-| `sync-X`   | Regenerate from a canonical or external source. | Template, API, repo  | Yes         | `sync-gitignore`, `sync-mailmap`, `sync-renovate` |
+| `sync-X`   | Regenerate from a canonical or external source. | Template, API, repo  | Yes         | `sync-gitignore`, `sync-mailmap`, `sync-uv-lock`  |
 | `update-X` | Compute from project state.                     | Lockfile, git log    | Yes         | `update-deps-graph`, `update-checksums`           |
 | `format-X` | Rewrite to enforce canonical style.             | Formatter rules      | Yes         | `format-json`, `format-markdown`, `format-python` |
 | `fix-X`    | Correct content (auto-fix).                     | Linter/checker rules | Yes         | `fix-typos`                                       |
@@ -289,7 +289,7 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 **Rules:**
 
 1. **Pick the verb that matches the data source.** If the operation pulls from an external template, API, or canonical reference, it is a `sync`. If it computes from local project state (lockfiles, git history, source code), it is an `update`. If it reformats existing content, it is a `format`.
-2. **Name the specific tool or file, not a generic category.** The noun in `verb-noun` must identify the concrete tool, file, or resource the operation targets (e.g., `sync-zizmor`, `sync-gitignore`, `sync-renovate`). Do not use abstract groupings like `sync-linter-configs` or `sync-vcs-configs`. If a second tool is added to a category, create a separate operation for it.
+2. **Name the specific tool or file, not a generic category.** The noun in `verb-noun` must identify the concrete tool, file, or resource the operation targets (e.g., `sync-zizmor`, `sync-gitignore`, `sync-mailmap`). Do not use abstract groupings like `sync-linter-configs` or `sync-vcs-configs`. If a second tool is added to a category, create a separate operation for it.
 3. **All four dimensions must agree.** When adding a file-modifying operation, the CLI command, workflow job ID, PR branch name, and PR body template file name must all use the same `verb-noun` identifier (e.g., `sync-gitignore` everywhere). For read-only operations (`lint-*`), only the CLI command and workflow job ID apply.
 4. **Function names follow the CLI name.** The Python function backing a CLI command uses the underscore equivalent of the CLI name (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter to override (e.g., `@repomatic.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
 

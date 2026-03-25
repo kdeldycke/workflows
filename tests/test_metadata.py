@@ -489,7 +489,6 @@ expected = {
         "tests/test_release_prep.py",
         "tests/test_release_sync.py",
         "tests/test_renovate.py",
-        "tests/test_sync_renovate.py",
         "tests/test_tool_runner.py",
         "tests/test_workflow_sync.py",
         "tests/test_workflows.py",
@@ -598,7 +597,6 @@ expected = {
         "repomatic/templates/sync-bundled-renovate.md",
         "repomatic/templates/sync-gitignore.md",
         "repomatic/templates/sync-mailmap.md",
-        "repomatic/templates/sync-renovate.md",
         "repomatic/templates/sync-repomatic.md",
         "repomatic/templates/sync-uv-lock.md",
         "repomatic/templates/unavailable-admonition.md",
@@ -659,7 +657,6 @@ expected = {
         "repomatic/templates/sync-bundled-renovate.md",
         "repomatic/templates/sync-gitignore.md",
         "repomatic/templates/sync-mailmap.md",
-        "repomatic/templates/sync-renovate.md",
         "repomatic/templates/sync-repomatic.md",
         "repomatic/templates/sync-uv-lock.md",
         "repomatic/templates/unavailable-admonition.md",
@@ -1407,7 +1404,6 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config["gitignore.sync"] is True
     assert metadata.config["labels.sync"] is True
     assert metadata.config["mailmap.sync"] is True
-    assert metadata.config["renovate.sync"] is True
     assert metadata.config["setup-guide"] is True
     assert metadata.config["uv-lock.sync"] is True
     assert metadata.config["workflow.source-paths"] is None
@@ -1452,7 +1448,6 @@ dev-release.sync = false
 gitignore.sync = false
 labels.sync = false
 mailmap.sync = false
-renovate.sync = false
 setup-guide = false
 uv-lock.sync = false
 workflow.source-paths = ["extra_platforms"]
@@ -1499,7 +1494,6 @@ exclude = ["skills", "workflows/debug.yaml", "workflows/autolock.yaml"]
     assert metadata.config["gitignore.sync"] is False
     assert metadata.config["labels.sync"] is False
     assert metadata.config["mailmap.sync"] is False
-    assert metadata.config["renovate.sync"] is False
     assert metadata.config["setup-guide"] is False
     assert metadata.config["uv-lock.sync"] is False
     assert metadata.config["workflow.source-paths"] == ["extra_platforms"]

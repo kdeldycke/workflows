@@ -448,13 +448,6 @@ class Config:
     GitHub can set this to ``false``.
     """
 
-    renovate_sync: bool = True
-    """Whether Renovate config sync is enabled for this project.
-
-    Projects that manage their own ``renovate.json5`` and do not want the
-    autofix job to overwrite it can set this to ``false``.
-    """
-
     setup_guide: bool = True
     """Whether the setup guide issue is enabled for this project.
 
@@ -632,7 +625,6 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "mailmap_sync",
     "notification_unsubscribe",
     "pypi_package_history",
-    "renovate_sync",
     "setup_guide",
     "test_plan_file",
     "test_plan_inline",

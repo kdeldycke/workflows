@@ -2269,54 +2269,6 @@ def list_skills() -> None:
     echo("")
 
 
-@repomatic.command(
-    short_help="Sync Renovate config from canonical reference", section=_section_sync
-)
-@option(
-    "--output",
-    "output_path",
-    type=file_path(writable=True, resolve_path=True),
-    default="renovate.json5",
-    help="Output path for the Renovate configuration file.",
-)
-@pass_context
-def sync_renovate(ctx: Context, output_path: Path) -> None:
-    """Sync ``renovate.json5`` from the canonical reference configuration.
-
-    Overwrites the local Renovate configuration with the version bundled in
-    ``repomatic``, which strips ``assignees`` and the self-referencing uv
-    ``customManagers`` entry from the upstream ``kdeldycke/repomatic``
-    reference. All other ``customManagers`` entries are included.
-
-    Exits gracefully if the target file does not exist (the repository is
-    not using Renovate).
-
-    .. note::
-
-        The self-referencing uv ``customManagers`` entry (which targets
-        ``renovate.json5`` itself to keep the hardcoded uv version in
-        ``postUpgradeTasks`` current) is excluded from the synced template.
-        If included, Renovate would bump that version via PR; the merged PR
-        would trigger ``sync-renovate``, which overwrites ``renovate.json5``
-        back to the bundled template (reverting the bump); Renovate would
-        then open the same PR again — indefinitely. All other
-        ``customManagers`` entries target workflow files, not
-        ``renovate.json5`` itself, so they are safe to sync.
-    """
-    config = load_repomatic_config()
-    if not config.get("renovate.sync", True):
-        logging.info(
-            "[tool.repomatic] renovate.sync is disabled. Skipping Renovate config sync."
-        )
-        ctx.exit(0)
-
-    if not Path(output_path).exists():
-        logging.info(f"{output_path} does not exist, skipping sync.")
-        ctx.exit(0)
-
-    content = export_content("renovate.json5")
-    echo(content.rstrip(), file=prep_path(output_path))
-
 
 @repomatic.command(
     short_help="Check Renovate migration prerequisites", section=_section_lint

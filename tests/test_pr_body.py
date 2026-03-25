@@ -192,7 +192,6 @@ def test_get_template_names():
     assert "format-pyproject" in names
     assert "format-python" in names
     assert "sync-bumpversion" in names
-    assert "sync-renovate" in names
     assert "update-deps-graph" in names
     assert "update-docs" in names
     assert "sync-gitignore" in names

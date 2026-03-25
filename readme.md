@@ -101,7 +101,6 @@ Sync:
   sync-uv-lock           Re-lock and revert if only timestamp noise changed
   sync-bumpversion       Sync bumpversion config from bundled template
   sync-labels            Sync repository labels via labelmaker
-  sync-renovate          Sync Renovate config from canonical reference
 
 Linting & checks:
   test-plan              Run a test plan from a file against a binary
@@ -152,7 +151,6 @@ dev-release.sync = false
 gitignore.sync = false
 labels.sync = false
 mailmap.sync = false
-renovate.sync = false
 setup-guide = false
 uv-lock.sync = false
 
@@ -218,7 +216,6 @@ workflow.source-paths = ["extra_platforms"]
 | `nuitka.extra-args`           | list[str] | `[]`                               | Extra Nuitka CLI arguments for binary compilation.                                           |
 | `nuitka.unstable-targets`     | list[str] | `[]`                               | Nuitka build targets allowed to fail without blocking the release.                           |
 | `pypi-package-history`        | list[str] | `[]`                               | Former PyPI package names for projects that were renamed.                                    |
-| `renovate.sync`               | bool      | `true`                             | Whether Renovate config sync is enabled for this project.                                    |
 | `setup-guide`                 | bool      | `true`                             | Whether the setup guide issue is enabled for this project.                                   |
 | `test-plan.file`              | str       | `"./tests/cli-test-plan.yaml"`     | Path to the YAML test plan file for binary testing.                                          |
 | `test-plan.inline`            | str       | *(none)*                           | Inline YAML test plan for binaries.                                                          |
@@ -386,13 +383,6 @@ GitHub Actions has several design limitations that the workflows work around:
     - `[tool.bumpversion]` section already exists in `pyproject.toml`
     - `bumpversion.sync = false` in `[tool.repomatic]`
 
-- 🔄 **Sync `renovate.json5`** (`sync-renovate`)
-
-  - Syncs the local `renovate.json5` with the canonical reference from [`repomatic`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py), stripping repo-specific settings (`customManagers`, `assignees`)
-  - **Skipped if**:
-    - Repository is [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic) itself (the upstream source)
-    - No `renovate.json5` file in the repository root
-    - `renovate.sync = false` in `[tool.repomatic]`
 
 - 🔄 **Sync repomatic** (`sync-repomatic`)
 
