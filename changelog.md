@@ -15,6 +15,7 @@
 - Relax abandoned dependency threshold from 1 year to 2 years in Renovate config.
 - Fix thin-caller generation rendering `workflow_dispatch` input definitions as Python dict literals instead of block-style YAML.
 - Add `/sphinx-docs-sync` skill for cross-project Sphinx documentation comparison and synchronization.
+- Add `/translation-sync` skill to detect stale translations in `readme.*.md` and `contributing.*.md` files. Compares structure and content against the English source, flags drift, and drafts updated translations. Auto-excluded for non-awesome repos.
 - Streamline Dependabot guidance in setup guide issue. Clarify that Renovate handles security PRs and that `renovate.yaml` auto-removes `dependabot.yml`. Link Actions tab directly to the `autofix.yaml` workflow.
 - Allow `repomatic init` to accept qualified `component/file` selectors (e.g., `repomatic init skills/repomatic-topics`). Uses the same syntax as the `exclude` config option. Rename `parse_exclude` to `parse_component_entries` and `_valid_file_ids` to `valid_file_ids` to support the shared parsing path.
 - Only auto-include `awesome-template` component for `awesome-*` repos when no explicit components are given. Previously, `repomatic init skills/repomatic-topics` on an awesome repo would also sync all awesome-template files.

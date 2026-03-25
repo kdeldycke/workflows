@@ -513,7 +513,7 @@ def test_init_creates_all_default_files(
     # Opt-in workflows and awesome-triage skill are excluded by default.
     config_file_count = sum(len(v) for v in COMPONENT_FILES.values())
     default_workflows = len(REUSABLE_WORKFLOWS) - len(OPT_IN_WORKFLOWS)
-    awesome_triage_auto_excluded = 1
+    awesome_triage_auto_excluded = 2  # awesome-triage + translation-sync.
     expected_count = (
         default_workflows + config_file_count + 1 - awesome_triage_auto_excluded
     )
@@ -631,8 +631,9 @@ def test_init_only_skills(tmp_path: Path):
         assert rel in created_set
         assert (tmp_path / ".claude" / "skills" / name / "SKILL.md").exists()
 
-    # awesome-triage is auto-excluded for non-awesome repos.
+    # awesome-triage and translation-sync are auto-excluded for non-awesome repos.
     assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
+    assert ".claude/skills/translation-sync/SKILL.md" not in created_set
 
     # No workflows or changelog should be created.
     assert "changelog.md" not in created_set
@@ -1185,6 +1186,7 @@ def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
 
     created_set = set(result.created)
     assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
+    assert ".claude/skills/translation-sync/SKILL.md" not in created_set
     assert ".claude/skills/repomatic-init/SKILL.md" in created_set
 
 
@@ -1207,6 +1209,7 @@ def test_init_awesome_triage_included_for_awesome_repo(
 
     created_set = set(result.created)
     assert ".claude/skills/awesome-triage/SKILL.md" in created_set
+    assert ".claude/skills/translation-sync/SKILL.md" in created_set
     assert ".claude/skills/repomatic-init/SKILL.md" in created_set
 
 
@@ -1871,9 +1874,10 @@ def test_init_bare_overrides_qualified(tmp_path: Path):
         output_dir=tmp_path,
         components=("skills", "skills/repomatic-topics"),
     )
-    # All skills created (minus auto-excluded awesome-triage for non-awesome).
+    # All skills created (minus auto-excluded awesome-triage and
+    # translation-sync for non-awesome).
     total_skills = len(COMPONENT_FILES["skills"])
-    assert len(result.created) == total_skills - 1
+    assert len(result.created) == total_skills - 2
 
 
 def test_init_mixed_bare_and_qualified(tmp_path: Path):

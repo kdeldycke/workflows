@@ -125,6 +125,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
     "skill-repomatic-test.md": "./.claude/skills/repomatic-test/SKILL.md",
     "skill-repomatic-topics.md": "./.claude/skills/repomatic-topics/SKILL.md",
     "skill-sphinx-docs-sync.md": "./.claude/skills/sphinx-docs-sync/SKILL.md",
+    "skill-translation-sync.md": "./.claude/skills/translation-sync/SKILL.md",
     # Workflow templates.
     "autofix.yaml": "./.github/workflows/autofix.yaml",
     "autolock.yaml": "./.github/workflows/autolock.yaml",
@@ -649,6 +650,7 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
         ("skill-repomatic-test.md", ".claude/skills/repomatic-test/SKILL.md"),
         ("skill-repomatic-topics.md", ".claude/skills/repomatic-topics/SKILL.md"),
         ("skill-sphinx-docs-sync.md", ".claude/skills/sphinx-docs-sync/SKILL.md"),
+        ("skill-translation-sync.md", ".claude/skills/translation-sync/SKILL.md"),
     ),
 }
 """Bundled config files per component, with their output paths."""
@@ -892,6 +894,7 @@ def run_init(
             excluded_files.setdefault("workflows", set()).add(wf)
     else:
         excluded_files.setdefault("skills", set()).add("awesome-triage")
+        excluded_files.setdefault("skills", set()).add("translation-sync")
     from .github.workflow_sync import OPT_IN_WORKFLOWS
 
     for wf_name, config_key in OPT_IN_WORKFLOWS.items():
