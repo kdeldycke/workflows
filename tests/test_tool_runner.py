@@ -505,8 +505,8 @@ def test_run_tool_binary_default_flags(
 
 @patch("repomatic.tool_runner.subprocess.run")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
-def test_run_tool_ruff_via_uvx(mock_ci, mock_run, tmp_path, monkeypatch):
-    """ruff runs via uvx with extra_args for subcommand."""
+def test_run_tool_ruff_bundled_default(mock_ci, mock_run, tmp_path, monkeypatch):
+    """ruff uses bundled default config when no config exists."""
     monkeypatch.chdir(tmp_path)
     mock_run.return_value = MagicMock(returncode=0)
 
@@ -515,9 +515,30 @@ def test_run_tool_ruff_via_uvx(mock_ci, mock_run, tmp_path, monkeypatch):
     cmd = mock_run.call_args[0][0]
     assert cmd[0] == "uvx"
     assert "ruff==0.15.5" in " ".join(cmd)
+    assert "--config" in cmd
     assert "check" in cmd
     assert "--output-format" in cmd
     assert "github" in cmd
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_ruff_reads_pyproject_natively(
+    mock_ci, mock_run, tmp_path, monkeypatch
+):
+    """ruff gets no --config flag when [tool.ruff] exists in pyproject.toml."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "test"\n\n[tool.ruff]\npreview = true\n'
+    )
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("ruff", extra_args=("check",))
+
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "uvx"
+    assert "--config" not in cmd
+    assert "check" in cmd
 
 
 @patch("repomatic.tool_runner.subprocess.run")
@@ -568,16 +589,35 @@ def test_binary_tool_context_no_binary_spec():
 # ---------------------------------------------------------------------------
 
 
-def test_resolve_config_reads_pyproject_skips():
-    """Tools with reads_pyproject=True return empty args immediately."""
+def test_resolve_config_reads_pyproject_with_section():
+    """Tools with reads_pyproject=True skip translation when [tool.X] exists."""
     spec = ToolSpec(
-        name="ruff",
-        version="0.15.0",
-        package="ruff",
+        name="testool",
+        version="1.0.0",
+        config_flag="--config",
+        default_config="testool.toml",
+        reads_pyproject=True,
+    )
+    args, tmp = resolve_config(spec, tool_config={"preview": True})
+    assert args == []
+    assert tmp is None
+
+
+def test_resolve_config_reads_pyproject_falls_through_to_bundled(
+    tmp_path, monkeypatch
+):
+    """Tools with reads_pyproject=True use bundled default when no config exists."""
+    monkeypatch.chdir(tmp_path)
+    spec = ToolSpec(
+        name="testool",
+        version="1.0.0",
+        config_flag="--config",
+        native_format=NativeFormat.TOML,
+        default_config="ruff.toml",
         reads_pyproject=True,
     )
     args, tmp = resolve_config(spec, tool_config={})
-    assert args == []
+    assert args == ["__bundled__"]
     assert tmp is None
 
 
@@ -774,6 +814,27 @@ def test_resolve_config_source_pyproject_section(tmp_path, monkeypatch):
 
     result = resolve_config_source(TOOL_REGISTRY["yamllint"])
     assert result == "[tool.yamllint] in pyproject.toml"
+
+
+def test_resolve_config_source_reads_pyproject_bundled_fallback(
+    tmp_path, monkeypatch
+):
+    """Reports bundled default for reads_pyproject tool when no config exists."""
+    monkeypatch.chdir(tmp_path)
+
+    result = resolve_config_source(TOOL_REGISTRY["ruff"])
+    assert result == "bundled default"
+
+
+def test_resolve_config_source_reads_pyproject_native(tmp_path, monkeypatch):
+    """Reports [tool.X] for reads_pyproject tool when pyproject section exists."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "test"\n\n[tool.ruff]\npreview = true\n'
+    )
+
+    result = resolve_config_source(TOOL_REGISTRY["ruff"])
+    assert result == "[tool.ruff] in pyproject.toml"
 
 
 def test_resolve_config_source_bare(tmp_path, monkeypatch):

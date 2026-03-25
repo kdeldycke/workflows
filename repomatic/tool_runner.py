@@ -181,8 +181,10 @@ class ToolSpec:
     reads_pyproject: bool = False
     """Whether the tool natively reads ``[tool.X]`` from ``pyproject.toml``.
 
-    When ``True``, repomatic skips config resolution entirely — the tool
-    handles its own config.
+    When ``True`` and ``[tool.X]`` exists in ``pyproject.toml``, repomatic
+    skips Level 2 translation (the tool reads it directly). Resolution still
+    falls through to Level 3 (bundled default) and Level 4 (bare) when no
+    config is found.
     """
 
     default_flags: tuple[str, ...] = ()
@@ -421,6 +423,10 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "ruff": ToolSpec(
         name="ruff",
         version="0.15.5",
+        native_config_files=("ruff.toml", ".ruff.toml"),
+        config_flag="--config",
+        native_format=NativeFormat.TOML,
+        default_config="ruff.toml",
         reads_pyproject=True,
     ),
     # typos configuration reference:
@@ -570,13 +576,6 @@ def resolve_config(
     :return: Tuple of (extra CLI args for config, temp file path to clean up).
         The temp file path is ``None`` when no temp file was created.
     """
-    # Tools that read pyproject.toml natively need no config resolution.
-    if spec.reads_pyproject:
-        logging.debug(
-            "%s reads pyproject.toml natively. Skipping resolution.", spec.name
-        )
-        return [], None
-
     # Level 1: Native config file exists in the repo.
     for config_file in spec.native_config_files:
         if Path(config_file).exists():
@@ -588,6 +587,13 @@ def resolve_config(
         tool_config = load_pyproject_tool_section(spec.name)
 
     if tool_config:
+        # Tool reads pyproject.toml natively — no translation needed.
+        if spec.reads_pyproject:
+            logging.debug(
+                "[tool.%s] in pyproject.toml; tool reads it natively.", spec.name
+            )
+            return [], None
+
         if not spec.config_flag:
             msg = (
                 f"{spec.name} has [tool.{spec.name}] config but no config_flag "
@@ -936,25 +942,21 @@ def resolve_config_source(spec: ToolSpec) -> str:
     :param name: Tool name (registry key).
     :param spec: Tool specification.
     """
-    if spec.reads_pyproject:
-        pyproject_path = Path("pyproject.toml")
-        if pyproject_path.exists():
-            data = tomllib.loads(pyproject_path.read_text(encoding="UTF-8"))
-            if data.get("tool", {}).get(spec.name):
-                return f"[tool.{spec.name}] in pyproject.toml"
-        return "(bare)"
-
+    # Level 1: Native config file.
     for config_file in spec.native_config_files:
         if Path(config_file).exists():
             return config_file
 
+    # Level 2: [tool.X] in pyproject.toml.
     tool_config = load_pyproject_tool_section(spec.name)
     if tool_config:
         return f"[tool.{spec.name}] in pyproject.toml"
 
+    # Level 3: Bundled default.
     if spec.default_config:
         return "bundled default"
 
+    # Level 4: Bare invocation.
     return "(bare)"
 
 

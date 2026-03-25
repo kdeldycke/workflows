@@ -18,6 +18,7 @@
 - Streamline Dependabot guidance in setup guide issue. Clarify that Renovate handles security PRs and that `renovate.yaml` auto-removes `dependabot.yml`. Link Actions tab directly to the `autofix.yaml` workflow.
 - Allow `repomatic init` to accept qualified `component/file` selectors (e.g., `repomatic init skills/repomatic-topics`). Uses the same syntax as the `exclude` config option. Rename `parse_exclude` to `parse_component_entries` and `_valid_file_ids` to `valid_file_ids` to support the shared parsing path.
 - Only auto-include `awesome-template` component for `awesome-*` repos when no explicit components are given. Previously, `repomatic init skills/repomatic-topics` on an awesome repo would also sync all awesome-template files.
+- Stop persisting `[tool.ruff]` defaults into downstream `pyproject.toml`. Bundled ruff config is now injected at runtime via `--config` when no `[tool.ruff]`, `ruff.toml`, or `.ruff.toml` exists. Remove the `repomatic init ruff` step from the `format-python` workflow job.
 - Add package version diff table to `sync-uv-lock` PRs. Lists updated, added, and removed packages with their old and new versions.
 - Document file naming conventions in `claude.md`: prefer `.yaml` over `.yml` and lowercase filenames everywhere, with a table of GitHub exceptions that require `.yml` or uppercase.
 - Fix awesome-template URL rewriting to also process `.yml` files in `.github/`.
