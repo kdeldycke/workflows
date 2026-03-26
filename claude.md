@@ -163,6 +163,10 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit — do not hard-wrap prose in markdown. Each sentence or logical clause should flow as a single long line; let the renderer handle wrapping.
 - Titles in markdown use sentence case.
 
+### `__init__.py` files
+
+Keep `__init__.py` files minimal. They are easy to overlook when scanning a codebase, so avoid placing logic, constants, or re-exports in them. Acceptable content: license headers, package docstrings, `from __future__ import annotations`, and `__version__` (standard Python convention for the root package). Anything else belongs in a named module.
+
 ### Imports
 
 - Import from the root package (`from repomatic import cli`), not submodules when possible.
