@@ -57,9 +57,10 @@ from .metadata import (
 from .registry import (
     COMPONENTS,
     DEFAULT_REPO,
-    ComponentKind,
-    RepoScope,
+    BundledComponent,
     InitDefault,
+    RepoScope,
+    ToolConfigComponent,
     _BY_NAME,
 )
 from .tool_runner import TOOL_REGISTRY, find_unmodified_configs
@@ -76,6 +77,8 @@ if TYPE_CHECKING:
 
     from .registry import Component
 
+    from .registry import Component
+
 
 # ---------------------------------------------------------------------------
 # Derived constants (computed from the registry in registry.py).
@@ -89,14 +92,14 @@ ALL_COMPONENTS: dict[str, str] = {
 FILE_COMPONENTS: dict[str, str] = {
     c.name: c.description
     for c in COMPONENTS
-    if c.kind != ComponentKind.TOOL_CONFIG
+    if not isinstance(c, ToolConfigComponent)
 }
 """Components that create files during init, with descriptions."""
 
 TOOL_COMPONENTS: dict[str, str] = {
     c.name: c.description
     for c in COMPONENTS
-    if c.kind == ComponentKind.TOOL_CONFIG
+    if isinstance(c, ToolConfigComponent)
 }
 """Tool config components merged into pyproject.toml during init."""
 
@@ -121,14 +124,14 @@ entries override both defaults and user excludes.
 COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
     c.name: tuple((f.source, f.target) for f in c.files)
     for c in COMPONENTS
-    if c.files and c.kind == ComponentKind.BUNDLED
+    if c.files and isinstance(c, BundledComponent)
 }
 """Bundled config files per component, with their output paths."""
 
 UNMODIFIED_COMPONENTS: frozenset[str] = frozenset(
     c.name
     for c in COMPONENTS
-    if c.files and c.kind == ComponentKind.BUNDLED and not c.keep_unmodified
+    if isinstance(c, BundledComponent) and c.files and not c.keep_unmodified
 )
 """Bundled components whose files are flagged when identical to defaults."""
 
@@ -172,7 +175,11 @@ SKILL_PHASES: dict[str, str] = {
 # Exportable files: all registry entries + tool runner bundled defaults.
 EXPORTABLE_FILES: dict[str, str | None] = {
     **{f.source: f.target for c in COMPONENTS for f in c.files},
-    **{c.source_file: None for c in COMPONENTS if c.source_file},
+    **{
+        c.source_file: None
+        for c in COMPONENTS
+        if isinstance(c, ToolConfigComponent)
+    },
     # Standalone linter configs from the tool runner (yamllint, zizmor).
     # These are bundled defaults used at runtime, not init components.
     **{
@@ -529,7 +536,7 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     :raises ValueError: If the config type is not supported.
     """
     comp = _BY_NAME.get(config_type)
-    if comp is None or comp.kind != ComponentKind.TOOL_CONFIG:
+    if not isinstance(comp, ToolConfigComponent):
         supported = ", ".join(TOOL_COMPONENTS)
         msg = f"Unknown config type: {config_type!r}. Supported: {supported}"
         raise ValueError(msg)
@@ -573,7 +580,9 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     return new_content
 
 
-def _find_insertion_point(content: str, config: Component) -> int:
+def _find_insertion_point(
+    content: str, config: ToolConfigComponent
+) -> int:
     """Find the best insertion point for a config section.
 
     :param content: The pyproject.toml content.
@@ -1129,7 +1138,10 @@ def _init_config_files(
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"
-            if not comp.keep_unmodified and existing == normalized:
+            if (
+                not getattr(comp, "keep_unmodified", False)
+                and existing == normalized
+            ):
                 result.unmodified_configs.append(rel)
                 logging.info(f"Unmodified (matches bundled default): {rel}")
                 continue
@@ -1228,9 +1240,9 @@ def find_unmodified_init_files() -> list[tuple[str, str]]:
     """
     unmodified: list[tuple[str, str]] = []
     for comp in COMPONENTS:
-        if comp.keep_unmodified or not comp.files:
+        if not isinstance(comp, BundledComponent):
             continue
-        if comp.kind != ComponentKind.BUNDLED:
+        if comp.keep_unmodified or not comp.files:
             continue
         for entry in comp.files:
             path = Path(entry.target)
@@ -1327,7 +1339,9 @@ def _init_tool_configs(
         return
     rel = pyproject_path.relative_to(output_dir).as_posix()
     for config_type in tool_configs:
-        section = _BY_NAME[config_type].tool_section
+        tc = _BY_NAME[config_type]
+        assert isinstance(tc, ToolConfigComponent)
+        section = tc.tool_section
         had_section = re.search(
             rf"^\[{re.escape(section)}\]",
             pyproject_path.read_text(encoding="UTF-8"),

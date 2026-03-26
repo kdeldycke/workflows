@@ -16,39 +16,20 @@
 """Declarative registry of all components managed by the ``init`` subcommand.
 
 Every resource the ``init`` subcommand can create, sync, or merge is declared
-here as a :class:`Component` instance in the :data:`COMPONENTS` tuple. Each
-component carries all its metadata: what kind it is, whether it is selected by
-default, which files it manages, and any per-file properties like repo-scope
-gating or opt-in keys.
+here as a :class:`Component` subclass instance in the :data:`COMPONENTS` tuple.
+Each component carries all its metadata: what kind it is, whether it is
+selected by default, which files it manages, and any per-file properties like
+repo-scope gating or config keys.
 
-All legacy constants (``ALL_COMPONENTS``, ``COMPONENT_FILES``,
-``DEFAULT_EXCLUSIONS``, ``INIT_CONFIGS``, ``REUSABLE_WORKFLOWS``, etc.) are
-computed from this single registry in :mod:`repomatic.init_project`.
+All derived constants (``ALL_COMPONENTS``, ``COMPONENT_FILES``,
+``REUSABLE_WORKFLOWS``, ``SKILL_PHASES``, etc.) are computed from this single
+registry in :mod:`repomatic.init_project`.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
-
-
-class ComponentKind(Enum):
-    """How the component delivers files to the target repository."""
-
-    BUNDLED = auto()
-    """Files copied from ``repomatic/data/`` to target path."""
-
-    TOOL_CONFIG = auto()
-    """Merged into ``pyproject.toml``."""
-
-    WORKFLOW = auto()
-    """Thin-caller generation and header sync."""
-
-    TEMPLATE = auto()
-    """Directory tree (awesome-template)."""
-
-    GENERATED = auto()
-    """Produced from code (changelog)."""
 
 
 class InitDefault(Enum):
@@ -123,18 +104,20 @@ class FileEntry:
             )
 
 
+# ---------------------------------------------------------------------------
+# Component hierarchy.
+# ---------------------------------------------------------------------------
+
+
 @dataclass(frozen=True)
 class Component:
-    """A group of related resources managed by the ``init`` subcommand."""
+    """Base class for all init components."""
 
     name: str
     """Component name used on the CLI (e.g., ``"skills"``)."""
 
     description: str
     """Human-readable description for help text."""
-
-    kind: ComponentKind
-    """How files are delivered to the target repository."""
 
     init_default: InitDefault = InitDefault.INCLUDE
     """How ``init`` treats this component when no explicit CLI selection
@@ -150,25 +133,66 @@ class Component:
     """Value assumed when ``config_key`` is absent from config. ``True``
     means opt-out (included unless disabled)."""
 
+
+@dataclass(frozen=True)
+class BundledComponent(Component):
+    """Files copied from ``repomatic/data/`` to a target path."""
+
     keep_unmodified: bool = False
     """Preserve files on disk even when identical to the bundled default.
     When ``False``, unmodified copies are flagged for cleanup by
     ``--delete-unmodified``."""
 
+
+@dataclass(frozen=True)
+class WorkflowComponent(Component):
+    """Thin-caller generation and header sync."""
+
+
+@dataclass(frozen=True)
+class ToolConfigComponent(Component):
+    """Merged into ``pyproject.toml``."""
+
     source_file: str = ""
-    """Filename in ``repomatic/data/`` (``TOOL_CONFIG`` kind only)."""
+    """Filename in ``repomatic/data/``."""
 
     tool_section: str = ""
-    """The ``[tool.X]`` section name to check for existence
-    (``TOOL_CONFIG`` kind only)."""
+    """The ``[tool.X]`` section name to check for existence."""
 
     insert_after: tuple[str, ...] = ()
     """Sections to insert after in ``pyproject.toml``
-    (``TOOL_CONFIG`` kind only, in priority order)."""
+    (in priority order)."""
 
     insert_before: tuple[str, ...] = ()
     """Sections to insert before in ``pyproject.toml``
-    (``TOOL_CONFIG`` kind only, if ``insert_after`` not found)."""
+    (if ``insert_after`` not found)."""
+
+    def __post_init__(self) -> None:
+        """Validate required fields."""
+        if not self.source_file:
+            msg = f"ToolConfigComponent {self.name!r} requires source_file"
+            raise ValueError(msg)
+        if not self.tool_section:
+            msg = (
+                f"ToolConfigComponent {self.name!r} requires tool_section"
+            )
+            raise ValueError(msg)
+        if self.files:
+            msg = (
+                f"ToolConfigComponent {self.name!r} must not have files"
+                " (tool configs are merged into pyproject.toml)"
+            )
+            raise ValueError(msg)
+
+
+@dataclass(frozen=True)
+class TemplateComponent(Component):
+    """Directory tree (awesome-template)."""
+
+
+@dataclass(frozen=True)
+class GeneratedComponent(Component):
+    """Produced from code (changelog)."""
 
 
 # ---------------------------------------------------------------------------
@@ -177,10 +201,9 @@ class Component:
 
 COMPONENTS: tuple[Component, ...] = (
     # --- Bundled file components ---
-    Component(
+    BundledComponent(
         name="labels",
         description="Label config files (labels.toml + labeller rules)",
-        kind=ComponentKind.BUNDLED,
         init_default=InitDefault.EXCLUDE,
         files=(
             FileEntry(
@@ -194,16 +217,14 @@ COMPONENTS: tuple[Component, ...] = (
             FileEntry("labels.toml"),
         ),
     ),
-    Component(
+    BundledComponent(
         name="renovate",
         description="Renovate config (renovate.json5)",
-        kind=ComponentKind.BUNDLED,
         files=(FileEntry("renovate.json5"),),
     ),
-    Component(
+    BundledComponent(
         name="skills",
         description="Claude Code skill definitions (.claude/skills/)",
-        kind=ComponentKind.BUNDLED,
         init_default=InitDefault.EXCLUDE,
         # Skills are user-facing documents, not machine configs. Keep them
         # on disk even when unmodified so Claude Code can always find them.
@@ -286,10 +307,9 @@ COMPONENTS: tuple[Component, ...] = (
         ),
     ),
     # --- Workflow component ---
-    Component(
+    WorkflowComponent(
         name="workflows",
         description="Thin-caller workflow files",
-        kind=ComponentKind.WORKFLOW,
         files=(
             FileEntry("autofix.yaml", ".github/workflows/autofix.yaml"),
             FileEntry("autolock.yaml", ".github/workflows/autolock.yaml"),
@@ -328,63 +348,56 @@ COMPONENTS: tuple[Component, ...] = (
         ),
     ),
     # --- Special components ---
-    Component(
+    TemplateComponent(
         name="awesome-template",
         description="Boilerplate for awesome-* repositories",
-        kind=ComponentKind.TEMPLATE,
         init_default=InitDefault.AUTO,
         config_key="awesome-template.sync",
     ),
-    Component(
+    GeneratedComponent(
         name="changelog",
         description="Minimal changelog.md",
-        kind=ComponentKind.GENERATED,
     ),
     # --- Tool config components (merged into pyproject.toml) ---
-    Component(
+    ToolConfigComponent(
         name="ruff",
         description="Ruff linter/formatter configuration",
-        kind=ComponentKind.TOOL_CONFIG,
         init_default=InitDefault.EXPLICIT,
         source_file="ruff.toml",
         tool_section="tool.ruff",
         insert_after=("tool.uv", "tool.uv.build-backend"),
         insert_before=("tool.pytest",),
     ),
-    Component(
+    ToolConfigComponent(
         name="pytest",
         description="Pytest test configuration",
-        kind=ComponentKind.TOOL_CONFIG,
         init_default=InitDefault.EXPLICIT,
         source_file="pytest.toml",
         tool_section="tool.pytest",
         insert_after=("tool.ruff", "tool.ruff.format"),
         insert_before=("tool.mypy",),
     ),
-    Component(
+    ToolConfigComponent(
         name="mypy",
         description="Mypy type checking configuration",
-        kind=ComponentKind.TOOL_CONFIG,
         init_default=InitDefault.EXPLICIT,
         source_file="mypy.toml",
         tool_section="tool.mypy",
         insert_after=("tool.pytest",),
         insert_before=("tool.nuitka", "tool.bumpversion"),
     ),
-    Component(
+    ToolConfigComponent(
         name="bumpversion",
         description="bump-my-version configuration",
-        kind=ComponentKind.TOOL_CONFIG,
         init_default=InitDefault.EXPLICIT,
         source_file="bumpversion.toml",
         tool_section="tool.bumpversion",
         insert_after=("tool.nuitka", "tool.mypy"),
         insert_before=("tool.typos",),
     ),
-    Component(
+    ToolConfigComponent(
         name="typos",
         description="Typos spell checker configuration",
-        kind=ComponentKind.TOOL_CONFIG,
         init_default=InitDefault.EXPLICIT,
         source_file="typos.toml",
         tool_section="tool.typos",
@@ -396,7 +409,7 @@ COMPONENTS: tuple[Component, ...] = (
 
 Single source of truth for all resources managed by the ``init`` subcommand.
 Every component declares its kind, selection default, file entries, and
-behavioral flags. All legacy constants are derived from this tuple.
+behavioral flags. All derived constants are computed from this tuple.
 """
 
 _BY_NAME: dict[str, Component] = {c.name: c for c in COMPONENTS}

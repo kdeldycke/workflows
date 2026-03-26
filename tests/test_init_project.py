@@ -45,7 +45,12 @@ from repomatic.init_project import (
     run_init,
     valid_file_ids,
 )
-from repomatic.registry import COMPONENTS, ComponentKind, _BY_NAME
+from repomatic.registry import (
+    COMPONENTS,
+    BundledComponent,
+    ToolConfigComponent,
+    _BY_NAME,
+)
 from repomatic.tool_runner import TOOL_REGISTRY
 
 if sys.version_info >= (3, 11):
@@ -58,16 +63,15 @@ else:
 
 
 def test_supported_config_types() -> None:
-    """Verify that expected config types are registered."""
+    """Verify that expected config types are registered as ToolConfigComponent."""
     for name in ("mypy", "ruff", "pytest", "bumpversion", "typos"):
-        comp = _BY_NAME[name]
-        assert comp.kind == ComponentKind.TOOL_CONFIG
+        assert isinstance(_BY_NAME[name], ToolConfigComponent)
 
 
 def test_config_type_has_required_fields() -> None:
     """Verify that each tool config component has all required fields."""
     for comp in COMPONENTS:
-        if comp.kind != ComponentKind.TOOL_CONFIG:
+        if not isinstance(comp, ToolConfigComponent):
             continue
         assert comp.source_file
         assert comp.tool_section
@@ -1601,7 +1605,7 @@ def test_every_data_file_maps_to_a_component() -> None:
     for comp in COMPONENTS:
         for entry in comp.files:
             registry_filenames.add(entry.source)
-        if comp.source_file:
+        if isinstance(comp, ToolConfigComponent):
             registry_filenames.add(comp.source_file)
 
     # Collect bundled default configs used by the tool runner at runtime.
@@ -1623,7 +1627,7 @@ def test_no_data_file_claimed_by_multiple_components() -> None:
 
     for comp in COMPONENTS:
         sources: list[str] = [e.source for e in comp.files]
-        if comp.source_file:
+        if isinstance(comp, ToolConfigComponent):
             sources.append(comp.source_file)
         for source_filename in sources:
             if source_filename in seen:
@@ -1661,6 +1665,145 @@ def test_tool_components_have_no_file_ids() -> None:
     """Tool components (ruff, pytest, etc.) do not support file-level exclusion."""
     for name in TOOL_COMPONENTS:
         assert valid_file_ids(name) == frozenset()
+
+
+def test_workflow_files_target_workflow_dir() -> None:
+    """All workflow file entries must target .github/workflows/."""
+    for entry in _BY_NAME["workflows"].files:
+        assert entry.target.startswith(".github/workflows/"), (
+            f"Workflow entry {entry.file_id!r} targets {entry.target!r},"
+            " expected .github/workflows/ prefix"
+        )
+
+
+def test_workflow_sources_are_yaml() -> None:
+    """All workflow source files must be .yaml."""
+    for entry in _BY_NAME["workflows"].files:
+        assert entry.source.endswith(".yaml"), (
+            f"Workflow entry {entry.file_id!r} source {entry.source!r}"
+            " is not a .yaml file"
+        )
+
+
+def test_skill_files_target_skill_dir() -> None:
+    """All skill file entries must target .claude/skills/{id}/SKILL.md."""
+    for entry in _BY_NAME["skills"].files:
+        assert entry.target.startswith(".claude/skills/"), (
+            f"Skill entry {entry.file_id!r} targets {entry.target!r},"
+            " expected .claude/skills/ prefix"
+        )
+        assert entry.target.endswith("/SKILL.md"), (
+            f"Skill entry {entry.file_id!r} targets {entry.target!r},"
+            " expected /SKILL.md suffix"
+        )
+
+
+def test_skill_sources_follow_naming_convention() -> None:
+    """Skill source files must be named skill-{id}.md."""
+    for entry in _BY_NAME["skills"].files:
+        expected_source = f"skill-{entry.file_id}.md"
+        assert entry.source == expected_source, (
+            f"Skill {entry.file_id!r}: source is {entry.source!r},"
+            f" expected {expected_source!r}"
+        )
+
+
+def test_skill_file_id_matches_target_dir() -> None:
+    """Skill file_id must match the directory name in the target path."""
+    for entry in _BY_NAME["skills"].files:
+        parts = entry.target.split("/")
+        # .claude/skills/{id}/SKILL.md → parts[2] is the id.
+        assert parts[2] == entry.file_id, (
+            f"Skill {entry.file_id!r}: target dir is {parts[2]!r}"
+        )
+
+
+def test_no_target_prefix_mixing_within_component() -> None:
+    """Files within a component must not mix unrelated target directories."""
+    for comp in COMPONENTS:
+        if not comp.files:
+            continue
+        prefixes = {entry.target.split("/")[0] for entry in comp.files}
+        # Allow mixing root files (no slash) with dotdir files within
+        # a component (e.g., labels has both .github/ and root files).
+        prefixes.discard(
+            next(
+                (entry.target for entry in comp.files if "/" not in entry.target),
+                None,
+            )
+        )
+        assert len(prefixes) <= 1, (
+            f"Component {comp.name!r} mixes target prefixes: {sorted(prefixes)}"
+        )
+
+
+def test_tool_config_rejects_missing_source_file() -> None:
+    """ToolConfigComponent raises ValueError without source_file."""
+    with pytest.raises(ValueError, match="requires source_file"):
+        ToolConfigComponent(
+            name="bad",
+            description="test",
+            tool_section="tool.bad",
+        )
+
+
+def test_tool_config_rejects_missing_tool_section() -> None:
+    """ToolConfigComponent raises ValueError without tool_section."""
+    with pytest.raises(ValueError, match="requires tool_section"):
+        ToolConfigComponent(
+            name="bad",
+            description="test",
+            source_file="bad.toml",
+        )
+
+
+def test_tool_config_rejects_files() -> None:
+    """ToolConfigComponent raises ValueError with file entries."""
+    from repomatic.registry import FileEntry
+
+    with pytest.raises(ValueError, match="must not have files"):
+        ToolConfigComponent(
+            name="bad",
+            description="test",
+            source_file="bad.toml",
+            tool_section="tool.bad",
+            files=(FileEntry("bad.toml"),),
+        )
+
+
+def test_file_ids_unique_within_component() -> None:
+    """File IDs must be unique within each component."""
+    for comp in COMPONENTS:
+        ids = [entry.file_id for entry in comp.files]
+        assert len(ids) == len(set(ids)), (
+            f"Component {comp.name!r} has duplicate file_ids:"
+            f" {sorted(fid for fid in ids if ids.count(fid) > 1)}"
+        )
+
+
+def test_component_names_unique() -> None:
+    """Component names must be unique across the registry."""
+    names = [c.name for c in COMPONENTS]
+    assert len(names) == len(set(names)), (
+        f"Duplicate component names:"
+        f" {sorted(n for n in names if names.count(n) > 1)}"
+    )
+
+
+def test_config_key_has_config_default() -> None:
+    """Entries with config_key must have an intentional config_default.
+
+    File entries default to ``False`` (opt-in). Component entries default
+    to ``True`` (opt-out). This test verifies the pairing exists — not the
+    specific default value.
+    """
+    for comp in COMPONENTS:
+        if comp.config_key:
+            # Component-level config_key exists; config_default is declared.
+            assert isinstance(comp.config_default, bool)
+        for entry in comp.files:
+            if entry.config_key:
+                assert isinstance(entry.config_default, bool)
 
 
 def test_tools_with_bundled_defaults_not_init_components() -> None:
