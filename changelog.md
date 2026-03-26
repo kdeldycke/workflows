@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Reduce CI jobs on pull requests by skipping release builds, experimental Python versions, redundant architecture variants, and install/architecture verification tests. Full matrix still runs on push to main.
 - Make `exclude` config additive to default exclusions (`labels`, `skills`). User `exclude` entries now add to the defaults instead of replacing them. Add `include` config to force-include components that are excluded by default.
 - Add `--delete-unmodified` flag to `repomatic init` to automatically remove config files identical to bundled defaults instead of only reporting them. Renamed from `--delete-redundant`.
 - Remove deprecated `WORKFLOW_UPDATE_GITHUB_PAT` secret and all backward-compatibility fallbacks. Downstream repos must use `REPOMATIC_PAT`.
