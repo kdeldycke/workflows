@@ -55,6 +55,7 @@ from .metadata import (
     resolve_source_paths,
 )
 from .registry import (
+    ALL_COMPONENTS,
     COMPONENTS,
     DEFAULT_REPO,
     BundledComponent,
@@ -62,6 +63,9 @@ from .registry import (
     RepoScope,
     ToolConfigComponent,
     _BY_NAME,
+    excluded_rel_path,
+    parse_component_entries,
+    valid_file_ids,
 )
 from .tool_runner import TOOL_REGISTRY, find_unmodified_configs
 
@@ -83,11 +87,6 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Derived constants (computed from the registry in registry.py).
 # ---------------------------------------------------------------------------
-
-ALL_COMPONENTS: dict[str, str] = {
-    c.name: c.description for c in COMPONENTS
-}
-"""All available init components."""
 
 FILE_COMPONENTS: dict[str, str] = {
     c.name: c.description
@@ -634,95 +633,6 @@ def default_version_pin() -> str:
     return f"v{version}"
 
 
-def _excluded_rel_path(component: str, file_id: str) -> str | None:
-    """Map a component and file identifier to its relative output path.
-
-    Returns ``None`` when the identifier cannot be resolved (e.g., for tool
-    config components that have no file-level exclusion support).
-    """
-    comp = _BY_NAME.get(component)
-    if comp is None:
-        return None
-    for entry in comp.files:
-        if entry.file_id == file_id:
-            return entry.target
-    return None
-
-
-def valid_file_ids(component: str) -> frozenset[str]:
-    """Return valid file identifiers for a component.
-
-    Components with :attr:`~registry.Component.files` entries report their
-    declared ``file_id`` values. Returns an empty set for components without
-    file-level selection (e.g., changelog, tool configs).
-    """
-    comp = _BY_NAME.get(component)
-    if comp is None:
-        return frozenset()
-    return frozenset(entry.file_id for entry in comp.files)
-
-
-def parse_component_entries(
-    entries: Sequence[str],
-    *,
-    context: str = "entry",
-) -> tuple[set[str], dict[str, set[str]]]:
-    """Parse component entries into full-component and file-level sets.
-
-    Bare names (no ``/``) must be component names from ``ALL_COMPONENTS``.
-    Qualified ``component/identifier`` entries target individual files.
-    Raises ``ValueError`` on unknown entries.
-
-    Used by both the ``exclude`` config path and the CLI positional
-    selection, with *context* controlling error message wording.
-
-    :param context: Label for error messages (e.g., ``"exclude"``,
-        ``"selection"``).
-    :return: ``(full_components, file_selections)`` where
-        ``file_selections`` maps component names to sets of file identifiers.
-    """
-    full_components: set[str] = set()
-    file_selections: dict[str, set[str]] = {}
-
-    for entry in entries:
-        if "/" in entry:
-            component, file_id = entry.split("/", 1)
-            if component not in ALL_COMPONENTS:
-                msg = (
-                    f"Unknown component {component!r} in {context}"
-                    f" {entry!r}. Valid components:"
-                    f" {', '.join(sorted(ALL_COMPONENTS))}"
-                )
-                raise ValueError(msg)
-            valid = valid_file_ids(component)
-            if not valid:
-                msg = (
-                    f"Component {component!r} does not support file-level"
-                    f" selection in {context} {entry!r}. Use the bare"
-                    f" component name {component!r} instead."
-                )
-                raise ValueError(msg)
-            if file_id not in valid:
-                msg = (
-                    f"Unknown file {file_id!r} in {context} {entry!r}."
-                    f" Valid identifiers for {component!r}:"
-                    f" {', '.join(sorted(valid))}"
-                )
-                raise ValueError(msg)
-            file_selections.setdefault(component, set()).add(file_id)
-        elif entry in ALL_COMPONENTS:
-            full_components.add(entry)
-        else:
-            msg = (
-                f"Unknown {context} {entry!r}. Use a component name"
-                f" ({', '.join(sorted(ALL_COMPONENTS))}) or a qualified"
-                " component/file entry (e.g., 'workflows/debug.yaml')."
-            )
-            raise ValueError(msg)
-
-    return full_components, file_selections
-
-
 @dataclass
 class InitResult:
     """Result of a repository initialization run."""
@@ -883,7 +793,7 @@ def run_init(
     # Detect excluded files that still exist on disk.
     for comp, file_ids in sorted(excluded_files.items()):
         for fid in sorted(file_ids):
-            rel = _excluded_rel_path(comp, fid)
+            rel = excluded_rel_path(comp, fid)
             if rel and (output_dir / rel).exists():
                 result.excluded_existing.append(rel)
 

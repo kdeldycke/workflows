@@ -100,14 +100,18 @@ from .images import (
     optimize_images,
 )
 from .init_project import (
-    ALL_COMPONENTS,
     COMPONENT_FILES,
     SKILL_PHASES,
     export_content,
     run_init,
+)
+from .registry import (
+    ALL_COMPONENTS,
+    DEFAULT_REPO,
+    SKILL_PHASE_ORDER,
+    _BY_NAME,
     valid_file_ids,
 )
-from .registry import DEFAULT_REPO, SKILL_PHASE_ORDER, _BY_NAME
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (

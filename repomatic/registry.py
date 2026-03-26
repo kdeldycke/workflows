@@ -31,6 +31,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 
 class InitDefault(Enum):
     """How ``init`` treats the component when no explicit CLI args are given."""
@@ -443,3 +447,106 @@ SKILL_PHASE_ORDER: tuple[str, ...] = (
     "Release",
 )
 """Canonical display order for lifecycle phases in ``list-skills`` output."""
+
+
+# ---------------------------------------------------------------------------
+# Registry queries.
+# ---------------------------------------------------------------------------
+
+ALL_COMPONENTS: dict[str, str] = {
+    c.name: c.description for c in COMPONENTS
+}
+"""All available init components."""
+
+
+def valid_file_ids(component: str) -> frozenset[str]:
+    """Return valid file identifiers for a component.
+
+    Components with file entries report their declared ``file_id`` values.
+    Returns an empty set for components without file-level selection
+    (e.g., changelog, tool configs).
+    """
+    comp = _BY_NAME.get(component)
+    if comp is None:
+        return frozenset()
+    return frozenset(entry.file_id for entry in comp.files)
+
+
+def excluded_rel_path(component: str, file_id: str) -> str | None:
+    """Map a component and file identifier to its relative output path.
+
+    Returns ``None`` when the identifier cannot be resolved (e.g., for tool
+    config components that have no file-level exclusion support).
+    """
+    comp = _BY_NAME.get(component)
+    if comp is None:
+        return None
+    for entry in comp.files:
+        if entry.file_id == file_id:
+            return entry.target
+    return None
+
+
+def parse_component_entries(
+    entries: Sequence[str],
+    *,
+    context: str = "entry",
+) -> tuple[set[str], dict[str, set[str]]]:
+    """Parse component entries into full-component and file-level sets.
+
+    Bare names (no ``/``) must be component names from
+    :data:`ALL_COMPONENTS`. Qualified ``component/identifier`` entries
+    target individual files. Raises ``ValueError`` on unknown entries.
+
+    Used by both the ``exclude`` config path and the CLI positional
+    selection, with *context* controlling error message wording.
+
+    :param context: Label for error messages (e.g., ``"exclude"``,
+        ``"selection"``).
+    :return: ``(full_components, file_selections)`` where
+        ``file_selections`` maps component names to sets of file
+        identifiers.
+    """
+    full_components: set[str] = set()
+    file_selections: dict[str, set[str]] = {}
+
+    for entry in entries:
+        if "/" in entry:
+            component, file_id = entry.split("/", 1)
+            if component not in ALL_COMPONENTS:
+                msg = (
+                    f"Unknown component {component!r} in {context}"
+                    f" {entry!r}. Valid components:"
+                    f" {', '.join(sorted(ALL_COMPONENTS))}"
+                )
+                raise ValueError(msg)
+            valid = valid_file_ids(component)
+            if not valid:
+                msg = (
+                    f"Component {component!r} does not support"
+                    f" file-level selection in {context} {entry!r}."
+                    f" Use the bare component name {component!r}"
+                    " instead."
+                )
+                raise ValueError(msg)
+            if file_id not in valid:
+                msg = (
+                    f"Unknown file {file_id!r} in {context}"
+                    f" {entry!r}. Valid identifiers for"
+                    f" {component!r}:"
+                    f" {', '.join(sorted(valid))}"
+                )
+                raise ValueError(msg)
+            file_selections.setdefault(component, set()).add(file_id)
+        elif entry in ALL_COMPONENTS:
+            full_components.add(entry)
+        else:
+            msg = (
+                f"Unknown {context} {entry!r}. Use a component name"
+                f" ({', '.join(sorted(ALL_COMPONENTS))}) or a"
+                " qualified component/file entry"
+                " (e.g., 'workflows/debug.yaml')."
+            )
+            raise ValueError(msg)
+
+    return full_components, file_selections

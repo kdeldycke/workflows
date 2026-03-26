@@ -24,7 +24,6 @@ from tempfile import NamedTemporaryFile
 import pytest
 
 from repomatic.init_project import (
-    ALL_COMPONENTS,
     ALL_WORKFLOW_FILES,
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
@@ -41,14 +40,15 @@ from repomatic.init_project import (
     export_content,
     get_data_content,
     init_config,
-    parse_component_entries,
     run_init,
-    valid_file_ids,
 )
 from repomatic.registry import (
+    ALL_COMPONENTS,
     COMPONENTS,
     BundledComponent,
     ToolConfigComponent,
+    parse_component_entries,
+    valid_file_ids,
     _BY_NAME,
 )
 from repomatic.tool_runner import TOOL_REGISTRY
