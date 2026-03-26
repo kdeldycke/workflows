@@ -915,7 +915,13 @@ def run_init(
     # surface in excluded_existing when the file is actually on disk.
     # Skip auto-exclusion in the upstream source repo — it is the origin
     # of all bundled files (skills, opt-in workflows, configs).
-    if not _is_source_repo(output_dir):
+    if _is_source_repo(output_dir):
+        # Bundled components in DEFAULT_EXCLUSIONS (skills, labels) are the
+        # source of truth in the upstream repo. Remove them from
+        # excluded_files so they are never flagged for deletion.
+        for comp in COMPONENT_FILES:
+            excluded_files.pop(comp, None)
+    else:
         if is_awesome_repo:
             for wf in ("changelog.yaml", "debug.yaml", "release.yaml"):
                 excluded_files.setdefault("workflows", set()).add(wf)
