@@ -144,6 +144,10 @@ jobs:
       - name: Build package
         run: uv --no-progress build
       - name: Generate build attestations
+        # OIDC tokens are not available for fork PRs, skip attestation.
+        if: >-
+          github.event_name != 'pull_request'
+          || !github.event.pull_request.head.repo.fork
         uses: actions/attest-build-provenance@v3.2.0
         with:
           subject-path: ./dist/*
