@@ -32,59 +32,32 @@ concurrency:
 
 jobs:
 
+  metadata:
+    name: 🧬 Project metadata
+    runs-on: ubuntu-slim
+    outputs:
+      metadata: ${{ steps.metadata.outputs.metadata }}
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.4.0
+      - name: Run repomatic metadata
+        id: metadata
+        run: >
+          uvx --no-progress --from . repomatic metadata
+          --format github-json --output "$GITHUB_OUTPUT"
+          build_targets cli_scripts package_name
+          test_matrix test_matrix_pr
+
   tests:
+    needs:
+      - metadata
     strategy:
       # We delegate the failure decision to each job, by the way of the "continue-on-error" flag.
       fail-fast: false
-      matrix:
-        # Available OS: https://github.com/actions/runner-images#available-images
-        # Only targets 2 variants per platforms to keep the matrix small.
-        os:
-          - ubuntu-24.04-arm # arm64
-          - ubuntu-slim      # x86
-          - macos-26         # arm64
-          - macos-15-intel   # x86
-          - windows-11-arm   # arm64
-          - windows-2025     # x86
-        python-version:
-          - "3.10"
-          # Ignore intermediate versions to reduce CI load.
-          # - "3.11"
-          # - "3.12"
-          # - "3.13"
-          - "3.14"
-          - "3.14t"
-          - "3.15"
-          - "3.15t"
-        exclude:
-          # Python 3.10 has no native ARM64 Windows build.
-          - os: windows-11-arm
-            python-version: "3.10"
-        include:
-          # Default all jobs as stable, unless marked otherwise below.
-          - state: stable
-          # XXX Python 3.15 is still in development.
-          - state: unstable
-            python-version: "3.15"
-          - state: unstable
-            python-version: "3.15t"
-          # Skip experimental Python versions on PRs to reduce CI load.
-          - full-matrix-only: true
-            python-version: "3.14t"
-          - full-matrix-only: true
-            python-version: "3.15"
-          - full-matrix-only: true
-            python-version: "3.15t"
-          # Skip redundant architecture variants on PRs.
-          - full-matrix-only: true
-            os: macos-15-intel
-          - full-matrix-only: true
-            os: ubuntu-24.04-arm
-          - full-matrix-only: true
-            os: windows-11-arm
+      # Matrix is pre-computed by repomatic metadata. PRs get a reduced matrix
+      # (fewer OS variants and Python versions) to save CI minutes.
+      matrix: ${{ github.event_name != 'pull_request' && fromJSON(needs.metadata.outputs.metadata).test_matrix || fromJSON(needs.metadata.outputs.metadata).test_matrix_pr }}
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }} / py${{ matrix.python-version }}"
-    # Skip experimental Python versions and redundant architecture variants on PRs.
-    if: "!matrix.full-matrix-only || github.event_name != 'pull_request'"
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
@@ -159,21 +132,6 @@ jobs:
       - name: Self-tests against test plan
         # test-plan-file is auto-detected from [tool.repomatic] in pyproject.toml.
         run: uv run --frozen --no-progress -- repomatic test-plan --command "uv run -- repomatic"
-
-  metadata:
-    name: 🧬 Project metadata
-    runs-on: ubuntu-slim
-    outputs:
-      metadata: ${{ steps.metadata.outputs.metadata }}
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
-      - name: Run repomatic metadata
-        id: metadata
-        run: >
-          uvx --no-progress --from . repomatic metadata
-          --format github-json --output "$GITHUB_OUTPUT"
-          build_targets cli_scripts package_name
 
   test-package-install:
     name: 📦 Package install

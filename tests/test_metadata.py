@@ -462,6 +462,8 @@ expected = {
         "repomatic/lint_repo.py",
         "repomatic/mailmap.py",
         "repomatic/metadata.py",
+        "repomatic/pypi.py",
+        "repomatic/registry.py",
         "repomatic/release_prep.py",
         "repomatic/renovate.py",
         "repomatic/sponsor.py",
@@ -484,6 +486,7 @@ expected = {
         "tests/test_mailmap.py",
         "tests/test_matrix.py",
         "tests/test_metadata.py",
+        "tests/test_platform_keys.py",
         "tests/test_pr_body.py",
         "tests/test_prebake.py",
         "tests/test_release_prep.py",
@@ -549,6 +552,7 @@ expected = {
     "doc_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/docs/operation-contracts.md",
         ".claude/skills/awesome-triage/SKILL.md",
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
@@ -606,6 +610,7 @@ expected = {
     "markdown_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
+        ".claude/docs/operation-contracts.md",
         ".claude/skills/awesome-triage/SKILL.md",
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
@@ -877,6 +882,45 @@ expected = {
                 "bin_name": regex(r"repomatic-[\d.]+(\.dev\d+)?-windows-x64\.exe"),
             },
         ]),
+    },
+    "test_matrix": {
+        "os": [
+            "ubuntu-24.04-arm",
+            "ubuntu-slim",
+            "macos-26",
+            "macos-15-intel",
+            "windows-11-arm",
+            "windows-2025",
+        ],
+        "python-version": [
+            "3.10",
+            "3.14",
+            "3.14t",
+            "3.15",
+            "3.15t",
+        ],
+        "include": [
+            {"state": "stable"},
+            {"state": "unstable", "python-version": "3.15"},
+            {"state": "unstable", "python-version": "3.15t"},
+        ],
+        "exclude": [
+            {"os": "windows-11-arm", "python-version": "3.10"},
+        ],
+    },
+    "test_matrix_pr": {
+        "os": [
+            "ubuntu-slim",
+            "macos-26",
+            "windows-2025",
+        ],
+        "python-version": [
+            "3.10",
+            "3.14",
+        ],
+        "include": [
+            {"state": "stable"},
+        ],
     },
     # Bump allowed values depend on comparing current version vs latest git tag.
     # These can be True or False depending on the current development cycle state.

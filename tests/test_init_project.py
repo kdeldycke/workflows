@@ -35,6 +35,7 @@ from repomatic.init_project import (
     run_init,
 )
 from repomatic.registry import (
+    _BY_NAME,
     ALL_COMPONENTS,
     ALL_WORKFLOW_FILES,
     COMPONENTS,
@@ -42,7 +43,6 @@ from repomatic.registry import (
     SKILL_PHASES,
     BundledComponent,
     ToolConfigComponent,
-    _BY_NAME,
     parse_component_entries,
     valid_file_ids,
 )

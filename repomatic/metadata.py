@@ -331,10 +331,10 @@ from .changelog import (
     Changelog,
     build_release_admonition,
 )
-from .pypi import PYPI_PROJECT_URL
 from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
 from .github.gh import run_gh_command
 from .github.matrix import Matrix
+from .pypi import PYPI_PROJECT_URL
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -811,6 +811,8 @@ _METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
     "release_commits_matrix": "Matrix of release commits with long and short SHA values.",
     "build_targets": "List of Nuitka build targets for all platforms.",
     "nuitka_matrix": "Matrix for Nuitka compilation workflows.",
+    "test_matrix": "Full test matrix for non-PR events.",
+    "test_matrix_pr": "Reduced test matrix for pull requests.",
     "minor_bump_allowed": "Minor version bump is allowed by commit history.",
     "major_bump_allowed": "Major version bump is allowed by commit history.",
 }
@@ -1119,6 +1121,58 @@ FLAT_BUILD_TARGETS = [
     for target_id, target_data in NUITKA_BUILD_TARGETS.items()
 ]
 """List of build targets in a flat format, suitable for matrix inclusion."""
+
+
+TEST_RUNNERS_FULL = (
+    "ubuntu-24.04-arm",
+    "ubuntu-slim",
+    "macos-26",
+    "macos-15-intel",
+    "windows-11-arm",
+    "windows-2025",
+)
+"""GitHub-hosted runners for the full test matrix.
+
+Two variants per platform (one per architecture) to keep the matrix small.
+See `available images <https://github.com/actions/runner-images#available-images>`_.
+"""
+
+TEST_RUNNERS_PR = (
+    "ubuntu-slim",
+    "macos-26",
+    "windows-2025",
+)
+"""Reduced runner set for pull request test matrices.
+
+One runner per platform, skipping redundant architecture variants.
+"""
+
+TEST_PYTHON_FULL = (
+    "3.10",
+    "3.14",
+    "3.14t",
+    "3.15",
+    "3.15t",
+)
+"""Python versions for the full test matrix.
+
+Intermediate versions (3.11, 3.12, 3.13) are skipped to reduce CI load.
+"""
+
+TEST_PYTHON_PR = (
+    "3.10",
+    "3.14",
+)
+"""Reduced Python version set for pull request test matrices.
+
+Skips experimental versions (free-threaded, development) to reduce CI load.
+"""
+
+UNSTABLE_PYTHON_VERSIONS = frozenset({"3.15", "3.15t"})
+"""Python versions still in development.
+
+Jobs using these versions run with ``continue-on-error`` in CI.
+"""
 
 
 MYPY_VERSION_MIN: Final = (3, 8)
@@ -2671,6 +2725,37 @@ class Metadata:
         return matrix
 
     @cached_property
+    def test_matrix(self) -> Matrix:
+        """Full test matrix for non-PR events.
+
+        Combines all runner OS images and Python versions, excluding known
+        incompatible combinations. Marks development Python versions as
+        unstable so CI can use ``continue-on-error``.
+        """
+        matrix = Matrix()
+        matrix.add_variation("os", TEST_RUNNERS_FULL)
+        matrix.add_variation("python-version", TEST_PYTHON_FULL)
+        # Python 3.10 has no native ARM64 Windows build.
+        matrix.add_excludes({"os": "windows-11-arm", "python-version": "3.10"})
+        matrix.add_includes({"state": "stable"})
+        for version in sorted(UNSTABLE_PYTHON_VERSIONS):
+            matrix.add_includes({"state": "unstable", "python-version": version})
+        return matrix
+
+    @cached_property
+    def test_matrix_pr(self) -> Matrix:
+        """Reduced test matrix for pull requests.
+
+        Skips experimental Python versions and redundant architecture
+        variants to reduce CI load on PRs.
+        """
+        matrix = Matrix()
+        matrix.add_variation("os", TEST_RUNNERS_PR)
+        matrix.add_variation("python-version", TEST_PYTHON_PR)
+        matrix.add_includes({"state": "stable"})
+        return matrix
+
+    @cached_property
     def release_notes(self) -> str | None:
         """Generate notes to be attached to the GitHub release.
 
@@ -2851,6 +2936,8 @@ class Metadata:
             "release_commits_matrix": self.release_commits_matrix,
             "build_targets": FLAT_BUILD_TARGETS,
             "nuitka_matrix": self.nuitka_matrix,
+            "test_matrix": self.test_matrix,
+            "test_matrix_pr": self.test_matrix_pr,
             "minor_bump_allowed": self.minor_bump_allowed,
             "major_bump_allowed": self.major_bump_allowed,
         }
