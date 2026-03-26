@@ -1510,5 +1510,3 @@ def test_config_reference():
     # Every row has a non-empty description.
     for option, ftype, default, desc in rows:
         assert desc, f"Empty description for {option}"
-
-

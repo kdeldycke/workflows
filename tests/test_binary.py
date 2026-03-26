@@ -18,12 +18,11 @@
 
 from __future__ import annotations
 
+from string import ascii_lowercase, digits
 from unittest.mock import patch
 
 import pytest
-
 from extra_platforms import ALL_IDS
-from string import ascii_lowercase, digits
 
 from repomatic.binary import (
     BINARY_ARCH_MAPPINGS,
