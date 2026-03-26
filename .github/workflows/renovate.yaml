@@ -72,7 +72,7 @@ jobs:
           commit-message: Migrate from Dependabot to Renovate
           title: Migrate from Dependabot to Renovate
           body: ${{ steps.checks.outputs.pr_body }}
-          labels: "📦 dependencies"
+          labels: "🔗 dependencies"
           branch: migrate-to-renovate
           delete-branch: true
 
@@ -182,6 +182,6 @@ jobs:
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
           title: ${{ steps.pr-metadata.outputs.title }}
           body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "📦 dependencies"
+          labels: "🔗 dependencies"
           branch: sync-uv-lock
           delete-branch: true

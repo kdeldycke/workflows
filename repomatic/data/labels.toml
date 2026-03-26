@@ -35,14 +35,10 @@ color = "a4a837"
 description = "Continuous integration and automation"
 
 [[profiles.default.labels]]
-name = "📦 dependencies"
+name = "🔗 dependencies"
 color = "aaa666"
 description = "Dependency changes"
-
-[[profiles.default.labels]]
-name = "⚠️ stale dependency"
-color = "e4a12c"
-description = "Dependency appears abandoned"
+rename-from = ["📦 dependencies", "⚠️ stale dependency"]
 
 [[profiles.default.labels]]
 name = "📚 documentation"

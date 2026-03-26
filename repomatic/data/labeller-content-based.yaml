@@ -19,7 +19,7 @@
   - "actions"
   - "gitignore"
 
-"📦 dependencies":
+"🔗 dependencies":
   - "renovate"
   - ".lock"
   - "pyproject.toml"

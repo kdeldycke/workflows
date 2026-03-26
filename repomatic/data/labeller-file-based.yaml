@@ -14,7 +14,7 @@
       - pyproject.toml
       - .gitignore
 
-"📦 dependencies":
+"🔗 dependencies":
   - changed-files:
     - any-glob-to-any-file:
       - renovate.json5

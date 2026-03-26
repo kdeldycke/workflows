@@ -7,8 +7,8 @@
   ],
 
   // PR and issue settings.
-  labels: ["📦 dependencies"],
-  dependencyDashboardLabels: ["📦 dependencies"],
+  labels: ["🔗 dependencies"],
+  dependencyDashboardLabels: ["🔗 dependencies"],
   assignees: ["kdeldycke"],
 
   // Schedule settings.
@@ -47,7 +47,6 @@
     {
       description: "Flag dependencies with no recent releases.",
       matchCurrentAge: "> 2 years",
-      addLabels: ["⚠️ stale dependency"],
     },
     {
       description: "Update SHA-256 checksums after binary version bumps in workflows.",
@@ -89,7 +88,7 @@
   // Requires "Dependabot alerts" read permission on the token.
   vulnerabilityAlerts: {
     enabled: true,
-    labels: ["📦 dependencies", "💣 security"],
+    labels: ["🔗 dependencies", "💣 security"],
   },
 
   // Custom managers for hard-coded versions in workflow files.
