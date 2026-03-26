@@ -51,17 +51,17 @@ class ComponentKind(Enum):
     """Produced from code (changelog)."""
 
 
-class SelectionDefault(Enum):
-    """How the component behaves when no explicit CLI selection is made."""
+class InitDefault(Enum):
+    """How ``init`` treats the component when no explicit CLI args are given."""
 
-    SELECTED = auto()
+    INCLUDE = auto()
     """Included by default (e.g., changelog, renovate, workflows)."""
 
-    EXCLUDED = auto()
+    EXCLUDE = auto()
     """In default set but excluded unless explicitly included
     (e.g., labels, skills)."""
 
-    AUTO_ONLY = auto()
+    AUTO = auto()
     """Auto-included only for matching repos (e.g., awesome-template)."""
 
     EXPLICIT = auto()
@@ -122,7 +122,8 @@ class Component:
     :param name: Component name used on the CLI (e.g., ``"skills"``).
     :param description: Human-readable description for help text.
     :param kind: How files are delivered to the target repository.
-    :param selection: Default selection behavior when no CLI args given.
+    :param init_default: How ``init`` treats this component when no explicit
+        CLI selection is made.
     :param files: File entries this component manages.
     :param check_redundancy: Check files for byte-for-byte match with bundled
         defaults (labels, renovate). Skills excluded because they are
@@ -140,7 +141,7 @@ class Component:
     name: str
     description: str
     kind: ComponentKind
-    selection: SelectionDefault = SelectionDefault.SELECTED
+    init_default: InitDefault = InitDefault.INCLUDE
     files: tuple[FileEntry, ...] = ()
     check_redundancy: bool = False
     source_file: str = ""
@@ -159,7 +160,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="labels",
         description="Label config files (labels.toml + labeller rules)",
         kind=ComponentKind.BUNDLED,
-        selection=SelectionDefault.EXCLUDED,
+        init_default=InitDefault.EXCLUDE,
         check_redundancy=True,
         files=(
             FileEntry(
@@ -184,7 +185,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="skills",
         description="Claude Code skill definitions (.claude/skills/)",
         kind=ComponentKind.BUNDLED,
-        selection=SelectionDefault.EXCLUDED,
+        init_default=InitDefault.EXCLUDE,
         files=(
             FileEntry(
                 "skill-awesome-triage.md",
@@ -309,7 +310,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="awesome-template",
         description="Boilerplate for awesome-* repositories",
         kind=ComponentKind.TEMPLATE,
-        selection=SelectionDefault.AUTO_ONLY,
+        init_default=InitDefault.AUTO,
     ),
     Component(
         name="changelog",
@@ -321,7 +322,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="ruff",
         description="Ruff linter/formatter configuration",
         kind=ComponentKind.TOOL_CONFIG,
-        selection=SelectionDefault.EXPLICIT,
+        init_default=InitDefault.EXPLICIT,
         source_file="ruff.toml",
         tool_section="tool.ruff",
         insert_after=("tool.uv", "tool.uv.build-backend"),
@@ -331,7 +332,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="pytest",
         description="Pytest test configuration",
         kind=ComponentKind.TOOL_CONFIG,
-        selection=SelectionDefault.EXPLICIT,
+        init_default=InitDefault.EXPLICIT,
         source_file="pytest.toml",
         tool_section="tool.pytest",
         insert_after=("tool.ruff", "tool.ruff.format"),
@@ -341,7 +342,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="mypy",
         description="Mypy type checking configuration",
         kind=ComponentKind.TOOL_CONFIG,
-        selection=SelectionDefault.EXPLICIT,
+        init_default=InitDefault.EXPLICIT,
         source_file="mypy.toml",
         tool_section="tool.mypy",
         insert_after=("tool.pytest",),
@@ -351,7 +352,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="bumpversion",
         description="bump-my-version configuration",
         kind=ComponentKind.TOOL_CONFIG,
-        selection=SelectionDefault.EXPLICIT,
+        init_default=InitDefault.EXPLICIT,
         source_file="bumpversion.toml",
         tool_section="tool.bumpversion",
         insert_after=("tool.nuitka", "tool.mypy"),
@@ -361,7 +362,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="typos",
         description="Typos spell checker configuration",
         kind=ComponentKind.TOOL_CONFIG,
-        selection=SelectionDefault.EXPLICIT,
+        init_default=InitDefault.EXPLICIT,
         source_file="typos.toml",
         tool_section="tool.typos",
         insert_after=("tool.bumpversion",),

@@ -59,7 +59,7 @@ from .registry import (
     DEFAULT_REPO,
     ComponentKind,
     RepoScope,
-    SelectionDefault,
+    InitDefault,
     _BY_NAME,
 )
 from .tool_runner import TOOL_REGISTRY, find_redundant_configs
@@ -103,14 +103,14 @@ TOOL_COMPONENTS: dict[str, str] = {
 DEFAULT_COMPONENTS: tuple[str, ...] = tuple(sorted(
     c.name
     for c in COMPONENTS
-    if c.selection in (SelectionDefault.SELECTED, SelectionDefault.EXCLUDED)
+    if c.init_default in (InitDefault.INCLUDE, InitDefault.EXCLUDE)
 ))
 """Components included when no explicit selection is made."""
 
 DEFAULT_EXCLUSIONS: tuple[str, ...] = tuple(sorted(
     c.name
     for c in COMPONENTS
-    if c.selection == SelectionDefault.EXCLUDED
+    if c.init_default == InitDefault.EXCLUDE
 ))
 """Components excluded by default when no explicit selection is made.
 
