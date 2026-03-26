@@ -56,7 +56,10 @@ jobs:
       fail-fast: false
       # Matrix is pre-computed by repomatic metadata. PRs get a reduced matrix
       # (fewer OS variants and Python versions) to save CI minutes.
-      matrix: ${{ github.event_name != 'pull_request' && fromJSON(needs.metadata.outputs.metadata).test_matrix || fromJSON(needs.metadata.outputs.metadata).test_matrix_pr }}
+      matrix: >-
+        ${{ github.event_name != 'pull_request'
+        && fromJSON(needs.metadata.outputs.metadata).test_matrix
+        || fromJSON(needs.metadata.outputs.metadata).test_matrix_pr }}
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }} / py${{ matrix.python-version }}"
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
@@ -71,15 +74,19 @@ jobs:
         # to an architecture-qualified specifier forces uv (and uvx) to use native ARM64 Python for all steps.
         if: runner.os == 'Windows' && runner.arch == 'ARM64'
         shell: bash
-        run: echo "UV_PYTHON=cpython-${{ matrix.python-version }}-aarch64" >> "$GITHUB_ENV"
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: echo "UV_PYTHON=cpython-${PYTHON_VERSION}-aarch64" >> "$GITHUB_ENV"
       - name: Install Python ${{ matrix.python-version }}
         # If UV cannot find the requested Python version, it exits with code 2, which let the job pass unnoticed on
         # Windows. So we force the shell to bash, even on Windows, and "set -e" to ensure any error in the install
         # process is caught and fails the job. It works because Windows runners too Git Bash available).
         shell: bash
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           set -e
-          uv --no-progress venv --python "${UV_PYTHON:-${{ matrix.python-version }}}"
+          uv --no-progress venv --python "${UV_PYTHON:-${PYTHON_VERSION}}"
       - name: Force UTF-8 encoding on Windows
         # Workaround for https://github.com/pallets/click/issues/2121: Windows GitHub Actions runners
         # redirect command output to files, which sets the encoding to the system default (cp1252).
