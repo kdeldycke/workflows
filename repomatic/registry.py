@@ -87,7 +87,9 @@ class FileEntry:
 
     :param source: Filename in ``repomatic/data/``.
     :param target: Relative output path in the target repository.
+        Defaults to ``source`` (root-level file).
     :param file_id: Identifier for file-level ``--include``/``--exclude``.
+        Defaults to the filename portion of ``target``.
     :param scope: Which repository types get this file.
     :param opt_in_key: ``[tool.repomatic]`` key that must be ``true`` to
         include this entry.
@@ -96,12 +98,21 @@ class FileEntry:
     """
 
     source: str
-    target: str
-    file_id: str
+    target: str = ""
+    file_id: str = ""
     scope: RepoScope = RepoScope.ALL
     opt_in_key: str = ""
     reusable: bool = True
     phase: str = ""
+
+    def __post_init__(self) -> None:
+        """Derive ``target`` and ``file_id`` from ``source`` when omitted."""
+        if not self.target:
+            object.__setattr__(self, "target", self.source)
+        if not self.file_id:
+            object.__setattr__(
+                self, "file_id", self.target.rsplit("/", 1)[-1]
+            )
 
 
 @dataclass(frozen=True)
@@ -154,14 +165,12 @@ COMPONENTS: tuple[Component, ...] = (
             FileEntry(
                 "labeller-content-based.yaml",
                 ".github/labeller-content-based.yaml",
-                "labeller-content-based.yaml",
             ),
             FileEntry(
                 "labeller-file-based.yaml",
                 ".github/labeller-file-based.yaml",
-                "labeller-file-based.yaml",
             ),
-            FileEntry("labels.toml", "labels.toml", "labels.toml"),
+            FileEntry("labels.toml"),
         ),
     ),
     Component(
@@ -169,9 +178,7 @@ COMPONENTS: tuple[Component, ...] = (
         description="Renovate config (renovate.json5)",
         kind=ComponentKind.BUNDLED,
         check_redundancy=True,
-        files=(
-            FileEntry("renovate.json5", "renovate.json5", "renovate.json5"),
-        ),
+        files=(FileEntry("renovate.json5"),),
     ),
     Component(
         name="skills",
@@ -261,69 +268,38 @@ COMPONENTS: tuple[Component, ...] = (
         description="Thin-caller workflow files",
         kind=ComponentKind.WORKFLOW,
         files=(
+            FileEntry("autofix.yaml", ".github/workflows/autofix.yaml"),
+            FileEntry("autolock.yaml", ".github/workflows/autolock.yaml"),
             FileEntry(
-                "autofix.yaml",
-                ".github/workflows/autofix.yaml",
-                "autofix.yaml",
-            ),
-            FileEntry(
-                "autolock.yaml",
-                ".github/workflows/autolock.yaml",
-                "autolock.yaml",
-            ),
-            FileEntry(
-                "cancel-runs.yaml",
-                ".github/workflows/cancel-runs.yaml",
-                "cancel-runs.yaml",
+                "cancel-runs.yaml", ".github/workflows/cancel-runs.yaml"
             ),
             FileEntry(
                 "changelog.yaml",
                 ".github/workflows/changelog.yaml",
-                "changelog.yaml",
                 scope=RepoScope.NON_AWESOME,
             ),
             FileEntry(
                 "debug.yaml",
                 ".github/workflows/debug.yaml",
-                "debug.yaml",
                 scope=RepoScope.NON_AWESOME,
             ),
-            FileEntry(
-                "docs.yaml",
-                ".github/workflows/docs.yaml",
-                "docs.yaml",
-            ),
-            FileEntry(
-                "labels.yaml",
-                ".github/workflows/labels.yaml",
-                "labels.yaml",
-            ),
-            FileEntry(
-                "lint.yaml",
-                ".github/workflows/lint.yaml",
-                "lint.yaml",
-            ),
+            FileEntry("docs.yaml", ".github/workflows/docs.yaml"),
+            FileEntry("labels.yaml", ".github/workflows/labels.yaml"),
+            FileEntry("lint.yaml", ".github/workflows/lint.yaml"),
             FileEntry(
                 "release.yaml",
                 ".github/workflows/release.yaml",
-                "release.yaml",
                 scope=RepoScope.NON_AWESOME,
             ),
-            FileEntry(
-                "renovate.yaml",
-                ".github/workflows/renovate.yaml",
-                "renovate.yaml",
-            ),
+            FileEntry("renovate.yaml", ".github/workflows/renovate.yaml"),
             FileEntry(
                 "tests.yaml",
                 ".github/workflows/tests.yaml",
-                "tests.yaml",
                 reusable=False,
             ),
             FileEntry(
                 "unsubscribe.yaml",
                 ".github/workflows/unsubscribe.yaml",
-                "unsubscribe.yaml",
                 opt_in_key="notification.unsubscribe",
             ),
         ),
