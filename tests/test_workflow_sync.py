@@ -42,7 +42,7 @@ from repomatic.github.workflow_sync import (
     identify_canonical_workflow,
     run_workflow_lint,
 )
-from repomatic.metadata import derive_source_paths, resolve_source_paths
+from repomatic.pyproject import derive_source_paths, resolve_source_paths
 from repomatic.registry import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,

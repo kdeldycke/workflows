@@ -23,12 +23,17 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from packaging.version import Version
+
 from repomatic.git_ops import (
     create_and_push_tag,
     create_tag,
+    get_latest_tag_version,
+    get_release_version_from_commits,
     push_tag,
     tag_exists,
 )
+from repomatic.metadata import Metadata, is_version_bump_allowed
 
 
 def test_tag_exists_true():
@@ -176,3 +181,116 @@ def test_create_without_push():
         assert result is True
         mock_create.assert_called_once()
         mock_push.assert_not_called()
+
+
+def test_get_latest_tag_version():
+    """Test that we can retrieve the latest Git tag version."""
+    latest = get_latest_tag_version()
+    # In CI environments with shallow clones, tags may not be available.
+    if latest is None:
+        pytest.skip("No release tags available (shallow clone in CI).")
+    assert isinstance(latest, Version)
+    # Sanity check: version should be a reasonable semver.
+    assert latest.major >= 0
+    assert latest.minor >= 0
+    assert latest.micro >= 0
+
+
+def test_get_release_version_from_commits():
+    """Test that get_release_version_from_commits returns expected type.
+
+    This function searches recent commits for release messages matching
+    ``[changelog] Release vX.Y.Z`` pattern and extracts the version.
+    """
+    result = get_release_version_from_commits()
+    # Result can be None (no release commits) or a Version object.
+    assert result is None or isinstance(result, Version)
+    if result is not None:
+        # Sanity check: version should be a reasonable semver.
+        assert result.major >= 0
+        assert result.minor >= 0
+        assert result.micro >= 0
+
+
+def test_get_release_version_from_commits_max_count():
+    """Test that max_count parameter limits commit search."""
+    # With max_count=1, we only check the HEAD commit.
+    result = get_release_version_from_commits(max_count=1)
+    assert result is None or isinstance(result, Version)
+
+    # With max_count=0, no commits should be checked.
+    result = get_release_version_from_commits(max_count=0)
+    assert result is None
+
+
+def test_is_version_bump_allowed_returns_bool():
+    """Test that is_version_bump_allowed returns a boolean."""
+    # Test minor check.
+    result = is_version_bump_allowed("minor")
+    assert isinstance(result, bool)
+
+    # Test major check.
+    result = is_version_bump_allowed("major")
+    assert isinstance(result, bool)
+
+
+def test_is_version_bump_allowed_invalid_part():
+    """Test that is_version_bump_allowed raises for invalid parts."""
+    with pytest.raises(ValueError, match="Invalid version part"):
+        is_version_bump_allowed("patch")
+
+
+def test_is_version_bump_allowed_current_repo():
+    """Test the version bump check logic against the current repository state.
+
+    This test verifies the correct behavior based on comparing current version
+    in pyproject.toml against the latest Git tag.
+    """
+    current_version_str = Metadata.get_current_version()
+    assert current_version_str is not None
+    current = Version(current_version_str)
+
+    latest_tag = get_latest_tag_version()
+    # In CI environments with shallow clones, tags may not be available.
+    if latest_tag is None:
+        pytest.skip("No release tags available (shallow clone in CI).")
+
+    # Verify the logic matches what the function should return.
+    minor_allowed = is_version_bump_allowed("minor")
+    major_allowed = is_version_bump_allowed("major")
+
+    # Expected: minor bump blocked if minor already ahead (within same major).
+    expected_minor_blocked = current.major > latest_tag.major or (
+        current.major == latest_tag.major and current.minor > latest_tag.minor
+    )
+    assert minor_allowed == (not expected_minor_blocked)
+
+    # Expected: major bump blocked if major already ahead.
+    expected_major_blocked = current.major > latest_tag.major
+    assert major_allowed == (not expected_major_blocked)
+
+
+def test_minor_bump_allowed_property() -> None:
+    """Test that minor_bump_allowed property returns a boolean."""
+    metadata = Metadata()
+    assert isinstance(metadata.minor_bump_allowed, bool)
+
+
+def test_major_bump_allowed_property() -> None:
+    """Test that major_bump_allowed property returns a boolean."""
+    metadata = Metadata()
+    assert isinstance(metadata.major_bump_allowed, bool)
+
+
+def test_is_version_bump_allowed_uses_commit_fallback():
+    """Test that is_version_bump_allowed still works when tags might not be available.
+
+    This test verifies the function returns a boolean regardless of whether
+    tags are found, as it now has a fallback to parse commit messages.
+    """
+    # The function should always return a boolean, even if tags aren't available.
+    result = is_version_bump_allowed("minor")
+    assert isinstance(result, bool)
+
+    result = is_version_bump_allowed("major")
+    assert isinstance(result, bool)

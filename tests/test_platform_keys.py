@@ -28,8 +28,7 @@ import re
 
 import pytest
 
-from repomatic.binary import BINARY_ARCH_MAPPINGS
-from repomatic.metadata import NUITKA_BUILD_TARGETS
+from repomatic.binary import BINARY_ARCH_MAPPINGS, NUITKA_BUILD_TARGETS
 from repomatic.tool_runner import VALID_PLATFORM_KEYS
 
 # The regex from ReleasePrep.freeze_readme_urls, extracted here so the test

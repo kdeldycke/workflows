@@ -22,10 +22,16 @@ from unittest.mock import patch
 
 import pytest
 
+from extra_platforms import ALL_IDS
+from string import ascii_lowercase, digits
+
 from repomatic.binary import (
     BINARY_ARCH_MAPPINGS,
+    NUITKA_BUILD_TARGETS,
+    SKIP_BINARY_BUILD_BRANCHES,
     verify_binary_arch,
 )
+from repomatic.metadata import Metadata
 
 
 @pytest.mark.parametrize(
@@ -126,3 +132,83 @@ def test_missing_field(tmp_path):
         pytest.raises(AssertionError, match="Binary architecture mismatch"),
     ):
         verify_binary_arch("linux-arm64", binary)
+
+
+@pytest.mark.parametrize("target_id, target_data", NUITKA_BUILD_TARGETS.items())
+def test_nuitka_targets(target_id: str, target_data: dict[str, str]) -> None:
+    assert isinstance(target_id, str)
+    assert isinstance(target_data, dict)
+
+    assert set(target_data) == {
+        "os",
+        "platform_id",
+        "arch",
+        "extension",
+    }, f"Unexpected keys in target data for {target_id}"
+
+    assert isinstance(target_data["os"], str)
+    assert isinstance(target_data["platform_id"], str)
+    assert isinstance(target_data["arch"], str)
+    assert isinstance(target_data["extension"], str)
+
+    assert set(target_data["os"]).issubset(ascii_lowercase + digits + "-.")
+    assert target_data["platform_id"] in ALL_IDS
+    assert target_data["arch"] in {"arm64", "x64"}
+    assert set(target_data["extension"]).issubset(ascii_lowercase)
+
+    assert target_id == target_data["platform_id"] + "-" + target_data["arch"]
+    assert set(target_id).issubset(ascii_lowercase + digits + "-")
+
+
+def test_skip_binary_build_branches_constant():
+    """Test that SKIP_BINARY_BUILD_BRANCHES contains expected branch names."""
+    assert isinstance(SKIP_BINARY_BUILD_BRANCHES, frozenset)
+    # Verify the list contains expected branches for non-code changes.
+    assert "sync-mailmap" in SKIP_BINARY_BUILD_BRANCHES
+    assert "format-markdown" in SKIP_BINARY_BUILD_BRANCHES
+    assert "format-images" in SKIP_BINARY_BUILD_BRANCHES
+    assert "sync-gitignore" in SKIP_BINARY_BUILD_BRANCHES
+    # Verify branches that affect code are NOT in the list.
+    assert "format-python" not in SKIP_BINARY_BUILD_BRANCHES
+    assert "prepare-release" not in SKIP_BINARY_BUILD_BRANCHES
+    assert "main" not in SKIP_BINARY_BUILD_BRANCHES
+
+
+def test_skip_binary_build_property_is_bool():
+    """Test that skip_binary_build always returns a boolean.
+
+    The actual value depends on CI context: in push events where only
+    non-binary-affecting files changed, it is ``True``; otherwise ``False``.
+    """
+    metadata = Metadata()
+    assert isinstance(metadata.skip_binary_build, bool)
+
+
+def test_nuitka_enabled_default():
+    """Test that nuitka.enabled config defaults to True."""
+    metadata = Metadata()
+    assert metadata.config["nuitka.enabled"] is True
+
+
+def test_nuitka_disabled_skips_matrix(tmp_path, monkeypatch):
+    """Test that nuitka_matrix returns None when nuitka is disabled in pyproject.toml."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.scripts]
+my-cli = "my_package.__main__:main"
+
+[tool.repomatic]
+nuitka.enabled = false
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+
+    # Override the pyproject path to point to our temporary file.
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    assert metadata.config["nuitka.enabled"] is False
+    assert metadata.nuitka_matrix is None

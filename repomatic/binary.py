@@ -14,9 +14,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Binary verification utilities.
+"""Binary build targets and verification utilities.
 
-Verify compiled binary architectures using exiftool.
+Defines the Nuitka compilation targets for all supported platforms and
+provides binary architecture verification using exiftool.
 """
 
 from __future__ import annotations
@@ -31,6 +32,118 @@ from extra_platforms import is_windows
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Final
+
+
+NUITKA_BUILD_TARGETS = {
+    "linux-arm64": {
+        "os": "ubuntu-24.04-arm",
+        "platform_id": "linux",
+        "arch": "arm64",
+        "extension": "bin",
+    },
+    "linux-x64": {
+        "os": "ubuntu-24.04",
+        "platform_id": "linux",
+        "arch": "x64",
+        "extension": "bin",
+    },
+    "macos-arm64": {
+        "os": "macos-26",
+        "platform_id": "macos",
+        "arch": "arm64",
+        "extension": "bin",
+    },
+    "macos-x64": {
+        "os": "macos-15-intel",
+        "platform_id": "macos",
+        "arch": "x64",
+        "extension": "bin",
+    },
+    "windows-arm64": {
+        "os": "windows-11-arm",
+        "platform_id": "windows",
+        "arch": "arm64",
+        "extension": "exe",
+    },
+    "windows-x64": {
+        "os": "windows-2025",
+        "platform_id": "windows",
+        "arch": "x64",
+        "extension": "exe",
+    },
+}
+"""List of GitHub-hosted runners used for Nuitka builds.
+
+The key of the dictionary is the target name, which is used as a short name for
+user-friendlyness. As such, it is used to name the compiled binary.
+
+Values are dictionaries with the following keys:
+
+- ``os``: Operating system name, as used in `GitHub-hosted runners
+    <https://docs.github.com/en/actions/writing-workflows/choosing-where-your-workflow-runs/choosing-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories>`_.
+
+    .. hint::
+        We choose to run the compilation only on the latest supported version of each
+        OS, for each architecture. Note that macOS and Windows do not have the latest
+        version available for each architecture.
+
+- ``platform_id``: Platform identifier, as defined by `Extra Platform
+  <https://github.com/kdeldycke/extra-platforms>`_.
+
+- ``arch``: Architecture identifier.
+
+    .. note::
+        Architecture IDs are `inspired from those specified for self-hosted runners
+        <https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures>`_
+
+    .. note::
+        Maybe we should just adopt `target triple
+        <https://mcyoung.xyz/2025/04/14/target-triples/>`_.
+
+- ``extension``: File extension of the compiled binary.
+"""
+
+
+FLAT_BUILD_TARGETS = [
+    {"target": target_id} | target_data
+    for target_id, target_data in NUITKA_BUILD_TARGETS.items()
+]
+"""List of build targets in a flat format, suitable for matrix inclusion."""
+
+
+BINARY_AFFECTING_PATHS: Final[tuple[str, ...]] = (
+    ".github/workflows/release.yaml",
+    "pyproject.toml",
+    "tests/",
+    "uv.lock",
+)
+"""Path prefixes that always affect compiled binaries, regardless of the project.
+
+Project-specific source directories (derived from ``[project.scripts]`` in
+``pyproject.toml``) are added dynamically by
+:attr:`~repomatic.metadata.Metadata.binary_affecting_paths`.
+"""
+
+SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
+    # Autofix branches that don't affect compiled binaries.
+    "format-json",
+    "format-markdown",
+    "format-images",
+    "sync-gitignore",
+    "sync-mailmap",
+    "update-deps-graph",
+))
+"""Branch names for which binary builds should be skipped.
+
+These branches contain changes that do not affect compiled binaries:
+
+- ``.mailmap`` updates only affect contributor attribution
+- Documentation and image changes don't affect code
+- ``.gitignore`` and JSON config changes don't affect binaries
+
+This allows workflows to skip expensive Nuitka compilation jobs for PRs that cannot
+possibly change the binary output.
+"""
 
 # Map each target to their exiftool architecture strings.
 # Ubuntu:

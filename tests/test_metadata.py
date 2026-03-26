@@ -19,54 +19,20 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import fields as dc_fields
-from string import ascii_lowercase, digits
 from typing import Any
 
 import pytest
-from extra_platforms import ALL_IDS, is_windows
-from packaging.version import Version
+from extra_platforms import is_windows
 
 from repomatic.github.actions import NULL_SHA
 from repomatic.metadata import (
-    NUITKA_BUILD_TARGETS,
-    SKIP_BINARY_BUILD_BRANCHES,
     Config,
     Dialect,
     Metadata,
     _field_to_key,
     config_reference,
-    get_latest_tag_version,
-    get_project_name,
-    get_release_version_from_commits,
-    is_version_bump_allowed,
     load_repomatic_config,
 )
-
-
-@pytest.mark.parametrize("target_id, target_data", NUITKA_BUILD_TARGETS.items())
-def test_nuitka_targets(target_id: str, target_data: dict[str, str]) -> None:
-    assert isinstance(target_id, str)
-    assert isinstance(target_data, dict)
-
-    assert set(target_data) == {
-        "os",
-        "platform_id",
-        "arch",
-        "extension",
-    }, f"Unexpected keys in target data for {target_id}"
-
-    assert isinstance(target_data["os"], str)
-    assert isinstance(target_data["platform_id"], str)
-    assert isinstance(target_data["arch"], str)
-    assert isinstance(target_data["extension"], str)
-
-    assert set(target_data["os"]).issubset(ascii_lowercase + digits + "-.")
-    assert target_data["platform_id"] in ALL_IDS
-    assert target_data["arch"] in {"arm64", "x64"}
-    assert set(target_data["extension"]).issubset(ascii_lowercase)
-
-    assert target_id == target_data["platform_id"] + "-" + target_data["arch"]
-    assert set(target_id).issubset(ascii_lowercase + digits + "-")
 
 
 def regex(pattern: str) -> re.Pattern:
@@ -463,11 +429,13 @@ expected = {
         "repomatic/mailmap.py",
         "repomatic/metadata.py",
         "repomatic/pypi.py",
+        "repomatic/pyproject.py",
         "repomatic/registry.py",
         "repomatic/release_prep.py",
         "repomatic/renovate.py",
         "repomatic/sponsor.py",
         "repomatic/templates/__init__.py",
+        "repomatic/test_matrix.py",
         "repomatic/test_plan.py",
         "repomatic/tool_runner.py",
         "tests/__init__.py",
@@ -489,6 +457,7 @@ expected = {
         "tests/test_platform_keys.py",
         "tests/test_pr_body.py",
         "tests/test_prebake.py",
+        "tests/test_pyproject.py",
         "tests/test_release_prep.py",
         "tests/test_release_sync.py",
         "tests/test_renovate.py",
@@ -1076,78 +1045,6 @@ def test_metadata_github_format():
     iter_checks(metadata, github_format_expected, raw_metadata)
 
 
-def test_get_latest_tag_version():
-    """Test that we can retrieve the latest Git tag version."""
-    latest = get_latest_tag_version()
-    # In CI environments with shallow clones, tags may not be available.
-    if latest is None:
-        pytest.skip("No release tags available (shallow clone in CI).")
-    assert isinstance(latest, Version)
-    # Sanity check: version should be a reasonable semver.
-    assert latest.major >= 0
-    assert latest.minor >= 0
-    assert latest.micro >= 0
-
-
-def test_is_version_bump_allowed_returns_bool():
-    """Test that is_version_bump_allowed returns a boolean."""
-    # Test minor check.
-    result = is_version_bump_allowed("minor")
-    assert isinstance(result, bool)
-
-    # Test major check.
-    result = is_version_bump_allowed("major")
-    assert isinstance(result, bool)
-
-
-def test_is_version_bump_allowed_invalid_part():
-    """Test that is_version_bump_allowed raises for invalid parts."""
-    with pytest.raises(ValueError, match="Invalid version part"):
-        is_version_bump_allowed("patch")
-
-
-def test_is_version_bump_allowed_current_repo():
-    """Test the version bump check logic against the current repository state.
-
-    This test verifies the correct behavior based on comparing current version
-    in pyproject.toml against the latest Git tag.
-    """
-    current_version_str = Metadata.get_current_version()
-    assert current_version_str is not None
-    current = Version(current_version_str)
-
-    latest_tag = get_latest_tag_version()
-    # In CI environments with shallow clones, tags may not be available.
-    if latest_tag is None:
-        pytest.skip("No release tags available (shallow clone in CI).")
-
-    # Verify the logic matches what the function should return.
-    minor_allowed = is_version_bump_allowed("minor")
-    major_allowed = is_version_bump_allowed("major")
-
-    # Expected: minor bump blocked if minor already ahead (within same major).
-    expected_minor_blocked = current.major > latest_tag.major or (
-        current.major == latest_tag.major and current.minor > latest_tag.minor
-    )
-    assert minor_allowed == (not expected_minor_blocked)
-
-    # Expected: major bump blocked if major already ahead.
-    expected_major_blocked = current.major > latest_tag.major
-    assert major_allowed == (not expected_major_blocked)
-
-
-def test_minor_bump_allowed_property() -> None:
-    """Test that minor_bump_allowed property returns a boolean."""
-    metadata = Metadata()
-    assert isinstance(metadata.minor_bump_allowed, bool)
-
-
-def test_major_bump_allowed_property() -> None:
-    """Test that major_bump_allowed property returns a boolean."""
-    metadata = Metadata()
-    assert isinstance(metadata.major_bump_allowed, bool)
-
-
 def test_null_sha_constant():
     """Test that NULL_SHA is a valid 40-character string of zeros.
 
@@ -1159,60 +1056,6 @@ def test_null_sha_constant():
     assert NULL_SHA == "0" * 40
     # Verify it's truthy (important for the fix: we can't just check `if not sha`).
     assert bool(NULL_SHA) is True
-
-
-def test_skip_binary_build_branches_constant():
-    """Test that SKIP_BINARY_BUILD_BRANCHES contains expected branch names."""
-    assert isinstance(SKIP_BINARY_BUILD_BRANCHES, frozenset)
-    # Verify the list contains expected branches for non-code changes.
-    assert "sync-mailmap" in SKIP_BINARY_BUILD_BRANCHES
-    assert "format-markdown" in SKIP_BINARY_BUILD_BRANCHES
-    assert "format-images" in SKIP_BINARY_BUILD_BRANCHES
-    assert "sync-gitignore" in SKIP_BINARY_BUILD_BRANCHES
-    # Verify branches that affect code are NOT in the list.
-    assert "format-python" not in SKIP_BINARY_BUILD_BRANCHES
-    assert "prepare-release" not in SKIP_BINARY_BUILD_BRANCHES
-    assert "main" not in SKIP_BINARY_BUILD_BRANCHES
-
-
-def test_skip_binary_build_property_is_bool():
-    """Test that skip_binary_build always returns a boolean.
-
-    The actual value depends on CI context: in push events where only
-    non-binary-affecting files changed, it is ``True``; otherwise ``False``.
-    """
-    metadata = Metadata()
-    assert isinstance(metadata.skip_binary_build, bool)
-
-
-def test_nuitka_enabled_default():
-    """Test that nuitka.enabled config defaults to True."""
-    metadata = Metadata()
-    assert metadata.config["nuitka.enabled"] is True
-
-
-def test_nuitka_disabled_skips_matrix(tmp_path, monkeypatch):
-    """Test that nuitka_matrix returns None when nuitka is disabled in pyproject.toml."""
-    pyproject_content = """\
-[project]
-name = "test-project"
-version = "1.0.0"
-
-[project.scripts]
-my-cli = "my_package.__main__:main"
-
-[tool.repomatic]
-nuitka.enabled = false
-"""
-    pyproject_file = tmp_path / "pyproject.toml"
-    pyproject_file.write_text(pyproject_content)
-
-    # Override the pyproject path to point to our temporary file.
-    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
-
-    metadata = Metadata()
-    assert metadata.config["nuitka.enabled"] is False
-    assert metadata.nuitka_matrix is None
 
 
 def test_is_bot_false_by_default(monkeypatch):
@@ -1366,47 +1209,6 @@ def test_server_url_default(monkeypatch):
     monkeypatch.delenv("GITHUB_SERVER_URL", raising=False)
     metadata = Metadata()
     assert metadata.server_url == "https://github.com"
-
-
-def test_get_release_version_from_commits():
-    """Test that get_release_version_from_commits returns expected type.
-
-    This function searches recent commits for release messages matching
-    ``[changelog] Release vX.Y.Z`` pattern and extracts the version.
-    """
-    result = get_release_version_from_commits()
-    # Result can be None (no release commits) or a Version object.
-    assert result is None or isinstance(result, Version)
-    if result is not None:
-        # Sanity check: version should be a reasonable semver.
-        assert result.major >= 0
-        assert result.minor >= 0
-        assert result.micro >= 0
-
-
-def test_get_release_version_from_commits_max_count():
-    """Test that max_count parameter limits commit search."""
-    # With max_count=1, we only check the HEAD commit.
-    result = get_release_version_from_commits(max_count=1)
-    assert result is None or isinstance(result, Version)
-
-    # With max_count=0, no commits should be checked.
-    result = get_release_version_from_commits(max_count=0)
-    assert result is None
-
-
-def test_is_version_bump_allowed_uses_commit_fallback():
-    """Test that is_version_bump_allowed still works when tags might not be available.
-
-    This test verifies the function returns a boolean regardless of whether
-    tags are found, as it now has a fallback to parse commit messages.
-    """
-    # The function should always return a boolean, even if tags aren't available.
-    result = is_version_bump_allowed("minor")
-    assert isinstance(result, bool)
-
-    result = is_version_bump_allowed("major")
-    assert isinstance(result, bool)
 
 
 def test_repomatic_config_defaults(tmp_path, monkeypatch):
@@ -1710,33 +1512,3 @@ def test_config_reference():
         assert desc, f"Empty description for {option}"
 
 
-def test_get_project_name_from_cwd(tmp_path, monkeypatch):
-    """Test that get_project_name reads from pyproject.toml in CWD."""
-    pyproject_content = """\
-[project]
-name = "my-package"
-version = "1.0.0"
-"""
-    (tmp_path / "pyproject.toml").write_text(pyproject_content)
-    monkeypatch.chdir(tmp_path)
-
-    assert get_project_name() == "my-package"
-
-
-def test_get_project_name_missing_pyproject(tmp_path, monkeypatch):
-    """Test that get_project_name returns None when no pyproject.toml."""
-    monkeypatch.chdir(tmp_path)
-    assert get_project_name() is None
-
-
-def test_get_project_name_no_project_section(tmp_path, monkeypatch):
-    """Test that get_project_name returns None when no [project] section."""
-    (tmp_path / "pyproject.toml").write_text("[tool.ruff]\n")
-    monkeypatch.chdir(tmp_path)
-    assert get_project_name() is None
-
-
-def test_get_project_name_with_preloaded_data():
-    """Test that get_project_name accepts pre-parsed pyproject data."""
-    data = {"project": {"name": "preloaded-pkg"}}
-    assert get_project_name(data) == "preloaded-pkg"

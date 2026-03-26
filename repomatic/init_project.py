@@ -50,10 +50,8 @@ from pathlib import Path, PurePosixPath
 from urllib.request import urlretrieve
 
 from . import __version__
-from .metadata import (
-    load_repomatic_config,
-    resolve_source_paths,
-)
+from .metadata import load_repomatic_config
+from .pyproject import resolve_source_paths
 from .registry import (
     _BY_NAME,
     COMPONENTS,

@@ -292,7 +292,6 @@ import inspect
 import json
 import logging
 import os
-import re
 import sys
 import textwrap
 from collections.abc import Iterable
@@ -308,7 +307,6 @@ from bumpversion.show import resolve_name  # type: ignore[import-untyped]
 from extra_platforms import is_github_ci
 from git.exc import GitCommandError
 from gitdb.exc import BadName  # type: ignore[import-untyped]
-from packaging.utils import canonicalize_name
 from packaging.version import Version
 from py_walk import get_parser_from_file
 from py_walk.models import Parser
@@ -326,15 +324,36 @@ from wcmatch.glob import (
     iglob,
 )
 
+from .binary import (
+    BINARY_AFFECTING_PATHS,
+    FLAT_BUILD_TARGETS,
+    NUITKA_BUILD_TARGETS,
+    SKIP_BINARY_BUILD_BRANCHES,
+)
 from .changelog import (
     GITHUB_RELEASE_URL,
     Changelog,
     build_release_admonition,
 )
+from .git_ops import (
+    RELEASE_COMMIT_PATTERN,
+    SHORT_SHA_LENGTH,
+    get_latest_tag_version,
+    get_release_version_from_commits,
+)
 from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
 from .github.gh import run_gh_command
 from .github.matrix import Matrix
+from .mailmap import MAILMAP_PATH
 from .pypi import PYPI_PROJECT_URL
+from .test_matrix import (
+    MYPY_VERSION_MIN,
+    TEST_PYTHON_FULL,
+    TEST_PYTHON_PR,
+    TEST_RUNNERS_FULL,
+    TEST_RUNNERS_PR,
+    UNSTABLE_PYTHON_VERSIONS,
+)
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -909,128 +928,9 @@ def load_repomatic_config(
     return config
 
 
-def derive_source_paths(
-    pyproject_data: dict[str, Any] | None = None,
-) -> list[str]:
-    """Derive source code directory name from ``[project.name]``.
-
-    Converts the project name to its importable form by replacing hyphens with
-    underscores — the universal Python convention that all build backends
-    (setuptools, hatchling, flit, uv) follow by default. For example,
-    ``name = "extra-platforms"`` yields ``["extra_platforms"]``.
-
-    :param pyproject_data: Pre-parsed ``pyproject.toml`` dict. If ``None``,
-        reads from the current working directory.
-    :return: Single-element list with the source directory name, or an empty
-        list if no project name is defined.
-    """
-    if pyproject_data is None:
-        pyproject_path = Path() / "pyproject.toml"
-        if not (pyproject_path.exists() and pyproject_path.is_file()):
-            return []
-        pyproject_data = tomllib.loads(pyproject_path.read_text(encoding="UTF-8"))
-
-    name = pyproject_data.get("project", {}).get("name")
-    if not name:
-        return []
-    # PEP 503 normalization (lowercases, collapses [-_.] to hyphens), then
-    # convert to the Python import form (underscores).
-    return [canonicalize_name(name).replace("-", "_")]
-
-
-def resolve_source_paths(
-    config: dict[str, Any],
-    pyproject_data: dict[str, Any] | None = None,
-) -> list[str] | None:
-    """Resolve workflow source paths from config or auto-derivation.
-
-    :param config: Loaded ``[tool.repomatic]`` config dict.
-    :param pyproject_data: Pre-parsed ``pyproject.toml`` dict for derivation.
-    :return: List of source directory names, or ``None`` when no source paths
-        can be determined (paths should be stripped entirely).
-    """
-    configured = config.get("workflow.source-paths")
-    if configured is not None:
-        return configured if configured else None
-    derived = derive_source_paths(pyproject_data)
-    return derived if derived else None
-
-
-def get_project_name(
-    pyproject_data: dict[str, Any] | None = None,
-) -> str | None:
-    """Read the project name from ``pyproject.toml``.
-
-    :param pyproject_data: Pre-parsed dict. If ``None``, reads from CWD.
-    """
-    if pyproject_data is None:
-        pyproject_path = Path() / "pyproject.toml"
-        if not (pyproject_path.exists() and pyproject_path.is_file()):
-            return None
-        pyproject_data = tomllib.loads(pyproject_path.read_text(encoding="UTF-8"))
-    name: str | None = pyproject_data.get("project", {}).get("name")
-    return name
-
-
-SHORT_SHA_LENGTH = 7
-"""Default SHA length hard-coded to ``7``.
-
-.. caution::
-
-    The `default is subject to change <https://stackoverflow.com/a/21015031>`_ and
-    depends on the size of the repository.
-"""
-
-RELEASE_COMMIT_PATTERN = re.compile(r"^\[changelog\] Release v[0-9]+\.[0-9]+\.[0-9]+$")
-"""Pre-compiled regex pattern for identifying release commits.
-
-A rebase merge preserves the original commit messages, so release commits
-match this pattern. A squash merge replaces them with the PR title
-(e.g. ``Release `v1.2.3` (#42)``), which does **not** match. This mismatch
-is the mechanism by which squash merges are safely skipped: the ``create-tag``
-job only processes commits matching this pattern, so no tag, PyPI publish, or
-GitHub release is created from a squash merge. The ``detect-squash-merge``
-job in ``release.yaml`` detects this and opens an issue to notify the
-maintainer.
-"""
-
-
-BINARY_AFFECTING_PATHS: Final[tuple[str, ...]] = (
-    ".github/workflows/release.yaml",
-    "pyproject.toml",
-    "tests/",
-    "uv.lock",
-)
-"""Path prefixes that always affect compiled binaries, regardless of the project.
-
-Project-specific source directories (derived from ``[project.scripts]`` in
-``pyproject.toml``) are added dynamically by
-:attr:`Metadata.binary_affecting_paths`.
-"""
-
-SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
-    # Autofix branches that don't affect compiled binaries.
-    "format-json",
-    "format-markdown",
-    "format-images",
-    "sync-gitignore",
-    "sync-mailmap",
-    "update-deps-graph",
-))
-"""Branch names for which binary builds should be skipped.
-
-These branches contain changes that do not affect compiled binaries:
-
-- ``.mailmap`` updates only affect contributor attribution
-- Documentation and image changes don't affect code
-- ``.gitignore`` and JSON config changes don't affect binaries
-
-This allows workflows to skip expensive Nuitka compilation jobs for PRs that cannot
-possibly change the binary output.
-"""
+GITIGNORE_PATH = Path(".gitignore")
 
 HEREDOC_FIELDS: Final[frozenset[str]] = frozenset((
-    # Contains markdown with brackets, parentheses, and emojis that can break parsing.
     "release_notes",
     "release_notes_with_admonition",
 ))
@@ -1042,202 +942,9 @@ These fields will use the heredoc delimiter format regardless of whether they cu
 contain multiple lines.
 """
 
-from .mailmap import MAILMAP_PATH
-
-GITIGNORE_PATH = Path(".gitignore")
-
-NUITKA_BUILD_TARGETS = {
-    "linux-arm64": {
-        "os": "ubuntu-24.04-arm",
-        "platform_id": "linux",
-        "arch": "arm64",
-        "extension": "bin",
-    },
-    "linux-x64": {
-        "os": "ubuntu-24.04",
-        "platform_id": "linux",
-        "arch": "x64",
-        "extension": "bin",
-    },
-    "macos-arm64": {
-        "os": "macos-26",
-        "platform_id": "macos",
-        "arch": "arm64",
-        "extension": "bin",
-    },
-    "macos-x64": {
-        "os": "macos-15-intel",
-        "platform_id": "macos",
-        "arch": "x64",
-        "extension": "bin",
-    },
-    "windows-arm64": {
-        "os": "windows-11-arm",
-        "platform_id": "windows",
-        "arch": "arm64",
-        "extension": "exe",
-    },
-    "windows-x64": {
-        "os": "windows-2025",
-        "platform_id": "windows",
-        "arch": "x64",
-        "extension": "exe",
-    },
-}
-"""List of GitHub-hosted runners used for Nuitka builds.
-
-The key of the dictionary is the target name, which is used as a short name for
-user-friendlyness. As such, it is used to name the compiled binary.
-
-Values are dictionaries with the following keys:
-
-- ``os``: Operating system name, as used in `GitHub-hosted runners
-    <https://docs.github.com/en/actions/writing-workflows/choosing-where-your-workflow-runs/choosing-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories>`_.
-
-    .. hint::
-        We choose to run the compilation only on the latest supported version of each
-        OS, for each architecture. Note that macOS and Windows do not have the latest
-        version available for each architecture.
-
-- ``platform_id``: Platform identifier, as defined by `Extra Platform
-  <https://github.com/kdeldycke/extra-platforms>`_.
-
-- ``arch``: Architecture identifier.
-
-    .. note::
-        Architecture IDs are `inspired from those specified for self-hosted runners
-        <https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures>`_
-
-    .. note::
-        Maybe we should just adopt `target triple
-        <https://mcyoung.xyz/2025/04/14/target-triples/>`_.
-
-- ``extension``: File extension of the compiled binary.
-"""
-
-
-FLAT_BUILD_TARGETS = [
-    {"target": target_id} | target_data
-    for target_id, target_data in NUITKA_BUILD_TARGETS.items()
-]
-"""List of build targets in a flat format, suitable for matrix inclusion."""
-
-
-TEST_RUNNERS_FULL = (
-    "ubuntu-24.04-arm",
-    "ubuntu-slim",
-    "macos-26",
-    "macos-15-intel",
-    "windows-11-arm",
-    "windows-2025",
-)
-"""GitHub-hosted runners for the full test matrix.
-
-Two variants per platform (one per architecture) to keep the matrix small.
-See `available images <https://github.com/actions/runner-images#available-images>`_.
-"""
-
-TEST_RUNNERS_PR = (
-    "ubuntu-slim",
-    "macos-26",
-    "windows-2025",
-)
-"""Reduced runner set for pull request test matrices.
-
-One runner per platform, skipping redundant architecture variants.
-"""
-
-TEST_PYTHON_FULL = (
-    "3.10",
-    "3.14",
-    "3.14t",
-    "3.15",
-    "3.15t",
-)
-"""Python versions for the full test matrix.
-
-Intermediate versions (3.11, 3.12, 3.13) are skipped to reduce CI load.
-"""
-
-TEST_PYTHON_PR = (
-    "3.10",
-    "3.14",
-)
-"""Reduced Python version set for pull request test matrices.
-
-Skips experimental versions (free-threaded, development) to reduce CI load.
-"""
-
-UNSTABLE_PYTHON_VERSIONS = frozenset({"3.15", "3.15t"})
-"""Python versions still in development.
-
-Jobs using these versions run with ``continue-on-error`` in CI.
-"""
-
-
-MYPY_VERSION_MIN: Final = (3, 8)
-"""Earliest version supported by Mypy's ``--python-version 3.x`` parameter.
-
-`Sourced from Mypy original implementation
-<https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
-"""
-
 
 # Silence overly verbose debug messages from py-walk logger.
 logging.getLogger("py_walk").setLevel(logging.WARNING)
-
-
-def get_latest_tag_version() -> Version | None:
-    """Returns the latest release version from Git tags.
-
-    Looks for tags matching the pattern ``vX.Y.Z`` and returns the highest version.
-    Returns ``None`` if no matching tags are found.
-    """
-    git = Git(".")
-    # Get all tags matching the version pattern.
-    tags = git.repo.git.tag("--list", "v[0-9]*.[0-9]*.[0-9]*").splitlines()
-
-    if not tags:
-        logging.debug("No version tags found in repository.")
-        return None
-
-    # Parse and find the highest version.
-    versions = []
-    for tag in tags:
-        # Strip the 'v' prefix and parse.
-        version = Version(tag.lstrip("v"))
-        versions.append(version)
-
-    latest = max(versions)
-    logging.debug(f"Latest tag version: {latest}")
-    return latest
-
-
-def get_release_version_from_commits(max_count: int = 10) -> Version | None:
-    """Extract release version from recent commit messages.
-
-    Searches recent commits for messages matching the pattern
-    ``[changelog] Release vX.Y.Z`` and returns the version from the most recent match.
-
-    This provides a fallback when tags haven't been pushed yet due to race conditions
-    between workflows. The release commit message contains the version information
-    before the tag is created.
-
-    :param max_count: Maximum number of commits to search.
-    :return: The version from the most recent release commit, or ``None`` if not found.
-    """
-    git = Git(".")
-    release_pattern = re.compile(r"^\[changelog\] Release v(\d+\.\d+\.\d+)")
-
-    for commit in git.repo.iter_commits("HEAD", max_count=max_count):
-        match = release_pattern.match(commit.message)
-        if match:
-            version = Version(match.group(1))
-            logging.debug(f"Found release version {version} in commit {commit.hexsha}")
-            return version
-
-    logging.debug("No release commit found in recent history.")
-    return None
 
 
 def is_version_bump_allowed(part: Literal["minor", "major"]) -> bool:
@@ -2066,6 +1773,8 @@ class Metadata:
 
     @cached_property
     def renovate_config_exists(self) -> bool:
+        # Lazy import to avoid circular dependency:
+        # metadata → renovate → github.pr_body → metadata.
         from .renovate import RENOVATE_CONFIG_PATH
 
         return RENOVATE_CONFIG_PATH.is_file()

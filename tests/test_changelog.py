@@ -514,7 +514,7 @@ def test_lint_changelog_dates_pypi_all_match(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -539,7 +539,7 @@ def test_lint_changelog_dates_pypi_mismatch(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -562,7 +562,7 @@ def test_lint_changelog_dates_fallback_to_tags(tmp_path, monkeypatch):
         lambda pkg: {},
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -584,7 +584,7 @@ def test_lint_changelog_dates_fallback_no_package(tmp_path, monkeypatch):
     path.write_text(MULTI_RELEASE_CHANGELOG, encoding="UTF-8")
 
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: None,
     )
     monkeypatch.setattr(
@@ -612,7 +612,7 @@ def test_lint_changelog_dates_warns_missing_pypi(tmp_path, monkeypatch, caplog):
         _pypi_mock({"1.0.0": ("2025-12-01", False)}),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -639,7 +639,7 @@ def test_lint_changelog_dates_skips_pre_pypi(tmp_path, monkeypatch, caplog):
         _pypi_mock({"1.1.0": ("2026-02-10", False)}),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -667,7 +667,7 @@ def test_lint_fix_corrects_date(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -699,7 +699,7 @@ def test_lint_fix_adds_release_admonition(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -732,7 +732,7 @@ def test_lint_fix_github_only(tmp_path, monkeypatch):
         _pypi_mock({"1.0.0": ("2025-12-01", False)}),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -795,7 +795,7 @@ def test_lint_fix_first_version_admonition(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -830,7 +830,7 @@ def test_lint_fix_pypi_only(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -866,7 +866,7 @@ def test_lint_fix_no_warning_predates_github(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -900,7 +900,7 @@ def test_lint_fix_adds_yanked_admonition(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -934,7 +934,7 @@ def test_lint_fix_no_admonition_when_nowhere(tmp_path, monkeypatch):
         _pypi_mock({"1.0.0": ("2025-12-01", False)}),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -965,7 +965,7 @@ def test_lint_fix_idempotent(tmp_path, monkeypatch):
     })
     monkeypatch.setattr("repomatic.changelog.get_pypi_release_dates", mock)
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1007,7 +1007,7 @@ def test_lint_fix_removes_stale_unavailable_warning(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1127,7 +1127,7 @@ def test_lint_orphan_detection_returns_1(tmp_path, monkeypatch, caplog):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1156,7 +1156,7 @@ def test_lint_orphan_fix_inserts_placeholder(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1189,7 +1189,7 @@ def test_lint_orphan_fix_idempotent(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1220,7 +1220,7 @@ def test_lint_orphan_tag_only(tmp_path, monkeypatch, caplog):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1249,7 +1249,7 @@ def test_lint_orphan_uses_pypi_date(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1282,7 +1282,7 @@ def test_lint_unreleased_not_flagged_as_orphan(tmp_path, monkeypatch):
         }),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "my-package",
     )
     monkeypatch.setattr(
@@ -1339,7 +1339,7 @@ def test_lint_fix_pypi_package_history(tmp_path, monkeypatch):
         }.get(pkg, {}),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "new-pkg",
     )
     monkeypatch.setattr(
@@ -1387,7 +1387,7 @@ def test_lint_pypi_history_current_wins(tmp_path, monkeypatch):
         }.get(pkg, {}),
     )
     monkeypatch.setattr(
-        "repomatic.metadata.get_project_name",
+        "repomatic.changelog.get_project_name",
         lambda: "new-pkg",
     )
     monkeypatch.setattr(

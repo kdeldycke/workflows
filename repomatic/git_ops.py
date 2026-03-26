@@ -35,7 +35,92 @@ that are common in GitHub Actions.
 from __future__ import annotations
 
 import logging
+import re
 import subprocess
+
+from packaging.version import Version
+from pydriller import Git  # type: ignore[import-untyped]
+
+
+SHORT_SHA_LENGTH = 7
+"""Default SHA length hard-coded to ``7``.
+
+.. caution::
+
+    The `default is subject to change <https://stackoverflow.com/a/21015031>`_ and
+    depends on the size of the repository.
+"""
+
+RELEASE_COMMIT_PATTERN = re.compile(
+    r"^\[changelog\] Release v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$"
+)
+"""Pre-compiled regex for release commit messages.
+
+Matches the full message and captures the version number. Use ``fullmatch``
+to validate a commit is a release commit, or ``match``/``search`` with
+``.group("version")`` to extract the version string.
+
+A rebase merge preserves the original commit messages, so release commits
+match this pattern. A squash merge replaces them with the PR title
+(e.g. ``Release `v1.2.3` (#42)``), which does **not** match. This mismatch
+is the mechanism by which squash merges are safely skipped: the ``create-tag``
+job only processes commits matching this pattern, so no tag, PyPI publish, or
+GitHub release is created from a squash merge. The ``detect-squash-merge``
+job in ``release.yaml`` detects this and opens an issue to notify the
+maintainer.
+"""
+
+
+def get_latest_tag_version() -> Version | None:
+    """Returns the latest release version from Git tags.
+
+    Looks for tags matching the pattern ``vX.Y.Z`` and returns the highest version.
+    Returns ``None`` if no matching tags are found.
+    """
+    git = Git(".")
+    # Get all tags matching the version pattern.
+    tags = git.repo.git.tag("--list", "v[0-9]*.[0-9]*.[0-9]*").splitlines()
+
+    if not tags:
+        logging.debug("No version tags found in repository.")
+        return None
+
+    # Parse and find the highest version.
+    versions = []
+    for tag in tags:
+        # Strip the 'v' prefix and parse.
+        version = Version(tag.lstrip("v"))
+        versions.append(version)
+
+    latest = max(versions)
+    logging.debug(f"Latest tag version: {latest}")
+    return latest
+
+
+def get_release_version_from_commits(max_count: int = 10) -> Version | None:
+    """Extract release version from recent commit messages.
+
+    Searches recent commits for messages matching the pattern
+    ``[changelog] Release vX.Y.Z`` and returns the version from the most recent match.
+
+    This provides a fallback when tags haven't been pushed yet due to race conditions
+    between workflows. The release commit message contains the version information
+    before the tag is created.
+
+    :param max_count: Maximum number of commits to search.
+    :return: The version from the most recent release commit, or ``None`` if not found.
+    """
+    git = Git(".")
+
+    for commit in git.repo.iter_commits("HEAD", max_count=max_count):
+        match = RELEASE_COMMIT_PATTERN.fullmatch(commit.message.strip())
+        if match:
+            version = Version(match.group("version"))
+            logging.debug(f"Found release version {version} in commit {commit.hexsha}")
+            return version
+
+    logging.debug("No release commit found in recent history.")
+    return None
 
 
 def get_tag_date(tag: str) -> str | None:

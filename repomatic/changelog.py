@@ -128,6 +128,7 @@ from packaging.version import Version
 from .git_ops import get_all_version_tags, get_tag_date
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.releases import GitHubRelease, get_github_releases
+from .pyproject import get_project_name
 
 CHANGELOG_HEADER = "# Changelog\n"
 """Default changelog header for empty changelogs."""
@@ -754,9 +755,6 @@ def lint_changelog_dates(
     :return: ``0`` if all dates match or references are missing,
         ``1`` if any date mismatch or orphan is found.
     """
-    # Lazy import to avoid circular dependency: metadata → changelog.
-    from .metadata import get_project_name
-
     content = changelog_path.read_text(encoding="UTF-8")
     changelog = Changelog(content)
     releases = changelog.extract_all_releases()

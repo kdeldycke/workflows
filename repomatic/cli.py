@@ -109,11 +109,11 @@ from .metadata import (
     Metadata,
     all_metadata_keys,
     config_reference,
-    get_project_name,
     is_version_bump_allowed,
     load_repomatic_config,
     metadata_keys_reference,
 )
+from .pyproject import get_project_name
 from .registry import (
     _BY_NAME,
     ALL_COMPONENTS,
