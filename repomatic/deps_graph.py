@@ -18,6 +18,13 @@
 .. note::
     Uses ``uv export --format cyclonedx1.5`` which provides structured JSON
     with dependency relationships, replacing the need for pipdeptree.
+
+.. warning::
+    The generated Mermaid syntax targets the version bundled with
+    ``sphinxcontrib-mermaid``, currently ``11.12.1``. See the hard-coded
+    ``MERMAID_VERSION`` constant in `sphinxcontrib-mermaid's source
+    <https://github.com/mgaitan/sphinxcontrib-mermaid/blob/master/sphinxcontrib/mermaid/__init__.py>`_.
+    Avoid using Mermaid features introduced after that version.
 """
 
 from __future__ import annotations
@@ -613,6 +620,10 @@ def render_mermaid(
     subgraph_specifiers: dict[str, dict[str, str]] | None = None,
 ) -> str:
     """Render the dependency graph as a Mermaid flowchart.
+
+    .. warning::
+        Output must stay compatible with the Mermaid version bundled in
+        ``sphinxcontrib-mermaid``. See module docstring for details.
 
     :param root_name: The root package name (used to highlight it).
     :param nodes: Dictionary mapping bom-ref to (name, version) tuples.
