@@ -36,7 +36,7 @@ jobs:
       - name: Run repomatic metadata
         id: metadata
         run: >
-          uvx --no-progress --from . repomatic metadata
+          uvx --no-progress 'repomatic==6.8.0' metadata
           --format github-json --output "$GITHUB_OUTPUT"
           is_python_project
 
@@ -54,11 +54,11 @@ jobs:
         id: checks
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . repomatic check-renovate --format=github --output "$GITHUB_OUTPUT"
+        run: uvx --no-progress 'repomatic==6.8.0' check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       - name: Export renovate.json5 if missing
         if: steps.checks.outputs.renovate_config_exists == 'false'
-        run: uvx --no-progress --from . repomatic init renovate
+        run: uvx --no-progress 'repomatic==6.8.0' init renovate
 
       - name: Remove Dependabot config if present
         if: steps.checks.outputs.dependabot_config_path != ''
@@ -96,14 +96,14 @@ jobs:
       - name: Export renovate.json5 if missing
         run: >
           test -f renovate.json5
-          || uvx --no-progress --from . repomatic init renovate
+          || uvx --no-progress 'repomatic==6.8.0' init renovate
 
       # Validate remaining prerequisites (Dependabot absent, security
       # updates disabled, commit statuses permission).
       - name: Validate Renovate prerequisites
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-        run: uvx --no-progress --from . repomatic check-renovate
+        run: uvx --no-progress 'repomatic==6.8.0' check-renovate
 
       - uses: renovatebot/github-action@0b17c4eb901eca44d018fb25744a50a74b2042df # v46.1.4
         with:
@@ -167,13 +167,13 @@ jobs:
       - id: sync
         name: Sync uv.lock
         run: >
-          uvx --no-progress --from . repomatic sync-uv-lock
+          uvx --no-progress 'repomatic==6.8.0' sync-uv-lock
           --output "$GITHUB_OUTPUT"
       - id: pr-metadata
         env:
           REPOMATIC_DIFF_TABLE: ${{ steps.sync.outputs.diff_table }}
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress 'repomatic==6.8.0' pr-body
           --template sync-uv-lock
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
