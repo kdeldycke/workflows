@@ -36,9 +36,8 @@ description = "Continuous integration and automation"
 
 [[profiles.default.labels]]
 name = "🔗 dependencies"
-color = "aaa666"
+color = "9daf0d"
 description = "Dependency changes"
-rename-from = ["📦 dependencies", "⚠️ stale dependency"]
 
 [[profiles.default.labels]]
 name = "📚 documentation"
