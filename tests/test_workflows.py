@@ -420,9 +420,12 @@ def iter_all_actions():
 
 
 # Regex to match action references with pinned versions.
-# Accepts: vX.Y.Z, vX.Y, X.Y.Z (some actions don't use v prefix).
+# Accepts: vX.Y.Z, vX.Y, X.Y.Z (some actions don't use v prefix),
+# or a full 40-character SHA (commit hash pinning).
 # Rejects: vX (major-only).
-ACTION_VERSION_PATTERN = re.compile(r"^[^/]+/[^@]+@v?\d+\.\d+(\.\d+)?$")
+ACTION_VERSION_PATTERN = re.compile(
+    r"^[^/]+/[^@]+@(v?\d+\.\d+(\.\d+)?|[0-9a-f]{40})$"
+)
 
 
 @pytest.mark.parametrize(

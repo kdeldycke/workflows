@@ -969,20 +969,18 @@ def test_adapt_trigger_paths_no_paths_key() -> None:
 
 
 def test_thin_caller_release_with_source_paths() -> None:
-    """Verify release.yaml thin caller includes adapted paths filter.
+    """Verify release.yaml thin caller has no path filters.
 
-    In release.yaml, ``paths:`` is on ``pull_request``, not ``push``.
+    release.yaml only has ``push`` (no ``paths:``) and ``workflow_call``,
+    so ``source_paths`` has no effect.
     """
     content = generate_thin_caller("release.yaml", source_paths=["extra_platforms"])
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
-    pr_config = triggers.get("pull_request", {})
-    assert "paths" in pr_config
-    assert "extra_platforms/**" in pr_config["paths"]
-    assert "pyproject.toml" in pr_config["paths"]
-    assert "uv.lock" in pr_config["paths"]
-    # Upstream source glob must not appear.
-    assert UPSTREAM_SOURCE_GLOB not in pr_config["paths"]
+    push_config = triggers.get("push", {})
+    # push trigger has branches but no paths.
+    assert "paths" not in push_config
+    assert "pull_request" not in triggers
 
 
 def test_thin_caller_renovate_with_source_paths() -> None:
