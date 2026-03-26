@@ -27,8 +27,8 @@ from repomatic.changelog import (
     build_unavailable_admonition,
     lint_changelog_dates,
 )
-from repomatic.pypi import PyPIRelease
 from repomatic.github.releases import GitHubRelease
+from repomatic.pypi import PyPIRelease
 
 SAMPLE_CHANGELOG = dedent(
     """\

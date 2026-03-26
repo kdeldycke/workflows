@@ -50,7 +50,6 @@ from ..registry import (
     REUSABLE_WORKFLOWS,
     UPSTREAM_SOURCE_GLOB,
     UPSTREAM_SOURCE_PREFIX,
-    _BY_NAME,
 )
 from .actions import AnnotationLevel, emit_annotation
 

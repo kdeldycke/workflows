@@ -25,14 +25,6 @@ import pytest
 import yaml
 
 from repomatic.github.actions import AnnotationLevel
-from repomatic.registry import (
-    ALL_WORKFLOW_FILES,
-    DEFAULT_REPO,
-    NON_REUSABLE_WORKFLOWS,
-    REUSABLE_WORKFLOWS,
-    UPSTREAM_SOURCE_GLOB,
-    UPSTREAM_SOURCE_PREFIX,
-)
 from repomatic.github.workflow_sync import (
     LintResult,
     WorkflowFormat,
@@ -51,6 +43,14 @@ from repomatic.github.workflow_sync import (
     run_workflow_lint,
 )
 from repomatic.metadata import derive_source_paths, resolve_source_paths
+from repomatic.registry import (
+    ALL_WORKFLOW_FILES,
+    DEFAULT_REPO,
+    NON_REUSABLE_WORKFLOWS,
+    REUSABLE_WORKFLOWS,
+    UPSTREAM_SOURCE_GLOB,
+    UPSTREAM_SOURCE_PREFIX,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:

@@ -103,9 +103,7 @@ class FileEntry:
         if not self.target:
             object.__setattr__(self, "target", self.source)
         if not self.file_id:
-            object.__setattr__(
-                self, "file_id", self.target.rsplit("/", 1)[-1]
-            )
+            object.__setattr__(self, "file_id", self.target.rsplit("/", 1)[-1])
 
 
 # ---------------------------------------------------------------------------
@@ -177,9 +175,7 @@ class ToolConfigComponent(Component):
             msg = f"ToolConfigComponent {self.name!r} requires source_file"
             raise ValueError(msg)
         if not self.tool_section:
-            msg = (
-                f"ToolConfigComponent {self.name!r} requires tool_section"
-            )
+            msg = f"ToolConfigComponent {self.name!r} requires tool_section"
             raise ValueError(msg)
         if self.files:
             msg = (
@@ -317,9 +313,7 @@ COMPONENTS: tuple[Component, ...] = (
         files=(
             FileEntry("autofix.yaml", ".github/workflows/autofix.yaml"),
             FileEntry("autolock.yaml", ".github/workflows/autolock.yaml"),
-            FileEntry(
-                "cancel-runs.yaml", ".github/workflows/cancel-runs.yaml"
-            ),
+            FileEntry("cancel-runs.yaml", ".github/workflows/cancel-runs.yaml"),
             FileEntry(
                 "changelog.yaml",
                 ".github/workflows/changelog.yaml",
@@ -453,9 +447,7 @@ SKILL_PHASE_ORDER: tuple[str, ...] = (
 # Registry queries.
 # ---------------------------------------------------------------------------
 
-ALL_COMPONENTS: dict[str, str] = {
-    c.name: c.description for c in COMPONENTS
-}
+ALL_COMPONENTS: dict[str, str] = {c.name: c.description for c in COMPONENTS}
 """All available init components."""
 
 REUSABLE_WORKFLOWS: tuple[str, ...] = tuple(
@@ -468,15 +460,13 @@ NON_REUSABLE_WORKFLOWS: frozenset[str] = frozenset(
 )
 """Workflows without ``workflow_call`` that cannot be used as thin callers."""
 
-ALL_WORKFLOW_FILES: tuple[str, ...] = tuple(sorted(
-    f.file_id for f in _BY_NAME["workflows"].files
-))
+ALL_WORKFLOW_FILES: tuple[str, ...] = tuple(
+    sorted(f.file_id for f in _BY_NAME["workflows"].files)
+)
 """All workflow filenames (reusable and non-reusable)."""
 
 SKILL_PHASES: dict[str, str] = {
-    f.file_id: f.phase
-    for f in _BY_NAME["skills"].files
-    if f.phase
+    f.file_id: f.phase for f in _BY_NAME["skills"].files if f.phase
 }
 """Maps skill names to lifecycle phases for display grouping."""
 
