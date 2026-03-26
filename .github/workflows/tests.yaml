@@ -225,6 +225,20 @@ jobs:
             "$script" --version
           done
           uv --no-progress tool uninstall "$PACKAGE"
+      - name: Run stable CLI via pip
+        run: |
+          uv --no-progress pip install "$PACKAGE"
+          for script in $CLI_SCRIPTS; do
+            "$script" --version
+          done
+          uv --no-progress pip uninstall "$PACKAGE"
+      - name: Run dev CLI via pip
+        run: |
+          uv --no-progress pip install "$GIT_URL"
+          for script in $CLI_SCRIPTS; do
+            "$script" --version
+          done
+          uv --no-progress pip uninstall "$PACKAGE"
       - name: Run CLI via pipx
         run: |
           uv --no-progress tool install pipx
