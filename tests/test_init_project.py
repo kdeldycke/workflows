@@ -1163,9 +1163,7 @@ def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
     """Verify awesome-triage skill is auto-excluded for non-awesome repos."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["skills"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1184,9 +1182,7 @@ def test_init_awesome_triage_included_for_awesome_repo(
     """Verify awesome-triage skill is included for awesome-* repos."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["skills"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1255,9 +1251,7 @@ def test_init_detects_excluded_component_files(
     # First init with labels included to create all files.
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["labels"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["labels"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1286,9 +1280,7 @@ def test_init_detects_excluded_skill_file(
     # First create all skills (include overrides default exclusion).
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["skills"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1322,9 +1314,7 @@ def test_init_detects_auto_excluded_awesome_triage(
     # Create skills including awesome-triage (as an awesome repo).
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["skills"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1385,9 +1375,7 @@ def test_init_cli_delete_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["skills"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1429,9 +1417,7 @@ def test_init_cli_no_delete_excluded_warns(
 
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["skills"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1543,9 +1529,7 @@ def test_init_include_overrides_default_exclusions(
     """Verify include overrides default exclusions additively."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["labels"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["labels"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)

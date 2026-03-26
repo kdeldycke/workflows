@@ -1104,10 +1104,9 @@ def _is_source_repo(output_dir: Path) -> bool:
         ``__file__`` no longer points to the source checkout.
     """
     resolved = output_dir.resolve()
-    return (
-        (resolved / "repomatic" / "__init__.py").exists()
-        and (resolved / "repomatic" / "data").is_dir()
-    )
+    return (resolved / "repomatic" / "__init__.py").exists() and (
+        resolved / "repomatic" / "data"
+    ).is_dir()
 
 
 def _is_renovate_source_repo(output_dir: Path) -> bool:

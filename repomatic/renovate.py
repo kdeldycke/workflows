@@ -734,7 +734,9 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
 
     for tag in (f"v{version}", version):
         url = GITHUB_API_RELEASE_BY_TAG_URL.format(
-            owner=owner, repo=repo, tag=tag,
+            owner=owner,
+            repo=repo,
+            tag=tag,
         )
         request = _github_api_request(url)
         try:

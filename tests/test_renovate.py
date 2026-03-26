@@ -558,9 +558,13 @@ def test_format_diff_table():
     table = format_diff_table(changes)
     assert "### Updated packages" in table
     assert "| Package | Change |" in table
-    assert "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` -> `4.12.1` |" in table
+    assert (
+        "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` -> `4.12.1` |" in table
+    )
     assert "| [new-pkg](https://pypi.org/project/new-pkg/) | (new) `2.0.0` |" in table
-    assert "| [old-pkg](https://pypi.org/project/old-pkg/) | `1.0.0` (removed) |" in table
+    assert (
+        "| [old-pkg](https://pypi.org/project/old-pkg/) | `1.0.0` (removed) |" in table
+    )
     assert "Released" not in table
     assert "exclude-newer" not in table
 
@@ -616,8 +620,8 @@ def test_parse_lock_exclude_newer(tmp_path):
     """Extract exclude-newer from a lock file."""
     lock = tmp_path / "uv.lock"
     lock.write_text(
-        'version = 1\n\n'
-        '[options]\n'
+        "version = 1\n\n"
+        "[options]\n"
         'exclude-newer = "2026-03-18T16:39:02.780682017Z"\n\n'
         '[[package]]\nname = "foo"\nversion = "1.0"\n'
     )
@@ -635,9 +639,9 @@ def test_parse_lock_upload_times(tmp_path):
     """Extract upload times from a lock file's sdist entries."""
     lock = tmp_path / "uv.lock"
     lock.write_text(
-        'version = 1\n\n'
+        "version = 1\n\n"
         '[[package]]\nname = "foo"\nversion = "1.0"\n'
-        '[package.sdist]\n'
+        "[package.sdist]\n"
         'url = "https://example.com/foo-1.0.tar.gz"\n'
         'hash = "sha256:abc"\n'
         'upload-time = "2026-03-13T18:30:00Z"\n\n'
@@ -654,7 +658,8 @@ def test_parse_lock_upload_times(tmp_path):
 def test_parse_github_owner_repo():
     """Extract owner/repo from various GitHub URL forms."""
     assert _parse_github_owner_repo("https://github.com/nedbat/coveragepy") == (
-        "nedbat", "coveragepy",
+        "nedbat",
+        "coveragepy",
     )
     assert _parse_github_owner_repo("https://github.com/foo/bar/") == ("foo", "bar")
     assert _parse_github_owner_repo("https://github.com/foo/bar.git") == ("foo", "bar")
@@ -737,7 +742,8 @@ def test_get_github_release_body_found():
     mock = _make_urlopen_mock({"releases/tags/v7.13.5": (release_data,)})
     with patch("repomatic.renovate.urlopen", side_effect=mock):
         tag, body = get_github_release_body(
-            "https://github.com/nedbat/coveragepy", "7.13.5",
+            "https://github.com/nedbat/coveragepy",
+            "7.13.5",
         )
     assert tag == "v7.13.5"
     assert "Fixed a bug" in body
@@ -748,7 +754,6 @@ def test_get_github_release_body_bare_tag_fallback():
     release_data = json.dumps({"body": "Release notes."}).encode()
 
     def side_effect(request, timeout=None):
-        from io import BytesIO
         from urllib.error import URLError
 
         url = request.full_url if hasattr(request, "full_url") else str(request)
@@ -771,7 +776,8 @@ def test_get_github_release_body_bare_tag_fallback():
 
     with patch("repomatic.renovate.urlopen", side_effect=side_effect):
         tag, body = get_github_release_body(
-            "https://github.com/owner/repo", "2.0",
+            "https://github.com/owner/repo",
+            "2.0",
         )
     assert tag == "2.0"
     assert body == "Release notes."
@@ -785,7 +791,8 @@ def test_get_github_release_body_not_found():
     })
     with patch("repomatic.renovate.urlopen", side_effect=mock):
         tag, body = get_github_release_body(
-            "https://github.com/owner/repo", "1.0",
+            "https://github.com/owner/repo",
+            "1.0",
         )
     assert tag == ""
     assert body == ""
@@ -838,7 +845,10 @@ def test_format_release_notes():
     assert "### Release notes" in result
     assert "<details>" in result
     assert "<summary>nedbat/coveragepy (coverage)</summary>" in result
-    assert "[`v7.13.5`](https://github.com/nedbat/coveragepy/releases/tag/v7.13.5)" in result
+    assert (
+        "[`v7.13.5`](https://github.com/nedbat/coveragepy/releases/tag/v7.13.5)"
+        in result
+    )
     assert "Fixed a bug" in result
     assert "</details>" in result
 
