@@ -59,7 +59,8 @@ def _fetch_json(package: str) -> dict | None:
     request = Request(url, headers={"Accept": "application/json"})
     try:
         with urlopen(request, timeout=10) as response:
-            return json.loads(response.read())
+            result: dict[str, object] = json.loads(response.read())
+            return result
     except (URLError, TimeoutError, json.JSONDecodeError) as exc:
         logging.debug(f"PyPI lookup failed for {package}: {exc}")
         return None

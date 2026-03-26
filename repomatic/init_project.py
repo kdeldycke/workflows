@@ -55,7 +55,7 @@ from .metadata import (
     resolve_source_paths,
 )
 from .registry import (
-    ALL_COMPONENTS,
+    _BY_NAME,
     COMPONENTS,
     DEFAULT_REPO,
     REUSABLE_WORKFLOWS,
@@ -63,7 +63,6 @@ from .registry import (
     InitDefault,
     RepoScope,
     ToolConfigComponent,
-    _BY_NAME,
     excluded_rel_path,
     parse_component_entries,
 )
@@ -79,7 +78,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from importlib.abc import Traversable
 
-    from .registry import Component
 
 # Exportable files: all registry entries + tool runner bundled defaults.
 EXPORTABLE_FILES: dict[str, str | None] = {
@@ -451,7 +449,7 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
             if isinstance(c, ToolConfigComponent)
         )
         msg = f"Unknown config type: {config_type!r}. Supported: {supported}"
-        raise ValueError(msg)
+        raise TypeError(msg)
 
     if pyproject_path is None:
         pyproject_path = Path("pyproject.toml")
@@ -693,11 +691,7 @@ def run_init(
         # Auto-exclude entries by repo scope and opt-in status.
         for reg_comp in COMPONENTS:
             for entry in reg_comp.files:
-                if is_awesome_repo and entry.scope == RepoScope.NON_AWESOME:
-                    excluded_files.setdefault(reg_comp.name, set()).add(
-                        entry.file_id
-                    )
-                elif (
+                if is_awesome_repo and entry.scope == RepoScope.NON_AWESOME or (
                     not is_awesome_repo
                     and entry.scope == RepoScope.AWESOME_ONLY
                 ):
@@ -825,11 +819,10 @@ def _init_workflows(
     # Exclude config-gated workflows whose toggle is off.
     config = load_repomatic_config()
     for entry in _BY_NAME["workflows"].files:
-        if entry.config_key and entry.file_id in workflows:
-            if not config.get(entry.config_key, entry.config_default):
-                workflows = tuple(
-                    w for w in workflows if w != entry.file_id
-                )
+        if entry.config_key and entry.file_id in workflows and not config.get(entry.config_key, entry.config_default):
+            workflows = tuple(
+                w for w in workflows if w != entry.file_id
+            )
 
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)

@@ -83,6 +83,7 @@ def test_config_type_has_required_fields() -> None:
 def test_returns_non_empty_string(config_type: str) -> None:
     """Verify that export_content returns a non-empty string."""
     comp = _BY_NAME[config_type]
+    assert isinstance(comp, ToolConfigComponent)
     content = export_content(comp.source_file)
     assert isinstance(content, str)
     assert len(content) > 0
@@ -92,6 +93,7 @@ def test_returns_non_empty_string(config_type: str) -> None:
 def test_returns_valid_toml(config_type: str) -> None:
     """Verify that the returned content is valid TOML."""
     comp = _BY_NAME[config_type]
+    assert isinstance(comp, ToolConfigComponent)
     content = export_content(comp.source_file)
     parsed = tomllib.loads(content)
     assert isinstance(parsed, dict)
@@ -101,6 +103,7 @@ def test_returns_valid_toml(config_type: str) -> None:
 def test_native_format_no_tool_prefix(config_type: str) -> None:
     """Verify that native format does not have [tool.X] prefix."""
     comp = _BY_NAME[config_type]
+    assert isinstance(comp, ToolConfigComponent)
     content = export_content(comp.source_file)
     parsed = tomllib.loads(content)
     # Native format should NOT have a "tool" key at the root.
@@ -149,6 +152,7 @@ def test_template_matches_own_pyproject(config_type: str) -> None:
     entry to appear in own config, but own config may have extras.
     """
     comp = _BY_NAME[config_type]
+    assert isinstance(comp, ToolConfigComponent)
     template = tomllib.loads(export_content(comp.source_file))
 
     project_root = Path(__file__).resolve().parent.parent
@@ -459,8 +463,8 @@ def test_preserves_existing_content() -> None:
 
 
 def test_unknown_config_type_raises_error() -> None:
-    """Verify that an unknown config type raises ValueError."""
-    with pytest.raises(ValueError, match="Unknown config type"):
+    """Verify that an unknown config type raises TypeError."""
+    with pytest.raises(TypeError, match="Unknown config type"):
         init_config("nonexistent", Path("pyproject.toml"))
 
 
@@ -1741,12 +1745,12 @@ def test_no_target_prefix_mixing_within_component() -> None:
         prefixes = {entry.target.split("/")[0] for entry in comp.files}
         # Allow mixing root files (no slash) with dotdir files within
         # a component (e.g., labels has both .github/ and root files).
-        prefixes.discard(
-            next(
-                (entry.target for entry in comp.files if "/" not in entry.target),
-                None,
-            )
+        root_file = next(
+            (entry.target for entry in comp.files if "/" not in entry.target),
+            None,
         )
+        if root_file is not None:
+            prefixes.discard(root_file)
         assert len(prefixes) <= 1, (
             f"Component {comp.name!r} mixes target prefixes: {sorted(prefixes)}"
         )
