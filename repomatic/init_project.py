@@ -62,7 +62,7 @@ from .registry import (
     InitDefault,
     _BY_NAME,
 )
-from .tool_runner import TOOL_REGISTRY, find_redundant_configs
+from .tool_runner import TOOL_REGISTRY, find_unmodified_configs
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -125,13 +125,12 @@ COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
 }
 """Bundled config files per component, with their output paths."""
 
-REDUNDANCY_COMPONENTS: frozenset[str] = frozenset(
-    c.name for c in COMPONENTS if c.check_redundancy
+UNMODIFIED_COMPONENTS: frozenset[str] = frozenset(
+    c.name
+    for c in COMPONENTS
+    if c.files and c.kind == ComponentKind.BUNDLED and not c.keep_unmodified
 )
-"""Components whose files are checked for redundancy against bundled defaults.
-
-Skills are excluded because they are user-facing documents, not machine configs.
-"""
+"""Bundled components whose files are flagged when identical to defaults."""
 
 REUSABLE_WORKFLOWS: tuple[str, ...] = tuple(
     f.file_id
@@ -734,8 +733,8 @@ class InitResult:
     excluded_existing: list[str] = field(default_factory=list)
     """Relative paths of excluded files that still exist on disk."""
 
-    redundant_configs: list[str] = field(default_factory=list)
-    """Relative paths of native config files identical to bundled defaults."""
+    unmodified_configs: list[str] = field(default_factory=list)
+    """Relative paths of config files identical to bundled defaults."""
 
     warnings: list[str] = field(default_factory=list)
     """Warning messages emitted during initialization."""
@@ -945,9 +944,9 @@ def run_init(
     # Check for native tool config files identical to bundled defaults.
     # Init-managed files (labels, renovate) are already handled inline by
     # _init_config_files, so only check tool_runner configs here.
-    for _tool_name, rel_path in find_redundant_configs():
-        result.redundant_configs.append(rel_path)
-        logging.warning(f"Redundant config (matches bundled default): {rel_path}")
+    for _tool_name, rel_path in find_unmodified_configs():
+        result.unmodified_configs.append(rel_path)
+        logging.warning(f"Unmodified config (matches bundled default): {rel_path}")
 
     return result
 
@@ -1071,9 +1070,9 @@ def _init_config_files(
 ) -> None:
     """Export bundled config files for a component.
 
-    For components in :data:`REDUNDANCY_COMPONENTS`, files already on disk
-    that are identical to the bundled template are flagged as redundant and
-    not overwritten.
+    For components without ``keep_unmodified``, files already on disk that
+    are identical to the bundled template are flagged as unmodified and not
+    overwritten.
 
     **Upstream renovate handling:** When running in the repomatic source
     repository, the root ``renovate.json5`` is the authoritative config (it
@@ -1109,7 +1108,7 @@ def _init_config_files(
             existing = bundled.read_text(encoding="UTF-8").rstrip() + "\n"
             bundled_rel = f"repomatic/data/{entry.source}"
             if existing == normalized:
-                # Do not mark as redundant — it is package data, not a
+                # Do not mark as unmodified — it is package data, not a
                 # user-facing config that can be safely deleted.
                 logging.info(f"Bundled config up to date: {bundled_rel}")
             else:
@@ -1125,9 +1124,9 @@ def _init_config_files(
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"
-            if comp.check_redundancy and existing == normalized:
-                result.redundant_configs.append(rel)
-                logging.info(f"Redundant (matches bundled default): {rel}")
+            if not comp.keep_unmodified and existing == normalized:
+                result.unmodified_configs.append(rel)
+                logging.info(f"Unmodified (matches bundled default): {rel}")
                 continue
             target.write_text(normalized, encoding="UTF-8")
             result.updated.append(rel)
@@ -1209,22 +1208,24 @@ def init_awesome_template(
                 logging.info(f"Rewrote URLs in: {path}")
 
 
-def find_redundant_init_files() -> list[tuple[str, str]]:
+def find_unmodified_init_files() -> list[tuple[str, str]]:
     """Find init-managed config files identical to their bundled defaults.
 
-    Checks components in :data:`REDUNDANCY_COMPONENTS` for files on disk
+    Checks bundled components without ``keep_unmodified`` for files on disk
     whose content matches the bundled template (via :func:`export_content`)
     after trailing-whitespace normalization (``.rstrip() + "\\n"``).
 
-    Mirrors the API of :func:`tool_runner.find_redundant_configs`, returning
+    Mirrors the API of :func:`tool_runner.find_unmodified_configs`, returning
     ``(component_name, relative_path)`` tuples.
 
     :return: List of ``(component_name, relative_path)`` tuples for each
-        redundant file found.
+        unmodified file found.
     """
-    redundant: list[tuple[str, str]] = []
+    unmodified: list[tuple[str, str]] = []
     for comp in COMPONENTS:
-        if not comp.check_redundancy:
+        if comp.keep_unmodified or not comp.files:
+            continue
+        if comp.kind != ComponentKind.BUNDLED:
             continue
         for entry in comp.files:
             path = Path(entry.target)
@@ -1233,21 +1234,21 @@ def find_redundant_init_files() -> list[tuple[str, str]]:
             bundled = export_content(entry.source).rstrip() + "\n"
             on_disk = path.read_text(encoding="UTF-8").rstrip() + "\n"
             if on_disk == bundled:
-                redundant.append((comp.name, entry.target))
-    return redundant
+                unmodified.append((comp.name, entry.target))
+    return unmodified
 
 
-def find_all_redundant_configs() -> list[tuple[str, str]]:
+def find_all_unmodified_configs() -> list[tuple[str, str]]:
     """Find all config files identical to their bundled defaults.
 
     Combines tool configs (yamllint, zizmor, etc.) from
-    :func:`tool_runner.find_redundant_configs` and init-managed configs
-    (labels, renovate) from :func:`find_redundant_init_files`.
+    :func:`tool_runner.find_unmodified_configs` and init-managed configs
+    (labels, renovate) from :func:`find_unmodified_init_files`.
 
-    :return: List of ``(label, relative_path)`` tuples for each redundant
+    :return: List of ``(label, relative_path)`` tuples for each unmodified
         file found.
     """
-    return find_redundant_configs() + find_redundant_init_files()
+    return find_unmodified_configs() + find_unmodified_init_files()
 
 
 def _init_changelog(

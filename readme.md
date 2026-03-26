@@ -388,8 +388,8 @@ GitHub Actions has several design limitations that the workflows work around:
 
 - 🔄 **Sync repomatic** (`sync-repomatic`)
 
-  - Runs [`repomatic init --delete-redundant --delete-excluded`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py) to sync all repomatic-managed files: thin-caller workflows, configuration files, and skill definitions
-  - Removes redundant config files identical to bundled defaults and cleans up excluded or stale files (disabled opt-in workflows, auto-excluded skills)
+  - Runs [`repomatic init --delete-unmodified --delete-excluded`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py) to sync all repomatic-managed files: thin-caller workflows, configuration files, and skill definitions
+  - Removes unmodified config files identical to bundled defaults and cleans up excluded or stale files (disabled opt-in workflows, auto-excluded skills)
   - In the upstream repository, regenerates the bundled `repomatic/data/renovate.json5` from the root config (workflows are excluded via `[tool.repomatic]`)
 
 - 📬 **Sync `.mailmap`** (`sync-mailmap`)
@@ -723,7 +723,7 @@ docs = [
 
 - 🆕 **Renovate** (`renovate`)
 
-  - Materializes the bundled default `renovate.json5` at runtime when the file is absent, so downstream repos can safely remove redundant copies via `clean-redundant-configs`
+  - Materializes the bundled default `renovate.json5` at runtime when the file is absent, so downstream repos can safely remove unmodified copies via `clean-unmodified-configs`
   - Validates prerequisites before running (fails if not met):
     - No Dependabot config file present
     - Dependabot security updates disabled

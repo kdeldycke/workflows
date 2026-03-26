@@ -357,7 +357,7 @@ class ComponentSelector(ParamType):
     help="Delete files that are excluded by config but still on disk.",
 )
 @option(
-    "--delete-redundant",
+    "--delete-unmodified",
     is_flag=True,
     default=False,
     help="Delete config files identical to bundled defaults.",
@@ -368,7 +368,7 @@ def init_project(
     repo,
     output_dir,
     delete_excluded,
-    delete_redundant,
+    delete_unmodified,
 ):
     """Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
 
@@ -470,21 +470,21 @@ def init_project(
             )
         for path in result.excluded_existing:
             echo(f"  {path}")
-    if result.redundant_configs:
-        if delete_redundant:
-            for path in result.redundant_configs:
+    if result.unmodified_configs:
+        if delete_unmodified:
+            for path in result.unmodified_configs:
                 (output_dir / path).unlink()
             echo(
-                f"Deleted {len(result.redundant_configs)} redundant"
+                f"Deleted {len(result.unmodified_configs)} unmodified"
                 " file(s) identical to bundled defaults:"
             )
         else:
             echo(
-                f"Redundant: {len(result.redundant_configs)} file(s)"
+                f"Unmodified: {len(result.unmodified_configs)} file(s)"
                 " identical to bundled defaults"
-                " (use --delete-redundant to remove):"
+                " (use --delete-unmodified to remove):"
             )
-        for path in result.redundant_configs:
+        for path in result.unmodified_configs:
             echo(f"  {path}")
     if result.warnings:
         for warning in result.warnings:
@@ -2097,7 +2097,7 @@ def sync_bumpversion(ctx: Context) -> None:
     short_help="Remove config files that match bundled defaults",
     section=_section_sync,
 )
-def clean_redundant_configs() -> None:
+def clean_unmodified_configs() -> None:
     """Remove config files identical to their bundled defaults.
 
     Scans both tool configs (yamllint, zizmor, etc.) and init-managed
@@ -2105,18 +2105,18 @@ def clean_redundant_configs() -> None:
     the bundled default after whitespace normalization.
 
     Designed for standalone use. The ``sync-repomatic`` autofix job uses
-    ``repomatic init --delete-redundant`` instead.
+    ``repomatic init --delete-unmodified`` instead.
     """
-    from .init_project import find_all_redundant_configs
+    from .init_project import find_all_unmodified_configs
 
-    redundant = find_all_redundant_configs()
-    if not redundant:
-        echo("No redundant config files found.")
+    unmodified = find_all_unmodified_configs()
+    if not unmodified:
+        echo("No unmodified config files found.")
         return
 
-    for label, rel_path in redundant:
+    for label, rel_path in unmodified:
         Path(rel_path).unlink()
-        echo(f"Removed: {rel_path} (redundant {label} config)")
+        echo(f"Removed: {rel_path} (unmodified {label} config)")
 
 
 @repomatic.command(

@@ -89,7 +89,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7.4.0
 
       # Materialize bundled default renovate.json5 when absent. Downstream
-      # repos that use clean-redundant-configs correctly delete on-disk
+      # repos that use clean-unmodified-configs correctly delete on-disk
       # copies identical to the bundled template; this step restores the
       # config at runtime so Renovate can read it without requiring a
       # committed copy. The file is ephemeral — discarded after the run.

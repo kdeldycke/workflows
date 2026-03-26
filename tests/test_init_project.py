@@ -557,7 +557,7 @@ def test_init_existing_changelog_skipped(tmp_path: Path):
 
 def test_init_idempotent(tmp_path: Path):
     """Verify second run updates managed files, skips changelog, and
-    detects identical init configs as redundant."""
+    detects identical init configs as unmodified."""
     result1 = run_init(output_dir=tmp_path)
     assert len(result1.created) > 0
     assert len(result1.updated) == 0
@@ -566,15 +566,15 @@ def test_init_idempotent(tmp_path: Path):
     result2 = run_init(output_dir=tmp_path)
     assert len(result2.created) == 0
     # Managed files are overwritten (reported as updated), except
-    # init config files identical to bundled defaults (redundant).
+    # init config files identical to bundled defaults (unmodified).
     managed_count = len(result1.created) - 1  # Minus changelog.
-    redundant_count = len(result2.redundant_configs)
-    assert redundant_count > 0  # At least renovate.json5.
-    assert len(result2.updated) == managed_count - redundant_count
+    unmodified_count = len(result2.unmodified_configs)
+    assert unmodified_count > 0  # At least renovate.json5.
+    assert len(result2.updated) == managed_count - unmodified_count
     # Only changelog is skipped (never overwritten).
     assert result2.skipped == ["changelog.md"]
     # Redundant init configs are reported.
-    assert "renovate.json5" in result2.redundant_configs
+    assert "renovate.json5" in result2.unmodified_configs
 
 
 def test_init_only_labels(tmp_path: Path):
@@ -1680,7 +1680,7 @@ def test_tools_with_bundled_defaults_not_init_components() -> None:
     )
 
 
-def test_init_reports_redundant_configs(
+def test_init_reports_unmodified_configs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """Init reports native config files that match bundled defaults."""
@@ -1695,13 +1695,13 @@ def test_init_reports_redundant_configs(
     (tmp_path / ".yamllint.yaml").write_text(content, encoding="UTF-8")
 
     result = run_init(output_dir=tmp_path)
-    assert ".yamllint.yaml" in result.redundant_configs
+    assert ".yamllint.yaml" in result.unmodified_configs
 
 
-def test_init_no_redundant_when_different(
+def test_init_no_unmodified_when_different(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Init does not flag modified config files as redundant."""
+    """Init does not flag modified config files as unmodified."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
     monkeypatch.chdir(tmp_path)
@@ -1711,44 +1711,44 @@ def test_init_no_redundant_when_different(
     )
 
     result = run_init(output_dir=tmp_path)
-    assert result.redundant_configs == []
+    assert result.unmodified_configs == []
 
 
 # ---------------------------------------------------------------------------
-# find_redundant_init_files
+# find_unmodified_init_files
 # ---------------------------------------------------------------------------
 
 
-def test_find_redundant_init_files_detects_identical(
+def test_find_unmodified_init_files_detects_identical(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Init-managed file matching bundled default is flagged as redundant."""
+    """Init-managed file matching bundled default is flagged as unmodified."""
     monkeypatch.chdir(tmp_path)
     content = export_content("labels.toml")
     (tmp_path / "labels.toml").write_text(content.rstrip() + "\n", encoding="UTF-8")
 
-    from repomatic.init_project import find_redundant_init_files
+    from repomatic.init_project import find_unmodified_init_files
 
-    result = find_redundant_init_files()
+    result = find_unmodified_init_files()
     paths = [p for _, p in result]
     assert "labels.toml" in paths
 
 
-def test_find_redundant_init_files_ignores_modified(
+def test_find_unmodified_init_files_ignores_modified(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """Modified init-managed file is not flagged."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "labels.toml").write_text("# custom labels\n", encoding="UTF-8")
 
-    from repomatic.init_project import find_redundant_init_files
+    from repomatic.init_project import find_unmodified_init_files
 
-    result = find_redundant_init_files()
+    result = find_unmodified_init_files()
     paths = [p for _, p in result]
     assert "labels.toml" not in paths
 
 
-def test_find_redundant_init_files_skips_skills(
+def test_find_unmodified_init_files_skips_skills(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """Skills are not checked for redundancy."""
@@ -1758,14 +1758,14 @@ def test_find_redundant_init_files_skips_skills(
     skill_dir.mkdir(parents=True)
     (skill_dir / "SKILL.md").write_text(content.rstrip() + "\n", encoding="UTF-8")
 
-    from repomatic.init_project import find_redundant_init_files
+    from repomatic.init_project import find_unmodified_init_files
 
-    result = find_redundant_init_files()
+    result = find_unmodified_init_files()
     paths = [p for _, p in result]
     assert not any("skills" in p for p in paths)
 
 
-def test_find_redundant_init_files_renovate(
+def test_find_unmodified_init_files_renovate(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """Renovate redundancy check uses export_content (with stripping)."""
@@ -1773,14 +1773,14 @@ def test_find_redundant_init_files_renovate(
     content = export_content("renovate.json5")
     (tmp_path / "renovate.json5").write_text(content.rstrip() + "\n", encoding="UTF-8")
 
-    from repomatic.init_project import find_redundant_init_files
+    from repomatic.init_project import find_unmodified_init_files
 
-    result = find_redundant_init_files()
+    result = find_unmodified_init_files()
     paths = [p for _, p in result]
     assert "renovate.json5" in paths
 
 
-def test_find_redundant_init_files_multiple(
+def test_find_unmodified_init_files_multiple(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
     """Redundant files across multiple components are all detected."""
@@ -1796,9 +1796,9 @@ def test_find_redundant_init_files_multiple(
         content = export_content(source_name)
         path.write_text(content.rstrip() + "\n", encoding="UTF-8")
 
-    from repomatic.init_project import find_redundant_init_files
+    from repomatic.init_project import find_unmodified_init_files
 
-    result = find_redundant_init_files()
+    result = find_unmodified_init_files()
     paths = [p for _, p in result]
     assert "labels.toml" in paths
     assert ".github/labeller-file-based.yaml" in paths
@@ -1813,7 +1813,7 @@ def test_init_skips_identical_config(tmp_path: Path):
     result2 = run_init(output_dir=tmp_path, components=("renovate",))
     assert "renovate.json5" not in result2.updated
     assert "renovate.json5" not in result2.created
-    assert "renovate.json5" in result2.redundant_configs
+    assert "renovate.json5" in result2.unmodified_configs
 
 
 @pytest.mark.parametrize(

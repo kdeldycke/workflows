@@ -6,11 +6,11 @@
 > This version is **not released yet** and is under active development.
 
 - Make `exclude` config additive to default exclusions (`labels`, `skills`). User `exclude` entries now add to the defaults instead of replacing them. Add `include` config to force-include components that are excluded by default.
-- Add `--delete-redundant` flag to `repomatic init` to automatically remove config files identical to bundled defaults instead of only reporting them.
+- Add `--delete-unmodified` flag to `repomatic init` to automatically remove config files identical to bundled defaults instead of only reporting them. Renamed from `--delete-redundant`.
 - Remove deprecated `WORKFLOW_UPDATE_GITHUB_PAT` secret and all backward-compatibility fallbacks. Downstream repos must use `REPOMATIC_PAT`.
 - Auto-exclude `awesome-triage` skill for non-awesome repositories. The skill is only relevant to `awesome-*` repos and was previously installed in all downstream projects.
 - Add `--delete-excluded` flag to `repomatic init` to remove excluded files that still exist on disk. Detects component-level exclusions, file-level exclusions, auto-excluded files (e.g., `awesome-triage` on non-awesome repos), and disabled opt-in workflows.
-- Replace `sync-workflows` and `clean-redundant-configs` autofix jobs with a single `sync-repomatic` job. Runs `repomatic init --delete-redundant --delete-excluded` to sync all managed files and clean up stale ones in one PR.
+- Replace `sync-workflows` and `clean-unmodified-configs` autofix jobs with a single `sync-repomatic` job. Runs `repomatic init --delete-unmodified --delete-excluded` to sync all managed files and clean up stale ones in one PR. Renamed from `clean-redundant-configs` and `--delete-redundant`.
 - Remove `PAT setup hint` steps and `HAS_REPOMATIC_PAT` env var from `autofix.yaml` and `changelog.yaml` workflows. The `setup-guide` job already creates an issue when the PAT is missing.
 - Add PAT capability checks and repo configuration validation to `lint-repo`. Checks Renovate config exists, Dependabot security updates disabled, and vulnerability alerts enabled. When `REPOMATIC_PAT` is configured, validates contents, issues, pull requests, Dependabot alerts, and commit statuses permissions. Add `REQUIRED_PAT_PERMISSIONS` constant in `token.py` as the single source of truth for expected permissions.
 - Relax abandoned dependency threshold from 1 year to 2 years in Renovate config.
@@ -32,6 +32,9 @@
 - Pin GitHub Actions to SHA digests via Renovate's `helpers:pinGitHubActionDigestsToSemver` preset. Prevents supply chain attacks from mutable tags while keeping automated version updates.
 - Add top-level `permissions: {}` to all workflow files. Denies all `GITHUB_TOKEN` permissions by default, requiring each job to declare its own minimal permissions explicitly.
 - Merge `/repomatic-deps-review` into `/repomatic-deps`. The unified skill now supports two modes: `graph` (dependency tree visualization, previously the only mode) and `review` (declaration audit against version policy). Also checks for stale `exclude-newer-package` cooldown exceptions in `[tool.uv]`.
+- Consolidate 12+ scattered init constants into a declarative component registry (`repomatic/registry.py`). Each component declares its kind, init default, file entries, and behavioral flags in one place. All derived constants (`ALL_COMPONENTS`, `COMPONENT_FILES`, `REUSABLE_WORKFLOWS`, `SKILL_PHASES`, etc.) are computed from the registry.
+- Fix `sync-repomatic` deleting the upstream repo's own skills. The source repo guard only covered auto-exclusions, not default exclusions (`labels`, `skills`).
+- Rename "redundant" terminology to "unmodified" across the CLI, output, and codebase. `--delete-redundant` becomes `--delete-unmodified`, `clean-redundant-configs` becomes `clean-unmodified-configs`.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 

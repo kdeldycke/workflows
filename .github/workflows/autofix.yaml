@@ -254,7 +254,7 @@ jobs:
       - name: Sync repomatic-managed files
         run: >
           uvx --no-progress --from . repomatic init
-          --delete-redundant --delete-excluded
+          --delete-unmodified --delete-excluded
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body

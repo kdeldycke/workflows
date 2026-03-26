@@ -960,7 +960,7 @@ def resolve_config_source(spec: ToolSpec) -> str:
     return "(bare)"
 
 
-def find_redundant_configs() -> list[tuple[str, str]]:
+def find_unmodified_configs() -> list[tuple[str, str]]:
     """Find native config files identical to their bundled defaults.
 
     Iterates over every tool in :data:`TOOL_REGISTRY` that has a
@@ -972,9 +972,9 @@ def find_redundant_configs() -> list[tuple[str, str]]:
     used by ``_init_config_files`` when writing files during ``init``.
 
     :return: List of ``(tool_name, relative_path)`` tuples for each
-        redundant file found.
+        unmodified file found.
     """
-    redundant: list[tuple[str, str]] = []
+    unmodified: list[tuple[str, str]] = []
 
     for name, spec in sorted(TOOL_REGISTRY.items()):
         if not spec.default_config:
@@ -989,6 +989,6 @@ def find_redundant_configs() -> list[tuple[str, str]]:
                 continue
             native = path.read_text(encoding="UTF-8").rstrip() + "\n"
             if native == bundled:
-                redundant.append((name, config_file))
+                unmodified.append((name, config_file))
 
-    return redundant
+    return unmodified

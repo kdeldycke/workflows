@@ -48,7 +48,7 @@ from repomatic.tool_runner import (
     _get_platform_key,
     _install_binary,
     binary_tool_context,
-    find_redundant_configs,
+    find_unmodified_configs,
     get_data_file_path,
     resolve_config,
     resolve_config_source,
@@ -1079,12 +1079,12 @@ def test_get_data_file_path_missing():
 
 
 # ---------------------------------------------------------------------------
-# find_redundant_configs
+# find_unmodified_configs
 # ---------------------------------------------------------------------------
 
 
-def test_find_redundant_configs_exact_match(tmp_path, monkeypatch):
-    """Native config file matching bundled default is flagged as redundant."""
+def test_find_unmodified_configs_exact_match(tmp_path, monkeypatch):
+    """Native config file matching bundled default is flagged as unmodified."""
     monkeypatch.chdir(tmp_path)
 
     with get_data_file_path("yamllint.yaml") as bundled:
@@ -1092,12 +1092,12 @@ def test_find_redundant_configs_exact_match(tmp_path, monkeypatch):
 
     (tmp_path / ".yamllint.yaml").write_text(bundled_content, encoding="UTF-8")
 
-    result = find_redundant_configs()
+    result = find_unmodified_configs()
     paths = [p for _, p in result]
     assert ".yamllint.yaml" in paths
 
 
-def test_find_redundant_configs_trailing_whitespace(tmp_path, monkeypatch):
+def test_find_unmodified_configs_trailing_whitespace(tmp_path, monkeypatch):
     """Trailing whitespace differences are normalized away."""
     monkeypatch.chdir(tmp_path)
 
@@ -1108,12 +1108,12 @@ def test_find_redundant_configs_trailing_whitespace(tmp_path, monkeypatch):
         bundled_content.rstrip() + "\n\n\n", encoding="UTF-8"
     )
 
-    result = find_redundant_configs()
+    result = find_unmodified_configs()
     paths = [p for _, p in result]
     assert ".yamllint.yaml" in paths
 
 
-def test_find_redundant_configs_modified_content(tmp_path, monkeypatch):
+def test_find_unmodified_configs_modified_content(tmp_path, monkeypatch):
     """Native config with different content is not flagged."""
     monkeypatch.chdir(tmp_path)
 
@@ -1121,20 +1121,20 @@ def test_find_redundant_configs_modified_content(tmp_path, monkeypatch):
         "rules:\n  line-length:\n    max: 80\n", encoding="UTF-8"
     )
 
-    result = find_redundant_configs()
+    result = find_unmodified_configs()
     paths = [p for _, p in result]
     assert ".yamllint.yaml" not in paths
 
 
-def test_find_redundant_configs_no_file(tmp_path, monkeypatch):
+def test_find_unmodified_configs_no_file(tmp_path, monkeypatch):
     """No native config on disk returns empty list."""
     monkeypatch.chdir(tmp_path)
 
-    result = find_redundant_configs()
+    result = find_unmodified_configs()
     assert result == []
 
 
-def test_find_redundant_configs_multiple_tools(tmp_path, monkeypatch):
+def test_find_unmodified_configs_multiple_tools(tmp_path, monkeypatch):
     """Redundant files for multiple tools are all detected."""
     monkeypatch.chdir(tmp_path)
 
@@ -1146,13 +1146,13 @@ def test_find_redundant_configs_multiple_tools(tmp_path, monkeypatch):
             content = bundled.read_text(encoding="UTF-8")
         (tmp_path / native_name).write_text(content, encoding="UTF-8")
 
-    result = find_redundant_configs()
+    result = find_unmodified_configs()
     tools = {t for t, _ in result}
     assert "yamllint" in tools
     assert "zizmor" in tools
 
 
-def test_find_redundant_configs_alternative_filename(tmp_path, monkeypatch):
+def test_find_unmodified_configs_alternative_filename(tmp_path, monkeypatch):
     """Alternative native config filename (.yamllint.yml) is also checked."""
     monkeypatch.chdir(tmp_path)
 
@@ -1161,6 +1161,6 @@ def test_find_redundant_configs_alternative_filename(tmp_path, monkeypatch):
 
     (tmp_path / ".yamllint.yml").write_text(bundled_content, encoding="UTF-8")
 
-    result = find_redundant_configs()
+    result = find_unmodified_configs()
     paths = [p for _, p in result]
     assert ".yamllint.yml" in paths

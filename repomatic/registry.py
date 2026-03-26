@@ -139,10 +139,10 @@ class Component:
     files: tuple[FileEntry, ...] = ()
     """File entries this component manages."""
 
-    check_redundancy: bool = False
-    """Check files for byte-for-byte match with bundled defaults (labels,
-    renovate). Skills excluded because they are user-facing documents,
-    not machine configs."""
+    keep_unmodified: bool = False
+    """Preserve files on disk even when identical to the bundled default.
+    When ``False``, unmodified copies are flagged for cleanup by
+    ``--delete-unmodified``."""
 
     source_file: str = ""
     """Filename in ``repomatic/data/`` (``TOOL_CONFIG`` kind only)."""
@@ -171,7 +171,6 @@ COMPONENTS: tuple[Component, ...] = (
         description="Label config files (labels.toml + labeller rules)",
         kind=ComponentKind.BUNDLED,
         init_default=InitDefault.EXCLUDE,
-        check_redundancy=True,
         files=(
             FileEntry(
                 "labeller-content-based.yaml",
@@ -188,7 +187,6 @@ COMPONENTS: tuple[Component, ...] = (
         name="renovate",
         description="Renovate config (renovate.json5)",
         kind=ComponentKind.BUNDLED,
-        check_redundancy=True,
         files=(FileEntry("renovate.json5"),),
     ),
     Component(
@@ -196,6 +194,9 @@ COMPONENTS: tuple[Component, ...] = (
         description="Claude Code skill definitions (.claude/skills/)",
         kind=ComponentKind.BUNDLED,
         init_default=InitDefault.EXCLUDE,
+        # Skills are user-facing documents, not machine configs. Keep them
+        # on disk even when unmodified so Claude Code can always find them.
+        keep_unmodified=True,
         files=(
             FileEntry(
                 "skill-awesome-triage.md",
