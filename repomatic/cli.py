@@ -102,6 +102,7 @@ from .images import (
 from .init_project import (
     ALL_COMPONENTS,
     COMPONENT_FILES,
+    SKILL_PHASES,
     export_content,
     run_init,
     valid_file_ids,
@@ -2195,27 +2196,6 @@ def _run_labelmaker(labelmaker_path: Path, *args: str) -> None:
         logging.debug(result.stdout)
 
 
-# Lifecycle phases for skill grouping. Each skill name maps to a phase.
-_SKILL_PHASES: dict[str, str] = {
-    "awesome-triage": "Maintenance",
-    "repomatic-init": "Setup",
-    "repomatic-sync": "Setup",
-    "repomatic-audit": "Maintenance",
-    "repomatic-deps": "Development",
-    "repomatic-lint": "Quality",
-    "repomatic-test": "Quality",
-    "repomatic-topics": "Development",
-    "repomatic-changelog": "Release",
-    "repomatic-release": "Release",
-    "sphinx-docs-sync": "Maintenance",
-    "translation-sync": "Maintenance",
-}
-"""Maps skill names to lifecycle phases for display grouping."""
-
-# Canonical display order for lifecycle phases.
-_PHASE_ORDER = ("Setup", "Development", "Quality", "Maintenance", "Release")
-
-
 def _parse_skill_frontmatter(content: str) -> dict[str, str]:
     """Extract YAML frontmatter fields from a skill definition file.
 
@@ -2245,19 +2225,20 @@ def list_skills() -> None:
     in a table grouped by phase: Setup, Development, Quality, and Release.
     """
     # Collect skill metadata from bundled files.
+    skills_comp = _BY_NAME["skills"]
     skills = []
-    for source_name, _rel_path in COMPONENT_FILES["skills"]:
-        content = export_content(source_name)
+    for entry in skills_comp.files:
+        content = export_content(entry.source)
         meta = _parse_skill_frontmatter(content)
-        name = meta.get("name", source_name)
+        name = meta.get("name", entry.file_id)
         description = meta.get("description", "")
         # Strip trailing period for table display.
         description = description.removesuffix(".")
-        phase = _SKILL_PHASES.get(name, "Other")
+        phase = SKILL_PHASES.get(name, "Other")
         skills.append((phase, name, description))
 
     # Group by phase in canonical order.
-    for phase in _PHASE_ORDER:
+    for phase in SKILL_PHASE_ORDER:
         phase_skills = [(n, d) for p, n, d in skills if p == phase]
         if not phase_skills:
             continue

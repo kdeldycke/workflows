@@ -42,7 +42,14 @@ from pathlib import Path
 import yaml
 
 from .. import __version__
-from ..init_project import export_content, get_data_content
+from ..init_project import (
+    ALL_WORKFLOW_FILES,
+    NON_REUSABLE_WORKFLOWS,
+    OPT_IN_WORKFLOWS,
+    REUSABLE_WORKFLOWS,
+    export_content,
+    get_data_content,
+)
 from .actions import AnnotationLevel, emit_annotation
 
 if sys.version_info >= (3, 11):
@@ -101,37 +108,6 @@ corresponding tag (``v5.11.0``). For development builds (``5.11.1.dev0``),
 it falls back to ``main`` since the tag does not exist yet.
 """
 
-NON_REUSABLE_WORKFLOWS: Final[frozenset[str]] = frozenset(("tests.yaml",))
-"""Workflows without ``workflow_call`` that cannot be used as thin callers."""
-
-REUSABLE_WORKFLOWS: Final[tuple[str, ...]] = (
-    "autofix.yaml",
-    "autolock.yaml",
-    "cancel-runs.yaml",
-    "changelog.yaml",
-    "debug.yaml",
-    "docs.yaml",
-    "labels.yaml",
-    "lint.yaml",
-    "release.yaml",
-    "renovate.yaml",
-    "unsubscribe.yaml",
-)
-"""Workflow filenames that support ``workflow_call`` triggers."""
-
-OPT_IN_WORKFLOWS: Final[dict[str, str]] = {
-    "unsubscribe.yaml": "notification.unsubscribe",
-}
-"""Workflows excluded from thin-caller generation unless explicitly enabled.
-
-Maps workflow filename to its ``[tool.repomatic]`` config key. The workflow is
-only included in init/sync when the key is ``true``.
-"""
-
-ALL_WORKFLOW_FILES: Final[tuple[str, ...]] = tuple(
-    sorted(set(REUSABLE_WORKFLOWS) | NON_REUSABLE_WORKFLOWS)
-)
-"""All workflow filenames (reusable and non-reusable)."""
 
 UPSTREAM_SOURCE_GLOB: Final[str] = "repomatic/**"
 """Path glob for the upstream source directory in canonical workflows.
@@ -147,7 +123,6 @@ Paths starting with this prefix (but not matching :data:`UPSTREAM_SOURCE_GLOB`)
 are dropped in downstream thin callers because they reference files that only
 exist in the upstream repository (e.g., ``repomatic/data/renovate.json5``).
 """
-
 
 def _extract_raw_section(content: str, section_name: str) -> str | None:
     """Extract a top-level YAML section as raw text.

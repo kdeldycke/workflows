@@ -23,19 +23,17 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from repomatic.github.workflow_sync import (
-    ALL_WORKFLOW_FILES,
-    OPT_IN_WORKFLOWS,
-    REUSABLE_WORKFLOWS,
-)
 from repomatic.init_project import (
     ALL_COMPONENTS,
+    ALL_WORKFLOW_FILES,
     COMPONENT_FILES,
     DEFAULT_COMPONENTS,
     EXPORTABLE_FILES,
     FILE_COMPONENTS,
-    INIT_CONFIGS,
-    _file_id,
+    OPT_IN_WORKFLOWS,
+    REUSABLE_WORKFLOWS,
+    SKILL_PHASES,
+    TOOL_COMPONENTS,
     _strip_renovate_repo_settings,
     _to_pyproject_format,
     _update_bumpversion_config,
@@ -47,6 +45,7 @@ from repomatic.init_project import (
     run_init,
     valid_file_ids,
 )
+from repomatic.registry import COMPONENTS, ComponentKind, _BY_NAME
 from repomatic.tool_runner import TOOL_REGISTRY
 
 if sys.version_info >= (3, 11):
@@ -60,44 +59,44 @@ else:
 
 def test_supported_config_types() -> None:
     """Verify that expected config types are registered."""
-    assert "mypy" in INIT_CONFIGS
-    assert "ruff" in INIT_CONFIGS
-    assert "pytest" in INIT_CONFIGS
-    assert "bumpversion" in INIT_CONFIGS
-    assert "typos" in INIT_CONFIGS
+    for name in ("mypy", "ruff", "pytest", "bumpversion", "typos"):
+        comp = _BY_NAME[name]
+        assert comp.kind == ComponentKind.TOOL_CONFIG
 
 
 def test_config_type_has_required_fields() -> None:
-    """Verify that each config type has all required fields."""
-    for config in INIT_CONFIGS.values():
-        assert config.filename
-        assert config.tool_section
-        assert config.description
+    """Verify that each tool config component has all required fields."""
+    for comp in COMPONENTS:
+        if comp.kind != ComponentKind.TOOL_CONFIG:
+            continue
+        assert comp.source_file
+        assert comp.tool_section
+        assert comp.description
 
 
-@pytest.mark.parametrize("config_type", list(INIT_CONFIGS.keys()))
+@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
 def test_returns_non_empty_string(config_type: str) -> None:
     """Verify that export_content returns a non-empty string."""
-    config = INIT_CONFIGS[config_type]
-    content = export_content(config.filename)
+    comp = _BY_NAME[config_type]
+    content = export_content(comp.source_file)
     assert isinstance(content, str)
     assert len(content) > 0
 
 
-@pytest.mark.parametrize("config_type", list(INIT_CONFIGS.keys()))
+@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
 def test_returns_valid_toml(config_type: str) -> None:
     """Verify that the returned content is valid TOML."""
-    config = INIT_CONFIGS[config_type]
-    content = export_content(config.filename)
+    comp = _BY_NAME[config_type]
+    content = export_content(comp.source_file)
     parsed = tomllib.loads(content)
     assert isinstance(parsed, dict)
 
 
-@pytest.mark.parametrize("config_type", list(INIT_CONFIGS.keys()))
+@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
 def test_native_format_no_tool_prefix(config_type: str) -> None:
     """Verify that native format does not have [tool.X] prefix."""
-    config = INIT_CONFIGS[config_type]
-    content = export_content(config.filename)
+    comp = _BY_NAME[config_type]
+    content = export_content(comp.source_file)
     parsed = tomllib.loads(content)
     # Native format should NOT have a "tool" key at the root.
     assert "tool" not in parsed
@@ -136,7 +135,7 @@ _TEMPLATE_SUPERSET_KEYS: dict[str, frozenset[str]] = {
 }
 
 
-@pytest.mark.parametrize("config_type", list(INIT_CONFIGS.keys()))
+@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
 def test_template_matches_own_pyproject(config_type: str) -> None:
     """Verify bundled template stays in sync with repomatic's own config.
 
@@ -144,8 +143,8 @@ def test_template_matches_own_pyproject(config_type: str) -> None:
     ``[tool.*]`` section. List keys marked as superset require every template
     entry to appear in own config, but own config may have extras.
     """
-    config = INIT_CONFIGS[config_type]
-    template = tomllib.loads(export_content(config.filename))
+    comp = _BY_NAME[config_type]
+    template = tomllib.loads(export_content(comp.source_file))
 
     project_root = Path(__file__).resolve().parent.parent
     own_config = tomllib.loads(
@@ -632,29 +631,27 @@ def test_skills_consistency():
     """Verify all .claude/skills/ directories have matching entries in code.
 
     Guards against adding a skill definition to ``.claude/skills/`` without
-    registering it in ``COMPONENT_FILES``, ``_SKILL_PHASES``, and the
+    registering it in the component registry, ``SKILL_PHASES``, and the
     ``repomatic/data/`` symlinks.
     """
-    from repomatic.cli import _SKILL_PHASES
-
     # Collect skill directories from the filesystem.
     skills_dir = Path(__file__).resolve().parents[1] / ".claude" / "skills"
     fs_skills = {p.parent.name for p in skills_dir.glob("*/SKILL.md")}
 
-    # Collect skills registered in COMPONENT_FILES.
+    # Collect skills registered in the component registry.
     component_skills = {
-        rel_path.split("/")[2] for _, rel_path in COMPONENT_FILES.get("skills", ())
+        entry.file_id for entry in _BY_NAME["skills"].files
     }
 
-    # Collect skills registered in _SKILL_PHASES.
-    phase_skills = set(_SKILL_PHASES)
+    # Collect skills registered in SKILL_PHASES.
+    phase_skills = set(SKILL_PHASES)
 
     # Collect data symlinks.
     data_dir = Path(__file__).resolve().parents[1] / "repomatic" / "data"
     data_skills = {p.stem.removeprefix("skill-") for p in data_dir.glob("skill-*.md")}
 
     assert fs_skills == component_skills, (
-        f"COMPONENT_FILES mismatch: "
+        f"Registry mismatch: "
         f"missing={fs_skills - component_skills}, "
         f"extra={component_skills - fs_skills}"
     )
@@ -664,7 +661,7 @@ def test_skills_consistency():
         f"extra={data_skills - fs_skills}"
     )
     assert fs_skills == phase_skills, (
-        f"_SKILL_PHASES mismatch: "
+        f"SKILL_PHASES mismatch: "
         f"missing={fs_skills - phase_skills}, "
         f"stale={phase_skills - fs_skills}"
     )
@@ -1598,31 +1595,21 @@ def test_all_data_files_registered_in_exportable_files() -> None:
 
 
 def test_every_data_file_maps_to_a_component() -> None:
-    """Every file in EXPORTABLE_FILES belongs to a component, tool config, or tool runner."""
-    # Collect all filenames claimed by FILE_COMPONENTS.
-    component_filenames: set[str] = set()
-    for entries in COMPONENT_FILES.values():
-        for source_filename, _ in entries:
-            component_filenames.add(source_filename)
-
-    # Collect all filenames claimed by INIT_CONFIGS (tool components).
-    tool_filenames = {cfg.filename for cfg in INIT_CONFIGS.values()}
-
-    # Collect workflow filenames from EXPORTABLE_FILES.
-    workflow_filenames = {
-        fname
-        for fname, path in EXPORTABLE_FILES.items()
-        if path and path.startswith("./.github/workflows/")
-    }
+    """Every file in EXPORTABLE_FILES belongs to a registry component or tool runner."""
+    # Collect all source filenames from the registry.
+    registry_filenames: set[str] = set()
+    for comp in COMPONENTS:
+        for entry in comp.files:
+            registry_filenames.add(entry.source)
+        if comp.source_file:
+            registry_filenames.add(comp.source_file)
 
     # Collect bundled default configs used by the tool runner at runtime.
     bundled_defaults = {
         spec.default_config for spec in TOOL_REGISTRY.values() if spec.default_config
     }
 
-    covered = (
-        component_filenames | tool_filenames | workflow_filenames | bundled_defaults
-    )
+    covered = registry_filenames | bundled_defaults
     uncovered = set(EXPORTABLE_FILES.keys()) - covered
     assert not uncovered, (
         f"EXPORTABLE_FILES entries not mapped to any component: {sorted(uncovered)}"
@@ -1634,24 +1621,17 @@ def test_no_data_file_claimed_by_multiple_components() -> None:
     seen: dict[str, str] = {}
     duplicates: list[str] = []
 
-    # Check FILE_COMPONENTS.
-    for component, entries in COMPONENT_FILES.items():
-        for source_filename, _ in entries:
+    for comp in COMPONENTS:
+        sources: list[str] = [e.source for e in comp.files]
+        if comp.source_file:
+            sources.append(comp.source_file)
+        for source_filename in sources:
             if source_filename in seen:
                 duplicates.append(
                     f"{source_filename!r} claimed by both"
-                    f" {seen[source_filename]!r} and {component!r}"
+                    f" {seen[source_filename]!r} and {comp.name!r}"
                 )
-            seen[source_filename] = component
-
-    # Check INIT_CONFIGS.
-    for component, cfg in INIT_CONFIGS.items():
-        if cfg.filename in seen:
-            duplicates.append(
-                f"{cfg.filename!r} claimed by both"
-                f" {seen[cfg.filename]!r} and {component!r}"
-            )
-        seen[cfg.filename] = component
+            seen[source_filename] = comp.name
 
     assert not duplicates, f"Duplicate file mappings: {duplicates}"
 
@@ -1668,19 +1648,19 @@ def test_workflow_file_ids_match_all_workflow_files() -> None:
     assert valid_file_ids("workflows") == frozenset(ALL_WORKFLOW_FILES)
 
 
-def test_component_file_ids_match_component_files() -> None:
-    """valid_file_ids must return identifiers matching COMPONENT_FILES entries."""
-    for component in COMPONENT_FILES:
-        expected = frozenset(
-            _file_id(component, rel) for _, rel in COMPONENT_FILES[component]
-        )
-        assert valid_file_ids(component) == expected
+def test_component_file_ids_match_registry() -> None:
+    """valid_file_ids must return identifiers matching registry entries."""
+    for comp in COMPONENTS:
+        if not comp.files:
+            continue
+        expected = frozenset(entry.file_id for entry in comp.files)
+        assert valid_file_ids(comp.name) == expected
 
 
 def test_tool_components_have_no_file_ids() -> None:
     """Tool components (ruff, pytest, etc.) do not support file-level exclusion."""
-    for component in INIT_CONFIGS:
-        assert valid_file_ids(component) == frozenset()
+    for name in TOOL_COMPONENTS:
+        assert valid_file_ids(name) == frozenset()
 
 
 def test_tools_with_bundled_defaults_not_init_components() -> None:

@@ -54,7 +54,15 @@ from .metadata import (
     load_repomatic_config,
     resolve_source_paths,
 )
-from .tool_runner import find_redundant_configs
+from .registry import (
+    COMPONENTS,
+    DEFAULT_REPO,
+    ComponentKind,
+    RepoScope,
+    SelectionDefault,
+    _BY_NAME,
+)
+from .tool_runner import TOOL_REGISTRY, find_redundant_configs
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -66,120 +74,123 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from importlib.abc import Traversable
 
-DEFAULT_REPO: str = "kdeldycke/repomatic"
-"""Default upstream repository for reusable workflows."""
+    from .registry import Component
+
+
+# ---------------------------------------------------------------------------
+# Derived constants (computed from the registry in registry.py).
+# ---------------------------------------------------------------------------
+
+ALL_COMPONENTS: dict[str, str] = {
+    c.name: c.description for c in COMPONENTS
+}
+"""All available init components."""
+
+FILE_COMPONENTS: dict[str, str] = {
+    c.name: c.description
+    for c in COMPONENTS
+    if c.kind != ComponentKind.TOOL_CONFIG
+}
+"""Components that create files during init, with descriptions."""
+
+TOOL_COMPONENTS: dict[str, str] = {
+    c.name: c.description
+    for c in COMPONENTS
+    if c.kind == ComponentKind.TOOL_CONFIG
+}
+"""Tool config components merged into pyproject.toml during init."""
+
+DEFAULT_COMPONENTS: tuple[str, ...] = tuple(sorted(
+    c.name
+    for c in COMPONENTS
+    if c.selection in (SelectionDefault.SELECTED, SelectionDefault.EXCLUDED)
+))
+"""Components included when no explicit selection is made."""
+
+DEFAULT_EXCLUSIONS: tuple[str, ...] = tuple(sorted(
+    c.name
+    for c in COMPONENTS
+    if c.selection == SelectionDefault.EXCLUDED
+))
+"""Components excluded by default when no explicit selection is made.
+
+User ``exclude`` entries are additive to these defaults. User ``include``
+entries override both defaults and user excludes.
+"""
+
+COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
+    c.name: tuple((f.source, f.target) for f in c.files)
+    for c in COMPONENTS
+    if c.files and c.kind == ComponentKind.BUNDLED
+}
+"""Bundled config files per component, with their output paths."""
+
+REDUNDANCY_COMPONENTS: frozenset[str] = frozenset(
+    c.name for c in COMPONENTS if c.check_redundancy
+)
+"""Components whose files are checked for redundancy against bundled defaults.
+
+Skills are excluded because they are user-facing documents, not machine configs.
+"""
+
+REUSABLE_WORKFLOWS: tuple[str, ...] = tuple(
+    f.file_id
+    for f in _BY_NAME["workflows"].files
+    if f.reusable
+)
+"""Workflow filenames that support ``workflow_call`` triggers."""
+
+NON_REUSABLE_WORKFLOWS: frozenset[str] = frozenset(
+    f.file_id
+    for f in _BY_NAME["workflows"].files
+    if not f.reusable
+)
+"""Workflows without ``workflow_call`` that cannot be used as thin callers."""
+
+OPT_IN_WORKFLOWS: dict[str, str] = {
+    f.file_id: f.opt_in_key
+    for f in _BY_NAME["workflows"].files
+    if f.opt_in_key
+}
+"""Workflows excluded from thin-caller generation unless explicitly enabled.
+
+Maps workflow filename to its ``[tool.repomatic]`` config key. The workflow is
+only included in init/sync when the key is ``true``.
+"""
+
+ALL_WORKFLOW_FILES: tuple[str, ...] = tuple(sorted(
+    f.file_id for f in _BY_NAME["workflows"].files
+))
+"""All workflow filenames (reusable and non-reusable)."""
+
+SKILL_PHASES: dict[str, str] = {
+    f.file_id: f.phase
+    for f in _BY_NAME["skills"].files
+    if f.phase
+}
+"""Maps skill names to lifecycle phases for display grouping."""
+
+# Exportable files: all registry entries + tool runner bundled defaults.
+EXPORTABLE_FILES: dict[str, str | None] = {
+    **{f.source: f.target for c in COMPONENTS for f in c.files},
+    **{c.source_file: None for c in COMPONENTS if c.source_file},
+    # Standalone linter configs from the tool runner (yamllint, zizmor).
+    # These are bundled defaults used at runtime, not init components.
+    **{
+        spec.default_config: None
+        for spec in TOOL_REGISTRY.values()
+        if spec.default_config
+    },
+}
+"""Registry of all exportable files: maps filename to default output path.
+
+``None`` means stdout (for pyproject.toml templates that need merging).
+"""
 
 
 # ---------------------------------------------------------------------------
 # Bundled data access
 # ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class InitConfig:
-    """Metadata for configs that can be merged into pyproject.toml."""
-
-    filename: str
-    """Filename in repomatic/data/ directory."""
-
-    tool_section: str
-    """The [tool.X] section name to check for existence."""
-
-    insert_after: Sequence[str]
-    """Sections to insert after (in priority order)."""
-
-    insert_before: Sequence[str]
-    """Sections to insert before (if insert_after not found)."""
-
-    description: str
-    """Human-readable description for help text."""
-
-
-# Registry of all exportable files: maps filename to default output path.
-# None means stdout (for pyproject.toml templates that need merging).
-EXPORTABLE_FILES: dict[str, str | None] = {
-    # pyproject.toml config templates (no default path, output to stdout for merging).
-    "mypy.toml": None,
-    "ruff.toml": None,
-    "pytest.toml": None,
-    "bumpversion.toml": None,
-    "typos.toml": None,
-    # Renovate configuration.
-    "renovate.json5": "./renovate.json5",
-    # Label configuration files.
-    "labels.toml": "./labels.toml",
-    "labeller-file-based.yaml": "./.github/labeller-file-based.yaml",
-    "labeller-content-based.yaml": "./.github/labeller-content-based.yaml",
-    # Linter configuration files.
-    "yamllint.yaml": "./.yamllint.yaml",
-    "zizmor.yaml": "./zizmor.yaml",
-    # Claude Code skill definitions.
-    "skill-awesome-triage.md": "./.claude/skills/awesome-triage/SKILL.md",
-    "skill-repomatic-audit.md": "./.claude/skills/repomatic-audit/SKILL.md",
-    "skill-repomatic-changelog.md": "./.claude/skills/repomatic-changelog/SKILL.md",
-    "skill-repomatic-deps.md": "./.claude/skills/repomatic-deps/SKILL.md",
-    "skill-repomatic-init.md": "./.claude/skills/repomatic-init/SKILL.md",
-    "skill-repomatic-lint.md": "./.claude/skills/repomatic-lint/SKILL.md",
-    "skill-repomatic-release.md": "./.claude/skills/repomatic-release/SKILL.md",
-    "skill-repomatic-sync.md": "./.claude/skills/repomatic-sync/SKILL.md",
-    "skill-repomatic-test.md": "./.claude/skills/repomatic-test/SKILL.md",
-    "skill-repomatic-topics.md": "./.claude/skills/repomatic-topics/SKILL.md",
-    "skill-sphinx-docs-sync.md": "./.claude/skills/sphinx-docs-sync/SKILL.md",
-    "skill-translation-sync.md": "./.claude/skills/translation-sync/SKILL.md",
-    # Workflow templates.
-    "autofix.yaml": "./.github/workflows/autofix.yaml",
-    "autolock.yaml": "./.github/workflows/autolock.yaml",
-    "cancel-runs.yaml": "./.github/workflows/cancel-runs.yaml",
-    "changelog.yaml": "./.github/workflows/changelog.yaml",
-    "debug.yaml": "./.github/workflows/debug.yaml",
-    "docs.yaml": "./.github/workflows/docs.yaml",
-    "labels.yaml": "./.github/workflows/labels.yaml",
-    "lint.yaml": "./.github/workflows/lint.yaml",
-    "release.yaml": "./.github/workflows/release.yaml",
-    "renovate.yaml": "./.github/workflows/renovate.yaml",
-    "tests.yaml": "./.github/workflows/tests.yaml",
-    "unsubscribe.yaml": "./.github/workflows/unsubscribe.yaml",
-}
-
-# Registry of configs that support `init` (merging into pyproject.toml).
-# The insert_after/insert_before values follow pyproject-fmt's section ordering.
-INIT_CONFIGS: dict[str, InitConfig] = {
-    "ruff": InitConfig(
-        filename="ruff.toml",
-        tool_section="tool.ruff",
-        insert_after=("tool.uv", "tool.uv.build-backend"),
-        insert_before=("tool.pytest",),
-        description="Ruff linter/formatter configuration",
-    ),
-    "pytest": InitConfig(
-        filename="pytest.toml",
-        tool_section="tool.pytest",
-        insert_after=("tool.ruff", "tool.ruff.format"),
-        insert_before=("tool.mypy",),
-        description="Pytest test configuration",
-    ),
-    "mypy": InitConfig(
-        filename="mypy.toml",
-        tool_section="tool.mypy",
-        insert_after=("tool.pytest",),
-        insert_before=("tool.nuitka", "tool.bumpversion"),
-        description="Mypy type checking configuration",
-    ),
-    "bumpversion": InitConfig(
-        filename="bumpversion.toml",
-        tool_section="tool.bumpversion",
-        insert_after=("tool.nuitka", "tool.mypy"),
-        insert_before=("tool.typos",),
-        description="bump-my-version configuration",
-    ),
-    "typos": InitConfig(
-        filename="typos.toml",
-        tool_section="tool.typos",
-        insert_after=("tool.bumpversion",),
-        insert_before=("tool.pytest",),
-        description="Typos spell checker configuration",
-    ),
-}
 
 
 def get_data_content(filename: str) -> str:
@@ -518,12 +529,11 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     :return: The modified pyproject.toml content, or ``None`` if no changes needed.
     :raises ValueError: If the config type is not supported.
     """
-    if config_type not in INIT_CONFIGS:
-        supported = ", ".join(INIT_CONFIGS.keys())
+    comp = _BY_NAME.get(config_type)
+    if comp is None or comp.kind != ComponentKind.TOOL_CONFIG:
+        supported = ", ".join(TOOL_COMPONENTS)
         msg = f"Unknown config type: {config_type!r}. Supported: {supported}"
         raise ValueError(msg)
-
-    config = INIT_CONFIGS[config_type]
 
     if pyproject_path is None:
         pyproject_path = Path("pyproject.toml")
@@ -535,20 +545,22 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     content = pyproject_path.read_text(encoding="UTF-8")
 
     # Check if the config section already exists.
-    section_pattern = rf"^\[{re.escape(config.tool_section)}\]"
+    section_pattern = rf"^\[{re.escape(comp.tool_section)}\]"
     if re.search(section_pattern, content, re.MULTILINE):
         # For bumpversion, try updating existing config with dev versioning.
         if config_type == "bumpversion":
             return _update_bumpversion_config(content, pyproject_path)
-        logging.info(f"[{config.tool_section}] already exists in {pyproject_path.name}")
+        logging.info(
+            f"[{comp.tool_section}] already exists in {pyproject_path.name}"
+        )
         return None
 
     # Get the template content and transform to pyproject.toml format.
-    native_template = export_content(config.filename)
-    template = _to_pyproject_format(native_template, config.tool_section)
+    native_template = export_content(comp.source_file)
+    template = _to_pyproject_format(native_template, comp.tool_section)
 
     # Find insertion point using the config's preferences.
-    insertion_index = _find_insertion_point(content, config)
+    insertion_index = _find_insertion_point(content, comp)
 
     # Ensure proper spacing.
     before = content[:insertion_index].rstrip()
@@ -562,11 +574,11 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     return new_content
 
 
-def _find_insertion_point(content: str, config: InitConfig) -> int:
+def _find_insertion_point(content: str, config: Component) -> int:
     """Find the best insertion point for a config section.
 
     :param content: The pyproject.toml content.
-    :param config: The configuration type metadata.
+    :param config: The component whose tool config is being inserted.
     :return: The character index where the new section should be inserted.
     """
     # Pattern to match tool sections: [tool.xxx] or [[tool.xxx.yyy]].
@@ -614,115 +626,32 @@ def default_version_pin() -> str:
     return f"v{version}"
 
 
-# Components that generate files (not tool config merges).
-FILE_COMPONENTS: dict[str, str] = {
-    "awesome-template": "Boilerplate for awesome-* repositories",
-    "changelog": "Minimal changelog.md",
-    "labels": "Label config files (labels.toml + labeller rules)",
-    "renovate": "Renovate config (renovate.json5)",
-    "skills": "Claude Code skill definitions (.claude/skills/)",
-    "workflows": "Thin-caller workflow files",
-}
-"""Components that create files during init, with descriptions."""
-
-# Tool config components that merge into pyproject.toml.
-TOOL_COMPONENTS: dict[str, str] = {k: v.description for k, v in INIT_CONFIGS.items()}
-"""Tool config components merged into pyproject.toml during init."""
-
-ALL_COMPONENTS: dict[str, str] = {**FILE_COMPONENTS, **TOOL_COMPONENTS}
-"""All available init components."""
-
-# awesome-template is auto-included for awesome-* repos, not all repos.
-_AUTO_ONLY_COMPONENTS: frozenset[str] = frozenset(("awesome-template",))
-
-DEFAULT_COMPONENTS: tuple[str, ...] = tuple(
-    sorted(k for k in FILE_COMPONENTS if k not in _AUTO_ONLY_COMPONENTS)
-)
-"""Components included when no explicit selection is made."""
-
-DEFAULT_EXCLUSIONS: tuple[str, ...] = ("labels", "skills")
-"""Components excluded by default when no explicit selection is made.
-
-User ``exclude`` entries are additive to these defaults. User ``include``
-entries override both defaults and user excludes.
-"""
-
-# Maps component names to (source filename, relative output path) tuples.
-COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
-    "labels": (
-        ("labeller-content-based.yaml", ".github/labeller-content-based.yaml"),
-        ("labeller-file-based.yaml", ".github/labeller-file-based.yaml"),
-        ("labels.toml", "labels.toml"),
-    ),
-    "renovate": (("renovate.json5", "renovate.json5"),),
-    "skills": (
-        ("skill-awesome-triage.md", ".claude/skills/awesome-triage/SKILL.md"),
-        ("skill-repomatic-audit.md", ".claude/skills/repomatic-audit/SKILL.md"),
-        ("skill-repomatic-changelog.md", ".claude/skills/repomatic-changelog/SKILL.md"),
-        ("skill-repomatic-deps.md", ".claude/skills/repomatic-deps/SKILL.md"),
-        ("skill-repomatic-init.md", ".claude/skills/repomatic-init/SKILL.md"),
-        ("skill-repomatic-lint.md", ".claude/skills/repomatic-lint/SKILL.md"),
-        ("skill-repomatic-release.md", ".claude/skills/repomatic-release/SKILL.md"),
-        ("skill-repomatic-sync.md", ".claude/skills/repomatic-sync/SKILL.md"),
-        ("skill-repomatic-test.md", ".claude/skills/repomatic-test/SKILL.md"),
-        ("skill-repomatic-topics.md", ".claude/skills/repomatic-topics/SKILL.md"),
-        ("skill-sphinx-docs-sync.md", ".claude/skills/sphinx-docs-sync/SKILL.md"),
-        ("skill-translation-sync.md", ".claude/skills/translation-sync/SKILL.md"),
-    ),
-}
-"""Bundled config files per component, with their output paths."""
-
-REDUNDANCY_COMPONENTS: frozenset[str] = frozenset(COMPONENT_FILES) - {"skills"}
-"""Components whose files are checked for redundancy against bundled defaults.
-
-Skills are excluded because they are user-facing documents, not machine configs.
-"""
-
-
-def _file_id(component: str, rel_path: str) -> str:
-    """Return the exclude identifier for a file within a component.
-
-    Skills use the directory name (e.g., ``repomatic-audit``). All other
-    components use the output filename (e.g., ``debug.yaml``, ``labels.toml``).
-    """
-    if component == "skills":
-        return Path(rel_path).parent.name
-    return Path(rel_path).name
-
-
 def _excluded_rel_path(component: str, file_id: str) -> str | None:
     """Map a component and file identifier to its relative output path.
 
     Returns ``None`` when the identifier cannot be resolved (e.g., for tool
     config components that have no file-level exclusion support).
     """
-    if component == "workflows":
-        return f".github/workflows/{file_id}"
-    if component == "changelog":
-        return "changelog.md"
-    if component in COMPONENT_FILES:
-        for _, rel_path in COMPONENT_FILES[component]:
-            if _file_id(component, rel_path) == file_id:
-                return rel_path
+    comp = _BY_NAME.get(component)
+    if comp is None:
+        return None
+    for entry in comp.files:
+        if entry.file_id == file_id:
+            return entry.target
     return None
 
 
 def valid_file_ids(component: str) -> frozenset[str]:
     """Return valid file identifiers for a component.
 
-    For ``workflows``, returns all known workflow filenames. For components in
-    ``COMPONENT_FILES``, derives identifiers via ``_file_id()``. Returns an
-    empty set for single-file and tool components.
+    Components with :attr:`~registry.Component.files` entries report their
+    declared ``file_id`` values. Returns an empty set for components without
+    file-level selection (e.g., changelog, tool configs).
     """
-    if component == "workflows":
-        from .github.workflow_sync import ALL_WORKFLOW_FILES
-
-        return frozenset(ALL_WORKFLOW_FILES)
-    if component in COMPONENT_FILES:
-        return frozenset(
-            _file_id(component, rel) for _, rel in COMPONENT_FILES[component]
-        )
-    return frozenset()
+    comp = _BY_NAME.get(component)
+    if comp is None:
+        return frozenset()
+    return frozenset(entry.file_id for entry in comp.files)
 
 
 def parse_component_entries(
@@ -903,12 +832,11 @@ def run_init(
 
         # Expand component-level exclusions into file-level entries so
         # detection below is a single unified pass.
-        for comp in actually_excluded:
-            if comp in COMPONENT_FILES:
-                ids = {_file_id(comp, rp) for _, rp in COMPONENT_FILES[comp]}
-                excluded_files.setdefault(comp, set()).update(ids)
-            elif comp == "changelog":
-                excluded_files.setdefault("changelog", set()).add("changelog.md")
+        for excl_name in actually_excluded:
+            excl_comp = _BY_NAME.get(excl_name)
+            if excl_comp and excl_comp.files:
+                ids = {e.file_id for e in excl_comp.files}
+                excluded_files.setdefault(excl_name, set()).update(ids)
 
     # Auto-exclude files that don't belong in this repository. Added after
     # reporting so they don't appear in "Excluded by config" — they only
@@ -916,23 +844,33 @@ def run_init(
     # Skip auto-exclusion in the upstream source repo — it is the origin
     # of all bundled files (skills, opt-in workflows, configs).
     if _is_source_repo(output_dir):
-        # Bundled components in DEFAULT_EXCLUSIONS (skills, labels) are the
-        # source of truth in the upstream repo. Remove them from
-        # excluded_files so they are never flagged for deletion.
-        for comp in COMPONENT_FILES:
-            excluded_files.pop(comp, None)
+        # Bundled components are the source of truth in the upstream repo.
+        # Remove them from excluded_files so they are never flagged for
+        # deletion.
+        for reg_comp in COMPONENTS:
+            if reg_comp.files:
+                excluded_files.pop(reg_comp.name, None)
     else:
-        if is_awesome_repo:
-            for wf in ("changelog.yaml", "debug.yaml", "release.yaml"):
-                excluded_files.setdefault("workflows", set()).add(wf)
-        else:
-            excluded_files.setdefault("skills", set()).add("awesome-triage")
-            excluded_files.setdefault("skills", set()).add("translation-sync")
-        from .github.workflow_sync import OPT_IN_WORKFLOWS
-
-        for wf_name, config_key in OPT_IN_WORKFLOWS.items():
-            if not config.get(config_key, False):
-                excluded_files.setdefault("workflows", set()).add(wf_name)
+        # Auto-exclude entries by repo scope and opt-in status.
+        for reg_comp in COMPONENTS:
+            for entry in reg_comp.files:
+                if is_awesome_repo and entry.scope == RepoScope.NON_AWESOME:
+                    excluded_files.setdefault(reg_comp.name, set()).add(
+                        entry.file_id
+                    )
+                elif (
+                    not is_awesome_repo
+                    and entry.scope == RepoScope.AWESOME_ONLY
+                ):
+                    excluded_files.setdefault(reg_comp.name, set()).add(
+                        entry.file_id
+                    )
+                if entry.opt_in_key and not config.get(
+                    entry.opt_in_key, False
+                ):
+                    excluded_files.setdefault(reg_comp.name, set()).add(
+                        entry.file_id
+                    )
 
     # Detect excluded files that still exist on disk.
     for comp, file_ids in sorted(excluded_files.items()):
@@ -1000,7 +938,7 @@ def run_init(
         _init_changelog(output_dir, result)
 
     # Tool configs (merged into pyproject.toml).
-    tool_configs = selected & set(INIT_CONFIGS.keys())
+    tool_configs = selected & set(TOOL_COMPONENTS)
     if tool_configs:
         _init_tool_configs(output_dir, sorted(tool_configs), result)
 
@@ -1030,9 +968,6 @@ def _init_workflows(
     """
     # Lazy import to avoid circular dependency with workflow_sync.
     from .github.workflow_sync import (
-        NON_REUSABLE_WORKFLOWS,
-        OPT_IN_WORKFLOWS,
-        REUSABLE_WORKFLOWS,
         generate_thin_caller,
         generate_workflow_header,
     )
@@ -1150,13 +1085,13 @@ def _init_config_files(
     :param exclude_ids: File identifiers to skip within this component.
     :param include_ids: When not ``None``, only export files in this set.
     """
-    for source_name, rel_path in COMPONENT_FILES[component_name]:
-        fid = _file_id(component_name, rel_path)
-        if include_ids is not None and fid not in include_ids:
+    comp = _BY_NAME[component_name]
+    for entry in comp.files:
+        if include_ids is not None and entry.file_id not in include_ids:
             continue
-        if exclude_ids and fid in exclude_ids:
+        if exclude_ids and entry.file_id in exclude_ids:
             continue
-        target = output_dir / rel_path
+        target = output_dir / entry.target
         rel = target.relative_to(output_dir).as_posix()
 
         # In the repomatic source repo, the root renovate.json5 is
@@ -1164,11 +1099,15 @@ def _init_config_files(
         # which breaks under uvx), strip repo-specific settings, and
         # regenerate the bundled data copy instead of overwriting the root.
         if component_name == "renovate" and _is_renovate_source_repo(output_dir):
-            root_content = (output_dir / source_name).read_text(encoding="UTF-8")
-            normalized = _strip_renovate_repo_settings(root_content).rstrip() + "\n"
-            bundled = output_dir / "repomatic" / "data" / source_name
+            root_content = (
+                (output_dir / entry.source).read_text(encoding="UTF-8")
+            )
+            normalized = (
+                _strip_renovate_repo_settings(root_content).rstrip() + "\n"
+            )
+            bundled = output_dir / "repomatic" / "data" / entry.source
             existing = bundled.read_text(encoding="UTF-8").rstrip() + "\n"
-            bundled_rel = f"repomatic/data/{source_name}"
+            bundled_rel = f"repomatic/data/{entry.source}"
             if existing == normalized:
                 # Do not mark as redundant — it is package data, not a
                 # user-facing config that can be safely deleted.
@@ -1179,14 +1118,14 @@ def _init_config_files(
                 logging.info(f"Regenerated bundled config: {bundled_rel}")
             continue
 
-        content = export_content(source_name)
+        content = export_content(entry.source)
         # Normalize trailing whitespace to a single newline, matching the
         # convention used by sync commands (echo(content.rstrip(), ...)).
         normalized = content.rstrip() + "\n"
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"
-            if component_name in REDUNDANCY_COMPONENTS and existing == normalized:
+            if comp.check_redundancy and existing == normalized:
                 result.redundant_configs.append(rel)
                 logging.info(f"Redundant (matches bundled default): {rel}")
                 continue
@@ -1284,15 +1223,17 @@ def find_redundant_init_files() -> list[tuple[str, str]]:
         redundant file found.
     """
     redundant: list[tuple[str, str]] = []
-    for component_name in sorted(REDUNDANCY_COMPONENTS):
-        for source_name, rel_path in COMPONENT_FILES[component_name]:
-            path = Path(rel_path)
+    for comp in COMPONENTS:
+        if not comp.check_redundancy:
+            continue
+        for entry in comp.files:
+            path = Path(entry.target)
             if not path.exists():
                 continue
-            bundled = export_content(source_name).rstrip() + "\n"
+            bundled = export_content(entry.source).rstrip() + "\n"
             on_disk = path.read_text(encoding="UTF-8").rstrip() + "\n"
             if on_disk == bundled:
-                redundant.append((component_name, rel_path))
+                redundant.append((comp.name, entry.target))
     return redundant
 
 
@@ -1380,7 +1321,7 @@ def _init_tool_configs(
         return
     rel = pyproject_path.relative_to(output_dir).as_posix()
     for config_type in tool_configs:
-        section = INIT_CONFIGS[config_type].tool_section
+        section = _BY_NAME[config_type].tool_section
         had_section = re.search(
             rf"^\[{re.escape(section)}\]",
             pyproject_path.read_text(encoding="UTF-8"),

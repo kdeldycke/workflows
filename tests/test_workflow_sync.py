@@ -25,13 +25,15 @@ import pytest
 import yaml
 
 from repomatic.github.actions import AnnotationLevel
-from repomatic.github.workflow_sync import (
+from repomatic.init_project import (
     ALL_WORKFLOW_FILES,
     DEFAULT_REPO,
     NON_REUSABLE_WORKFLOWS,
     REUSABLE_WORKFLOWS,
     UPSTREAM_SOURCE_GLOB,
     UPSTREAM_SOURCE_PREFIX,
+)
+from repomatic.github.workflow_sync import (
     LintResult,
     WorkflowFormat,
     WorkflowTriggerInfo,
