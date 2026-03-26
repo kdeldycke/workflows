@@ -68,7 +68,23 @@ jobs:
             python-version: "3.15"
           - state: unstable
             python-version: "3.15t"
+          # Skip experimental Python versions on PRs to reduce CI load.
+          - full-matrix-only: true
+            python-version: "3.14t"
+          - full-matrix-only: true
+            python-version: "3.15"
+          - full-matrix-only: true
+            python-version: "3.15t"
+          # Skip redundant architecture variants on PRs.
+          - full-matrix-only: true
+            os: macos-15-intel
+          - full-matrix-only: true
+            os: ubuntu-24.04-arm
+          - full-matrix-only: true
+            os: windows-11-arm
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }} / py${{ matrix.python-version }}"
+    # Skip experimental Python versions and redundant architecture variants on PRs.
+    if: "!matrix.full-matrix-only || github.event_name != 'pull_request'"
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
@@ -156,7 +172,10 @@ jobs:
     name: 📦 Package install
     needs:
       - metadata
-    if: fromJSON(needs.metadata.outputs.metadata).cli_scripts
+    # Installs from PyPI/GitHub (released version), not the PR code.
+    if: >-
+      github.event_name != 'pull_request'
+      && fromJSON(needs.metadata.outputs.metadata).cli_scripts
     runs-on: ubuntu-slim
     env:
       PACKAGE: ${{ fromJSON(needs.metadata.outputs.metadata).package_name }}
@@ -216,7 +235,10 @@ jobs:
     name: 🖥️ Validate ${{ matrix.os }} / ${{ matrix.arch }}
     needs:
       - metadata
-    if: fromJSON(needs.metadata.outputs.metadata).build_targets
+    # Architecture validation is static; skip on PRs.
+    if: >-
+      github.event_name != 'pull_request'
+      && fromJSON(needs.metadata.outputs.metadata).build_targets
     strategy:
       matrix:
         include: ${{ fromJSON(fromJSON(needs.metadata.outputs.metadata).build_targets) }}
