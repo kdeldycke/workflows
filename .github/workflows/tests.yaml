@@ -194,14 +194,14 @@ jobs:
         run: |
           uv --no-progress pip install "$PACKAGE"
           for script in $CLI_SCRIPTS; do
-            "$script" --version
+            .venv/bin/"$script" --version
           done
           uv --no-progress pip uninstall "$PACKAGE"
       - name: Run dev CLI via pip
         run: |
           uv --no-progress pip install "$GIT_URL"
           for script in $CLI_SCRIPTS; do
-            "$script" --version
+            .venv/bin/"$script" --version
           done
           uv --no-progress pip uninstall "$PACKAGE"
       - name: Run CLI via pipx
