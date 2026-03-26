@@ -105,9 +105,7 @@ def get_release_dates(package: str) -> dict[str, PyPIRelease]:
         if not files:
             continue
         # Select the earliest upload time across all distribution files.
-        dates = [
-            f["upload_time"][:10] for f in files if f.get("upload_time")
-        ]
+        dates = [f["upload_time"][:10] for f in files if f.get("upload_time")]
         if not dates:
             continue
         earliest_date = min(dates)
@@ -133,9 +131,7 @@ def get_source_url(package: str) -> str | None:
     if data is None:
         return None
 
-    project_urls: dict[str, str] = (
-        data.get("info", {}).get("project_urls") or {}
-    )
+    project_urls: dict[str, str] = data.get("info", {}).get("project_urls") or {}
     for key in _SOURCE_URL_KEYS:
         candidate = project_urls.get(key, "")
         if "github.com" in candidate:

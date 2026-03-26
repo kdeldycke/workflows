@@ -115,7 +115,6 @@ Related modules
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 from collections.abc import Sequence
@@ -123,7 +122,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import indent
-from typing import NamedTuple
 
 from packaging.version import Version
 
@@ -188,7 +186,6 @@ from .pypi import (
     PyPIRelease,
     get_release_dates as get_pypi_release_dates,
 )
-
 
 YANKED_DEDUP_MARKER = "yanked from PyPI"
 """Dedup marker for the yanked admonition to prevent duplicate insertion."""

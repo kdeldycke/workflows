@@ -82,11 +82,7 @@ if TYPE_CHECKING:
 # Exportable files: all registry entries + tool runner bundled defaults.
 EXPORTABLE_FILES: dict[str, str | None] = {
     **{f.source: f.target for c in COMPONENTS for f in c.files},
-    **{
-        c.source_file: None
-        for c in COMPONENTS
-        if isinstance(c, ToolConfigComponent)
-    },
+    **{c.source_file: None for c in COMPONENTS if isinstance(c, ToolConfigComponent)},
     # Standalone linter configs from the tool runner (yamllint, zizmor).
     # These are bundled defaults used at runtime, not init components.
     **{
@@ -445,8 +441,7 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     comp = _BY_NAME.get(config_type)
     if not isinstance(comp, ToolConfigComponent):
         supported = ", ".join(
-            c.name for c in COMPONENTS
-            if isinstance(c, ToolConfigComponent)
+            c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)
         )
         msg = f"Unknown config type: {config_type!r}. Supported: {supported}"
         raise TypeError(msg)
@@ -466,9 +461,7 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
         # For bumpversion, try updating existing config with dev versioning.
         if config_type == "bumpversion":
             return _update_bumpversion_config(content, pyproject_path)
-        logging.info(
-            f"[{comp.tool_section}] already exists in {pyproject_path.name}"
-        )
+        logging.info(f"[{comp.tool_section}] already exists in {pyproject_path.name}")
         return None
 
     # Get the template content and transform to pyproject.toml format.
@@ -490,9 +483,7 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     return new_content
 
 
-def _find_insertion_point(
-    content: str, config: ToolConfigComponent
-) -> int:
+def _find_insertion_point(content: str, config: ToolConfigComponent) -> int:
     """Find the best insertion point for a config section.
 
     :param content: The pyproject.toml content.
@@ -615,9 +606,9 @@ def run_init(
         selected_full = set()
         selected_files = {}
         selected = {
-            c.name for c in COMPONENTS
-            if c.init_default
-            in (InitDefault.INCLUDE, InitDefault.EXCLUDE)
+            c.name
+            for c in COMPONENTS
+            if c.init_default in (InitDefault.INCLUDE, InitDefault.EXCLUDE)
         }
     result = InitResult()
 
@@ -643,8 +634,7 @@ def run_init(
     if user_include:
         parse_component_entries(user_include, context="include")
     default_exclusions = {
-        c.name for c in COMPONENTS
-        if c.init_default == InitDefault.EXCLUDE
+        c.name for c in COMPONENTS if c.init_default == InitDefault.EXCLUDE
     }
     exclude_entries = sorted(
         (default_exclusions | set(user_exclude)) - set(user_include)
@@ -691,19 +681,16 @@ def run_init(
         # Auto-exclude entries by repo scope and opt-in status.
         for reg_comp in COMPONENTS:
             for entry in reg_comp.files:
-                if is_awesome_repo and entry.scope == RepoScope.NON_AWESOME or (
-                    not is_awesome_repo
-                    and entry.scope == RepoScope.AWESOME_ONLY
+                if (
+                    is_awesome_repo
+                    and entry.scope == RepoScope.NON_AWESOME
+                    or (not is_awesome_repo and entry.scope == RepoScope.AWESOME_ONLY)
                 ):
-                    excluded_files.setdefault(reg_comp.name, set()).add(
-                        entry.file_id
-                    )
+                    excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
                 if entry.config_key and not config.get(
                     entry.config_key, entry.config_default
                 ):
-                    excluded_files.setdefault(reg_comp.name, set()).add(
-                        entry.file_id
-                    )
+                    excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
 
     # Detect excluded files that still exist on disk.
     for comp, file_ids in sorted(excluded_files.items()):
@@ -757,8 +744,7 @@ def run_init(
         at_comp = _BY_NAME["awesome-template"]
         if not config.get(at_comp.config_key, at_comp.config_default):
             logging.info(
-                f"[tool.repomatic] {at_comp.config_key} is disabled."
-                " Skipping."
+                f"[tool.repomatic] {at_comp.config_key} is disabled. Skipping."
             )
         else:
             if not repo_slug:
@@ -774,8 +760,7 @@ def run_init(
 
     # Tool configs (merged into pyproject.toml).
     tool_configs = selected & {
-        c.name for c in COMPONENTS
-        if isinstance(c, ToolConfigComponent)
+        c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)
     }
     if tool_configs:
         _init_tool_configs(output_dir, sorted(tool_configs), result)
@@ -819,10 +804,12 @@ def _init_workflows(
     # Exclude config-gated workflows whose toggle is off.
     config = load_repomatic_config()
     for entry in _BY_NAME["workflows"].files:
-        if entry.config_key and entry.file_id in workflows and not config.get(entry.config_key, entry.config_default):
-            workflows = tuple(
-                w for w in workflows if w != entry.file_id
-            )
+        if (
+            entry.config_key
+            and entry.file_id in workflows
+            and not config.get(entry.config_key, entry.config_default)
+        ):
+            workflows = tuple(w for w in workflows if w != entry.file_id)
 
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)
@@ -942,12 +929,8 @@ def _init_config_files(
         # which breaks under uvx), strip repo-specific settings, and
         # regenerate the bundled data copy instead of overwriting the root.
         if component_name == "renovate" and _is_renovate_source_repo(output_dir):
-            root_content = (
-                (output_dir / entry.source).read_text(encoding="UTF-8")
-            )
-            normalized = (
-                _strip_renovate_repo_settings(root_content).rstrip() + "\n"
-            )
+            root_content = (output_dir / entry.source).read_text(encoding="UTF-8")
+            normalized = _strip_renovate_repo_settings(root_content).rstrip() + "\n"
             bundled = output_dir / "repomatic" / "data" / entry.source
             existing = bundled.read_text(encoding="UTF-8").rstrip() + "\n"
             bundled_rel = f"repomatic/data/{entry.source}"
@@ -968,10 +951,7 @@ def _init_config_files(
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"
-            if (
-                not getattr(comp, "keep_unmodified", False)
-                and existing == normalized
-            ):
+            if not getattr(comp, "keep_unmodified", False) and existing == normalized:
                 result.unmodified_configs.append(rel)
                 logging.info(f"Unmodified (matches bundled default): {rel}")
                 continue

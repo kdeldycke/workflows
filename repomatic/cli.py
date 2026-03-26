@@ -100,14 +100,6 @@ from .images import (
     optimize_images,
 )
 from .init_project import export_content, run_init
-from .registry import (
-    ALL_COMPONENTS,
-    DEFAULT_REPO,
-    SKILL_PHASE_ORDER,
-    SKILL_PHASES,
-    _BY_NAME,
-    valid_file_ids,
-)
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
@@ -121,6 +113,14 @@ from .metadata import (
     is_version_bump_allowed,
     load_repomatic_config,
     metadata_keys_reference,
+)
+from .registry import (
+    _BY_NAME,
+    ALL_COMPONENTS,
+    DEFAULT_REPO,
+    SKILL_PHASE_ORDER,
+    SKILL_PHASES,
+    valid_file_ids,
 )
 from .release_prep import ReleasePrep
 from .renovate import (

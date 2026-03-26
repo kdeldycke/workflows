@@ -312,8 +312,7 @@ def check_renovate_config_exists() -> tuple[bool, str]:
         return True, f"Renovate config: {RENOVATE_CONFIG_PATH} exists"
 
     msg = (
-        f"{RENOVATE_CONFIG_PATH} not found."
-        " Run `repomatic init renovate` to create it."
+        f"{RENOVATE_CONFIG_PATH} not found. Run `repomatic init renovate` to create it."
     )
     return False, msg
 

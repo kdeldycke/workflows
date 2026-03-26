@@ -408,14 +408,13 @@ def check_workflow_permissions() -> list[tuple[str | None, str]]:
             )
             results.append((msg, msg))
         else:
-            results.append(
-                (None, f"Workflow {wf_path.name}: permissions declared.")
-            )
+            results.append((None, f"Workflow {wf_path.name}: permissions declared."))
 
     if not results:
-        results.append(
-            (None, "Workflow permissions check: no custom-step workflows found.")
-        )
+        results.append((
+            None,
+            "Workflow permissions check: no custom-step workflows found.",
+        ))
     return results
 
 

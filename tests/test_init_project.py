@@ -55,9 +55,7 @@ else:
 
 
 # Convenience set for tests that check opt-in workflow membership.
-_OPT_IN_IDS = frozenset(
-    f.file_id for f in _BY_NAME["workflows"].files if f.config_key
-)
+_OPT_IN_IDS = frozenset(f.file_id for f in _BY_NAME["workflows"].files if f.config_key)
 
 
 # --- Bundled data and export tests ---
@@ -79,7 +77,10 @@ def test_config_type_has_required_fields() -> None:
         assert comp.description
 
 
-@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
+@pytest.mark.parametrize(
+    "config_type",
+    sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)),
+)
 def test_returns_non_empty_string(config_type: str) -> None:
     """Verify that export_content returns a non-empty string."""
     comp = _BY_NAME[config_type]
@@ -89,7 +90,10 @@ def test_returns_non_empty_string(config_type: str) -> None:
     assert len(content) > 0
 
 
-@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
+@pytest.mark.parametrize(
+    "config_type",
+    sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)),
+)
 def test_returns_valid_toml(config_type: str) -> None:
     """Verify that the returned content is valid TOML."""
     comp = _BY_NAME[config_type]
@@ -99,7 +103,10 @@ def test_returns_valid_toml(config_type: str) -> None:
     assert isinstance(parsed, dict)
 
 
-@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
+@pytest.mark.parametrize(
+    "config_type",
+    sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)),
+)
 def test_native_format_no_tool_prefix(config_type: str) -> None:
     """Verify that native format does not have [tool.X] prefix."""
     comp = _BY_NAME[config_type]
@@ -143,7 +150,10 @@ _TEMPLATE_SUPERSET_KEYS: dict[str, frozenset[str]] = {
 }
 
 
-@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
+@pytest.mark.parametrize(
+    "config_type",
+    sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)),
+)
 def test_template_matches_own_pyproject(config_type: str) -> None:
     """Verify bundled template stays in sync with repomatic's own config.
 
@@ -484,7 +494,8 @@ def test_init_default_components():
     from repomatic.registry import InitDefault
 
     defaults = {
-        c.name for c in COMPONENTS
+        c.name
+        for c in COMPONENTS
         if c.init_default in (InitDefault.INCLUDE, InitDefault.EXCLUDE)
     }
     assert "changelog" in defaults
@@ -517,9 +528,7 @@ def test_init_creates_all_default_files(
     config_file_count = sum(
         len(c.files) for c in COMPONENTS if isinstance(c, BundledComponent)
     )
-    opt_in_count = sum(
-        1 for f in _BY_NAME["workflows"].files if f.config_key
-    )
+    opt_in_count = sum(1 for f in _BY_NAME["workflows"].files if f.config_key)
     default_workflows = len(REUSABLE_WORKFLOWS) - opt_in_count
     awesome_triage_auto_excluded = 2  # awesome-triage + translation-sync.
     expected_count = (
@@ -659,9 +668,7 @@ def test_skills_consistency():
     fs_skills = {p.parent.name for p in skills_dir.glob("*/SKILL.md")}
 
     # Collect skills registered in the component registry.
-    component_skills = {
-        entry.file_id for entry in _BY_NAME["skills"].files
-    }
+    component_skills = {entry.file_id for entry in _BY_NAME["skills"].files}
 
     # Collect skills registered in SKILL_PHASES.
     phase_skills = set(SKILL_PHASES)
@@ -1804,8 +1811,7 @@ def test_component_names_unique() -> None:
     """Component names must be unique across the registry."""
     names = [c.name for c in COMPONENTS]
     assert len(names) == len(set(names)), (
-        f"Duplicate component names:"
-        f" {sorted(n for n in names if names.count(n) > 1)}"
+        f"Duplicate component names: {sorted(n for n in names if names.count(n) > 1)}"
     )
 
 
