@@ -26,6 +26,8 @@ import json
 import logging
 from pathlib import Path
 
+import yaml
+
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
 from .renovate import (
@@ -324,6 +326,59 @@ def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
     return True, "Dependabot alerts: token has access, alerts enabled"
 
 
+def check_workflow_permissions() -> list[tuple[str | None, str]]:
+    """Check that workflows with custom jobs declare ``permissions: {}``.
+
+    Thin-caller workflows (all jobs use ``uses:`` to call a reusable workflow)
+    inherit permissions from the called workflow and do not need a top-level
+    ``permissions`` key. Workflows that define their own ``steps:`` should
+    declare ``permissions: {}`` to follow the principle of least privilege.
+
+    :return: List of (warning_message or None, info_message) tuples.
+    """
+    results: list[tuple[str | None, str]] = []
+    workflows_dir = Path(".github/workflows")
+    if not workflows_dir.is_dir():
+        return [(None, "Workflow permissions check: skipped (no .github/workflows/)")]
+
+    for wf_path in sorted(workflows_dir.glob("*.yaml")):
+        try:
+            data = yaml.safe_load(wf_path.read_text())
+        except (yaml.YAMLError, OSError) as e:
+            logging.warning(f"Could not parse {wf_path}: {e}")
+            continue
+
+        if not isinstance(data, dict) or "jobs" not in data:
+            continue
+
+        # Determine if this is a thin-caller workflow (all jobs use reusable
+        # workflows via "uses:" with no "steps:").
+        jobs = data.get("jobs", {})
+        has_custom_steps = any(
+            "steps" in job for job in jobs.values() if isinstance(job, dict)
+        )
+        if not has_custom_steps:
+            continue
+
+        if "permissions" not in data:
+            msg = (
+                f"Workflow {wf_path.name} defines custom job steps but has no"
+                " top-level `permissions` key. Add `permissions: {{}}` for"
+                " least-privilege security."
+            )
+            results.append((msg, msg))
+        else:
+            results.append(
+                (None, f"Workflow {wf_path.name}: permissions declared.")
+            )
+
+    if not results:
+        results.append(
+            (None, "Workflow permissions check: no custom-step workflows found.")
+        )
+    return results
+
+
 def run_repo_lint(
     package_name: str | None = None,
     repo_name: str | None = None,
@@ -423,6 +478,12 @@ def run_repo_lint(
     # Check 8: Funding file present when owner has GitHub Sponsors.
     if repo:
         warning, msg = check_funding_file(repo)
+        if warning:
+            emit_annotation(AnnotationLevel.WARNING, warning)
+        print(f"{'⚠' if warning else '✓'} {msg}")
+
+    # Check 9: Workflow permissions declared on custom-step workflows.
+    for warning, msg in check_workflow_permissions():
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
