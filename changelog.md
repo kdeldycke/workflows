@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.8.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.8.0` (2026-03-26)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 
 - Move test matrix definition from inline YAML to `repomatic metadata` using the `Matrix` class. The `tests` job now depends on the `metadata` job and consumes pre-computed `test_matrix` / `test_matrix_pr` outputs. Fixes the `matrix` context being unavailable in job-level `if:`.
