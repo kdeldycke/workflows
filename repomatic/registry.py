@@ -402,6 +402,26 @@ behavioral flags. All legacy constants are derived from this tuple.
 _BY_NAME: dict[str, Component] = {c.name: c for c in COMPONENTS}
 """Index for O(1) component lookup by name."""
 
+DEFAULT_REPO: str = "kdeldycke/repomatic"
+"""Default upstream repository for reusable workflows."""
+
+UPSTREAM_SOURCE_GLOB: str = "repomatic/**"
+"""Path glob for the upstream source directory in canonical workflows.
+
+Canonical workflow ``paths:`` filters use this glob to match source code
+changes. In downstream repos, this is replaced with the project's own source
+directory.
+"""
+
+UPSTREAM_SOURCE_PREFIX: str = "repomatic/"
+"""Path prefix for upstream-specific files in canonical workflows.
+
+Paths starting with this prefix (but not matching
+:data:`UPSTREAM_SOURCE_GLOB`) are dropped in downstream thin callers because
+they reference files that only exist in the upstream repository (e.g.,
+``repomatic/data/renovate.json5``).
+"""
+
 SKILL_PHASE_ORDER: tuple[str, ...] = (
     "Setup",
     "Development",

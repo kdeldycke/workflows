@@ -50,6 +50,7 @@ from ..init_project import (
     export_content,
     get_data_content,
 )
+from ..registry import DEFAULT_REPO, UPSTREAM_SOURCE_GLOB, UPSTREAM_SOURCE_PREFIX
 from .actions import AnnotationLevel, emit_annotation
 
 if sys.version_info >= (3, 11):
@@ -97,9 +98,6 @@ class WorkflowFormat(StrEnum):
     """
 
 
-DEFAULT_REPO: Final[str] = "kdeldycke/repomatic"
-"""Default upstream repository for reusable workflows."""
-
 DEFAULT_VERSION: Final[str] = "main" if ".dev" in __version__ else f"v{__version__}"
 """Default version reference for upstream workflows.
 
@@ -108,21 +106,6 @@ corresponding tag (``v5.11.0``). For development builds (``5.11.1.dev0``),
 it falls back to ``main`` since the tag does not exist yet.
 """
 
-
-UPSTREAM_SOURCE_GLOB: Final[str] = "repomatic/**"
-"""Path glob for the upstream source directory in canonical workflows.
-
-Canonical workflow ``paths:`` filters use this glob to match source code changes.
-In downstream repos, this is replaced with the project's own source directory.
-"""
-
-UPSTREAM_SOURCE_PREFIX: Final[str] = "repomatic/"
-"""Path prefix for upstream-specific files in canonical workflows.
-
-Paths starting with this prefix (but not matching :data:`UPSTREAM_SOURCE_GLOB`)
-are dropped in downstream thin callers because they reference files that only
-exist in the upstream repository (e.g., ``repomatic/data/renovate.json5``).
-"""
 
 def _extract_raw_section(content: str, section_name: str) -> str | None:
     """Extract a top-level YAML section as raw text.

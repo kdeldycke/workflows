@@ -93,7 +93,7 @@ from .github.unsubscribe import (
     render_report as _render_report,
     unsubscribe_threads as _unsubscribe_threads,
 )
-from .github.workflow_sync import DEFAULT_REPO, run_workflow_lint
+from .github.workflow_sync import run_workflow_lint
 from .images import (
     DEFAULT_MIN_SAVINGS_PCT,
     generate_markdown_summary,
@@ -107,6 +107,7 @@ from .init_project import (
     run_init,
     valid_file_ids,
 )
+from .registry import DEFAULT_REPO, SKILL_PHASE_ORDER, _BY_NAME
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
