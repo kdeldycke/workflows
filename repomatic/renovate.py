@@ -43,6 +43,9 @@ from urllib.request import Request, urlopen
 
 from click_extra import TableFormat, render_table
 
+RENOVATE_CONFIG_PATH = Path("renovate.json5")
+"""Canonical path to the Renovate configuration file."""
+
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
 from .github.pr_body import render_template
@@ -305,10 +308,13 @@ def check_renovate_config_exists() -> tuple[bool, str]:
 
     :return: Tuple of (exists, message).
     """
-    if Path("renovate.json5").exists():
-        return True, "Renovate config: renovate.json5 exists"
+    if RENOVATE_CONFIG_PATH.exists():
+        return True, f"Renovate config: {RENOVATE_CONFIG_PATH} exists"
 
-    msg = "renovate.json5 not found. Run `repomatic init renovate` to create it."
+    msg = (
+        f"{RENOVATE_CONFIG_PATH} not found."
+        " Run `repomatic init renovate` to create it."
+    )
     return False, msg
 
 

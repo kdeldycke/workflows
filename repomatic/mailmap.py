@@ -20,9 +20,13 @@ import logging
 import sys
 from dataclasses import dataclass, field
 from functools import cached_property
+from pathlib import Path
 from subprocess import run
 
 from boltons.iterutils import unique
+
+MAILMAP_PATH = Path(".mailmap")
+"""Canonical path to the ``.mailmap`` file in the repository root."""
 
 
 @dataclass(order=True)

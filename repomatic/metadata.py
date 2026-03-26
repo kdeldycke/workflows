@@ -1040,11 +1040,9 @@ These fields will use the heredoc delimiter format regardless of whether they cu
 contain multiple lines.
 """
 
-MAILMAP_PATH = Path(".mailmap")
+from .mailmap import MAILMAP_PATH
 
 GITIGNORE_PATH = Path(".gitignore")
-
-RENOVATE_CONFIG_PATH = Path("renovate.json5")
 
 NUITKA_BUILD_TARGETS = {
     "linux-arm64": {
@@ -2014,6 +2012,8 @@ class Metadata:
 
     @cached_property
     def renovate_config_exists(self) -> bool:
+        from .renovate import RENOVATE_CONFIG_PATH
+
         return RENOVATE_CONFIG_PATH.is_file()
 
     @cached_property
