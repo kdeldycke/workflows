@@ -107,6 +107,13 @@ jobs:
         run: |
           set -e
           uv --no-progress venv --python "${UV_PYTHON:-${{ matrix.python-version }}}"
+      - name: Force UTF-8 encoding on Windows
+        # Workaround for https://github.com/pallets/click/issues/2121: Windows GitHub Actions runners
+        # redirect command output to files, which sets the encoding to the system default (cp1252).
+        # Python CLI frameworks like Click then raise UnicodeEncodeError on non-ASCII output.
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "PYTHONIOENCODING=utf8" >> "$GITHUB_ENV"
       - name: Install project
         run: uv --no-progress sync --frozen --all-extras --group test
 
