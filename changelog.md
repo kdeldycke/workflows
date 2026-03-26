@@ -36,6 +36,7 @@
 - Consolidate 12+ scattered init constants into a declarative component registry (`repomatic/registry.py`). Each component declares its kind, init default, file entries, and behavioral flags in one place. All derived constants (`ALL_COMPONENTS`, `COMPONENT_FILES`, `REUSABLE_WORKFLOWS`, `SKILL_PHASES`, etc.) are computed from the registry.
 - Fix `sync-repomatic` deleting the upstream repo's own skills. The source repo guard only covered auto-exclusions, not default exclusions (`labels`, `skills`).
 - Rename "redundant" terminology to "unmodified" across the CLI, output, and codebase. `--delete-redundant` becomes `--delete-unmodified`, `clean-redundant-configs` becomes `clean-unmodified-configs`.
+- Generalize `opt_in_key` into `config_key`/`config_default` on both `FileEntry` and `Component`. Replace the procedural `awesome-template.sync` check with a registry declaration.
 
 ## [`6.7.0` (2026-03-24)](https://github.com/kdeldycke/repomatic/compare/v6.6.0...v6.7.0)
 

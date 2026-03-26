@@ -147,9 +147,9 @@ NON_REUSABLE_WORKFLOWS: frozenset[str] = frozenset(
 """Workflows without ``workflow_call`` that cannot be used as thin callers."""
 
 OPT_IN_WORKFLOWS: dict[str, str] = {
-    f.file_id: f.opt_in_key
+    f.file_id: f.config_key
     for f in _BY_NAME["workflows"].files
-    if f.opt_in_key
+    if f.config_key
 }
 """Workflows excluded from thin-caller generation unless explicitly enabled.
 
@@ -864,8 +864,8 @@ def run_init(
                     excluded_files.setdefault(reg_comp.name, set()).add(
                         entry.file_id
                     )
-                if entry.opt_in_key and not config.get(
-                    entry.opt_in_key, False
+                if entry.config_key and not config.get(
+                    entry.config_key, entry.config_default
                 ):
                     excluded_files.setdefault(reg_comp.name, set()).add(
                         entry.file_id
@@ -920,9 +920,11 @@ def run_init(
 
     # Awesome-template boilerplate for awesome-* repositories.
     if "awesome-template" in selected:
-        if not config.get("awesome-template.sync", True):
+        at_comp = _BY_NAME["awesome-template"]
+        if not config.get(at_comp.config_key, at_comp.config_default):
             logging.info(
-                "[tool.repomatic] awesome-template.sync is disabled. Skipping."
+                f"[tool.repomatic] {at_comp.config_key} is disabled."
+                " Skipping."
             )
         else:
             if not repo_slug:
@@ -977,11 +979,14 @@ def _init_workflows(
     if exclude:
         workflows = tuple(w for w in workflows if w not in exclude)
 
-    # Exclude opt-in workflows whose toggle is off.
+    # Exclude config-gated workflows whose toggle is off.
     config = load_repomatic_config()
-    for wf_name, config_key in OPT_IN_WORKFLOWS.items():
-        if wf_name in workflows and not config.get(config_key, False):
-            workflows = tuple(w for w in workflows if w != wf_name)
+    for entry in _BY_NAME["workflows"].files:
+        if entry.config_key and entry.file_id in workflows:
+            if not config.get(entry.config_key, entry.config_default):
+                workflows = tuple(
+                    w for w in workflows if w != entry.file_id
+                )
 
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)

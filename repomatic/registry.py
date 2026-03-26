@@ -99,9 +99,13 @@ class FileEntry:
     scope: RepoScope = RepoScope.ALL
     """Which repository types get this file."""
 
-    opt_in_key: str = ""
-    """``[tool.repomatic]`` key that must be ``true`` to include
-    this entry."""
+    config_key: str = ""
+    """``[tool.repomatic]`` key that gates this entry."""
+
+    config_default: bool = False
+    """Value assumed when ``config_key`` is absent from config. ``False``
+    means opt-in (excluded unless enabled), ``True`` means opt-out
+    (included unless disabled)."""
 
     reusable: bool = True
     """Workflow-specific: supports ``workflow_call`` trigger."""
@@ -138,6 +142,13 @@ class Component:
 
     files: tuple[FileEntry, ...] = ()
     """File entries this component manages."""
+
+    config_key: str = ""
+    """``[tool.repomatic]`` key that gates this component."""
+
+    config_default: bool = True
+    """Value assumed when ``config_key`` is absent from config. ``True``
+    means opt-out (included unless disabled)."""
 
     keep_unmodified: bool = False
     """Preserve files on disk even when identical to the bundled default.
@@ -312,7 +323,7 @@ COMPONENTS: tuple[Component, ...] = (
             FileEntry(
                 "unsubscribe.yaml",
                 ".github/workflows/unsubscribe.yaml",
-                opt_in_key="notification.unsubscribe",
+                config_key="notification.unsubscribe",
             ),
         ),
     ),
@@ -322,6 +333,7 @@ COMPONENTS: tuple[Component, ...] = (
         description="Boilerplate for awesome-* repositories",
         kind=ComponentKind.TEMPLATE,
         init_default=InitDefault.AUTO,
+        config_key="awesome-template.sync",
     ),
     Component(
         name="changelog",
