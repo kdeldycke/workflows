@@ -162,6 +162,7 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 - Documentation in `./docs/` uses MyST markdown format where possible. Fallback to reStructuredText if necessary.
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit — do not hard-wrap prose in markdown. Each sentence or logical clause should flow as a single long line; let the renderer handle wrapping.
 - Titles in markdown use sentence case.
+- **Dataclass field docs:** In dataclasses, document fields with attribute docstrings (a string literal immediately after the field declaration), not `:param:` entries in the class docstring. Attribute docstrings are co-located with the field they describe, recognized by Sphinx, and stay in sync when fields are added or reordered. The class docstring should contain only a summary of the class purpose.
 
 ### `__init__.py` files
 

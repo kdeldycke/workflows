@@ -83,27 +83,31 @@ class RepoScope(Enum):
 
 @dataclass(frozen=True)
 class FileEntry:
-    """A single file managed within a component.
-
-    :param source: Filename in ``repomatic/data/``.
-    :param target: Relative output path in the target repository.
-        Defaults to ``source`` (root-level file).
-    :param file_id: Identifier for file-level ``--include``/``--exclude``.
-        Defaults to the filename portion of ``target``.
-    :param scope: Which repository types get this file.
-    :param opt_in_key: ``[tool.repomatic]`` key that must be ``true`` to
-        include this entry.
-    :param reusable: Workflow-specific: supports ``workflow_call`` trigger.
-    :param phase: Skill-specific: lifecycle phase for ``list-skills`` display.
-    """
+    """A single file managed within a component."""
 
     source: str
+    """Filename in ``repomatic/data/``."""
+
     target: str = ""
+    """Relative output path in the target repository.
+    Defaults to ``source`` (root-level file)."""
+
     file_id: str = ""
+    """Identifier for file-level ``--include``/``--exclude``.
+    Defaults to the filename portion of ``target``."""
+
     scope: RepoScope = RepoScope.ALL
+    """Which repository types get this file."""
+
     opt_in_key: str = ""
+    """``[tool.repomatic]`` key that must be ``true`` to include
+    this entry."""
+
     reusable: bool = True
+    """Workflow-specific: supports ``workflow_call`` trigger."""
+
     phase: str = ""
+    """Skill-specific: lifecycle phase for ``list-skills`` display."""
 
     def __post_init__(self) -> None:
         """Derive ``target`` and ``file_id`` from ``source`` when omitted."""
@@ -117,37 +121,43 @@ class FileEntry:
 
 @dataclass(frozen=True)
 class Component:
-    """A group of related resources managed by the ``init`` subcommand.
-
-    :param name: Component name used on the CLI (e.g., ``"skills"``).
-    :param description: Human-readable description for help text.
-    :param kind: How files are delivered to the target repository.
-    :param init_default: How ``init`` treats this component when no explicit
-        CLI selection is made.
-    :param files: File entries this component manages.
-    :param check_redundancy: Check files for byte-for-byte match with bundled
-        defaults (labels, renovate). Skills excluded because they are
-        user-facing documents, not machine configs.
-    :param source_file: Filename in ``repomatic/data/``
-        (``TOOL_CONFIG`` kind only).
-    :param tool_section: The ``[tool.X]`` section name to check for
-        existence (``TOOL_CONFIG`` kind only).
-    :param insert_after: Sections to insert after in ``pyproject.toml``
-        (``TOOL_CONFIG`` kind only, in priority order).
-    :param insert_before: Sections to insert before in ``pyproject.toml``
-        (``TOOL_CONFIG`` kind only, if ``insert_after`` not found).
-    """
+    """A group of related resources managed by the ``init`` subcommand."""
 
     name: str
+    """Component name used on the CLI (e.g., ``"skills"``)."""
+
     description: str
+    """Human-readable description for help text."""
+
     kind: ComponentKind
+    """How files are delivered to the target repository."""
+
     init_default: InitDefault = InitDefault.INCLUDE
+    """How ``init`` treats this component when no explicit CLI selection
+    is made."""
+
     files: tuple[FileEntry, ...] = ()
+    """File entries this component manages."""
+
     check_redundancy: bool = False
+    """Check files for byte-for-byte match with bundled defaults (labels,
+    renovate). Skills excluded because they are user-facing documents,
+    not machine configs."""
+
     source_file: str = ""
+    """Filename in ``repomatic/data/`` (``TOOL_CONFIG`` kind only)."""
+
     tool_section: str = ""
+    """The ``[tool.X]`` section name to check for existence
+    (``TOOL_CONFIG`` kind only)."""
+
     insert_after: tuple[str, ...] = ()
+    """Sections to insert after in ``pyproject.toml``
+    (``TOOL_CONFIG`` kind only, in priority order)."""
+
     insert_before: tuple[str, ...] = ()
+    """Sections to insert before in ``pyproject.toml``
+    (``TOOL_CONFIG`` kind only, if ``insert_after`` not found)."""
 
 
 # ---------------------------------------------------------------------------
