@@ -99,16 +99,12 @@ from .images import (
     generate_markdown_summary,
     optimize_images,
 )
-from .init_project import (
-    COMPONENT_FILES,
-    SKILL_PHASES,
-    export_content,
-    run_init,
-)
+from .init_project import export_content, run_init
 from .registry import (
     ALL_COMPONENTS,
     DEFAULT_REPO,
     SKILL_PHASE_ORDER,
+    SKILL_PHASES,
     _BY_NAME,
     valid_file_ids,
 )

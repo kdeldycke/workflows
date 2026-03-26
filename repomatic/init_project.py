@@ -58,6 +58,7 @@ from .registry import (
     ALL_COMPONENTS,
     COMPONENTS,
     DEFAULT_REPO,
+    REUSABLE_WORKFLOWS,
     BundledComponent,
     InitDefault,
     RepoScope,
@@ -65,7 +66,6 @@ from .registry import (
     _BY_NAME,
     excluded_rel_path,
     parse_component_entries,
-    valid_file_ids,
 )
 from .tool_runner import TOOL_REGISTRY, find_unmodified_configs
 
@@ -80,96 +80,6 @@ if TYPE_CHECKING:
     from importlib.abc import Traversable
 
     from .registry import Component
-
-    from .registry import Component
-
-
-# ---------------------------------------------------------------------------
-# Derived constants (computed from the registry in registry.py).
-# ---------------------------------------------------------------------------
-
-FILE_COMPONENTS: dict[str, str] = {
-    c.name: c.description
-    for c in COMPONENTS
-    if not isinstance(c, ToolConfigComponent)
-}
-"""Components that create files during init, with descriptions."""
-
-TOOL_COMPONENTS: dict[str, str] = {
-    c.name: c.description
-    for c in COMPONENTS
-    if isinstance(c, ToolConfigComponent)
-}
-"""Tool config components merged into pyproject.toml during init."""
-
-DEFAULT_COMPONENTS: tuple[str, ...] = tuple(sorted(
-    c.name
-    for c in COMPONENTS
-    if c.init_default in (InitDefault.INCLUDE, InitDefault.EXCLUDE)
-))
-"""Components included when no explicit selection is made."""
-
-DEFAULT_EXCLUSIONS: tuple[str, ...] = tuple(sorted(
-    c.name
-    for c in COMPONENTS
-    if c.init_default == InitDefault.EXCLUDE
-))
-"""Components excluded by default when no explicit selection is made.
-
-User ``exclude`` entries are additive to these defaults. User ``include``
-entries override both defaults and user excludes.
-"""
-
-COMPONENT_FILES: dict[str, tuple[tuple[str, str], ...]] = {
-    c.name: tuple((f.source, f.target) for f in c.files)
-    for c in COMPONENTS
-    if c.files and isinstance(c, BundledComponent)
-}
-"""Bundled config files per component, with their output paths."""
-
-UNMODIFIED_COMPONENTS: frozenset[str] = frozenset(
-    c.name
-    for c in COMPONENTS
-    if isinstance(c, BundledComponent) and c.files and not c.keep_unmodified
-)
-"""Bundled components whose files are flagged when identical to defaults."""
-
-REUSABLE_WORKFLOWS: tuple[str, ...] = tuple(
-    f.file_id
-    for f in _BY_NAME["workflows"].files
-    if f.reusable
-)
-"""Workflow filenames that support ``workflow_call`` triggers."""
-
-NON_REUSABLE_WORKFLOWS: frozenset[str] = frozenset(
-    f.file_id
-    for f in _BY_NAME["workflows"].files
-    if not f.reusable
-)
-"""Workflows without ``workflow_call`` that cannot be used as thin callers."""
-
-OPT_IN_WORKFLOWS: dict[str, str] = {
-    f.file_id: f.config_key
-    for f in _BY_NAME["workflows"].files
-    if f.config_key
-}
-"""Workflows excluded from thin-caller generation unless explicitly enabled.
-
-Maps workflow filename to its ``[tool.repomatic]`` config key. The workflow is
-only included in init/sync when the key is ``true``.
-"""
-
-ALL_WORKFLOW_FILES: tuple[str, ...] = tuple(sorted(
-    f.file_id for f in _BY_NAME["workflows"].files
-))
-"""All workflow filenames (reusable and non-reusable)."""
-
-SKILL_PHASES: dict[str, str] = {
-    f.file_id: f.phase
-    for f in _BY_NAME["skills"].files
-    if f.phase
-}
-"""Maps skill names to lifecycle phases for display grouping."""
 
 # Exportable files: all registry entries + tool runner bundled defaults.
 EXPORTABLE_FILES: dict[str, str | None] = {
@@ -536,7 +446,10 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     """
     comp = _BY_NAME.get(config_type)
     if not isinstance(comp, ToolConfigComponent):
-        supported = ", ".join(TOOL_COMPONENTS)
+        supported = ", ".join(
+            c.name for c in COMPONENTS
+            if isinstance(c, ToolConfigComponent)
+        )
         msg = f"Unknown config type: {config_type!r}. Supported: {supported}"
         raise ValueError(msg)
 
@@ -703,7 +616,11 @@ def run_init(
     else:
         selected_full = set()
         selected_files = {}
-        selected = set(DEFAULT_COMPONENTS)
+        selected = {
+            c.name for c in COMPONENTS
+            if c.init_default
+            in (InitDefault.INCLUDE, InitDefault.EXCLUDE)
+        }
     result = InitResult()
 
     # Auto-include awesome-template for awesome-* repositories.
@@ -727,8 +644,12 @@ def run_init(
     user_include: list[str] = config.get("include", [])
     if user_include:
         parse_component_entries(user_include, context="include")
+    default_exclusions = {
+        c.name for c in COMPONENTS
+        if c.init_default == InitDefault.EXCLUDE
+    }
     exclude_entries = sorted(
-        (set(DEFAULT_EXCLUSIONS) | set(user_exclude)) - set(user_include)
+        (default_exclusions | set(user_exclude)) - set(user_include)
     )
     excluded_components, excluded_files = parse_component_entries(
         exclude_entries, context="exclude"
@@ -858,7 +779,10 @@ def run_init(
         _init_changelog(output_dir, result)
 
     # Tool configs (merged into pyproject.toml).
-    tool_configs = selected & set(TOOL_COMPONENTS)
+    tool_configs = selected & {
+        c.name for c in COMPONENTS
+        if isinstance(c, ToolConfigComponent)
+    }
     if tool_configs:
         _init_tool_configs(output_dir, sorted(tool_configs), result)
 
@@ -927,7 +851,10 @@ def _init_workflows(
             logging.info(f"Created: {rel}")
 
     # Sync headers for non-reusable workflows that already exist on disk.
-    for filename in sorted(NON_REUSABLE_WORKFLOWS):
+    non_reusable = sorted(
+        f.file_id for f in _BY_NAME["workflows"].files if not f.reusable
+    )
+    for filename in non_reusable:
         if include is not None and filename not in include:
             continue
         if exclude and filename in exclude:

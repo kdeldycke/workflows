@@ -458,6 +458,28 @@ ALL_COMPONENTS: dict[str, str] = {
 }
 """All available init components."""
 
+REUSABLE_WORKFLOWS: tuple[str, ...] = tuple(
+    f.file_id for f in _BY_NAME["workflows"].files if f.reusable
+)
+"""Workflow filenames that support ``workflow_call`` triggers."""
+
+NON_REUSABLE_WORKFLOWS: frozenset[str] = frozenset(
+    f.file_id for f in _BY_NAME["workflows"].files if not f.reusable
+)
+"""Workflows without ``workflow_call`` that cannot be used as thin callers."""
+
+ALL_WORKFLOW_FILES: tuple[str, ...] = tuple(sorted(
+    f.file_id for f in _BY_NAME["workflows"].files
+))
+"""All workflow filenames (reusable and non-reusable)."""
+
+SKILL_PHASES: dict[str, str] = {
+    f.file_id: f.phase
+    for f in _BY_NAME["skills"].files
+    if f.phase
+}
+"""Maps skill names to lifecycle phases for display grouping."""
+
 
 def valid_file_ids(component: str) -> frozenset[str]:
     """Return valid file identifiers for a component.

@@ -24,15 +24,7 @@ from tempfile import NamedTemporaryFile
 import pytest
 
 from repomatic.init_project import (
-    ALL_WORKFLOW_FILES,
-    COMPONENT_FILES,
-    DEFAULT_COMPONENTS,
     EXPORTABLE_FILES,
-    FILE_COMPONENTS,
-    OPT_IN_WORKFLOWS,
-    REUSABLE_WORKFLOWS,
-    SKILL_PHASES,
-    TOOL_COMPONENTS,
     _strip_renovate_repo_settings,
     _to_pyproject_format,
     _update_bumpversion_config,
@@ -44,12 +36,15 @@ from repomatic.init_project import (
 )
 from repomatic.registry import (
     ALL_COMPONENTS,
+    ALL_WORKFLOW_FILES,
     COMPONENTS,
+    REUSABLE_WORKFLOWS,
+    SKILL_PHASES,
     BundledComponent,
     ToolConfigComponent,
+    _BY_NAME,
     parse_component_entries,
     valid_file_ids,
-    _BY_NAME,
 )
 from repomatic.tool_runner import TOOL_REGISTRY
 
@@ -57,6 +52,12 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
+
+
+# Convenience set for tests that check opt-in workflow membership.
+_OPT_IN_IDS = frozenset(
+    f.file_id for f in _BY_NAME["workflows"].files if f.config_key
+)
 
 
 # --- Bundled data and export tests ---
@@ -78,7 +79,7 @@ def test_config_type_has_required_fields() -> None:
         assert comp.description
 
 
-@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
+@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
 def test_returns_non_empty_string(config_type: str) -> None:
     """Verify that export_content returns a non-empty string."""
     comp = _BY_NAME[config_type]
@@ -87,7 +88,7 @@ def test_returns_non_empty_string(config_type: str) -> None:
     assert len(content) > 0
 
 
-@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
+@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
 def test_returns_valid_toml(config_type: str) -> None:
     """Verify that the returned content is valid TOML."""
     comp = _BY_NAME[config_type]
@@ -96,7 +97,7 @@ def test_returns_valid_toml(config_type: str) -> None:
     assert isinstance(parsed, dict)
 
 
-@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
+@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
 def test_native_format_no_tool_prefix(config_type: str) -> None:
     """Verify that native format does not have [tool.X] prefix."""
     comp = _BY_NAME[config_type]
@@ -139,7 +140,7 @@ _TEMPLATE_SUPERSET_KEYS: dict[str, frozenset[str]] = {
 }
 
 
-@pytest.mark.parametrize("config_type", sorted(TOOL_COMPONENTS))
+@pytest.mark.parametrize("config_type", sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)))
 def test_template_matches_own_pyproject(config_type: str) -> None:
     """Verify bundled template stays in sync with repomatic's own config.
 
@@ -475,15 +476,21 @@ def test_default_version_pin():
 
 
 def test_init_default_components():
-    """Verify DEFAULT_COMPONENTS contains expected file components."""
-    assert "changelog" in DEFAULT_COMPONENTS
-    assert "labels" in DEFAULT_COMPONENTS
-    assert "renovate" in DEFAULT_COMPONENTS
-    assert "skills" in DEFAULT_COMPONENTS
-    assert "workflows" in DEFAULT_COMPONENTS
+    """Verify default selection includes expected components."""
+    from repomatic.registry import InitDefault
+
+    defaults = {
+        c.name for c in COMPONENTS
+        if c.init_default in (InitDefault.INCLUDE, InitDefault.EXCLUDE)
+    }
+    assert "changelog" in defaults
+    assert "labels" in defaults
+    assert "renovate" in defaults
+    assert "skills" in defaults
+    assert "workflows" in defaults
     # Tool configs should not be in defaults.
-    assert "ruff" not in DEFAULT_COMPONENTS
-    assert "bumpversion" not in DEFAULT_COMPONENTS
+    assert "ruff" not in defaults
+    assert "bumpversion" not in defaults
 
 
 def test_init_creates_all_default_files(
@@ -503,8 +510,13 @@ def test_init_creates_all_default_files(
 
     # All components: changelog, labels, renovate, skills, workflows.
     # Opt-in workflows and awesome-triage skill are excluded by default.
-    config_file_count = sum(len(v) for v in COMPONENT_FILES.values())
-    default_workflows = len(REUSABLE_WORKFLOWS) - len(OPT_IN_WORKFLOWS)
+    config_file_count = sum(
+        len(c.files) for c in COMPONENTS if isinstance(c, BundledComponent)
+    )
+    opt_in_count = sum(
+        1 for f in _BY_NAME["workflows"].files if f.config_key
+    )
+    default_workflows = len(REUSABLE_WORKFLOWS) - opt_in_count
     awesome_triage_auto_excluded = 2  # awesome-triage + translation-sync.
     expected_count = (
         default_workflows + config_file_count + 1 - awesome_triage_auto_excluded
@@ -515,7 +527,7 @@ def test_init_creates_all_default_files(
 
     # Verify workflow files exist (excluding opt-in workflows).
     for filename in REUSABLE_WORKFLOWS:
-        if filename not in OPT_IN_WORKFLOWS:
+        if filename not in _OPT_IN_IDS:
             assert (tmp_path / ".github" / "workflows" / filename).exists()
 
     # Verify config files exist.
@@ -688,7 +700,7 @@ def test_init_only_workflows(tmp_path: Path):
     created_set = set(result.created)
     # Opt-in workflows are excluded by default.
     for filename in REUSABLE_WORKFLOWS:
-        if filename in OPT_IN_WORKFLOWS:
+        if filename in _OPT_IN_IDS:
             assert f".github/workflows/{filename}" not in created_set
         else:
             assert f".github/workflows/{filename}" in created_set
@@ -758,7 +770,7 @@ def test_init_version_pinned(tmp_path: Path):
     # Check that generated workflow files contain the version pin.
     # Opt-in workflows are excluded by default.
     for filename in REUSABLE_WORKFLOWS:
-        if filename in OPT_IN_WORKFLOWS:
+        if filename in _OPT_IN_IDS:
             continue
         wf_path = tmp_path / ".github" / "workflows" / filename
         content = wf_path.read_text(encoding="UTF-8")
@@ -1070,7 +1082,7 @@ def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     created_set = set(result.created)
     # Labels and skills are excluded by default.
     assert "labels.toml" not in created_set
-    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+    for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
 
     # Other default components should still be created.
@@ -1098,7 +1110,7 @@ def test_init_respects_exclude_components(
     created_set = set(result.created)
     # Labels and skill files should not be created.
     assert "labels.toml" not in created_set
-    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+    for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
 
     # Other default components should still be created.
@@ -1540,7 +1552,7 @@ def test_init_include_overrides_default_exclusions(
     created_set = set(result.created)
     # Labels included via include, skills still excluded by default.
     assert "labels.toml" in created_set
-    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+    for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
     # skills is the only remaining default exclusion.
     assert result.excluded == ["skills"]
@@ -1564,7 +1576,7 @@ def test_init_exclude_additive_to_defaults(
     created_set = set(result.created)
     # Default exclusions (labels, skills) still apply.
     assert "labels.toml" not in created_set
-    for _, rel_path in COMPONENT_FILES.get("skills", ()):
+    for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
     # User exclude is additive.
     assert ".github/workflows/debug.yaml" not in created_set
@@ -1663,7 +1675,10 @@ def test_component_file_ids_match_registry() -> None:
 
 def test_tool_components_have_no_file_ids() -> None:
     """Tool components (ruff, pytest, etc.) do not support file-level exclusion."""
-    for name in TOOL_COMPONENTS:
+    for c in COMPONENTS:
+        if not isinstance(c, ToolConfigComponent):
+            continue
+        name = c.name
         assert valid_file_ids(name) == frozenset()
 
 
@@ -1816,9 +1831,13 @@ def test_tools_with_bundled_defaults_not_init_components() -> None:
     tools_with_defaults = {
         name for name, spec in TOOL_REGISTRY.items() if spec.default_config
     }
-    overlap = tools_with_defaults & set(FILE_COMPONENTS)
+    file_components = {
+        c.name for c in COMPONENTS if not isinstance(c, ToolConfigComponent)
+    }
+    overlap = tools_with_defaults & file_components
     assert not overlap, (
-        f"Tools with default_config should not be FILE_COMPONENTS: {sorted(overlap)}."
+        f"Tools with default_config should not be file components:"
+        f" {sorted(overlap)}."
         " The tool runner already uses the bundled config as a fallback."
     )
 
@@ -2048,7 +2067,7 @@ def test_init_bare_overrides_qualified(tmp_path: Path):
     )
     # All skills created (minus auto-excluded awesome-triage and
     # translation-sync for non-awesome).
-    total_skills = len(COMPONENT_FILES["skills"])
+    total_skills = len(_BY_NAME["skills"].files)
     assert len(result.created) == total_skills - 2
 
 

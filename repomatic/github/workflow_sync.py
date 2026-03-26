@@ -42,15 +42,16 @@ from pathlib import Path
 import yaml
 
 from .. import __version__
-from ..init_project import (
+from ..init_project import export_content, get_data_content
+from ..registry import (
     ALL_WORKFLOW_FILES,
+    DEFAULT_REPO,
     NON_REUSABLE_WORKFLOWS,
-    OPT_IN_WORKFLOWS,
     REUSABLE_WORKFLOWS,
-    export_content,
-    get_data_content,
+    UPSTREAM_SOURCE_GLOB,
+    UPSTREAM_SOURCE_PREFIX,
+    _BY_NAME,
 )
-from ..registry import DEFAULT_REPO, UPSTREAM_SOURCE_GLOB, UPSTREAM_SOURCE_PREFIX
 from .actions import AnnotationLevel, emit_annotation
 
 if sys.version_info >= (3, 11):
