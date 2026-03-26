@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from typing import Final
 
-
 TEST_RUNNERS_FULL = (
     "ubuntu-24.04-arm",
     "ubuntu-slim",

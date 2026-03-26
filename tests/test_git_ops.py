@@ -22,7 +22,6 @@ import subprocess
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from packaging.version import Version
 
 from repomatic.git_ops import (
