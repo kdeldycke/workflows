@@ -14,6 +14,7 @@
 - Replace `sync-workflows` and `clean-unmodified-configs` autofix jobs with a single `sync-repomatic` job. Runs `repomatic init --delete-unmodified --delete-excluded` to sync all managed files and clean up stale ones in one PR. Renamed from `clean-redundant-configs` and `--delete-redundant`.
 - Remove `PAT setup hint` steps and `HAS_REPOMATIC_PAT` env var from `autofix.yaml` and `changelog.yaml` workflows. The `setup-guide` job already creates an issue when the PAT is missing.
 - Add PAT capability checks and repo configuration validation to `lint-repo`. Checks Renovate config exists, Dependabot security updates disabled, and vulnerability alerts enabled. When `REPOMATIC_PAT` is configured, validates contents, issues, pull requests, Dependabot alerts, and commit statuses permissions. Add `REQUIRED_PAT_PERMISSIONS` constant in `token.py` as the single source of truth for expected permissions.
+- Add stale draft release detection to `lint-repo`. Warns about draft releases whose tag does not end with `.dev0`, which are leftovers from abandoned or failed release attempts.
 - Relax abandoned dependency threshold from 1 year to 2 years in Renovate config.
 - Fix thin-caller generation rendering `workflow_dispatch` input definitions as Python dict literals instead of block-style YAML.
 - Add `/sphinx-docs-sync` skill for cross-project Sphinx documentation comparison and synchronization.

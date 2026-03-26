@@ -29,6 +29,7 @@ from repomatic.lint_repo import (
     check_pat_issues_permission,
     check_pat_pull_requests_permission,
     check_pat_vulnerability_alerts_permission,
+    check_stale_draft_releases,
     check_topics_subset_of_keywords,
     check_website_for_sphinx,
     get_repo_metadata,
@@ -366,6 +367,57 @@ def test_funding_json_parse_error(tmp_path, monkeypatch):
         warning, msg = check_funding_file("owner/repo")
         assert warning is None
         assert "skipped" in msg
+
+
+# --- Stale draft releases check unit tests ---
+
+
+def test_stale_drafts_detected():
+    """Warn about draft releases that are not dev pre-releases."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = json.dumps([
+            {"tagName": "v6.1.2", "isDraft": True},
+            {"tagName": "v6.2.0", "isDraft": False},
+            {"tagName": "v6.3.0.dev0", "isDraft": True},
+        ])
+        warning, _msg = check_stale_draft_releases("owner/repo")
+        assert warning is not None
+        assert "v6.1.2" in warning
+        assert "v6.3.0.dev0" not in warning
+
+
+def test_stale_drafts_none():
+    """No warning when only dev pre-release drafts exist."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = json.dumps([
+            {"tagName": "v6.2.0", "isDraft": False},
+            {"tagName": "v6.3.0.dev0", "isDraft": True},
+        ])
+        warning, msg = check_stale_draft_releases("owner/repo")
+        assert warning is None
+        assert "No stale" in msg
+
+
+def test_stale_drafts_api_failure():
+    """Skip gracefully when API call fails."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.side_effect = RuntimeError("gh command failed")
+        warning, msg = check_stale_draft_releases("owner/repo")
+        assert warning is None
+        assert "skipped" in msg
+
+
+def test_stale_drafts_multiple():
+    """List all stale draft tags in the warning."""
+    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+        mock_gh.return_value = json.dumps([
+            {"tagName": "v6.1.2", "isDraft": True},
+            {"tagName": "v6.2.0-rc1", "isDraft": True},
+        ])
+        warning, _msg = check_stale_draft_releases("owner/repo")
+        assert warning is not None
+        assert "v6.1.2" in warning
+        assert "v6.2.0-rc1" in warning
 
 
 # --- PAT capability check unit tests ---

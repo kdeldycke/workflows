@@ -2388,6 +2388,7 @@ def lint_repo(
     - Repository description matches project description (error).
     - GitHub topics subset of pyproject.toml keywords (warning).
     - Funding file present when owner has GitHub Sponsors (warning).
+    - Stale draft releases (non-.dev0 drafts) (warning).
 
     When ``--has-pat`` is set, additional PAT capability checks are run:
     - Contents permission (error).

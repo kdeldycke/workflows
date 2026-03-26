@@ -198,6 +198,46 @@ def check_funding_file(repo: str) -> tuple[str | None, str]:
     return msg, msg
 
 
+def check_stale_draft_releases(repo: str) -> tuple[str | None, str]:
+    """Check for draft releases that are not dev pre-releases.
+
+    Draft releases whose tag does not end with ``.dev0`` are likely
+    leftovers from abandoned or failed release attempts. The only
+    expected drafts are the rolling dev pre-releases managed by
+    ``sync-dev-release``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (warning_message or None, info_message).
+    """
+    try:
+        output = run_gh_command([
+            "release",
+            "list",
+            "--json",
+            "tagName,isDraft",
+            "--repo",
+            repo,
+        ])
+    except RuntimeError:
+        return None, "Stale draft releases check: skipped (API call failed)."
+
+    try:
+        releases = json.loads(output)
+    except json.JSONDecodeError:
+        return None, "Stale draft releases check: skipped (invalid JSON)."
+
+    stale_drafts = [
+        r["tagName"]
+        for r in releases
+        if r.get("isDraft") and not r["tagName"].endswith(".dev0")
+    ]
+    if stale_drafts:
+        tags = ", ".join(stale_drafts)
+        msg = f"Stale draft releases found: {tags}. Delete these leftover drafts."
+        return msg, msg
+    return None, "No stale draft releases."
+
+
 def check_topics_subset_of_keywords(
     repo: str,
     keywords: list[str] | None = None,
@@ -482,7 +522,14 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 9: Workflow permissions declared on custom-step workflows.
+    # Check 9: Stale draft releases (warning).
+    if repo:
+        warning, msg = check_stale_draft_releases(repo)
+        if warning:
+            emit_annotation(AnnotationLevel.WARNING, warning)
+        print(f"{'⚠' if warning else '✓'} {msg}")
+
+    # Check 10: Workflow permissions declared on custom-step workflows.
     for warning, msg in check_workflow_permissions():
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
