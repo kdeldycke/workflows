@@ -27,8 +27,8 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Manage setup guide issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,8 +40,8 @@ jobs:
     outputs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -64,8 +64,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run autopep8
         if: fromJSON(needs.metadata.outputs.metadata).python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
@@ -85,7 +85,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template format-python
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -105,8 +105,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run pyproject-fmt
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
@@ -118,7 +118,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template format-pyproject
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -139,8 +139,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Install shfmt
         # Required by the mdformat-shfmt plugin for shell code block formatting.
         run: sudo apt install --yes shfmt
@@ -165,7 +165,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template format-markdown
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -185,8 +185,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Format JSON
         # Allow comments and trailing commas for JSONC files.
         # Biome auto-detects well-known JSONC files (tsconfig.json, etc.).
@@ -202,7 +202,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template format-json
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -221,8 +221,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Fix typos
         run: uvx --no-progress --from . repomatic run typos
       - id: pr-metadata
@@ -230,7 +230,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template fix-typos
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
           token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
@@ -249,8 +249,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Sync repomatic-managed files
         run: >
           uvx --no-progress --from . repomatic init
@@ -260,7 +260,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template sync-repomatic
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           # We need custom PAT with workflows permissions to update .github/workflows/*.yaml files.
           token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
@@ -282,8 +282,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Install image optimization tools
         env:
           # Version appears in both the tag path and the .deb filename,
@@ -308,7 +308,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template format-images
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -330,8 +330,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Sync .gitignore
         run: uvx --no-progress --from . repomatic sync-gitignore
       - id: pr-metadata
@@ -339,7 +339,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template sync-gitignore
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -359,8 +359,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Sync bumpversion config
         run: uvx --no-progress --from . repomatic sync-bumpversion
       - id: pr-metadata
@@ -368,7 +368,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template sync-bumpversion
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -388,11 +388,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Sync .mailmap
         run: uvx --no-progress --from . repomatic sync-mailmap --skip-if-missing
       - id: pr-metadata
@@ -400,7 +400,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template sync-mailmap
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -423,8 +423,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Generate graph
         # Package name and output path are auto-detected from pyproject.toml.
         run: uvx --no-progress --from . repomatic update-deps-graph
@@ -433,7 +433,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template update-deps-graph
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
@@ -455,8 +455,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Regenerate Sphinx autodoc
         # Omit --force so existing RST files (often with custom modifications produced by the next step) are preserved.
         # Only new module stubs are created, and deleted ones are left for manual removal by the maintainers.
@@ -472,7 +472,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template update-docs
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}

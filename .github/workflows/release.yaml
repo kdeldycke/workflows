@@ -48,8 +48,8 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Extract PR reference
         id: extract
         env:
@@ -92,7 +92,7 @@ jobs:
     outputs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Checkout pull request HEAD commit to ignore actions/checkout's merge commit. Fallback to push SHA.
           # See: https://github.com/actions/checkout/issues/504
@@ -103,7 +103,7 @@ jobs:
         run: git branch --all
       - name: List all commits
         run: git log --decorate=full --oneline
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -127,10 +127,10 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Build package
         run: uv --no-progress build
       - name: Generate build attestations
@@ -138,11 +138,11 @@ jobs:
         if: >-
           github.event_name != 'pull_request'
           || !github.event.pull_request.head.repo.fork
-        uses: actions/attest-build-provenance@v3.2.0
+        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
         with:
           subject-path: ./dist/*
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
           path: ./dist/*
@@ -169,10 +169,10 @@ jobs:
       attestations: write
       contents: write
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Setup venv
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
@@ -204,7 +204,7 @@ jobs:
             ${NUITKA_EXTRA_ARGS} \
             --output-filename="${BIN_NAME}" "${MODULE_PATH}"
       - name: Upload Nuitka crash report
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: nuitka-crash-report-${{ matrix.os }}-${{ matrix.short_sha }}.xml
           if-no-files-found: ignore
@@ -231,7 +231,7 @@ jobs:
           uvx --no-progress --from . repomatic
           verify-binary --target "${TARGET}" --binary "${BIN_NAME}"
       - name: Upload binaries
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           # Artifact name includes SHA for uniqueness across commits; the file
           # inside uses the clean release name (no SHA suffix).
@@ -242,7 +242,7 @@ jobs:
         if: >-
           github.ref == 'refs/heads/main'
           && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
-        uses: actions/attest-build-provenance@v3.2.0
+        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
         with:
           subject-path: ${{ matrix.bin_name }}
       - name: Upload binary to GitHub release
@@ -274,11 +274,11 @@ jobs:
     # We keep going when a job flagged as not stable fails.
     continue-on-error: ${{ matrix.state == 'unstable' }}
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ matrix.commit }}
       - name: Download artifact
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         id: artifacts
         with:
           name: ${{ matrix.bin_name }}-${{ matrix.short_sha }}
@@ -288,7 +288,7 @@ jobs:
           DOWNLOAD_PATH: ${{ steps.artifacts.outputs.download-path }}
           BIN_NAME: ${{ matrix.bin_name }}
         run: chmod +x "${DOWNLOAD_PATH}/${BIN_NAME}"
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run test plan for binary
         env:
           DOWNLOAD_PATH: ${{ steps.artifacts.outputs.download-path }}
@@ -310,13 +310,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ matrix.commit }}
           # PAT required so tag pushes trigger downstream on.push.tags workflows.
           # See repomatic/git_ops.py module docstring.
           token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Create and push tag
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
         # workflows interrupted after tag creation.
@@ -346,14 +346,14 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Download build artifacts
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         id: download
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
       - name: Generate attestations
-        uses: actions/attest-build-provenance@v3.2.0
+        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPI
@@ -385,16 +385,16 @@ jobs:
       # Allow project without REPOMATIC_PAT to create a GitHub release.
       contents: write
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ matrix.commit }}
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
         with:
           enable-cache: false
       - name: Download Python package
         # Do not fetch build artifacts if build-package was skipped (non-Python projects).
         if: needs.build-package.result != 'skipped'
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         id: artifacts
         with:
           path: release_artifact
@@ -402,7 +402,7 @@ jobs:
       - name: Generate attestations
         # Do not try to attest artifacts if none have been downloaded.
         if: steps.artifacts.outputs.download-path
-        uses: actions/attest-build-provenance@v3.2.0
+        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
         with:
           subject-path: release_artifact/*
       - name: Delete dev pre-release
@@ -482,10 +482,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Download all build artifacts
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: release_assets
           merge-multiple: true

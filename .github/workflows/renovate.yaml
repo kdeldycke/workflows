@@ -31,8 +31,8 @@ jobs:
     outputs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -47,8 +47,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
 
       - name: Check Renovate prerequisites
         id: checks
@@ -66,7 +66,7 @@ jobs:
           DEPENDABOT_PATH: ${{ steps.checks.outputs.dependabot_config_path }}
         run: rm -f "${DEPENDABOT_PATH}"
 
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: Migrate from Dependabot to Renovate
@@ -85,8 +85,8 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
 
       # Materialize bundled default renovate.json5 when absent. Downstream
       # repos that use clean-unmodified-configs correctly delete on-disk
@@ -105,7 +105,7 @@ jobs:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
         run: uvx --no-progress --from . repomatic check-renovate
 
-      - uses: renovatebot/github-action@v46.1.4
+      - uses: renovatebot/github-action@0b17c4eb901eca44d018fb25744a50a74b2042df # v46.1.4
         with:
           # Custom PAT required for Renovate to function fully.
           # See readme.md for full list of required permissions.
@@ -162,8 +162,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - id: sync
         name: Sync uv.lock
         run: >
@@ -176,7 +176,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body
           --template sync-uv-lock
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v8.1.0
+      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           assignees: ${{ github.actor }}
           commit-message: ${{ steps.pr-metadata.outputs.commit_message }}

@@ -30,8 +30,8 @@ jobs:
     outputs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -47,8 +47,8 @@ jobs:
     if: fromJSON(needs.metadata.outputs.metadata).is_python_project
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
@@ -63,8 +63,8 @@ jobs:
     if: github.head_ref != 'prepare-release' && fromJSON(needs.metadata.outputs.metadata).python_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Install all package dependencies
         # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
         # those related to optional features, tests, development and documentation.
@@ -86,8 +86,8 @@ jobs:
       && fromJSON(needs.metadata.outputs.metadata).yaml_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run yamllint
         run: uvx --no-progress --from . repomatic run yamllint -- .
 
@@ -102,7 +102,7 @@ jobs:
       && fromJSON(needs.metadata.outputs.metadata).zsh_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Zsh
         run: |
           sudo apt update
@@ -123,8 +123,8 @@ jobs:
       && fromJSON(needs.metadata.outputs.metadata).workflow_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Install shellcheck
         run: sudo apt update && sudo apt install --yes shellcheck
       - name: Setup problem matcher
@@ -147,8 +147,8 @@ jobs:
       && fromJSON(needs.metadata.outputs.metadata).workflow_files
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run zizmor
         run: uvx --no-progress --from . repomatic run zizmor -- .
 
@@ -161,7 +161,7 @@ jobs:
       && github.head_ref != 'prepare-release'
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Fetch all history to please linter's age checks.
           fetch-depth: 0
@@ -180,9 +180,9 @@ jobs:
     if: github.head_ref != 'prepare-release' && ! fromJSON(needs.metadata.outputs.metadata).is_bot
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run gitleaks
         run: uvx --no-progress --from . repomatic run gitleaks -- detect --source .
