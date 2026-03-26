@@ -397,22 +397,10 @@ GITHUB_API_RELEASE_BY_TAG_URL = (
 )
 """GitHub API URL for fetching a single release by tag name."""
 
-PYPI_JSON_API_URL = "https://pypi.org/pypi/{package}/json"
-"""PyPI JSON API URL for fetching package metadata."""
+from .pypi import get_source_url as get_pypi_source_url
 
 RELEASE_NOTES_MAX_LENGTH = 2000
 """Maximum characters per package release body before truncation."""
-
-# Keys in PyPI ``project_urls`` that typically point to a GitHub repository,
-# checked in priority order.
-_PYPI_SOURCE_URL_KEYS = (
-    "Source",
-    "Source Code",
-    "Source code",
-    "Repository",
-    "Code",
-    "Homepage",
-)
 
 
 # Pattern matching exclude-newer timestamp lines in uv.lock diffs.
@@ -683,36 +671,6 @@ def _parse_github_owner_repo(repo_url: str) -> tuple[str, str] | None:
     if len(parts) < 2:
         return None
     return parts[-2], parts[-1]
-
-
-def get_pypi_source_url(package: str) -> str | None:
-    """Discover the GitHub repository URL for a PyPI package.
-
-    Queries the PyPI JSON API and scans ``project_urls`` for keys that
-    typically point to a source repository on GitHub.
-
-    :param package: The PyPI package name.
-    :return: The GitHub repository URL, or ``None`` if not found.
-    """
-    url = PYPI_JSON_API_URL.format(package=package)
-    request = Request(url, headers={"Accept": "application/json"})
-    try:
-        with urlopen(request, timeout=10) as response:
-            data = json.loads(response.read())
-    except (URLError, TimeoutError, json.JSONDecodeError) as exc:
-        logging.debug(f"PyPI lookup failed for {package}: {exc}")
-        return None
-
-    project_urls: dict[str, str] = data.get("info", {}).get("project_urls") or {}
-    for key in _PYPI_SOURCE_URL_KEYS:
-        candidate = project_urls.get(key, "")
-        if "github.com" in candidate:
-            return candidate.rstrip("/").removesuffix(".git")
-    # Fallback: scan all values for a GitHub URL.
-    for candidate in project_urls.values():
-        if "github.com" in candidate:
-            return candidate.rstrip("/").removesuffix(".git")
-    return None
 
 
 def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:

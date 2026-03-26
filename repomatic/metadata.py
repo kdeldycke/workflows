@@ -328,10 +328,10 @@ from wcmatch.glob import (
 
 from .changelog import (
     GITHUB_RELEASE_URL,
-    PYPI_PROJECT_URL,
     Changelog,
     build_release_admonition,
 )
+from .pypi import PYPI_PROJECT_URL
 from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
 from .github.gh import run_gh_command
 from .github.matrix import Matrix

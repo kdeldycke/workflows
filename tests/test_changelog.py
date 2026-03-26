@@ -23,11 +23,11 @@ import pytest
 
 from repomatic.changelog import (
     Changelog,
-    PyPIRelease,
     VersionElements,
     build_unavailable_admonition,
     lint_changelog_dates,
 )
+from repomatic.pypi import PyPIRelease
 from repomatic.github.releases import GitHubRelease
 
 SAMPLE_CHANGELOG = dedent(

@@ -124,8 +124,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import indent
 from typing import NamedTuple
-from urllib.error import URLError
-from urllib.request import Request, urlopen
 
 from packaging.version import Version
 
@@ -184,14 +182,13 @@ GITHUB_RELEASE_URL = "{repo_url}/releases/tag/v{version}"
 NOT_AVAILABLE_VERB = "is **not available** on"
 """Verb phrase for versions missing from a platform."""
 
-PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
-"""PyPI JSON API URL for fetching all release metadata for a package."""
+from .pypi import (
+    PYPI_LABEL,
+    PYPI_PROJECT_URL,
+    PyPIRelease,
+    get_release_dates as get_pypi_release_dates,
+)
 
-PYPI_LABEL = "🐍 PyPI"
-"""Display label for PyPI releases in admonitions."""
-
-PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
-"""PyPI project page URL for a specific version."""
 
 YANKED_DEDUP_MARKER = "yanked from PyPI"
 """Dedup marker for the yanked admonition to prevent duplicate insertion."""
@@ -639,62 +636,6 @@ class Changelog:
             self.content[: match.start()] + formatted + self.content[match.end() :]
         )
         return True
-
-
-class PyPIRelease(NamedTuple):
-    """Release metadata for a single version from PyPI."""
-
-    date: str
-    """Earliest upload date across all files in ``YYYY-MM-DD`` format."""
-
-    yanked: bool
-    """Whether all files for this version are yanked."""
-
-    package: str
-    """PyPI package name this release was fetched from.
-
-    Needed for projects that were renamed: older versions live under a former
-    package name and their PyPI URLs must point to that name, not the current one.
-    """
-
-
-def get_pypi_release_dates(package: str) -> dict[str, PyPIRelease]:
-    """Get upload dates and yanked status for all versions from PyPI.
-
-    Fetches the package metadata in a single API call. For each version,
-    selects the **earliest** upload time across all distribution files as
-    the canonical release date. A version is considered yanked only if
-    **all** of its files are yanked.
-
-    :param package: The PyPI package name.
-    :return: Dict mapping version strings to :class:`PyPIRelease` tuples.
-        Empty dict if the package is not found or the request fails.
-    """
-    url = PYPI_API_URL.format(package=package)
-    request = Request(url, headers={"Accept": "application/json"})
-    try:
-        with urlopen(request, timeout=10) as response:
-            data = json.loads(response.read())
-    except (URLError, TimeoutError, json.JSONDecodeError) as exc:
-        logging.debug(f"PyPI lookup failed for {package}: {exc}")
-        return {}
-
-    result: dict[str, PyPIRelease] = {}
-    for version, files in data.get("releases", {}).items():
-        if not files:
-            continue
-        # Select the earliest upload time across all distribution files.
-        dates = [f["upload_time"][:10] for f in files if f.get("upload_time")]
-        if not dates:
-            continue
-        earliest_date = min(dates)
-        # A version is yanked only if every file is yanked.
-        all_yanked = all(f.get("yanked", False) for f in files)
-        result[version] = PyPIRelease(
-            date=earliest_date, yanked=all_yanked, package=package
-        )
-
-    return result
 
 
 def build_release_admonition(

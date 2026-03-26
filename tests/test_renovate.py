@@ -711,7 +711,7 @@ def test_get_pypi_source_url_found():
         },
     }).encode()
     mock = _make_urlopen_mock({"pypi.org": (pypi_data,)})
-    with patch("repomatic.renovate.urlopen", side_effect=mock):
+    with patch("repomatic.pypi.urlopen", side_effect=mock):
         assert get_pypi_source_url("coverage") == "https://github.com/nedbat/coveragepy"
 
 
@@ -725,14 +725,14 @@ def test_get_pypi_source_url_no_github():
         },
     }).encode()
     mock = _make_urlopen_mock({"pypi.org": (pypi_data,)})
-    with patch("repomatic.renovate.urlopen", side_effect=mock):
+    with patch("repomatic.pypi.urlopen", side_effect=mock):
         assert get_pypi_source_url("somepkg") is None
 
 
 def test_get_pypi_source_url_api_failure():
     """Return None on PyPI API failure."""
     mock = _make_urlopen_mock({"pypi.org": (None,)})
-    with patch("repomatic.renovate.urlopen", side_effect=mock):
+    with patch("repomatic.pypi.urlopen", side_effect=mock):
         assert get_pypi_source_url("coverage") is None
 
 
