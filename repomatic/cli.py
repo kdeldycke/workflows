@@ -2634,7 +2634,10 @@ def git_tag(
     except ValueError as e:
         raise ClickException(str(e))
     except subprocess.CalledProcessError as e:
-        raise ClickException(f"Failed to create/push tag: {e}")
+        msg = f"Failed to create/push tag: {e}"
+        if e.stderr:
+            msg += f"\n{e.stderr.strip()}"
+        raise ClickException(msg)
 
     if created:
         echo(f"Created{' and pushed' if push else ''} tag {tag!r}")
