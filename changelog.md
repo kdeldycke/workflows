@@ -5,6 +5,12 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Include git stderr in `git-tag` CLI error messages. Previously `capture_output=True` swallowed the actual rejection reason, making tag push failures opaque in CI logs.
+- Add PAT repository scope check to `lint-repo`. Detects tokens configured with "All repositories" access instead of "Only select repositories", using the `/installation/repositories` endpoint with a cross-repo probe fallback.
+- Add tag ruleset detection to `lint-repo`. Warns when active rulesets targeting tags are found, which can block the `create-tag` job from pushing release tags.
+- Remove upstream repo carve-out from the `setup-guide` job. The upstream repo is no longer excluded, so a missing `REPOMATIC_PAT` secret is now detected everywhere.
+- Fix missing `HAS_REPOMATIC_PAT` env var in the `setup-guide` workflow step. Without it, the command could not detect when the PAT was already configured.
+
 ## [`6.8.0` (2026-03-26)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 
 - Move test matrix definition from inline YAML to `repomatic metadata` using the `Matrix` class. The `tests` job now depends on the `metadata` job and consumes pre-computed `test_matrix` / `test_matrix_pr` outputs. Fixes the `matrix` context being unavailable in job-level `if:`.

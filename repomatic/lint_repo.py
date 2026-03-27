@@ -366,6 +366,129 @@ def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
     return True, "Dependabot alerts: token has access, alerts enabled"
 
 
+def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
+    """Check that the PAT is scoped to only the current repository.
+
+    Fine-grained PATs should use **Only select repositories** to follow
+    the principle of least privilege. This check detects tokens configured
+    with **All repositories** access.
+
+    Two strategies are tried in order:
+
+    1. ``GET /installation/repositories`` — returns the repos the token
+       can access, including a ``repository_selection`` field.
+    2. Cross-repo probe — check ``permissions.push`` on another repo
+       owned by the same user. If the token can push to a repo it should
+       not have access to, it is over-scoped.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (warning_message or None, info_message).
+    """
+    # Strategy A: installation/repositories endpoint.
+    try:
+        output = run_gh_command([
+            "api",
+            "/installation/repositories",
+            "--jq",
+            ".repository_selection",
+        ])
+        selection = output.strip()
+        if selection == "all":
+            msg = (
+                "PAT has 'All repositories' access."
+                " Scope it to 'Only select repositories' for least privilege."
+            )
+            return msg, msg
+        return None, "PAT scope: correctly limited to selected repositories."
+    except RuntimeError:
+        logging.debug("installation/repositories not available, trying cross-repo probe.")
+
+    # Strategy B: cross-repo probe.
+    owner = repo.split("/", 1)[0]
+    try:
+        output = run_gh_command([
+            "api",
+            f"/users/{owner}/repos",
+            "--jq",
+            ".[].full_name",
+            "-f",
+            "per_page=10",
+            "-f",
+            "type=owner",
+        ])
+    except RuntimeError:
+        return None, "PAT scope check: skipped (could not list owner repos)."
+
+    other_repos = [r.strip() for r in output.splitlines() if r.strip() and r.strip() != repo]
+    if not other_repos:
+        return None, "PAT scope check: skipped (no other repos to probe)."
+
+    probe_repo = other_repos[0]
+    try:
+        output = run_gh_command([
+            "api",
+            f"repos/{probe_repo}",
+            "--jq",
+            ".permissions.push",
+        ])
+        if output.strip() == "true":
+            msg = (
+                f"PAT has push access to {probe_repo}."
+                " Token is likely scoped to 'All repositories'"
+                " instead of 'Only select repositories'."
+            )
+            return msg, msg
+    except RuntimeError:
+        return None, "PAT scope check: skipped (probe request failed)."
+
+    return None, f"PAT scope: no push access to {probe_repo} (correctly scoped)."
+
+
+def check_tag_protection_rules(repo: str) -> tuple[str | None, str]:
+    """Check that no tag rulesets could block the ``create-tag`` workflow job.
+
+    Tag rulesets that restrict creation or require status checks can prevent
+    ``REPOMATIC_PAT`` (or ``GITHUB_TOKEN``) from pushing release tags. This
+    check queries the repository rulesets API and warns when any ruleset
+    targets tags.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (warning_message or None, info_message).
+    """
+    try:
+        output = run_gh_command([
+            "api",
+            f"repos/{repo}/rulesets",
+            "-f",
+            "includes_parents=true",
+        ])
+    except RuntimeError:
+        return None, "Tag protection check: skipped (could not query rulesets API)."
+
+    try:
+        rulesets = json.loads(output)
+    except json.JSONDecodeError:
+        return None, "Tag protection check: skipped (invalid JSON from rulesets API)."
+
+    tag_rulesets = [
+        r["name"]
+        for r in rulesets
+        if isinstance(r, dict)
+        and r.get("target") == "tag"
+        and r.get("enforcement") == "active"
+    ]
+    if tag_rulesets:
+        names = ", ".join(tag_rulesets)
+        msg = (
+            f"Active tag rulesets found: {names}."
+            " These may block the create-tag job from pushing release tags."
+            " Ensure the REPOMATIC_PAT token is in the bypass list,"
+            " or remove the rulesets."
+        )
+        return msg, msg
+    return None, "No active tag rulesets found."
+
+
 def check_workflow_permissions() -> list[tuple[str | None, str]]:
     """Check that workflows with custom jobs declare ``permissions: {}``.
 
@@ -528,7 +651,14 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 10: Workflow permissions declared on custom-step workflows.
+    # Check 10: Tag protection rules (warning).
+    if repo:
+        warning, msg = check_tag_protection_rules(repo)
+        if warning:
+            emit_annotation(AnnotationLevel.WARNING, warning)
+        print(f"{'⚠' if warning else '✓'} {msg}")
+
+    # Check 11: Workflow permissions declared on custom-step workflows.
     for warning, msg in check_workflow_permissions():
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
@@ -558,5 +688,11 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.ERROR, msg)
             print(f"✗ {msg}")
             fatal_error = True
+
+    # Check PAT repository scope (warning, not fatal).
+    warning, msg = check_pat_repository_scope(repo)
+    if warning:
+        emit_annotation(AnnotationLevel.WARNING, warning)
+    print(f"{'⚠' if warning else '✓'} {msg}")
 
     return 1 if fatal_error else 0

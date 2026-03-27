@@ -21,8 +21,7 @@ jobs:
   setup-guide:
     name: 📖 Setup guide
     # Only run on push to the default branch, not on workflow_call from downstream.
-    # Skip on the upstream repo itself (it already has the secret).
-    if: github.event_name == 'push' && github.repository != 'kdeldycke/repomatic'
+    if: github.event_name == 'push'
     runs-on: ubuntu-slim
     permissions:
       issues: write
@@ -32,6 +31,7 @@ jobs:
       - name: Manage setup guide issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
         run: uvx --no-progress --from . repomatic setup-guide
 
   metadata:
