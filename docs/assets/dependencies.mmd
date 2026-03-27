@@ -59,12 +59,12 @@ flowchart LR
 
     subgraph grp_test [--group test]
         pytest{{"`pytest >=9`"}}
-        pytest_cov{{"`pytest-cov >=7`"}}
+        pytest_cov{{"`pytest-cov >=6`"}}
         pytest_xdist{{"`pytest-xdist >=3.7`"}}
         coverage{{"`coverage >=7.11`"}}
         pluggy(["`pluggy`"])
-        pytest_github_actions_annotate_failures{{"`pytest-github-actions-annotate-failures >=0.3`"}}
-        pytest_randomly{{"`pytest-randomly >=4`"}}
+        pytest_github_actions_annotate_failures{{"`pytest-github-actions-annotate-failures >=0.2`"}}
+        pytest_randomly{{"`pytest-randomly >=3`"}}
         execnet(["`execnet`"])
         iniconfig(["`iniconfig`"])
         psutil(["`psutil`"])
@@ -77,15 +77,15 @@ flowchart LR
 
     repomatic ==>|" >=1.2.6 "| bump_my_version
     repomatic ==>|" >=7.6.2 "| click_extra
-    repomatic ==>|" >=2.6 "| pydriller
-    repomatic ==>|" >=2.3 "| tomli
+    repomatic ==>|" >=2 "| pydriller
+    repomatic ==>|" >=2 "| tomli
     repomatic ==>|" >=10 "| wcmatch
-    repomatic ==>|" >=25 "| packaging
+    repomatic ==>|" >=20 "| packaging
     repomatic ==>|" >=25 "| boltons
     repomatic ==>|" >=8 "| extra_platforms
-    repomatic ==>|" >=0.3.3 "| py_walk
+    repomatic ==>|" >=0.3.1 "| py_walk
     repomatic ==>|" >=0.9 "| pyproject_metadata
-    repomatic ==>|" >=1.3.1 "| backports_strenum
+    repomatic ==>|" >=1 "| backports_strenum
     repomatic ==>|" >=6.0.3 "| pyyaml
     pytest ==> tomli
     pytest --> colorama
