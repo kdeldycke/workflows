@@ -231,6 +231,11 @@ COMPONENTS: tuple[Component, ...] = (
         ),
     ),
     BundledComponent(
+        name="codecov",
+        description="Codecov PR comment config (.github/codecov.yaml)",
+        files=(FileEntry("codecov.yaml", ".github/codecov.yaml"),),
+    ),
+    BundledComponent(
         name="renovate",
         description="Renovate config (renovate.json5)",
         files=(FileEntry("renovate.json5"),),

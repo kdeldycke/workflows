@@ -468,6 +468,7 @@ expected = {
     "json_files": [],
     "yaml_files": [
         ".github/ISSUE_TEMPLATE/bug-report.yml",
+        ".github/codecov.yaml",
         ".github/funding.yml",
         ".github/workflows/autofix.yaml",
         ".github/workflows/autolock.yaml",
@@ -484,6 +485,7 @@ expected = {
         "repomatic/data/awesome_template/.github/ISSUE_TEMPLATE/config.yml",
         "repomatic/data/awesome_template/.github/ISSUE_TEMPLATE/new-link.yaml",
         "repomatic/data/awesome_template/.github/funding.yml",
+        "repomatic/data/codecov.yaml",
         "repomatic/data/labeller-content-based.yaml",
         "repomatic/data/labeller-file-based.yaml",
         "repomatic/data/yamllint.yaml",

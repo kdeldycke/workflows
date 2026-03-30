@@ -29,7 +29,7 @@
 - Replace hand-rolled `_flatten_config` and dict-based config loading with click-extra's `flatten_config_keys` and `normalize_config_keys`. `load_repomatic_config()` now returns a typed `Config` dataclass instance instead of a flat dict, giving all consumers attribute access with type checking.
 - Rename `config` subcommand to `show-config` to resolve a naming conflict with click-extra's `--config` option that prevented `--show-params` from working.
 - Skip Codecov uploads on `sync-repomatic` PRs. Data-only changes have no coverable lines, so the coverage report was pure noise.
-- Add `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines.
+- Add `codecov` bundled component. Syncs `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines.
 - Extract `Config` dataclass, `load_repomatic_config`, and all config reference utilities from `metadata.py` into a dedicated `config.py` module.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
