@@ -33,7 +33,6 @@ from click_extra import (
     UNPROCESSED,
     Choice,
     ClickException,
-    ConfigOption,
     Context,
     EnumChoice,
     ExtraVersionOption,
@@ -237,20 +236,13 @@ def _require_token(module, attr):
     return decorator
 
 
-@group(config_schema=Config, schema_strict=True)
+# included_params=() disables merge_default_map: all [tool.repomatic] keys are
+# config-only (not CLI params), so merging them would collide with subcommand
+# names (e.g., "setup-guide" is both a config key and a subcommand). Config
+# access goes exclusively through config_schema + get_tool_config().
+@group(config_schema=Config, schema_strict=True, included_params=())
 def repomatic():
     pass
-
-
-# Disable merge_default_map for config file parameters. All [tool.repomatic]
-# keys are config-only (not CLI params), so merging them into Click's
-# default_map would collide with subcommand names (e.g., "setup-guide" is
-# both a config key and a subcommand). Config access goes exclusively
-# through config_schema + get_tool_config().
-for _param in repomatic.params:
-    if isinstance(_param, ConfigOption):
-        _param.included_params = frozenset()
-        break
 
 
 _section_github = Section("GitHub issues & PRs")
