@@ -233,6 +233,9 @@ COMPONENTS: tuple[Component, ...] = (
     BundledComponent(
         name="codecov",
         description="Codecov PR comment config (.github/codecov.yaml)",
+        # Codecov reads config directly from the repo; the file must stay on
+        # disk for the settings to take effect.
+        keep_unmodified=True,
         files=(FileEntry("codecov.yaml", ".github/codecov.yaml"),),
     ),
     BundledComponent(

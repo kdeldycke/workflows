@@ -30,7 +30,7 @@
 - Replace hand-rolled `_flatten_config` and dict-based config loading with click-extra's `flatten_config_keys` and `normalize_config_keys`. `load_repomatic_config()` now returns a typed `Config` dataclass instance instead of a flat dict, giving all consumers attribute access with type checking.
 - Rename `config` subcommand to `show-config` to resolve a naming conflict with click-extra's `--config` option that prevented `--show-params` from working.
 - Skip Codecov uploads on `sync-repomatic` PRs. Data-only changes have no coverable lines, so the coverage report was pure noise.
-- Add `codecov` bundled component. Syncs `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines.
+- Add `codecov` bundled component. Syncs `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines. Marked `keep_unmodified=True` so the config is preserved on disk even when identical to the bundled default — Codecov reads it directly from the repo, unlike tools that receive their config via a CLI flag at invocation time.
 - Extract `Config` dataclass, `load_repomatic_config`, and all config reference utilities from `metadata.py` into a dedicated `config.py` module.
 - Wire `config_schema=Config, schema_strict=True` on the CLI group. click-extra now auto-discovers `pyproject.toml` from CWD, loads `[tool.repomatic]`, and provides a typed `Config` instance via `get_tool_config()`. CLI commands no longer call `load_repomatic_config()` directly.
 
