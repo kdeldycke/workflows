@@ -28,6 +28,7 @@ import re
 from importlib.resources import as_file, files
 from string import Template
 
+from .. import __version__
 from ..metadata import Metadata
 
 
@@ -147,7 +148,9 @@ def render_template(*names: str, **kwargs: str | None) -> str:
             append_footer = True
     result = "\n\n".join(parts)
     if append_footer:
-        result += "\n\n---\n\n" + render_template("generated-footer")
+        result += "\n\n---\n\n" + render_template(
+            "generated-footer", version=__version__
+        )
     result = re.sub(r"\n{3,}", "\n\n", result)
     if append_footer:
         result += "\n"
