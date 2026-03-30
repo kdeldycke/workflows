@@ -50,7 +50,7 @@ from pathlib import Path, PurePosixPath
 from urllib.request import urlretrieve
 
 from . import __version__
-from .metadata import load_repomatic_config
+from .metadata import Config, load_repomatic_config
 from .pyproject import resolve_source_paths
 from .registry import (
     _BY_NAME,
@@ -78,6 +78,17 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from importlib.abc import Traversable
+
+
+def _config_flag(config: Config, dotted_key: str, default: bool) -> bool:
+    """Look up a boolean config value by its dotted TOML key.
+
+    Converts a dotted kebab-case key (e.g. ``"labels.sync"``) to the
+    corresponding ``Config`` field name (``labels_sync``) and returns the
+    value via ``getattr``.
+    """
+    field_name = dotted_key.replace("-", "_").replace(".", "_")
+    return getattr(config, field_name, default)
 
 
 # Exportable files: all registry entries + tool runner bundled defaults.
@@ -630,8 +641,8 @@ def run_init(
 
     # Parse exclude/include config. User exclude is additive to defaults;
     # user include overrides both.
-    user_exclude: list[str] = config.get("exclude", [])
-    user_include: list[str] = config.get("include", [])
+    user_exclude: list[str] = config.exclude
+    user_include: list[str] = config.include
     if user_include:
         parse_component_entries(user_include, context="include")
     default_exclusions = {
@@ -703,8 +714,8 @@ def run_init(
                     or (not is_awesome_repo and entry.scope == RepoScope.AWESOME_ONLY)
                 ):
                     excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
-                if entry.config_key and not config.get(
-                    entry.config_key, entry.config_default
+                if entry.config_key and not _config_flag(
+                    config, entry.config_key, entry.config_default
                 ):
                     excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
 
@@ -723,7 +734,7 @@ def run_init(
         if (
             reg_comp.name in selected
             and reg_comp.config_key
-            and not config.get(reg_comp.config_key, reg_comp.config_default)
+            and not _config_flag(config, reg_comp.config_key, reg_comp.config_default)
         ):
             selected.discard(reg_comp.name)
             logging.info(
@@ -828,7 +839,7 @@ def _init_workflows(
         if (
             entry.config_key
             and entry.file_id in workflows
-            and not config.get(entry.config_key, entry.config_default)
+            and not _config_flag(config, entry.config_key, entry.config_default)
         ):
             workflows = tuple(w for w in workflows if w != entry.file_id)
 
@@ -1136,7 +1147,7 @@ def _fetch_extra_labels(
     Does nothing if no URLs are configured.
     """
     config = load_repomatic_config()
-    urls = config.get("labels.extra-files", [])
+    urls = config.labels_extra_files
     if not urls:
         logging.debug("No labels.extra-files configured.")
         return

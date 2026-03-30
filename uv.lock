@@ -3,11 +3,12 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-23T16:16:20.302270467Z"
+exclude-newer = "2026-03-23T20:27:13.607602Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-repomatic = { timestamp = "2026-03-30T16:16:20.302278853Z", span = "PT0S" }
+click-extra = { timestamp = "2026-03-30T20:27:13.607933Z", span = "PT0S" }
+repomatic = { timestamp = "2026-03-30T20:27:13.608089Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -207,8 +208,8 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.8.0"
-source = { registry = "https://pypi.org/simple" }
+version = "7.8.1.dev0"
+source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#c8500bf082fd3d552c20b0e59c963f5289abef94" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },
@@ -219,10 +220,6 @@ dependencies = [
     { name = "tabulate", extra = ["widechars"] },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/61/cd/65d46aed5d64524e47fe39b2d6119e9295d23dbe65916ca64cd0f26efb05/click_extra-7.8.0.tar.gz", hash = "sha256:235ac590e893c6eee88ecbc22500c5f7d24ed5fdfbed7824dfb8d730a0759dc0", size = 107942, upload-time = "2026-03-09T16:08:02.409Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/04/6c0760d6eb91c944d4367d6775f7eb53ddf059a897cdd7325eb2f5813c3f/click_extra-7.8.0-py3-none-any.whl", hash = "sha256:31de6766c9460929bf944ba72d9b06784d93873189536a938fe05765b4af4a77", size = 121950, upload-time = "2026-03-09T16:08:00.991Z" },
 ]
 
 [[package]]
@@ -984,7 +981,7 @@ requires-dist = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'", specifier = ">=1" },
     { name = "boltons", specifier = ">=25" },
     { name = "bump-my-version", specifier = ">=1.2.6" },
-    { name = "click-extra", specifier = ">=7.6.2" },
+    { name = "click-extra", git = "https://github.com/kdeldycke/click-extra.git?rev=main" },
     { name = "extra-platforms", specifier = ">=8" },
     { name = "packaging", specifier = ">=20" },
     { name = "py-walk", specifier = ">=0.3.1" },

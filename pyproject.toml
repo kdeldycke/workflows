@@ -82,8 +82,9 @@ dependencies = [
   "boltons>=25",
   # v1.2.6 fix Click compatibility issues.
   "bump-my-version>=1.2.6",
-  # Click Extra 7.6.2 adds prebake_version() upstream.
-  "click-extra>=7.6.2",
+  # Click Extra 7.8.1.dev0 adds flatten_config_keys() and schema_strict for
+  # config_schema dataclass handling with nested TOML sub-tables.
+  "click-extra @ git+https://github.com/kdeldycke/click-extra.git@main",
   # extra-platforms 8.0.0 exposed is_windows(), is_linux(), ALL_IDS, and other
   # platform detection APIs used in tool_runner.py and test_plan.py.
   "extra-platforms>=8",
@@ -144,8 +145,8 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # Relative dates are fine here because the Renovate lock-maintenance job
 # (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
 exclude-newer = "1 week"
-# Exclude repomatic from the cooldown period.
-exclude-newer-package = { "repomatic" = "0 day" }
+# Exclude repomatic and click-extra (pinned to git main) from the cooldown period.
+exclude-newer-package = { "click-extra" = "0 day", "repomatic" = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 

@@ -363,6 +363,8 @@ else:
     import tomli as tomllib  # type: ignore[import-not-found]
     from backports.strenum import StrEnum  # type: ignore[import-not-found]
 
+from click_extra.config import flatten_config_keys, normalize_config_keys
+
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any, Final, Literal
@@ -875,29 +877,14 @@ def all_metadata_keys() -> frozenset[str]:
     return frozenset(_METADATA_KEY_DESCRIPTIONS) | config_keys
 
 
-def _flatten_config(
-    d: dict[str, Any],
-    parent: str = "",
-) -> dict[str, Any]:
-    """Flatten nested TOML tables into dot-separated keys.
-
-    ``{"dependency-graph": {"output": "path"}}`` becomes
-    ``{"dependency-graph.output": "path"}``.
-    """
-    items: dict[str, Any] = {}
-    for k, v in d.items():
-        key = f"{parent}.{k}" if parent else k
-        if isinstance(v, dict):
-            items.update(_flatten_config(v, key))
-        else:
-            items[key] = v
-    return items
-
-
 def load_repomatic_config(
     pyproject_data: dict[str, Any] | None = None,
-) -> dict[str, Any]:
+) -> Config:
     """Load ``[tool.repomatic]`` config merged with ``Config`` defaults.
+
+    Uses ``flatten_config_keys`` and ``normalize_config_keys`` from click-extra
+    to convert nested TOML sub-tables (e.g. ``[tool.repomatic.dependency-graph]``)
+    into flat snake_case field names matching the ``Config`` dataclass.
 
     :param pyproject_data: Pre-parsed ``pyproject.toml`` dict. If ``None``,
         reads and parses ``pyproject.toml`` from the current working directory.
@@ -912,20 +899,18 @@ def load_repomatic_config(
     tool_section = pyproject_data.get("tool", {})
     user_config: dict[str, Any] = tool_section.get("repomatic", {})
 
-    schema = Config()
-    config = {_field_to_key(f.name): getattr(schema, f.name) for f in fields(Config)}
-
-    flat_user = _flatten_config(user_config)
-    unknown = set(flat_user) - set(config)
+    flat_user = flatten_config_keys(normalize_config_keys(user_config))
+    known = {f.name for f in fields(Config)}
+    unknown = sorted(set(flat_user) - known)
     if unknown:
         msg = (
-            f"Unknown [tool.repomatic] option(s): {', '.join(sorted(unknown))}. "
-            f"Valid options: {', '.join(sorted(config))}"
+            f"Unknown [tool.repomatic] option(s): "
+            f"{', '.join(sorted(unknown))}. "
+            f"Valid options: {', '.join(sorted(known))}"
         )
         raise ValueError(msg)
 
-    config.update(flat_user)
-    return config
+    return Config(**{k: v for k, v in flat_user.items() if k in known})
 
 
 GITIGNORE_PATH = Path(".gitignore")
@@ -1973,7 +1958,7 @@ class Metadata:
         return None
 
     @cached_property
-    def config(self) -> dict[str, Any]:
+    def config(self) -> Config:
         """Returns the ``[tool.repomatic]`` section from ``pyproject.toml``.
 
         Merges user configuration with defaults from ``Config``.
@@ -1989,7 +1974,7 @@ class Metadata:
 
         Unrecognized target names are logged as warnings and discarded.
         """
-        raw = self.config["nuitka.unstable-targets"]
+        raw = self.config.nuitka_unstable_targets
         targets = set(raw)
         if targets:
             unknown = targets - set(NUITKA_BUILD_TARGETS)
@@ -2350,7 +2335,7 @@ class Metadata:
             return None
 
         # Allow projects to opt out of Nuitka compilation via pyproject.toml.
-        if not self.config["nuitka.enabled"]:
+        if not self.config.nuitka_enabled:
             logging.info(
                 "[tool.repomatic] nuitka.enabled is disabled."
                 " Skipping binary compilation."
@@ -2368,7 +2353,7 @@ class Metadata:
             matrix.add_includes(target_data)
 
         # Collect extra Nuitka flags from config, plus any auto-detected ones.
-        nuitka_extra_args_list = list(self.config["nuitka.extra-args"])
+        nuitka_extra_args_list = list(self.config.nuitka_extra_args)
 
         # Augment each entry point with some metadata.
         for cli_id, module_id, callable_id in self.script_entries:
@@ -2669,8 +2654,7 @@ class Metadata:
                 f.name not in ("nuitka_unstable_targets", "nuitka_extra_args")
                 and f.name not in SUBCOMMAND_CONFIG_FIELDS
             ):
-                config_key = _field_to_key(f.name)
-                metadata[f.name] = self.config[config_key]
+                metadata[f.name] = getattr(self.config, f.name)
 
         if keys:
             metadata = {k: v for k, v in metadata.items() if k in keys}

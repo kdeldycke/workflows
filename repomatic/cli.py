@@ -899,15 +899,16 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         repomatic sync-gitignore --output -
     """
     config = load_repomatic_config()
-    if not config.get("gitignore.sync", True):
+    if not config.gitignore_sync:
         logging.info(
             "[tool.repomatic] gitignore.sync is disabled. Skipping .gitignore sync."
         )
         ctx.exit(0)
 
     # Combine base and extra categories, preserving order and deduplicating.
-    extra = config.get("gitignore.extra-categories", [])
-    all_categories = list(dict.fromkeys((*GITIGNORE_BASE_CATEGORIES, *extra)))
+    all_categories = list(
+        dict.fromkeys((*GITIGNORE_BASE_CATEGORIES, *config.gitignore_extra_categories))
+    )
 
     # Fetch from gitignore.io API.
     url = f"{GITIGNORE_IO_URL}/{','.join(all_categories)}"
@@ -917,13 +918,12 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         content = response.read().decode("UTF-8")
 
     # Append extra content.
-    extra_content = config.get("gitignore.extra-content", "")
-    if extra_content:
-        content += "\n" + extra_content + "\n"
+    if config.gitignore_extra_content:
+        content += "\n" + config.gitignore_extra_content + "\n"
 
     # Resolve output path.
     if output_path is None:
-        output_path = Path(config.get("gitignore.location", "./.gitignore"))
+        output_path = Path(config.gitignore_location)
 
     if is_stdout(output_path):
         logging.info(f"Print to {sys.stdout.name}")
@@ -1026,7 +1026,7 @@ def sync_dev_release(
         repomatic sync-dev-release --live --delete
     """
     config = load_repomatic_config()
-    if not config.get("dev-release.sync", True):
+    if not config.dev_release_sync:
         logging.info(
             "[tool.repomatic] dev-release.sync is disabled. Skipping dev release sync."
         )
@@ -1172,7 +1172,7 @@ def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
     contributors. So you have to edit entries by hand to regroup them.
     """
     config = load_repomatic_config()
-    if not config.get("mailmap.sync", True):
+    if not config.mailmap_sync:
         logging.info(
             "[tool.repomatic] mailmap.sync is disabled. Skipping .mailmap sync."
         )
@@ -1323,16 +1323,14 @@ def test_plan(
 
     else:
         # Fall back to [tool.repomatic] config.
-        config_test_plan = config.get("test-plan.inline")
-        if config_test_plan:
+        if config.test_plan_inline:
             logging.info("Get test plan from [tool.repomatic] test-plan.inline config.")
-            tests = list(parse_test_plan(config_test_plan))
+            tests = list(parse_test_plan(config.test_plan_inline))
             logging.info(f"{len(tests)} test cases found.")
             test_list.extend(tests)
 
-        config_plan_file = config.get("test-plan.file")
-        if config_plan_file:
-            plan_path = Path(config_plan_file)
+        if config.test_plan_file:
+            plan_path = Path(config.test_plan_file)
             if plan_path.exists():
                 logging.info(f"Get test plan from config path: {plan_path}")
                 tests = list(parse_test_plan(plan_path.read_text(encoding="UTF-8")))
@@ -1347,10 +1345,8 @@ def test_plan(
             test_list = DEFAULT_TEST_PLAN
 
     # Fall back to config timeout if not provided via CLI.
-    if timeout is None:
-        config_timeout = config.get("test-plan.timeout")
-        if config_timeout is not None:
-            timeout = float(config_timeout)
+    if timeout is None and config.test_plan_timeout is not None:
+        timeout = float(config.test_plan_timeout)
 
     logging.debug(f"Test plan: {test_list}")
 
@@ -1667,27 +1663,22 @@ def deps_graph(
 
     # Resolve output: CLI > config > stdout.
     if output is None:
-        config_output = config.get("dependency-graph.output")
-        if config_output:
-            output = Path(config_output).resolve()
+        if config.dependency_graph_output:
+            output = Path(config.dependency_graph_output).resolve()
         else:
             output = Path("-")
 
     # Apply config defaults when CLI flags are not explicitly provided.
     if not all_groups and not groups and not only_groups:
-        all_groups = config.get("dependency-graph.all-groups", True)
+        all_groups = config.dependency_graph_all_groups
     if not all_extras and not extras and not only_extras:
-        all_extras = config.get("dependency-graph.all-extras", True)
-    if not excluded_groups:
-        config_no_groups = config.get("dependency-graph.no-groups", [])
-        if config_no_groups:
-            excluded_groups = tuple(config_no_groups)
-    if not excluded_extras:
-        config_no_extras = config.get("dependency-graph.no-extras", [])
-        if config_no_extras:
-            excluded_extras = tuple(config_no_extras)
+        all_extras = config.dependency_graph_all_extras
+    if not excluded_groups and config.dependency_graph_no_groups:
+        excluded_groups = tuple(config.dependency_graph_no_groups)
+    if not excluded_extras and config.dependency_graph_no_extras:
+        excluded_extras = tuple(config.dependency_graph_no_extras)
     if level is None:
-        level = config.get("dependency-graph.level")
+        level = config.dependency_graph_level
 
     # Resolve --only-group/--only-extra (exclusive mode: no main deps).
     exclude_base = bool(only_groups or only_extras)
@@ -1864,7 +1855,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         repomatic setup-guide --has-pat
     """
     config = load_repomatic_config()
-    if not config.get("setup-guide", True):
+    if not config.setup_guide:
         logging.info("[tool.repomatic] setup-guide is disabled. Skipping setup guide.")
         ctx.exit(0)
 
@@ -2064,7 +2055,7 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path, output: Path | None) -> None:
         repomatic sync-uv-lock --lockfile path/to/uv.lock
     """
     config = load_repomatic_config()
-    if not config.get("uv-lock.sync", True):
+    if not config.uv_lock_sync:
         logging.info(
             "[tool.repomatic] uv-lock.sync is disabled. Skipping uv.lock sync."
         )
@@ -2106,7 +2097,7 @@ def sync_bumpversion(ctx: Context) -> None:
     bootstrapping.
     """
     config = load_repomatic_config()
-    if not config.get("bumpversion.sync", True):
+    if not config.bumpversion_sync:
         logging.info(
             "[tool.repomatic] bumpversion.sync is disabled."
             " Skipping bumpversion config sync."
@@ -2172,7 +2163,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     automatically via the tool registry.
     """
     config = load_repomatic_config()
-    if not config.get("labels.sync", True):
+    if not config.labels_sync:
         logging.info("[tool.repomatic] labels.sync is disabled. Skipping label sync.")
         ctx.exit(0)
 
@@ -2539,12 +2530,11 @@ def lint_changelog(
         repomatic lint-changelog --package repomatic
     """
     config = load_repomatic_config()
-    pypi_package_history = config.get("pypi-package-history", [])
     exit_code = lint_changelog_dates(
         changelog_path,
         package=package,
         fix=fix,
-        pypi_package_history=pypi_package_history,
+        pypi_package_history=config.pypi_package_history,
     )
     ctx.exit(exit_code)
 

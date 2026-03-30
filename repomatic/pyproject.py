@@ -38,6 +38,8 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any
 
+    from .metadata import Config
+
 
 def derive_source_paths(
     pyproject_data: dict[str, Any] | None = None,
@@ -69,17 +71,17 @@ def derive_source_paths(
 
 
 def resolve_source_paths(
-    config: dict[str, Any],
+    config: Config,
     pyproject_data: dict[str, Any] | None = None,
 ) -> list[str] | None:
     """Resolve workflow source paths from config or auto-derivation.
 
-    :param config: Loaded ``[tool.repomatic]`` config dict.
+    :param config: Loaded ``Config`` instance from ``[tool.repomatic]``.
     :param pyproject_data: Pre-parsed ``pyproject.toml`` dict for derivation.
     :return: List of source directory names, or ``None`` when no source paths
         can be determined (paths should be stripped entirely).
     """
-    configured = config.get("workflow.source-paths")
+    configured = config.workflow_source_paths
     if configured is not None:
         return configured if configured else None
     derived = derive_source_paths(pyproject_data)

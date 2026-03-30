@@ -186,7 +186,7 @@ def test_skip_binary_build_property_is_bool():
 def test_nuitka_enabled_default():
     """Test that nuitka.enabled config defaults to True."""
     metadata = Metadata()
-    assert metadata.config["nuitka.enabled"] is True
+    assert metadata.config.nuitka_enabled is True
 
 
 def test_nuitka_disabled_skips_matrix(tmp_path, monkeypatch):
@@ -209,5 +209,5 @@ nuitka.enabled = false
     monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
 
     metadata = Metadata()
-    assert metadata.config["nuitka.enabled"] is False
+    assert metadata.config.nuitka_enabled is False
     assert metadata.nuitka_matrix is None
