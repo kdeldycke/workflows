@@ -557,6 +557,12 @@ docs = [
 
 ### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/lint.yaml)
 
+- 📦 **Audit dependencies** (`audit-deps`)
+
+  - Scans dependencies for known security vulnerabilities using [`uv audit`](https://docs.astral.sh/uv/reference/cli/#uv-audit) against the [Python Packaging Advisory Database](https://github.com/pypa/advisory-database)
+  - **Requires**:
+    - Python package (with a `pyproject.toml` file)
+
 - 🏠 **Lint repository metadata** (`lint-repo`)
 
   - Validates repository metadata (package name, Sphinx docs, project description) and Dependabot configuration using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly. When `REPOMATIC_PAT` is configured, also validates PAT capabilities (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses permissions).

@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `audit-deps` job to lint workflow. Scans dependencies for known security vulnerabilities using `uv audit` against the Python Packaging Advisory Database.
 - Fix infinite cycle between `migrate-to-renovate` and `sync-repomatic` jobs. The migration job no longer exports `renovate.json5` — the `renovate` job materializes the bundled default at runtime when absent, so a committed copy is unnecessary.
 - Include git stderr in `git-tag` CLI error messages. Previously `capture_output=True` swallowed the actual rejection reason, making tag push failures opaque in CI logs.
 - Add PAT repository scope check to `lint-repo`. Detects tokens configured with "All repositories" access instead of "Only select repositories", using the `/installation/repositories` endpoint with a cross-repo probe fallback.

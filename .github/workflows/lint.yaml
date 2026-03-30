@@ -40,6 +40,18 @@ jobs:
           is_bot python_files yaml_files workflow_files zsh_files
           is_python_project
 
+  audit-deps:
+    name: 📦 Audit dependencies
+    needs:
+      - metadata
+    if: fromJSON(needs.metadata.outputs.metadata).is_python_project
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - name: Run uv audit
+        run: uv --no-progress audit
+
   lint-repo:
     name: 🏠 Lint repo
     needs:
