@@ -107,9 +107,11 @@ jobs:
 
       - name: Upload coverage to Codecov
         # Skip on prepare-release PRs (Codecov cannot create commits on protected
-        # branches) and fork PRs (secrets are not available).
+        # branches), sync-repomatic PRs (data-only changes with no coverable
+        # lines), and fork PRs (secrets are not available).
         if: >
           github.head_ref != 'prepare-release'
+          && github.head_ref != 'sync-repomatic'
           && env.CODECOV_TOKEN != ''
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -124,6 +126,7 @@ jobs:
       - name: Upload test results to Codecov
         if: >
           github.head_ref != 'prepare-release'
+          && github.head_ref != 'sync-repomatic'
           && env.CODECOV_TOKEN != ''
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
