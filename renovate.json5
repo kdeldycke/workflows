@@ -64,6 +64,9 @@
       },
     },
     {
+      // TODO: postUpgradeTasks silently drops changes when modifying the same
+      // file as the manager update. Tracked upstream:
+      // https://github.com/renovatebot/renovate/discussions/42263
       description: "Update SHA-256 checksums after binary version bumps in tool registry.",
       matchFileNames: ["repomatic/tool_runner.py"],
       postUpgradeTasks: {
