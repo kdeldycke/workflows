@@ -326,6 +326,32 @@ When designing new workflow safeguards, default to **detection + notification** 
 
 Always prefer long-form options over short-form for readability in workflow files and scripts (e.g., `--output` not `-o`, `--verbose` not `-v`).
 
+### Tool runner: flags vs config
+
+When adding or modifying a tool in `TOOL_REGISTRY`, choose the right mechanism for each default based on whether downstream repos should be able to override it:
+
+**`default_flags`** — for operational and cosmetic flags that are always applied and should not be overridable. These are non-negotiable aspects of how repomatic invokes the tool.
+
+- Output formatting: `--color`, `--color-output`.
+- Operational mode: `--write-changes`, `--in-place`, `--recursive`.
+- Enforcement level: `--strict`, `--strict-front-matter`.
+- Network policy: `--offline`.
+- Tool-specific quirks with no config-file equivalent (plugin CLI flags).
+
+**`default_config`** (bundled file in `repomatic/data/`) — for behavioral preferences that a downstream repo might legitimately want to override via its own config file or `[tool.X]` section.
+
+- Lint rule selection: which rules to enable/disable/ignore.
+- Formatting preferences: numbering style, line length, wrapping.
+- Spell-checking dictionaries and exceptions.
+- Tool-specific rule configuration (severity, thresholds).
+
+The test: if a downstream repo might reasonably want the opposite setting, it belongs in a config file, not a flag. CLI flags take precedence over config files in most tools, so putting an overridable preference in `default_flags` silently prevents downstream customization.
+
+**Config delivery has two paths** depending on whether the tool accepts a `--config` flag:
+
+- Tools with `config_flag`: the bundled default is passed via that flag at invocation time.
+- Tools without `config_flag` (CWD-discovery only): the bundled default is written to the first `native_config_files` path in CWD and cleaned up after invocation.
+
 ### Prefer `uv` over `pip` in documentation
 
 Documentation and install pages must use `uv` as the default package installer. When showing how to install the package, use `uv tool install` (for CLI tools) or `uv pip install` (for libraries/extras). Alternative installers (`pip`, `pipx`, etc.) may appear as secondary options in tab sets or dedicated sections, but `uv` must be the primary/default command shown.
