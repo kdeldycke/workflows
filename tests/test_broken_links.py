@@ -526,7 +526,7 @@ def test_report_no_source_url_plain_text():
 def test_setup_guide_no_pat_opens_setup_issue(mock_lifecycle, _mock_token):
     """When no PAT is configured, the setup issue opens."""
     runner = CliRunner()
-    result = runner.invoke(setup_guide, [])
+    result = runner.invoke(repomatic_cli, ["setup-guide"])
     assert result.exit_code == 0
     assert mock_lifecycle.call_count == 1
     setup_kwargs = mock_lifecycle.call_args_list[0][1]
@@ -540,7 +540,7 @@ def test_setup_guide_no_pat_opens_setup_issue(mock_lifecycle, _mock_token):
 def test_setup_guide_pat_closes_issue(mock_lifecycle, _mock_token):
     """When REPOMATIC_PAT is configured, the issue closes."""
     runner = CliRunner()
-    result = runner.invoke(setup_guide, ["--has-pat"])
+    result = runner.invoke(repomatic_cli, ["setup-guide", "--has-pat"])
     assert result.exit_code == 0
     assert mock_lifecycle.call_count == 1
     assert mock_lifecycle.call_args_list[0][1]["has_issues"] is False
@@ -551,7 +551,7 @@ def test_setup_guide_pat_closes_issue(mock_lifecycle, _mock_token):
 def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
     """The setup body file contains the setup guide template content."""
     runner = CliRunner()
-    runner.invoke(setup_guide, [])
+    runner.invoke(repomatic_cli, ["setup-guide"])
     body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
     content = body_file.read_text(encoding="UTF-8")
     assert "REPOMATIC_PAT" in content

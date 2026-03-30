@@ -436,7 +436,7 @@ def init_project(
         components=components,
         version=version_pin,
         repo=repo,
-        config=get_tool_config() or Config(),
+        config=get_tool_config(),
     )
 
     # Print summary.
@@ -912,7 +912,7 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         # Preview on stdout
         repomatic sync-gitignore --output -
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     if not config.gitignore_sync:
         logging.info(
             "[tool.repomatic] gitignore.sync is disabled. Skipping .gitignore sync."
@@ -1039,7 +1039,7 @@ def sync_dev_release(
         # Delete the dev pre-release (e.g. during a real release)
         repomatic sync-dev-release --live --delete
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     if not config.dev_release_sync:
         logging.info(
             "[tool.repomatic] dev-release.sync is disabled. Skipping dev release sync."
@@ -1185,7 +1185,7 @@ def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
     The updated results are sorted. But no attempts are made at regrouping new
     contributors. So you have to edit entries by hand to regroup them.
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     if not config.mailmap_sync:
         logging.info(
             "[tool.repomatic] mailmap.sync is disabled. Skipping .mailmap sync."
@@ -1318,7 +1318,7 @@ def test_plan(
     stats: bool,
 ) -> None:
     # Load [tool.repomatic] config for fallback values.
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
 
     # Load test plan: CLI args > pyproject.toml config > DEFAULT_TEST_PLAN.
     test_list = []
@@ -1667,7 +1667,7 @@ def deps_graph(
         # Save to file
         repomatic update-deps-graph --output docs/dependency-graph.md
     """
-    config = get_tool_config() or Config()
+    config = get_tool_config()
 
     # Auto-detect package name from [project].name.
     if package is None:
@@ -1868,7 +1868,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         # Secret configured — close the issue
         repomatic setup-guide --has-pat
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     if not config.setup_guide:
         logging.info("[tool.repomatic] setup-guide is disabled. Skipping setup guide.")
         ctx.exit(0)
@@ -2068,7 +2068,7 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path, output: Path | None) -> None:
         # Check a different lock file
         repomatic sync-uv-lock --lockfile path/to/uv.lock
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     if not config.uv_lock_sync:
         logging.info(
             "[tool.repomatic] uv-lock.sync is disabled. Skipping uv.lock sync."
@@ -2110,7 +2110,7 @@ def sync_bumpversion(ctx: Context) -> None:
     The ``repomatic init bumpversion`` command remains available for interactive
     bootstrapping.
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     if not config.bumpversion_sync:
         logging.info(
             "[tool.repomatic] bumpversion.sync is disabled."
@@ -2177,7 +2177,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     Requires ``GITHUB_TOKEN`` in the environment. Downloads ``labelmaker``
     automatically via the tool registry.
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     if not config.labels_sync:
         logging.info("[tool.repomatic] labels.sync is disabled. Skipping label sync.")
         ctx.exit(0)
@@ -2544,7 +2544,7 @@ def lint_changelog(
         # Explicit package name
         repomatic lint-changelog --package repomatic
     """
-    config = get_tool_config(ctx) or Config()
+    config = get_tool_config(ctx)
     exit_code = lint_changelog_dates(
         changelog_path,
         package=package,
