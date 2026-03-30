@@ -143,7 +143,7 @@ jobs:
             && sed -i .+ [^ ]*renovate\\.json5'$"]
           # Use containerbase to install tools for Renovate's own manager processing.
           RENOVATE_BINARY_SOURCE: "install"
-          RENOVATE_LOG_LEVEL: "info"
+          RENOVATE_LOG_LEVEL: "debug"
           # Prevent python.org API rate limits (HTTP 429) from aborting the
           # entire Renovate run. Without this, a single throttled request to
           # the python-version datasource causes Renovate to skip all PR
