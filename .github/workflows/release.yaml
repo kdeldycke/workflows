@@ -138,7 +138,7 @@ jobs:
         if: >-
           github.event_name != 'pull_request'
           || !github.event.pull_request.head.repo.fork
-        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: ./dist/*
       - name: Upload artifacts
@@ -242,7 +242,7 @@ jobs:
         if: >-
           github.ref == 'refs/heads/main'
           && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
-        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: ${{ matrix.bin_name }}
       - name: Upload binary to GitHub release
@@ -353,7 +353,7 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
       - name: Generate attestations
-        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
       - name: Push to PyPI
@@ -402,7 +402,7 @@ jobs:
       - name: Generate attestations
         # Do not try to attest artifacts if none have been downloaded.
         if: steps.artifacts.outputs.download-path
-        uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd # v3.2.0
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: release_artifact/*
       - name: Delete dev pre-release
