@@ -49,6 +49,7 @@ from click_extra import (
     option,
     option_group,
     pass_context,
+    style,
 )
 from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS, is_github_ci
@@ -433,19 +434,34 @@ def init_project(
 
     # Print summary.
     if result.excluded:
-        echo("Excluded by config: " + ", ".join(result.excluded))
+        echo(
+            style("Excluded by config: ", dim=True)
+            + ", ".join(style(e, fg="yellow") for e in result.excluded)
+        )
     if result.created:
-        echo(f"Created {len(result.created)} file(s):")
+        echo(style(f"Created {len(result.created)} file(s):", fg="green", bold=True))
         for path in result.created:
-            echo(f"  {path}")
+            echo(f"  {style(path, fg='green')}")
     if result.updated:
-        echo(f"Updated {len(result.updated)} existing file(s):")
+        echo(
+            style(
+                f"Updated {len(result.updated)} existing file(s):",
+                fg="yellow",
+                bold=True,
+            )
+        )
         for path in result.updated:
-            echo(f"  {path}")
+            echo(f"  {style(path, fg='yellow')}")
     if result.skipped:
-        echo(f"Skipped {len(result.skipped)} existing file(s) (never overwritten):")
+        echo(
+            style(
+                f"Skipped {len(result.skipped)} existing file(s)"
+                " (never overwritten):",
+                dim=True,
+            )
+        )
         for path in result.skipped:
-            echo(f"  {path}")
+            echo(f"  {style(path, dim=True)}")
     if result.excluded_existing:
         if delete_excluded:
             for path in result.excluded_existing:
@@ -460,40 +476,55 @@ def init_project(
                         break
                     parent = parent.parent
             echo(
-                f"Deleted {len(result.excluded_existing)} excluded"
-                " file(s) still on disk:"
+                style(
+                    f"Deleted {len(result.excluded_existing)} excluded"
+                    " file(s) still on disk:",
+                    fg="red",
+                    bold=True,
+                )
             )
         else:
             echo(
-                f"Excluded: {len(result.excluded_existing)} file(s)"
-                " still on disk (use --delete-excluded to remove):"
+                style(
+                    f"Excluded: {len(result.excluded_existing)} file(s)"
+                    " still on disk",
+                    fg="red",
+                )
+                + style(" (use --delete-excluded to remove):", dim=True)
             )
         for path in result.excluded_existing:
-            echo(f"  {path}")
+            echo(f"  {style(path, fg='red')}")
     if result.unmodified_configs:
         if delete_unmodified:
             for path in result.unmodified_configs:
                 (output_dir / path).unlink()
             echo(
-                f"Deleted {len(result.unmodified_configs)} unmodified"
-                " file(s) identical to bundled defaults:"
+                style(
+                    f"Deleted {len(result.unmodified_configs)} unmodified"
+                    " file(s) identical to bundled defaults:",
+                    fg="red",
+                    bold=True,
+                )
             )
         else:
             echo(
-                f"Unmodified: {len(result.unmodified_configs)} file(s)"
-                " identical to bundled defaults"
-                " (use --delete-unmodified to remove):"
+                style(
+                    f"Unmodified: {len(result.unmodified_configs)} file(s)"
+                    " identical to bundled defaults",
+                    fg="cyan",
+                )
+                + style(" (use --delete-unmodified to remove):", dim=True)
             )
         for path in result.unmodified_configs:
-            echo(f"  {path}")
+            echo(f"  {style(path, fg='cyan' if not delete_unmodified else 'red')}")
     if result.warnings:
         for warning in result.warnings:
-            echo(f"Warning: {warning}")
+            echo(style("Warning: ", fg="yellow", bold=True) + warning)
 
     has_changes = result.created or result.updated
     if has_changes:
         echo("")
-        echo("Next steps:")
+        echo(style("Next steps:", bold=True))
         step = 1
         echo(f"  {step}. Commit the generated files and push.")
         step += 1
