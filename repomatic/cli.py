@@ -637,11 +637,12 @@ def metadata(ctx, format, overwrite, output, list_keys, keys):
 
 
 @repomatic.command(
+    name="show-config",
     short_help="Print [tool.repomatic] configuration reference",
     section=_section_setup,
 )
 @pass_context
-def config(ctx):
+def show_config(ctx):
     """Print the ``[tool.repomatic]`` configuration reference table.
 
     Renders a table of all available options, their types, defaults,
