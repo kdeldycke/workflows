@@ -22,6 +22,7 @@
 - Add generic config-key gating to `init`. Components with a `config_key` are now filtered before dispatch, eliminating the manual check for `awesome-template`.
 - Replace hardcoded init dispatch with a type-driven loop over the component registry. Adding a new `BundledComponent` no longer requires editing a hardcoded tuple.
 - Generate `init` CLI help text from the component registry. The component table and file-selector list are now always in sync with the registry.
+- Migrate from `actions/attest-build-provenance` to `actions/attest`.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 
