@@ -28,6 +28,7 @@
 - Extend Level 3 config resolution to support tools without a `--config` flag. When a tool discovers config by searching CWD (like mdformat), the bundled default is written to the first `native_config_files` path and cleaned up after invocation.
 - Replace hand-rolled `_flatten_config` and dict-based config loading with click-extra's `flatten_config_keys` and `normalize_config_keys`. `load_repomatic_config()` now returns a typed `Config` dataclass instance instead of a flat dict, giving all consumers attribute access with type checking.
 - Rename `config` subcommand to `show-config` to resolve a naming conflict with click-extra's `--config` option that prevented `--show-params` from working.
+- Extract `Config` dataclass, `load_repomatic_config`, and all config reference utilities from `metadata.py` into a dedicated `config.py` module.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 

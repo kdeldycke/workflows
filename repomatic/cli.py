@@ -103,15 +103,13 @@ from .images import (
 from .init_project import export_content, run_init
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
+from .config import CONFIG_REFERENCE_HEADERS, config_reference, load_repomatic_config
 from .metadata import (
-    CONFIG_REFERENCE_HEADERS,
     METADATA_KEYS_HEADERS,
     Dialect,
     Metadata,
     all_metadata_keys,
-    config_reference,
     is_version_bump_allowed,
-    load_repomatic_config,
     metadata_keys_reference,
 )
 from .pyproject import get_project_name

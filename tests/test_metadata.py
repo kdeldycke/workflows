@@ -25,14 +25,13 @@ import pytest
 from extra_platforms import is_windows
 
 from repomatic.github.actions import NULL_SHA
-from repomatic.metadata import (
+from repomatic.config import (
     Config,
-    Dialect,
-    Metadata,
     _field_to_key,
     config_reference,
     load_repomatic_config,
 )
+from repomatic.metadata import Dialect, Metadata
 
 
 def regex(pattern: str) -> re.Pattern:
@@ -407,6 +406,7 @@ expected = {
         "repomatic/changelog.py",
         "repomatic/checksums.py",
         "repomatic/cli.py",
+        "repomatic/config.py",
         "repomatic/data/__init__.py",
         "repomatic/data/awesome_template/__init__.py",
         "repomatic/deps_graph.py",

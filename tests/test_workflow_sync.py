@@ -25,7 +25,7 @@ import pytest
 import yaml
 
 from repomatic.github.actions import AnnotationLevel
-from repomatic.metadata import Config
+from repomatic.config import Config
 from repomatic.github.workflow_sync import (
     LintResult,
     WorkflowFormat,

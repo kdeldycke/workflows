@@ -38,7 +38,7 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any
 
-    from .metadata import Config
+    from .config import Config
 
 
 def derive_source_paths(

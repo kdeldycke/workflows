@@ -563,7 +563,7 @@ def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
 @patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_disabled_skips(mock_lifecycle, _mock_token, mock_config):
     """When setup-guide is disabled in config, the command exits without action."""
-    from repomatic.metadata import Config
+    from repomatic.config import Config
 
     mock_config.return_value = Config(setup_guide=False)
     runner = CliRunner()
