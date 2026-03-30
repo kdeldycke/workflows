@@ -58,7 +58,7 @@ jobs:
           # See repomatic/github/actions.py for rationale.
           ref: ${{ github.sha }}
           fetch-tags: true
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -86,7 +86,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-tags: true
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
       - name: Fix changelog dates and admonitions
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -130,7 +130,7 @@ jobs:
         with:
           # Use github.sha, not workflow_run.head_sha (stale after release cycle).
           ref: ${{ github.sha }}
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
         if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
       - name: ${{ matrix.part }} version bump
         if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
@@ -169,7 +169,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
       # --- Freeze commit: freeze everything to the release version. ---
       - name: Strip dev suffix for release
         # Bump the "dev" part: .dev0 → release (omitted), producing a clean X.Y.Z version.
