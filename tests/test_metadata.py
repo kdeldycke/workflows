@@ -495,6 +495,7 @@ expected = {
         "repomatic/data/awesome_template/pyproject.toml",
         "repomatic/data/bumpversion.toml",
         "repomatic/data/labels.toml",
+        "repomatic/data/mdformat.toml",
         "repomatic/data/mypy.toml",
         "repomatic/data/pytest.toml",
         "repomatic/data/ruff.toml",

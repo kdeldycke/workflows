@@ -23,6 +23,9 @@
 - Replace hardcoded init dispatch with a type-driven loop over the component registry. Adding a new `BundledComponent` no longer requires editing a hardcoded tuple.
 - Generate `init` CLI help text from the component registry. The component table and file-selector list are now always in sync with the registry.
 - Migrate from `actions/attest-build-provenance` to `actions/attest`.
+- Move mdformat `number` default from a CLI flag to a bundled `mdformat.toml` config. Downstream repos can now override it via their own `[tool.mdformat]` or `.mdformat.toml`, which was previously impossible because CLI flags take precedence over config files.
+- Set `reads_pyproject=True` on the mdformat `ToolSpec`. Downstream repos can now configure mdformat via `[tool.mdformat]` in `pyproject.toml` without triggering a `NotImplementedError`.
+- Extend Level 3 config resolution to support tools without a `--config` flag. When a tool discovers config by searching CWD (like mdformat), the bundled default is written to the first `native_config_files` path and cleaned up after invocation.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 

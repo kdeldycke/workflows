@@ -358,15 +358,16 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     # - Config discovery: https://mdformat.readthedocs.io/en/stable/users/configuration_file.html
     #   Searches .mdformat.toml in CWD and parents.
     # - CLI flags: https://mdformat.readthedocs.io/en/stable/users/cli.html
-    #   --number for ordered list numbering; --strict-front-matter for YAML
-    #   front matter validation.
+    #   --strict-front-matter for YAML front matter validation (plugin flag).
     # - Source: https://github.com/hukkin/mdformat
     "mdformat": ToolSpec(
         name="mdformat",
         version="1.0.0",
         native_config_files=(".mdformat.toml",),
         native_format=NativeFormat.TOML,
-        default_flags=("--number", "--strict-front-matter"),
+        default_config="mdformat.toml",
+        reads_pyproject=True,
+        default_flags=("--strict-front-matter",),
         with_packages=(
             "mdformat_admon==2.1.1",
             "mdformat-config==0.2.1",
@@ -635,11 +636,27 @@ def resolve_config(
         return [], tmp_path
 
     # Level 3: Bundled default from repomatic/data/.
-    if spec.default_config and spec.config_flag:
-        logging.debug("Using bundled default: %s", spec.default_config)
-        # Return a sentinel; the actual path is resolved at invocation time
-        # inside the get_data_file_path() context manager.
-        return ["__bundled__"], None
+    if spec.default_config:
+        if spec.config_flag:
+            logging.debug("Using bundled default: %s", spec.default_config)
+            # Return a sentinel; the actual path is resolved at invocation time
+            # inside the get_data_file_path() context manager.
+            return ["__bundled__"], None
+
+        if spec.native_config_files:
+            # Tool discovers config by searching CWD (no --config flag).
+            # Write the bundled default to the first native config path so the
+            # tool picks it up, then clean it up after invocation.
+            target = Path(spec.native_config_files[0])
+            with get_data_file_path(spec.default_config) as bundled_path:
+                content = bundled_path.read_text(encoding="UTF-8")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding="UTF-8")
+            logging.debug(
+                "Wrote bundled default to CWD: %s",
+                target,
+            )
+            return [], target
 
     # Level 4: Bare invocation.
     logging.debug("No config found for %s, bare invocation.", spec.name)

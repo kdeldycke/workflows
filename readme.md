@@ -234,6 +234,7 @@ workflow.source-paths = ["extra_platforms"]
 > | :-------------------------------------------------------------------- | :-------------------------- | :---------------------------------- |
 > | [bump-my-version](https://callowayproject.github.io/bump-my-version/) | `[tool.bumpversion]`        | Version bump patterns and files     |
 > | [coverage.py](https://coverage.readthedocs.io/en/latest/config.html)  | `[tool.coverage.*]`         | Code coverage reporting             |
+> | [mdformat](https://mdformat.readthedocs.io/en/stable/users/configuration_file.html) | `[tool.mdformat]` | Markdown formatting options (via [`mdformat-pyproject`](https://github.com/csala/mdformat-pyproject)) |
 > | [mypy](https://mypy.readthedocs.io/en/stable/config_file.html)        | `[tool.mypy]`               | Static type checking                |
 > | [pytest](https://docs.pytest.org/en/stable/reference/customize.html)  | `[tool.pytest.ini_options]` | Test runner options                 |
 > | [ruff](https://docs.astral.sh/ruff/configuration/)                    | `[tool.ruff]`               | Linting and formatting rules        |

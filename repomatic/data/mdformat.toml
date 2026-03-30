@@ -1,0 +1,8 @@
+# mdformat configuration for Markdown files.
+#
+# Native format - can be used standalone as .mdformat.toml.
+# When merged into pyproject.toml via `repomatic init mdformat`,
+# the [tool.mdformat] prefix is added automatically.
+
+# Apply consecutive numbering to ordered lists (1. 2. 3. instead of 1. 1. 1.).
+number = true

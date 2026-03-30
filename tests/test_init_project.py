@@ -198,9 +198,13 @@ def test_template_matches_own_pyproject(config_type: str) -> None:
     template = tomllib.loads(export_content(comp.source_file))
 
     project_root = Path(__file__).resolve().parent.parent
-    own_config = tomllib.loads(
+    tool_sections = tomllib.loads(
         (project_root / "pyproject.toml").read_text(encoding="UTF-8")
-    )["tool"][config_type]
+    ).get("tool", {})
+    if config_type not in tool_sections:
+        # Repo relies on the bundled default at runtime; no [tool.X] to compare.
+        pytest.skip(f"No [tool.{config_type}] in pyproject.toml")
+    own_config = tool_sections[config_type]
 
     exclude = _TEMPLATE_EXCLUDE_KEYS.get(config_type, frozenset())
     superset = _TEMPLATE_SUPERSET_KEYS.get(config_type, frozenset())

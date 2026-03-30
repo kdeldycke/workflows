@@ -142,7 +142,9 @@ def test_tool_spec_integrity(name, spec):
                 tomllib.loads(content)
             elif spec.native_format == NativeFormat.JSON:
                 json.loads(content)
-        assert spec.config_flag, f"{name} has default_config but no config_flag"
+        assert spec.config_flag or spec.native_config_files, (
+            f"{name} has default_config but no config_flag or native_config_files"
+        )
 
     if spec.binary is not None:
         assert "linux-x64" in spec.binary.urls, f"{name} binary missing linux-x64 URL"
@@ -996,7 +998,7 @@ def test_run_tool_mdformat_with_packages(mock_ci, mock_run, tmp_path, monkeypatc
     cmd = mock_run.call_args[0][0]
     assert cmd[0] == "uvx"
     assert "mdformat==1.0.0" in " ".join(cmd)
-    assert "--number" in cmd
+    assert "--number" not in cmd
     assert "--strict-front-matter" in cmd
     assert "readme.md" in cmd
     # Verify plugins are passed as --with flags.

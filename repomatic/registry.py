@@ -400,12 +400,21 @@ COMPONENTS: tuple[Component, ...] = (
         insert_before=("tool.nuitka", "tool.bumpversion"),
     ),
     ToolConfigComponent(
+        name="mdformat",
+        description="mdformat Markdown formatter configuration",
+        init_default=InitDefault.EXPLICIT,
+        source_file="mdformat.toml",
+        tool_section="tool.mdformat",
+        insert_after=("tool.coverage",),
+        insert_before=("tool.bumpversion",),
+    ),
+    ToolConfigComponent(
         name="bumpversion",
         description="bump-my-version configuration",
         init_default=InitDefault.EXPLICIT,
         source_file="bumpversion.toml",
         tool_section="tool.bumpversion",
-        insert_after=("tool.nuitka", "tool.mypy"),
+        insert_after=("tool.mdformat", "tool.nuitka", "tool.mypy"),
         insert_before=("tool.typos",),
     ),
     ToolConfigComponent(
