@@ -36,6 +36,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import subprocess
 import sys
 import tarfile
@@ -211,10 +212,66 @@ class ToolSpec:
     ``requires-python``). ``None`` if no computed params.
     """
 
+    post_process: Callable[[Sequence[str]], None] | None = None
+    """Callback invoked on ``extra_args`` after the tool exits successfully.
+
+    Intended for temporary workarounds that fix known upstream formatting bugs
+    in-place. Remove the callback once upstream ships the fix.
+    """
+
     binary: BinarySpec | None = None
     """Platform-specific binary download spec. When set, the tool is downloaded
     as a binary instead of installed via ``uvx`` or ``uv run``.
     """
+
+
+# ---------------------------------------------------------------------------
+# Post-process callbacks
+# ---------------------------------------------------------------------------
+
+_DIRECTIVE_YAML_OPTIONS_RE = re.compile(
+    r"^((?:`{3,}|:{3,})\{[^}]+\}[^\n]*\n)"
+    r"---\n"
+    r"((?:[^\n]+\n)+?)"
+    r"---\n",
+    re.MULTILINE,
+)
+"""Match YAML-block directive options immediately after a MyST fence opening.
+
+.. note::
+    Workaround for `executablebooks/mdformat-myst#21
+    <https://github.com/executablebooks/mdformat-myst/issues/21>`_ where
+    ``mdformat-myst`` unconditionally converts ``:key: value`` directive
+    options to YAML blocks (``---`` / ``key: value`` / ``---``). Remove when
+    upstream merges `executablebooks/mdformat-myst#49
+    <https://github.com/executablebooks/mdformat-myst/pull/49>`_.
+"""
+
+
+def _yaml_block_to_field_list(match: re.Match[str]) -> str:
+    """Convert a single YAML-block directive option to field-list syntax."""
+    directive_line = match.group(1)
+    yaml_lines = match.group(2)
+    # Prepend ":" to each non-empty line: ``key: value`` → ``:key: value``.
+    field_lines = re.sub(r"^(?=\S)", ":", yaml_lines, flags=re.MULTILINE)
+    return directive_line + field_lines
+
+
+def _fix_myst_directive_options(extra_args: Sequence[str]) -> None:
+    """Rewrite YAML-block directive options back to field-list syntax.
+
+    Operates in-place on every file in *extra_args* that exists on disk.
+    Files without matching patterns are left untouched.
+    """
+    for arg in extra_args:
+        path = Path(arg)
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8")
+        fixed = _DIRECTIVE_YAML_OPTIONS_RE.sub(_yaml_block_to_field_list, content)
+        if fixed != content:
+            path.write_text(fixed, encoding="utf-8")
+            logging.debug("Fixed MyST directive options in %s", path)
 
 
 # ---------------------------------------------------------------------------
@@ -387,6 +444,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             "mdformat-web==0.2.0",
             "ruff==0.15.5",
         ),
+        post_process=_fix_myst_directive_options,
     ),
     # mypy configuration reference:
     # - Config discovery: https://mypy.readthedocs.io/en/stable/config_file.html
@@ -928,13 +986,15 @@ def run_tool(
                 cmd.extend(extra_args)
                 logging.debug("Running: %s", " ".join(cmd))
                 result = subprocess.run(cmd, check=False)
-            return result.returncode
         else:
             cmd.extend(config_args)
+            cmd.extend(extra_args)
+            logging.debug("Running: %s", " ".join(cmd))
+            result = subprocess.run(cmd, check=False)
 
-        cmd.extend(extra_args)
-        logging.debug("Running: %s", " ".join(cmd))
-        result = subprocess.run(cmd, check=False)
+        if result.returncode == 0 and spec.post_process:
+            spec.post_process(extra_args)
+
         return result.returncode
 
     finally:
