@@ -1399,6 +1399,15 @@ class Metadata:
         return slug.split("/")[-1] if slug else None
 
     @cached_property
+    def is_awesome(self) -> bool:
+        """Whether this is an awesome-list repository.
+
+        Detected by the ``awesome-`` prefix on the repository name.
+        """
+        name = self.repo_name
+        return bool(name and name.startswith("awesome-"))
+
+    @cached_property
     def repo_owner(self) -> str | None:
         """Returns the repository owner.
 

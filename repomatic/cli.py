@@ -118,7 +118,9 @@ from .pyproject import get_project_name
 from .registry import (
     _BY_NAME,
     ALL_COMPONENTS,
+    COMPONENT_HELP_TABLE,
     DEFAULT_REPO,
+    FILE_SELECTOR_COMPONENTS,
     SKILL_PHASE_ORDER,
     SKILL_PHASES,
     valid_file_ids,
@@ -371,7 +373,7 @@ def init_project(
     delete_excluded,
     delete_unmodified,
 ):
-    """Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
+    r"""Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
 
     With no arguments, generates thin-caller workflow files, exports
     configuration files (Renovate, labels, labeller rules), and creates a
@@ -383,18 +385,10 @@ def init_project(
 
     \b
     Components:
-        workflows                 Thin-caller workflow files
-        labels                    Label config (labels.toml + labeller rules)
-        renovate                  Renovate config (renovate.json5)
-        changelog                 Minimal changelog.md
-        skills                    Claude Code skill definitions (.claude/skills/)
-        ruff                      Merge [tool.ruff] into pyproject.toml
-        pytest                    Merge [tool.pytest] into pyproject.toml
-        mypy                      Merge [tool.mypy] into pyproject.toml
-        bumpversion               Merge [tool.bumpversion] into pyproject.toml
+    {component_table}
 
     \b
-    File-level selectors (workflows, labels, skills, renovate):
+    File-level selectors ({file_selector_names}):
         workflows/autofix.yaml    A single workflow
         skills/repomatic-topics   A single skill
         labels/labels.toml        A single label config file
@@ -538,6 +532,13 @@ def init_project(
                 " configuration and open issues"
             )
             echo("     with setup instructions.")
+
+
+# Format the init_project docstring with registry-generated content.
+init_project.__doc__ = init_project.__doc__.format(
+    component_table=COMPONENT_HELP_TABLE,
+    file_selector_names=", ".join(FILE_SELECTOR_COMPONENTS),
+)
 
 
 @repomatic.command(short_help="Output project metadata", section=_section_setup)
@@ -2176,11 +2177,11 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
         ctx.exit(0)
 
     # Auto-detect repository.
+    meta = Metadata()
     if repository is None:
-        repository = Metadata().repo_slug
+        repository = meta.repo_slug
     if not repository:
         raise ClickException("Cannot detect repository.")
-    repo_name = repository.split("/")[-1]
 
     # Dump label files.
     result = run_init(output_dir=Path("."), components=("labels",))
@@ -2192,7 +2193,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
         _run_labelmaker(lm, "apply", "labels.toml", "--profile", "default", repository)
 
         # Apply awesome profile for awesome-* repos.
-        if repo_name.startswith("awesome-"):
+        if meta.is_awesome:
             _run_labelmaker(
                 lm, "apply", "labels.toml", "--profile", "awesome", repository
             )

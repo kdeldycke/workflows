@@ -9,10 +9,3 @@ exclude = [
     "ycombinator\\.com",
     "x\\.com",
 ]
-
-[tool.repomatic]
-exclude = [
-    "workflows/changelog.yaml",
-    "workflows/debug.yaml",
-    "workflows/release.yaml",
-]

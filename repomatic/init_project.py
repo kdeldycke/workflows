@@ -58,9 +58,12 @@ from .registry import (
     DEFAULT_REPO,
     REUSABLE_WORKFLOWS,
     BundledComponent,
+    GeneratedComponent,
     InitDefault,
     RepoScope,
+    TemplateComponent,
     ToolConfigComponent,
+    WorkflowComponent,
     excluded_rel_path,
     parse_component_entries,
 )
@@ -663,11 +666,12 @@ def run_init(
                 ids = {e.file_id for e in excl_comp.files}
                 excluded_files.setdefault(excl_name, set()).update(ids)
 
-    # Auto-exclude files that don't belong in this repository. Added after
-    # reporting so they don't appear in "Excluded by config" — they only
-    # surface in excluded_existing when the file is actually on disk.
-    # Skip auto-exclusion in the upstream source repo — it is the origin
-    # of all bundled files (skills, opt-in workflows, configs).
+    # Auto-exclude components and files that don't belong in this repository.
+    # Added after reporting so they don't appear in "Excluded by config" —
+    # they only surface in excluded_existing when the file is actually on
+    # disk.  Skip auto-exclusion in the upstream source repo — it is the
+    # origin of all bundled files (skills, opt-in workflows, configs).
+    scope_excluded_targets: list[str] = []
     if _is_source_repo(output_dir):
         # Bundled components are the source of truth in the upstream repo.
         # Remove them from excluded_files so they are never flagged for
@@ -676,8 +680,22 @@ def run_init(
             if reg_comp.files:
                 excluded_files.pop(reg_comp.name, None)
     else:
-        # Auto-exclude entries by repo scope and opt-in status.
         for reg_comp in COMPONENTS:
+            # Component-level scope (e.g., changelog is NON_AWESOME).
+            comp_out_of_scope = (
+                is_awesome_repo
+                and reg_comp.scope == RepoScope.NON_AWESOME
+                or (not is_awesome_repo and reg_comp.scope == RepoScope.AWESOME_ONLY)
+            )
+            if comp_out_of_scope:
+                selected.discard(reg_comp.name)
+                # For generated components, record the target path so we can
+                # detect stale copies on disk below.
+                if isinstance(reg_comp, GeneratedComponent) and reg_comp.target:
+                    scope_excluded_targets.append(reg_comp.target)
+                continue
+
+            # File-level scope and opt-in status.
             for entry in reg_comp.files:
                 if (
                     is_awesome_repo
@@ -696,55 +714,61 @@ def run_init(
             rel = excluded_rel_path(comp, fid)
             if rel and (output_dir / rel).exists():
                 result.excluded_existing.append(rel)
+    for rel in sorted(scope_excluded_targets):
+        if (output_dir / rel).exists():
+            result.excluded_existing.append(rel)
 
-    workflow_file_exclude = frozenset(excluded_files.get("workflows", set()))
+    # Filter out components whose config_key is disabled.
+    for reg_comp in COMPONENTS:
+        if (
+            reg_comp.name in selected
+            and reg_comp.config_key
+            and not config.get(reg_comp.config_key, reg_comp.config_default)
+        ):
+            selected.discard(reg_comp.name)
+            logging.info(
+                f"[tool.repomatic] {reg_comp.config_key} is disabled."
+                f" Skipping {reg_comp.name}."
+            )
 
-    # Workflows.
-    if "workflows" in selected:
-        wf_include = (
-            frozenset(selected_files["workflows"])
-            if "workflows" in selected_files
+    # Dispatch by component type.
+    tool_configs_to_merge: list[str] = []
+
+    for comp in COMPONENTS:
+        if comp.name not in selected:
+            continue
+
+        file_exclude = frozenset(excluded_files.get(comp.name, set()))
+        file_include = (
+            frozenset(selected_files[comp.name])
+            if comp.name in selected_files
             else None
         )
-        _init_workflows(
-            output_dir,
-            repo,
-            version,
-            result,
-            exclude=workflow_file_exclude,
-            include=wf_include,
-            source_paths=source_paths,
-        )
 
-    # Config file components (labels, renovate, skills).
-    for component_name in ("labels", "renovate", "skills"):
-        if component_name in selected:
-            file_exclude = frozenset(excluded_files.get(component_name, set()))
-            file_include = (
-                frozenset(selected_files[component_name])
-                if component_name in selected_files
-                else None
+        if isinstance(comp, WorkflowComponent):
+            _init_workflows(
+                output_dir,
+                repo,
+                version,
+                result,
+                exclude=file_exclude,
+                include=file_include,
+                source_paths=source_paths,
             )
+
+        elif isinstance(comp, BundledComponent):
             _init_config_files(
                 output_dir,
-                component_name,
+                comp.name,
                 result,
                 exclude_ids=file_exclude,
                 include_ids=file_include,
             )
+            # Labels have extra files fetched from [tool.repomatic] config.
+            if comp.name == "labels":
+                _fetch_extra_labels(output_dir, result)
 
-    # Fetch extra label files from [tool.repomatic] config.
-    if "labels" in selected:
-        _fetch_extra_labels(output_dir, result)
-
-    # Awesome-template boilerplate for awesome-* repositories.
-    if "awesome-template" in selected:
-        at_comp = _BY_NAME["awesome-template"]
-        if not config.get(at_comp.config_key, at_comp.config_default):
-            logging.info(
-                f"[tool.repomatic] {at_comp.config_key} is disabled. Skipping."
-            )
-        else:
+        elif isinstance(comp, TemplateComponent):
             if not repo_slug:
                 from .metadata import Metadata
 
@@ -752,16 +776,15 @@ def run_init(
             if repo_slug:
                 init_awesome_template(output_dir, repo_slug, result)
 
-    # Changelog.
-    if "changelog" in selected:
-        _init_changelog(output_dir, result)
+        elif isinstance(comp, GeneratedComponent):
+            _init_changelog(output_dir, result)
 
-    # Tool configs (merged into pyproject.toml).
-    tool_configs = selected & {
-        c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)
-    }
-    if tool_configs:
-        _init_tool_configs(output_dir, sorted(tool_configs), result)
+        elif isinstance(comp, ToolConfigComponent):
+            tool_configs_to_merge.append(comp.name)
+
+    # Merge tool configs into pyproject.toml (batched for efficiency).
+    if tool_configs_to_merge:
+        _init_tool_configs(output_dir, tool_configs_to_merge, result)
 
     # Check for native tool config files identical to bundled defaults.
     # Init-managed files (labels, renovate) are already handled inline by
@@ -949,7 +972,7 @@ def _init_config_files(
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"
-            if not getattr(comp, "keep_unmodified", False) and existing == normalized:
+            if not comp.keep_unmodified and existing == normalized:
                 result.unmodified_configs.append(rel)
                 logging.info(f"Unmodified (matches bundled default): {rel}")
                 continue

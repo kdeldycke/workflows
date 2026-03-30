@@ -95,9 +95,8 @@ def test_copied_files_contain_template_slug(tmp_path):
 
 
 def test_pyproject_toml_has_tool_sections(tmp_path):
-    """Bundled pyproject.toml contains lychee and repomatic tool sections."""
+    """Bundled pyproject.toml contains the lychee tool section."""
     _copy_template_tree(TEMPLATE_ROOT, tmp_path)
     content = (tmp_path / "pyproject.toml").read_text(encoding="UTF-8")
     assert "[tool.lychee]" in content
-    assert "[tool.repomatic]" in content
     assert "exclude" in content

@@ -13,6 +13,15 @@
 - Fix missing `HAS_REPOMATIC_PAT` env var in the `setup-guide` workflow step. Without it, the command could not detect when the PAT was already configured.
 - Expand `check-renovate` to validate all PAT permissions (contents, issues, pull requests, vulnerability alerts, workflows) as warnings, not just commit statuses. Prevents silent failures where Renovate creates branches but cannot open PRs due to missing permissions.
 - Add workflows permission probe to `lint-repo` PAT capability checks.
+- Auto-exclude `changelog.md` for awesome-list repositories. The changelog stub is pointless without the `changelog.yaml` workflow, which was already scoped to non-awesome repos.
+- Remove redundant `[tool.repomatic]` exclude entries from the awesome template `pyproject.toml`. The three workflow files (`changelog.yaml`, `debug.yaml`, `release.yaml`) are already auto-excluded by their `NON_AWESOME` scope in the registry.
+- Add `scope` field to `Component` base class. Enables component-level scope gating (e.g., `changelog` is `NON_AWESOME`), complementing the existing file-level `FileEntry.scope`.
+- Add `target` field to `GeneratedComponent`. Records the output path so auto-exclusion can detect stale copies on disk without hardcoded path mappings.
+- Move `keep_unmodified` from `BundledComponent` to `Component` base class.
+- Add `Metadata.is_awesome` cached property. Centralizes the `awesome-*` repo name detection previously duplicated across modules.
+- Add generic config-key gating to `init`. Components with a `config_key` are now filtered before dispatch, eliminating the manual check for `awesome-template`.
+- Replace hardcoded init dispatch with a type-driven loop over the component registry. Adding a new `BundledComponent` no longer requires editing a hardcoded tuple.
+- Generate `init` CLI help text from the component registry. The component table and file-selector list are now always in sync with the registry.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 

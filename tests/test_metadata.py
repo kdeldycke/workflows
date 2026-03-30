@@ -1177,6 +1177,28 @@ def test_repo_name_fallback_to_gh_cli(monkeypatch):
         assert metadata.repo_name is not None
 
 
+@pytest.mark.parametrize(
+    ("repo", "expected"),
+    [
+        ("kdeldycke/awesome-billing", True),
+        ("kdeldycke/awesome-falsehood", True),
+        ("user/my-awesome-thing", False),
+        ("user/regular-repo", False),
+    ],
+)
+def test_is_awesome(monkeypatch, repo, expected):
+    """Test that is_awesome detects awesome-* repository names."""
+    monkeypatch.setenv("GITHUB_REPOSITORY", repo)
+    assert Metadata().is_awesome is expected
+
+
+def test_is_awesome_none_slug(monkeypatch):
+    """Test that is_awesome returns False when repo_slug is None."""
+    monkeypatch.delenv("GITHUB_REPOSITORY", raising=False)
+    monkeypatch.setattr(Metadata, "repo_slug", None)
+    assert Metadata().is_awesome is False
+
+
 def test_repo_owner_fallback_to_slug(monkeypatch):
     """Test that repo_owner falls back to owner from repo_slug."""
     monkeypatch.delenv("GITHUB_REPOSITORY_OWNER", raising=False)

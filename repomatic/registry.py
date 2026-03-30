@@ -125,6 +125,11 @@ class Component:
     """How ``init`` treats this component when no explicit CLI selection
     is made."""
 
+    scope: RepoScope = RepoScope.ALL
+    """Which repository types get this component.  Checked at the component
+    level during auto-exclusion, complementing the file-level
+    :attr:`FileEntry.scope`."""
+
     files: tuple[FileEntry, ...] = ()
     """File entries this component manages."""
 
@@ -135,15 +140,15 @@ class Component:
     """Value assumed when ``config_key`` is absent from config. ``True``
     means opt-out (included unless disabled)."""
 
-
-@dataclass(frozen=True)
-class BundledComponent(Component):
-    """Files copied from ``repomatic/data/`` to a target path."""
-
     keep_unmodified: bool = False
     """Preserve files on disk even when identical to the bundled default.
     When ``False``, unmodified copies are flagged for cleanup by
     ``--delete-unmodified``."""
+
+
+@dataclass(frozen=True)
+class BundledComponent(Component):
+    """Files copied from ``repomatic/data/`` to a target path."""
 
 
 @dataclass(frozen=True)
@@ -192,7 +197,15 @@ class TemplateComponent(Component):
 
 @dataclass(frozen=True)
 class GeneratedComponent(Component):
-    """Produced from code (changelog)."""
+    """Produced from code (changelog).
+
+    Unlike bundled components, generated components have no ``files`` tuple.
+    The ``target`` field records the output path so the auto-exclusion logic
+    can detect stale copies on disk.
+    """
+
+    target: str = ""
+    """Relative output path in the target repository."""
 
 
 # ---------------------------------------------------------------------------
@@ -355,6 +368,8 @@ COMPONENTS: tuple[Component, ...] = (
     GeneratedComponent(
         name="changelog",
         description="Minimal changelog.md",
+        scope=RepoScope.NON_AWESOME,
+        target="changelog.md",
     ),
     # --- Tool config components (merged into pyproject.toml) ---
     ToolConfigComponent(
@@ -469,6 +484,18 @@ SKILL_PHASES: dict[str, str] = {
     f.file_id: f.phase for f in _BY_NAME["skills"].files if f.phase
 }
 """Maps skill names to lifecycle phases for display grouping."""
+
+
+FILE_SELECTOR_COMPONENTS: tuple[str, ...] = tuple(
+    c.name for c in COMPONENTS if c.files
+)
+"""Components that support file-level ``component/file`` selectors."""
+
+_MAX_NAME = max(len(c.name) for c in COMPONENTS)
+COMPONENT_HELP_TABLE: str = "\n".join(
+    f"    {c.name:<{_MAX_NAME + 4}s}{c.description}" for c in COMPONENTS
+)
+"""Formatted component table for CLI help text."""
 
 
 def valid_file_ids(component: str) -> frozenset[str]:

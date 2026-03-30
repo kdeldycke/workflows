@@ -42,7 +42,10 @@ from repomatic.registry import (
     REUSABLE_WORKFLOWS,
     SKILL_PHASES,
     BundledComponent,
+    GeneratedComponent,
+    TemplateComponent,
     ToolConfigComponent,
+    WorkflowComponent,
     parse_component_entries,
     valid_file_ids,
 )
@@ -59,6 +62,35 @@ _OPT_IN_IDS = frozenset(f.file_id for f in _BY_NAME["workflows"].files if f.conf
 
 
 # --- Bundled data and export tests ---
+
+
+def test_all_component_types_handled() -> None:
+    """Verify every component in the registry has a handled type.
+
+    The type-driven dispatch loop in ``run_init`` handles these types.
+    If a new component subclass is added without updating the dispatch,
+    this test will catch it.
+    """
+    handled_types = (
+        BundledComponent,
+        GeneratedComponent,
+        TemplateComponent,
+        ToolConfigComponent,
+        WorkflowComponent,
+    )
+    for comp in COMPONENTS:
+        assert isinstance(comp, handled_types), (
+            f"Component {comp.name!r} has unhandled type {type(comp).__name__}"
+        )
+
+
+def test_init_help_lists_all_components() -> None:
+    """Verify the init command help text lists every registered component."""
+    from repomatic.cli import init_project
+
+    doc = init_project.__doc__
+    for name in ALL_COMPONENTS:
+        assert name in doc, f"Component {name!r} missing from init help text"
 
 
 def test_supported_config_types() -> None:
@@ -1179,6 +1211,35 @@ def test_init_respects_exclude_skill_files(
 
     # Other skills should still be created.
     assert ".claude/skills/repomatic-init/SKILL.md" in created_set
+
+
+def test_init_changelog_excluded_for_awesome_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify changelog.md is not created for awesome-* repos."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-python")
+
+    assert not (tmp_path / "changelog.md").exists()
+    assert "changelog.md" not in result.created
+
+
+def test_init_changelog_excluded_existing_for_awesome_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify existing changelog.md is flagged as excluded for awesome-* repos."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
+    changelog = tmp_path / "changelog.md"
+    changelog.write_text("# Changelog\n", encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-python")
+
+    assert "changelog.md" in result.excluded_existing
 
 
 def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
