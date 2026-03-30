@@ -289,9 +289,8 @@ def test_to_pr_body_needs_migration():
     )
     body = result.to_pr_body()
     assert "Migrate from Dependabot to Renovate" in body
-    assert "Export `renovate.json5`" in body
     assert "Remove `.github/dependabot.yaml`" in body
-    assert "🔧 Created by this PR" in body
+    assert "ℹ️ Materialized at runtime" in body
     assert "🔧 Removed by this PR" in body
     assert "⚠️ Enabled" in body
     assert "https://github.com/owner/repo/settings/security_analysis" in body

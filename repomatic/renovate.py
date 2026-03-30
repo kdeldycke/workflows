@@ -121,11 +121,9 @@ class RenovateCheckResult:
         """
         # Build changes bullet list.
         changes = []
-        if not self.renovate_config_exists:
-            changes.append("- Export `renovate.json5` configuration file")
         if self.dependabot_config_path:
             changes.append(f"- Remove `{self.dependabot_config_path}`")
-        if self.renovate_config_exists and not self.dependabot_config_path:
+        if not changes:
             changes.append("- No changes needed")
         changes_list = "\n".join(changes)
 
@@ -138,7 +136,7 @@ class RenovateCheckResult:
                 "`renovate.json5` exists",
                 "✅ Already exists"
                 if self.renovate_config_exists
-                else "🔧 Created by this PR",
+                else "ℹ️ Materialized at runtime",
                 "—",
             ],
             [
@@ -265,42 +263,6 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
     else:
         return True, "Commit statuses: token has access"
 
-
-def run_renovate_prereq_checks(repo: str, sha: str) -> int:
-    """Run all Renovate prerequisite checks.
-
-    Emits GitHub Actions annotations for each check result.
-
-    :param repo: Repository in 'owner/repo' format.
-    :param sha: Commit SHA for permission checks.
-    :return: Exit code (0 for success, 1 for fatal errors).
-    """
-    fatal_error = False
-
-    # Check 1: Dependabot config file.
-    passed, msg = check_dependabot_config_absent()
-    if passed:
-        print(f"✓ {msg}")
-    else:
-        emit_annotation(AnnotationLevel.ERROR, msg)
-        fatal_error = True
-
-    # Check 2: Dependabot security updates.
-    passed, msg = check_dependabot_security_disabled(repo)
-    if passed:
-        print(f"✓ {msg}")
-    else:
-        emit_annotation(AnnotationLevel.ERROR, msg)
-        fatal_error = True
-
-    # Check 3: Commit statuses permission (non-fatal).
-    passed, msg = check_commit_statuses_permission(repo, sha)
-    if passed:
-        print(f"✓ {msg}")
-    else:
-        emit_annotation(AnnotationLevel.WARNING, msg)
-
-    return 1 if fatal_error else 0
 
 
 def check_renovate_config_exists() -> tuple[bool, str]:
