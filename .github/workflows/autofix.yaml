@@ -27,7 +27,7 @@ jobs:
       issues: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Manage setup guide issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,7 +41,7 @@ jobs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -65,7 +65,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run autopep8
         if: fromJSON(needs.metadata.outputs.metadata).python_files
         # Ruff is not wrapping comments: https://github.com/astral-sh/ruff/issues/7414
@@ -106,7 +106,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run pyproject-fmt
         # pyproject-fmt returns exit code 1 when it reformats the file.
         # We ignore this since changes are expected in an autofix workflow.
@@ -140,7 +140,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Install shfmt
         # Required by the mdformat-shfmt plugin for shell code block formatting.
         run: sudo apt install --yes shfmt
@@ -186,7 +186,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Format JSON
         # Allow comments and trailing commas for JSONC files.
         # Biome auto-detects well-known JSONC files (tsconfig.json, etc.).
@@ -222,7 +222,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Fix typos
         run: uvx --no-progress --from . repomatic run typos
       - id: pr-metadata
@@ -250,7 +250,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Sync repomatic-managed files
         run: >
           uvx --no-progress --from . repomatic init
@@ -283,7 +283,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Install image optimization tools
         env:
           # Version appears in both the tag path and the .deb filename,
@@ -331,7 +331,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Sync .gitignore
         run: uvx --no-progress --from . repomatic sync-gitignore
       - id: pr-metadata
@@ -360,7 +360,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Sync bumpversion config
         run: uvx --no-progress --from . repomatic sync-bumpversion
       - id: pr-metadata
@@ -392,7 +392,7 @@ jobs:
         with:
           # Fetch all history to extract all contributors.
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Sync .mailmap
         run: uvx --no-progress --from . repomatic sync-mailmap --skip-if-missing
       - id: pr-metadata
@@ -424,7 +424,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Generate graph
         # Package name and output path are auto-detected from pyproject.toml.
         run: uvx --no-progress --from . repomatic update-deps-graph
@@ -456,7 +456,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Regenerate Sphinx autodoc
         # Omit --force so existing RST files (often with custom modifications produced by the next step) are preserved.
         # Only new module stubs are created, and deleted ones are left for manual removal by the maintainers.

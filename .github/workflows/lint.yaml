@@ -31,7 +31,7 @@ jobs:
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run repomatic metadata
         id: metadata
         run: >
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Lint repository metadata
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Install all package dependencies
         # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
         # those related to optional features, tests, development and documentation.
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run yamllint
         run: uvx --no-progress --from . repomatic run yamllint -- .
 
@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Install shellcheck
         run: sudo apt update && sudo apt install --yes shellcheck
       - name: Setup problem matcher
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run zizmor
         run: uvx --no-progress --from . repomatic run zizmor -- .
 
@@ -183,6 +183,6 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Run gitleaks
         run: uvx --no-progress --from . repomatic run gitleaks -- detect --source .
