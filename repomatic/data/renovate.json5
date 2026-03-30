@@ -20,6 +20,10 @@
   commitMessageExtra: "to `{{{newValue}}}`",
 
   // Stabilization periods. Must be > 7 days to match pyproject.toml's exclude-newer.
+  // Relies on the default internalChecksFilter: "strict" to block branch/PR
+  // creation until the age threshold passes. See
+  // https://github.com/renovatebot/renovate/discussions/42260 for a known
+  // inconsistency where the filter is bypassed for some packages.
   minimumReleaseAge: "8 days",
   packageRules: [
     {
