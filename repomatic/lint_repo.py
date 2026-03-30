@@ -41,7 +41,6 @@ from .github.token import (
 from .renovate import (
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
-    check_renovate_config_exists,
 )
 
 
@@ -488,16 +487,7 @@ def run_repo_lint(
         print(f"✗ {msg}")
         fatal_error = True
 
-    # Check 2: Renovate config exists (fatal).
-    passed, msg = check_renovate_config_exists()
-    if passed:
-        print(f"✓ {msg}")
-    else:
-        emit_annotation(AnnotationLevel.ERROR, msg)
-        print(f"✗ {msg}")
-        fatal_error = True
-
-    # Check 3: Dependabot security updates disabled (fatal).
+    # Check 2: Dependabot security updates disabled (fatal).
     if repo:
         passed, msg = check_dependabot_security_disabled(repo)
         if passed:
