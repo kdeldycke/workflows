@@ -33,6 +33,7 @@ from click_extra import (
     UNPROCESSED,
     Choice,
     ClickException,
+    ConfigOption,
     Context,
     EnumChoice,
     ExtraVersionOption,
@@ -103,7 +104,9 @@ from .images import (
 from .init_project import export_content, run_init
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
-from .config import CONFIG_REFERENCE_HEADERS, config_reference, load_repomatic_config
+from click_extra.config import get_tool_config
+
+from .config import CONFIG_REFERENCE_HEADERS, Config, config_reference
 from .metadata import (
     METADATA_KEYS_HEADERS,
     Dialect,
@@ -234,9 +237,20 @@ def _require_token(module, attr):
     return decorator
 
 
-@group()
+@group(config_schema=Config, schema_strict=True)
 def repomatic():
     pass
+
+
+# Disable merge_default_map for config file parameters. All [tool.repomatic]
+# keys are config-only (not CLI params), so merging them into Click's
+# default_map would collide with subcommand names (e.g., "setup-guide" is
+# both a config key and a subcommand). Config access goes exclusively
+# through config_schema + get_tool_config().
+for _param in repomatic.params:
+    if isinstance(_param, ConfigOption):
+        _param.included_params = frozenset()
+        break
 
 
 _section_github = Section("GitHub issues & PRs")
@@ -422,6 +436,7 @@ def init_project(
         components=components,
         version=version_pin,
         repo=repo,
+        config=get_tool_config() or Config(),
     )
 
     # Print summary.
@@ -897,7 +912,7 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         # Preview on stdout
         repomatic sync-gitignore --output -
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     if not config.gitignore_sync:
         logging.info(
             "[tool.repomatic] gitignore.sync is disabled. Skipping .gitignore sync."
@@ -1024,7 +1039,7 @@ def sync_dev_release(
         # Delete the dev pre-release (e.g. during a real release)
         repomatic sync-dev-release --live --delete
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     if not config.dev_release_sync:
         logging.info(
             "[tool.repomatic] dev-release.sync is disabled. Skipping dev release sync."
@@ -1170,7 +1185,7 @@ def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
     The updated results are sorted. But no attempts are made at regrouping new
     contributors. So you have to edit entries by hand to regroup them.
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     if not config.mailmap_sync:
         logging.info(
             "[tool.repomatic] mailmap.sync is disabled. Skipping .mailmap sync."
@@ -1303,7 +1318,7 @@ def test_plan(
     stats: bool,
 ) -> None:
     # Load [tool.repomatic] config for fallback values.
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
 
     # Load test plan: CLI args > pyproject.toml config > DEFAULT_TEST_PLAN.
     test_list = []
@@ -1652,7 +1667,7 @@ def deps_graph(
         # Save to file
         repomatic update-deps-graph --output docs/dependency-graph.md
     """
-    config = load_repomatic_config()
+    config = get_tool_config() or Config()
 
     # Auto-detect package name from [project].name.
     if package is None:
@@ -1853,7 +1868,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         # Secret configured — close the issue
         repomatic setup-guide --has-pat
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     if not config.setup_guide:
         logging.info("[tool.repomatic] setup-guide is disabled. Skipping setup guide.")
         ctx.exit(0)
@@ -2053,7 +2068,7 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path, output: Path | None) -> None:
         # Check a different lock file
         repomatic sync-uv-lock --lockfile path/to/uv.lock
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     if not config.uv_lock_sync:
         logging.info(
             "[tool.repomatic] uv-lock.sync is disabled. Skipping uv.lock sync."
@@ -2095,7 +2110,7 @@ def sync_bumpversion(ctx: Context) -> None:
     The ``repomatic init bumpversion`` command remains available for interactive
     bootstrapping.
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     if not config.bumpversion_sync:
         logging.info(
             "[tool.repomatic] bumpversion.sync is disabled."
@@ -2106,6 +2121,7 @@ def sync_bumpversion(ctx: Context) -> None:
     result = run_init(
         output_dir=Path("."),
         components=("bumpversion",),
+        config=config,
     )
     changed = [*result.created, *result.updated]
     if changed:
@@ -2161,7 +2177,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     Requires ``GITHUB_TOKEN`` in the environment. Downloads ``labelmaker``
     automatically via the tool registry.
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     if not config.labels_sync:
         logging.info("[tool.repomatic] labels.sync is disabled. Skipping label sync.")
         ctx.exit(0)
@@ -2174,7 +2190,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
         raise ClickException("Cannot detect repository.")
 
     # Dump label files.
-    result = run_init(output_dir=Path("."), components=("labels",))
+    result = run_init(output_dir=Path("."), components=("labels",), config=config)
     for path in [*result.created, *result.updated]:
         logging.info(f"Exported: {path}")
 
@@ -2528,7 +2544,7 @@ def lint_changelog(
         # Explicit package name
         repomatic lint-changelog --package repomatic
     """
-    config = load_repomatic_config()
+    config = get_tool_config(ctx) or Config()
     exit_code = lint_changelog_dates(
         changelog_path,
         package=package,

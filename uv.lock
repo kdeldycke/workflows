@@ -3,12 +3,12 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-23T21:07:44.48594134Z"
+exclude-newer = "2026-03-23T22:15:44.18006Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-03-30T21:07:44.485948854Z", span = "PT0S" }
-repomatic = { timestamp = "2026-03-30T21:07:44.485954745Z", span = "PT0S" }
+click-extra = { timestamp = "2026-03-30T22:15:44.180066Z", span = "PT0S" }
+repomatic = { timestamp = "2026-03-30T22:15:44.180071Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -209,7 +209,7 @@ wheels = [
 [[package]]
 name = "click-extra"
 version = "7.8.1.dev0"
-source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#c8500bf082fd3d552c20b0e59c963f5289abef94" }
+source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#7ff8463a5665ea372efb581370abe09e23168b3e" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },

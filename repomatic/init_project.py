@@ -579,6 +579,7 @@ def run_init(
     version: str | None = None,
     repo: str = DEFAULT_REPO,
     repo_slug: str | None = None,
+    config: Config | None = None,
 ) -> InitResult:
     """Bootstrap a repository for use with ``kdeldycke/repomatic``.
 
@@ -636,7 +637,8 @@ def run_init(
         selected.add("awesome-template")
 
     # Load config for source path resolution and exclusion rules.
-    config = load_repomatic_config()
+    if config is None:
+        config = load_repomatic_config()
     source_paths = resolve_source_paths(config)
 
     # Parse exclude/include config. User exclude is additive to defaults;
@@ -765,6 +767,7 @@ def run_init(
                 exclude=file_exclude,
                 include=file_include,
                 source_paths=source_paths,
+                config=config,
             )
 
         elif isinstance(comp, BundledComponent):
@@ -777,7 +780,7 @@ def run_init(
             )
             # Labels have extra files fetched from [tool.repomatic] config.
             if comp.name == "labels":
-                _fetch_extra_labels(output_dir, result)
+                _fetch_extra_labels(output_dir, result, config=config)
 
         elif isinstance(comp, TemplateComponent):
             if not repo_slug:
@@ -816,6 +819,7 @@ def _init_workflows(
     exclude: frozenset[str] = frozenset(),
     include: frozenset[str] | None = None,
     source_paths: list[str] | None = None,
+    config: Config | None = None,
 ) -> None:
     """Generate thin-caller workflows and sync non-reusable workflow headers.
 
@@ -834,7 +838,8 @@ def _init_workflows(
         workflows = tuple(w for w in workflows if w not in exclude)
 
     # Exclude config-gated workflows whose toggle is off.
-    config = load_repomatic_config()
+    if config is None:
+        config = load_repomatic_config()
     for entry in _BY_NAME["workflows"].files:
         if (
             entry.config_key
@@ -1139,6 +1144,7 @@ def _init_changelog(
 def _fetch_extra_labels(
     output_dir: Path,
     result: InitResult,
+    config: Config | None = None,
 ) -> None:
     """Download extra label files from ``[tool.repomatic]`` config.
 
@@ -1146,7 +1152,8 @@ def _fetch_extra_labels(
     ``extra-labels/`` subdirectory under ``output_dir``.
     Does nothing if no URLs are configured.
     """
-    config = load_repomatic_config()
+    if config is None:
+        config = load_repomatic_config()
     urls = config.labels_extra_files
     if not urls:
         logging.debug("No labels.extra-files configured.")

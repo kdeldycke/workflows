@@ -33,7 +33,7 @@ from repomatic.broken_links import (
     get_label,
     parse_output_json,
 )
-from repomatic.cli import setup_guide
+from repomatic.cli import repomatic as repomatic_cli, setup_guide
 from repomatic.github.issue import triage_issues
 
 TITLE = "Broken links"
@@ -558,15 +558,14 @@ def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
     assert "Fine-grained tokens" in content
 
 
-@patch("repomatic.cli.load_repomatic_config")
 @patch("repomatic.github.token.validate_gh_token_env")
 @patch("repomatic.cli.manage_issue_lifecycle")
-def test_setup_guide_disabled_skips(mock_lifecycle, _mock_token, mock_config):
+def test_setup_guide_disabled_skips(mock_lifecycle, _mock_token, tmp_path, monkeypatch):
     """When setup-guide is disabled in config, the command exits without action."""
-    from repomatic.config import Config
-
-    mock_config.return_value = Config(setup_guide=False)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("[tool.repomatic]\nsetup-guide = false\n")
+    monkeypatch.chdir(tmp_path)
     runner = CliRunner()
-    result = runner.invoke(setup_guide, [])
+    result = runner.invoke(repomatic_cli, ["setup-guide"])
     assert result.exit_code == 0
     mock_lifecycle.assert_not_called()

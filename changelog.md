@@ -31,6 +31,7 @@
 - Skip Codecov uploads on `sync-repomatic` PRs. Data-only changes have no coverable lines, so the coverage report was pure noise.
 - Add `codecov` bundled component. Syncs `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines.
 - Extract `Config` dataclass, `load_repomatic_config`, and all config reference utilities from `metadata.py` into a dedicated `config.py` module.
+- Wire `config_schema=Config, schema_strict=True` on the CLI group. click-extra now auto-discovers `pyproject.toml` from CWD, loads `[tool.repomatic]`, and provides a typed `Config` instance via `get_tool_config()`. CLI commands no longer call `load_repomatic_config()` directly.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 
