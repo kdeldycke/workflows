@@ -363,7 +363,6 @@ from .config import (
     SUBCOMMAND_CONFIG_FIELDS,
     Config,
     _extract_field_docstrings,
-    _field_to_key,
     load_repomatic_config,
 )
 
