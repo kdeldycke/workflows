@@ -49,6 +49,14 @@ RENOVATE_CONFIG_PATH = Path("renovate.json5")
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
 from .github.pr_body import render_template
+from .github.token import (
+    check_commit_statuses_permission,
+    check_pat_contents_permission,
+    check_pat_issues_permission,
+    check_pat_pull_requests_permission,
+    check_pat_vulnerability_alerts_permission,
+    check_pat_workflows_permission,
+)
 from .tool_runner import uv_cmd
 
 if sys.version_info >= (3, 11):
@@ -88,6 +96,21 @@ class RenovateCheckResult:
     commit_statuses_permission: bool
     """Whether the token has commit statuses permission."""
 
+    contents_permission: bool = True
+    """Whether the token has contents permission."""
+
+    issues_permission: bool = True
+    """Whether the token has issues permission."""
+
+    pull_requests_permission: bool = True
+    """Whether the token has pull requests permission."""
+
+    vulnerability_alerts_permission: bool = True
+    """Whether the token has Dependabot alerts permission."""
+
+    workflows_permission: bool = True
+    """Whether the token has workflows permission."""
+
     repo: str = ""
     """Repository in 'owner/repo' format, used for generating settings links."""
 
@@ -103,6 +126,13 @@ class RenovateCheckResult:
             f"{str(self.dependabot_security_disabled).lower()}",
             "commit_statuses_permission="
             f"{str(self.commit_statuses_permission).lower()}",
+            f"contents_permission={str(self.contents_permission).lower()}",
+            f"issues_permission={str(self.issues_permission).lower()}",
+            "pull_requests_permission="
+            f"{str(self.pull_requests_permission).lower()}",
+            "vulnerability_alerts_permission="
+            f"{str(self.vulnerability_alerts_permission).lower()}",
+            f"workflows_permission={str(self.workflows_permission).lower()}",
             f"pr_body<<EOF\n{self.to_pr_body()}\nEOF",
         ]
         return "\n".join(lines)
@@ -131,6 +161,16 @@ class RenovateCheckResult:
         settings_url = f"https://github.com/{self.repo}/settings/security_analysis"
         docs_url = "https://github.com/kdeldycke/repomatic#permissions-and-token"
 
+        # Permission check rows: (label, field_value).
+        perm_checks = [
+            ("Commit statuses permission", self.commit_statuses_permission),
+            ("Contents permission", self.contents_permission),
+            ("Issues permission", self.issues_permission),
+            ("Pull requests permission", self.pull_requests_permission),
+            ("Vulnerability alerts permission", self.vulnerability_alerts_permission),
+            ("Workflows permission", self.workflows_permission),
+        ]
+
         table_data = [
             [
                 "`renovate.json5` exists",
@@ -153,14 +193,13 @@ class RenovateCheckResult:
                 if self.dependabot_security_disabled
                 else f"[Disable in Settings]({settings_url})",
             ],
-            [
-                "Commit statuses permission",
-                "✅ Token has access"
-                if self.commit_statuses_permission
-                else "⚠️ Cannot verify",
-                "—"
-                if self.commit_statuses_permission
-                else f"[Check PAT permissions]({docs_url})",
+            *[
+                [
+                    label,
+                    "✅ Token has access" if passed else "⚠️ Cannot verify",
+                    "—" if passed else f"[Check PAT permissions]({docs_url})",
+                ]
+                for label, passed in perm_checks
             ],
         ]
 
@@ -239,32 +278,6 @@ def check_dependabot_security_disabled(repo: str) -> tuple[bool, str]:
     return True, "Dependabot security updates: disabled (Renovate handles security PRs)"
 
 
-def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
-    """Check that the token has commit statuses permission.
-
-    Required for Renovate to set stability-days status checks.
-
-    :param repo: Repository in 'owner/repo' format.
-    :param sha: Commit SHA to check.
-    :return: Tuple of (passed, message).
-    """
-    try:
-        run_gh_command([
-            "api",
-            f"repos/{repo}/commits/{sha}/statuses",
-            "--silent",
-        ])
-    except RuntimeError:
-        msg = (
-            "Cannot verify commit statuses permission. "
-            "Ensure the token has 'Commit statuses: Read and Write' permission."
-        )
-        return False, msg
-    else:
-        return True, "Commit statuses: token has access"
-
-
-
 def check_renovate_config_exists() -> tuple[bool, str]:
     """Check if renovate.json5 configuration file exists.
 
@@ -301,11 +314,23 @@ def collect_check_results(repo: str, sha: str) -> RenovateCheckResult:
     # Check 4: Commit statuses permission.
     statuses_permission, _ = check_commit_statuses_permission(repo, sha)
 
+    # Check 5-9: Other PAT permissions.
+    contents_perm, _ = check_pat_contents_permission(repo)
+    issues_perm, _ = check_pat_issues_permission(repo)
+    pr_perm, _ = check_pat_pull_requests_permission(repo)
+    vuln_perm, _ = check_pat_vulnerability_alerts_permission(repo)
+    workflows_perm, _ = check_pat_workflows_permission(repo)
+
     return RenovateCheckResult(
         renovate_config_exists=renovate_exists,
         dependabot_config_path=dependabot_path.as_posix() if dependabot_path else "",
         dependabot_security_disabled=security_disabled,
         commit_statuses_permission=statuses_permission,
+        contents_permission=contents_perm,
+        issues_permission=issues_perm,
+        pull_requests_permission=pr_perm,
+        vulnerability_alerts_permission=vuln_perm,
+        workflows_permission=workflows_perm,
         repo=repo,
     )
 
@@ -317,7 +342,8 @@ def run_migration_checks(repo: str, sha: str) -> int:
     - Missing renovate.json5 configuration
     - Existing Dependabot configuration
     - Dependabot security updates enabled
-    - Token commit statuses permission
+    - PAT permissions: commit statuses, contents, issues, pull requests,
+      vulnerability alerts, workflows
 
     :param repo: Repository in 'owner/repo' format.
     :param sha: Commit SHA for permission checks.
@@ -349,12 +375,20 @@ def run_migration_checks(repo: str, sha: str) -> int:
         emit_annotation(AnnotationLevel.ERROR, msg)
         fatal_error = True
 
-    # Check 4: Commit statuses permission (non-fatal).
-    passed, msg = check_commit_statuses_permission(repo, sha)
-    if passed:
-        print(f"✓ {msg}")
-    else:
-        emit_annotation(AnnotationLevel.WARNING, msg)
+    # PAT permission checks (all non-fatal warnings).
+    perm_checks = [
+        check_commit_statuses_permission(repo, sha),
+        check_pat_contents_permission(repo),
+        check_pat_issues_permission(repo),
+        check_pat_pull_requests_permission(repo),
+        check_pat_vulnerability_alerts_permission(repo),
+        check_pat_workflows_permission(repo),
+    ]
+    for passed, msg in perm_checks:
+        if passed:
+            print(f"✓ {msg}")
+        else:
+            emit_annotation(AnnotationLevel.WARNING, msg)
 
     return 1 if fatal_error else 0
 

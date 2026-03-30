@@ -11,6 +11,8 @@
 - Add tag ruleset detection to `lint-repo`. Warns when active rulesets targeting tags are found, which can block the `create-tag` job from pushing release tags.
 - Remove upstream repo carve-out from the `setup-guide` job. The upstream repo is no longer excluded, so a missing `REPOMATIC_PAT` secret is now detected everywhere.
 - Fix missing `HAS_REPOMATIC_PAT` env var in the `setup-guide` workflow step. Without it, the command could not detect when the PAT was already configured.
+- Expand `check-renovate` to validate all PAT permissions (contents, issues, pull requests, vulnerability alerts, workflows) as warnings, not just commit statuses. Prevents silent failures where Renovate creates branches but cannot open PRs due to missing permissions.
+- Add workflows permission probe to `lint-repo` PAT capability checks.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 

@@ -75,6 +75,8 @@ import os
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+from .gh import run_gh_command
+
 # Canonical list of fine-grained PAT permissions required by REPOMATIC_PAT.
 # Each tuple: (permission_name, access_level, reason).
 # This is the single source of truth — the setup guide template, pre-filled
@@ -104,6 +106,150 @@ REQUIRED_PAT_PERMISSIONS = (
         "Push changes to .github/workflows/ files.",
     ),
 )
+
+
+def check_pat_contents_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has contents permission.
+
+    Tests read access via ``GET /repos/{owner}/{repo}/contents/.github``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/contents/.github",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access repository contents. "
+            "Ensure the token has 'Contents: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Contents: token has access"
+
+
+def check_pat_issues_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has issues permission.
+
+    Tests read access via ``GET /repos/{owner}/{repo}/issues``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/issues?per_page=1&state=all",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access repository issues. "
+            "Ensure the token has 'Issues: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Issues: token has access"
+
+
+def check_pat_pull_requests_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has pull requests permission.
+
+    Tests read access via ``GET /repos/{owner}/{repo}/pulls``.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/pulls?per_page=1&state=all",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access repository pull requests. "
+            "Ensure the token has 'Pull requests: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Pull requests: token has access"
+
+
+def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has Dependabot alerts permission and alerts are enabled.
+
+    Tests access via ``GET /repos/{owner}/{repo}/vulnerability-alerts``.
+    Returns 204 when alerts are enabled (pass). Fails on 403 (token lacks
+    the ``vulnerability_alerts`` permission) or 404 (alerts not enabled).
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/vulnerability-alerts",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access vulnerability alerts. "
+            "Either the token lacks 'Dependabot alerts: Read-only' permission "
+            "or vulnerability alerts are not enabled on the repository."
+        )
+        return False, msg
+    return True, "Dependabot alerts: token has access, alerts enabled"
+
+
+def check_pat_workflows_permission(repo: str) -> tuple[bool, str]:
+    """Check that the token has workflows permission.
+
+    Tests access via ``GET /repos/{owner}/{repo}/actions/workflows``.
+    Fine-grained PATs with the **Workflows** permission get ``actions:read``
+    access. Without it, this endpoint returns 403.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/actions/workflows?per_page=1",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot access repository workflows. "
+            "Ensure the token has 'Workflows: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Workflows: token has access"
+
+
+def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
+    """Check that the token has commit statuses permission.
+
+    Required for Renovate to set stability-days status checks.
+
+    :param repo: Repository in 'owner/repo' format.
+    :param sha: Commit SHA to check.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        run_gh_command([
+            "api",
+            f"repos/{repo}/commits/{sha}/statuses",
+            "--silent",
+        ])
+    except RuntimeError:
+        msg = (
+            "Cannot verify commit statuses permission. "
+            "Ensure the token has 'Commit statuses: Read and Write' permission."
+        )
+        return False, msg
+    return True, "Commit statuses: token has access"
 
 
 def validate_gh_token_env() -> None:

@@ -30,8 +30,15 @@ import yaml
 
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
-from .renovate import (
+from .github.token import (
     check_commit_statuses_permission,
+    check_pat_contents_permission,
+    check_pat_issues_permission,
+    check_pat_pull_requests_permission,
+    check_pat_vulnerability_alerts_permission,
+    check_pat_workflows_permission,
+)
+from .renovate import (
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
     check_renovate_config_exists,
@@ -269,101 +276,6 @@ def check_topics_subset_of_keywords(
         )
         return msg, msg
     return None, f"All {len(topics)} GitHub topics are in pyproject.toml keywords."
-
-
-def check_pat_contents_permission(repo: str) -> tuple[bool, str]:
-    """Check that the token has contents permission.
-
-    Tests read access via ``GET /repos/{owner}/{repo}/contents/.github``.
-
-    :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed, message).
-    """
-    try:
-        run_gh_command([
-            "api",
-            f"repos/{repo}/contents/.github",
-            "--silent",
-        ])
-    except RuntimeError:
-        msg = (
-            "Cannot access repository contents. "
-            "Ensure the token has 'Contents: Read and Write' permission."
-        )
-        return False, msg
-    return True, "Contents: token has access"
-
-
-def check_pat_issues_permission(repo: str) -> tuple[bool, str]:
-    """Check that the token has issues permission.
-
-    Tests read access via ``GET /repos/{owner}/{repo}/issues``.
-
-    :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed, message).
-    """
-    try:
-        run_gh_command([
-            "api",
-            f"repos/{repo}/issues?per_page=1&state=all",
-            "--silent",
-        ])
-    except RuntimeError:
-        msg = (
-            "Cannot access repository issues. "
-            "Ensure the token has 'Issues: Read and Write' permission."
-        )
-        return False, msg
-    return True, "Issues: token has access"
-
-
-def check_pat_pull_requests_permission(repo: str) -> tuple[bool, str]:
-    """Check that the token has pull requests permission.
-
-    Tests read access via ``GET /repos/{owner}/{repo}/pulls``.
-
-    :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed, message).
-    """
-    try:
-        run_gh_command([
-            "api",
-            f"repos/{repo}/pulls?per_page=1&state=all",
-            "--silent",
-        ])
-    except RuntimeError:
-        msg = (
-            "Cannot access repository pull requests. "
-            "Ensure the token has 'Pull requests: Read and Write' permission."
-        )
-        return False, msg
-    return True, "Pull requests: token has access"
-
-
-def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
-    """Check that the token has Dependabot alerts permission and alerts are enabled.
-
-    Tests access via ``GET /repos/{owner}/{repo}/vulnerability-alerts``.
-    Returns 204 when alerts are enabled (pass). Fails on 403 (token lacks
-    the ``vulnerability_alerts`` permission) or 404 (alerts not enabled).
-
-    :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed, message).
-    """
-    try:
-        run_gh_command([
-            "api",
-            f"repos/{repo}/vulnerability-alerts",
-            "--silent",
-        ])
-    except RuntimeError:
-        msg = (
-            "Cannot access vulnerability alerts. "
-            "Either the token lacks 'Dependabot alerts: Read-only' permission "
-            "or vulnerability alerts are not enabled on the repository."
-        )
-        return False, msg
-    return True, "Dependabot alerts: token has access, alerts enabled"
 
 
 def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
@@ -675,6 +587,7 @@ def run_repo_lint(
         check_pat_issues_permission(repo),
         check_pat_pull_requests_permission(repo),
         check_pat_vulnerability_alerts_permission(repo),
+        check_pat_workflows_permission(repo),
     ]
     if sha:
         pat_checks.append(check_commit_statuses_permission(repo, sha))

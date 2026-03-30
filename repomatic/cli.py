@@ -2327,7 +2327,8 @@ def check_renovate(
     - renovate.json5 configuration exists
     - No Dependabot version updates config exists (.github/dependabot.yaml)
     - Dependabot security updates are disabled
-    - Token has commit statuses permission
+    - Token has required PAT permissions (commit statuses, contents, issues,
+      pull requests, vulnerability alerts, workflows)
 
     Use --format=github to output results for $GITHUB_OUTPUT, allowing
     workflows to use the values in conditional steps.
@@ -2426,6 +2427,7 @@ def lint_repo(
     - Issues permission (error).
     - Pull requests permission (error).
     - Dependabot alerts permission and alerts enabled (error).
+    - Workflows permission (error).
     - Commit statuses permission (error, requires ``--sha``).
 
     \b

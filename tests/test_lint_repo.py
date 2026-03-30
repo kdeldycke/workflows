@@ -21,14 +21,17 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from repomatic.lint_repo import (
-    check_description_matches,
-    check_funding_file,
-    check_package_name_vs_repo,
+from repomatic.github.token import (
     check_pat_contents_permission,
     check_pat_issues_permission,
     check_pat_pull_requests_permission,
     check_pat_vulnerability_alerts_permission,
+    check_pat_workflows_permission,
+)
+from repomatic.lint_repo import (
+    check_description_matches,
+    check_funding_file,
+    check_package_name_vs_repo,
     check_stale_draft_releases,
     check_topics_subset_of_keywords,
     check_website_for_sphinx,
@@ -425,7 +428,7 @@ def test_stale_drafts_multiple():
 
 def test_pat_contents_permission_pass():
     """Pass when contents API call succeeds."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.return_value = "[]"
         passed, msg = check_pat_contents_permission("owner/repo")
         assert passed is True
@@ -434,7 +437,7 @@ def test_pat_contents_permission_pass():
 
 def test_pat_contents_permission_fail():
     """Fail when contents API call raises."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("403")
         passed, msg = check_pat_contents_permission("owner/repo")
         assert passed is False
@@ -443,7 +446,7 @@ def test_pat_contents_permission_fail():
 
 def test_pat_issues_permission_pass():
     """Pass when issues API call succeeds."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.return_value = "[]"
         passed, msg = check_pat_issues_permission("owner/repo")
         assert passed is True
@@ -452,7 +455,7 @@ def test_pat_issues_permission_pass():
 
 def test_pat_issues_permission_fail():
     """Fail when issues API call raises."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("403")
         passed, msg = check_pat_issues_permission("owner/repo")
         assert passed is False
@@ -461,7 +464,7 @@ def test_pat_issues_permission_fail():
 
 def test_pat_pull_requests_permission_pass():
     """Pass when pulls API call succeeds."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.return_value = "[]"
         passed, msg = check_pat_pull_requests_permission("owner/repo")
         assert passed is True
@@ -470,7 +473,7 @@ def test_pat_pull_requests_permission_pass():
 
 def test_pat_pull_requests_permission_fail():
     """Fail when pulls API call raises."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("403")
         passed, msg = check_pat_pull_requests_permission("owner/repo")
         assert passed is False
@@ -479,7 +482,7 @@ def test_pat_pull_requests_permission_fail():
 
 def test_pat_vulnerability_alerts_permission_pass():
     """Pass when vulnerability-alerts API call succeeds."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.return_value = ""
         passed, msg = check_pat_vulnerability_alerts_permission("owner/repo")
         assert passed is True
@@ -488,11 +491,29 @@ def test_pat_vulnerability_alerts_permission_pass():
 
 def test_pat_vulnerability_alerts_permission_fail():
     """Fail when vulnerability-alerts API call raises."""
-    with patch("repomatic.lint_repo.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("403")
         passed, msg = check_pat_vulnerability_alerts_permission("owner/repo")
         assert passed is False
         assert "Dependabot alerts" in msg
+
+
+def test_pat_workflows_permission_pass():
+    """Pass when workflows API call succeeds."""
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
+        mock_gh.return_value = ""
+        passed, msg = check_pat_workflows_permission("owner/repo")
+        assert passed is True
+        assert "Workflows" in msg
+
+
+def test_pat_workflows_permission_fail():
+    """Fail when workflows API call raises."""
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
+        mock_gh.side_effect = RuntimeError("403")
+        passed, msg = check_pat_workflows_permission("owner/repo")
+        assert passed is False
+        assert "Workflows" in msg
 
 
 # --- PAT checks in run_repo_lint ---
@@ -507,19 +528,25 @@ def test_pat_checks_skipped_without_pat(capsys):
 
 
 def _mock_all_gh():
-    """Mock ``run_gh_command`` in both ``lint_repo`` and ``renovate`` modules."""
+    """Mock ``run_gh_command`` in ``lint_repo``, ``renovate``, and ``token`` modules."""
     return (
         patch("repomatic.lint_repo.run_gh_command"),
         patch("repomatic.renovate.run_gh_command"),
+        patch("repomatic.github.token.run_gh_command"),
     )
 
 
 def test_pat_checks_all_pass(capsys):
     """Return 0 when all PAT capability checks pass."""
-    lint_patch, renovate_patch = _mock_all_gh()
-    with lint_patch as mock_lint_gh, renovate_patch as mock_renovate_gh:
+    lint_patch, renovate_patch, token_patch = _mock_all_gh()
+    with (
+        lint_patch as mock_lint_gh,
+        renovate_patch as mock_renovate_gh,
+        token_patch as mock_token_gh,
+    ):
         mock_lint_gh.return_value = ""
         mock_renovate_gh.return_value = ""
+        mock_token_gh.return_value = ""
         exit_code = run_repo_lint(
             repo="owner/repo",
             has_pat=True,
@@ -532,14 +559,20 @@ def test_pat_checks_all_pass(capsys):
         assert "Pull requests: token has access" in captured.out
         assert "Dependabot alerts: token has access" in captured.out
         assert "Commit statuses: token has access" in captured.out
+        assert "Workflows: token has access" in captured.out
 
 
 def test_pat_checks_fail_on_missing_permission(capsys):
     """Return 1 when a PAT capability check fails."""
-    lint_patch, renovate_patch = _mock_all_gh()
-    with lint_patch as mock_lint_gh, renovate_patch as mock_renovate_gh:
+    lint_patch, renovate_patch, token_patch = _mock_all_gh()
+    with (
+        lint_patch as mock_lint_gh,
+        renovate_patch as mock_renovate_gh,
+        token_patch as mock_token_gh,
+    ):
         mock_lint_gh.side_effect = RuntimeError("403 Forbidden")
         mock_renovate_gh.side_effect = RuntimeError("403 Forbidden")
+        mock_token_gh.side_effect = RuntimeError("403 Forbidden")
         exit_code = run_repo_lint(
             repo="owner/repo",
             has_pat=True,
@@ -552,10 +585,15 @@ def test_pat_checks_fail_on_missing_permission(capsys):
 
 def test_pat_checks_no_sha(capsys):
     """Commit statuses check is skipped when no SHA provided."""
-    lint_patch, renovate_patch = _mock_all_gh()
-    with lint_patch as mock_lint_gh, renovate_patch as mock_renovate_gh:
+    lint_patch, renovate_patch, token_patch = _mock_all_gh()
+    with (
+        lint_patch as mock_lint_gh,
+        renovate_patch as mock_renovate_gh,
+        token_patch as mock_token_gh,
+    ):
         mock_lint_gh.return_value = ""
         mock_renovate_gh.return_value = ""
+        mock_token_gh.return_value = ""
         exit_code = run_repo_lint(
             repo="owner/repo",
             has_pat=True,

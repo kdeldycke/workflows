@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import ExitStack
 from unittest.mock import patch
 
 from repomatic.renovate import (
@@ -105,7 +106,7 @@ def test_api_failure():
 
 def test_has_permission():
     """Pass when token has permission."""
-    with patch("repomatic.renovate.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.return_value = ""
         passed, msg = check_commit_statuses_permission("owner/repo", "abc123")
         assert passed is True
@@ -114,11 +115,28 @@ def test_has_permission():
 
 def test_no_permission():
     """Fail when token lacks permission."""
-    with patch("repomatic.renovate.run_gh_command") as mock_gh:
+    with patch("repomatic.github.token.run_gh_command") as mock_gh:
         mock_gh.side_effect = RuntimeError("gh command failed")
         passed, msg = check_commit_statuses_permission("owner/repo", "abc123")
         assert passed is False
         assert "permission" in msg.lower()
+
+
+def _mock_all_perm_checks():
+    """Return a single context manager mocking all PAT permission checks."""
+    perm_pass = (True, "Has access")
+    patches = [
+        patch("repomatic.renovate.check_commit_statuses_permission", return_value=perm_pass),
+        patch("repomatic.renovate.check_pat_contents_permission", return_value=perm_pass),
+        patch("repomatic.renovate.check_pat_issues_permission", return_value=perm_pass),
+        patch("repomatic.renovate.check_pat_pull_requests_permission", return_value=perm_pass),
+        patch("repomatic.renovate.check_pat_vulnerability_alerts_permission", return_value=perm_pass),
+        patch("repomatic.renovate.check_pat_workflows_permission", return_value=perm_pass),
+    ]
+    stack = ExitStack()
+    for p in patches:
+        stack.enter_context(p)
+    return stack
 
 
 def test_all_checks_pass(tmp_path, monkeypatch, capsys):
@@ -128,10 +146,9 @@ def test_all_checks_pass(tmp_path, monkeypatch, capsys):
     (tmp_path / "renovate.json5").touch()
     with (
         patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
-        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+        _mock_all_perm_checks(),
     ):
         mock_sec.return_value = (True, "Disabled")
-        mock_perm.return_value = (True, "Has access")
         exit_code = run_migration_checks("owner/repo", "abc123")
         assert exit_code == 0
 
@@ -141,10 +158,9 @@ def test_renovate_config_missing(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     with (
         patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
-        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+        _mock_all_perm_checks(),
     ):
         mock_sec.return_value = (True, "Disabled")
-        mock_perm.return_value = (True, "Has access")
         exit_code = run_migration_checks("owner/repo", "abc123")
         assert exit_code == 1
         captured = capsys.readouterr()
@@ -160,10 +176,9 @@ def test_dependabot_config_exists(tmp_path, monkeypatch, capsys):
     (tmp_path / ".github" / "dependabot.yaml").touch()
     with (
         patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
-        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+        _mock_all_perm_checks(),
     ):
         mock_sec.return_value = (True, "Disabled")
-        mock_perm.return_value = (True, "Has access")
         exit_code = run_migration_checks("owner/repo", "abc123")
         assert exit_code == 1
         captured = capsys.readouterr()
@@ -177,10 +192,9 @@ def test_security_updates_enabled(tmp_path, monkeypatch, capsys):
     (tmp_path / "renovate.json5").touch()
     with (
         patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
-        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+        _mock_all_perm_checks(),
     ):
         mock_sec.return_value = (False, "Security updates enabled")
-        mock_perm.return_value = (True, "Has access")
         exit_code = run_migration_checks("owner/repo", "abc123")
         assert exit_code == 1
         captured = capsys.readouterr()
@@ -245,6 +259,11 @@ def test_to_github_output():
     assert "dependabot_config_path=.github/dependabot.yaml" in output
     assert "dependabot_security_disabled=false" in output
     assert "commit_statuses_permission=true" in output
+    assert "contents_permission=true" in output
+    assert "issues_permission=true" in output
+    assert "pull_requests_permission=true" in output
+    assert "vulnerability_alerts_permission=true" in output
+    assert "workflows_permission=true" in output
     assert "pr_body<<EOF" in output
 
 
@@ -276,6 +295,9 @@ def test_to_json():
     assert data["dependabot_config_path"] == ".github/dependabot.yaml"
     assert data["dependabot_security_disabled"] is False
     assert data["commit_statuses_permission"] is True
+    assert data["contents_permission"] is True
+    assert data["pull_requests_permission"] is True
+    assert data["workflows_permission"] is True
 
 
 def test_to_pr_body_needs_migration():
@@ -285,6 +307,7 @@ def test_to_pr_body_needs_migration():
         dependabot_config_path=".github/dependabot.yaml",
         dependabot_security_disabled=False,
         commit_statuses_permission=True,
+        pull_requests_permission=False,
         repo="owner/repo",
     )
     body = result.to_pr_body()
@@ -294,6 +317,9 @@ def test_to_pr_body_needs_migration():
     assert "🔧 Removed by this PR" in body
     assert "⚠️ Enabled" in body
     assert "https://github.com/owner/repo/settings/security_analysis" in body
+    # Pull requests permission failed.
+    assert "Pull requests permission" in body
+    assert "⚠️ Cannot verify" in body
 
 
 def test_to_pr_body_already_migrated():
@@ -319,15 +345,17 @@ def test_collect_results_all_pass(tmp_path, monkeypatch):
     (tmp_path / "renovate.json5").touch()
     with (
         patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
-        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+        _mock_all_perm_checks(),
     ):
         mock_sec.return_value = (True, "Disabled")
-        mock_perm.return_value = (True, "Has access")
         result = collect_check_results("owner/repo", "abc123")
         assert result.renovate_config_exists is True
         assert result.dependabot_config_path == ""
         assert result.dependabot_security_disabled is True
         assert result.commit_statuses_permission is True
+        assert result.contents_permission is True
+        assert result.pull_requests_permission is True
+        assert result.workflows_permission is True
 
 
 def test_with_dependabot_config(tmp_path, monkeypatch):
@@ -338,10 +366,9 @@ def test_with_dependabot_config(tmp_path, monkeypatch):
     (tmp_path / ".github" / "dependabot.yaml").touch()
     with (
         patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
-        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+        _mock_all_perm_checks(),
     ):
         mock_sec.return_value = (True, "Disabled")
-        mock_perm.return_value = (True, "Has access")
         result = collect_check_results("owner/repo", "abc123")
         assert result.dependabot_config_path == ".github/dependabot.yaml"
 
@@ -351,10 +378,9 @@ def test_missing_renovate_config(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     with (
         patch("repomatic.renovate.check_dependabot_security_disabled") as mock_sec,
-        patch("repomatic.renovate.check_commit_statuses_permission") as mock_perm,
+        _mock_all_perm_checks(),
     ):
         mock_sec.return_value = (True, "Disabled")
-        mock_perm.return_value = (True, "Has access")
         result = collect_check_results("owner/repo", "abc123")
         assert result.renovate_config_exists is False
 
