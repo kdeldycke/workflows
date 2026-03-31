@@ -51,6 +51,7 @@ from click_extra import (
     pass_context,
     style,
 )
+from click_extra.config import get_tool_config
 from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS, is_github_ci
 
@@ -62,6 +63,7 @@ from .binary import (
 from .broken_links import manage_combined_broken_links_issue
 from .changelog import Changelog, lint_changelog_dates
 from .checksums import update_checksums, update_registry_checksums
+from .config import CONFIG_REFERENCE_HEADERS, Config, config_reference
 from .deps_graph import (
     generate_dependency_graph,
     get_available_extras,
@@ -103,9 +105,6 @@ from .images import (
 from .init_project import export_content, run_init
 from .lint_repo import run_repo_lint
 from .mailmap import Mailmap
-from click_extra.config import get_tool_config
-
-from .config import CONFIG_REFERENCE_HEADERS, Config, config_reference
 from .metadata import (
     METADATA_KEYS_HEADERS,
     Dialect,
@@ -454,8 +453,7 @@ def init_project(
     if result.skipped:
         echo(
             style(
-                f"Skipped {len(result.skipped)} existing file(s)"
-                " (never overwritten):",
+                f"Skipped {len(result.skipped)} existing file(s) (never overwritten):",
                 dim=True,
             )
         )
@@ -485,8 +483,7 @@ def init_project(
         else:
             echo(
                 style(
-                    f"Excluded: {len(result.excluded_existing)} file(s)"
-                    " still on disk",
+                    f"Excluded: {len(result.excluded_existing)} file(s) still on disk",
                     fg="red",
                 )
                 + style(" (use --delete-excluded to remove):", dim=True)

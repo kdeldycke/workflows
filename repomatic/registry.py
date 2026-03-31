@@ -503,9 +503,7 @@ SKILL_PHASES: dict[str, str] = {
 """Maps skill names to lifecycle phases for display grouping."""
 
 
-FILE_SELECTOR_COMPONENTS: tuple[str, ...] = tuple(
-    c.name for c in COMPONENTS if c.files
-)
+FILE_SELECTOR_COMPONENTS: tuple[str, ...] = tuple(c.name for c in COMPONENTS if c.files)
 """Components that support file-level ``component/file`` selectors."""
 
 _MAX_NAME = max(len(c.name) for c in COMPONENTS)

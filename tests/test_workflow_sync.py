@@ -24,8 +24,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from repomatic.github.actions import AnnotationLevel
 from repomatic.config import Config
+from repomatic.github.actions import AnnotationLevel
 from repomatic.github.workflow_sync import (
     LintResult,
     WorkflowFormat,

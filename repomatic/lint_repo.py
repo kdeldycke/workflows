@@ -300,7 +300,9 @@ def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
             ".repository_selection",
         ])
     except RuntimeError:
-        logging.debug("installation/repositories not available, trying cross-repo probe.")
+        logging.debug(
+            "installation/repositories not available, trying cross-repo probe."
+        )
     else:
         selection = output.strip()
         if selection == "all":
@@ -327,7 +329,9 @@ def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
     except RuntimeError:
         return None, "PAT scope check: skipped (could not list owner repos)."
 
-    other_repos = [r.strip() for r in output.splitlines() if r.strip() and r.strip() != repo]
+    other_repos = [
+        r.strip() for r in output.splitlines() if r.strip() and r.strip() != repo
+    ]
     if not other_repos:
         return None, "PAT scope check: skipped (no other repos to probe)."
 
