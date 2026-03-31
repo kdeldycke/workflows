@@ -228,6 +228,10 @@ Keep definitions sorted for readability and to minimize merge conflicts:
 - **YAML configuration keys**: Alphabetically within each mapping level.
 - **Documentation lists and tables**: Alphabetically, unless a logical order (e.g., chronological in changelog) takes precedence.
 
+### Named constants
+
+Do not inline named constants during refactors. If a constant has a name and a docstring, it exists for readability and grep-ability — preserve both. When moving code between modules, carry the constant with it rather than replacing it with a literal.
+
 ## Release checklist
 
 See `.claude/skills/repomatic-release/SKILL.md` § Release checklist for the complete list (git tag, GitHub release, binaries, PyPI, changelog).
@@ -256,7 +260,7 @@ This repository uses two Claude Code agents defined in `.claude/agents/`. Their 
 Patterns that recur across sessions — watch for these proactively:
 
 - **Documentation drift** is the most frequent issue. CLI output, version references, and workflow job descriptions in `readme.md` go stale after every release or refactor. Always verify docs against actual output after changes.
-- **CI debugging starts from the URL.** When a workflow fails, fetch the run logs first (`gh run view --log-failed`). Do not guess at the cause.
+- **CI debugging starts from the URL.** When a workflow fails, fetch the run logs first (`gh run view --log-failed`). Do not guess at the cause. When the user points to a specific failure, diagnose that exact error — do not wander into adjacent or speculative issues (e.g., analyzing Python 3.15 compatibility warnings when the user asked about mypy errors).
 - **Type-checking divergence.** Code that passes `mypy` locally may fail in CI where `--python-version 3.10` is used. Always consider the minimum supported Python version.
 - **Simplify before adding.** When asked to improve something, first ask whether existing code or tools already cover the case. Remove dead code and unused abstractions before introducing new ones.
 
