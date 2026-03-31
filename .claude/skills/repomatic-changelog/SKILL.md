@@ -42,7 +42,8 @@ Entries accumulate during development as features are built incrementally. Befor
 4. **Keep distinct user-facing changes as separate entries.** A breaking config key change and a new CLI command are separate features even if they landed in the same development cycle.
 5. **Preserve specifics that help users upgrade.** Tool names, config key names, and breaking changes should remain explicit — consolidation reduces bullet count, not information density.
 6. **Remove implementation details** that don't affect users: internal refactors, helper functions, test additions.
-7. **Show the before/after** to the user for approval before writing.
+7. **Order entries by category:** new features first, then broad/global changes, then bug fixes, then documentation and testing.
+8. **Show the before/after** to the user for approval before writing.
 
 ### Style rules
 
