@@ -612,8 +612,8 @@ def run_init(
         # Bare component name overrides file-level selection for the same
         # component — "skills" means all skills even if "skills/x" also
         # appears.
-        for comp in selected_full:
-            selected_files.pop(comp, None)
+        for name in selected_full:
+            selected_files.pop(name, None)
         selected = selected_full | set(selected_files.keys())
     else:
         selected_full = set()

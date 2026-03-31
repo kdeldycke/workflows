@@ -804,7 +804,7 @@ def test_identify_canonical_workflow_sha_pinned(tmp_path: Path) -> None:
         "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
     )
     wf = tmp_path / "lint.yaml"
-    wf.write_text(content)
+    wf.write_text(content, encoding="UTF-8")
     assert identify_canonical_workflow(wf) == "lint.yaml"
 
 
@@ -814,7 +814,7 @@ def test_check_version_pinned_sha(tmp_path: Path) -> None:
         "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
     )
     wf = tmp_path / "lint.yaml"
-    wf.write_text(content)
+    wf.write_text(content, encoding="UTF-8")
     result = check_version_pinned(wf)
     assert not result.is_issue
 
