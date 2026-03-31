@@ -10,7 +10,7 @@ Some workflows need a **fine-grained personal access token** to create PRs that 
 
 2. Review the pre-filled **Token name** (`$repo_name-repomatic`).
 
-3. Under **Repository access**, select **Only select repositories** and pick **$repo_name**. Do not grant access to other repositories.
+3. Under **Repository access**, select **Only select repositories** and pick **\$repo_name**. Do not grant access to other repositories.
 
 4. Verify these permissions (pre-filled by the link above):
 
@@ -50,7 +50,7 @@ gh api repos/$repo_slug/automated-security-fixes --method DELETE
 
 Disabling security updates also disables grouped security updates. Dependabot version updates and grouped security updates have no API — if either was manually enabled, disable them at **this repo → [Settings → Advanced Security → Dependabot]($repo_url/settings/security_analysis)**. (If `.github/dependabot.yml` exists, the `renovate.yaml` workflow will remove it automatically.)
 
-$immutable_releases_step
+\$immutable_releases_step
 
 ### Protect the `main` branch
 

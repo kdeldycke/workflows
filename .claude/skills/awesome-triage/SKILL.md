@@ -3,7 +3,7 @@ name: awesome-triage
 description: Triage new issues and PRs on awesome-list repos by applying curation criteria distilled from past decisions.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob, WebFetch, WebSearch
-argument-hint: '<issue-or-pr-url>'
+argument-hint: <issue-or-pr-url>
 ---
 
 ## Context
@@ -118,14 +118,14 @@ For issues reporting broken links (typically automated by the lychee link checke
 
 Suggest applying these labels based on findings:
 
-| Label | When to apply |
-|---|---|
-| `AI slop` | Two or more AI slop signals detected. |
-| `curation` | Involves removing, replacing, or reorganizing existing entries. |
-| `new link` | Proposes adding a new resource to the list. |
-| `duplicate` | The resource or a near-equivalent is already in the list. |
-| `fix link` | Reports or fixes a broken URL. |
-| `wont do/fix` | Maintainer decision to not act on the request. |
+| Label         | When to apply                                                   |
+| ------------- | --------------------------------------------------------------- |
+| `AI slop`     | Two or more AI slop signals detected.                           |
+| `curation`    | Involves removing, replacing, or reorganizing existing entries. |
+| `new link`    | Proposes adding a new resource to the list.                     |
+| `duplicate`   | The resource or a near-equivalent is already in the list.       |
+| `fix link`    | Reports or fixes a broken URL.                                  |
+| `wont do/fix` | Maintainer decision to not act on the request.                  |
 
 ### Next steps
 
