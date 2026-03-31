@@ -539,7 +539,7 @@ def test_setup_guide_no_pat_opens_setup_issue(mock_lifecycle, _mock_token):
 @patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_pat_closes_issue(mock_lifecycle, _mock_token):
     """When REPOMATIC_PAT is configured, the issue closes."""
-    runner = CliRunner()
+    runner = CliRunner(env={"GITHUB_REPOSITORY": ""})
     result = runner.invoke(repomatic_cli, ["setup-guide", "--has-pat"])
     assert result.exit_code == 0
     assert mock_lifecycle.call_count == 1
