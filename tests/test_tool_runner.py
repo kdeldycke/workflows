@@ -37,13 +37,13 @@ else:
     import tomli as tomllib  # type: ignore[import-not-found]
 
 from repomatic.tool_runner import (
+    _DIRECTIVE_YAML_OPTIONS_RE,
     TOOL_REGISTRY,
     VALID_PLATFORM_KEYS,
     ArchiveFormat,
     BinarySpec,
     NativeFormat,
     ToolSpec,
-    _DIRECTIVE_YAML_OPTIONS_RE,
     _download_and_verify,
     _extract_binary,
     _fix_myst_directive_options,
@@ -1193,38 +1193,18 @@ def test_find_unmodified_configs_alternative_filename(tmp_path, monkeypatch):
             id="backtick-fence-flags",
         ),
         pytest.param(
-            "```{directive} arg\n"
-            "---\n"
-            "class: my-class\n"
-            "name: my-name\n"
-            "---\n"
-            "```\n",
-            "```{directive} arg\n"
-            ":class: my-class\n"
-            ":name: my-name\n"
-            "```\n",
+            "```{directive} arg\n---\nclass: my-class\nname: my-name\n---\n```\n",
+            "```{directive} arg\n:class: my-class\n:name: my-name\n```\n",
             id="backtick-fence-key-value",
         ),
         pytest.param(
-            ":::{note}\n"
-            "---\n"
-            "class: special\n"
-            "---\n"
-            ":::\n",
-            ":::{note}\n"
-            ":class: special\n"
-            ":::\n",
+            ":::{note}\n---\nclass: special\n---\n:::\n",
+            ":::{note}\n:class: special\n:::\n",
             id="colon-fence",
         ),
         pytest.param(
-            "````{directive} arg\n"
-            "---\n"
-            "key: value\n"
-            "---\n"
-            "````\n",
-            "````{directive} arg\n"
-            ":key: value\n"
-            "````\n",
+            "````{directive} arg\n---\nkey: value\n---\n````\n",
+            "````{directive} arg\n:key: value\n````\n",
             id="four-backtick-fence",
         ),
     ],
@@ -1260,12 +1240,7 @@ def test_fix_myst_directive_options_in_place(tmp_path):
     """Post-processor rewrites files in-place and skips unchanged files."""
     affected = tmp_path / "affected.md"
     affected.write_text(
-        "# Title\n\n"
-        "```{py:module} mymod\n"
-        "---\n"
-        "no-typesetting:\n"
-        "---\n"
-        "```\n",
+        "# Title\n\n```{py:module} mymod\n---\nno-typesetting:\n---\n```\n",
         encoding="utf-8",
     )
 
@@ -1276,10 +1251,7 @@ def test_fix_myst_directive_options_in_place(tmp_path):
     _fix_myst_directive_options([str(affected), str(untouched), "/nonexistent/path"])
 
     assert affected.read_text(encoding="utf-8") == (
-        "# Title\n\n"
-        "```{py:module} mymod\n"
-        ":no-typesetting:\n"
-        "```\n"
+        "# Title\n\n```{py:module} mymod\n:no-typesetting:\n```\n"
     )
     assert untouched.read_text(encoding="utf-8") == original
 

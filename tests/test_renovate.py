@@ -126,12 +126,25 @@ def _mock_all_perm_checks():
     """Return a single context manager mocking all PAT permission checks."""
     perm_pass = (True, "Has access")
     patches = [
-        patch("repomatic.renovate.check_commit_statuses_permission", return_value=perm_pass),
-        patch("repomatic.renovate.check_pat_contents_permission", return_value=perm_pass),
+        patch(
+            "repomatic.renovate.check_commit_statuses_permission",
+            return_value=perm_pass,
+        ),
+        patch(
+            "repomatic.renovate.check_pat_contents_permission", return_value=perm_pass
+        ),
         patch("repomatic.renovate.check_pat_issues_permission", return_value=perm_pass),
-        patch("repomatic.renovate.check_pat_pull_requests_permission", return_value=perm_pass),
-        patch("repomatic.renovate.check_pat_vulnerability_alerts_permission", return_value=perm_pass),
-        patch("repomatic.renovate.check_pat_workflows_permission", return_value=perm_pass),
+        patch(
+            "repomatic.renovate.check_pat_pull_requests_permission",
+            return_value=perm_pass,
+        ),
+        patch(
+            "repomatic.renovate.check_pat_vulnerability_alerts_permission",
+            return_value=perm_pass,
+        ),
+        patch(
+            "repomatic.renovate.check_pat_workflows_permission", return_value=perm_pass
+        ),
     ]
     stack = ExitStack()
     for p in patches:

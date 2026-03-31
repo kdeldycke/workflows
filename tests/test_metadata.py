@@ -24,13 +24,13 @@ from typing import Any
 import pytest
 from extra_platforms import is_windows
 
-from repomatic.github.actions import NULL_SHA
 from repomatic.config import (
     Config,
     _field_to_key,
     config_reference,
     load_repomatic_config,
 )
+from repomatic.github.actions import NULL_SHA
 from repomatic.metadata import Dialect, Metadata
 
 
@@ -1250,9 +1250,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config.gitignore_extra_content == (
         "junit.xml\n\n# Claude Code local settings.\n.claude/settings.local.json"
     )
-    assert (
-        metadata.config.dependency_graph_output == "./docs/assets/dependencies.mmd"
-    )
+    assert metadata.config.dependency_graph_output == "./docs/assets/dependencies.mmd"
     assert metadata.config.dependency_graph_all_groups is True
     assert metadata.config.dependency_graph_all_extras is True
     assert metadata.config.dependency_graph_no_groups == []

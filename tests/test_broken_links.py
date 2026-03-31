@@ -33,7 +33,7 @@ from repomatic.broken_links import (
     get_label,
     parse_output_json,
 )
-from repomatic.cli import repomatic as repomatic_cli, setup_guide
+from repomatic.cli import repomatic as repomatic_cli
 from repomatic.github.issue import triage_issues
 
 TITLE = "Broken links"

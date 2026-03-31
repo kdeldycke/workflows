@@ -128,8 +128,7 @@ class RenovateCheckResult:
             f"{str(self.commit_statuses_permission).lower()}",
             f"contents_permission={str(self.contents_permission).lower()}",
             f"issues_permission={str(self.issues_permission).lower()}",
-            "pull_requests_permission="
-            f"{str(self.pull_requests_permission).lower()}",
+            f"pull_requests_permission={str(self.pull_requests_permission).lower()}",
             "vulnerability_alerts_permission="
             f"{str(self.vulnerability_alerts_permission).lower()}",
             f"workflows_permission={str(self.workflows_permission).lower()}",
