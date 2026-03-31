@@ -181,9 +181,17 @@ def check_pat_pull_requests_permission(repo: str) -> tuple[bool, str]:
 def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
     """Check that the token has Dependabot alerts permission and alerts are enabled.
 
-    Tests access via ``GET /repos/{owner}/{repo}/vulnerability-alerts``.
-    Returns 204 when alerts are enabled (pass). Fails on 403 (token lacks
-    the ``vulnerability_alerts`` permission) or 404 (alerts not enabled).
+    Tests access via ``GET /repos/{owner}/{repo}/dependabot/alerts?per_page=1``.
+    Returns 200 when the token has the ``vulnerability_alerts`` permission and
+    alerts are enabled. Fails on 403 (token lacks the permission) or 404
+    (alerts not enabled).
+
+    .. note::
+
+        The older ``GET /repos/{owner}/{repo}/vulnerability-alerts`` endpoint
+        requires the ``Administration: read`` fine-grained token permission,
+        not ``Dependabot alerts``. The Dependabot alerts listing endpoint used
+        here correctly maps to the ``vulnerability_alerts`` permission scope.
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed, message).
@@ -191,7 +199,7 @@ def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
     try:
         run_gh_command([
             "api",
-            f"repos/{repo}/vulnerability-alerts",
+            f"repos/{repo}/dependabot/alerts?per_page=1",
             "--silent",
         ])
     except RuntimeError as exc:
