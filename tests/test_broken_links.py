@@ -579,7 +579,10 @@ def _all_pass_pat_results():
         contents=(True, "Contents: token has access"),
         issues=(True, "Issues: token has access"),
         pull_requests=(True, "Pull requests: token has access"),
-        vulnerability_alerts=(True, "Dependabot alerts: token has access, alerts enabled"),
+        vulnerability_alerts=(
+            True,
+            "Dependabot alerts: token has access, alerts enabled",
+        ),
         workflows=(True, "Workflows: token has access"),
     )
 
@@ -644,9 +647,7 @@ def test_setup_guide_pat_missing_permission_body_contains_warning(
     """When PAT has missing permissions, the issue body contains a warning section."""
     mock_check.return_value = _partial_fail_pat_results()
     runner = CliRunner()
-    runner.invoke(
-        repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
-    )
+    runner.invoke(repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"])
     body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
     content = body_file.read_text(encoding="UTF-8")
     assert "missing some permissions" in content

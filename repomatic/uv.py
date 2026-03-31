@@ -138,14 +138,16 @@ def parse_uv_audit_output(output: str) -> list[VulnerablePackage]:
 
     def _flush() -> None:
         if current_advisory_id:
-            vulns.append(VulnerablePackage(
-                name=current_name,
-                current_version=current_version,
-                advisory_id=current_advisory_id,
-                advisory_title=current_advisory_title,
-                fixed_version=current_fixed,
-                advisory_url=current_url,
-            ))
+            vulns.append(
+                VulnerablePackage(
+                    name=current_name,
+                    current_version=current_version,
+                    advisory_id=current_advisory_id,
+                    advisory_title=current_advisory_title,
+                    fixed_version=current_fixed,
+                    advisory_url=current_url,
+                )
+            )
 
     for line in output.splitlines():
         header = _AUDIT_PACKAGE_HEADER_RE.match(line)
@@ -775,7 +777,12 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
     # Running one command avoids sequential re-resolution undoing earlier upgrades.
     cmd = [*uv_cmd("lock")]
     for pkg in sorted(fixable_packages):
-        cmd.extend(["--upgrade-package", pkg, "--exclude-newer-package", f"{pkg}=0 day"])
+        cmd.extend([
+            "--upgrade-package",
+            pkg,
+            "--exclude-newer-package",
+            f"{pkg}=0 day",
+        ])
     logging.info(f"Upgrading: {', '.join(sorted(fixable_packages))}...")
     subprocess.run(cmd, check=True)
 

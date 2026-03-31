@@ -450,9 +450,7 @@ def test_revert_lock_if_noise_reverts(tmp_path):
     """Revert lock file when diff is only timestamp noise."""
     lock_path = tmp_path / "uv.lock"
     with (
-        patch(
-            "repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=True
-        ),
+        patch("repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=True),
         patch("repomatic.uv.subprocess.run") as mock_run,
     ):
         result = revert_lock_if_noise(lock_path)
@@ -466,9 +464,7 @@ def test_revert_lock_if_noise_reverts(tmp_path):
 def test_revert_lock_if_noise_keeps(tmp_path):
     """Keep lock file when diff contains real changes."""
     lock_path = tmp_path / "uv.lock"
-    with patch(
-        "repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=False
-    ):
+    with patch("repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=False):
         result = revert_lock_if_noise(lock_path)
         assert result is False
 

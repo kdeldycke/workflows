@@ -826,12 +826,11 @@ def _init_workflows(
     :param include: When not ``None``, only generate files in this set.
     """
     # Lazy import to avoid circular dependency with workflow_sync.
+    from . import __git_tag_sha__
     from .github.workflow_sync import (
         generate_thin_caller,
         generate_workflow_header,
     )
-
-    from . import __git_tag_sha__
 
     # Use the build-time SHA for pinning, if available.
     commit_sha: str | None = __git_tag_sha__ or None
