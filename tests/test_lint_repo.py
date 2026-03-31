@@ -534,7 +534,10 @@ def _all_pass_pat_results(sha: str | None = "abc123") -> PatPermissionResults:
         contents=(True, "Contents: token has access"),
         issues=(True, "Issues: token has access"),
         pull_requests=(True, "Pull requests: token has access"),
-        vulnerability_alerts=(True, "Dependabot alerts: token has access, alerts enabled"),
+        vulnerability_alerts=(
+            True,
+            "Dependabot alerts: token has access, alerts enabled",
+        ),
         workflows=(True, "Workflows: token has access"),
         commit_statuses=(True, "Commit statuses: token has access") if sha else None,
     )
@@ -546,7 +549,10 @@ def _all_fail_pat_results() -> PatPermissionResults:
         contents=(False, "Cannot access repository contents."),
         issues=(False, "Cannot access repository issues."),
         pull_requests=(False, "Cannot access repository pull requests."),
-        vulnerability_alerts=(False, "Token lacks 'Dependabot alerts: Read-only' permission."),
+        vulnerability_alerts=(
+            False,
+            "Token lacks 'Dependabot alerts: Read-only' permission.",
+        ),
         workflows=(False, "Cannot access repository workflows."),
         commit_statuses=(False, "Cannot verify commit statuses permission."),
     )

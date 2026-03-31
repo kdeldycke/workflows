@@ -772,9 +772,7 @@ FAKE_SHA = "072c7bbbcdd607011c6ca4fb9d5098532aee2dea"
 
 def test_thin_caller_sha_pinned() -> None:
     """Thin caller with ``commit_sha`` produces ``@sha # version``."""
-    content = generate_thin_caller(
-        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
-    )
+    content = generate_thin_caller("lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA)
     assert f"@{FAKE_SHA} # v6.8.0" in content
 
 
@@ -787,9 +785,7 @@ def test_thin_caller_sha_none_fallback() -> None:
 
 def test_thin_caller_sha_pinned_yaml_valid() -> None:
     """SHA-pinned thin caller is valid YAML with comment stripped."""
-    content = generate_thin_caller(
-        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
-    )
+    content = generate_thin_caller("lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA)
     data = yaml.safe_load(content)
     jobs = data.get("jobs", {})
     uses = next(iter(jobs.values()))["uses"]
@@ -800,9 +796,7 @@ def test_thin_caller_sha_pinned_yaml_valid() -> None:
 
 def test_identify_canonical_workflow_sha_pinned(tmp_path: Path) -> None:
     """``identify_canonical_workflow`` recognizes SHA-pinned thin callers."""
-    content = generate_thin_caller(
-        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
-    )
+    content = generate_thin_caller("lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA)
     wf = tmp_path / "lint.yaml"
     wf.write_text(content, encoding="UTF-8")
     assert identify_canonical_workflow(wf) == "lint.yaml"
@@ -810,9 +804,7 @@ def test_identify_canonical_workflow_sha_pinned(tmp_path: Path) -> None:
 
 def test_check_version_pinned_sha(tmp_path: Path) -> None:
     """``check_version_pinned`` passes for SHA-pinned refs."""
-    content = generate_thin_caller(
-        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
-    )
+    content = generate_thin_caller("lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA)
     wf = tmp_path / "lint.yaml"
     wf.write_text(content, encoding="UTF-8")
     result = check_version_pinned(wf)

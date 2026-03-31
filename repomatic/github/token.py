@@ -342,9 +342,7 @@ def check_all_pat_permissions(
         pull_requests=check_pat_pull_requests_permission(repo),
         vulnerability_alerts=check_pat_vulnerability_alerts_permission(repo),
         workflows=check_pat_workflows_permission(repo),
-        commit_statuses=(
-            check_commit_statuses_permission(repo, sha) if sha else None
-        ),
+        commit_statuses=(check_commit_statuses_permission(repo, sha) if sha else None),
     )
 
 

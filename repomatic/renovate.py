@@ -294,7 +294,9 @@ def collect_check_results(repo: str, sha: str) -> RenovateCheckResult:
         renovate_config_exists=renovate_exists,
         dependabot_config_path=dependabot_path.as_posix() if dependabot_path else "",
         dependabot_security_disabled=security_disabled,
-        commit_statuses_permission=pat.commit_statuses[0] if pat.commit_statuses else True,
+        commit_statuses_permission=pat.commit_statuses[0]
+        if pat.commit_statuses
+        else True,
         contents_permission=pat.contents[0],
         issues_permission=pat.issues[0],
         pull_requests_permission=pat.pull_requests[0],

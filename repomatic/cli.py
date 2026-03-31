@@ -129,10 +129,6 @@ from .renovate import (
     collect_check_results,
     run_migration_checks,
 )
-from .uv import (
-    fix_vulnerable_deps as _fix_vulnerable_deps,
-    sync_uv_lock as _sync_uv_lock,
-)
 from .sponsor import (
     add_sponsor_label,
     get_default_author,
@@ -147,6 +143,10 @@ from .tool_runner import (
     binary_tool_context,
     resolve_config_source,
     run_tool,
+)
+from .uv import (
+    fix_vulnerable_deps as _fix_vulnerable_deps,
+    sync_uv_lock as _sync_uv_lock,
 )
 
 TYPE_CHECKING = False
