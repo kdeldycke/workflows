@@ -313,6 +313,90 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# pyproject.toml exclude-newer-package management
+# ---------------------------------------------------------------------------
+
+_EXCLUDE_NEWER_PKG_RE = re.compile(
+    r"^(exclude-newer-package\s*=\s*)\{([^}]*)\}\s*$",
+    re.MULTILINE,
+)
+"""Matches the ``exclude-newer-package = { ... }`` inline table line.
+
+Captures two groups: the key prefix (including ``=``) and the inner content
+of the braces, so the line can be rebuilt with additional entries.
+"""
+
+
+def add_exclude_newer_packages(
+    pyproject_path: Path,
+    packages: set[str],
+) -> bool:
+    """Add packages to ``[tool.uv].exclude-newer-package`` in ``pyproject.toml``.
+
+    Persists ``"0 day"`` exemptions for the given packages so that subsequent
+    ``uv lock --upgrade`` runs (e.g. from the ``sync-uv-lock`` job) do not
+    downgrade security-fixed packages back to versions within the
+    ``exclude-newer`` cooldown window.
+
+    Skips packages that already have an entry. Returns ``True`` if the file
+    was modified.
+
+    :param pyproject_path: Path to the ``pyproject.toml`` file.
+    :param packages: Package names to add.
+    :return: ``True`` if the file was updated, ``False`` if no changes were needed.
+    """
+    content = pyproject_path.read_text(encoding="UTF-8")
+    pyproject_data = tomllib.loads(content)
+
+    # Determine which packages already have an entry.
+    existing = set(
+        pyproject_data.get("tool", {}).get("uv", {}).get("exclude-newer-package", {})
+    )
+    to_add = packages - existing
+    if not to_add:
+        logging.debug("All packages already in exclude-newer-package, nothing to add.")
+        return False
+
+    match = _EXCLUDE_NEWER_PKG_RE.search(content)
+    if match:
+        # Append new entries to the existing inline table.
+        prefix = match.group(1)
+        inner = match.group(2).rstrip().rstrip(",")
+        new_entries = ", ".join(
+            f'"{pkg}" = "0 day"' for pkg in sorted(to_add)
+        )
+        updated_line = f"{prefix}{{ {inner}, {new_entries} }}"
+        content = content[: match.start()] + updated_line + content[match.end() :]
+    else:
+        # No existing line; insert after exclude-newer if present.
+        newer_match = re.search(
+            r'^(exclude-newer\s*=\s*"[^"]*")\s*$',
+            content,
+            re.MULTILINE,
+        )
+        new_entries = ", ".join(
+            f'"{pkg}" = "0 day"' for pkg in sorted(to_add)
+        )
+        new_line = f"exclude-newer-package = {{ {new_entries} }}"
+        if newer_match:
+            insert_pos = newer_match.end()
+            content = content[:insert_pos] + "\n" + new_line + content[insert_pos:]
+        else:
+            logging.warning(
+                "No [tool.uv] exclude-newer or exclude-newer-package found in"
+                f" {pyproject_path}. Cannot persist cooldown exemptions."
+            )
+            return False
+
+    pyproject_path.write_text(content, encoding="UTF-8")
+    logging.info(
+        f"Added {', '.join(sorted(to_add))} to exclude-newer-package"
+        f" in {pyproject_path}."
+    )
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Lock file version parsing
 # ---------------------------------------------------------------------------
 
@@ -734,7 +818,10 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
 
     Runs ``uv audit`` to detect vulnerabilities, then upgrades each fixable
     package with ``uv lock --upgrade-package`` using ``--exclude-newer-package``
-    to bypass the ``exclude-newer`` cooldown for security fixes.
+    to bypass the ``exclude-newer`` cooldown for security fixes. Also persists
+    the exemptions in ``pyproject.toml`` so that subsequent ``uv lock --upgrade``
+    runs (e.g. from the ``sync-uv-lock`` job) do not downgrade the fixed
+    packages back within the cooldown window.
 
     :param lock_path: Path to the ``uv.lock`` file.
     :return: A tuple of ``(has_fixes, diff_table)``. ``has_fixes`` is ``True``
@@ -798,7 +885,14 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
         logging.info("No version changes after upgrading vulnerable packages.")
         return False, ""
 
-    # Step 7: Build the combined output.
+    # Step 7: Persist cooldown exemptions in pyproject.toml so sync-uv-lock
+    # does not revert the security upgrades.
+    pyproject_path = lock_path.parent / "pyproject.toml"
+    if pyproject_path.exists():
+        upgraded = {name for name, _old, _new in changes}
+        add_exclude_newer_packages(pyproject_path, upgraded)
+
+    # Step 8: Build the combined output.
     vuln_table = format_vulnerability_table(vulns)
     upload_times = parse_lock_upload_times(lock_path)
     diff_table = format_diff_table(changes, upload_times)

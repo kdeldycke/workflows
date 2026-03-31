@@ -146,7 +146,7 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
 exclude-newer = "1 week"
 # Exclude repomatic and click-extra (pinned to git main) from the cooldown period.
-exclude-newer-package = { "click-extra" = "0 day", "repomatic" = "0 day" }
+exclude-newer-package = { "click-extra" = "0 day", "pygments" = "0 day", "repomatic" = "0 day", "requests" = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 

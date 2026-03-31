@@ -3,14 +3,14 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-24T16:11:50.658773678Z"
+exclude-newer = "2026-03-24T17:35:24.003486Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-03-31T16:11:50.65878001Z", span = "PT0S" }
-pygments = { timestamp = "2026-03-31T16:11:50.657584524Z", span = "PT0S" }
-repomatic = { timestamp = "2026-03-31T16:11:50.658784839Z", span = "PT0S" }
-requests = { timestamp = "2026-03-31T16:11:50.657591407Z", span = "PT0S" }
+click-extra = { timestamp = "2026-03-31T17:35:24.003782Z", span = "PT0S" }
+pygments = { timestamp = "2026-03-31T17:35:24.004257Z", span = "PT0S" }
+repomatic = { timestamp = "2026-03-31T17:35:24.004257Z", span = "PT0S" }
+requests = { timestamp = "2026-03-31T17:35:24.004258Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"

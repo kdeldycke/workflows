@@ -35,6 +35,7 @@ from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
     _format_upload_date,
     _parse_github_owner_repo,
+    add_exclude_newer_packages,
     diff_lock_versions,
     fetch_release_notes,
     format_diff_table,
@@ -661,6 +662,66 @@ def test_parse_lock_exclude_newer_missing(tmp_path):
     lock = tmp_path / "uv.lock"
     lock.write_text('version = 1\n\n[[package]]\nname = "foo"\nversion = "1.0"\n')
     assert parse_lock_exclude_newer(lock) == ""
+
+
+def test_add_exclude_newer_packages_appends(tmp_path):
+    """New packages are appended to an existing inline table."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "1 week"\n'
+        'exclude-newer-package = { "click-extra" = "0 day" }\n'
+    )
+    assert add_exclude_newer_packages(pyproject, {"pygments"}) is True
+    content = pyproject.read_text()
+    assert '"pygments" = "0 day"' in content
+    assert '"click-extra" = "0 day"' in content
+
+
+def test_add_exclude_newer_packages_skips_existing(tmp_path):
+    """Packages already in the table are not duplicated."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "1 week"\n'
+        'exclude-newer-package = { "pygments" = "0 day" }\n'
+    )
+    assert add_exclude_newer_packages(pyproject, {"pygments"}) is False
+
+
+def test_add_exclude_newer_packages_creates_line(tmp_path):
+    """A new exclude-newer-package line is inserted when none exists."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "1 week"\n'
+    )
+    assert add_exclude_newer_packages(pyproject, {"requests"}) is True
+    content = pyproject.read_text()
+    assert 'exclude-newer-package = { "requests" = "0 day" }' in content
+
+
+def test_add_exclude_newer_packages_multiple(tmp_path):
+    """Multiple packages are added in sorted order."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "1 week"\n'
+        'exclude-newer-package = { "click-extra" = "0 day" }\n'
+    )
+    assert add_exclude_newer_packages(pyproject, {"requests", "pygments"}) is True
+    content = pyproject.read_text()
+    assert '"pygments" = "0 day"' in content
+    assert '"requests" = "0 day"' in content
+    # Sorted order: pygments before requests.
+    assert content.index('"pygments"') < content.index('"requests"')
+
+
+def test_add_exclude_newer_packages_no_uv_section(tmp_path):
+    """Returns False when no exclude-newer configuration exists."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("[project]\nname = 'foo'\n")
+    assert add_exclude_newer_packages(pyproject, {"requests"}) is False
 
 
 def test_parse_lock_upload_times(tmp_path):
