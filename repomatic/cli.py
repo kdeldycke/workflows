@@ -128,6 +128,7 @@ from .release_prep import ReleasePrep
 from .renovate import (
     CheckFormat,
     collect_check_results,
+    fix_vulnerable_deps as _fix_vulnerable_deps,
     run_migration_checks,
     sync_uv_lock as _sync_uv_lock,
 )
@@ -2013,6 +2014,70 @@ def verify_binary(target: str, binary_path: Path) -> None:
     """
     verify_binary_arch(target, binary_path)
     echo(f"Binary architecture verified for {target}: {binary_path}")
+
+
+@repomatic.command(
+    short_help="Upgrade packages with known vulnerabilities",
+    section=_section_sync,
+)
+@option(
+    "--lockfile",
+    type=file_path(resolve_path=True),
+    default="uv.lock",
+    help="Path to the uv.lock file.",
+)
+@option(
+    "--output",
+    type=file_path(writable=True, resolve_path=True, allow_dash=True),
+    default=None,
+    help="Output file for the diff table (e.g., $GITHUB_OUTPUT).",
+)
+@pass_context
+def fix_vulnerable_deps_cmd(
+    ctx: Context,
+    lockfile: Path,
+    output: Path | None,
+) -> None:
+    """Detect and upgrade packages with known security vulnerabilities.
+
+    Runs ``uv audit`` to detect vulnerabilities in the lock file, then
+    upgrades each fixable package with ``uv lock --upgrade-package``. Uses
+    ``--exclude-newer-package`` to bypass the ``exclude-newer`` cooldown so
+    that security fixes are resolved immediately.
+
+    When no fixable vulnerabilities are found, exits cleanly so
+    ``peter-evans/create-pull-request`` sees no diff and skips creating a PR.
+
+    \b
+    Examples:
+        # Standard usage (from autofix.yaml fix-vulnerable-deps job)
+        repomatic fix-vulnerable-deps
+
+    \b
+        # Write diff table to $GITHUB_OUTPUT
+        repomatic fix-vulnerable-deps --output "$GITHUB_OUTPUT"
+    """
+    has_fixes, diff_table = _fix_vulnerable_deps(lockfile)
+
+    if not has_fixes:
+        echo("No fixable vulnerabilities found.")
+        ctx.exit(0)
+
+    echo("Upgraded vulnerable packages.")
+    if diff_table:
+        echo(diff_table)
+
+    if output and diff_table:
+        github_output_path = os.getenv("GITHUB_OUTPUT", "")
+        if (
+            not is_stdout(output)
+            and github_output_path
+            and str(output) == github_output_path
+        ):
+            content = format_multiline_output("diff_table", diff_table)
+        else:
+            content = diff_table
+        echo(content, file=prep_path(output))
 
 
 @repomatic.command(

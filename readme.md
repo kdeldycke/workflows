@@ -365,6 +365,14 @@ GitHub Actions has several design limitations that the workflows work around:
 
   - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
+- 🛡️ **Fix vulnerable dependencies** (`fix-vulnerable-deps`)
+
+  - Detects vulnerable packages using [`uv audit`](https://docs.astral.sh/uv/reference/cli/#uv-audit) against the [Python Packaging Advisory Database](https://github.com/pypa/advisory-database) and creates PRs to upgrade them
+  - Uses `uv lock --upgrade-package` with [`--exclude-newer-package`](https://docs.astral.sh/uv/reference/settings/#exclude-newer-package) bypass to resolve fix versions that may be within the [`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer) cooldown period
+  - PR body includes a table of vulnerabilities and updated package versions with release notes
+  - **Requires**:
+    - Python package (with a `pyproject.toml` file)
+
 - 🖼️ **Format images** (`format-images`)
 
   - Losslessly compresses PNG and JPEG images using [`repomatic format-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
@@ -557,12 +565,6 @@ docs = [
     - Bot-created PRs
 
 ### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/lint.yaml)
-
-- 📦 **Audit dependencies** (`audit-deps`)
-
-  - Scans dependencies for known security vulnerabilities using [`uv audit`](https://docs.astral.sh/uv/reference/cli/#uv-audit) against the [Python Packaging Advisory Database](https://github.com/pypa/advisory-database)
-  - **Requires**:
-    - Python package (with a `pyproject.toml` file)
 
 - 🏠 **Lint repository metadata** (`lint-repo`)
 

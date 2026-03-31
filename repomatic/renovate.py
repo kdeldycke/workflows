@@ -392,6 +392,221 @@ def run_migration_checks(repo: str, sha: str) -> int:
     return 1 if fatal_error else 0
 
 
+_AUDIT_PACKAGE_HEADER_RE = re.compile(
+    r"^(\S+)\s+(\S+)\s+has\s+\d+\s+known\s+vulnerabilit"
+)
+"""Matches the package header line in ``uv audit`` output.
+
+Example: ``pygments 2.19.2 has 1 known vulnerability:``
+"""
+
+_AUDIT_ADVISORY_RE = re.compile(r"^-\s+((?:GHSA|CVE|PYSEC)-\S+):\s+(.+)$")
+"""Matches advisory ID and title lines in ``uv audit`` output."""
+
+_AUDIT_FIXED_RE = re.compile(r"^\s+Fixed in:\s+(.+)$")
+"""Matches ``Fixed in:`` lines in ``uv audit`` output."""
+
+_AUDIT_URL_RE = re.compile(r"^\s+Advisory information:\s+(\S+)$")
+"""Matches advisory URL lines in ``uv audit`` output."""
+
+
+@dataclass
+class VulnerablePackage:
+    """A single vulnerability advisory for a Python package."""
+
+    name: str
+    """Package name."""
+
+    current_version: str
+    """Currently resolved version."""
+
+    advisory_id: str
+    """Advisory identifier (e.g., ``GHSA-xxxx-xxxx-xxxx``)."""
+
+    advisory_title: str
+    """Short description of the vulnerability."""
+
+    fixed_version: str
+    """Version that contains the fix, or empty string if unknown."""
+
+    advisory_url: str
+    """URL to the advisory details."""
+
+
+def parse_uv_audit_output(output: str) -> list[VulnerablePackage]:
+    """Parse the text output of ``uv audit`` into structured vulnerability data.
+
+    Handles multiple advisories per package and packages without a known fix
+    version. Unrecognized lines are silently skipped.
+
+    :param output: Combined stdout/stderr from ``uv audit``.
+    :return: A list of :class:`VulnerablePackage` entries.
+    """
+    vulns: list[VulnerablePackage] = []
+    current_name = ""
+    current_version = ""
+    current_advisory_id = ""
+    current_advisory_title = ""
+    current_fixed = ""
+    current_url = ""
+
+    def _flush() -> None:
+        if current_advisory_id:
+            vulns.append(VulnerablePackage(
+                name=current_name,
+                current_version=current_version,
+                advisory_id=current_advisory_id,
+                advisory_title=current_advisory_title,
+                fixed_version=current_fixed,
+                advisory_url=current_url,
+            ))
+
+    for line in output.splitlines():
+        header = _AUDIT_PACKAGE_HEADER_RE.match(line)
+        if header:
+            _flush()
+            current_name = header.group(1)
+            current_version = header.group(2)
+            current_advisory_id = ""
+            current_advisory_title = ""
+            current_fixed = ""
+            current_url = ""
+            continue
+
+        advisory = _AUDIT_ADVISORY_RE.match(line)
+        if advisory:
+            # Flush previous advisory for the same package.
+            _flush()
+            current_advisory_id = advisory.group(1)
+            current_advisory_title = advisory.group(2)
+            current_fixed = ""
+            current_url = ""
+            continue
+
+        fixed = _AUDIT_FIXED_RE.match(line)
+        if fixed:
+            current_fixed = fixed.group(1).strip()
+            continue
+
+        url = _AUDIT_URL_RE.match(line)
+        if url:
+            current_url = url.group(1).strip()
+            continue
+
+    _flush()
+    return vulns
+
+
+def format_vulnerability_table(vulns: list[VulnerablePackage]) -> str:
+    """Format vulnerability data as a markdown table.
+
+    :param vulns: List of :class:`VulnerablePackage` entries.
+    :return: A markdown string with a ``### Vulnerabilities`` heading and table,
+        or an empty string if no vulnerabilities are provided.
+    """
+    if not vulns:
+        return ""
+    lines = [
+        "### Vulnerabilities",
+        "",
+        "| Package | Advisory | Current | Fixed |",
+        "| :-- | :-- | :-- | :-- |",
+    ]
+    for v in vulns:
+        pkg_link = f"[{v.name}](https://pypi.org/project/{v.name}/)"
+        if v.advisory_url:
+            adv_link = f"[{v.advisory_id}]({v.advisory_url})"
+        else:
+            adv_link = v.advisory_id
+        fixed = f"`{v.fixed_version}`" if v.fixed_version else "unknown"
+        lines.append(
+            f"| {pkg_link} | {adv_link}: {v.advisory_title} "
+            f"| `{v.current_version}` | {fixed} |"
+        )
+    return "\n".join(lines)
+
+
+def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
+    """Detect vulnerable packages and upgrade them in the lock file.
+
+    Runs ``uv audit`` to detect vulnerabilities, then upgrades each fixable
+    package with ``uv lock --upgrade-package`` using ``--exclude-newer-package``
+    to bypass the ``exclude-newer`` cooldown for security fixes.
+
+    :param lock_path: Path to the ``uv.lock`` file.
+    :return: A tuple of ``(has_fixes, diff_table)``. ``has_fixes`` is ``True``
+        when at least one vulnerable package was upgraded. ``diff_table`` is a
+        markdown-formatted string with vulnerability details and version changes,
+        or an empty string if no fixable vulnerabilities were found.
+    """
+    # Step 1: Run uv audit and capture output.
+    result = subprocess.run(
+        [*uv_cmd("audit"), "--frozen"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    audit_output = result.stdout + "\n" + result.stderr
+
+    # Step 2: Parse vulnerabilities.
+    vulns = parse_uv_audit_output(audit_output)
+    if not vulns:
+        logging.info("No vulnerabilities found.")
+        return False, ""
+
+    # Deduplicate packages: multiple advisories can target the same package.
+    fixable_packages = {v.name for v in vulns if v.fixed_version}
+    if not fixable_packages:
+        logging.warning(
+            f"Found {len(vulns)} vulnerabilities but none have a known fix version."
+        )
+        return False, ""
+
+    logging.info(
+        f"Found {len(vulns)} vulnerabilities across"
+        f" {len(fixable_packages)} fixable packages: {', '.join(sorted(fixable_packages))}."
+    )
+
+    # Step 3: Snapshot versions before upgrading.
+    before = parse_lock_versions(lock_path)
+
+    # Step 4: Upgrade all fixable packages in a single resolution pass.
+    # Running one command avoids sequential re-resolution undoing earlier upgrades.
+    cmd = [*uv_cmd("lock")]
+    for pkg in sorted(fixable_packages):
+        cmd.extend(["--upgrade-package", pkg, "--exclude-newer-package", f"{pkg}=0 day"])
+    logging.info(f"Upgrading: {', '.join(sorted(fixable_packages))}...")
+    subprocess.run(cmd, check=True)
+
+    # Step 5: Check if the lock file actually changed.
+    if revert_lock_if_noise(lock_path):
+        logging.info("Lock file changes were only timestamp noise.")
+        return False, ""
+
+    # Step 6: Compute version diff.
+    after = parse_lock_versions(lock_path)
+    changes = diff_lock_versions(before, after)
+    if not changes:
+        logging.info("No version changes after upgrading vulnerable packages.")
+        return False, ""
+
+    # Step 7: Build the combined output.
+    vuln_table = format_vulnerability_table(vulns)
+    upload_times = parse_lock_upload_times(lock_path)
+    diff_table = format_diff_table(changes, upload_times)
+
+    # Fetch and append release notes.
+    notes = fetch_release_notes(changes)
+    notes_section = format_release_notes(notes)
+
+    sections = [vuln_table, diff_table]
+    if notes_section:
+        sections.append(notes_section)
+    combined = "\n\n".join(s for s in sections if s)
+
+    return True, combined
+
+
 GITHUB_API_RELEASE_BY_TAG_URL = (
     "https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}"
 )
