@@ -609,7 +609,11 @@ def test_format_diff_table_with_upload_times():
         upload_times=upload_times,
         exclude_newer="2026-03-18T16:39:02.780682017Z",
     )
-    assert "Resolved with `exclude-newer` cutoff: `2026-03-18`." in table
+    assert (
+        "Resolved with [`exclude-newer`]"
+        "(https://docs.astral.sh/uv/reference/settings/#exclude-newer)"
+        " cutoff: `2026-03-18`." in table
+    )
     assert "| Package | Change | Released |" in table
     assert (
         "| [coverage](https://pypi.org/project/coverage/)"

@@ -868,7 +868,7 @@ This ensures major updates get more scrutiny while patches flow through faster.
 
 The `uv.lock` file pins all project dependencies, and Renovate keeps it in sync.
 
-The `--exclude-newer` flag ignores packages released in the last 7 days, providing a buffer against freshly-published broken releases.
+The [`--exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer) flag ignores packages released in the last 7 days, providing a buffer against freshly-published broken releases.
 
 #### Tagged workflow URLs
 

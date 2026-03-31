@@ -623,7 +623,11 @@ def format_diff_table(
     lines = ["### Updated packages", ""]
     if exclude_newer:
         cutoff = _format_upload_date(exclude_newer)
-        lines.append(f"Resolved with `exclude-newer` cutoff: `{cutoff}`.")
+        lines.append(
+            f"Resolved with [`exclude-newer`]"
+            f"(https://docs.astral.sh/uv/reference/settings/#exclude-newer)"
+            f" cutoff: `{cutoff}`."
+        )
         lines.append("")
     if show_uploaded:
         lines.append("| Package | Change | Released |")
