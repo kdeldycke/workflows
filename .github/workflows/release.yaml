@@ -131,6 +131,13 @@ jobs:
         with:
           ref: ${{ matrix.commit }}
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - name: Pre-bake tag SHA
+        if: "!contains(matrix.current_version, '.dev')"
+        env:
+          COMMIT: ${{ matrix.commit }}
+        run: >
+          uvx --no-progress 'click-extra==7.9.0'
+          prebake field git_tag_sha "${COMMIT}"
       - name: Build package
         run: uv --no-progress build
       - name: Generate build attestations
@@ -177,14 +184,9 @@ jobs:
         run: uv --no-progress venv --python 3.13
       - name: Install Nuitka
         run: uv --no-progress pip install 'nuitka[onefile]==2.8.10'
-      - name: Pre-bake version with commit hash
+      - name: Pre-bake build metadata
         if: contains(matrix.current_version, '.dev')
-        env:
-          SHORT_SHA: ${{ matrix.short_sha }}
-        shell: bash
-        run: >
-          uvx --no-progress --from . repomatic
-          prebake-version --hash "${SHORT_SHA}"
+        run: uvx --no-progress 'click-extra==7.9.0' prebake all
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary

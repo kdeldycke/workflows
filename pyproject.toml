@@ -82,9 +82,9 @@ dependencies = [
   "boltons>=25",
   # v1.2.6 fix Click compatibility issues.
   "bump-my-version>=1.2.6",
-  # Click Extra 7.8.1.dev0 adds flatten_config_keys() and schema_strict for
-  # config_schema dataclass handling with nested TOML sub-tables.
-  "click-extra @ git+https://github.com/kdeldycke/click-extra.git@main",
+  # Click Extra 7.9.0 adds prebake_dunder() and discover_package_init_files()
+  # for build-time SHA injection into __init__.py dunder variables.
+  "click-extra>=7.9.0",
   # extra-platforms 8.0.0 exposed is_windows(), is_linux(), ALL_IDS, and other
   # platform detection APIs used in tool_runner.py and test_plan.py.
   "extra-platforms>=8",

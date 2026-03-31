@@ -35,7 +35,6 @@ from click_extra import (
     ClickException,
     Context,
     EnumChoice,
-    ExtraVersionOption,
     FloatRange,
     IntRange,
     ParamType,
@@ -3023,95 +3022,3 @@ def format_images_cmd(min_savings: float, output: Path) -> None:
         logging.info(f"Write image optimization summary to {output}")
 
     echo(content, file=prep_path(output))
-
-
-@repomatic.command(
-    short_help="Pre-bake __version__ with Git commit hash", section=_section_release
-)
-@option(
-    "--hash",
-    "git_hash",
-    default=None,
-    help="Git short hash to append. Auto-detected from HEAD if not provided.",
-)
-@option(
-    "--module",
-    "module_path",
-    type=file_path(exists=True, readable=True, writable=True, resolve_path=True),
-    default=None,
-    help="Path to a specific __init__.py to modify. "
-    "Auto-discovered from [project.scripts] if not provided.",
-)
-def prebake_version_cmd(git_hash, module_path):
-    """Inject Git commit hash into ``__version__`` for Nuitka binaries.
-
-    Finds ``__version__`` in the project's ``__init__.py`` files (auto-discovered
-    from ``[project.scripts]`` entry points in ``pyproject.toml``) and appends the
-    Git short hash as a PEP 440 local version identifier.
-
-    Only modifies ``.dev`` versions that do not already have a ``+`` suffix.
-    Release versions and pre-baked versions are left untouched.
-
-    \b
-    This command is designed to run **before** Nuitka compilation in CI, so that
-    standalone binaries report the exact commit they were built from.
-
-    \b
-    Examples:
-        # Auto-discover and pre-bake (uses git HEAD)
-        repomatic prebake-version
-
-    \b
-        # Pre-bake with an explicit hash (e.g., from CI matrix)
-        repomatic prebake-version --hash abc1234
-
-    \b
-        # Pre-bake a specific file
-        repomatic prebake-version --module mypackage/__init__.py
-    """
-    if git_hash is None:
-        git_hash = ExtraVersionOption(module_file=__file__).git_short_hash
-        if not git_hash:
-            raise ClickException(
-                "No --hash provided and Git hash auto-detection failed. "
-                "Pass --hash explicitly or run from a Git repository."
-            )
-
-    prebake = ExtraVersionOption.prebake_version
-
-    if module_path:
-        # Explicit file provided — just pre-bake it.
-        result = prebake(module_path, local_version=git_hash)
-        if result:
-            echo(f"Pre-baked {module_path}: {result}")
-        else:
-            echo(f"No changes to {module_path}")
-        return
-
-    # Auto-discover from pyproject.toml entry points.
-    metadata = Metadata()
-    if not metadata.script_entries:
-        logging.warning("No [project.scripts] entries found in pyproject.toml.")
-        return
-
-    # Collect unique package __init__.py paths from entry points.
-    seen: set[Path] = set()
-    for _cli_id, module_id, _callable_id in metadata.script_entries:
-        # Derive the top-level package directory from the module path.
-        # e.g., "repomatic.__main__" → "repomatic", "mail_deduplicate.cli" →
-        # "mail_deduplicate"
-        package_dir = module_id.split(".")[0]
-        init_path = Path(package_dir) / "__init__.py"
-        if init_path in seen:
-            continue
-        seen.add(init_path)
-
-        if not init_path.exists():
-            logging.warning(f"Package init not found: {init_path}")
-            continue
-
-        result = prebake(init_path, local_version=git_hash)
-        if result:
-            echo(f"Pre-baked {init_path}: {result}")
-        else:
-            echo(f"No changes to {init_path}")

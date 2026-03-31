@@ -18,6 +18,8 @@
 - Add workflows permission probe to `lint-repo` PAT capability checks.
 - Auto-exclude `changelog.md` for awesome-list repositories. The changelog stub is pointless without the `changelog.yaml` workflow, which was already scoped to non-awesome repos.
 - Remove redundant `[tool.repomatic]` exclude entries from the awesome template `pyproject.toml`. The three workflow files (`changelog.yaml`, `debug.yaml`, `release.yaml`) are already auto-excluded by their `NON_AWESOME` scope in the registry.
+- Remove `prebake-version` and `prebake-tag-sha` CLI commands. Use `click-extra prebake all`, `click-extra prebake version`, or `click-extra prebake field` instead.
+- Rename `__tag_sha__` to `__git_tag_sha__` to align with click-extra's `git_*` template field naming convention.
 - Add `scope` field to `Component` base class. Enables component-level scope gating (e.g., `changelog` is `NON_AWESOME`), complementing the existing file-level `FileEntry.scope`.
 - Add `target` field to `GeneratedComponent`. Records the output path so auto-exclusion can detect stale copies on disk without hardcoded path mappings.
 - Move `keep_unmodified` from `BundledComponent` to `Component` base class.

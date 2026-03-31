@@ -457,7 +457,6 @@ expected = {
         "tests/test_metadata.py",
         "tests/test_platform_keys.py",
         "tests/test_pr_body.py",
-        "tests/test_prebake.py",
         "tests/test_pyproject.py",
         "tests/test_release_prep.py",
         "tests/test_release_sync.py",

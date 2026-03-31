@@ -416,6 +416,7 @@ def generate_thin_caller(
     repo: str = DEFAULT_REPO,
     version: str = DEFAULT_VERSION,
     source_paths: list[str] | None = None,
+    commit_sha: str | None = None,
 ) -> str:
     """Generate a thin caller workflow for a reusable canonical workflow.
 
@@ -428,11 +429,18 @@ def generate_thin_caller(
     with downstream equivalents. When ``None``, paths are stripped entirely
     (conservative but correct — triggers on any file change).
 
+    When *commit_sha* is provided, the ``uses:`` reference is SHA-pinned
+    (``@sha # version``) matching Renovate's pin format. This eliminates
+    Renovate's initial "pin dependencies" PR on downstream repos.
+
     :param filename: Canonical workflow filename (e.g., ``release.yaml``).
     :param repo: Upstream repository (default: ``kdeldycke/repomatic``).
     :param version: Version reference (default: ``main``).
     :param source_paths: Downstream source directory names (e.g.,
         ``["extra_platforms"]``). ``None`` strips all path filters.
+    :param commit_sha: Full 40-character commit SHA for the version tag.
+        When provided, produces ``@sha # version``. When ``None``, produces
+        ``@version``.
     :return: Complete YAML content for the thin caller workflow.
     :raises ValueError: If the workflow does not support ``workflow_call``.
     """
@@ -458,6 +466,10 @@ def generate_thin_caller(
     # Concurrency is intentionally omitted: the reusable workflow's own
     # concurrency block applies when called via ``workflow_call``, so
     # duplicating it in the thin caller would be redundant.
+    if commit_sha:
+        uses_ref = f"{commit_sha} # {version}"
+    else:
+        uses_ref = version
     lines = [
         "---",
         f"name: {info.name}",
@@ -466,7 +478,7 @@ def generate_thin_caller(
         "jobs:",
         "",
         f"  {filename.removesuffix('.yaml')}:",
-        f"    uses: {repo}/.github/workflows/{filename}@{version}",
+        f"    uses: {repo}/.github/workflows/{filename}@{uses_ref}",
     ]
 
     # Pass only the specific secrets the canonical workflow declares, so
@@ -912,6 +924,7 @@ def generate_workflows(
     output_dir: Path,
     overwrite: bool,
     source_paths: list[str] | None = None,
+    commit_sha: str | None = None,
 ) -> int:
     """Generate workflow files in the specified format.
 
@@ -925,6 +938,8 @@ def generate_workflows(
     :param overwrite: Whether to overwrite existing files.
     :param source_paths: Downstream source directory names for ``paths:``
         filters. ``None`` strips all path filters (conservative default).
+    :param commit_sha: Full 40-character commit SHA for SHA-pinned
+        ``uses:`` references. Passed through to :func:`generate_thin_caller`.
     :return: Exit code (0 for success, 1 for errors).
     """
     # Default to all reusable workflows for thin-caller, non-reusable for
@@ -965,7 +980,11 @@ def generate_workflows(
 
             try:
                 content = generate_thin_caller(
-                    filename, repo, version, source_paths=source_paths
+                    filename,
+                    repo,
+                    version,
+                    source_paths=source_paths,
+                    commit_sha=commit_sha,
                 )
             except ValueError as e:
                 logging.error(str(e))

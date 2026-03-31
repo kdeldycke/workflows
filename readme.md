@@ -91,7 +91,6 @@ Release & versioning:
   release-prep           Prepare files for a release
   version-check          Check if a version bump is allowed
   git-tag                Create and push a Git tag
-  prebake-version        Pre-bake __version__ with Git commit hash
 
 Sync:
   sync-gitignore         Sync .gitignore from gitignore.io templates

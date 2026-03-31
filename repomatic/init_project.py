@@ -831,6 +831,11 @@ def _init_workflows(
         generate_workflow_header,
     )
 
+    from . import __git_tag_sha__
+
+    # Use the build-time SHA for pinning, if available.
+    commit_sha: str | None = __git_tag_sha__ or None
+
     workflows = REUSABLE_WORKFLOWS
     if include is not None:
         workflows = tuple(w for w in workflows if w in include)
@@ -857,7 +862,11 @@ def _init_workflows(
         rel = target.relative_to(output_dir).as_posix()
         existed = target.exists()
         content = generate_thin_caller(
-            filename, repo, version, source_paths=source_paths
+            filename,
+            repo,
+            version,
+            source_paths=source_paths,
+            commit_sha=commit_sha,
         )
         target.write_text(content, encoding="UTF-8")
         if existed:

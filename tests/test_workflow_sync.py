@@ -764,6 +764,62 @@ def test_thin_caller_omits_paths_filter(filename: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# SHA-pinned thin callers
+# ---------------------------------------------------------------------------
+
+FAKE_SHA = "072c7bbbcdd607011c6ca4fb9d5098532aee2dea"
+
+
+def test_thin_caller_sha_pinned() -> None:
+    """Thin caller with ``commit_sha`` produces ``@sha # version``."""
+    content = generate_thin_caller(
+        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
+    )
+    assert f"@{FAKE_SHA} # v6.8.0" in content
+
+
+def test_thin_caller_sha_none_fallback() -> None:
+    """Thin caller without ``commit_sha`` produces ``@version``."""
+    content = generate_thin_caller("lint.yaml", version="v6.8.0", commit_sha=None)
+    assert "@v6.8.0" in content
+    assert f"@{FAKE_SHA}" not in content
+
+
+def test_thin_caller_sha_pinned_yaml_valid() -> None:
+    """SHA-pinned thin caller is valid YAML with comment stripped."""
+    content = generate_thin_caller(
+        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
+    )
+    data = yaml.safe_load(content)
+    jobs = data.get("jobs", {})
+    uses = next(iter(jobs.values()))["uses"]
+    # YAML parser strips the # comment — value is just the SHA part.
+    assert uses.endswith(f"@{FAKE_SHA}")
+    assert "v6.8.0" not in uses
+
+
+def test_identify_canonical_workflow_sha_pinned(tmp_path: Path) -> None:
+    """``identify_canonical_workflow`` recognizes SHA-pinned thin callers."""
+    content = generate_thin_caller(
+        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
+    )
+    wf = tmp_path / "lint.yaml"
+    wf.write_text(content)
+    assert identify_canonical_workflow(wf) == "lint.yaml"
+
+
+def test_check_version_pinned_sha(tmp_path: Path) -> None:
+    """``check_version_pinned`` passes for SHA-pinned refs."""
+    content = generate_thin_caller(
+        "lint.yaml", version="v6.8.0", commit_sha=FAKE_SHA
+    )
+    wf = tmp_path / "lint.yaml"
+    wf.write_text(content)
+    result = check_version_pinned(wf)
+    assert not result.is_issue
+
+
+# ---------------------------------------------------------------------------
 # Header generation tests
 # ---------------------------------------------------------------------------
 
