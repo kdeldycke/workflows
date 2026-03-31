@@ -193,12 +193,26 @@ def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
             f"repos/{repo}/vulnerability-alerts",
             "--silent",
         ])
-    except RuntimeError:
-        msg = (
-            "Cannot access vulnerability alerts. "
-            "Either the token lacks 'Dependabot alerts: Read-only' permission "
-            "or vulnerability alerts are not enabled on the repository."
-        )
+    except RuntimeError as exc:
+        stderr = str(exc)
+        if "HTTP 403" in stderr:
+            msg = (
+                "Token lacks 'Dependabot alerts: Read-only' permission. "
+                "Update the PAT to include this permission."
+            )
+        elif "HTTP 404" in stderr:
+            msg = (
+                "Vulnerability alerts are not enabled on the repository. "
+                f"Enable them: gh api repos/{repo}/vulnerability-alerts"
+                " --method PUT"
+            )
+        else:
+            msg = (
+                "Cannot access vulnerability alerts. "
+                "Either the token lacks 'Dependabot alerts: Read-only' "
+                "permission or vulnerability alerts are not enabled on "
+                "the repository."
+            )
         return False, msg
     return True, "Dependabot alerts: token has access, alerts enabled"
 
