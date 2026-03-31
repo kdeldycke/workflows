@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.9.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.9.0` (2026-03-31)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...v6.9.0)
 
 - Add per-project test matrix configuration via `[tool.repomatic.test-matrix]` in `pyproject.toml`. Supports `exclude`, `include`, and `variations` fields that map directly to the `Matrix` class API.
 - Replace `audit-deps` lint job with `fix-vulnerable-deps` autofix job. Creates PRs that upgrade affected packages using `uv lock --upgrade-package` with `--exclude-newer-package` bypass for security fixes.
