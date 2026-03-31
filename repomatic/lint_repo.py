@@ -39,6 +39,7 @@ from .github.token import (
     check_pat_workflows_permission,
 )
 
+
 def get_repo_metadata(repo: str) -> dict[str, str | None]:
     """Fetch repository metadata from GitHub API.
 
@@ -298,6 +299,9 @@ def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
             "--jq",
             ".repository_selection",
         ])
+    except RuntimeError:
+        logging.debug("installation/repositories not available, trying cross-repo probe.")
+    else:
         selection = output.strip()
         if selection == "all":
             msg = (
@@ -306,8 +310,6 @@ def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
             )
             return msg, msg
         return None, "PAT scope: correctly limited to selected repositories."
-    except RuntimeError:
-        logging.debug("installation/repositories not available, trying cross-repo probe.")
 
     # Strategy B: cross-repo probe.
     owner = repo.split("/", 1)[0]
