@@ -115,14 +115,14 @@ Use lowercase filenames everywhere. Avoid shouting-case names like `FUNDING.YML`
 
 GitHub silently ignores certain files unless they use the exact name it expects. These are the known hard constraints where you **cannot** use `.yaml` or lowercase:
 
-| File | Required name | Why |
-|---|---|---|
-| Issue form templates | `.github/ISSUE_TEMPLATE/*.yml` | `.yaml` is not recognized for issue forms |
-| Issue template config | `.github/ISSUE_TEMPLATE/config.yml` | `.yaml` not recognized |
-| Funding config | `.github/funding.yml` | Only `.yml` documented; no evidence `.yaml` works |
-| Release notes config | `.github/release.yml` | Only `.yml` documented |
-| Issue template directory | `.github/ISSUE_TEMPLATE/` | Must be uppercase; GitHub ignores lowercase |
-| Code owners | `CODEOWNERS` | Must be uppercase; no extension |
+| File                     | Required name                       | Why                                               |
+| ------------------------ | ----------------------------------- | ------------------------------------------------- |
+| Issue form templates     | `.github/ISSUE_TEMPLATE/*.yml`      | `.yaml` is not recognized for issue forms         |
+| Issue template config    | `.github/ISSUE_TEMPLATE/config.yml` | `.yaml` not recognized                            |
+| Funding config           | `.github/funding.yml`               | Only `.yml` documented; no evidence `.yaml` works |
+| Release notes config     | `.github/release.yml`               | Only `.yml` documented                            |
+| Issue template directory | `.github/ISSUE_TEMPLATE/`           | Must be uppercase; GitHub ignores lowercase       |
+| Code owners              | `CODEOWNERS`                        | Must be uppercase; no extension                   |
 
 Workflows (`.github/workflows/*.yaml`) and action metadata (`action.yaml`) officially support both `.yml` and `.yaml` — use `.yaml`.
 

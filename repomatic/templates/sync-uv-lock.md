@@ -8,7 +8,7 @@ footer: false
 
 Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions. See the [`sync-uv-lock` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
 
-$diff_table
+\$diff_table
 
 ### Configuration
 

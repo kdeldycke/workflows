@@ -21,7 +21,7 @@ This skill automates the detection side: find what drifted, show the delta, and 
 
 ### Scope
 
-**In downstream awesome-* repos:** Sync `readme.*.md` files against `readme.md`.
+**In downstream awesome-* repos:*\* Sync `readme.*.md` files against `readme.md`.
 
 **In the repomatic canonical repo:** Sync `contributing.*.md` against `contributing.md` inside `repomatic/data/awesome_template/.github/`. The awesome-template is the source of truth for contributing guides synced to all downstream repos, so keeping its translations current benefits every downstream project.
 
@@ -37,9 +37,9 @@ If context shows `CANONICAL_REPO` and `HAS_AWESOME_TEMPLATE`, look inside `repom
 
 Report the discovered pairs as a table:
 
-| English source | Translation | Language |
-|:---------------|:------------|:---------|
-| `readme.md` | `readme.zh.md` | zh |
+| English source | Translation    | Language |
+| :------------- | :------------- | :------- |
+| `readme.md`    | `readme.zh.md` | zh       |
 
 If no translation files are found, tell the user and suggest creating one.
 
@@ -68,23 +68,23 @@ Present findings grouped by severity:
 
 **Structure breaks** (sections added/removed in English but not reflected):
 
-| Section | Issue | English | Translation |
-|:--------|:------|:--------|:------------|
-| `## New Section` | Missing from translation | line 45 | — |
+| Section          | Issue                    | English | Translation |
+| :--------------- | :----------------------- | :------ | :---------- |
+| `## New Section` | Missing from translation | line 45 | —           |
 
 **Content drift** (section exists in both but content diverged):
 
-| Section | Signal | Details |
-|:--------|:-------|:--------|
+| Section      | Signal                   | Details                                           |
+| :----------- | :----------------------- | :------------------------------------------------ |
 | `## Billing` | 3 links added in English | `example.com/a`, `example.com/b`, `example.com/c` |
-| `## IAM` | 2 list items removed | English has 12, translation has 14 |
+| `## IAM`     | 2 list items removed     | English has 12, translation has 14                |
 
 **Cosmetic** (non-blocking but worth fixing):
 
-| Issue | Location |
-|:------|:---------|
-| Language badge links inconsistent | line 20-21 |
-| Trailing whitespace in translation | line 134 |
+| Issue                              | Location   |
+| :--------------------------------- | :--------- |
+| Language badge links inconsistent  | line 20-21 |
+| Trailing whitespace in translation | line 134   |
 
 ### Step 5: Draft translations for stale sections
 
