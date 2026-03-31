@@ -5,38 +5,20 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
-- Rename `pr-metadata.md` template to `.md.noformat` extension to prevent mdformat from mangling the `$rerun_row` table-row placeholder.
-- Add per-project test matrix configuration via `[tool.repomatic.test-matrix]` in `pyproject.toml`. Supports `exclude`, `include`, and `variations` fields that map directly to the `Matrix` class API. Allows downstream projects to customize test matrices without maintaining custom workflow files.
-- Replace `audit-deps` lint job with `fix-vulnerable-deps` autofix job. Instead of failing the lint workflow when vulnerabilities are found, creates PRs that upgrade affected packages using `uv lock --upgrade-package` with `--exclude-newer-package` bypass for security fixes.
-- Fix infinite cycle between `migrate-to-renovate` and `sync-repomatic` jobs. The migration job no longer exports `renovate.json5` — the `renovate` job materializes the bundled default at runtime when absent, so a committed copy is unnecessary.
-- Include git stderr in `git-tag` CLI error messages. Previously `capture_output=True` swallowed the actual rejection reason, making tag push failures opaque in CI logs.
-- Add PAT repository scope check to `lint-repo`. Detects tokens configured with "All repositories" access instead of "Only select repositories", using the `/installation/repositories` endpoint with a cross-repo probe fallback.
-- Add tag ruleset detection to `lint-repo`. Warns when active rulesets targeting tags are found, which can block the `create-tag` job from pushing release tags.
-- Remove upstream repo carve-out from the `setup-guide` job. The upstream repo is no longer excluded, so a missing `REPOMATIC_PAT` secret is now detected everywhere.
-- Fix missing `HAS_REPOMATIC_PAT` env var in the `setup-guide` workflow step. Without it, the command could not detect when the PAT was already configured.
-- Expand `check-renovate` to validate all PAT permissions (contents, issues, pull requests, vulnerability alerts, workflows) as warnings, not just commit statuses. Prevents silent failures where Renovate creates branches but cannot open PRs due to missing permissions.
-- Add workflows permission probe to `lint-repo` PAT capability checks.
-- Auto-exclude `changelog.md` for awesome-list repositories. The changelog stub is pointless without the `changelog.yaml` workflow, which was already scoped to non-awesome repos.
-- Remove redundant `[tool.repomatic]` exclude entries from the awesome template `pyproject.toml`. The three workflow files (`changelog.yaml`, `debug.yaml`, `release.yaml`) are already auto-excluded by their `NON_AWESOME` scope in the registry.
-- Remove `prebake-version` and `prebake-tag-sha` CLI commands. Use `click-extra prebake all`, `click-extra prebake version`, or `click-extra prebake field` instead.
-- Rename `__tag_sha__` to `__git_tag_sha__` to align with click-extra's `git_*` template field naming convention.
-- Add `scope` field to `Component` base class. Enables component-level scope gating (e.g., `changelog` is `NON_AWESOME`), complementing the existing file-level `FileEntry.scope`.
-- Add `target` field to `GeneratedComponent`. Records the output path so auto-exclusion can detect stale copies on disk without hardcoded path mappings.
-- Move `keep_unmodified` from `BundledComponent` to `Component` base class.
-- Add `Metadata.is_awesome` cached property. Centralizes the `awesome-*` repo name detection previously duplicated across modules.
-- Add generic config-key gating to `init`. Components with a `config_key` are now filtered before dispatch, eliminating the manual check for `awesome-template`.
-- Replace hardcoded init dispatch with a type-driven loop over the component registry. Adding a new `BundledComponent` no longer requires editing a hardcoded tuple.
-- Generate `init` CLI help text from the component registry. The component table and file-selector list are now always in sync with the registry.
+- Add per-project test matrix configuration via `[tool.repomatic.test-matrix]` in `pyproject.toml`. Supports `exclude`, `include`, and `variations` fields that map directly to the `Matrix` class API.
+- Replace `audit-deps` lint job with `fix-vulnerable-deps` autofix job. Creates PRs that upgrade affected packages using `uv lock --upgrade-package` with `--exclude-newer-package` bypass for security fixes.
+- Add `codecov` bundled component. Syncs `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines.
+- Extend tool runner config resolution to support CWD-discovery tools (no `--config` flag). Bundled defaults are written to disk and cleaned up after invocation. Move mdformat `number` default to a bundled `mdformat.toml` so downstream repos can override via `[tool.mdformat]` or `.mdformat.toml`.
+- Replace dict-based config loading with click-extra's typed config resolution. `[tool.repomatic]` is auto-discovered from `pyproject.toml` and exposed as a typed `Config` dataclass via `get_tool_config()`. Rename `config` subcommand to `show-config` to resolve a naming conflict with click-extra's `--config` option.
+- Expand PAT validation in `lint-repo` and `check-renovate`. `lint-repo` gains repository scope check, tag ruleset detection, and workflows permission probe. `check-renovate` validates all PAT permissions (contents, issues, pull requests, vulnerability alerts, workflows) as warnings.
+- Auto-exclude `changelog.md` for awesome-list repositories and remove redundant `[tool.repomatic]` exclude entries from the awesome template. Refactor the component registry to support `scope`, `target`, and `config_key` fields, replacing hardcoded dispatch with a type-driven loop. `init` CLI help text is now auto-generated from the registry.
+- Remove `prebake-version` and `prebake-tag-sha` CLI commands. Use `click-extra prebake all`, `click-extra prebake version`, or `click-extra prebake field` instead. Rename `__tag_sha__` to `__git_tag_sha__` to align with click-extra's `git_*` naming convention.
 - Migrate from `actions/attest-build-provenance` to `actions/attest`.
-- Move mdformat `number` default from a CLI flag to a bundled `mdformat.toml` config. Downstream repos can now override it via their own `[tool.mdformat]` or `.mdformat.toml`, which was previously impossible because CLI flags take precedence over config files.
-- Set `reads_pyproject=True` on the mdformat `ToolSpec`. Downstream repos can now configure mdformat via `[tool.mdformat]` in `pyproject.toml` without triggering a `NotImplementedError`.
-- Extend Level 3 config resolution to support tools without a `--config` flag. When a tool discovers config by searching CWD (like mdformat), the bundled default is written to the first `native_config_files` path and cleaned up after invocation.
-- Replace hand-rolled `_flatten_config` and dict-based config loading with click-extra's `flatten_config_keys` and `normalize_config_keys`. `load_repomatic_config()` now returns a typed `Config` dataclass instance instead of a flat dict, giving all consumers attribute access with type checking.
-- Rename `config` subcommand to `show-config` to resolve a naming conflict with click-extra's `--config` option that prevented `--show-params` from working.
-- Skip Codecov uploads on `sync-repomatic` PRs. Data-only changes have no coverable lines, so the coverage report was pure noise.
-- Add `codecov` bundled component. Syncs `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines. Marked `keep_unmodified=True` so the config is preserved on disk even when identical to the bundled default — Codecov reads it directly from the repo, unlike tools that receive their config via a CLI flag at invocation time.
-- Extract `Config` dataclass, `load_repomatic_config`, and all config reference utilities from `metadata.py` into a dedicated `config.py` module.
-- Wire `config_schema=Config, schema_strict=True` on the CLI group. click-extra now auto-discovers `pyproject.toml` from CWD, loads `[tool.repomatic]`, and provides a typed `Config` instance via `get_tool_config()`. CLI commands no longer call `load_repomatic_config()` directly.
+- Rename `pr-metadata.md` template to `.md.noformat` extension to prevent mdformat from mangling the `$rerun_row` table-row placeholder.
+- Skip Codecov uploads on `sync-repomatic` PRs.
+- Fix `setup-guide` job: add missing `HAS_REPOMATIC_PAT` env var and remove upstream repo carve-out so PAT detection works everywhere.
+- Fix infinite cycle between `migrate-to-renovate` and `sync-repomatic` jobs.
+- Include git stderr in `git-tag` CLI error messages.
 
 ## [`6.8.0` (2026-03-27)](https://github.com/kdeldycke/repomatic/compare/v6.7.0...v6.8.0)
 
