@@ -21,7 +21,7 @@ This skill automates the detection side: find what drifted, show the delta, and 
 
 ### Scope
 
-**In downstream awesome-* repos:*\* Sync `readme.*.md` files against `readme.md`.
+**In downstream `awesome-*` repos:** Sync `readme.*.md` files against `readme.md`.
 
 **In the repomatic canonical repo:** Sync `contributing.*.md` against `contributing.md` inside `repomatic/data/awesome_template/.github/`. The awesome-template is the source of truth for contributing guides synced to all downstream repos, so keeping its translations current benefits every downstream project.
 
