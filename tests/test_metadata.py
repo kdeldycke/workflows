@@ -438,6 +438,7 @@ expected = {
         "repomatic/test_matrix.py",
         "repomatic/test_plan.py",
         "repomatic/tool_runner.py",
+        "repomatic/uv.py",
         "tests/__init__.py",
         "tests/conftest.py",
         "tests/test_awesome_template.py",

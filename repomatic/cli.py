@@ -128,8 +128,10 @@ from .release_prep import ReleasePrep
 from .renovate import (
     CheckFormat,
     collect_check_results,
-    fix_vulnerable_deps as _fix_vulnerable_deps,
     run_migration_checks,
+)
+from .uv import (
+    fix_vulnerable_deps as _fix_vulnerable_deps,
     sync_uv_lock as _sync_uv_lock,
 )
 from .sponsor import (

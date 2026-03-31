@@ -37,7 +37,7 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-from repomatic.tool_runner import uv_cmd
+from repomatic.uv import parse_lock_specifiers, parse_lock_subgraph_specifiers, uv_cmd
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -256,119 +256,6 @@ def get_package_names_from_sbom(sbom: dict[str, Any]) -> set[str]:
         if name := component.get("name"):
             names.add(name)
     return names
-
-
-def parse_uv_lock_specifiers(
-    lock_path: Path | None = None,
-) -> dict[str, dict[str, str]]:
-    """Parse uv.lock to extract dependency specifiers.
-
-    Specifiers are found in ``[package.metadata].requires-dist`` for main
-    dependencies and ``[package.metadata.requires-dev].<group>`` for dev groups.
-
-    :param lock_path: Path to uv.lock file. If None, looks in current directory.
-    :return: Nested dict mapping package_name -> {dep_name -> specifier}.
-    """
-    if lock_path is None:
-        lock_path = Path("uv.lock")
-
-    if not lock_path.exists():
-        return {}
-
-    with lock_path.open("rb") as f:
-        lock_data = tomllib.load(f)
-
-    specifiers: dict[str, dict[str, str]] = {}
-
-    for package in lock_data.get("package", []):
-        pkg_name = package.get("name", "")
-        if not pkg_name:
-            continue
-
-        pkg_deps: dict[str, str] = {}
-        metadata = package.get("metadata", {})
-
-        # Parse requires-dist for main dependencies.
-        for dep in metadata.get("requires-dist", []):
-            if isinstance(dep, dict):
-                dep_name = dep.get("name", "")
-                specifier = dep.get("specifier", "")
-                if dep_name and specifier:
-                    pkg_deps[dep_name] = specifier
-
-        # Parse requires-dev for dev group dependencies.
-        requires_dev = metadata.get("requires-dev", {})
-        for group_deps in requires_dev.values():
-            for dep in group_deps:
-                if isinstance(dep, dict):
-                    dep_name = dep.get("name", "")
-                    specifier = dep.get("specifier", "")
-                    if dep_name and specifier:
-                        pkg_deps[dep_name] = specifier
-
-        if pkg_deps:
-            specifiers[pkg_name] = pkg_deps
-
-    return specifiers
-
-
-def parse_uv_lock_subgraph_specifiers(
-    lock_path: Path | None = None,
-) -> dict[str, dict[str, str]]:
-    """Parse uv.lock to extract primary dependency specifiers per group and extra.
-
-    Returns specifiers organized by subgraph name (group or extra), mapping
-    each to its primary dependencies (explicitly declared in pyproject.toml)
-    with their specifiers.
-
-    :param lock_path: Path to uv.lock file. If None, looks in current directory.
-    :return: Dict mapping subgraph_name -> {dep_name -> specifier}.
-    """
-    if lock_path is None:
-        lock_path = Path("uv.lock")
-
-    if not lock_path.exists():
-        return {}
-
-    with lock_path.open("rb") as f:
-        lock_data = tomllib.load(f)
-
-    result: dict[str, dict[str, str]] = {}
-
-    for package in lock_data.get("package", []):
-        metadata = package.get("metadata", {})
-        if not metadata:
-            continue
-
-        # Parse requires-dev for group specifiers.
-        requires_dev = metadata.get("requires-dev", {})
-        for group_name, group_deps in requires_dev.items():
-            group_specs: dict[str, str] = {}
-            for dep in group_deps:
-                if isinstance(dep, dict):
-                    dep_name = dep.get("name", "")
-                    specifier = dep.get("specifier", "")
-                    if dep_name:
-                        group_specs[dep_name] = specifier
-            if group_specs:
-                result[group_name] = group_specs
-
-        # Parse requires-dist for extra specifiers.
-        for dep in metadata.get("requires-dist", []):
-            if not isinstance(dep, dict):
-                continue
-            marker = dep.get("marker", "")
-            # Match entries like: marker = "extra == 'xml'".
-            match = re.match(r"extra\s*==\s*'([^']+)'", marker)
-            if not match:
-                continue
-            extra_name = match.group(1)
-            dep_name = dep.get("name", "")
-            specifier = dep.get("specifier", "")
-            if dep_name:
-                result.setdefault(extra_name, {})[dep_name] = specifier
-
-    return result
 
 
 def build_dependency_graph(
@@ -877,8 +764,8 @@ def generate_dependency_graph(
     root_name, nodes, edges = build_dependency_graph(sbom)
 
     # Parse specifiers from uv.lock for edge labels and subgraph node labels.
-    specifiers = parse_uv_lock_specifiers()
-    subgraph_specifiers = parse_uv_lock_subgraph_specifiers()
+    specifiers = parse_lock_specifiers()
+    subgraph_specifiers = parse_lock_subgraph_specifiers()
 
     # Get base packages (without any groups or extras) for comparison.
     base_sbom = get_cyclonedx_sbom(frozen=frozen)

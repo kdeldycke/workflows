@@ -23,20 +23,23 @@ from contextlib import ExitStack
 from unittest.mock import patch
 
 from repomatic.renovate import (
-    RELEASE_NOTES_MAX_LENGTH,
     RenovateCheckResult,
-    _format_upload_date,
-    _parse_github_owner_repo,
     check_commit_statuses_permission,
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
     check_renovate_config_exists,
     collect_check_results,
+    get_dependabot_config_path,
+    run_migration_checks,
+)
+from repomatic.uv import (
+    RELEASE_NOTES_MAX_LENGTH,
+    _format_upload_date,
+    _parse_github_owner_repo,
     diff_lock_versions,
     fetch_release_notes,
     format_diff_table,
     format_release_notes,
-    get_dependabot_config_path,
     get_github_release_body,
     get_pypi_source_url,
     is_lock_diff_only_timestamp_noise,
@@ -44,7 +47,6 @@ from repomatic.renovate import (
     parse_lock_upload_times,
     parse_lock_versions,
     revert_lock_if_noise,
-    run_migration_checks,
     sync_uv_lock,
 )
 
@@ -432,7 +434,7 @@ index abc1234..def5678 100644
 def _mock_subprocess_run(stdout):
     """Create a mock for subprocess.run returning the given stdout."""
     mock_result = type("Result", (), {"stdout": stdout, "returncode": 0})()
-    return patch("repomatic.renovate.subprocess.run", return_value=mock_result)
+    return patch("repomatic.uv.subprocess.run", return_value=mock_result)
 
 
 def test_timestamp_only_diff_is_noise(tmp_path):
@@ -461,9 +463,9 @@ def test_revert_lock_if_noise_reverts(tmp_path):
     lock_path = tmp_path / "uv.lock"
     with (
         patch(
-            "repomatic.renovate.is_lock_diff_only_timestamp_noise", return_value=True
+            "repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=True
         ),
-        patch("repomatic.renovate.subprocess.run") as mock_run,
+        patch("repomatic.uv.subprocess.run") as mock_run,
     ):
         result = revert_lock_if_noise(lock_path)
         assert result is True
@@ -477,7 +479,7 @@ def test_revert_lock_if_noise_keeps(tmp_path):
     """Keep lock file when diff contains real changes."""
     lock_path = tmp_path / "uv.lock"
     with patch(
-        "repomatic.renovate.is_lock_diff_only_timestamp_noise", return_value=False
+        "repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=False
     ):
         result = revert_lock_if_noise(lock_path)
         assert result is False
@@ -487,12 +489,12 @@ def test_sync_uv_lock_keeps_real_changes(tmp_path):
     """Keep lock file when real dependency changes exist."""
     lock_path = tmp_path / "uv.lock"
     with (
-        patch("repomatic.renovate.subprocess.run") as mock_run,
+        patch("repomatic.uv.subprocess.run") as mock_run,
         patch(
-            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+            "repomatic.uv.is_lock_diff_only_timestamp_noise",
             return_value=False,
         ),
-        patch("repomatic.renovate.parse_lock_versions", return_value={}),
+        patch("repomatic.uv.parse_lock_versions", return_value={}),
     ):
         reverted, _diff_table = sync_uv_lock(lock_path)
         assert reverted is False
@@ -506,9 +508,9 @@ def test_sync_uv_lock_reverts_noise(tmp_path):
     """Revert lock file when only timestamp noise changed."""
     lock_path = tmp_path / "uv.lock"
     with (
-        patch("repomatic.renovate.subprocess.run") as mock_run,
+        patch("repomatic.uv.subprocess.run") as mock_run,
         patch(
-            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+            "repomatic.uv.is_lock_diff_only_timestamp_noise",
             return_value=True,
         ),
     ):
@@ -525,12 +527,12 @@ def test_sync_uv_lock_returns_diff_table(tmp_path):
     before = {"anyio": "4.12.0", "boltons": "25.0.0"}
     after = {"anyio": "4.12.1", "boltons": "25.0.0"}
     with (
-        patch("repomatic.renovate.subprocess.run"),
+        patch("repomatic.uv.subprocess.run"),
         patch(
-            "repomatic.renovate.is_lock_diff_only_timestamp_noise",
+            "repomatic.uv.is_lock_diff_only_timestamp_noise",
             return_value=False,
         ),
-        patch("repomatic.renovate.parse_lock_versions", side_effect=[before, after]),
+        patch("repomatic.uv.parse_lock_versions", side_effect=[before, after]),
     ):
         reverted, diff_table = sync_uv_lock(lock_path)
         assert reverted is False
@@ -782,7 +784,7 @@ def test_get_github_release_body_found():
     """Fetch release body from GitHub for v-prefixed tag."""
     release_data = json.dumps({"body": "### Bug fixes\n- Fixed a bug."}).encode()
     mock = _make_urlopen_mock({"releases/tags/v7.13.5": (release_data,)})
-    with patch("repomatic.renovate.urlopen", side_effect=mock):
+    with patch("repomatic.uv.urlopen", side_effect=mock):
         tag, body = get_github_release_body(
             "https://github.com/nedbat/coveragepy",
             "7.13.5",
@@ -816,7 +818,7 @@ def test_get_github_release_body_bare_tag_fallback():
             return FakeResp()
         raise URLError(f"No mock for {url}")
 
-    with patch("repomatic.renovate.urlopen", side_effect=side_effect):
+    with patch("repomatic.uv.urlopen", side_effect=side_effect):
         tag, body = get_github_release_body(
             "https://github.com/owner/repo",
             "2.0",
@@ -831,7 +833,7 @@ def test_get_github_release_body_not_found():
         "tags/v": (None,),
         "tags/1": (None,),
     })
-    with patch("repomatic.renovate.urlopen", side_effect=mock):
+    with patch("repomatic.uv.urlopen", side_effect=mock):
         tag, body = get_github_release_body(
             "https://github.com/owner/repo",
             "1.0",
@@ -843,7 +845,7 @@ def test_get_github_release_body_not_found():
 def test_fetch_release_notes_skips_removals():
     """Removed packages (empty new_version) are not fetched."""
     changes = [("old-pkg", "1.0.0", "")]
-    with patch("repomatic.renovate.get_pypi_source_url") as mock_pypi:
+    with patch("repomatic.uv.get_pypi_source_url") as mock_pypi:
         notes = fetch_release_notes(changes)
     mock_pypi.assert_not_called()
     assert notes == {}
@@ -856,8 +858,8 @@ def test_fetch_release_notes_aggregation():
         ("pkg-b", "3.0", "4.0"),
     ]
     with (
-        patch("repomatic.renovate.get_pypi_source_url") as mock_pypi,
-        patch("repomatic.renovate.get_github_release_body") as mock_gh,
+        patch("repomatic.uv.get_pypi_source_url") as mock_pypi,
+        patch("repomatic.uv.get_github_release_body") as mock_gh,
     ):
         mock_pypi.side_effect = [
             "https://github.com/owner/pkg-a",
