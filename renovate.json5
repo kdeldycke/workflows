@@ -103,7 +103,7 @@
     {
       description: "Update npm packages in workflow install commands.",
       customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      managerFilePatterns: ["/\\.github/workflows/.+\\.yaml$/"],
       matchStrings: [
         // Matches: npm install package@version or "package@version"
         "npm.+install.+?\"?(?<depName>@?[a-z0-9-]+(/[a-z0-9-]+)?)@(?<currentValue>[0-9.]+)\"?",
@@ -113,7 +113,7 @@
     {
       description: "Update actionlint version in matcher URL.",
       customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      managerFilePatterns: ["/\\.github/workflows/.+\\.yaml$/"],
       matchStrings: [
         // Matches: actionlint/refs/tags/v1.7.10/
         "actionlint/refs/tags/v(?<currentValue>[0-9.]+)/",
@@ -124,7 +124,7 @@
     {
       description: "Update actionlint version in tool runner registry.",
       customType: "regex",
-      fileMatch: ["repomatic/tool_runner\\.py$"],
+      managerFilePatterns: ["/repomatic/tool_runner\\.py$/"],
       matchStrings: [
         // Matches the version field in the actionlint ToolSpec entry.
         "\"actionlint\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
@@ -135,7 +135,7 @@
     {
       description: "Update gitleaks version in tool runner registry.",
       customType: "regex",
-      fileMatch: ["repomatic/tool_runner\\.py$"],
+      managerFilePatterns: ["/repomatic/tool_runner\\.py$/"],
       matchStrings: [
         "\"gitleaks\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
       ],
@@ -145,7 +145,7 @@
     {
       description: "Update labelmaker version in tool runner registry.",
       customType: "regex",
-      fileMatch: ["repomatic/tool_runner\\.py$"],
+      managerFilePatterns: ["/repomatic/tool_runner\\.py$/"],
       matchStrings: [
         "\"labelmaker\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
       ],
@@ -155,7 +155,7 @@
     {
       description: "Update lychee version in tool runner registry.",
       customType: "regex",
-      fileMatch: ["repomatic/tool_runner\\.py$"],
+      managerFilePatterns: ["/repomatic/tool_runner\\.py$/"],
       matchStrings: [
         "\"lychee\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
       ],
@@ -166,7 +166,7 @@
     {
       description: "Update typos version in tool runner registry.",
       customType: "regex",
-      fileMatch: ["repomatic/tool_runner\\.py$"],
+      managerFilePatterns: ["/repomatic/tool_runner\\.py$/"],
       matchStrings: [
         "\"typos\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
       ],
@@ -176,7 +176,7 @@
     {
       description: "Update Biome version in tool runner registry.",
       customType: "regex",
-      fileMatch: ["repomatic/tool_runner\\.py$"],
+      managerFilePatterns: ["/repomatic/tool_runner\\.py$/"],
       matchStrings: [
         "\"biome\":\\s*ToolSpec\\([^)]*version=\"(?<currentValue>[0-9.]+)\"",
       ],
@@ -187,7 +187,7 @@
     {
       description: "Update Python packages in uv/uvx commands.",
       customType: "regex",
-      fileMatch: ["\\.github/workflows/.+\\.yaml$"],
+      managerFilePatterns: ["/\\.github/workflows/.+\\.yaml$/"],
       matchStrings: [
         // Matches: uvx 'package==1.2.3', uv tool install 'package==1.2.3',
         // uv pip install 'package==1.2.3', --with 'package==1.2.3',
@@ -200,7 +200,7 @@
     {
       description: "Update uv version in postUpgradeTasks download URL.",
       customType: "regex",
-      fileMatch: ["renovate\\.json5$"],
+      managerFilePatterns: ["/renovate\\.json5$/"],
       matchStrings: [
         // Matches: uv/releases/download/0.10.12/
         "uv/releases/download/(?<currentValue>[0-9.]+)/",
