@@ -1974,13 +1974,30 @@ class Metadata:
 
         return matrix
 
+    def _apply_test_matrix_config(self, matrix: Matrix, full: bool = False) -> None:
+        """Apply per-project ``[tool.repomatic.test-matrix]`` config to a matrix.
+
+        :param matrix: The matrix to modify in-place.
+        :param full: If ``True``, also apply ``variations`` (extra dimension
+            values). Variations are only added to the full matrix, not the PR
+            matrix, to keep PR CI fast.
+        """
+        if full:
+            for var_id, values in self.config.test_matrix_variations.items():
+                matrix.add_variation(var_id, values)
+        if self.config.test_matrix_exclude:
+            matrix.add_excludes(*self.config.test_matrix_exclude)
+        if self.config.test_matrix_include:
+            matrix.add_includes(*self.config.test_matrix_include)
+
     @cached_property
     def test_matrix(self) -> Matrix:
         """Full test matrix for non-PR events.
 
         Combines all runner OS images and Python versions, excluding known
         incompatible combinations. Marks development Python versions as
-        unstable so CI can use ``continue-on-error``.
+        unstable so CI can use ``continue-on-error``. Per-project config
+        from ``[tool.repomatic.test-matrix]`` is applied last.
         """
         matrix = Matrix()
         matrix.add_variation("os", TEST_RUNNERS_FULL)
@@ -1990,6 +2007,7 @@ class Metadata:
         matrix.add_includes({"state": "stable"})
         for version in sorted(UNSTABLE_PYTHON_VERSIONS):
             matrix.add_includes({"state": "unstable", "python-version": version})
+        self._apply_test_matrix_config(matrix, full=True)
         return matrix
 
     @cached_property
@@ -1997,12 +2015,15 @@ class Metadata:
         """Reduced test matrix for pull requests.
 
         Skips experimental Python versions and redundant architecture
-        variants to reduce CI load on PRs.
+        variants to reduce CI load on PRs. Per-project config excludes and
+        includes from ``[tool.repomatic.test-matrix]`` are applied, but
+        variations are not (to keep the PR matrix small).
         """
         matrix = Matrix()
         matrix.add_variation("os", TEST_RUNNERS_PR)
         matrix.add_variation("python-version", TEST_PYTHON_PR)
         matrix.add_includes({"state": "stable"})
+        self._apply_test_matrix_config(matrix, full=False)
         return matrix
 
     @cached_property

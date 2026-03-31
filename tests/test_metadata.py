@@ -1275,6 +1275,9 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config.workflow_sync is True
     assert metadata.config.exclude == []
     assert metadata.config.include == []
+    assert metadata.config.test_matrix_exclude == []
+    assert metadata.config.test_matrix_include == []
+    assert metadata.config.test_matrix_variations == {}
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1320,6 +1323,19 @@ workflow.source-paths = ["extra_platforms"]
 workflow.sync = false
 exclude = ["skills", "workflows/debug.yaml", "workflows/autolock.yaml"]
 include = ["labels"]
+
+[tool.repomatic.test-matrix]
+exclude = [
+    {os = "windows-11-arm"},
+    {os = "macos-15-intel", python-version = "3.10"},
+]
+include = [
+    {state = "unstable", python-version = "3.99"},
+]
+
+[tool.repomatic.test-matrix.variations]
+os = ["custom-runner"]
+click-version = ["released", "stable", "main"]
 """
     pyproject_file = tmp_path / "pyproject.toml"
     pyproject_file.write_text(pyproject_content)
@@ -1371,6 +1387,98 @@ include = ["labels"]
         "workflows/autolock.yaml",
     ]
     assert metadata.config.include == ["labels"]
+    assert metadata.config.test_matrix_exclude == [
+        {"os": "windows-11-arm"},
+        {"os": "macos-15-intel", "python-version": "3.10"},
+    ]
+    assert metadata.config.test_matrix_include == [
+        {"state": "unstable", "python-version": "3.99"},
+    ]
+    assert metadata.config.test_matrix_variations == {
+        "os": ["custom-runner"],
+        "click-version": ["released", "stable", "main"],
+    }
+
+
+def test_test_matrix_config_exclude(tmp_path, monkeypatch):
+    """Test that test-matrix.exclude removes combos from both matrices."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.repomatic.test-matrix]
+exclude = [
+    {os = "windows-11-arm"},
+]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+    metadata = Metadata()
+
+    # Full matrix: config exclude is present alongside the upstream default.
+    full = metadata.test_matrix.matrix()
+    assert {"os": "windows-11-arm"} in full["exclude"]
+    assert {"os": "windows-11-arm", "python-version": "3.10"} in full["exclude"]
+
+    # PR matrix: config exclude is also present.
+    pr = metadata.test_matrix_pr.matrix()
+    assert {"os": "windows-11-arm"} in pr["exclude"]
+
+
+def test_test_matrix_config_variations(tmp_path, monkeypatch):
+    """Test that test-matrix.variations adds to full matrix only."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.repomatic.test-matrix.variations]
+os = ["custom-runner"]
+click-version = ["released", "stable"]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+    metadata = Metadata()
+
+    # Full matrix: custom-runner added to OS, click-version is a new axis.
+    full = metadata.test_matrix.matrix()
+    assert "custom-runner" in full["os"]
+    assert "click-version" in full
+    assert full["click-version"] == ("released", "stable")
+
+    # PR matrix: variations are NOT applied.
+    pr = metadata.test_matrix_pr.matrix()
+    assert "custom-runner" not in pr["os"]
+    assert "click-version" not in pr
+
+
+def test_test_matrix_config_include(tmp_path, monkeypatch):
+    """Test that test-matrix.include adds directives to both matrices."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.repomatic.test-matrix]
+include = [
+    {state = "unstable", python-version = "3.99"},
+]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+    metadata = Metadata()
+
+    # Full matrix: custom include added.
+    full_includes = metadata.test_matrix.matrix()["include"]
+    assert {"state": "unstable", "python-version": "3.99"} in full_includes
+
+    # PR matrix: same custom include added.
+    pr_includes = metadata.test_matrix_pr.matrix()["include"]
+    assert {"state": "unstable", "python-version": "3.99"} in pr_includes
 
 
 def test_unstable_targets_default(tmp_path, monkeypatch):

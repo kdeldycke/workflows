@@ -293,6 +293,30 @@ class Config:
     Appended to the bundled ``labeller-content-based.yaml`` during export.
     """
 
+    test_matrix_exclude: list[dict[str, str]] = field(default_factory=list)
+    """Extra exclude rules applied to both full and PR test matrices.
+
+    Each entry is a dict of GitHub Actions matrix keys (e.g.,
+    ``{"os": "windows-11-arm"}``) that removes matching combinations.
+    Additive to the upstream default excludes.
+    """
+
+    test_matrix_include: list[dict[str, str]] = field(default_factory=list)
+    """Extra include directives applied to both full and PR test matrices.
+
+    Each entry is a dict of GitHub Actions matrix keys that adds or augments
+    matrix combinations. Additive to the upstream default includes.
+    """
+
+    test_matrix_variations: dict[str, list[str]] = field(default_factory=dict)
+    """Extra matrix dimension values added to the full test matrix only.
+
+    Each key is a dimension ID (e.g., ``os``, ``click-version``) and its value
+    is a list of additional entries. For existing dimensions, values are merged
+    with the upstream defaults. For new dimension IDs, a new axis is created.
+    Only affects the full matrix; the PR matrix stays a curated reduced set.
+    """
+
 
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "awesome_template_sync",
@@ -318,6 +342,9 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "notification_unsubscribe",
     "pypi_package_history",
     "setup_guide",
+    "test_matrix_exclude",
+    "test_matrix_include",
+    "test_matrix_variations",
     "test_plan_file",
     "test_plan_inline",
     "test_plan_timeout",
@@ -344,6 +371,7 @@ _NESTED_PREFIXES: Final[dict[str, str]] = {
     "notification": "notification",
     "nuitka": "nuitka",
     "renovate": "renovate",
+    "test_matrix": "test-matrix",
     "test_plan": "test-plan",
     "uv_lock": "uv-lock",
     "workflow": "workflow",
@@ -489,7 +517,20 @@ def load_repomatic_config(
     tool_section = pyproject_data.get("tool", {})
     user_config: dict[str, Any] = tool_section.get("repomatic", {})
 
+    # Extract test-matrix section before normalization. Matrix keys like
+    # "python-version" and "os" are GitHub Actions identifiers and must not be
+    # converted to snake_case by normalize_config_keys.
+    test_matrix_raw: dict[str, Any] = user_config.get("test-matrix", {})
+    if test_matrix_raw:
+        user_config = {k: v for k, v in user_config.items() if k != "test-matrix"}
+
     flat_user = flatten_config_keys(normalize_config_keys(user_config))
+
+    # Inject test-matrix fields manually after flattening.
+    if test_matrix_raw:
+        flat_user["test_matrix_exclude"] = test_matrix_raw.get("exclude", [])
+        flat_user["test_matrix_include"] = test_matrix_raw.get("include", [])
+        flat_user["test_matrix_variations"] = test_matrix_raw.get("variations", {})
     known = {f.name for f in fields(Config)}
     unknown = sorted(set(flat_user) - known)
     if unknown:
