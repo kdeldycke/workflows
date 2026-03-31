@@ -84,14 +84,27 @@ def _parse_frontmatter(raw: str) -> tuple[dict[str, object], str]:
 def load_template(name: str) -> tuple[dict[str, object], str]:
     """Load a PR body template from the ``repomatic/templates/`` package.
 
-    :param name: Template name without ``.md`` extension (e.g. ``bump-version``).
+    Tries ``{name}.md.noformat`` first, then ``{name}.md``.  The
+    ``.md.noformat`` extension is used for templates whose
+    ``string.Template`` placeholders confuse mdformat (e.g.
+    ``$rerun_row`` at the start of a table row is parsed as a cell value,
+    breaking the table structure).  See ``pr-metadata.md.noformat`` for
+    the canonical example.
+
+    :param name: Template name without extension (e.g. ``bump-version``).
     :return: A tuple of (frontmatter metadata dict, template body string).
-    :raises FileNotFoundError: If the template file doesn't exist.
+    :raises FileNotFoundError: If neither file exists.
     """
     template_files = files("repomatic.templates")
-    with as_file(template_files.joinpath(f"{name}.md")) as path:
-        raw = path.read_text(encoding="UTF-8")
-    return _parse_frontmatter(raw)
+    # XXX: .md.noformat avoids mdformat mangling $-placeholder table hacks.
+    for ext in (".md.noformat", ".md"):
+        resource = template_files.joinpath(f"{name}{ext}")
+        if resource.is_file():
+            with as_file(resource) as path:
+                raw = path.read_text(encoding="UTF-8")
+            return _parse_frontmatter(raw)
+    msg = f"Template {name!r} not found in repomatic/templates/"
+    raise FileNotFoundError(msg)
 
 
 def _substitute(text: str, kwargs: dict[str, str | None]) -> str:
@@ -212,7 +225,10 @@ def get_template_names() -> list[str]:
     names = []
     for item in template_dir.iterdir():
         item_name = getattr(item, "name", str(item))
-        if item_name.endswith(".md"):
+        # .md.noformat files are renamed .md files hidden from mdformat.
+        if item_name.endswith(".md.noformat"):
+            names.append(item_name.removesuffix(".md.noformat"))
+        elif item_name.endswith(".md"):
             names.append(item_name.removesuffix(".md"))
     return sorted(names)
 

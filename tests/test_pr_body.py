@@ -524,7 +524,13 @@ def _template_package_items(
         filename = getattr(item, "name", str(item))
         if filename.startswith("__"):
             continue
-        name = filename.removesuffix(".md") if filename.endswith(".md") else filename
+        # .md.noformat files are renamed .md files hidden from mdformat.
+        if filename.endswith(".md.noformat"):
+            name = filename.removesuffix(".md.noformat")
+        elif filename.endswith(".md"):
+            name = filename.removesuffix(".md")
+        else:
+            name = filename
         if name in exclude:
             continue
         items.append((filename, name))

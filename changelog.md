@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Rename `pr-metadata.md` template to `.md.noformat` extension to prevent mdformat from mangling the `$rerun_row` table-row placeholder.
 - Add per-project test matrix configuration via `[tool.repomatic.test-matrix]` in `pyproject.toml`. Supports `exclude`, `include`, and `variations` fields that map directly to the `Matrix` class API. Allows downstream projects to customize test matrices without maintaining custom workflow files.
 - Add `audit-deps` job to lint workflow. Scans dependencies for known security vulnerabilities using `uv audit` against the Python Packaging Advisory Database.
 - Fix infinite cycle between `migrate-to-renovate` and `sync-repomatic` jobs. The migration job no longer exports `renovate.json5` — the `renovate` job materializes the bundled default at runtime when absent, so a committed copy is unnecessary.
