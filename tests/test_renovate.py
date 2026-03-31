@@ -19,12 +19,11 @@
 from __future__ import annotations
 
 import json
-from contextlib import ExitStack
 from unittest.mock import patch
 
+from repomatic.github.token import check_commit_statuses_permission
 from repomatic.renovate import (
     RenovateCheckResult,
-    check_commit_statuses_permission,
     check_dependabot_config_absent,
     check_dependabot_security_disabled,
     check_renovate_config_exists,
@@ -125,33 +124,22 @@ def test_no_permission():
 
 
 def _mock_all_perm_checks():
-    """Return a single context manager mocking all PAT permission checks."""
+    """Return a context manager mocking check_all_pat_permissions with all passing."""
+    from repomatic.github.token import PatPermissionResults
+
     perm_pass = (True, "Has access")
-    patches = [
-        patch(
-            "repomatic.renovate.check_commit_statuses_permission",
-            return_value=perm_pass,
-        ),
-        patch(
-            "repomatic.renovate.check_pat_contents_permission", return_value=perm_pass
-        ),
-        patch("repomatic.renovate.check_pat_issues_permission", return_value=perm_pass),
-        patch(
-            "repomatic.renovate.check_pat_pull_requests_permission",
-            return_value=perm_pass,
-        ),
-        patch(
-            "repomatic.renovate.check_pat_vulnerability_alerts_permission",
-            return_value=perm_pass,
-        ),
-        patch(
-            "repomatic.renovate.check_pat_workflows_permission", return_value=perm_pass
-        ),
-    ]
-    stack = ExitStack()
-    for p in patches:
-        stack.enter_context(p)
-    return stack
+    result = PatPermissionResults(
+        contents=perm_pass,
+        issues=perm_pass,
+        pull_requests=perm_pass,
+        vulnerability_alerts=perm_pass,
+        workflows=perm_pass,
+        commit_statuses=perm_pass,
+    )
+    return patch(
+        "repomatic.renovate.check_all_pat_permissions",
+        return_value=result,
+    )
 
 
 def test_all_checks_pass(tmp_path, monkeypatch, capsys):

@@ -22,6 +22,7 @@ import json
 from unittest.mock import patch
 
 from repomatic.github.token import (
+    PatPermissionResults,
     check_pat_contents_permission,
     check_pat_issues_permission,
     check_pat_pull_requests_permission,
@@ -527,26 +528,39 @@ def test_pat_checks_skipped_without_pat(capsys):
     assert "skipped (no REPOMATIC_PAT)" in captured.out
 
 
-def _mock_all_gh():
-    """Mock ``run_gh_command`` in ``lint_repo``, ``renovate``, and ``token`` modules."""
-    return (
-        patch("repomatic.lint_repo.run_gh_command"),
-        patch("repomatic.renovate.run_gh_command"),
-        patch("repomatic.github.token.run_gh_command"),
+def _all_pass_pat_results(sha: str | None = "abc123") -> PatPermissionResults:
+    """Build a PatPermissionResults where every check passes."""
+    return PatPermissionResults(
+        contents=(True, "Contents: token has access"),
+        issues=(True, "Issues: token has access"),
+        pull_requests=(True, "Pull requests: token has access"),
+        vulnerability_alerts=(True, "Dependabot alerts: token has access, alerts enabled"),
+        workflows=(True, "Workflows: token has access"),
+        commit_statuses=(True, "Commit statuses: token has access") if sha else None,
+    )
+
+
+def _all_fail_pat_results() -> PatPermissionResults:
+    """Build a PatPermissionResults where every check fails."""
+    return PatPermissionResults(
+        contents=(False, "Cannot access repository contents."),
+        issues=(False, "Cannot access repository issues."),
+        pull_requests=(False, "Cannot access repository pull requests."),
+        vulnerability_alerts=(False, "Token lacks 'Dependabot alerts: Read-only' permission."),
+        workflows=(False, "Cannot access repository workflows."),
+        commit_statuses=(False, "Cannot verify commit statuses permission."),
     )
 
 
 def test_pat_checks_all_pass(capsys):
     """Return 0 when all PAT capability checks pass."""
-    lint_patch, renovate_patch, token_patch = _mock_all_gh()
     with (
-        lint_patch as mock_lint_gh,
-        renovate_patch as mock_renovate_gh,
-        token_patch as mock_token_gh,
+        patch("repomatic.lint_repo.run_gh_command", return_value=""),
+        patch(
+            "repomatic.lint_repo.check_all_pat_permissions",
+            return_value=_all_pass_pat_results(),
+        ),
     ):
-        mock_lint_gh.return_value = ""
-        mock_renovate_gh.return_value = ""
-        mock_token_gh.return_value = ""
         exit_code = run_repo_lint(
             repo="owner/repo",
             has_pat=True,
@@ -564,15 +578,13 @@ def test_pat_checks_all_pass(capsys):
 
 def test_pat_checks_fail_on_missing_permission(capsys):
     """Return 1 when a PAT capability check fails."""
-    lint_patch, renovate_patch, token_patch = _mock_all_gh()
     with (
-        lint_patch as mock_lint_gh,
-        renovate_patch as mock_renovate_gh,
-        token_patch as mock_token_gh,
+        patch("repomatic.lint_repo.run_gh_command", return_value=""),
+        patch(
+            "repomatic.lint_repo.check_all_pat_permissions",
+            return_value=_all_fail_pat_results(),
+        ),
     ):
-        mock_lint_gh.side_effect = RuntimeError("403 Forbidden")
-        mock_renovate_gh.side_effect = RuntimeError("403 Forbidden")
-        mock_token_gh.side_effect = RuntimeError("403 Forbidden")
         exit_code = run_repo_lint(
             repo="owner/repo",
             has_pat=True,
@@ -585,15 +597,13 @@ def test_pat_checks_fail_on_missing_permission(capsys):
 
 def test_pat_checks_no_sha(capsys):
     """Commit statuses check is skipped when no SHA provided."""
-    lint_patch, renovate_patch, token_patch = _mock_all_gh()
     with (
-        lint_patch as mock_lint_gh,
-        renovate_patch as mock_renovate_gh,
-        token_patch as mock_token_gh,
+        patch("repomatic.lint_repo.run_gh_command", return_value=""),
+        patch(
+            "repomatic.lint_repo.check_all_pat_permissions",
+            return_value=_all_pass_pat_results(sha=None),
+        ),
     ):
-        mock_lint_gh.return_value = ""
-        mock_renovate_gh.return_value = ""
-        mock_token_gh.return_value = ""
         exit_code = run_repo_lint(
             repo="owner/repo",
             has_pat=True,

@@ -72,6 +72,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from dataclasses import dataclass, fields
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -264,6 +265,87 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
         )
         return False, msg
     return True, "Commit statuses: token has access"
+
+
+@dataclass
+class PatPermissionResults:
+    """Results of all PAT permission checks.
+
+    Each field holds a ``(passed, message)`` tuple from the corresponding
+    ``check_pat_*`` function. The ``commit_statuses`` field is ``None`` when
+    no commit SHA was available to probe.
+    """
+
+    contents: tuple[bool, str]
+    """Result of :func:`check_pat_contents_permission`."""
+
+    issues: tuple[bool, str]
+    """Result of :func:`check_pat_issues_permission`."""
+
+    pull_requests: tuple[bool, str]
+    """Result of :func:`check_pat_pull_requests_permission`."""
+
+    vulnerability_alerts: tuple[bool, str]
+    """Result of :func:`check_pat_vulnerability_alerts_permission`."""
+
+    workflows: tuple[bool, str]
+    """Result of :func:`check_pat_workflows_permission`."""
+
+    commit_statuses: tuple[bool, str] | None = None
+    """Result of :func:`check_commit_statuses_permission`, or ``None`` if skipped."""
+
+    def all_passed(self) -> bool:
+        """Return ``True`` when every executed check passed."""
+        for f in fields(self):
+            result = getattr(self, f.name)
+            if result is not None and not result[0]:
+                return False
+        return True
+
+    def failed(self) -> list[tuple[str, str]]:
+        """Return ``(field_name, message)`` pairs for each failed check."""
+        failures: list[tuple[str, str]] = []
+        for f in fields(self):
+            result = getattr(self, f.name)
+            if result is not None and not result[0]:
+                failures.append((f.name, result[1]))
+        return failures
+
+    def iter_results(self) -> list[tuple[bool, str]]:
+        """Yield all non-``None`` ``(passed, message)`` tuples."""
+        results: list[tuple[bool, str]] = []
+        for f in fields(self):
+            result = getattr(self, f.name)
+            if result is not None:
+                results.append(result)
+        return results
+
+
+def check_all_pat_permissions(
+    repo: str,
+    sha: str | None = None,
+) -> PatPermissionResults:
+    """Run all PAT permission checks and return structured results.
+
+    This is the single entry point for PAT permission validation. Both
+    ``lint-repo`` and ``setup-guide`` call this function so that adding a
+    new permission check benefits all consumers automatically.
+
+    :param repo: Repository in 'owner/repo' format.
+    :param sha: Commit SHA for the statuses check. When ``None``, the
+        ``commit_statuses`` field is set to ``None`` (skipped).
+    :return: :class:`PatPermissionResults` with all check outcomes.
+    """
+    return PatPermissionResults(
+        contents=check_pat_contents_permission(repo),
+        issues=check_pat_issues_permission(repo),
+        pull_requests=check_pat_pull_requests_permission(repo),
+        vulnerability_alerts=check_pat_vulnerability_alerts_permission(repo),
+        workflows=check_pat_workflows_permission(repo),
+        commit_statuses=(
+            check_commit_statuses_permission(repo, sha) if sha else None
+        ),
+    )
 
 
 def validate_gh_token_env() -> None:

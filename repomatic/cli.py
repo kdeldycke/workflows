@@ -1835,19 +1835,43 @@ def broken_links(
     envvar="HAS_REPOMATIC_PAT",
     help="Whether REPOMATIC_PAT is configured.",
 )
+@option(
+    "--repo",
+    default=None,
+    envvar="GITHUB_REPOSITORY",
+    help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
+)
+@option(
+    "--sha",
+    default=None,
+    envvar="GITHUB_SHA",
+    help="Commit SHA for permission checks. Defaults to $GITHUB_SHA.",
+)
 @_require_token(_token_mod, "validate_gh_token_env")
 @pass_context
-def setup_guide(ctx: Context, has_pat: bool) -> None:
+def setup_guide(
+    ctx: Context,
+    has_pat: bool,
+    repo: str | None,
+    sha: str | None,
+) -> None:
     """Manage the setup guide issue lifecycle.
 
-    Handles two states:
+    Handles three states:
 
     - **No PAT**: opens a setup guide issue with full instructions.
-    - **PAT configured** (``REPOMATIC_PAT``): closes the issue.
+    - **PAT configured but incomplete**: keeps the issue open with a
+      section listing the missing permissions.
+    - **PAT configured and complete**: closes the issue.
 
     The flag can also be set via the ``HAS_REPOMATIC_PAT`` environment variable
     (any non-empty value is truthy). Workflows set this env var at the workflow
     level so individual steps don't need to repeat the ``secrets.*`` ternary.
+
+    When ``--has-pat`` is set and ``--repo`` is provided, the command runs the
+    same granular PAT permission checks as ``lint-repo`` (via
+    :func:`~repomatic.github.token.check_all_pat_permissions`). If any check
+    fails, the issue stays open with details about which permissions are missing.
 
     This command requires the ``gh`` CLI to be installed and authenticated.
 
@@ -1857,7 +1881,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         repomatic setup-guide
 
     \b
-        # Secret configured — close the issue
+        # Secret configured — close the issue if all permissions pass
         repomatic setup-guide --has-pat
     """
     config = get_tool_config(ctx)
@@ -1871,6 +1895,29 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
     repo_owner = md.repo_owner
     repo_slug = md.repo_slug
     repo_url = _repo_url()
+
+    # Run granular PAT permission checks when the PAT is present.
+    missing_permissions_section = ""
+    has_permission_failures = False
+    if has_pat and repo:
+        pat_results = _token_mod.check_all_pat_permissions(repo, sha)
+        failures = pat_results.failed()
+        if failures:
+            has_permission_failures = True
+            rows = []
+            for _field_name, message in failures:
+                rows.append(f"| {message} |")
+            table = "\n".join(rows)
+            missing_permissions_section = (
+                "> [!WARNING]\n"
+                "> Your `REPOMATIC_PAT` secret is configured but missing"
+                " some permissions.\n"
+                "> Update the token using the pre-filled link in Step 1"
+                " below.\n\n"
+                "| Permission issue |\n"
+                "| :-- |\n"
+                f"{table}\n"
+            )
 
     # Include immutable releases step only when a changelog exists.
     has_changelog = Path("./changelog.md").exists()
@@ -1908,6 +1955,7 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         repo_slug=repo_slug,
         immutable_releases_step=immutable_releases_step,
         org_tip=org_tip,
+        missing_permissions_section=missing_permissions_section,
     )
     with tempfile.NamedTemporaryFile(
         mode="w",
@@ -1918,12 +1966,15 @@ def setup_guide(ctx: Context, has_pat: bool) -> None:
         tmp.write(setup_body)
         setup_body_file = Path(tmp.name)
 
+    # Keep issue open when PAT is missing OR when permissions are incomplete.
+    needs_issue = not has_pat or has_permission_failures
+
     manage_issue_lifecycle(
-        has_issues=not has_pat,
+        has_issues=needs_issue,
         body_file=setup_body_file,
         labels=["🤖 ci"],
         title="Set up `REPOMATIC_PAT` to enable workflow auto-updates",
-        no_issues_comment="PAT secret detected.",
+        no_issues_comment="PAT secret detected, all permissions verified.",
     )
 
 

@@ -16,6 +16,7 @@
 - Migrate from `actions/attest-build-provenance` to `actions/attest`.
 - Rename `pr-metadata.md` template to `.md.noformat` extension to prevent mdformat from mangling the `$rerun_row` table-row placeholder.
 - Skip Codecov uploads on `sync-repomatic` PRs.
+- Unify PAT permission validation into `check_all_pat_permissions()` in `token.py`. `lint-repo`, `setup-guide`, and `check-renovate` all use the same code path. `setup-guide` now runs granular permission checks when the PAT is present and keeps the issue open with a diagnostic table when permissions are incomplete.
 - Fix `setup-guide` job: add missing `HAS_REPOMATIC_PAT` env var and remove upstream repo carve-out so PAT detection works everywhere.
 - Fix infinite cycle between `migrate-to-renovate` and `sync-repomatic` jobs.
 - Include git stderr in `git-tag` CLI error messages.

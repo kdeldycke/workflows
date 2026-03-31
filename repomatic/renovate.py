@@ -37,14 +37,7 @@ RENOVATE_CONFIG_PATH = Path("renovate.json5")
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
 from .github.pr_body import render_template
-from .github.token import (
-    check_commit_statuses_permission,
-    check_pat_contents_permission,
-    check_pat_issues_permission,
-    check_pat_pull_requests_permission,
-    check_pat_vulnerability_alerts_permission,
-    check_pat_workflows_permission,
-)
+from .github.token import check_all_pat_permissions
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -294,26 +287,19 @@ def collect_check_results(repo: str, sha: str) -> RenovateCheckResult:
     # Check 3: Dependabot security updates disabled.
     security_disabled, _ = check_dependabot_security_disabled(repo)
 
-    # Check 4: Commit statuses permission.
-    statuses_permission, _ = check_commit_statuses_permission(repo, sha)
-
-    # Check 5-9: Other PAT permissions.
-    contents_perm, _ = check_pat_contents_permission(repo)
-    issues_perm, _ = check_pat_issues_permission(repo)
-    pr_perm, _ = check_pat_pull_requests_permission(repo)
-    vuln_perm, _ = check_pat_vulnerability_alerts_permission(repo)
-    workflows_perm, _ = check_pat_workflows_permission(repo)
+    # Check 4-9: PAT permissions (shared code path with lint-repo/setup-guide).
+    pat = check_all_pat_permissions(repo, sha)
 
     return RenovateCheckResult(
         renovate_config_exists=renovate_exists,
         dependabot_config_path=dependabot_path.as_posix() if dependabot_path else "",
         dependabot_security_disabled=security_disabled,
-        commit_statuses_permission=statuses_permission,
-        contents_permission=contents_perm,
-        issues_permission=issues_perm,
-        pull_requests_permission=pr_perm,
-        vulnerability_alerts_permission=vuln_perm,
-        workflows_permission=workflows_perm,
+        commit_statuses_permission=pat.commit_statuses[0] if pat.commit_statuses else True,
+        contents_permission=pat.contents[0],
+        issues_permission=pat.issues[0],
+        pull_requests_permission=pat.pull_requests[0],
+        vulnerability_alerts_permission=pat.vulnerability_alerts[0],
+        workflows_permission=pat.workflows[0],
         repo=repo,
     )
 
@@ -358,16 +344,9 @@ def run_migration_checks(repo: str, sha: str) -> int:
         emit_annotation(AnnotationLevel.ERROR, msg)
         fatal_error = True
 
-    # PAT permission checks (all non-fatal warnings).
-    perm_checks = [
-        check_commit_statuses_permission(repo, sha),
-        check_pat_contents_permission(repo),
-        check_pat_issues_permission(repo),
-        check_pat_pull_requests_permission(repo),
-        check_pat_vulnerability_alerts_permission(repo),
-        check_pat_workflows_permission(repo),
-    ]
-    for passed, msg in perm_checks:
+    # PAT permission checks (shared code path, all non-fatal warnings).
+    pat = check_all_pat_permissions(repo, sha)
+    for passed, msg in pat.iter_results():
         if passed:
             print(f"✓ {msg}")
         else:

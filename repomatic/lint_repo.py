@@ -30,14 +30,7 @@ import yaml
 
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
-from .github.token import (
-    check_commit_statuses_permission,
-    check_pat_contents_permission,
-    check_pat_issues_permission,
-    check_pat_pull_requests_permission,
-    check_pat_vulnerability_alerts_permission,
-    check_pat_workflows_permission,
-)
+from .github.token import check_all_pat_permissions
 
 
 def get_repo_metadata(repo: str) -> dict[str, str | None]:
@@ -554,19 +547,11 @@ def run_repo_lint(
             print("ℹ PAT capability checks: skipped (no REPOMATIC_PAT)")
         return 1 if fatal_error else 0
 
-    pat_checks: list[tuple[bool, str]] = [
-        check_pat_contents_permission(repo),
-        check_pat_issues_permission(repo),
-        check_pat_pull_requests_permission(repo),
-        check_pat_vulnerability_alerts_permission(repo),
-        check_pat_workflows_permission(repo),
-    ]
-    if sha:
-        pat_checks.append(check_commit_statuses_permission(repo, sha))
-    else:
+    results = check_all_pat_permissions(repo, sha)
+    if not sha:
         print("ℹ Commit statuses check: skipped (no SHA provided)")
 
-    for passed, msg in pat_checks:
+    for passed, msg in results.iter_results():
         if passed:
             print(f"✓ {msg}")
         else:

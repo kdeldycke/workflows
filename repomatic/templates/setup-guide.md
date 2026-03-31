@@ -1,6 +1,8 @@
 ---
-args: [repo_url, repo_name, repo_owner, repo_slug, immutable_releases_step, org_tip]
+args: [repo_url, repo_name, repo_owner, repo_slug, immutable_releases_step, org_tip, missing_permissions_section]
 ---
+
+$missing_permissions_section
 
 Some workflows need a **fine-grained personal access token** to create PRs that update files in `.github/workflows/`. Without it, those jobs will silently fail.
 

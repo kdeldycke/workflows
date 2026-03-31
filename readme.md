@@ -326,7 +326,9 @@ GitHub Actions has several design limitations that the workflows work around:
 - 📖 **Setup guide** (`setup-guide`)
 
   - Detects missing `REPOMATIC_PAT` secret and opens an issue with step-by-step setup instructions
-  - Automatically closes the issue once the secret is configured
+  - When the PAT is present, validates all required permissions (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses) using the same checks as `lint-repo`
+  - Keeps the issue open with a diagnostic table when the PAT exists but permissions are incomplete
+  - Automatically closes the issue once the secret is configured and all permissions are verified
   - **Skipped if**:
     - upstream `kdeldycke/repomatic` repo, `workflow_call` events
     - `setup-guide = false` in `[tool.repomatic]`

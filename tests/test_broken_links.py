@@ -569,3 +569,85 @@ def test_setup_guide_disabled_skips(mock_lifecycle, _mock_token, tmp_path, monke
     result = runner.invoke(repomatic_cli, ["setup-guide"])
     assert result.exit_code == 0
     mock_lifecycle.assert_not_called()
+
+
+def _all_pass_pat_results():
+    """Build a PatPermissionResults where every check passes."""
+    from repomatic.github.token import PatPermissionResults
+
+    return PatPermissionResults(
+        contents=(True, "Contents: token has access"),
+        issues=(True, "Issues: token has access"),
+        pull_requests=(True, "Pull requests: token has access"),
+        vulnerability_alerts=(True, "Dependabot alerts: token has access, alerts enabled"),
+        workflows=(True, "Workflows: token has access"),
+    )
+
+
+def _partial_fail_pat_results():
+    """Build a PatPermissionResults with one failing check."""
+    from repomatic.github.token import PatPermissionResults
+
+    return PatPermissionResults(
+        contents=(True, "Contents: token has access"),
+        issues=(True, "Issues: token has access"),
+        pull_requests=(True, "Pull requests: token has access"),
+        vulnerability_alerts=(
+            False,
+            "Token lacks 'Dependabot alerts: Read-only' permission."
+            " Update the PAT to include this permission.",
+        ),
+        workflows=(True, "Workflows: token has access"),
+    )
+
+
+@patch("repomatic.github.token.validate_gh_token_env")
+@patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli._token_mod.check_all_pat_permissions")
+def test_setup_guide_pat_all_permissions_pass_closes_issue(
+    mock_check, mock_lifecycle, _mock_token
+):
+    """When PAT is configured and all permissions pass, the issue closes."""
+    mock_check.return_value = _all_pass_pat_results()
+    runner = CliRunner()
+    result = runner.invoke(
+        repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
+    )
+    assert result.exit_code == 0
+    assert mock_lifecycle.call_count == 1
+    assert mock_lifecycle.call_args_list[0][1]["has_issues"] is False
+
+
+@patch("repomatic.github.token.validate_gh_token_env")
+@patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli._token_mod.check_all_pat_permissions")
+def test_setup_guide_pat_missing_permission_keeps_issue_open(
+    mock_check, mock_lifecycle, _mock_token
+):
+    """When PAT is configured but a permission is missing, the issue stays open."""
+    mock_check.return_value = _partial_fail_pat_results()
+    runner = CliRunner()
+    result = runner.invoke(
+        repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
+    )
+    assert result.exit_code == 0
+    assert mock_lifecycle.call_count == 1
+    assert mock_lifecycle.call_args_list[0][1]["has_issues"] is True
+
+
+@patch("repomatic.github.token.validate_gh_token_env")
+@patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli._token_mod.check_all_pat_permissions")
+def test_setup_guide_pat_missing_permission_body_contains_warning(
+    mock_check, mock_lifecycle, _mock_token
+):
+    """When PAT has missing permissions, the issue body contains a warning section."""
+    mock_check.return_value = _partial_fail_pat_results()
+    runner = CliRunner()
+    runner.invoke(
+        repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
+    )
+    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
+    content = body_file.read_text(encoding="UTF-8")
+    assert "missing some permissions" in content
+    assert "Dependabot alerts" in content
