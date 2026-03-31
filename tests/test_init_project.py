@@ -89,6 +89,7 @@ def test_init_help_lists_all_components() -> None:
     from repomatic.cli import init_project
 
     doc = init_project.__doc__
+    assert doc is not None
     for name in ALL_COMPONENTS:
         assert name in doc, f"Component {name!r} missing from init help text"
 

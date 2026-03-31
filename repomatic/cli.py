@@ -540,6 +540,7 @@ def init_project(
 
 
 # Format the init_project docstring with registry-generated content.
+assert init_project.__doc__ is not None
 init_project.__doc__ = init_project.__doc__.format(
     component_table=COMPONENT_HELP_TABLE,
     file_selector_names=", ".join(FILE_SELECTOR_COMPONENTS),

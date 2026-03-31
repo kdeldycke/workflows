@@ -722,9 +722,9 @@ def run_init(
                     excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
 
     # Detect excluded files that still exist on disk.
-    for comp, file_ids in sorted(excluded_files.items()):
+    for comp_name, file_ids in sorted(excluded_files.items()):
         for fid in sorted(file_ids):
-            rel = excluded_rel_path(comp, fid)
+            rel = excluded_rel_path(comp_name, fid)
             if rel and (output_dir / rel).exists():
                 result.excluded_existing.append(rel)
     for rel in sorted(scope_excluded_targets):
