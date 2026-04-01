@@ -410,7 +410,7 @@ def add_exclude_newer_packages(
     if match:
         # Append new entries to the existing inline table.
         prefix = match.group(1)
-        inner = match.group(2).rstrip().rstrip(",")
+        inner = match.group(2).strip().rstrip(",")
         new_entries = ", ".join(
             f'"{pkg}" = "0 day"' for pkg in sorted(to_add)
         )
