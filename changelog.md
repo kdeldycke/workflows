@@ -18,6 +18,9 @@
 
 ## [`6.9.0` (2026-03-31)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...v6.9.0)
 
+> [!NOTE]
+> `6.9.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.9.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.9.0).
+
 - Add per-project test matrix configuration via `[tool.repomatic.test-matrix]` in `pyproject.toml`. Supports `exclude`, `include`, and `variations` fields that map directly to the `Matrix` class API.
 - Replace `audit-deps` lint job with `fix-vulnerable-deps` autofix job. Creates PRs that upgrade affected packages using `uv lock --upgrade-package` with `--exclude-newer-package` bypass for security fixes.
 - Add `codecov` bundled component. Syncs `.github/codecov.yaml` to suppress PR comments unless coverage drops or the diff introduces uncovered lines.
