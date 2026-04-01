@@ -284,7 +284,7 @@ class ComponentSelector(ParamType):
 
     name = "selector"
 
-    def get_metavar(self, param):
+    def get_metavar(self, param, ctx=None):
         return "[COMPONENT[/FILE]]"
 
     def convert(self, value, param, ctx):
