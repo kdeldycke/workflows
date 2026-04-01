@@ -62,7 +62,7 @@ jobs:
         env:
           PR_REF: ${{ steps.extract.outputs.pr_ref }}
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template detect-squash-merge
           --pr-ref "${PR_REF}"
           --output "$GITHUB_OUTPUT"

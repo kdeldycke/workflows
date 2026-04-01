@@ -82,7 +82,7 @@ jobs:
           uvx --no-progress --from . repomatic run ruff -- format --output-format github
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-python
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -115,7 +115,7 @@ jobs:
         run: echo "${PYPROJECT_FILES}" | xargs uvx --no-progress --from . repomatic run pyproject-fmt -- || true
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-pyproject
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -162,7 +162,7 @@ jobs:
           -exec gawk -i inplace '!/^- \[(Contents|Contributing|Footnotes|Related Lists)\]\(#.+\)$/{print}' "{}" \;
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-markdown
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -199,7 +199,7 @@ jobs:
             --json-parse-allow-comments=true --json-parse-allow-trailing-commas=true
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-json
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -227,7 +227,7 @@ jobs:
         run: uvx --no-progress --from . repomatic run typos
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template fix-typos
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -258,12 +258,12 @@ jobs:
         name: Fix vulnerable dependencies
         run: >
           uvx --no-progress --from . repomatic fix-vulnerable-deps
-          --output "$GITHUB_OUTPUT"
+          --output "$GITHUB_OUTPUT" --output-format github-actions
       - id: pr-metadata
         env:
           REPOMATIC_DIFF_TABLE: ${{ steps.fix.outputs.diff_table }}
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template fix-vulnerable-deps
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -291,7 +291,7 @@ jobs:
           --delete-unmodified --delete-excluded
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-repomatic
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -334,12 +334,12 @@ jobs:
         id: format
         run: >
           uvx --no-progress --from . repomatic format-images
-          --output "$GITHUB_OUTPUT"
+          --output "$GITHUB_OUTPUT" --output-format github-actions
       - id: pr-metadata
         env:
           GHA_PR_BODY_PREFIX: ${{ steps.format.outputs.markdown }}
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-images
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -370,7 +370,7 @@ jobs:
         run: uvx --no-progress --from . repomatic sync-gitignore
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-gitignore
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -399,7 +399,7 @@ jobs:
         run: uvx --no-progress --from . repomatic sync-bumpversion
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-bumpversion
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -431,7 +431,7 @@ jobs:
         run: uvx --no-progress --from . repomatic sync-mailmap --skip-if-missing
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-mailmap
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -464,7 +464,7 @@ jobs:
         run: uvx --no-progress --from . repomatic update-deps-graph
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template update-deps-graph
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -503,7 +503,7 @@ jobs:
           fi
       - id: pr-metadata
         run: >
-          uvx --no-progress --from . repomatic pr-body
+          uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template update-docs
           --output "$GITHUB_OUTPUT"
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0

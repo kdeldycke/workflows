@@ -6,7 +6,9 @@
 > This version is **not released yet** and is under active development.
 
 - Prune stale `exclude-newer-package` entries from `pyproject.toml` in `sync-uv-lock`. Entries whose locked version was uploaded before the `exclude-newer` cutoff are removed before relocking.
-- Rework `sync-uv-lock` CLI output: default to a terminal table via click-extra's `--table-format`, add `--release-notes` flag (off by default), move markdown formatting to `--output` for CI use only.
+- Rework `sync-uv-lock` CLI output: default to a terminal table via click-extra's `--table-format`, add `--release-notes/--no-release-notes` and `--table/--no-table` flags, move markdown formatting to `--output` for CI use only.
+- Add `--output-format [markdown|github-actions]` to `sync-uv-lock`, `fix-vulnerable-deps`, `pr-body`, and `format-images`. Replaces implicit `$GITHUB_OUTPUT` environment variable detection with an explicit flag.
+- Remove `-o` short option from `pr-body` and `format-images` (prefer long-form `--output`).
 - Exclude `renovate` and `codecov` components from awesome-list repositories. Awesome repos have no Python dependencies or test coverage.
 - Change `renovate` component to opt-in (`init_default=EXCLUDE`). The `renovate.yaml` workflow materializes the bundled config at runtime, so a committed copy is only needed for customization.
 - Add debug logging to `init` for component selection decisions (scope exclusions, config gates, default/user exclude/include).

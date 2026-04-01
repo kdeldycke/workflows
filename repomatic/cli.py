@@ -1871,31 +1871,29 @@ def setup_guide(
 ) -> None:
     """Manage the setup guide issue lifecycle.
 
+    \b
     Handles three states:
+      - No PAT: opens a setup guide issue with full instructions.
+      - PAT configured but incomplete: keeps the issue open with a
+        section listing the missing permissions.
+      - PAT configured and complete: closes the issue.
 
-    - **No PAT**: opens a setup guide issue with full instructions.
-    - **PAT configured but incomplete**: keeps the issue open with a
-      section listing the missing permissions.
-    - **PAT configured and complete**: closes the issue.
+    The --has-pat flag can also be set via the HAS_REPOMATIC_PAT
+    environment variable (any non-empty value is truthy).
 
-    The flag can also be set via the HAS_REPOMATIC_PAT environment variable
-    (any non-empty value is truthy). Workflows set this env var at the workflow
-    level so individual steps don't need to repeat the secrets.* ternary.
+    When --has-pat is set and --repo is provided, the command runs
+    granular PAT permission checks. If any check fails, the issue stays
+    open with details about which permissions are missing.
 
-    When --has-pat is set and --repo is provided, the command runs the
-    same granular PAT permission checks as lint-repo (via
-    check_all_pat_permissions). If any check fails, the issue stays open with
-    details about which permissions are missing.
-
-    This command requires the gh CLI to be installed and authenticated.
+    Requires the gh CLI to be installed and authenticated.
 
     \b
     Examples:
-        # No secret — create or reopen the setup issue
+        # No secret: create or reopen the setup issue
         repomatic setup-guide
 
     \b
-        # Secret configured — close the issue if all permissions pass
+        # Secret configured: close the issue if all permissions pass
         repomatic setup-guide --has-pat
     """
     config = get_tool_config(ctx)
@@ -2097,20 +2095,32 @@ def verify_binary(target: str, binary_path: Path) -> None:
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default=None,
-    help="Output file for the diff table (e.g., $GITHUB_OUTPUT).",
+    help="Write a markdown report (vulnerabilities + updates) to this file.",
+)
+@option(
+    "--output-format",
+    type=Choice(["markdown", "github-actions"]),
+    default="markdown",
+    help=(
+        "Format for --output."
+        " 'github-actions' wraps the content as a"
+        " diff_table step output variable."
+    ),
 )
 @pass_context
 def fix_vulnerable_deps_cmd(
     ctx: Context,
     lockfile: Path,
     output: Path | None,
+    output_format: str,
 ) -> None:
     """Detect and upgrade packages with known security vulnerabilities.
 
-    Runs uv audit to detect vulnerabilities in the lock file, then
-    upgrades each fixable package with uv lock --upgrade-package. Uses
-    --exclude-newer-package to bypass the exclude-newer cooldown so
-    that security fixes are resolved immediately.
+    \b
+    Wraps uv audit + uv lock --upgrade-package and:
+      - bypasses the exclude-newer cooldown for security fixes
+      - persists exclude-newer-package entries in pyproject.toml
+      - prints a markdown report of vulnerabilities and version changes
 
     \b
     Examples:
@@ -2118,8 +2128,9 @@ def fix_vulnerable_deps_cmd(
         repomatic fix-vulnerable-deps
 
     \b
-        # Write markdown diff to $GITHUB_OUTPUT (for CI workflows)
-        repomatic fix-vulnerable-deps --output "$GITHUB_OUTPUT"
+        # CI: write markdown report as a GitHub Actions step output
+        repomatic fix-vulnerable-deps
+          --output "$GITHUB_OUTPUT" --output-format github-actions
     """
     has_fixes, diff_table = _fix_vulnerable_deps(lockfile)
 
@@ -2132,12 +2143,7 @@ def fix_vulnerable_deps_cmd(
         echo(diff_table)
 
     if output and diff_table:
-        github_output_path = os.getenv("GITHUB_OUTPUT", "")
-        if (
-            not is_stdout(output)
-            and github_output_path
-            and str(output) == github_output_path
-        ):
+        if output_format == "github-actions":
             content = format_multiline_output("diff_table", diff_table)
         else:
             content = diff_table
@@ -2604,27 +2610,29 @@ def lint_repo(
 ) -> None:
     """Run consistency checks on repository metadata.
 
-    Reads package_name, is_sphinx, and project_description directly
-    from pyproject.toml in the current directory.
+    Reads package_name, is_sphinx, and project_description from
+    pyproject.toml in the current directory.
 
+    \b
     Checks:
-    - Dependabot config file absent (error).
-    - Renovate config exists (error).
-    - Dependabot security updates disabled (error).
-    - Package name vs repository name (warning).
-    - Website field set for Sphinx projects (warning).
-    - Repository description matches project description (error).
-    - GitHub topics subset of pyproject.toml keywords (warning).
-    - Funding file present when owner has GitHub Sponsors (warning).
-    - Stale draft releases (non-.dev0 drafts) (warning).
+      - Dependabot config file absent (error).
+      - Renovate config exists (error).
+      - Dependabot security updates disabled (error).
+      - Package name vs repository name (warning).
+      - Website field set for Sphinx projects (warning).
+      - Repository description matches project description (error).
+      - GitHub topics subset of pyproject.toml keywords (warning).
+      - Funding file present when owner has GitHub Sponsors (warning).
+      - Stale draft releases (non-.dev0 drafts) (warning).
 
+    \b
     When --has-pat is set, additional PAT capability checks are run:
-    - Contents permission (error).
-    - Issues permission (error).
-    - Pull requests permission (error).
-    - Dependabot alerts permission and alerts enabled (error).
-    - Workflows permission (error).
-    - Commit statuses permission (error, requires --sha).
+      - Contents permission (error).
+      - Issues permission (error).
+      - Pull requests permission (error).
+      - Dependabot alerts permission and alerts enabled (error).
+      - Workflows permission (error).
+      - Commit statuses permission (error, requires --sha).
 
     \b
     Examples:
@@ -2910,11 +2918,20 @@ def git_tag(
     help="PR reference passed to detect-squash-merge template (e.g. #2316).",
 )
 @option(
-    "-o",
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default="-",
     help="Output file path. Defaults to stdout.",
+)
+@option(
+    "--output-format",
+    type=Choice(["markdown", "github-actions"]),
+    default="markdown",
+    help=(
+        "Format for --output."
+        " 'github-actions' wraps body, title, and commit_message"
+        " as step output variables."
+    ),
 )
 def pr_body(
     prefix: str,
@@ -2923,14 +2940,13 @@ def pr_body(
     part: str | None,
     pr_ref: str | None,
     output: Path,
+    output_format: str,
 ) -> None:
     """Generate a PR body with a collapsible workflow metadata block.
 
     Reads GITHUB_* environment variables to produce a <details> block
-    containing a metadata table (trigger, actor, ref, commit, job, workflow, run).
-
-    When --output points to $GITHUB_OUTPUT, the body is written in the
-    heredoc format required by GitHub Actions multiline outputs.
+    containing a metadata table (trigger, actor, ref, commit, job,
+    workflow, run).
 
     The prefix can be set via --template (built-in templates) or --prefix
     (arbitrary content, also via GHA_PR_BODY_PREFIX env var). If both are
@@ -2942,12 +2958,14 @@ def pr_body(
         repomatic pr-body
 
     \b
-        # Write to $GITHUB_OUTPUT for use in a workflow
+        # CI: write as GitHub Actions step outputs
         repomatic pr-body --output "$GITHUB_OUTPUT"
+          --output-format github-actions
 
     \b
         # Use a built-in template
-        repomatic pr-body --template bump-version --version 1.2.0 --part minor
+        repomatic pr-body --template bump-version --version 1.2.0
+          --part minor
 
     \b
         # With a prefix via environment variable
@@ -2998,15 +3016,7 @@ def pr_body(
     metadata_block = generate_pr_metadata_block()
     body = build_pr_body(prefix, metadata_block)
 
-    github_output_path = os.getenv("GITHUB_OUTPUT", "")
-    is_github_output = (
-        not is_stdout(output)
-        and github_output_path
-        and str(output) == github_output_path
-    )
-
-    if is_github_output:
-        # Write in heredoc format for $GITHUB_OUTPUT.
+    if output_format == "github-actions":
         parts = [format_multiline_output("body", body)]
         if title_str:
             parts.append(f"title={title_str}")
@@ -3091,25 +3101,32 @@ def update_checksums_cmd(workflow_file: Path | None, registry: bool) -> None:
     help="Minimum percentage savings to keep an optimized file.",
 )
 @option(
-    "-o",
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default="-",
     help="Output file path. Defaults to stdout.",
 )
-def format_images_cmd(min_savings: float, output: Path) -> None:
+@option(
+    "--output-format",
+    type=Choice(["markdown", "github-actions"]),
+    default="markdown",
+    help=(
+        "Format for --output."
+        " 'github-actions' wraps the content as a"
+        " markdown step output variable."
+    ),
+)
+def format_images_cmd(
+    min_savings: float, output: Path, output_format: str
+) -> None:
     """Format images by losslessly optimizing them with external CLI tools.
 
-    Discovers PNG and JPEG files and compresses them losslessly in-place using
-    oxipng and jpegoptim. Produces a markdown summary table showing
+    Discovers PNG and JPEG files and compresses them losslessly in-place
+    using oxipng and jpegoptim. Produces a markdown summary table showing
     before/after sizes and savings.
 
-    Only lossless optimizers are used so that results are idempotent — running
-    the command twice produces no further changes. See repomatic.images for
-    the rationale on excluding WebP and AVIF.
-
-    When --output points to $GITHUB_OUTPUT, the markdown summary is
-    written as a markdown output variable in heredoc format.
+    Only lossless optimizers are used so that results are idempotent:
+    running the command twice produces no further changes.
 
     \b
     Required tools (install via apt):
@@ -3121,8 +3138,9 @@ def format_images_cmd(min_savings: float, output: Path) -> None:
         repomatic format-images
 
     \b
-        # Write markdown output for GitHub Actions
-        repomatic format-images --output "$GITHUB_OUTPUT"
+        # CI: write as a GitHub Actions step output
+        repomatic format-images
+          --output "$GITHUB_OUTPUT" --output-format github-actions
 
     \b
         # Use a 10% minimum savings threshold
@@ -3137,14 +3155,7 @@ def format_images_cmd(min_savings: float, output: Path) -> None:
     results = optimize_images(image_files, min_savings_pct=min_savings)
     markdown = generate_markdown_summary(results)
 
-    github_output_path = os.getenv("GITHUB_OUTPUT", "")
-    is_github_output = (
-        not is_stdout(output)
-        and github_output_path
-        and str(output) == github_output_path
-    )
-
-    if is_github_output:
+    if output_format == "github-actions":
         content = format_multiline_output("markdown", markdown)
     else:
         content = markdown
