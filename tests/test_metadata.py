@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import fields as dc_fields
+from dataclasses import MISSING, fields as dc_fields
 from typing import Any
 
 import pytest
@@ -1272,10 +1272,10 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config.workflow_sync is True
     assert metadata.config.exclude == []
     assert metadata.config.include == []
-    assert metadata.config.test_matrix_exclude == []
-    assert metadata.config.test_matrix_include == []
-    assert metadata.config.test_matrix_replace == {}
-    assert metadata.config.test_matrix_variations == {}
+    assert metadata.config.test_matrix.exclude == []
+    assert metadata.config.test_matrix.include == []
+    assert metadata.config.test_matrix.replace == {}
+    assert metadata.config.test_matrix.variations == {}
 
 
 def test_repomatic_config_custom_values(tmp_path, monkeypatch):
@@ -1385,14 +1385,14 @@ click-version = ["released", "stable", "main"]
         "workflows/autolock.yaml",
     ]
     assert metadata.config.include == ["labels"]
-    assert metadata.config.test_matrix_exclude == [
+    assert metadata.config.test_matrix.exclude == [
         {"os": "windows-11-arm"},
         {"os": "macos-15-intel", "python-version": "3.10"},
     ]
-    assert metadata.config.test_matrix_include == [
+    assert metadata.config.test_matrix.include == [
         {"state": "unstable", "python-version": "3.99"},
     ]
-    assert metadata.config.test_matrix_variations == {
+    assert metadata.config.test_matrix.variations == {
         "os": ["custom-runner"],
         "click-version": ["released", "stable", "main"],
     }
@@ -1649,15 +1649,16 @@ def test_config_reference():
     """Config reference table covers all Config fields with descriptions."""
     rows = config_reference()
 
-    # One row per Config field.
-    all_fields = dc_fields(Config)
-    assert len(rows) == len(all_fields)
-
-    # Every Config field appears as a TOML key in the table.
-    keys_in_table = {row[0] for row in rows}
-    for f in all_fields:
-        key = f"`{_field_to_key(f.name)}`"
-        assert key in keys_in_table, f"Missing config key {key} in reference table"
+    # Count expected rows: one per flat Config field, plus sub-fields for
+    # nested dataclass fields (which are expanded, not listed as a single row).
+    expected_rows = 0
+    for f in dc_fields(Config):
+        default = f.default_factory() if f.default_factory is not MISSING else f.default
+        if hasattr(default, "__dataclass_fields__"):
+            expected_rows += len(dc_fields(type(default)))
+        else:
+            expected_rows += 1
+    assert len(rows) == expected_rows
 
     # Every row has a non-empty description.
     for option, ftype, default, desc in rows:

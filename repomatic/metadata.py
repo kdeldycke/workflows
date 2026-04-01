@@ -1983,16 +1983,16 @@ class Metadata:
             matrix, to keep PR CI fast.
         """
         # Replacements first: swap axis values in-place before any other config.
-        for var_id, mapping in self.config.test_matrix_replace.items():
+        for var_id, mapping in self.config.test_matrix.replace.items():
             for old, new in mapping.items():
                 matrix.replace_variation_value(var_id, old, new)
         if full:
-            for var_id, values in self.config.test_matrix_variations.items():
+            for var_id, values in self.config.test_matrix.variations.items():
                 matrix.add_variation(var_id, values)
-        if self.config.test_matrix_exclude:
-            matrix.add_excludes(*self.config.test_matrix_exclude)
-        if self.config.test_matrix_include:
-            matrix.add_includes(*self.config.test_matrix_include)
+        if self.config.test_matrix.exclude:
+            matrix.add_excludes(*self.config.test_matrix.exclude)
+        if self.config.test_matrix.include:
+            matrix.add_includes(*self.config.test_matrix.include)
 
     @cached_property
     def test_matrix(self) -> Matrix:
