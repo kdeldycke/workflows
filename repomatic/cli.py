@@ -638,6 +638,12 @@ def metadata(ctx, format, overwrite, output, list_keys, keys):
             )
 
     content = meta.dump(dialect=format, keys=keys)
+
+    # When writing to a file, copy the content to stderr so the computed
+    # metadata is visible in CI logs without an extra debug step.
+    if not is_stdout(output):
+        echo(content, err=True)
+
     echo(content, file=prep_path(output))
 
 
