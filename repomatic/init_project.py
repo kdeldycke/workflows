@@ -633,6 +633,7 @@ def run_init(
     is_awesome_repo = bool(
         repo_slug and repo_slug.split("/")[-1].startswith("awesome-")
     )
+    logging.debug("Repository type: %s", "awesome" if is_awesome_repo else "standard")
     if is_awesome_repo and not components:
         selected.add("awesome-template")
 
@@ -653,6 +654,12 @@ def run_init(
     exclude_entries = sorted(
         (default_exclusions | set(user_exclude)) - set(user_include)
     )
+    if default_exclusions:
+        logging.debug("Default exclusions: %s", ", ".join(sorted(default_exclusions)))
+    if user_exclude:
+        logging.debug("User exclude: %s", ", ".join(user_exclude))
+    if user_include:
+        logging.debug("User include: %s", ", ".join(user_include))
     excluded_components, excluded_files = parse_component_entries(
         exclude_entries, context="exclude"
     )
@@ -701,6 +708,12 @@ def run_init(
                 or (not is_awesome_repo and reg_comp.scope == RepoScope.AWESOME_ONLY)
             )
             if comp_out_of_scope:
+                logging.debug(
+                    "Scope exclusion: %s (%s) not applicable to %s repo.",
+                    reg_comp.name,
+                    reg_comp.scope.name,
+                    "awesome" if is_awesome_repo else "standard",
+                )
                 selected.discard(reg_comp.name)
                 # For generated components, record the target path so we can
                 # detect stale copies on disk below.
@@ -715,10 +728,23 @@ def run_init(
                     and entry.scope == RepoScope.NON_AWESOME
                     or (not is_awesome_repo and entry.scope == RepoScope.AWESOME_ONLY)
                 ):
+                    logging.debug(
+                        "Scope exclusion: %s/%s (%s) not applicable to %s repo.",
+                        reg_comp.name,
+                        entry.file_id,
+                        entry.scope.name,
+                        "awesome" if is_awesome_repo else "standard",
+                    )
                     excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
                 if entry.config_key and not _config_flag(
                     config, entry.config_key, entry.config_default
                 ):
+                    logging.debug(
+                        "Config exclusion: %s/%s (%s disabled).",
+                        reg_comp.name,
+                        entry.file_id,
+                        entry.config_key,
+                    )
                     excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
 
     # Detect excluded files that still exist on disk.
@@ -746,6 +772,8 @@ def run_init(
 
     # Dispatch by component type.
     tool_configs_to_merge: list[str] = []
+
+    logging.debug("Selected components: %s", ", ".join(sorted(selected)))
 
     for comp in COMPONENTS:
         if comp.name not in selected:
