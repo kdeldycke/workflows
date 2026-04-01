@@ -8,6 +8,7 @@
 - Exclude `renovate` and `codecov` components from awesome-list repositories. Awesome repos have no Python dependencies or test coverage.
 - Change `renovate` component to opt-in (`init_default=EXCLUDE`). The `renovate.yaml` workflow materializes the bundled config at runtime, so a committed copy is only needed for customization.
 - Add debug logging to `init` for component selection decisions (scope exclusions, config gates, default/user exclude/include).
+- Append workflow metadata block to issue lifecycle comments (`Condition recurred.`, `Superseded by #N.`, close comments). Each comment now includes a collapsible table with trigger, actor, commit, job, workflow, and run link.
 - Echo `metadata` output to stderr when `--output` targets a file, so computed matrices are visible in CI logs.
 - Remove Python `3.15t` (free-threaded) from the default test matrix.
 

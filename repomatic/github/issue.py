@@ -36,6 +36,7 @@ from operator import itemgetter
 from pathlib import Path
 
 from .gh import run_gh_command
+from .pr_body import generate_pr_metadata_block
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -252,20 +253,26 @@ def manage_issue_lifecycle(
         has_issues,
     )
 
+    # Generate workflow metadata block for issue comments.
+    metadata_block = generate_pr_metadata_block()
+
     # Close duplicate/obsolete open issues.
     for issue_number in issues_to_close:
         if issue_to_update:
             comment = f"Superseded by #{issue_to_update}."
         else:
             comment = no_issues_comment
-        close_issue(issue_number, comment)
+        close_issue(issue_number, f"{comment}\n\n{metadata_block}")
 
     # Create, update, or reopen issue if needed.
     if has_issues:
         if issue_to_update:
             # Reopen the issue if it was closed.
             if issue_state == "CLOSED":
-                reopen_issue(issue_to_update, comment="Condition recurred.")
+                reopen_issue(
+                    issue_to_update,
+                    comment=f"Condition recurred.\n\n{metadata_block}",
+                )
             update_issue(issue_to_update, body_file)
         else:
             create_issue(body_file, labels, title=title)
