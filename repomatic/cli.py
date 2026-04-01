@@ -398,7 +398,7 @@ def init_project(
     delete_excluded,
     delete_unmodified,
 ):
-    r"""Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
+    """Bootstrap a repository to use reusable workflows from kdeldycke/repomatic.
 
     With no arguments, generates thin-caller workflow files, exports
     configuration files (Renovate, labels, labeller rules), and creates a
@@ -558,9 +558,11 @@ def init_project(
             echo("     with setup instructions.")
 
 
-# Format the init_project docstring with registry-generated content.
-assert init_project.__doc__ is not None
-init_project.__doc__ = init_project.__doc__.format(
+# Format the init_project help text with registry-generated content. Click
+# captures the docstring into the command's help attribute at decoration time,
+# so we must patch help directly rather than __doc__.
+assert init_project.help is not None
+init_project.help = init_project.help.format(
     component_table=COMPONENT_HELP_TABLE,
     file_selector_names=", ".join(FILE_SELECTOR_COMPONENTS),
 )
