@@ -31,7 +31,6 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from textwrap import dedent
 
-from click_extra.config import flatten_config_keys, normalize_config_keys
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -41,6 +40,49 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any, Final
+
+
+@dataclass
+class TestMatrixConfig:
+    """Nested schema for ``[tool.repomatic.test-matrix]``.
+
+    Keys inside ``replace`` and ``variations`` are GitHub Actions matrix
+    identifiers (e.g., ``os``, ``python-version``) and must not be
+    normalized to snake_case.  Click Extra's ``click_extra.normalize_keys =
+    False`` metadata on the parent field prevents this.
+    """
+
+    exclude: list[dict[str, str]] = field(default_factory=list)
+    """Extra exclude rules applied to both full and PR test matrices.
+
+    Each entry is a dict of GitHub Actions matrix keys (e.g.,
+    ``{"os": "windows-11-arm"}``) that removes matching combinations.
+    Additive to the upstream default excludes.
+    """
+
+    include: list[dict[str, str]] = field(default_factory=list)
+    """Extra include directives applied to both full and PR test matrices.
+
+    Each entry is a dict of GitHub Actions matrix keys that adds or augments
+    matrix combinations. Additive to the upstream default includes.
+    """
+
+    replace: dict[str, dict[str, str]] = field(default_factory=dict)
+    """Per-axis value replacements applied to both full and PR test matrices.
+
+    Outer key is the variation/axis ID (e.g., ``os``, ``python-version``).
+    Inner dict maps old values to new values. Applied before excludes,
+    includes, and variations.
+    """
+
+    variations: dict[str, list[str]] = field(default_factory=dict)
+    """Extra matrix dimension values added to the full test matrix only.
+
+    Each key is a dimension ID (e.g., ``os``, ``click-version``) and its value
+    is a list of additional entries. For existing dimensions, values are merged
+    with the upstream defaults. For new dimension IDs, a new axis is created.
+    Only affects the full matrix; the PR matrix stays a curated reduced set.
+    """
 
 
 @dataclass
@@ -293,36 +335,17 @@ class Config:
     Appended to the bundled ``labeller-content-based.yaml`` during export.
     """
 
-    test_matrix_exclude: list[dict[str, str]] = field(default_factory=list)
-    """Extra exclude rules applied to both full and PR test matrices.
+    test_matrix: TestMatrixConfig = field(
+        default_factory=TestMatrixConfig,
+        metadata={
+            "click_extra.config_path": "test-matrix",
+            "click_extra.normalize_keys": False,
+        },
+    )
+    """Per-project customizations for the GitHub Actions CI test matrix.
 
-    Each entry is a dict of GitHub Actions matrix keys (e.g.,
-    ``{"os": "windows-11-arm"}``) that removes matching combinations.
-    Additive to the upstream default excludes.
-    """
-
-    test_matrix_include: list[dict[str, str]] = field(default_factory=list)
-    """Extra include directives applied to both full and PR test matrices.
-
-    Each entry is a dict of GitHub Actions matrix keys that adds or augments
-    matrix combinations. Additive to the upstream default includes.
-    """
-
-    test_matrix_replace: dict[str, dict[str, str]] = field(default_factory=dict)
-    """Per-axis value replacements applied to both full and PR test matrices.
-
-    Outer key is the variation/axis ID (e.g., ``os``, ``python-version``).
-    Inner dict maps old values to new values. Applied before excludes,
-    includes, and variations.
-    """
-
-    test_matrix_variations: dict[str, list[str]] = field(default_factory=dict)
-    """Extra matrix dimension values added to the full test matrix only.
-
-    Each key is a dimension ID (e.g., ``os``, ``click-version``) and its value
-    is a list of additional entries. For existing dimensions, values are merged
-    with the upstream defaults. For new dimension IDs, a new axis is created.
-    Only affects the full matrix; the PR matrix stays a curated reduced set.
+    Keys inside this section are GitHub Actions matrix identifiers (e.g.,
+    ``os``, ``python-version``) and must not be normalized to snake_case.
     """
 
 
@@ -350,10 +373,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "notification_unsubscribe",
     "pypi_package_history",
     "setup_guide",
-    "test_matrix_exclude",
-    "test_matrix_include",
-    "test_matrix_replace",
-    "test_matrix_variations",
+    "test_matrix",
     "test_plan_file",
     "test_plan_inline",
     "test_plan_timeout",
@@ -380,7 +400,6 @@ _NESTED_PREFIXES: Final[dict[str, str]] = {
     "notification": "notification",
     "nuitka": "nuitka",
     "renovate": "renovate",
-    "test_matrix": "test-matrix",
     "test_plan": "test-plan",
     "uv_lock": "uv-lock",
     "workflow": "workflow",
@@ -394,18 +413,31 @@ under the corresponding sub-table (e.g., ``dependency_graph_output`` becomes
 .. note::
     Only used for the reverse mapping (field → TOML key) in display and
     documentation. The forward mapping (TOML → field) is handled by
-    ``flatten_config_keys`` + ``normalize_config_keys`` from click-extra.
+    click-extra's schema-aware dataclass instantiation.
 """
 
 
-def _field_to_key(name: str) -> str:
-    """Convert a ``Config`` field name to its TOML config key.
+def _field_to_key(name: str, cls: type | None = None) -> str:
+    """Convert a dataclass field name to its TOML config key.
 
-    Matches the longest prefix in ``_NESTED_PREFIXES`` to produce dotted
-    sub-keys (e.g., ``dependency_graph_output`` → ``dependency-graph.output``).
-    Falls back to simple kebab-case for flat fields (e.g.,
-    ``pypi_package_history`` → ``pypi-package-history``).
+    For fields with ``click_extra.config_path`` metadata, returns that path
+    directly. Otherwise, matches the longest prefix in ``_NESTED_PREFIXES``
+    to produce dotted sub-keys (e.g., ``dependency_graph_output`` →
+    ``dependency-graph.output``). Falls back to simple kebab-case for flat
+    fields (e.g., ``pypi_package_history`` → ``pypi-package-history``).
+
+    :param cls: Dataclass to inspect for metadata. Defaults to ``Config``.
     """
+    if cls is None:
+        cls = Config
+    # Check for explicit config_path metadata.
+    for f in fields(cls):
+        if f.name == name:
+            path = f.metadata.get("click_extra.config_path")
+            if path:
+                return path
+            break
+
     for prefix, toml_prefix in _NESTED_PREFIXES.items():
         if name.startswith(prefix + "_"):
             suffix = name[len(prefix) + 1 :].replace("_", "-")
@@ -413,14 +445,18 @@ def _field_to_key(name: str) -> str:
     return name.replace("_", "-")
 
 
-def _extract_field_docstrings() -> dict[str, str]:
-    """Extract attribute docstrings from the ``Config`` dataclass via AST.
+def _extract_field_docstrings(cls: type | None = None) -> dict[str, str]:
+    """Extract attribute docstrings from a dataclass via AST.
 
     Attribute docstrings are string literals immediately following an annotated
     assignment in a class body (PEP 257 convention). Returns a mapping of field
     name to the first paragraph of its docstring (stripped and dedented).
+
+    :param cls: Dataclass to inspect. Defaults to ``Config``.
     """
-    source = inspect.getsource(Config)
+    if cls is None:
+        cls = Config
+    source = inspect.getsource(cls)
     tree = ast.parse(textwrap.dedent(source))
     cls_node = tree.body[0]
     assert isinstance(cls_node, ast.ClassDef)
@@ -484,7 +520,8 @@ def config_reference() -> list[tuple[str, str, str, str]]:
     """Build the ``[tool.repomatic]`` configuration reference as table rows.
 
     Introspects the ``Config`` dataclass fields, their type annotations,
-    defaults, and attribute docstrings. Returns a list of
+    defaults, and attribute docstrings. Nested dataclass fields are expanded
+    into individual rows with dotted keys. Returns a list of
     ``(option, type, default, description)`` tuples suitable for
     ``click_extra.table.print_table``.
     """
@@ -494,12 +531,25 @@ def config_reference() -> list[tuple[str, str, str, str]]:
 
     rows = []
     for f in sorted_fields:
-        key = f"`{_field_to_key(f.name)}`"
-        ftype = _format_type(Config.__annotations__[f.name])
-        default = _format_default(getattr(schema, f.name))
-        # Convert reST double backticks to markdown single backticks.
-        desc = docstrings.get(f.name, "").replace("``", "`")
-        rows.append((key, ftype, default, desc))
+        sub_type = getattr(schema, f.name)
+        if hasattr(sub_type, "__dataclass_fields__"):
+            # Expand nested dataclass into individual rows.
+            prefix = _field_to_key(f.name)
+            sub_cls = type(sub_type)
+            sub_docstrings = _extract_field_docstrings(sub_cls)
+            for sf in sorted(fields(sub_cls), key=lambda sf: sf.name):
+                key = f"`{prefix}.{sf.name.replace('_', '-')}`"
+                ftype = _format_type(sub_cls.__annotations__[sf.name])
+                default = _format_default(getattr(sub_type, sf.name))
+                desc = sub_docstrings.get(sf.name, "").replace("``", "`")
+                rows.append((key, ftype, default, desc))
+        else:
+            key = f"`{_field_to_key(f.name)}`"
+            ftype = _format_type(Config.__annotations__[f.name])
+            default = _format_default(getattr(schema, f.name))
+            # Convert reST double backticks to markdown single backticks.
+            desc = docstrings.get(f.name, "").replace("``", "`")
+            rows.append((key, ftype, default, desc))
 
     return rows
 
@@ -509,13 +559,15 @@ def load_repomatic_config(
 ) -> Config:
     """Load ``[tool.repomatic]`` config merged with ``Config`` defaults.
 
-    Uses ``flatten_config_keys`` and ``normalize_config_keys`` from click-extra
-    to convert nested TOML sub-tables (e.g. ``[tool.repomatic.dependency-graph]``)
-    into flat snake_case field names matching the ``Config`` dataclass.
+    Delegates to click-extra's schema-aware dataclass instantiation, which
+    handles normalization, flattening, nested dataclasses, and opaque field
+    extraction automatically based on field metadata and type hints.
 
     :param pyproject_data: Pre-parsed ``pyproject.toml`` dict. If ``None``,
         reads and parses ``pyproject.toml`` from the current working directory.
     """
+    from click_extra.config import ConfigOption
+
     if pyproject_data is None:
         pyproject_path = Path() / "pyproject.toml"
         if pyproject_path.exists() and pyproject_path.is_file():
@@ -526,29 +578,6 @@ def load_repomatic_config(
     tool_section = pyproject_data.get("tool", {})
     user_config: dict[str, Any] = tool_section.get("repomatic", {})
 
-    # Extract test-matrix section before normalization. Matrix keys like
-    # "python-version" and "os" are GitHub Actions identifiers and must not be
-    # converted to snake_case by normalize_config_keys.
-    test_matrix_raw: dict[str, Any] = user_config.get("test-matrix", {})
-    if test_matrix_raw:
-        user_config = {k: v for k, v in user_config.items() if k != "test-matrix"}
-
-    flat_user = flatten_config_keys(normalize_config_keys(user_config))
-
-    # Inject test-matrix fields manually after flattening.
-    if test_matrix_raw:
-        flat_user["test_matrix_exclude"] = test_matrix_raw.get("exclude", [])
-        flat_user["test_matrix_include"] = test_matrix_raw.get("include", [])
-        flat_user["test_matrix_replace"] = test_matrix_raw.get("replace", {})
-        flat_user["test_matrix_variations"] = test_matrix_raw.get("variations", {})
-    known = {f.name for f in fields(Config)}
-    unknown = sorted(set(flat_user) - known)
-    if unknown:
-        msg = (
-            f"Unknown [tool.repomatic] option(s): "
-            f"{', '.join(sorted(unknown))}. "
-            f"Valid options: {', '.join(sorted(known))}"
-        )
-        raise ValueError(msg)
-
-    return Config(**{k: v for k, v in flat_user.items() if k in known})
+    schema_callable = ConfigOption._make_schema_callable(Config, strict=True)
+    assert schema_callable is not None
+    return schema_callable(user_config)

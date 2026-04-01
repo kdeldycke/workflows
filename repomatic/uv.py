@@ -982,11 +982,13 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
         or an empty string if no fixable vulnerabilities were found.
     """
     # Step 1: Run uv audit and capture output.
+    project_dir = lock_path.parent
     result = subprocess.run(
         [*uv_cmd("audit"), "--frozen"],
         capture_output=True,
         text=True,
         check=False,
+        cwd=project_dir,
     )
     audit_output = result.stdout + "\n" + result.stderr
 
@@ -1023,7 +1025,7 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
             f"{pkg}=0 day",
         ])
     logging.info(f"Upgrading: {', '.join(sorted(fixable_packages))}...")
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, cwd=project_dir)
 
     # Step 5: Check if the lock file actually changed.
     if revert_lock_if_noise(lock_path):
@@ -1061,24 +1063,34 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
     return True, combined
 
 
-def sync_uv_lock(lock_path: Path) -> tuple[bool, str]:
+@dataclass
+class SyncResult:
+    """Result of a ``sync-uv-lock`` operation."""
+
+    reverted: bool
+    """Whether ``uv.lock`` was reverted (only timestamp noise changed)."""
+
+    changes: list[tuple[str, str, str]]
+    """Version changes as ``(name, old_version, new_version)`` tuples."""
+
+    upload_times: dict[str, str]
+    """Package name to ISO 8601 upload-time mapping from the lock file."""
+
+    exclude_newer: str
+    """The ``exclude-newer`` cutoff from the lock file, or empty string."""
+
+
+def sync_uv_lock(lock_path: Path) -> SyncResult:
     """Re-lock with ``--upgrade`` and revert if only timestamp noise changed.
 
     First prunes stale ``exclude-newer-package`` entries from
     ``pyproject.toml`` (entries whose locked version was uploaded before the
     ``exclude-newer`` cutoff), then runs ``uv lock --upgrade`` to update
-    transitive dependencies to their latest allowed versions. If the resulting
-    diff contains only timestamp noise, it reverts ``uv.lock`` so
-    ``peter-evans/create-pull-request`` sees no diff and skips creating a PR.
-
-    When real changes exist, computes a diff table comparing package versions
-    before and after the upgrade.
+    transitive dependencies. If the resulting diff contains only timestamp
+    noise, reverts ``uv.lock`` so no spurious changes are committed.
 
     :param lock_path: Path to the ``uv.lock`` file.
-    :return: A tuple of ``(reverted, diff_table)``. ``reverted`` is ``True``
-        if the lock file was reverted (noise only). ``diff_table`` is a
-        markdown-formatted table of version changes, or an empty string if
-        reverted or no version changes were found.
+    :return: A :class:`SyncResult` with structured version change data.
     """
     # Step 1: Prune stale exclude-newer-package entries before relocking so
     # uv resolves those packages through the normal cooldown window.
@@ -1089,26 +1101,28 @@ def sync_uv_lock(lock_path: Path) -> tuple[bool, str]:
     # Step 2: Snapshot versions before upgrading.
     before = parse_lock_versions(lock_path)
 
-    # Step 3: Run uv lock --upgrade.
-    logging.info("Running uv lock --upgrade...")
-    subprocess.run([*uv_cmd("lock"), "--upgrade"], check=True)
+    # Step 3: Run uv lock --upgrade in the project directory.
+    project_dir = lock_path.parent
+    logging.info(f"Running uv lock --upgrade in {project_dir}...")
+    subprocess.run(
+        [*uv_cmd("lock"), "--upgrade"], check=True, cwd=project_dir
+    )
 
     # Step 4: Revert uv.lock if only timestamp noise changed.
     if revert_lock_if_noise(lock_path):
-        return True, ""
+        return SyncResult(
+            reverted=True, changes=[], upload_times={}, exclude_newer=""
+        )
 
-    # Step 5: Compute and format the version diff.
+    # Step 5: Compute version diff.
     after = parse_lock_versions(lock_path)
     changes = diff_lock_versions(before, after)
     upload_times = parse_lock_upload_times(lock_path)
     exclude_newer = parse_lock_exclude_newer(lock_path)
-    diff_table = format_diff_table(changes, upload_times, exclude_newer)
 
-    # Step 6: Fetch and append release notes.
-    if changes:
-        notes = fetch_release_notes(changes)
-        notes_section = format_release_notes(notes)
-        if notes_section:
-            diff_table = diff_table + "\n\n" + notes_section
-
-    return False, diff_table
+    return SyncResult(
+        reverted=False,
+        changes=changes,
+        upload_times=upload_times,
+        exclude_newer=exclude_newer,
+    )

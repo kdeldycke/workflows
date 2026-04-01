@@ -35,6 +35,7 @@ from repomatic.renovate import (
 )
 from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
+    SyncResult,
     _format_upload_date,
     _parse_github_owner_repo,
     _parse_iso_datetime,
@@ -486,11 +487,13 @@ def test_sync_uv_lock_keeps_real_changes(tmp_path):
         ),
         patch("repomatic.uv.parse_lock_versions", return_value={}),
     ):
-        reverted, _diff_table = sync_uv_lock(lock_path)
-        assert reverted is False
-        # uv lock was called.
+        result = sync_uv_lock(lock_path)
+        assert result.reverted is False
+        # uv lock was called in the project directory.
         mock_run.assert_called_once_with(
-            ["uv", "--no-progress", "lock", "--upgrade"], check=True
+            ["uv", "--no-progress", "lock", "--upgrade"],
+            check=True,
+            cwd=tmp_path,
         )
 
 
@@ -504,15 +507,15 @@ def test_sync_uv_lock_reverts_noise(tmp_path):
             return_value=True,
         ),
     ):
-        reverted, diff_table = sync_uv_lock(lock_path)
-        assert reverted is True
-        assert diff_table == ""
+        result = sync_uv_lock(lock_path)
+        assert result.reverted is True
+        assert result.changes == []
         # uv lock + git checkout were called.
         assert mock_run.call_count == 2
 
 
-def test_sync_uv_lock_returns_diff_table(tmp_path):
-    """Return a diff table when package versions changed."""
+def test_sync_uv_lock_returns_changes(tmp_path):
+    """Return structured changes when package versions changed."""
     lock_path = tmp_path / "uv.lock"
     before = {"anyio": "4.12.0", "boltons": "25.0.0"}
     after = {"anyio": "4.12.1", "boltons": "25.0.0"}
@@ -524,12 +527,10 @@ def test_sync_uv_lock_returns_diff_table(tmp_path):
         ),
         patch("repomatic.uv.parse_lock_versions", side_effect=[before, after]),
     ):
-        reverted, diff_table = sync_uv_lock(lock_path)
-        assert reverted is False
-        assert "anyio" in diff_table
-        assert "`4.12.0` -> `4.12.1`" in diff_table
-        # boltons is unchanged, should not appear.
-        assert "boltons" not in diff_table
+        result = sync_uv_lock(lock_path)
+        assert result.reverted is False
+        assert len(result.changes) == 1
+        assert result.changes[0] == ("anyio", "4.12.0", "4.12.1")
 
 
 def test_parse_lock_versions(tmp_path):

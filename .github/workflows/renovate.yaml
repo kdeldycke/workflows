@@ -166,6 +166,7 @@ jobs:
         name: Sync uv.lock
         run: >
           uvx --no-progress --from . repomatic sync-uv-lock
+          --release-notes
           --output "$GITHUB_OUTPUT"
       - id: pr-metadata
         env:

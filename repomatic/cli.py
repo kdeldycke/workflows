@@ -2121,16 +2121,13 @@ def fix_vulnerable_deps_cmd(
     ``--exclude-newer-package`` to bypass the ``exclude-newer`` cooldown so
     that security fixes are resolved immediately.
 
-    When no fixable vulnerabilities are found, exits cleanly so
-    ``peter-evans/create-pull-request`` sees no diff and skips creating a PR.
-
     \b
     Examples:
-        # Standard usage (from autofix.yaml fix-vulnerable-deps job)
+        # Scan and fix vulnerabilities
         repomatic fix-vulnerable-deps
 
     \b
-        # Write diff table to $GITHUB_OUTPUT
+        # Write markdown diff to $GITHUB_OUTPUT (for CI workflows)
         repomatic fix-vulnerable-deps --output "$GITHUB_OUTPUT"
     """
     has_fixes, diff_table = _fix_vulnerable_deps(lockfile)
@@ -2157,7 +2154,7 @@ def fix_vulnerable_deps_cmd(
 
 
 @repomatic.command(
-    short_help="Re-lock and revert if only timestamp noise changed",
+    short_help="Re-lock dependencies and prune stale cooldown overrides",
     section=_section_sync,
 )
 @option(
@@ -2167,36 +2164,48 @@ def fix_vulnerable_deps_cmd(
     help="Path to the uv.lock file.",
 )
 @option(
+    "--release-notes",
+    is_flag=True,
+    default=False,
+    help="Fetch and display release notes from GitHub for each updated package.",
+)
+@option(
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default=None,
-    help="Output file for the diff table (e.g., $GITHUB_OUTPUT).",
+    help="Write a markdown diff table to this file. Detects $GITHUB_OUTPUT.",
 )
 @pass_context
-def sync_uv_lock_cmd(ctx: Context, lockfile: Path, output: Path | None) -> None:
-    """Run ``uv lock --upgrade`` and revert if only timestamp noise changed.
+def sync_uv_lock_cmd(
+    ctx: Context,
+    lockfile: Path,
+    release_notes: bool,
+    output: Path | None,
+) -> None:
+    """Upgrade all dependencies and clean up stale cooldown overrides.
 
-    Runs ``uv lock --upgrade`` to update transitive dependencies to their
-    latest allowed versions. If the resulting ``uv.lock`` diff contains only
-    ``exclude-newer-package`` timestamp changes, reverts the lock file so
-    ``peter-evans/create-pull-request`` sees no diff and skips creating a PR.
-
-    When real changes exist, prints a markdown table of updated package
-    versions. Use ``--output "$GITHUB_OUTPUT"`` to write the table as a
-    ``diff_table`` output variable for use in subsequent workflow steps.
+    Prunes ``exclude-newer-package`` entries in ``pyproject.toml`` whose
+    locked version has aged past the ``exclude-newer`` cutoff, then runs
+    ``uv lock --upgrade``. If the only changes are timestamp noise, reverts
+    ``uv.lock`` so no spurious diff is committed.
 
     \b
     Examples:
-        # Standard usage (from renovate.yaml sync-uv-lock job)
+        # Upgrade and show changes
         repomatic sync-uv-lock
 
     \b
-        # Write diff table to $GITHUB_OUTPUT
-        repomatic sync-uv-lock --output "$GITHUB_OUTPUT"
+        # Include release notes in output
+        repomatic sync-uv-lock --release-notes
 
     \b
-        # Check a different lock file
-        repomatic sync-uv-lock --lockfile path/to/uv.lock
+        # Machine-readable table formats (via click-extra)
+        repomatic --table-format github sync-uv-lock
+        repomatic --table-format json sync-uv-lock
+
+    \b
+        # Write markdown diff to $GITHUB_OUTPUT (for CI workflows)
+        repomatic sync-uv-lock --release-notes --output "$GITHUB_OUTPUT"
     """
     config = get_tool_config(ctx)
     if not config.uv_lock_sync:
@@ -2205,26 +2214,64 @@ def sync_uv_lock_cmd(ctx: Context, lockfile: Path, output: Path | None) -> None:
         )
         ctx.exit(0)
 
-    reverted, diff_table = _sync_uv_lock(lockfile)
+    result = _sync_uv_lock(lockfile)
 
-    if reverted:
-        echo("Reverted uv.lock: only exclude-newer-package timestamp noise.")
-    else:
-        echo("Kept uv.lock: contains real dependency changes.")
+    if result.reverted:
+        echo("Reverted uv.lock: only timestamp noise.")
+        ctx.exit(0)
+
+    if not result.changes:
+        echo("No dependency changes.")
+        ctx.exit(0)
+
+    # Terminal output: structured table via click-extra.
+    show_uploaded = bool(result.upload_times)
+    headers: tuple[str, ...] = ("Package", "Old", "New")
+    if show_uploaded:
+        headers = ("Package", "Old", "New", "Released")
+    rows: list[tuple[str, ...]] = []
+    for name, old, new in result.changes:
+        row: tuple[str, ...] = (name, old or "(new)", new or "(removed)")
+        if show_uploaded:
+            raw_time = result.upload_times.get(name, "")
+            row = (*row, _format_upload_date(raw_time) if raw_time else "")
+        rows.append(row)
+
+    if result.exclude_newer:
+        cutoff = _format_upload_date(result.exclude_newer)
+        echo(f"exclude-newer cutoff: {cutoff}")
+
+    echo(f"{len(result.changes)} package(s) updated.")
+    ctx.find_root().print_table(rows, headers)
+
+    # Release notes (opt-in, fetched once for both terminal and file output).
+    notes_section = ""
+    if release_notes and result.changes:
+        notes = fetch_release_notes(result.changes)
+        notes_section = format_release_notes(notes)
+        if notes_section:
+            echo("")
+            echo(notes_section)
+
+    # File output: markdown format for CI or downstream tooling.
+    if output:
+        diff_table = format_diff_table(
+            result.changes, result.upload_times, result.exclude_newer
+        )
+        if notes_section:
+            diff_table = diff_table + "\n\n" + notes_section
+
         if diff_table:
-            echo(diff_table)
-
-    if output and diff_table:
-        github_output_path = os.getenv("GITHUB_OUTPUT", "")
-        if (
-            not is_stdout(output)
-            and github_output_path
-            and str(output) == github_output_path
-        ):
-            content = format_multiline_output("diff_table", diff_table)
-        else:
-            content = diff_table
-        echo(content, file=prep_path(output))
+            github_output_path = os.getenv("GITHUB_OUTPUT", "")
+            if (
+                not is_stdout(output)
+                and github_output_path
+                and str(output) == github_output_path
+            ):
+                content = format_multiline_output("diff_table", diff_table)
+            else:
+                content = diff_table
+            echo(content, file=prep_path(output))
 
 
 @repomatic.command(
