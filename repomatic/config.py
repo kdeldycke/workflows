@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import ast
 import inspect
+import logging
 import sys
 import textwrap
 from dataclasses import dataclass, field, fields
@@ -586,7 +587,17 @@ def load_repomatic_config(
     tool_section = pyproject_data.get("tool", {})
     user_config: dict[str, Any] = tool_section.get("repomatic", {})
 
-    schema_callable = ConfigOption._make_schema_callable(Config, strict=True)
+    # Warn about unknown top-level keys before loading. Collect all known
+    # TOML key prefixes (e.g., "test-matrix", "nuitka", "workflow") so we
+    # can flag unrecognized entries without crashing.
+    known_keys = {_field_to_key(f.name).split(".")[0] for f in fields(Config)}
+    for key in user_config:
+        if key.replace("_", "-") not in known_keys:
+            logging.warning(
+                "Unknown [tool.repomatic] option: %s (ignored).", key,
+            )
+
+    schema_callable = ConfigOption._make_schema_callable(Config, strict=False)
     assert schema_callable is not None
     config: Config = schema_callable(user_config)
     return config

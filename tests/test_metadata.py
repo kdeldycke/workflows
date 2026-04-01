@@ -1667,8 +1667,8 @@ def test_load_repomatic_config_with_preloaded_data():
     assert config.test_plan_file == "./tests/cli-test-plan.yaml"
 
 
-def test_load_repomatic_config_rejects_unknown_keys(tmp_path, monkeypatch):
-    """Unknown keys in [tool.repomatic] raise ValueError."""
+def test_load_repomatic_config_warns_unknown_keys(tmp_path, monkeypatch, caplog):
+    """Unknown keys in [tool.repomatic] produce a warning, not an error."""
     pyproject_content = """\
 [project]
 name = "test-project"
@@ -1680,8 +1680,9 @@ nonexistent-option = true
     (tmp_path / "pyproject.toml").write_text(pyproject_content)
     monkeypatch.chdir(tmp_path)
 
-    with pytest.raises(ValueError, match="Unknown.*nonexistent_option"):
-        load_repomatic_config()
+    config = load_repomatic_config()
+    assert isinstance(config, Config)
+    assert "Unknown [tool.repomatic] option: nonexistent-option" in caplog.text
 
 
 def test_config_reference():

@@ -261,7 +261,7 @@ def _require_token(module, attr):
 # config-only (not CLI params), so merging them would collide with subcommand
 # names (e.g., "setup-guide" is both a config key and a subcommand). Config
 # access goes exclusively through config_schema + get_tool_config().
-@group(config_schema=Config, schema_strict=True, included_params=())
+@group(config_schema=Config, schema_strict=False, included_params=())
 def repomatic():
     pass
 
