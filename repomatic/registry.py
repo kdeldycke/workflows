@@ -241,6 +241,7 @@ COMPONENTS: tuple[Component, ...] = (
     BundledComponent(
         name="renovate",
         description="Renovate config (renovate.json5)",
+        init_default=InitDefault.EXCLUDE,
         files=(FileEntry("renovate.json5"),),
     ),
     BundledComponent(

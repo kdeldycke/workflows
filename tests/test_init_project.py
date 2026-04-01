@@ -553,7 +553,7 @@ def test_init_creates_all_default_files(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'include = ["labels", "skills"]\n',
+        'include = ["labels", "renovate", "skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -581,7 +581,6 @@ def test_init_creates_all_default_files(
             assert (tmp_path / ".github" / "workflows" / filename).exists()
 
     # Verify config files exist.
-    assert (tmp_path / "renovate.json5").exists()
     assert (tmp_path / "labels.toml").exists()
     assert (tmp_path / ".github" / "labeller-file-based.yaml").exists()
     assert (tmp_path / ".github" / "labeller-content-based.yaml").exists()
@@ -635,12 +634,9 @@ def test_init_idempotent(tmp_path: Path):
     # init config files identical to bundled defaults (unmodified).
     managed_count = len(result1.created) - 1  # Minus changelog.
     unmodified_count = len(result2.unmodified_configs)
-    assert unmodified_count > 0  # At least renovate.json5.
     assert len(result2.updated) == managed_count - unmodified_count
     # Only changelog is skipped (never overwritten).
     assert result2.skipped == ["changelog.md"]
-    # Redundant init configs are reported.
-    assert "renovate.json5" in result2.unmodified_configs
 
 
 def test_init_only_labels(tmp_path: Path):
@@ -1128,16 +1124,16 @@ def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Labels and skills are excluded by default.
+    # Labels, skills, and renovate are excluded by default.
     assert "labels.toml" not in created_set
+    assert "renovate.json5" not in created_set
     for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
 
     # Other default components should still be created.
     assert "changelog.md" in created_set
-    assert "renovate.json5" in created_set
 
-    assert result.excluded == ["labels", "skills"]
+    assert result.excluded == ["labels", "renovate", "skills"]
 
 
 def test_init_respects_exclude_components(
@@ -1161,11 +1157,13 @@ def test_init_respects_exclude_components(
     for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
 
+    # Renovate is also excluded by default.
+    assert "renovate.json5" not in created_set
+
     # Other default components should still be created.
     assert "changelog.md" in created_set
-    assert "renovate.json5" in created_set
 
-    assert result.excluded == ["labels", "skills"]
+    assert result.excluded == ["labels", "renovate", "skills"]
 
 
 def test_init_respects_exclude_workflow_files(
@@ -1627,12 +1625,12 @@ def test_init_include_overrides_default_exclusions(
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Labels included via include, skills still excluded by default.
+    # Labels included via include; renovate and skills still excluded by default.
     assert "labels.toml" in created_set
+    assert "renovate.json5" not in created_set
     for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
-    # skills is the only remaining default exclusion.
-    assert result.excluded == ["skills"]
+    assert result.excluded == ["renovate", "skills"]
 
 
 def test_init_exclude_additive_to_defaults(
