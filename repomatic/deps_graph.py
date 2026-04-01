@@ -37,7 +37,7 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-from repomatic.uv import parse_lock_specifiers, parse_lock_subgraph_specifiers, uv_cmd
+from repomatic.uv import load_lock_data, parse_lock_specifiers, uv_cmd
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -47,6 +47,8 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any
+
+    from repomatic.uv import LockSpecifiers
 
 
 @lru_cache(maxsize=16)
@@ -503,8 +505,7 @@ def render_mermaid(
     edges: list[tuple[str, str]],
     group_packages: dict[str, set[str]] | None = None,
     extra_packages: dict[str, set[str]] | None = None,
-    specifiers: dict[str, dict[str, str]] | None = None,
-    subgraph_specifiers: dict[str, dict[str, str]] | None = None,
+    lock_specs: LockSpecifiers | None = None,
 ) -> str:
     """Render the dependency graph as a Mermaid flowchart.
 
@@ -521,9 +522,8 @@ def render_mermaid(
     :param extra_packages: Optional dict mapping extra names to sets of package names
         that are unique to that extra. These will be rendered in subgraphs with
         ``--extra`` prefix.
-    :param specifiers: Optional dict mapping package_name -> {dep_name -> specifier}.
-    :param subgraph_specifiers: Optional dict mapping subgraph_name ->
-        {dep_name -> specifier} for primary dependencies in groups/extras.
+    :param lock_specs: Optional specifiers extracted from ``uv.lock``. Provides
+        edge labels (``by_package``) and subgraph node labels (``by_subgraph``).
     :return: Mermaid flowchart string.
     """
     lines = ["flowchart LR"]
@@ -559,8 +559,8 @@ def render_mermaid(
 
     # Build the full set of primary deps across all subgraphs.
     all_primary_deps: set[str] = set(primary_deps)
-    if subgraph_specifiers:
-        for sg_deps in subgraph_specifiers.values():
+    if lock_specs:
+        for sg_deps in lock_specs.by_subgraph.values():
             all_primary_deps.update(sg_deps.keys())
 
     # Pre-compute graph metrics for smarter declaration ordering.
@@ -614,7 +614,7 @@ def render_mermaid(
             extra_pkg_names = extra_packages[extra_name]
             if not extra_pkg_names:
                 continue
-            sg_specs = (subgraph_specifiers or {}).get(extra_name, {})
+            sg_specs = lock_specs.by_subgraph.get(extra_name, {}) if lock_specs else {}
             lines.append("")
             lines.append(f"    subgraph ext_{extra_name} [--extra {extra_name}]")
             for name in sorted(
@@ -639,7 +639,7 @@ def render_mermaid(
             group_pkg_names = group_packages[group_name]
             if not group_pkg_names:
                 continue
-            sg_specs = (subgraph_specifiers or {}).get(group_name, {})
+            sg_specs = lock_specs.by_subgraph.get(group_name, {}) if lock_specs else {}
             lines.append("")
             lines.append(f"    subgraph grp_{group_name} [--group {group_name}]")
             for name in sorted(
@@ -690,8 +690,8 @@ def render_mermaid(
 
         # Add specifier as edge label if available.
         spec = ""
-        if specifiers and from_name in specifiers:
-            spec = specifiers[from_name].get(to_name, "")
+        if lock_specs and from_name in lock_specs.by_package:
+            spec = lock_specs.by_package[from_name].get(to_name, "")
         if spec:
             lines.append(f'    {from_id} {arrow}|" {spec} "| {to_id}')
         else:
@@ -764,8 +764,7 @@ def generate_dependency_graph(
     root_name, nodes, edges = build_dependency_graph(sbom)
 
     # Parse specifiers from uv.lock for edge labels and subgraph node labels.
-    specifiers = parse_lock_specifiers()
-    subgraph_specifiers = parse_lock_subgraph_specifiers()
+    lock_specs = parse_lock_specifiers(lock_data=load_lock_data())
 
     # Get base packages (without any groups or extras) for comparison.
     base_sbom = get_cyclonedx_sbom(frozen=frozen)
@@ -840,6 +839,5 @@ def generate_dependency_graph(
         edges,
         group_packages,
         extra_packages,
-        specifiers,
-        subgraph_specifiers,
+        lock_specs,
     )

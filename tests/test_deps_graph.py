@@ -33,6 +33,7 @@ from repomatic.deps_graph import (
     render_mermaid,
     trim_graph_to_depth,
 )
+from repomatic.uv import LockSpecifiers
 
 # Sample CycloneDX SBOM data for testing.
 SAMPLE_SBOM = {
@@ -217,11 +218,14 @@ def test_render_mermaid() -> None:
 def test_render_mermaid_with_specifiers() -> None:
     root_name, nodes, edges = build_dependency_graph(SAMPLE_SBOM)
     # Provide specifiers for edge labels.
-    specifiers = {
-        "my-project": {"click": ">=8.0", "requests": ">=2.28"},
-        "requests": {"urllib3": ">=1.26,<2", "certifi": ">=2022"},
-    }
-    output = render_mermaid(root_name, nodes, edges, specifiers=specifiers)
+    lock_specs = LockSpecifiers(
+        by_package={
+            "my-project": {"click": ">=8.0", "requests": ">=2.28"},
+            "requests": {"urllib3": ">=1.26,<2", "certifi": ">=2022"},
+        },
+        by_subgraph={},
+    )
+    output = render_mermaid(root_name, nodes, edges, lock_specs=lock_specs)
 
     # Check edge labels with specifiers.
     assert 'my_project ==>|" >=8.0 "| click_0' in output
@@ -259,14 +263,17 @@ def test_render_mermaid_with_subgraph_specifiers() -> None:
         ("my-project", "coverage"),
     ]
     # Specifiers for primary deps in the test group.
-    subgraph_specifiers = {"test": {"pytest": ">=9", "coverage": ">=7.11"}}
+    lock_specs = LockSpecifiers(
+        by_package={},
+        by_subgraph={"test": {"pytest": ">=9", "coverage": ">=7.11"}},
+    )
 
     output = render_mermaid(
         root_name,
         extended_nodes,
         extended_edges,
         group_packages,
-        subgraph_specifiers=subgraph_specifiers,
+        lock_specs=lock_specs,
     )
 
     # Primary group deps use hexagon shape with specifier in label.
@@ -289,15 +296,18 @@ def test_render_mermaid_primary_deps_in_subgraph() -> None:
         ("pytest-cov", "pytest"),
         ("pytest", "iniconfig"),
     ]
-    # pytest and pytest-cov are primary deps (in subgraph_specifiers).
-    subgraph_specifiers = {"test": {"pytest": ">=9", "pytest-cov": ">=7"}}
+    # pytest and pytest-cov are primary deps (in lock_specs.by_subgraph).
+    lock_specs = LockSpecifiers(
+        by_package={},
+        by_subgraph={"test": {"pytest": ">=9", "pytest-cov": ">=7"}},
+    )
 
     output = render_mermaid(
         root_name,
         extended_nodes,
         extended_edges,
         group_packages,
-        subgraph_specifiers=subgraph_specifiers,
+        lock_specs=lock_specs,
     )
 
     # Primary deps use hexagon shape.
