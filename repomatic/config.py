@@ -308,6 +308,14 @@ class Config:
     matrix combinations. Additive to the upstream default includes.
     """
 
+    test_matrix_replace: dict[str, dict[str, str]] = field(default_factory=dict)
+    """Per-axis value replacements applied to both full and PR test matrices.
+
+    Outer key is the variation/axis ID (e.g., ``os``, ``python-version``).
+    Inner dict maps old values to new values. Applied before excludes,
+    includes, and variations.
+    """
+
     test_matrix_variations: dict[str, list[str]] = field(default_factory=dict)
     """Extra matrix dimension values added to the full test matrix only.
 
@@ -344,6 +352,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "setup_guide",
     "test_matrix_exclude",
     "test_matrix_include",
+    "test_matrix_replace",
     "test_matrix_variations",
     "test_plan_file",
     "test_plan_inline",
@@ -530,6 +539,7 @@ def load_repomatic_config(
     if test_matrix_raw:
         flat_user["test_matrix_exclude"] = test_matrix_raw.get("exclude", [])
         flat_user["test_matrix_include"] = test_matrix_raw.get("include", [])
+        flat_user["test_matrix_replace"] = test_matrix_raw.get("replace", {})
         flat_user["test_matrix_variations"] = test_matrix_raw.get("variations", {})
     known = {f.name for f in fields(Config)}
     unknown = sorted(set(flat_user) - known)

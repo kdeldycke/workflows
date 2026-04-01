@@ -116,6 +116,26 @@ class Matrix:
         var_values = list(self.variations.get(variation_id, [])) + list(values)
         self.variations[variation_id] = tuple(unique(var_values))
 
+    def replace_variation_value(
+        self, variation_id: str, old: str, new: str
+    ) -> None:
+        """Replace a single value within a variation axis.
+
+        The new value takes the position of the old value. If the new value
+        already exists elsewhere in the axis, the duplicate is removed by
+        :func:`boltons.iterutils.unique`.
+
+        Silently skips if the axis does not exist or does not contain the
+        old value, making the operation idempotent.
+        """
+        if variation_id not in self.variations:
+            return
+        values = list(self.variations[variation_id])
+        if old not in values:
+            return
+        values[values.index(old)] = new
+        self.variations[variation_id] = tuple(unique(values))
+
     def _add_and_dedup_dicts(
         self, *new_dicts: dict[str, str]
     ) -> tuple[dict[str, str], ...]:

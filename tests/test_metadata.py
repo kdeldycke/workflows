@@ -1274,6 +1274,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config.include == []
     assert metadata.config.test_matrix_exclude == []
     assert metadata.config.test_matrix_include == []
+    assert metadata.config.test_matrix_replace == {}
     assert metadata.config.test_matrix_variations == {}
 
 
@@ -1476,6 +1477,32 @@ include = [
     # PR matrix: same custom include added.
     pr_includes = metadata.test_matrix_pr.matrix()["include"]
     assert {"state": "unstable", "python-version": "3.99"} in pr_includes
+
+
+def test_test_matrix_config_replace(tmp_path, monkeypatch):
+    """Test that test-matrix.replace swaps axis values in both matrices."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.repomatic.test-matrix.replace]
+os = { "ubuntu-slim" = "ubuntu-24.04" }
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+    metadata = Metadata()
+
+    # Full matrix: ubuntu-slim replaced with ubuntu-24.04.
+    full = metadata.test_matrix.matrix()
+    assert "ubuntu-24.04" in full["os"]
+    assert "ubuntu-slim" not in full["os"]
+
+    # PR matrix: same replacement applied.
+    pr = metadata.test_matrix_pr.matrix()
+    assert "ubuntu-24.04" in pr["os"]
+    assert "ubuntu-slim" not in pr["os"]
 
 
 def test_unstable_targets_default(tmp_path, monkeypatch):

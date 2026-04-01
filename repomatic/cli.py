@@ -62,7 +62,12 @@ from .binary import (
 from .broken_links import manage_combined_broken_links_issue
 from .changelog import Changelog, lint_changelog_dates
 from .checksums import update_checksums, update_registry_checksums
-from .config import CONFIG_REFERENCE_HEADERS, Config, config_reference
+from .config import (
+    CONFIG_REFERENCE_HEADERS,
+    Config,
+    config_reference,
+    load_repomatic_config,
+)
 from .deps_graph import (
     generate_dependency_graph,
     get_available_extras,
@@ -237,11 +242,23 @@ def _require_token(module, attr):
     return decorator
 
 
+def _load_config_from_section(app_section: dict) -> Config:
+    """Adapter between click-extra's config loading and ``load_repomatic_config``.
+
+    Click-extra's generic dataclass schema flattens all nested TOML keys before
+    validation, which breaks ``test-matrix.replace.os`` and
+    ``test-matrix.variations.os`` (they become ``test_matrix_replace_os_…``).
+    Routing through ``load_repomatic_config`` preserves the ``test-matrix``
+    sub-section as a dict.
+    """
+    return load_repomatic_config({"tool": {"repomatic": app_section}})
+
+
 # included_params=() disables merge_default_map: all [tool.repomatic] keys are
 # config-only (not CLI params), so merging them would collide with subcommand
 # names (e.g., "setup-guide" is both a config key and a subcommand). Config
 # access goes exclusively through config_schema + get_tool_config().
-@group(config_schema=Config, schema_strict=True, included_params=())
+@group(config_schema=_load_config_from_section, included_params=())
 def repomatic():
     pass
 

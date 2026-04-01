@@ -69,6 +69,51 @@ def test_matrix():
         matrix.add_variation("exclude", ["a", "b", "c"])
 
 
+def test_replace_variation_value():
+    matrix = Matrix()
+    matrix.add_variation("os", ["ubuntu-slim", "macos-26", "windows-2025"])
+    matrix.add_variation("version", ["3.10", "3.14"])
+
+    # Basic replacement preserves position.
+    matrix.replace_variation_value("os", "ubuntu-slim", "ubuntu-24.04")
+    assert matrix.variations["os"] == ("ubuntu-24.04", "macos-26", "windows-2025")
+
+    # Other axes are untouched.
+    assert matrix.variations["version"] == ("3.10", "3.14")
+
+    # Missing axis is a silent no-op.
+    matrix.replace_variation_value("nonexistent", "a", "b")
+    assert "nonexistent" not in matrix.variations
+
+    # Missing value within an existing axis is a silent no-op.
+    matrix.replace_variation_value("os", "linux-latest", "ubuntu-22.04")
+    assert matrix.variations["os"] == ("ubuntu-24.04", "macos-26", "windows-2025")
+
+    # Replacement deduplicates when the new value already exists.
+    matrix.replace_variation_value("os", "windows-2025", "macos-26")
+    assert matrix.variations["os"] == ("ubuntu-24.04", "macos-26")
+
+
+def test_replace_variation_value_solve():
+    """Replacement integrates correctly with the full solve pipeline."""
+    matrix = Matrix()
+    matrix.add_variation("os", ["ubuntu-slim", "macos-26"])
+    matrix.add_variation("version", ["3.10", "3.14"])
+    matrix.add_includes({"state": "stable"})
+    matrix.add_excludes({"os": "ubuntu-slim", "version": "3.10"})
+
+    matrix.replace_variation_value("os", "ubuntu-slim", "ubuntu-24.04")
+
+    # The exclude still references "ubuntu-slim", which no longer exists in the
+    # axis, so the combination is no longer excluded.
+    assert tuple(matrix.solve()) == (
+        {"os": "ubuntu-24.04", "version": "3.10", "state": "stable"},
+        {"os": "ubuntu-24.04", "version": "3.14", "state": "stable"},
+        {"os": "macos-26", "version": "3.10", "state": "stable"},
+        {"os": "macos-26", "version": "3.14", "state": "stable"},
+    )
+
+
 def test_includes():
     matrix = Matrix()
 

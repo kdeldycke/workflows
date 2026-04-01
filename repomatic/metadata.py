@@ -1982,6 +1982,10 @@ class Metadata:
             values). Variations are only added to the full matrix, not the PR
             matrix, to keep PR CI fast.
         """
+        # Replacements first: swap axis values in-place before any other config.
+        for var_id, mapping in self.config.test_matrix_replace.items():
+            for old, new in mapping.items():
+                matrix.replace_variation_value(var_id, old, new)
         if full:
             for var_id, values in self.config.test_matrix_variations.items():
                 matrix.add_variation(var_id, values)

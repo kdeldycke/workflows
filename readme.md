@@ -223,6 +223,7 @@ workflow.source-paths = ["extra_platforms"]
 | `setup-guide`                 | bool                 | `true`                             | Whether the setup guide issue is enabled for this project.                       |
 | `test-matrix.exclude`         | list[dict[str, str]] | `[]`                               | Extra exclude rules applied to both full and PR test matrices.                   |
 | `test-matrix.include`         | list[dict[str, str]] | `[]`                               | Extra include directives applied to both full and PR test matrices.              |
+| `test-matrix.replace`         | dict[str, dict[str, str]] | `{}`                          | Per-axis value replacements applied to both full and PR test matrices.            |
 | `test-matrix.variations`      | dict[str, list[str]] | {}                                 | Extra matrix dimension values added to the full test matrix only.                |
 | `test-plan.file`              | str                  | `"./tests/cli-test-plan.yaml"`     | Path to the YAML test plan file for binary testing.                              |
 | `test-plan.inline`            | str                  | *(none)*                           | Inline YAML test plan for binaries.                                              |
