@@ -217,7 +217,7 @@ def test_get_template_names():
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
     assert "yanked-admonition" in names
-    assert len(names) == 34
+    assert len(names) == 38
 
 
 def test_load_template_frontmatter():
@@ -493,6 +493,10 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "release-sync-report",
     "renovate-migration",
     "setup-guide",
+    "setup-guide-branch-ruleset",
+    "setup-guide-dependabot",
+    "setup-guide-token",
+    "setup-guide-verify",
     "unavailable-admonition",
     "unsubscribe-phase1",
     "unsubscribe-phase2",

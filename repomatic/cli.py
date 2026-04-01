@@ -106,7 +106,7 @@ from .images import (
     optimize_images,
 )
 from .init_project import export_content, run_init
-from .lint_repo import run_repo_lint
+from .lint_repo import check_branch_ruleset_on_default, run_repo_lint
 from .mailmap import Mailmap
 from .metadata import (
     METADATA_KEYS_HEADERS,
@@ -1851,6 +1851,28 @@ def broken_links(
     )
 
 
+def _wrap_setup_step(title: str, content: str, *, passed: bool) -> str:
+    """Wrap a setup step in a collapsible ``<details>`` block with status emoji.
+
+    Incomplete steps (``passed=False``) render as open sections with a
+    warning emoji. Completed steps (``passed=True``) render collapsed
+    with a checkmark.
+
+    :param title: Step heading shown in the ``<summary>`` line.
+    :param content: Markdown body of the step.
+    :param passed: Whether the step is verified complete.
+    :return: HTML ``<details>`` block string.
+    """
+    emoji = "\u2705" if passed else "\u274c"
+    open_attr = "" if passed else " open"
+    return (
+        f"<details{open_attr}>\n"
+        f"<summary>{emoji} <strong>{title}</strong></summary>\n\n"
+        f"{content}\n\n"
+        f"</details>"
+    )
+
+
 @repomatic.command(
     short_help="Manage setup guide issue lifecycle", section=_section_github
 )
@@ -1883,19 +1905,16 @@ def setup_guide(
 ) -> None:
     """Manage the setup guide issue lifecycle.
 
-    \b
-    Handles three states:
-      - No PAT: opens a setup guide issue with full instructions.
-      - PAT configured but incomplete: keeps the issue open with a
-        section listing the missing permissions.
-      - PAT configured and complete: closes the issue.
+    Each setup step is shown as a collapsible section with a status
+    indicator: incomplete steps are expanded with a warning emoji,
+    completed steps are collapsed with a checkmark.
 
     The --has-pat flag can also be set via the HAS_REPOMATIC_PAT
     environment variable (any non-empty value is truthy).
 
     When --has-pat is set and --repo is provided, the command runs
-    granular PAT permission checks. If any check fails, the issue stays
-    open with details about which permissions are missing.
+    granular PAT permission checks and repository settings checks.
+    The issue closes only when all verifiable steps pass.
 
     Requires the gh CLI to be installed and authenticated.
 
@@ -1905,7 +1924,7 @@ def setup_guide(
         repomatic setup-guide
 
     \b
-        # Secret configured: close the issue if all permissions pass
+        # Secret configured: close the issue if all checks pass
         repomatic setup-guide --has-pat
     """
     config = get_tool_config(ctx)
@@ -1920,9 +1939,12 @@ def setup_guide(
     repo_slug = md.repo_slug
     repo_url = _repo_url()
 
-    # Run granular PAT permission checks when the PAT is present.
+    # --- Per-step checks ---
+
+    # Token + permissions check.
     missing_permissions_section = ""
     has_permission_failures = False
+    dependabot_ok = False
     if has_pat and repo:
         pat_results = _token_mod.check_all_pat_permissions(repo, sha)
         failures = pat_results.failed()
@@ -1936,19 +1958,72 @@ def setup_guide(
                 "> [!WARNING]\n"
                 "> Your `REPOMATIC_PAT` secret is configured but missing"
                 " some permissions.\n"
-                "> Update the token using the pre-filled link in Step 1"
-                " below.\n\n"
+                "> Update the token using the pre-filled link below.\n\n"
                 "| Permission issue |\n"
                 "| :-- |\n"
                 f"{table}\n"
             )
+        # Vulnerability alerts are confirmed enabled when the Dependabot
+        # alerts permission check passes (HTTP 200 from the alerts API).
+        dependabot_ok = pat_results.vulnerability_alerts[0]
 
-    # Include immutable releases step only when a changelog exists.
+    token_ok = has_pat and not has_permission_failures
+
+    # Branch ruleset check.
+    branch_ok = False
+    if has_pat and repo:
+        branch_ok, _ = check_branch_ruleset_on_default(repo)
+
+    # Immutable releases: always shown when changelog exists, always
+    # marked incomplete (no API to verify the setting).
     has_changelog = Path("./changelog.md").exists()
-    immutable_releases_step = (
-        render_template("immutable-releases", repo_url=repo_url)
-        if has_changelog
-        else ""
+
+    # --- Render each step as a collapsible section ---
+
+    step_token = _wrap_setup_step(
+        "Create and configure the token",
+        render_template(
+            "setup-guide-token",
+            repo_url=repo_url,
+            repo_name=repo_name,
+            repo_owner=repo_owner,
+            repo_slug=repo_slug,
+        ),
+        passed=token_ok,
+    )
+
+    step_dependabot = _wrap_setup_step(
+        "Configure Dependabot settings",
+        render_template(
+            "setup-guide-dependabot",
+            repo_url=repo_url,
+            repo_slug=repo_slug,
+        ),
+        passed=dependabot_ok,
+    )
+
+    immutable_releases_step = ""
+    if has_changelog:
+        immutable_releases_step = _wrap_setup_step(
+            "Enable immutable releases",
+            render_template("immutable-releases", repo_url=repo_url),
+            passed=False,
+        )
+
+    step_branch_ruleset = _wrap_setup_step(
+        "Protect the main branch",
+        render_template("setup-guide-branch-ruleset", repo_url=repo_url),
+        passed=branch_ok,
+    )
+
+    step_verify = _wrap_setup_step(
+        "Verify the setup",
+        render_template(
+            "setup-guide-verify",
+            repo_url=repo_url,
+            repo_slug=repo_slug,
+        ),
+        passed=False,
     )
 
     # Detect if the repository owner is an organization.
@@ -1970,16 +2045,17 @@ def setup_guide(
         except RuntimeError:
             logging.debug(f"Failed to detect owner type for {owner!r}.")
 
-    # --- Setup guide issue ---
+    # --- Assemble issue body ---
     setup_body = render_template(
         "setup-guide",
-        repo_url=repo_url,
-        repo_name=repo_name,
-        repo_owner=repo_owner,
-        repo_slug=repo_slug,
-        immutable_releases_step=immutable_releases_step,
-        org_tip=org_tip,
         missing_permissions_section=missing_permissions_section,
+        step_token=step_token,
+        step_dependabot=step_dependabot,
+        immutable_releases_step=immutable_releases_step,
+        step_branch_ruleset=step_branch_ruleset,
+        step_verify=step_verify,
+        org_tip=org_tip,
+        repo_url=repo_url,
     )
     with tempfile.NamedTemporaryFile(
         mode="w",
@@ -1990,15 +2066,19 @@ def setup_guide(
         tmp.write(setup_body)
         setup_body_file = Path(tmp.name)
 
-    # Keep issue open when PAT is missing OR when permissions are incomplete.
-    needs_issue = not has_pat or has_permission_failures
+    # Close issue only when all verifiable steps pass.
+    # Immutable releases and verify are excluded (no API to check).
+    needs_issue = not (token_ok and dependabot_ok and branch_ok)
 
     manage_issue_lifecycle(
         has_issues=needs_issue,
         body_file=setup_body_file,
         labels=["🤖 ci"],
         title="Set up `REPOMATIC_PAT` to enable workflow auto-updates",
-        no_issues_comment="PAT secret detected, all permissions verified.",
+        no_issues_comment=(
+            "PAT configured, all permissions verified,"
+            " repository settings complete."
+        ),
     )
 
 

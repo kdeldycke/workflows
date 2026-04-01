@@ -537,13 +537,14 @@ def test_setup_guide_no_pat_opens_setup_issue(mock_lifecycle, _mock_token):
 
 @patch("repomatic.github.token.validate_gh_token_env")
 @patch("repomatic.cli.manage_issue_lifecycle")
-def test_setup_guide_pat_closes_issue(mock_lifecycle, _mock_token):
-    """When REPOMATIC_PAT is configured, the issue closes."""
+def test_setup_guide_pat_without_repo_keeps_issue_open(mock_lifecycle, _mock_token):
+    """PAT without --repo cannot verify Dependabot or branch settings."""
     runner = CliRunner(env={"GITHUB_REPOSITORY": ""})
     result = runner.invoke(repomatic_cli, ["setup-guide", "--has-pat"])
     assert result.exit_code == 0
     assert mock_lifecycle.call_count == 1
-    assert mock_lifecycle.call_args_list[0][1]["has_issues"] is False
+    # Without --repo, dependabot and branch checks cannot run.
+    assert mock_lifecycle.call_args_list[0][1]["has_issues"] is True
 
 
 @patch("repomatic.github.token.validate_gh_token_env")
@@ -606,12 +607,14 @@ def _partial_fail_pat_results():
 
 @patch("repomatic.github.token.validate_gh_token_env")
 @patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli.check_branch_ruleset_on_default")
 @patch("repomatic.cli._token_mod.check_all_pat_permissions")
-def test_setup_guide_pat_all_permissions_pass_closes_issue(
-    mock_check, mock_lifecycle, _mock_token
+def test_setup_guide_all_checks_pass_closes_issue(
+    mock_check, mock_branch, mock_lifecycle, _mock_token
 ):
-    """When PAT is configured and all permissions pass, the issue closes."""
+    """When PAT, permissions, and branch ruleset all pass, the issue closes."""
     mock_check.return_value = _all_pass_pat_results()
+    mock_branch.return_value = (True, "Active branch rulesets found: main.")
     runner = CliRunner()
     result = runner.invoke(
         repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
@@ -623,12 +626,14 @@ def test_setup_guide_pat_all_permissions_pass_closes_issue(
 
 @patch("repomatic.github.token.validate_gh_token_env")
 @patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli.check_branch_ruleset_on_default")
 @patch("repomatic.cli._token_mod.check_all_pat_permissions")
 def test_setup_guide_pat_missing_permission_keeps_issue_open(
-    mock_check, mock_lifecycle, _mock_token
+    mock_check, mock_branch, mock_lifecycle, _mock_token
 ):
     """When PAT is configured but a permission is missing, the issue stays open."""
     mock_check.return_value = _partial_fail_pat_results()
+    mock_branch.return_value = (True, "Active branch rulesets found: main.")
     runner = CliRunner()
     result = runner.invoke(
         repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
@@ -640,15 +645,112 @@ def test_setup_guide_pat_missing_permission_keeps_issue_open(
 
 @patch("repomatic.github.token.validate_gh_token_env")
 @patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli.check_branch_ruleset_on_default")
 @patch("repomatic.cli._token_mod.check_all_pat_permissions")
 def test_setup_guide_pat_missing_permission_body_contains_warning(
-    mock_check, mock_lifecycle, _mock_token
+    mock_check, mock_branch, mock_lifecycle, _mock_token
 ):
     """When PAT has missing permissions, the issue body contains a warning section."""
     mock_check.return_value = _partial_fail_pat_results()
+    mock_branch.return_value = (True, "Active branch rulesets found: main.")
     runner = CliRunner()
     runner.invoke(repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"])
     body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
     content = body_file.read_text(encoding="UTF-8")
     assert "missing some permissions" in content
     assert "Dependabot alerts" in content
+
+
+@patch("repomatic.github.token.validate_gh_token_env")
+@patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli.check_branch_ruleset_on_default")
+@patch("repomatic.cli._token_mod.check_all_pat_permissions")
+def test_setup_guide_completed_step_collapsed(
+    mock_check, mock_branch, mock_lifecycle, _mock_token
+):
+    """Completed steps render as collapsed details blocks with a checkmark."""
+    mock_check.return_value = _all_pass_pat_results()
+    mock_branch.return_value = (True, "Active branch rulesets found: main.")
+    runner = CliRunner()
+    runner.invoke(repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"])
+    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
+    content = body_file.read_text(encoding="UTF-8")
+    # Token step should be collapsed with checkmark.
+    assert "<details>\n<summary>\u2705 <strong>Create and configure the token" in content
+    # Branch step should be collapsed with checkmark.
+    assert "<details>\n<summary>\u2705 <strong>Protect the main branch" in content
+
+
+@patch("repomatic.github.token.validate_gh_token_env")
+@patch("repomatic.cli.manage_issue_lifecycle")
+def test_setup_guide_incomplete_step_expanded(mock_lifecycle, _mock_token):
+    """Incomplete steps render as open details blocks with an error indicator."""
+    runner = CliRunner()
+    runner.invoke(repomatic_cli, ["setup-guide"])
+    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
+    content = body_file.read_text(encoding="UTF-8")
+    # Token step should be expanded with warning indicator.
+    assert "<details open>" in content
+    assert "\u274c" in content
+    assert "<strong>Create and configure the token" in content
+
+
+@patch("repomatic.github.token.validate_gh_token_env")
+@patch("repomatic.cli.manage_issue_lifecycle")
+@patch("repomatic.cli.check_branch_ruleset_on_default")
+@patch("repomatic.cli._token_mod.check_all_pat_permissions")
+def test_setup_guide_missing_branch_ruleset_keeps_issue_open(
+    mock_check, mock_branch, mock_lifecycle, _mock_token
+):
+    """When PAT and permissions pass but branch ruleset is missing, issue stays open."""
+    mock_check.return_value = _all_pass_pat_results()
+    mock_branch.return_value = (False, "No active branch rulesets found.")
+    runner = CliRunner()
+    result = runner.invoke(
+        repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
+    )
+    assert result.exit_code == 0
+    assert mock_lifecycle.call_args_list[0][1]["has_issues"] is True
+
+
+# ---------------------------------------------------------------------------
+# Branch ruleset check tests
+# ---------------------------------------------------------------------------
+
+
+def test_check_branch_ruleset_found():
+    """Active branch ruleset is detected."""
+    from repomatic.lint_repo import check_branch_ruleset_on_default
+
+    rulesets_json = json.dumps([
+        {"name": "main", "target": "branch", "enforcement": "active"},
+    ])
+    with patch("repomatic.lint_repo.run_gh_command", return_value=rulesets_json):
+        passed, msg = check_branch_ruleset_on_default("owner/repo")
+    assert passed is True
+    assert "main" in msg
+
+
+def test_check_branch_ruleset_none():
+    """No branch rulesets returns failure."""
+    from repomatic.lint_repo import check_branch_ruleset_on_default
+
+    rulesets_json = json.dumps([
+        {"name": "tags", "target": "tag", "enforcement": "active"},
+    ])
+    with patch("repomatic.lint_repo.run_gh_command", return_value=rulesets_json):
+        passed, msg = check_branch_ruleset_on_default("owner/repo")
+    assert passed is False
+
+
+def test_check_branch_ruleset_api_error():
+    """API failure defaults to incomplete (show the step)."""
+    from repomatic.lint_repo import check_branch_ruleset_on_default
+
+    with patch(
+        "repomatic.lint_repo.run_gh_command",
+        side_effect=RuntimeError("HTTP 403"),
+    ):
+        passed, msg = check_branch_ruleset_on_default("owner/repo")
+    assert passed is False
+    assert "skipped" in msg

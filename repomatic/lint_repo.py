@@ -394,6 +394,54 @@ def check_tag_protection_rules(repo: str) -> tuple[str | None, str]:
     return None, "No active tag rulesets found."
 
 
+def check_branch_ruleset_on_default(repo: str) -> tuple[bool, str]:
+    """Check that at least one active branch ruleset exists.
+
+    Queries the same ``GET /repos/{repo}/rulesets`` endpoint as
+    :func:`check_tag_protection_rules` and looks for active rulesets with
+    ``target == "branch"``. The presence of any such ruleset is taken as
+    evidence that the default branch is protected (restrict deletions and
+    block force pushes).
+
+    .. note::
+
+        This is a heuristic: it does not verify the ruleset targets the
+        default branch specifically, nor that it enables the exact rules
+        recommended by the setup guide. A deeper check would require
+        fetching each ruleset's conditions via
+        ``GET /repos/{repo}/rulesets/{id}``, adding N+1 API calls.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        output = run_gh_command([
+            "api",
+            f"repos/{repo}/rulesets",
+            "-f",
+            "includes_parents=true",
+        ])
+    except RuntimeError:
+        return False, "Branch ruleset check: skipped (could not query rulesets API)."
+
+    try:
+        rulesets = json.loads(output)
+    except json.JSONDecodeError:
+        return False, "Branch ruleset check: skipped (invalid JSON from rulesets API)."
+
+    branch_rulesets = [
+        r["name"]
+        for r in rulesets
+        if isinstance(r, dict)
+        and r.get("target") == "branch"
+        and r.get("enforcement") == "active"
+    ]
+    if branch_rulesets:
+        names = ", ".join(branch_rulesets)
+        return True, f"Active branch rulesets found: {names}."
+    return False, "No active branch rulesets found protecting the default branch."
+
+
 def check_workflow_permissions() -> list[tuple[str | None, str]]:
     """Check that workflows with custom jobs declare ``permissions: {}``.
 
