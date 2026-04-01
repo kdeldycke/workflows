@@ -3,14 +3,14 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-25T10:49:34.540853Z"
+exclude-newer = "2026-03-25T12:46:04.655207Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-04-01T10:49:34.541143Z", span = "PT0S" }
-pygments = { timestamp = "2026-04-01T10:49:34.541604Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-01T10:49:34.541605Z", span = "PT0S" }
-requests = { timestamp = "2026-04-01T10:49:34.541605Z", span = "PT0S" }
+click-extra = { timestamp = "2026-04-01T12:46:04.65552Z", span = "PT0S" }
+pygments = { timestamp = "2026-04-01T12:46:04.656046Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-01T12:46:04.656047Z", span = "PT0S" }
+requests = { timestamp = "2026-04-01T12:46:04.656047Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -210,8 +210,8 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.9.1.dev0"
-source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#61a7c0cd5d94533d1c28bf078e5d42e2811f05ea" }
+version = "7.10.0.dev0"
+source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#8e0a266ec4a7278e881b5d1712bd822a44e3f539" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },
@@ -985,7 +985,7 @@ requires-dist = [
     { name = "bump-my-version", specifier = ">=1.2.6" },
     { name = "click-extra", git = "https://github.com/kdeldycke/click-extra.git?rev=main" },
     { name = "extra-platforms", specifier = ">=8" },
-    { name = "packaging", specifier = ">=20" },
+    { name = "packaging", specifier = ">=17" },
     { name = "py-walk", specifier = ">=0.3.1" },
     { name = "pydriller", specifier = ">=2" },
     { name = "pyproject-metadata", specifier = ">=0.9" },
@@ -998,7 +998,7 @@ requires-dist = [
 test = [
     { name = "coverage", extras = ["toml"], specifier = ">=7.11" },
     { name = "pytest", specifier = ">=9" },
-    { name = "pytest-cov", specifier = ">=6" },
+    { name = "pytest-cov", specifier = ">=4" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.2" },
     { name = "pytest-randomly", specifier = ">=3" },
     { name = "pytest-xdist", extras = ["psutil"], specifier = ">=3.7" },

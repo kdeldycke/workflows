@@ -80,7 +80,8 @@ dependencies = [
   "backports-strenum>=1; python_version<'3.11'",
   # boltons 25.0.0 dropped Python 3.9, matching our requires-python >= 3.10.
   "boltons>=25",
-  # v1.2.6 fix Click compatibility issues.
+  # bumpversion.config.files.find_config_file() and bumpversion.show.resolve_name()
+  # stabilized in 1.x; 1.2.6 fixes Click compatibility affecting our CLI integration.
   "bump-my-version>=1.2.6",
   # Click Extra 7.9.1.dev0 (19a4325f) adds schema-aware dataclass support:
   # type-aware flattening, field metadata (config_path, normalize_keys),
@@ -90,7 +91,7 @@ dependencies = [
   # platform detection APIs used in tool_runner.py and test_plan.py.
   "extra-platforms>=8",
   # canonicalize_name() available since packaging 16; Version() since 17.
-  "packaging>=20",
+  "packaging>=17",
   # py-walk 0.3.x introduced get_parser_from_file(); replaced gitignore-parser
   # (mherrmann/gitignore_parser#43).
   # XXX Replace py-walk with wcmatch once the latter supports gitignore files:
@@ -101,11 +102,13 @@ dependencies = [
   # pyproject-metadata 0.9 added PEP 639 (license expressions) and PEP 685 (extras
   # normalization); our StandardMetadata.from_pyproject() call benefits from these.
   "pyproject-metadata>=0.9",
-  # PyYAML 6.0.3 ships Python 3.14 wheels; older versions fail to build on 3.14.
+  # PyYAML < 6.0.2 uses Cython extensions that fail to compile on Python 3.14, and
+  # old releases lack requires-python metadata to prevent selection on 3.14.
   "pyyaml>=6.0.3",
   # tomli 2.0 aligned API with stdlib tomllib; only installed on Python 3.10.
   "tomli>=2; python_version<'3.11'",
-  # wcmatch 10.0 fix some inconsistencies in globbing and symlinks.
+  # wcmatch 10.0 fixed globbing inconsistencies with symlinks; our metadata
+  # globbing uses iglob() with FOLLOW for symlink-aware file discovery.
   "wcmatch>=10",
 ]
 
@@ -123,18 +126,19 @@ repomatic = "repomatic.__main__:main"
 # Non-runtime development dependency groups.
 [dependency-groups]
 test = [
-  # coverage 7.11.0 is the first version to drop support for Python 3.9.
+  # coverage 7.11.0 dropped Python 3.9, matching our requires-python >= 3.10.
   "coverage[toml]>=7.11",
   # Pytest 9.0.0 introduce support for native TOML configuration files.
   "pytest>=9",
-  # pytest-cov 6 supports pytest >= 4.6 and Python >= 3.9; --cov/--cov-report stable since 2.x.
-  "pytest-cov>=6",
+  # pytest-cov 4.0 stabilized the modern pytest plugin interface; --cov/--cov-report in addopts.
+  "pytest-cov>=4",
   # pytest-github-actions-annotate-failures 0.2 requires Python >= 3.8; CI annotation
   # API stable since 0.1.x.
   "pytest-github-actions-annotate-failures>=0.2",
   # pytest-randomly 3.x is the modern API; basic test randomization compatible with pytest >= 9.
   "pytest-randomly>=3",
-  # pytest-xdist 3.7.0 fixed Python 3.14 compatibility; [psutil] needed for --numprocesses=auto.
+  # pytest-xdist < 3.7 fails on Python 3.14 (no requires-python guard in older releases);
+  # [psutil] extra needed for --numprocesses=auto.
   "pytest-xdist[psutil]>=3.7",
 ]
 # types-boltons: first stub release covering boltons 25.0 API (FrozenDict, unique, flatten,
@@ -147,6 +151,7 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
 exclude-newer = "1 week"
 # Exclude repomatic and click-extra (pinned to git main) from the cooldown period.
+# pygments and requests bypass cooldown to pick up transitive security fixes immediately.
 exclude-newer-package = { "click-extra" = "0 day", "pygments" = "0 day", "repomatic" = "0 day", "requests" = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
