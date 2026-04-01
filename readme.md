@@ -773,7 +773,7 @@ docs = [
 
 - 🔬 **Run tests** (`tests`)
 
-  - Runs the test suite across a matrix of OS (Linux/macOS/Windows × `x86_64`/`arm64`) and Python versions (`3.10`, `3.14`, `3.14t`, `3.15`, `3.15t`)
+  - Runs the test suite across a matrix of OS (Linux/macOS/Windows × `x86_64`/`arm64`) and Python versions (`3.10`, `3.14`, `3.14t`, `3.15`)
   - Installs all optional extras (`--all-extras`) to catch incompatibilities between optional dependency groups
   - Runs `pytest` with coverage reporting to Codecov
   - Runs self-tests against the CLI test plan

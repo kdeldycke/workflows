@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Remove Python `3.15t` (free-threaded) from the default test matrix.
+
 ## [`6.9.0` (2026-03-31)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...v6.9.0)
 
 - Add per-project test matrix configuration via `[tool.repomatic.test-matrix]` in `pyproject.toml`. Supports `exclude`, `include`, and `variations` fields that map directly to the `Matrix` class API.

@@ -869,12 +869,10 @@ expected = {
             "3.14",
             "3.14t",
             "3.15",
-            "3.15t",
         ],
         "include": [
             {"state": "stable"},
             {"state": "unstable", "python-version": "3.15"},
-            {"state": "unstable", "python-version": "3.15t"},
         ],
         "exclude": [
             {"os": "windows-11-arm", "python-version": "3.10"},

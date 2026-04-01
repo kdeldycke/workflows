@@ -55,7 +55,6 @@ TEST_PYTHON_FULL = (
     "3.14",
     "3.14t",
     "3.15",
-    "3.15t",
 )
 """Python versions for the full test matrix.
 
@@ -71,7 +70,7 @@ TEST_PYTHON_PR = (
 Skips experimental versions (free-threaded, development) to reduce CI load.
 """
 
-UNSTABLE_PYTHON_VERSIONS: Final[frozenset[str]] = frozenset({"3.15", "3.15t"})
+UNSTABLE_PYTHON_VERSIONS: Final[frozenset[str]] = frozenset({"3.15"})
 """Python versions still in development.
 
 Jobs using these versions run with ``continue-on-error`` in CI.
