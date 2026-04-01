@@ -1431,9 +1431,12 @@ exclude = [
     assert {"os": "windows-11-arm"} in full["exclude"]
     assert {"os": "windows-11-arm", "python-version": "3.10"} in full["exclude"]
 
-    # PR matrix: config exclude is also present.
+    # PR matrix: windows-11-arm is not in the PR runner list, so the exclude
+    # is pruned as a no-op.
     pr = metadata.test_matrix_pr.matrix()
-    assert {"os": "windows-11-arm"} in pr["exclude"]
+    assert "exclude" not in pr or {"os": "windows-11-arm"} not in pr.get(
+        "exclude", ()
+    )
 
 
 def test_test_matrix_config_variations(tmp_path, monkeypatch):

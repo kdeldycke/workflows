@@ -175,6 +175,32 @@ class Matrix:
         """Add one or more ``exclude`` special directives to the matrix."""
         self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
 
+    def prune(self) -> None:
+        """Remove no-op exclude directives and log about them.
+
+        An exclude is a no-op when it references a key that exists as a
+        variation axis but the value is not present in that axis. Such
+        excludes can never match any combination produced by
+        :meth:`product`.
+        """
+        effective: list[dict[str, str]] = []
+        for exclude in self.exclude:
+            noop_key = None
+            for key, value in exclude.items():
+                if key in self.variations and value not in self.variations[key]:
+                    noop_key = key
+                    break
+            if noop_key:
+                logging.warning(
+                    "Dropping no-op exclude %s: %r is not in the %r axis.",
+                    exclude,
+                    exclude[noop_key],
+                    noop_key,
+                )
+            else:
+                effective.append(exclude)
+        self.exclude = tuple(effective)
+
     def all_variations(
         self,
         with_matrix: bool = True,

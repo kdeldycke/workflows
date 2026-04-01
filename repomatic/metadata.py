@@ -1996,6 +1996,8 @@ class Metadata:
             matrix.add_excludes(*self.config.test_matrix.exclude)
         if self.config.test_matrix.include:
             matrix.add_includes(*self.config.test_matrix.include)
+        # Drop excludes that became no-ops after replace/remove changed the axes.
+        matrix.prune()
 
     @cached_property
     def test_matrix(self) -> Matrix:
