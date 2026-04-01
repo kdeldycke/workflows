@@ -136,6 +136,22 @@ class Matrix:
         values[values.index(old)] = new
         self.variations[variation_id] = tuple(unique(values))
 
+    def remove_variation_value(self, variation_id: str, value: str) -> None:
+        """Remove a single value from a variation axis.
+
+        If the axis becomes empty after removal, it is deleted entirely.
+
+        Silently skips if the axis does not exist or does not contain the
+        value, making the operation idempotent.
+        """
+        if variation_id not in self.variations:
+            return
+        values = [v for v in self.variations[variation_id] if v != value]
+        if not values:
+            del self.variations[variation_id]
+        else:
+            self.variations[variation_id] = tuple(values)
+
     def _add_and_dedup_dicts(
         self, *new_dicts: dict[str, str]
     ) -> tuple[dict[str, str], ...]:

@@ -67,12 +67,20 @@ class TestMatrixConfig:
     matrix combinations. Additive to the upstream default includes.
     """
 
+    remove: dict[str, list[str]] = field(default_factory=dict)
+    """Per-axis value removals applied to both full and PR test matrices.
+
+    Outer key is the variation/axis ID (e.g., ``os``, ``python-version``).
+    Inner list contains values to drop from that axis. Applied after
+    replacements but before excludes, includes, and variations.
+    """
+
     replace: dict[str, dict[str, str]] = field(default_factory=dict)
     """Per-axis value replacements applied to both full and PR test matrices.
 
     Outer key is the variation/axis ID (e.g., ``os``, ``python-version``).
-    Inner dict maps old values to new values. Applied before excludes,
-    includes, and variations.
+    Inner dict maps old values to new values. Applied before removals,
+    excludes, includes, and variations.
     """
 
     variations: dict[str, list[str]] = field(default_factory=dict)

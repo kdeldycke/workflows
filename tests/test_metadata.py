@@ -1284,6 +1284,7 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config.include == []
     assert metadata.config.test_matrix.exclude == []
     assert metadata.config.test_matrix.include == []
+    assert metadata.config.test_matrix.remove == {}
     assert metadata.config.test_matrix.replace == {}
     assert metadata.config.test_matrix.variations == {}
 
@@ -1513,6 +1514,34 @@ os = { "ubuntu-slim" = "ubuntu-24.04" }
     pr = metadata.test_matrix_pr.matrix()
     assert "ubuntu-24.04" in pr["os"]
     assert "ubuntu-slim" not in pr["os"]
+
+
+def test_test_matrix_config_remove(tmp_path, monkeypatch):
+    """Test that test-matrix.remove drops axis values from both matrices."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[tool.repomatic.test-matrix.remove]
+os = ["windows-11-arm"]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+    metadata = Metadata()
+
+    # Full matrix: windows-11-arm removed from the axis entirely.
+    full = metadata.test_matrix.matrix()
+    assert "windows-11-arm" not in full["os"]
+
+    # PR matrix: windows-11-arm was never in the PR runner list, so no change.
+    pr = metadata.test_matrix_pr.matrix()
+    assert "windows-11-arm" not in pr["os"]
+
+    # Verify no resurrection: unstable python include cannot bring it back.
+    full_jobs = list(metadata.test_matrix.solve())
+    assert all(j["os"] != "windows-11-arm" for j in full_jobs)
 
 
 def test_unstable_targets_default(tmp_path, monkeypatch):

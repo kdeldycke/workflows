@@ -94,6 +94,54 @@ def test_replace_variation_value():
     assert matrix.variations["os"] == ("ubuntu-24.04", "macos-26")
 
 
+def test_remove_variation_value():
+    matrix = Matrix()
+    matrix.add_variation("os", ["ubuntu-slim", "macos-26", "windows-2025"])
+    matrix.add_variation("version", ["3.10", "3.14"])
+
+    # Basic removal.
+    matrix.remove_variation_value("os", "ubuntu-slim")
+    assert matrix.variations["os"] == ("macos-26", "windows-2025")
+
+    # Other axes are untouched.
+    assert matrix.variations["version"] == ("3.10", "3.14")
+
+    # Missing axis is a silent no-op.
+    matrix.remove_variation_value("nonexistent", "a")
+    assert "nonexistent" not in matrix.variations
+
+    # Missing value within an existing axis is a silent no-op.
+    matrix.remove_variation_value("os", "linux-latest")
+    assert matrix.variations["os"] == ("macos-26", "windows-2025")
+
+    # Removing all values deletes the axis.
+    matrix.remove_variation_value("os", "macos-26")
+    matrix.remove_variation_value("os", "windows-2025")
+    assert "os" not in matrix.variations
+
+
+def test_remove_variation_value_solve():
+    """Removal prevents resurrection by includes."""
+    matrix = Matrix()
+    matrix.add_variation("os", ["ubuntu-slim", "macos-26", "windows-11-arm"])
+    matrix.add_variation("version", ["3.14", "3.15"])
+    matrix.add_includes({"state": "stable"})
+    matrix.add_includes({"state": "unstable", "version": "3.15"})
+    matrix.add_excludes({"os": "windows-11-arm"})
+
+    # Without removal, the unstable include resurrects windows-11-arm × 3.15.
+    solved_with_exclude = tuple(matrix.solve())
+    assert {"os": "windows-11-arm", "version": "3.15", "state": "unstable"} in (
+        solved_with_exclude
+    )
+
+    # With removal, the value is gone from the axis entirely.
+    matrix.remove_variation_value("os", "windows-11-arm")
+    solved_with_remove = tuple(matrix.solve())
+    assert all(j["os"] != "windows-11-arm" for j in solved_with_remove)
+    assert len(solved_with_remove) == 4
+
+
 def test_replace_variation_value_solve():
     """Replacement integrates correctly with the full solve pipeline."""
     matrix = Matrix()

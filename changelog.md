@@ -17,6 +17,7 @@
 - Echo `metadata` output to stderr when `--output` targets a file, so computed matrices are visible in CI logs.
 - Remove Python `3.15t` (free-threaded) from the default test matrix.
 - Add `test-matrix.replace` configuration to swap default axis values in both full and PR test matrices. Projects that need a full runner image (e.g., for system package manager tests) can use `replace.os = { "ubuntu-slim" = "ubuntu-24.04" }` instead of working around the limitation with exclude/include.
+- Add `test-matrix.remove` configuration to drop axis values from both full and PR test matrices. Unlike `exclude`, removed values are gone from the axis before `solve()` runs, so they cannot be resurrected by include directives.
 - Fix CLI crash when `test-matrix.variations` or `test-matrix.replace` contain nested keys. Click-extra's generic config flattening was converting them to invalid field names. The CLI now routes config loading through `load_repomatic_config` which preserves the `test-matrix` sub-section structure.
 
 ## [`6.9.0` (2026-03-31)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...v6.9.0)
