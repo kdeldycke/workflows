@@ -463,6 +463,8 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         computed_params=lambda m: m.mypy_params or [],
     ),
     # pyproject-fmt configuration reference:
+    # - Config discovery: https://pyproject-fmt.readthedocs.io/en/latest/
+    #   Reads [tool.pyproject-fmt] from pyproject.toml natively.
     # - CLI flags: https://pyproject-fmt.readthedocs.io/en/latest/
     #   --expand-tables for table expansion. Returns exit code 1 when file is
     #   reformatted.
@@ -470,6 +472,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "pyproject-fmt": ToolSpec(
         name="pyproject-fmt",
         version="2.16.2",
+        reads_pyproject=True,
         default_flags=(
             "--expand-tables",
             "project.entry-points,project.optional-dependencies,project.urls,project.scripts",

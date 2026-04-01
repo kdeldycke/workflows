@@ -58,16 +58,15 @@ Options:
                           [default: color]
   --config CONFIG_PATH    Location of the configuration file. Supports local
                           path with glob patterns or remote URL.  [default:
-                          ~/Library/Application Support/repomatic/{*.toml,*.yam
-                          l,*.yml,*.json,*.ini,pyproject.toml}]
+                          ~/Library/Application Support/repomatic/{*.toml,*.yaml
+                          ,*.yml,*.json,*.ini,pyproject.toml}]
   --no-config             Ignore all configuration files and only use command
                           line parameters and environment variables.
   --validate-config FILE  Validate the configuration file and exit.
   --show-params           Show all CLI parameters, their provenance, defaults
                           and value, then exit.
   --table-format [aligned|asciidoc|colon-grid|csv|csv-excel|csv-excel-tab|csv-unix|double-grid|double-outline|fancy-grid|fancy-outline|github|grid|heavy-grid|heavy-outline|hjson|html|jira|json|json5|jsonc|latex|latex-booktabs|latex-longtable|latex-raw|mediawiki|mixed-grid|mixed-outline|moinmoin|orgtbl|outline|pipe|plain|presto|pretty|psql|rounded-grid|rounded-outline|rst|simple|simple-grid|simple-outline|textile|toml|tsv|unsafehtml|vertical|xml|yaml|youtrack]
-                          Rendering style of tables.  [default: rounded-
-                          outline]
+                          Rendering style of tables.  [default: rounded-outline]
   --verbosity LEVEL       Either CRITICAL, ERROR, WARNING, INFO, DEBUG.
                           [default: WARNING]
   -v, --verbose           Increase the default WARNING verbosity by one level
@@ -234,22 +233,6 @@ workflow.source-paths = ["extra_platforms"]
 
 <!-- End of generated table. -->
 
-> [!TIP]
-> The workflows also invoke tools that read their own `[tool.*]` sections from your `pyproject.toml`. You can customize their behavior in your project without forking or patching the workflows:
->
-> | Tool                                                                                | Section                     | Customizes                                                                                            |
-> | :---------------------------------------------------------------------------------- | :-------------------------- | :---------------------------------------------------------------------------------------------------- |
-> | [bump-my-version](https://callowayproject.github.io/bump-my-version/)               | `[tool.bumpversion]`        | Version bump patterns and files                                                                       |
-> | [coverage.py](https://coverage.readthedocs.io/en/latest/config.html)                | `[tool.coverage.*]`         | Code coverage reporting                                                                               |
-> | [mdformat](https://mdformat.readthedocs.io/en/stable/users/configuration_file.html) | `[tool.mdformat]`           | Markdown formatting options (via [`mdformat-pyproject`](https://github.com/csala/mdformat-pyproject)) |
-> | [mypy](https://mypy.readthedocs.io/en/stable/config_file.html)                      | `[tool.mypy]`               | Static type checking                                                                                  |
-> | [pytest](https://docs.pytest.org/en/stable/reference/customize.html)                | `[tool.pytest.ini_options]` | Test runner options                                                                                   |
-> | [ruff](https://docs.astral.sh/ruff/configuration/)                                  | `[tool.ruff]`               | Linting and formatting rules                                                                          |
-> | [typos](https://github.com/crate-ci/typos)                                          | `[tool.typos]`              | Spell-checking exceptions                                                                             |
-> | [uv](https://docs.astral.sh/uv/reference/settings/)                                 | `[tool.uv]`                 | Package resolution and build config                                                                   |
->
-> See [click-extra's inventory of `pyproject.toml`-aware tools](https://kdeldycke.github.io/click-extra/config.html#pyproject-toml) for a broader list.
-
 ### `[tool.X]` bridge for third-party tools
 
 Some tools have long-standing requests to read configuration from `pyproject.toml` but haven't shipped native support yet. `repomatic run` bridges the gap: write your config in `[tool.<name>]` and repomatic translates it to the tool's native format at invocation time.
@@ -278,6 +261,23 @@ $ uvx -- repomatic run yamllint -- .
 repomatic writes a temporary config file in the tool's native format, passes it via the appropriate CLI flag, and cleans it up after the run. No dotfiles needed.
 
 If a native config file (e.g., `.yamllint.yaml`, `biome.json`) is already present, repomatic defers to it — your repo stays in control.
+
+> [!TIP]
+> The workflows also invoke tools that read their own `[tool.*]` sections from your `pyproject.toml`. You can customize their behavior in your project without forking or patching the workflows:
+>
+> | Tool                                                                                | Section                     | Customizes                                                                                            |
+> | :---------------------------------------------------------------------------------- | :-------------------------- | :---------------------------------------------------------------------------------------------------- |
+> | [bump-my-version](https://callowayproject.github.io/bump-my-version/)               | `[tool.bumpversion]`        | Version bump patterns and files                                                                       |
+> | [coverage.py](https://coverage.readthedocs.io/en/latest/config.html)                | `[tool.coverage.*]`         | Code coverage reporting                                                                               |
+> | [mdformat](https://mdformat.readthedocs.io/en/stable/users/configuration_file.html) | `[tool.mdformat]`           | Markdown formatting options (via [`mdformat-pyproject`](https://github.com/csala/mdformat-pyproject)) |
+> | [mypy](https://mypy.readthedocs.io/en/stable/config_file.html)                      | `[tool.mypy]`               | Static type checking                                                                                  |
+> | [pyproject-fmt](https://pyproject-fmt.readthedocs.io/en/latest/)                    | `[tool.pyproject-fmt]`      | `pyproject.toml` formatting (column width, indent, table style)                                       |
+> | [pytest](https://docs.pytest.org/en/stable/reference/customize.html)                | `[tool.pytest.ini_options]` | Test runner options                                                                                   |
+> | [ruff](https://docs.astral.sh/ruff/configuration/)                                  | `[tool.ruff]`               | Linting and formatting rules                                                                          |
+> | [typos](https://github.com/crate-ci/typos)                                          | `[tool.typos]`              | Spell-checking exceptions                                                                             |
+> | [uv](https://docs.astral.sh/uv/reference/settings/)                                 | `[tool.uv]`                 | Package resolution and build config                                                                   |
+>
+> See [click-extra's inventory of `pyproject.toml`-aware tools](https://kdeldycke.github.io/click-extra/config.html#pyproject-toml) for a broader list.
 
 ## Reusable workflows
 
@@ -321,6 +321,9 @@ GitHub Actions has several design limitations that the workflows work around:
 | `head_commit` only has latest commit in multi-commit pushes | ✅ Addressed       | [`repomatic metadata`](#what-is-this-metadata-job) extracts full commit range                                                                                     |
 | `actions/checkout` uses merge commit for PRs                | ✅ Addressed       | Explicit `ref: github.event.pull_request.head.sha`                                                                                                                |
 | Multiline output encoding fragile                           | ✅ Addressed       | Random delimiters in `repomatic/github.py`                                                                                                                        |
+| `workflow_run.head_sha` stale after upstream commits        | ✅ Addressed       | Always use `github.sha` in [`changelog.yaml`](#githubworkflowschangelogyaml-jobs) checkout; see `repomatic/github/actions.py` for rationale                      |
+| Windows default shell swallows non-zero exit codes          | ✅ Addressed       | Force `bash` shell with `set -e` in [`tests.yaml`](#githubworkflowstestsyaml-jobs)                                                                               |
+| Windows runners use non-UTF-8 encoding for redirected output | ✅ Addressed     | Set `PYTHONIOENCODING=utf8` in [`tests.yaml`](#githubworkflowstestsyaml-jobs); [click#2121](https://github.com/pallets/click/issues/2121)                         |
 | Branch deletion doesn't cancel runs                         | ❌ Not addressed   | Same root cause as PR close; partially mitigated by [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs) since branch deletion typically follows PR closure |
 | No native way to depend on all matrix jobs completing       | ❌ Not addressed   | GitHub limitation; use `needs:` with a summary job as workaround                                                                                                  |
 | `actionlint` false positives for runtime env vars           | 🚫 Not addressable | Linter limitation, not GitHub's                                                                                                                                   |
