@@ -2259,7 +2259,7 @@ def sync_uv_lock_cmd(
             cutoff = _format_upload_date(result.exclude_newer)
             echo(f"exclude-newer cutoff: {cutoff}")
 
-        ctx.find_root().print_table(rows, headers)
+        ctx.find_root().print_table(rows, headers)  # type: ignore[attr-defined]
 
     # Release notes (opt-in, fetched once for both terminal and file output).
     notes_section = ""

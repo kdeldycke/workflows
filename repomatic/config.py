@@ -435,7 +435,7 @@ def _field_to_key(name: str, cls: type | None = None) -> str:
         if f.name == name:
             path = f.metadata.get("click_extra.config_path")
             if path:
-                return path
+                return str(path)
             break
 
     for prefix, toml_prefix in _NESTED_PREFIXES.items():
@@ -580,4 +580,5 @@ def load_repomatic_config(
 
     schema_callable = ConfigOption._make_schema_callable(Config, strict=True)
     assert schema_callable is not None
-    return schema_callable(user_config)
+    config: Config = schema_callable(user_config)
+    return config
