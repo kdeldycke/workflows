@@ -392,9 +392,9 @@ def init_project(
     configuration files (Renovate, labels, labeller rules), and creates a
     minimal changelog. Specify COMPONENTS to initialize only selected parts.
 
-    Selectors use the same syntax as the ``exclude`` config in
-    ``[tool.repomatic]``: bare names select an entire component, qualified
-    ``component/file`` entries select a single file.
+    Selectors use the same syntax as the exclude config in
+    [tool.repomatic]: bare names select an entire component, qualified
+    component/file entries select a single file.
 
     \b
     Components:
@@ -662,11 +662,11 @@ def metadata(ctx, format, overwrite, output, list_keys, keys):
 )
 @pass_context
 def show_config(ctx):
-    """Print the ``[tool.repomatic]`` configuration reference table.
+    """Print the [tool.repomatic] configuration reference table.
 
     Renders a table of all available options, their types, defaults,
-    and descriptions — generated from the ``Config`` dataclass docstrings.
-    Respects the global ``--table-format`` option.
+    and descriptions — generated from the Config dataclass docstrings.
+    Respects the global --table-format option.
     """
     ctx.find_root().print_table(config_reference(), CONFIG_REFERENCE_HEADERS)
 
@@ -898,12 +898,12 @@ GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
 )
 @pass_context
 def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
-    """Sync a ``.gitignore`` file from gitignore.io templates.
+    """Sync a .gitignore file from gitignore.io templates.
 
     Fetches templates for a base set of categories plus any extras from
-    ``[tool.repomatic]`` config, then appends ``gitignore-extra-content``.
-    Writes to the path specified by ``gitignore-location`` (default
-    ``./.gitignore``).
+    [tool.repomatic] config, then appends gitignore-extra-content.
+    Writes to the path specified by gitignore-location (default
+    ./.gitignore).
 
     \b
     Examples:
@@ -963,10 +963,10 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
     help="Report what would be done without making changes.",
 )
 def sync_github_releases(dry_run: bool) -> None:
-    """Sync GitHub release notes from ``changelog.md``.
+    """Sync GitHub release notes from changelog.md.
 
     Compares each GitHub release body against the corresponding
-    ``changelog.md`` section and updates any that have drifted.
+    changelog.md section and updates any that have drifted.
 
     \b
     Examples:
@@ -1022,10 +1022,10 @@ def sync_dev_release(
     """Sync a rolling dev pre-release on GitHub.
 
     Maintains a single pre-release that mirrors the unreleased changelog
-    section. The dev tag is force-updated to point to the latest ``main``
+    section. The dev tag is force-updated to point to the latest main
     commit.
 
-    In ``--delete`` mode, removes the dev pre-release without recreating
+    In --delete mode, removes the dev pre-release without recreating
     it. This is used during real releases to clean up.
 
     \b
@@ -1096,7 +1096,7 @@ def workflow():
     """Lint downstream workflow caller files.
 
     Check thin caller workflows that delegate to the canonical reusable
-    workflows in ``kdeldycke/repomatic``. Use ``repomatic init workflows``
+    workflows in kdeldycke/repomatic. Use repomatic init workflows
     to generate or sync workflow files.
     """
 
@@ -1125,10 +1125,10 @@ def lint(ctx, workflow_dir, repo, fatal):
     Checks all YAML files in the workflow directory for:
 
     \b
-    - Missing ``workflow_dispatch`` trigger.
-    - Thin callers using ``@main`` instead of a version tag.
+    - Missing workflow_dispatch trigger.
+    - Thin callers using @main instead of a version tag.
     - Thin callers with mismatched triggers vs canonical workflows.
-    - Thin callers missing ``secrets: inherit`` when required.
+    - Thin callers missing secrets: inherit when required.
 
     \b
     Examples:
@@ -1177,15 +1177,15 @@ def lint(ctx, workflow_dir, repo, fatal):
 )
 @pass_context
 def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
-    """Update a ``.mailmap`` file with all missing contributors found in Git commit
+    """Update a .mailmap file with all missing contributors found in Git commit
     history.
 
-    By default the ``.mailmap`` at the root of the repository is read and its content
+    By default the .mailmap at the root of the repository is read and its content
     is reused as reference, so identities already aliased in there are preserved and
     used as initial mapping. Only missing contributors not found in this initial mapping
     are added.
 
-    The destination defaults to the source file path (in-place update). Pass ``-``
+    The destination defaults to the source file path (in-place update). Pass -
     explicitly to print to stdout instead.
 
     The updated results are sorted. But no attempts are made at regrouping new
@@ -1460,7 +1460,7 @@ def sponsor_label(
     Checks if the author of an issue or PR is a sponsor of the repository owner.
     If they are, adds the specified label.
 
-    This command requires the ``gh`` CLI to be installed and authenticated.
+    This command requires the gh CLI to be installed and authenticated.
 
     When run in GitHub Actions, all parameters are auto-detected from environment
     variables ($GITHUB_REPOSITORY_OWNER, $GITHUB_REPOSITORY) and the event payload
@@ -1807,7 +1807,7 @@ def broken_links(
     6. Triages matching "Broken links" issues (keep newest, close duplicates).
     7. Creates or updates the main issue.
 
-    This command requires the ``gh`` CLI to be installed and authenticated.
+    This command requires the gh CLI to be installed and authenticated.
 
     \b
     Examples:
@@ -1878,16 +1878,16 @@ def setup_guide(
       section listing the missing permissions.
     - **PAT configured and complete**: closes the issue.
 
-    The flag can also be set via the ``HAS_REPOMATIC_PAT`` environment variable
+    The flag can also be set via the HAS_REPOMATIC_PAT environment variable
     (any non-empty value is truthy). Workflows set this env var at the workflow
-    level so individual steps don't need to repeat the ``secrets.*`` ternary.
+    level so individual steps don't need to repeat the secrets.* ternary.
 
-    When ``--has-pat`` is set and ``--repo`` is provided, the command runs the
-    same granular PAT permission checks as ``lint-repo`` (via
-    :func:`~repomatic.github.token.check_all_pat_permissions`). If any check
-    fails, the issue stays open with details about which permissions are missing.
+    When --has-pat is set and --repo is provided, the command runs the
+    same granular PAT permission checks as lint-repo (via
+    check_all_pat_permissions). If any check fails, the issue stays open with
+    details about which permissions are missing.
 
-    This command requires the ``gh`` CLI to be installed and authenticated.
+    This command requires the gh CLI to be installed and authenticated.
 
     \b
     Examples:
@@ -2107,9 +2107,9 @@ def fix_vulnerable_deps_cmd(
 ) -> None:
     """Detect and upgrade packages with known security vulnerabilities.
 
-    Runs ``uv audit`` to detect vulnerabilities in the lock file, then
-    upgrades each fixable package with ``uv lock --upgrade-package``. Uses
-    ``--exclude-newer-package`` to bypass the ``exclude-newer`` cooldown so
+    Runs uv audit to detect vulnerabilities in the lock file, then
+    upgrades each fixable package with uv lock --upgrade-package. Uses
+    --exclude-newer-package to bypass the exclude-newer cooldown so
     that security fixes are resolved immediately.
 
     \b
@@ -2155,30 +2155,53 @@ def fix_vulnerable_deps_cmd(
     help="Path to the uv.lock file.",
 )
 @option(
-    "--release-notes",
-    is_flag=True,
+    "--table/--no-table",
+    default=True,
+    help="Print a summary table of updated packages.",
+)
+@option(
+    "--release-notes/--no-release-notes",
     default=False,
-    help="Fetch and display release notes from GitHub for each updated package.",
+    help="Fetch release notes from GitHub (markdown, appended after the table).",
 )
 @option(
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default=None,
-    help="Write a markdown diff table to this file. Detects $GITHUB_OUTPUT.",
+    help="Write a markdown report (table + release notes) to this file.",
+)
+@option(
+    "--output-format",
+    type=Choice(["markdown", "github-actions"]),
+    default="markdown",
+    help=(
+        "Format for --output."
+        " 'github-actions' wraps the content as a"
+        " diff_table step output variable."
+    ),
 )
 @pass_context
 def sync_uv_lock_cmd(
     ctx: Context,
     lockfile: Path,
+    table: bool,
     release_notes: bool,
     output: Path | None,
+    output_format: str,
 ) -> None:
     """Upgrade all dependencies and clean up stale cooldown overrides.
 
-    Prunes ``exclude-newer-package`` entries in ``pyproject.toml`` whose
-    locked version has aged past the ``exclude-newer`` cutoff, then runs
-    ``uv lock --upgrade``. If the only changes are timestamp noise, reverts
-    ``uv.lock`` so no spurious diff is committed.
+    \b
+    Wraps uv lock --upgrade and:
+      - prunes stale exclude-newer-package entries from pyproject.toml
+        whose locked version has aged past the exclude-newer cutoff
+      - reverts uv.lock when the only diff is timestamp noise
+      - prints a table of updated packages with upload dates
+      - optionally fetches release notes from GitHub (markdown)
+
+    \b
+    The table respects the global --table-format option (github, json,
+    csv, etc.). Release notes are always rendered as markdown.
 
     \b
     Examples:
@@ -2186,17 +2209,18 @@ def sync_uv_lock_cmd(
         repomatic sync-uv-lock
 
     \b
-        # Include release notes in output
+        # With release notes
         repomatic sync-uv-lock --release-notes
 
     \b
-        # Machine-readable table formats (via click-extra)
+        # Machine-readable formats
         repomatic --table-format github sync-uv-lock
         repomatic --table-format json sync-uv-lock
 
     \b
-        # Write markdown diff to $GITHUB_OUTPUT (for CI workflows)
-        repomatic sync-uv-lock --release-notes --output "$GITHUB_OUTPUT"
+        # CI: write markdown report as a GitHub Actions step output
+        repomatic sync-uv-lock --no-table --release-notes
+          --output "$GITHUB_OUTPUT" --output-format github-actions
     """
     config = get_tool_config(ctx)
     if not config.uv_lock_sync:
@@ -2215,25 +2239,27 @@ def sync_uv_lock_cmd(
         echo("No dependency changes.")
         ctx.exit(0)
 
-    # Terminal output: structured table via click-extra.
-    show_uploaded = bool(result.upload_times)
-    headers: tuple[str, ...] = ("Package", "Old", "New")
-    if show_uploaded:
-        headers = ("Package", "Old", "New", "Released")
-    rows: list[tuple[str, ...]] = []
-    for name, old, new in result.changes:
-        row: tuple[str, ...] = (name, old or "(new)", new or "(removed)")
-        if show_uploaded:
-            raw_time = result.upload_times.get(name, "")
-            row = (*row, _format_upload_date(raw_time) if raw_time else "")
-        rows.append(row)
-
-    if result.exclude_newer:
-        cutoff = _format_upload_date(result.exclude_newer)
-        echo(f"exclude-newer cutoff: {cutoff}")
-
     echo(f"{len(result.changes)} package(s) updated.")
-    ctx.find_root().print_table(rows, headers)
+
+    # Terminal output: structured table via click-extra.
+    if table:
+        show_uploaded = bool(result.upload_times)
+        headers: tuple[str, ...] = ("Package", "Old", "New")
+        if show_uploaded:
+            headers = ("Package", "Old", "New", "Released")
+        rows: list[tuple[str, ...]] = []
+        for name, old, new in result.changes:
+            row: tuple[str, ...] = (name, old or "(new)", new or "(removed)")
+            if show_uploaded:
+                raw_time = result.upload_times.get(name, "")
+                row = (*row, _format_upload_date(raw_time) if raw_time else "")
+            rows.append(row)
+
+        if result.exclude_newer:
+            cutoff = _format_upload_date(result.exclude_newer)
+            echo(f"exclude-newer cutoff: {cutoff}")
+
+        ctx.find_root().print_table(rows, headers)
 
     # Release notes (opt-in, fetched once for both terminal and file output).
     notes_section = ""
@@ -2244,7 +2270,7 @@ def sync_uv_lock_cmd(
             echo("")
             echo(notes_section)
 
-    # File output: markdown format for CI or downstream tooling.
+    # File output: markdown report for CI or downstream tooling.
     if output:
         diff_table = format_diff_table(
             result.changes, result.upload_times, result.exclude_newer
@@ -2253,12 +2279,7 @@ def sync_uv_lock_cmd(
             diff_table = diff_table + "\n\n" + notes_section
 
         if diff_table:
-            github_output_path = os.getenv("GITHUB_OUTPUT", "")
-            if (
-                not is_stdout(output)
-                and github_output_path
-                and str(output) == github_output_path
-            ):
+            if output_format == "github-actions":
                 content = format_multiline_output("diff_table", diff_table)
             else:
                 content = diff_table
@@ -2270,12 +2291,12 @@ def sync_uv_lock_cmd(
 )
 @pass_context
 def sync_bumpversion(ctx: Context) -> None:
-    """Sync ``[tool.bumpversion]`` config in ``pyproject.toml`` from the bundled
+    """Sync [tool.bumpversion] config in pyproject.toml from the bundled
     template.
 
-    Overwrites the ``[tool.bumpversion]`` section with the canonical template
-    bundled in ``repomatic``. Designed for the ``sync-bumpversion`` autofix job.
-    The ``repomatic init bumpversion`` command remains available for interactive
+    Overwrites the [tool.bumpversion] section with the canonical template
+    bundled in repomatic. Designed for the sync-bumpversion autofix job.
+    The repomatic init bumpversion command remains available for interactive
     bootstrapping.
     """
     config = get_tool_config(ctx)
@@ -2310,8 +2331,8 @@ def clean_unmodified_configs() -> None:
     configs (labels, renovate) and deletes any file whose content matches
     the bundled default after whitespace normalization.
 
-    Designed for standalone use. The ``sync-repomatic`` autofix job uses
-    ``repomatic init --delete-unmodified`` instead.
+    Designed for standalone use. The sync-repomatic autofix job uses
+    repomatic init --delete-unmodified instead.
     """
     from .init_project import find_all_unmodified_configs
 
@@ -2336,13 +2357,13 @@ def clean_unmodified_configs() -> None:
 )
 @pass_context
 def sync_labels(ctx: Context, repository: str | None) -> None:
-    """Sync repository labels from bundled definitions using ``labelmaker``.
+    """Sync repository labels from bundled definitions using labelmaker.
 
-    Exports label definitions via ``repomatic init labels``, then applies them
-    to the repository using ``labelmaker``. Applies the ``default`` profile to
-    all repositories, plus the ``awesome`` profile for ``awesome-*`` repos.
+    Exports label definitions via repomatic init labels, then applies them
+    to the repository using labelmaker. Applies the default profile to
+    all repositories, plus the awesome profile for awesome-* repos.
 
-    Requires ``GITHUB_TOKEN`` in the environment. Downloads ``labelmaker``
+    Requires GITHUB_TOKEN in the environment. Downloads labelmaker
     automatically via the tool registry.
     """
     config = get_tool_config(ctx)
@@ -2583,8 +2604,8 @@ def lint_repo(
 ) -> None:
     """Run consistency checks on repository metadata.
 
-    Reads ``package_name``, ``is_sphinx``, and ``project_description`` directly
-    from ``pyproject.toml`` in the current directory.
+    Reads package_name, is_sphinx, and project_description directly
+    from pyproject.toml in the current directory.
 
     Checks:
     - Dependabot config file absent (error).
@@ -2597,13 +2618,13 @@ def lint_repo(
     - Funding file present when owner has GitHub Sponsors (warning).
     - Stale draft releases (non-.dev0 drafts) (warning).
 
-    When ``--has-pat`` is set, additional PAT capability checks are run:
+    When --has-pat is set, additional PAT capability checks are run:
     - Contents permission (error).
     - Issues permission (error).
     - Pull requests permission (error).
     - Dependabot alerts permission and alerts enabled (error).
     - Workflows permission (error).
-    - Commit statuses permission (error, requires ``--sha``).
+    - Commit statuses permission (error, requires --sha).
 
     \b
     Examples:
@@ -2682,7 +2703,7 @@ def lint_changelog(
     GitHub releases, or PyPI packages but have no corresponding changelog
     entry. Orphans cause a non-zero exit code.
 
-    Reads ``pypi-package-history`` from ``[tool.repomatic]`` to fetch
+    Reads pypi-package-history from [tool.repomatic] to fetch
     releases published under former package names (for renamed projects).
 
     \b
@@ -2740,11 +2761,11 @@ def run_cmd(ctx, tool_name, extra_args, list_tools):
     """Run an external tool with managed configuration.
 
     Installs the tool at a pinned version, resolves config through a 4-level
-    precedence chain (native config file, ``[tool.X]`` in ``pyproject.toml``,
+    precedence chain (native config file, [tool.X] in pyproject.toml,
     bundled default, bare invocation), and invokes the tool.
 
     \b
-    Pass extra arguments to the tool after ``--``:
+    Pass extra arguments to the tool after --:
         repomatic run yamllint -- --strict .
         repomatic run zizmor -- --offline .
 
@@ -2905,15 +2926,15 @@ def pr_body(
 ) -> None:
     """Generate a PR body with a collapsible workflow metadata block.
 
-    Reads ``GITHUB_*`` environment variables to produce a ``<details>`` block
+    Reads GITHUB_* environment variables to produce a <details> block
     containing a metadata table (trigger, actor, ref, commit, job, workflow, run).
 
-    When ``--output`` points to ``$GITHUB_OUTPUT``, the body is written in the
+    When --output points to $GITHUB_OUTPUT, the body is written in the
     heredoc format required by GitHub Actions multiline outputs.
 
-    The prefix can be set via ``--template`` (built-in templates) or ``--prefix``
-    (arbitrary content, also via ``GHA_PR_BODY_PREFIX`` env var). If both are
-    given, ``--prefix`` is prepended before the rendered template content.
+    The prefix can be set via --template (built-in templates) or --prefix
+    (arbitrary content, also via GHA_PR_BODY_PREFIX env var). If both are
+    given, --prefix is prepended before the rendered template content.
 
     \b
     Examples:
@@ -3021,14 +3042,14 @@ def update_checksums_cmd(workflow_file: Path | None, registry: bool) -> None:
     """Update SHA-256 checksums for direct binary downloads.
 
     By default, scans a workflow YAML file for GitHub release download URLs
-    paired with ``sha256sum --check`` verification lines. Downloads each binary,
+    paired with sha256sum --check verification lines. Downloads each binary,
     computes the SHA-256, and replaces stale hashes in-place.
 
-    With ``--registry``, updates checksums in the ``repomatic run`` tool registry
+    With --registry, updates checksums in the repomatic run tool registry
     for all binary-distributed tools.
 
     \b
-    Designed for Renovate ``postUpgradeTasks``: after a version bump changes a
+    Designed for Renovate postUpgradeTasks: after a version bump changes a
     download URL, this command downloads the new binary and updates the hash.
 
     \b
@@ -3080,15 +3101,15 @@ def format_images_cmd(min_savings: float, output: Path) -> None:
     """Format images by losslessly optimizing them with external CLI tools.
 
     Discovers PNG and JPEG files and compresses them losslessly in-place using
-    ``oxipng`` and ``jpegoptim``. Produces a markdown summary table showing
+    oxipng and jpegoptim. Produces a markdown summary table showing
     before/after sizes and savings.
 
     Only lossless optimizers are used so that results are idempotent — running
-    the command twice produces no further changes. See ``repomatic.images`` for
+    the command twice produces no further changes. See repomatic.images for
     the rationale on excluding WebP and AVIF.
 
-    When ``--output`` points to ``$GITHUB_OUTPUT``, the markdown summary is
-    written as a ``markdown`` output variable in heredoc format.
+    When --output points to $GITHUB_OUTPUT, the markdown summary is
+    written as a markdown output variable in heredoc format.
 
     \b
     Required tools (install via apt):

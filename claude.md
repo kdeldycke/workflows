@@ -163,6 +163,7 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit — do not hard-wrap prose in markdown. Each sentence or logical clause should flow as a single long line; let the renderer handle wrapping.
 - Titles in markdown use sentence case.
 - **Dataclass field docs:** In dataclasses, document fields with attribute docstrings (a string literal immediately after the field declaration), not `:param:` entries in the class docstring. Attribute docstrings are co-located with the field they describe, recognized by Sphinx, and stay in sync when fields are added or reordered. The class docstring should contain only a summary of the class purpose.
+- **CLI help text:** Click command docstrings serve double duty (Sphinx docs and terminal help). Click renders them as plain text, so avoid reST markup in the prose sections that appear in `--help` output. Use plain text for command names, option names, file paths, and tool names. reST markup (double backticks, `:param:`, admonitions) belongs in non-CLI docstrings only.
 
 ### `__init__.py` files
 
@@ -329,6 +330,18 @@ When designing new workflow safeguards, default to **detection + notification** 
 ### Command-line options
 
 Always prefer long-form options over short-form for readability in workflow files and scripts (e.g., `--output` not `-o`, `--verbose` not `-v`).
+
+### CLI commands that accept a `--lockfile` or similar path
+
+When a CLI command accepts a path to a project file (e.g., `--lockfile path/to/uv.lock`), any subprocess that needs the project context (like `uv lock`, `uv audit`) must run with `cwd=path.parent`. Otherwise the subprocess resolves against the caller's working directory, not the target project.
+
+### CLI output conventions
+
+CLI commands that produce structured output should separate terminal display from file output:
+
+- **Terminal:** Use `ctx.find_root().print_table(rows, headers)` which respects the global `--table-format` option (github, json, csv, etc.).
+- **File output (`--output`):** Write markdown for PR bodies and CI consumption. Use `--output-format` to control transport encoding (e.g., `github-actions` for `$GITHUB_OUTPUT` heredoc wrapping) rather than detecting environment variables implicitly.
+- **Boolean feature flags** (e.g., `--release-notes`) should use the `--flag/--no-flag` pattern so both directions are explicitly invocable from workflows.
 
 ### Tool runner: flags vs config
 
