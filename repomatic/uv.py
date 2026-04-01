@@ -451,6 +451,10 @@ def prune_stale_exclude_newer_packages(
 ) -> bool:
     """Remove stale entries from ``[tool.uv].exclude-newer-package``.
 
+    .. note::
+        This is a workaround until uv supports native pruning.
+        See `uv#18792 <https://github.com/astral-sh/uv/issues/18792>`_.
+
     An entry is stale when its locked version's upload time falls before the
     ``exclude-newer`` cutoff, meaning ``uv lock --upgrade`` would resolve to
     the same (or newer) version without the ``"0 day"`` override.
