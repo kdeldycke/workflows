@@ -600,23 +600,15 @@ init_project.help = init_project.help.format(
 def metadata(ctx, format, overwrite, output, list_keys, keys):
     """Dump project metadata to a file.
 
-    By default the metadata produced are displayed directly to the console output.
-    To have the results written in a file on disk, specify the output file like so:
-    `repomatic metadata --output dump.txt`.
+    Prints all metadata keys to stdout by default. Use --output to write to
+    a file. Pass key names as arguments to filter output.
 
-    You can filter the output to specific keys by passing them as arguments:
-
-        $ repomatic metadata current_version is_python_project
-
-    To list all available keys with descriptions:
-
-        $ repomatic metadata --list-keys
-
-    For GitHub Actions, use the `github-json` format to bundle all requested keys into a
-    single `metadata` output. Downstream jobs access values via
-    `fromJSON(needs.metadata.outputs.metadata).key_name`:
-
-        $ repomatic metadata --format github-json --output "$GITHUB_OUTPUT" current_version is_python_project
+    \b
+    Examples:
+        repomatic metadata current_version is_python_project
+        repomatic metadata --list-keys
+        repomatic metadata --format github-json --output "$GITHUB_OUTPUT" \\
+            current_version is_python_project
     """
     if list_keys:
         ctx.find_root().print_table(metadata_keys_reference(), METADATA_KEYS_HEADERS)
@@ -701,6 +693,7 @@ def show_config(ctx):
 )
 @pass_context
 def changelog(ctx, source, changelog_path):
+    """Stamp the changelog with the current version's release header."""
     initial_content = None
     if source:
         logging.info(f"Read initial changelog from {source}")
@@ -786,17 +779,10 @@ def release_prep(
     For post-release (after the release commit), use --post-release to retarget
     workflow URLs back to the default branch.
 
-    Examples:
-
     \b
+    Examples:
         # Prepare release (changelog + citation)
         repomatic release-prep
-
-    \b
-        # In GitHub Actions on kdeldycke/repomatic (auto-detects --update-workflows)
-        repomatic release-prep
-
-    \b
         # Post-release: retarget workflows to main branch
         repomatic release-prep --post-release
     """
@@ -844,29 +830,14 @@ def release_prep(
 def version_check(part: str) -> None:
     """Check if a version bump is allowed for the specified part.
 
-    This command prevents double version increments within a development cycle.
-    It compares the current version from pyproject.toml against the latest Git tag
-    to determine if a bump has already been applied but not released.
+    Compares the current version from pyproject.toml against the latest Git
+    tag to detect if a bump has already been applied but not released.
+    Prints "true" if allowed, "false" otherwise.
 
     \b
     Examples:
-        # Check if minor version bump is allowed
         repomatic version-check --part minor
-
-        # Check if major version bump is allowed
         repomatic version-check --part major
-
-    \b
-    Output:
-        - Prints "true" if the bump is allowed
-        - Prints "false" if a bump of this type was already applied
-
-    \b
-    Use in GitHub Actions:
-        allowed=$( repomatic version-check --part minor )
-        if [ "$allowed" = "true" ]; then
-            bump-my-version bump minor
-        fi
     """
     allowed = is_version_bump_allowed(part)  # type: ignore[arg-type]
     echo("true" if allowed else "false")
@@ -1191,19 +1162,14 @@ def lint(ctx, workflow_dir, repo, fatal):
 )
 @pass_context
 def sync_mailmap(ctx, source, create_if_missing, destination_mailmap):
-    """Update a .mailmap file with all missing contributors found in Git commit
-    history.
+    """Update .mailmap with missing contributors from Git history.
 
-    By default the .mailmap at the root of the repository is read and its content
-    is reused as reference, so identities already aliased in there are preserved and
-    used as initial mapping. Only missing contributors not found in this initial mapping
-    are added.
+    Reads the existing .mailmap as a reference for grouped identities, then
+    appends any contributors not already covered. Results are sorted but not
+    regrouped: manual editing may be needed.
 
-    The destination defaults to the source file path (in-place update). Pass -
-    explicitly to print to stdout instead.
-
-    The updated results are sorted. But no attempts are made at regrouping new
-    contributors. So you have to edit entries by hand to regroup them.
+    The destination defaults to the source file (in-place update). Pass -
+    to print to stdout instead.
     """
     config = get_tool_config(ctx)
     if not config.mailmap_sync:
@@ -1337,6 +1303,13 @@ def test_plan(
     show_trace_on_error: bool,
     stats: bool,
 ) -> None:
+    """Run CLI test cases against a binary or command.
+
+    Loads test plans from files (--plan-file), environment variables
+    (--plan-envvar), [tool.repomatic] config, or a built-in default.
+    Each test invokes the command with the specified arguments and validates
+    the output against expected patterns.
+    """
     # Load [tool.repomatic] config for fallback values.
     config = get_tool_config(ctx)
 
@@ -1801,27 +1774,17 @@ def broken_links(
     """Manage the broken links issue lifecycle.
 
     Combines Lychee and Sphinx linkcheck results into a single "Broken links"
-    issue. Each tool's results appear under its own heading.
+    issue. Creates, updates, or closes the issue based on results.
+
+    Requires the gh CLI to be installed and authenticated.
 
     \b
     In GitHub Actions, most options are auto-detected:
     - --repo-name defaults to $GITHUB_REPOSITORY name component.
     - --body-file defaults to ./lychee/out.md when --lychee-exit-code is set.
-    - --output-json defaults to ./docs/linkcheck/output.json if the file exists.
+    - --output-json defaults to ./docs/linkcheck/output.json if it exists.
     - --source-url is composed from $GITHUB_SERVER_URL, $GITHUB_REPOSITORY,
       and $GITHUB_SHA when --output-json is set.
-
-    \b
-    This command:
-    1. Auto-detects missing options from environment and file paths.
-    2. Validates inputs (lychee exit code must be 0 or 2 if provided).
-    3. Parses Sphinx linkcheck output.json if provided.
-    4. Builds a combined report with sections for each tool.
-    5. Lists open issues by github-actions[bot].
-    6. Triages matching "Broken links" issues (keep newest, close duplicates).
-    7. Creates or updates the main issue.
-
-    This command requires the gh CLI to be installed and authenticated.
 
     \b
     Examples:
@@ -1834,15 +1797,6 @@ def broken_links(
             --lychee-exit-code 2 \\
             --body-file ./lychee/out.md \\
             --repo-name "my-repo"
-
-    \b
-        # Both tools combined (explicit)
-        repomatic broken-links \\
-            --lychee-exit-code 2 \\
-            --body-file ./lychee/out.md \\
-            --output-json ./docs/linkcheck/output.json \\
-            --repo-name "my-repo" \\
-            --source-url "https://github.com/owner/repo/blob/abc123/docs"
     """
     manage_combined_broken_links_issue(
         repo_name=repo_name,
@@ -2145,7 +2099,7 @@ def unsubscribe_threads(months: int, batch_size: int, dry_run: bool) -> None:
     "--target",
     type=Choice(sorted(BINARY_ARCH_MAPPINGS.keys()), case_sensitive=False),
     required=True,
-    help="Target platform (e.g., linux-arm64, macos-x64, windows-x64).",
+    help="Target platform.",
 )
 @option(
     "--binary",
@@ -2214,8 +2168,8 @@ def fix_vulnerable_deps_cmd(
 
     \b
         # CI: write markdown report as a GitHub Actions step output
-        repomatic fix-vulnerable-deps
-          --output "$GITHUB_OUTPUT" --output-format github-actions
+        repomatic fix-vulnerable-deps \\
+            --output "$GITHUB_OUTPUT" --output-format github-actions
     """
     has_fixes, diff_table = _fix_vulnerable_deps(lockfile)
 
@@ -2301,8 +2255,8 @@ def sync_uv_lock_cmd(
 
     \b
         # CI: write markdown report as a GitHub Actions step output
-        repomatic sync-uv-lock --no-table --release-notes
-          --output "$GITHUB_OUTPUT" --output-format github-actions
+        repomatic sync-uv-lock --no-table --release-notes \\
+            --output "$GITHUB_OUTPUT" --output-format github-actions
     """
     config = get_tool_config(ctx)
     if not config.uv_lock_sync:
@@ -3035,13 +2989,13 @@ def pr_body(
 
     \b
         # CI: write as GitHub Actions step outputs
-        repomatic pr-body --output "$GITHUB_OUTPUT"
-          --output-format github-actions
+        repomatic pr-body --output "$GITHUB_OUTPUT" \\
+            --output-format github-actions
 
     \b
         # Use a built-in template
-        repomatic pr-body --template bump-version --version 1.2.0
-          --part minor
+        repomatic pr-body --template bump-version \\
+            --version 1.2.0 --part minor
 
     \b
         # With a prefix via environment variable
@@ -3206,8 +3160,8 @@ def format_images_cmd(
 
     \b
         # CI: write as a GitHub Actions step output
-        repomatic format-images
-          --output "$GITHUB_OUTPUT" --output-format github-actions
+        repomatic format-images \\
+            --output "$GITHUB_OUTPUT" --output-format github-actions
 
     \b
         # Use a 10% minimum savings threshold
