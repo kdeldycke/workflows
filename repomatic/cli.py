@@ -163,6 +163,18 @@ if TYPE_CHECKING:
     from typing import IO
 
 
+output_format_option = option(
+    "--output-format",
+    type=Choice(["markdown", "github-actions"]),
+    default="markdown",
+    help=(
+        "Format for --output."
+        " github-actions produces format for PR template"
+        " consumption in workflows."
+    ),
+)
+
+
 def is_stdout(filepath: Path) -> bool:
     """Check if a file path is set to stdout.
 
@@ -2097,16 +2109,7 @@ def verify_binary(target: str, binary_path: Path) -> None:
     default=None,
     help="Write a markdown report (vulnerabilities + updates) to this file.",
 )
-@option(
-    "--output-format",
-    type=Choice(["markdown", "github-actions"]),
-    default="markdown",
-    help=(
-        "Format for --output."
-        " 'github-actions' wraps the content as a"
-        " diff_table step output variable."
-    ),
-)
+@output_format_option
 @pass_context
 def fix_vulnerable_deps_cmd(
     ctx: Context,
@@ -2176,16 +2179,7 @@ def fix_vulnerable_deps_cmd(
     default=None,
     help="Write a markdown report (table + release notes) to this file.",
 )
-@option(
-    "--output-format",
-    type=Choice(["markdown", "github-actions"]),
-    default="markdown",
-    help=(
-        "Format for --output."
-        " 'github-actions' wraps the content as a"
-        " diff_table step output variable."
-    ),
-)
+@output_format_option
 @pass_context
 def sync_uv_lock_cmd(
     ctx: Context,
@@ -3106,16 +3100,7 @@ def update_checksums_cmd(workflow_file: Path | None, registry: bool) -> None:
     default="-",
     help="Output file path. Defaults to stdout.",
 )
-@option(
-    "--output-format",
-    type=Choice(["markdown", "github-actions"]),
-    default="markdown",
-    help=(
-        "Format for --output."
-        " 'github-actions' wraps the content as a"
-        " markdown step output variable."
-    ),
-)
+@output_format_option
 def format_images_cmd(
     min_savings: float, output: Path, output_format: str
 ) -> None:
