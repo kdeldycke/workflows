@@ -21,6 +21,8 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
+import pytest
+
 from repomatic.github.token import check_commit_statuses_permission
 from repomatic.renovate import (
     RenovateCheckResult,
@@ -35,6 +37,8 @@ from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
     _format_upload_date,
     _parse_github_owner_repo,
+    _parse_iso_datetime,
+    _parse_relative_duration,
     add_exclude_newer_packages,
     diff_lock_versions,
     fetch_release_notes,
@@ -46,6 +50,7 @@ from repomatic.uv import (
     parse_lock_exclude_newer,
     parse_lock_upload_times,
     parse_lock_versions,
+    prune_stale_exclude_newer_packages,
     revert_lock_if_noise,
     sync_uv_lock,
 )
@@ -722,6 +727,169 @@ def test_add_exclude_newer_packages_no_uv_section(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text("[project]\nname = 'foo'\n")
     assert add_exclude_newer_packages(pyproject, {"requests"}) is False
+
+
+@pytest.mark.parametrize(
+    ("value", "expected_days"),
+    [
+        ("0 day", 0),
+        ("1 day", 1),
+        ("3 days", 3),
+        ("1 week", 7),
+        ("2 weeks", 14),
+    ],
+)
+def test_parse_relative_duration(value, expected_days):
+    """Parse uv relative duration strings."""
+    from datetime import timedelta
+
+    assert _parse_relative_duration(value) == timedelta(days=expected_days)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "2026-03-18T16:39:02Z",
+        "not-a-duration",
+        "",
+    ],
+)
+def test_parse_relative_duration_returns_none(value):
+    """Return None for non-duration strings."""
+    assert _parse_relative_duration(value) is None
+
+
+def test_parse_iso_datetime():
+    """Parse ISO 8601 with nanosecond truncation."""
+    result = _parse_iso_datetime("2026-03-18T16:39:02.780682017Z")
+    assert result is not None
+    assert result.year == 2026
+    assert result.month == 3
+    assert result.day == 18
+
+
+def test_parse_iso_datetime_invalid():
+    """Return None for invalid strings."""
+    assert _parse_iso_datetime("not-a-date") is None
+    assert _parse_iso_datetime("") is None
+
+
+def test_prune_stale_removes_old_entry(tmp_path):
+    """Remove entries whose upload time is before the cutoff."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "2026-03-25T00:00:00Z"\n'
+        'exclude-newer-package = { "pygments" = "0 day",'
+        ' "repomatic" = "0 day" }\n'
+    )
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "pygments"\nversion = "2.19.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/pygments.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2026-03-01T00:00:00Z"\n\n'
+        '[[package]]\nname = "repomatic"\nversion = "6.8.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/repomatic.tar.gz"\n'
+        'hash = "sha256:def"\n'
+        'upload-time = "2026-03-26T00:00:00Z"\n'
+    )
+    assert prune_stale_exclude_newer_packages(pyproject, lock) is True
+    content = pyproject.read_text()
+    assert '"pygments"' not in content
+    assert '"repomatic" = "0 day"' in content
+
+
+def test_prune_stale_removes_all_entries(tmp_path):
+    """Remove the entire line when all entries are stale."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "2026-03-25T00:00:00Z"\n'
+        'exclude-newer-package = { "pygments" = "0 day" }\n'
+    )
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "pygments"\nversion = "2.19.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/pygments.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2026-03-01T00:00:00Z"\n'
+    )
+    assert prune_stale_exclude_newer_packages(pyproject, lock) is True
+    assert "exclude-newer-package" not in pyproject.read_text()
+
+
+def test_prune_stale_keeps_no_upload_time(tmp_path):
+    """Keep entries for packages without upload times (git sources)."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "2026-03-25T00:00:00Z"\n'
+        'exclude-newer-package = { "repomatic" = "0 day" }\n'
+    )
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "repomatic"\nversion = "6.8.0"\n'
+        'source = { git = "https://github.com/kdeldycke/repomatic" }\n'
+    )
+    assert prune_stale_exclude_newer_packages(pyproject, lock) is False
+
+
+def test_prune_stale_relative_duration(tmp_path):
+    """Handle relative exclude-newer values like '1 week'."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "1 week"\n'
+        'exclude-newer-package = { "old-pkg" = "0 day" }\n'
+    )
+    lock = tmp_path / "uv.lock"
+    # Upload time far in the past, well before any 1-week window.
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "old-pkg"\nversion = "1.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/old.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2020-01-01T00:00:00Z"\n'
+    )
+    assert prune_stale_exclude_newer_packages(pyproject, lock) is True
+    assert "exclude-newer-package" not in pyproject.read_text()
+
+
+def test_prune_stale_nothing_stale(tmp_path):
+    """Return False when all entries are still needed."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "2026-03-25T00:00:00Z"\n'
+        'exclude-newer-package = { "pygments" = "0 day" }\n'
+    )
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "pygments"\nversion = "2.20.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/pygments.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2026-03-28T00:00:00Z"\n'
+    )
+    assert prune_stale_exclude_newer_packages(pyproject, lock) is False
+
+
+def test_prune_stale_no_entries(tmp_path):
+    """Return False when there are no exclude-newer-package entries."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("[tool.uv]\n" 'exclude-newer = "1 week"\n')
+    lock = tmp_path / "uv.lock"
+    lock.write_text("version = 1\n")
+    assert prune_stale_exclude_newer_packages(pyproject, lock) is False
 
 
 def test_parse_lock_upload_times(tmp_path):

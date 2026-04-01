@@ -30,7 +30,7 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
@@ -326,6 +326,55 @@ Captures two groups: the key prefix (including ``=``) and the inner content
 of the braces, so the line can be rebuilt with additional entries.
 """
 
+_INLINE_TABLE_ENTRY_RE = re.compile(r'"([^"]+)"\s*=\s*"[^"]*"')
+"""Matches a single ``"name" = "value"`` entry inside an inline table."""
+
+_RELATIVE_DURATION_RE = re.compile(r"^(\d+)\s+(days?|weeks?)$")
+"""Matches uv's relative duration syntax: ``N day(s)`` or ``N week(s)``."""
+
+
+def _parse_relative_duration(value: str) -> timedelta | None:
+    """Parse a uv relative duration string into a timedelta.
+
+    Handles ``"N day"``, ``"N days"``, ``"N week"``, and ``"N weeks"``.
+
+    :param value: The duration string from ``exclude-newer`` in
+        ``pyproject.toml``.
+    :return: A :class:`~datetime.timedelta`, or ``None`` if the value is not
+        a recognized relative duration.
+    """
+    match = _RELATIVE_DURATION_RE.match(value.strip())
+    if not match:
+        return None
+    count = int(match.group(1))
+    unit = match.group(2)
+    if unit.startswith("week"):
+        return timedelta(weeks=count)
+    return timedelta(days=count)
+
+
+def _parse_iso_datetime(iso_str: str) -> datetime | None:
+    """Parse an ISO 8601 datetime string into a timezone-aware datetime.
+
+    Handles nanosecond-precision timestamps that uv emits, which Python
+    3.10's ``fromisoformat`` rejects. Truncates fractional seconds to
+    microseconds (6 digits) for compatibility.
+
+    :param iso_str: An ISO 8601 datetime string (e.g.,
+        ``"2026-03-13T18:30:00Z"``).
+    :return: A timezone-aware :class:`~datetime.datetime`, or ``None`` if
+        parsing fails.
+    """
+    try:
+        normalized = re.sub(
+            r"(\.\d{6})\d+",
+            r"\1",
+            iso_str.replace("Z", "+00:00"),
+        )
+        return datetime.fromisoformat(normalized)
+    except (ValueError, AttributeError):
+        return None
+
 
 def add_exclude_newer_packages(
     pyproject_path: Path,
@@ -392,6 +441,114 @@ def add_exclude_newer_packages(
     logging.info(
         f"Added {', '.join(sorted(to_add))} to exclude-newer-package"
         f" in {pyproject_path}."
+    )
+    return True
+
+
+def prune_stale_exclude_newer_packages(
+    pyproject_path: Path,
+    lock_path: Path,
+) -> bool:
+    """Remove stale entries from ``[tool.uv].exclude-newer-package``.
+
+    An entry is stale when its locked version's upload time falls before the
+    ``exclude-newer`` cutoff, meaning ``uv lock --upgrade`` would resolve to
+    the same (or newer) version without the ``"0 day"`` override.
+
+    Packages without an upload time in the lock file (git or path sources)
+    are treated as permanent exemptions and never pruned.
+
+    :param pyproject_path: Path to the ``pyproject.toml`` file.
+    :param lock_path: Path to the ``uv.lock`` file.
+    :return: ``True`` if the file was modified, ``False`` otherwise.
+    """
+    content = pyproject_path.read_text(encoding="UTF-8")
+    pyproject_data = tomllib.loads(content)
+    uv_config = pyproject_data.get("tool", {}).get("uv", {})
+
+    exclude_newer_str = uv_config.get("exclude-newer", "")
+    pkg_overrides = uv_config.get("exclude-newer-package", {})
+    if not pkg_overrides or not exclude_newer_str:
+        return False
+
+    # Compute the effective cutoff datetime.
+    cutoff: datetime | None = None
+    duration = _parse_relative_duration(exclude_newer_str)
+    if duration is not None:
+        cutoff = datetime.now(timezone.utc) - duration
+    else:
+        cutoff = _parse_iso_datetime(exclude_newer_str)
+    if cutoff is None:
+        logging.warning(
+            "Cannot parse exclude-newer value"
+            f" {exclude_newer_str!r}; skipping prune."
+        )
+        return False
+
+    upload_times = parse_lock_upload_times(lock_path)
+
+    stale: set[str] = set()
+    for pkg in pkg_overrides:
+        upload_str = upload_times.get(pkg, "")
+        if not upload_str:
+            # No upload time: git/path source, permanent exemption.
+            logging.debug(f"Keeping {pkg}: no upload time in lock.")
+            continue
+        upload_dt = _parse_iso_datetime(upload_str)
+        if upload_dt is None:
+            continue
+        if upload_dt < cutoff:
+            stale.add(pkg)
+            logging.info(
+                f"Pruning {pkg}: upload time {upload_str}"
+                " is before cutoff."
+            )
+        else:
+            logging.debug(
+                f"Keeping {pkg}: upload time {upload_str}"
+                " is after cutoff."
+            )
+
+    if not stale:
+        logging.debug("No stale exclude-newer-package entries.")
+        return False
+
+    # Rewrite pyproject.toml with stale entries removed.
+    match = _EXCLUDE_NEWER_PKG_RE.search(content)
+    if not match:
+        logging.warning(
+            "Cannot find exclude-newer-package line in"
+            f" {pyproject_path}."
+        )
+        return False
+
+    inner = match.group(2)
+    kept_entries = [
+        entry_match.group(0)
+        for entry_match in _INLINE_TABLE_ENTRY_RE.finditer(inner)
+        if entry_match.group(1) not in stale
+    ]
+
+    if kept_entries:
+        prefix = match.group(1)
+        updated_line = f"{prefix}{{ {', '.join(kept_entries)} }}"
+        content = (
+            content[: match.start()]
+            + updated_line
+            + content[match.end() :]
+        )
+    else:
+        # Remove the entire line and its trailing newline.
+        start = match.start()
+        end = match.end()
+        if end < len(content) and content[end] == "\n":
+            end += 1
+        content = content[:start] + content[end:]
+
+    pyproject_path.write_text(content, encoding="UTF-8")
+    logging.info(
+        f"Pruned {', '.join(sorted(stale))} from"
+        f" exclude-newer-package in {pyproject_path}."
     )
     return True
 
@@ -581,19 +738,10 @@ def _format_upload_date(iso_datetime: str) -> str:
     :return: A formatted date like ``2026-03-13``, or the raw string if parsing
         fails.
     """
-    try:
-        # Truncate fractional seconds to 6 digits (microseconds) for Python
-        # 3.10 compatibility. fromisoformat on 3.10 rejects nanosecond
-        # precision (9+ digits) that tools like uv emit.
-        normalized = re.sub(
-            r"(\.\d{6})\d+",
-            r"\1",
-            iso_datetime.replace("Z", "+00:00"),
-        )
-        dt = datetime.fromisoformat(normalized)
-        return dt.strftime("%Y-%m-%d")
-    except (ValueError, AttributeError):
+    dt = _parse_iso_datetime(iso_datetime)
+    if dt is None:
         return iso_datetime
+    return dt.strftime("%Y-%m-%d")
 
 
 def diff_lock_versions(
@@ -912,12 +1060,12 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
 def sync_uv_lock(lock_path: Path) -> tuple[bool, str]:
     """Re-lock with ``--upgrade`` and revert if only timestamp noise changed.
 
-    Runs ``uv lock --upgrade`` to update transitive dependencies to their
-    latest allowed versions, replacing Renovate's ``lockFileMaintenance``
-    which cannot reliably revert noise-only changes. If the resulting diff
-    contains only ``exclude-newer-package`` timestamp noise, it reverts
-    ``uv.lock`` so ``peter-evans/create-pull-request`` sees no diff and
-    skips creating a PR.
+    First prunes stale ``exclude-newer-package`` entries from
+    ``pyproject.toml`` (entries whose locked version was uploaded before the
+    ``exclude-newer`` cutoff), then runs ``uv lock --upgrade`` to update
+    transitive dependencies to their latest allowed versions. If the resulting
+    diff contains only timestamp noise, it reverts ``uv.lock`` so
+    ``peter-evans/create-pull-request`` sees no diff and skips creating a PR.
 
     When real changes exist, computes a diff table comparing package versions
     before and after the upgrade.
@@ -928,25 +1076,31 @@ def sync_uv_lock(lock_path: Path) -> tuple[bool, str]:
         markdown-formatted table of version changes, or an empty string if
         reverted or no version changes were found.
     """
-    # Step 1: Snapshot versions before upgrading.
+    # Step 1: Prune stale exclude-newer-package entries before relocking so
+    # uv resolves those packages through the normal cooldown window.
+    pyproject_path = lock_path.parent / "pyproject.toml"
+    if pyproject_path.exists():
+        prune_stale_exclude_newer_packages(pyproject_path, lock_path)
+
+    # Step 2: Snapshot versions before upgrading.
     before = parse_lock_versions(lock_path)
 
-    # Step 2: Run uv lock --upgrade.
+    # Step 3: Run uv lock --upgrade.
     logging.info("Running uv lock --upgrade...")
     subprocess.run([*uv_cmd("lock"), "--upgrade"], check=True)
 
-    # Step 3: Revert uv.lock if only timestamp noise changed.
+    # Step 4: Revert uv.lock if only timestamp noise changed.
     if revert_lock_if_noise(lock_path):
         return True, ""
 
-    # Step 4: Compute and format the version diff.
+    # Step 5: Compute and format the version diff.
     after = parse_lock_versions(lock_path)
     changes = diff_lock_versions(before, after)
     upload_times = parse_lock_upload_times(lock_path)
     exclude_newer = parse_lock_exclude_newer(lock_path)
     diff_table = format_diff_table(changes, upload_times, exclude_newer)
 
-    # Step 5: Fetch and append release notes.
+    # Step 6: Fetch and append release notes.
     if changes:
         notes = fetch_release_notes(changes)
         notes_section = format_release_notes(notes)
