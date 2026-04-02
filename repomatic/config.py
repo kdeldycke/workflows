@@ -601,7 +601,7 @@ def load_repomatic_config(
     :param pyproject_data: Pre-parsed ``pyproject.toml`` dict. If ``None``,
         reads and parses ``pyproject.toml`` from the current working directory.
     """
-    from click_extra.config import ConfigOption
+    from click_extra.config import _make_schema_callable
 
     if pyproject_data is None:
         pyproject_path = Path() / "pyproject.toml"
@@ -623,7 +623,7 @@ def load_repomatic_config(
                 "Unknown [tool.repomatic] option: %s (ignored).", key,
             )
 
-    schema_callable = ConfigOption._make_schema_callable(Config, strict=False)
+    schema_callable = _make_schema_callable(Config, strict=False)
     assert schema_callable is not None
     config: Config = schema_callable(user_config)
     return config
