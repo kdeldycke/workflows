@@ -275,7 +275,8 @@ class Config:
             """
             junit.xml
 
-            # Claude Code local settings.
+            # Claude Code local files.
+            .claude/scheduled_tasks.lock
             .claude/settings.local.json
             """
         ).strip()
