@@ -116,9 +116,7 @@ class Matrix:
         var_values = list(self.variations.get(variation_id, [])) + list(values)
         self.variations[variation_id] = tuple(unique(var_values))
 
-    def replace_variation_value(
-        self, variation_id: str, old: str, new: str
-    ) -> None:
+    def replace_variation_value(self, variation_id: str, old: str, new: str) -> None:
         """Replace a single value within a variation axis.
 
         The new value takes the position of the old value. If the new value

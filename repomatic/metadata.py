@@ -1704,9 +1704,7 @@ class Metadata:
                 )
                 if extension_found:
                     elements = (
-                        e.value
-                        for e in node.value.elts
-                        if isinstance(e, ast.Constant)
+                        e.value for e in node.value.elts if isinstance(e, ast.Constant)
                     )
                     if extension_name in elements:
                         return True

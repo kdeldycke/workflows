@@ -32,7 +32,6 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from textwrap import dedent
 
-
 if sys.version_info >= (3, 11):
     import tomllib
 else:
@@ -620,7 +619,8 @@ def load_repomatic_config(
     for key in user_config:
         if key.replace("_", "-") not in known_keys:
             logging.warning(
-                "Unknown [tool.repomatic] option: %s (ignored).", key,
+                "Unknown [tool.repomatic] option: %s (ignored).",
+                key,
             )
 
     schema_callable = _make_schema_callable(Config, strict=False)

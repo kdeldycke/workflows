@@ -1749,21 +1749,15 @@ def _validate_docs_script_path(script: str, repo_root: Path) -> Path | None:
     try:
         script_path.relative_to(repo_root)
     except ValueError:
-        raise ClickException(
-            f"docs.update-script escapes repository root: {script}"
-        )
+        raise ClickException(f"docs.update-script escapes repository root: {script}")
     # Must be under docs/ and be a Python file.
     docs_dir = (repo_root / "docs").resolve()
     try:
         script_path.relative_to(docs_dir)
     except ValueError:
-        raise ClickException(
-            f"docs.update-script must be under docs/: {script}"
-        )
+        raise ClickException(f"docs.update-script must be under docs/: {script}")
     if script_path.suffix != ".py":
-        raise ClickException(
-            f"docs.update-script must be a .py file: {script}"
-        )
+        raise ClickException(f"docs.update-script must be a .py file: {script}")
     return script_path
 
 
@@ -1789,7 +1783,7 @@ def update_docs() -> None:
     from .rst_to_myst import convert_rst_files_in_directory
 
     config = get_tool_config()
-    repo_root = Path().resolve()
+    repo_root = Path.cwd()
     docs_dir = repo_root / "docs"
 
     # Detect Sphinx capabilities from conf.py.
@@ -1802,11 +1796,18 @@ def update_docs() -> None:
     # Phase 1: sphinx-apidoc.
     if meta.active_autodoc:
         apidoc_cmd = [
-            "uv", "--no-progress", "run", "--frozen", "--group", "docs", "--",
+            "uv",
+            "--no-progress",
+            "run",
+            "--frozen",
+            "--group",
+            "docs",
+            "--",
             "sphinx-apidoc",
             "--no-toc",
             "--module-first",
-            "--output-dir", str(docs_dir),
+            "--output-dir",
+            str(docs_dir),
             *config.docs_apidoc_extra_args,
             ".",
             *config.docs_apidoc_exclude,
@@ -1832,13 +1833,18 @@ def update_docs() -> None:
         logging.info("MyST-Parser not detected. Skipping RST conversion.")
 
     # Phase 3: docs update script.
-    script_path = _validate_docs_script_path(
-        config.docs_update_script, repo_root
-    )
+    script_path = _validate_docs_script_path(config.docs_update_script, repo_root)
     if script_path and script_path.is_file():
         script_cmd = [
-            "uv", "--no-progress", "run", "--frozen", "--group", "docs", "--",
-            "python", str(script_path),
+            "uv",
+            "--no-progress",
+            "run",
+            "--frozen",
+            "--group",
+            "docs",
+            "--",
+            "python",
+            str(script_path),
         ]
         logging.info(f"Running: {' '.join(script_cmd)}")
         result = subprocess.run(script_cmd, check=False)
@@ -2157,8 +2163,7 @@ def setup_guide(
         labels=["🤖 ci"],
         title="Set up `REPOMATIC_PAT` to enable workflow auto-updates",
         no_issues_comment=(
-            "PAT configured, all permissions verified,"
-            " repository settings complete."
+            "PAT configured, all permissions verified, repository settings complete."
         ),
     )
 
@@ -3262,9 +3267,7 @@ def update_checksums_cmd(workflow_file: Path | None, registry: bool) -> None:
     help="Output file path. Defaults to stdout.",
 )
 @output_format_option
-def format_images_cmd(
-    min_savings: float, output: Path, output_format: str
-) -> None:
+def format_images_cmd(min_savings: float, output: Path, output_format: str) -> None:
     """Format images by losslessly optimizing them with external CLI tools.
 
     Discovers PNG and JPEG files and compresses them losslessly in-place

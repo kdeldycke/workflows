@@ -415,9 +415,7 @@ def add_exclude_newer_packages(
         # Append new entries to the existing inline table.
         prefix = match.group(1)
         inner = match.group(2).strip().rstrip(",")
-        new_entries = ", ".join(
-            f'"{pkg}" = "0 day"' for pkg in sorted(to_add)
-        )
+        new_entries = ", ".join(f'"{pkg}" = "0 day"' for pkg in sorted(to_add))
         updated_line = f"{prefix}{{ {inner}, {new_entries} }}"
         content = content[: match.start()] + updated_line + content[match.end() :]
     else:
@@ -427,9 +425,7 @@ def add_exclude_newer_packages(
             content,
             re.MULTILINE,
         )
-        new_entries = ", ".join(
-            f'"{pkg}" = "0 day"' for pkg in sorted(to_add)
-        )
+        new_entries = ", ".join(f'"{pkg}" = "0 day"' for pkg in sorted(to_add))
         new_line = f"exclude-newer-package = {{ {new_entries} }}"
         if newer_match:
             insert_pos = newer_match.end()
@@ -488,8 +484,7 @@ def prune_stale_exclude_newer_packages(
         cutoff = _parse_iso_datetime(exclude_newer_str)
     if cutoff is None:
         logging.warning(
-            "Cannot parse exclude-newer value"
-            f" {exclude_newer_str!r}; skipping prune."
+            f"Cannot parse exclude-newer value {exclude_newer_str!r}; skipping prune."
         )
         return False
 
@@ -507,15 +502,9 @@ def prune_stale_exclude_newer_packages(
             continue
         if upload_dt < cutoff:
             stale.add(pkg)
-            logging.info(
-                f"Pruning {pkg}: upload time {upload_str}"
-                " is before cutoff."
-            )
+            logging.info(f"Pruning {pkg}: upload time {upload_str} is before cutoff.")
         else:
-            logging.debug(
-                f"Keeping {pkg}: upload time {upload_str}"
-                " is after cutoff."
-            )
+            logging.debug(f"Keeping {pkg}: upload time {upload_str} is after cutoff.")
 
     if not stale:
         logging.debug("No stale exclude-newer-package entries.")
@@ -524,10 +513,7 @@ def prune_stale_exclude_newer_packages(
     # Rewrite pyproject.toml with stale entries removed.
     match = _EXCLUDE_NEWER_PKG_RE.search(content)
     if not match:
-        logging.warning(
-            "Cannot find exclude-newer-package line in"
-            f" {pyproject_path}."
-        )
+        logging.warning(f"Cannot find exclude-newer-package line in {pyproject_path}.")
         return False
 
     inner = match.group(2)
@@ -540,11 +526,7 @@ def prune_stale_exclude_newer_packages(
     if kept_entries:
         prefix = match.group(1)
         updated_line = f"{prefix}{{ {', '.join(kept_entries)} }}"
-        content = (
-            content[: match.start()]
-            + updated_line
-            + content[match.end() :]
-        )
+        content = content[: match.start()] + updated_line + content[match.end() :]
     else:
         # Remove the entire line and its trailing newline.
         start = match.start()
@@ -1096,15 +1078,11 @@ def sync_uv_lock(lock_path: Path) -> SyncResult:
     # Step 3: Run uv lock --upgrade in the project directory.
     project_dir = lock_path.parent
     logging.info(f"Running uv lock --upgrade in {project_dir}...")
-    subprocess.run(
-        [*uv_cmd("lock"), "--upgrade"], check=True, cwd=project_dir
-    )
+    subprocess.run([*uv_cmd("lock"), "--upgrade"], check=True, cwd=project_dir)
 
     # Step 4: Revert uv.lock if only timestamp noise changed.
     if revert_lock_if_noise(lock_path):
-        return SyncResult(
-            reverted=True, changes=[], upload_times={}, exclude_newer=""
-        )
+        return SyncResult(reverted=True, changes=[], upload_times={}, exclude_newer="")
 
     # Step 5: Compute version diff.
     after = parse_lock_versions(lock_path)
