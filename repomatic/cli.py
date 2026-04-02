@@ -106,7 +106,11 @@ from .images import (
     optimize_images,
 )
 from .init_project import export_content, run_init
-from .lint_repo import check_branch_ruleset_on_default, run_repo_lint
+from .lint_repo import (
+    check_branch_ruleset_on_default,
+    check_immutable_releases,
+    run_repo_lint,
+)
 from .mailmap import Mailmap
 from .metadata import (
     METADATA_KEYS_HEADERS,
@@ -2049,9 +2053,11 @@ def setup_guide(
     if has_pat and repo:
         branch_ok, _ = check_branch_ruleset_on_default(repo)
 
-    # Immutable releases: always shown when changelog exists, always
-    # marked incomplete (no API to verify the setting).
+    # Immutable releases check.
     has_changelog = Path("./changelog.md").exists()
+    immutable_ok = False
+    if has_pat and repo and has_changelog:
+        immutable_ok, _ = check_immutable_releases(repo)
 
     # --- Render each step as a collapsible section ---
 
@@ -2082,7 +2088,7 @@ def setup_guide(
         immutable_releases_step = _wrap_setup_step(
             "Enable immutable releases",
             render_template("immutable-releases", repo_url=repo_url),
-            passed=False,
+            passed=immutable_ok,
         )
 
     step_branch_ruleset = _wrap_setup_step(

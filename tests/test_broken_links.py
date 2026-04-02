@@ -754,3 +754,41 @@ def test_check_branch_ruleset_api_error():
         passed, msg = check_branch_ruleset_on_default("owner/repo")
     assert passed is False
     assert "skipped" in msg
+
+
+# --- check_immutable_releases ---------------------------------------------------
+
+
+def test_check_immutable_releases_enabled():
+    """Immutable releases enabled is detected."""
+    from repomatic.lint_repo import check_immutable_releases
+
+    response = json.dumps({"enabled": True, "enforced_by_owner": False})
+    with patch("repomatic.lint_repo.run_gh_command", return_value=response):
+        passed, msg = check_immutable_releases("owner/repo")
+    assert passed is True
+    assert "enabled" in msg
+
+
+def test_check_immutable_releases_disabled():
+    """Immutable releases disabled returns failure."""
+    from repomatic.lint_repo import check_immutable_releases
+
+    response = json.dumps({"enabled": False, "enforced_by_owner": False})
+    with patch("repomatic.lint_repo.run_gh_command", return_value=response):
+        passed, msg = check_immutable_releases("owner/repo")
+    assert passed is False
+    assert "not enabled" in msg
+
+
+def test_check_immutable_releases_api_error():
+    """API failure defaults to incomplete."""
+    from repomatic.lint_repo import check_immutable_releases
+
+    with patch(
+        "repomatic.lint_repo.run_gh_command",
+        side_effect=RuntimeError("HTTP 403"),
+    ):
+        passed, msg = check_immutable_releases("owner/repo")
+    assert passed is False
+    assert "skipped" in msg

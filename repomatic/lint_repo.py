@@ -364,6 +364,8 @@ def check_tag_protection_rules(repo: str) -> tuple[str | None, str]:
         output = run_gh_command([
             "api",
             f"repos/{repo}/rulesets",
+            "--method",
+            "GET",
             "-f",
             "includes_parents=true",
         ])
@@ -418,6 +420,8 @@ def check_branch_ruleset_on_default(repo: str) -> tuple[bool, str]:
         output = run_gh_command([
             "api",
             f"repos/{repo}/rulesets",
+            "--method",
+            "GET",
             "-f",
             "includes_parents=true",
         ])
@@ -440,6 +444,36 @@ def check_branch_ruleset_on_default(repo: str) -> tuple[bool, str]:
         names = ", ".join(branch_rulesets)
         return True, f"Active branch rulesets found: {names}."
     return False, "No active branch rulesets found protecting the default branch."
+
+
+def check_immutable_releases(repo: str) -> tuple[bool, str]:
+    """Check that immutable releases are enabled for the repository.
+
+    Queries ``GET /repos/{repo}/immutable-releases`` and inspects the
+    ``enabled`` field in the response.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed, message).
+    """
+    try:
+        output = run_gh_command(["api", f"repos/{repo}/immutable-releases"])
+    except RuntimeError:
+        return (
+            False,
+            "Immutable releases check: skipped (could not query API).",
+        )
+
+    try:
+        data = json.loads(output)
+    except json.JSONDecodeError:
+        return (
+            False,
+            "Immutable releases check: skipped (invalid JSON from API).",
+        )
+
+    if data.get("enabled"):
+        return True, "Immutable releases are enabled."
+    return False, "Immutable releases are not enabled."
 
 
 def check_workflow_permissions() -> list[tuple[str | None, str]]:
