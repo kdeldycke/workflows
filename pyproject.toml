@@ -141,9 +141,11 @@ test = [
   # [psutil] extra needed for --numprocesses=auto.
   "pytest-xdist[psutil]>=3.7",
 ]
+# mypy: run from the project venv so it can see runtime packages with inline types (click,
+# click_extra, extra_platforms, packaging, pyproject_metadata, wcmatch) and installed stubs.
 # types-boltons: first stub release covering boltons 25.0 API (FrozenDict, unique, flatten,
 # strip_ansi). types-pyyaml: stub release covering PyYAML 6.0 (safe_load, safe_dump, full_load).
-typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
+typing = [ "mypy>=1.19", "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 
 [tool.uv]
 # Cooldown period: 7-day buffer before using newly released packages.
@@ -298,19 +300,10 @@ pretty = true
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
 module = [
-    "boltons.*",
     "bumpversion.*",
-    "click.shell_completion",
-    "click_extra.*",
-    "extra_platforms.*",
-    "git.*",
     "gitdb.*",
-    "packaging.*",
     "py_walk.*",
     "pydriller.*",
-    "pyproject_metadata.*",
-    "wcmatch.*",
-    "yaml",
 ]
 
 [tool.lychee]

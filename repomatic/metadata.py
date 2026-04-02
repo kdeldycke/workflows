@@ -1534,14 +1534,14 @@ class Metadata:
     def package_name(self) -> str | None:
         """Returns package name as published on PyPI."""
         if self.pyproject and self.pyproject.canonical_name:
-            return str(self.pyproject.canonical_name)
+            return self.pyproject.canonical_name
         return None
 
     @cached_property
     def project_description(self) -> str | None:
         """Returns project description from pyproject.toml."""
         if self.pyproject and self.pyproject.description:
-            return str(self.pyproject.description)
+            return self.pyproject.description
         return None
 
     @cached_property
