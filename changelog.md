@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.10.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.10.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.10.0` (2026-04-02)](https://github.com/kdeldycke/repomatic/compare/v6.9.0...v6.10.0)
 
 - Add `brand-assets` skill to create and export project logo/banner SVG assets to light/dark PNG variants.
