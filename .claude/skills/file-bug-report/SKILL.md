@@ -3,7 +3,7 @@ name: file-bug-report
 description: Write a bug report for an upstream project. Exhaustively reads contribution guidelines, issue templates, and community norms before producing a markdown file ready to paste.
 model: opus
 allowed-tools: Bash, Read, Grep, Glob, Write, WebFetch, WebSearch, Agent
-argument-hint: "<owner/repo> <one-line summary of the bug>"
+argument-hint: <owner/repo> <one-line summary of the bug>
 ---
 
 # Write an upstream bug report
@@ -238,22 +238,22 @@ Clean up code blocks before including them in the report:
 
 ### Code block language IDs
 
-Use precise Pygments lexer IDs on fenced code blocks so GitHub renders them with proper syntax highlighting. Never use bare ` ``` ` when a specific lexer applies. Common IDs for bug reports:
+Use precise Pygments lexer IDs on fenced code blocks so GitHub renders them with proper syntax highlighting. Never use bare ```` ``` ```` when a specific lexer applies. Common IDs for bug reports:
 
-| Content | Lexer ID | Notes |
-| :-- | :-- | :-- |
-| Python traceback | `pytb` | Full `Traceback (most recent call last):` output. |
-| Python console session | `pycon` | `>>>` prompts with output. |
-| Shell session (Unix) | `shell-session` | `$` prompts with output. Prefer over `bash` when showing command + output together. |
-| Shell session (PowerShell) | `pwsh-session` | `PS>` prompts with output. |
-| PowerShell script | `pwsh` | Pure PowerShell code without prompts. |
-| Plain shell commands | `bash` / `zsh` / `fish` | Pure commands without output. |
-| JSON output | `json` | API responses, config dumps. |
-| YAML config | `yaml` | Workflow snippets, config files. |
-| TOML config | `toml` | `pyproject.toml` sections. |
-| Rust panic / backtrace | `rust` | `thread 'main' panicked at...` output. |
-| Go panic | `go` | `goroutine 1 [running]:` output. |
-| JavaScript error | `js` | Node.js stack traces. |
-| Plain text / logs | `text` | When no lexer fits. Still better than bare ` ``` `. |
+| Content                    | Lexer ID                | Notes                                                                               |
+| :------------------------- | :---------------------- | :---------------------------------------------------------------------------------- |
+| Python traceback           | `pytb`                  | Full `Traceback (most recent call last):` output.                                   |
+| Python console session     | `pycon`                 | `>>>` prompts with output.                                                          |
+| Shell session (Unix)       | `shell-session`         | `$` prompts with output. Prefer over `bash` when showing command + output together. |
+| Shell session (PowerShell) | `pwsh-session`          | `PS>` prompts with output.                                                          |
+| PowerShell script          | `pwsh`                  | Pure PowerShell code without prompts.                                               |
+| Plain shell commands       | `bash` / `zsh` / `fish` | Pure commands without output.                                                       |
+| JSON output                | `json`                  | API responses, config dumps.                                                        |
+| YAML config                | `yaml`                  | Workflow snippets, config files.                                                    |
+| TOML config                | `toml`                  | `pyproject.toml` sections.                                                          |
+| Rust panic / backtrace     | `rust`                  | `thread 'main' panicked at...` output.                                              |
+| Go panic                   | `go`                    | `goroutine 1 [running]:` output.                                                    |
+| JavaScript error           | `js`                    | Node.js stack traces.                                                               |
+| Plain text / logs          | `text`                  | When no lexer fits. Still better than bare ```` ``` ````.                           |
 
 Match the lexer to the content, not the project language. A Python project's bug report might include `yaml` for a workflow snippet, `shell-session` for a CLI invocation, and `pytb` for the traceback, all in the same report.

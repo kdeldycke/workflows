@@ -210,21 +210,22 @@ For each dependency in scope:
 
 3. **Search for replacement candidates.** For each unused API, grep the source tree for code patterns it could replace. Be specific about what constitutes a match:
 
-   | Library API | Pattern to search for |
-   |---|---|
-   | `boltons.iterutils.partition` | Two complementary list comprehensions filtering the same iterable |
-   | `boltons.iterutils.first` | `next(iter(...), None)` or `seq[0] if seq else None` on non-generator sequences |
-   | `boltons.iterutils.bucketize` | Loops building a `dict[K, list[V]]` via `setdefault(k, []).append(v)` |
-   | `boltons.iterutils.chunked` | Manual slice loops (`for i in range(0, len(seq), n)`) |
-   | `boltons.dictutils.subdict` | `{k: v for k, v in d.items() if k in keys}` or `if k not in exclude` |
-   | `boltons.fileutils.atomic_save` | `Path.write_text()` on files where partial writes would corrupt state |
-   | `packaging.specifiers.SpecifierSet` | Manual version-range checks with `<`/`>`/`in` loops over `Version` objects |
-   | `packaging.requirements.Requirement` | Regex parsing of PEP 508 requirement strings |
-   | `packaging.markers.Marker` | Regex parsing of PEP 508 environment markers (only when the public API exposes the needed structure) |
-   | `wcmatch.fnmatch` / `wcmatch.pathlib` | stdlib `fnmatch` or `pathlib.Path.glob()` that would benefit from brace expansion, negation, or extended patterns |
-   | `pyproject_metadata.StandardMetadata` properties | Manual `toml_dict.get("project", {}).get("field")` when a `StandardMetadata` instance is already available |
+   | Library API                                      | Pattern to search for                                                                                             |
+   | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+   | `boltons.iterutils.partition`                    | Two complementary list comprehensions filtering the same iterable                                                 |
+   | `boltons.iterutils.first`                        | `next(iter(...), None)` or `seq[0] if seq else None` on non-generator sequences                                   |
+   | `boltons.iterutils.bucketize`                    | Loops building a `dict[K, list[V]]` via `setdefault(k, []).append(v)`                                             |
+   | `boltons.iterutils.chunked`                      | Manual slice loops (`for i in range(0, len(seq), n)`)                                                             |
+   | `boltons.dictutils.subdict`                      | `{k: v for k, v in d.items() if k in keys}` or `if k not in exclude`                                              |
+   | `boltons.fileutils.atomic_save`                  | `Path.write_text()` on files where partial writes would corrupt state                                             |
+   | `packaging.specifiers.SpecifierSet`              | Manual version-range checks with `<`/`>`/`in` loops over `Version` objects                                        |
+   | `packaging.requirements.Requirement`             | Regex parsing of PEP 508 requirement strings                                                                      |
+   | `packaging.markers.Marker`                       | Regex parsing of PEP 508 environment markers (only when the public API exposes the needed structure)              |
+   | `wcmatch.fnmatch` / `wcmatch.pathlib`            | stdlib `fnmatch` or `pathlib.Path.glob()` that would benefit from brace expansion, negation, or extended patterns |
+   | `pyproject_metadata.StandardMetadata` properties | Manual `toml_dict.get("project", {}).get("field")` when a `StandardMetadata` instance is already available        |
 
 4. **Verify each candidate.** Read the actual code at each location. Discard false positives:
+
    - A one-line comprehension is not worth replacing with a function call.
    - `next()` on a generator is idiomatic Python; `first()` adds a dependency import for no clarity gain.
    - `Path.write_text()` is fine when the file is immediately committed by CI or when partial writes are harmless.
@@ -238,10 +239,10 @@ For each dependency in scope:
 
 Produce a table of findings:
 
-| Dependency | Unused API | Location | Current code (summary) | Replacement | Version needed | Verdict |
-|---|---|---|---|---|---|---|
-| boltons | `subdict` | `metadata.py:2232` | dict comprehension filtering by key set | `subdict(metadata, keys)` | any (available since 16.x) | Skip: one-liner, no clarity gain |
-| pyproject-metadata | `StandardMetadata.keywords` | `cli.py:2733` | `toml.get("project", {}).get("keywords")` | `metadata.pyproject.keywords` | current floor sufficient | **Adopt**: parsed object already available |
+| Dependency         | Unused API                  | Location           | Current code (summary)                    | Replacement                   | Version needed             | Verdict                                    |
+| ------------------ | --------------------------- | ------------------ | ----------------------------------------- | ----------------------------- | -------------------------- | ------------------------------------------ |
+| boltons            | `subdict`                   | `metadata.py:2232` | dict comprehension filtering by key set   | `subdict(metadata, keys)`     | any (available since 16.x) | Skip: one-liner, no clarity gain           |
+| pyproject-metadata | `StandardMetadata.keywords` | `cli.py:2733`      | `toml.get("project", {}).get("keywords")` | `metadata.pyproject.keywords` | current floor sufficient   | **Adopt**: parsed object already available |
 
 Only recommend changes where the replacement is a genuine simplification: fewer lines, better error handling, or elimination of a manual reimplementation.
 
