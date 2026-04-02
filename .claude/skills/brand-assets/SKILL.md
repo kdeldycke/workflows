@@ -2,7 +2,7 @@
 name: brand-assets
 description: Create and export project logo/banner SVG assets to light/dark PNG variants. Covers the full lifecycle from initial design exploration through SVG creation to themed PNG export. Use when creating logos, banners, or regenerating PNG exports from SVG source files.
 model: opus
-argument-hint: "[path/to/assets or SVG file]"
+argument-hint: '[path/to/assets or SVG file]'
 ---
 
 # Project Logo and Banner Assets
@@ -31,7 +31,7 @@ When creating assets for a new project, start with a broad exploration phase to 
 
 Prompt pattern:
 
-> Create several PNG versions of {base-svg} but with different abstract backgrounds (curvy, bitmap, slopes, splines, gradients, noise, halftone, topographic, marble, waves, geometric, etc). Generate 30 of them, all singularly different, so I can choose a direction. Place them in {assets-dir}.
+> Create several PNG versions of \{base-svg} but with different abstract backgrounds (curvy, bitmap, slopes, splines, gradients, noise, halftone, topographic, marble, waves, geometric, etc). Generate 30 of them, all singularly different, so I can choose a direction. Place them in \{assets-dir}.
 
 Use `rsvg-convert` or a Python script (Pillow) to composite the base SVG over programmatically generated backgrounds. Number each output `banner-{nn}-{descriptor}.png` (e.g., `banner-12-wind-lines.png`, `banner-27-marble-veins.png`).
 
@@ -65,16 +65,16 @@ SVGs use CSS classes for themed properties (fills, strokes). To export a themed 
 
 Typical light/dark color pairs (Tailwind Slate palette):
 
-| Role        | Light        | Dark         |
-|-------------|--------------|--------------|
-| Frame/ring  | `#334155`    | `#94A3B8`    |
-| Handle out  | `#334155`    | `#94A3B8`    |
-| Handle in   | `#475569`    | `#CBD5E1`    |
-| Title text  | `#1E293B`    | `#F1F5F9`    |
-| Tagline     | `#64748B`    | `#CBD5E1`    |
-| Background  | `#F8FAFC`    | `#0F172A`    |
-| Vein light  | `#e2e8ef`    | `#1a2535`    |
-| Vein dark   | `#c6cfda`    | `#253040`    |
+| Role       | Light     | Dark      |
+| ---------- | --------- | --------- |
+| Frame/ring | `#334155` | `#94A3B8` |
+| Handle out | `#334155` | `#94A3B8` |
+| Handle in  | `#475569` | `#CBD5E1` |
+| Title text | `#1E293B` | `#F1F5F9` |
+| Tagline    | `#64748B` | `#CBD5E1` |
+| Background | `#F8FAFC` | `#0F172A` |
+| Vein light | `#e2e8ef` | `#1a2535` |
+| Vein dark  | `#c6cfda` | `#253040` |
 
 ## Backgrounds
 
@@ -96,14 +96,17 @@ If `rsvg-convert` is unavailable, fall back to `inkscape --export-type=png --exp
 1. **Discover SVGs.** If `$ARGUMENTS` is a directory, find all `.svg` files in it. If it's a specific file, use that. Default to `docs/assets/`.
 
 2. **For each SVG**, read it and identify:
+
    - All CSS classes and their current (light-mode) values.
    - Whether a background `<rect>` with `.bg` class exists (opaque) or not (transparent).
 
 3. **Generate light PNG.** The SVG already has light-mode styles, so convert directly:
+
    - If transparent: `rsvg-convert -o {name}-light.png {name}.svg`
    - If opaque: convert as-is (the `.bg` rect has the light fill).
 
 4. **Generate dark PNG.** Create a temporary SVG with dark-mode colors:
+
    - Replace the `<style>` block with dark-mode values.
    - If opaque, the `.bg` fill is swapped to the dark background color.
    - Convert the temp SVG, then delete it.
@@ -145,7 +148,7 @@ The readme includes a centered banner image (`logo-banner.svg`) for GitHub. When
 ```css
 /* Hide the readme banner on the Sphinx front page (logo already in sidebar). */
 article p[align="center"]:has(img[alt="Project Name"]) {
-  display: none;
+    display: none;
 }
 ```
 
@@ -169,6 +172,7 @@ When a design exists only as a raster image (PNG/JPEG) and needs to be reproduce
 2. **Scan for foreground features.** Using Pillow + NumPy, iterate over the image in slices (vertical columns for horizontal features, horizontal rows for vertical features). At each slice, threshold grayscale values to find pixels that differ from the background.
 
 3. **Cluster pixels into distinct elements.** Group adjacent foreground pixels within a slice. A gap larger than 3-5px indicates a separate element. For each cluster, record:
+
    - Center position (x, y)
    - Thickness (extent of the cluster)
    - Color (sample the middle pixel's RGB)
@@ -176,6 +180,7 @@ When a design exists only as a raster image (PNG/JPEG) and needs to be reproduce
 4. **Trace paths across slices.** Match clusters across adjacent slices by proximity to build continuous paths. Each path becomes a series of (x, y) sample points.
 
 5. **Fit SVG paths.** Convert the sampled points into SVG cubic bezier curves:
+
    - Use `C` (cubic bezier) for the initial segment.
    - Use `S` (smooth cubic bezier) for continuations. Each `S` needs 4 coordinates (control point + endpoint); fewer causes the path to terminate early.
    - Extend paths past the viewBox edges (e.g., `x=-20` and `x=1300` for a 1280-wide image) so lines reach the borders cleanly.
