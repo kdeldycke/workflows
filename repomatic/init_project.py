@@ -77,7 +77,11 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from importlib.abc import Traversable
+
+    if sys.version_info >= (3, 11):
+        from importlib.resources.abc import Traversable
+    else:
+        from importlib.abc import Traversable
 
 
 def _config_flag(config: Config, dotted_key: str, default: bool) -> bool:

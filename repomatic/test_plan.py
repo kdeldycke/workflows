@@ -192,7 +192,7 @@ class CLITestCase:
             Add support for proper mixed <stdout>/<stderr> stream as a single,
             intertwined output.
         """
-        if self.only_platforms and current_platform() not in self.only_platforms:  # type: ignore[operator]
+        if self.only_platforms and current_platform() not in self.only_platforms:
             raise SkippedTest(f"Test case only runs on platform: {current_platform()}")
 
         if current_platform() in extract_members(

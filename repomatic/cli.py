@@ -315,6 +315,7 @@ class ComponentSelector(ParamType):
                 param,
                 ctx,
             )
+        assert component is not None  # self.fail() raises; narrows for mypy.
         valid = valid_file_ids(component)
         if not valid:
             self.fail(
@@ -2295,7 +2296,7 @@ def sync_uv_lock_cmd(
             cutoff = _format_upload_date(result.exclude_newer)
             echo(f"exclude-newer cutoff: {cutoff}")
 
-        ctx.find_root().print_table(rows, headers)  # type: ignore[attr-defined]
+        ctx.find_root().print_table(rows, headers)
 
     # Release notes (opt-in, fetched once for both terminal and file output).
     notes_section = ""

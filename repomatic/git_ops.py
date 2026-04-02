@@ -39,7 +39,7 @@ import re
 import subprocess
 
 from packaging.version import Version
-from pydriller import Git  # type: ignore[import-untyped]
+from pydriller import Git
 
 SHORT_SHA_LENGTH = 7
 """Default SHA length hard-coded to ``7``.

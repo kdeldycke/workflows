@@ -49,7 +49,7 @@ from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
 import yaml
-from extra_platforms import (  # type: ignore[attr-defined,unused-ignore]
+from extra_platforms import (
     is_aarch64,
     is_github_ci,
     is_linux,  # Stubs added in extra_platforms 11.0.3.

@@ -287,13 +287,31 @@ search = "date-released: \\d{{4}}-\\d{{2}}-\\d{{2}}"
 replace = "date-released: {utcnow:%Y-%m-%d}"
 
 [tool.mypy]
+check_untyped_defs = true
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
 pretty = true
-overrides = [ { ignore_missing_imports = true, module = [ "py_walk.*" ] } ]
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+    "boltons.*",
+    "bumpversion.*",
+    "click.shell_completion",
+    "click_extra.*",
+    "extra_platforms.*",
+    "git.*",
+    "gitdb.*",
+    "packaging.*",
+    "py_walk.*",
+    "pydriller.*",
+    "pyproject_metadata.*",
+    "wcmatch.*",
+    "yaml",
+]
 
 [tool.lychee]
 # https://lychee.cli.rs/configuration/

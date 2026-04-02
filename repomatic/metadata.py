@@ -298,16 +298,16 @@ from functools import cached_property
 from operator import itemgetter
 from pathlib import Path
 
-from bumpversion.config import get_configuration  # type: ignore[import-untyped]
-from bumpversion.config.files import find_config_file  # type: ignore[import-untyped]
-from bumpversion.show import resolve_name  # type: ignore[import-untyped]
+from bumpversion.config import get_configuration
+from bumpversion.config.files import find_config_file
+from bumpversion.show import resolve_name
 from extra_platforms import is_github_ci
 from git.exc import GitCommandError
-from gitdb.exc import BadName  # type: ignore[import-untyped]
+from gitdb.exc import BadName
 from packaging.version import Version
 from py_walk import get_parser_from_file
 from py_walk.models import Parser
-from pydriller import Commit, Git, Repository  # type: ignore[import-untyped]
+from pydriller import Commit, Git, Repository
 from pyproject_metadata import ConfigurationError, StandardMetadata
 from typing_extensions import Self
 from wcmatch.glob import (
@@ -839,8 +839,8 @@ class Metadata:
             return None
 
         if bool(os.environ.get("GITHUB_BASE_REF")):
-            return WorkflowEvent.pull_request  # type: ignore[return-value]
-        return WorkflowEvent.push  # type: ignore[return-value]
+            return WorkflowEvent.pull_request
+        return WorkflowEvent.push
 
     @cached_property
     def event_actor(self) -> str | None:
@@ -1534,14 +1534,14 @@ class Metadata:
     def package_name(self) -> str | None:
         """Returns package name as published on PyPI."""
         if self.pyproject and self.pyproject.canonical_name:
-            return self.pyproject.canonical_name
+            return str(self.pyproject.canonical_name)
         return None
 
     @cached_property
     def project_description(self) -> str | None:
         """Returns project description from pyproject.toml."""
         if self.pyproject and self.pyproject.description:
-            return self.pyproject.description
+            return str(self.pyproject.description)
         return None
 
     @cached_property
@@ -2175,7 +2175,7 @@ class Metadata:
 
     def dump(
         self,
-        dialect: Dialect = Dialect.github,  # type: ignore[assignment]
+        dialect: Dialect = Dialect.github,
         keys: tuple[str, ...] = (),
     ) -> str:
         """Returns metadata in the specified format.
