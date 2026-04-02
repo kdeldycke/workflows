@@ -1,6 +1,7 @@
 ---
 name: repomatic-changelog
 description: Draft, validate, consolidate, and fix changelog entries.
+model: sonnet
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 argument-hint: '[add|check|fix|consolidate [VERSION]]'
