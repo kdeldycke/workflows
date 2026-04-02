@@ -432,6 +432,7 @@ expected = {
         "repomatic/registry.py",
         "repomatic/release_prep.py",
         "repomatic/renovate.py",
+        "repomatic/rst_to_myst.py",
         "repomatic/sponsor.py",
         "repomatic/templates/__init__.py",
         "repomatic/test_matrix.py",
@@ -448,6 +449,7 @@ expected = {
         "tests/test_deps_graph.py",
         "tests/test_dev_release.py",
         "tests/test_git_ops.py",
+        "tests/test_help.py",
         "tests/test_images.py",
         "tests/test_init_project.py",
         "tests/test_lint_repo.py",
@@ -527,6 +529,9 @@ expected = {
         ".claude/docs/operation-contracts.md",
         ".claude/docs/uv-comment-18155-timestamp-noise.md",
         ".claude/skills/awesome-triage/SKILL.md",
+        ".claude/skills/babysit-ci/SKILL.md",
+        ".claude/skills/brand-assets/SKILL.md",
+        ".claude/skills/file-bug-report/SKILL.md",
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
@@ -590,6 +595,9 @@ expected = {
         ".claude/docs/operation-contracts.md",
         ".claude/docs/uv-comment-18155-timestamp-noise.md",
         ".claude/skills/awesome-triage/SKILL.md",
+        ".claude/skills/babysit-ci/SKILL.md",
+        ".claude/skills/brand-assets/SKILL.md",
+        ".claude/skills/file-bug-report/SKILL.md",
         ".claude/skills/repomatic-audit/SKILL.md",
         ".claude/skills/repomatic-changelog/SKILL.md",
         ".claude/skills/repomatic-deps/SKILL.md",
@@ -662,6 +670,7 @@ expected = {
     "released_version": OptionalVersionString(regex(r"[0-9]+\.[0-9]+\.[0-9]+")),
     "is_sphinx": False,
     "active_autodoc": False,
+    "uses_myst": False,
     # Release notes are verbatim changelog content.
     # Development: starts with the unreleased warning admonition.
     # Release: contains actual changelog entries (bullets, admonitions).
@@ -1256,7 +1265,8 @@ def test_repomatic_config_defaults(tmp_path, monkeypatch):
     assert metadata.config.gitignore_location == "./.gitignore"
     assert metadata.config.gitignore_extra_categories == []
     assert metadata.config.gitignore_extra_content == (
-        "junit.xml\n\n# Claude Code local settings.\n.claude/settings.local.json"
+        "junit.xml\n\n# Claude Code local files.\n"
+        ".claude/scheduled_tasks.lock\n.claude/settings.local.json"
     )
     assert metadata.config.dependency_graph_output == "./docs/assets/dependencies.mmd"
     assert metadata.config.dependency_graph_all_groups is True

@@ -90,10 +90,10 @@ def test_init_help_lists_all_components() -> None:
     """Verify the init command help text lists every registered component."""
     from repomatic.cli import init_project
 
-    doc = init_project.__doc__
-    assert doc is not None
+    help_text = init_project.help
+    assert help_text is not None
     for name in ALL_COMPONENTS:
-        assert name in doc, f"Component {name!r} missing from init help text"
+        assert name in help_text, f"Component {name!r} missing from init help text"
 
 
 def test_supported_config_types() -> None:
