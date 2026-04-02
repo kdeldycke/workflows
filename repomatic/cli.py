@@ -1731,6 +1731,124 @@ def deps_graph(
     echo(graph, file=prep_path(output))
 
 
+def _validate_docs_script_path(script: str, repo_root: Path) -> Path | None:
+    """Validate and resolve a docs update script path.
+
+    Returns the resolved path if the script exists, or ``None`` if the
+    configured value is empty. Raises ``ClickException`` if the path
+    escapes the repository root or is not under the ``docs/`` directory.
+    """
+    if not script:
+        return None
+    script_path = (repo_root / script).resolve()
+    # Must be under the repository root.
+    try:
+        script_path.relative_to(repo_root)
+    except ValueError:
+        raise ClickException(
+            f"docs.update-script escapes repository root: {script}"
+        )
+    # Must be under docs/ and be a Python file.
+    docs_dir = (repo_root / "docs").resolve()
+    try:
+        script_path.relative_to(docs_dir)
+    except ValueError:
+        raise ClickException(
+            f"docs.update-script must be under docs/: {script}"
+        )
+    if script_path.suffix != ".py":
+        raise ClickException(
+            f"docs.update-script must be a .py file: {script}"
+        )
+    return script_path
+
+
+@repomatic.command(
+    name="update-docs",
+    short_help="Regenerate Sphinx API docs and run update script",
+    section=_section_setup,
+)
+def update_docs() -> None:
+    """Regenerate Sphinx autodoc stubs and run the project's update script.
+
+    Orchestrates three phases:
+
+    1. Run ``sphinx-apidoc`` to generate RST stubs for all modules.
+    2. If MyST-Parser is detected, convert the RST stubs to MyST markdown
+       with ``{eval-rst}`` blocks.
+    3. Run the project-specific ``docs/docs_update.py`` script (if present)
+       to generate dynamic content.
+
+    Configuration is read from ``[tool.repomatic]`` in ``pyproject.toml``.
+    """
+    from .metadata import Metadata
+    from .rst_to_myst import convert_rst_files_in_directory
+
+    config = get_tool_config()
+    repo_root = Path().resolve()
+    docs_dir = repo_root / "docs"
+
+    # Detect Sphinx capabilities from conf.py.
+    meta = Metadata()
+
+    if not meta.is_sphinx:
+        logging.info("No Sphinx configuration found. Nothing to do.")
+        return
+
+    # Phase 1: sphinx-apidoc.
+    if meta.active_autodoc:
+        apidoc_cmd = [
+            "uv", "--no-progress", "run", "--frozen", "--group", "docs", "--",
+            "sphinx-apidoc",
+            "--no-toc",
+            "--module-first",
+            "--output-dir", str(docs_dir),
+            *config.docs_apidoc_extra_args,
+            ".",
+            *config.docs_apidoc_exclude,
+        ]
+        logging.info(f"Running: {' '.join(apidoc_cmd)}")
+        result = subprocess.run(apidoc_cmd, check=False)
+        if result.returncode:
+            raise ClickException(
+                f"sphinx-apidoc failed with exit code {result.returncode}"
+            )
+        echo("sphinx-apidoc completed.")
+    else:
+        logging.info("No active autodoc extensions. Skipping sphinx-apidoc.")
+
+    # Phase 2: RST → MyST conversion.
+    if meta.uses_myst and docs_dir.is_dir():
+        converted = convert_rst_files_in_directory(docs_dir)
+        if converted:
+            echo(f"Converted {len(converted)} RST file(s) to MyST markdown.")
+        else:
+            logging.info("No RST files to convert.")
+    elif not meta.uses_myst:
+        logging.info("MyST-Parser not detected. Skipping RST conversion.")
+
+    # Phase 3: docs update script.
+    script_path = _validate_docs_script_path(
+        config.docs_update_script, repo_root
+    )
+    if script_path and script_path.is_file():
+        script_cmd = [
+            "uv", "--no-progress", "run", "--frozen", "--group", "docs", "--",
+            "python", str(script_path),
+        ]
+        logging.info(f"Running: {' '.join(script_cmd)}")
+        result = subprocess.run(script_cmd, check=False)
+        if result.returncode:
+            raise ClickException(
+                f"docs update script failed with exit code {result.returncode}"
+            )
+        echo(f"Docs update script completed: {script_path.name}")
+    elif script_path:
+        logging.info(f"Docs update script not found: {script_path}")
+    else:
+        logging.info("Docs update script disabled (empty path).")
+
+
 @repomatic.command(
     short_help="Manage broken links issue lifecycle", section=_section_github
 )

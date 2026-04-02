@@ -176,6 +176,27 @@ class Config:
     to overwrite it can set this to ``false``.
     """
 
+    docs_apidoc_exclude: list[str] = field(default_factory=list)
+    """Glob patterns for modules to exclude from ``sphinx-apidoc``.
+
+    Passed as positional exclude arguments after the source directory
+    (e.g., ``["setup.py", "tests"]``).
+    """
+
+    docs_apidoc_extra_args: list[str] = field(default_factory=list)
+    """Extra arguments appended to the ``sphinx-apidoc`` invocation.
+
+    The base flags ``--no-toc --module-first`` are always applied.
+    Use this for project-specific options (e.g., ``["--implicit-namespaces"]``).
+    """
+
+    docs_update_script: str = "./docs/docs_update.py"
+    """Path to a Python script run after ``sphinx-apidoc`` to generate dynamic content.
+
+    Resolved relative to the repository root. Must reside under the ``docs/``
+    directory for security. Set to an empty string to disable.
+    """
+
     dev_release_sync: bool = True
     """Whether dev pre-release sync is enabled for this project.
 
@@ -369,6 +390,9 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "dependency_graph_no_groups",
     "dependency_graph_output",
     "dev_release_sync",
+    "docs_apidoc_exclude",
+    "docs_apidoc_extra_args",
+    "docs_update_script",
     "exclude",
     "include",
     "gitignore_extra_categories",
@@ -404,6 +428,7 @@ _NESTED_PREFIXES: Final[dict[str, str]] = {
     "bumpversion": "bumpversion",
     "dependency_graph": "dependency-graph",
     "dev_release": "dev-release",
+    "docs": "docs",
     "gitignore": "gitignore",
     "labels": "labels",
     "mailmap": "mailmap",

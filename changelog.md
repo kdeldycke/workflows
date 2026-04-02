@@ -8,24 +8,21 @@
 - Add `brand-assets` skill to create and export project logo/banner SVG assets to light/dark PNG variants.
 - Add `babysit-ci` skill to monitor CI test workflows, diagnose failures, fix code, and loop until all stable jobs pass.
 - Add `file-bug-report` skill to write upstream bug reports. Exhaustively reads contribution guidelines, issue templates, security policies, and community norms before producing a markdown file.
+- Add `test-matrix.replace` and `test-matrix.remove` configuration to modify axis values in both full and PR test matrices. `replace` swaps values (e.g., `replace.os = { "ubuntu-slim" = "ubuntu-24.04" }`), `remove` drops values before `solve()` runs. Stale exclude directives referencing removed values are pruned with a warning.
+- Add `SyncMode` enum and `preserved_keys` field to `ToolConfigComponent`. Tool configs can now declare `sync_mode=ONGOING` to opt into repeated syncing that preserves local additions. Preserve local `[[tool.bumpversion.files]]` entries during `sync-bumpversion` as the first consumer.
+- Add `--output-format [markdown|github-actions]` to `sync-uv-lock`, `fix-vulnerable-deps`, `pr-body`, and `format-images`. Replaces implicit `$GITHUB_OUTPUT` environment variable detection with an explicit flag. Remove `-o` short option from `pr-body` and `format-images` (prefer long-form `--output`).
 - Add `.claude/scheduled_tasks.lock` to the default `.gitignore` extra content.
-- Prune stale `exclude-newer-package` entries from `pyproject.toml` in `sync-uv-lock`. Entries whose locked version was uploaded before the `exclude-newer` cutoff are removed before relocking.
-- Rework `sync-uv-lock` CLI output: default to a terminal table via click-extra's `--table-format`, add `--release-notes/--no-release-notes` and `--table/--no-table` flags, move markdown formatting to `--output` for CI use only.
-- Add `--output-format [markdown|github-actions]` to `sync-uv-lock`, `fix-vulnerable-deps`, `pr-body`, and `format-images`. Replaces implicit `$GITHUB_OUTPUT` environment variable detection with an explicit flag.
-- Remove `-o` short option from `pr-body` and `format-images` (prefer long-form `--output`).
-- Exclude `renovate` and `codecov` components from awesome-list repositories. Awesome repos have no Python dependencies or test coverage.
-- Change `renovate` component to opt-in (`init_default=EXCLUDE`). The `renovate.yaml` workflow materializes the bundled config at runtime, so a committed copy is only needed for customization.
-- Add debug logging to `init` for component selection decisions (scope exclusions, config gates, default/user exclude/include).
 - Append workflow metadata block to issue lifecycle comments (`Condition recurred.`, `Superseded by #N.`, close comments). Each comment now includes a collapsible table with trigger, actor, commit, job, workflow, and run link.
 - Make `setup-guide` issue body conditional: each step is a collapsible section with a status indicator (completed steps are collapsed with a checkmark, incomplete steps are expanded with a warning). Add branch ruleset and Dependabot settings checks to the closing criteria. The issue now closes only when PAT, permissions, vulnerability alerts, and branch protection are all verified.
+- Rework `sync-uv-lock` CLI output: default to a terminal table via click-extra's `--table-format`, add `--release-notes/--no-release-notes` and `--table/--no-table` flags, move markdown formatting to `--output` for CI use only. Prune stale `exclude-newer-package` entries from `pyproject.toml` before relocking.
+- Change `renovate` component to opt-in (`init_default=EXCLUDE`). Exclude `renovate` and `codecov` components from awesome-list repositories.
 - Echo `metadata` output to stderr when `--output` targets a file, so computed matrices are visible in CI logs.
 - Remove Python `3.15t` (free-threaded) from the default test matrix.
-- Add `test-matrix.replace` configuration to swap default axis values in both full and PR test matrices. Projects that need a full runner image (e.g., for system package manager tests) can use `replace.os = { "ubuntu-slim" = "ubuntu-24.04" }` instead of working around the limitation with exclude/include.
-- Add `test-matrix.remove` configuration to drop axis values from both full and PR test matrices. Unlike `exclude`, removed values are gone from the axis before `solve()` runs, so they cannot be resurrected by include directives.
-- Prune no-op exclude directives from test matrices after `replace`/`remove` modify the axes. Stale excludes that reference values no longer in an axis are dropped with a warning instead of being silently serialized into the GitHub Actions matrix JSON.
+- Warn instead of crashing on unknown `[tool.repomatic]` configuration keys. Old repomatic versions encountering config from a newer release now log a warning and continue.
+- Add `repomatic update-docs` CLI command consolidating `sphinx-apidoc`, RST-to-MyST conversion, and `docs/docs_update.py` execution into a single orchestrated step. Projects using MyST-Parser get RST stubs automatically converted to markdown with `{eval-rst}` blocks.
+- Add `docs.apidoc-extra-args`, `docs.apidoc-exclude`, and `docs.update-script` configuration options.
+- Add `uses_myst` metadata property detecting MyST-Parser in Sphinx configuration.
 - Fix CLI crash when `test-matrix.variations` or `test-matrix.replace` contain nested keys. Click-extra's generic config flattening was converting them to invalid field names. The CLI now routes config loading through `load_repomatic_config` which preserves the `test-matrix` sub-section structure.
-- Preserve local `[[tool.bumpversion.files]]` entries during `sync-bumpversion`. Entries not present in the bundled template (e.g., repo-specific image URL pinning) are no longer wiped on sync.
-- Add `SyncMode` enum and `preserved_keys` field to `ToolConfigComponent`. Tool configs can now declare `sync_mode=ONGOING` to opt into repeated syncing that preserves local additions, replacing the hardcoded bumpversion special case.
 
 ## [`6.9.0` (2026-03-31)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...v6.9.0)
 

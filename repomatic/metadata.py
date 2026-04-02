@@ -409,6 +409,7 @@ _METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
     "released_version": "Version of the release commit, if any.",
     "is_sphinx": "Sphinx configuration file is present.",
     "active_autodoc": "Active Sphinx autodoc extensions detected.",
+    "uses_myst": "MyST-Parser is active in Sphinx configuration.",
     "release_notes": "Release notes for the GitHub release.",
     "release_notes_with_admonition": "Release notes with PyPI availability admonition.",
     "new_commits_matrix": "Matrix of new commits with long and short SHA values.",
@@ -1685,28 +1686,41 @@ class Metadata:
         """
         return is_version_bump_allowed("major")
 
+    def _has_sphinx_extension(self, extension_name: str) -> bool:
+        """Check if a Sphinx extension is listed in ``conf.py``'s ``extensions``.
+
+        Parses the Sphinx configuration file as an AST and looks for an
+        ``extensions = [...]`` assignment containing ``extension_name``.
+        """
+        if not self.is_sphinx:
+            return False
+        for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
+            if isinstance(node, ast.Assign) and isinstance(
+                node.value, ast.List | ast.Tuple
+            ):
+                extension_found = "extensions" in (
+                    t.id  # type: ignore[attr-defined]
+                    for t in node.targets
+                )
+                if extension_found:
+                    elements = (
+                        e.value
+                        for e in node.value.elts
+                        if isinstance(e, ast.Constant)
+                    )
+                    if extension_name in elements:
+                        return True
+        return False
+
     @cached_property
     def active_autodoc(self) -> bool:
-        """Returns ``True`` if there are active Sphinx extensions."""
-        if self.is_sphinx:
-            # Look for list of active Sphinx extensions.
-            for node in ast.parse(self.sphinx_conf_path.read_bytes()).body:
-                if isinstance(node, ast.Assign) and isinstance(
-                    node.value, ast.List | ast.Tuple
-                ):
-                    extension_found = "extensions" in (
-                        t.id  # type: ignore[attr-defined]
-                        for t in node.targets
-                    )
-                    if extension_found:
-                        elements = (
-                            e.value
-                            for e in node.value.elts
-                            if isinstance(e, ast.Constant)
-                        )
-                        if "sphinx.ext.autodoc" in elements:
-                            return True
-        return False
+        """Returns ``True`` if Sphinx autodoc is active."""
+        return self._has_sphinx_extension("sphinx.ext.autodoc")
+
+    @cached_property
+    def uses_myst(self) -> bool:
+        """Returns ``True`` if MyST-Parser is active in Sphinx."""
+        return self._has_sphinx_extension("myst_parser")
 
     @cached_property
     def nuitka_matrix(self) -> Matrix | None:
@@ -2210,6 +2224,7 @@ class Metadata:
             "released_version": self.released_version,
             "is_sphinx": self.is_sphinx,
             "active_autodoc": self.active_autodoc,
+            "uses_myst": self.uses_myst,
             "release_notes": self.release_notes,
             "release_notes_with_admonition": self.release_notes_with_admonition,
             "new_commits_matrix": self.new_commits_matrix,

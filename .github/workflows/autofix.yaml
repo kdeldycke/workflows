@@ -49,7 +49,8 @@ jobs:
           --format github-json --output "$GITHUB_OUTPUT"
           gitignore_exists python_files json_files doc_files markdown_files
           is_python_project mailmap_exists
-          image_files workflow_files active_autodoc release_commits_matrix
+          image_files workflow_files active_autodoc uses_myst
+          release_commits_matrix
 
   # --- Formatters: rewrite files to enforce canonical style. ---
 
@@ -491,16 +492,9 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
-      - name: Regenerate Sphinx autodoc
-        # Omit --force so existing RST files (often with custom modifications produced by the next step) are preserved.
-        # Only new module stubs are created, and deleted ones are left for manual removal by the maintainers.
-        run: uv --no-progress run --frozen --group docs -- sphinx-apidoc --no-toc --module-first --output-dir ./docs .
-      - name: Run docs update script
-        # Run docs/docs_update.py if present to generate dynamic content (tables, diagrams, directives).
-        run: |
-          if [ -f docs/docs_update.py ]; then
-            uv --no-progress run --frozen --group docs -- python docs/docs_update.py
-          fi
+      - name: Update docs
+        # Runs sphinx-apidoc, converts RST stubs to MyST if applicable, then runs docs/docs_update.py.
+        run: uvx --no-progress --from . repomatic update-docs
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
