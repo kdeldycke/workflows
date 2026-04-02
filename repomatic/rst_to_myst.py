@@ -32,7 +32,6 @@ import logging
 import re
 from pathlib import Path
 
-
 #: RST underline characters mapped to Markdown heading levels.
 _RST_UNDERLINE_LEVELS: dict[str, str] = {
     "=": "#",

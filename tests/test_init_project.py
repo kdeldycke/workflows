@@ -45,7 +45,6 @@ from repomatic.registry import (
     SKILL_PHASES,
     BundledComponent,
     GeneratedComponent,
-    SyncMode,
     TemplateComponent,
     ToolConfigComponent,
     WorkflowComponent,
@@ -1123,7 +1122,7 @@ def test_preserves_local_array_entries(tmp_path: Path) -> None:
         'current_version = "1.0.0.dev0"\n'
         "allow_dirty = true\n"
         'parse = "(?P<major>\\\\d+)"\n'
-        "serialize = [\"{major}\"]\n\n"
+        'serialize = ["{major}"]\n\n'
         "[[tool.bumpversion.files]]\n"
         'filename = "./pyproject.toml"\n'
         "search = 'version = \"{current_version}\"'\n"
@@ -1157,7 +1156,7 @@ def test_ongoing_sync_idempotent_with_local_entries(tmp_path: Path) -> None:
         'current_version = "1.0.0.dev0"\n'
         "allow_dirty = true\n"
         'parse = "(?P<major>\\\\d+)"\n'
-        "serialize = [\"{major}\"]\n\n"
+        'serialize = ["{major}"]\n\n'
         "[[tool.bumpversion.files]]\n"
         'filename = "./readme.md"\n'
         "ignore_missing_version = true\n"
@@ -1190,7 +1189,9 @@ def test_ongoing_sync_no_duplicate_template_entries(tmp_path: Path) -> None:
     parsed = tomllib.loads(result)
     files_entries = parsed["tool"]["bumpversion"]["files"]
     # Template entries for pyproject.toml should appear exactly twice (version + tag).
-    pyproject_entries = [e for e in files_entries if e.get("filename") == "./pyproject.toml"]
+    pyproject_entries = [
+        e for e in files_entries if e.get("filename") == "./pyproject.toml"
+    ]
     assert len(pyproject_entries) == 2
 
 
@@ -1217,7 +1218,7 @@ def test_serialize_array_entries_roundtrip() -> None:
     ]
     text = _serialize_array_entries(entries, "[[tool.bumpversion.files]]")
     # Wrap in [tool.bumpversion] to make it valid as a complete document.
-    doc = "[tool.bumpversion]\ncurrent_version = \"0\"\n\n" + text
+    doc = '[tool.bumpversion]\ncurrent_version = "0"\n\n' + text
     parsed = tomllib.loads(doc)
     files = parsed["tool"]["bumpversion"]["files"]
     assert len(files) == 2

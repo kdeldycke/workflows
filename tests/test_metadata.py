@@ -26,7 +26,6 @@ from extra_platforms import is_windows
 
 from repomatic.config import (
     Config,
-    _field_to_key,
     config_reference,
     load_repomatic_config,
 )
@@ -1434,9 +1433,7 @@ exclude = [
     # PR matrix: windows-11-arm is not in the PR runner list, so the exclude
     # is pruned as a no-op.
     pr = metadata.test_matrix_pr.matrix()
-    assert "exclude" not in pr or {"os": "windows-11-arm"} not in pr.get(
-        "exclude", ()
-    )
+    assert "exclude" not in pr or {"os": "windows-11-arm"} not in pr.get("exclude", ())
 
 
 def test_test_matrix_config_variations(tmp_path, monkeypatch):

@@ -35,7 +35,6 @@ from repomatic.renovate import (
 )
 from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
-    SyncResult,
     _format_upload_date,
     _parse_github_owner_repo,
     _parse_iso_datetime,
@@ -698,10 +697,7 @@ def test_add_exclude_newer_packages_skips_existing(tmp_path):
 def test_add_exclude_newer_packages_creates_line(tmp_path):
     """A new exclude-newer-package line is inserted when none exists."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        "[tool.uv]\n"
-        'exclude-newer = "1 week"\n'
-    )
+    pyproject.write_text('[tool.uv]\nexclude-newer = "1 week"\n')
     assert add_exclude_newer_packages(pyproject, {"requests"}) is True
     content = pyproject.read_text()
     assert 'exclude-newer-package = { "requests" = "0 day" }' in content
@@ -887,7 +883,7 @@ def test_prune_stale_nothing_stale(tmp_path):
 def test_prune_stale_no_entries(tmp_path):
     """Return False when there are no exclude-newer-package entries."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("[tool.uv]\n" 'exclude-newer = "1 week"\n')
+    pyproject.write_text('[tool.uv]\nexclude-newer = "1 week"\n')
     lock = tmp_path / "uv.lock"
     lock.write_text("version = 1\n")
     assert prune_stale_exclude_newer_packages(pyproject, lock) is False

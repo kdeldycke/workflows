@@ -676,7 +676,9 @@ def test_setup_guide_completed_step_collapsed(
     body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
     content = body_file.read_text(encoding="UTF-8")
     # Token step should be collapsed with checkmark.
-    assert "<details>\n<summary>\u2705 <strong>Create and configure the token" in content
+    assert (
+        "<details>\n<summary>\u2705 <strong>Create and configure the token" in content
+    )
     # Branch step should be collapsed with checkmark.
     assert "<details>\n<summary>\u2705 <strong>Protect the main branch" in content
 
@@ -739,7 +741,7 @@ def test_check_branch_ruleset_none():
         {"name": "tags", "target": "tag", "enforcement": "active"},
     ])
     with patch("repomatic.lint_repo.run_gh_command", return_value=rulesets_json):
-        passed, msg = check_branch_ruleset_on_default("owner/repo")
+        passed, _msg = check_branch_ruleset_on_default("owner/repo")
     assert passed is False
 
 
