@@ -631,7 +631,7 @@ def load_lock_data(lock_path: Path | None = None) -> dict[str, Any]:
     if not lock_path.exists():
         return {}
     with lock_path.open("rb") as f:
-        return tomllib.load(f)
+        return tomllib.load(f)  # type: ignore[no-any-return]
 
 
 @dataclass

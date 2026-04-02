@@ -31,7 +31,7 @@ $ uv run --group test pytest -n auto
 ### Type checking
 
 ```shell-session
-$ uv run --group typing mypy repomatic
+$ uv run --group typing repomatic run mypy -- repomatic
 ```
 
 ### Running the CLI
