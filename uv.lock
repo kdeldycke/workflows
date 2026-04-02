@@ -3,14 +3,14 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-26T12:29:55.154786Z"
+exclude-newer = "2026-03-26T14:51:25.671484Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-04-02T12:29:55.154845Z", span = "PT0S" }
-pygments = { timestamp = "2026-04-02T12:29:55.155296Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-02T12:29:55.155297Z", span = "PT0S" }
-requests = { timestamp = "2026-04-02T12:29:55.155297Z", span = "PT0S" }
+click-extra = { timestamp = "2026-04-02T14:51:25.671544Z", span = "PT0S" }
+pygments = { timestamp = "2026-04-02T14:51:25.671901Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-02T14:51:25.671902Z", span = "PT0S" }
+requests = { timestamp = "2026-04-02T14:51:25.671902Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -210,8 +210,8 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.10.0.dev0"
-source = { git = "https://github.com/kdeldycke/click-extra.git?rev=main#ff919c76a5427b86dbe15f62665814a4f3b68352" }
+version = "7.10.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
     { name = "click" },
@@ -222,6 +222,10 @@ dependencies = [
     { name = "tabulate", extra = ["widechars"] },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/44/b1/ea97a8300989ecc54021f2fe7480b6b8f12ec5261d1cd44aeb5854f8c184/click_extra-7.10.0.tar.gz", hash = "sha256:f2e7725460983adf47fa6b491459434abd3305ac5715c727fef67529f13c49fd", size = 116556, upload-time = "2026-04-02T14:27:04.464Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a1/8b/645b58f13a06cae46ba6ce07278a5b188fc0589b6c4f00d38848f60f509a/click_extra-7.10.0-py3-none-any.whl", hash = "sha256:c132db0c3317af1af3a0cd0856e2b51f9f5969025f17a191f0023759854ec578", size = 130434, upload-time = "2026-04-02T14:27:05.787Z" },
 ]
 
 [[package]]
@@ -983,7 +987,7 @@ requires-dist = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'", specifier = ">=1" },
     { name = "boltons", specifier = ">=25" },
     { name = "bump-my-version", specifier = ">=1.2.6" },
-    { name = "click-extra", git = "https://github.com/kdeldycke/click-extra.git?rev=main" },
+    { name = "click-extra", specifier = ">=7.10.0" },
     { name = "extra-platforms", specifier = ">=8" },
     { name = "packaging", specifier = ">=17" },
     { name = "py-walk", specifier = ">=0.3.1" },
