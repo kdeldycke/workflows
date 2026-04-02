@@ -289,6 +289,12 @@ COMPONENTS: tuple[Component, ...] = (
                 phase="Maintenance",
             ),
             FileEntry(
+                "skill-babysit-ci.md",
+                ".claude/skills/babysit-ci/SKILL.md",
+                "babysit-ci",
+                phase="Quality",
+            ),
+            FileEntry(
                 "skill-brand-assets.md",
                 ".claude/skills/brand-assets/SKILL.md",
                 "brand-assets",

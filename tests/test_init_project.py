@@ -665,10 +665,13 @@ def test_init_only_skills(tmp_path: Path):
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 10
+    assert len(created_set) == 13
 
     # Verify all non-awesome skill files are created.
     for name in (
+        "babysit-ci",
+        "brand-assets",
+        "file-bug-report",
         "repomatic-audit",
         "repomatic-changelog",
         "repomatic-deps",
