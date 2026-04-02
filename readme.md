@@ -949,17 +949,22 @@ $ uvx -- repomatic list-skills
 
 ### Available skills
 
-| Phase       | Skill                  | Description                                             |
-| :---------- | :--------------------- | :------------------------------------------------------ |
-| Setup       | `/repomatic-init`      | Bootstrap a repository with reusable workflows          |
-| Setup       | `/repomatic-sync`      | Sync workflow caller files with upstream                |
-| Development | `/repomatic-deps`      | Dependency graphs, tree analysis, and declaration audit |
-| Development | `/repomatic-metadata`  | Extract and explain project metadata                    |
-| Quality     | `/repomatic-lint`      | Lint workflows and repository metadata                  |
-| Quality     | `/repomatic-test`      | Run and write YAML test plans for compiled binaries     |
-| Maintenance | `/sphinx-docs-sync`    | Compare and sync Sphinx docs across sibling projects    |
-| Release     | `/repomatic-changelog` | Draft, validate, and fix changelog entries              |
-| Release     | `/repomatic-release`   | Pre-checks, release preparation, and post-release steps |
+| Phase       | Skill                  | Description                                                        |
+| :---------- | :--------------------- | :----------------------------------------------------------------- |
+| Setup       | `/repomatic-init`      | Bootstrap a repository with reusable workflows                     |
+| Setup       | `/repomatic-sync`      | Sync workflow caller files with upstream                           |
+| Development | `/brand-assets`        | Create and export project logo/banner SVG assets to PNG variants   |
+| Development | `/repomatic-deps`      | Dependency graphs, tree analysis, and declaration audit            |
+| Development | `/repomatic-topics`    | Optimize GitHub topics for discoverability                         |
+| Quality     | `/repomatic-lint`      | Lint workflows and repository metadata                             |
+| Quality     | `/repomatic-test`      | Run and write YAML test plans for compiled binaries                |
+| Maintenance | `/awesome-triage`      | Triage issues and PRs on awesome-list repos (awesome-list only)    |
+| Maintenance | `/file-bug-report`     | Write a bug report for an upstream project                         |
+| Maintenance | `/repomatic-audit`     | Audit downstream repo alignment with upstream reference            |
+| Maintenance | `/sphinx-docs-sync`    | Compare and sync Sphinx docs across sibling projects               |
+| Maintenance | `/translation-sync`    | Detect stale translations and draft updates (awesome-list only)    |
+| Release     | `/repomatic-changelog` | Draft, validate, and fix changelog entries                         |
+| Release     | `/repomatic-release`   | Pre-checks, release preparation, and post-release steps            |
 
 ### Recommended workflow
 

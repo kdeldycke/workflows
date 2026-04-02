@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add `brand-assets` skill to create and export project logo/banner SVG assets to light/dark PNG variants.
+- Add `file-bug-report` skill to write upstream bug reports. Exhaustively reads contribution guidelines, issue templates, security policies, and community norms before producing a markdown file.
 - Prune stale `exclude-newer-package` entries from `pyproject.toml` in `sync-uv-lock`. Entries whose locked version was uploaded before the `exclude-newer` cutoff are removed before relocking.
 - Rework `sync-uv-lock` CLI output: default to a terminal table via click-extra's `--table-format`, add `--release-notes/--no-release-notes` and `--table/--no-table` flags, move markdown formatting to `--output` for CI use only.
 - Add `--output-format [markdown|github-actions]` to `sync-uv-lock`, `fix-vulnerable-deps`, `pr-body`, and `format-images`. Replaces implicit `$GITHUB_OUTPUT` environment variable detection with an explicit flag.
