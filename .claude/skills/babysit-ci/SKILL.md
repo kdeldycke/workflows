@@ -69,16 +69,19 @@ LOCAL (free)                              REMOTE (expensive)
 
 ## Loop
 
-1. **Detect the repo** from the current working directory:
+1. **Detect the repo and branch** from the current working directory:
 
    ```
    gh repo view --json nameWithOwner --jq '.nameWithOwner'
+   git branch --show-current
    ```
 
-2. **Get the latest run** for the `main` branch:
+   Use the detected branch for all `--branch=` flags below. Most invocations target `main`, but the skill works on any branch.
+
+2. **Get the latest run** for the current branch:
 
    ```
-   gh run list --workflow=tests.yaml --branch=main --limit=1
+   gh run list --workflow=tests.yaml --branch=<BRANCH> --limit=1
    ```
 
 3. **Run local tests while waiting for CI.** Don't idle while polling. Start the full test suite and linters locally in the background immediately after identifying the run:
@@ -114,11 +117,11 @@ LOCAL (free)                              REMOTE (expensive)
 
    Fetch each failed job's log (`gh api repos/<OWNER>/<REPO>/actions/jobs/<JOB_ID>/logs`). Different matrix entries often surface different issues (e.g., a Windows encoding error alongside a Linux assertion failure): fixing them all in one batch avoids burning another full CI round.
 
-   Analyze all collected logs, focusing on `FAILED` and `AssertionError` lines in the pytest summaries.
+   Analyze all collected logs following the [error triage discipline](#error-triage-discipline): focus on `FAILED` and `AssertionError` lines in stable-job pytest summaries only. Discard unstable-job output entirely.
 
 5. **Fix the root cause** using the combined picture from CI logs and local results (step 3). Fix the codebase, not the tests, unless the tests are genuinely wrong. If both mypy and ruff have failures, address them together. Fixing them independently risks an oscillation loop (see [§ mypy/ruff fix oscillation](#mypy-ruff-fix-oscillation)).
 
-   After applying fixes, re-run the full local validation to confirm:
+   After applying fixes, re-run the full local validation:
 
    ```
    uv run pytest --no-header -q
@@ -126,11 +129,13 @@ LOCAL (free)                              REMOTE (expensive)
    uv run --group lint ruff check repomatic
    ```
 
+   **Hard gate:** all three must pass before proceeding to step 6. If a fix introduces new failures that were not in the original set, the fix is wrong: revert it and try a different approach rather than layering another fix on top.
+
 6. **Check lint and autofix status before pushing.** Gather the remote picture (these calls are fast, no waiting):
 
    ```
-   gh run list --workflow=lint.yaml --branch=main --limit=1
-   gh run list --workflow=autofix.yaml --branch=main --limit=1
+   gh run list --workflow=lint.yaml --branch=<BRANCH> --limit=1
+   gh run list --workflow=autofix.yaml --branch=<BRANCH> --limit=1
    gh pr list --head=format-python --state=open --json number,title,url
    ```
 
@@ -139,7 +144,7 @@ LOCAL (free)                              REMOTE (expensive)
 
 7. **Commit the fix** with a clear message describing what changed and why, then `git push`.
 
-8. **Repeat from step 2** until the test run completes with all stable (✅) jobs passing and the lint run has no mypy/ruff failures.
+8. **Repeat from step 2** until the test run completes with all stable (✅) jobs passing and the lint run has no mypy/ruff failures. **Stop after 5 iterations.** If the loop has not converged by then, report what was fixed, what remains broken, and ask for guidance rather than continuing to churn.
 
 ### Early exit
 
@@ -151,6 +156,16 @@ Once all fast platforms (Linux, Windows) have completed with zero stable failure
 - **Unstable jobs** (⁉️): allowed to fail (Python dev versions like 3.15, 3.15t). Ignore their failures.
 
 The workflow uses `continue-on-error` for unstable jobs, so even if they fail, the overall run can still succeed.
+
+## Error triage discipline
+
+Read the exact error messages before forming a hypothesis. The most common diagnostic mistake is latching onto a warning or unstable-job failure instead of the actual stable-job error.
+
+1. **Filter first.** Only look at stable (✅) job output. Discard unstable (⁉️) job logs entirely: do not read them, do not mention them, do not fix issues they surface.
+2. **Quote the error.** Before proposing a fix, quote the exact failing line(s) from the log. If you cannot quote a specific error, you have not diagnosed the problem.
+3. **One cause at a time.** Multiple failing jobs often share a root cause. Identify the common thread before treating each job as independent.
+4. **Distinguish test failures from lint failures.** A pytest `AssertionError` and a mypy `error:` have different fixes. Do not conflate them. But always analyze mypy and ruff failures together before fixing either one (see [§ mypy/ruff fix oscillation](#mypy-ruff-fix-oscillation)).
+5. **Do not fix warnings.** Deprecation warnings, `PendingDeprecationWarning`, and informational messages from unstable Python versions are not failures. Ignore them unless they cause a stable job to fail.
 
 ## Common failure patterns
 
@@ -167,3 +182,23 @@ When you detect this pattern (the same lines toggling between fixes across itera
 ### Platform-specific test skips
 
 Some tests are skipped on certain platforms (e.g., `windows-11-arm` has no Python 3.10 ARM64 build). Check the matrix `exclude` section in `tests.yaml` before investigating missing results.
+
+### Cross-platform divergence
+
+When a test passes locally but fails in CI, check for platform-specific differences before changing logic:
+
+- **Path lengths**: `~/.config/...` is shorter on Linux than macOS/Windows equivalents, which can affect text wrapping in CLI output tests.
+- **Terminal width**: CI runners may have different default terminal widths than local dev machines.
+- **Encoding**: Windows uses different default encodings (`cp1252` vs `utf-8`).
+- **Line endings**: `\r\n` vs `\n` can break exact-match assertions.
+
+### Workflow and infrastructure failures
+
+Not all CI failures are code bugs. Recognize these and handle them differently:
+
+- **Runner timeouts or OOM kills**: the job log ends abruptly or shows `The runner has received a shutdown signal`. Re-run the job; do not change code.
+- **Action version mismatches**: errors like `Unable to resolve action` or `Node.js 16 actions are deprecated`. Fix the workflow YAML, not the Python code.
+- **Network/registry flakiness**: `pip install` or `uv` timeouts, PyPI 503 errors, `ConnectionResetError`. Re-run the job.
+- **Permission errors**: `Resource not accessible by integration`, 403 on API calls. Check token permissions, not code.
+
+If the failure is infrastructure, re-run the failed jobs (`gh run rerun <RUN_ID> --failed`) and continue polling. Do not modify code to work around transient infra issues.
