@@ -22,6 +22,7 @@
 - Add `repomatic update-docs` CLI command consolidating `sphinx-apidoc`, RST-to-MyST conversion, and `docs/docs_update.py` execution into a single orchestrated step. Projects using MyST-Parser get RST stubs automatically converted to markdown with `{eval-rst}` blocks.
 - Add `docs.apidoc-extra-args`, `docs.apidoc-exclude`, and `docs.update-script` configuration options.
 - Add `uses_myst` metadata property detecting MyST-Parser in Sphinx configuration.
+- Move `sync-uv-lock` job from `renovate.yaml` to `autofix.yaml`. The renovate workflow's path filter prevented the job from running on most pushes to `main`, leaving stale PRs with merge conflicts.
 - Fix CLI crash when `test-matrix.variations` or `test-matrix.replace` contain nested keys. Click-extra's generic config flattening was converting them to invalid field names. The CLI now routes config loading through `load_repomatic_config` which preserves the `test-matrix` sub-section structure.
 
 ## [`6.9.0` (2026-03-31)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...v6.9.0)

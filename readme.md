@@ -423,6 +423,17 @@ GitHub Actions has several design limitations that the workflows work around:
   - **Skipped if**:
     - `mailmap.sync = false` in `[tool.repomatic]`
 
+- ⛓️ **Sync `uv.lock`** (`sync-uv-lock`)
+
+  - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`repomatic sync-uv-lock`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/renovate.py)
+  - Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
+  - PR body includes a table of updated packages with their previous and new versions
+  - Replaces Renovate's `lockFileMaintenance`, which cannot reliably revert noise-only changes
+  - **Requires**:
+    - Python package with a `pyproject.toml` file
+  - **Skipped if**:
+    - `uv-lock.sync = false` in `[tool.repomatic]`
+
 - 🕸️ **Update dependency graph** (`update-deps-graph`)
 
   - Generates a Mermaid dependency graph of the Python project using [`repomatic update-deps-graph`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/deps_graph.py)
@@ -755,17 +766,6 @@ docs = [
   - Handles security vulnerabilities via `vulnerabilityAlerts`
   - **Requires**:
     - `REPOMATIC_PAT` secret with Dependabot alerts permission
-
-- ⛓️ **Sync `uv.lock`** (`sync-uv-lock`)
-
-  - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`repomatic sync-uv-lock`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/renovate.py)
-  - Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
-  - PR body includes a table of updated packages with their previous and new versions
-  - Replaces Renovate's `lockFileMaintenance`, which cannot reliably revert noise-only changes
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
-  - **Skipped if**:
-    - `uv-lock.sync = false` in `[tool.repomatic]`
 
 ### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/tests.yaml)
 

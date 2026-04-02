@@ -25,21 +25,6 @@ concurrency:
 
 jobs:
 
-  metadata:
-    name: 🧬 Project metadata
-    runs-on: ubuntu-slim
-    outputs:
-      metadata: ${{ steps.metadata.outputs.metadata }}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
-      - name: Run repomatic metadata
-        id: metadata
-        run: >
-          uvx --no-progress --from . repomatic metadata
-          --format github-json --output "$GITHUB_OUTPUT"
-          is_python_project
-
   migrate-to-renovate:
     name: 🚚 Migrate to Renovate
     runs-on: ubuntu-slim
@@ -149,38 +134,3 @@ jobs:
           # the python-version datasource causes Renovate to skip all PR
           # creation and dashboard updates for the repository.
           RENOVATE_HOST_RULES: '[{"hostType": "python-version", "abortOnError": false}]'
-
-  sync-uv-lock:
-    name: ⛓️ Sync uv.lock
-    needs:
-      - metadata
-    if: fromJSON(needs.metadata.outputs.metadata).is_python_project
-    runs-on: ubuntu-slim
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
-      - id: sync
-        name: Sync uv.lock
-        run: >
-          uvx --no-progress --from . repomatic sync-uv-lock
-          --no-table --release-notes
-          --output "$GITHUB_OUTPUT" --output-format github-actions
-      - id: pr-metadata
-        env:
-          REPOMATIC_DIFF_TABLE: ${{ steps.sync.outputs.diff_table }}
-        run: >
-          uvx --no-progress --from . repomatic pr-body --output-format github-actions
-          --template sync-uv-lock
-          --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
-        with:
-          assignees: ${{ github.actor }}
-          commit-message: ${{ steps.pr-metadata.outputs.commit_message }}
-          title: ${{ steps.pr-metadata.outputs.title }}
-          body: ${{ steps.pr-metadata.outputs.body }}
-          labels: "🔗 dependencies"
-          branch: sync-uv-lock
-          delete-branch: true
