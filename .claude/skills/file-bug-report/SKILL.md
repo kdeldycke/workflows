@@ -228,6 +228,14 @@ Before including any error output, tracebacks, or logs in the report, scrub them
 - **Collapse verbose logs**: if CI output is hundreds of lines, extract only the relevant section. Use `<details><summary>Full log</summary>` blocks for longer context the maintainer might need but should not have to scroll past.
 - **Preserve error messages verbatim**: sanitize paths and private data, but never paraphrase or reword the actual error string. Maintainers grep their codebase for exact error messages.
 
+### Code block formatting
+
+Clean up code blocks before including them in the report:
+
+- **Strip trailing whitespace**: remove trailing spaces and tabs from every line inside code blocks. They are invisible but inflate diffs and trigger linter warnings in some editors.
+- **Dedent**: remove any common leading whitespace shared by all non-empty lines in the block. The content should start at column 0 inside the fence. If the original source was indented (e.g., a method body or a nested YAML key), strip the shared prefix so the block stands on its own.
+- **Wrap long lines**: if a line exceeds ~120 characters and can be broken without disrupting syntax highlighting for the block's lexer, insert a line break at a natural boundary (after a comma, pipe, flag, or path separator). Do not wrap lines where a break would confuse the lexer or change semantics: single-line error messages, URLs, hash strings, and base64 blobs should stay intact.
+
 ### Code block language IDs
 
 Use precise Pygments lexer IDs on fenced code blocks so GitHub renders them with proper syntax highlighting. Never use bare ` ``` ` when a specific lexer applies. Common IDs for bug reports:
