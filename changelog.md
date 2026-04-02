@@ -22,6 +22,8 @@
 - Add `test-matrix.remove` configuration to drop axis values from both full and PR test matrices. Unlike `exclude`, removed values are gone from the axis before `solve()` runs, so they cannot be resurrected by include directives.
 - Prune no-op exclude directives from test matrices after `replace`/`remove` modify the axes. Stale excludes that reference values no longer in an axis are dropped with a warning instead of being silently serialized into the GitHub Actions matrix JSON.
 - Fix CLI crash when `test-matrix.variations` or `test-matrix.replace` contain nested keys. Click-extra's generic config flattening was converting them to invalid field names. The CLI now routes config loading through `load_repomatic_config` which preserves the `test-matrix` sub-section structure.
+- Preserve local `[[tool.bumpversion.files]]` entries during `sync-bumpversion`. Entries not present in the bundled template (e.g., repo-specific image URL pinning) are no longer wiped on sync.
+- Add `SyncMode` enum and `preserved_keys` field to `ToolConfigComponent`. Tool configs can now declare `sync_mode=ONGOING` to opt into repeated syncing that preserves local additions, replacing the hardcoded bumpversion special case.
 
 ## [`6.9.0` (2026-03-31)](https://github.com/kdeldycke/repomatic/compare/v6.8.0...v6.9.0)
 

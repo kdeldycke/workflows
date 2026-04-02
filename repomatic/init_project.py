@@ -61,6 +61,7 @@ from .registry import (
     GeneratedComponent,
     InitDefault,
     RepoScope,
+    SyncMode,
     TemplateComponent,
     ToolConfigComponent,
     WorkflowComponent,
@@ -253,26 +254,30 @@ def _to_pyproject_format(template: str, tool_section: str) -> str:
     return "\n".join(result)
 
 
-def _find_bumpversion_section_range(content: str) -> tuple[int, int] | None:
-    """Find the character range of the entire ``[tool.bumpversion]`` section.
+def _find_tool_section_range(
+    content: str,
+    tool_section: str,
+) -> tuple[int, int] | None:
+    """Find the character range of an entire ``[tool.X]`` section.
 
-    Locates the section header and all its subsections
-    (``[[tool.bumpversion.files]]``, ``[tool.bumpversion.parts.*]``), returning
-    the start and end indices.
+    Locates the section header and all its subsections (both
+    ``[tool.X.sub]`` and ``[[tool.X.sub]]``), returning the start and
+    end character indices.
 
     :param content: The pyproject.toml content.
+    :param tool_section: The section name (e.g., ``"tool.bumpversion"``).
     :return: Tuple of (start, end) character indices, or ``None`` if not found.
     """
-    header_match = re.search(r"^\[tool\.bumpversion\]\s*$", content, re.MULTILINE)
+    escaped = re.escape(tool_section)
+    header_match = re.search(rf"^\[{escaped}\]\s*$", content, re.MULTILINE)
     if not header_match:
         return None
 
     start = header_match.start()
 
-    # Find the next section header that is not part of bumpversion.
-    # Skips both [tool.bumpversion.X] and [[tool.bumpversion.X]] headers.
+    # Find the next section header that is not a subsection of this tool.
     next_section = re.search(
-        r"^\[{1,2}(?!tool\.bumpversion[\].])[a-z]",
+        rf"^\[{{1,2}}(?!{escaped}[\].])[ a-z]",
         content[header_match.end() :],
         re.MULTILINE,
     )
@@ -284,55 +289,131 @@ def _find_bumpversion_section_range(content: str) -> tuple[int, int] | None:
     return start, end
 
 
-def _update_bumpversion_config(
+def _local_array_entries(
+    existing: list[dict],
+    template: list[dict],
+) -> list[dict]:
+    """Identify array-of-tables entries not present in the template.
+
+    Compares entries by full dict equality. Entries from the existing config
+    that do not match any template entry are local additions that should be
+    preserved across ongoing syncs.
+    """
+    return [entry for entry in existing if entry not in template]
+
+
+def _toml_string(value: str) -> str:
+    """Format a Python string as a TOML string literal.
+
+    Prefers double quotes. Falls back to single quotes when the value contains
+    double quotes but no single quotes. Escapes when both are present.
+    """
+    if '"' not in value:
+        return f'"{value}"'
+    if "'" not in value:
+        return f"'{value}'"
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _serialize_array_entries(
+    entries: list[dict],
+    section_header: str,
+) -> str:
+    """Serialize array-of-tables entries to TOML text.
+
+    :param entries: List of dicts to serialize.
+    :param section_header: The full TOML header (e.g.,
+        ``"[[tool.bumpversion.files]]"``).
+    """
+    blocks = []
+    for entry in entries:
+        lines = [section_header]
+        for key, value in entry.items():
+            if isinstance(value, bool):
+                lines.append(f"{key} = {'true' if value else 'false'}")
+            elif isinstance(value, str):
+                lines.append(f"{key} = {_toml_string(value)}")
+            elif isinstance(value, int):
+                lines.append(f"{key} = {value}")
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)
+
+
+def _update_tool_config(
     content: str,
+    comp: ToolConfigComponent,
     pyproject_path: Path,
 ) -> str | None:
-    """Replace an existing ``[tool.bumpversion]`` section from the template.
+    """Replace an existing ``[tool.X]`` section from the bundled template.
 
-    Instead of applying incremental migrations, replaces the entire section
-    with the canonical template from ``bumpversion.toml``. Only
-    ``current_version`` is preserved from the existing config.
-
-    If the existing config does not use dev versioning (no ``parse`` key),
-    a ``.dev0`` suffix is appended to ``current_version`` and managed files
-    are updated accordingly.
+    Replaces the entire section with the canonical template, preserving
+    values for keys listed in ``comp.preserved_keys`` and any local
+    array-of-tables entries not present in the template.
 
     :param content: The current pyproject.toml content.
+    :param comp: The component whose config is being synced.
     :param pyproject_path: Path to pyproject.toml (for resolving managed files).
     :return: Modified pyproject.toml content, or ``None`` if already up to date.
     """
-    section_range = _find_bumpversion_section_range(content)
+    section_range = _find_tool_section_range(content, comp.tool_section)
     if not section_range:
         return None
 
-    # Parse existing config to extract current_version.
+    # Parse existing config.
     parsed = tomllib.loads(content)
-    bv_config = parsed.get("tool", {}).get("bumpversion", {})
-    current_version = bv_config.get("current_version", "0.0.0.dev0")
-
-    # Determine if dev versioning migration is needed.
-    had_dev_versioning = "parse" in bv_config
-    needs_dev_suffix = not had_dev_versioning and not re.search(
-        r"\.dev\d+$", current_version
-    )
-    new_version = f"{current_version}.dev0" if needs_dev_suffix else current_version
+    tool_name = comp.tool_section.removeprefix("tool.")
+    existing_config = parsed.get("tool", {}).get(tool_name, {})
 
     # Generate the replacement section from the template, stripping
     # file-level comments that only apply to the standalone format.
-    native_template = export_content("bumpversion.toml")
+    native_template = export_content(comp.source_file)
     native_lines = native_template.splitlines()
     first_key = next(
         i for i, line in enumerate(native_lines) if line and not line.startswith("#")
     )
     native_template = "\n".join(native_lines[first_key:])
-    template_section = _to_pyproject_format(native_template, "tool.bumpversion")
+    template_section = _to_pyproject_format(native_template, comp.tool_section)
 
-    # Replace the placeholder current_version with the project's version.
-    template_section = template_section.replace(
-        'current_version = "0.0.0.dev0"',
-        f'current_version = "{new_version}"',
-    )
+    # Patch preserved keys: replace template placeholders with existing values.
+    template_parsed = tomllib.loads(export_content(comp.source_file))
+    for key in comp.preserved_keys:
+        existing_value = existing_config.get(key)
+        template_value = template_parsed.get(key)
+        if existing_value is not None and template_value is not None:
+            template_section = template_section.replace(
+                f'{key} = "{template_value}"',
+                f'{key} = "{existing_value}"',
+            )
+
+    # Bumpversion dev-versioning migration: append .dev0 suffix to
+    # current_version if the existing config lacks a parse key.
+    # TODO: Remove once all downstream repos have been migrated.
+    needs_dev_suffix = False
+    if tool_name == "bumpversion":
+        had_dev_versioning = "parse" in existing_config
+        current_version = existing_config.get("current_version", "")
+        needs_dev_suffix = not had_dev_versioning and not re.search(
+            r"\.dev\d+$", current_version
+        )
+        if needs_dev_suffix:
+            new_version = f"{current_version}.dev0"
+            template_section = template_section.replace(
+                f'current_version = "{current_version}"',
+                f'current_version = "{new_version}"',
+            )
+
+    # Preserve local array-of-tables entries not present in the template.
+    for array_key in ("files",):
+        existing_entries = existing_config.get(array_key, [])
+        template_entries = template_parsed.get(array_key, [])
+        local_entries = _local_array_entries(existing_entries, template_entries)
+        if local_entries:
+            header = f"[[{comp.tool_section}.{array_key}]]"
+            template_section = (
+                template_section.rstrip()
+                + "\n\n"
+                + _serialize_array_entries(local_entries, header)
+            )
 
     # Splice the new section into the content.
     start, end = section_range
@@ -344,12 +425,13 @@ def _update_bumpversion_config(
         modified += "\n" + after
 
     if modified.strip() == content.strip():
-        logging.info("[tool.bumpversion] already up to date.")
+        logging.info(f"[{comp.tool_section}] already up to date.")
         return None
 
-    # If we just added dev versioning, update managed files.
+    # Bumpversion dev-versioning migration: update managed files.
+    # TODO: Remove once all downstream repos have been migrated.
     if needs_dev_suffix and current_version:
-        files_entries = bv_config.get("files", [])
+        files_entries = existing_config.get("files", [])
         modified = _update_managed_files(
             pyproject_path,
             files_entries,
@@ -358,7 +440,7 @@ def _update_bumpversion_config(
             modified,
         )
 
-    logging.info("Replaced [tool.bumpversion] from bundled template.")
+    logging.info(f"Replaced [{comp.tool_section}] from bundled template.")
     return modified
 
 
@@ -474,9 +556,8 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     # Check if the config section already exists.
     section_pattern = rf"^\[{re.escape(comp.tool_section)}\]"
     if re.search(section_pattern, content, re.MULTILINE):
-        # For bumpversion, try updating existing config with dev versioning.
-        if config_type == "bumpversion":
-            return _update_bumpversion_config(content, pyproject_path)
+        if comp.sync_mode == SyncMode.ONGOING:
+            return _update_tool_config(content, comp, pyproject_path)
         logging.info(f"[{comp.tool_section}] already exists in {pyproject_path.name}")
         return None
 

@@ -53,6 +53,17 @@ class InitDefault(Enum):
     """Only included when explicitly requested (e.g., tool configs)."""
 
 
+class SyncMode(Enum):
+    """How a ``ToolConfigComponent`` behaves when the section already exists."""
+
+    BOOTSTRAP = auto()
+    """Insert once, skip if section already exists (e.g., ruff, pytest)."""
+
+    ONGOING = auto()
+    """Replace template content on every sync, preserving local additions
+    (e.g., bumpversion)."""
+
+
 class RepoScope(Enum):
     """Which repository types a file entry applies to."""
 
@@ -173,6 +184,22 @@ class ToolConfigComponent(Component):
     insert_before: tuple[str, ...] = ()
     """Sections to insert before in ``pyproject.toml``
     (if ``insert_after`` not found)."""
+
+    sync_mode: SyncMode = SyncMode.BOOTSTRAP
+    """How this config behaves when the section already exists.
+
+    ``BOOTSTRAP``: insert once, skip if the section is present.
+    ``ONGOING``: replace template content on every sync while preserving
+    local additions (extra array-of-tables entries, etc.).
+    """
+
+    preserved_keys: tuple[str, ...] = ()
+    """Top-level keys whose existing values survive an ongoing sync.
+
+    Only meaningful when ``sync_mode`` is ``ONGOING``. During replacement,
+    these keys keep their value from the existing config rather than being
+    overwritten by the template placeholder.
+    """
 
     def __post_init__(self) -> None:
         """Validate required fields."""
@@ -439,6 +466,8 @@ COMPONENTS: tuple[Component, ...] = (
         tool_section="tool.bumpversion",
         insert_after=("tool.mdformat", "tool.nuitka", "tool.mypy"),
         insert_before=("tool.typos",),
+        sync_mode=SyncMode.ONGOING,
+        preserved_keys=("current_version",),
     ),
     ToolConfigComponent(
         name="typos",

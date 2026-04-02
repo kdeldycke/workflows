@@ -25,9 +25,11 @@ import pytest
 
 from repomatic.init_project import (
     EXPORTABLE_FILES,
+    _local_array_entries,
+    _serialize_array_entries,
     _strip_renovate_repo_settings,
     _to_pyproject_format,
-    _update_bumpversion_config,
+    _update_tool_config,
     default_version_pin,
     export_content,
     get_data_content,
@@ -43,6 +45,7 @@ from repomatic.registry import (
     SKILL_PHASES,
     BundledComponent,
     GeneratedComponent,
+    SyncMode,
     TemplateComponent,
     ToolConfigComponent,
     WorkflowComponent,
@@ -1070,7 +1073,7 @@ def test_skips_already_dev_version(tmp_path: Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(content, encoding="UTF-8")
 
-    result = _update_bumpversion_config(content, pyproject)
+    result = _update_tool_config(content, _BY_NAME["bumpversion"], pyproject)
 
     assert result is not None
     # Version should not be double-suffixed.
@@ -1107,6 +1110,117 @@ def test_bumpversion_update_valid_toml(tmp_path: Path) -> None:
     assert "serialize" in bv
     assert "parts" in bv
     assert "dev" in bv["parts"]
+
+
+def test_preserves_local_array_entries(tmp_path: Path) -> None:
+    """Verify local [[tool.bumpversion.files]] entries survive ongoing sync."""
+    content = (
+        '[project]\nname = "test"\nversion = "1.0.0.dev0"\n\n'
+        "[tool.bumpversion]\n"
+        'current_version = "1.0.0.dev0"\n'
+        "allow_dirty = true\n"
+        'parse = "(?P<major>\\\\d+)"\n'
+        "serialize = [\"{major}\"]\n\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./pyproject.toml"\n'
+        "search = 'version = \"{current_version}\"'\n"
+        "replace = 'version = \"{new_version}\"'\n\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./readme.md"\n'
+        "ignore_missing_version = true\n"
+        'search = "raw.githubusercontent.com/test/main/"\n'
+        'replace = "raw.githubusercontent.com/test/v{new_version}/"\n'
+    )
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    result = _update_tool_config(content, _BY_NAME["bumpversion"], pyproject)
+
+    assert result is not None
+    parsed = tomllib.loads(result)
+    files_entries = parsed["tool"]["bumpversion"]["files"]
+    # Local entry targeting readme.md must survive.
+    readme_entries = [e for e in files_entries if e.get("filename") == "./readme.md"]
+    assert len(readme_entries) == 1
+    assert readme_entries[0]["search"] == "raw.githubusercontent.com/test/main/"
+    assert readme_entries[0]["ignore_missing_version"] is True
+
+
+def test_ongoing_sync_idempotent_with_local_entries(tmp_path: Path) -> None:
+    """Verify ongoing sync with local entries is idempotent after first run."""
+    content = (
+        '[project]\nname = "test"\nversion = "1.0.0.dev0"\n\n'
+        "[tool.bumpversion]\n"
+        'current_version = "1.0.0.dev0"\n'
+        "allow_dirty = true\n"
+        'parse = "(?P<major>\\\\d+)"\n'
+        "serialize = [\"{major}\"]\n\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./readme.md"\n'
+        "ignore_missing_version = true\n"
+        'search = "example.com/main/"\n'
+        'replace = "example.com/v{new_version}/"\n'
+    )
+    bv_comp = _BY_NAME["bumpversion"]
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    # First run: updates template entries.
+    result1 = _update_tool_config(content, bv_comp, pyproject)
+    assert result1 is not None
+    pyproject.write_text(result1, encoding="UTF-8")
+
+    # Second run: should be a no-op.
+    result2 = _update_tool_config(result1, bv_comp, pyproject)
+    assert result2 is None
+
+
+def test_ongoing_sync_no_duplicate_template_entries(tmp_path: Path) -> None:
+    """Verify template entries are not duplicated when also present locally."""
+    content = PYPROJECT_WITH_BUMPVERSION
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    result = init_config("bumpversion", pyproject)
+
+    assert result is not None
+    parsed = tomllib.loads(result)
+    files_entries = parsed["tool"]["bumpversion"]["files"]
+    # Template entries for pyproject.toml should appear exactly twice (version + tag).
+    pyproject_entries = [e for e in files_entries if e.get("filename") == "./pyproject.toml"]
+    assert len(pyproject_entries) == 2
+
+
+def test_local_array_entries_detection() -> None:
+    """Verify _local_array_entries correctly filters template entries."""
+    template = [
+        {"filename": "./pyproject.toml", "search": "a", "replace": "b"},
+        {"filename": "./changelog.md", "search": "c", "replace": "d"},
+    ]
+    existing = [
+        {"filename": "./pyproject.toml", "search": "a", "replace": "b"},
+        {"filename": "./readme.md", "search": "x", "replace": "y"},
+    ]
+    local = _local_array_entries(existing, template)
+    assert len(local) == 1
+    assert local[0]["filename"] == "./readme.md"
+
+
+def test_serialize_array_entries_roundtrip() -> None:
+    """Verify serialized entries produce valid TOML that parses back."""
+    entries = [
+        {"filename": "./readme.md", "ignore_missing_version": True, "search": "a"},
+        {"filename": "./docs/tutorial.md", "search": 'has "quotes"'},
+    ]
+    text = _serialize_array_entries(entries, "[[tool.bumpversion.files]]")
+    # Wrap in [tool.bumpversion] to make it valid as a complete document.
+    doc = "[tool.bumpversion]\ncurrent_version = \"0\"\n\n" + text
+    parsed = tomllib.loads(doc)
+    files = parsed["tool"]["bumpversion"]["files"]
+    assert len(files) == 2
+    assert files[0]["filename"] == "./readme.md"
+    assert files[0]["ignore_missing_version"] is True
+    assert files[1]["search"] == 'has "quotes"'
 
 
 # --- Init exclusion tests ---
