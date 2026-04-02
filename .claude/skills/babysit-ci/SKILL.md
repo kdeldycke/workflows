@@ -17,6 +17,56 @@ $ claude --dangerously-skip-permissions --model sonnet /babysit-ci
 
 Because this loop runs autonomously without human review, commits must be attributed to Claude with a `Co-Authored-By` trailer. This is the one exception to the global no-AI-attribution rule.
 
+## Timeline
+
+```
+LOCAL (free)                              REMOTE (expensive)
+─────────────                             ──────────────────
+
+┌───────────────────────┐                 ┌──────────────────────────┐
+│  step 3: local tests  │                 │  step 3: CI matrix       │
+│  ┌─ pytest ─────────┐ │   parallel      │  [stable] Linux 3.10     │
+│  ├─ mypy ───────┐   │ │ ◄──────────►   │  [stable] Linux 3.13     │
+│  └─ ruff ──┐    │   │ │                 │  [stable] Windows 3.13   │
+│            │    │   │ │                 │  [unstable] Linux 3.15   │
+│            ▼    ▼   ▼ │                 │  [stable] macOS 3.13     │
+│    local results ready │                 └────────────┬─────────────┘
+└───────────┬────────────┘                              │
+            │                                           ▼
+            │ local                        ┌────────────────────────┐
+            │ fail?──yes──►                │  first stable failure? │
+            │ no                           └───────────┬────────────┘
+            │                                          │
+            └──────────────────┬───────────────────────┘
+                               ▼
+              ┌─────────────────────────────────────┐
+              │  step 4: CANCEL remaining CI runs   │
+              │  step 4: download ALL failed logs   │
+              └────────────────┬────────────────────┘
+                               ▼
+              ┌─────────────────────────────────────┐
+              │  step 5: FIX                        │
+              │  combine local + CI failures        │
+              │  write fix                          │
+              │  re-run pytest + mypy + ruff locally │
+              └────────────────┬────────────────────┘
+                               ▼
+              ┌─────────────────────────────────────┐
+              │  step 6: pre-push checks            │
+              │  check remote lint.yaml results     │
+              │  check format-python autofix PR     │
+              │  merge autofix PR if useful, rebase │
+              └────────────────┬────────────────────┘
+                               ▼
+              ┌─────────────────────────────────────┐
+              │  step 7: commit + push              │
+              └────────────────┬────────────────────┘
+                               │
+              ┌────────────────▼────────────────────┐
+              │  step 8: repeat (back to step 2)    │
+              └─────────────────────────────────────┘
+```
+
 ## Loop
 
 1. **Detect the repo** from the current working directory:
@@ -31,40 +81,65 @@ Because this loop runs autonomously without human review, commits must be attrib
    gh run list --workflow=tests.yaml --branch=main --limit=1
    ```
 
-3. **Wait for jobs to complete** (or for the first stable failure). Poll every 60 seconds:
+3. **Run local tests while waiting for CI.** Don't idle while polling. Start the full test suite and linters locally in the background immediately after identifying the run:
+
+   ```
+   uv run pytest --no-header -q &
+   uv run --group typing repomatic run mypy -- repomatic &
+   uv run --group lint ruff check repomatic &
+   ```
+
+   In parallel, poll CI every 60 seconds for the first stable failure (or success):
 
    ```
    gh run view <RUN_ID> --json status,conclusion,jobs \
      --jq '{status, conclusion, failed: [.jobs[] | select(.conclusion == "failure" and (.name | startswith("✅")))] | length}'
    ```
 
-4. **On stable failure**, download the failed job's log:
+   If local tests fail before CI reports anything, you already have the diagnosis: skip straight to step 5 without waiting.
+
+4. **On stable failure**, immediately cancel remaining runs to free runners:
 
    ```
-   gh run view <RUN_ID> --json jobs --jq '.jobs[] | select(.conclusion == "failure" and (.name | startswith("✅"))) | .databaseId' | head -1
-   gh api repos/<OWNER>/<REPO>/actions/jobs/<JOB_ID>/logs
+   gh run list --workflow=tests.yaml --status=queued --status=in_progress --json databaseId,displayTitle
    ```
 
-   Analyze the log, focusing on the `FAILED` and `AssertionError` lines in the pytest summary.
+   **Never cancel** a run whose `displayTitle` starts with `[changelog] Release`. This mirrors the `cancel-in-progress` condition in the `tests.yaml` concurrency group (`!startsWith(github.event.head_commit.message, '[changelog] Release')`), which protects release runs from being cancelled. Cancel everything else.
 
-5. **Fix the root cause** in the codebase (not the tests, unless the tests are genuinely wrong). Run the affected tests locally first, then the full suite to catch regressions before consuming CI resources:
+   Then download logs from **all** stable jobs that failed (logs are retained after cancellation):
 
    ```
-   uv run pytest <test_file>::<test_name> -x --no-header -q
+   gh run view <RUN_ID> --json jobs --jq '[.jobs[] | select(.conclusion == "failure" and (.name | startswith("✅")))] | .[].databaseId'
+   ```
+
+   Fetch each failed job's log (`gh api repos/<OWNER>/<REPO>/actions/jobs/<JOB_ID>/logs`). Different matrix entries often surface different issues (e.g., a Windows encoding error alongside a Linux assertion failure): fixing them all in one batch avoids burning another full CI round.
+
+   Analyze all collected logs, focusing on `FAILED` and `AssertionError` lines in the pytest summaries.
+
+5. **Fix the root cause** using the combined picture from CI logs and local results (step 3). Fix the codebase, not the tests, unless the tests are genuinely wrong. If both mypy and ruff have failures, address them together. Fixing them independently risks an oscillation loop (see [§ mypy/ruff fix oscillation](#mypy-ruff-fix-oscillation)).
+
+   After applying fixes, re-run the full local validation to confirm:
+
+   ```
    uv run pytest --no-header -q
+   uv run --group typing repomatic run mypy -- repomatic
+   uv run --group lint ruff check repomatic
    ```
 
-6. **Cancel all pending/in-progress runs** for `tests.yaml` across all branches to save CI resources:
+6. **Check lint and autofix status before pushing.** Gather the remote picture (these calls are fast, no waiting):
 
    ```
-   gh run list --workflow=tests.yaml --status=queued --status=in_progress --json databaseId --jq '.[].databaseId'
+   gh run list --workflow=lint.yaml --branch=main --limit=1
+   gh run list --workflow=autofix.yaml --branch=main --limit=1
+   gh pr list --head=format-python --state=open --json number,title,url
    ```
 
-   Cancel each before pushing.
+   - If the `lint.yaml` run shows mypy or ruff failures you haven't addressed locally, fix them now.
+   - If a `format-python` autofix PR exists, review its diff: it contains ruff's own autofixes for the same commit. If it resolves issues you're seeing, merge it first (`gh pr merge --squash`), pull, and rebase your fix before pushing.
 
 7. **Commit the fix** with a clear message describing what changed and why, then `git push`.
 
-8. **Repeat from step 2** until the run completes with all stable (✅) jobs passing.
+8. **Repeat from step 2** until the test run completes with all stable (✅) jobs passing and the lint run has no mypy/ruff failures.
 
 ### Early exit
 
@@ -79,27 +154,15 @@ The workflow uses `continue-on-error` for unstable jobs, so even if they fail, t
 
 ## Common failure patterns
 
-### Cross-platform help text wrapping
+### mypy/ruff fix oscillation
 
-CLI help text wraps at 80 visible columns. Default values that include OS-specific paths (config dirs, app dirs) span a variable number of lines depending on platform path length. Test fixture regex patterns must use `.*` and `(?:...)*` to handle this variability.
+mypy and ruff can enter a fix loop where each tool's fix breaks the other. Common triggers:
 
-Two specific sub-patterns to watch for:
+- **Unused import**: ruff removes an import (`F401`), mypy then complains about a missing name. Adding the import back triggers ruff again.
+- **Type annotation style**: mypy requires an explicit annotation, ruff considers it redundant or wants a different form.
+- **`noqa` vs `type: ignore`**: adding `# noqa` silences ruff but mypy still fails; adding `# type: ignore` silences mypy but ruff flags the unused directive.
 
-1. **`[default:` line**: on short-path platforms (Linux), content may start on the same line as `[default:`. Use `\[default:.*\n` (not `\[default:\n`) so `.*` absorbs the content start.
-
-2. **Closing `]` on its own line**: on Windows, wrapping may push `]` to a separate line with only ANSI reset codes before it. Use `.*\]` (not `.+\]`) so `.*` allows zero visible characters before the bracket.
-
-### `re.PatternError` in line-by-line matching
-
-When `re.fullmatch(regex, content)` fails and a fallback line-by-line matcher runs, multi-line regex groups like `(?:...\n)*` get split on `\n` into fragments with unmatched parentheses, triggering `re.PatternError`. If you see this error, the root cause is that the full regex doesn't match: fix the regex, not the error handling.
-
-### ANSI code differences in colored output
-
-Colored help output includes ANSI escape sequences. When matching colored output in tests, the regex must account for escape codes that don't contribute to visible width but alter the string content.
-
-### Windows encoding
-
-Windows CI runners redirect output to files using the system default encoding (cp1252). Workflows typically set `PYTHONIOENCODING=utf8` to work around Click's `UnicodeEncodeError` on non-ASCII output.
+When you detect this pattern (the same lines toggling between fixes across iterations), stop and apply a combined resolution: typically a `# type: ignore[code]` with a matching `# noqa: XXXX` on the same line, or a restructuring that satisfies both tools at once. Do not keep iterating.
 
 ### Platform-specific test skips
 
