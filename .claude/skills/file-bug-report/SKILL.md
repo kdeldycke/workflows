@@ -24,35 +24,35 @@ GitHub recognizes contribution guidelines in the repo root, `.github/`, and `doc
 
 **Step 1: use the GitHub community endpoint** (returns the canonical contributing file regardless of location or casing):
 
-```
-gh api repos/<owner/repo>/community/profile --jq '.files.contributing'
+```shell-session
+$ gh api repos/<owner/repo>/community/profile --jq '.files.contributing'
 ```
 
 If this returns a file, fetch its `html_url` or `url` and read it.
 
 **Step 2: list the directories** where contribution guidelines commonly live. For each directory, list its contents and scan for any file whose name matches `contributing` (case-insensitive) with any extension:
 
-```
-gh api repos/<owner/repo>/contents/ --jq '.[].name'
-gh api repos/<owner/repo>/contents/.github --jq '.[].name'
-gh api repos/<owner/repo>/contents/docs --jq '.[].name'
-gh api repos/<owner/repo>/contents/doc --jq '.[].name'
+```shell-session
+$ gh api repos/<owner/repo>/contents/ --jq '.[].name'
+$ gh api repos/<owner/repo>/contents/.github --jq '.[].name'
+$ gh api repos/<owner/repo>/contents/docs --jq '.[].name'
+$ gh api repos/<owner/repo>/contents/doc --jq '.[].name'
 ```
 
 Look for files matching these patterns (case-insensitive): `contributing.md`, `CONTRIBUTING.md`, `Contributing.md`, `CONTRIBUTING.markdown`, `CONTRIBUTING.rst`, `CONTRIBUTING.txt`, `CONTRIBUTING`, `contributing.adoc`, `CONTRIBUTING.adoc`, or any other variation. Owners may use `.rst`, `.txt`, `.adoc`, `.markdown`, no extension, or non-standard casing. Fetch and read every match.
 
 **Step 3: check the readme** for inline contribution guidance or links to external docs:
 
-```
-gh api repos/<owner/repo>/readme --jq '.download_url'
+```shell-session
+$ gh api repos/<owner/repo>/readme --jq '.download_url'
 ```
 
 Fetch the readme and scan for headings like "Contributing", "How to contribute", "Bug reports", "Filing issues", "Reporting bugs", "Development", or links to external contribution guides (wikis, documentation sites, readthedocs pages). If a link points to an external URL, fetch and read it.
 
 **Step 4: check the wiki.** Some projects put contribution guidelines in their GitHub wiki:
 
-```
-gh api repos/<owner/repo> --jq '.has_wiki'
+```shell-session
+$ gh api repos/<owner/repo> --jq '.has_wiki'
 ```
 
 If the wiki is enabled, note this for the user: the wiki may contain additional contribution norms that cannot be fetched via the API. Suggest the user check `https://github.com/<owner/repo>/wiki` for pages like "Contributing", "How to file a bug", etc.
@@ -61,18 +61,18 @@ If the wiki is enabled, note this for the user: the wiki may contain additional 
 
 Check for a code of conduct (it sometimes contains issue-filing etiquette):
 
-```
-gh api repos/<owner/repo>/contents/CODE_OF_CONDUCT.md --jq '.download_url'
-gh api repos/<owner/repo>/contents/.github/CODE_OF_CONDUCT.md --jq '.download_url'
-gh api repos/<owner/repo>/community/code_of_conduct --jq '.body'
+```shell-session
+$ gh api repos/<owner/repo>/contents/CODE_OF_CONDUCT.md --jq '.download_url'
+$ gh api repos/<owner/repo>/contents/.github/CODE_OF_CONDUCT.md --jq '.download_url'
+$ gh api repos/<owner/repo>/community/code_of_conduct --jq '.body'
 ```
 
 #### 1c. Issue templates and forms
 
 List all issue templates. Repos may use classic markdown templates, YAML issue forms, or both:
 
-```
-gh api repos/<owner/repo>/contents/.github/ISSUE_TEMPLATE --jq '.[].name'
+```shell-session
+$ gh api repos/<owner/repo>/contents/.github/ISSUE_TEMPLATE --jq '.[].name'
 ```
 
 Fetch **every** template and form found. Identify which one is the correct match for a bug report by examining filenames and content. Common patterns:
@@ -90,8 +90,8 @@ Fetch **every** template and form found. Identify which one is the correct match
 
 Also check the template chooser config for redirection:
 
-```
-gh api repos/<owner/repo>/contents/.github/ISSUE_TEMPLATE/config.yml --jq '.content' | base64 -d
+```shell-session
+$ gh api repos/<owner/repo>/contents/.github/ISSUE_TEMPLATE/config.yml --jq '.content' | base64 -d
 ```
 
 This file may disable blank issues (`blank_issues_enabled: false`) or add links that redirect users to discussions, forums, or other channels. Respect these preferences.
@@ -100,9 +100,9 @@ This file may disable blank issues (`blank_issues_enabled: false`) or add links 
 
 If the bug has security implications, check for a security policy first:
 
-```
-gh api repos/<owner/repo>/contents/SECURITY.md --jq '.download_url'
-gh api repos/<owner/repo>/contents/.github/SECURITY.md --jq '.download_url'
+```shell-session
+$ gh api repos/<owner/repo>/contents/SECURITY.md --jq '.download_url'
+$ gh api repos/<owner/repo>/contents/.github/SECURITY.md --jq '.download_url'
 ```
 
 If a security policy exists and the bug is a vulnerability, warn the user that it should be reported through the security channel (often a private advisory or email), not a public issue. Stop and report this to the user.
@@ -111,8 +111,8 @@ If a security policy exists and the bug is a vulnerability, warn the user that i
 
 Some maintainers require opening a discussion before filing an issue. Check for signals:
 
-```
-gh api repos/<owner/repo> --jq '.has_discussions'
+```shell-session
+$ gh api repos/<owner/repo> --jq '.has_discussions'
 ```
 
 If discussions are enabled, search for patterns in the contribution guidelines that say things like "open a discussion first", "please ask in discussions before filing", "use discussions for questions and bug reports". Also check if the template chooser config redirects to discussions.
@@ -132,9 +132,9 @@ While reading contribution guidelines, note any rules about:
 
 Check whether the bug is already reported:
 
-```
-gh search issues --repo <owner/repo> "<keywords>" --json title,url,state
-gh issue list --repo <owner/repo> --state all --json title,url,state
+```shell-session
+$ gh search issues --repo <owner/repo> "<keywords>" --json title,url,state
+$ gh issue list --repo <owner/repo> --state all --json title,url,state
 ```
 
 Search with multiple keyword variations (error messages, function names, symptoms). Check both open and closed issues: the bug may have been reported and closed as "won't fix", or fixed in a version the user hasn't upgraded to.

@@ -45,12 +45,12 @@ Evaluate the submission against each criterion below. For each, state PASS, FAIL
 
 - Search existing list entries (`readme.md` and all `readme.*.md`) for the proposed URL or domain.
 - Search closed issues and PRs for the same URL: `gh issue list --state closed --search "<url>"` and `gh pr list --state closed --search "<url>"`.
-- **Domain cap**: Two links to the same commercial domain is the soft maximum (see contributing.md FAQ "Why my link was rejected?"). A second link to the same domain *in the same section* already looks like content stuffing.
+- **Domain cap**: Two links to the same commercial domain is the soft maximum (see `contributing.md` FAQ "Why my link was rejected?"). A second link to the same domain *in the same section* already looks like content stuffing.
 - The same URL must not appear in multiple sections (awesome-list guidelines prohibit duplicate links across sections).
 
 #### 3. AI slop detection
 
-This is not covered by contributing.md. Look for these signals (any two together warrant the `AI slop` label):
+This is not covered by `contributing.md`. Look for these signals (any two together warrant the `AI slop` label):
 
 - The PR body or issue text reads as LLM output (generic phrasing, no specific knowledge of the list's content, template-like structure beyond the actual template).
 - The PR explicitly discloses AI generation (e.g., "Generated with Claude Code", "Created by Copilot").
@@ -76,11 +76,11 @@ This is not covered by contributing.md. Look for these signals (any two together
 - Cross-reference with the contributor's GitHub profile, the resource's domain, and commit history.
 - Self-promotion is allowed but must be disclosed. Undisclosed affiliation is a trust signal.
 - Author submissions get more scrutiny on the "marketing vs. genuine content" axis but are not automatically penalized. Many accepted PRs across all four lists are author self-submissions.
-- For commercial content, apply contributing.md FAQ "Why my commercial project is not in the list?" — prefer open-source repository links over commercial landing pages.
+- For commercial content, apply `contributing.md` FAQ "Why my commercial project is not in the list?": prefer open-source repository links over commercial landing pages.
 
 #### 7. Formatting and editorial compliance
 
-Check the diff (for PRs) against contributing.md §§ Formatting and Editorial line. Flag deviations but do not restate the rules here — read the guide.
+Check the diff (for PRs) against `contributing.md` §§ Formatting and Editorial line. Flag deviations but do not restate the rules here: read the guide.
 
 #### 8. Resource quality
 
@@ -102,7 +102,7 @@ After running all checks, provide one of:
 When drafting a rejection or request-for-changes comment:
 
 - Be specific about which criteria were not met.
-- Reference contributing.md sections where applicable.
+- Reference `contributing.md` sections where applicable.
 - Stay polite and constructive. Contributors may improve and resubmit (e.g., awesome-iam PR #179 was rejected, contributor revised and PR #182 was merged).
 - For AI slop: keep it brief. State the specific tells (e.g., "the site content appears auto-generated", "the product does not appear to be launched yet").
 - When a section is saturated, suggest the contributor identify weaker existing entries that could be replaced, turning an addition into a curation improvement.
@@ -112,7 +112,7 @@ When drafting a rejection or request-for-changes comment:
 For issues reporting broken links (typically automated by the lychee link checker):
 
 - **403 from Medium/Substack**: Bot-blocking responses, not genuine dead links. Ignore unless the content is confirmed gone.
-- **404 confirmed dead**: Replace with archive.org/archive.ph/sci-hub.st per contributing.md § URL. Replacing a broken URL is maintenance; removing the entry is a curation decision.
+- **404 confirmed dead**: Replace with archive.org/archive.ph/sci-hub.st per `contributing.md` § URL. Replacing a broken URL is maintenance; removing the entry is a curation decision.
 - **Archived GitHub repos**: Check for forks or reboots. If none exist and the section has other entries covering the same ground, the entry can be removed. Leave the door open for re-inclusion if the project revives.
 
 ### Label recommendations
