@@ -337,6 +337,7 @@ from .git_ops import (
     SHORT_SHA_LENGTH,
     get_latest_tag_version,
     get_release_version_from_commits,
+    get_repo_slug_from_remote,
 )
 from .github.actions import NULL_SHA, WorkflowEvent, generate_delimiter
 from .github.gh import run_gh_command
@@ -958,8 +959,8 @@ class Metadata:
     def repo_slug(self) -> str | None:
         """Returns the ``owner/name`` slug for the current repository.
 
-        Reads ``GITHUB_REPOSITORY`` in CI, falls back to ``gh repo view``
-        locally.
+        Resolution order: ``GITHUB_REPOSITORY`` env var (CI), ``gh repo view``
+        (authenticated local), git remote URL parsing (offline fallback).
         """
         slug = os.environ.get("GITHUB_REPOSITORY") or None
         if not slug:
@@ -979,6 +980,10 @@ class Metadata:
                 )
             except RuntimeError:
                 logging.debug("Failed to detect repository slug via gh CLI.")
+        if not slug:
+            slug = get_repo_slug_from_remote()
+            if slug:
+                logging.debug("Detected repository slug from git remote: %s", slug)
         return slug
 
     @cached_property

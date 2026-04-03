@@ -50,6 +50,15 @@ SHORT_SHA_LENGTH = 7
     depends on the size of the repository.
 """
 
+GITHUB_REMOTE_PATTERN = re.compile(
+    r"github\.com[:/](?P<slug>[^/]+/[^/]+?)(?:\.git)?$"
+)
+"""Extracts an ``owner/repo`` slug from a GitHub remote URL.
+
+Handles both HTTPS (``https://github.com/owner/repo.git``) and SSH
+(``git@github.com:owner/repo.git``) formats.
+"""
+
 RELEASE_COMMIT_PATTERN = re.compile(
     r"^\[changelog\] Release v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$"
 )
@@ -68,6 +77,27 @@ GitHub release is created from a squash merge. The ``detect-squash-merge``
 job in ``release.yaml`` detects this and opens an issue to notify the
 maintainer.
 """
+
+
+def get_repo_slug_from_remote(remote: str = "origin") -> str | None:
+    """Extract the ``owner/repo`` slug from a git remote URL.
+
+    Parses both HTTPS and SSH GitHub remote formats. Returns ``None`` if the
+    remote is not set, not a GitHub URL, or git is unavailable.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "remote", "get-url", remote],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        return None
+    if result.returncode:
+        return None
+    match = GITHUB_REMOTE_PATTERN.search(result.stdout.strip())
+    return match.group("slug") if match else None
 
 
 def get_latest_tag_version() -> Version | None:
