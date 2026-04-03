@@ -29,10 +29,28 @@ from repomatic.tool_runner import TOOL_REGISTRY
 REPO_ROOT = Path(__file__).parent.parent
 README = REPO_ROOT / "readme.md"
 
+# The --config default path includes a platform-specific directory
+# (~/Library/Application Support/ on macOS, ~/.config/ on Linux, etc.).
+# Different path lengths also cause different line-wrapping in the help output.
+# Normalize the entire --config block so the README (written on macOS) matches CI.
+_CONFIG_BLOCK_RE = re.compile(
+    r"(--config CONFIG_PATH\s+Location of the configuration file\. Supports local\n)"
+    r"\s+path with glob patterns or remote URL\.\s+\[default:\n"
+    r"\s+~[^\]]+\]",
+)
+_CONFIG_BLOCK_PLACEHOLDER = (
+    r"\1                          [default: <platform-specific>]"
+)
+
 
 def _readme_text() -> str:
     """Read readme.md once and cache for the module."""
     return README.read_text(encoding="UTF-8")
+
+
+def _normalize_config_path(text: str) -> str:
+    """Replace the platform-specific --config default block with a placeholder."""
+    return _CONFIG_BLOCK_RE.sub(_CONFIG_BLOCK_PLACEHOLDER, text)
 
 
 def test_readme_cli_help_matches() -> None:
@@ -41,7 +59,9 @@ def test_readme_cli_help_matches() -> None:
     result = runner.invoke(repomatic, ["--no-color", "--help"])
     assert result.exit_code == 0
     assert result.output, "No output from `repomatic --help`"
-    assert result.output in _readme_text(), (
+    assert _normalize_config_path(result.output) in _normalize_config_path(
+        _readme_text()
+    ), (
         "CLI help output in readme.md is out of sync. "
         "Re-run `repomatic --no-color --help` and paste the output."
     )
