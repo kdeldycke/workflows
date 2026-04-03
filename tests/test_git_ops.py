@@ -236,7 +236,7 @@ def test_is_version_bump_allowed_returns_bool():
 def test_is_version_bump_allowed_invalid_part():
     """Test that is_version_bump_allowed raises for invalid parts."""
     with pytest.raises(ValueError, match="Invalid version part"):
-        is_version_bump_allowed("patch")
+        is_version_bump_allowed("patch")  # type: ignore[arg-type]
 
 
 def test_is_version_bump_allowed_current_repo():

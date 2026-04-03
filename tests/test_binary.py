@@ -125,7 +125,7 @@ def test_missing_field(tmp_path):
     binary.touch()
 
     # Return empty metadata.
-    mock_output = {}
+    mock_output: dict[str, str] = {}
     with (
         patch("repomatic.binary.run_exiftool", return_value=mock_output),
         pytest.raises(AssertionError, match="Binary architecture mismatch"),

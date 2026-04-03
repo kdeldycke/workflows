@@ -26,7 +26,7 @@ from repomatic.cli import repomatic
 
 
 def _collect_commands(
-    group: click.BaseCommand,
+    group: click.Group | click.Command,
     prefix: tuple[str, ...] = (),
 ) -> list[tuple[str, ...]]:
     """Recursively collect all command paths from a Click group."""

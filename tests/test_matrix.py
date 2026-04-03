@@ -54,13 +54,13 @@ def test_matrix():
     assert repr(matrix) == "<Matrix: FrozenDict({'foo': ('a', 'b', 'c', 'd')})>"
 
     with pytest.raises(ValueError):
-        matrix.add_variation("variation_1", None)
+        matrix.add_variation("variation_1", None)  # type: ignore[arg-type]
 
     with pytest.raises(ValueError):
         matrix.add_variation("variation_1", [])
 
     with pytest.raises(ValueError):
-        matrix.add_variation("variation_1", [None])
+        matrix.add_variation("variation_1", [None])  # type: ignore[list-item]
 
     with pytest.raises(ValueError):
         matrix.add_variation("include", ["a", "b", "c"])
@@ -140,9 +140,15 @@ def test_prune(caplog):
     matrix.prune()
 
     # Only the effective exclude and the non-axis-key exclude remain.
-    assert len(matrix.exclude) == 2
-    assert {"os": "macos-26", "version": "3.10"} in matrix.exclude
-    assert {"state": "unstable"} in matrix.exclude
+    # Reassign with an explicit annotation to widen the type back to a
+    # variable-length tuple.  The ``assert len(...) == 4`` above narrows
+    # ``matrix.exclude`` to a fixed-length 4-tuple; mypy cannot track the
+    # mutation performed by ``prune()``, so without this it considers the
+    # ``len(...) == 2`` assert unreachable.
+    exclude: tuple[dict[str, str], ...] = matrix.exclude
+    assert len(exclude) == 2
+    assert {"os": "macos-26", "version": "3.10"} in exclude
+    assert {"state": "unstable"} in exclude
 
     assert "Dropping no-op exclude" in caplog.text
     assert "'windows-11-arm'" in caplog.text

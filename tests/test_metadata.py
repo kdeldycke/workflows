@@ -383,7 +383,7 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         assert type(metadata) is type(expected)
 
 
-expected = {
+expected: dict[str, Any] = {
     "is_bot": AnyBool(),
     # skip_binary_build depends on the event type and changed files. In CI push events
     # where only non-binary-affecting files changed, it is True.
@@ -917,7 +917,7 @@ expected = {
 
 
 def test_metadata_github_json_format():
-    raw = Metadata().dump(Dialect.github_json)
+    raw = Metadata().dump(Dialect.github_json)  # type: ignore[arg-type]
     assert isinstance(raw, str)
 
     # Output must be a single line starting with "metadata=".
@@ -956,7 +956,8 @@ def test_metadata_github_json_format():
 
 def test_metadata_github_json_format_key_filtering():
     raw = Metadata().dump(
-        Dialect.github_json, keys=("is_python_project", "current_version")
+        Dialect.github_json,  # type: ignore[arg-type]
+        keys=("is_python_project", "current_version"),
     )
     json_str = raw.strip().removeprefix("metadata=")
     metadata = json.loads(json_str)
@@ -965,7 +966,7 @@ def test_metadata_github_json_format_key_filtering():
 
 
 def test_metadata_json_format():
-    metadata = Metadata().dump(Dialect.json)
+    metadata = Metadata().dump(Dialect.json)  # type: ignore[arg-type]
     assert isinstance(metadata, str)
 
     iter_checks(json.loads(metadata), expected, metadata)
@@ -1703,7 +1704,7 @@ def test_config_reference():
     for f in dc_fields(Config):
         default = f.default_factory() if f.default_factory is not MISSING else f.default
         if hasattr(default, "__dataclass_fields__"):
-            expected_rows += len(dc_fields(type(default)))
+            expected_rows += len(dc_fields(type(default)))  # type: ignore[arg-type]
         else:
             expected_rows += 1
     assert len(rows) == expected_rows

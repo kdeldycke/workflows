@@ -136,6 +136,7 @@ def test_update_registry_checksums_replaces_stale_hash(tmp_path):
             binary_spec = spec
             break
     assert binary_spec is not None
+    assert binary_spec.binary is not None
 
     old_hash = next(iter(binary_spec.binary.checksums.values()))
 

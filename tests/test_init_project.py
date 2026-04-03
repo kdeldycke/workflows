@@ -1075,7 +1075,9 @@ def test_skips_already_dev_version(tmp_path: Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(content, encoding="UTF-8")
 
-    result = _update_tool_config(content, _BY_NAME["bumpversion"], pyproject)
+    bv = _BY_NAME["bumpversion"]
+    assert isinstance(bv, ToolConfigComponent)
+    result = _update_tool_config(content, bv, pyproject)
 
     assert result is not None
     # Version should not be double-suffixed.
@@ -1136,7 +1138,9 @@ def test_preserves_local_array_entries(tmp_path: Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(content, encoding="UTF-8")
 
-    result = _update_tool_config(content, _BY_NAME["bumpversion"], pyproject)
+    bv = _BY_NAME["bumpversion"]
+    assert isinstance(bv, ToolConfigComponent)
+    result = _update_tool_config(content, bv, pyproject)
 
     assert result is not None
     parsed = tomllib.loads(result)
@@ -1164,6 +1168,7 @@ def test_ongoing_sync_idempotent_with_local_entries(tmp_path: Path) -> None:
         'replace = "example.com/v{new_version}/"\n'
     )
     bv_comp = _BY_NAME["bumpversion"]
+    assert isinstance(bv_comp, ToolConfigComponent)
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(content, encoding="UTF-8")
 
@@ -1212,7 +1217,7 @@ def test_local_array_entries_detection() -> None:
 
 def test_serialize_array_entries_roundtrip() -> None:
     """Verify serialized entries produce valid TOML that parses back."""
-    entries = [
+    entries: list[dict] = [
         {"filename": "./readme.md", "ignore_missing_version": True, "search": "a"},
         {"filename": "./docs/tutorial.md", "search": 'has "quotes"'},
     ]
