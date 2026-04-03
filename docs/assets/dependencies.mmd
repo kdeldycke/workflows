@@ -59,7 +59,7 @@ flowchart LR
 
     subgraph grp_test [--group test]
         pytest{{"`pytest >=9`"}}
-        pytest_cov{{"`pytest-cov >=6`"}}
+        pytest_cov{{"`pytest-cov >=4`"}}
         pytest_xdist{{"`pytest-xdist >=3.7`"}}
         coverage{{"`coverage >=7.11`"}}
         pluggy(["`pluggy`"])
@@ -76,11 +76,11 @@ flowchart LR
     end
 
     repomatic ==>|" >=1.2.6 "| bump_my_version
-    repomatic ==>|" >=7.9.0 "| click_extra
+    repomatic ==>|" >=7.10.0 "| click_extra
     repomatic ==>|" >=2 "| pydriller
     repomatic ==>|" >=2 "| tomli
     repomatic ==>|" >=10 "| wcmatch
-    repomatic ==>|" >=20 "| packaging
+    repomatic ==>|" >=17 "| packaging
     repomatic ==>|" >=25 "| boltons
     repomatic ==>|" >=8 "| extra_platforms
     repomatic ==>|" >=0.3.1 "| py_walk
