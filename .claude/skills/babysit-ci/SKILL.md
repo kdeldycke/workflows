@@ -27,22 +27,22 @@ Three feedback channels run in parallel after every push, each at a different la
  0:00   push
         ├─ pytest ─┐              ├─ lint.yaml ─────────────────────┐
         ├─ mypy ───┤              │   (mypy on all files, YAML,     │
-        └─ ruff ───┘              │    secrets, zizmor)              │
-                                  │                                  │
+        └─ ruff ───┘              │    secrets, zizmor)             │
+                                  │                                 │
                                   └─ tests.yaml ─────────────────┐  │
                                       (17 stable + 6 unstable)   │  │
-                                                                  │  │
- 0:30   GATE 1: local done                                        │  │
-        fail? ─── yes ──► step 5 (fix now, skip CI)               │  │
-                   no ──► poll CI                                  │  │
-                                                                  │  │
- 3:30                     GATE 2: lint.yaml done ◄────────────────│──┘
-                          mypy fail? ─── yes ──► step 4-5         │
-                                         no ──► continue          │
-                                                                  │
- 5:00                     GATE 3: tests.yaml fast jobs done ◄─────┘
+                                                                 │  │
+ 0:30   GATE 1: local done                                       │  │
+        fail? ─── yes ──► step 5 (fix now, skip CI)              │  │
+                   no ──► poll CI                                │  │
+                                                                 │  │
+ 3:30                     GATE 2: lint.yaml done ◄───────────────│──┘
+                          mypy fail? ─── yes ──► step 4-5        │
+                                          no ──► continue        │
+                                                                 │
+ 5:00                     GATE 3: tests.yaml fast jobs done ◄────┘
                           stable fail? ── yes ──► step 4-5
-                                          no ──► early exit if only macOS left
+                                           no ──► early exit if only macOS left
 
  8:00                     tests.yaml macOS done (often skippable)
 
