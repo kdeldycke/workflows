@@ -32,14 +32,10 @@ README = REPO_ROOT / "readme.md"
 # The --config default path includes a platform-specific directory
 # (~/Library/Application Support/ on macOS, ~/.config/ on Linux, etc.).
 # Different path lengths also cause different line-wrapping in the help output.
-# Normalize the entire --config block so the README (written on macOS) matches CI.
-_CONFIG_BLOCK_RE = re.compile(
-    r"(--config CONFIG_PATH\s+Location of the configuration file\. Supports local\n)"
-    r"\s+path with glob patterns or remote URL\.\s+\[default:\n"
-    r"\s+~[^\]]+\]",
-)
-_CONFIG_BLOCK_PLACEHOLDER = (
-    r"\1                          [default: <platform-specific>]"
+# Strip the entire --config block (from "--config" to "--no-config") so the
+# README (written on macOS) matches CI (Linux/Windows).
+_CONFIG_OPTION_RE = re.compile(
+    r"  --config CONFIG_PATH.+?(?=  --no-config)", re.DOTALL
 )
 
 
@@ -49,8 +45,8 @@ def _readme_text() -> str:
 
 
 def _normalize_config_path(text: str) -> str:
-    """Replace the platform-specific --config default block with a placeholder."""
-    return _CONFIG_BLOCK_RE.sub(_CONFIG_BLOCK_PLACEHOLDER, text)
+    """Strip the platform-specific --config option block."""
+    return _CONFIG_OPTION_RE.sub("", text)
 
 
 def test_readme_cli_help_matches() -> None:
