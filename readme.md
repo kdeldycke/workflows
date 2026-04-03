@@ -319,6 +319,7 @@ GitHub Actions has several design limitations that the workflows work around:
 | [No conditional step groups](https://github.com/orgs/community/discussions/43467)                                                                                           | ✅ Addressed       | [`metadata` job](#what-is-this-metadata-job) + [`repomatic metadata`](#repomatic-cli)                                                                             |
 | [Workflow inputs only accept strings](https://github.com/actions/runner/issues/1483)                                                                                        | ✅ Addressed       | String parsing in [`repomatic`](#repomatic-cli)                                                                                                                   |
 | [Matrix outputs not cumulative](https://github.com/actions/runner/issues/1835)                                                                                              | ✅ Addressed       | [`metadata`](#what-is-this-metadata-job) pre-computes matrices                                                                                                    |
+| [Static matrix can't express conditional dimensions](https://github.com/orgs/community/discussions/9044) or [array excludes](https://github.com/orgs/community/discussions/7835) | ✅ Addressed       | [Dynamic test matrices](#dynamic-test-matrices) via [`[tool.repomatic.test-matrix]`](#toolrepomatic-configuration)                                                |
 | [`cancel-in-progress` evaluated on new run, not old](https://github.com/orgs/community/discussions/69704)                                                                   | ✅ Addressed       | [SHA-based concurrency groups](#concurrency-and-cancellation) in [`release.yaml`](#githubworkflowsreleaseyaml-jobs)                                               |
 | [Cross-event concurrency cancellation](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs) | ✅ Addressed       | [`event_name` in `changelog.yaml` concurrency group](#concurrency-and-cancellation)                                                                               |
 | [PR close doesn't cancel runs](https://github.com/orgs/community/discussions/25432)                                                                                         | ✅ Addressed       | [`cancel-runs.yaml`](#githubworkflowscancel-runsyaml-jobs)                                                                                                        |
@@ -845,6 +846,20 @@ All Python dependencies and CLIs are installed via [`uv`](https://github.com/ast
 ### Smart job skipping
 
 Jobs are guarded by conditions to skip unnecessary steps: file type detection (only lint Python if `.py` files exist), branch filtering (`prepare-release` skipped for most linting), and bot detection.
+
+### Dynamic test matrices
+
+GitHub's `strategy.matrix` is a static Cartesian product: you list values per axis, optionally add or exclude fixed combinations, and that's it. There is no way to conditionally add dimensions, replace values in-place, or remove axis entries based on project configuration.
+
+`repomatic` generates matrices dynamically in the [`metadata` job](#what-is-this-metadata-job), applying a chain of transformations that downstream projects control via [`[tool.repomatic.test-matrix]`](#toolrepomatic-configuration):
+
+1. `replace`: swap one axis value for another (e.g., pin a specific Python patch version).
+2. `remove`: delete values from an axis entirely.
+3. `variations`: add new dimensions or extend existing ones (full CI only, keeping PR feedback fast).
+4. `exclude`: remove matching combinations, with partial matching across axes.
+5. `include`: add or augment combinations, processed after excludes so they take priority.
+
+Operations are applied in that order, so downstream projects can express matrix shapes that static YAML cannot: different dimensions for PR vs full CI, axis-level transformations without rewriting the entire matrix, and ordered operations that compose predictably.
 
 ### Maintainer-in-the-loop
 
