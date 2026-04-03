@@ -173,7 +173,7 @@ Based on step 1c, pick the correct template:
 
 ### 5. Write the report
 
-Write a markdown file to `<current-project>/<repo>-bug-report.md`.
+Write a markdown file to `<repo>-bug-report.md` at the repository root (next to `pyproject.toml`). Placing it at the top level makes it obvious and hard to miss during review.
 
 **If using a template from step 4**, replicate its structure exactly: same headings, same field order, same placeholder comments replaced with actual content. For YAML issue forms, use each field label as a markdown heading and fill in the content.
 
