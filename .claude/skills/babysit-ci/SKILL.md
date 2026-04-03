@@ -1,11 +1,11 @@
 ---
-description: Monitor CI test workflow, diagnose failures, fix code, commit, and loop until all stable jobs pass. Ignores unstable failures.
+description: Monitor CI tests and lint workflows, diagnose failures, fix code, commit, and loop until all stable jobs pass. Ignores unstable failures.
 user_invocable: true
 ---
 
-# Babysit CI: monitor and fix tests.yaml
+# Babysit CI: monitor and fix tests.yaml + lint.yaml
 
-Monitor the `tests.yaml` workflow in a fix-verify loop until all stable matrix variations pass.
+Monitor the `tests.yaml` and `lint.yaml` workflows in a fix-verify loop until all stable matrix variations pass and type-checking is clean.
 
 ## Invocation
 
@@ -19,53 +19,37 @@ Because this loop runs autonomously without human review, commits must be attrib
 
 ## Timeline
 
-```
-LOCAL (free)                              REMOTE (expensive)
-─────────────                             ──────────────────
+Three feedback channels run in parallel after every push, each at a different latency. Fix as soon as the **fastest** channel reports a failure: do not wait for slower channels.
 
-┌───────────────────────┐                 ┌──────────────────────────┐
-│  step 3: local tests  │                 │  step 3: CI matrix       │
-│  ┌─ pytest ─────────┐ │   parallel      │  [stable] Linux 3.10     │
-│  ├─ mypy ───────┐   │ │ ◄──────────►   │  [stable] Linux 3.13     │
-│  └─ ruff ──┐    │   │ │                 │  [stable] Windows 3.13   │
-│            │    │   │ │                 │  [unstable] Linux 3.15   │
-│            ▼    ▼   ▼ │                 │  [stable] macOS 3.13     │
-│    local results ready │                 └────────────┬─────────────┘
-└───────────┬────────────┘                              │
-            │                                           ▼
-            │ local                        ┌────────────────────────┐
-            │ fail?──yes──►                │  first stable failure? │
-            │ no                           └───────────┬────────────┘
-            │                                          │
-            └──────────────────┬───────────────────────┘
-                               ▼
-              ┌─────────────────────────────────────┐
-              │  step 4: CANCEL remaining CI runs   │
-              │  step 4: download ALL failed logs   │
-              └────────────────┬────────────────────┘
-                               ▼
-              ┌─────────────────────────────────────┐
-              │  step 5: FIX                        │
-              │  combine local + CI failures        │
-              │  write fix                          │
-              │  re-run pytest + mypy + ruff locally │
-              └────────────────┬────────────────────┘
-                               ▼
-              ┌─────────────────────────────────────┐
-              │  step 6: pre-push checks            │
-              │  check remote lint.yaml results     │
-              │  check format-python autofix PR     │
-              │  merge autofix PR if useful, rebase │
-              └────────────────┬────────────────────┘
-                               ▼
-              ┌─────────────────────────────────────┐
-              │  step 7: commit + push              │
-              └────────────────┬────────────────────┘
-                               │
-              ┌────────────────▼────────────────────┐
-              │  step 8: repeat (back to step 2)    │
-              └─────────────────────────────────────┘
 ```
+ time   LOCAL (free)              REMOTE (CI minutes)
+ ────   ────────────              ───────────────────
+ 0:00   push
+        ├─ pytest ─┐              ├─ lint.yaml ─────────────────────┐
+        ├─ mypy ───┤              │   (mypy on all files, YAML,     │
+        └─ ruff ───┘              │    secrets, zizmor)              │
+                                  │                                  │
+                                  └─ tests.yaml ─────────────────┐  │
+                                      (17 stable + 6 unstable)   │  │
+                                                                  │  │
+ 0:30   GATE 1: local done                                        │  │
+        fail? ─── yes ──► step 5 (fix now, skip CI)               │  │
+                   no ──► poll CI                                  │  │
+                                                                  │  │
+ 3:30                     GATE 2: lint.yaml done ◄────────────────│──┘
+                          mypy fail? ─── yes ──► step 4-5         │
+                                         no ──► continue          │
+                                                                  │
+ 5:00                     GATE 3: tests.yaml fast jobs done ◄─────┘
+                          stable fail? ── yes ──► step 4-5
+                                          no ──► early exit if only macOS left
+
+ 8:00                     tests.yaml macOS done (often skippable)
+
+                          all green? ──► DONE
+```
+
+After fixing (step 5-7), the loop restarts from the top: push, run all three channels again.
 
 ## Loop
 
@@ -78,30 +62,41 @@ LOCAL (free)                              REMOTE (expensive)
 
    Use the detected branch for all `--branch=` flags below. Most invocations target `main`, but the skill works on any branch.
 
-2. **Get the latest run** for the current branch:
+2. **Get the latest runs** for the current branch:
 
    ```
    gh run list --workflow=tests.yaml --branch=<BRANCH> --limit=1
+   gh run list --workflow=lint.yaml --branch=<BRANCH> --limit=1
    ```
+
+   Track both run IDs. The `tests.yaml` run exercises the full test matrix; `lint.yaml` runs mypy on all Python files (source **and** tests) and lints YAML. Both must pass.
 
 3. **Run local tests while waiting for CI.** Don't idle while polling. Start the full test suite and linters locally in the background immediately after identifying the run:
 
    ```
    uv run pytest --no-header -q &
-   uv run --group typing repomatic run mypy -- repomatic &
-   uv run --group lint ruff check repomatic &
+   uv run --group typing repomatic run mypy -- repomatic tests &
+   uv run ruff check repomatic tests &
    ```
 
-   In parallel, poll CI every 60 seconds for the first stable failure (or success):
+   The mypy and ruff commands must cover **both** `repomatic` and `tests` directories. CI's `lint.yaml` type-checks all Python files (source + tests), so running mypy only on `repomatic/` locally will miss errors that fail in CI.
+
+   **Gate 1 (local, ~30s):** Wait for local results first. If any of the three fail, you already have the diagnosis: skip straight to step 5 without waiting for CI.
+
+   If local passes, poll both CI workflows every 60 seconds:
 
    ```
-   gh run view <RUN_ID> --json status,conclusion,jobs \
+   gh run view <TESTS_RUN_ID> --json status,conclusion,jobs \
      --jq '{status, conclusion, failed: [.jobs[] | select(.conclusion == "failure" and (.name | startswith("✅")))] | length}'
+   gh run view <LINT_RUN_ID> --json status,conclusion,jobs \
+     --jq '{status, conclusion, jobs: [.jobs[] | select(.conclusion == "failure")] | map(.name)}'
    ```
 
-   If local tests fail before CI reports anything, you already have the diagnosis: skip straight to step 5 without waiting.
+   **Gate 2 (lint.yaml, ~4 min):** `lint.yaml` finishes before `tests.yaml`. If "Lint types" (mypy) fails, proceed to step 4 immediately: do not wait for `tests.yaml`.
 
-4. **On stable failure**, immediately cancel remaining runs to free runners:
+   **Gate 3 (tests.yaml, ~5-8 min):** Once the first stable job fails, or all fast platforms (Linux, Windows) pass, proceed.
+
+4. **On any CI failure**, cancel remaining `tests.yaml` runs to free runners:
 
    ```
    gh run list --workflow=tests.yaml --status=queued --status=in_progress --json databaseId,displayTitle
@@ -109,13 +104,17 @@ LOCAL (free)                              REMOTE (expensive)
 
    **Never cancel** a run whose `displayTitle` starts with `[changelog] Release`. This mirrors the `cancel-in-progress` condition in the `tests.yaml` concurrency group (`!startsWith(github.event.head_commit.message, '[changelog] Release')`), which protects release runs from being cancelled. Cancel everything else.
 
-   Then download logs from **all** stable jobs that failed (logs are retained after cancellation):
+   Then download logs from **all** failed jobs across both workflows (logs are retained after cancellation):
 
    ```
-   gh run view <RUN_ID> --json jobs --jq '[.jobs[] | select(.conclusion == "failure" and (.name | startswith("✅")))] | .[].databaseId'
+   # Failed stable test jobs:
+   gh run view <TESTS_RUN_ID> --json jobs --jq '[.jobs[] | select(.conclusion == "failure" and (.name | startswith("✅")))] | .[].databaseId'
+
+   # Failed lint jobs (especially "Lint types" for mypy):
+   gh run view <LINT_RUN_ID> --json jobs --jq '[.jobs[] | select(.conclusion == "failure")] | .[].databaseId'
    ```
 
-   Fetch each failed job's log (`gh api repos/<OWNER>/<REPO>/actions/jobs/<JOB_ID>/logs`). Different matrix entries often surface different issues (e.g., a Windows encoding error alongside a Linux assertion failure): fixing them all in one batch avoids burning another full CI round.
+   Fetch each failed job's log (`gh api repos/<OWNER>/<REPO>/actions/jobs/<JOB_ID>/logs`). Different sources surface different issues: a lint.yaml mypy error in test files alongside a tests.yaml assertion failure on Windows. Fixing them all in one batch avoids burning another full CI round.
 
    Analyze all collected logs following the [error triage discipline](#error-triage-discipline): focus on `FAILED` and `AssertionError` lines in stable-job pytest summaries only. Discard unstable-job output entirely.
 
@@ -125,26 +124,24 @@ LOCAL (free)                              REMOTE (expensive)
 
    ```
    uv run pytest --no-header -q
-   uv run --group typing repomatic run mypy -- repomatic
-   uv run --group lint ruff check repomatic
+   uv run --group typing repomatic run mypy -- repomatic tests
+   uv run ruff check repomatic tests
    ```
 
    **Hard gate:** all three must pass before proceeding to step 6. If a fix introduces new failures that were not in the original set, the fix is wrong: revert it and try a different approach rather than layering another fix on top.
 
-6. **Check lint and autofix status before pushing.** Gather the remote picture (these calls are fast, no waiting):
+6. **Check autofix status before pushing:**
 
    ```
-   gh run list --workflow=lint.yaml --branch=<BRANCH> --limit=1
    gh run list --workflow=autofix.yaml --branch=<BRANCH> --limit=1
    gh pr list --head=format-python --state=open --json number,title,url
    ```
 
-   - If the `lint.yaml` run shows mypy or ruff failures you haven't addressed locally, fix them now.
-   - If a `format-python` autofix PR exists, review its diff: it contains ruff's own autofixes for the same commit. If it resolves issues you're seeing, merge it first (`gh pr merge --squash`), pull, and rebase your fix before pushing.
+   If a `format-python` autofix PR exists, review its diff: it contains ruff's own autofixes for the same commit. If it resolves issues you're seeing, merge it first (`gh pr merge --squash`), pull, and rebase your fix before pushing.
 
 7. **Commit the fix** with a clear message describing what changed and why, then `git push`.
 
-8. **Repeat from step 2** until the test run completes with all stable (✅) jobs passing and the lint run has no mypy/ruff failures. **Stop after 5 iterations.** If the loop has not converged by then, report what was fixed, what remains broken, and ask for guidance rather than continuing to churn.
+8. **Repeat from step 2** until both workflows are green: `tests.yaml` with all stable (✅) jobs passing, and `lint.yaml` with no mypy failures (including test files). **Stop after 5 iterations.** If the loop has not converged by then, report what was fixed, what remains broken, and ask for guidance rather than continuing to churn.
 
 ### Early exit
 
@@ -179,6 +176,10 @@ mypy and ruff can enter a fix loop where each tool's fix breaks the other. Commo
 
 When you detect this pattern (the same lines toggling between fixes across iterations), stop and apply a combined resolution: typically a `# type: ignore[code]` with a matching `# noqa: XXXX` on the same line, or a restructuring that satisfies both tools at once. Do not keep iterating.
 
+### mypy scope mismatch (local vs CI)
+
+The most common false-green scenario: mypy passes locally because you only checked `repomatic/`, but CI's `lint.yaml` runs mypy on all Python files including `tests/`. Always run `repomatic run mypy -- repomatic tests` locally. If you see mypy errors only in test files, they still block CI.
+
 ### Platform-specific test skips
 
 Some tests are skipped on certain platforms (e.g., `windows-11-arm` has no Python 3.10 ARM64 build). Check the matrix `exclude` section in `tests.yaml` before investigating missing results.
@@ -191,6 +192,7 @@ When a test passes locally but fails in CI, check for platform-specific differen
 - **Terminal width**: CI runners may have different default terminal widths than local dev machines.
 - **Encoding**: Windows uses different default encodings (`cp1252` vs `utf-8`).
 - **Line endings**: `\r\n` vs `\n` can break exact-match assertions.
+- **Untracked files**: Tests that enumerate files (e.g., `python_files`, `doc_files` metadata) scan the working directory. Untracked local files appear in your output but not in CI's clean checkout. When updating expected file lists, only include tracked files. Run `git status` to identify untracked files that could cause local/CI divergence.
 
 ### Workflow and infrastructure failures
 
