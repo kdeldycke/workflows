@@ -149,6 +149,7 @@ class AnyReleaseNotes:
 
     During development, release notes contain a warning that the version is not
     released yet. On release branches, the notes contain actual release content.
+    None is valid when the changelog section is empty (e.g. right after a release).
     """
 
     def __init__(self, dev_pattern: re.Pattern, release_pattern: re.Pattern) -> None:
@@ -159,8 +160,8 @@ class AnyReleaseNotes:
 class AnyReleaseNotesOrEmptyString:
     """Matcher for GitHub format release notes.
 
-    Can be empty string (when no version), or match either development or release
-    notes patterns.
+    Can be empty string (when no version), None (empty changelog section),
+    or match either development or release notes patterns.
     """
 
     def __init__(self, dev_pattern: re.Pattern, release_pattern: re.Pattern) -> None:
@@ -317,7 +318,10 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         )
 
     elif isinstance(expected, AnyReleaseNotes):
-        # Allow release notes matching either development or release pattern.
+        # Allow None (empty changelog section) or release notes matching either
+        # development or release pattern.
+        if metadata is None:
+            return
         assert isinstance(metadata, str), (
             f"{metadata!r} should be a string in {context!r}"
         )
@@ -329,8 +333,9 @@ def iter_checks(metadata: Any, expected: Any, context: Any) -> None:
         )
 
     elif isinstance(expected, AnyReleaseNotesOrEmptyString):
-        # Allow empty string or release notes matching either pattern.
-        if metadata == "":
+        # Allow empty string, None (empty changelog section), or release notes
+        # matching either pattern.
+        if metadata is None or metadata == "":
             return
         assert isinstance(metadata, str), (
             f"{metadata!r} should be '' or a string in {context!r}"
