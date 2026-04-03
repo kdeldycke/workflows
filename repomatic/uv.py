@@ -246,6 +246,11 @@ run when a relative ``exclude-newer-package`` offset is configured.
 def is_lock_diff_only_timestamp_noise(lock_path: Path) -> bool:
     """Check whether the only changes in a lock file are timestamp noise.
 
+    .. note::
+        This is a workaround for uv writing a new resolved timestamp on every
+        ``uv lock`` run even when no packages changed.
+        See `uv#18155 <https://github.com/astral-sh/uv/issues/18155>`_.
+
     Runs ``git diff`` on the given path and inspects every added/removed
     content line. Returns ``True`` only when *all* changed lines match the
     ``exclude-newer-package`` timestamp pattern (``timestamp =`` / ``span =``).
