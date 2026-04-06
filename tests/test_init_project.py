@@ -25,10 +25,7 @@ import pytest
 
 from repomatic.init_project import (
     EXPORTABLE_FILES,
-    _local_array_entries,
-    _serialize_array_entries,
     _strip_renovate_repo_settings,
-    _to_pyproject_format,
     _update_tool_config,
     default_version_pin,
     export_content,
@@ -401,39 +398,60 @@ def test_has_files_section() -> None:
 # --- pyproject.toml merging tests ---
 
 
-def test_adds_root_section() -> None:
-    """Verify that root section is added before first key."""
-    native = "key = true\n"
-    result = _to_pyproject_format(native, "tool.mypy")
+def test_init_config_adds_root_section() -> None:
+    """Verify that init_config produces a [tool.mypy] section."""
+    with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+        f.write('[project]\nname = "test"\n')
+        f.flush()
+        result = init_config("mypy", Path(f.name))
+    Path(f.name).unlink()
+    assert result is not None
     assert "[tool.mypy]" in result
-    assert result.index("[tool.mypy]") < result.index("key = true")
 
 
-def test_transforms_subsections() -> None:
-    """Verify that subsections get the tool prefix."""
-    native = "[lint]\nrule = true\n"
-    result = _to_pyproject_format(native, "tool.ruff")
-    assert "[tool.ruff.lint]" in result
+def test_init_config_transforms_subsections() -> None:
+    """Verify that ruff lint config appears under [tool.ruff]."""
+    with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+        f.write('[project]\nname = "test"\n')
+        f.flush()
+        result = init_config("ruff", Path(f.name))
+    Path(f.name).unlink()
+    assert result is not None
+    # tomlkit preserves the template's native dotted-key style.
+    assert "lint.ignore" in result
 
 
-def test_transforms_array_sections() -> None:
+def test_init_config_transforms_array_sections() -> None:
     """Verify that array sections get the tool prefix."""
-    native = "[[files]]\nfilename = 'test.py'\n"
-    result = _to_pyproject_format(native, "tool.bumpversion")
+    with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+        f.write('[project]\nname = "test"\n')
+        f.flush()
+        result = init_config("bumpversion", Path(f.name))
+    Path(f.name).unlink()
+    assert result is not None
     assert "[[tool.bumpversion.files]]" in result
 
 
-def test_preserves_comments() -> None:
-    """Verify that comments are preserved."""
-    native = "# This is a comment\nkey = true\n"
-    result = _to_pyproject_format(native, "tool.mypy")
-    assert "# This is a comment" in result
+def test_init_config_preserves_template_comments() -> None:
+    """Verify that template comments are preserved during init."""
+    with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+        f.write('[project]\nname = "test"\n')
+        f.flush()
+        result = init_config("bumpversion", Path(f.name))
+    Path(f.name).unlink()
+    assert result is not None
+    # The bumpversion template has inline comments explaining config values.
+    assert "# Update version in [project] section." in result
 
 
-def test_full_ruff_transform() -> None:
-    """Verify full transformation of ruff config."""
-    native = export_content("ruff.toml")
-    result = _to_pyproject_format(native, "tool.ruff")
+def test_full_ruff_init() -> None:
+    """Verify full ruff config initialization."""
+    with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+        f.write('[project]\nname = "test"\n')
+        f.flush()
+        result = init_config("ruff", Path(f.name))
+    Path(f.name).unlink()
+    assert result is not None
     parsed = tomllib.loads(result)
 
     assert "tool" in parsed
@@ -898,16 +916,16 @@ def _make_pyproject_with_template_bumpversion(version: str = "7.5.3.dev0") -> st
 
     Used as a fixture for tests that need an already-up-to-date config.
     """
-    native = export_content("bumpversion.toml")
-    bv_section = _to_pyproject_format(native, "tool.bumpversion")
-    bv_section = bv_section.replace(
+    base = f'[project]\nname = "test-project"\nversion = "{version}"\n'
+    with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+        f.write(base)
+        f.flush()
+        result = init_config("bumpversion", Path(f.name))
+    Path(f.name).unlink()
+    assert result is not None
+    return result.replace(
         'current_version = "0.0.0.dev0"',
         f'current_version = "{version}"',
-    )
-    return (
-        f'[project]\nname = "test-project"\nversion = "{version}"\n\n'
-        + bv_section.strip()
-        + "\n"
     )
 
 
@@ -1200,36 +1218,89 @@ def test_ongoing_sync_no_duplicate_template_entries(tmp_path: Path) -> None:
     assert len(pyproject_entries) == 2
 
 
-def test_local_array_entries_detection() -> None:
-    """Verify _local_array_entries correctly filters template entries."""
-    template = [
-        {"filename": "./pyproject.toml", "search": "a", "replace": "b"},
-        {"filename": "./changelog.md", "search": "c", "replace": "d"},
-    ]
-    existing = [
-        {"filename": "./pyproject.toml", "search": "a", "replace": "b"},
-        {"filename": "./readme.md", "search": "x", "replace": "y"},
-    ]
-    local = _local_array_entries(existing, template)
-    assert len(local) == 1
-    assert local[0]["filename"] == "./readme.md"
+def test_local_entries_preserved_via_update(tmp_path: Path) -> None:
+    """Verify local array entries survive ongoing sync via dict comparison."""
+    content = (
+        '[project]\nname = "test"\nversion = "1.0.0.dev0"\n\n'
+        "[tool.bumpversion]\n"
+        'current_version = "1.0.0.dev0"\n'
+        "allow_dirty = true\n"
+        'parse = "(?P<major>\\\\d+)"\n'
+        'serialize = ["{major}"]\n\n'
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./pyproject.toml"\n'
+        "search = 'version = \"{current_version}\"'\n"
+        "replace = 'version = \"{new_version}\"'\n\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./custom.txt"\n'
+        'search = "x"\n'
+        'replace = "y"\n'
+    )
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
 
+    bv = _BY_NAME["bumpversion"]
+    assert isinstance(bv, ToolConfigComponent)
+    result = _update_tool_config(content, bv, pyproject)
 
-def test_serialize_array_entries_roundtrip() -> None:
-    """Verify serialized entries produce valid TOML that parses back."""
-    entries: list[dict] = [
-        {"filename": "./readme.md", "ignore_missing_version": True, "search": "a"},
-        {"filename": "./docs/tutorial.md", "search": 'has "quotes"'},
-    ]
-    text = _serialize_array_entries(entries, "[[tool.bumpversion.files]]")
-    # Wrap in [tool.bumpversion] to make it valid as a complete document.
-    doc = '[tool.bumpversion]\ncurrent_version = "0"\n\n' + text
-    parsed = tomllib.loads(doc)
+    assert result is not None
+    parsed = tomllib.loads(result)
     files = parsed["tool"]["bumpversion"]["files"]
-    assert len(files) == 2
-    assert files[0]["filename"] == "./readme.md"
-    assert files[0]["ignore_missing_version"] is True
-    assert files[1]["search"] == 'has "quotes"'
+    custom = [e for e in files if e.get("filename") == "./custom.txt"]
+    assert len(custom) == 1
+    assert custom[0]["search"] == "x"
+
+
+def test_local_entry_comments_preserved(tmp_path: Path) -> None:
+    """Verify comments between local [[files]] entries survive ongoing sync.
+
+    Regression test for the sync-bumpversion job stripping comments from
+    downstream repos (e.g., click-extra#1595).
+
+    .. note::
+        tomlkit stores comments preceding the *first* local entry in the
+        parent table body, not in the AoT. These are lost during section
+        replacement. Comments *between* local entries survive because tomlkit
+        attaches them to the preceding entry's trivia.
+    """
+    content = (
+        '[project]\nname = "test"\nversion = "1.0.0.dev0"\n\n'
+        "[tool.bumpversion]\n"
+        'current_version = "1.0.0.dev0"\n'
+        "allow_dirty = true\n"
+        'parse = "(?P<major>\\\\d+)"\n'
+        'serialize = ["{major}"]\n\n'
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./pyproject.toml"\n'
+        "search = 'version = \"{current_version}\"'\n"
+        "replace = 'version = \"{new_version}\"'\n\n"
+        "# Pin image URLs from main to the release tag.\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./readme.md"\n'
+        "ignore_missing_version = true\n"
+        'search = "raw.githubusercontent.com/test/main/"\n'
+        'replace = "raw.githubusercontent.com/test/v{new_version}/"\n\n'
+        "# Restore image URLs from the previous release tag back to main.\n"
+        "[[tool.bumpversion.files]]\n"
+        'filename = "./readme.md"\n'
+        "ignore_missing_version = true\n"
+        'search = "raw.githubusercontent.com/test/v{current_version}/"\n'
+        'replace = "raw.githubusercontent.com/test/main/"\n'
+    )
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content, encoding="UTF-8")
+
+    bv = _BY_NAME["bumpversion"]
+    assert isinstance(bv, ToolConfigComponent)
+    result = _update_tool_config(content, bv, pyproject)
+
+    assert result is not None
+    # Comments between local entries survive (attached to preceding entry's
+    # trivia by tomlkit).
+    assert "# Restore image URLs from the previous release tag back to main." in result
+    # The local entries themselves must survive.
+    assert 'search = "raw.githubusercontent.com/test/main/"' in result
+    assert 'search = "raw.githubusercontent.com/test/v{current_version}/"' in result
 
 
 # --- Init exclusion tests ---

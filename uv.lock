@@ -3,14 +3,14 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-26T20:33:30.706653141Z"
+exclude-newer = "2026-03-30T09:37:19.156207Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-04-02T20:33:30.706661306Z", span = "PT0S" }
-pygments = { timestamp = "2026-04-02T20:33:30.706666737Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-02T20:33:30.706667217Z", span = "PT0S" }
-requests = { timestamp = "2026-04-02T20:33:30.706667618Z", span = "PT0S" }
+click-extra = { timestamp = "2026-04-06T09:37:19.156262Z", span = "PT0S" }
+pygments = { timestamp = "2026-04-06T09:37:19.156709Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-06T09:37:19.15671Z", span = "PT0S" }
+requests = { timestamp = "2026-04-06T09:37:19.15671Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -965,6 +965,7 @@ dependencies = [
     { name = "pyproject-metadata" },
     { name = "pyyaml" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
+    { name = "tomlkit" },
     { name = "wcmatch" },
 ]
 
@@ -995,6 +996,7 @@ requires-dist = [
     { name = "pyproject-metadata", specifier = ">=0.9" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2" },
+    { name = "tomlkit", specifier = ">=0.13" },
     { name = "wcmatch", specifier = ">=10" },
 ]
 

@@ -107,6 +107,9 @@ dependencies = [
   "pyyaml>=6.0.3",
   # tomli 2.0 aligned API with stdlib tomllib; only installed on Python 3.10.
   "tomli>=2; python_version<'3.11'",
+  # tomlkit 0.13 stabilized InlineTable manipulation; used for comment-preserving
+  # TOML write operations (tool_runner config translation).
+  "tomlkit>=0.13",
   # wcmatch 10.0 fixed globbing inconsistencies with symlinks; our metadata
   # globbing uses iglob() with FOLLOW for symlink-aware file discovery.
   "wcmatch>=10",

@@ -48,6 +48,7 @@ from importlib.resources import as_file, files
 from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
+import tomlkit
 import yaml
 from extra_platforms import (
     is_aarch64,
@@ -592,42 +593,6 @@ def load_pyproject_tool_section(tool_name: str) -> dict[str, Any]:
     return tool_section
 
 
-def _dict_to_toml(data: dict[str, Any], prefix: str = "") -> str:
-    """Serialize a dict to TOML format.
-
-    Handles the subset of TOML used by tool configs: scalars, arrays, and
-    nested tables. Does not support inline tables or multiline strings.
-
-    :param data: Dict to serialize.
-    :param prefix: Dotted key prefix for nested tables.
-    :return: TOML-formatted string.
-    """
-    lines: list[str] = []
-    tables: list[tuple[str, dict[str, Any]]] = []
-
-    for key, value in data.items():
-        if isinstance(value, dict):
-            tables.append((key, value))
-        elif isinstance(value, bool):
-            lines.append(f"{key} = {str(value).lower()}")
-        elif isinstance(value, (int, float)):
-            lines.append(f"{key} = {value}")
-        elif isinstance(value, str):
-            lines.append(f'{key} = "{value}"')
-        elif isinstance(value, list):
-            formatted = ", ".join(
-                f'"{v}"' if isinstance(v, str) else str(v) for v in value
-            )
-            lines.append(f"{key} = [{formatted}]")
-
-    for table_key, table_value in tables:
-        full_key = f"{prefix}.{table_key}" if prefix else table_key
-        lines.append(f"\n[{full_key}]")
-        lines.append(_dict_to_toml(table_value, prefix=full_key))
-
-    return "\n".join(lines)
-
-
 def resolve_config(
     spec: ToolSpec,
     tool_config: dict[str, Any] | None = None,
@@ -671,7 +636,7 @@ def resolve_config(
                 tool_config, default_flow_style=False, sort_keys=False
             )
         elif spec.native_format == NativeFormat.TOML:
-            content = _dict_to_toml(tool_config) + "\n"
+            content = tomlkit.dumps(tool_config)
         elif spec.native_format == NativeFormat.JSON:
             content = json.dumps(tool_config, indent=2) + "\n"
 

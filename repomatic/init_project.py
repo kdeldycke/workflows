@@ -70,6 +70,8 @@ from .registry import (
 )
 from .tool_runner import TOOL_REGISTRY, find_unmodified_configs
 
+import tomlkit
+
 if sys.version_info >= (3, 11):
     import tomllib
 else:
@@ -218,125 +220,21 @@ def export_content(filename: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _to_pyproject_format(template: str, tool_section: str) -> str:
-    """Transform native config format to pyproject.toml format.
+def _template_to_table(template_text: str) -> tomlkit.items.Table:
+    """Parse native-format template text into a tomlkit Table.
 
-    Adds the [tool.X] prefix to all sections in the template.
+    Uses ``Container.append`` to preserve standalone comments and whitespace
+    from the template during the copy.
 
-    :param template: The native format template content.
-    :param tool_section: The tool section name (e.g., "tool.ruff").
-    :return: The transformed content with [tool.X] prefixes.
+    :param template_text: Template content in native format (no ``[tool.X]``
+        prefix), with file-level header comments already stripped.
+    :return: A tomlkit Table suitable for assignment into a document.
     """
-    lines = template.splitlines()
-    result = []
-    has_root_section = False
-
-    for line in lines:
-        # Match section headers: [section] or [[section]].
-        section_match = re.match(r"^(\[+)([^\]]+)(\]+)\s*$", line)
-        if section_match:
-            brackets_open = section_match.group(1)
-            section_name = section_match.group(2)
-            brackets_close = section_match.group(3)
-
-            # Transform section name to include tool prefix.
-            new_section = f"{tool_section}.{section_name}"
-            result.append(f"{brackets_open}{new_section}{brackets_close}")
-        else:
-            # Non-section line: check if we need to add root section first.
-            stripped = line.strip()
-            if stripped and not stripped.startswith("#") and not has_root_section:
-                # First non-comment, non-empty line - add root section.
-                result.append(f"[{tool_section}]")
-                has_root_section = True
-            result.append(line)
-
-    return "\n".join(result)
-
-
-def _find_tool_section_range(
-    content: str,
-    tool_section: str,
-) -> tuple[int, int] | None:
-    """Find the character range of an entire ``[tool.X]`` section.
-
-    Locates the section header and all its subsections (both
-    ``[tool.X.sub]`` and ``[[tool.X.sub]]``), returning the start and
-    end character indices.
-
-    :param content: The pyproject.toml content.
-    :param tool_section: The section name (e.g., ``"tool.bumpversion"``).
-    :return: Tuple of (start, end) character indices, or ``None`` if not found.
-    """
-    escaped = re.escape(tool_section)
-    header_match = re.search(rf"^\[{escaped}\]\s*$", content, re.MULTILINE)
-    if not header_match:
-        return None
-
-    start = header_match.start()
-
-    # Find the next section header that is not a subsection of this tool.
-    next_section = re.search(
-        rf"^\[{{1,2}}(?!{escaped}[\].])[ a-z]",
-        content[header_match.end() :],
-        re.MULTILINE,
-    )
-    if next_section:
-        end = header_match.end() + next_section.start()
-    else:
-        end = len(content)
-
-    return start, end
-
-
-def _local_array_entries(
-    existing: list[dict],
-    template: list[dict],
-) -> list[dict]:
-    """Identify array-of-tables entries not present in the template.
-
-    Compares entries by full dict equality. Entries from the existing config
-    that do not match any template entry are local additions that should be
-    preserved across ongoing syncs.
-    """
-    return [entry for entry in existing if entry not in template]
-
-
-def _toml_string(value: str) -> str:
-    """Format a Python string as a TOML string literal.
-
-    Prefers double quotes. Falls back to single quotes when the value contains
-    double quotes but no single quotes. Escapes when both are present.
-    """
-    if '"' not in value:
-        return f'"{value}"'
-    if "'" not in value:
-        return f"'{value}'"
-    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
-
-
-def _serialize_array_entries(
-    entries: list[dict],
-    section_header: str,
-) -> str:
-    """Serialize array-of-tables entries to TOML text.
-
-    :param entries: List of dicts to serialize.
-    :param section_header: The full TOML header (e.g.,
-        ``"[[tool.bumpversion.files]]"``).
-    """
-    blocks = []
-    for entry in entries:
-        lines = [section_header]
-        for key, value in entry.items():
-            if isinstance(value, bool):
-                lines.append(f"{key} = {'true' if value else 'false'}")
-            elif isinstance(value, str):
-                lines.append(f"{key} = {_toml_string(value)}")
-            elif isinstance(value, int):
-                lines.append(f"{key} = {value}")
-        blocks.append("\n".join(lines))
-    return "\n\n".join(blocks)
+    parsed = tomlkit.parse(template_text)
+    table = tomlkit.table()
+    for key, item in parsed.body:
+        table._value.append(key, item)
+    return table
 
 
 def _update_tool_config(
@@ -350,80 +248,96 @@ def _update_tool_config(
     values for keys listed in ``comp.preserved_keys`` and any local
     array-of-tables entries not present in the template.
 
+    .. note::
+        Comments attached to local array-of-tables entries are preserved
+        when they appear between entries (tomlkit stores them as trailing
+        trivia on the preceding entry). A comment immediately before the
+        *first* local entry may be lost: tomlkit stores it in the parent
+        table body, not in the AoT.
+
     :param content: The current pyproject.toml content.
     :param comp: The component whose config is being synced.
     :param pyproject_path: Path to pyproject.toml (for resolving managed files).
     :return: Modified pyproject.toml content, or ``None`` if already up to date.
     """
-    section_range = _find_tool_section_range(content, comp.tool_section)
-    if not section_range:
+    doc = tomlkit.parse(content)
+    tool_name = comp.tool_section.removeprefix("tool.")
+
+    tool_table = doc.get("tool")
+    if not tool_table or tool_name not in tool_table:
         return None
 
-    # Parse existing config.
-    parsed = tomllib.loads(content)
-    tool_name = comp.tool_section.removeprefix("tool.")
-    existing_config = parsed.get("tool", {}).get(tool_name, {})
+    existing_section = tool_table[tool_name]
 
-    # Generate the replacement section from the template, stripping
-    # file-level comments that only apply to the standalone format.
-    native_template = export_content(comp.source_file)
-    native_lines = native_template.splitlines()
+    # Plain-dict views for value comparison (tomlkit items do not compare
+    # equal to plain dicts).
+    existing_plain = tomllib.loads(content).get("tool", {}).get(tool_name, {})
+    native_source = export_content(comp.source_file)
+    template_plain = tomllib.loads(native_source)
+
+    # Save preserved key values before replacing.
+    preserved: dict[str, object] = {}
+    for key in comp.preserved_keys:
+        if key in existing_section:
+            preserved[key] = existing_section[key]
+
+    # Save local array-of-tables entries (those not in the template).
+    local_aot: dict[str, list] = {}
+    for array_key in ("files",):
+        existing_entries = existing_plain.get(array_key, [])
+        template_entries = template_plain.get(array_key, [])
+        local_idx = [
+            i for i, e in enumerate(existing_entries) if e not in template_entries
+        ]
+        if local_idx and array_key in existing_section:
+            aot = existing_section[array_key]
+            local_aot[array_key] = [aot[i] for i in local_idx]
+
+    # Build the replacement table from the template, stripping file-level
+    # comments that only apply to the standalone format.
+    native_lines = native_source.splitlines()
     first_key = next(
         i for i, line in enumerate(native_lines) if line and not line.startswith("#")
     )
-    native_template = "\n".join(native_lines[first_key:])
-    template_section = _to_pyproject_format(native_template, comp.tool_section)
+    native_stripped = "\n".join(native_lines[first_key:])
+    new_section = _template_to_table(native_stripped)
 
-    # Patch preserved keys: replace template placeholders with existing values.
-    template_parsed = tomllib.loads(export_content(comp.source_file))
-    for key in comp.preserved_keys:
-        existing_value = existing_config.get(key)
-        template_value = template_parsed.get(key)
-        if existing_value is not None and template_value is not None:
-            template_section = template_section.replace(
-                f'{key} = "{template_value}"',
-                f'{key} = "{existing_value}"',
-            )
+    # Restore preserved keys.
+    for key, value in preserved.items():
+        if key in new_section:
+            new_section[key] = value
 
     # Bumpversion dev-versioning migration: append .dev0 suffix to
     # current_version if the existing config lacks a parse key.
     # TODO: Remove once all downstream repos have been migrated.
     needs_dev_suffix = False
     if tool_name == "bumpversion":
-        had_dev_versioning = "parse" in existing_config
-        current_version = existing_config.get("current_version", "")
+        had_dev_versioning = "parse" in existing_plain
+        current_version = existing_plain.get("current_version", "")
         needs_dev_suffix = not had_dev_versioning and not re.search(
             r"\.dev\d+$", current_version
         )
         if needs_dev_suffix:
             new_version = f"{current_version}.dev0"
-            template_section = template_section.replace(
-                f'current_version = "{current_version}"',
-                f'current_version = "{new_version}"',
-            )
+            new_section["current_version"] = new_version
 
-    # Preserve local array-of-tables entries not present in the template.
-    for array_key in ("files",):
-        existing_entries = existing_config.get(array_key, [])
-        template_entries = template_parsed.get(array_key, [])
-        local_entries = _local_array_entries(existing_entries, template_entries)
-        if local_entries:
-            header = f"[[{comp.tool_section}.{array_key}]]"
-            template_section = (
-                template_section.rstrip()
-                + "\n\n"
-                + _serialize_array_entries(local_entries, header)
-            )
+    # Append local array-of-tables entries.
+    for array_key, entries in local_aot.items():
+        aot = new_section.get(array_key)
+        if aot is not None:
+            for entry in entries:
+                aot.append(entry)
 
-    # Splice the new section into the content.
-    start, end = section_range
-    before = content[:start].rstrip()
-    after = content[end:].lstrip()
+    # Replace the section in the document.
+    tool_table[tool_name] = new_section
 
-    modified = before + "\n\n" + template_section.strip() + "\n"
-    if after:
-        modified += "\n" + after
+    modified = tomlkit.dumps(doc)
 
+    # tomlkit may omit the newline before ``[[header]]`` when appending
+    # AoT entries, producing invalid TOML. Normalize so every ``[[``
+    # starts on its own line with a preceding blank line.
+    modified = re.sub(r"(?<!\n)(\[\[)", r"\n\n\1", modified)
+    modified = re.sub(r"\n{3,}\[", r"\n\n[", modified)
     if modified.strip() == content.strip():
         logging.info(f"[{comp.tool_section}] already up to date.")
         return None
@@ -431,7 +345,7 @@ def _update_tool_config(
     # Bumpversion dev-versioning migration: update managed files.
     # TODO: Remove once all downstream repos have been migrated.
     if needs_dev_suffix and current_version:
-        files_entries = existing_config.get("files", [])
+        files_entries = existing_plain.get("files", [])
         modified = _update_managed_files(
             pyproject_path,
             files_entries,
@@ -526,14 +440,15 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     Reads the pyproject.toml file, checks if the tool section already exists,
     and if not, inserts the bundled template at the appropriate location.
 
-    The template is stored in native format (without [tool.X] prefix) and is
-    transformed to pyproject.toml format during insertion.
+    The template is stored in native format (without ``[tool.X]`` prefix) and
+    is parsed by tomlkit and added under the ``[tool]`` table.
 
-    This function works with the file as text to preserve comments and formatting.
-
-    :param config_type: The configuration type (e.g., "ruff", "bumpversion").
-    :param pyproject_path: Path to pyproject.toml. Defaults to ``./pyproject.toml``.
-    :return: The modified pyproject.toml content, or ``None`` if no changes needed.
+    :param config_type: The configuration type (e.g., ``"ruff"``,
+        ``"bumpversion"``).
+    :param pyproject_path: Path to pyproject.toml. Defaults to
+        ``./pyproject.toml``.
+    :return: The modified pyproject.toml content, or ``None`` if no changes
+        needed.
     :raises ValueError: If the config type is not supported.
     """
     comp = _BY_NAME.get(config_type)
@@ -552,69 +467,33 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
         return None
 
     content = pyproject_path.read_text(encoding="UTF-8")
+    doc = tomlkit.parse(content)
+    tool_name = comp.tool_section.removeprefix("tool.")
 
     # Check if the config section already exists.
-    section_pattern = rf"^\[{re.escape(comp.tool_section)}\]"
-    if re.search(section_pattern, content, re.MULTILINE):
+    tool_table = doc.get("tool")
+    if tool_table and tool_name in tool_table:
         if comp.sync_mode == SyncMode.ONGOING:
             return _update_tool_config(content, comp, pyproject_path)
         logging.info(f"[{comp.tool_section}] already exists in {pyproject_path.name}")
         return None
 
-    # Get the template content and transform to pyproject.toml format.
-    native_template = export_content(comp.source_file)
-    template = _to_pyproject_format(native_template, comp.tool_section)
+    # Load the template and strip file-level comments.
+    native_source = export_content(comp.source_file)
+    native_lines = native_source.splitlines()
+    first_key = next(
+        i for i, line in enumerate(native_lines) if line and not line.startswith("#")
+    )
+    native_stripped = "\n".join(native_lines[first_key:])
+    new_section = _template_to_table(native_stripped)
 
-    # Find insertion point using the config's preferences.
-    insertion_index = _find_insertion_point(content, comp)
+    # Ensure [tool] table exists.
+    if "tool" not in doc:
+        doc.add("tool", tomlkit.table())
 
-    # Ensure proper spacing.
-    before = content[:insertion_index].rstrip()
-    after = content[insertion_index:].lstrip()
+    doc["tool"][tool_name] = new_section  # type: ignore[index]
 
-    # Build the new content with proper newlines.
-    new_content = before + "\n\n" + template.strip() + "\n"
-    if after:
-        new_content += "\n" + after
-
-    return new_content
-
-
-def _find_insertion_point(content: str, config: ToolConfigComponent) -> int:
-    """Find the best insertion point for a config section.
-
-    :param content: The pyproject.toml content.
-    :param config: The component whose tool config is being inserted.
-    :return: The character index where the new section should be inserted.
-    """
-    # Pattern to match tool sections: [tool.xxx] or [[tool.xxx.yyy]].
-    tool_section_pattern = re.compile(r"^\[+tool\.[^\]]+\]+", re.MULTILINE)
-
-    # Find all tool sections and their positions.
-    sections = list(tool_section_pattern.finditer(content))
-
-    # Strategy 1: Find insert_after sections and insert after the last one.
-    for target in config.insert_after:
-        for i, match in enumerate(sections):
-            section_name = match.group().strip("[]")
-            if section_name == target or section_name.startswith(f"{target}."):
-                # Find the next section that isn't a subsection of this one.
-                for j in range(i + 1, len(sections)):
-                    next_section = sections[j].group().strip("[]")
-                    if not next_section.startswith(f"{target}."):
-                        return sections[j].start()
-                # No more sections, append at end.
-                return len(content)
-
-    # Strategy 2: Find insert_before sections and insert before the first one.
-    for target in config.insert_before:
-        for match in sections:
-            section_name = match.group().strip("[]")
-            if section_name == target or section_name.startswith(f"{target}."):
-                return match.start()
-
-    # Strategy 3: Append at the end.
-    return len(content)
+    return tomlkit.dumps(doc)
 
 
 # ---------------------------------------------------------------------------

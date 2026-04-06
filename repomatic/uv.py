@@ -35,6 +35,8 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
+import tomlkit
+
 from .pypi import get_source_url as get_pypi_source_url
 
 if sys.version_info >= (3, 11):
@@ -325,19 +327,6 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
 # pyproject.toml exclude-newer-package management
 # ---------------------------------------------------------------------------
 
-_EXCLUDE_NEWER_PKG_RE = re.compile(
-    r"^(exclude-newer-package\s*=\s*)\{([^}]*)\}\s*$",
-    re.MULTILINE,
-)
-"""Matches the ``exclude-newer-package = { ... }`` inline table line.
-
-Captures two groups: the key prefix (including ``=``) and the inner content
-of the braces, so the line can be rebuilt with additional entries.
-"""
-
-_INLINE_TABLE_ENTRY_RE = re.compile(r'"([^"]+)"\s*=\s*"[^"]*"')
-"""Matches a single ``"name" = "value"`` entry inside an inline table."""
-
 _RELATIVE_DURATION_RE = re.compile(r"^(\d+)\s+(days?|weeks?)$")
 """Matches uv's relative duration syntax: ``N day(s)`` or ``N week(s)``."""
 
@@ -401,48 +390,44 @@ def add_exclude_newer_packages(
 
     :param pyproject_path: Path to the ``pyproject.toml`` file.
     :param packages: Package names to add.
-    :return: ``True`` if the file was updated, ``False`` if no changes were needed.
+    :return: ``True`` if the file was updated, ``False`` if no changes were
+        needed.
     """
     content = pyproject_path.read_text(encoding="UTF-8")
-    pyproject_data = tomllib.loads(content)
+    doc = tomlkit.parse(content)
+
+    uv = doc.get("tool", {}).get("uv")
+    if uv is None:
+        logging.warning(
+            f"No [tool.uv] found in {pyproject_path}."
+            " Cannot persist cooldown exemptions."
+        )
+        return False
 
     # Determine which packages already have an entry.
-    existing = set(
-        pyproject_data.get("tool", {}).get("uv", {}).get("exclude-newer-package", {})
-    )
+    pkg_table = uv.get("exclude-newer-package")
+    existing = set(pkg_table.keys()) if pkg_table is not None else set()
     to_add = packages - existing
     if not to_add:
         logging.debug("All packages already in exclude-newer-package, nothing to add.")
         return False
 
-    match = _EXCLUDE_NEWER_PKG_RE.search(content)
-    if match:
-        # Append new entries to the existing inline table.
-        prefix = match.group(1)
-        inner = match.group(2).strip().rstrip(",")
-        new_entries = ", ".join(f'"{pkg}" = "0 day"' for pkg in sorted(to_add))
-        updated_line = f"{prefix}{{ {inner}, {new_entries} }}"
-        content = content[: match.start()] + updated_line + content[match.end() :]
+    if pkg_table is not None:
+        for pkg in sorted(to_add):
+            pkg_table.append(pkg, "0 day")
     else:
-        # No existing line; insert after exclude-newer if present.
-        newer_match = re.search(
-            r'^(exclude-newer\s*=\s*"[^"]*")\s*$',
-            content,
-            re.MULTILINE,
-        )
-        new_entries = ", ".join(f'"{pkg}" = "0 day"' for pkg in sorted(to_add))
-        new_line = f"exclude-newer-package = {{ {new_entries} }}"
-        if newer_match:
-            insert_pos = newer_match.end()
-            content = content[:insert_pos] + "\n" + new_line + content[insert_pos:]
-        else:
+        if "exclude-newer" not in uv:
             logging.warning(
                 "No [tool.uv] exclude-newer or exclude-newer-package found in"
                 f" {pyproject_path}. Cannot persist cooldown exemptions."
             )
             return False
+        new_table = tomlkit.inline_table()
+        for pkg in sorted(to_add):
+            new_table.append(pkg, "0 day")
+        uv.add("exclude-newer-package", new_table)
 
-    pyproject_path.write_text(content, encoding="UTF-8")
+    pyproject_path.write_text(tomlkit.dumps(doc), encoding="UTF-8")
     logging.info(
         f"Added {', '.join(sorted(to_add))} to exclude-newer-package"
         f" in {pyproject_path}."
@@ -472,12 +457,12 @@ def prune_stale_exclude_newer_packages(
     :return: ``True`` if the file was modified, ``False`` otherwise.
     """
     content = pyproject_path.read_text(encoding="UTF-8")
-    pyproject_data = tomllib.loads(content)
-    uv_config = pyproject_data.get("tool", {}).get("uv", {})
+    doc = tomlkit.parse(content)
+    uv = doc.get("tool", {}).get("uv", {})
 
-    exclude_newer_str = uv_config.get("exclude-newer", "")
-    pkg_overrides = uv_config.get("exclude-newer-package", {})
-    if not pkg_overrides or not exclude_newer_str:
+    exclude_newer_str = uv.get("exclude-newer", "")
+    pkg_table = uv.get("exclude-newer-package")
+    if not pkg_table or not exclude_newer_str:
         return False
 
     # Compute the effective cutoff datetime.
@@ -496,7 +481,7 @@ def prune_stale_exclude_newer_packages(
     upload_times = parse_lock_upload_times(lock_path)
 
     stale: set[str] = set()
-    for pkg in pkg_overrides:
+    for pkg in pkg_table:
         upload_str = upload_times.get(pkg, "")
         if not upload_str:
             # No upload time: git/path source, permanent exemption.
@@ -515,32 +500,14 @@ def prune_stale_exclude_newer_packages(
         logging.debug("No stale exclude-newer-package entries.")
         return False
 
-    # Rewrite pyproject.toml with stale entries removed.
-    match = _EXCLUDE_NEWER_PKG_RE.search(content)
-    if not match:
-        logging.warning(f"Cannot find exclude-newer-package line in {pyproject_path}.")
-        return False
+    for pkg in stale:
+        del pkg_table[pkg]
 
-    inner = match.group(2)
-    kept_entries = [
-        entry_match.group(0)
-        for entry_match in _INLINE_TABLE_ENTRY_RE.finditer(inner)
-        if entry_match.group(1) not in stale
-    ]
+    # Remove the key entirely when all entries have been pruned.
+    if len(pkg_table) == 0:
+        del uv["exclude-newer-package"]
 
-    if kept_entries:
-        prefix = match.group(1)
-        updated_line = f"{prefix}{{ {', '.join(kept_entries)} }}"
-        content = content[: match.start()] + updated_line + content[match.end() :]
-    else:
-        # Remove the entire line and its trailing newline.
-        start = match.start()
-        end = match.end()
-        if end < len(content) and content[end] == "\n":
-            end += 1
-        content = content[:start] + content[end:]
-
-    pyproject_path.write_text(content, encoding="UTF-8")
+    pyproject_path.write_text(tomlkit.dumps(doc), encoding="UTF-8")
     logging.info(
         f"Pruned {', '.join(sorted(stale))} from"
         f" exclude-newer-package in {pyproject_path}."
