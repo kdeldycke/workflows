@@ -158,7 +158,7 @@ Maintainers can diagnose faster when they can see the original context themselve
 - **CI run logs**: link to the specific GitHub Actions run (or step anchor) that shows the failure, not just the repo. Use `gh run view <run-id> --json url --jq '.url'` to get the URL.
 - **Source code**: link to the exact file and line(s) in the user's public repo that trigger the bug, using GitHub's permalink format (`https://github.com/<owner/repo>/blob/<sha>/path/to/file.py#L42-L55`). Use a commit SHA, not a branch name, so the link stays stable.
 - **Configuration files**: if the bug depends on a specific config (workflow YAML, `pyproject.toml` section, tool config), link to it.
-- **PR or commit**: if the bug surfaced after a specific change, link to the PR or commit.
+- **PR or commit diffs**: if the bug surfaced after a specific change, link to the PR's file diff (e.g., `https://github.com/owner/repo/pull/123/changes#diff-<hash>`) or the commit, not just the PR landing page. The reader should see the relevant change immediately on click.
 
 Ask yourself: "Can the maintainer click a link and immediately see what I'm describing?" If yes, include the link. If the context is private, quote the relevant snippet inline instead.
 
@@ -217,6 +217,18 @@ What happens instead, with exact error output in code blocks.
 - Do not use em dashes; use colons for inline elaboration.
 - Respect any tone, formatting, or content requirements found in the contribution guidelines. If the guidelines say "include output of `tool --version`", include it. If they say "use the template", use it verbatim.
 - If the contribution guidelines mention a specific communication style or contain a content guide, follow it.
+
+### GitHub rendering conventions
+
+The report will be pasted into a GitHub issue (or PR body). Write for GitHub's renderer, not for a generic markdown viewer:
+
+- **No H1 title in the body.** GitHub issues and PRs have a separate title field. An H1 heading in the body is redundant and wastes vertical space. Start the body directly with prose or an H2 section.
+- **Use `#NNN` shorthand for same-repo references.** GitHub auto-links `#NNN` to issues/PRs in the same repository. Do not write `[#123](https://github.com/owner/repo/issues/123)` or `[Issue #123](...)` when a bare `#123` works. Reserve full URLs for cross-repo references.
+- **Use `@username` for people, not indirect references.** Write "Original example from @astanin" not "The maintainer's example". GitHub renders @-mentions as profile links and notifies the person, which is appropriate in a bug report where they are the relevant party.
+- **Prefer bare URLs over `[text](url)` when the URL IS the information.** GitHub auto-links and previews bare URLs. A markdown link like `[kdeldycke/click-extra#1603](https://github.com/kdeldycke/click-extra/pull/1603)` adds nothing over the bare URL and is harder to audit. Use `[text](url)` only when the link text adds meaning the URL lacks (e.g., describing what the link shows).
+- **Deep-link to the exact evidence.** When referencing a PR that demonstrates a problem, link to the specific file diff (`/changes#diff-...`), not the PR landing page. When referencing a CI run, link to the specific failed step. The reader should see the evidence immediately on click, not have to navigate.
+- **Backtick tool and project names in prose.** When a tool name appears outside a hyperlink, wrap it in backticks: `` `mdformat` ``, `` `tabulate` ``. This distinguishes the tool identifier from surrounding prose and is consistent with how code identifiers are formatted.
+- **Keep implementation details out of the body.** The code diff already shows what changed. The issue/PR body should describe the problem and the behavioral fix. Do not walk through the implementation line by line: describe what the fix does, not how the code is structured. Reserve the technical walkthrough for code comments and commit messages.
 
 ### Sanitizing output
 
