@@ -5,6 +5,8 @@ name: 🧹 Lint
     secrets:
       REPOMATIC_PAT:
         required: false
+      VIRUSTOTAL_API_KEY:
+        required: false
   workflow_dispatch:
   push:
     branches:
@@ -53,6 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
           HAS_REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT && 'true' || '' }}
+          HAS_VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY && 'true' || '' }}
         run: uvx --no-progress --from . repomatic lint-repo
 
   lint-types:

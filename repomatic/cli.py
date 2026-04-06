@@ -1969,6 +1969,13 @@ def _wrap_setup_step(title: str, content: str, *, passed: bool) -> str:
     help="Whether REPOMATIC_PAT is configured.",
 )
 @option(
+    "--has-virustotal-key",
+    is_flag=True,
+    default=False,
+    envvar="HAS_VIRUSTOTAL_API_KEY",
+    help="Whether VIRUSTOTAL_API_KEY is configured.",
+)
+@option(
     "--repo",
     default=None,
     envvar="GITHUB_REPOSITORY",
@@ -1985,6 +1992,7 @@ def _wrap_setup_step(title: str, content: str, *, passed: bool) -> str:
 def setup_guide(
     ctx: Context,
     has_pat: bool,
+    has_virustotal_key: bool,
     repo: str | None,
     sha: str | None,
 ) -> None:
@@ -2103,6 +2111,16 @@ def setup_guide(
         passed=branch_ok,
     )
 
+    step_virustotal = _wrap_setup_step(
+        "Configure VirusTotal scanning (optional)",
+        render_template(
+            "setup-guide-virustotal",
+            repo_url=repo_url,
+            repo_slug=repo_slug,
+        ),
+        passed=has_virustotal_key,
+    )
+
     step_verify = _wrap_setup_step(
         "Verify the setup",
         render_template(
@@ -2140,6 +2158,7 @@ def setup_guide(
         step_dependabot=step_dependabot,
         immutable_releases_step=immutable_releases_step,
         step_branch_ruleset=step_branch_ruleset,
+        step_virustotal=step_virustotal,
         step_verify=step_verify,
         org_tip=org_tip,
         repo_url=repo_url,
@@ -2755,6 +2774,13 @@ def check_renovate(
     help="Whether GH_TOKEN contains REPOMATIC_PAT. Enables PAT capability checks.",
 )
 @option(
+    "--has-virustotal-key",
+    is_flag=True,
+    default=False,
+    envvar="HAS_VIRUSTOTAL_API_KEY",
+    help="Whether VIRUSTOTAL_API_KEY is configured.",
+)
+@option(
     "--sha",
     default=None,
     envvar="GITHUB_SHA",
@@ -2766,6 +2792,7 @@ def lint_repo(
     repo_name: str | None,
     repo: str | None,
     has_pat: bool,
+    has_virustotal_key: bool,
     sha: str | None,
 ) -> None:
     """Run consistency checks on repository metadata.
@@ -2784,6 +2811,7 @@ def lint_repo(
       - GitHub topics subset of pyproject.toml keywords (warning).
       - Funding file present when owner has GitHub Sponsors (warning).
       - Stale draft releases (non-.dev0 drafts) (warning).
+      - VIRUSTOTAL_API_KEY secret missing (warning).
 
     \b
     When --has-pat is set, additional PAT capability checks are run:
@@ -2826,6 +2854,7 @@ def lint_repo(
         keywords=keywords,
         repo=repo if repo else None,
         has_pat=has_pat,
+        has_virustotal_key=has_virustotal_key,
         sha=sha,
     )
     ctx.exit(exit_code)

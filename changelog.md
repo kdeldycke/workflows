@@ -5,6 +5,12 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add VirusTotal scanning job to the release workflow. Uploads compiled binaries to VirusTotal after each release, seeding AV databases to reduce false positive detections on downstream distributors (Chocolatey, Scoop, etc.). Requires the optional `VIRUSTOTAL_API_KEY` repository secret.
+- Add attestation self-verification steps after each `actions/attest` invocation in the release workflow. Each attestation is immediately verified with `gh attestation verify --signer-repo kdeldycke/repomatic` to catch signing issues in CI before users encounter them.
+- Upload Sigstore attestation bundles (`.jsonl`) as GitHub release assets for compiled binaries and Python packages, enabling offline verification.
+- Add `VIRUSTOTAL_API_KEY` warning to `lint-repo`. Emits a non-fatal warning when the secret is missing.
+- Add VirusTotal API key setup step to the setup guide issue. The step is optional and marked as passed when the `VIRUSTOTAL_API_KEY` secret is detected.
+
 ## [`6.10.0` (2026-04-02)](https://github.com/kdeldycke/repomatic/compare/v6.9.0...v6.10.0)
 
 - Add `brand-assets` skill to create and export project logo/banner SVG assets to light/dark PNG variants.

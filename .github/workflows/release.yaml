@@ -8,6 +8,8 @@ name: 🚀 Build & release
         required: false
       REPOMATIC_PAT:
         required: false
+      VIRUSTOTAL_API_KEY:
+        required: false
     outputs:
       nuitka_matrix:
         description: Nuitka build matrix
@@ -148,6 +150,20 @@ jobs:
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
         with:
           subject-path: ./dist/*
+      - name: Verify build attestations
+        if: >-
+          github.event_name != 'pull_request'
+          || !github.event.pull_request.head.repo.fork
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          for f in ./dist/*; do
+            echo "Verifying: ${f}"
+            gh attestation verify "${f}" \
+              --repo "${{ github.repository }}" \
+              --signer-repo kdeldycke/repomatic
+          done
       - name: Upload artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
@@ -241,12 +257,39 @@ jobs:
           if-no-files-found: warn
           path: ${{ matrix.bin_name }}
       - name: Generate binary attestation
+        id: attest-binary
         if: >-
           github.ref == 'refs/heads/main'
           && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
         with:
           subject-path: ${{ matrix.bin_name }}
+      - name: Verify binary attestation
+        if: >-
+          github.ref == 'refs/heads/main'
+          && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BIN_NAME: ${{ matrix.bin_name }}
+        shell: bash
+        run: >
+          gh attestation verify "${BIN_NAME}"
+          --repo "${{ github.repository }}"
+          --signer-repo kdeldycke/repomatic
+      - name: Upload attestation bundle to GitHub release
+        if: >-
+          github.ref == 'refs/heads/main'
+          && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
+          && steps.attest-binary.outputs.bundle-path
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          BUNDLE_PATH: ${{ steps.attest-binary.outputs.bundle-path }}
+        shell: bash
+        run: >
+          gh release upload "v${CURRENT_VERSION}"
+          "${BUNDLE_PATH}"
+          --repo "${{ github.repository }}"
       - name: Upload binary to GitHub release
         if: >-
           github.ref == 'refs/heads/main'
@@ -358,6 +401,18 @@ jobs:
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
         with:
           subject-path: "${{ steps.download.outputs.download-path }}/*"
+      - name: Verify PyPI attestations
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOWNLOAD_PATH: ${{ steps.download.outputs.download-path }}
+        shell: bash
+        run: |
+          for f in "${DOWNLOAD_PATH}"/*; do
+            echo "Verifying: ${f}"
+            gh attestation verify "${f}" \
+              --repo "${{ github.repository }}" \
+              --signer-repo kdeldycke/repomatic
+          done
       - name: Push to PyPI
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
@@ -403,10 +458,33 @@ jobs:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
       - name: Generate attestations
         # Do not try to attest artifacts if none have been downloaded.
+        id: attest-release
         if: steps.artifacts.outputs.download-path
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
         with:
           subject-path: release_artifact/*
+      - name: Verify release attestations
+        if: steps.artifacts.outputs.download-path
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          for f in release_artifact/*; do
+            echo "Verifying: ${f}"
+            gh attestation verify "${f}" \
+              --repo "${{ github.repository }}" \
+              --signer-repo kdeldycke/repomatic
+          done
+      - name: Upload attestation bundle to GitHub release draft
+        if: steps.attest-release.outputs.bundle-path
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          BUNDLE_PATH: ${{ steps.attest-release.outputs.bundle-path }}
+        run: >
+          gh release upload "v${CURRENT_VERSION}"
+          "${BUNDLE_PATH}"
+          --repo "${{ github.repository }}"
       - name: Delete dev pre-release
         # Clean up all rolling dev releases before creating the real release.
         # See repomatic/github/dev_release.py for rationale.
@@ -466,6 +544,43 @@ jobs:
           gh release edit "v${CURRENT_VERSION}"
           --draft=false
           --repo "${REPO}"
+
+  scan-virustotal:
+    name: 🛡️ VirusTotal scan (${{ matrix.short_sha }})
+    needs:
+      - metadata
+      - publish-release
+    # Run after publish-release so the release exists. Skip if no VT key or no binaries.
+    if: >-
+      always()
+      && needs.publish-release.result == 'success'
+      && secrets.VIRUSTOTAL_API_KEY
+    strategy:
+      matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    steps:
+      - name: Download release binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+        run: >
+          gh release download "v${CURRENT_VERSION}"
+          --repo "${{ github.repository }}"
+          --pattern "*.bin"
+          --pattern "*.exe"
+          --dir ./binaries
+      - name: Upload to VirusTotal
+        # Free-tier API allows 4 requests/minute. The action handles rate limiting internally.
+        uses: crazy-max/ghaction-virustotal@936d8c5c00afe97d3d9a1af26d017cfdf26800a2 # v5.0.0
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          update_release_body: true
+          github_token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          request_rate: 4
+          files: |
+            ./binaries/*
 
   sync-dev-release:
     name: 🔄 Sync dev pre-release

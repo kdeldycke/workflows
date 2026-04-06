@@ -536,6 +536,7 @@ def run_repo_lint(
     keywords: list[str] | None = None,
     repo: str | None = None,
     has_pat: bool = False,
+    has_virustotal_key: bool = False,
     sha: str | None = None,
 ) -> int:
     """Run all repository lint checks.
@@ -549,6 +550,7 @@ def run_repo_lint(
     :param keywords: Keywords list from pyproject.toml.
     :param repo: Repository in 'owner/repo' format.
     :param has_pat: Whether ``GH_TOKEN`` contains ``REPOMATIC_PAT``.
+    :param has_virustotal_key: Whether ``VIRUSTOTAL_API_KEY`` is configured.
     :param sha: Commit SHA for permission checks.
     :return: Exit code (0 for success, 1 for errors).
     """
@@ -622,6 +624,19 @@ def run_repo_lint(
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
+
+    # Check 9: VIRUSTOTAL_API_KEY secret (warning).
+    if has_virustotal_key:
+        print("✓ VIRUSTOTAL_API_KEY secret is configured.")
+    else:
+        vt_msg = (
+            "VIRUSTOTAL_API_KEY secret is not configured."
+            " Release binaries will not be submitted to VirusTotal."
+            " Get a free API key at https://www.virustotal.com/gui/my-apikey"
+            " and add it as a repository secret."
+        )
+        emit_annotation(AnnotationLevel.WARNING, vt_msg)
+        print(f"⚠ {vt_msg}")
 
     # PAT capability checks (only when REPOMATIC_PAT is configured).
     if not has_pat or not repo:
