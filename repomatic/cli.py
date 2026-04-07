@@ -2185,7 +2185,7 @@ def setup_guide(
         has_issues=needs_issue,
         body_file=setup_body_file,
         labels=["🤖 ci"],
-        title="Set up `REPOMATIC_PAT` to enable workflow auto-updates",
+        title="Repomatic setup guide",
         no_issues_comment=(
             "PAT configured, all permissions verified, repository settings complete."
         ),

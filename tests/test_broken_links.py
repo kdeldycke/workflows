@@ -532,7 +532,7 @@ def test_setup_guide_no_pat_opens_setup_issue(mock_lifecycle, _mock_token):
     setup_kwargs = mock_lifecycle.call_args_list[0][1]
     assert setup_kwargs["has_issues"] is True
     assert setup_kwargs["labels"] == ["🤖 ci"]
-    assert "Set up" in setup_kwargs["title"]
+    assert setup_kwargs["title"] == "Repomatic setup guide"
 
 
 @patch("repomatic.github.token.validate_gh_token_env")
