@@ -155,7 +155,7 @@ exclude-newer = "1 week"
 # click-extra bypasses cooldown to pick up the freshly released 7.10.0.
 # pygments and requests bypass cooldown to pick up transitive security fixes immediately.
 # repomatic is pinned to git main.
-exclude-newer-package = { "click-extra" = "0 day", "pygments" = "0 day", "repomatic" = "0 day", "requests" = "0 day" }
+exclude-newer-package = { "click-extra" = "0 day",  "repomatic" = "0 day"  }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 

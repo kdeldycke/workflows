@@ -3,14 +3,12 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-03-30T09:37:19.156207Z"
+exclude-newer = "2026-03-31T03:44:39.303753574Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-04-06T09:37:19.156262Z", span = "PT0S" }
-pygments = { timestamp = "2026-04-06T09:37:19.156709Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-06T09:37:19.15671Z", span = "PT0S" }
-requests = { timestamp = "2026-04-06T09:37:19.15671Z", span = "PT0S" }
+click-extra = { timestamp = "2026-04-07T03:44:39.303763903Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-07T03:44:39.303769073Z", span = "PT0S" }
 
 [[package]]
 name = "annotated-types"
@@ -400,11 +398,11 @@ wheels = [
 
 [[package]]
 name = "extra-platforms"
-version = "11.0.3"
+version = "11.0.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d6/ee/372b3699b3e1cfc7f35430ab14d91b1fb04eff032b96f17a1a7e69a279ac/extra_platforms-11.0.3.tar.gz", hash = "sha256:56225020fe60859bdd27549311b8efc5e3213f79c7851292d9f07189ee730ec1", size = 68476, upload-time = "2026-03-23T07:08:57.234Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/3d/28f6523feeae961d5927d91f99a3626c8a1f8dcd426a78f353bd889a3ea4/extra_platforms-11.0.4.tar.gz", hash = "sha256:9f9471bb8063fcd49caef9b97625f9e2405c678f0ffe809e4442160dcb80c188", size = 68727, upload-time = "2026-03-30T20:47:24.392Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/88/7b6d5dabe7f2b2b3afc24a6640ea496fab83688d33df4132efcced91f57c/extra_platforms-11.0.3-py3-none-any.whl", hash = "sha256:0e44e9f09c3584a8aab34d0044a028e95b407d0e60c46631055a8e172446de02", size = 72330, upload-time = "2026-03-23T07:08:55.987Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/d8/cb7bad907a90dd61d681fa497da2c0c0f6e142c3bc913aaf6fc8831daac5/extra_platforms-11.0.4-py3-none-any.whl", hash = "sha256:1981c3afcf6628a941f71d7fa6b25aeb0e9232e20dd708f8114fe8b5b2f9132a", size = 72308, upload-time = "2026-03-30T20:47:25.475Z" },
 ]
 
 [[package]]
@@ -488,15 +486,15 @@ wheels = [
 
 [[package]]
 name = "lizard"
-version = "1.21.2"
+version = "1.21.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pathspec" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a7/d5/7af5493043af4f10ad52b46b6271f0d3ba3d04500fdc835f27bfd606604d/lizard-1.21.2.tar.gz", hash = "sha256:bb45c354cd30bf9081bb81e2b22d26774f5974937c6a742903180d4c1bbb7602", size = 90385, upload-time = "2026-03-02T07:11:31.22Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/d6/a7f74c89581af38586d5bfed446dde0890c72735e1a2c937cdbd10cab033/lizard-1.21.3.tar.gz", hash = "sha256:dfe00764f22ca761873fcc9e02a5b6d856baab4a1578af799c0d4a494af04300", size = 90394, upload-time = "2026-03-30T08:36:56.97Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/5b/622b5e2577aacbe20a002e71b3ac9c9a4428cf3c312d648c4ec6950750b8/lizard-1.21.2-py2.py3-none-any.whl", hash = "sha256:d628a63fe0ad1ccff8e8f648e8dc9621f3a85ff754106dcc32b62cd0fc877802", size = 98235, upload-time = "2026-03-02T07:11:28.523Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/16/b4a1b9f4fcf104308ef9958528366fd9fea21772928ddd25b835f2c1e9a8/lizard-1.21.3-py2.py3-none-any.whl", hash = "sha256:6a503a8f2ee0ae3a216848fcb1ac841bf6293a047c634c6c215d813badbe9d4d", size = 98316, upload-time = "2026-03-30T08:36:55.043Z" },
 ]
 
 [[package]]
