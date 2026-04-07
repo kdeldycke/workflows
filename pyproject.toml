@@ -126,6 +126,7 @@ repomatic = "repomatic.__main__:main"
 "Repository" = "https://github.com/kdeldycke/repomatic"
 
 # Non-runtime development dependency groups.
+
 [dependency-groups]
 test = [
   # coverage 7.11.0 dropped Python 3.9, matching our requires-python >= 3.10.
