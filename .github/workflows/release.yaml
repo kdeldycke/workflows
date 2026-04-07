@@ -180,13 +180,9 @@ jobs:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} build"
     needs:
       - metadata
-      - create-release
     # Skip binary compilation for branches that don't affect code (e.g., update-mailmap, format-markdown).
-    # Use always() because create-release is skipped on non-release pushes and PRs.
     if: >-
-      always()
-      && needs.metadata.result == 'success'
-      && fromJSON(needs.metadata.outputs.metadata).nuitka_matrix
+      fromJSON(needs.metadata.outputs.metadata).nuitka_matrix
       && !(fromJSON(needs.metadata.outputs.metadata).skip_binary_build || false)
     strategy:
       matrix: ${{ fromJSON(needs.metadata.outputs.metadata).nuitka_matrix }}
@@ -196,7 +192,7 @@ jobs:
     permissions:
       id-token: write
       attestations: write
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -282,33 +278,15 @@ jobs:
           gh attestation verify "${BIN_NAME}"
           --repo "${{ github.repository }}"
           --signer-repo kdeldycke/repomatic
-      - name: Upload attestation bundle to GitHub release
+      - name: Upload attestation bundle
         if: >-
           github.ref == 'refs/heads/main'
           && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
           && steps.attest-binary.outputs.bundle-path
-        env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-          CURRENT_VERSION: ${{ matrix.current_version }}
-          BUNDLE_PATH: ${{ steps.attest-binary.outputs.bundle-path }}
-        shell: bash
-        run: >
-          gh release upload "v${CURRENT_VERSION}"
-          "${BUNDLE_PATH}"
-          --repo "${{ github.repository }}"
-      - name: Upload binary to GitHub release
-        if: >-
-          github.ref == 'refs/heads/main'
-          && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
-        env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-          CURRENT_VERSION: ${{ matrix.current_version }}
-          BIN_NAME: ${{ matrix.bin_name }}
-        shell: bash
-        run: >
-          gh release upload "v${CURRENT_VERSION}"
-          "${BIN_NAME}"
-          --repo "${{ github.repository }}"
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: attestation-${{ matrix.bin_name }}-${{ matrix.short_sha }}
+          path: ${{ steps.attest-binary.outputs.bundle-path }}
 
   test-binaries:
     name: "${{ matrix.state == 'stable' && '✅' || '⁉️' }} ${{ matrix.os }}, ${{ matrix.short_sha }} test"
@@ -385,8 +363,11 @@ jobs:
     needs:
       - metadata
       - build-package
-      - create-tag
-    if: fromJSON(needs.metadata.outputs.metadata).package_name
+    # Guard release_commits_matrix: without create-tag gating this job, it would attempt to run
+    # on non-release pushes where the matrix is null.
+    if: >-
+      fromJSON(needs.metadata.outputs.metadata).package_name
+      && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
     strategy:
       matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
     runs-on: ubuntu-slim
@@ -433,7 +414,6 @@ jobs:
       - metadata
       - build-package
       - create-tag
-      - publish-pypi
     # Make sure this job always starts if create-tag ran and succeeded.
     if: always() && needs.create-tag.result == 'success'
     strategy:
@@ -495,10 +475,7 @@ jobs:
           CURRENT_VERSION: ${{ matrix.current_version }}
           COMMIT: ${{ matrix.commit }}
           REPO: ${{ github.repository }}
-          RELEASE_NOTES: >-
-            ${{ needs.publish-pypi.result == 'success'
-                && fromJSON(needs.metadata.outputs.metadata).release_notes_with_admonition
-                || fromJSON(needs.metadata.outputs.metadata).release_notes }}
+          RELEASE_NOTES: ${{ fromJSON(needs.metadata.outputs.metadata).release_notes }}
         run: |
           tag="v${CURRENT_VERSION}"
           if gh release view "${tag}" --repo "${REPO}" > /dev/null 2>&1; then
@@ -531,6 +508,7 @@ jobs:
       - metadata
       - create-release
       - compile-binaries
+      - publish-pypi
     # Wait for all upstream jobs regardless of result, but only publish if the draft was created.
     if: >-
       always()
@@ -541,6 +519,39 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Download binary and attestation artifacts
+        if: needs.compile-binaries.result == 'success'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: "*-${{ matrix.short_sha }}"
+          path: ./compile-assets
+          merge-multiple: true
+      - name: Upload binaries and attestation bundles to release
+        # Exclude Python packages (.tar.gz, .whl) already uploaded by create-release.
+        if: needs.compile-binaries.result == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+        shell: bash
+        run: |
+          shopt -s nullglob extglob
+          files=(./compile-assets/!(*.tar.gz|*.whl))
+          if [[ ${#files[@]} -gt 0 ]]; then
+            gh release upload "v${CURRENT_VERSION}" \
+              "${files[@]}" \
+              --repo "${{ github.repository }}" \
+              --clobber
+          fi
+      - name: Update release notes with PyPI admonition
+        if: needs.publish-pypi.result == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          RELEASE_NOTES: ${{ fromJSON(needs.metadata.outputs.metadata).release_notes_with_admonition }}
+        run: |
+          gh release edit "v${CURRENT_VERSION}" \
+            --notes-file - \
+            --repo "${{ github.repository }}" <<< "${RELEASE_NOTES}"
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
@@ -595,7 +606,7 @@ jobs:
       - build-package
       - compile-binaries
     # Run on non-release pushes to main after builds complete.
-    # Uses always() because compile-binaries depends on create-release (skipped for non-release pushes).
+    # Uses always() because compile-binaries may be skipped (no nuitka_matrix or skip_binary_build).
     if: >-
       always()
       && github.ref == 'refs/heads/main'
