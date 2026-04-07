@@ -25,6 +25,7 @@ from unittest.mock import patch
 import pytest
 
 from repomatic.github.token import check_commit_statuses_permission
+from repomatic.pypi import get_changelog_url
 from repomatic.renovate import (
     RenovateCheckResult,
     check_dependabot_config_absent,
@@ -34,12 +35,11 @@ from repomatic.renovate import (
     get_dependabot_config_path,
     run_migration_checks,
 )
-from repomatic.pypi import get_changelog_url
 from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
     _format_upload_date,
-    _parse_github_owner_repo,
     _packages_outside_cooldown,
+    _parse_github_owner_repo,
     _parse_iso_datetime,
     _parse_relative_duration,
     add_exclude_newer_packages,
@@ -741,10 +741,7 @@ def test_add_exclude_newer_packages_no_uv_section(tmp_path):
 def test_packages_outside_cooldown_filters_reachable(tmp_path):
     """Packages whose upload time is before the cutoff are not exempted."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        "[tool.uv]\n"
-        'exclude-newer = "2026-04-01T00:00:00Z"\n'
-    )
+    pyproject.write_text('[tool.uv]\nexclude-newer = "2026-04-01T00:00:00Z"\n')
     lock = tmp_path / "uv.lock"
     lock.write_text(
         "version = 1\n\n"
@@ -760,7 +757,9 @@ def test_packages_outside_cooldown_filters_reachable(tmp_path):
         'upload-time = "2026-03-25T00:00:00Z"\n'
     )
     result = _packages_outside_cooldown(
-        pyproject, lock, {"pygments", "requests"},
+        pyproject,
+        lock,
+        {"pygments", "requests"},
     )
     assert result == set()
 
@@ -768,10 +767,7 @@ def test_packages_outside_cooldown_filters_reachable(tmp_path):
 def test_packages_outside_cooldown_keeps_unreachable(tmp_path):
     """Packages uploaded after the cutoff need an exemption."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        "[tool.uv]\n"
-        'exclude-newer = "2026-03-25T00:00:00Z"\n'
-    )
+    pyproject.write_text('[tool.uv]\nexclude-newer = "2026-03-25T00:00:00Z"\n')
     lock = tmp_path / "uv.lock"
     lock.write_text(
         "version = 1\n\n"
@@ -787,7 +783,9 @@ def test_packages_outside_cooldown_keeps_unreachable(tmp_path):
         'upload-time = "2026-03-20T00:00:00Z"\n'
     )
     result = _packages_outside_cooldown(
-        pyproject, lock, {"pygments", "requests"},
+        pyproject,
+        lock,
+        {"pygments", "requests"},
     )
     # Only pygments is after the cutoff.
     assert result == {"pygments"}
@@ -796,10 +794,7 @@ def test_packages_outside_cooldown_keeps_unreachable(tmp_path):
 def test_packages_outside_cooldown_no_upload_time(tmp_path):
     """Packages without upload times are always exempted."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        "[tool.uv]\n"
-        'exclude-newer = "2026-04-01T00:00:00Z"\n'
-    )
+    pyproject.write_text('[tool.uv]\nexclude-newer = "2026-04-01T00:00:00Z"\n')
     lock = tmp_path / "uv.lock"
     lock.write_text(
         "version = 1\n\n"
@@ -1278,7 +1273,10 @@ def test_format_release_notes_changelog_fallback():
     result = format_release_notes(notes)
     assert "<details>" in result
     assert "<summary>dpranke/pyjson5 (<code>json5</code>)</summary>" in result
-    assert "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)" in result
+    assert (
+        "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)"
+        in result
+    )
     # No tag heading should appear.
     assert "#### [" not in result
     assert "</details>" in result

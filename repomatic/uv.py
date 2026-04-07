@@ -37,8 +37,10 @@ from urllib.request import Request, urlopen
 
 import tomlkit
 
-from .pypi import get_changelog_url as get_pypi_changelog_url
-from .pypi import get_source_url as get_pypi_source_url
+from .pypi import (
+    get_changelog_url as get_pypi_changelog_url,
+    get_source_url as get_pypi_source_url,
+)
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -927,9 +929,7 @@ def fetch_release_notes(
             changelog_url = get_pypi_changelog_url(name)
             if changelog_url:
                 body = f"[Changelog]({changelog_url})"
-                logging.debug(
-                    f"Using PyPI changelog URL for {name}: {changelog_url}"
-                )
+                logging.debug(f"Using PyPI changelog URL for {name}: {changelog_url}")
             else:
                 logging.debug(f"No release body or changelog for {name} {new}.")
         if body:
@@ -1065,7 +1065,9 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
     if pyproject_path.exists():
         upgraded = {name for name, _old, _new in changes}
         needs_exemption = _packages_outside_cooldown(
-            pyproject_path, lock_path, upgraded,
+            pyproject_path,
+            lock_path,
+            upgraded,
         )
         if needs_exemption:
             add_exclude_newer_packages(pyproject_path, needs_exemption)
