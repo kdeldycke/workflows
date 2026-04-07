@@ -345,6 +345,7 @@ GitHub Actions has several design limitations that the workflows work around:
   - Detects missing `REPOMATIC_PAT` secret and opens an issue with step-by-step setup instructions
   - When the PAT is present, validates all required permissions (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses) using the same checks as `lint-repo`
   - Keeps the issue open with a diagnostic table when the PAT exists but permissions are incomplete
+  - When Nuitka binary compilation is active, includes a VirusTotal API key setup step and keeps the issue open until the key is configured
   - Automatically closes the issue once the secret is configured and all permissions are verified
   - **Skipped if**:
     - upstream `kdeldycke/repomatic` repo, `workflow_call` events
@@ -597,7 +598,7 @@ docs = [
 
 - 🏠 **Lint repository metadata** (`lint-repo`)
 
-  - Validates repository metadata (package name, Sphinx docs, project description) and Dependabot configuration using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly. When `REPOMATIC_PAT` is configured, also validates PAT capabilities (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses permissions).
+  - Validates repository metadata (package name, Sphinx docs, project description) and Dependabot configuration using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly. When `REPOMATIC_PAT` is configured, also validates PAT capabilities (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses permissions). Warns about missing `VIRUSTOTAL_API_KEY` when Nuitka binary compilation is active.
   - **Requires**:
     - Python package (with a `pyproject.toml` file)
 

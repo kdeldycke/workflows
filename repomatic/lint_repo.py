@@ -537,6 +537,7 @@ def run_repo_lint(
     repo: str | None = None,
     has_pat: bool = False,
     has_virustotal_key: bool = False,
+    nuitka_active: bool = False,
     sha: str | None = None,
 ) -> int:
     """Run all repository lint checks.
@@ -625,18 +626,19 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 9: VIRUSTOTAL_API_KEY secret (warning).
-    if has_virustotal_key:
-        print("✓ VIRUSTOTAL_API_KEY secret is configured.")
-    else:
-        vt_msg = (
-            "VIRUSTOTAL_API_KEY secret is not configured."
-            " Release binaries will not be submitted to VirusTotal."
-            " Get a free API key at https://www.virustotal.com/gui/my-apikey"
-            " and add it as a repository secret."
-        )
-        emit_annotation(AnnotationLevel.WARNING, vt_msg)
-        print(f"⚠ {vt_msg}")
+    # Check 9: VIRUSTOTAL_API_KEY secret (warning, only when Nuitka builds are active).
+    if nuitka_active:
+        if has_virustotal_key:
+            print("✓ VIRUSTOTAL_API_KEY secret is configured.")
+        else:
+            vt_msg = (
+                "VIRUSTOTAL_API_KEY secret is not configured."
+                " Release binaries will not be submitted to VirusTotal."
+                " Get a free API key at https://www.virustotal.com/gui/my-apikey"
+                " and add it as a repository secret."
+            )
+            emit_annotation(AnnotationLevel.WARNING, vt_msg)
+            print(f"⚠ {vt_msg}")
 
     # PAT capability checks (only when REPOMATIC_PAT is configured).
     if not has_pat or not repo:

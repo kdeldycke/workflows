@@ -2111,15 +2111,19 @@ def setup_guide(
         passed=branch_ok,
     )
 
-    step_virustotal = _wrap_setup_step(
-        "Configure VirusTotal scanning (optional)",
-        render_template(
-            "setup-guide-virustotal",
-            repo_url=repo_url,
-            repo_slug=repo_slug,
-        ),
-        passed=has_virustotal_key,
-    )
+    # VirusTotal step: only relevant when Nuitka binary compilation is active.
+    nuitka_active = config.nuitka_enabled and bool(md.script_entries)
+    step_virustotal = ""
+    if nuitka_active:
+        step_virustotal = _wrap_setup_step(
+            "Configure VirusTotal scanning (optional)",
+            render_template(
+                "setup-guide-virustotal",
+                repo_url=repo_url,
+                repo_slug=repo_slug,
+            ),
+            passed=has_virustotal_key,
+        )
 
     step_verify = _wrap_setup_step(
         "Verify the setup",
@@ -2174,7 +2178,8 @@ def setup_guide(
 
     # Close issue only when all verifiable steps pass.
     # Immutable releases and verify are excluded (no API to check).
-    needs_issue = not (token_ok and dependabot_ok and branch_ok)
+    vt_ok = not nuitka_active or has_virustotal_key
+    needs_issue = not (token_ok and dependabot_ok and branch_ok and vt_ok)
 
     manage_issue_lifecycle(
         has_issues=needs_issue,
@@ -2811,7 +2816,7 @@ def lint_repo(
       - GitHub topics subset of pyproject.toml keywords (warning).
       - Funding file present when owner has GitHub Sponsors (warning).
       - Stale draft releases (non-.dev0 drafts) (warning).
-      - VIRUSTOTAL_API_KEY secret missing (warning).
+      - VIRUSTOTAL_API_KEY secret missing when Nuitka is active (warning).
 
     \b
     When --has-pat is set, additional PAT capability checks are run:
@@ -2846,6 +2851,9 @@ def lint_repo(
     project_description = metadata.project_description
     keywords = metadata.pyproject_toml.get("project", {}).get("keywords")
 
+    config = get_tool_config(ctx)
+    nuitka_active = config.nuitka_enabled and bool(metadata.script_entries)
+
     exit_code = run_repo_lint(
         package_name=package_name,
         repo_name=repo_name,
@@ -2855,6 +2863,7 @@ def lint_repo(
         repo=repo if repo else None,
         has_pat=has_pat,
         has_virustotal_key=has_virustotal_key,
+        nuitka_active=nuitka_active,
         sha=sha,
     )
     ctx.exit(exit_code)
