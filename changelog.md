@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.11.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.10.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.11.0` (2026-04-07)](https://github.com/kdeldycke/repomatic/compare/v6.10.0...v6.11.0)
 
 - Preserve extra downstream jobs when syncing thin-caller workflows. Previously, `repomatic init` and `workflow sync` in `thin-caller` mode would overwrite the entire file, destroying any project-specific jobs appended after the managed caller job (e.g., a Chocolatey publishing step in `release.yaml`). The managed job is now regenerated in place while extra jobs, comments, and blank lines are preserved.
 - Add VirusTotal scanning job to the release workflow. Uploads compiled binaries to VirusTotal after each release, seeding AV databases to reduce false positive detections on downstream distributors (Chocolatey, Scoop, etc.). Requires the optional `VIRUSTOTAL_API_KEY` repository secret.
