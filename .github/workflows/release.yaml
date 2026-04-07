@@ -481,16 +481,6 @@ jobs:
               --repo "${{ github.repository }}" \
               --signer-repo kdeldycke/repomatic
           done
-      - name: Upload attestation bundle to GitHub release draft
-        if: steps.attest-release.outputs.bundle-path
-        env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-          CURRENT_VERSION: ${{ matrix.current_version }}
-          BUNDLE_PATH: ${{ steps.attest-release.outputs.bundle-path }}
-        run: >
-          gh release upload "v${CURRENT_VERSION}"
-          "${BUNDLE_PATH}"
-          --repo "${{ github.repository }}"
       - name: Delete dev pre-release
         # Clean up all rolling dev releases before creating the real release.
         # See repomatic/github/dev_release.py for rationale.
@@ -524,6 +514,16 @@ jobs:
               --notes-file - \
               "${files[@]}" <<< "${RELEASE_NOTES}"
           fi
+      - name: Upload attestation bundle to GitHub release draft
+        if: steps.attest-release.outputs.bundle-path
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+          BUNDLE_PATH: ${{ steps.attest-release.outputs.bundle-path }}
+        run: >
+          gh release upload "v${CURRENT_VERSION}"
+          "${BUNDLE_PATH}"
+          --repo "${{ github.repository }}"
 
   publish-release:
     name: 🎉 Publish GitHub release (${{ matrix.short_sha }})
