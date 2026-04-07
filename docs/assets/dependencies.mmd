@@ -12,6 +12,7 @@ flowchart LR
         packaging{{"`packaging`"}}
         boltons{{"`boltons`"}}
         extra_platforms{{"`extra-platforms`"}}
+        tomlkit{{"`tomlkit`"}}
         backports_strenum{{"`backports-strenum`"}}
         pyyaml{{"`pyyaml`"}}
     end
@@ -53,7 +54,6 @@ flowchart LR
     pytz(["`pytz`"])
     sly(["`sly`"])
     smmap(["`smmap`"])
-    tomlkit(["`tomlkit`"])
     types_pytz(["`types-pytz`"])
     urllib3(["`urllib3`"])
 
@@ -76,7 +76,7 @@ flowchart LR
     end
 
     repomatic ==>|" >=1.2.6 "| bump_my_version
-    repomatic ==>|" >=7.10.0 "| click_extra
+    repomatic ==>|" >=7.10.1 "| click_extra
     repomatic ==>|" >=2 "| pydriller
     repomatic ==>|" >=2 "| tomli
     repomatic ==>|" >=10 "| wcmatch
@@ -85,6 +85,7 @@ flowchart LR
     repomatic ==>|" >=8 "| extra_platforms
     repomatic ==>|" >=0.3.1 "| py_walk
     repomatic ==>|" >=0.9 "| pyproject_metadata
+    repomatic ==>|" >=0.13 "| tomlkit
     repomatic ==>|" >=1 "| backports_strenum
     repomatic ==>|" >=6.0.3 "| pyyaml
     pytest ==> tomli
@@ -102,7 +103,7 @@ flowchart LR
     bump_my_version --> rich
     bump_my_version ==> wcmatch
     bump_my_version --> questionary
-    bump_my_version --> tomlkit
+    bump_my_version ==> tomlkit
     click_extra --> click_0
     click_extra --> requests
     click_extra ==> tomli
@@ -255,6 +256,7 @@ flowchart LR
     style pytest_xdist stroke-width:3px
     style pyyaml stroke-width:3px
     style tomli stroke-width:3px
+    style tomlkit stroke-width:3px
     style types_boltons stroke-width:3px
     style types_pyyaml stroke-width:3px
     style wcmatch stroke-width:3px
