@@ -13,7 +13,10 @@
 - Add VirusTotal API key setup step to the setup guide issue. The step only appears when Nuitka compilation is active (i.e., `nuitka-enabled` is `true` and the project has script entries). When shown, a missing key keeps the setup guide issue open.
 - Remove bumpversion dev-versioning migration code. All downstream repos have been migrated to PEP 440 dev versioning; the one-time `.dev0` suffix injection and managed-file update logic is no longer needed.
 
-## [`6.10.0` (2026-04-02)](https://github.com/kdeldycke/repomatic/compare/v6.9.0...v6.10.0)
+## [`6.10.0` (2026-04-03)](https://github.com/kdeldycke/repomatic/compare/v6.9.0...v6.10.0)
+
+> [!NOTE]
+> `6.10.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.10.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.10.0).
 
 - Add `brand-assets` skill to create and export project logo/banner SVG assets to light/dark PNG variants.
 - Add `babysit-ci` skill to monitor CI test workflows, diagnose failures, fix code, and loop until all stable jobs pass.
