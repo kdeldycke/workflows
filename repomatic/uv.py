@@ -374,6 +374,64 @@ def _parse_iso_datetime(iso_str: str) -> datetime | None:
         return None
 
 
+def _packages_outside_cooldown(
+    pyproject_path: Path,
+    lock_path: Path,
+    packages: set[str],
+) -> set[str]:
+    """Return the subset of *packages* whose upload time exceeds the cooldown.
+
+    A package needs an ``exclude-newer-package`` exemption only when its locked
+    version was uploaded *after* the ``exclude-newer`` cutoff, meaning a regular
+    ``uv lock --upgrade`` would not resolve it.
+
+    :param pyproject_path: Path to the ``pyproject.toml`` file.
+    :param lock_path: Path to the ``uv.lock`` file.
+    :param packages: Candidate package names.
+    :return: The subset that actually requires a ``"0 day"`` override.
+    """
+    content = pyproject_path.read_text(encoding="UTF-8")
+    doc = tomlkit.parse(content)
+    exclude_newer_str = doc.get("tool", {}).get("uv", {}).get("exclude-newer", "")
+    if not exclude_newer_str:
+        return packages
+
+    cutoff: datetime | None = None
+    duration = _parse_relative_duration(exclude_newer_str)
+    if duration is not None:
+        cutoff = datetime.now(timezone.utc) - duration
+    else:
+        cutoff = _parse_iso_datetime(exclude_newer_str)
+    if cutoff is None:
+        # Cannot determine window: be safe and exempt everything.
+        return packages
+
+    upload_times = parse_lock_upload_times(lock_path)
+    outside: set[str] = set()
+    for pkg in packages:
+        upload_str = upload_times.get(pkg, "")
+        if not upload_str:
+            # No upload time (git/path source): exempt to be safe.
+            outside.add(pkg)
+            continue
+        upload_dt = _parse_iso_datetime(upload_str)
+        if upload_dt is None:
+            outside.add(pkg)
+            continue
+        if upload_dt >= cutoff:
+            logging.info(
+                f"Exempting {pkg}: upload time {upload_str} is after"
+                " the exclude-newer cutoff."
+            )
+            outside.add(pkg)
+        else:
+            logging.info(
+                f"Skipping exemption for {pkg}: upload time {upload_str}"
+                " is within the exclude-newer window."
+            )
+    return outside
+
+
 def add_exclude_newer_packages(
     pyproject_path: Path,
     packages: set[str],
@@ -985,12 +1043,17 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
         logging.info("No version changes after upgrading vulnerable packages.")
         return False, ""
 
-    # Step 7: Persist cooldown exemptions in pyproject.toml so sync-uv-lock
-    # does not revert the security upgrades.
+    # Step 7: Persist cooldown exemptions only for packages whose fixed
+    # version falls outside the exclude-newer window. Packages already
+    # reachable by a normal ``uv lock --upgrade`` do not need an override.
     pyproject_path = lock_path.parent / "pyproject.toml"
     if pyproject_path.exists():
         upgraded = {name for name, _old, _new in changes}
-        add_exclude_newer_packages(pyproject_path, upgraded)
+        needs_exemption = _packages_outside_cooldown(
+            pyproject_path, lock_path, upgraded,
+        )
+        if needs_exemption:
+            add_exclude_newer_packages(pyproject_path, needs_exemption)
 
     # Step 8: Build the combined output.
     vuln_table = format_vulnerability_table(vulns)

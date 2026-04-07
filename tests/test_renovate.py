@@ -38,6 +38,7 @@ from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
     _format_upload_date,
     _parse_github_owner_repo,
+    _packages_outside_cooldown,
     _parse_iso_datetime,
     _parse_relative_duration,
     add_exclude_newer_packages,
@@ -734,6 +735,95 @@ def test_add_exclude_newer_packages_no_uv_section(tmp_path):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text("[project]\nname = 'foo'\n")
     assert add_exclude_newer_packages(pyproject, {"requests"}) is False
+
+
+def test_packages_outside_cooldown_filters_reachable(tmp_path):
+    """Packages whose upload time is before the cutoff are not exempted."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "2026-04-01T00:00:00Z"\n'
+    )
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "pygments"\nversion = "2.20.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/pygments.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2026-03-29T00:00:00Z"\n\n'
+        '[[package]]\nname = "requests"\nversion = "2.33.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/requests.tar.gz"\n'
+        'hash = "sha256:def"\n'
+        'upload-time = "2026-03-25T00:00:00Z"\n'
+    )
+    result = _packages_outside_cooldown(
+        pyproject, lock, {"pygments", "requests"},
+    )
+    assert result == set()
+
+
+def test_packages_outside_cooldown_keeps_unreachable(tmp_path):
+    """Packages uploaded after the cutoff need an exemption."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "2026-03-25T00:00:00Z"\n'
+    )
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "pygments"\nversion = "2.20.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/pygments.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2026-03-29T00:00:00Z"\n\n'
+        '[[package]]\nname = "requests"\nversion = "2.33.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/requests.tar.gz"\n'
+        'hash = "sha256:def"\n'
+        'upload-time = "2026-03-20T00:00:00Z"\n'
+    )
+    result = _packages_outside_cooldown(
+        pyproject, lock, {"pygments", "requests"},
+    )
+    # Only pygments is after the cutoff.
+    assert result == {"pygments"}
+
+
+def test_packages_outside_cooldown_no_upload_time(tmp_path):
+    """Packages without upload times are always exempted."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        "[tool.uv]\n"
+        'exclude-newer = "2026-04-01T00:00:00Z"\n'
+    )
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "repomatic"\nversion = "6.8.0"\n'
+        'source = { git = "https://github.com/kdeldycke/repomatic" }\n'
+    )
+    result = _packages_outside_cooldown(pyproject, lock, {"repomatic"})
+    assert result == {"repomatic"}
+
+
+def test_packages_outside_cooldown_no_exclude_newer(tmp_path):
+    """All packages are exempted when no exclude-newer is configured."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("[tool.uv]\n")
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        '[[package]]\nname = "requests"\nversion = "2.33.0"\n'
+        "[package.sdist]\n"
+        'url = "https://example.com/requests.tar.gz"\n'
+        'hash = "sha256:abc"\n'
+        'upload-time = "2026-03-20T00:00:00Z"\n'
+    )
+    result = _packages_outside_cooldown(pyproject, lock, {"requests"})
+    assert result == {"requests"}
 
 
 @pytest.mark.parametrize(
