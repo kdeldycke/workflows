@@ -216,8 +216,9 @@ def test_get_template_names():
     assert "unavailable-admonition" in names
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
+    assert "setup-guide-virustotal" in names
     assert "yanked-admonition" in names
-    assert len(names) == 38
+    assert len(names) == 39
 
 
 def test_load_template_frontmatter():
@@ -497,6 +498,7 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "setup-guide-dependabot",
     "setup-guide-token",
     "setup-guide-verify",
+    "setup-guide-virustotal",
     "unavailable-admonition",
     "unsubscribe-phase1",
     "unsubscribe-phase2",

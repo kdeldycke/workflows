@@ -541,9 +541,23 @@ def _format_type(annotation: str) -> str:
     """Simplify a type annotation string for the reference table.
 
     Strips ``| None`` suffixes since the default column already shows whether
-    ``None`` is the default.
+    ``None`` is the default. Escapes outer brackets in nested generic types so
+    the output is stable under mdformat (which escapes ``[`` to ``\\[`` to
+    prevent spurious link detection).
     """
-    return annotation.replace(" | None", "")
+    result = annotation.replace(" | None", "")
+    # Escape the outermost brackets only when they contain nested brackets
+    # (e.g. ``list[dict[str, str]]`` → ``list\\[dict[str, str]\\]``).
+    # mdformat escapes these to prevent spurious markdown link detection.
+    # Simple generics like ``list[str]`` have no nested brackets and stay
+    # unescaped.
+    if "[" in result:
+        first = result.index("[")
+        last = result.rindex("]")
+        inner = result[first + 1 : last]
+        if "[" in inner:
+            result = result[:first] + "\\[" + inner + "\\]" + result[last + 1 :]
+    return result
 
 
 CONFIG_REFERENCE_HEADERS = ("Option", "Type", "Default", "Description")

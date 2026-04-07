@@ -559,7 +559,8 @@ def test_explicit_secrets_passed(tmp_path: Path) -> None:
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n"
         "    secrets:\n"
         "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n"
-        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n",
+        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n"
+        "      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}\n",
         encoding="UTF-8",
     )
     result = check_secrets_passed(wf, "release.yaml")
@@ -614,7 +615,8 @@ def test_no_secrets_needed(tmp_path: Path) -> None:
         "---\njobs:\n  lint:\n"
         f"    uses: {DEFAULT_REPO}/.github/workflows/lint.yaml@v5.8.0\n"
         "    secrets:\n"
-        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n",
+        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n"
+        "      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}\n",
         encoding="UTF-8",
     )
     result = check_secrets_passed(wf, "lint.yaml")
