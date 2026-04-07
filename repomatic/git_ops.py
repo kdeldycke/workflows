@@ -50,9 +50,7 @@ SHORT_SHA_LENGTH = 7
     depends on the size of the repository.
 """
 
-GITHUB_REMOTE_PATTERN = re.compile(
-    r"github\.com[:/](?P<slug>[^/]+/[^/]+?)(?:\.git)?$"
-)
+GITHUB_REMOTE_PATTERN = re.compile(r"github\.com[:/](?P<slug>[^/]+/[^/]+?)(?:\.git)?$")
 """Extracts an ``owner/repo`` slug from a GitHub remote URL.
 
 Handles both HTTPS (``https://github.com/owner/repo.git``) and SSH

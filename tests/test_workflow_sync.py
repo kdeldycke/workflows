@@ -358,7 +358,7 @@ def test_identify_custom_repo(tmp_path: Path) -> None:
 def test_extract_extra_jobs_single() -> None:
     """Preserve a single extra downstream job."""
     content = (
-        "---\nname: Release\n\"on\":\n  push:\n    branches:\n"
+        '---\nname: Release\n"on":\n  push:\n    branches:\n'
         "      - main\n  workflow_dispatch:\n\njobs:\n\n  release:\n"
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v6.0.0\n"
         "    secrets:\n"

@@ -34,9 +34,7 @@ README = REPO_ROOT / "readme.md"
 # Different path lengths also cause different line-wrapping in the help output.
 # Strip the entire --config block (from "--config" to "--no-config") so the
 # README (written on macOS) matches CI (Linux/Windows).
-_CONFIG_OPTION_RE = re.compile(
-    r"  --config CONFIG_PATH.+?(?=  --no-config)", re.DOTALL
-)
+_CONFIG_OPTION_RE = re.compile(r"  --config CONFIG_PATH.+?(?=  --no-config)", re.DOTALL)
 
 
 def _readme_text() -> str:
