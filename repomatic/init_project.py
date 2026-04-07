@@ -49,6 +49,8 @@ from importlib.resources import as_file, files
 from pathlib import Path, PurePosixPath
 from urllib.request import urlretrieve
 
+import tomlkit
+
 from . import __version__
 from .config import Config, load_repomatic_config
 from .pyproject import resolve_source_paths
@@ -69,8 +71,6 @@ from .registry import (
     parse_component_entries,
 )
 from .tool_runner import TOOL_REGISTRY, find_unmodified_configs
-
-import tomlkit
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -862,9 +862,7 @@ def _init_workflows(
         )
         # Preserve extra downstream jobs from the existing file.
         if existed:
-            extra = extract_extra_jobs(
-                target.read_text(encoding="UTF-8"), repo
-            )
+            extra = extract_extra_jobs(target.read_text(encoding="UTF-8"), repo)
             if extra:
                 content += extra
         target.write_text(content, encoding="UTF-8")

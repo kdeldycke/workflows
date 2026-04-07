@@ -566,9 +566,7 @@ def extract_extra_jobs(
     if not isinstance(jobs, dict):
         return ""
 
-    uses_pattern = re.compile(
-        rf"^{re.escape(repo)}/\.github/workflows/[^@]+@.+$"
-    )
+    uses_pattern = re.compile(rf"^{re.escape(repo)}/\.github/workflows/[^@]+@.+$")
     managed_key = None
     for key, config in jobs.items():
         if isinstance(config, dict) and uses_pattern.match(config.get("uses", "")):
@@ -1073,9 +1071,7 @@ def generate_workflows(
 
             # Preserve extra downstream jobs from the existing file.
             if target.exists():
-                extra = extract_extra_jobs(
-                    target.read_text(encoding="UTF-8"), repo
-                )
+                extra = extract_extra_jobs(target.read_text(encoding="UTF-8"), repo)
                 if extra:
                     content += extra
 
