@@ -1109,7 +1109,7 @@ def test_format_release_notes():
     result = format_release_notes(notes)
     assert "### Release notes" in result
     assert "<details>" in result
-    assert "<summary>nedbat/coveragepy (coverage)</summary>" in result
+    assert "<summary>nedbat/coveragepy (<code>coverage</code>)</summary>" in result
     assert (
         "[`v7.13.5`](https://github.com/nedbat/coveragepy/releases/tag/v7.13.5)"
         in result

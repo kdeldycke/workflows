@@ -889,7 +889,7 @@ def format_release_notes(notes: dict[str, tuple[str, str, str]]) -> str:
         owner, repo = parsed
         release_url = f"{repo_url}/releases/tag/{tag}"
         lines.append("<details>")
-        lines.append(f"<summary>{owner}/{repo} ({name})</summary>")
+        lines.append(f"<summary>{owner}/{repo} (<code>{name}</code>)</summary>")
         lines.append("")
         lines.append(f"#### [`{tag}`]({release_url})")
         lines.append("")
