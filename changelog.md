@@ -11,6 +11,7 @@
 - Upload Sigstore attestation bundles (`.jsonl`) as GitHub release assets for compiled binaries and Python packages, enabling offline verification.
 - Add `VIRUSTOTAL_API_KEY` warning to `lint-repo`. Emits a non-fatal warning when the secret is missing.
 - Add VirusTotal API key setup step to the setup guide issue. The step is optional and marked as passed when the `VIRUSTOTAL_API_KEY` secret is detected.
+- Remove bumpversion dev-versioning migration code. All downstream repos have been migrated to PEP 440 dev versioning; the one-time `.dev0` suffix injection and managed-file update logic is no longer needed.
 
 ## [`6.10.0` (2026-04-02)](https://github.com/kdeldycke/repomatic/compare/v6.9.0...v6.10.0)
 

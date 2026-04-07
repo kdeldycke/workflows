@@ -893,11 +893,16 @@ def test_init_with_single_tool_config(tmp_path: Path):
 PYPROJECT_WITH_BUMPVERSION = """\
 [project]
 name = "test-project"
-version = "7.5.3"
+version = "7.5.3.dev0"
 
 [tool.bumpversion]
-current_version = "7.5.3"
+current_version = "7.5.3.dev0"
 allow_dirty = true
+parse = "(?P<major>\\\\d+)\\\\.(?P<minor>\\\\d+)\\\\.(?P<patch>\\\\d+)(\\\\.dev(?P<dev>\\\\d+))?"
+serialize = [
+  "{major}.{minor}.{patch}.dev{dev}",
+  "{major}.{minor}.{patch}",
+]
 
 [[tool.bumpversion.files]]
 filename = "./pyproject.toml"
@@ -929,40 +934,16 @@ def _make_pyproject_with_template_bumpversion(version: str = "7.5.3.dev0") -> st
     )
 
 
-def test_updates_existing_bumpversion_config(tmp_path: Path) -> None:
-    """Verify existing [tool.bumpversion] without parse gets dev config injected."""
+def test_syncs_bumpversion_template_keys(tmp_path: Path) -> None:
+    """Verify template keys are synced into existing bumpversion config."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
 
     result = init_config("bumpversion", pyproject)
 
     assert result is not None
-    assert "parse = " in result
-    assert "serialize = [" in result
     assert "ignore_missing_files = true" in result
     assert "parts.dev.values = " in result
-
-
-def test_updates_current_version_with_dev_suffix(tmp_path: Path) -> None:
-    """Verify current_version "7.5.3" becomes "7.5.3.dev0"."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
-
-    result = init_config("bumpversion", pyproject)
-
-    assert result is not None
-    assert 'current_version = "7.5.3.dev0"' in result
-
-
-def test_updates_project_version_with_dev_suffix(tmp_path: Path) -> None:
-    """Verify [project] version is also updated to dev0."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
-
-    result = init_config("bumpversion", pyproject)
-
-    assert result is not None
-    assert 'version = "7.5.3.dev0"' in result
 
 
 def test_replaces_bumpversion_files_from_template(tmp_path: Path) -> None:
@@ -984,11 +965,12 @@ def test_replaces_bumpversion_files_from_template(tmp_path: Path) -> None:
 def test_preserves_other_pyproject_sections(tmp_path: Path) -> None:
     """Verify [project] and other sections are unchanged."""
     content = (
-        '[project]\nname = "test-project"\nversion = "2.0.0"\n\n'
+        '[project]\nname = "test-project"\nversion = "2.0.0.dev0"\n\n'
         "[tool.ruff]\npreview = true\n\n"
         "[tool.bumpversion]\n"
-        'current_version = "2.0.0"\n'
-        "allow_dirty = true\n\n"
+        'current_version = "2.0.0.dev0"\n'
+        "allow_dirty = true\n"
+        'parse = "(?P<major>\\\\d+)"\n\n'
         "[[tool.bumpversion.files]]\n"
         'filename = "./pyproject.toml"\n'
     )
@@ -1003,52 +985,7 @@ def test_preserves_other_pyproject_sections(tmp_path: Path) -> None:
     assert "preview = true" in result
 
 
-def test_updates_managed_changelog(tmp_path: Path) -> None:
-    """Verify changelog.md heading is updated via bumpversion file entries."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(PYPROJECT_WITH_BUMPVERSION, encoding="UTF-8")
-
-    changelog = tmp_path / "changelog.md"
-    changelog.write_text(
-        "# Changelog\n\n## [7.5.3 (unreleased)](https://example.com)\n",
-        encoding="UTF-8",
-    )
-
-    init_config("bumpversion", pyproject)
-
-    # Changelog should be updated on disk.
-    updated = changelog.read_text(encoding="UTF-8")
-    assert "## [7.5.3.dev0 (unreleased)](" in updated
-
-
-def test_updates_managed_init_py(tmp_path: Path) -> None:
-    """Verify __init__.py version is updated via bumpversion glob entries."""
-    content = (
-        '[project]\nname = "test-project"\nversion = "1.0.0"\n\n'
-        "[tool.bumpversion]\n"
-        'current_version = "1.0.0"\n'
-        "allow_dirty = true\n\n"
-        "[[tool.bumpversion.files]]\n"
-        'glob = "./**/__init__.py"\n'
-        "ignore_missing_version = true\n"
-    )
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(content, encoding="UTF-8")
-
-    # Create a package with __init__.py.
-    pkg_dir = tmp_path / "my_pkg"
-    pkg_dir.mkdir()
-    init_py = pkg_dir / "__init__.py"
-    init_py.write_text('__version__ = "1.0.0"\n', encoding="UTF-8")
-
-    init_config("bumpversion", pyproject)
-
-    # __init__.py should be updated on disk.
-    updated = init_py.read_text(encoding="UTF-8")
-    assert '__version__ = "1.0.0.dev0"' in updated
-
-
-def test_skips_already_migrated(tmp_path: Path) -> None:
+def test_skips_already_up_to_date(tmp_path: Path) -> None:
     """Verify config matching the template returns None (no changes needed)."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(_make_pyproject_with_template_bumpversion(), encoding="UTF-8")
@@ -1080,27 +1017,6 @@ def test_replaces_old_changelog_pattern(tmp_path: Path) -> None:
     # Template has backtick-escaped pattern.
     assert "## [`{current_version}` (unreleased)](" in result
     assert "## [`{new_version}` (unreleased)](" in result
-
-
-def test_skips_already_dev_version(tmp_path: Path) -> None:
-    """Verify version ending .dev0 is not double-suffixed."""
-    content = (
-        '[project]\nname = "test"\nversion = "1.0.0.dev0"\n\n'
-        "[tool.bumpversion]\n"
-        'current_version = "1.0.0.dev0"\n'
-        "allow_dirty = true\n"
-    )
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(content, encoding="UTF-8")
-
-    bv = _BY_NAME["bumpversion"]
-    assert isinstance(bv, ToolConfigComponent)
-    result = _update_tool_config(content, bv, pyproject)
-
-    assert result is not None
-    # Version should not be double-suffixed.
-    assert "1.0.0.dev0.dev0" not in result
-    assert 'current_version = "1.0.0.dev0"' in result
 
 
 def test_bumpversion_update_idempotent(tmp_path: Path) -> None:

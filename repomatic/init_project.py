@@ -40,7 +40,6 @@ config option in ``[tool.repomatic]``.  Qualified entries like
 
 from __future__ import annotations
 
-import glob as globmod
 import logging
 import re
 import sys
@@ -307,20 +306,6 @@ def _update_tool_config(
         if key in new_section:
             new_section[key] = value
 
-    # Bumpversion dev-versioning migration: append .dev0 suffix to
-    # current_version if the existing config lacks a parse key.
-    # TODO: Remove once all downstream repos have been migrated.
-    needs_dev_suffix = False
-    if tool_name == "bumpversion":
-        had_dev_versioning = "parse" in existing_plain
-        current_version = existing_plain.get("current_version", "")
-        needs_dev_suffix = not had_dev_versioning and not re.search(
-            r"\.dev\d+$", current_version
-        )
-        if needs_dev_suffix:
-            new_version = f"{current_version}.dev0"
-            new_section["current_version"] = new_version
-
     # Append local array-of-tables entries.
     for array_key, entries in local_aot.items():
         aot = new_section.get(array_key)
@@ -359,96 +344,8 @@ def _update_tool_config(
         logging.info(f"[{comp.tool_section}] already up to date.")
         return None
 
-    # Bumpversion dev-versioning migration: update managed files.
-    # TODO: Remove once all downstream repos have been migrated.
-    if needs_dev_suffix and current_version:
-        files_entries = existing_plain.get("files", [])
-        modified = _update_managed_files(
-            pyproject_path,
-            files_entries,
-            current_version,
-            new_version,
-            modified,
-        )
-
     logging.info(f"Replaced [{comp.tool_section}] from bundled template.")
     return modified
-
-
-def _update_managed_files(
-    pyproject_path: Path,
-    files_entries: list[dict[str, str]],
-    old_version: str,
-    new_version: str,
-    pyproject_content: str,
-) -> str:
-    """Apply version updates to files managed by bumpversion.
-
-    Reads each file entry from ``[[tool.bumpversion.files]]``, interpolates
-    ``{current_version}`` and ``{new_version}`` in the search/replace patterns,
-    and applies the substitution.
-
-    Updates to ``pyproject.toml`` are applied to ``pyproject_content`` in memory
-    (since the caller writes the final content). All other files are written to
-    disk directly.
-
-    :param pyproject_path: Path to pyproject.toml.
-    :param files_entries: List of file entry dicts from bumpversion config.
-    :param old_version: The old version string.
-    :param new_version: The new version string.
-    :param pyproject_content: The in-memory pyproject.toml content.
-    :return: The updated pyproject.toml content.
-    """
-    project_dir = pyproject_path.parent
-
-    for entry in files_entries:
-        search = entry.get("search", "{current_version}")
-        replace = entry.get("replace", "{new_version}")
-
-        # Interpolate version placeholders.
-        search_str = search.replace("{current_version}", old_version)
-        replace_str = replace.replace("{new_version}", new_version)
-
-        # Resolve file paths.
-        glob_pattern = entry.get("glob")
-        filename = entry.get("filename")
-
-        if glob_pattern:
-            # Expand glob relative to project directory.
-            paths = [
-                Path(p)
-                for p in globmod.glob(str(project_dir / glob_pattern), recursive=True)
-            ]
-        elif filename:
-            paths = [project_dir / filename]
-        else:
-            continue
-
-        for path in paths:
-            # pyproject.toml is updated in memory, not on disk.
-            if path.resolve() == pyproject_path.resolve():
-                if search_str in pyproject_content:
-                    pyproject_content = pyproject_content.replace(
-                        search_str, replace_str
-                    )
-                    logging.info(
-                        f"Updated version in {path} (in memory): "
-                        f"{old_version!r} -> {new_version!r}"
-                    )
-                continue
-
-            if not path.exists():
-                logging.debug(f"Skipping missing file: {path}")
-                continue
-            file_content = path.read_text(encoding="UTF-8")
-            if search_str in file_content:
-                updated = file_content.replace(search_str, replace_str)
-                path.write_text(updated, encoding="UTF-8")
-                logging.info(
-                    f"Updated version in {path}: {old_version!r} -> {new_version!r}"
-                )
-
-    return pyproject_content
 
 
 def init_config(config_type: str, pyproject_path: Path | None = None) -> str | None:
