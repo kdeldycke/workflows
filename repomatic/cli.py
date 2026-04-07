@@ -1936,20 +1936,29 @@ def broken_links(
     )
 
 
-def _wrap_setup_step(title: str, content: str, *, passed: bool) -> str:
+def _wrap_setup_step(title: str, content: str, *, passed: bool | None) -> str:
     """Wrap a setup step in a collapsible ``<details>`` block with status emoji.
 
     Incomplete steps (``passed=False``) render as open sections with a
     warning emoji. Completed steps (``passed=True``) render collapsed
-    with a checkmark.
+    with a checkmark. Indeterminate steps (``passed=None``) render
+    collapsed with an info emoji when the check could not run.
 
     :param title: Step heading shown in the ``<summary>`` line.
     :param content: Markdown body of the step.
-    :param passed: Whether the step is verified complete.
+    :param passed: Whether the step is verified complete. ``None`` means the
+        check could not run (e.g., insufficient token permissions).
     :return: HTML ``<details>`` block string.
     """
-    emoji = "\u2705" if passed else "\u274c"
-    open_attr = "" if passed else " open"
+    if passed is None:
+        emoji = "\u2139\ufe0f"
+        open_attr = ""
+    elif passed:
+        emoji = "\u2705"
+        open_attr = ""
+    else:
+        emoji = "\u274c"
+        open_attr = " open"
     return (
         f"<details{open_attr}>\n"
         f"<summary>{emoji} <strong>{title}</strong></summary>\n\n"
@@ -2069,7 +2078,7 @@ def setup_guide(
 
     # Immutable releases check.
     has_changelog = Path("./changelog.md").exists()
-    immutable_ok = False
+    immutable_ok: bool | None = False
     if has_pat and repo and has_changelog:
         immutable_ok, _ = check_immutable_releases(repo)
 

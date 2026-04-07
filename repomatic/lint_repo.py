@@ -446,20 +446,28 @@ def check_branch_ruleset_on_default(repo: str) -> tuple[bool, str]:
     return False, "No active branch rulesets found protecting the default branch."
 
 
-def check_immutable_releases(repo: str) -> tuple[bool, str]:
+def check_immutable_releases(repo: str) -> tuple[bool | None, str]:
     """Check that immutable releases are enabled for the repository.
 
     Queries ``GET /repos/{repo}/immutable-releases`` and inspects the
     ``enabled`` field in the response.
 
+    .. note::
+
+        This endpoint requires the "Administration: Read-only" permission on
+        fine-grained PATs. The ``REPOMATIC_PAT`` does not include this scope
+        (too broad), so the check returns ``None`` when the API call fails,
+        signaling that the result is indeterminate rather than negative.
+
     :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed, message).
+    :return: Tuple of (passed_or_None, message). ``None`` means the check
+        could not run (API inaccessible or unparseable).
     """
     try:
         output = run_gh_command(["api", f"repos/{repo}/immutable-releases"])
     except RuntimeError:
         return (
-            False,
+            None,
             "Immutable releases check: skipped (could not query API).",
         )
 
@@ -467,7 +475,7 @@ def check_immutable_releases(repo: str) -> tuple[bool, str]:
         data = json.loads(output)
     except json.JSONDecodeError:
         return (
-            False,
+            None,
             "Immutable releases check: skipped (invalid JSON from API).",
         )
 

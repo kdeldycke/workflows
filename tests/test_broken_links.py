@@ -842,7 +842,7 @@ def test_check_immutable_releases_disabled():
 
 
 def test_check_immutable_releases_api_error():
-    """API failure defaults to incomplete."""
+    """API failure returns None (indeterminate), not False."""
     from repomatic.lint_repo import check_immutable_releases
 
     with patch(
@@ -850,5 +850,5 @@ def test_check_immutable_releases_api_error():
         side_effect=RuntimeError("HTTP 403"),
     ):
         passed, msg = check_immutable_releases("owner/repo")
-    assert passed is False
+    assert passed is None
     assert "skipped" in msg
