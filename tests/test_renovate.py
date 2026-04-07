@@ -34,6 +34,7 @@ from repomatic.renovate import (
     get_dependabot_config_path,
     run_migration_checks,
 )
+from repomatic.pypi import get_changelog_url
 from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
     _format_upload_date,
@@ -1091,6 +1092,37 @@ def test_get_pypi_source_url_api_failure():
         assert get_pypi_source_url("coverage") is None
 
 
+def test_get_changelog_url_found():
+    """Discover changelog URL from PyPI project_urls."""
+    pypi_data = json.dumps({
+        "info": {
+            "project_urls": {
+                "Changelog": "https://github.com/dpranke/pyjson5/blob/master/README.md",
+                "Repository": "https://github.com/dpranke/pyjson5",
+            },
+        },
+    }).encode()
+    mock = _make_urlopen_mock({"pypi.org": (pypi_data,)})
+    with patch("repomatic.pypi.urlopen", side_effect=mock):
+        assert get_changelog_url("json5") == (
+            "https://github.com/dpranke/pyjson5/blob/master/README.md"
+        )
+
+
+def test_get_changelog_url_not_found():
+    """Return None when no changelog key in project_urls."""
+    pypi_data = json.dumps({
+        "info": {
+            "project_urls": {
+                "Homepage": "https://github.com/stefankoegl/python-json-pointer",
+            },
+        },
+    }).encode()
+    mock = _make_urlopen_mock({"pypi.org": (pypi_data,)})
+    with patch("repomatic.pypi.urlopen", side_effect=mock):
+        assert get_changelog_url("jsonpointer") is None
+
+
 def test_get_github_release_body_found():
     """Fetch release body from GitHub for v-prefixed tag."""
     release_data = json.dumps({"body": "### Bug fixes\n- Fixed a bug."}).encode()
@@ -1171,6 +1203,7 @@ def test_fetch_release_notes_aggregation():
     with (
         patch("repomatic.uv.get_pypi_source_url") as mock_pypi,
         patch("repomatic.uv.get_github_release_body") as mock_gh,
+        patch("repomatic.uv.get_pypi_changelog_url", return_value=None),
     ):
         mock_pypi.side_effect = [
             "https://github.com/owner/pkg-a",
@@ -1183,8 +1216,28 @@ def test_fetch_release_notes_aggregation():
         notes = fetch_release_notes(changes)
     assert "pkg-a" in notes
     assert notes["pkg-a"] == ("https://github.com/owner/pkg-a", "v2.0", "Notes for A.")
-    # pkg-b has empty body, so it should be excluded.
+    # pkg-b has empty body and no changelog URL, so it should be excluded.
     assert "pkg-b" not in notes
+
+
+def test_fetch_release_notes_changelog_fallback():
+    """Fall back to PyPI changelog URL when no GitHub Release exists."""
+    changes = [("json5", "0.13.0", "0.14.0")]
+    changelog = "https://github.com/dpranke/pyjson5/blob/master/README.md"
+    with (
+        patch("repomatic.uv.get_pypi_source_url") as mock_pypi,
+        patch("repomatic.uv.get_github_release_body") as mock_gh,
+        patch("repomatic.uv.get_pypi_changelog_url") as mock_cl,
+    ):
+        mock_pypi.return_value = "https://github.com/dpranke/pyjson5"
+        mock_gh.return_value = ("", "")
+        mock_cl.return_value = changelog
+        notes = fetch_release_notes(changes)
+    assert "json5" in notes
+    repo_url, tag, body = notes["json5"]
+    assert repo_url == "https://github.com/dpranke/pyjson5"
+    assert tag == ""
+    assert changelog in body
 
 
 def test_format_release_notes():
@@ -1211,6 +1264,24 @@ def test_format_release_notes():
 def test_format_release_notes_empty():
     """Return empty string when no notes are available."""
     assert format_release_notes({}) == ""
+
+
+def test_format_release_notes_changelog_fallback():
+    """Render a changelog link when no GitHub Release tag exists."""
+    notes = {
+        "json5": (
+            "https://github.com/dpranke/pyjson5",
+            "",
+            "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)",
+        ),
+    }
+    result = format_release_notes(notes)
+    assert "<details>" in result
+    assert "<summary>dpranke/pyjson5 (<code>json5</code>)</summary>" in result
+    assert "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)" in result
+    # No tag heading should appear.
+    assert "#### [" not in result
+    assert "</details>" in result
 
 
 def test_format_release_notes_truncation():

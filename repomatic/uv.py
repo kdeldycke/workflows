@@ -37,6 +37,7 @@ from urllib.request import Request, urlopen
 
 import tomlkit
 
+from .pypi import get_changelog_url as get_pypi_changelog_url
 from .pypi import get_source_url as get_pypi_source_url
 
 if sys.version_info >= (3, 11):
@@ -902,11 +903,14 @@ def fetch_release_notes(
     """Fetch release notes for all updated packages.
 
     For each package with a new version, discovers the GitHub repository via
-    PyPI and fetches the release notes from GitHub Releases.
+    PyPI and fetches the release notes from GitHub Releases. Falls back to a
+    changelog link from PyPI ``project_urls`` when no GitHub Release exists.
 
     :param changes: List of ``(name, old_version, new_version)`` tuples.
     :return: A dict mapping package names to ``(repo_url, tag, body)`` tuples.
-        Only packages with non-empty release bodies are included.
+        Only packages with non-empty release bodies are included. When a
+        changelog URL is used as fallback, ``tag`` is empty and ``body``
+        contains a markdown link.
     """
     notes: dict[str, tuple[str, str, str]] = {}
     for name, _old, new in changes:
@@ -918,10 +922,18 @@ def fetch_release_notes(
             logging.debug(f"No GitHub URL found for {name}.")
             continue
         tag, body = get_github_release_body(repo_url, new)
+        if not body:
+            # Fallback: link to a changelog page from PyPI project_urls.
+            changelog_url = get_pypi_changelog_url(name)
+            if changelog_url:
+                body = f"[Changelog]({changelog_url})"
+                logging.debug(
+                    f"Using PyPI changelog URL for {name}: {changelog_url}"
+                )
+            else:
+                logging.debug(f"No release body or changelog for {name} {new}.")
         if body:
             notes[name] = (repo_url, tag, body)
-        else:
-            logging.debug(f"No release body for {name} {new}.")
     return notes
 
 
@@ -945,17 +957,20 @@ def format_release_notes(notes: dict[str, tuple[str, str, str]]) -> str:
         if not parsed:
             continue
         owner, repo = parsed
-        release_url = f"{repo_url}/releases/tag/{tag}"
         lines.append("<details>")
         lines.append(f"<summary>{owner}/{repo} (<code>{name}</code>)</summary>")
         lines.append("")
-        lines.append(f"#### [`{tag}`]({release_url})")
-        lines.append("")
-        if len(body) > RELEASE_NOTES_MAX_LENGTH:
-            truncated = body[:RELEASE_NOTES_MAX_LENGTH].rsplit("\n", 1)[0]
-            lines.append(truncated)
+        if tag:
+            release_url = f"{repo_url}/releases/tag/{tag}"
+            lines.append(f"#### [`{tag}`]({release_url})")
             lines.append("")
-            lines.append(f"... [Full release notes]({release_url})")
+            if len(body) > RELEASE_NOTES_MAX_LENGTH:
+                truncated = body[:RELEASE_NOTES_MAX_LENGTH].rsplit("\n", 1)[0]
+                lines.append(truncated)
+                lines.append("")
+                lines.append(f"... [Full release notes]({release_url})")
+            else:
+                lines.append(body)
         else:
             lines.append(body)
         lines.append("")

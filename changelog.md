@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Fix release workflow uploading attestation bundle before the GitHub release draft exists. The upload step now runs after release creation.
+- Fall back to PyPI `project_urls` changelog link when no GitHub Release exists for a package. Release notes sections now render a `[Changelog](url)` link instead of silently omitting the package.
 
 ## [`6.11.0` (2026-04-07)](https://github.com/kdeldycke/repomatic/compare/v6.10.0...v6.11.0)
 

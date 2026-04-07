@@ -37,6 +37,16 @@ PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
 PYPI_LABEL = "🐍 PyPI"
 """Display label for PyPI releases in admonitions."""
 
+# Keys in PyPI ``project_urls`` that typically point to a changelog,
+# checked in priority order.
+_CHANGELOG_URL_KEYS = (
+    "Changelog",
+    "Changes",
+    "Change Log",
+    "Release Notes",
+    "History",
+)
+
 # Keys in PyPI ``project_urls`` that typically point to a GitHub repository,
 # checked in priority order.
 _SOURCE_URL_KEYS = (
@@ -140,4 +150,25 @@ def get_source_url(package: str) -> str | None:
     for candidate in project_urls.values():
         if "github.com" in candidate:
             return candidate.rstrip("/").removesuffix(".git")
+    return None
+
+
+def get_changelog_url(package: str) -> str | None:
+    """Discover the changelog URL for a PyPI package.
+
+    Queries the PyPI JSON API and scans ``project_urls`` for keys that
+    typically point to a changelog or release notes page.
+
+    :param package: The PyPI package name.
+    :return: The changelog URL, or ``None`` if not found.
+    """
+    data = _fetch_json(package)
+    if data is None:
+        return None
+
+    project_urls: dict[str, str] = data.get("info", {}).get("project_urls") or {}
+    for key in _CHANGELOG_URL_KEYS:
+        candidate = project_urls.get(key, "")
+        if candidate:
+            return candidate.rstrip("/")
     return None
