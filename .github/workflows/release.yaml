@@ -92,6 +92,7 @@ jobs:
     name: 🧬 Project metadata
     runs-on: ubuntu-slim
     outputs:
+      has_virustotal_key: ${{ steps.check-vt-key.outputs.has_key }}
       metadata: ${{ steps.metadata.outputs.metadata }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -114,6 +115,11 @@ jobs:
           new_commits_matrix release_commits_matrix build_targets nuitka_matrix
           is_python_project package_name current_version released_version
           release_notes release_notes_with_admonition skip_binary_build
+      - name: Check VirusTotal API key
+        id: check-vt-key
+        env:
+          HAS_KEY: ${{ secrets.VIRUSTOTAL_API_KEY && 'true' || '' }}
+        run: echo "has_key=${HAS_KEY}" >> "$GITHUB_OUTPUT"
 
   build-package:
     name: 📦 Build package (${{ matrix.short_sha }})
@@ -554,7 +560,7 @@ jobs:
     if: >-
       always()
       && needs.publish-release.result == 'success'
-      && secrets.VIRUSTOTAL_API_KEY
+      && needs.metadata.outputs.has_virustotal_key
     strategy:
       matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
     runs-on: ubuntu-slim

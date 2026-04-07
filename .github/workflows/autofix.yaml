@@ -5,6 +5,8 @@ name: 🪄 Autofix
     secrets:
       REPOMATIC_PAT:
         required: false
+      VIRUSTOTAL_API_KEY:
+        required: false
   workflow_dispatch:
   push:
     branches:
