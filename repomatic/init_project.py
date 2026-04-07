@@ -596,10 +596,12 @@ def run_init(
                     "awesome" if is_awesome_repo else "standard",
                 )
                 selected.discard(reg_comp.name)
-                # For generated components, record the target path so we can
-                # detect stale copies on disk below.
+                # Record target paths so we can detect stale copies on disk.
                 if isinstance(reg_comp, GeneratedComponent) and reg_comp.target:
                     scope_excluded_targets.append(reg_comp.target)
+                elif reg_comp.files:
+                    ids = {e.file_id for e in reg_comp.files}
+                    excluded_files.setdefault(reg_comp.name, set()).update(ids)
                 continue
 
             # File-level scope and opt-in status.

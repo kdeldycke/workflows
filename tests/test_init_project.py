@@ -1355,6 +1355,22 @@ def test_init_changelog_excluded_existing_for_awesome_repo(
     assert "changelog.md" in result.excluded_existing
 
 
+def test_init_codecov_excluded_existing_for_awesome_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify existing .github/codecov.yaml is flagged as excluded for awesome repos."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
+    codecov = tmp_path / ".github" / "codecov.yaml"
+    codecov.parent.mkdir(parents=True, exist_ok=True)
+    codecov.write_text("comment:\n  layout: reach\n", encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-billing")
+
+    assert ".github/codecov.yaml" in result.excluded_existing
+
+
 def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

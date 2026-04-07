@@ -9,6 +9,7 @@
 - Fix release workflow uploading attestation bundle before the GitHub release draft exists. The upload step now runs after release creation.
 - Skip `exclude-newer-package` exemptions for packages whose fixed version already falls within the `exclude-newer` cooldown window. Previously, `fix-vulnerable-deps` persisted `"0 day"` overrides for all upgraded packages unconditionally.
 - Fall back to PyPI `project_urls` changelog link when no GitHub Release exists for a package. Release notes sections now render a `[Changelog](url)` link instead of silently omitting the package.
+- Fix `--delete-excluded` not detecting scope-excluded `BundledComponent` files that still exist on disk. Component-level scope exclusion (e.g., `codecov` in awesome repos) skipped recording file entries, so stale files were invisible to the deletion pass.
 
 ## [`6.11.0` (2026-04-07)](https://github.com/kdeldycke/repomatic/compare/v6.10.0...v6.11.0)
 
