@@ -53,38 +53,8 @@ from click_extra import (
 from click_extra.config import get_tool_config
 from click_extra.envvar import merge_envvar_ids
 from extra_platforms import ALL_IDS, is_github_ci
-from tabulate import (  # type: ignore[import-untyped]
-    _pipe_segment_with_colons,
-    _table_formats,
-)
 
 from . import __version__
-
-
-def _mdformat_separator(colwidths, colaligns):
-    """Generate a GitHub table separator that matches mdformat's canonical form.
-
-    Produces ``| :--- | :--- |`` instead of tabulate's ``|:---|:---|``.
-    Each segment is shortened by 2 to compensate for the extra spaces added
-    around it (``| `` prefix and `` |`` suffix vs the original ``|`` and ``|``).
-    """
-    if not colaligns:
-        colaligns = [""] * len(colwidths)
-    segments = [
-        _pipe_segment_with_colons(a, w - 2) for a, w in zip(colaligns, colwidths)
-    ]
-    return "| " + " | ".join(segments) + " |"
-
-
-# Patch tabulate's ``github`` format (already modified by click_extra to add
-# alignment colons) so the separator line uses mdformat's canonical spacing.
-# This makes ``--table-format github`` output stable under mdformat: pasting
-# CLI output into a markdown file and running mdformat produces no diff.
-_github = _table_formats["github"]
-_table_formats["github"] = _github._replace(
-    lineabove=_mdformat_separator,
-    linebelowheader=_mdformat_separator,
-)
 from .binary import (
     BINARY_ARCH_MAPPINGS,
     verify_binary_arch,

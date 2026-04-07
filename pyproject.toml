@@ -85,7 +85,7 @@ dependencies = [
   # Click Extra 7.10.0 adds schema-aware dataclass support:
   # type-aware flattening, field metadata (config_path, normalize_keys),
   # and nested dataclasses.
-  "click-extra>=7.10.0",
+  "click-extra>=7.10.1",
   # extra-platforms 8.0.0 exposed is_windows(), is_linux(), ALL_IDS, and other
   # platform detection APIs used in tool_runner.py and test_plan.py.
   "extra-platforms>=8",
@@ -152,7 +152,7 @@ typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 # Relative dates are fine here because the Renovate lock-maintenance job
 # (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
 exclude-newer = "1 week"
-# click-extra bypasses cooldown to pick up the freshly released 7.10.0.
+# click-extra bypasses cooldown to pick up the freshly released 7.10.1.
 # pygments and requests bypass cooldown to pick up transitive security fixes immediately.
 # repomatic is pinned to git main.
 exclude-newer-package = { "click-extra" = "0 day",  "repomatic" = "0 day"  }
