@@ -333,10 +333,27 @@ def _update_tool_config(
 
     modified = tomlkit.dumps(doc)
 
-    # tomlkit may omit the newline before ``[[header]]`` when appending
-    # AoT entries, producing invalid TOML. Normalize so every ``[[``
-    # starts on its own line with a preceding blank line.
+    # tomlkit may omit the newline before section headers when replacing
+    # or appending entries. Normalize so every ``[`` or ``[[`` starts on
+    # its own line with a preceding blank line. This is a workaround for
+    # several long-standing tomlkit bugs around whitespace after
+    # programmatic edits:
+    # - https://github.com/python-poetry/tomlkit/issues/48
+    # - https://github.com/python-poetry/tomlkit/issues/352
+    # - https://github.com/python-poetry/tomlkit/issues/400
+    # No normalization API exists in tomlkit; revisit if one is added.
+    # Regex on the serialized string is preferred over manipulating
+    # tomlkit's per-item ``_trivia.indent`` because the internal
+    # representation of dotted tables (``[tool.X]``) is non-trivial to
+    # walk, and the trivia heuristics in ``_replace_at``/``_insert_at``
+    # are themselves the source of the inconsistencies.
+    #
+    # 1. Fix ``[[`` not starting on its own line (AoT appending).
     modified = re.sub(r"(?<!\n)(\[\[)", r"\n\n\1", modified)
+    # 2. Ensure a blank line before single-bracket ``[table]`` headers.
+    #    ``(?!\[)`` avoids matching the inner ``[`` of ``[[``.
+    modified = re.sub(r"([^\n])\n(\[(?!\[))", r"\1\n\n\2", modified)
+    # 3. Collapse excessive blank lines (3+) down to exactly one.
     modified = re.sub(r"\n{3,}\[", r"\n\n[", modified)
     if modified.strip() == content.strip():
         logging.info(f"[{comp.tool_section}] already up to date.")
