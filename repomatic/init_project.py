@@ -820,6 +820,7 @@ def _init_workflows(
     # Lazy import to avoid circular dependency with workflow_sync.
     from . import __git_tag_sha__
     from .github.workflow_sync import (
+        extract_extra_jobs,
         generate_thin_caller,
         generate_workflow_header,
     )
@@ -859,6 +860,13 @@ def _init_workflows(
             source_paths=source_paths,
             commit_sha=commit_sha,
         )
+        # Preserve extra downstream jobs from the existing file.
+        if existed:
+            extra = extract_extra_jobs(
+                target.read_text(encoding="UTF-8"), repo
+            )
+            if extra:
+                content += extra
         target.write_text(content, encoding="UTF-8")
         if existed:
             result.updated.append(rel)

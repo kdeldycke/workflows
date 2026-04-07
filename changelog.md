@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Preserve extra downstream jobs when syncing thin-caller workflows. Previously, `repomatic init` and `workflow sync` in `thin-caller` mode would overwrite the entire file, destroying any project-specific jobs appended after the managed caller job (e.g., a Chocolatey publishing step in `release.yaml`). The managed job is now regenerated in place while extra jobs, comments, and blank lines are preserved.
 - Add VirusTotal scanning job to the release workflow. Uploads compiled binaries to VirusTotal after each release, seeding AV databases to reduce false positive detections on downstream distributors (Chocolatey, Scoop, etc.). Requires the optional `VIRUSTOTAL_API_KEY` repository secret.
 - Add attestation self-verification steps after each `actions/attest` invocation in the release workflow. Each attestation is immediately verified with `gh attestation verify --signer-repo kdeldycke/repomatic` to catch signing issues in CI before users encounter them.
 - Upload Sigstore attestation bundles (`.jsonl`) as GitHub release assets for compiled binaries and Python packages, enabling offline verification.

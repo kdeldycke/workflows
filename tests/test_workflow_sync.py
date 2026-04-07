@@ -36,6 +36,7 @@ from repomatic.github.workflow_sync import (
     check_secrets_passed,
     check_triggers_match,
     check_version_pinned,
+    extract_extra_jobs,
     extract_trigger_info,
     generate_thin_caller,
     generate_workflow_header,
@@ -347,6 +348,131 @@ def test_identify_custom_repo(tmp_path: Path) -> None:
     )
     result = identify_canonical_workflow(wf, repo="myorg/myrepo")
     assert result == "lint.yaml"
+
+
+# ---------------------------------------------------------------------------
+# extract_extra_jobs
+# ---------------------------------------------------------------------------
+
+
+def test_extract_extra_jobs_single() -> None:
+    """Preserve a single extra downstream job."""
+    content = (
+        "---\nname: Release\n\"on\":\n  push:\n    branches:\n"
+        "      - main\n  workflow_dispatch:\n\njobs:\n\n  release:\n"
+        f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v6.0.0\n"
+        "    secrets:\n"
+        "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n"
+        "\n"
+        "  # Custom packaging job.\n"
+        "  chocolatey:\n"
+        "    name: Chocolatey\n"
+        "    needs: release\n"
+        "    runs-on: windows-latest\n"
+        "    steps:\n"
+        "      - run: echo hello\n"
+    )
+    extra = extract_extra_jobs(content)
+    assert "chocolatey:" in extra
+    assert "needs: release" in extra
+    assert "# Custom packaging job." in extra
+    # The managed job should not appear in extra.
+    assert "PYPI_TOKEN" not in extra
+
+
+def test_extract_extra_jobs_multiple() -> None:
+    """Preserve multiple extra downstream jobs."""
+    content = (
+        "---\nname: Release\njobs:\n\n  release:\n"
+        f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v6.0.0\n"
+        "\n"
+        "  deploy:\n"
+        "    needs: release\n"
+        "    runs-on: ubuntu-latest\n"
+        "    steps:\n"
+        "      - run: echo deploy\n"
+        "\n"
+        "  notify:\n"
+        "    needs: deploy\n"
+        "    runs-on: ubuntu-latest\n"
+        "    steps:\n"
+        "      - run: echo notify\n"
+    )
+    extra = extract_extra_jobs(content)
+    assert "deploy:" in extra
+    assert "notify:" in extra
+
+
+def test_extract_extra_jobs_none() -> None:
+    """Return empty string when no extra jobs exist."""
+    content = (
+        "---\nname: Release\njobs:\n\n  release:\n"
+        f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v6.0.0\n"
+    )
+    assert extract_extra_jobs(content) == ""
+
+
+def test_extract_extra_jobs_not_thin_caller() -> None:
+    """Return empty string for a non-thin-caller workflow."""
+    content = (
+        "---\nname: Custom\njobs:\n  build:\n"
+        "    runs-on: ubuntu-latest\n"
+        "    steps:\n"
+        "      - run: echo hello\n"
+    )
+    assert extract_extra_jobs(content) == ""
+
+
+def test_extract_extra_jobs_invalid_yaml() -> None:
+    """Return empty string for invalid YAML."""
+    assert extract_extra_jobs("{{invalid yaml") == ""
+
+
+def test_thin_caller_sync_preserves_extra_jobs(tmp_path: Path) -> None:
+    """End-to-end: sync overwrites the managed job but preserves extras."""
+    extra_job = (
+        "\n"
+        "  # Custom packaging job.\n"
+        "  chocolatey:\n"
+        "    name: Chocolatey\n"
+        "    needs: release\n"
+        "    runs-on: windows-latest\n"
+        "    steps:\n"
+        "      - run: echo hello\n"
+    )
+    # Generate the initial thin caller, then append an extra job.
+    exit_code = generate_workflows(
+        names=("release.yaml",),
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        version="v6.0.0",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=False,
+    )
+    assert exit_code == 0
+    target = tmp_path / "release.yaml"
+    target.write_text(
+        target.read_text(encoding="UTF-8") + extra_job,
+        encoding="UTF-8",
+    )
+
+    # Re-sync with a new version. The extra job must survive.
+    exit_code = generate_workflows(
+        names=("release.yaml",),
+        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        version="v7.0.0",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+    )
+    assert exit_code == 0
+    result = target.read_text(encoding="UTF-8")
+    # Managed job was updated.
+    assert "v7.0.0" in result
+    assert "v6.0.0" not in result
+    # Extra job was preserved.
+    assert "chocolatey:" in result
+    assert "# Custom packaging job." in result
 
 
 def test_has_dispatch(tmp_path: Path) -> None:

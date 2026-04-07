@@ -95,6 +95,10 @@ class WorkflowFormat(StrEnum):
     ``name``, ``on`` triggers, and a ``jobs:`` section that calls the upstream
     workflow via ``workflow_call``. Only works for reusable workflows (those with
     a ``workflow_call`` trigger).
+
+    When the target file already exists and contains extra jobs beyond the
+    managed caller job, those jobs are preserved and appended after the
+    regenerated content.
     """
 
 
@@ -532,6 +536,82 @@ def identify_canonical_workflow(
             return match.group(1)
 
     return None
+
+
+def extract_extra_jobs(
+    content: str,
+    repo: str = DEFAULT_REPO,
+) -> str:
+    """Extract extra downstream jobs from an existing thin-caller workflow.
+
+    Parses the file with YAML to identify the managed thin-caller job (the one
+    whose ``uses:`` references the upstream repository), then returns all raw
+    text after that job: blank lines, comments, and additional job definitions.
+
+    Uses raw text slicing (not YAML round-tripping) to preserve formatting and
+    comments, consistent with the rest of the module.
+
+    :param content: Full workflow file content.
+    :param repo: Upstream repository to match against.
+    :return: Raw text of extra jobs (empty string when there are none).
+    """
+    # Identify the managed job key via YAML parsing.
+    try:
+        data = yaml.safe_load(content)
+    except yaml.YAMLError:
+        return ""
+    if not isinstance(data, dict):
+        return ""
+    jobs = data.get("jobs")
+    if not isinstance(jobs, dict):
+        return ""
+
+    uses_pattern = re.compile(
+        rf"^{re.escape(repo)}/\.github/workflows/[^@]+@.+$"
+    )
+    managed_key = None
+    for key, config in jobs.items():
+        if isinstance(config, dict) and uses_pattern.match(config.get("uses", "")):
+            managed_key = str(key)
+            break
+    if managed_key is None:
+        return ""
+
+    # In raw text, find the managed job key line and walk past its body.
+    all_lines = content.split("\n")
+    managed_prefix = f"  {managed_key}:"
+    managed_idx = None
+    for i, line in enumerate(all_lines):
+        if line == managed_prefix or line.startswith(managed_prefix + " "):
+            managed_idx = i
+            break
+    if managed_idx is None:
+        return ""
+
+    # The managed job body consists of lines at 4+ space indent. Blank lines
+    # between body lines are separators, not content. Track the index of the
+    # last 4+-indent line to use as the boundary.
+    last_body_idx = managed_idx
+    for i in range(managed_idx + 1, len(all_lines)):
+        line = all_lines[i]
+        if line.startswith("    "):
+            last_body_idx = i
+        elif line == "":
+            # Blank line: might be mid-body or a separator. Keep scanning.
+            continue
+        else:
+            # Non-blank, non-body line: past the managed job.
+            break
+
+    # Everything after the last body line is extra content.
+    extra_start = last_body_idx + 1
+    if extra_start >= len(all_lines):
+        return ""
+
+    extra = "\n".join(all_lines[extra_start:])
+    if not extra.strip():
+        return ""
+    return extra
 
 
 # ---------------------------------------------------------------------------
@@ -990,6 +1070,14 @@ def generate_workflows(
                 logging.error(str(e))
                 errors += 1
                 continue
+
+            # Preserve extra downstream jobs from the existing file.
+            if target.exists():
+                extra = extract_extra_jobs(
+                    target.read_text(encoding="UTF-8"), repo
+                )
+                if extra:
+                    content += extra
 
             target.write_text(content, encoding="UTF-8")
             logging.info(f"Generated thin caller: {target}")
