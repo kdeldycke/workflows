@@ -57,7 +57,7 @@
       matchFileNames: [".github/workflows/**"],
       postUpgradeTasks: {
         commands: [
-          "bash -c 'curl -fsSL https://github.com/astral-sh/uv/releases/download/0.11.1/uv-x86_64-unknown-linux-gnu.tar.gz --output /tmp/uv.tar.gz && echo 7c0c8069053e6e99e5911ff32b916be571f3419cd8e11bd28fb7da2c7dcaa553  /tmp/uv.tar.gz | sha256sum --check && tar xzf /tmp/uv.tar.gz --strip-components=1 -C /tmp && /tmp/uvx --no-progress --from . repomatic update-checksums {{{packageFile}}}'",
+          "bash -c 'curl -fsSL https://github.com/astral-sh/uv/releases/download/0.11.2/uv-x86_64-unknown-linux-gnu.tar.gz --output /tmp/uv.tar.gz && echo 7ac2ca0449c8d68dae9b99e635cd3bc9b22a4cb1de64b7c43716398447d42981  /tmp/uv.tar.gz | sha256sum --check && tar xzf /tmp/uv.tar.gz --strip-components=1 -C /tmp && /tmp/uvx --no-progress --from . repomatic update-checksums {{{packageFile}}}'",
         ],
         fileFilters: [".github/workflows/**"],
         executionMode: "update",
@@ -71,7 +71,7 @@
       matchFileNames: ["repomatic/tool_runner.py"],
       postUpgradeTasks: {
         commands: [
-          "bash -c 'curl -fsSL https://github.com/astral-sh/uv/releases/download/0.11.1/uv-x86_64-unknown-linux-gnu.tar.gz --output /tmp/uv.tar.gz && echo 7c0c8069053e6e99e5911ff32b916be571f3419cd8e11bd28fb7da2c7dcaa553  /tmp/uv.tar.gz | sha256sum --check && tar xzf /tmp/uv.tar.gz --strip-components=1 -C /tmp && /tmp/uvx --no-progress --from . repomatic update-checksums --registry'",
+          "bash -c 'curl -fsSL https://github.com/astral-sh/uv/releases/download/0.11.2/uv-x86_64-unknown-linux-gnu.tar.gz --output /tmp/uv.tar.gz && echo 7ac2ca0449c8d68dae9b99e635cd3bc9b22a4cb1de64b7c43716398447d42981  /tmp/uv.tar.gz | sha256sum --check && tar xzf /tmp/uv.tar.gz --strip-components=1 -C /tmp && /tmp/uvx --no-progress --from . repomatic update-checksums --registry'",
         ],
         fileFilters: ["repomatic/tool_runner.py"],
         executionMode: "update",
@@ -202,7 +202,7 @@
       customType: "regex",
       managerFilePatterns: ["/renovate\\.json5$/"],
       matchStrings: [
-        // Matches: uv/releases/download/0.11.1/
+        // Matches: uv/releases/download/0.11.2/
         "uv/releases/download/(?<currentValue>[0-9.]+)/",
       ],
       depNameTemplate: "astral-sh/uv",
