@@ -340,6 +340,9 @@ def _update_tool_config(
     modified = re.sub(r"([^\n])\n(\[(?!\[))", r"\1\n\n\2", modified)
     # 3. Collapse excessive blank lines (3+) down to exactly one.
     modified = re.sub(r"\n{3,}\[", r"\n\n[", modified)
+    # 4. Remove blank lines that step 2 inserted between a comment and
+    #    the ``[table]`` header it describes.
+    modified = re.sub(r"(^#[^\n]*)\n\n(\[)", r"\1\n\2", modified, flags=re.MULTILINE)
     if modified.strip() == content.strip():
         logging.info(f"[{comp.tool_section}] already up to date.")
         return None
