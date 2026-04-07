@@ -461,7 +461,7 @@ def check_immutable_releases(repo: str) -> tuple[bool | None, str]:
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed_or_None, message). ``None`` means the check
-        could not run (API inaccessible or unparseable).
+        could not run (API inaccessible or unparsable).
     """
     try:
         output = run_gh_command(["api", f"repos/{repo}/immutable-releases"])
