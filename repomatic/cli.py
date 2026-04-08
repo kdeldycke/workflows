@@ -409,6 +409,11 @@ def init_project(
     configuration files (Renovate, labels, labeller rules), and creates a
     minimal changelog. Specify COMPONENTS to initialize only selected parts.
 
+    Scope restrictions (awesome-only, non-awesome) and [tool.repomatic]
+    exclude entries only apply during bare init (no arguments). Explicitly
+    naming a component bypasses scope, allowing workflows to materialize
+    out-of-scope configs at runtime.
+
     Selectors use the same syntax as the exclude config in
     [tool.repomatic]: bare names select an entire component, qualified
     component/file entries select a single file.

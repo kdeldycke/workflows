@@ -33,7 +33,6 @@ EXPECTED_FILES = {
     ".github/funding.yml",
     ".github/pull_request_template.md",
     "license",
-    "pyproject.toml",
 }
 
 
@@ -65,12 +64,14 @@ def test_copy_template_tree(tmp_path):
 
     # Verify key files exist at the expected paths.
     assert (tmp_path / "license").is_file()
-    assert (tmp_path / "pyproject.toml").is_file()
     assert (tmp_path / ".github" / "contributing.md").is_file()
     assert (tmp_path / ".github" / "ISSUE_TEMPLATE" / "new-link.yaml").is_file()
 
     # __init__.py must not be copied.
     assert not (tmp_path / "__init__.py").exists()
+
+    # pyproject.toml is no longer in the bundle (lychee is a ToolConfigComponent).
+    assert not (tmp_path / "pyproject.toml").exists()
 
     # Second run reports updates, not creates.
     created2, updated2 = _copy_template_tree(TEMPLATE_ROOT, tmp_path)
@@ -94,9 +95,13 @@ def test_copied_files_contain_template_slug(tmp_path):
     assert "kdeldycke/awesome-template" in content
 
 
-def test_pyproject_toml_has_tool_sections(tmp_path):
-    """Bundled pyproject.toml contains the lychee tool section."""
+def test_awesome_template_has_no_pyproject(tmp_path):
+    """awesome-template bundle does not contain pyproject.toml.
+
+    The lychee config is registered as a ToolConfigComponent with
+    AWESOME_ONLY scope, so it goes through the standard merge path
+    in _init_tool_configs instead of being blindly overwritten by
+    _copy_template_tree.
+    """
     _copy_template_tree(TEMPLATE_ROOT, tmp_path)
-    content = (tmp_path / "pyproject.toml").read_text(encoding="UTF-8")
-    assert "[tool.lychee]" in content
-    assert "exclude" in content
+    assert not (tmp_path / "pyproject.toml").exists()

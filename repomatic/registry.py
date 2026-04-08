@@ -65,7 +65,11 @@ class SyncMode(Enum):
 
 
 class RepoScope(Enum):
-    """Which repository types a file entry applies to."""
+    """Which repository types a file entry applies to.
+
+    Scope restrictions are defaults: they apply during bare ``repomatic init``
+    but are bypassed when components are explicitly named on the CLI.
+    """
 
     ALL = auto()
     """Included in all repository types."""
@@ -428,6 +432,14 @@ COMPONENTS: tuple[Component, ...] = (
         target="changelog.md",
     ),
     # --- Tool config components (merged into pyproject.toml) ---
+    ToolConfigComponent(
+        name="lychee",
+        description="Lychee link checker configuration",
+        scope=RepoScope.AWESOME_ONLY,
+        source_file="lychee.toml",
+        tool_section="tool.lychee",
+        sync_mode=SyncMode.ONGOING,
+    ),
     ToolConfigComponent(
         name="ruff",
         description="Ruff linter/formatter configuration",

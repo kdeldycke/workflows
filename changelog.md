@@ -10,6 +10,8 @@
 - Skip `exclude-newer-package` exemptions for packages whose fixed version already falls within the `exclude-newer` cooldown window. Previously, `fix-vulnerable-deps` persisted `"0 day"` overrides for all upgraded packages unconditionally.
 - Fall back to PyPI `project_urls` changelog link when no GitHub Release exists for a package. Release notes sections now render a `[Changelog](url)` link instead of silently omitting the package.
 - Fix `--delete-excluded` not detecting scope-excluded `BundledComponent` files that still exist on disk. Component-level scope exclusion (e.g., `codecov` in awesome repos) skipped recording file entries, so stale files were invisible to the deletion pass.
+- Fix awesome-template sync overwriting `pyproject.toml` instead of merging. `_copy_template_tree` replaced the entire file with the bundled template, stripping user-managed `[tool.*]` sections (e.g., `[tool.gitleaks]`). The lychee config is now a `ToolConfigComponent` with `AWESOME_ONLY` scope, so it goes through the standard `_init_tool_configs` merge path. `pyproject.toml` is removed from the awesome-template bundle.
+- Fix `repomatic init <component>` silently ignoring explicitly-requested components in repos where their scope doesn't match. Scope exclusions now only apply during bare `repomatic init`, matching the existing guard on user-config exclusions. This fixes `repomatic init renovate` failing in awesome repos where the renovate workflow materializes `renovate.json5` at runtime.
 
 ## [`6.11.0` (2026-04-07)](https://github.com/kdeldycke/repomatic/compare/v6.10.0...v6.11.0)
 

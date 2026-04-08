@@ -472,8 +472,17 @@ def run_init(
     For ``awesome-*`` repositories, the ``awesome-template`` component is
     auto-included when no explicit component selection is made.
 
+    .. note::
+        Scope exclusions (``RepoScope.NON_AWESOME``, ``AWESOME_ONLY``) and
+        user-config exclusions (``[tool.repomatic] exclude``) only apply
+        during bare ``repomatic init``. When components are explicitly named
+        on the CLI, scope is bypassed: the caller knows what they asked for.
+        This allows workflows to materialize out-of-scope configs at runtime
+        (e.g., ``repomatic init renovate`` in an awesome repo).
+
     :param output_dir: Root directory of the target repository.
     :param components: Components to initialize. Empty means all defaults.
+        When non-empty, scope and user-config exclusions are bypassed.
     :param version: Version pin for upstream workflows (e.g., ``v5.10.0``).
     :param repo: Upstream repository containing reusable workflows.
     :param repo_slug: Repository ``owner/name`` slug for awesome-template URL
@@ -568,10 +577,16 @@ def run_init(
                 excluded_files.setdefault(excl_name, set()).update(ids)
 
     # Auto-exclude components and files that don't belong in this repository.
-    # Added after reporting so they don't appear in "Excluded by config" —
-    # they only surface in excluded_existing when the file is actually on
-    # disk.  Skip auto-exclusion in the upstream source repo — it is the
-    # origin of all bundled files (skills, opt-in workflows, configs).
+    # Scope exclusions only apply during bare ``repomatic init`` (no explicit
+    # component arguments). When a component or file is explicitly named on
+    # the CLI, scope is bypassed: the user knows what they asked for. This
+    # matches the guard on user-config exclusions above.
+    #
+    # Stale-file detection (populating ``excluded_existing``) still runs
+    # unconditionally so ``--delete-excluded`` can clean up regardless.
+    #
+    # Skip auto-exclusion entirely in the upstream source repo, which is
+    # the origin of all bundled files (skills, opt-in workflows, configs).
     scope_excluded_targets: list[str] = []
     if _is_source_repo(output_dir):
         # Bundled components are the source of truth in the upstream repo.
@@ -595,13 +610,15 @@ def run_init(
                     reg_comp.scope.name,
                     "awesome" if is_awesome_repo else "standard",
                 )
-                selected.discard(reg_comp.name)
-                # Record target paths so we can detect stale copies on disk.
-                if isinstance(reg_comp, GeneratedComponent) and reg_comp.target:
-                    scope_excluded_targets.append(reg_comp.target)
-                elif reg_comp.files:
-                    ids = {e.file_id for e in reg_comp.files}
-                    excluded_files.setdefault(reg_comp.name, set()).update(ids)
+                if not components:
+                    selected.discard(reg_comp.name)
+                    # Record target paths so we can detect stale copies
+                    # on disk.
+                    if isinstance(reg_comp, GeneratedComponent) and reg_comp.target:
+                        scope_excluded_targets.append(reg_comp.target)
+                    elif reg_comp.files:
+                        ids = {e.file_id for e in reg_comp.files}
+                        excluded_files.setdefault(reg_comp.name, set()).update(ids)
                 continue
 
             # File-level scope and opt-in status.
@@ -618,7 +635,10 @@ def run_init(
                         entry.scope.name,
                         "awesome" if is_awesome_repo else "standard",
                     )
-                    excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
+                    if not components:
+                        excluded_files.setdefault(reg_comp.name, set()).add(
+                            entry.file_id
+                        )
                 if entry.config_key and not _config_flag(
                     config, entry.config_key, entry.config_default
                 ):

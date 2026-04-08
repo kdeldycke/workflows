@@ -501,9 +501,9 @@ expected: dict[str, Any] = {
     ],
     "toml_files": [
         "pyproject.toml",
-        "repomatic/data/awesome_template/pyproject.toml",
         "repomatic/data/bumpversion.toml",
         "repomatic/data/labels.toml",
+        "repomatic/data/lychee.toml",
         "repomatic/data/mdformat.toml",
         "repomatic/data/mypy.toml",
         "repomatic/data/pytest.toml",
@@ -512,7 +512,6 @@ expected: dict[str, Any] = {
     ],
     "pyproject_files": [
         "pyproject.toml",
-        "repomatic/data/awesome_template/pyproject.toml",
     ],
     "workflow_files": [
         ".github/workflows/autofix.yaml",

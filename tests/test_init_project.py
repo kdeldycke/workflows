@@ -182,9 +182,19 @@ _TEMPLATE_SUPERSET_KEYS: dict[str, frozenset[str]] = {
 }
 
 
+_SCOPE_SPECIFIC_CONFIGS = frozenset({"lychee"})
+"""ToolConfigComponents with non-ALL scope whose templates are intentionally
+different from repomatic's own config (e.g., awesome-only lychee excludes
+crawler-blocking sites, while repomatic's lychee excludes GitHub URLs)."""
+
+
 @pytest.mark.parametrize(
     "config_type",
-    sorted(c.name for c in COMPONENTS if isinstance(c, ToolConfigComponent)),
+    sorted(
+        c.name
+        for c in COMPONENTS
+        if isinstance(c, ToolConfigComponent) and c.name not in _SCOPE_SPECIFIC_CONFIGS
+    ),
 )
 def test_template_matches_own_pyproject(config_type: str) -> None:
     """Verify bundled template stays in sync with repomatic's own config.
@@ -192,6 +202,9 @@ def test_template_matches_own_pyproject(config_type: str) -> None:
     Template keys (minus intentional exclusions) must match the corresponding
     ``[tool.*]`` section. List keys marked as superset require every template
     entry to appear in own config, but own config may have extras.
+
+    Scope-specific configs (e.g., lychee for awesome repos) are excluded
+    because their templates are intentionally different from repomatic's own.
     """
     comp = _BY_NAME[config_type]
     assert isinstance(comp, ToolConfigComponent)
@@ -444,6 +457,28 @@ def test_init_config_preserves_template_comments() -> None:
     assert "# Update version in [project] section." in result
 
 
+def test_init_config_lychee_preserves_other_sections() -> None:
+    """Lychee init merges [tool.lychee] without stripping unrelated sections."""
+    with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+        f.write(
+            '[tool.gitleaks]\n'
+            '[tool.gitleaks.allowlist]\n'
+            'description = "false positives"\n'
+            'commits = ["abc123"]\n'
+        )
+        f.flush()
+        result = init_config("lychee", Path(f.name))
+    Path(f.name).unlink()
+    assert result is not None
+    parsed = tomllib.loads(result)
+    # Lychee was added.
+    assert "lychee" in parsed["tool"]
+    assert "exclude" in parsed["tool"]["lychee"]
+    # Gitleaks was preserved.
+    assert "gitleaks" in parsed["tool"]
+    assert parsed["tool"]["gitleaks"]["allowlist"]["commits"] == ["abc123"]
+
+
 def test_full_ruff_init() -> None:
     """Verify full ruff config initialization."""
     with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
@@ -677,15 +712,17 @@ def test_init_only_labels(tmp_path: Path):
 def test_init_only_skills(tmp_path: Path):
     """Verify only skill files are created.
 
-    awesome-triage is auto-excluded for non-awesome repos.
+    Scope exclusions are bypassed when components are explicitly requested,
+    so all 15 skills (including awesome-only ones) are created.
     """
     result = run_init(output_dir=tmp_path, components=("skills",))
 
     created_set = set(result.created)
-    assert len(created_set) == 13
+    assert len(created_set) == 15
 
-    # Verify all non-awesome skill files are created.
+    # Verify all skill files are created, including awesome-only ones.
     for name in (
+        "awesome-triage",
         "babysit-ci",
         "brand-assets",
         "file-bug-report",
@@ -699,14 +736,11 @@ def test_init_only_skills(tmp_path: Path):
         "repomatic-test",
         "repomatic-topics",
         "sphinx-docs-sync",
+        "translation-sync",
     ):
         rel = f".claude/skills/{name}/SKILL.md"
         assert rel in created_set
         assert (tmp_path / ".claude" / "skills" / name / "SKILL.md").exists()
-
-    # awesome-triage and translation-sync are auto-excluded for non-awesome repos.
-    assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
-    assert ".claude/skills/translation-sync/SKILL.md" not in created_set
 
     # No workflows or changelog should be created.
     assert "changelog.md" not in created_set
@@ -1407,6 +1441,57 @@ def test_init_awesome_triage_included_for_awesome_repo(
     assert ".claude/skills/awesome-triage/SKILL.md" in created_set
     assert ".claude/skills/translation-sync/SKILL.md" in created_set
     assert ".claude/skills/repomatic-init/SKILL.md" in created_set
+
+
+def test_explicit_component_bypasses_scope_exclusion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Explicit component request overrides scope exclusion.
+
+    ``repomatic init renovate`` in an awesome repo should produce
+    renovate.json5 even though the renovate component has
+    ``scope=NON_AWESOME``. Scope exclusions only apply during bare
+    ``repomatic init`` (no explicit components).
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(
+        components=["renovate"],
+        output_dir=tmp_path,
+        repo_slug="user/awesome-billing",
+    )
+
+    created_set = set(result.created)
+    assert "renovate.json5" in created_set
+
+
+def test_bare_init_still_applies_scope_exclusion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Bare ``repomatic init`` still respects scope exclusions.
+
+    Without explicit components, NON_AWESOME components should be excluded
+    in awesome repos and AWESOME_ONLY components excluded in non-awesome repos.
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["renovate"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(
+        output_dir=tmp_path,
+        repo_slug="user/awesome-billing",
+    )
+
+    # Bare init: renovate (NON_AWESOME) should be scope-excluded.
+    created_set = set(result.created)
+    assert "renovate.json5" not in created_set
 
 
 def test_init_respects_exclude_label_files(
@@ -2265,10 +2350,9 @@ def test_init_bare_overrides_qualified(tmp_path: Path):
         output_dir=tmp_path,
         components=("skills", "skills/repomatic-topics"),
     )
-    # All skills created (minus auto-excluded awesome-triage and
-    # translation-sync for non-awesome).
+    # All skills created: explicit component request bypasses scope.
     total_skills = len(_BY_NAME["skills"].files)
-    assert len(result.created) == total_skills - 2
+    assert len(result.created) == total_skills
 
 
 def test_init_mixed_bare_and_qualified(tmp_path: Path):
@@ -2295,14 +2379,14 @@ def test_init_qualified_workflow(tmp_path: Path):
     assert result.created[0] == ".github/workflows/autofix.yaml"
 
 
-def test_init_qualified_auto_exclusion_still_applies(tmp_path: Path):
-    """awesome-triage is auto-excluded even when explicitly selected on non-awesome repo."""
+def test_init_qualified_scope_bypassed_when_explicit(tmp_path: Path):
+    """Explicit selection bypasses scope: awesome-triage created in non-awesome repo."""
     result = run_init(
         output_dir=tmp_path,
         components=("skills/awesome-triage",),
         repo_slug="user/some-project",
     )
-    assert not result.created
+    assert result.created == [".claude/skills/awesome-triage/SKILL.md"]
 
 
 def test_init_qualified_selection_context_in_error():
