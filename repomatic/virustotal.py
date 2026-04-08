@@ -141,8 +141,7 @@ def format_virustotal_section(results: list[ScanResult]) -> str:
         "| Binary | Analysis |",
         "| --- | --- |",
     ]
-    for r in results:
-        lines.append(f"| `{r.filename}` | [View scan]({r.analysis_url}) |")
+    lines.extend(f"| `{r.filename}` | [View scan]({r.analysis_url}) |" for r in results)
 
     return "\n".join(lines) + "\n"
 

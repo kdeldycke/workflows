@@ -91,6 +91,7 @@ Release & versioning:
   release-prep              Prepare files for a release
   version-check             Check if a version bump is allowed
   git-tag                   Create and push a Git tag
+  scan-virustotal           Upload release binaries to VirusTotal
 
 Sync:
   sync-gitignore            Sync .gitignore from gitignore.io templates

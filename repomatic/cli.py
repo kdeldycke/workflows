@@ -73,7 +73,6 @@ from .deps_graph import (
     get_available_groups,
 )
 from .git_ops import create_and_push_tag
-from .virustotal import scan_files, update_release_body
 from .github import token as _token_mod, unsubscribe as _unsub_mod
 from .github.actions import format_multiline_output
 from .github.dev_release import (
@@ -161,6 +160,7 @@ from .uv import (
     format_release_notes,
     sync_uv_lock as _sync_uv_lock,
 )
+from .virustotal import scan_files, update_release_body
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
