@@ -300,6 +300,24 @@ The `repomatic` CLI and its `[tool.repomatic]` configuration in `pyproject.toml`
 
 [Linting](readme.md#githubworkflowslintyaml-jobs) and [formatting](readme.md#githubworkflowsautofixyaml-jobs) are automated via GitHub workflows. Developers don't need to run these manually during development, but are still expected to do best effort. Push your changes and the workflows will catch any issues and perform the nitpicking.
 
+### Registry types own their query logic
+
+Enums and dataclasses that carry metadata should also carry the methods that interpret it. When callers need to make a decision based on a field (scope, format, config key), the logic belongs on the type, not scattered across call sites.
+
+Existing examples:
+- `RepoScope.matches(is_awesome)` encapsulates scope applicability instead of `is_awesome and scope == NON_AWESOME or ...` repeated at every check.
+- `NativeFormat.serialize(data)` encapsulates format-specific serialization (YAML/TOML/JSON) instead of an if/elif/elif chain.
+- `ArchiveFormat.tarfile_mode()` encapsulates the tar open mode instead of an inline ternary.
+- `Component.is_enabled(config)` and `FileEntry.is_enabled(config)` encapsulate config key lookup instead of `_config_flag(config, X.config_key, X.config_default)`.
+
+When adding a new field to a registry type, ask: will callers branch on this value? If yes, add a method on the type. When fixing duplicated conditionals, check whether they are all interpreting the same field: if so, the fix is a method, not a helper function elsewhere.
+
+### Scope exclusions are defaults, not absolutes
+
+`RepoScope` restrictions and `[tool.repomatic] exclude` entries only apply during bare `repomatic init` (no CLI arguments). Explicitly naming a component or file on the CLI bypasses both scope and user-config exclusions. This allows workflows to materialize out-of-scope configs at runtime (e.g., `repomatic init renovate` in an awesome repo). Config key exclusions (`config_key` fields) always apply regardless of explicit naming: the user's `[tool.repomatic]` config is authoritative for feature flags.
+
+In the source repo, scope exclusions still remove out-of-scope components from `selected` (preventing e.g., an `AWESOME_ONLY` config from being merged into the non-awesome source repo's `pyproject.toml`), but stale-file detection is suppressed so bundled data files are never flagged for deletion.
+
 ### Metadata-driven workflow conditions
 
 Rather than duplicating `if:` conditions on every workflow step, augment the `repomatic metadata` subcommand to compute the condition once and reference it from workflow steps. Python code in `repomatic` is simpler to maintain, test, and debug than complex GitHub Actions workflow logic.
