@@ -461,8 +461,8 @@ def test_init_config_lychee_preserves_other_sections() -> None:
     """Lychee init merges [tool.lychee] without stripping unrelated sections."""
     with NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
         f.write(
-            '[tool.gitleaks]\n'
-            '[tool.gitleaks.allowlist]\n'
+            "[tool.gitleaks]\n"
+            "[tool.gitleaks.allowlist]\n"
             'description = "false positives"\n'
             'commits = ["abc123"]\n'
         )
@@ -1477,9 +1477,7 @@ def test_bare_init_still_applies_scope_exclusion(
     """
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["renovate"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["renovate"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
