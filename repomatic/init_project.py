@@ -643,8 +643,12 @@ def run_init(
                     excluded_files.setdefault(reg_comp.name, set()).add(
                         entry.file_id
                     )
-            if entry.config_key and not _config_flag(
-                config, entry.config_key, entry.config_default
+            if (
+                entry.config_key
+                and not is_source
+                and not _config_flag(
+                    config, entry.config_key, entry.config_default
+                )
             ):
                 logging.debug(
                     "Config exclusion: %s/%s (%s disabled).",

@@ -13,6 +13,7 @@
 - Fix awesome-template sync overwriting `pyproject.toml` instead of merging. `_copy_template_tree` replaced the entire file with the bundled template, stripping user-managed `[tool.*]` sections (e.g., `[tool.gitleaks]`). The lychee config is now a `ToolConfigComponent` with `AWESOME_ONLY` scope, so it goes through the standard `_init_tool_configs` merge path. `pyproject.toml` is removed from the awesome-template bundle.
 - Fix `repomatic init <component>` silently ignoring explicitly-requested components in repos where their scope doesn't match. Scope exclusions now only apply during bare `repomatic init`, matching the existing guard on user-config exclusions. This fixes `repomatic init renovate` failing in awesome repos where the renovate workflow materializes `renovate.json5` at runtime.
 - Add missing `pyproject_files` key to the `autofix.yaml` metadata step. The `format-pyproject` job referenced this key but it was never requested, so `pyproject-fmt` ran with no input files and the `|| true` swallowed the error.
+- Fix `--delete-excluded` removing opt-in workflow files in the source repo. Config-key exclusions (e.g., `notification.unsubscribe`) now skip the source repo, matching the existing scope-exclusion guard. Previously, the `sync-repomatic` job would delete `.github/workflows/unsubscribe.yaml` from upstream, breaking the symlink in `repomatic/data/` and all downstream `workflow_call` references.
 
 ## [`6.11.0` (2026-04-07)](https://github.com/kdeldycke/repomatic/compare/v6.10.0...v6.11.0)
 
