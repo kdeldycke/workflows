@@ -517,6 +517,33 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         default_config="ruff.toml",
         reads_pyproject=True,
     ),
+    # shfmt configuration reference:
+    # - Config discovery: https://github.com/mvdan/sh#editorconfig
+    #   Reads .editorconfig in CWD and parents. No --config flag.
+    # - CLI flags: https://github.com/mvdan/sh#usage
+    #   --write for in-place; --diff for diff; --simplify for simplification.
+    # - Source: https://github.com/mvdan/sh
+    "shfmt": ToolSpec(
+        name="shfmt",
+        version="3.13.1",
+        native_config_files=(".editorconfig",),
+        default_flags=("--write",),
+        binary=BinarySpec(
+            urls={
+                "linux-arm64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_linux_arm64",
+                "linux-x64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_linux_amd64",
+                "macos-arm64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_darwin_arm64",
+                "macos-x64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_darwin_amd64",
+            },
+            checksums={
+                "linux-arm64": "32d92acaa5cd8abb29fc49dac123dc412442d5713967819d8af2c29f1b3857c7",
+                "linux-x64": "fb096c5d1ac6beabbdbaa2874d025badb03ee07929f0c9ff67563ce8c75398b1",
+                "macos-arm64": "9680526be4a66ea1ffe988ed08af58e1400fe1e4f4aef5bd88b20bb9b3da33f8",
+                "macos-x64": "6feedafc72915794163114f512348e2437d080d0047ef8b8fa2ec63b575f12af",
+            },
+            archive_format=ArchiveFormat.RAW,
+        ),
+    ),
     # typos configuration reference:
     # - Config discovery: https://github.com/crate-ci/typos/blob/master/docs/reference.md
     #   Reads [tool.typos] from pyproject.toml, typos.toml, .typos.toml, _typos.toml.
