@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add standalone `shfmt` shell formatter to the tool runner (`repomatic run shfmt`). Downloads the binary for the current platform and invokes it with managed version pinning and `.editorconfig` discovery.
+- Deduplicate release attestations: Python packages are now attested once in `build-package` instead of three times across `build-package`, `publish-pypi`, and `create-release`. The attestation bundle is forwarded as an artifact to `create-release` for upload to the GitHub release. Also fixes `create-release` accidentally attesting `.gitignore` via the `release_artifact/*` glob.
 
 ## [`6.11.1` (2026-04-08)](https://github.com/kdeldycke/repomatic/compare/v6.11.0...v6.11.1)
 
