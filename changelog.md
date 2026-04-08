@@ -11,6 +11,9 @@
 
 ## [`6.11.1` (2026-04-08)](https://github.com/kdeldycke/repomatic/compare/v6.11.0...v6.11.1)
 
+> [!NOTE]
+> `6.11.1` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.11.1/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.11.1).
+
 - Parallelize release workflow: `compile-binaries` now starts right after `metadata` instead of waiting for `create-release`, and `publish-pypi` runs concurrently with `create-tag` and `create-release`. Binary and attestation uploads to the GitHub release are deferred to `publish-release`. The PyPI admonition in release notes is applied by `publish-release` after confirming PyPI publication succeeded.
 - Fall back to PyPI `project_urls` changelog link when no GitHub Release exists for a package. Release notes sections now render a `[Changelog](url)` link instead of silently omitting the package.
 - Fix release workflow uploading attestation bundle before the GitHub release draft exists. The upload step now runs after release creation.
