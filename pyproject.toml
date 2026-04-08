@@ -109,6 +109,9 @@ dependencies = [
   # tomlkit 0.13 stabilized InlineTable manipulation; used for comment-preserving
   # TOML write operations (tool_runner config translation).
   "tomlkit>=0.13",
+  # vt-py is the official VirusTotal Python client (uses aiohttp internally).
+  # Used by the scan-virustotal CLI command to upload release binaries.
+  "vt-py>=0.18",
   # wcmatch 10.0 fixed globbing inconsistencies with symlinks; our metadata
   # globbing uses iglob() with FOLLOW for symlink-aware file discovery.
   "wcmatch>=10",
@@ -303,6 +306,7 @@ overrides = [
     "gitdb.*",
     "py_walk.*",
     "pydriller.*",
+    "vt",
   ] },
 ]
 

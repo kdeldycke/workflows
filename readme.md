@@ -740,6 +740,17 @@ docs = [
   - **Requires**:
     - Successful `create-release` job (draft must exist)
 
+- 🛡️ **VirusTotal scan** (`scan-virustotal`)
+
+  - Uploads compiled binaries (`.bin` and `.exe`) to [VirusTotal](https://www.virustotal.com/) via `repomatic scan-virustotal`, then appends analysis links to the GitHub release body
+  - Seeds AV vendor databases to reduce false positive detections for downstream distributors (Chocolatey, Scoop, etc.)
+  - **Requires**:
+    - `VIRUSTOTAL_API_KEY` repository secret ([free API key](https://www.virustotal.com/gui/my-apikey))
+    - Successful `publish-release` job
+  - **Skipped if**:
+    - `VIRUSTOTAL_API_KEY` secret is not configured
+    - `publish-release` job did not succeed
+
 - 🔄 **Sync dev pre-release** (`sync-dev-release`)
 
   - Maintains a rolling dev pre-release on GitHub that mirrors the unreleased changelog section

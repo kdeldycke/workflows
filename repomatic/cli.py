@@ -73,6 +73,7 @@ from .deps_graph import (
     get_available_groups,
 )
 from .git_ops import create_and_push_tag
+from .virustotal import scan_files, update_release_body
 from .github import token as _token_mod, unsubscribe as _unsub_mod
 from .github.actions import format_multiline_output
 from .github.dev_release import (
@@ -3094,6 +3095,97 @@ def git_tag(
 
     if output:
         echo(f"created={'true' if created else 'false'}", file=prep_path(output))
+
+
+@repomatic.command(
+    name="scan-virustotal",
+    short_help="Upload release binaries to VirusTotal",
+    section=_section_release,
+)
+@option(
+    "--tag",
+    required=True,
+    help="Release tag to scan (e.g., v1.2.3).",
+)
+@option(
+    "--repo",
+    default=None,
+    envvar="GITHUB_REPOSITORY",
+    help="Repository in owner/repo format.",
+)
+@option(
+    "--api-key",
+    required=True,
+    envvar="VIRUSTOTAL_API_KEY",
+    help="VirusTotal API key.",
+)
+@option(
+    "--binaries-dir",
+    type=dir_path(exists=True, resolve_path=True),
+    required=True,
+    help="Directory containing binary files to upload.",
+)
+@option(
+    "--rate-limit",
+    type=IntRange(1, 60),
+    default=4,
+    show_default=True,
+    help="Maximum VirusTotal API requests per minute.",
+)
+@option(
+    "--update-release/--no-update-release",
+    default=True,
+    help="Append scan links to the GitHub release body.",
+)
+def scan_virustotal(
+    tag: str,
+    repo: str | None,
+    api_key: str,
+    binaries_dir: Path,
+    rate_limit: int,
+    update_release: bool,
+) -> None:
+    """Upload release binaries to VirusTotal and update the release body.
+
+    Scans all .bin and .exe files in the given directory, uploads them to
+    VirusTotal, and optionally appends analysis links to the GitHub release
+    body.
+
+    \b
+    Examples:
+        repomatic scan-virustotal --tag v1.2.3 --binaries-dir ./binaries
+
+    \b
+        repomatic scan-virustotal --tag v1.2.3 --binaries-dir ./binaries --no-update-release
+    """
+    file_paths = sorted(
+        p
+        for p in binaries_dir.iterdir()
+        if p.is_file() and p.suffix in {".bin", ".exe"}
+    )
+
+    if not file_paths:
+        echo("No .bin or .exe files found, nothing to upload.")
+        return
+
+    echo(f"Uploading {len(file_paths)} file(s) to VirusTotal...")
+    results = scan_files(api_key, file_paths, rate_limit)
+
+    for r in results:
+        echo(f"  {r.filename}: {r.analysis_url}")
+
+    if not results:
+        echo("All uploads failed.")
+        return
+
+    if update_release and repo:
+        updated = update_release_body(repo, tag, results)
+        if updated:
+            echo(f"Updated release body for {tag}.")
+        else:
+            echo(f"Release body for {tag} already has VirusTotal links.")
+    elif update_release and not repo:
+        echo("No --repo specified, skipping release body update.")
 
 
 @repomatic.command(

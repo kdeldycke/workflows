@@ -208,6 +208,7 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 | `format-X` | Rewrite to enforce canonical style.             | Formatter rules      | Yes         | `format-json`, `format-markdown`, `format-python` |
 | `fix-X`    | Correct content (auto-fix).                     | Linter/checker rules | Yes         | `fix-typos`                                       |
 | `lint-X`   | Check content without modifying it.             | Linter rules         | Yes         | `lint-changelog`                                  |
+| `scan-X`   | Submit artifacts to an external analysis service. | External API       | Yes         | `scan-virustotal`                                 |
 
 **Rules:**
 

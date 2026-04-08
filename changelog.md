@@ -7,6 +7,7 @@
 
 - Add `shfmt` shell formatter to the tool runner (`repomatic run shfmt`). Downloads the binary for the current platform and invokes it with managed version pinning and `.editorconfig` discovery.
 - Add `format-shell` autofix job to auto-format shell scripts with `shfmt`.
+- Replace `crazy-max/ghaction-virustotal` GitHub Action with a native `repomatic scan-virustotal` CLI command using `vt-py`. Fixes the release body update that was silently skipped because the action required a `release` event but the workflow triggers on `push`.
 - Deduplicate release attestations: Python packages are now attested once in `build-package` instead of three times across `build-package`, `publish-pypi`, and `create-release`. The attestation bundle is forwarded as an artifact to `create-release` for upload to the GitHub release. Also fixes `create-release` accidentally attesting `.gitignore` via the `release_artifact/*` glob.
 
 ## [`6.11.1` (2026-04-08)](https://github.com/kdeldycke/repomatic/compare/v6.11.0...v6.11.1)

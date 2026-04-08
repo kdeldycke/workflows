@@ -564,6 +564,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ matrix.commit }}
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+        with:
+          enable-cache: false
       - name: Download release binaries
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -574,16 +580,16 @@ jobs:
           --pattern "*.bin"
           --pattern "*.exe"
           --dir ./binaries
-      - name: Upload to VirusTotal
-        # Free-tier API allows 4 requests/minute. The action handles rate limiting internally.
-        uses: crazy-max/ghaction-virustotal@936d8c5c00afe97d3d9a1af26d017cfdf26800a2 # v5.0.0
-        with:
-          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          update_release_body: true
-          github_token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
-          request_rate: 4
-          files: |
-            ./binaries/*
+      - name: Upload to VirusTotal and update release body
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+        run: >
+          uvx --no-progress --from . repomatic scan-virustotal
+          --tag "v${CURRENT_VERSION}"
+          --repo "${{ github.repository }}"
+          --binaries-dir ./binaries
 
   sync-dev-release:
     name: 🔄 Sync dev pre-release
