@@ -5,7 +5,9 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Fix `rst_to_myst` conversion leaving RST backslash escapes (`\_`) in headings and not wrapping dotted Python module names in backticks. `sphinx-apidoc` uses `\_` to prevent RST reference interpretation; these are meaningless in markdown and cause `mdformat` to strip them on every reformat pass.
 - Fix `format-pyproject` autofix job failing with exit code 123. `xargs` translates `pyproject-fmt`'s exit code 1 (file reformatted) to 123, and the default `bash -e` shell aborted before the exit code guard could run.
+- Disable uv cache in the `publish-pypi` release job, which has no checkout step. Without a workspace, `setup-uv` cannot find lockfiles to hash and emits spurious cache-miss warnings on every run.
 
 ## [`6.11.2` (2026-04-08)](https://github.com/kdeldycke/repomatic/compare/v6.11.1...v6.11.2)
 
