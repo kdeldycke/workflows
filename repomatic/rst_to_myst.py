@@ -41,6 +41,28 @@ _RST_UNDERLINE_LEVELS: dict[str, str] = {
 }
 
 
+def _clean_heading(title: str) -> str:
+    """Normalize an RST heading for markdown.
+
+    Strips RST-specific backslash escapes (e.g. ``\\_`` used to prevent
+    reference interpretation) and wraps qualified Python identifiers in
+    backticks so they render as code.
+
+    .. note::
+        ``sphinx-apidoc`` produces headings like
+        ``meta\\_package\\_manager.managers.apm module``.  The backslash
+        escapes are necessary in RST but meaningless in markdown, where they
+        cause a tug-of-war with ``mdformat`` (which strips them on every
+        reformat pass).  Wrapping the identifier in backticks makes the
+        escaping moot and produces cleaner output.
+    """
+    # Strip RST backslash-escapes (\_  →  _).
+    title = title.replace("\\_", "_")
+    # Wrap Python identifiers in backticks when followed by "module" or "package".
+    title = re.sub(r"^([\w.]+) (module|package)$", r"`\1` \2", title)
+    return title
+
+
 def convert_apidoc_rst_to_myst(content: str) -> str:
     """Convert ``sphinx-apidoc`` RST to MyST markdown with ``{eval-rst}`` blocks.
 
@@ -60,7 +82,8 @@ def convert_apidoc_rst_to_myst(content: str) -> str:
             and re.fullmatch(re.escape(lines[i + 1][0]) + r"+", lines[i + 1])
         ):
             level = _RST_UNDERLINE_LEVELS[lines[i + 1][0]]
-            result.append(f"{level} {lines[i]}")
+            title = _clean_heading(lines[i])
+            result.append(f"{level} {title}")
             i += 2
             continue
 
