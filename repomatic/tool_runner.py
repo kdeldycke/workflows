@@ -69,7 +69,7 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
-    from typing import Any
+    from typing import Any, Literal
 
     from .metadata import Metadata
 
@@ -81,7 +81,7 @@ class ArchiveFormat(Enum):
     TAR_GZ = "tar.gz"
     TAR_XZ = "tar.xz"
 
-    def tarfile_mode(self) -> str:
+    def tarfile_mode(self) -> Literal["r:gz", "r:xz"]:
         """Return the ``tarfile.open`` mode string for this format.
 
         :raises ValueError: If called on :attr:`RAW` (not a tar archive).
