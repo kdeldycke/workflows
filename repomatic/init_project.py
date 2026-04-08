@@ -632,9 +632,7 @@ def run_init(
                     repo_label,
                 )
                 if not components and not is_source:
-                    excluded_files.setdefault(reg_comp.name, set()).add(
-                        entry.file_id
-                    )
+                    excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
             if not is_source and not entry.is_enabled(config):
                 logging.debug(
                     "Config exclusion: %s/%s (%s disabled).",
