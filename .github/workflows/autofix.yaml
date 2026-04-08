@@ -112,15 +112,15 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Run pyproject-fmt
-        # pyproject-fmt returns exit code 1 when it reformats the file.
-        # We tolerate that since changes are expected in an autofix workflow,
-        # but let other exit codes (e.g. 2 for argument errors) fail the step.
+        # pyproject-fmt returns exit code 1 when it reformats the file, but
+        # xargs translates any non-zero child exit to 123. Accept both 0 and
+        # 123 since changes are expected in an autofix workflow.
         env:
           PYPROJECT_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).pyproject_files }}
         run: |
-          echo "${PYPROJECT_FILES}" | xargs uvx --no-progress --from . repomatic run pyproject-fmt --
-          rc=$?
-          [ "$rc" -eq 0 ] || [ "$rc" -eq 1 ] || exit "$rc"
+          rc=0
+          echo "${PYPROJECT_FILES}" | xargs uvx --no-progress --from . repomatic run pyproject-fmt -- || rc=$?
+          [ "$rc" -eq 0 ] || [ "$rc" -eq 123 ] || exit "$rc"
       - id: pr-metadata
         run: >
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
