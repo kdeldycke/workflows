@@ -3,12 +3,12 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-04-01T09:59:21.081512Z"
+exclude-newer = "2026-04-01T10:05:40.746734841Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-04-08T09:59:21.081518Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-08T09:59:21.081524Z", span = "PT0S" }
+click-extra = { timestamp = "2026-04-08T10:05:40.746831913Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-08T10:05:40.746837884Z", span = "PT0S" }
 
 [[package]]
 name = "aiofiles"
@@ -1491,7 +1491,7 @@ wheels = [
 
 [[package]]
 name = "repomatic"
-version = "6.11.2.dev0"
+version = "6.11.3.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },

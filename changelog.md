@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.11.3.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.11.2...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.11.2` (2026-04-08)](https://github.com/kdeldycke/repomatic/compare/v6.11.1...v6.11.2)
 
 - Add `shfmt` shell formatter to the tool runner (`repomatic run shfmt`). Downloads the binary for the current platform and invokes it with managed version pinning and `.editorconfig` discovery.
