@@ -83,6 +83,24 @@ def test_all_component_types_handled() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("scope", "is_awesome", "expected"),
+    [
+        ("ALL", True, True),
+        ("ALL", False, True),
+        ("AWESOME_ONLY", True, True),
+        ("AWESOME_ONLY", False, False),
+        ("NON_AWESOME", True, False),
+        ("NON_AWESOME", False, True),
+    ],
+)
+def test_repo_scope_matches(scope: str, is_awesome: bool, expected: bool) -> None:
+    """Verify RepoScope.matches returns correct results for all combinations."""
+    from repomatic.registry import RepoScope
+
+    assert RepoScope[scope].matches(is_awesome) is expected
+
+
 def test_init_help_lists_all_components() -> None:
     """Verify the init command help text lists every registered component."""
     from repomatic.cli import init_project

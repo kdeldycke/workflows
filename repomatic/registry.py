@@ -80,6 +80,17 @@ class RepoScope(Enum):
     NON_AWESOME = auto()
     """Only for non-awesome repositories."""
 
+    def matches(self, is_awesome: bool) -> bool:
+        """Whether this scope applies to the given repository type.
+
+        :param is_awesome: ``True`` for ``awesome-*`` repositories.
+        """
+        if self is RepoScope.ALL:
+            return True
+        if self is RepoScope.AWESOME_ONLY:
+            return is_awesome
+        return not is_awesome
+
 
 @dataclass(frozen=True)
 class FileEntry:

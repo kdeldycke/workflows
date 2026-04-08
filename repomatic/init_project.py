@@ -61,7 +61,6 @@ from .registry import (
     BundledComponent,
     GeneratedComponent,
     InitDefault,
-    RepoScope,
     SyncMode,
     TemplateComponent,
     ToolConfigComponent,
@@ -576,48 +575,47 @@ def run_init(
                 ids = {e.file_id for e in excl_comp.files}
                 excluded_files.setdefault(excl_name, set()).update(ids)
 
-    # Auto-exclude components and files that don't belong in this repository.
-    # Scope exclusions only apply during bare ``repomatic init`` (no explicit
-    # component arguments). When a component or file is explicitly named on
-    # the CLI, scope is bypassed: the user knows what they asked for. This
-    # matches the guard on user-config exclusions above.
+    # Classification pass: determine which components and files to
+    # initialize, and which to flag for stale-file detection.
     #
-    # Scope exclusions on ``selected`` apply in all repos, including the
-    # upstream source repo. The source repo contains bundled data files for
-    # all scopes, but those are shipped to downstream repos: they should not
-    # be initialized locally (e.g., an AWESOME_ONLY ``ToolConfigComponent``
-    # should not be merged into the source repo's ``pyproject.toml``).
-    # Stale-file detection (``excluded_files``) is suppressed in the source
-    # repo so bundled data files are never flagged for deletion.
+    # Three exclusion mechanisms, applied in order per component:
+    #
+    # 1. Scope (component-level and file-level ``RepoScope``).
+    #    Only during bare ``repomatic init``: explicit CLI naming bypasses
+    #    scope so workflows can materialize out-of-scope configs at runtime.
+    #    Scope exclusions on ``selected`` apply in all repos including the
+    #    source repo (an AWESOME_ONLY config should not be merged into the
+    #    non-awesome source repo's ``pyproject.toml``). Stale-file detection
+    #    is suppressed in the source repo so bundled data files are never
+    #    flagged for deletion.
+    #
+    # 2. Config key (component-level and file-level ``config_key``).
+    #    Always applies, even with explicit CLI naming: the user's
+    #    ``[tool.repomatic]`` config is authoritative for feature flags.
+    #
+    # 3. User config (``[tool.repomatic] exclude``/``include``).
+    #    Already applied above, before this loop.
     is_source = _is_source_repo(output_dir)
     scope_excluded_targets: list[str] = []
-    if is_source:
-        # Bundled components are the source of truth in the upstream repo.
-        # Remove them from excluded_files so they are never flagged for
-        # deletion.
-        for reg_comp in COMPONENTS:
-            if reg_comp.files:
-                excluded_files.pop(reg_comp.name, None)
+    repo_label = "awesome" if is_awesome_repo else "standard"
 
     for reg_comp in COMPONENTS:
-        # Component-level scope (e.g., changelog is NON_AWESOME).
-        comp_out_of_scope = (
-            is_awesome_repo
-            and reg_comp.scope == RepoScope.NON_AWESOME
-            or (not is_awesome_repo and reg_comp.scope == RepoScope.AWESOME_ONLY)
-        )
-        if comp_out_of_scope:
+        # In the source repo, clear any user-config exclusions for bundled
+        # components so their data files are never flagged for deletion.
+        if is_source and reg_comp.files:
+            excluded_files.pop(reg_comp.name, None)
+
+        # --- Component-level scope ---
+        if not reg_comp.scope.matches(is_awesome_repo):
             logging.debug(
                 "Scope exclusion: %s (%s) not applicable to %s repo.",
                 reg_comp.name,
                 reg_comp.scope.name,
-                "awesome" if is_awesome_repo else "standard",
+                repo_label,
             )
             if not components:
                 selected.discard(reg_comp.name)
                 if not is_source:
-                    # Record target paths so we can detect stale copies
-                    # on disk.
                     if isinstance(reg_comp, GeneratedComponent) and reg_comp.target:
                         scope_excluded_targets.append(reg_comp.target)
                     elif reg_comp.files:
@@ -625,19 +623,28 @@ def run_init(
                         excluded_files.setdefault(reg_comp.name, set()).update(ids)
             continue
 
-        # File-level scope and opt-in status.
+        # --- Component-level config_key ---
+        if (
+            reg_comp.name in selected
+            and reg_comp.config_key
+            and not _config_flag(config, reg_comp.config_key, reg_comp.config_default)
+        ):
+            selected.discard(reg_comp.name)
+            logging.info(
+                "[tool.repomatic] %s is disabled. Skipping %s.",
+                reg_comp.config_key,
+                reg_comp.name,
+            )
+
+        # --- File-level scope and config_key ---
         for entry in reg_comp.files:
-            if (
-                is_awesome_repo
-                and entry.scope == RepoScope.NON_AWESOME
-                or (not is_awesome_repo and entry.scope == RepoScope.AWESOME_ONLY)
-            ):
+            if not entry.scope.matches(is_awesome_repo):
                 logging.debug(
                     "Scope exclusion: %s/%s (%s) not applicable to %s repo.",
                     reg_comp.name,
                     entry.file_id,
                     entry.scope.name,
-                    "awesome" if is_awesome_repo else "standard",
+                    repo_label,
                 )
                 if not components and not is_source:
                     excluded_files.setdefault(reg_comp.name, set()).add(
@@ -667,19 +674,6 @@ def run_init(
     for rel in sorted(scope_excluded_targets):
         if (output_dir / rel).exists():
             result.excluded_existing.append(rel)
-
-    # Filter out components whose config_key is disabled.
-    for reg_comp in COMPONENTS:
-        if (
-            reg_comp.name in selected
-            and reg_comp.config_key
-            and not _config_flag(config, reg_comp.config_key, reg_comp.config_default)
-        ):
-            selected.discard(reg_comp.name)
-            logging.info(
-                f"[tool.repomatic] {reg_comp.config_key} is disabled."
-                f" Skipping {reg_comp.name}."
-            )
 
     # Dispatch by component type.
     tool_configs_to_merge: list[str] = []
