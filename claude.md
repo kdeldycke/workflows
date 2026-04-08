@@ -305,6 +305,7 @@ The `repomatic` CLI and its `[tool.repomatic]` configuration in `pyproject.toml`
 Enums and dataclasses that carry metadata should also carry the methods that interpret it. When callers need to make a decision based on a field (scope, format, config key), the logic belongs on the type, not scattered across call sites.
 
 Existing examples:
+
 - `RepoScope.matches(is_awesome)` encapsulates scope applicability instead of `is_awesome and scope == NON_AWESOME or ...` repeated at every check.
 - `NativeFormat.serialize(data)` encapsulates format-specific serialization (YAML/TOML/JSON) instead of an if/elif/elif chain.
 - `ArchiveFormat.tarfile_mode()` encapsulates the tar open mode instead of an inline ternary.
