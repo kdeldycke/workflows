@@ -218,7 +218,8 @@ def test_get_template_names():
     assert "unsubscribe-phase2" in names
     assert "setup-guide-virustotal" in names
     assert "yanked-admonition" in names
-    assert len(names) == 39
+    assert "format-shell" in names
+    assert len(names) == 40
 
 
 def test_load_template_frontmatter():

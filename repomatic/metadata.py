@@ -400,6 +400,7 @@ _METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
     "doc_files": "List of documentation files.",
     "markdown_files": "List of Markdown files.",
     "image_files": "List of image files.",
+    "shell_files": "List of shell script files.",
     "zsh_files": "List of Zsh files.",
     "is_python_project": "Repository is a Python project with pyproject.toml.",
     "package_name": "Package name as published on PyPI.",
@@ -1464,6 +1465,19 @@ class Metadata:
         return self.glob_files("**/*.{jpeg,jpg,png,webp,avif}")
 
     @cached_property
+    def shell_files(self) -> list[Path]:
+        """Returns a list of shell script files.
+
+        Covers all dialects supported by ``shfmt``: Bash, POSIX sh, mksh, Bats,
+        and Zsh. Includes dotfiles like ``.bashrc`` and ``.zshrc``.
+        """
+        return self.glob_files(
+            "**/*.{bash,bats,ksh,mksh,sh,zsh}",
+            "**/.{bash_login,bash_logout,bash_profile,bashrc,profile,"
+            "zlogin,zlogout,zprofile,zshenv,zshrc}",
+        )
+
+    @cached_property
     def zsh_files(self) -> list[Path]:
         """Returns a list of Zsh files."""
         return self.glob_files("**/*.{sh,zsh}", "**/.{zshrc,zprofile,zshenv,zlogin}")
@@ -2217,6 +2231,7 @@ class Metadata:
             "doc_files": self.doc_files,
             "markdown_files": self.markdown_files,
             "image_files": self.image_files,
+            "shell_files": self.shell_files,
             "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,

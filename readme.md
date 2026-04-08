@@ -14,7 +14,7 @@ Automates:
 
 - Version bumping
 - Changelog management
-- Formatting autofix for: Python, Markdown, JSON, typos
+- Formatting autofix for: Python, Markdown, JSON, Shell, typos
 - Linting: Python types with `mypy`, YAML, `zsh`, GitHub Actions, workflow security, URLS & redirects, Awesome lists, secrets
 - Compiling of Python binaries for Linux / macOS / Windows on `x86_64` & `arm64`
 - Building of Python packages and upload to PyPI
@@ -371,6 +371,12 @@ GitHub Actions has several design limitations that the workflows work around:
   - Auto-formats Markdown files using [`mdformat`](https://github.com/hukkin/mdformat)
   - **Requires**:
     - Markdown files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}`) in the repository
+
+- 🐚 **Format Shell** (`format-shell`)
+
+  - Auto-formats shell scripts using [`shfmt`](https://github.com/mvdan/sh)
+  - **Requires**:
+    - Shell files (`**/*.{bash,bats,ksh,mksh,sh,zsh}`) or shell dotfiles (`.bashrc`, `.zshrc`, etc.) in the repository
 
 - 🔧 **Format JSON** (`format-json`)
 

@@ -129,6 +129,7 @@ SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
     "format-json",
     "format-markdown",
     "format-images",
+    "format-shell",
     "sync-gitignore",
     "sync-mailmap",
     "update-deps-graph",
