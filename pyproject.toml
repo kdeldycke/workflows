@@ -155,7 +155,7 @@ exclude-newer = "1 week"
 # click-extra bypasses cooldown to pick up the freshly released 7.10.1.
 # pygments and requests bypass cooldown to pick up transitive security fixes immediately.
 # repomatic is pinned to git main.
-exclude-newer-package = { "click-extra" = "0 day",  "repomatic" = "0 day"  }
+exclude-newer-package = { "click-extra" = "0 day", "repomatic" = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 
@@ -297,14 +297,13 @@ warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
 pretty = true
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = [
+overrides = [
+  { ignore_missing_imports = true, module = [
     "bumpversion.*",
     "gitdb.*",
     "py_walk.*",
     "pydriller.*",
+  ] },
 ]
 
 [tool.lychee]
