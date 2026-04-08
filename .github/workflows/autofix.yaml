@@ -50,8 +50,8 @@ jobs:
         run: >
           uvx --no-progress --from . repomatic metadata
           --format github-json --output "$GITHUB_OUTPUT"
-          gitignore_exists python_files json_files doc_files markdown_files
-          is_python_project mailmap_exists
+          gitignore_exists python_files pyproject_files json_files doc_files
+          markdown_files is_python_project mailmap_exists
           image_files workflow_files active_autodoc uses_myst
           release_commits_matrix
 

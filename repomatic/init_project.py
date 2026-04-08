@@ -582,36 +582,40 @@ def run_init(
     # the CLI, scope is bypassed: the user knows what they asked for. This
     # matches the guard on user-config exclusions above.
     #
-    # Stale-file detection (populating ``excluded_existing``) still runs
-    # unconditionally so ``--delete-excluded`` can clean up regardless.
-    #
-    # Skip auto-exclusion entirely in the upstream source repo, which is
-    # the origin of all bundled files (skills, opt-in workflows, configs).
+    # Scope exclusions on ``selected`` apply in all repos, including the
+    # upstream source repo. The source repo contains bundled data files for
+    # all scopes, but those are shipped to downstream repos: they should not
+    # be initialized locally (e.g., an AWESOME_ONLY ``ToolConfigComponent``
+    # should not be merged into the source repo's ``pyproject.toml``).
+    # Stale-file detection (``excluded_files``) is suppressed in the source
+    # repo so bundled data files are never flagged for deletion.
+    is_source = _is_source_repo(output_dir)
     scope_excluded_targets: list[str] = []
-    if _is_source_repo(output_dir):
+    if is_source:
         # Bundled components are the source of truth in the upstream repo.
         # Remove them from excluded_files so they are never flagged for
         # deletion.
         for reg_comp in COMPONENTS:
             if reg_comp.files:
                 excluded_files.pop(reg_comp.name, None)
-    else:
-        for reg_comp in COMPONENTS:
-            # Component-level scope (e.g., changelog is NON_AWESOME).
-            comp_out_of_scope = (
-                is_awesome_repo
-                and reg_comp.scope == RepoScope.NON_AWESOME
-                or (not is_awesome_repo and reg_comp.scope == RepoScope.AWESOME_ONLY)
+
+    for reg_comp in COMPONENTS:
+        # Component-level scope (e.g., changelog is NON_AWESOME).
+        comp_out_of_scope = (
+            is_awesome_repo
+            and reg_comp.scope == RepoScope.NON_AWESOME
+            or (not is_awesome_repo and reg_comp.scope == RepoScope.AWESOME_ONLY)
+        )
+        if comp_out_of_scope:
+            logging.debug(
+                "Scope exclusion: %s (%s) not applicable to %s repo.",
+                reg_comp.name,
+                reg_comp.scope.name,
+                "awesome" if is_awesome_repo else "standard",
             )
-            if comp_out_of_scope:
-                logging.debug(
-                    "Scope exclusion: %s (%s) not applicable to %s repo.",
-                    reg_comp.name,
-                    reg_comp.scope.name,
-                    "awesome" if is_awesome_repo else "standard",
-                )
-                if not components:
-                    selected.discard(reg_comp.name)
+            if not components:
+                selected.discard(reg_comp.name)
+                if not is_source:
                     # Record target paths so we can detect stale copies
                     # on disk.
                     if isinstance(reg_comp, GeneratedComponent) and reg_comp.target:
@@ -619,36 +623,36 @@ def run_init(
                     elif reg_comp.files:
                         ids = {e.file_id for e in reg_comp.files}
                         excluded_files.setdefault(reg_comp.name, set()).update(ids)
-                continue
+            continue
 
-            # File-level scope and opt-in status.
-            for entry in reg_comp.files:
-                if (
-                    is_awesome_repo
-                    and entry.scope == RepoScope.NON_AWESOME
-                    or (not is_awesome_repo and entry.scope == RepoScope.AWESOME_ONLY)
-                ):
-                    logging.debug(
-                        "Scope exclusion: %s/%s (%s) not applicable to %s repo.",
-                        reg_comp.name,
-                        entry.file_id,
-                        entry.scope.name,
-                        "awesome" if is_awesome_repo else "standard",
+        # File-level scope and opt-in status.
+        for entry in reg_comp.files:
+            if (
+                is_awesome_repo
+                and entry.scope == RepoScope.NON_AWESOME
+                or (not is_awesome_repo and entry.scope == RepoScope.AWESOME_ONLY)
+            ):
+                logging.debug(
+                    "Scope exclusion: %s/%s (%s) not applicable to %s repo.",
+                    reg_comp.name,
+                    entry.file_id,
+                    entry.scope.name,
+                    "awesome" if is_awesome_repo else "standard",
+                )
+                if not components and not is_source:
+                    excluded_files.setdefault(reg_comp.name, set()).add(
+                        entry.file_id
                     )
-                    if not components:
-                        excluded_files.setdefault(reg_comp.name, set()).add(
-                            entry.file_id
-                        )
-                if entry.config_key and not _config_flag(
-                    config, entry.config_key, entry.config_default
-                ):
-                    logging.debug(
-                        "Config exclusion: %s/%s (%s disabled).",
-                        reg_comp.name,
-                        entry.file_id,
-                        entry.config_key,
-                    )
-                    excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
+            if entry.config_key and not _config_flag(
+                config, entry.config_key, entry.config_default
+            ):
+                logging.debug(
+                    "Config exclusion: %s/%s (%s disabled).",
+                    reg_comp.name,
+                    entry.file_id,
+                    entry.config_key,
+                )
+                excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
 
     # Detect excluded files that still exist on disk.
     for comp_name, file_ids in sorted(excluded_files.items()):
