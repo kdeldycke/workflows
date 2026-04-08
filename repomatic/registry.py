@@ -124,6 +124,19 @@ class FileEntry:
     phase: str = ""
     """Skill-specific: lifecycle phase for ``list-skills`` display."""
 
+    def is_enabled(self, config: object) -> bool:
+        """Whether this entry is enabled by the given ``Config`` object.
+
+        Returns ``True`` when no ``config_key`` is set (unconditionally
+        enabled) or when the corresponding config field is truthy.
+
+        :param config: A :class:`~repomatic.config.Config` instance.
+        """
+        if not self.config_key:
+            return True
+        field = self.config_key.replace("-", "_").replace(".", "_")
+        return getattr(config, field, self.config_default)
+
     def __post_init__(self) -> None:
         """Derive ``target`` and ``file_id`` from ``source`` when omitted."""
         if not self.target:
@@ -170,6 +183,19 @@ class Component:
     """Preserve files on disk even when identical to the bundled default.
     When ``False``, unmodified copies are flagged for cleanup by
     ``--delete-unmodified``."""
+
+    def is_enabled(self, config: object) -> bool:
+        """Whether this component is enabled by the given ``Config`` object.
+
+        Returns ``True`` when no ``config_key`` is set (unconditionally
+        enabled) or when the corresponding config field is truthy.
+
+        :param config: A :class:`~repomatic.config.Config` instance.
+        """
+        if not self.config_key:
+            return True
+        field = self.config_key.replace("-", "_").replace(".", "_")
+        return getattr(config, field, self.config_default)
 
 
 @dataclass(frozen=True)

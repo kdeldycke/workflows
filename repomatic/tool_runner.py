@@ -81,6 +81,18 @@ class ArchiveFormat(Enum):
     TAR_GZ = "tar.gz"
     TAR_XZ = "tar.xz"
 
+    def tarfile_mode(self) -> str:
+        """Return the ``tarfile.open`` mode string for this format.
+
+        :raises ValueError: If called on :attr:`RAW` (not a tar archive).
+        """
+        if self is ArchiveFormat.TAR_GZ:
+            return "r:gz"
+        if self is ArchiveFormat.TAR_XZ:
+            return "r:xz"
+        msg = f"{self.value} is not a tar archive"
+        raise ValueError(msg)
+
 
 class NativeFormat(Enum):
     """Target format for ``[tool.X]`` translation."""
@@ -88,6 +100,17 @@ class NativeFormat(Enum):
     YAML = "yaml"
     TOML = "toml"
     JSON = "json"
+
+    def serialize(self, data: dict) -> str:
+        """Serialize a config dict to this format's string representation.
+
+        :param data: Configuration dictionary to serialize.
+        """
+        if self is NativeFormat.YAML:
+            return yaml.safe_dump(data, default_flow_style=False, sort_keys=False)
+        if self is NativeFormat.TOML:
+            return tomlkit.dumps(data)
+        return json.dumps(data, indent=2) + "\n"
 
 
 @dataclass(frozen=True)
@@ -631,14 +654,7 @@ def resolve_config(
             )
             raise NotImplementedError(msg)
 
-        if spec.native_format == NativeFormat.YAML:
-            content = yaml.safe_dump(
-                tool_config, default_flow_style=False, sort_keys=False
-            )
-        elif spec.native_format == NativeFormat.TOML:
-            content = tomlkit.dumps(tool_config)
-        elif spec.native_format == NativeFormat.JSON:
-            content = json.dumps(tool_config, indent=2) + "\n"
+        content = spec.native_format.serialize(tool_config)
 
         logging.debug(
             "Translated [tool.%s] to %s:\n%s",
@@ -775,10 +791,7 @@ def _extract_binary(
     # TAR_GZ or TAR_XZ.
     target = executable
 
-    with tarfile.open(
-        str(archive_path),
-        "r:gz" if spec.archive_format == ArchiveFormat.TAR_GZ else "r:xz",
-    ) as tar:
+    with tarfile.open(str(archive_path), spec.archive_format.tarfile_mode()) as tar:
         for member in tar.getmembers():
             # Tar member names always use forward slashes. Use PurePosixPath
             # to avoid backslash issues on Windows.

@@ -85,17 +85,6 @@ if TYPE_CHECKING:
         from importlib.abc import Traversable
 
 
-def _config_flag(config: Config, dotted_key: str, default: bool) -> bool:
-    """Look up a boolean config value by its dotted TOML key.
-
-    Converts a dotted kebab-case key (e.g. ``"labels.sync"``) to the
-    corresponding ``Config`` field name (``labels_sync``) and returns the
-    value via ``getattr``.
-    """
-    field_name = dotted_key.replace("-", "_").replace(".", "_")
-    return getattr(config, field_name, default)
-
-
 # Exportable files: all registry entries + tool runner bundled defaults.
 EXPORTABLE_FILES: dict[str, str | None] = {
     **{f.source: f.target for c in COMPONENTS for f in c.files},
@@ -624,11 +613,7 @@ def run_init(
             continue
 
         # --- Component-level config_key ---
-        if (
-            reg_comp.name in selected
-            and reg_comp.config_key
-            and not _config_flag(config, reg_comp.config_key, reg_comp.config_default)
-        ):
+        if reg_comp.name in selected and not reg_comp.is_enabled(config):
             selected.discard(reg_comp.name)
             logging.info(
                 "[tool.repomatic] %s is disabled. Skipping %s.",
@@ -650,13 +635,7 @@ def run_init(
                     excluded_files.setdefault(reg_comp.name, set()).add(
                         entry.file_id
                     )
-            if (
-                entry.config_key
-                and not is_source
-                and not _config_flag(
-                    config, entry.config_key, entry.config_default
-                )
-            ):
+            if not is_source and not entry.is_enabled(config):
                 logging.debug(
                     "Config exclusion: %s/%s (%s disabled).",
                     reg_comp.name,
@@ -779,11 +758,7 @@ def _init_workflows(
     if config is None:
         config = load_repomatic_config()
     for entry in _BY_NAME["workflows"].files:
-        if (
-            entry.config_key
-            and entry.file_id in workflows
-            and not _config_flag(config, entry.config_key, entry.config_default)
-        ):
+        if entry.file_id in workflows and not entry.is_enabled(config):
             workflows = tuple(w for w in workflows if w != entry.file_id)
 
     workflows_dir = output_dir / ".github" / "workflows"
