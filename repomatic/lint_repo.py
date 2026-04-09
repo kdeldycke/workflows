@@ -349,7 +349,7 @@ def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
     return None, f"PAT scope: no push access to {probe_repo} (correctly scoped)."
 
 
-def check_fork_pr_approval_policy(repo: str) -> tuple[str | None, str]:
+def check_fork_pr_approval_policy(repo: str) -> tuple[bool | None, str]:
     """Check that fork PR workflows require approval for first-time contributors.
 
     GitHub Actions has a per-repository policy that controls when workflows
@@ -367,16 +367,19 @@ def check_fork_pr_approval_policy(repo: str) -> tuple[str | None, str]:
 
     Queries
     ``GET /repos/{repo}/actions/permissions/fork-pr-contributor-approval``
-    and warns when the policy is weaker than ``first_time_contributors``.
+    and returns ``False`` when the policy is weaker than
+    ``first_time_contributors``.
 
     .. note::
 
         This endpoint requires the ``Actions: read`` permission. When the
         ``REPOMATIC_PAT`` lacks it (or the API call fails for any other
-        reason), the check is skipped rather than failing.
+        reason), the check returns ``None`` to signal that the result is
+        indeterminate rather than negative.
 
     :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (warning_message or None, info_message).
+    :return: Tuple of (passed_or_None, message). ``None`` means the check
+        could not run (API inaccessible, unparsable, or unknown policy).
     """
     try:
         output = run_gh_command([
@@ -396,7 +399,7 @@ def check_fork_pr_approval_policy(repo: str) -> tuple[str | None, str]:
 
     policy = data.get("approval_policy", "")
     if policy in {"first_time_contributors", "all_external_contributors"}:
-        return None, f"Fork PR approval policy: {policy}."
+        return True, f"Fork PR approval policy: {policy}."
 
     if policy == "first_time_contributors_new_to_github":
         msg = (
@@ -406,7 +409,7 @@ def check_fork_pr_approval_policy(repo: str) -> tuple[str | None, str]:
             f" https://github.com/{repo}/settings/actions"
             " to require approval for any first-time contributor."
         )
-        return msg, msg
+        return False, msg
 
     return (
         None,
@@ -695,10 +698,14 @@ def run_repo_lint(
 
     # Check 8: Fork PR approval policy strict enough (warning).
     if repo:
-        warning, msg = check_fork_pr_approval_policy(repo)
-        if warning:
-            emit_annotation(AnnotationLevel.WARNING, warning)
-        print(f"{'⚠' if warning else '✓'} {msg}")
+        passed, msg = check_fork_pr_approval_policy(repo)
+        if passed is False:
+            emit_annotation(AnnotationLevel.WARNING, msg)
+            print(f"⚠ {msg}")
+        elif passed is True:
+            print(f"✓ {msg}")
+        else:
+            print(f"ℹ {msg}")
 
     # Check 9: Workflow permissions declared on custom-step workflows.
     for warning, msg in check_workflow_permissions():

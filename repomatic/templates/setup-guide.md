@@ -1,5 +1,5 @@
 ---
-args: [missing_permissions_section, step_token, step_dependabot, immutable_releases_step, step_branch_ruleset, step_virustotal, step_verify, org_tip, repo_url]
+args: [missing_permissions_section, step_token, step_dependabot, immutable_releases_step, step_branch_ruleset, step_fork_pr_approval, step_virustotal, step_verify, org_tip, repo_url]
 ---
 
 \$missing_permissions_section
@@ -11,6 +11,8 @@ args: [missing_permissions_section, step_token, step_dependabot, immutable_relea
 \$immutable_releases_step
 
 \$step_branch_ruleset
+
+\$step_fork_pr_approval
 
 \$step_virustotal
 

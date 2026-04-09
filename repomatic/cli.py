@@ -108,6 +108,7 @@ from .images import (
 from .init_project import export_content, run_init
 from .lint_repo import (
     check_branch_ruleset_on_default,
+    check_fork_pr_approval_policy,
     check_immutable_releases,
     run_repo_lint,
 )
@@ -2088,6 +2089,11 @@ def setup_guide(
     if has_pat and repo and has_changelog:
         immutable_ok, _ = check_immutable_releases(repo)
 
+    # Fork PR approval policy check.
+    fork_pr_ok: bool | None = False
+    if has_pat and repo:
+        fork_pr_ok, _ = check_fork_pr_approval_policy(repo)
+
     # --- Render each step as a collapsible section ---
 
     step_token = _wrap_setup_step(
@@ -2124,6 +2130,16 @@ def setup_guide(
         "Protect the main branch",
         render_template("setup-guide-branch-ruleset", repo_url=repo_url),
         passed=branch_ok,
+    )
+
+    step_fork_pr_approval = _wrap_setup_step(
+        "Require approval for fork PR workflows",
+        render_template(
+            "setup-guide-fork-pr-approval",
+            repo_url=repo_url,
+            repo_slug=repo_slug,
+        ),
+        passed=fork_pr_ok,
     )
 
     # VirusTotal step: only relevant when Nuitka binary compilation is active.
@@ -2170,6 +2186,12 @@ def setup_guide(
             logging.debug(f"Failed to detect owner type for {owner!r}.")
 
     # --- Assemble issue body ---
+    # Step-skip markers: only include fork-pr approval step when the check is
+    # determinate. When skipped (None), the check could not run and we do not
+    # want to show a step the user cannot resolve.
+    if fork_pr_ok is None:
+        step_fork_pr_approval = ""
+
     setup_body = render_template(
         "setup-guide",
         missing_permissions_section=missing_permissions_section,
@@ -2177,6 +2199,7 @@ def setup_guide(
         step_dependabot=step_dependabot,
         immutable_releases_step=immutable_releases_step,
         step_branch_ruleset=step_branch_ruleset,
+        step_fork_pr_approval=step_fork_pr_approval,
         step_virustotal=step_virustotal,
         step_verify=step_verify,
         org_tip=org_tip,
@@ -2193,8 +2216,12 @@ def setup_guide(
 
     # Close issue only when all verifiable steps pass.
     # Immutable releases and verify are excluded (no API to check).
+    # Fork PR approval is included only when the check is determinate.
     vt_ok = not nuitka_active or has_virustotal_key
-    needs_issue = not (token_ok and dependabot_ok and branch_ok and vt_ok)
+    fork_pr_gate = fork_pr_ok is not False
+    needs_issue = not (
+        token_ok and dependabot_ok and branch_ok and vt_ok and fork_pr_gate
+    )
 
     manage_issue_lifecycle(
         has_issues=needs_issue,
