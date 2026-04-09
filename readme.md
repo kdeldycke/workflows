@@ -605,7 +605,7 @@ docs = [
 
 - 🏠 **Lint repository metadata** (`lint-repo`)
 
-  - Validates repository metadata (package name, Sphinx docs, project description) and Dependabot configuration using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly. When `REPOMATIC_PAT` is configured, also validates PAT capabilities (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses permissions). Warns about missing `VIRUSTOTAL_API_KEY` when Nuitka binary compilation is active.
+  - Validates repository metadata (package name, Sphinx docs, project description) and Dependabot configuration using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly. When `REPOMATIC_PAT` is configured, also validates PAT capabilities (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses permissions). Warns when the fork PR workflow approval policy is weaker than `first_time_contributors`. Warns about missing `VIRUSTOTAL_API_KEY` when Nuitka binary compilation is active.
   - **Requires**:
     - Python package (with a `pyproject.toml` file)
 

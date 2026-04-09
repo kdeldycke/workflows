@@ -349,6 +349,71 @@ def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
     return None, f"PAT scope: no push access to {probe_repo} (correctly scoped)."
 
 
+def check_fork_pr_approval_policy(repo: str) -> tuple[str | None, str]:
+    """Check that fork PR workflows require approval for first-time contributors.
+
+    GitHub Actions has a per-repository policy that controls when workflows
+    from fork pull requests must be approved by a maintainer before they run.
+    The three values, from weakest to strongest, are
+    ``first_time_contributors_new_to_github``,
+    ``first_time_contributors``, and ``all_external_contributors``.
+
+    The default (``first_time_contributors_new_to_github``) only catches
+    brand-new GitHub accounts, which is trivial to bypass with a slightly
+    aged account. The minimum acceptable setting is ``first_time_contributors``,
+    which requires approval for any first-time contributor to this repository.
+    This is one of the mitigations recommended in Astral's open-source security
+    post: see https://astral.sh/blog/open-source-security-at-astral.
+
+    Queries
+    ``GET /repos/{repo}/actions/permissions/fork-pr-contributor-approval``
+    and warns when the policy is weaker than ``first_time_contributors``.
+
+    .. note::
+
+        This endpoint requires the ``Actions: read`` permission. When the
+        ``REPOMATIC_PAT`` lacks it (or the API call fails for any other
+        reason), the check is skipped rather than failing.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (warning_message or None, info_message).
+    """
+    try:
+        output = run_gh_command([
+            "api",
+            f"repos/{repo}/actions/permissions/fork-pr-contributor-approval",
+        ])
+    except RuntimeError:
+        return None, "Fork PR approval policy check: skipped (could not query API)."
+
+    try:
+        data = json.loads(output)
+    except json.JSONDecodeError:
+        return (
+            None,
+            "Fork PR approval policy check: skipped (invalid JSON from API).",
+        )
+
+    policy = data.get("approval_policy", "")
+    if policy in {"first_time_contributors", "all_external_contributors"}:
+        return None, f"Fork PR approval policy: {policy}."
+
+    if policy == "first_time_contributors_new_to_github":
+        msg = (
+            "Fork PR approval policy is 'first_time_contributors_new_to_github',"
+            " which only catches brand-new GitHub accounts."
+            " Set it to 'first_time_contributors' (or stricter) under"
+            f" https://github.com/{repo}/settings/actions"
+            " to require approval for any first-time contributor."
+        )
+        return msg, msg
+
+    return (
+        None,
+        f"Fork PR approval policy check: skipped (unknown policy '{policy}').",
+    )
+
+
 def check_tag_protection_rules(repo: str) -> tuple[str | None, str]:
     """Check that no tag rulesets could block the ``create-tag`` workflow job.
 
@@ -628,13 +693,20 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 8: Workflow permissions declared on custom-step workflows.
+    # Check 8: Fork PR approval policy strict enough (warning).
+    if repo:
+        warning, msg = check_fork_pr_approval_policy(repo)
+        if warning:
+            emit_annotation(AnnotationLevel.WARNING, warning)
+        print(f"{'⚠' if warning else '✓'} {msg}")
+
+    # Check 9: Workflow permissions declared on custom-step workflows.
     for warning, msg in check_workflow_permissions():
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 9: VIRUSTOTAL_API_KEY secret (warning, only when Nuitka builds are active).
+    # Check 10: VIRUSTOTAL_API_KEY secret (warning, only when Nuitka builds are active).
     if nuitka_active:
         if has_virustotal_key:
             print("✓ VIRUSTOTAL_API_KEY secret is configured.")

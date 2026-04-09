@@ -2831,6 +2831,7 @@ def lint_repo(
       - GitHub topics subset of pyproject.toml keywords (warning).
       - Funding file present when owner has GitHub Sponsors (warning).
       - Stale draft releases (non-.dev0 drafts) (warning).
+      - Fork PR workflow approval policy strict enough (warning).
       - VIRUSTOTAL_API_KEY secret missing when Nuitka is active (warning).
 
     \b

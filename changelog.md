@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `lint-repo` check warning when the GitHub Actions fork PR workflow approval policy is weaker than `first_time_contributors`. Queries `/repos/{repo}/actions/permissions/fork-pr-contributor-approval` and flags the default `first_time_contributors_new_to_github` setting, which only catches brand-new GitHub accounts.
 - Fix `rst_to_myst` conversion leaving RST backslash escapes (`\_`) in headings and not wrapping dotted Python module names in backticks. `sphinx-apidoc` uses `\_` to prevent RST reference interpretation; these are meaningless in markdown and cause `mdformat` to strip them on every reformat pass.
 - Fix `format-pyproject` autofix job failing with exit code 123. `xargs` translates `pyproject-fmt`'s exit code 1 (file reformatted) to 123, and the default `bash -e` shell aborted before the exit code guard could run.
 - Disable uv cache in the `publish-pypi` release job, which has no checkout step. Without a workspace, `setup-uv` cannot find lockfiles to hash and emits spurious cache-miss warnings on every run.
