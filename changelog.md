@@ -13,6 +13,9 @@
 
 ## [`6.11.2` (2026-04-08)](https://github.com/kdeldycke/repomatic/compare/v6.11.1...v6.11.2)
 
+> [!NOTE]
+> `6.11.2` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.11.2/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.11.2).
+
 - Add `shfmt` shell formatter to the tool runner (`repomatic run shfmt`). Downloads the binary for the current platform and invokes it with managed version pinning and `.editorconfig` discovery.
 - Add `format-shell` autofix job to auto-format shell scripts with `shfmt`.
 - Replace `crazy-max/ghaction-virustotal` GitHub Action with a native `repomatic scan-virustotal` CLI command using `vt-py`. Fixes the release body update that was silently skipped because the action required a `release` event but the workflow triggers on `push`.
