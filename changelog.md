@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.11.3.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.11.2...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.11.3` (2026-04-09)](https://github.com/kdeldycke/repomatic/compare/v6.11.2...v6.11.3)
 
 - Add `lint-repo` check warning when the GitHub Actions fork PR workflow approval policy is weaker than `first_time_contributors`. Queries `/repos/{repo}/actions/permissions/fork-pr-contributor-approval` and flags the default `first_time_contributors_new_to_github` setting, which only catches brand-new GitHub accounts. The setup guide includes a new step with a pre-filled `gh api` one-liner to fix the policy in place.
 - Add `readme.md` § Supply chain security section mapping Astral's [Open Source Security at Astral](https://astral.sh/blog/open-source-security-at-astral) practices to concrete repomatic implementations, with a known-gap admonition for multi-person release approval.
