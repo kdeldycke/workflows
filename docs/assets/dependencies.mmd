@@ -4,6 +4,7 @@ flowchart LR
     subgraph primary-deps [Primary dependencies]
         bump_my_version{{"`bump-my-version`"}}
         click_extra{{"`click-extra`"}}
+        vt_py{{"`vt-py`"}}
         pydriller{{"`pydriller`"}}
         wcmatch{{"`wcmatch`"}}
         py_walk{{"`py-walk`"}}
@@ -17,6 +18,7 @@ flowchart LR
         pyyaml{{"`pyyaml`"}}
     end
 
+    aiohttp(["`aiohttp`"])
     typing_extensions(["`typing-extensions`"])
     pydantic(["`pydantic`"])
     click_0(["`click`"])
@@ -24,26 +26,35 @@ flowchart LR
     requests(["`requests`"])
     rich_click(["`rich-click`"])
     anyio(["`anyio`"])
+    idna(["`idna`"])
     pydantic_settings(["`pydantic-settings`"])
     rich(["`rich`"])
+    yarl(["`yarl`"])
+    aiosignal(["`aiosignal`"])
     certifi(["`certifi`"])
     cloup(["`cloup`"])
     colorama(["`colorama`"])
     exceptiongroup(["`exceptiongroup`"])
     httpcore(["`httpcore`"])
-    idna(["`idna`"])
     lizard(["`lizard`"])
+    multidict(["`multidict`"])
     pygments(["`pygments`"])
     typing_inspection(["`typing-inspection`"])
+    frozenlist(["`frozenlist`"])
     gitdb(["`gitdb`"])
     gitpython(["`gitpython`"])
     markdown_it_py(["`markdown-it-py`"])
     prompt_toolkit(["`prompt-toolkit`"])
+    propcache(["`propcache`"])
     pydantic_core(["`pydantic-core`"])
     questionary(["`questionary`"])
     tabulate(["`tabulate`"])
     wcwidth(["`wcwidth`"])
+    aiofiles(["`aiofiles`"])
+    aiohappyeyeballs(["`aiohappyeyeballs`"])
     annotated_types(["`annotated-types`"])
+    async_timeout(["`async-timeout`"])
+    attrs(["`attrs`"])
     bracex(["`bracex`"])
     charset_normalizer(["`charset-normalizer`"])
     deepmerge(["`deepmerge`"])
@@ -81,6 +92,7 @@ flowchart LR
     repomatic ==>|" >=2 "| tomli
     repomatic ==>|" >=10 "| wcmatch
     repomatic ==>|" >=17 "| packaging
+    repomatic ==>|" >=0.18 "| vt_py
     repomatic ==>|" >=25 "| boltons
     repomatic ==>|" >=8 "| extra_platforms
     repomatic ==>|" >=0.3.1 "| py_walk
@@ -125,21 +137,31 @@ flowchart LR
     pytest_xdist --> psutil
     wcmatch --> bracex
     coverage ==> tomli
+    vt_py --> aiohttp
+    vt_py --> aiofiles
     py_walk --> sly
     pyproject_metadata ==> packaging
     pytest_github_actions_annotate_failures ==> pytest
     pytest_randomly ==> pytest
+    aiohttp --> yarl
+    aiohttp --> aiosignal
+    aiohttp --> multidict
+    aiohttp --> frozenlist
+    aiohttp --> propcache
+    aiohttp --> aiohappyeyeballs
+    aiohttp --> async_timeout
+    aiohttp --> attrs
     pydantic --> typing_extensions
     pydantic --> typing_inspection
     pydantic --> pydantic_core
     pydantic --> annotated_types
     click_0 --> colorama
     httpx --> anyio
+    httpx --> idna
     httpx --> certifi
     httpx --> httpcore
-    httpx --> idna
-    requests --> certifi
     requests --> idna
+    requests --> certifi
     requests --> charset_normalizer
     requests --> urllib3
     rich_click --> typing_extensions
@@ -160,10 +182,16 @@ flowchart LR
     questionary --> prompt_toolkit
     tabulate --> wcwidth
     anyio --> typing_extensions
-    anyio --> exceptiongroup
     anyio --> idna
+    anyio --> exceptiongroup
+    yarl --> idna
+    yarl --> multidict
+    yarl --> propcache
+    aiosignal --> typing_extensions
+    aiosignal --> frozenlist
     httpcore --> certifi
     httpcore --> h11
+    multidict --> typing_extensions
     typing_inspection --> typing_extensions
     gitdb --> smmap
     markdown_it_py --> mdurl
@@ -172,8 +200,14 @@ flowchart LR
     repomatic -.-> grp_test
     repomatic -.-> grp_typing
 
+    click aiofiles "https://pypi.org/project/aiofiles/" _blank
+    click aiohappyeyeballs "https://pypi.org/project/aiohappyeyeballs/" _blank
+    click aiohttp "https://pypi.org/project/aiohttp/" _blank
+    click aiosignal "https://pypi.org/project/aiosignal/" _blank
     click annotated_types "https://pypi.org/project/annotated-types/" _blank
     click anyio "https://pypi.org/project/anyio/" _blank
+    click async_timeout "https://pypi.org/project/async-timeout/" _blank
+    click attrs "https://pypi.org/project/attrs/" _blank
     click backports_strenum "https://pypi.org/project/backports-strenum/" _blank
     click boltons "https://pypi.org/project/boltons/" _blank
     click bracex "https://pypi.org/project/bracex/" _blank
@@ -189,6 +223,7 @@ flowchart LR
     click exceptiongroup "https://pypi.org/project/exceptiongroup/" _blank
     click execnet "https://pypi.org/project/execnet/" _blank
     click extra_platforms "https://pypi.org/project/extra-platforms/" _blank
+    click frozenlist "https://pypi.org/project/frozenlist/" _blank
     click gitdb "https://pypi.org/project/gitdb/" _blank
     click gitpython "https://pypi.org/project/gitpython/" _blank
     click h11 "https://pypi.org/project/h11/" _blank
@@ -199,10 +234,12 @@ flowchart LR
     click lizard "https://pypi.org/project/lizard/" _blank
     click markdown_it_py "https://pypi.org/project/markdown-it-py/" _blank
     click mdurl "https://pypi.org/project/mdurl/" _blank
+    click multidict "https://pypi.org/project/multidict/" _blank
     click packaging "https://pypi.org/project/packaging/" _blank
     click pathspec "https://pypi.org/project/pathspec/" _blank
     click pluggy "https://pypi.org/project/pluggy/" _blank
     click prompt_toolkit "https://pypi.org/project/prompt-toolkit/" _blank
+    click propcache "https://pypi.org/project/propcache/" _blank
     click psutil "https://pypi.org/project/psutil/" _blank
     click py_walk "https://pypi.org/project/py-walk/" _blank
     click pydantic "https://pypi.org/project/pydantic/" _blank
@@ -235,8 +272,10 @@ flowchart LR
     click typing_extensions "https://pypi.org/project/typing-extensions/" _blank
     click typing_inspection "https://pypi.org/project/typing-inspection/" _blank
     click urllib3 "https://pypi.org/project/urllib3/" _blank
+    click vt_py "https://pypi.org/project/vt-py/" _blank
     click wcmatch "https://pypi.org/project/wcmatch/" _blank
     click wcwidth "https://pypi.org/project/wcwidth/" _blank
+    click yarl "https://pypi.org/project/yarl/" _blank
 
     style repomatic stroke-width:3px
     style backports_strenum stroke-width:3px
@@ -259,6 +298,7 @@ flowchart LR
     style tomlkit stroke-width:3px
     style types_boltons stroke-width:3px
     style types_pyyaml stroke-width:3px
+    style vt_py stroke-width:3px
     style wcmatch stroke-width:3px
 
     style primary-deps fill:#1565C020,stroke:#42A5F5
