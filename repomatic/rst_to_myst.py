@@ -59,8 +59,7 @@ def _clean_heading(title: str) -> str:
     # Strip RST backslash-escapes (\_  →  _).
     title = title.replace("\\_", "_")
     # Wrap Python identifiers in backticks when followed by "module" or "package".
-    title = re.sub(r"^([\w.]+) (module|package)$", r"`\1` \2", title)
-    return title
+    return re.sub(r"^([\w.]+) (module|package)$", r"`\1` \2", title)
 
 
 def convert_apidoc_rst_to_myst(content: str) -> str:

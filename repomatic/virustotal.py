@@ -98,9 +98,7 @@ def scan_files(
     with vt.Client(api_key) as client:
         for i, path in enumerate(sorted(file_paths)):
             if i > 0:
-                logging.info(
-                    f"Rate limiting: waiting {delay:.0f}s before next upload."
-                )
+                logging.info(f"Rate limiting: waiting {delay:.0f}s before next upload.")
                 time.sleep(delay)
 
             sha256 = _compute_sha256(path)
@@ -176,9 +174,7 @@ def update_release_body(
     current_body = json.loads(raw).get("body", "")
 
     if VIRUSTOTAL_SECTION_HEADER in current_body:
-        logging.info(
-            f"VirusTotal section already present in {tag}, skipping update."
-        )
+        logging.info(f"VirusTotal section already present in {tag}, skipping update.")
         return False
 
     section = format_virustotal_section(results)
