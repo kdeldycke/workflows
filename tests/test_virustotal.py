@@ -97,7 +97,9 @@ def test_update_release_body_appends(sample_results):
 
 def test_update_release_body_idempotent(sample_results):
     """Skip update when VirusTotal section already present."""
-    existing_body = f"## Release\n\n{VIRUSTOTAL_SECTION_HEADER}\n\n| Binary | Analysis |"
+    existing_body = (
+        f"## Release\n\n{VIRUSTOTAL_SECTION_HEADER}\n\n| Binary | Analysis |"
+    )
 
     with patch("repomatic.virustotal.run_gh_command") as mock_gh:
         mock_gh.return_value = json.dumps({"body": existing_body})
