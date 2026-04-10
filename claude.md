@@ -101,6 +101,10 @@ Each piece of knowledge has one canonical home, chosen by audience. Other locati
 
 Document design decisions, trade-offs, and non-obvious implementation choices directly in the code using docstring admonitions (reST `.. warning::`, `.. note::`, `.. caution::`), inline comments, and module-level docstrings for constants that need context.
 
+### Example data
+
+Example data everywhere (documentation, docstrings, comments, workflows, test fixtures) must be domain-neutral: cities, weather, fruits, animals, recipes, or similar real-world subjects. Do not reference the project itself, software engineering concepts, package metadata, or any project-internal details. The reader should understand the example without knowing what the project is.
+
 ## File naming conventions
 
 ### Extensions: prefer long form
