@@ -736,8 +736,8 @@ def test_resolve_config_json_translation(tmp_path, monkeypatch):
             tmp.unlink(missing_ok=True)
 
 
-def test_resolve_config_no_config_flag_raises(tmp_path, monkeypatch):
-    """Tools without config_flag raise NotImplementedError on [tool.X] translation."""
+def test_resolve_config_cwd_write_no_config_flag(tmp_path, monkeypatch):
+    """CWD-discovery tools write translated [tool.X] to the native config path."""
     monkeypatch.chdir(tmp_path)
 
     spec = ToolSpec(
@@ -747,8 +747,30 @@ def test_resolve_config_no_config_flag_raises(tmp_path, monkeypatch):
         native_config_files=(".mdformat.toml",),
         native_format=NativeFormat.TOML,
     )
+    args, tmp = resolve_config(spec, tool_config={"number": True})
+
+    try:
+        assert args == []
+        assert tmp is not None
+        assert tmp == Path(".mdformat.toml")
+        content = tmp.read_text(encoding="UTF-8")
+        assert "number = true" in content
+    finally:
+        if tmp:
+            tmp.unlink(missing_ok=True)
+
+
+def test_resolve_config_no_config_flag_no_native_files_raises(tmp_path, monkeypatch):
+    """Tools with no config_flag and no native_config_files raise NotImplementedError."""
+    monkeypatch.chdir(tmp_path)
+
+    spec = ToolSpec(
+        name="sometool",
+        version="1.0.0",
+        package="sometool",
+    )
     with pytest.raises(NotImplementedError, match="no config_flag"):
-        resolve_config(spec, tool_config={"number": True})
+        resolve_config(spec, tool_config={"key": "value"})
 
 
 def test_resolve_config_bundled_default(tmp_path, monkeypatch):
