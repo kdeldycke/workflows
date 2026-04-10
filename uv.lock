@@ -3,12 +3,12 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-04-03T14:41:45.352892905Z"
+exclude-newer = "2026-04-03T14:44:55.430740014Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-04-10T14:41:45.352898155Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-10T14:41:45.352903835Z", span = "PT0S" }
+click-extra = { timestamp = "2026-04-10T14:44:55.430746205Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-10T14:44:55.430751866Z", span = "PT0S" }
 
 [[package]]
 name = "aiofiles"
@@ -567,11 +567,11 @@ wheels = [
 
 [[package]]
 name = "extra-platforms"
-version = "11.0.4"
+version = "11.0.5"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8c/3d/28f6523feeae961d5927d91f99a3626c8a1f8dcd426a78f353bd889a3ea4/extra_platforms-11.0.4.tar.gz", hash = "sha256:9f9471bb8063fcd49caef9b97625f9e2405c678f0ffe809e4442160dcb80c188", size = 68727, upload-time = "2026-03-30T20:47:24.392Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/ab/757eb1e8b77757651dd0c69d18d118b22608be551dfc06e3f3962f6bb474/extra_platforms-11.0.5.tar.gz", hash = "sha256:89ae7971ba79193a256af16b44f3b9ab1c16dc4ba671f80e6110fa421679a82e", size = 68848, upload-time = "2026-04-03T09:46:30.122Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/d8/cb7bad907a90dd61d681fa497da2c0c0f6e142c3bc913aaf6fc8831daac5/extra_platforms-11.0.4-py3-none-any.whl", hash = "sha256:1981c3afcf6628a941f71d7fa6b25aeb0e9232e20dd708f8114fe8b5b2f9132a", size = 72308, upload-time = "2026-03-30T20:47:25.475Z" },
+    { url = "https://files.pythonhosted.org/packages/09/07/f1644d0288f5ce4ad8b6c888dd46bced2eae3480265f2253cefd7f694a68/extra_platforms-11.0.5-py3-none-any.whl", hash = "sha256:b081d5b1159af6462793517ad8073f85bd4c31aa398dfb8acb7f49ff54f8b7cc", size = 72395, upload-time = "2026-04-03T09:46:31.413Z" },
 ]
 
 [[package]]
