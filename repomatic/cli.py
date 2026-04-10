@@ -3001,8 +3001,26 @@ TOOL_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Config source")
 @argument("tool_name", required=False, default=None)
 @argument("extra_args", nargs=-1, type=UNPROCESSED)
 @option("--list", "list_tools", is_flag=True, help="List all managed tools.")
+@option(
+    "--version",
+    "tool_version",
+    default=None,
+    help="Override the pinned version of the tool.",
+)
+@option(
+    "--checksum",
+    default=None,
+    help="Override the SHA-256 checksum for the current platform.",
+)
+@option(
+    "--skip-checksum",
+    is_flag=True,
+    default=False,
+    help="Skip SHA-256 verification of binary downloads.",
+)
 @pass_context
-def run_cmd(ctx, tool_name, extra_args, list_tools):
+def run_cmd(ctx, tool_name, extra_args, list_tools, tool_version, checksum,
+            skip_checksum):
     """Run an external tool with managed configuration.
 
     Installs the tool at a pinned version, resolves config through a 4-level
@@ -3013,6 +3031,10 @@ def run_cmd(ctx, tool_name, extra_args, list_tools):
     Pass extra arguments to the tool after --:
         repomatic run yamllint -- --strict .
         repomatic run zizmor -- --offline .
+
+    \b
+    Override the pinned version:
+        repomatic run shfmt --version 3.14.0 --skip-checksum -- .
 
     \b
     List all managed tools and their resolved config source:
@@ -3031,7 +3053,13 @@ def run_cmd(ctx, tool_name, extra_args, list_tools):
             "Missing argument 'TOOL_NAME'. Use --list to see available tools."
         )
 
-    exit_code = run_tool(tool_name, extra_args=extra_args)
+    exit_code = run_tool(
+        tool_name,
+        extra_args=extra_args,
+        version=tool_version,
+        checksum=checksum,
+        skip_checksum=skip_checksum,
+    )
     ctx.exit(exit_code)
 
 

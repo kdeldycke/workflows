@@ -42,7 +42,7 @@ import sys
 import tarfile
 import tempfile
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from importlib.resources import as_file, files
 from pathlib import Path, PurePosixPath
@@ -787,7 +787,7 @@ def resolve_config(
                 "%s: wrote translated [tool.%s] to %s (level 2).",
                 spec.name,
                 spec.name,
-                target,
+                target.resolve(),
             )
             return [], target
 
@@ -822,7 +822,7 @@ def resolve_config(
             logging.info(
                 "%s: wrote bundled default to CWD as %s (level 3).",
                 spec.name,
-                target,
+                target.resolve(),
             )
             return [], target
 
@@ -864,7 +864,11 @@ def _get_platform_key() -> str:
     return f"{os_part}-{arch_part}"
 
 
-def _download_and_verify(url: str, expected_sha256: str, dest_path: Path) -> None:
+def _download_and_verify(
+    url: str,
+    expected_sha256: str | None,
+    dest_path: Path,
+) -> None:
     """Download a file and verify its SHA-256 checksum.
 
     Uses streaming download with chunked hash computation to handle large
@@ -872,6 +876,7 @@ def _download_and_verify(url: str, expected_sha256: str, dest_path: Path) -> Non
 
     :param url: URL to download.
     :param expected_sha256: Expected lowercase hex SHA-256 digest.
+        ``None`` skips verification (logs the computed digest for reference).
     :param dest_path: Where to write the downloaded file.
     :raises ValueError: If the checksum does not match.
     """
@@ -882,6 +887,9 @@ def _download_and_verify(url: str, expected_sha256: str, dest_path: Path) -> Non
             f.write(chunk)
             sha256.update(chunk)
     actual = sha256.hexdigest()
+    if expected_sha256 is None:
+        logging.info("SHA-256 of %s: %s (not verified).", url, actual)
+        return
     if actual != expected_sha256:
         dest_path.unlink(missing_ok=True)
         msg = f"SHA-256 mismatch for {url}: expected {expected_sha256}, got {actual}"
@@ -943,11 +951,16 @@ def _extract_binary(
     raise FileNotFoundError(msg)
 
 
-def _install_binary(spec: ToolSpec, tmp_dir: Path) -> Path:
+def _install_binary(
+    spec: ToolSpec,
+    tmp_dir: Path,
+    skip_checksum: bool = False,
+) -> Path:
     """Download, verify, and extract a binary tool.
 
     :param spec: Tool specification with ``binary`` set.
     :param tmp_dir: Temporary directory for download and extraction.
+    :param skip_checksum: Skip SHA-256 verification when ``True``.
     :return: Path to the ready-to-run executable.
     :raises RuntimeError: If no binary is available for the current platform.
     """
@@ -963,14 +976,18 @@ def _install_binary(spec: ToolSpec, tmp_dir: Path) -> Path:
         raise RuntimeError(msg)
 
     url = binary.urls[platform_key].format(version=spec.version)
-    checksum = binary.checksums[platform_key]
+    checksum = binary.checksums.get(platform_key, "")
 
     # Derive archive filename from URL.
     archive_name = url.rsplit("/", 1)[-1]
     archive_path = tmp_dir / archive_name
 
     logging.info("Downloading %s %s for %s...", spec.name, spec.version, platform_key)
-    _download_and_verify(url, checksum, archive_path)
+    if skip_checksum:
+        logging.warning("Checksum verification skipped for %s.", spec.name)
+        _download_and_verify(url, None, archive_path)
+    else:
+        _download_and_verify(url, checksum, archive_path)
 
     return _extract_binary(archive_path, binary, tmp_dir, spec.name)
 
@@ -1017,11 +1034,17 @@ def _build_install_args(spec: ToolSpec) -> list[str]:
 def run_tool(
     name: str,
     extra_args: Sequence[str] = (),
+    version: str | None = None,
+    checksum: str | None = None,
+    skip_checksum: bool = False,
 ) -> int:
     """Run an external tool with managed config resolution.
 
     :param name: Tool name (must be in ``TOOL_REGISTRY``).
     :param extra_args: Extra arguments passed through to the tool.
+    :param version: Override the pinned version.
+    :param checksum: Override the SHA-256 checksum for the current platform.
+    :param skip_checksum: Skip SHA-256 verification entirely.
     :return: The tool's exit code.
     """
     if name not in TOOL_REGISTRY:
@@ -1032,6 +1055,15 @@ def run_tool(
         raise ValueError(msg)
 
     spec = TOOL_REGISTRY[name]
+
+    # Apply CLI overrides to the frozen spec.
+    if version:
+        spec = replace(spec, version=version)
+    if checksum and spec.binary:
+        platform_key = _get_platform_key()
+        new_checksums = {**spec.binary.checksums, platform_key: checksum}
+        spec = replace(spec, binary=replace(spec.binary, checksums=new_checksums))
+
     logging.info("Resolving config for %s %s...", spec.name, spec.version)
     config_args, tmp_path = resolve_config(spec)
 
@@ -1042,7 +1074,7 @@ def run_tool(
             bin_dir = tempfile.TemporaryDirectory(
                 prefix=f"repomatic-{name}-bin-",
             )
-            bin_path = _install_binary(spec, Path(bin_dir.name))
+            bin_path = _install_binary(spec, Path(bin_dir.name), skip_checksum)
             cmd = [str(bin_path)]
         else:
             cmd = _build_install_args(spec)
@@ -1089,7 +1121,7 @@ def run_tool(
         if bin_dir is not None:
             bin_dir.cleanup()
         if tmp_path is not None:
-            logging.debug("Cleaning up temp config: %s", tmp_path)
+            logging.debug("Cleaning up temp config: %s", tmp_path.resolve())
             tmp_path.unlink(missing_ok=True)
 
 
