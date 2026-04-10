@@ -637,9 +637,14 @@ def load_pyproject_tool_section(tool_name: str) -> dict[str, Any]:
     """
     pyproject_path = Path("pyproject.toml")
     if not pyproject_path.exists():
+        logging.debug("No pyproject.toml found in CWD.")
         return {}
     pyproject_data = tomllib.loads(pyproject_path.read_text(encoding="UTF-8"))
     tool_section: dict[str, Any] = pyproject_data.get("tool", {}).get(tool_name, {})
+    if tool_section:
+        logging.debug("[tool.%s] found in pyproject.toml: %r", tool_name, tool_section)
+    else:
+        logging.debug("No [tool.%s] section in pyproject.toml.", tool_name)
     return tool_section
 
 
@@ -658,7 +663,9 @@ def resolve_config(
     # Level 1: Native config file exists in the repo.
     for config_file in spec.native_config_files:
         if Path(config_file).exists():
-            logging.debug("Using native config: %s", config_file)
+            logging.info(
+                "%s: using native config file: %s (level 1).", spec.name, config_file
+            )
             return [], None
 
     # Level 2: [tool.X] in pyproject.toml.
@@ -668,8 +675,10 @@ def resolve_config(
     if tool_config:
         # Tool reads pyproject.toml natively — no translation needed.
         if spec.reads_pyproject:
-            logging.debug(
-                "[tool.%s] in pyproject.toml; tool reads it natively.", spec.name
+            logging.info(
+                "%s: using [tool.%s] in pyproject.toml, read natively (level 2).",
+                spec.name,
+                spec.name,
             )
             return [], None
 
@@ -681,12 +690,19 @@ def resolve_config(
             )
             raise NotImplementedError(msg)
 
+        logging.info(
+            "%s: translating [tool.%s] to %s via temp file (level 2).",
+            spec.name,
+            spec.name,
+            spec.native_format.value,
+        )
+
         content = spec.native_format.serialize(tool_config)
 
         logging.debug(
             "Translated [tool.%s] to %s:\n%s",
             spec.name,
-            spec.native_format,
+            spec.native_format.value,
             content,
         )
 
@@ -709,7 +725,12 @@ def resolve_config(
     # Level 3: Bundled default from repomatic/data/.
     if spec.default_config:
         if spec.config_flag:
-            logging.debug("Using bundled default: %s", spec.default_config)
+            logging.info(
+                "%s: using bundled default %s via %s (level 3).",
+                spec.name,
+                spec.default_config,
+                spec.config_flag,
+            )
             # Return a sentinel; the actual path is resolved at invocation time
             # inside the get_data_file_path() context manager.
             return ["__bundled__"], None
@@ -723,14 +744,15 @@ def resolve_config(
                 content = bundled_path.read_text(encoding="UTF-8")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(content, encoding="UTF-8")
-            logging.debug(
-                "Wrote bundled default to CWD: %s",
+            logging.info(
+                "%s: wrote bundled default to CWD as %s (level 3).",
+                spec.name,
                 target,
             )
             return [], target
 
     # Level 4: Bare invocation.
-    logging.debug("No config found for %s, bare invocation.", spec.name)
+    logging.info("%s: no config found, bare invocation (level 4).", spec.name)
     return [], None
 
 
@@ -935,6 +957,7 @@ def run_tool(
         raise ValueError(msg)
 
     spec = TOOL_REGISTRY[name]
+    logging.info("Resolving config for %s %s...", spec.name, spec.version)
     config_args, tmp_path = resolve_config(spec)
 
     bin_dir = None
@@ -972,13 +995,15 @@ def run_tool(
             with get_data_file_path(spec.default_config) as bundled_path:
                 cmd.extend([spec.config_flag, str(bundled_path)])
                 cmd.extend(extra_args)
-                logging.debug("Running: %s", " ".join(cmd))
+                logging.info("Running: %s", " ".join(cmd))
                 result = subprocess.run(cmd, check=False)
         else:
             cmd.extend(config_args)
             cmd.extend(extra_args)
-            logging.debug("Running: %s", " ".join(cmd))
+            logging.info("Running: %s", " ".join(cmd))
             result = subprocess.run(cmd, check=False)
+
+        logging.info("%s exited with code %d.", spec.name, result.returncode)
 
         if result.returncode == 0 and spec.post_process:
             spec.post_process(extra_args)
