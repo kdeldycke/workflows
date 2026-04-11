@@ -151,6 +151,7 @@ pypi-package-history = ["old-name", "older-name"]
 
 awesome-template.sync = false
 bumpversion.sync = false
+cache.max-age = 14
 dev-release.sync = false
 gitignore.sync = false
 labels.sync = false
@@ -200,6 +201,8 @@ workflow.source-paths = ["extra_platforms"]
 | :---------------------------- | :-------------------------- | :--------------------------------- | :------------------------------------------------------------------------------- |
 | `awesome-template.sync`       | bool                        | `true`                             | Whether awesome-template sync is enabled for this project.                       |
 | `bumpversion.sync`            | bool                        | `true`                             | Whether bumpversion config sync is enabled for this project.                     |
+| `cache.dir`                   | str                         | `""`                               | Override the binary cache directory path.                                        |
+| `cache.max-age`               | int                         | `30`                               | Auto-purge cached binaries older than this many days.                            |
 | `changelog.location`          | str                         | `"./changelog.md"`                 | File path of the changelog, relative to the root of the repository.              |
 | `dependency-graph.all-extras` | bool                        | `true`                             | Whether to include all optional extras in the graph.                             |
 | `dependency-graph.all-groups` | bool                        | `true`                             | Whether to include all dependency groups in the graph.                           |
@@ -288,6 +291,36 @@ If a native config file (e.g., `.yamllint.yaml`, `biome.json`) is already presen
 > | [uv](https://docs.astral.sh/uv/reference/settings/)                                 | `[tool.uv]`            | Package resolution and build config                                                                   |
 >
 > See [click-extra's inventory of `pyproject.toml`-aware tools](https://kdeldycke.github.io/click-extra/config.html#pyproject-toml) for a broader list.
+
+### Binary caching
+
+`repomatic run` downloads platform-specific binaries (actionlint, biome, gitleaks, labelmaker, lychee, etc.) from GitHub Releases. To avoid re-downloading on every invocation, binaries are cached under a platform-appropriate user cache directory:
+
+| Platform | Default cache path |
+| -------- | ------------------ |
+| Linux    | `$XDG_CACHE_HOME/repomatic` or `~/.cache/repomatic` |
+| macOS    | `~/Library/Caches/repomatic` |
+| Windows  | `%LOCALAPPDATA%\repomatic\Cache` |
+
+Cached binaries are re-verified against their registry SHA-256 checksum on every use. Entries older than 30 days are auto-purged.
+
+Both settings are configurable via `[tool.repomatic]` (see [`cache.dir` and `cache.max-age`](#toolrepomatic-configuration)) or environment variables. The env var takes precedence over the config.
+
+| Environment variable | Config key | Default | Description |
+| -------------------- | ---------- | ------- | ----------- |
+| `REPOMATIC_CACHE_DIR` | `cache.dir` | *(platform-specific)* | Override the cache directory path. |
+| `REPOMATIC_CACHE_MAX_AGE` | `cache.max-age` | `30` | Auto-purge entries older than this many days. `0` disables. |
+
+Cache management commands:
+
+```shell-session
+$ repomatic cache show
+$ repomatic cache clean
+$ repomatic cache clean --tool ruff --max-age 7
+$ repomatic cache path
+```
+
+Use `--no-cache` on `repomatic run` to bypass the cache entirely.
 
 ## Reusable workflows
 

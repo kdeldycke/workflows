@@ -59,6 +59,7 @@ from extra_platforms import (
     is_x86_64,
 )
 
+from .cache import get_cached_binary, store_binary
 from .uv import uv_cmd, uvx_cmd
 
 if sys.version_info >= (3, 11):
@@ -951,16 +952,37 @@ def _extract_binary(
     raise FileNotFoundError(msg)
 
 
+def _verify_cached_binary(path: Path, expected_sha256: str) -> bool:
+    """Verify the SHA-256 checksum of a cached binary.
+
+    :param path: Path to the cached binary.
+    :param expected_sha256: Expected lowercase hex SHA-256 digest.
+    :return: ``True`` if the checksum matches, ``False`` otherwise.
+    """
+    sha256 = hashlib.sha256()
+    with path.open("rb") as f:
+        while chunk := f.read(65536):
+            sha256.update(chunk)
+    return sha256.hexdigest() == expected_sha256
+
+
 def _install_binary(
     spec: ToolSpec,
     tmp_dir: Path,
     skip_checksum: bool = False,
+    no_cache: bool = False,
 ) -> Path:
     """Download, verify, and extract a binary tool.
+
+    Checks the global binary cache before downloading. On a cache hit, the
+    cached binary is re-verified against the registry checksum (unless
+    ``skip_checksum`` is set). On a cache miss, the binary is downloaded,
+    verified, extracted, and stored in the cache for future use.
 
     :param spec: Tool specification with ``binary`` set.
     :param tmp_dir: Temporary directory for download and extraction.
     :param skip_checksum: Skip SHA-256 verification when ``True``.
+    :param no_cache: Bypass the cache entirely when ``True``.
     :return: Path to the ready-to-run executable.
     :raises RuntimeError: If no binary is available for the current platform.
     """
@@ -975,8 +997,40 @@ def _install_binary(
         )
         raise RuntimeError(msg)
 
-    url = binary.urls[platform_key].format(version=spec.version)
+    executable = binary.archive_executable or spec.name
     checksum = binary.checksums.get(platform_key, "")
+
+    # Check cache (unless --no-cache).
+    if not no_cache:
+        cached = get_cached_binary(spec.name, spec.version, platform_key, executable)
+        if cached is not None:
+            if skip_checksum:
+                logging.info(
+                    "Using cached %s %s for %s (checksum skipped).",
+                    spec.name, spec.version, platform_key,
+                )
+                return cached
+            if checksum and _verify_cached_binary(cached, checksum):
+                logging.info(
+                    "Using cached %s %s for %s (checksum verified).",
+                    spec.name, spec.version, platform_key,
+                )
+                return cached
+            if checksum:
+                logging.warning(
+                    "Cached %s %s failed integrity check, re-downloading.",
+                    spec.name, spec.version,
+                )
+                cached.unlink(missing_ok=True)
+            else:
+                # No checksum available: trust the cached binary.
+                logging.info(
+                    "Using cached %s %s for %s (no checksum to verify).",
+                    spec.name, spec.version, platform_key,
+                )
+                return cached
+
+    url = binary.urls[platform_key].format(version=spec.version)
 
     # Derive archive filename from URL.
     archive_name = url.rsplit("/", 1)[-1]
@@ -989,24 +1043,34 @@ def _install_binary(
     else:
         _download_and_verify(url, checksum, archive_path)
 
-    return _extract_binary(archive_path, binary, tmp_dir, spec.name)
+    extracted = _extract_binary(archive_path, binary, tmp_dir, spec.name)
+
+    # Store in cache for future use.
+    if not no_cache:
+        return store_binary(spec.name, spec.version, platform_key, extracted)
+    return extracted
 
 
 @contextmanager
-def binary_tool_context(name: str) -> Iterator[Path]:
+def binary_tool_context(
+    name: str,
+    no_cache: bool = False,
+) -> Iterator[Path]:
     """Download a binary tool and yield its executable path.
 
     For tools invoked indirectly by repomatic commands (e.g., labelmaker
     called by ``sync-labels``) rather than via ``run_tool()``. Downloads
-    once; the binary stays valid for the context's duration.
+    once; the binary stays valid for the context's duration. On a cache hit
+    the yielded path points to the cache and the staging directory is empty.
 
     :param name: Tool name (must be in ``TOOL_REGISTRY`` with ``binary`` set).
+    :param no_cache: Bypass the binary cache when ``True``.
     :yields: Path to the ready-to-run executable.
     """
     spec = TOOL_REGISTRY[name]
     assert spec.binary is not None, f"{name} has no binary spec"
     with tempfile.TemporaryDirectory(prefix=f"repomatic-{name}-bin-") as bin_dir:
-        yield _install_binary(spec, Path(bin_dir))
+        yield _install_binary(spec, Path(bin_dir), no_cache=no_cache)
 
 
 # ---------------------------------------------------------------------------
@@ -1037,6 +1101,7 @@ def run_tool(
     version: str | None = None,
     checksum: str | None = None,
     skip_checksum: bool = False,
+    no_cache: bool = False,
 ) -> int:
     """Run an external tool with managed config resolution.
 
@@ -1045,6 +1110,7 @@ def run_tool(
     :param version: Override the pinned version.
     :param checksum: Override the SHA-256 checksum for the current platform.
     :param skip_checksum: Skip SHA-256 verification entirely.
+    :param no_cache: Bypass the binary cache when ``True``.
     :return: The tool's exit code.
     """
     if name not in TOOL_REGISTRY:
@@ -1074,7 +1140,9 @@ def run_tool(
             bin_dir = tempfile.TemporaryDirectory(
                 prefix=f"repomatic-{name}-bin-",
             )
-            bin_path = _install_binary(spec, Path(bin_dir.name), skip_checksum)
+            bin_path = _install_binary(
+                spec, Path(bin_dir.name), skip_checksum, no_cache=no_cache,
+            )
             cmd = [str(bin_path)]
         else:
             cmd = _build_install_args(spec)

@@ -428,6 +428,161 @@ def test_install_binary_missing_platform():
         _install_binary(spec, Path("/tmp"))
 
 
+def test_install_binary_cache_hit(tmp_path, monkeypatch):
+    """_install_binary returns cached path when cache hit and checksum matches."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    # Pre-populate the cache with a fake binary.
+    fake_binary = b"cached-binary-content"
+    checksum = hashlib.sha256(fake_binary).hexdigest()
+
+    spec = ToolSpec(
+        name="testtool",
+        version="1.0.0",
+        binary=BinarySpec(
+            urls={"linux-x64": "https://example.com/{version}/tool"},
+            checksums={"linux-x64": checksum},
+            archive_format=ArchiveFormat.RAW,
+        ),
+    )
+
+    from repomatic.cache import cached_binary_path
+
+    cache_path = cached_binary_path("testtool", "1.0.0", "linux-x64", "testtool")
+    cache_path.parent.mkdir(parents=True)
+    cache_path.write_bytes(fake_binary)
+    cache_path.chmod(0o755)
+
+    with patch(
+        "repomatic.tool_runner._get_platform_key", return_value="linux-x64",
+    ):
+        result = _install_binary(spec, tmp_path / "staging")
+
+    assert result == cache_path
+
+
+def test_install_binary_cache_miss_stores(tmp_path, monkeypatch):
+    """_install_binary stores the binary in cache after download on miss."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    fake_binary = b"downloaded-binary"
+    checksum = hashlib.sha256(fake_binary).hexdigest()
+
+    spec = ToolSpec(
+        name="testtool",
+        version="2.0.0",
+        binary=BinarySpec(
+            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
+            checksums={"linux-x64": checksum},
+            archive_format=ArchiveFormat.RAW,
+        ),
+    )
+
+    staging = tmp_path / "staging"
+    staging.mkdir()
+
+    with (
+        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner._download_and_verify") as mock_dl,
+        patch("repomatic.tool_runner._extract_binary") as mock_extract,
+    ):
+        extracted = staging / "testtool"
+        extracted.write_bytes(fake_binary)
+        extracted.chmod(0o755)
+        mock_extract.return_value = extracted
+
+        result = _install_binary(spec, staging)
+
+    from repomatic.cache import cached_binary_path
+
+    expected_cache = cached_binary_path("testtool", "2.0.0", "linux-x64", "testtool")
+    assert result == expected_cache
+    assert expected_cache.read_bytes() == fake_binary
+
+
+def test_install_binary_no_cache_flag(tmp_path, monkeypatch):
+    """_install_binary with no_cache=True bypasses cache entirely."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    spec = ToolSpec(
+        name="testtool",
+        version="1.0.0",
+        binary=BinarySpec(
+            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
+            checksums={"linux-x64": "a" * 64},
+            archive_format=ArchiveFormat.RAW,
+        ),
+    )
+
+    staging = tmp_path / "staging"
+    staging.mkdir()
+
+    with (
+        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner._download_and_verify"),
+        patch("repomatic.tool_runner._extract_binary") as mock_extract,
+        patch("repomatic.tool_runner.store_binary") as mock_store,
+    ):
+        extracted = staging / "testtool"
+        extracted.write_bytes(b"binary")
+        extracted.chmod(0o755)
+        mock_extract.return_value = extracted
+
+        result = _install_binary(spec, staging, no_cache=True)
+
+    # Should NOT store in cache.
+    mock_store.assert_not_called()
+    assert result == extracted
+
+
+def test_install_binary_cache_integrity_failure(tmp_path, monkeypatch):
+    """_install_binary re-downloads when cached binary fails checksum."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    # Put a tampered binary in the cache.
+    from repomatic.cache import cached_binary_path
+
+    cache_path = cached_binary_path("testtool", "1.0.0", "linux-x64", "testtool")
+    cache_path.parent.mkdir(parents=True)
+    cache_path.write_bytes(b"tampered-content")
+    cache_path.chmod(0o755)
+
+    real_checksum = hashlib.sha256(b"real-binary").hexdigest()
+    spec = ToolSpec(
+        name="testtool",
+        version="1.0.0",
+        binary=BinarySpec(
+            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
+            checksums={"linux-x64": real_checksum},
+            archive_format=ArchiveFormat.RAW,
+        ),
+    )
+
+    staging = tmp_path / "staging"
+    staging.mkdir()
+
+    with (
+        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner._download_and_verify"),
+        patch("repomatic.tool_runner._extract_binary") as mock_extract,
+    ):
+        extracted = staging / "testtool"
+        extracted.write_bytes(b"real-binary")
+        extracted.chmod(0o755)
+        mock_extract.return_value = extracted
+
+        result = _install_binary(spec, staging)
+
+    # Should have re-downloaded and re-cached.
+    new_cached = cached_binary_path("testtool", "1.0.0", "linux-x64", "testtool")
+    assert result == new_cached
+    assert new_cached.read_bytes() == b"real-binary"
+
+
 # ---------------------------------------------------------------------------
 # run_tool with binary tools
 # ---------------------------------------------------------------------------

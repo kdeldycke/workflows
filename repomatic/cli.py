@@ -23,6 +23,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from collections import Counter
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -145,6 +146,7 @@ from .sponsor import (
     is_pull_request,
     is_sponsor,
 )
+from .cache import cache_dir as _cache_dir, cache_info, clear_cache
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 from .tool_runner import (
     TOOL_REGISTRY,
@@ -3024,14 +3026,24 @@ TOOL_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Config source")
     default=False,
     help="Skip SHA-256 verification of binary downloads.",
 )
+@option(
+    "--no-cache",
+    is_flag=True,
+    default=False,
+    help="Bypass the binary cache (download fresh every time).",
+)
 @pass_context
 def run_cmd(ctx, tool_name, extra_args, list_tools, tool_version, checksum,
-            skip_checksum):
+            skip_checksum, no_cache):
     """Run an external tool with managed configuration.
 
     Installs the tool at a pinned version, resolves config through a 4-level
     precedence chain (native config file, [tool.X] in pyproject.toml,
     bundled default, bare invocation), and invokes the tool.
+
+    Binary tools are cached locally to avoid re-downloading on repeated runs.
+    Use --no-cache to force a fresh download. See repomatic cache for cache
+    management.
 
     \b
     Pass extra arguments to the tool after --:
@@ -3065,8 +3077,98 @@ def run_cmd(ctx, tool_name, extra_args, list_tools, tool_version, checksum,
         version=tool_version,
         checksum=checksum,
         skip_checksum=skip_checksum,
+        no_cache=no_cache,
     )
     ctx.exit(exit_code)
+
+
+CACHE_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Platform", "Size", "Age")
+"""Column headers for the ``repomatic cache show`` table."""
+
+
+@repomatic.group(short_help="Manage the binary download cache", section=_section_lint)
+def cache():
+    """Manage the local binary download cache.
+
+    Binary tools downloaded by repomatic run are cached to avoid redundant
+    downloads. This group provides subcommands to inspect, clean, and locate
+    the cache.
+    """
+
+
+@cache.command(short_help="List cached binaries")
+@pass_context
+def show(ctx):
+    """List all cached tool binaries with version, platform, and size."""
+    entries = cache_info()
+    if not entries:
+        echo("Cache is empty.")
+        ctx.exit(0)
+
+    now = time.time()
+    rows = []
+    total_size = 0
+    for entry in entries:
+        age_days = int((now - entry.mtime) / 86400)
+        if age_days == 0:
+            age_str = "today"
+        elif age_days == 1:
+            age_str = "1 day"
+        else:
+            age_str = f"{age_days} days"
+        size_str = _format_size(entry.size)
+        total_size += entry.size
+        rows.append((entry.tool, entry.version, entry.platform, size_str, age_str))
+
+    ctx.find_root().print_table(rows, CACHE_LIST_HEADERS)
+    echo(f"\nTotal: {len(entries)} file(s), {_format_size(total_size)}")
+
+
+@cache.command(short_help="Remove cached binaries")
+@option("--tool", default=None, help="Only remove entries for this tool.")
+@option(
+    "--max-age",
+    type=int,
+    default=None,
+    help="Only remove entries older than this many days.",
+)
+@pass_context
+def clean(ctx, tool, max_age):
+    """Remove cached tool binaries.
+
+    Without options, removes all cached binaries. Use --tool to target a
+    specific tool, or --max-age to remove only entries older than a
+    threshold.
+
+    \b
+    Examples:
+        repomatic cache clean
+        repomatic cache clean --tool ruff
+        repomatic cache clean --max-age 7
+    """
+    deleted, freed = clear_cache(tool=tool, max_age_days=max_age)
+    if deleted:
+        echo(f"Removed {deleted} file(s), freed {_format_size(freed)}.")
+    else:
+        echo("Nothing to remove.")
+
+
+@cache.command(short_help="Print the cache directory path")
+def path():
+    """Print the absolute path to the cache directory.
+
+    Useful for CI integration with actions/cache or similar tools.
+    """
+    echo(str(_cache_dir()))
+
+
+def _format_size(size_bytes: int) -> str:
+    """Format a byte count as a human-readable string."""
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    if size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    return f"{size_bytes / (1024 * 1024):.1f} MB"
 
 
 @repomatic.command(short_help="Create and push a Git tag", section=_section_release)

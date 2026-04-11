@@ -101,6 +101,23 @@ class Config:
     Each field has a docstring explaining its purpose.
     """
 
+    cache_dir: str = ""
+    """Override the binary cache directory path.
+
+    When empty (the default), the cache uses the platform convention:
+    ``~/Library/Caches/repomatic`` on macOS, ``$XDG_CACHE_HOME/repomatic``
+    or ``~/.cache/repomatic`` on Linux, ``%LOCALAPPDATA%\\repomatic\\Cache``
+    on Windows. The ``REPOMATIC_CACHE_DIR`` environment variable takes
+    precedence over this setting.
+    """
+
+    cache_max_age: int = 30
+    """Auto-purge cached binaries older than this many days.
+
+    Set to ``0`` to disable auto-purge. The ``REPOMATIC_CACHE_MAX_AGE``
+    environment variable takes precedence over this setting.
+    """
+
     nuitka_enabled: bool = True
     """Whether Nuitka binary compilation is enabled for this project.
 
@@ -393,6 +410,8 @@ class Config:
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "awesome_template_sync",
     "bumpversion_sync",
+    "cache_dir",
+    "cache_max_age",
     "changelog_location",
     "dependency_graph_all_extras",
     "dependency_graph_all_groups",
@@ -438,6 +457,7 @@ workflow metadata outputs.
 _NESTED_PREFIXES: Final[dict[str, str]] = {
     "awesome_template": "awesome-template",
     "bumpversion": "bumpversion",
+    "cache": "cache",
     "changelog": "changelog",
     "dependency_graph": "dependency-graph",
     "dev_release": "dev-release",
