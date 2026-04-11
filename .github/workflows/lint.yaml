@@ -71,6 +71,8 @@ jobs:
       - name: Install all package dependencies
         # --all-extras and --all-groups are required as Mypy will check all Python files of the project, including
         # those related to optional features, tests, development and documentation.
+        # Skip for non-Python projects (no pyproject.toml/uv.lock) where mypy can still lint standalone scripts.
+        if: fromJSON(needs.metadata.outputs.metadata).is_python_project
         run: uv --no-progress sync --frozen --all-extras --all-groups
       - name: Run Mypy
         env:

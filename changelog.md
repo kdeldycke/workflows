@@ -15,6 +15,7 @@
 - Add `skills.location` config option to override the target directory for Claude Code skill files. Defaults to `./.claude/skills/`; useful for repositories where `.claude/` is not at the root.
 - Add `changelog.location` config option to override the changelog file path. Defaults to `./changelog.md`. All CLI commands (`changelog`, `release-prep`, `sync-github-releases`, `sync-dev-release`), metadata extraction, and `init` now read from this single source instead of hardcoding the path.
 - Derive all skill file target paths in the registry from `Config.skills_location` instead of hardcoding the `.claude/skills/` prefix 15 times.
+- Make the `uv sync` step in the `lint-types` job conditional on `is_python_project`, so repositories with Python files but no lockfile (e.g. dotfiles) can still be type-checked.
 
 ## [`6.11.3` (2026-04-09)](https://github.com/kdeldycke/repomatic/compare/v6.11.2...v6.11.3)
 
