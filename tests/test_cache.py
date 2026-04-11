@@ -27,6 +27,7 @@ import pytest
 
 from repomatic.cache import (
     CacheEntry,
+    HttpCacheEntry,
     _max_age_days,
     _prune_empty_dirs,
     auto_purge,
@@ -34,8 +35,12 @@ from repomatic.cache import (
     cache_info,
     cached_binary_path,
     clear_cache,
+    clear_http_cache,
     get_cached_binary,
+    get_cached_response,
+    http_cache_info,
     store_binary,
+    store_response,
 )
 from repomatic.config import Config
 
@@ -460,3 +465,146 @@ def test_prune_empty_dirs_preserves_nonempty(tmp_path):
     _prune_empty_dirs(tmp_path)
     assert (tmp_path / "a").exists()
     assert not (tmp_path / "a" / "b").exists()
+
+
+# ---------------------------------------------------------------------------
+# HTTP response cache
+# ---------------------------------------------------------------------------
+
+
+def test_store_and_get_cached_response(monkeypatch, tmp_path):
+    """Round-trip: store a response, then retrieve it."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    data = b'{"name": "requests", "version": "2.31.0"}'
+    store_response("pypi", "requests", data)
+
+    result = get_cached_response("pypi", "requests", max_age_seconds=3600)
+    assert result == data
+
+
+def test_get_cached_response_zero_ttl(monkeypatch, tmp_path):
+    """TTL=0 bypasses cache entirely."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    store_response("pypi", "requests", b'{"cached": true}')
+    assert get_cached_response("pypi", "requests", max_age_seconds=0) is None
+
+
+def test_get_cached_response_negative_ttl(monkeypatch, tmp_path):
+    """Negative TTL bypasses cache entirely."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    store_response("pypi", "requests", b'{"cached": true}')
+    assert get_cached_response("pypi", "requests", max_age_seconds=-1) is None
+
+
+def test_get_cached_response_missing(monkeypatch, tmp_path):
+    """Returns None when no cached response exists."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    assert get_cached_response("pypi", "nonexistent", 3600) is None
+
+
+def test_get_cached_response_stale(monkeypatch, tmp_path):
+    """Returns None when cached response is older than max_age_seconds."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    store_response("pypi", "requests", b'{"stale": true}')
+
+    # Age the file.
+    cached = tmp_path / "http" / "pypi" / "requests.json"
+    old_time = time.time() - 7200
+    os.utime(cached, (old_time, old_time))
+
+    assert get_cached_response("pypi", "requests", max_age_seconds=3600) is None
+
+
+def test_store_response_nested_key(monkeypatch, tmp_path):
+    """Keys with slashes create nested directories."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    data = b'{"tag": "v1.0.0", "body": "release notes"}'
+    store_response("github-release", "astral-sh/ruff/1.0.0", data)
+
+    result = get_cached_response("github-release", "astral-sh/ruff/1.0.0", 86400)
+    assert result == data
+
+    expected_path = tmp_path / "http" / "github-release" / "astral-sh" / "ruff" / "1.0.0.json"
+    assert expected_path.exists()
+
+
+def test_http_cache_info_lists_entries(monkeypatch, tmp_path):
+    """http_cache_info returns all cached responses."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    store_response("pypi", "requests", b'{"a": 1}')
+    store_response("pypi", "flask", b'{"b": 2}')
+    store_response("github-releases", "astral-sh/ruff", b'{"c": 3}')
+
+    entries = http_cache_info()
+    assert len(entries) == 3
+    namespaces = {e.namespace for e in entries}
+    assert namespaces == {"github-releases", "pypi"}
+
+    pypi_keys = {e.key for e in entries if e.namespace == "pypi"}
+    assert pypi_keys == {"flask", "requests"}
+
+
+def test_http_cache_info_empty(monkeypatch, tmp_path):
+    """Returns empty list when HTTP cache is empty."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    assert http_cache_info() == []
+
+
+def test_clear_http_cache_all(monkeypatch, tmp_path):
+    """clear_http_cache() removes all HTTP entries."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    store_response("pypi", "requests", b"data1")
+    store_response("github-releases", "astral-sh/ruff", b"data2")
+
+    deleted, freed = clear_http_cache()
+    assert deleted == 2
+    assert freed > 0
+    assert http_cache_info() == []
+
+
+def test_clear_http_cache_by_namespace(monkeypatch, tmp_path):
+    """clear_http_cache(namespace=...) removes only matching namespace."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    store_response("pypi", "requests", b"data1")
+    store_response("github-releases", "astral-sh/ruff", b"data2")
+
+    deleted, _ = clear_http_cache(namespace="pypi")
+    assert deleted == 1
+    entries = http_cache_info()
+    assert len(entries) == 1
+    assert entries[0].namespace == "github-releases"
+
+
+def test_clear_http_cache_by_age(monkeypatch, tmp_path):
+    """clear_http_cache(max_age_days=...) removes only old entries."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    store_response("pypi", "old-pkg", b"old")
+    cached = tmp_path / "http" / "pypi" / "old-pkg.json"
+    old_time = time.time() - 10 * 86400
+    os.utime(cached, (old_time, old_time))
+
+    store_response("pypi", "new-pkg", b"new")
+
+    deleted, _ = clear_http_cache(max_age_days=5)
+    assert deleted == 1
+    entries = http_cache_info()
+    assert len(entries) == 1
+    assert entries[0].key == "new-pkg"

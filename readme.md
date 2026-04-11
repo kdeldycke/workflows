@@ -202,7 +202,10 @@ workflow.source-paths = ["extra_platforms"]
 | `awesome-template.sync`       | bool                        | `true`                             | Whether awesome-template sync is enabled for this project.                       |
 | `bumpversion.sync`            | bool                        | `true`                             | Whether bumpversion config sync is enabled for this project.                     |
 | `cache.dir`                   | str                         | `""`                               | Override the binary cache directory path.                                        |
-| `cache.max-age`               | int                         | `30`                               | Auto-purge cached binaries older than this many days.                            |
+| `cache.github-release-ttl`    | int                         | `604800`                           | Freshness TTL for cached single-release bodies (seconds).                        |
+| `cache.github-releases-ttl`   | int                         | `86400`                            | Freshness TTL for cached all-releases responses (seconds).                       |
+| `cache.max-age`               | int                         | `30`                               | Auto-purge cached entries older than this many days.                             |
+| `cache.pypi-ttl`              | int                         | `86400`                            | Freshness TTL for cached PyPI metadata (seconds).                                |
 | `changelog.location`          | str                         | `"./changelog.md"`                 | File path of the changelog, relative to the root of the repository.              |
 | `dependency-graph.all-extras` | bool                        | `true`                             | Whether to include all optional extras in the graph.                             |
 | `dependency-graph.all-groups` | bool                        | `true`                             | Whether to include all dependency groups in the graph.                           |

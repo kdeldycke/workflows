@@ -37,6 +37,8 @@ from urllib.request import Request, urlopen
 
 import tomlkit
 
+from .cache import get_cached_response, store_response
+from .config import load_repomatic_config as _load_repomatic_config
 from .pypi import (
     get_changelog_url as get_pypi_changelog_url,
     get_source_url as get_pypi_source_url,
@@ -80,6 +82,7 @@ GITHUB_API_RELEASE_BY_TAG_URL = (
 """GitHub API URL for fetching a single release by tag name."""
 
 RELEASE_NOTES_MAX_LENGTH = 2000
+
 """Maximum characters per package release body before truncation."""
 
 
@@ -880,6 +883,17 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
         return "", ""
     owner, repo = parsed
 
+    # Check cache (keyed by version, not tag, since we try multiple tags).
+    cache_key = f"{owner}/{repo}/{version}"
+    ttl = _load_repomatic_config().cache_github_release_ttl
+    cached = get_cached_response("github-release", cache_key, ttl)
+    if cached is not None:
+        try:
+            data = json.loads(cached)
+            return data["tag"], data["body"]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+
     for tag in (f"v{version}", version):
         url = GITHUB_API_RELEASE_BY_TAG_URL.format(
             owner=owner,
@@ -894,6 +908,12 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
             continue
         else:
             body = data.get("body", "")
+            if ttl > 0:
+                store_response(
+                    "github-release",
+                    cache_key,
+                    json.dumps({"tag": tag, "body": body}).encode(),
+                )
             return tag, body
     logging.debug(f"No GitHub release found for {repo_url} version {version}.")
     return "", ""

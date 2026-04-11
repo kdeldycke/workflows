@@ -24,6 +24,9 @@ from typing import NamedTuple
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
+from ..cache import get_cached_response, store_response
+from ..config import load_repomatic_config
+
 GITHUB_API_RELEASES_URL = "https://api.github.com/repos/{owner}/{repo}/releases"
 """GitHub API URL for fetching all releases for a repository."""
 
@@ -56,6 +59,20 @@ def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
         return {}
     owner, repo = parts[-2], parts[-1]
 
+    # Check cache.
+    cache_key = f"{owner}/{repo}"
+    ttl = load_repomatic_config().cache_github_releases_ttl
+    cached = get_cached_response("github-releases", cache_key, ttl)
+    if cached is not None:
+        try:
+            data = json.loads(cached)
+            return {
+                v: GitHubRelease(date=r["date"], body=r["body"])
+                for v, r in data.items()
+            }
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+
     result: dict[str, GitHubRelease] = {}
     page = 1
     while True:
@@ -83,5 +100,14 @@ def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
                     body = release.get("body", "")
                     result[version] = GitHubRelease(date=date, body=body)
         page += 1
+
+    # Cache non-empty results.
+    if result and ttl > 0:
+        serialized = {
+            v: {"date": r.date, "body": r.body} for v, r in result.items()
+        }
+        store_response(
+            "github-releases", cache_key, json.dumps(serialized).encode(),
+        )
 
     return result

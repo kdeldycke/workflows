@@ -146,7 +146,13 @@ from .sponsor import (
     is_pull_request,
     is_sponsor,
 )
-from .cache import cache_dir as _cache_dir, cache_info, clear_cache
+from .cache import (
+    cache_dir as _cache_dir,
+    cache_info,
+    clear_cache,
+    clear_http_cache,
+    http_cache_info,
+)
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 from .tool_runner import (
     TOOL_REGISTRY,
@@ -3086,50 +3092,75 @@ def run_cmd(ctx, tool_name, extra_args, list_tools, tool_version, checksum,
     ctx.exit(exit_code)
 
 
-CACHE_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Platform", "Size", "Age")
+CACHE_LIST_HEADERS: tuple[str, ...] = (
+    "Type", "Name", "Detail", "Size", "Age",
+)
 """Column headers for the ``repomatic cache show`` table."""
 
 
-@repomatic.group(short_help="Manage the binary download cache", section=_section_lint)
+@repomatic.group(short_help="Manage the download cache", section=_section_lint)
 def cache():
-    """Manage the local binary download cache.
+    """Manage the local download cache.
 
-    Binary tools downloaded by repomatic run are cached to avoid redundant
+    Binary tools and HTTP API responses are cached to avoid redundant
     downloads. This group provides subcommands to inspect, clean, and locate
     the cache.
     """
 
 
-@cache.command(short_help="List cached binaries")
+def _format_age(mtime: float) -> str:
+    """Format a file mtime as a human-readable age string."""
+    age_days = int((time.time() - mtime) / 86400)
+    if age_days == 0:
+        return "today"
+    if age_days == 1:
+        return "1 day"
+    return f"{age_days} days"
+
+
+@cache.command(short_help="List cached entries")
 @pass_context
 def show(ctx):
-    """List all cached tool binaries with version, platform, and size."""
-    entries = cache_info()
-    if not entries:
+    """List all cached binaries and HTTP responses."""
+    bin_entries = cache_info()
+    http_entries = http_cache_info()
+    if not bin_entries and not http_entries:
         echo("Cache is empty.")
         ctx.exit(0)
 
-    now = time.time()
     rows = []
     total_size = 0
-    for entry in entries:
-        age_days = int((now - entry.mtime) / 86400)
-        if age_days == 0:
-            age_str = "today"
-        elif age_days == 1:
-            age_str = "1 day"
-        else:
-            age_str = f"{age_days} days"
-        size_str = _format_size(entry.size)
+    for entry in bin_entries:
         total_size += entry.size
-        rows.append((entry.tool, entry.version, entry.platform, size_str, age_str))
+        rows.append((
+            "binary",
+            entry.tool,
+            f"{entry.version} ({entry.platform})",
+            _format_size(entry.size),
+            _format_age(entry.mtime),
+        ))
+    for entry in http_entries:
+        total_size += entry.size
+        rows.append((
+            "http",
+            entry.namespace,
+            entry.key,
+            _format_size(entry.size),
+            _format_age(entry.mtime),
+        ))
 
     ctx.find_root().print_table(rows, CACHE_LIST_HEADERS)
-    echo(f"\nTotal: {len(entries)} file(s), {_format_size(total_size)}")
+    total_count = len(bin_entries) + len(http_entries)
+    echo(f"\nTotal: {total_count} file(s), {_format_size(total_size)}")
 
 
-@cache.command(short_help="Remove cached binaries")
-@option("--tool", default=None, help="Only remove entries for this tool.")
+@cache.command(short_help="Remove cached entries")
+@option("--tool", default=None, help="Only remove binary entries for this tool.")
+@option(
+    "--namespace",
+    default=None,
+    help="Only remove HTTP entries in this namespace (e.g., pypi, github-releases).",
+)
 @option(
     "--max-age",
     type=int,
@@ -3137,22 +3168,28 @@ def show(ctx):
     help="Only remove entries older than this many days.",
 )
 @pass_context
-def clean(ctx, tool, max_age):
-    """Remove cached tool binaries.
+def clean(ctx, tool, namespace, max_age):
+    """Remove cached binaries and HTTP responses.
 
-    Without options, removes all cached binaries. Use --tool to target a
-    specific tool, or --max-age to remove only entries older than a
-    threshold.
+    Without options, removes everything. Use --tool to target a specific
+    binary tool, --namespace for a specific HTTP namespace, or --max-age
+    for entries older than a threshold.
 
     \b
     Examples:
         repomatic cache clean
         repomatic cache clean --tool ruff
+        repomatic cache clean --namespace pypi
         repomatic cache clean --max-age 7
     """
-    deleted, freed = clear_cache(tool=tool, max_age_days=max_age)
-    if deleted:
-        echo(f"Removed {deleted} file(s), freed {_format_size(freed)}.")
+    bin_deleted, bin_freed = clear_cache(tool=tool, max_age_days=max_age)
+    http_deleted, http_freed = clear_http_cache(
+        namespace=namespace, max_age_days=max_age,
+    )
+    total_deleted = bin_deleted + http_deleted
+    total_freed = bin_freed + http_freed
+    if total_deleted:
+        echo(f"Removed {total_deleted} file(s), freed {_format_size(total_freed)}.")
     else:
         echo("Nothing to remove.")
 

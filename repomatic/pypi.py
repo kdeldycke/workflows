@@ -28,6 +28,9 @@ from typing import NamedTuple
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
+from .cache import get_cached_response, store_response
+from .config import load_repomatic_config
+
 PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
 """PyPI JSON API URL for fetching all release metadata for a package."""
 
@@ -62,18 +65,33 @@ _SOURCE_URL_KEYS = (
 def _fetch_json(package: str) -> dict | None:
     """Fetch the full JSON metadata for a PyPI package.
 
+    Results are cached under the ``pypi`` namespace. Freshness TTL is read
+    from ``Config.cache_pypi_ttl``.
+
     :param package: The PyPI package name.
     :return: Parsed JSON response, or ``None`` on any failure.
     """
+    ttl = load_repomatic_config().cache_pypi_ttl
+    cached = get_cached_response("pypi", package, ttl)
+    if cached is not None:
+        try:
+            return json.loads(cached)
+        except json.JSONDecodeError:
+            pass
+
     url = PYPI_API_URL.format(package=package)
     request = Request(url, headers={"Accept": "application/json"})
     try:
         with urlopen(request, timeout=10) as response:
-            result: dict[str, object] = json.loads(response.read())
-            return result
+            raw = response.read()
+            result: dict[str, object] = json.loads(raw)
     except (URLError, TimeoutError, json.JSONDecodeError) as exc:
         logging.debug(f"PyPI lookup failed for {package}: {exc}")
         return None
+
+    if ttl > 0:
+        store_response("pypi", package, raw)
+    return result
 
 
 class PyPIRelease(NamedTuple):

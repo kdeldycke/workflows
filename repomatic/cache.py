@@ -14,22 +14,22 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Global binary cache for downloaded tool executables.
+"""Global cache for downloaded tool executables and HTTP API responses.
 
-Caches platform-specific binaries under a user-level cache directory so that
-repeated ``repomatic run <tool>`` invocations skip the download when the
-version and platform match a previous run. Integrity is enforced by the caller
-(``tool_runner._install_binary``) via SHA-256 re-verification on every cache
-hit.
+Two cache subtrees under the user-level cache directory:
 
-Cache layout::
+**Binary cache** (``bin/``): platform-specific tool executables, keyed by
+``{tool}/{version}/{platform}/{executable}``. Integrity is enforced by the
+caller via SHA-256 re-verification on every cache hit.
 
-    {cache_root}/bin/{tool}/{version}/{platform}/{executable}
+**HTTP response cache** (``http/``): JSON API responses from PyPI and GitHub,
+keyed by ``{namespace}/{key}.json``. Freshness is controlled by a per-caller
+TTL (seconds); stale entries remain on disk until auto-purge removes them.
 
 .. note::
     The cache module is intentionally a pure storage layer. It does not know
-    about checksums, registries, or tool specifications. All trust decisions
-    (checksum verification, skip-checksum semantics) belong to the caller.
+    about checksums, registries, API semantics, or tool specifications. All
+    trust and freshness decisions belong to the caller.
 """
 
 from __future__ import annotations
@@ -67,6 +67,26 @@ class CacheEntry:
 
     path: Path
     """Absolute path to the cached binary."""
+
+    mtime: float
+    """File modification time (seconds since epoch)."""
+
+
+@dataclass(frozen=True)
+class HttpCacheEntry:
+    """A single cached HTTP response with its metadata."""
+
+    namespace: str
+    """Cache namespace (e.g., ``pypi``, ``github-releases``)."""
+
+    key: str
+    """Cache key within the namespace (e.g., ``requests``, ``astral-sh/ruff``)."""
+
+    size: int
+    """File size in bytes."""
+
+    path: Path
+    """Absolute path to the cached response file."""
 
     mtime: float
     """File modification time (seconds since epoch)."""
@@ -283,6 +303,153 @@ def clear_cache(
     return files_deleted, bytes_freed
 
 
+# ---------------------------------------------------------------------------
+# HTTP response cache
+# ---------------------------------------------------------------------------
+
+
+def _http_dir() -> Path:
+    """Return the ``http/`` subdirectory under the cache root."""
+    return cache_dir() / "http"
+
+
+def get_cached_response(
+    namespace: str,
+    key: str,
+    max_age_seconds: int,
+) -> bytes | None:
+    """Return a cached HTTP response if it exists and is fresh.
+
+    :param namespace: Cache namespace (e.g., ``pypi``, ``github-releases``).
+    :param key: Cache key, may contain ``/`` for nested paths.
+    :param max_age_seconds: Maximum age in seconds. Entries with mtime older
+        than this are considered stale and ignored. ``<= 0`` disables the
+        cache (always returns ``None``).
+    :return: Raw cached response bytes, or ``None`` if not cached or stale.
+    """
+    if max_age_seconds <= 0:
+        return None
+    path = _http_dir() / namespace / f"{key}.json"
+    if not path.is_file():
+        return None
+    age = time.time() - path.stat().st_mtime
+    if age > max_age_seconds:
+        logging.debug("Stale HTTP cache entry: %s (age %.0fs > %ds).", path, age, max_age_seconds)
+        return None
+    logging.debug("HTTP cache hit: %s.", path)
+    return path.read_bytes()
+
+
+def store_response(
+    namespace: str,
+    key: str,
+    data: bytes,
+) -> Path:
+    """Store an HTTP response in the cache atomically.
+
+    Uses the same write-to-temp-then-rename pattern as :func:`store_binary`.
+    Triggers :func:`auto_purge` after a successful store.
+
+    :param namespace: Cache namespace.
+    :param key: Cache key, may contain ``/`` for nested paths.
+    :param data: Raw response bytes to cache.
+    :return: Path to the cached response file, or ``None`` if the write
+        failed (permissions, read-only filesystem, sandbox restrictions).
+    """
+    dest = _http_dir() / namespace / f"{key}.json"
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(
+            dir=dest.parent,
+            prefix=".response.",
+            suffix=".tmp",
+        )
+        try:
+            os.close(fd)
+            tmp_path = Path(tmp)
+            tmp_path.write_bytes(data)
+            tmp_path.replace(dest)
+        except BaseException:
+            Path(tmp).unlink(missing_ok=True)
+            raise
+    except OSError:
+        logging.debug("Failed to cache HTTP response: %s/%s.", namespace, key)
+        return None
+
+    logging.debug("Cached HTTP response: %s/%s at %s.", namespace, key, dest)
+    auto_purge()
+    return dest
+
+
+def http_cache_info() -> list[HttpCacheEntry]:
+    """List all cached HTTP responses.
+
+    :return: List of :class:`HttpCacheEntry` instances, sorted by namespace
+        then key.
+    """
+    http_root = _http_dir()
+    if not http_root.is_dir():
+        return []
+
+    entries: list[HttpCacheEntry] = []
+    for ns_dir in sorted(http_root.iterdir()):
+        if not ns_dir.is_dir():
+            continue
+        namespace = ns_dir.name
+        for json_file in sorted(ns_dir.rglob("*.json")):
+            if not json_file.is_file():
+                continue
+            # Derive key from relative path minus .json extension.
+            rel = json_file.relative_to(ns_dir)
+            key = str(rel.with_suffix(""))
+            stat = json_file.stat()
+            entries.append(HttpCacheEntry(
+                namespace=namespace,
+                key=key,
+                size=stat.st_size,
+                path=json_file,
+                mtime=stat.st_mtime,
+            ))
+    return entries
+
+
+def clear_http_cache(
+    namespace: str | None = None,
+    max_age_days: int | None = None,
+) -> tuple[int, int]:
+    """Remove cached HTTP responses.
+
+    :param namespace: If set, only remove entries in this namespace. Otherwise
+        remove all cached responses.
+    :param max_age_days: If set, only remove entries with mtime older than
+        this many days. Otherwise remove all matching entries.
+    :return: Tuple of (files_deleted, bytes_freed).
+    """
+    http_root = _http_dir()
+    if not http_root.is_dir():
+        return 0, 0
+
+    cutoff = time.time() - (max_age_days * 86400) if max_age_days is not None else None
+    files_deleted = 0
+    bytes_freed = 0
+
+    for entry in http_cache_info():
+        if namespace is not None and entry.namespace != namespace:
+            continue
+        if cutoff is not None and entry.mtime >= cutoff:
+            continue
+        logging.debug("Purging cached response: %s", entry.path)
+        try:
+            bytes_freed += entry.size
+            entry.path.unlink()
+            files_deleted += 1
+        except OSError:
+            logging.debug("Failed to remove %s.", entry.path)
+
+    _prune_empty_dirs(http_root)
+    return files_deleted, bytes_freed
+
+
 def _prune_empty_dirs(root: Path) -> None:
     """Remove empty directories under *root*, bottom-up."""
     if not root.is_dir():
@@ -329,16 +496,22 @@ def _max_age_days() -> int:
 def auto_purge() -> None:
     """Remove cached entries older than the configured TTL.
 
-    Called automatically after :func:`store_binary`. Resolves the TTL from
-    ``REPOMATIC_CACHE_MAX_AGE`` env var, then ``cache.max-age`` in
-    ``[tool.repomatic]``, then the ``Config.cache_max_age`` field default.
-    Set to ``0`` to disable.
+    Called automatically after :func:`store_binary` and
+    :func:`store_response`. Purges both binary and HTTP cache entries.
+    Resolves the TTL from ``REPOMATIC_CACHE_MAX_AGE`` env var, then
+    ``cache.max-age`` in ``[tool.repomatic]``, then the
+    ``Config.cache_max_age`` field default. Set to ``0`` to disable.
     """
     days = _max_age_days()
     if days <= 0:
         return
-    deleted, freed = clear_cache(max_age_days=days)
-    if deleted:
+    bin_deleted, bin_freed = clear_cache(max_age_days=days)
+    http_deleted, http_freed = clear_http_cache(max_age_days=days)
+    total_deleted = bin_deleted + http_deleted
+    total_freed = bin_freed + http_freed
+    if total_deleted:
         logging.debug(
-            "Auto-purged %d cached binary(ies), freed %d bytes.", deleted, freed
+            "Auto-purged %d cached entry(ies), freed %d bytes.",
+            total_deleted,
+            total_freed,
         )

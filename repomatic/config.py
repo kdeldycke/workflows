@@ -111,11 +111,32 @@ class Config:
     precedence over this setting.
     """
 
+    cache_github_release_ttl: int = 604800
+    """Freshness TTL for cached single-release bodies (seconds).
+
+    GitHub release bodies are immutable once published, so a long TTL (7 days)
+    is safe. Set to ``0`` to disable caching for single-release lookups.
+    """
+
+    cache_github_releases_ttl: int = 86400
+    """Freshness TTL for cached all-releases responses (seconds).
+
+    New releases can appear at any time, so a shorter TTL (24 hours) balances
+    freshness with API savings.
+    """
+
     cache_max_age: int = 30
-    """Auto-purge cached binaries older than this many days.
+    """Auto-purge cached entries older than this many days.
 
     Set to ``0`` to disable auto-purge. The ``REPOMATIC_CACHE_MAX_AGE``
     environment variable takes precedence over this setting.
+    """
+
+    cache_pypi_ttl: int = 86400
+    """Freshness TTL for cached PyPI metadata (seconds).
+
+    PyPI metadata changes when new versions are published. A 24-hour TTL
+    avoids redundant API calls while keeping data reasonably current.
     """
 
     nuitka_enabled: bool = True
@@ -411,7 +432,10 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "awesome_template_sync",
     "bumpversion_sync",
     "cache_dir",
+    "cache_github_release_ttl",
+    "cache_github_releases_ttl",
     "cache_max_age",
+    "cache_pypi_ttl",
     "changelog_location",
     "dependency_graph_all_extras",
     "dependency_graph_all_groups",
