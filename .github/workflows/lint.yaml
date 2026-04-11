@@ -136,7 +136,7 @@ jobs:
         # Source: https://github.com/rhysd/actionlint/blob/main/docs/usage.md#problem-matchers
         run: |
           curl -fsSL --output ./.github/actionlint-matcher.json \
-            https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.11/.github/actionlint-matcher.json
+            https://raw.githubusercontent.com/rhysd/actionlint/refs/tags/v1.7.12/.github/actionlint-matcher.json
           echo "::add-matcher::.github/actionlint-matcher.json"
       - name: Run actionlint
         run: uvx --no-progress --from . repomatic run actionlint

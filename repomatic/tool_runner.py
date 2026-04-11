@@ -401,7 +401,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     # - Source: https://github.com/rhysd/actionlint
     "actionlint": ToolSpec(
         name="actionlint",
-        version="1.7.11",
+        version="1.7.12",
         default_flags=("-color",),
         binary=BinarySpec(
             urls={
