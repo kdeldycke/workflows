@@ -2225,15 +2225,19 @@ def setup_guide(
         token_ok and dependabot_ok and branch_ok and vt_ok and fork_pr_gate
     )
 
-    manage_issue_lifecycle(
-        has_issues=needs_issue,
-        body_file=setup_body_file,
-        labels=["🤖 ci"],
-        title="Repomatic setup guide",
-        no_issues_comment=(
-            "PAT configured, all permissions verified, repository settings complete."
-        ),
-    )
+    try:
+        manage_issue_lifecycle(
+            has_issues=needs_issue,
+            body_file=setup_body_file,
+            labels=["🤖 ci"],
+            title="Repomatic setup guide",
+            no_issues_comment=(
+                "PAT configured, all permissions verified, repository settings"
+                " complete."
+            ),
+        )
+    finally:
+        setup_body_file.unlink(missing_ok=True)
 
 
 @repomatic.command(

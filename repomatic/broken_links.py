@@ -339,9 +339,12 @@ def manage_combined_broken_links_issue(
         tmp.write(body)
         body_file = Path(tmp.name)
 
-    manage_issue_lifecycle(
-        has_issues=has_broken_links,
-        body_file=body_file,
-        labels=[get_label(repo_name)],
-        title=ISSUE_TITLE,
-    )
+    try:
+        manage_issue_lifecycle(
+            has_issues=has_broken_links,
+            body_file=body_file,
+            labels=[get_label(repo_name)],
+            title=ISSUE_TITLE,
+        )
+    finally:
+        body_file.unlink(missing_ok=True)
