@@ -646,8 +646,11 @@ def run_init(
     for comp_name, file_ids in sorted(excluded_files.items()):
         for fid in sorted(file_ids):
             rel = excluded_rel_path(comp_name, fid)
-            if rel and (output_dir / rel).exists():
-                result.excluded_existing.append(rel)
+            if rel:
+                if comp_name == "skills":
+                    rel = _resolve_skills_target(rel, config)
+                if (output_dir / rel).exists():
+                    result.excluded_existing.append(rel)
     for rel in sorted(scope_excluded_targets):
         if (output_dir / rel).exists():
             result.excluded_existing.append(rel)
@@ -687,6 +690,7 @@ def run_init(
                 result,
                 exclude_ids=file_exclude,
                 include_ids=file_include,
+                config=config,
             )
             # Labels have extra files fetched from [tool.repomatic] config.
             if comp.name == "labels":
@@ -848,6 +852,23 @@ def _is_renovate_source_repo(output_dir: Path) -> bool:
     return _is_source_repo(output_dir) and (resolved / "renovate.json5").exists()
 
 
+def _resolve_skills_target(entry_target: str, config: Config | None) -> str:
+    """Apply ``skills.location`` override to a skill file's target path.
+
+    Replaces the default ``.claude/skills/`` prefix with the configured
+    ``skills_location`` when the config specifies a non-default value.
+    """
+    # Normalize the Config default (which has a "./" prefix) to match the
+    # registry target format (which omits it).
+    default = Config.skills_location.removeprefix("./").rstrip("/") + "/"
+    if not config or not entry_target.startswith(default):
+        return entry_target
+    custom = config.skills_location.removeprefix("./").rstrip("/") + "/"
+    if custom == default:
+        return entry_target
+    return custom + entry_target[len(default):]
+
+
 def _init_config_files(
     output_dir: Path,
     component_name: str,
@@ -855,6 +876,7 @@ def _init_config_files(
     *,
     exclude_ids: frozenset[str] = frozenset(),
     include_ids: frozenset[str] | None = None,
+    config: Config | None = None,
 ) -> None:
     """Export bundled config files for a component.
 
@@ -871,6 +893,7 @@ def _init_config_files(
 
     :param exclude_ids: File identifiers to skip within this component.
     :param include_ids: When not ``None``, only export files in this set.
+    :param config: Repomatic config for path overrides (e.g., ``skills.location``).
     """
     comp = _BY_NAME[component_name]
     for entry in comp.files:
@@ -878,7 +901,12 @@ def _init_config_files(
             continue
         if exclude_ids and entry.file_id in exclude_ids:
             continue
-        target = output_dir / entry.target
+        effective_target = (
+            _resolve_skills_target(entry.target, config)
+            if component_name == "skills"
+            else entry.target
+        )
+        target = output_dir / effective_target
         rel = target.relative_to(output_dir).as_posix()
 
         # In the repomatic source repo, the root renovate.json5 is

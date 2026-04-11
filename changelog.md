@@ -10,6 +10,7 @@
 - Add structured logging to the tool runner. `--verbosity INFO` now reports the config precedence level selected, the full command line, and the exit code. `--verbosity DEBUG` adds the parsed `[tool.X]` content and translated config file details.
 - Add `--version`, `--checksum`, and `--skip-checksum` options to `repomatic run` for overriding the pinned tool version and SHA-256 verification at invocation time.
 - Use `REPOMATIC_PAT` token in all `peter-evans/create-pull-request` steps across `autofix.yaml`, `changelog.yaml`, and `renovate.yaml`. PRs created with the default `GITHUB_TOKEN` do not trigger other workflows (lint, tests), leaving them without CI checks.
+- Add `skills.location` config option to override the target directory for Claude Code skill files. Defaults to `./.claude/skills/`; useful for repositories where `.claude/` is not at the root.
 
 ## [`6.11.3` (2026-04-09)](https://github.com/kdeldycke/repomatic/compare/v6.11.2...v6.11.3)
 

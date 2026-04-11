@@ -25,6 +25,7 @@ import pytest
 
 from repomatic.init_project import (
     EXPORTABLE_FILES,
+    _resolve_skills_target,
     _strip_renovate_repo_settings,
     _update_tool_config,
     default_version_pin,
@@ -48,6 +49,7 @@ from repomatic.registry import (
     parse_component_entries,
     valid_file_ids,
 )
+from repomatic.config import Config
 from repomatic.tool_runner import TOOL_REGISTRY
 
 if sys.version_info >= (3, 11):
@@ -1644,6 +1646,91 @@ def test_init_detects_auto_excluded_awesome_triage(
     # File is detected but not deleted.
     assert skill_file.exists()
     assert ".claude/skills/awesome-triage/SKILL.md" in result.excluded_existing
+
+
+@pytest.mark.parametrize(
+    ("location", "target", "expected"),
+    [
+        # Default location, no change.
+        ("./.claude/skills/", ".claude/skills/foo/SKILL.md", ".claude/skills/foo/SKILL.md"),
+        # Equivalent default without leading "./".
+        (".claude/skills/", ".claude/skills/foo/SKILL.md", ".claude/skills/foo/SKILL.md"),
+        # Custom location replaces prefix.
+        ("./custom/", ".claude/skills/foo/SKILL.md", "custom/foo/SKILL.md"),
+        # Custom location without leading "./".
+        ("custom/dir/", ".claude/skills/foo/SKILL.md", "custom/dir/foo/SKILL.md"),
+        # Non-matching target is returned unchanged.
+        ("./custom/", "other/path.md", "other/path.md"),
+        # Hidden directory preserved with removeprefix (not strip).
+        ("./.hidden/skills/", ".claude/skills/foo/SKILL.md", ".hidden/skills/foo/SKILL.md"),
+    ],
+)
+def test_resolve_skills_target(location: str, target: str, expected: str):
+    """Verify skill target path resolution with various config values."""
+    config = Config(skills_location=location)
+    assert _resolve_skills_target(target, config) == expected
+
+
+def test_resolve_skills_target_no_config():
+    """Verify no-op when config is None."""
+    assert _resolve_skills_target(".claude/skills/x/SKILL.md", None) == ".claude/skills/x/SKILL.md"
+
+
+def test_init_skills_custom_location(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify skills are written to a custom location when configured."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n'
+        'skills.location = "./custom/skills/"\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    # Skills should be in the custom location.
+    custom_skill = tmp_path / "custom" / "skills" / "repomatic-init" / "SKILL.md"
+    assert custom_skill.exists()
+    assert "custom/skills/repomatic-init/SKILL.md" in result.created
+
+    # Default location should not exist.
+    assert not (tmp_path / ".claude" / "skills" / "repomatic-init").exists()
+
+
+def test_init_detects_excluded_skill_custom_location(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify excluded skill detection works at custom locations."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n'
+        'skills.location = "./custom/skills/"\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    run_init(output_dir=tmp_path, repo_slug="user/awesome-list")
+
+    skill_file = tmp_path / "custom" / "skills" / "awesome-triage" / "SKILL.md"
+    assert skill_file.exists()
+
+    # Exclude that skill and re-run.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n'
+        'exclude = ["skills/awesome-triage"]\n'
+        'skills.location = "./custom/skills/"\n',
+        encoding="UTF-8",
+    )
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-list")
+
+    assert skill_file.exists()
+    assert "custom/skills/awesome-triage/SKILL.md" in result.excluded_existing
 
 
 def test_init_detects_disabled_opt_in_workflow(

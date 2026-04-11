@@ -227,6 +227,7 @@ workflow.source-paths = ["extra_platforms"]
 | `nuitka.unstable-targets`     | list[str]                   | `[]`                               | Nuitka build targets allowed to fail without blocking the release.               |
 | `pypi-package-history`        | list[str]                   | `[]`                               | Former PyPI package names for projects that were renamed.                        |
 | `setup-guide`                 | bool                        | `true`                             | Whether the setup guide issue is enabled for this project.                       |
+| `skills.location`             | str                         | `"./.claude/skills/"`              | Directory prefix for Claude Code skill files, relative to the repository root.   |
 | `test-matrix.exclude`         | list\[dict[str, str]\]      | `[]`                               | Extra exclude rules applied to both full and PR test matrices.                   |
 | `test-matrix.include`         | list\[dict[str, str]\]      | `[]`                               | Extra include directives applied to both full and PR test matrices.              |
 | `test-matrix.remove`          | dict\[str, list[str]\]      | {}                                 | Per-axis value removals applied to both full and PR test matrices.               |

@@ -283,6 +283,14 @@ class Config:
     """File path of the ``.gitignore`` to update, relative to the root of the repository.
     """
 
+    skills_location: str = "./.claude/skills/"
+    """Directory prefix for Claude Code skill files, relative to the repository root.
+
+    Skill files are written as ``{skills_location}/{skill-id}/SKILL.md``.
+    Useful for repositories where ``.claude/`` is not at the root (e.g.,
+    dotfiles repos that store configs under a subdirectory).
+    """
+
     gitignore_extra_categories: list[str] = field(default_factory=list)
     """Additional gitignore template categories to fetch from gitignore.io.
 
@@ -406,6 +414,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "notification_unsubscribe",
     "pypi_package_history",
     "setup_guide",
+    "skills_location",
     "test_matrix",
     "test_plan_file",
     "test_plan_inline",
@@ -434,6 +443,7 @@ _NESTED_PREFIXES: Final[dict[str, str]] = {
     "notification": "notification",
     "nuitka": "nuitka",
     "renovate": "renovate",
+    "skills": "skills",
     "test_plan": "test-plan",
     "uv_lock": "uv-lock",
     "workflow": "workflow",
