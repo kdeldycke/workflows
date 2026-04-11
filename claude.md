@@ -238,6 +238,12 @@ Keep definitions sorted for readability and to minimize merge conflicts:
 
 Do not inline named constants during refactors. If a constant has a name and a docstring, it exists for readability and grep-ability — preserve both. When moving code between modules, carry the constant with it rather than replacing it with a literal.
 
+### Single source of truth for defaults
+
+Every configurable default value must be defined in exactly one place: the `Config` dataclass field default. All code that needs that value must derive it from the source (e.g., `Config.field_name` for the class-level default, or `config.field_name` for the instance value) rather than repeating the same literal. This applies to registry entries, CLI option fallbacks, function parameter defaults, and module-level path constructions.
+
+When adding a new default, grep the codebase for the literal value. If it already appears elsewhere, replace those occurrences with a reference to the canonical source. A duplicated literal is a sync failure waiting to happen.
+
 ## Release checklist
 
 See `.claude/skills/repomatic-release/SKILL.md` § Release checklist for the complete list (git tag, GitHub release, binaries, PyPI, changelog).

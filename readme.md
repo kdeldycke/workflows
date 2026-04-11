@@ -200,6 +200,7 @@ workflow.source-paths = ["extra_platforms"]
 | :---------------------------- | :-------------------------- | :--------------------------------- | :------------------------------------------------------------------------------- |
 | `awesome-template.sync`       | bool                        | `true`                             | Whether awesome-template sync is enabled for this project.                       |
 | `bumpversion.sync`            | bool                        | `true`                             | Whether bumpversion config sync is enabled for this project.                     |
+| `changelog.location`          | str                         | `"./changelog.md"`                 | File path of the changelog, relative to the root of the repository.              |
 | `dependency-graph.all-extras` | bool                        | `true`                             | Whether to include all optional extras in the graph.                             |
 | `dependency-graph.all-groups` | bool                        | `true`                             | Whether to include all dependency groups in the graph.                           |
 | `dependency-graph.level`      | int                         | *(none)*                           | Maximum depth of the dependency graph.                                           |

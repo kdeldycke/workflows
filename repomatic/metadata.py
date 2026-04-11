@@ -2084,7 +2084,7 @@ class Metadata:
         if not version:
             return None
 
-        changelog_path = Path("./changelog.md")
+        changelog_path = Path(self.config.changelog_location)
         if not changelog_path.exists():
             return None
 
@@ -2117,7 +2117,7 @@ class Metadata:
         if not version or not self.package_name:
             return None
 
-        changelog_path = Path("./changelog.md")
+        changelog_path = Path(self.config.changelog_location)
         if not changelog_path.exists():
             return None
 

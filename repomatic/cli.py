@@ -691,8 +691,8 @@ def show_config(ctx):
 @option(
     "--source",
     type=file_path(exists=True, readable=True, resolve_path=True),
-    default="changelog.md",
-    help="Changelog source file in Markdown format.",
+    default=None,
+    help="Changelog source file. Defaults to the configured changelog.location.",
 )
 @argument(
     "changelog_path",
@@ -702,8 +702,10 @@ def show_config(ctx):
 @pass_context
 def changelog(ctx, source, changelog_path):
     """Stamp the changelog with the current version's release header."""
+    if source is None:
+        source = Path(get_tool_config(ctx).changelog_location)
     initial_content = None
-    if source:
+    if source.exists():
         logging.info(f"Read initial changelog from {source}")
         initial_content = source.read_text(encoding="UTF-8")
 
@@ -725,8 +727,8 @@ def changelog(ctx, source, changelog_path):
     "--changelog",
     "changelog_path",
     type=file_path(exists=True, readable=True, writable=True, resolve_path=True),
-    default="changelog.md",
-    help="Path to the changelog file.",
+    default=None,
+    help="Path to the changelog file. Defaults to the configured changelog.location.",
 )
 @option(
     "--citation",
@@ -804,6 +806,8 @@ def release_prep(
                 f" matches canonical repo {DEFAULT_REPO!r}"
             )
 
+    if changelog_path is None:
+        changelog_path = Path(Config.changelog_location).resolve()
     prep = ReleasePrep(
         changelog_path=changelog_path,
         citation_path=citation_path if citation_path.exists() else None,
@@ -970,9 +974,9 @@ def sync_github_releases(dry_run: bool) -> None:
         # Update drifted release notes
         repomatic sync-github-releases --live
     """
-    changelog_path = Path("./changelog.md")
+    changelog_path = Path(Config.changelog_location)
     if not changelog_path.exists():
-        logging.warning("changelog.md not found.")
+        logging.warning(f"{changelog_path} not found.")
         return
 
     changelog = Changelog(changelog_path.read_text(encoding="UTF-8"))
@@ -1052,9 +1056,9 @@ def sync_dev_release(
         logging.warning("Could not determine current version.")
         return
 
-    changelog_path = Path("./changelog.md")
+    changelog_path = Path(config.changelog_location)
     if not changelog_path.exists():
-        logging.warning("changelog.md not found.")
+        logging.warning(f"{changelog_path} not found.")
         return
 
     changelog = Changelog(changelog_path.read_text(encoding="UTF-8"))
@@ -2080,7 +2084,7 @@ def setup_guide(
         branch_ok, _ = check_branch_ruleset_on_default(repo)
 
     # Immutable releases check.
-    has_changelog = Path("./changelog.md").exists()
+    has_changelog = Path(config.changelog_location).exists()
     immutable_ok: bool | None = False
     if has_pat and repo and has_changelog:
         immutable_ok, _ = check_immutable_releases(repo)
@@ -2915,8 +2919,8 @@ def lint_repo(
     "--changelog",
     "changelog_path",
     type=file_path(exists=True, readable=True, resolve_path=True),
-    default="changelog.md",
-    help="Path to the changelog file.",
+    default=None,
+    help="Path to the changelog file. Defaults to the configured changelog.location.",
 )
 @option(
     "--package",
@@ -2932,7 +2936,7 @@ def lint_repo(
 @pass_context
 def lint_changelog(
     ctx: Context,
-    changelog_path: Path,
+    changelog_path: Path | None,
     package: str | None,
     fix: bool,
 ) -> None:
@@ -2979,6 +2983,8 @@ def lint_changelog(
         repomatic lint-changelog --package repomatic
     """
     config = get_tool_config(ctx)
+    if changelog_path is None:
+        changelog_path = Path(config.changelog_location)
     exit_code = lint_changelog_dates(
         changelog_path,
         package=package,

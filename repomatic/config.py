@@ -279,6 +279,9 @@ class Config:
     ``pyproject.toml`` instead of a separate file.
     """
 
+    changelog_location: str = "./changelog.md"
+    """File path of the changelog, relative to the root of the repository."""
+
     gitignore_location: str = "./.gitignore"
     """File path of the ``.gitignore`` to update, relative to the root of the repository.
     """
@@ -390,6 +393,7 @@ class Config:
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "awesome_template_sync",
     "bumpversion_sync",
+    "changelog_location",
     "dependency_graph_all_extras",
     "dependency_graph_all_groups",
     "dependency_graph_level",
@@ -434,6 +438,7 @@ workflow metadata outputs.
 _NESTED_PREFIXES: Final[dict[str, str]] = {
     "awesome_template": "awesome-template",
     "bumpversion": "bumpversion",
+    "changelog": "changelog",
     "dependency_graph": "dependency-graph",
     "dev_release": "dev-release",
     "docs": "docs",

@@ -31,6 +31,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 
+from .config import Config
+
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -277,6 +279,17 @@ class GeneratedComponent(Component):
 
 
 # ---------------------------------------------------------------------------
+# Helpers for computed targets.
+# ---------------------------------------------------------------------------
+
+
+def _skill_target(skill_id: str) -> str:
+    """Build the default target path for a skill file from the Config default."""
+    prefix = Config.skills_location.removeprefix("./").rstrip("/")
+    return f"{prefix}/{skill_id}/SKILL.md"
+
+
+# ---------------------------------------------------------------------------
 # The registry.
 # ---------------------------------------------------------------------------
 
@@ -324,92 +337,92 @@ COMPONENTS: tuple[Component, ...] = (
         files=(
             FileEntry(
                 "skill-awesome-triage.md",
-                ".claude/skills/awesome-triage/SKILL.md",
+                _skill_target("awesome-triage"),
                 "awesome-triage",
                 scope=RepoScope.AWESOME_ONLY,
                 phase="Maintenance",
             ),
             FileEntry(
                 "skill-babysit-ci.md",
-                ".claude/skills/babysit-ci/SKILL.md",
+                _skill_target("babysit-ci"),
                 "babysit-ci",
                 phase="Quality",
             ),
             FileEntry(
                 "skill-brand-assets.md",
-                ".claude/skills/brand-assets/SKILL.md",
+                _skill_target("brand-assets"),
                 "brand-assets",
                 phase="Development",
             ),
             FileEntry(
                 "skill-file-bug-report.md",
-                ".claude/skills/file-bug-report/SKILL.md",
+                _skill_target("file-bug-report"),
                 "file-bug-report",
                 phase="Maintenance",
             ),
             FileEntry(
                 "skill-repomatic-audit.md",
-                ".claude/skills/repomatic-audit/SKILL.md",
+                _skill_target("repomatic-audit"),
                 "repomatic-audit",
                 phase="Maintenance",
             ),
             FileEntry(
                 "skill-repomatic-changelog.md",
-                ".claude/skills/repomatic-changelog/SKILL.md",
+                _skill_target("repomatic-changelog"),
                 "repomatic-changelog",
                 phase="Release",
             ),
             FileEntry(
                 "skill-repomatic-deps.md",
-                ".claude/skills/repomatic-deps/SKILL.md",
+                _skill_target("repomatic-deps"),
                 "repomatic-deps",
                 phase="Development",
             ),
             FileEntry(
                 "skill-repomatic-init.md",
-                ".claude/skills/repomatic-init/SKILL.md",
+                _skill_target("repomatic-init"),
                 "repomatic-init",
                 phase="Setup",
             ),
             FileEntry(
                 "skill-repomatic-lint.md",
-                ".claude/skills/repomatic-lint/SKILL.md",
+                _skill_target("repomatic-lint"),
                 "repomatic-lint",
                 phase="Quality",
             ),
             FileEntry(
                 "skill-repomatic-release.md",
-                ".claude/skills/repomatic-release/SKILL.md",
+                _skill_target("repomatic-release"),
                 "repomatic-release",
                 phase="Release",
             ),
             FileEntry(
                 "skill-repomatic-sync.md",
-                ".claude/skills/repomatic-sync/SKILL.md",
+                _skill_target("repomatic-sync"),
                 "repomatic-sync",
                 phase="Setup",
             ),
             FileEntry(
                 "skill-repomatic-test.md",
-                ".claude/skills/repomatic-test/SKILL.md",
+                _skill_target("repomatic-test"),
                 "repomatic-test",
                 phase="Quality",
             ),
             FileEntry(
                 "skill-repomatic-topics.md",
-                ".claude/skills/repomatic-topics/SKILL.md",
+                _skill_target("repomatic-topics"),
                 "repomatic-topics",
                 phase="Development",
             ),
             FileEntry(
                 "skill-sphinx-docs-sync.md",
-                ".claude/skills/sphinx-docs-sync/SKILL.md",
+                _skill_target("sphinx-docs-sync"),
                 "sphinx-docs-sync",
                 phase="Maintenance",
             ),
             FileEntry(
                 "skill-translation-sync.md",
-                ".claude/skills/translation-sync/SKILL.md",
+                _skill_target("translation-sync"),
                 "translation-sync",
                 scope=RepoScope.AWESOME_ONLY,
                 phase="Maintenance",
@@ -466,7 +479,7 @@ COMPONENTS: tuple[Component, ...] = (
         name="changelog",
         description="Minimal changelog.md",
         scope=RepoScope.NON_AWESOME,
-        target="changelog.md",
+        target=Config.changelog_location.removeprefix("./"),
     ),
     # --- Tool config components (merged into pyproject.toml) ---
     ToolConfigComponent(

@@ -705,7 +705,7 @@ def run_init(
                 init_awesome_template(output_dir, repo_slug, result)
 
         elif isinstance(comp, GeneratedComponent):
-            _init_changelog(output_dir, result)
+            _init_changelog(output_dir, result, config=config)
 
         elif isinstance(comp, ToolConfigComponent):
             tool_configs_to_merge.append(comp.name)
@@ -1066,6 +1066,8 @@ def find_all_unmodified_configs() -> list[tuple[str, str]]:
 def _init_changelog(
     output_dir: Path,
     result: InitResult,
+    *,
+    config: Config | None = None,
 ) -> None:
     """Create a minimal changelog.md if it doesn't exist.
 
@@ -1073,7 +1075,8 @@ def _init_changelog(
     An existing ``changelog.md`` is never overwritten — it contains real
     release history that would be destroyed by the stub template.
     """
-    changelog_path = output_dir / "changelog.md"
+    location = (config or Config()).changelog_location.removeprefix("./")
+    changelog_path = output_dir / location
     rel = changelog_path.relative_to(output_dir).as_posix()
     if changelog_path.exists():
         result.skipped.append(rel)
