@@ -664,7 +664,7 @@ expected: dict[str, Any] = {
         "repomatic/templates/yanked-admonition.md",
     ],
     "image_files": [],
-    "shell_files": [],
+    "shfmt_files": [],
     "zsh_files": [],
     "is_python_project": True,
     "nuitka_enabled": True,

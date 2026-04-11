@@ -16,6 +16,7 @@
 - Add `changelog.location` config option to override the changelog file path. Defaults to `./changelog.md`. All CLI commands (`changelog`, `release-prep`, `sync-github-releases`, `sync-dev-release`), metadata extraction, and `init` now read from this single source instead of hardcoding the path.
 - Derive all skill file target paths in the registry from `Config.skills_location` instead of hardcoding the `.claude/skills/` prefix 15 times.
 - Make the `uv sync` step in the `lint-types` job conditional on `is_python_project`, so repositories with Python files but no lockfile (e.g. dotfiles) can still be type-checked.
+- Rename `shell_files` metadata key to `shfmt_files`. Exclude Zsh files by extension (`.zsh`, `.zshrc`, etc.) and by shebang detection on `.sh` files. `shfmt`'s Zsh support is experimental (added in v3.13.0) and fails on common constructs like `for var (list)` and `for ... { }` loops (see [mvdan/sh#1203](https://github.com/mvdan/sh/issues/1203)).
 
 ## [`6.11.3` (2026-04-09)](https://github.com/kdeldycke/repomatic/compare/v6.11.2...v6.11.3)
 

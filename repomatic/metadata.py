@@ -400,7 +400,7 @@ _METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
     "doc_files": "List of documentation files.",
     "markdown_files": "List of Markdown files.",
     "image_files": "List of image files.",
-    "shell_files": "List of shell script files.",
+    "shfmt_files": "List of shell files formattable by shfmt.",
     "zsh_files": "List of Zsh files.",
     "is_python_project": "Repository is a Python project with pyproject.toml.",
     "package_name": "Package name as published on PyPI.",
@@ -1465,17 +1465,39 @@ class Metadata:
         return self.glob_files("**/*.{jpeg,jpg,png,webp,avif}")
 
     @cached_property
-    def shell_files(self) -> list[Path]:
-        """Returns a list of shell script files.
+    def shfmt_files(self) -> list[Path]:
+        """Returns a list of shell files that ``shfmt`` can reliably format.
 
-        Covers all dialects supported by ``shfmt``: Bash, POSIX sh, mksh, Bats,
-        and Zsh. Includes dotfiles like ``.bashrc`` and ``.zshrc``.
+        ``shfmt`` supports the following dialects (``-ln`` flag):
+
+        - **bash**: GNU Bourne Again Shell.
+        - **posix**: POSIX Shell (``/bin/sh``).
+        - **mksh**: MirBSD Korn Shell.
+        - **bats**: Bash Automated Testing System.
+
+        Zsh is excluded. ``shfmt`` added experimental Zsh support in v3.13.0
+        but it fails on common constructs: ``for var (list)`` short-form loops
+        and ``for ... { }`` brace-delimited loops. See `mvdan/sh#1203
+        <https://github.com/mvdan/sh/issues/1203>`_ for upstream tracking.
+
+        Files are excluded by extension (``.zsh``, ``.zshrc``, etc.) and by
+        shebang (any ``.sh`` file whose first line references ``zsh``).
         """
-        return self.glob_files(
-            "**/*.{bash,bats,ksh,mksh,sh,zsh}",
-            "**/.{bash_login,bash_logout,bash_profile,bashrc,profile,"
-            "zlogin,zlogout,zprofile,zshenv,zshrc}",
+        candidates = self.glob_files(
+            "**/*.{bash,bats,ksh,mksh,sh}",
+            "**/.{bash_login,bash_logout,bash_profile,bashrc,profile}",
         )
+        result = []
+        for path in candidates:
+            try:
+                with path.open("rb") as fh:
+                    first_line = fh.readline(256)
+            except OSError:
+                continue
+            if first_line.startswith(b"#!") and b"zsh" in first_line:
+                continue
+            result.append(path)
+        return result
 
     @cached_property
     def zsh_files(self) -> list[Path]:
@@ -2231,7 +2253,7 @@ class Metadata:
             "doc_files": self.doc_files,
             "markdown_files": self.markdown_files,
             "image_files": self.image_files,
-            "shell_files": self.shell_files,
+            "shfmt_files": self.shfmt_files,
             "zsh_files": self.zsh_files,
             "is_python_project": self.is_python_project,
             "package_name": self.package_name,

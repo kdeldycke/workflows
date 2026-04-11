@@ -52,7 +52,7 @@ jobs:
           --format github-json --output "$GITHUB_OUTPUT"
           gitignore_exists python_files pyproject_files json_files doc_files
           markdown_files is_python_project mailmap_exists
-          image_files shell_files workflow_files active_autodoc uses_myst
+          image_files shfmt_files workflow_files active_autodoc uses_myst
           release_commits_matrix
 
   # --- Formatters: rewrite files to enforce canonical style. ---
@@ -190,7 +190,7 @@ jobs:
     name: 🐚 Format Shell
     needs:
       - metadata
-    if: fromJSON(needs.metadata.outputs.metadata).shell_files
+    if: fromJSON(needs.metadata.outputs.metadata).shfmt_files
     runs-on: ubuntu-slim
     permissions:
       contents: write
@@ -200,7 +200,7 @@ jobs:
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Format shell scripts
         env:
-          SHELL_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).shell_files }}
+          SHELL_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).shfmt_files }}
         run: echo "${SHELL_FILES}" | xargs uvx --no-progress --from . repomatic run shfmt --
       - id: pr-metadata
         run: >
