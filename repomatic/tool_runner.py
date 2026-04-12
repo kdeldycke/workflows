@@ -226,6 +226,24 @@ class ToolSpec:
         conventions, field consistency) are enforced in
         ``test_tool_spec_integrity``. If the registry becomes user-configurable
         in the future, move these checks to ``__post_init__``.
+
+    .. hint:: CLI parser quirks for ``config_after_subcommand``
+
+        Tools that use subcommands (``tool <subcmd> [flags] [files]``) may
+        require ``config_flag`` to appear after the subcommand name, depending
+        on the CLI parser framework:
+
+        - **clap** (Rust): global flags accepted before or after the
+          subcommand. No special handling needed. Used by: ruff, labelmaker.
+        - **cobra** (Go): root-level flags inherited by all subcommands,
+          accepted in both positions. No special handling needed.
+          Used by: gitleaks.
+        - **click** (Python): global flags accepted before or after the
+          subcommand. No special handling needed. Used by: bump-my-version.
+        - **bpaf** (Rust): ``#[bpaf(external)]`` fields are scoped inside
+          the subcommand variant, so ``tool <subcmd> --flag`` works but
+          ``tool --flag <subcmd>`` does not. Set
+          ``config_after_subcommand=True``. Used by: biome.
     """
 
     name: str
