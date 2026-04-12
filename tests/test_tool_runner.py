@@ -766,6 +766,7 @@ def test_resolve_config_reads_pyproject_with_section():
 def test_resolve_config_reads_pyproject_falls_through_to_bundled(tmp_path, monkeypatch):
     """Tools with reads_pyproject=True use bundled default when no config exists."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
     spec = ToolSpec(
         name="testool",
         version="1.0.0",
@@ -775,7 +776,9 @@ def test_resolve_config_reads_pyproject_falls_through_to_bundled(tmp_path, monke
         reads_pyproject=True,
     )
     args, tmp = resolve_config(spec, tool_config={})
-    assert args == ["__bundled__"]
+    assert len(args) == 2
+    assert args[0] == "--config"
+    assert Path(args[1]).exists()
     assert tmp is None
 
 
@@ -793,33 +796,33 @@ def test_resolve_config_native_file_wins(tmp_path, monkeypatch):
 
 
 def test_resolve_config_pyproject_section(tmp_path, monkeypatch):
-    """[tool.X] in pyproject.toml produces a temp config file."""
+    """[tool.X] in pyproject.toml produces a cached config file."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
 
     spec = TOOL_REGISTRY["yamllint"]
     tool_config = {"rules": {"line-length": {"max": 80}}}
     args, tmp = resolve_config(spec, tool_config=tool_config)
 
-    try:
-        assert len(args) == 2
-        assert args[0] == "--config-file"
-        assert Path(args[1]).exists()
+    assert len(args) == 2
+    assert args[0] == "--config-file"
+    config_path = Path(args[1])
+    assert config_path.exists()
+    assert "cache" in str(config_path)
 
-        # Verify content.
-        content = Path(args[1]).read_text(encoding="UTF-8")
-        parsed = yaml.safe_load(content)
-        assert parsed == tool_config
+    # Verify content.
+    content = config_path.read_text(encoding="UTF-8")
+    parsed = yaml.safe_load(content)
+    assert parsed == tool_config
 
-        assert tmp is not None
-        assert tmp.exists()
-    finally:
-        if tmp:
-            tmp.unlink(missing_ok=True)
+    # Cache-based: no cleanup needed.
+    assert tmp is None
 
 
 def test_resolve_config_toml_translation(tmp_path, monkeypatch):
-    """[tool.X] with native_format='toml' produces a valid TOML temp file."""
+    """[tool.X] with native_format='toml' produces a valid TOML cached file."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
 
     spec = ToolSpec(
         name="lychee",
@@ -831,20 +834,18 @@ def test_resolve_config_toml_translation(tmp_path, monkeypatch):
     tool_config = {"max_redirects": 5, "exclude": ["example.com"]}
     args, tmp = resolve_config(spec, tool_config=tool_config)
 
-    try:
-        assert len(args) == 2
-        assert args[0] == "--config"
-        content = Path(args[1]).read_text(encoding="UTF-8")
-        assert "max_redirects = 5" in content
-        assert '"example.com"' in content
-    finally:
-        if tmp:
-            tmp.unlink(missing_ok=True)
+    assert len(args) == 2
+    assert args[0] == "--config"
+    content = Path(args[1]).read_text(encoding="UTF-8")
+    assert "max_redirects = 5" in content
+    assert '"example.com"' in content
+    assert tmp is None
 
 
 def test_resolve_config_toml_nested_tables(tmp_path, monkeypatch):
     """Nested dicts in [tool.X] produce TOML table sections."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
 
     spec = ToolSpec(
         name="lychee",
@@ -856,19 +857,17 @@ def test_resolve_config_toml_nested_tables(tmp_path, monkeypatch):
     tool_config = {"cache": {"enable": True, "max_age": 3600}}
     args, tmp = resolve_config(spec, tool_config=tool_config)
 
-    try:
-        content = Path(args[1]).read_text(encoding="UTF-8")
-        assert "[cache]" in content
-        assert "enable = true" in content
-        assert "max_age = 3600" in content
-    finally:
-        if tmp:
-            tmp.unlink(missing_ok=True)
+    content = Path(args[1]).read_text(encoding="UTF-8")
+    assert "[cache]" in content
+    assert "enable = true" in content
+    assert "max_age = 3600" in content
+    assert tmp is None
 
 
 def test_resolve_config_json_translation(tmp_path, monkeypatch):
-    """[tool.X] with native_format='json' produces a valid JSON temp file."""
+    """[tool.X] with native_format='json' produces a valid JSON cached file."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
 
     spec = ToolSpec(
         name="biome",
@@ -880,15 +879,12 @@ def test_resolve_config_json_translation(tmp_path, monkeypatch):
     tool_config = {"formatter": {"indentStyle": "space", "indentWidth": 2}}
     args, tmp = resolve_config(spec, tool_config=tool_config)
 
-    try:
-        assert len(args) == 2
-        assert args[0] == "--config-path"
-        content = Path(args[1]).read_text(encoding="UTF-8")
-        parsed = json.loads(content)
-        assert parsed == tool_config
-    finally:
-        if tmp:
-            tmp.unlink(missing_ok=True)
+    assert len(args) == 2
+    assert args[0] == "--config-path"
+    content = Path(args[1]).read_text(encoding="UTF-8")
+    parsed = json.loads(content)
+    assert parsed == tool_config
+    assert tmp is None
 
 
 def test_resolve_config_cwd_write_no_config_flag(tmp_path, monkeypatch):
@@ -929,12 +925,16 @@ def test_resolve_config_no_config_flag_no_native_files_raises(tmp_path, monkeypa
 
 
 def test_resolve_config_bundled_default(tmp_path, monkeypatch):
-    """Bundled default is used when no native file or pyproject section exists."""
+    """Bundled default is cached and passed via --config flag."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
 
     spec = TOOL_REGISTRY["yamllint"]
     args, tmp = resolve_config(spec, tool_config={})
-    assert args == ["__bundled__"]
+    assert len(args) == 2
+    assert args[0] == "--config-file"
+    assert Path(args[1]).exists()
+    assert "cache" in str(args[1])
     assert tmp is None
 
 
@@ -956,10 +956,13 @@ def test_resolve_config_bare_invocation(tmp_path, monkeypatch):
 def test_resolve_config_empty_tool_config_is_not_match(tmp_path, monkeypatch):
     """An empty [tool.X] dict does not count as a config match."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
 
     spec = TOOL_REGISTRY["zizmor"]
     args, tmp = resolve_config(spec, tool_config={})
-    assert args == ["__bundled__"]
+    assert len(args) == 2
+    assert args[0] == "--config"
+    assert Path(args[1]).exists()
     assert tmp is None
 
 
@@ -1100,9 +1103,12 @@ def test_run_tool_native_config_no_extra_flags(
 
 @patch("repomatic.tool_runner.subprocess.run")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
-def test_run_tool_pyproject_section_temp_file(mock_ci, mock_run, tmp_path, monkeypatch):
-    """[tool.X] translation creates a temp file and cleans it up."""
+def test_run_tool_pyproject_section_cached_config(
+    mock_ci, mock_run, tmp_path, monkeypatch,
+):
+    """[tool.X] translation writes config to cache and passes via --config."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
     (tmp_path / "pyproject.toml").write_text(
         "[tool.zizmor]\n[tool.zizmor.rules.artipacked]\ndisable = true\n"
     )
@@ -1113,9 +1119,10 @@ def test_run_tool_pyproject_section_temp_file(mock_ci, mock_run, tmp_path, monke
     cmd = mock_run.call_args[0][0]
     assert "--config" in cmd
     config_idx = cmd.index("--config")
-    tmp_file = Path(cmd[config_idx + 1])
-    # Temp file should have been cleaned up after run.
-    assert not tmp_file.exists()
+    config_file = Path(cmd[config_idx + 1])
+    # Cache-based config persists after run.
+    assert config_file.exists()
+    assert "cache" in str(config_file)
 
 
 @patch("repomatic.tool_runner.subprocess.run")

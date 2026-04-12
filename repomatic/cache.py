@@ -14,9 +14,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Global cache for downloaded tool executables and HTTP API responses.
+"""Global cache for downloaded tool executables, HTTP API responses, and
+generated tool configurations.
 
-Two cache subtrees under the user-level cache directory:
+Three cache subtrees under the user-level cache directory:
 
 **Binary cache** (``bin/``): platform-specific tool executables, keyed by
 ``{tool}/{version}/{platform}/{executable}``. Integrity is enforced by the
@@ -25,6 +26,12 @@ caller via SHA-256 re-verification on every cache hit.
 **HTTP response cache** (``http/``): JSON API responses from PyPI and GitHub,
 keyed by ``{namespace}/{key}.json``. Freshness is controlled by a per-caller
 TTL (seconds); stale entries remain on disk until auto-purge removes them.
+
+**Config cache** (``config/``): generated tool configuration files, keyed by
+``{tool}/{filename}``. Overwritten on every invocation from the current
+``[tool.X]`` section in ``pyproject.toml`` or bundled defaults. Passed to
+tools via explicit ``--config`` flags so repomatic never writes to the
+user's repository.
 
 .. note::
     The cache module is intentionally a pure storage layer. It does not know
@@ -87,6 +94,26 @@ class HttpCacheEntry:
 
     path: Path
     """Absolute path to the cached response file."""
+
+    mtime: float
+    """File modification time (seconds since epoch)."""
+
+
+@dataclass(frozen=True)
+class ConfigCacheEntry:
+    """A single cached tool configuration file with its metadata."""
+
+    tool: str
+    """Tool name (registry key)."""
+
+    filename: str
+    """Config filename (e.g., ``yamllint.yaml``, ``biome.json``)."""
+
+    size: int
+    """File size in bytes."""
+
+    path: Path
+    """Absolute path to the cached config file."""
 
     mtime: float
     """File modification time (seconds since epoch)."""
@@ -447,6 +474,115 @@ def clear_http_cache(
             logging.debug("Failed to remove %s.", entry.path)
 
     _prune_empty_dirs(http_root)
+    return files_deleted, bytes_freed
+
+
+# ---------------------------------------------------------------------------
+# Config cache
+# ---------------------------------------------------------------------------
+
+
+def _config_dir() -> Path:
+    """Return the ``config/`` subdirectory under the cache root."""
+    return cache_dir() / "config"
+
+
+def store_config(
+    tool_name: str,
+    filename: str,
+    content: str,
+) -> Path | None:
+    """Store a generated tool config in the cache atomically.
+
+    Uses the same write-to-temp-then-rename pattern as :func:`store_response`.
+    Does **not** trigger :func:`auto_purge`: config files are tiny and
+    overwritten on every invocation, so age-based pruning is unnecessary.
+
+    :param tool_name: Tool name (registry key).
+    :param filename: Config filename (e.g., ``yamllint.yaml``).
+    :param content: Config file content as text.
+    :return: Path to the cached config file, or ``None`` if the write
+        failed (permissions, read-only filesystem, sandbox restrictions).
+    """
+    dest = _config_dir() / tool_name / filename
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(
+            dir=dest.parent,
+            prefix=f".{filename}.",
+            suffix=".tmp",
+        )
+        try:
+            os.close(fd)
+            tmp_path = Path(tmp)
+            tmp_path.write_text(content, encoding="UTF-8")
+            tmp_path.replace(dest)
+        except BaseException:
+            Path(tmp).unlink(missing_ok=True)
+            raise
+    except OSError:
+        logging.debug("Failed to cache config for %s.", tool_name)
+        return None
+
+    logging.debug("Cached config for %s at %s.", tool_name, dest)
+    return dest
+
+
+def config_cache_info() -> list[ConfigCacheEntry]:
+    """List all cached tool configurations.
+
+    :return: List of :class:`ConfigCacheEntry` instances, sorted by tool name.
+    """
+    config_root = _config_dir()
+    if not config_root.is_dir():
+        return []
+
+    entries: list[ConfigCacheEntry] = []
+    for tool_dir in sorted(config_root.iterdir()):
+        if not tool_dir.is_dir():
+            continue
+        for config_file in sorted(tool_dir.iterdir()):
+            if not config_file.is_file():
+                continue
+            stat = config_file.stat()
+            entries.append(ConfigCacheEntry(
+                tool=tool_dir.name,
+                filename=config_file.name,
+                size=stat.st_size,
+                path=config_file,
+                mtime=stat.st_mtime,
+            ))
+    return entries
+
+
+def clear_config_cache(
+    tool: str | None = None,
+) -> tuple[int, int]:
+    """Remove cached tool configurations.
+
+    :param tool: If set, only remove entries for this tool. Otherwise remove
+        all cached configurations.
+    :return: Tuple of (files_deleted, bytes_freed).
+    """
+    config_root = _config_dir()
+    if not config_root.is_dir():
+        return 0, 0
+
+    files_deleted = 0
+    bytes_freed = 0
+
+    for entry in config_cache_info():
+        if tool is not None and entry.tool != tool:
+            continue
+        logging.debug("Purging cached config: %s", entry.path)
+        try:
+            bytes_freed += entry.size
+            entry.path.unlink()
+            files_deleted += 1
+        except OSError:
+            logging.debug("Failed to remove %s.", entry.path)
+
+    _prune_empty_dirs(config_root)
     return files_deleted, bytes_freed
 
 

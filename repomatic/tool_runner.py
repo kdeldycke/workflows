@@ -738,6 +738,57 @@ def load_pyproject_tool_section(tool_name: str) -> dict[str, Any]:
     return tool_section
 
 
+def _config_filename(spec: ToolSpec) -> str:
+    """Derive the canonical config filename for the cache.
+
+    Uses the first ``native_config_files`` entry (without leading dots or path
+    components) if available, otherwise constructs from the native format
+    extension.
+    """
+    if spec.native_config_files:
+        return Path(spec.native_config_files[0]).name.lstrip(".")
+    return f"{spec.name}.{spec.native_format.value}"
+
+
+def _store_config_to_cache(
+    spec: ToolSpec,
+    content: str,
+) -> tuple[list[str], Path | None]:
+    """Write config content to the cache and return CLI args.
+
+    :return: ``([flag, cache_path], None)`` on success, or falls back to a temp
+        file returning ``([flag, tmp_path], tmp_path)`` if the cache is not
+        writable.
+    """
+    from .cache import store_config
+
+    filename = _config_filename(spec)
+    cached = store_config(spec.name, filename, content)
+    if cached is not None:
+        logging.info(
+            "%s: config cached at %s, passing via %s.",
+            spec.name,
+            cached,
+            spec.config_flag,
+        )
+        return [spec.config_flag, str(cached)], None
+
+    # Cache not writable — fall back to temp file.
+    logging.warning(
+        "%s: cache directory not writable, falling back to temp file.",
+        spec.name,
+    )
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=f".{spec.native_format.value}",
+        prefix=f"repomatic-{spec.name}-",
+        delete=False,
+    ) as tmp:
+        tmp.write(content)
+    tmp_path = Path(tmp.name)
+    return [spec.config_flag, str(tmp_path)], tmp_path
+
+
 def resolve_config(
     spec: ToolSpec,
     tool_config: dict[str, Any] | None = None,
@@ -747,8 +798,10 @@ def resolve_config(
     :param spec: Tool specification.
     :param tool_config: Pre-loaded ``[tool.X]`` config dict. If ``None``,
         reads from ``pyproject.toml`` in the current directory.
-    :return: Tuple of (extra CLI args for config, temp file path to clean up).
-        The temp file path is ``None`` when no temp file was created.
+    :return: Tuple of (extra CLI args for config, path to clean up).
+        The path is ``None`` when no cleanup is needed (cache-based configs
+        persist across runs). Non-``None`` paths are CWD files written for
+        tools that have no ``--config`` flag.
     """
     # Level 1: Native config file exists in the repo.
     for config_file in spec.native_config_files:
@@ -782,28 +835,7 @@ def resolve_config(
         )
 
         if spec.config_flag:
-            logging.info(
-                "%s: translating [tool.%s] to %s via %s (level 2).",
-                spec.name,
-                spec.name,
-                spec.native_format.value,
-                spec.config_flag,
-            )
-            # Write to temp file. Caller is responsible for cleanup via the
-            # returned path.
-            with tempfile.NamedTemporaryFile(
-                mode="w",
-                suffix=f".{spec.native_format.value}",
-                prefix=f"repomatic-{spec.name}-",
-                delete=False,
-            ) as tmp:
-                tmp.write(content)
-            tmp_path = Path(tmp.name)
-            logging.debug("Wrote temp config: %s", tmp_path)
-
-            if spec.config_flag:
-                return [spec.config_flag, str(tmp_path)], tmp_path
-            return [], tmp_path
+            return _store_config_to_cache(spec, content)
 
         if spec.native_config_files:
             # CWD-discovery tool (no --config flag). Write translated config
@@ -812,8 +844,10 @@ def resolve_config(
             target = Path(spec.native_config_files[0])
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(content, encoding="UTF-8")
-            logging.info(
-                "%s: wrote translated [tool.%s] to %s (level 2).",
+            logging.warning(
+                "%s: wrote translated [tool.%s] to repo at %s (level 2). "
+                "This tool has no --config flag; the file will be removed "
+                "after the run.",
                 spec.name,
                 spec.name,
                 target.resolve(),
@@ -829,27 +863,21 @@ def resolve_config(
     # Level 3: Bundled default from repomatic/data/.
     if spec.default_config:
         if spec.config_flag:
-            logging.info(
-                "%s: using bundled default %s via %s (level 3).",
-                spec.name,
-                spec.default_config,
-                spec.config_flag,
-            )
-            # Return a sentinel; the actual path is resolved at invocation time
-            # inside the get_data_file_path() context manager.
-            return ["__bundled__"], None
+            with get_data_file_path(spec.default_config) as bundled_path:
+                content = bundled_path.read_text(encoding="UTF-8")
+            return _store_config_to_cache(spec, content)
 
         if spec.native_config_files:
-            # Tool discovers config by searching CWD (no --config flag).
-            # Write the bundled default to the first native config path so the
-            # tool picks it up, then clean it up after invocation.
+            # CWD-discovery tool — write bundled default for the tool to find.
             target = Path(spec.native_config_files[0])
             with get_data_file_path(spec.default_config) as bundled_path:
                 content = bundled_path.read_text(encoding="UTF-8")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(content, encoding="UTF-8")
-            logging.info(
-                "%s: wrote bundled default to CWD as %s (level 3).",
+            logging.warning(
+                "%s: wrote bundled default to repo at %s (level 3). "
+                "This tool has no --config flag; the file will be removed "
+                "after the run.",
                 spec.name,
                 target.resolve(),
             )
@@ -1208,23 +1236,10 @@ def run_tool(
 
             cmd.extend(spec.computed_params(Metadata()))
 
-        # Config args from resolution.
-        if config_args == ["__bundled__"]:
-            # Level 3: use bundled default via context manager.
-            # Both are guaranteed non-None when __bundled__ is returned.
-            assert spec.default_config is not None
-            assert spec.config_flag is not None
-            with get_data_file_path(spec.default_config) as bundled_path:
-                bundled_args = [spec.config_flag, str(bundled_path)]
-                cmd.extend(
-                    _splice_config_args(bundled_args, extra_args, spec)
-                )
-                logging.info("Running: %s", " ".join(cmd))
-                result = subprocess.run(cmd, check=False)
-        else:
-            cmd.extend(_splice_config_args(config_args, extra_args, spec))
-            logging.info("Running: %s", " ".join(cmd))
-            result = subprocess.run(cmd, check=False)
+        # Config args from resolution (cache path or empty).
+        cmd.extend(_splice_config_args(config_args, extra_args, spec))
+        logging.info("Running: %s", " ".join(cmd))
+        result = subprocess.run(cmd, check=False)
 
         logging.info("%s exited with code %d.", spec.name, result.returncode)
 

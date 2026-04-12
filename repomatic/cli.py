@@ -150,7 +150,9 @@ from .cache import (
     cache_dir as _cache_dir,
     cache_info,
     clear_cache,
+    clear_config_cache,
     clear_http_cache,
+    config_cache_info,
     http_cache_info,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
@@ -3124,7 +3126,8 @@ def show(ctx):
     """List all cached binaries and HTTP responses."""
     bin_entries = cache_info()
     http_entries = http_cache_info()
-    if not bin_entries and not http_entries:
+    cfg_entries = config_cache_info()
+    if not bin_entries and not http_entries and not cfg_entries:
         echo("Cache is empty.")
         ctx.exit(0)
 
@@ -3148,9 +3151,18 @@ def show(ctx):
             _format_size(entry.size),
             _format_age(entry.mtime),
         ))
+    for entry in cfg_entries:
+        total_size += entry.size
+        rows.append((
+            "config",
+            entry.tool,
+            entry.filename,
+            _format_size(entry.size),
+            _format_age(entry.mtime),
+        ))
 
     ctx.find_root().print_table(rows, CACHE_LIST_HEADERS)
-    total_count = len(bin_entries) + len(http_entries)
+    total_count = len(bin_entries) + len(http_entries) + len(cfg_entries)
     echo(f"\nTotal: {total_count} file(s), {_format_size(total_size)}")
 
 
@@ -3186,8 +3198,9 @@ def clean(ctx, tool, namespace, max_age):
     http_deleted, http_freed = clear_http_cache(
         namespace=namespace, max_age_days=max_age,
     )
-    total_deleted = bin_deleted + http_deleted
-    total_freed = bin_freed + http_freed
+    cfg_deleted, cfg_freed = clear_config_cache(tool=tool)
+    total_deleted = bin_deleted + http_deleted + cfg_deleted
+    total_freed = bin_freed + http_freed + cfg_freed
     if total_deleted:
         echo(f"Removed {total_deleted} file(s), freed {_format_size(total_freed)}.")
     else:
