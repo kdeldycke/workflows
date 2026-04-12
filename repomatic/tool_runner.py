@@ -299,6 +299,15 @@ class ToolSpec:
     ``requires-python``). ``None`` if no computed params.
     """
 
+    config_after_subcommand: bool = False
+    """Insert ``config_flag`` after the first token of ``extra_args``.
+
+    Needed for tools whose CLI parser (e.g., bpaf) scopes global options inside
+    the subcommand, so ``tool subcommand --config-path X`` is valid but
+    ``tool --config-path X subcommand`` is not. When ``True``, ``config_args``
+    are spliced after the first element of ``extra_args`` (the subcommand name).
+    """
+
     post_process: Callable[[Sequence[str]], None] | None = None
     """Callback invoked on ``extra_args`` after the tool exits successfully.
 
@@ -413,6 +422,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         version="2.4.5",
         native_config_files=("biome.json", "biome.jsonc"),
         config_flag="--config-path",
+        config_after_subcommand=True,
         native_format=NativeFormat.JSON,
         binary=BinarySpec(
             urls={
@@ -1095,6 +1105,25 @@ def _build_install_args(spec: ToolSpec) -> list[str]:
     return cmd
 
 
+def _splice_config_args(
+    config_args: list[str],
+    extra_args: Sequence[str],
+    spec: ToolSpec,
+) -> list[str]:
+    """Combine config and extra args in the order the tool expects.
+
+    When ``spec.config_after_subcommand`` is ``True`` and ``extra_args``
+    starts with a subcommand name, config args are inserted after it::
+
+        [subcommand] + config_args + [remaining extra_args]
+
+    Otherwise config args come first (the default).
+    """
+    if spec.config_after_subcommand and config_args and extra_args:
+        return [extra_args[0], *config_args, *extra_args[1:]]
+    return [*config_args, *extra_args]
+
+
 def run_tool(
     name: str,
     extra_args: Sequence[str] = (),
@@ -1168,13 +1197,14 @@ def run_tool(
             assert spec.default_config is not None
             assert spec.config_flag is not None
             with get_data_file_path(spec.default_config) as bundled_path:
-                cmd.extend([spec.config_flag, str(bundled_path)])
-                cmd.extend(extra_args)
+                bundled_args = [spec.config_flag, str(bundled_path)]
+                cmd.extend(
+                    _splice_config_args(bundled_args, extra_args, spec)
+                )
                 logging.info("Running: %s", " ".join(cmd))
                 result = subprocess.run(cmd, check=False)
         else:
-            cmd.extend(config_args)
-            cmd.extend(extra_args)
+            cmd.extend(_splice_config_args(config_args, extra_args, spec))
             logging.info("Running: %s", " ".join(cmd))
             result = subprocess.run(cmd, check=False)
 
