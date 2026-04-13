@@ -4,7 +4,7 @@ description: Draft, validate, consolidate, and fix changelog entries.
 model: sonnet
 disable-model-invocation: true
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
-argument-hint: '[add|check|fix|consolidate [VERSION]]'
+argument-hint: '[add|check|fix|consolidate [VERSION]|VERSION]'
 ---
 
 ## Context
@@ -33,6 +33,7 @@ The `lint.yaml` workflow runs `lint-changelog` in CI. The `check` and `fix` subc
 - `check`: Run `<cmd> lint-changelog` and report results. Explain each issue found.
 - `fix`: Run `<cmd> lint-changelog --fix` and show what was changed.
 - `consolidate [VERSION]`: Consolidate redundant entries in a changelog section. This is analytical work with no CLI equivalent — read the entries, compare against `git log` for the relevant range, and rewrite. See § Consolidation rules below. If `VERSION` is omitted, target the unreleased section. If `VERSION` is given (e.g., `consolidate 6.8.0`), target that released section instead — locate it in `changelog.md` by matching the heading, and use the git range between its tag and the previous tag (e.g., `v6.7.0..v6.8.0`).
+- A bare version number (e.g., `6.8.0` or `v6.8.0`) is shorthand for `consolidate VERSION`. Strip the `v` prefix if present.
 
 ### Consolidation rules
 
