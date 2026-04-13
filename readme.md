@@ -254,13 +254,14 @@ workflow.source-paths = ["extra_platforms"]
 
 Some tools have long-standing requests to read configuration from `pyproject.toml` but haven't shipped native support yet. `repomatic run` bridges the gap: write your config in `[tool.<name>]` and repomatic translates it to the tool's native format at invocation time.
 
-| Tool                                             | `[tool.X]` section | Translated to |
-| :----------------------------------------------- | :----------------- | :------------ |
-| [biome](https://biomejs.dev)                     | `[tool.biome]`     | JSON          |
-| [gitleaks](https://github.com/gitleaks/gitleaks) | `[tool.gitleaks]`  | TOML          |
-| [lychee](https://lychee.cli.rs)                  | `[tool.lychee]`    | TOML          |
-| [yamllint](https://yamllint.readthedocs.io)      | `[tool.yamllint]`  | YAML          |
-| [zizmor](https://docs.zizmor.sh)                 | `[tool.zizmor]`    | YAML          |
+| Tool                                             | `[tool.X]` section   | Translated to |
+| :----------------------------------------------- | :------------------- | :------------ |
+| [actionlint](https://github.com/rhysd/actionlint)| `[tool.actionlint]` | YAML          |
+| [biome](https://biomejs.dev)                     | `[tool.biome]`       | JSON          |
+| [gitleaks](https://github.com/gitleaks/gitleaks) | `[tool.gitleaks]`    | TOML          |
+| [lychee](https://lychee.cli.rs)                  | `[tool.lychee]`      | TOML          |
+| [yamllint](https://yamllint.readthedocs.io)      | `[tool.yamllint]`    | YAML          |
+| [zizmor](https://docs.zizmor.sh)                 | `[tool.zizmor]`      | YAML          |
 
 ```toml
 # pyproject.toml

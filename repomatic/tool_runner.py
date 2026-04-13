@@ -401,6 +401,8 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "actionlint": ToolSpec(
         name="actionlint",
         version="1.7.12",
+        native_config_files=(".github/actionlint.yaml",),
+        native_format=NativeFormat.YAML,
         default_flags=("-color",),
         binary=BinarySpec(
             urls={
