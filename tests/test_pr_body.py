@@ -216,10 +216,11 @@ def test_get_template_names():
     assert "unavailable-admonition" in names
     assert "unsubscribe-phase1" in names
     assert "unsubscribe-phase2" in names
+    assert "setup-guide-fork-pr-approval" in names
     assert "setup-guide-virustotal" in names
     assert "yanked-admonition" in names
     assert "format-shell" in names
-    assert len(names) == 40
+    assert len(names) == 41
 
 
 def test_load_template_frontmatter():
@@ -497,6 +498,7 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "setup-guide",
     "setup-guide-branch-ruleset",
     "setup-guide-dependabot",
+    "setup-guide-fork-pr-approval",
     "setup-guide-token",
     "setup-guide-verify",
     "setup-guide-virustotal",

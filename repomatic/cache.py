@@ -129,7 +129,7 @@ def _platform_cache_dir() -> Path:
     home = Path.home()
     if sys.platform == "darwin":
         return home / "Library" / "Caches" / "repomatic"
-    if sys.platform == "win32":
+    if sys.platform == "win32":  # type: ignore[unreachable]
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
             return Path(local_app_data) / "repomatic" / "Cache"
@@ -375,7 +375,7 @@ def store_response(
     namespace: str,
     key: str,
     data: bytes,
-) -> Path:
+) -> Path | None:
     """Store an HTTP response in the cache atomically.
 
     Uses the same write-to-temp-then-rename pattern as :func:`store_binary`.

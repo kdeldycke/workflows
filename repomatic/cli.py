@@ -3145,32 +3145,32 @@ def show(ctx):
 
     rows = []
     total_size = 0
-    for entry in bin_entries:
-        total_size += entry.size
+    for bin_entry in bin_entries:
+        total_size += bin_entry.size
         rows.append((
             "binary",
-            entry.tool,
-            f"{entry.version} ({entry.platform})",
-            _format_size(entry.size),
-            _format_age(entry.mtime),
+            bin_entry.tool,
+            f"{bin_entry.version} ({bin_entry.platform})",
+            _format_size(bin_entry.size),
+            _format_age(bin_entry.mtime),
         ))
-    for entry in http_entries:
-        total_size += entry.size
+    for http_entry in http_entries:
+        total_size += http_entry.size
         rows.append((
             "http",
-            entry.namespace,
-            entry.key,
-            _format_size(entry.size),
-            _format_age(entry.mtime),
+            http_entry.namespace,
+            http_entry.key,
+            _format_size(http_entry.size),
+            _format_age(http_entry.mtime),
         ))
-    for entry in cfg_entries:
-        total_size += entry.size
+    for cfg_entry in cfg_entries:
+        total_size += cfg_entry.size
         rows.append((
             "config",
-            entry.tool,
-            entry.filename,
-            _format_size(entry.size),
-            _format_age(entry.mtime),
+            cfg_entry.tool,
+            cfg_entry.filename,
+            _format_size(cfg_entry.size),
+            _format_age(cfg_entry.mtime),
         ))
 
     ctx.find_root().print_table(rows, CACHE_LIST_HEADERS)

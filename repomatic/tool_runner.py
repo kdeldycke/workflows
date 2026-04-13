@@ -407,7 +407,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 "linux-x64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_linux_amd64.tar.gz",
             },
             checksums={
-                "linux-x64": "900919a84f2229bac68ca9cd4103ea297abc35e9689ebb842c6e34a3d1b01b0a",
+                "linux-x64": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
             },
             archive_format=ArchiveFormat.TAR_GZ,
         ),
@@ -761,6 +761,7 @@ def _store_config_to_cache(
     """
     from .cache import store_config
 
+    assert spec.config_flag is not None
     filename = _config_filename(spec)
     cached = store_config(spec.name, filename, content)
     if cached is not None:

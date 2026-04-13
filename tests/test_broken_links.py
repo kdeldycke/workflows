@@ -551,10 +551,13 @@ def test_setup_guide_pat_without_repo_keeps_issue_open(mock_lifecycle, _mock_tok
 @patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_body_contains_template(mock_lifecycle, _mock_token):
     """The setup body file contains the setup guide template content."""
+    captured: list[str] = []
+    mock_lifecycle.side_effect = lambda **kw: captured.append(
+        kw["body_file"].read_text(encoding="UTF-8")
+    )
     runner = CliRunner()
     runner.invoke(repomatic_cli, ["setup-guide"])
-    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
-    content = body_file.read_text(encoding="UTF-8")
+    content = captured[0]
     assert "REPOMATIC_PAT" in content
     assert "Fine-grained tokens" in content
 
@@ -654,10 +657,13 @@ def test_setup_guide_pat_missing_permission_body_contains_warning(
     """When PAT has missing permissions, the issue body contains a warning section."""
     mock_check.return_value = _partial_fail_pat_results()
     mock_branch.return_value = (True, "Active branch rulesets found: main.")
+    captured: list[str] = []
+    mock_lifecycle.side_effect = lambda **kw: captured.append(
+        kw["body_file"].read_text(encoding="UTF-8")
+    )
     runner = CliRunner()
     runner.invoke(repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"])
-    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
-    content = body_file.read_text(encoding="UTF-8")
+    content = captured[0]
     assert "missing some permissions" in content
     assert "Dependabot alerts" in content
 
@@ -672,10 +678,13 @@ def test_setup_guide_completed_step_collapsed(
     """Completed steps render as collapsed details blocks with a checkmark."""
     mock_check.return_value = _all_pass_pat_results()
     mock_branch.return_value = (True, "Active branch rulesets found: main.")
+    captured: list[str] = []
+    mock_lifecycle.side_effect = lambda **kw: captured.append(
+        kw["body_file"].read_text(encoding="UTF-8")
+    )
     runner = CliRunner()
     runner.invoke(repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"])
-    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
-    content = body_file.read_text(encoding="UTF-8")
+    content = captured[0]
     # Token step should be collapsed with checkmark.
     assert (
         "<details>\n<summary>\u2705 <strong>Create and configure the token" in content
@@ -688,10 +697,13 @@ def test_setup_guide_completed_step_collapsed(
 @patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_incomplete_step_expanded(mock_lifecycle, _mock_token):
     """Incomplete steps render as open details blocks with an error indicator."""
+    captured: list[str] = []
+    mock_lifecycle.side_effect = lambda **kw: captured.append(
+        kw["body_file"].read_text(encoding="UTF-8")
+    )
     runner = CliRunner()
     runner.invoke(repomatic_cli, ["setup-guide"])
-    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
-    content = body_file.read_text(encoding="UTF-8")
+    content = captured[0]
     # Token step should be expanded with warning indicator.
     assert "<details open>" in content
     assert "\u274c" in content
@@ -750,13 +762,16 @@ def test_setup_guide_nuitka_disabled_hides_vt_step(
     monkeypatch.chdir(tmp_path)
     mock_check.return_value = _all_pass_pat_results()
     mock_branch.return_value = (True, "Active branch rulesets found: main.")
+    captured: list[str] = []
+    mock_lifecycle.side_effect = lambda **kw: captured.append(
+        kw["body_file"].read_text(encoding="UTF-8")
+    )
     runner = CliRunner()
     result = runner.invoke(
         repomatic_cli, ["setup-guide", "--has-pat", "--repo", "owner/repo"]
     )
     assert result.exit_code == 0
-    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
-    content = body_file.read_text(encoding="UTF-8")
+    content = captured[0]
     assert "VirusTotal" not in content
     # Issue closes without VT key when Nuitka is disabled.
     assert mock_lifecycle.call_args_list[0][1]["has_issues"] is False
@@ -766,10 +781,13 @@ def test_setup_guide_nuitka_disabled_hides_vt_step(
 @patch("repomatic.cli.manage_issue_lifecycle")
 def test_setup_guide_vt_step_shown_when_nuitka_active(mock_lifecycle, _mock_token):
     """When Nuitka is active, the VT step appears in the setup guide body."""
+    captured: list[str] = []
+    mock_lifecycle.side_effect = lambda **kw: captured.append(
+        kw["body_file"].read_text(encoding="UTF-8")
+    )
     runner = CliRunner()
     runner.invoke(repomatic_cli, ["setup-guide"])
-    body_file = mock_lifecycle.call_args_list[0][1]["body_file"]
-    content = body_file.read_text(encoding="UTF-8")
+    content = captured[0]
     assert "VirusTotal" in content
 
 

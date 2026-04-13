@@ -112,6 +112,7 @@ Linting & checks:
   lint-repo                 Run repository consistency checks
   lint-changelog            Check changelog dates against release dates
   run                       Run an external tool with managed config
+  cache                     Manage the download cache
 
 GitHub issues & PRs:
   sponsor-label             Label issues/PRs from GitHub sponsors

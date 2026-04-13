@@ -75,7 +75,7 @@ def _fetch_json(package: str) -> dict | None:
     cached = get_cached_response("pypi", package, ttl)
     if cached is not None:
         try:
-            return json.loads(cached)
+            return json.loads(cached)  # type: ignore[no-any-return]
         except json.JSONDecodeError:
             pass
 
