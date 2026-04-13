@@ -10,6 +10,9 @@
 
 ## [`6.12.0` (2026-04-13)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...v6.12.0)
 
+> [!NOTE]
+> `6.12.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.12.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.12.0).
+
 - Add `repomatic cache` subcommands (`show`, `clean`, `path`) and a global binary cache for downloaded tool executables under `~/Library/Caches/repomatic` on macOS and `~/.cache/repomatic` on Linux. Cached binaries are re-verified against their registry SHA-256 checksum on every use; stale entries are auto-purged after 30 days (configurable via `REPOMATIC_CACHE_MAX_AGE`). Add `--no-cache` to `repomatic run` to bypass the cache.
 - Add HTTP response cache for PyPI metadata (24h TTL) and GitHub release bodies (24h for all-releases, 7d for single-release) to avoid redundant API calls across `changelog`, `sync-uv-lock`, and `sync-github-releases` invocations. Add `--namespace` to `repomatic cache clean` for targeted cleanup.
 - Route generated tool configs through the cache directory (`~/.cache/repomatic/config/{tool}/{filename}`) instead of `/tmp` or the repository root. Tools with a `--config` flag now receive an explicit `--config <cache_path>` argument, making repomatic's involvement visible in logs and eliminating cleanup issues from interrupted runs. `.editorconfig` serialization for CWD-discovery tools like `shfmt` now translates `[tool.X]` sections from `pyproject.toml` and writes the result to the cache. Tools without a `--config` flag (mdformat, shfmt) remain CWD-discovery exceptions.
