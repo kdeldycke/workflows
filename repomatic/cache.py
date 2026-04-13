@@ -50,7 +50,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from .config import Config, load_repomatic_config
+from .config import load_repomatic_config
 
 
 @dataclass(frozen=True)
@@ -280,15 +280,17 @@ def cache_info() -> list[CacheEntry]:
                     if not binary.is_file():
                         continue
                     stat = binary.stat()
-                    entries.append(CacheEntry(
-                        tool=tool_dir.name,
-                        version=version_dir.name,
-                        platform=platform_dir.name,
-                        executable=binary.name,
-                        size=stat.st_size,
-                        path=binary,
-                        mtime=stat.st_mtime,
-                    ))
+                    entries.append(
+                        CacheEntry(
+                            tool=tool_dir.name,
+                            version=version_dir.name,
+                            platform=platform_dir.name,
+                            executable=binary.name,
+                            size=stat.st_size,
+                            path=binary,
+                            mtime=stat.st_mtime,
+                        )
+                    )
     return entries
 
 
@@ -361,7 +363,9 @@ def get_cached_response(
         return None
     age = time.time() - path.stat().st_mtime
     if age > max_age_seconds:
-        logging.debug("Stale HTTP cache entry: %s (age %.0fs > %ds).", path, age, max_age_seconds)
+        logging.debug(
+            "Stale HTTP cache entry: %s (age %.0fs > %ds).", path, age, max_age_seconds
+        )
         return None
     logging.debug("HTTP cache hit: %s.", path)
     return path.read_bytes()
@@ -430,13 +434,15 @@ def http_cache_info() -> list[HttpCacheEntry]:
             rel = json_file.relative_to(ns_dir)
             key = str(rel.with_suffix(""))
             stat = json_file.stat()
-            entries.append(HttpCacheEntry(
-                namespace=namespace,
-                key=key,
-                size=stat.st_size,
-                path=json_file,
-                mtime=stat.st_mtime,
-            ))
+            entries.append(
+                HttpCacheEntry(
+                    namespace=namespace,
+                    key=key,
+                    size=stat.st_size,
+                    path=json_file,
+                    mtime=stat.st_mtime,
+                )
+            )
     return entries
 
 
@@ -545,13 +551,15 @@ def config_cache_info() -> list[ConfigCacheEntry]:
             if not config_file.is_file():
                 continue
             stat = config_file.stat()
-            entries.append(ConfigCacheEntry(
-                tool=tool_dir.name,
-                filename=config_file.name,
-                size=stat.st_size,
-                path=config_file,
-                mtime=stat.st_mtime,
-            ))
+            entries.append(
+                ConfigCacheEntry(
+                    tool=tool_dir.name,
+                    filename=config_file.name,
+                    size=stat.st_size,
+                    path=config_file,
+                    mtime=stat.st_mtime,
+                )
+            )
     return entries
 
 

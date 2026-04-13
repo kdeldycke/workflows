@@ -103,11 +103,11 @@ def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
 
     # Cache non-empty results.
     if result and ttl > 0:
-        serialized = {
-            v: {"date": r.date, "body": r.body} for v, r in result.items()
-        }
+        serialized = {v: {"date": r.date, "body": r.body} for v, r in result.items()}
         store_response(
-            "github-releases", cache_key, json.dumps(serialized).encode(),
+            "github-releases",
+            cache_key,
+            json.dumps(serialized).encode(),
         )
 
     return result

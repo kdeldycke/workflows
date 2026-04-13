@@ -60,6 +60,15 @@ from .binary import (
     verify_binary_arch,
 )
 from .broken_links import manage_combined_broken_links_issue
+from .cache import (
+    cache_dir as _cache_dir,
+    cache_info,
+    clear_cache,
+    clear_config_cache,
+    clear_http_cache,
+    config_cache_info,
+    http_cache_info,
+)
 from .changelog import Changelog, lint_changelog_dates
 from .checksums import update_checksums, update_registry_checksums
 from .config import (
@@ -145,15 +154,6 @@ from .sponsor import (
     get_default_owner,
     is_pull_request,
     is_sponsor,
-)
-from .cache import (
-    cache_dir as _cache_dir,
-    cache_info,
-    clear_cache,
-    clear_config_cache,
-    clear_http_cache,
-    config_cache_info,
-    http_cache_info,
 )
 from .test_plan import DEFAULT_TEST_PLAN, SkippedTest, parse_test_plan
 from .tool_runner import (
@@ -3045,8 +3045,16 @@ TOOL_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Config source")
     help="Bypass the binary cache (download fresh every time).",
 )
 @pass_context
-def run_cmd(ctx, tool_name, extra_args, list_tools, tool_version, checksum,
-            skip_checksum, no_cache):
+def run_cmd(
+    ctx,
+    tool_name,
+    extra_args,
+    list_tools,
+    tool_version,
+    checksum,
+    skip_checksum,
+    no_cache,
+):
     """Run an external tool with managed configuration.
 
     Installs the tool at a pinned version, resolves config through a 4-level
@@ -3095,7 +3103,11 @@ def run_cmd(ctx, tool_name, extra_args, list_tools, tool_version, checksum,
 
 
 CACHE_LIST_HEADERS: tuple[str, ...] = (
-    "Type", "Name", "Detail", "Size", "Age",
+    "Type",
+    "Name",
+    "Detail",
+    "Size",
+    "Age",
 )
 """Column headers for the ``repomatic cache show`` table."""
 
@@ -3196,7 +3208,8 @@ def clean(ctx, tool, namespace, max_age):
     """
     bin_deleted, bin_freed = clear_cache(tool=tool, max_age_days=max_age)
     http_deleted, http_freed = clear_http_cache(
-        namespace=namespace, max_age_days=max_age,
+        namespace=namespace,
+        max_age_days=max_age,
     )
     cfg_deleted, cfg_freed = clear_config_cache(tool=tool)
     total_deleted = bin_deleted + http_deleted + cfg_deleted

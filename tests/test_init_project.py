@@ -23,6 +23,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
+from repomatic.config import Config
 from repomatic.init_project import (
     EXPORTABLE_FILES,
     _resolve_skills_target,
@@ -49,7 +50,6 @@ from repomatic.registry import (
     parse_component_entries,
     valid_file_ids,
 )
-from repomatic.config import Config
 from repomatic.tool_runner import TOOL_REGISTRY
 
 if sys.version_info >= (3, 11):
@@ -1652,9 +1652,17 @@ def test_init_detects_auto_excluded_awesome_triage(
     ("location", "target", "expected"),
     [
         # Default location, no change.
-        ("./.claude/skills/", ".claude/skills/foo/SKILL.md", ".claude/skills/foo/SKILL.md"),
+        (
+            "./.claude/skills/",
+            ".claude/skills/foo/SKILL.md",
+            ".claude/skills/foo/SKILL.md",
+        ),
         # Equivalent default without leading "./".
-        (".claude/skills/", ".claude/skills/foo/SKILL.md", ".claude/skills/foo/SKILL.md"),
+        (
+            ".claude/skills/",
+            ".claude/skills/foo/SKILL.md",
+            ".claude/skills/foo/SKILL.md",
+        ),
         # Custom location replaces prefix.
         ("./custom/", ".claude/skills/foo/SKILL.md", "custom/foo/SKILL.md"),
         # Custom location without leading "./".
@@ -1662,7 +1670,11 @@ def test_init_detects_auto_excluded_awesome_triage(
         # Non-matching target is returned unchanged.
         ("./custom/", "other/path.md", "other/path.md"),
         # Hidden directory preserved with removeprefix (not strip).
-        ("./.hidden/skills/", ".claude/skills/foo/SKILL.md", ".hidden/skills/foo/SKILL.md"),
+        (
+            "./.hidden/skills/",
+            ".claude/skills/foo/SKILL.md",
+            ".hidden/skills/foo/SKILL.md",
+        ),
     ],
 )
 def test_resolve_skills_target(location: str, target: str, expected: str):
@@ -1673,7 +1685,10 @@ def test_resolve_skills_target(location: str, target: str, expected: str):
 
 def test_resolve_skills_target_no_config():
     """Verify no-op when config is None."""
-    assert _resolve_skills_target(".claude/skills/x/SKILL.md", None) == ".claude/skills/x/SKILL.md"
+    assert (
+        _resolve_skills_target(".claude/skills/x/SKILL.md", None)
+        == ".claude/skills/x/SKILL.md"
+    )
 
 
 def test_init_skills_custom_location(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
