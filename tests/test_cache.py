@@ -23,8 +23,7 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-from extra_platforms import is_any_windows
+from extra_platforms.pytest import skip_windows
 
 from repomatic.cache import (
     _max_age_days,
@@ -42,11 +41,6 @@ from repomatic.cache import (
     store_response,
 )
 from repomatic.config import Config
-
-skip_windows = pytest.mark.skipif(
-    is_any_windows(),
-    reason="Windows does not use Unix execute bits; os.access(..., X_OK) always returns True.",
-)
 
 # ---------------------------------------------------------------------------
 # cache_dir
@@ -172,7 +166,9 @@ def test_get_cached_binary_exists(monkeypatch, tmp_path):
     assert get_cached_binary("ruff", "0.11.0", "linux-x64", "ruff") == path
 
 
-@skip_windows
+@skip_windows(
+    reason="Windows does not use Unix execute bits; os.access(..., X_OK) always returns True.",
+)
 def test_get_cached_binary_not_executable(monkeypatch, tmp_path):
     """Returns None when the file exists but is not executable."""
     monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path))
