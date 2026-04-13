@@ -14,6 +14,7 @@
 - Scope-bypassed components now fall through to config-key and file-level checks instead of being unconditionally skipped. Previously, bypassing a component's scope via CLI or config `include` would skip file-level `config_key` checks.
 - Add baseline criteria for GitHub repositories in awesome list contributing guidelines: minimum 50 stars, not archived, and updated within 3 years. Includes exceptions for static resources and high-adoption archived repos.
 - Create parent directories for `--output` file paths in `repomatic run`, fixing lychee `Cannot write status output to file` errors when the output directory doesn't exist.
+- Run `lint-repo` workflow job on all repositories, not just Python projects. Generic checks (funding file, stale draft releases, tag protection rules, fork PR approval policy, workflow permissions, PAT checks) were being skipped on non-Python repos like awesome lists.
 
 ## [`6.12.0` (2026-04-13)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...v6.12.0)
 
