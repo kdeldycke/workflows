@@ -43,6 +43,190 @@ if TYPE_CHECKING:
 
 
 @dataclass
+class CacheConfig:
+    """Nested schema for ``[tool.repomatic.cache]``."""
+
+    dir: str = ""
+    """Override the binary cache directory path.
+
+    When empty (the default), the cache uses the platform convention:
+    ``~/Library/Caches/repomatic`` on macOS, ``$XDG_CACHE_HOME/repomatic``
+    or ``~/.cache/repomatic`` on Linux, ``%LOCALAPPDATA%\\repomatic\\Cache``
+    on Windows. The ``REPOMATIC_CACHE_DIR`` environment variable takes
+    precedence over this setting.
+    """
+
+    github_release_ttl: int = 604800
+    """Freshness TTL for cached single-release bodies (seconds).
+
+    GitHub release bodies are immutable once published, so a long TTL (7 days)
+    is safe. Set to ``0`` to disable caching for single-release lookups.
+    """
+
+    github_releases_ttl: int = 86400
+    """Freshness TTL for cached all-releases responses (seconds).
+
+    New releases can appear at any time, so a shorter TTL (24 hours) balances
+    freshness with API savings.
+    """
+
+    max_age: int = 30
+    """Auto-purge cached entries older than this many days.
+
+    Set to ``0`` to disable auto-purge. The ``REPOMATIC_CACHE_MAX_AGE``
+    environment variable takes precedence over this setting.
+    """
+
+    pypi_ttl: int = 86400
+    """Freshness TTL for cached PyPI metadata (seconds).
+
+    PyPI metadata changes when new versions are published. A 24-hour TTL
+    avoids redundant API calls while keeping data reasonably current.
+    """
+
+
+@dataclass
+class DependencyGraphConfig:
+    """Nested schema for ``[tool.repomatic.dependency-graph]``."""
+
+    all_extras: bool = True
+    """Whether to include all optional extras in the graph.
+
+    When ``True``, the ``update-deps-graph`` command behaves as if
+    ``--all-extras`` was passed.
+    """
+
+    all_groups: bool = True
+    """Whether to include all dependency groups in the graph.
+
+    When ``True``, the ``update-deps-graph`` command behaves as if
+    ``--all-groups`` was passed. Projects that want to exclude development
+    dependency groups (docs, test, typing) from their published graph can
+    set this to ``false``.
+    """
+
+    level: int | None = None
+    """Maximum depth of the dependency graph.
+
+    ``None`` means unlimited. ``1`` = primary deps only, ``2`` = primary +
+    their deps, etc. Equivalent to ``--level``.
+    """
+
+    no_extras: list[str] = field(default_factory=list)
+    """Optional extras to exclude from the graph.
+
+    Equivalent to passing ``--no-extra`` for each entry. Takes precedence
+    over ``dependency-graph.all-extras``.
+    """
+
+    no_groups: list[str] = field(default_factory=list)
+    """Dependency groups to exclude from the graph.
+
+    Equivalent to passing ``--no-group`` for each entry. Takes precedence
+    over ``dependency-graph.all-groups``.
+    """
+
+    output: str = "./docs/assets/dependencies.mmd"
+    """Path where the dependency graph Mermaid diagram should be written.
+
+    The dependency graph visualizes the project's dependency tree in Mermaid format.
+    """
+
+
+@dataclass
+class DocsConfig:
+    """Nested schema for ``[tool.repomatic.docs]``."""
+
+    apidoc_exclude: list[str] = field(default_factory=list)
+    """Glob patterns for modules to exclude from ``sphinx-apidoc``.
+
+    Passed as positional exclude arguments after the source directory
+    (e.g., ``["setup.py", "tests"]``).
+    """
+
+    apidoc_extra_args: list[str] = field(default_factory=list)
+    """Extra arguments appended to the ``sphinx-apidoc`` invocation.
+
+    The base flags ``--no-toc --module-first`` are always applied.
+    Use this for project-specific options (e.g., ``["--implicit-namespaces"]``).
+    """
+
+    update_script: str = "./docs/docs_update.py"
+    """Path to a Python script run after ``sphinx-apidoc`` to generate dynamic content.
+
+    Resolved relative to the repository root. Must reside under the ``docs/``
+    directory for security. Set to an empty string to disable.
+    """
+
+
+@dataclass
+class GitignoreConfig:
+    """Nested schema for ``[tool.repomatic.gitignore]``."""
+
+    extra_categories: list[str] = field(default_factory=list)
+    """Additional gitignore template categories to fetch from gitignore.io.
+
+    List of template names (e.g., ``["Python", "Node", "Terraform"]``) to combine
+    with the generated ``.gitignore`` content.
+    """
+
+    extra_content: str = field(
+        default_factory=lambda: dedent(
+            """
+            junit.xml
+
+            # Claude Code local files.
+            .claude/scheduled_tasks.lock
+            .claude/settings.local.json
+            """
+        ).strip()
+    )
+    """Additional content to append at the end of the generated ``.gitignore`` file.
+    """
+
+    location: str = "./.gitignore"
+    """File path of the ``.gitignore`` to update, relative to the root of the repository.
+    """
+
+    sync: bool = True
+    """Whether ``.gitignore`` sync is enabled for this project.
+
+    Projects that manage their own ``.gitignore`` and do not want the autofix job
+    to overwrite it can set this to ``false``.
+    """
+
+
+@dataclass
+class LabelsConfig:
+    """Nested schema for ``[tool.repomatic.labels]``."""
+
+    extra_content_rules: str = ""
+    """Additional YAML rules appended to the content-based labeller configuration.
+
+    Appended to the bundled ``labeller-content-based.yaml`` during export.
+    """
+
+    extra_file_rules: str = ""
+    """Additional YAML rules appended to the file-based labeller configuration.
+
+    Appended to the bundled ``labeller-file-based.yaml`` during export.
+    """
+
+    extra_files: list[str] = field(default_factory=list)
+    """URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
+
+    Each URL is downloaded and applied separately by ``labelmaker``.
+    """
+
+    sync: bool = True
+    """Whether label sync is enabled for this project.
+
+    Projects that manage their own repository labels and do not want the
+    labels workflow to overwrite them can set this to ``false``.
+    """
+
+
+@dataclass
 class TestMatrixConfig:
     """Nested schema for ``[tool.repomatic.test-matrix]``.
 
@@ -94,6 +278,57 @@ class TestMatrixConfig:
 
 
 @dataclass
+class TestPlanConfig:
+    """Nested schema for ``[tool.repomatic.test-plan]``."""
+
+    file: str = "./tests/cli-test-plan.yaml"
+    """Path to the YAML test plan file for binary testing.
+
+    The test plan file defines a list of test cases to run against compiled binaries.
+    Each test case specifies command-line arguments and expected output patterns.
+    """
+
+    inline: str | None = None
+    """Inline YAML test plan for binaries.
+
+    Alternative to ``test_plan_file``. Allows specifying the test plan directly in
+    ``pyproject.toml`` instead of a separate file.
+    """
+
+    timeout: int | None = None
+    """Timeout in seconds for each binary test.
+
+    If set, each test command will be terminated after this duration. ``None`` means no
+    timeout (tests can run indefinitely).
+    """
+
+
+@dataclass
+class WorkflowConfig:
+    """Nested schema for ``[tool.repomatic.workflow]``."""
+
+    source_paths: list[str] | None = None
+    """Source code directory names for workflow trigger ``paths:`` filters.
+
+    When set, thin-caller and header-only workflows include ``paths:`` filters
+    using these directory names (as ``name/**`` globs) alongside universal paths
+    like ``pyproject.toml`` and ``uv.lock``.
+
+    When ``None`` (default), source paths are auto-derived from
+    ``[project.name]`` in ``pyproject.toml`` by replacing hyphens with
+    underscores — the universal Python convention. For example,
+    ``name = "extra-platforms"`` automatically uses ``["extra_platforms"]``.
+    """
+
+    sync: bool = True
+    """Whether workflow sync is enabled for this project.
+
+    Projects that manage their own workflow files and do not want the autofix job
+    to sync thin callers or headers can set this to ``false``.
+    """
+
+
+@dataclass
 class Config:
     """Configuration schema for ``[tool.repomatic]`` in ``pyproject.toml``.
 
@@ -101,166 +336,59 @@ class Config:
     Each field has a docstring explaining its purpose.
     """
 
-    cache_dir: str = ""
-    """Override the binary cache directory path.
-
-    When empty (the default), the cache uses the platform convention:
-    ``~/Library/Caches/repomatic`` on macOS, ``$XDG_CACHE_HOME/repomatic``
-    or ``~/.cache/repomatic`` on Linux, ``%LOCALAPPDATA%\\repomatic\\Cache``
-    on Windows. The ``REPOMATIC_CACHE_DIR`` environment variable takes
-    precedence over this setting.
-    """
-
-    cache_github_release_ttl: int = 604800
-    """Freshness TTL for cached single-release bodies (seconds).
-
-    GitHub release bodies are immutable once published, so a long TTL (7 days)
-    is safe. Set to ``0`` to disable caching for single-release lookups.
-    """
-
-    cache_github_releases_ttl: int = 86400
-    """Freshness TTL for cached all-releases responses (seconds).
-
-    New releases can appear at any time, so a shorter TTL (24 hours) balances
-    freshness with API savings.
-    """
-
-    cache_max_age: int = 30
-    """Auto-purge cached entries older than this many days.
-
-    Set to ``0`` to disable auto-purge. The ``REPOMATIC_CACHE_MAX_AGE``
-    environment variable takes precedence over this setting.
-    """
-
-    cache_pypi_ttl: int = 86400
-    """Freshness TTL for cached PyPI metadata (seconds).
-
-    PyPI metadata changes when new versions are published. A 24-hour TTL
-    avoids redundant API calls while keeping data reasonably current.
-    """
-
-    nuitka_enabled: bool = True
-    """Whether Nuitka binary compilation is enabled for this project.
-
-    Projects with ``[project.scripts]`` entries that are not intended to produce
-    standalone binaries (e.g., libraries with convenience CLI wrappers) can set this
-    to ``false`` to opt out of Nuitka compilation.
-    """
-
-    nuitka_extra_args: list[str] = field(default_factory=list)
-    """Extra Nuitka CLI arguments for binary compilation.
-
-    Project-specific flags (e.g., ``--include-data-files``,
-    ``--include-package-data``) that are passed to the Nuitka build command.
-    """
-
-    pypi_package_history: list[str] = field(default_factory=list)
-    """Former PyPI package names for projects that were renamed.
-
-    When a project changes its PyPI name, older versions remain published under
-    the previous name. List former names here so ``lint-changelog`` can fetch
-    release metadata from all names and generate correct PyPI URLs.
-    """
-
-    nuitka_unstable_targets: list[str] = field(default_factory=list)
-    """Nuitka build targets allowed to fail without blocking the release.
-
-    List of target names (e.g., ``["linux-arm64", "windows-x64"]``) that are marked as
-    unstable. Jobs for these targets will be allowed to fail without preventing the
-    release workflow from succeeding.
-    """
-
-    notification_unsubscribe: bool = False
-    """Whether the unsubscribe-threads workflow is enabled.
-
-    Notifications are per-user across all repos. Enable on the single repo where
-    you want scheduled cleanup of closed notification threads. Requires a classic
-    PAT with ``notifications`` scope stored as ``REPOMATIC_NOTIFICATIONS_PAT``.
-    """
-
-    awesome_template_sync: bool = True
+    awesome_template_sync: bool = field(
+        default=True,
+        metadata={"click_extra.config_path": "awesome-template.sync"},
+    )
     """Whether awesome-template sync is enabled for this project.
 
     Repositories whose name starts with ``awesome-`` get their boilerplate synced
     from files bundled in ``repomatic``. Set to ``false`` to opt out.
     """
 
-    bumpversion_sync: bool = True
+    bumpversion_sync: bool = field(
+        default=True,
+        metadata={"click_extra.config_path": "bumpversion.sync"},
+    )
     """Whether bumpversion config sync is enabled for this project.
 
     Projects that manage their own ``[tool.bumpversion]`` section and do not want
     the autofix job to overwrite it can set this to ``false``.
     """
 
-    gitignore_sync: bool = True
-    """Whether ``.gitignore`` sync is enabled for this project.
+    cache: CacheConfig = field(
+        default_factory=CacheConfig,
+        metadata={"click_extra.config_path": "cache"},
+    )
+    """Binary cache configuration."""
 
-    Projects that manage their own ``.gitignore`` and do not want the autofix job
-    to overwrite it can set this to ``false``.
-    """
+    changelog_location: str = field(
+        default="./changelog.md",
+        metadata={"click_extra.config_path": "changelog.location"},
+    )
+    """File path of the changelog, relative to the root of the repository."""
 
-    labels_sync: bool = True
-    """Whether label sync is enabled for this project.
+    dependency_graph: DependencyGraphConfig = field(
+        default_factory=DependencyGraphConfig,
+        metadata={"click_extra.config_path": "dependency-graph"},
+    )
+    """Dependency graph generation configuration."""
 
-    Projects that manage their own repository labels and do not want the
-    labels workflow to overwrite them can set this to ``false``.
-    """
-
-    mailmap_sync: bool = True
-    """Whether ``.mailmap`` sync is enabled for this project.
-
-    Projects that manage their own ``.mailmap`` and do not want the autofix job
-    to overwrite it can set this to ``false``.
-    """
-
-    docs_apidoc_exclude: list[str] = field(default_factory=list)
-    """Glob patterns for modules to exclude from ``sphinx-apidoc``.
-
-    Passed as positional exclude arguments after the source directory
-    (e.g., ``["setup.py", "tests"]``).
-    """
-
-    docs_apidoc_extra_args: list[str] = field(default_factory=list)
-    """Extra arguments appended to the ``sphinx-apidoc`` invocation.
-
-    The base flags ``--no-toc --module-first`` are always applied.
-    Use this for project-specific options (e.g., ``["--implicit-namespaces"]``).
-    """
-
-    docs_update_script: str = "./docs/docs_update.py"
-    """Path to a Python script run after ``sphinx-apidoc`` to generate dynamic content.
-
-    Resolved relative to the repository root. Must reside under the ``docs/``
-    directory for security. Set to an empty string to disable.
-    """
-
-    dev_release_sync: bool = True
+    dev_release_sync: bool = field(
+        default=True,
+        metadata={"click_extra.config_path": "dev-release.sync"},
+    )
     """Whether dev pre-release sync is enabled for this project.
 
     Projects that do not want a rolling draft pre-release maintained on
     GitHub can set this to ``false``.
     """
 
-    setup_guide: bool = True
-    """Whether the setup guide issue is enabled for this project.
-
-    Projects that do not need ``REPOMATIC_PAT`` or manage their
-    own PAT setup can set this to ``false`` to suppress the setup guide issue.
-    """
-
-    uv_lock_sync: bool = True
-    """Whether ``uv.lock`` sync is enabled for this project.
-
-    Projects that manage their own lock file strategy and do not want the
-    ``sync-uv-lock`` job to run ``uv lock --upgrade`` can set this to ``false``.
-    """
-
-    workflow_sync: bool = True
-    """Whether workflow sync is enabled for this project.
-
-    Projects that manage their own workflow files and do not want the autofix job
-    to sync thin callers or headers can set this to ``false``.
-    """
+    docs: DocsConfig = field(
+        default_factory=DocsConfig,
+        metadata={"click_extra.config_path": "docs"},
+    )
+    """Sphinx documentation generation configuration."""
 
     exclude: list[str] = field(default_factory=list)
     """Additional components and files to exclude from repomatic operations.
@@ -275,6 +403,12 @@ class Config:
     Explicit CLI positional arguments override this list.
     """
 
+    gitignore: GitignoreConfig = field(
+        default_factory=GitignoreConfig,
+        metadata={"click_extra.config_path": "gitignore"},
+    )
+    """``.gitignore`` sync configuration."""
+
     include: list[str] = field(default_factory=list)
     """Components and files to force-include, overriding default exclusions.
 
@@ -286,135 +420,89 @@ class Config:
     implicitly select the parent component. Same syntax as ``exclude``.
     """
 
-    workflow_source_paths: list[str] | None = None
-    """Source code directory names for workflow trigger ``paths:`` filters.
+    labels: LabelsConfig = field(
+        default_factory=LabelsConfig,
+        metadata={"click_extra.config_path": "labels"},
+    )
+    """Repository label sync configuration."""
 
-    When set, thin-caller and header-only workflows include ``paths:`` filters
-    using these directory names (as ``name/**`` globs) alongside universal paths
-    like ``pyproject.toml`` and ``uv.lock``.
+    mailmap_sync: bool = field(
+        default=True,
+        metadata={"click_extra.config_path": "mailmap.sync"},
+    )
+    """Whether ``.mailmap`` sync is enabled for this project.
 
-    When ``None`` (default), source paths are auto-derived from
-    ``[project.name]`` in ``pyproject.toml`` by replacing hyphens with
-    underscores — the universal Python convention. For example,
-    ``name = "extra-platforms"`` automatically uses ``["extra_platforms"]``.
+    Projects that manage their own ``.mailmap`` and do not want the autofix job
+    to overwrite it can set this to ``false``.
     """
 
-    test_plan_file: str = "./tests/cli-test-plan.yaml"
-    """Path to the YAML test plan file for binary testing.
+    notification_unsubscribe: bool = field(
+        default=False,
+        metadata={"click_extra.config_path": "notification.unsubscribe"},
+    )
+    """Whether the unsubscribe-threads workflow is enabled.
 
-    The test plan file defines a list of test cases to run against compiled binaries.
-    Each test case specifies command-line arguments and expected output patterns.
+    Notifications are per-user across all repos. Enable on the single repo where
+    you want scheduled cleanup of closed notification threads. Requires a classic
+    PAT with ``notifications`` scope stored as ``REPOMATIC_NOTIFICATIONS_PAT``.
     """
 
-    test_plan_timeout: int | None = None
-    """Timeout in seconds for each binary test.
+    nuitka_enabled: bool = field(
+        default=True,
+        metadata={"click_extra.config_path": "nuitka.enabled"},
+    )
+    """Whether Nuitka binary compilation is enabled for this project.
 
-    If set, each test command will be terminated after this duration. ``None`` means no
-    timeout (tests can run indefinitely).
+    Projects with ``[project.scripts]`` entries that are not intended to produce
+    standalone binaries (e.g., libraries with convenience CLI wrappers) can set this
+    to ``false`` to opt out of Nuitka compilation.
     """
 
-    test_plan_inline: str | None = None
-    """Inline YAML test plan for binaries.
+    nuitka_extra_args: list[str] = field(
+        default_factory=list,
+        metadata={"click_extra.config_path": "nuitka.extra-args"},
+    )
+    """Extra Nuitka CLI arguments for binary compilation.
 
-    Alternative to ``test_plan_file``. Allows specifying the test plan directly in
-    ``pyproject.toml`` instead of a separate file.
+    Project-specific flags (e.g., ``--include-data-files``,
+    ``--include-package-data``) that are passed to the Nuitka build command.
     """
 
-    changelog_location: str = "./changelog.md"
-    """File path of the changelog, relative to the root of the repository."""
+    nuitka_unstable_targets: list[str] = field(
+        default_factory=list,
+        metadata={"click_extra.config_path": "nuitka.unstable-targets"},
+    )
+    """Nuitka build targets allowed to fail without blocking the release.
 
-    gitignore_location: str = "./.gitignore"
-    """File path of the ``.gitignore`` to update, relative to the root of the repository.
+    List of target names (e.g., ``["linux-arm64", "windows-x64"]``) that are marked as
+    unstable. Jobs for these targets will be allowed to fail without preventing the
+    release workflow from succeeding.
     """
 
-    skills_location: str = "./.claude/skills/"
+    pypi_package_history: list[str] = field(default_factory=list)
+    """Former PyPI package names for projects that were renamed.
+
+    When a project changes its PyPI name, older versions remain published under
+    the previous name. List former names here so ``lint-changelog`` can fetch
+    release metadata from all names and generate correct PyPI URLs.
+    """
+
+    setup_guide: bool = True
+    """Whether the setup guide issue is enabled for this project.
+
+    Projects that do not need ``REPOMATIC_PAT`` or manage their
+    own PAT setup can set this to ``false`` to suppress the setup guide issue.
+    """
+
+    skills_location: str = field(
+        default="./.claude/skills/",
+        metadata={"click_extra.config_path": "skills.location"},
+    )
     """Directory prefix for Claude Code skill files, relative to the repository root.
 
     Skill files are written as ``{skills_location}/{skill-id}/SKILL.md``.
     Useful for repositories where ``.claude/`` is not at the root (e.g.,
     dotfiles repos that store configs under a subdirectory).
-    """
-
-    gitignore_extra_categories: list[str] = field(default_factory=list)
-    """Additional gitignore template categories to fetch from gitignore.io.
-
-    List of template names (e.g., ``["Python", "Node", "Terraform"]``) to combine
-    with the generated ``.gitignore`` content.
-    """
-
-    gitignore_extra_content: str = field(
-        default_factory=lambda: dedent(
-            """
-            junit.xml
-
-            # Claude Code local files.
-            .claude/scheduled_tasks.lock
-            .claude/settings.local.json
-            """
-        ).strip()
-    )
-    """Additional content to append at the end of the generated ``.gitignore`` file.
-    """
-
-    dependency_graph_output: str = "./docs/assets/dependencies.mmd"
-    """Path where the dependency graph Mermaid diagram should be written.
-
-    The dependency graph visualizes the project's dependency tree in Mermaid format.
-    """
-
-    dependency_graph_all_groups: bool = True
-    """Whether to include all dependency groups in the graph.
-
-    When ``True``, the ``update-deps-graph`` command behaves as if
-    ``--all-groups`` was passed. Projects that want to exclude development
-    dependency groups (docs, test, typing) from their published graph can
-    set this to ``false``.
-    """
-
-    dependency_graph_all_extras: bool = True
-    """Whether to include all optional extras in the graph.
-
-    When ``True``, the ``update-deps-graph`` command behaves as if
-    ``--all-extras`` was passed.
-    """
-
-    dependency_graph_no_groups: list[str] = field(default_factory=list)
-    """Dependency groups to exclude from the graph.
-
-    Equivalent to passing ``--no-group`` for each entry. Takes precedence
-    over ``dependency-graph.all-groups``.
-    """
-
-    dependency_graph_no_extras: list[str] = field(default_factory=list)
-    """Optional extras to exclude from the graph.
-
-    Equivalent to passing ``--no-extra`` for each entry. Takes precedence
-    over ``dependency-graph.all-extras``.
-    """
-
-    dependency_graph_level: int | None = None
-    """Maximum depth of the dependency graph.
-
-    ``None`` means unlimited. ``1`` = primary deps only, ``2`` = primary +
-    their deps, etc. Equivalent to ``--level``.
-    """
-
-    labels_extra_files: list[str] = field(default_factory=list)
-    """URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
-
-    Each URL is downloaded and applied separately by ``labelmaker``.
-    """
-
-    labels_extra_file_rules: str = ""
-    """Additional YAML rules appended to the file-based labeller configuration.
-
-    Appended to the bundled ``labeller-file-based.yaml`` during export.
-    """
-
-    labels_extra_content_rules: str = ""
-    """Additional YAML rules appended to the content-based labeller configuration.
-
-    Appended to the bundled ``labeller-content-based.yaml`` during export.
     """
 
     test_matrix: TestMatrixConfig = field(
@@ -430,48 +518,50 @@ class Config:
     ``os``, ``python-version``) and must not be normalized to snake_case.
     """
 
+    test_plan: TestPlanConfig = field(
+        default_factory=TestPlanConfig,
+        metadata={"click_extra.config_path": "test-plan"},
+    )
+    """Binary test plan configuration."""
+
+    uv_lock_sync: bool = field(
+        default=True,
+        metadata={"click_extra.config_path": "uv-lock.sync"},
+    )
+    """Whether ``uv.lock`` sync is enabled for this project.
+
+    Projects that manage their own lock file strategy and do not want the
+    ``sync-uv-lock`` job to run ``uv lock --upgrade`` can set this to ``false``.
+    """
+
+    workflow: WorkflowConfig = field(
+        default_factory=WorkflowConfig,
+        metadata={"click_extra.config_path": "workflow"},
+    )
+    """Workflow sync configuration."""
+
 
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "awesome_template_sync",
     "bumpversion_sync",
-    "cache_dir",
-    "cache_github_release_ttl",
-    "cache_github_releases_ttl",
-    "cache_max_age",
-    "cache_pypi_ttl",
+    "cache",
     "changelog_location",
-    "dependency_graph_all_extras",
-    "dependency_graph_all_groups",
-    "dependency_graph_level",
-    "dependency_graph_no_extras",
-    "dependency_graph_no_groups",
-    "dependency_graph_output",
+    "dependency_graph",
     "dev_release_sync",
-    "docs_apidoc_exclude",
-    "docs_apidoc_extra_args",
-    "docs_update_script",
+    "docs",
     "exclude",
+    "gitignore",
     "include",
-    "gitignore_extra_categories",
-    "gitignore_extra_content",
-    "gitignore_location",
-    "gitignore_sync",
-    "labels_extra_content_rules",
-    "labels_extra_file_rules",
-    "labels_extra_files",
-    "labels_sync",
+    "labels",
     "mailmap_sync",
     "notification_unsubscribe",
     "pypi_package_history",
     "setup_guide",
     "skills_location",
     "test_matrix",
-    "test_plan_file",
-    "test_plan_inline",
-    "test_plan_timeout",
+    "test_plan",
     "uv_lock_sync",
-    "workflow_source_paths",
-    "workflow_sync",
+    "workflow",
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.
 
@@ -481,63 +571,23 @@ workflow metadata outputs.
 """
 
 
-_NESTED_PREFIXES: Final[dict[str, str]] = {
-    "awesome_template": "awesome-template",
-    "bumpversion": "bumpversion",
-    "cache": "cache",
-    "changelog": "changelog",
-    "dependency_graph": "dependency-graph",
-    "dev_release": "dev-release",
-    "docs": "docs",
-    "gitignore": "gitignore",
-    "labels": "labels",
-    "mailmap": "mailmap",
-    "notification": "notification",
-    "nuitka": "nuitka",
-    "renovate": "renovate",
-    "skills": "skills",
-    "test_plan": "test-plan",
-    "uv_lock": "uv-lock",
-    "workflow": "workflow",
-}
-"""Map Python field name prefixes to TOML sub-table names.
-
-Fields whose name starts with ``{prefix}_`` are serialized as TOML dotted keys
-under the corresponding sub-table (e.g., ``dependency_graph_output`` becomes
-``dependency-graph.output``).
-
-.. note::
-    Only used for the reverse mapping (field → TOML key) in display and
-    documentation. The forward mapping (TOML → field) is handled by
-    click-extra's schema-aware dataclass instantiation.
-"""
-
-
 def _field_to_key(name: str, cls: type | None = None) -> str:
     """Convert a dataclass field name to its TOML config key.
 
     For fields with ``click_extra.config_path`` metadata, returns that path
-    directly. Otherwise, matches the longest prefix in ``_NESTED_PREFIXES``
-    to produce dotted sub-keys (e.g., ``dependency_graph_output`` →
-    ``dependency-graph.output``). Falls back to simple kebab-case for flat
-    fields (e.g., ``pypi_package_history`` → ``pypi-package-history``).
+    directly. Otherwise, falls back to simple kebab-case conversion
+    (e.g., ``setup_guide`` → ``setup-guide``).
 
     :param cls: Dataclass to inspect for metadata. Defaults to ``Config``.
     """
     if cls is None:
         cls = Config
-    # Check for explicit config_path metadata.
     for f in fields(cls):
         if f.name == name:
             path = f.metadata.get("click_extra.config_path")
             if path:
                 return str(path)
             break
-
-    for prefix, toml_prefix in _NESTED_PREFIXES.items():
-        if name.startswith(prefix + "_"):
-            suffix = name[len(prefix) + 1 :].replace("_", "-")
-            return f"{toml_prefix}.{suffix}"
     return name.replace("_", "-")
 
 

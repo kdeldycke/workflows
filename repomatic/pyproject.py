@@ -81,7 +81,7 @@ def resolve_source_paths(
     :return: List of source directory names, or ``None`` when no source paths
         can be determined (paths should be stripped entirely).
     """
-    configured = config.workflow_source_paths
+    configured = config.workflow.source_paths
     if configured is not None:
         return configured if configured else None
     derived = derive_source_paths(pyproject_data)

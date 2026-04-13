@@ -24,7 +24,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from repomatic.config import Config
+from repomatic.config import Config, WorkflowConfig
 from repomatic.github.actions import AnnotationLevel
 from repomatic.github.workflow_sync import (
     LintResult,
@@ -1285,14 +1285,14 @@ def test_derive_source_paths_empty_pyproject() -> None:
 
 def test_resolve_source_paths_explicit_config() -> None:
     """Use explicitly configured source paths."""
-    config = Config(workflow_source_paths=["custom_src"])
+    config = Config(workflow=WorkflowConfig(source_paths=["custom_src"]))
     result = resolve_source_paths(config)
     assert result == ["custom_src"]
 
 
 def test_resolve_source_paths_none_derives() -> None:
     """Auto-derive when config is None."""
-    config = Config(workflow_source_paths=None)
+    config = Config(workflow=WorkflowConfig(source_paths=None))
     pyproject_data = {"project": {"name": "my-pkg"}}
     result = resolve_source_paths(config, pyproject_data)
     assert result == ["my_pkg"]
@@ -1300,14 +1300,14 @@ def test_resolve_source_paths_none_derives() -> None:
 
 def test_resolve_source_paths_empty_list_returns_none() -> None:
     """Return None when explicitly set to empty list."""
-    config = Config(workflow_source_paths=[])
+    config = Config(workflow=WorkflowConfig(source_paths=[]))
     result = resolve_source_paths(config)
     assert result is None
 
 
 def test_resolve_source_paths_no_name_returns_none() -> None:
     """Return None when no project name and no config."""
-    config = Config(workflow_source_paths=None)
+    config = Config(workflow=WorkflowConfig(source_paths=None))
     pyproject_data: dict[str, Any] = {"project": {}}
     result = resolve_source_paths(config, pyproject_data)
     assert result is None

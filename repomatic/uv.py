@@ -916,7 +916,7 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
 
     # Check cache (keyed by version, not tag, since we try multiple tags).
     cache_key = f"{owner}/{repo}/{version}"
-    ttl = _load_repomatic_config().cache_github_release_ttl
+    ttl = _load_repomatic_config().cache.github_release_ttl
     cached = get_cached_response("github-release", cache_key, ttl)
     if cached is not None:
         try:

@@ -928,7 +928,7 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         repomatic sync-gitignore --output -
     """
     config = get_tool_config(ctx)
-    if not config.gitignore_sync:
+    if not config.gitignore.sync:
         logging.info(
             "[tool.repomatic] gitignore.sync is disabled. Skipping .gitignore sync."
         )
@@ -936,7 +936,7 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
 
     # Combine base and extra categories, preserving order and deduplicating.
     all_categories = list(
-        dict.fromkeys((*GITIGNORE_BASE_CATEGORIES, *config.gitignore_extra_categories))
+        dict.fromkeys((*GITIGNORE_BASE_CATEGORIES, *config.gitignore.extra_categories))
     )
 
     # Fetch from gitignore.io API.
@@ -947,12 +947,12 @@ def sync_gitignore(ctx: Context, output_path: Path | None) -> None:
         content = response.read().decode("UTF-8")
 
     # Append extra content.
-    if config.gitignore_extra_content:
-        content += "\n" + config.gitignore_extra_content + "\n"
+    if config.gitignore.extra_content:
+        content += "\n" + config.gitignore.extra_content + "\n"
 
     # Resolve output path.
     if output_path is None:
-        output_path = Path(config.gitignore_location)
+        output_path = Path(config.gitignore.location)
 
     if is_stdout(output_path):
         logging.info(f"Print to {sys.stdout.name}")
@@ -1354,14 +1354,14 @@ def test_plan(
 
     else:
         # Fall back to [tool.repomatic] config.
-        if config.test_plan_inline:
+        if config.test_plan.inline:
             logging.info("Get test plan from [tool.repomatic] test-plan.inline config.")
-            tests = list(parse_test_plan(config.test_plan_inline))
+            tests = list(parse_test_plan(config.test_plan.inline))
             logging.info(f"{len(tests)} test cases found.")
             test_list.extend(tests)
 
-        if config.test_plan_file:
-            plan_path = Path(config.test_plan_file)
+        if config.test_plan.file:
+            plan_path = Path(config.test_plan.file)
             if plan_path.exists():
                 logging.info(f"Get test plan from config path: {plan_path}")
                 tests = list(parse_test_plan(plan_path.read_text(encoding="UTF-8")))
@@ -1376,8 +1376,8 @@ def test_plan(
             test_list = DEFAULT_TEST_PLAN
 
     # Fall back to config timeout if not provided via CLI.
-    if timeout is None and config.test_plan_timeout is not None:
-        timeout = float(config.test_plan_timeout)
+    if timeout is None and config.test_plan.timeout is not None:
+        timeout = float(config.test_plan.timeout)
 
     logging.debug(f"Test plan: {test_list}")
 
@@ -1694,22 +1694,22 @@ def deps_graph(
 
     # Resolve output: CLI > config > stdout.
     if output is None:
-        if config.dependency_graph_output:
-            output = Path(config.dependency_graph_output).resolve()
+        if config.dependency_graph.output:
+            output = Path(config.dependency_graph.output).resolve()
         else:
             output = Path("-")
 
     # Apply config defaults when CLI flags are not explicitly provided.
     if not all_groups and not groups and not only_groups:
-        all_groups = config.dependency_graph_all_groups
+        all_groups = config.dependency_graph.all_groups
     if not all_extras and not extras and not only_extras:
-        all_extras = config.dependency_graph_all_extras
-    if not excluded_groups and config.dependency_graph_no_groups:
-        excluded_groups = tuple(config.dependency_graph_no_groups)
-    if not excluded_extras and config.dependency_graph_no_extras:
-        excluded_extras = tuple(config.dependency_graph_no_extras)
+        all_extras = config.dependency_graph.all_extras
+    if not excluded_groups and config.dependency_graph.no_groups:
+        excluded_groups = tuple(config.dependency_graph.no_groups)
+    if not excluded_extras and config.dependency_graph.no_extras:
+        excluded_extras = tuple(config.dependency_graph.no_extras)
     if level is None:
-        level = config.dependency_graph_level
+        level = config.dependency_graph.level
 
     # Resolve --only-group/--only-extra (exclusive mode: no main deps).
     exclude_base = bool(only_groups or only_extras)
@@ -1827,9 +1827,9 @@ def update_docs() -> None:
             "--module-first",
             "--output-dir",
             str(docs_dir),
-            *config.docs_apidoc_extra_args,
+            *config.docs.apidoc_extra_args,
             ".",
-            *config.docs_apidoc_exclude,
+            *config.docs.apidoc_exclude,
         ]
         logging.info(f"Running: {' '.join(apidoc_cmd)}")
         result = subprocess.run(apidoc_cmd, check=False)
@@ -1852,7 +1852,7 @@ def update_docs() -> None:
         logging.info("MyST-Parser not detected. Skipping RST conversion.")
 
     # Phase 3: docs update script.
-    script_path = _validate_docs_script_path(config.docs_update_script, repo_root)
+    script_path = _validate_docs_script_path(config.docs.update_script, repo_root)
     if script_path and script_path.is_file():
         script_cmd = [
             "uv",
@@ -2624,7 +2624,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
     automatically via the tool registry.
     """
     config = get_tool_config(ctx)
-    if not config.labels_sync:
+    if not config.labels.sync:
         logging.info("[tool.repomatic] labels.sync is disabled. Skipping label sync.")
         ctx.exit(0)
 

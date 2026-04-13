@@ -159,8 +159,8 @@ def cache_dir() -> Path:
 
     # 2. Config from [tool.repomatic].
     config = load_repomatic_config()
-    if config.cache_dir:
-        return Path(config.cache_dir).expanduser().resolve()
+    if config.cache.dir:
+        return Path(config.cache.dir).expanduser().resolve()
 
     # 3. Platform default.
     return _platform_cache_dir()
@@ -617,7 +617,7 @@ def _max_age_days() -> int:
 
     1. ``REPOMATIC_CACHE_MAX_AGE`` environment variable.
     2. ``cache.max-age`` in ``[tool.repomatic]``.
-    3. ``Config.cache_max_age`` field default.
+    3. ``CacheConfig.max_age`` field default.
 
     :return: TTL in days. ``0`` means auto-purge is disabled.
     """
@@ -634,7 +634,7 @@ def _max_age_days() -> int:
 
     # 2 + 3. Config from [tool.repomatic] (falls back to field default).
     config = load_repomatic_config()
-    return config.cache_max_age
+    return config.cache.max_age
 
 
 def auto_purge() -> None:
@@ -644,7 +644,7 @@ def auto_purge() -> None:
     :func:`store_response`. Purges both binary and HTTP cache entries.
     Resolves the TTL from ``REPOMATIC_CACHE_MAX_AGE`` env var, then
     ``cache.max-age`` in ``[tool.repomatic]``, then the
-    ``Config.cache_max_age`` field default. Set to ``0`` to disable.
+    ``CacheConfig.max_age`` field default. Set to ``0`` to disable.
     """
     days = _max_age_days()
     if days <= 0:

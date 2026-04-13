@@ -66,12 +66,12 @@ def _fetch_json(package: str) -> dict | None:
     """Fetch the full JSON metadata for a PyPI package.
 
     Results are cached under the ``pypi`` namespace. Freshness TTL is read
-    from ``Config.cache_pypi_ttl``.
+    from ``CacheConfig.pypi_ttl``.
 
     :param package: The PyPI package name.
     :return: Parsed JSON response, or ``None`` on any failure.
     """
-    ttl = load_repomatic_config().cache_pypi_ttl
+    ttl = load_repomatic_config().cache.pypi_ttl
     cached = get_cached_response("pypi", package, ttl)
     if cached is not None:
         try:

@@ -40,7 +40,7 @@ from repomatic.cache import (
     store_binary,
     store_response,
 )
-from repomatic.config import Config
+from repomatic.config import CacheConfig, Config
 
 # ---------------------------------------------------------------------------
 # cache_dir
@@ -102,7 +102,7 @@ def test_cache_dir_from_config(monkeypatch, tmp_path):
     config_dir = tmp_path / "config-cache"
     monkeypatch.setattr(
         "repomatic.cache.load_repomatic_config",
-        lambda: Config(cache_dir=str(config_dir)),
+        lambda: Config(cache=CacheConfig(dir=str(config_dir))),
     )
     assert cache_dir() == config_dir
 
@@ -113,7 +113,7 @@ def test_cache_dir_env_beats_config(monkeypatch, tmp_path):
     monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(env_dir))
     monkeypatch.setattr(
         "repomatic.cache.load_repomatic_config",
-        lambda: Config(cache_dir=str(tmp_path / "config-cache")),
+        lambda: Config(cache=CacheConfig(dir=str(tmp_path / "config-cache"))),
     )
     assert cache_dir() == env_dir
 
@@ -123,7 +123,7 @@ def test_max_age_days_from_config(monkeypatch):
     monkeypatch.delenv("REPOMATIC_CACHE_MAX_AGE", raising=False)
     monkeypatch.setattr(
         "repomatic.cache.load_repomatic_config",
-        lambda: Config(cache_max_age=7),
+        lambda: Config(cache=CacheConfig(max_age=7)),
     )
     assert _max_age_days() == 7
 
@@ -133,7 +133,7 @@ def test_max_age_days_env_beats_config(monkeypatch):
     monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "3")
     monkeypatch.setattr(
         "repomatic.cache.load_repomatic_config",
-        lambda: Config(cache_max_age=90),
+        lambda: Config(cache=CacheConfig(max_age=90)),
     )
     assert _max_age_days() == 3
 
@@ -420,9 +420,9 @@ def test_auto_purge_keeps_fresh_entries(monkeypatch, tmp_path):
 
 
 def test_max_age_days_default(monkeypatch):
-    """Returns Config.cache_max_age when env var is not set."""
+    """Returns CacheConfig.max_age when env var is not set."""
     monkeypatch.delenv("REPOMATIC_CACHE_MAX_AGE", raising=False)
-    assert _max_age_days() == Config.cache_max_age
+    assert _max_age_days() == CacheConfig.max_age
 
 
 def test_max_age_days_custom(monkeypatch):
@@ -440,7 +440,7 @@ def test_max_age_days_zero_disables(monkeypatch):
 def test_max_age_days_invalid_fallback(monkeypatch):
     """Invalid value falls back to default with a warning."""
     monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "not-a-number")
-    assert _max_age_days() == Config.cache_max_age
+    assert _max_age_days() == CacheConfig.max_age
 
 
 # ---------------------------------------------------------------------------

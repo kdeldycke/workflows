@@ -1119,7 +1119,7 @@ def _fetch_extra_labels(
     """
     if config is None:
         config = load_repomatic_config()
-    urls = config.labels_extra_files
+    urls = config.labels.extra_files
     if not urls:
         logging.debug("No labels.extra-files configured.")
         return

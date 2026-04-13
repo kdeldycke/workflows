@@ -61,7 +61,7 @@ def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
 
     # Check cache.
     cache_key = f"{owner}/{repo}"
-    ttl = load_repomatic_config().cache_github_releases_ttl
+    ttl = load_repomatic_config().cache.github_releases_ttl
     cached = get_cached_response("github-releases", cache_key, ttl)
     if cached is not None:
         try:
