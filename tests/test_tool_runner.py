@@ -455,7 +455,8 @@ def test_install_binary_cache_hit(tmp_path, monkeypatch):
     cache_path.chmod(0o755)
 
     with patch(
-        "repomatic.tool_runner._get_platform_key", return_value="linux-x64",
+        "repomatic.tool_runner._get_platform_key",
+        return_value="linux-x64",
     ):
         result = _install_binary(spec, tmp_path / "staging")
 
@@ -485,7 +486,7 @@ def test_install_binary_cache_miss_stores(tmp_path, monkeypatch):
 
     with (
         patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
-        patch("repomatic.tool_runner._download_and_verify") as mock_dl,
+        patch("repomatic.tool_runner._download_and_verify"),
         patch("repomatic.tool_runner._extract_binary") as mock_extract,
     ):
         extracted = staging / "testtool"
@@ -1104,7 +1105,10 @@ def test_run_tool_native_config_no_extra_flags(
 @patch("repomatic.tool_runner.subprocess.run")
 @patch("repomatic.tool_runner.is_github_ci", return_value=False)
 def test_run_tool_pyproject_section_cached_config(
-    mock_ci, mock_run, tmp_path, monkeypatch,
+    mock_ci,
+    mock_run,
+    tmp_path,
+    monkeypatch,
 ):
     """[tool.X] translation writes config to cache and passes via --config."""
     monkeypatch.chdir(tmp_path)

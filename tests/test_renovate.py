@@ -1277,8 +1277,7 @@ def test_format_release_notes_changelog_fallback():
     # GitHub URLs in the body are rewritten to prevent backlink cross-references.
     assert (
         "[Changelog]"
-        "(https://redirect.github.com/dpranke/pyjson5/blob/master/README.md)"
-        in result
+        "(https://redirect.github.com/dpranke/pyjson5/blob/master/README.md)" in result
     )
     # No tag heading should appear.
     assert "#### [" not in result
@@ -1404,7 +1403,7 @@ ZWS = "\u200b"
             id="no-sanitization-needed",
         ),
         pytest.param(
-            f"Thanks @alice!\n```\n@bob #99\n```\nAnd @charlie",
+            "Thanks @alice!\n```\n@bob #99\n```\nAnd @charlie",
             f"Thanks @{ZWS}alice!\n```\n@bob #99\n```\nAnd @{ZWS}charlie",
             id="mixed-code-and-prose",
         ),

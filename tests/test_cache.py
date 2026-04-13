@@ -23,11 +23,7 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from repomatic.cache import (
-    CacheEntry,
-    HttpCacheEntry,
     _max_age_days,
     _prune_empty_dirs,
     auto_purge,
@@ -43,7 +39,6 @@ from repomatic.cache import (
     store_response,
 )
 from repomatic.config import Config
-
 
 # ---------------------------------------------------------------------------
 # cache_dir
@@ -534,7 +529,9 @@ def test_store_response_nested_key(monkeypatch, tmp_path):
     result = get_cached_response("github-release", "astral-sh/ruff/1.0.0", 86400)
     assert result == data
 
-    expected_path = tmp_path / "http" / "github-release" / "astral-sh" / "ruff" / "1.0.0.json"
+    expected_path = (
+        tmp_path / "http" / "github-release" / "astral-sh" / "ruff" / "1.0.0.json"
+    )
     assert expected_path.exists()
 
 

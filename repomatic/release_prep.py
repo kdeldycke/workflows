@@ -73,7 +73,9 @@ class ReleasePrep:
         readme_path: Path | None = None,
         default_branch: str = "main",
     ) -> None:
-        self.changelog_path = changelog_path or Path(Config.changelog_location).resolve()
+        self.changelog_path = (
+            changelog_path or Path(Config.changelog_location).resolve()
+        )
         self.citation_path = citation_path or Path("./citation.cff").resolve()
         self.workflow_dir = workflow_dir or Path("./.github/workflows").resolve()
         self.readme_path = readme_path or Path("./readme.md").resolve()

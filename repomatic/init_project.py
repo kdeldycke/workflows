@@ -866,7 +866,7 @@ def _resolve_skills_target(entry_target: str, config: Config | None) -> str:
     custom = config.skills_location.removeprefix("./").rstrip("/") + "/"
     if custom == default:
         return entry_target
-    return custom + entry_target[len(default):]
+    return custom + entry_target[len(default) :]
 
 
 def _init_config_files(
