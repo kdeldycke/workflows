@@ -197,6 +197,12 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/repomatic/bin
+          key: repomatic-bin-${{ runner.os }}-${{ runner.arch }}-shfmt-${{ hashFiles('repomatic/tool_runner.py') }}
+          restore-keys: |
+            repomatic-bin-${{ runner.os }}-${{ runner.arch }}-shfmt-
       - name: Format shell scripts
         env:
           SHELL_FILES: ${{ fromJSON(needs.metadata.outputs.metadata).shfmt_files }}
@@ -229,6 +235,12 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/repomatic/bin
+          key: repomatic-bin-${{ runner.os }}-${{ runner.arch }}-biome-${{ hashFiles('repomatic/tool_runner.py') }}
+          restore-keys: |
+            repomatic-bin-${{ runner.os }}-${{ runner.arch }}-biome-
       - name: Format JSON
         # Allow comments and trailing commas for JSONC files.
         # Biome auto-detects well-known JSONC files (tsconfig.json, etc.).
@@ -266,6 +278,12 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/repomatic/bin
+          key: repomatic-bin-${{ runner.os }}-${{ runner.arch }}-typos-${{ hashFiles('repomatic/tool_runner.py') }}
+          restore-keys: |
+            repomatic-bin-${{ runner.os }}-${{ runner.arch }}-typos-
       - name: Fix typos
         run: uvx --no-progress --from . repomatic run typos
       - id: pr-metadata

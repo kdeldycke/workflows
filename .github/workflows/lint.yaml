@@ -128,6 +128,12 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/repomatic/bin
+          key: repomatic-bin-${{ runner.os }}-${{ runner.arch }}-actionlint-${{ hashFiles('repomatic/tool_runner.py') }}
+          restore-keys: |
+            repomatic-bin-${{ runner.os }}-${{ runner.arch }}-actionlint-
       - name: Install shellcheck
         run: sudo apt update && sudo apt install --yes shellcheck
       - name: Setup problem matcher
@@ -187,5 +193,11 @@ jobs:
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/repomatic/bin
+          key: repomatic-bin-${{ runner.os }}-${{ runner.arch }}-gitleaks-${{ hashFiles('repomatic/tool_runner.py') }}
+          restore-keys: |
+            repomatic-bin-${{ runner.os }}-${{ runner.arch }}-gitleaks-
       - name: Run gitleaks
         run: uvx --no-progress --from . repomatic run gitleaks -- detect --source .

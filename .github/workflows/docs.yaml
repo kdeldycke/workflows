@@ -84,6 +84,12 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/repomatic/bin
+          key: repomatic-bin-${{ runner.os }}-${{ runner.arch }}-lychee-${{ hashFiles('repomatic/tool_runner.py') }}
+          restore-keys: |
+            repomatic-bin-${{ runner.os }}-${{ runner.arch }}-lychee-
       - name: Install Graphviz
         if: >
           fromJSON(needs.metadata.outputs.metadata).is_python_project
