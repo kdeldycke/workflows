@@ -64,9 +64,11 @@
       },
     },
     {
-      // TODO: postUpgradeTasks silently drops changes when modifying the same
-      // file as the manager update. Tracked upstream:
-      // https://github.com/renovatebot/renovate/discussions/42263
+      // postUpgradeTasks silently drops changes when modifying the same file
+      // as the manager update (https://github.com/renovatebot/renovate/discussions/42263).
+      // Workaround: update-checksums.yaml triggers on renovate/** pushes to
+      // tool_runner.py and commits the correct hashes. This rule stays so that
+      // checksums auto-fix if Renovate resolves the upstream bug.
       description: "Update SHA-256 checksums after binary version bumps in tool registry.",
       matchFileNames: ["repomatic/tool_runner.py"],
       postUpgradeTasks: {

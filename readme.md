@@ -855,6 +855,17 @@ docs = [
   - **Requires**:
     - Build targets from `metadata` job
 
+### 🔄 [`.github/workflows/update-checksums.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/update-checksums.yaml)
+
+- 🔄 **Update checksums** (`update-checksums`)
+
+  - Workaround for [renovatebot/renovate#42263](https://github.com/renovatebot/renovate/discussions/42263): Renovate's `postUpgradeTasks` silently drops file changes when the task modifies the same file the regex manager already updated
+  - Triggers when Renovate pushes a version bump to `repomatic/tool_runner.py` on a `renovate/**` branch
+  - Downloads each binary tool at its new version, computes the SHA-256, and commits the corrected checksums to the PR branch
+  - Uses `REPOMATIC_PAT` for the push so the fix commit re-triggers CI checks on the PR
+  - Safe against infinite loops: a second trigger finds all checksums already correct and exits without pushing
+  - **Source-repo only**: not bundled for downstream repos (they have no tool registry)
+
 ### 🔕 [`.github/workflows/unsubscribe.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/unsubscribe.yaml)
 
 - 🔕 **Unsubscribe from closed threads** (`unsubscribe-threads`)

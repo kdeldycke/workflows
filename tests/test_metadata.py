@@ -493,6 +493,7 @@ expected: dict[str, Any] = {
         ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
         ".github/workflows/unsubscribe.yaml",
+        ".github/workflows/update-checksums.yaml",
         "repomatic/data/awesome_template/.github/ISSUE_TEMPLATE/config.yml",
         "repomatic/data/awesome_template/.github/ISSUE_TEMPLATE/new-link.yaml",
         "repomatic/data/awesome_template/.github/funding.yml",
@@ -530,6 +531,7 @@ expected: dict[str, Any] = {
         ".github/workflows/renovate.yaml",
         ".github/workflows/tests.yaml",
         ".github/workflows/unsubscribe.yaml",
+        ".github/workflows/update-checksums.yaml",
     ],
     "doc_files": [
         ".claude/agents/grunt-qa.md",

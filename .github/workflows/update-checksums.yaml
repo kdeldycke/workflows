@@ -1,0 +1,48 @@
+---
+# Work around https://github.com/renovatebot/renovate/discussions/42263
+# Renovate's postUpgradeTasks silently drops file changes when modifying
+# the same file the regex manager already updated. The tool registry
+# checksum rule (renovate.json5) targets repomatic/tool_runner.py for
+# both the version bump and the checksum update, so the checksum write
+# is lost. This workflow runs after Renovate's push, downloads the new
+# binaries, and commits the correct hashes to the PR branch.
+name: 🔄 Update checksums
+"on":
+  push:
+    branches:
+      - "renovate/**"
+    paths:
+      - "repomatic/tool_runner.py"
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  update-checksums:
+    name: 🔄 Update checksums
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # Push with REPOMATIC_PAT so the fix commit triggers CI checks
+          # on the updated PR branch. The resulting push re-triggers this
+          # workflow, but update-checksums finds no stale hashes and
+          # git diff --quiet exits cleanly: no infinite loop.
+          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - name: Update stale registry checksums
+        run: uvx --no-progress --from . repomatic update-checksums --registry
+      - name: Commit and push if changed
+        run: |
+          git diff --quiet repomatic/tool_runner.py && exit 0
+          git config user.name "$(git log -1 --format='%cn')"
+          git config user.email "$(git log -1 --format='%ce')"
+          git add repomatic/tool_runner.py
+          git commit -m 'Update tool registry checksums'
+          git push
