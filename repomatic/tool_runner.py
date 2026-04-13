@@ -531,6 +531,9 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     # - CLI flags: https://mdformat.readthedocs.io/en/stable/users/cli.html
     #   --strict-front-matter for YAML front matter validation (plugin flag).
     # - Source: https://github.com/hukkin/mdformat
+    # - TODO: add config_flag="--config" once upstream adds --config support.
+    #   See https://github.com/hukkin/mdformat/issues/432
+    #   and https://github.com/hukkin/mdformat/issues/562
     "mdformat": ToolSpec(
         name="mdformat",
         version="1.0.0",
