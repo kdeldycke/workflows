@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.12.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.12.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.12.0` (2026-04-13)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...v6.12.0)
 
 - Add `repomatic cache` subcommands (`show`, `clean`, `path`) and a global binary cache for downloaded tool executables under `~/Library/Caches/repomatic` on macOS and `~/.cache/repomatic` on Linux. Cached binaries are re-verified against their registry SHA-256 checksum on every use; stale entries are auto-purged after 30 days (configurable via `REPOMATIC_CACHE_MAX_AGE`). Add `--no-cache` to `repomatic run` to bypass the cache.
