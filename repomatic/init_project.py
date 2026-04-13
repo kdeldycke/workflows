@@ -619,7 +619,7 @@ def run_init(
                     elif reg_comp.files:
                         ids = {e.file_id for e in reg_comp.files}
                         excluded_files.setdefault(reg_comp.name, set()).update(ids)
-            continue
+                continue
 
         # --- Component-level config_key ---
         if reg_comp.name in selected and not reg_comp.is_enabled(config):

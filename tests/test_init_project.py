@@ -1497,6 +1497,56 @@ def test_include_config_bypasses_scope_exclusion(
     assert "renovate.json5" in created_set
 
 
+def test_include_bypasses_scope_for_bundled_component(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Include bypasses scope for a ``BundledComponent`` with files.
+
+    Codecov is ``NON_AWESOME`` and ``init_default=INCLUDE``. In an awesome
+    repo it would normally be scope-excluded. With ``include``, the scope
+    bypass falls through to file-level checks (the file has ``scope=ALL``
+    so nothing is excluded).
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["codecov"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-billing")
+
+    assert ".github/codecov.yaml" in set(result.created)
+
+
+def test_include_bypasses_scope_for_tool_config(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Include bypasses scope for a ``ToolConfigComponent``.
+
+    Lychee is ``AWESOME_ONLY``. In a non-awesome repo it would normally
+    be scope-excluded. With ``include``, the scope bypass falls through
+    to config-key and file-level checks, then the tool config is merged
+    into ``pyproject.toml``.
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["lychee"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/some-project")
+
+    assert "pyproject.toml" in result.created
+    content = pyproject.read_text(encoding="UTF-8")
+    assert "[tool.lychee]" in content
+
+
 def test_bare_init_applies_scope_exclusion(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
