@@ -110,6 +110,7 @@ from .github.unsubscribe import (
 )
 from .github.workflow_sync import run_workflow_lint
 from .images import (
+    DEFAULT_MIN_SAVINGS_BYTES,
     DEFAULT_MIN_SAVINGS_PCT,
     generate_markdown_summary,
     optimize_images,
@@ -3647,13 +3648,25 @@ def update_checksums_cmd(workflow_file: Path | None, registry: bool) -> None:
     help="Minimum percentage savings to keep an optimized file.",
 )
 @option(
+    "--min-savings-bytes",
+    type=IntRange(0),
+    default=DEFAULT_MIN_SAVINGS_BYTES,
+    show_default=True,
+    help="Minimum absolute byte savings to keep an optimized file.",
+)
+@option(
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default="-",
     help="Output file path. Defaults to stdout.",
 )
 @output_format_option
-def format_images_cmd(min_savings: float, output: Path, output_format: str) -> None:
+def format_images_cmd(
+    min_savings: float,
+    min_savings_bytes: int,
+    output: Path,
+    output_format: str,
+) -> None:
     """Format images by losslessly optimizing them with external CLI tools.
 
     Discovers PNG and JPEG files and compresses them losslessly in-place
@@ -3687,7 +3700,11 @@ def format_images_cmd(min_savings: float, output: Path, output_format: str) -> N
         return
 
     logging.info(f"Found {len(image_files)} image file(s) to optimize.")
-    results = optimize_images(image_files, min_savings_pct=min_savings)
+    results = optimize_images(
+        image_files,
+        min_savings_pct=min_savings,
+        min_savings_bytes=min_savings_bytes,
+    )
     markdown = generate_markdown_summary(results)
 
     if output_format == "github-actions":

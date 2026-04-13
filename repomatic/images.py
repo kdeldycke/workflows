@@ -61,6 +61,9 @@ if TYPE_CHECKING:
 # Minimum percentage savings required to keep the optimized file.
 DEFAULT_MIN_SAVINGS_PCT = 5
 
+# Minimum absolute byte savings required to keep the optimized file.
+DEFAULT_MIN_SAVINGS_BYTES = 1024
+
 OXIPNG_OPT_LEVEL = "4"
 JPEGOPTIM_FLAGS = ("--strip-all", "--all-progressive")
 
@@ -134,12 +137,19 @@ OPTIMIZERS: dict[str, tuple[str, Callable[[Path], None]]] = {
 }
 
 
-def optimize_image(path: Path, min_savings_pct: float) -> OptimizationResult | None:
+def optimize_image(
+    path: Path,
+    min_savings_pct: float,
+    min_savings_bytes: int = DEFAULT_MIN_SAVINGS_BYTES,
+) -> OptimizationResult | None:
     """Optimize a single image file in-place.
 
     :param path: Path to the image file.
     :param min_savings_pct: Minimum percentage savings to keep the result.
         If savings are below this threshold, the original file is restored.
+    :param min_savings_bytes: Minimum absolute byte savings to keep the result.
+        Prevents noisy diffs for tiny files where even a high percentage
+        represents negligible absolute savings.
     :return: An :class:`OptimizationResult` if the file was optimized, or
         ``None`` if the format is unsupported, the required tool is missing,
         or savings were below the threshold.
@@ -173,13 +183,19 @@ def optimize_image(path: Path, min_savings_pct: float) -> OptimizationResult | N
             after_bytes=after_bytes,
         )
 
-        if result.saved_pct < min_savings_pct:
+        if result.saved_pct < min_savings_pct or result.saved_bytes < min_savings_bytes:
             # Savings too small — restore original.
             shutil.copy2(str(backup), str(path))
-            logging.info(
-                f"Skipped {path}: {result.saved_pct:.1f}% savings "
-                f"< {min_savings_pct}% threshold."
-            )
+            if result.saved_bytes < min_savings_bytes:
+                logging.info(
+                    f"Skipped {path}: {format_file_size(result.saved_bytes)} saved "
+                    f"< {format_file_size(min_savings_bytes)} threshold."
+                )
+            else:
+                logging.info(
+                    f"Skipped {path}: {result.saved_pct:.1f}% savings "
+                    f"< {min_savings_pct}% threshold."
+                )
             return None
 
         logging.info(
@@ -203,16 +219,22 @@ def optimize_image(path: Path, min_savings_pct: float) -> OptimizationResult | N
 def optimize_images(
     image_files: Sequence[Path],
     min_savings_pct: float = DEFAULT_MIN_SAVINGS_PCT,
+    min_savings_bytes: int = DEFAULT_MIN_SAVINGS_BYTES,
 ) -> list[OptimizationResult]:
     """Optimize a list of image files.
 
     :param image_files: Paths to image files.
     :param min_savings_pct: Minimum percentage savings to keep an optimization.
+    :param min_savings_bytes: Minimum absolute byte savings to keep an optimization.
     :return: List of results for files that were successfully optimized.
     """
     results = []
     for path in image_files:
-        result = optimize_image(path, min_savings_pct=min_savings_pct)
+        result = optimize_image(
+            path,
+            min_savings_pct=min_savings_pct,
+            min_savings_bytes=min_savings_bytes,
+        )
         if result is not None:
             results.append(result)
     # Sort by bytes saved descending (largest savings first).

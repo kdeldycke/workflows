@@ -441,6 +441,7 @@ GitHub Actions has several design limitations that the workflows work around:
 - 🖼️ **Format images** (`format-images`)
 
   - Losslessly compresses PNG and JPEG images using [`repomatic format-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
+  - Skips files where savings are below `--min-savings` (percentage, default 5%) or `--min-savings-bytes` (absolute, default 1024 bytes)
   - **Requires**:
     - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
 

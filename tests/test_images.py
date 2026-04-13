@@ -107,7 +107,7 @@ def test_optimize_image_missing_tool(tmp_path: Path) -> None:
     img = tmp_path / "test.png"
     img.write_bytes(b"\x89PNG" + b"\x00" * 100)
     with patch("repomatic.images._check_tool", return_value=False):
-        result = optimize_image(img, min_savings_pct=5)
+        result = optimize_image(img, min_savings_pct=5, min_savings_bytes=0)
     assert result is None
 
 
@@ -115,7 +115,7 @@ def test_optimize_image_zero_byte_file(tmp_path: Path) -> None:
     """Returns None for empty files."""
     img = tmp_path / "empty.png"
     img.write_bytes(b"")
-    result = optimize_image(img, min_savings_pct=5)
+    result = optimize_image(img, min_savings_pct=5, min_savings_bytes=0)
     assert result is None
 
 
@@ -123,7 +123,7 @@ def test_optimize_image_unsupported_extension(tmp_path: Path) -> None:
     """Returns None for unsupported file extensions."""
     img = tmp_path / "test.bmp"
     img.write_bytes(b"\x00" * 100)
-    result = optimize_image(img, min_savings_pct=5)
+    result = optimize_image(img, min_savings_pct=5, min_savings_bytes=0)
     assert result is None
 
 
@@ -149,10 +149,30 @@ def test_optimize_image_below_threshold(tmp_path: Path) -> None:
         patch("repomatic.images._check_tool", return_value=True),
         _patch_optimizer(".png", mock_optimize),
     ):
-        result = optimize_image(img, min_savings_pct=5)
+        result = optimize_image(img, min_savings_pct=5, min_savings_bytes=0)
 
     assert result is None
     # Original file should be restored.
+    assert img.read_bytes() == original_data
+
+
+def test_optimize_image_below_bytes_threshold(tmp_path: Path) -> None:
+    """Restores original when absolute byte savings are below threshold."""
+    img = tmp_path / "test.png"
+    # 600-byte file. 50% savings = 300 bytes saved, below 1024-byte threshold.
+    original_data = b"\x89PNG" + b"\x00" * 596
+    img.write_bytes(original_data)
+
+    def mock_optimize(path: Path) -> None:
+        path.write_bytes(original_data[: len(original_data) // 2])
+
+    with (
+        patch("repomatic.images._check_tool", return_value=True),
+        _patch_optimizer(".png", mock_optimize),
+    ):
+        result = optimize_image(img, min_savings_pct=5, min_savings_bytes=1024)
+
+    assert result is None
     assert img.read_bytes() == original_data
 
 
@@ -171,7 +191,7 @@ def test_optimize_image_above_threshold(tmp_path: Path) -> None:
         patch("repomatic.images._check_tool", return_value=True),
         _patch_optimizer(".png", mock_optimize),
     ):
-        result = optimize_image(img, min_savings_pct=5)
+        result = optimize_image(img, min_savings_pct=5, min_savings_bytes=0)
 
     assert result is not None
     assert result.before_bytes == len(original_data)
@@ -194,7 +214,7 @@ def test_optimize_image_restores_on_failure(tmp_path: Path) -> None:
         patch("repomatic.images._check_tool", return_value=True),
         _patch_optimizer(".jpg", mock_fail),
     ):
-        result = optimize_image(img, min_savings_pct=5)
+        result = optimize_image(img, min_savings_pct=5, min_savings_bytes=0)
 
     assert result is None
     # Original file should be restored.
