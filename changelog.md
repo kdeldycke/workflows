@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add `update-checksums.yaml` workflow that triggers on Renovate pushes to `renovate/**` branches modifying `repomatic/tool_runner.py`. Downloads each binary tool at its new version, computes the SHA-256, and commits corrected checksums to the PR branch. Works around [renovatebot/renovate#42263](https://github.com/renovatebot/renovate/discussions/42263) where `postUpgradeTasks` silently drops changes to the same file the regex manager updated.
+- Upgrade macOS Intel runner from `macos-15-intel` to `macos-26-intel` across binary builds, test matrix, and Nuitka compilation.
 
 ## [`6.12.0` (2026-04-13)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...v6.12.0)
 

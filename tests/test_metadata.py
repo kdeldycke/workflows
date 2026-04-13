@@ -747,7 +747,7 @@ expected: dict[str, Any] = {
         },
         {
             "target": "macos-x64",
-            "os": "macos-15-intel",
+            "os": "macos-26-intel",
             "platform_id": "macos",
             "arch": "x64",
             "extension": "bin",
@@ -772,7 +772,7 @@ expected: dict[str, Any] = {
             "ubuntu-24.04-arm",
             "ubuntu-24.04",
             "macos-26",
-            "macos-15-intel",
+            "macos-26-intel",
             "windows-11-arm",
             "windows-2025",
         ],
@@ -806,7 +806,7 @@ expected: dict[str, Any] = {
             },
             {
                 "target": "macos-x64",
-                "os": "macos-15-intel",
+                "os": "macos-26-intel",
                 "platform_id": "macos",
                 "arch": "x64",
                 "extension": "bin",
@@ -870,7 +870,7 @@ expected: dict[str, Any] = {
                 "bin_name": regex(r"repomatic-[\d.]+(\.dev\d+)?-macos-arm64\.bin"),
             },
             {
-                "os": "macos-15-intel",
+                "os": "macos-26-intel",
                 "entry_point": "repomatic",
                 "commit": regex(r"[a-z0-9]+"),
                 "bin_name": regex(r"repomatic-[\d.]+(\.dev\d+)?-macos-x64\.bin"),
@@ -894,7 +894,7 @@ expected: dict[str, Any] = {
             "ubuntu-24.04-arm",
             "ubuntu-slim",
             "macos-26",
-            "macos-15-intel",
+            "macos-26-intel",
             "windows-11-arm",
             "windows-2025",
         ],
@@ -1361,7 +1361,7 @@ include = ["labels"]
 [tool.repomatic.test-matrix]
 exclude = [
     {os = "windows-11-arm"},
-    {os = "macos-15-intel", python-version = "3.10"},
+    {os = "macos-26-intel", python-version = "3.10"},
 ]
 include = [
     {state = "unstable", python-version = "3.99"},
@@ -1423,7 +1423,7 @@ click-version = ["released", "stable", "main"]
     assert metadata.config.include == ["labels"]
     assert metadata.config.test_matrix.exclude == [
         {"os": "windows-11-arm"},
-        {"os": "macos-15-intel", "python-version": "3.10"},
+        {"os": "macos-26-intel", "python-version": "3.10"},
     ]
     assert metadata.config.test_matrix.include == [
         {"state": "unstable", "python-version": "3.99"},

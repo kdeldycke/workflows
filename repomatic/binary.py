@@ -54,7 +54,7 @@ NUITKA_BUILD_TARGETS = {
         "extension": "bin",
     },
     "macos-x64": {
-        "os": "macos-15-intel",
+        "os": "macos-26-intel",
         "platform_id": "macos",
         "arch": "x64",
         "extension": "bin",

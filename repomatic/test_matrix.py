@@ -30,7 +30,7 @@ TEST_RUNNERS_FULL = (
     "ubuntu-24.04-arm",
     "ubuntu-slim",
     "macos-26",
-    "macos-15-intel",
+    "macos-26-intel",
     "windows-11-arm",
     "windows-2025",
 )

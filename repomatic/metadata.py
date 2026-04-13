@@ -108,7 +108,7 @@ build_targets=[
     },
     {
         "target": "macos-x64",
-        "os": "macos-15-intel",
+        "os": "macos-26-intel",
         "platform_id": "macos",
         "arch": "x64",
         "extension": "bin"
@@ -133,7 +133,7 @@ nuitka_matrix={
         "ubuntu-24.04-arm",
         "ubuntu-24.04",
         "macos-26",
-        "macos-15-intel",
+        "macos-26-intel",
         "windows-11-arm",
         "windows-2025"
     ],
@@ -166,7 +166,7 @@ nuitka_matrix={
         },
         {
             "target": "macos-x64",
-            "os": "macos-15-intel",
+            "os": "macos-26-intel",
             "platform_id": "macos",
             "arch": "x64",
             "extension": "bin"
@@ -239,13 +239,13 @@ nuitka_matrix={
             "bin_name": "mpm-macos-arm64.bin"
         },
         {
-            "os": "macos-15-intel",
+            "os": "macos-26-intel",
             "entry_point": "mpm",
             "commit": "346ce664f055fbd042a25ee0b7e96702e95",
             "bin_name": "mpm-macos-x64.bin"
         },
         {
-            "os": "macos-15-intel",
+            "os": "macos-26-intel",
             "entry_point": "mpm",
             "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
             "bin_name": "mpm-macos-x64.bin"
@@ -1781,7 +1781,7 @@ class Metadata:
                     "ubuntu-24.04-arm",
                     "ubuntu-24.04",
                     "macos-26",
-                    "macos-15-intel",
+                    "macos-26-intel",
                     "windows-11-arm",
                     "windows-2025",
                 ],
@@ -1816,7 +1816,7 @@ class Metadata:
                     },
                     {
                         "target": "macos-x64",
-                        "os": "macos-15-intel",
+                        "os": "macos-26-intel",
                         "platform_id": "macos",
                         "arch": "x64",
                         "extension": "bin",
@@ -1889,13 +1889,13 @@ class Metadata:
                         "bin_name": "mpm-1.9.1-macos-arm64.bin",
                     },
                     {
-                        "os": "macos-15-intel",
+                        "os": "macos-26-intel",
                         "entry_point": "mpm",
                         "commit": "346ce664f055fbd042a25ee0b7e96702e95",
                         "bin_name": "mpm-2.0.0-macos-x64.bin",
                     },
                     {
-                        "os": "macos-15-intel",
+                        "os": "macos-26-intel",
                         "entry_point": "mpm",
                         "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
                         "bin_name": "mpm-1.9.1-macos-x64.bin",
