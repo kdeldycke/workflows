@@ -37,12 +37,15 @@ from repomatic.renovate import (
 )
 from repomatic.uv import (
     RELEASE_NOTES_MAX_LENGTH,
+    _find_preceding_comments,
     _format_upload_date,
     _packages_outside_cooldown,
     _parse_github_owner_repo,
     _parse_iso_datetime,
     _parse_relative_duration,
+    _versions_in_range,
     add_exclude_newer_packages,
+    build_comparison_urls,
     diff_lock_versions,
     fetch_release_notes,
     format_diff_table,
@@ -598,7 +601,7 @@ def test_format_diff_table():
     assert "### Updated packages" in table
     assert "| Package | Change |" in table
     assert (
-        "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` -> `4.12.1` |" in table
+        "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` → `4.12.1` |" in table
     )
     assert "| [new-pkg](https://pypi.org/project/new-pkg/) | (new) `2.0.0` |" in table
     assert (
@@ -631,11 +634,11 @@ def test_format_diff_table_with_upload_times():
     assert "| Package | Change | Released |" in table
     assert (
         "| [coverage](https://pypi.org/project/coverage/)"
-        " | `7.13.4` -> `7.13.5` | 2026-03-13 |"
+        " | `7.13.4` → `7.13.5` | 2026-03-13 |"
     ) in table
     assert (
         "| [anyio](https://pypi.org/project/anyio/)"
-        " | `4.12.0` -> `4.12.1` | 2026-01-06 |"
+        " | `4.12.0` → `4.12.1` | 2026-01-06 |"
     ) in table
 
 
@@ -899,11 +902,12 @@ def test_prune_stale_removes_old_entry(tmp_path):
 
 
 def test_prune_stale_removes_all_entries(tmp_path):
-    """Remove the entire line when all entries are stale."""
+    """Remove the entire key and its preceding comment when all entries are stale."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         "[tool.uv]\n"
         'exclude-newer = "2026-03-25T00:00:00Z"\n'
+        "# Packages that bypass the cooldown window.\n"
         'exclude-newer-package = { "pygments" = "0 day" }\n'
     )
     lock = tmp_path / "uv.lock"
@@ -916,7 +920,9 @@ def test_prune_stale_removes_all_entries(tmp_path):
         'upload-time = "2026-03-01T00:00:00Z"\n'
     )
     assert prune_stale_exclude_newer_packages(pyproject, lock) is True
-    assert "exclude-newer-package" not in pyproject.read_text()
+    content = pyproject.read_text()
+    assert "exclude-newer-package" not in content
+    assert "bypass the cooldown" not in content
 
 
 def test_prune_stale_keeps_no_upload_time(tmp_path):
@@ -985,6 +991,138 @@ def test_prune_stale_no_entries(tmp_path):
     lock = tmp_path / "uv.lock"
     lock.write_text("version = 1\n")
     assert prune_stale_exclude_newer_packages(pyproject, lock) is False
+
+
+def test_find_preceding_comments():
+    """Find comment lines immediately above a TOML key."""
+    text = (
+        'exclude-newer = "1 week"\n'
+        "# Packages that bypass the cooldown.\n"
+        'exclude-newer-package = { "requests" = "0 day" }\n'
+    )
+    assert _find_preceding_comments(text, "exclude-newer-package") == (
+        "# Packages that bypass the cooldown.\n"
+    )
+
+
+def test_find_preceding_comments_none():
+    """Return empty string when no comment precedes the key."""
+    text = (
+        'exclude-newer = "1 week"\n'
+        'exclude-newer-package = { "requests" = "0 day" }\n'
+    )
+    assert _find_preceding_comments(text, "exclude-newer-package") == ""
+
+
+def test_find_preceding_comments_multiple():
+    """Find multiple consecutive comment lines above a key."""
+    text = (
+        "# First line.\n"
+        "# Second line.\n"
+        'exclude-newer-package = { "requests" = "0 day" }\n'
+    )
+    result = _find_preceding_comments(text, "exclude-newer-package")
+    assert result == "# First line.\n# Second line.\n"
+
+
+# ---------------------------------------------------------------------------
+# _versions_in_range
+# ---------------------------------------------------------------------------
+
+
+def test_versions_in_range():
+    """Return versions in the half-open range (old, new]."""
+    with patch("repomatic.uv.get_pypi_release_dates") as mock_dates:
+        mock_dates.return_value = {
+            "11.0.2": None,
+            "11.0.3": None,
+            "11.0.4": None,
+            "11.0.5": None,
+            "11.0.6": None,
+        }
+        result = _versions_in_range("extra-platforms", "11.0.3", "11.0.5")
+    assert result == ["11.0.4", "11.0.5"]
+
+
+def test_versions_in_range_no_intermediate():
+    """Fall back to [new] when no intermediate versions exist."""
+    with patch("repomatic.uv.get_pypi_release_dates") as mock_dates:
+        mock_dates.return_value = {"1.0": None, "2.0": None}
+        result = _versions_in_range("pkg", "1.0", "2.0")
+    assert result == ["2.0"]
+
+
+def test_versions_in_range_pypi_failure():
+    """Fall back to [new] when PyPI is unreachable."""
+    with patch("repomatic.uv.get_pypi_release_dates", return_value={}):
+        result = _versions_in_range("pkg", "1.0", "2.0")
+    assert result == ["2.0"]
+
+
+# ---------------------------------------------------------------------------
+# build_comparison_urls
+# ---------------------------------------------------------------------------
+
+
+def test_build_comparison_urls():
+    """Build comparison URLs from changes and release notes."""
+    changes = [
+        ("pkg-a", "1.0", "2.0"),
+        ("pkg-b", "3.0", "4.0"),
+        ("new-pkg", "", "1.0"),
+    ]
+    notes = {
+        "pkg-a": ("https://github.com/owner/pkg-a", [("v2.0", "Notes.")]),
+        "pkg-b": ("https://github.com/owner/pkg-b", [("4.0", "Notes.")]),
+    }
+    urls = build_comparison_urls(changes, notes)
+    assert urls["pkg-a"] == "https://github.com/owner/pkg-a/compare/v1.0...v2.0"
+    assert urls["pkg-b"] == "https://github.com/owner/pkg-b/compare/3.0...4.0"
+    # New packages (no old version) are excluded.
+    assert "new-pkg" not in urls
+
+
+def test_build_comparison_urls_changelog_fallback():
+    """Packages with changelog fallback (no tag) default to v-prefix."""
+    changes = [("pkg", "1.0", "2.0")]
+    notes = {
+        "pkg": (
+            "https://github.com/owner/pkg",
+            [("", "[Changelog](https://example.com)")],
+        ),
+    }
+    urls = build_comparison_urls(changes, notes)
+    assert urls["pkg"] == "https://github.com/owner/pkg/compare/v1.0...v2.0"
+
+
+def test_format_diff_table_with_comparison_urls():
+    """Wrap version changes with comparison links when URLs are provided."""
+    changes = [("pkg", "1.0", "2.0")]
+    urls = {"pkg": "https://github.com/owner/pkg/compare/v1.0...v2.0"}
+    table = format_diff_table(changes, comparison_urls=urls)
+    assert (
+        "[`1.0` \u2192 `2.0`](https://github.com/owner/pkg/compare/v1.0...v2.0)"
+        in table
+    )
+
+
+def test_format_release_notes_multiple_versions():
+    """Render multiple version entries per package."""
+    notes = {
+        "pkg": (
+            "https://github.com/owner/pkg",
+            [
+                ("v1.1", "Patch notes."),
+                ("v1.2", "Feature notes."),
+            ],
+        ),
+    }
+    result = format_release_notes(notes)
+    assert "<summary><code>pkg</code></summary>" in result
+    assert "[`v1.1`](https://github.com/owner/pkg/releases/tag/v1.1)" in result
+    assert "[`v1.2`](https://github.com/owner/pkg/releases/tag/v1.2)" in result
+    assert "Patch notes." in result
+    assert "Feature notes." in result
 
 
 def test_parse_lock_upload_times(tmp_path):
@@ -1209,18 +1347,23 @@ def test_fetch_release_notes_aggregation():
         patch("repomatic.uv.get_pypi_source_url") as mock_pypi,
         patch("repomatic.uv.get_github_release_body") as mock_gh,
         patch("repomatic.uv.get_pypi_changelog_url", return_value=None),
+        patch("repomatic.uv._versions_in_range") as mock_range,
     ):
         mock_pypi.side_effect = [
             "https://github.com/owner/pkg-a",
             "https://github.com/owner/pkg-b",
         ]
+        mock_range.side_effect = [["2.0"], ["4.0"]]
         mock_gh.side_effect = [
             ("v2.0", "Notes for A."),
             ("v4.0", ""),
         ]
         notes = fetch_release_notes(changes)
     assert "pkg-a" in notes
-    assert notes["pkg-a"] == ("https://github.com/owner/pkg-a", "v2.0", "Notes for A.")
+    assert notes["pkg-a"] == (
+        "https://github.com/owner/pkg-a",
+        [("v2.0", "Notes for A.")],
+    )
     # pkg-b has empty body and no changelog URL, so it should be excluded.
     assert "pkg-b" not in notes
 
@@ -1233,16 +1376,17 @@ def test_fetch_release_notes_changelog_fallback():
         patch("repomatic.uv.get_pypi_source_url") as mock_pypi,
         patch("repomatic.uv.get_github_release_body") as mock_gh,
         patch("repomatic.uv.get_pypi_changelog_url") as mock_cl,
+        patch("repomatic.uv._versions_in_range", return_value=["0.14.0"]),
     ):
         mock_pypi.return_value = "https://github.com/dpranke/pyjson5"
         mock_gh.return_value = ("", "")
         mock_cl.return_value = changelog
         notes = fetch_release_notes(changes)
     assert "json5" in notes
-    repo_url, tag, body = notes["json5"]
+    repo_url, versions = notes["json5"]
     assert repo_url == "https://github.com/dpranke/pyjson5"
-    assert tag == ""
-    assert changelog in body
+    assert versions[0][0] == ""
+    assert changelog in versions[0][1]
 
 
 def test_format_release_notes():
@@ -1250,14 +1394,13 @@ def test_format_release_notes():
     notes = {
         "coverage": (
             "https://github.com/nedbat/coveragepy",
-            "v7.13.5",
-            "### Bug fixes\n- Fixed a bug.",
+            [("v7.13.5", "### Bug fixes\n- Fixed a bug.")],
         ),
     }
     result = format_release_notes(notes)
     assert "### Release notes" in result
     assert "<details>" in result
-    assert "<summary>nedbat/coveragepy (<code>coverage</code>)</summary>" in result
+    assert "<summary><code>coverage</code></summary>" in result
     assert (
         "[`v7.13.5`](https://github.com/nedbat/coveragepy/releases/tag/v7.13.5)"
         in result
@@ -1276,13 +1419,12 @@ def test_format_release_notes_changelog_fallback():
     notes = {
         "json5": (
             "https://github.com/dpranke/pyjson5",
-            "",
-            "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)",
+            [("", "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)")],
         ),
     }
     result = format_release_notes(notes)
     assert "<details>" in result
-    assert "<summary>dpranke/pyjson5 (<code>json5</code>)</summary>" in result
+    assert "<summary><code>json5</code></summary>" in result
     # GitHub URLs in the body are rewritten to prevent backlink cross-references.
     assert (
         "[Changelog]"
@@ -1297,7 +1439,7 @@ def test_format_release_notes_truncation():
     """Truncate long release bodies with a link to the full release."""
     long_body = "Line\n" * (RELEASE_NOTES_MAX_LENGTH // 5 + 100)
     notes = {
-        "pkg": ("https://github.com/owner/pkg", "v1.0", long_body),
+        "pkg": ("https://github.com/owner/pkg", [("v1.0", long_body)]),
     }
     result = format_release_notes(notes)
     assert "Full release notes" in result
@@ -1439,7 +1581,7 @@ def test_format_release_notes_sanitizes_mentions():
         " https://github.com/org/repo/pull/42"
     )
     notes = {
-        "pkg": ("https://github.com/owner/pkg", "v1.0", body),
+        "pkg": ("https://github.com/owner/pkg", [("v1.0", body)]),
     }
     result = format_release_notes(notes)
     # Mentions sanitized.
@@ -1455,7 +1597,7 @@ def test_format_release_notes_sanitizes_before_truncation():
     """Truncated release notes are also sanitized."""
     body = "Thanks @alice!\n" + "x" * (RELEASE_NOTES_MAX_LENGTH + 500)
     notes = {
-        "pkg": ("https://github.com/owner/pkg", "v1.0", body),
+        "pkg": ("https://github.com/owner/pkg", [("v1.0", body)]),
     }
     result = format_release_notes(notes)
     assert f"@{ZWS}alice" in result

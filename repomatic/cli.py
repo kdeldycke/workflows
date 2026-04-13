@@ -165,6 +165,7 @@ from .tool_runner import (
 )
 from .uv import (
     _format_upload_date,
+    build_comparison_urls,
     fetch_release_notes,
     fix_vulnerable_deps as _fix_vulnerable_deps,
     format_diff_table,
@@ -2508,6 +2509,7 @@ def sync_uv_lock_cmd(
         ctx.find_root().print_table(rows, headers)  # type: ignore[attr-defined]
 
     # Release notes (opt-in, fetched once for both terminal and file output).
+    notes: dict[str, tuple[str, list[tuple[str, str]]]] = {}
     notes_section = ""
     if release_notes and result.changes:
         notes = fetch_release_notes(result.changes)
@@ -2518,8 +2520,12 @@ def sync_uv_lock_cmd(
 
     # File output: markdown report for CI or downstream tooling.
     if output:
+        comparison_urls = build_comparison_urls(result.changes, notes)
         diff_table = format_diff_table(
-            result.changes, result.upload_times, result.exclude_newer
+            result.changes,
+            result.upload_times,
+            result.exclude_newer,
+            comparison_urls=comparison_urls,
         )
         if notes_section:
             diff_table = diff_table + "\n\n" + notes_section

@@ -36,11 +36,13 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 import tomlkit
+from packaging.version import Version
 
 from .cache import get_cached_response, store_response
 from .config import load_repomatic_config as _load_repomatic_config
 from .pypi import (
     get_changelog_url as get_pypi_changelog_url,
+    get_release_dates as get_pypi_release_dates,
     get_source_url as get_pypi_source_url,
 )
 
@@ -618,6 +620,22 @@ def add_exclude_newer_packages(
     return True
 
 
+def _find_preceding_comments(text: str, key: str) -> str:
+    """Find standalone comment lines immediately above a TOML key.
+
+    :param text: Full TOML file content.
+    :param key: The TOML key name to search for.
+    :return: The comment block including trailing newline, or an empty string
+        if no comments precede the key.
+    """
+    pattern = re.compile(
+        rf"((?:^[ \t]*#[^\n]*\n)+)(?=[ \t]*{re.escape(key)}\s*=)",
+        re.MULTILINE,
+    )
+    match = pattern.search(text)
+    return match.group(1) if match else ""
+
+
 def prune_stale_exclude_newer_packages(
     pyproject_path: Path,
     lock_path: Path,
@@ -687,10 +705,18 @@ def prune_stale_exclude_newer_packages(
         del pkg_table[pkg]
 
     # Remove the key entirely when all entries have been pruned.
-    if len(pkg_table) == 0:
+    removed_entirely = len(pkg_table) == 0
+    if removed_entirely:
+        # Find the comment(s) above the key before tomlkit loses their
+        # association. tomlkit preserves standalone comments when their
+        # associated key is deleted.
+        comment_above = _find_preceding_comments(content, "exclude-newer-package")
         del uv["exclude-newer-package"]
 
-    pyproject_path.write_text(tomlkit.dumps(doc), encoding="UTF-8")
+    result = tomlkit.dumps(doc)
+    if removed_entirely and comment_above:
+        result = result.replace(comment_above, "")
+    pyproject_path.write_text(result, encoding="UTF-8")
     logging.info(
         f"Pruned {', '.join(sorted(stale))} from"
         f" exclude-newer-package in {pyproject_path}."
@@ -902,6 +928,7 @@ def format_diff_table(
     changes: list[tuple[str, str, str]],
     upload_times: dict[str, str] | None = None,
     exclude_newer: str = "",
+    comparison_urls: dict[str, str] | None = None,
 ) -> str:
     """Format version changes as a markdown table with heading.
 
@@ -916,6 +943,8 @@ def format_diff_table(
         upload-time strings, as returned by :func:`parse_lock_upload_times`.
     :param exclude_newer: Optional ``exclude-newer`` ISO 8601 datetime from
         the lock file, as returned by :func:`parse_lock_exclude_newer`.
+    :param comparison_urls: Optional mapping of package names to GitHub
+        comparison URLs, as returned by :func:`build_comparison_urls`.
     :return: A markdown string with a ``### Updated packages`` heading and
         table, or an empty string if there are no changes.
     """
@@ -940,7 +969,9 @@ def format_diff_table(
     for name, old, new in changes:
         link = f"[{name}](https://pypi.org/project/{name}/)"
         if old and new:
-            change = f"`{old}` -> `{new}`"
+            change = f"`{old}` \u2192 `{new}`"
+            if comparison_urls and name in comparison_urls:
+                change = f"[{change}]({comparison_urls[name]})"
         elif new:
             change = f"(new) `{new}`"
         else:
@@ -1038,23 +1069,53 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
     return "", ""
 
 
+def _versions_in_range(package: str, old: str, new: str) -> list[str]:
+    """Return PyPI versions of *package* in the half-open range ``(old, new]``.
+
+    Versions are sorted in ascending order. Falls back to ``[new]`` if no
+    intermediate versions are found or PyPI is unreachable.
+    """
+    releases = get_pypi_release_dates(package)
+    if not releases:
+        return [new]
+    try:
+        old_v = Version(old)
+        new_v = Version(new)
+    except Exception:
+        return [new]
+    intermediate = []
+    for version_str in releases:
+        try:
+            v = Version(version_str)
+        except Exception:
+            continue
+        if old_v < v <= new_v:
+            intermediate.append((v, version_str))
+    if not intermediate:
+        return [new]
+    intermediate.sort()
+    return [s for _, s in intermediate]
+
+
 def fetch_release_notes(
     changes: list[tuple[str, str, str]],
-) -> dict[str, tuple[str, str, str]]:
+) -> dict[str, tuple[str, list[tuple[str, str]]]]:
     """Fetch release notes for all updated packages.
 
     For each package with a new version, discovers the GitHub repository via
-    PyPI and fetches the release notes from GitHub Releases. Falls back to a
-    changelog link from PyPI ``project_urls`` when no GitHub Release exists.
+    PyPI and fetches the release notes from GitHub Releases for all versions
+    in the range ``(old, new]``. Falls back to a changelog link from PyPI
+    ``project_urls`` when no GitHub Release exists.
 
     :param changes: List of ``(name, old_version, new_version)`` tuples.
-    :return: A dict mapping package names to ``(repo_url, tag, body)`` tuples.
-        Only packages with non-empty release bodies are included. When a
+    :return: A dict mapping package names to ``(repo_url, versions)`` tuples
+        where ``versions`` is a list of ``(tag, body)`` pairs sorted ascending.
+        Only packages with at least one non-empty body are included. When a
         changelog URL is used as fallback, ``tag`` is empty and ``body``
         contains a markdown link.
     """
-    notes: dict[str, tuple[str, str, str]] = {}
-    for name, _old, new in changes:
+    notes: dict[str, tuple[str, list[tuple[str, str]]]] = {}
+    for name, old, new in changes:
         if not new:
             # Skip removed packages.
             continue
@@ -1062,61 +1123,100 @@ def fetch_release_notes(
         if not repo_url:
             logging.debug(f"No GitHub URL found for {name}.")
             continue
-        tag, body = get_github_release_body(repo_url, new)
-        if not body:
+
+        # Discover all versions in the range (old, new].
+        versions_to_fetch = _versions_in_range(name, old, new) if old else [new]
+
+        fetched: list[tuple[str, str]] = []
+        for version in versions_to_fetch:
+            tag, body = get_github_release_body(repo_url, version)
+            if body:
+                fetched.append((tag, body))
+
+        if not fetched:
             # Fallback: link to a changelog page from PyPI project_urls.
             changelog_url = get_pypi_changelog_url(name)
             if changelog_url:
-                body = f"[Changelog]({changelog_url})"
+                fetched.append(("", f"[Changelog]({changelog_url})"))
                 logging.debug(f"Using PyPI changelog URL for {name}: {changelog_url}")
             else:
                 logging.debug(f"No release body or changelog for {name} {new}.")
-        if body:
-            notes[name] = (repo_url, tag, body)
+
+        if fetched:
+            notes[name] = (repo_url, fetched)
     return notes
 
 
-def format_release_notes(notes: dict[str, tuple[str, str, str]]) -> str:
+def format_release_notes(
+    notes: dict[str, tuple[str, list[tuple[str, str]]]],
+) -> str:
     """Render release notes as collapsible ``<details>`` blocks.
 
     Follows Renovate's visual pattern: a "Release notes" heading with one
     collapsible section per package. Long release bodies are truncated to
     :data:`RELEASE_NOTES_MAX_LENGTH` characters with a link to the full release.
 
-    :param notes: A dict mapping package names to ``(repo_url, tag, body)``
-        tuples, as returned by :func:`fetch_release_notes`.
+    :param notes: A dict mapping package names to ``(repo_url, versions)``
+        tuples where ``versions`` is a list of ``(tag, body)`` pairs, as
+        returned by :func:`fetch_release_notes`.
     :return: A markdown string with the release notes section, or an empty
         string if no notes are available.
     """
     if not notes:
         return ""
     lines = ["### Release notes", ""]
-    for name, (repo_url, tag, body) in sorted(notes.items()):
-        parsed = _parse_github_owner_repo(repo_url)
-        if not parsed:
-            continue
-        owner, repo = parsed
+    for name, (repo_url, versions) in sorted(notes.items()):
         lines.append("<details>")
-        lines.append(f"<summary>{owner}/{repo} (<code>{name}</code>)</summary>")
+        lines.append(f"<summary><code>{name}</code></summary>")
         lines.append("")
-        body = sanitize_markdown_mentions(body)
-        if tag:
-            release_url = f"{repo_url}/releases/tag/{tag}"
-            lines.append(f"#### [`{tag}`]({release_url})")
-            lines.append("")
-            if len(body) > RELEASE_NOTES_MAX_LENGTH:
-                truncated = body[:RELEASE_NOTES_MAX_LENGTH].rsplit("\n", 1)[0]
-                lines.append(truncated)
+        for tag, body in versions:
+            body = sanitize_markdown_mentions(body)
+            if tag:
+                release_url = f"{repo_url}/releases/tag/{tag}"
+                lines.append(f"#### [`{tag}`]({release_url})")
                 lines.append("")
-                lines.append(f"... [Full release notes]({release_url})")
+                if len(body) > RELEASE_NOTES_MAX_LENGTH:
+                    truncated = body[:RELEASE_NOTES_MAX_LENGTH].rsplit("\n", 1)[0]
+                    lines.append(truncated)
+                    lines.append("")
+                    lines.append(f"... [Full release notes]({release_url})")
+                else:
+                    lines.append(body)
             else:
                 lines.append(body)
-        else:
-            lines.append(body)
-        lines.append("")
+            lines.append("")
         lines.append("</details>")
         lines.append("")
     return "\n".join(lines).rstrip()
+
+
+def build_comparison_urls(
+    changes: list[tuple[str, str, str]],
+    notes: dict[str, tuple[str, list[tuple[str, str]]]],
+) -> dict[str, str]:
+    """Build GitHub comparison URLs from version changes and release notes.
+
+    Uses the tag format discovered by :func:`fetch_release_notes` to construct
+    comparison URLs. Only packages with both old and new versions and a known
+    GitHub repository are included.
+
+    :param changes: List of ``(name, old_version, new_version)`` tuples.
+    :param notes: Release notes dict as returned by :func:`fetch_release_notes`.
+    :return: Dict mapping package names to GitHub comparison URLs.
+    """
+    urls: dict[str, str] = {}
+    for name, old, new in changes:
+        if not old or not new or name not in notes:
+            continue
+        repo_url, versions = notes[name]
+        # Determine tag prefix from the first discovered tag.
+        prefix = "v"
+        for tag, _ in versions:
+            if tag:
+                prefix = "v" if tag.startswith("v") else ""
+                break
+        urls[name] = f"{repo_url}/compare/{prefix}{old}...{prefix}{new}"
+    return urls
 
 
 # ---------------------------------------------------------------------------

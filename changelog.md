@@ -7,6 +7,8 @@
 
 - Add `update-checksums.yaml` workflow that triggers on Renovate pushes to `renovate/**` branches modifying `repomatic/tool_runner.py`. Downloads each binary tool at its new version, computes the SHA-256, and commits corrected checksums to the PR branch. Works around [renovatebot/renovate#42263](https://github.com/renovatebot/renovate/discussions/42263) where `postUpgradeTasks` silently drops changes to the same file the regex manager updated.
 - Upgrade macOS Intel runner from `macos-15-intel` to `macos-26-intel` across binary builds, test matrix, and Nuitka compilation.
+- Include release notes for all intermediate versions in `sync-uv-lock` PR bodies. When a package jumps from `11.0.3` to `11.0.5`, both `11.0.4` and `11.0.5` release notes are shown.
+- Remove orphaned comments from `pyproject.toml` when `exclude-newer-package` is fully pruned.
 
 ## [`6.12.0` (2026-04-13)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...v6.12.0)
 
