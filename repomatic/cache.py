@@ -129,7 +129,7 @@ def _platform_cache_dir() -> Path:
     home = Path.home()
     if sys.platform == "darwin":
         return home / "Library" / "Caches" / "repomatic"
-    if sys.platform == "win32":  # type: ignore[unreachable]
+    if sys.platform == "win32":
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
             return Path(local_app_data) / "repomatic" / "Cache"
