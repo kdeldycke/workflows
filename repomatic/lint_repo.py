@@ -552,6 +552,61 @@ def check_immutable_releases(repo: str) -> tuple[bool | None, str]:
     return False, "Immutable releases are not enabled."
 
 
+def check_pages_deployment_source(repo: str) -> tuple[bool | None, str]:
+    """Check that GitHub Pages is deployed via GitHub Actions, not a branch.
+
+    The ``docs.yaml`` workflow uses ``actions/upload-pages-artifact`` and
+    ``actions/deploy-pages``, which require the Pages source to be set to
+    **GitHub Actions** in the repository settings. Branch-based deployment
+    (``legacy``) is incompatible.
+
+    Queries ``GET /repos/{repo}/pages`` and inspects the ``build_type``
+    field in the response.
+
+    .. note::
+
+        A 404 means Pages is not configured at all. This is treated as
+        indeterminate (``None``) rather than a failure, because the repo
+        may not have deployed docs yet.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed_or_None, message). ``None`` means the check
+        could not run (Pages not configured, or API inaccessible).
+    """
+    try:
+        output = run_gh_command(["api", f"repos/{repo}/pages"])
+    except RuntimeError:
+        return (
+            None,
+            "Pages deployment source check: skipped (Pages not configured or API"
+            " inaccessible).",
+        )
+
+    try:
+        data = json.loads(output)
+    except json.JSONDecodeError:
+        return (
+            None,
+            "Pages deployment source check: skipped (invalid JSON from API).",
+        )
+
+    build_type = data.get("build_type")
+    if build_type == "workflow":
+        return True, "GitHub Pages deployment source is set to GitHub Actions."
+    if build_type == "legacy":
+        msg = (
+            "GitHub Pages deployment source is set to 'Deploy from a branch'."
+            " Change it to 'GitHub Actions' under"
+            f" https://github.com/{repo}/settings/pages"
+            " so the docs.yaml workflow can deploy."
+        )
+        return False, msg
+    return (
+        None,
+        f"Pages deployment source check: skipped (unknown build_type '{build_type}').",
+    )
+
+
 def check_workflow_permissions() -> list[tuple[str | None, str]]:
     """Check that workflows with custom jobs declare ``permissions: {}``.
 
@@ -657,7 +712,18 @@ def run_repo_lint(
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 3: Description matches (fatal).
+    # Check 3: Pages deployment source (Sphinx projects only).
+    if is_sphinx and repo:
+        passed, msg = check_pages_deployment_source(repo)
+        if passed is False:
+            emit_annotation(AnnotationLevel.WARNING, msg)
+            print(f"⚠ {msg}")
+        elif passed is True:
+            print(f"✓ {msg}")
+        else:
+            print(f"ℹ {msg}")
+
+    # Check 4: Description matches (fatal).
     if project_description:
         repo_description = repo_metadata.get("description") if repo_metadata else None
         error, msg = check_description_matches(
@@ -668,35 +734,35 @@ def run_repo_lint(
             fatal_error = True
         print(f"{'✗' if error else '✓'} {msg}")
 
-    # Check 4: GitHub topics are a subset of pyproject.toml keywords.
+    # Check 5: GitHub topics are a subset of pyproject.toml keywords.
     if keywords and repo:
         warning, msg = check_topics_subset_of_keywords(repo, keywords)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 5: Funding file present when owner has GitHub Sponsors.
+    # Check 6: Funding file present when owner has GitHub Sponsors.
     if repo:
         warning, msg = check_funding_file(repo)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 6: Stale draft releases (warning).
+    # Check 7: Stale draft releases (warning).
     if repo:
         warning, msg = check_stale_draft_releases(repo)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 7: Tag protection rules (warning).
+    # Check 8: Tag protection rules (warning).
     if repo:
         warning, msg = check_tag_protection_rules(repo)
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 8: Fork PR approval policy strict enough (warning).
+    # Check 9: Fork PR approval policy strict enough (warning).
     if repo:
         passed, msg = check_fork_pr_approval_policy(repo)
         if passed is False:
@@ -707,13 +773,13 @@ def run_repo_lint(
         else:
             print(f"ℹ {msg}")
 
-    # Check 9: Workflow permissions declared on custom-step workflows.
+    # Check 10: Workflow permissions declared on custom-step workflows.
     for warning, msg in check_workflow_permissions():
         if warning:
             emit_annotation(AnnotationLevel.WARNING, warning)
         print(f"{'⚠' if warning else '✓'} {msg}")
 
-    # Check 10: VIRUSTOTAL_API_KEY secret (warning, only when Nuitka builds are active).
+    # Check 11: VIRUSTOTAL_API_KEY secret (warning, only when Nuitka builds are active).
     if nuitka_active:
         if has_virustotal_key:
             print("✓ VIRUSTOTAL_API_KEY secret is configured.")

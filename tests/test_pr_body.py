@@ -499,6 +499,7 @@ PROGRAMMATIC_TEMPLATES = frozenset({
     "setup-guide-branch-ruleset",
     "setup-guide-dependabot",
     "setup-guide-fork-pr-approval",
+    "setup-guide-pages-source",
     "setup-guide-token",
     "setup-guide-verify",
     "setup-guide-virustotal",

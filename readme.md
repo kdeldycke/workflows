@@ -580,7 +580,7 @@ docs = [
 
 - 📖 **Deploy Sphinx doc** (`deploy-docs`)
 
-  - Builds Sphinx-based documentation and publishes it to GitHub Pages using [`sphinx`](https://github.com/sphinx-doc/sphinx) and [`gh-pages`](https://github.com/peaceiris/actions-gh-pages)
+  - Builds Sphinx-based documentation and publishes it to GitHub Pages using [`sphinx`](https://github.com/sphinx-doc/sphinx), [`upload-pages-artifact`](https://github.com/actions/upload-pages-artifact) and [`deploy-pages`](https://github.com/actions/deploy-pages)
   - **Requires**:
     - Python package with a `pyproject.toml` file
     - `docs` dependency group

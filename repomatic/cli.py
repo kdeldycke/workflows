@@ -120,6 +120,7 @@ from .lint_repo import (
     check_branch_ruleset_on_default,
     check_fork_pr_approval_policy,
     check_immutable_releases,
+    check_pages_deployment_source,
     run_repo_lint,
 )
 from .mailmap import Mailmap
@@ -2110,6 +2111,11 @@ def setup_guide(
     if has_pat and repo:
         fork_pr_ok, _ = check_fork_pr_approval_policy(repo)
 
+    # Pages deployment source check (Sphinx projects only).
+    pages_ok: bool | None = None
+    if md.is_sphinx and repo:
+        pages_ok, _ = check_pages_deployment_source(repo)
+
     # --- Render each step as a collapsible section ---
 
     step_token = _wrap_setup_step(
@@ -2157,6 +2163,19 @@ def setup_guide(
         ),
         passed=fork_pr_ok,
     )
+
+    # Pages deployment source step: only relevant for Sphinx projects.
+    step_pages_source = ""
+    if md.is_sphinx:
+        step_pages_source = _wrap_setup_step(
+            "Set GitHub Pages deployment source to GitHub Actions",
+            render_template(
+                "setup-guide-pages-source",
+                repo_url=repo_url,
+                repo_slug=repo_slug,
+            ),
+            passed=pages_ok,
+        )
 
     # VirusTotal step: only relevant when Nuitka binary compilation is active.
     nuitka_active = config.nuitka_enabled and bool(md.script_entries)
@@ -2216,6 +2235,7 @@ def setup_guide(
         immutable_releases_step=immutable_releases_step,
         step_branch_ruleset=step_branch_ruleset,
         step_fork_pr_approval=step_fork_pr_approval,
+        step_pages_source=step_pages_source,
         step_virustotal=step_virustotal,
         step_verify=step_verify,
         org_tip=org_tip,
@@ -2232,11 +2252,13 @@ def setup_guide(
 
     # Close issue only when all verifiable steps pass.
     # Immutable releases and verify are excluded (no API to check).
-    # Fork PR approval is included only when the check is determinate.
+    # Fork PR approval and Pages source are included only when determinate.
     vt_ok = not nuitka_active or has_virustotal_key
     fork_pr_gate = fork_pr_ok is not False
+    pages_gate = pages_ok is not False
     needs_issue = not (
         token_ok and dependabot_ok and branch_ok and vt_ok and fork_pr_gate
+        and pages_gate
     )
 
     try:
