@@ -18,6 +18,14 @@ This repository has reached an equilibrium state. We are past its accumulation p
 
 - Add the reason why the linked resource is awesome. And what it adds to the existing corpus.
 
+- GitHub repositories must meet these baseline criteria:
+
+  1. **At least 50 stars.** A minimum traction signal to filter out unknown projects.
+  2. **Not archived.** Archived repositories signal the author has moved on.
+  3. **Updated within the last 3 years.** Repositories with no push in 3+ years are considered stale.
+
+  These are defaults, not absolutes. Maintainers may make exceptions depending on the nature of the content. Static resources (reading lists, essays, falsehood articles, data sets) don't need regular commits to remain valuable. Archived repositories with high community adoption can still serve as references. Active software projects, on the other hand, are held to stricter expectations on all three criteria.
+
 - Keep the translated content up-to-date with your proposal. Propagate changes to all `readme.*.md` files. Rely on automatic translation tools. Bilingual contributors will refine the result later.
 
 ## Linting

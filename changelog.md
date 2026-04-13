@@ -10,6 +10,7 @@
 - Include release notes for all intermediate versions in `sync-uv-lock` PR bodies. When a package jumps from `11.0.3` to `11.0.5`, both `11.0.4` and `11.0.5` release notes are shown.
 - Remove orphaned comments from `pyproject.toml` when `exclude-newer-package` is fully pruned.
 - Centralize GitHub token resolution in `run_gh_command`: priority is `REPOMATIC_PAT` > `GH_TOKEN` > `GITHUB_TOKEN`, with automatic fallback to `GITHUB_TOKEN` on 401 Bad Credentials (expired or revoked PAT). Workflow steps that run repomatic commands now pass `REPOMATIC_PAT` directly instead of pre-computing `GH_TOKEN`, and steps that only need the default Actions token no longer set `GH_TOKEN` at all. The `--has-pat` flag on `setup-guide` and `lint-repo` auto-detects from the `REPOMATIC_PAT` environment variable when not specified, replacing the `HAS_REPOMATIC_PAT` env var.
+- Add baseline criteria for GitHub repositories in awesome list contributing guidelines: minimum 50 stars, not archived, and updated within 3 years. Includes exceptions for static resources and high-adoption archived repos.
 
 ## [`6.12.0` (2026-04-13)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...v6.12.0)
 
