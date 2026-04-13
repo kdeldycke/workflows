@@ -58,9 +58,9 @@ from repomatic.uv import (
     parse_lock_versions,
     prune_stale_exclude_newer_packages,
     revert_lock_if_noise,
-    sanitize_markdown_mentions,
     sync_uv_lock,
 )
+from repomatic.github.pr_body import sanitize_markdown_mentions
 
 if sys.version_info >= (3, 11):
     import tomllib

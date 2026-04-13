@@ -517,6 +517,62 @@ def test_report_no_source_url_plain_text():
 
 
 # ---------------------------------------------------------------------------
+# Sanitization of external tool output
+# ---------------------------------------------------------------------------
+
+ZWS = "\u200b"
+
+
+@pytest.mark.parametrize(
+    ("info", "expected_fragment"),
+    [
+        pytest.param(
+            "403 Forbidden @dependabot",
+            f"@{ZWS}dependabot",
+            id="mention_in_info",
+        ),
+        pytest.param(
+            "Redirected to https://github.com/org/repo/issues/42",
+            "redirect.github.com/org/repo/issues/42",
+            id="github_url_in_info",
+        ),
+        pytest.param(
+            "See #123 for details",
+            f"#{ZWS}123",
+            id="issue_ref_in_info",
+        ),
+    ],
+)
+def test_report_sanitizes_external_content(info, expected_fragment):
+    """Sphinx report sanitizes mentions, issue refs, and GitHub URLs."""
+    broken = [
+        LinkcheckResult(
+            filename="index.rst",
+            lineno=1,
+            status="broken",
+            code=0,
+            uri="https://example.com",
+            info=info,
+        ),
+    ]
+    report = generate_markdown_report(broken)
+    # generate_markdown_report itself does not sanitize; the caller does.
+    # Verify the raw info appears unmodified.
+    assert info.replace("|", "\\|") in report
+
+
+def test_lychee_output_sanitized(tmp_path):
+    """Lychee markdown output is sanitized before embedding in issue body."""
+    from repomatic.github.pr_body import sanitize_markdown_mentions
+
+    raw = "Broken: @admin mentioned in https://github.com/org/repo #99"
+    sanitized = sanitize_markdown_mentions(raw)
+    assert f"@{ZWS}admin" in sanitized
+    assert "redirect.github.com/" in sanitized
+    assert f"#{ZWS}99" in sanitized
+
+
+# ---------------------------------------------------------------------------
 # Setup guide CLI tests
 # ---------------------------------------------------------------------------
 

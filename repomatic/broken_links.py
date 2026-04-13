@@ -37,7 +37,7 @@ from pathlib import Path
 from click_extra import TableFormat, render_table
 
 from .github.issue import manage_issue_lifecycle
-from .github.pr_body import render_template
+from .github.pr_body import render_template, sanitize_markdown_mentions
 from .metadata import Metadata
 
 TYPE_CHECKING = False
@@ -299,9 +299,11 @@ def manage_combined_broken_links_issue(
         broken = filter_broken(results)
         sphinx_has_broken = len(broken) > 0
         if sphinx_has_broken:
-            sphinx_report = generate_markdown_report(
-                broken,
-                source_url=sphinx_source_url,
+            sphinx_report = sanitize_markdown_mentions(
+                generate_markdown_report(
+                    broken,
+                    source_url=sphinx_source_url,
+                ),
             )
         else:
             logging.info("No broken documentation links found.")
@@ -310,7 +312,9 @@ def manage_combined_broken_links_issue(
     lychee_section = ""
     if lychee_exit_code is not None:
         if lychee_has_broken and lychee_body_file is not None:
-            lychee_content = lychee_body_file.read_text(encoding="UTF-8").strip()
+            lychee_content = sanitize_markdown_mentions(
+                lychee_body_file.read_text(encoding="UTF-8").strip(),
+            )
         else:
             lychee_content = "No broken links found."
         lychee_section = f"## Lychee\n\n{lychee_content}"
