@@ -60,7 +60,7 @@ set -euo pipefail
 
 # Try to read skills.location from pyproject.toml if no argument given.
 if [ -z "${1:-}" ] && [ -f pyproject.toml ]; then
-    configured=$(python3 -c "
+	configured=$(python3 -c "
 import sys
 try:
     if sys.version_info >= (3, 11):
@@ -80,8 +80,8 @@ SKILLS_DIR="${1:-${configured:-.claude/skills}}"
 OUTPUT_DIR="${2:-build/skills}"
 
 if [ ! -d "$SKILLS_DIR" ]; then
-    echo "No skills directory found at $SKILLS_DIR" >&2
-    exit 1
+	echo "No skills directory found at $SKILLS_DIR" >&2
+	exit 1
 fi
 
 rm -rf "$OUTPUT_DIR"
@@ -89,15 +89,15 @@ mkdir -p "$OUTPUT_DIR"
 
 count=0
 for skill_dir in "$SKILLS_DIR"/*/; do
-    [ -f "$skill_dir/SKILL.md" ] || continue
-    skill_name="$(basename "$skill_dir")"
-    zip -q -j "$OUTPUT_DIR/$skill_name.zip" "$skill_dir"SKILL.md
-    count=$((count + 1))
+	[ -f "$skill_dir/SKILL.md" ] || continue
+	skill_name="$(basename "$skill_dir")"
+	zip -q -j "$OUTPUT_DIR/$skill_name.zip" "$skill_dir"SKILL.md
+	count=$((count + 1))
 done
 
 if [ "$count" -eq 0 ]; then
-    echo "No skills with SKILL.md found in $SKILLS_DIR" >&2
-    exit 1
+	echo "No skills with SKILL.md found in $SKILLS_DIR" >&2
+	exit 1
 fi
 
 echo "Packaged $count skills into $OUTPUT_DIR/"
