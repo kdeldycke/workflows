@@ -18,6 +18,7 @@
 - Rename `shell_files` metadata key to `shfmt_files`. Exclude Zsh files (`.zsh`, `.zshrc`, etc.) and `.sh` files with a Zsh shebang from `shfmt` processing. `shfmt`'s Zsh support is experimental (v3.13.0+) and fails on common Zsh constructs (see [mvdan/sh#1203](https://github.com/mvdan/sh/issues/1203)).
 - Make the `uv sync` step in the `lint-types` job conditional on `is_python_project`, so repositories with Python files but no lockfile can still be type-checked.
 - Fix `format-json` autofix job failing with `flag --config-path is not valid in this context` when a `[tool.biome]` section exists. Biome's bpaf-based CLI scopes `--config-path` inside the subcommand; the flag is now spliced after the subcommand name via a new `config_after_subcommand` field in `ToolSpec`.
+- Fix `sync-labels` failing with `FileNotFoundError` on Docker-based CI runners (`ubuntu-slim`) after the binary cache was added. The cached binary path was returned without verifying the file was accessible; now falls back to the temp directory copy if the cache write is lost.
 - Improve `file-bug-report` skill to check organization-level community health files from the org's `.github` repo before scanning per-repo files. GitHub allows orgs to define default CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, and issue templates that repos inherit unless they provide their own copy.
 
 ## [`6.11.3` (2026-04-09)](https://github.com/kdeldycke/repomatic/compare/v6.11.2...v6.11.3)

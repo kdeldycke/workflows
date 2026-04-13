@@ -584,6 +584,49 @@ def test_install_binary_cache_integrity_failure(tmp_path, monkeypatch):
     assert new_cached.read_bytes() == b"real-binary"
 
 
+def test_install_binary_cache_store_fallback(tmp_path, monkeypatch):
+    """_install_binary falls back to temp path when cached file is missing."""
+    monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
+
+    fake_binary = b"downloaded-binary"
+    checksum = hashlib.sha256(fake_binary).hexdigest()
+
+    spec = ToolSpec(
+        name="testtool",
+        version="2.0.0",
+        binary=BinarySpec(
+            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
+            checksums={"linux-x64": checksum},
+            archive_format=ArchiveFormat.RAW,
+        ),
+    )
+
+    staging = tmp_path / "staging"
+    staging.mkdir()
+
+    def fake_store(*args, **kwargs):
+        """Return a cache path that doesn't exist on disk."""
+        return tmp_path / "cache" / "bin" / "ghost" / "binary"
+
+    with (
+        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner._download_and_verify"),
+        patch("repomatic.tool_runner._extract_binary") as mock_extract,
+        patch("repomatic.tool_runner.store_binary", side_effect=fake_store),
+    ):
+        extracted = staging / "testtool"
+        extracted.write_bytes(fake_binary)
+        extracted.chmod(0o755)
+        mock_extract.return_value = extracted
+
+        result = _install_binary(spec, staging)
+
+    # Should fall back to the temp directory copy.
+    assert result == extracted
+    assert result.read_bytes() == fake_binary
+
+
 # ---------------------------------------------------------------------------
 # run_tool with binary tools
 # ---------------------------------------------------------------------------

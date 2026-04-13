@@ -1107,9 +1107,18 @@ def _install_binary(
 
     extracted = _extract_binary(archive_path, binary, tmp_dir, spec.name)
 
-    # Store in cache for future use.
+    # Store in cache for future use. Verify the cached copy is accessible
+    # before returning it; fall back to the temp directory copy otherwise.
+    # Docker-based CI runners (e.g., ubuntu-slim) can silently lose cached
+    # files due to overlay filesystem or mount restrictions.
     if not no_cache:
-        return store_binary(spec.name, spec.version, platform_key, extracted)
+        cached = store_binary(spec.name, spec.version, platform_key, extracted)
+        if cached.is_file():
+            return cached
+        logging.warning(
+            "Cached binary missing after store at %s, using temp path.",
+            cached,
+        )
     return extracted
 
 
