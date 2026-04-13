@@ -1293,6 +1293,71 @@ def test_run_tool_mypy_without_computed_params(
 
 
 # ---------------------------------------------------------------------------
+# run_tool --output directory creation
+# ---------------------------------------------------------------------------
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner._install_binary")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_creates_output_parent_directory(
+    mock_ci,
+    mock_install,
+    mock_run,
+    tmp_path,
+    monkeypatch,
+):
+    """run_tool creates parent directories for --output file paths."""
+    monkeypatch.chdir(tmp_path)
+    bin_path = tmp_path / "lychee"
+    bin_path.touch()
+    mock_install.return_value = bin_path
+    mock_run.return_value = MagicMock(returncode=0)
+
+    output_path = tmp_path / "subdir" / "nested" / "out.md"
+    run_tool("lychee", extra_args=("--output", str(output_path), "readme.md"))
+
+    assert output_path.parent.is_dir()
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner._install_binary")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_output_existing_directory_is_noop(
+    mock_ci,
+    mock_install,
+    mock_run,
+    tmp_path,
+    monkeypatch,
+):
+    """run_tool does not fail when --output parent directory already exists."""
+    monkeypatch.chdir(tmp_path)
+    bin_path = tmp_path / "lychee"
+    bin_path.touch()
+    mock_install.return_value = bin_path
+    mock_run.return_value = MagicMock(returncode=0)
+
+    output_dir = tmp_path / "existing"
+    output_dir.mkdir()
+    run_tool("lychee", extra_args=("--output", str(output_dir / "out.md")))
+
+    assert output_dir.is_dir()
+
+
+@patch("repomatic.tool_runner.subprocess.run")
+@patch("repomatic.tool_runner.is_github_ci", return_value=False)
+def test_run_tool_no_output_flag_skips_mkdir(mock_ci, mock_run, tmp_path, monkeypatch):
+    """run_tool without --output does not create any directories."""
+    monkeypatch.chdir(tmp_path)
+    mock_run.return_value = MagicMock(returncode=0)
+
+    run_tool("yamllint", extra_args=(".",))
+
+    # Only the tmp_path itself should exist; no new subdirectories.
+    assert list(tmp_path.iterdir()) == []
+
+
+# ---------------------------------------------------------------------------
 # get_data_file_path
 # ---------------------------------------------------------------------------
 

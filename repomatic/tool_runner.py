@@ -1260,6 +1260,12 @@ def run_tool(
 
         # Config args from resolution (cache path or empty).
         cmd.extend(_splice_config_args(config_args, extra_args, spec))
+
+        # Ensure parent directories exist for output file paths.
+        for i, arg in enumerate(extra_args):
+            if arg == "--output" and i + 1 < len(extra_args):
+                Path(extra_args[i + 1]).parent.mkdir(parents=True, exist_ok=True)
+
         logging.info("Running: %s", " ".join(cmd))
         result = subprocess.run(cmd, check=False)
 
