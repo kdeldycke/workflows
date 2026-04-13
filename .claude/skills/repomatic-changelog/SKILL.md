@@ -45,7 +45,7 @@ Entries accumulate during development as features are built incrementally. Befor
 5. **Preserve specifics that help users upgrade.** Tool names, config key names, and breaking changes should remain explicit — consolidation reduces bullet count, not information density.
 6. **Remove implementation details** that don't affect users: internal refactors, helper functions, test additions.
 7. **Order entries by category:** new features first, then broad/global changes, then bug fixes, then documentation and testing.
-8. **Show the before/after** to the user for approval before writing.
+8. **Apply directly.** Write the consolidated section to `changelog.md` without asking for approval. Summarize what was merged, dropped, or reordered after writing.
 
 ### Style rules
 
