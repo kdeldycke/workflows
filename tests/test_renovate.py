@@ -55,6 +55,7 @@ from repomatic.uv import (
     parse_lock_versions,
     prune_stale_exclude_newer_packages,
     revert_lock_if_noise,
+    sanitize_markdown_mentions,
     sync_uv_lock,
 )
 
@@ -1273,8 +1274,10 @@ def test_format_release_notes_changelog_fallback():
     result = format_release_notes(notes)
     assert "<details>" in result
     assert "<summary>dpranke/pyjson5 (<code>json5</code>)</summary>" in result
+    # GitHub URLs in the body are rewritten to prevent backlink cross-references.
     assert (
-        "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)"
+        "[Changelog]"
+        "(https://redirect.github.com/dpranke/pyjson5/blob/master/README.md)"
         in result
     )
     # No tag heading should appear.
@@ -1291,3 +1294,161 @@ def test_format_release_notes_truncation():
     result = format_release_notes(notes)
     assert "Full release notes" in result
     assert "https://github.com/owner/pkg/releases/tag/v1.0" in result
+
+
+# ---------------------------------------------------------------------------
+# sanitize_markdown_mentions
+# ---------------------------------------------------------------------------
+
+ZWS = "\u200b"
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        pytest.param(
+            "Thanks @alice for the fix!",
+            f"Thanks @{ZWS}alice for the fix!",
+            id="simple-mention",
+        ),
+        pytest.param(
+            "@bob opened this PR",
+            f"@{ZWS}bob opened this PR",
+            id="mention-at-line-start",
+        ),
+        pytest.param(
+            "cc @alice @bob @charlie",
+            f"cc @{ZWS}alice @{ZWS}bob @{ZWS}charlie",
+            id="multiple-mentions",
+        ),
+        pytest.param(
+            "Thanks @org/team-name for reviewing",
+            f"Thanks @{ZWS}org/team-name for reviewing",
+            id="team-mention",
+        ),
+        pytest.param(
+            "Fixes #42 and #100",
+            f"Fixes #{ZWS}42 and #{ZWS}100",
+            id="issue-refs",
+        ),
+        pytest.param(
+            "Fix #42",
+            f"Fix #{ZWS}42",
+            id="fix-keyword-issue-ref",
+        ),
+        pytest.param(
+            "See https://github.com/owner/repo/issues/1",
+            "See https://redirect.github.com/owner/repo/issues/1",
+            id="github-url-rewrite",
+        ),
+        pytest.param(
+            "http://github.com/owner/repo/pull/5",
+            "http://redirect.github.com/owner/repo/pull/5",
+            id="github-url-http",
+        ),
+        pytest.param(
+            "Thanks @alice! Fixes #42. See https://github.com/org/repo",
+            f"Thanks @{ZWS}alice! Fixes #{ZWS}42."
+            " See https://redirect.github.com/org/repo",
+            id="combined-all-three",
+        ),
+        pytest.param(
+            "Use this:\n```python\n@pytest.mark.parametrize\n```\n",
+            "Use this:\n```python\n@pytest.mark.parametrize\n```\n",
+            id="fenced-code-block-preserved",
+        ),
+        pytest.param(
+            "Example:\n~~~\n@user #123\n~~~\n",
+            "Example:\n~~~\n@user #123\n~~~\n",
+            id="tilde-fenced-code-block-preserved",
+        ),
+        pytest.param(
+            "Run `@pytest.mark.skip` to skip",
+            "Run `@pytest.mark.skip` to skip",
+            id="inline-code-preserved",
+        ),
+        pytest.param(
+            "Use ``#include <stdio.h>`` here",
+            "Use ``#include <stdio.h>`` here",
+            id="double-backtick-inline-code-preserved",
+        ),
+        pytest.param(
+            "Contact user@example.com for help",
+            "Contact user@example.com for help",
+            id="email-address-preserved",
+        ),
+        pytest.param(
+            "user.name+tag@sub.example.com",
+            "user.name+tag@sub.example.com",
+            id="complex-email-preserved",
+        ),
+        pytest.param(
+            "See https://docs.example.com/page#section",
+            "See https://docs.example.com/page#section",
+            id="url-fragment-preserved",
+        ),
+        pytest.param(
+            "Use &#8203; for spacing",
+            "Use &#8203; for spacing",
+            id="html-entity-preserved",
+        ),
+        pytest.param(
+            "# Heading\n\n## Subheading\n\nText",
+            "# Heading\n\n## Subheading\n\nText",
+            id="markdown-headings-preserved",
+        ),
+        pytest.param("", "", id="empty-string"),
+        pytest.param(
+            "No mentions or issues here.",
+            "No mentions or issues here.",
+            id="no-sanitization-needed",
+        ),
+        pytest.param(
+            f"Thanks @alice!\n```\n@bob #99\n```\nAnd @charlie",
+            f"Thanks @{ZWS}alice!\n```\n@bob #99\n```\nAnd @{ZWS}charlie",
+            id="mixed-code-and-prose",
+        ),
+        pytest.param(
+            "https://github.com/org/repo/compare/@v1.0...@v2.0",
+            "https://redirect.github.com/org/repo/compare/@v1.0...@v2.0",
+            id="comparison-url-at-signs-in-path",
+        ),
+    ],
+)
+def test_sanitize_markdown_mentions(raw, expected):
+    """Neutralize mentions and issue refs while preserving code blocks."""
+    assert sanitize_markdown_mentions(raw) == expected
+
+
+def test_format_release_notes_sanitizes_mentions():
+    """Release notes with @mentions are sanitized in output."""
+    body = (
+        "## What's Changed\n"
+        "* Feature by @contributor in #42\n"
+        "\n"
+        "**New Contributors**\n"
+        "* @contributor made their first contribution in"
+        " https://github.com/org/repo/pull/42"
+    )
+    notes = {
+        "pkg": ("https://github.com/owner/pkg", "v1.0", body),
+    }
+    result = format_release_notes(notes)
+    # Mentions sanitized.
+    assert f"@{ZWS}contributor" in result
+    # Issue refs sanitized.
+    assert f"#{ZWS}42" in result
+    # GitHub URLs rewritten.
+    assert "redirect.github.com/org/repo/pull" in result
+    assert "https://github.com/org/" not in result
+
+
+def test_format_release_notes_sanitizes_before_truncation():
+    """Truncated release notes are also sanitized."""
+    body = "Thanks @alice!\n" + "x" * (RELEASE_NOTES_MAX_LENGTH + 500)
+    notes = {
+        "pkg": ("https://github.com/owner/pkg", "v1.0", body),
+    }
+    result = format_release_notes(notes)
+    assert f"@{ZWS}alice" in result
+    assert "Full release notes" in result

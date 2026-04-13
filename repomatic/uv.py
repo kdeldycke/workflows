@@ -85,6 +85,125 @@ RELEASE_NOTES_MAX_LENGTH = 2000
 
 """Maximum characters per package release body before truncation."""
 
+_ZERO_WIDTH_SPACE = "\u200b"
+"""Unicode zero-width space inserted to break GitHub's mention/issue parser.
+
+Both Dependabot (`dependabot/dependabot-core#3157
+<https://github.com/dependabot/dependabot-core/pull/3157>`_,
+`link_and_mention_sanitizer.rb
+<https://github.com/dependabot/dependabot-core/blob/main/common/lib/dependabot/pull_request_creator/message_builder/link_and_mention_sanitizer.rb>`_)
+and Renovate (`renovatebot/renovate#1083
+<https://github.com/renovatebot/renovate/pull/1083>`_,
+`markdown.ts
+<https://github.com/renovatebot/renovate/blob/main/lib/util/markdown.ts>`_)
+independently converged on this character to neutralize ``@mentions`` and
+``#issue`` references in PR bodies without affecting visual rendering.
+"""
+
+_FENCED_CODE_BLOCK_RE = re.compile(
+    r"^(`{3,}|~{3,})[^\n]*\n.*?\n\1\s*$",
+    re.MULTILINE | re.DOTALL,
+)
+"""Matches fenced code blocks (backtick or tilde) per CommonMark spec."""
+
+_INLINE_CODE_RE = re.compile(r"(`+)(.+?)\1", re.DOTALL)
+"""Matches inline code spans with one or more backticks."""
+
+_MENTION_RE = re.compile(
+    r"(?<![a-zA-Z0-9._%+\-/])@"
+    r"([a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?(?:/[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?)?)",
+)
+"""Matches ``@username`` and ``@org/team`` mentions in prose.
+
+The negative lookbehind excludes email addresses (``user@example.com``),
+URL user-info (``git@github.com``), and URL paths (``/compare/@v1``).
+"""
+
+_ISSUE_REF_RE = re.compile(r"(?<![&a-zA-Z0-9/])#(\d+)")
+"""Matches ``#123`` issue/PR references in prose.
+
+The negative lookbehind excludes HTML entities (``&#8203;``), URL fragments
+(``page#section``), and path-like references (``path/#1``). Markdown headings
+(``# Title``) are excluded because ``#`` is followed by a space, not a digit.
+"""
+
+_GITHUB_URL_RE = re.compile(r"(https?://)(github\.com/)")
+"""Matches ``github.com`` URLs for rewriting to ``redirect.github.com``."""
+
+
+def sanitize_markdown_mentions(text: str) -> str:
+    """Neutralize ``@mentions``, ``#issue`` refs, and GitHub URLs in markdown.
+
+    Prevents GitHub from auto-linking mentions and issue references in
+    externally-sourced markdown (e.g., upstream release notes) that would cause
+    notification spam or accidental issue closure.
+
+    Uses a placeholder extraction approach: fenced code blocks and inline code
+    spans are temporarily replaced with unique placeholders before sanitization,
+    then restored afterward. This avoids the fragile "sanitize then restore"
+    pattern that caused bugs in both Dependabot (2019 code-fence regression,
+    `dependabot/dependabot-core#1421
+    <https://github.com/dependabot/dependabot-core/issues/1421>`_) and Renovate
+    (ongoing restoration pass edge cases, e.g., `renovatebot/renovate#8823
+    <https://github.com/renovatebot/renovate/issues/8823>`_,
+    `renovatebot/renovate#2554
+    <https://github.com/renovatebot/renovate/issues/2554>`_).
+
+    Inserts a Unicode zero-width space (U+200B) after ``@`` and ``#`` to break
+    GitHub's mention and issue parsers without affecting visual rendering.
+    Rewrites ``github.com`` URLs to ``redirect.github.com`` to prevent backlink
+    cross-references on upstream issues.
+
+    :param text: Raw markdown text from an external source.
+    :return: Sanitized markdown safe for embedding in a GitHub PR body.
+
+    .. note::
+        Only call this on externally-sourced content (upstream release notes,
+        third-party tool output). Do not call on content authored by the
+        repository owner where mentions are intentional.
+    """
+    if not text:
+        return text
+
+    # Phase 1: Extract code blocks into placeholders.
+    # Fenced blocks first (they may contain inline backticks).
+    fenced_blocks: list[str] = []
+
+    def _stash_fenced(match: re.Match[str]) -> str:
+        fenced_blocks.append(match.group(0))
+        return f"\x00FENCED{len(fenced_blocks) - 1}\x00"
+
+    result = _FENCED_CODE_BLOCK_RE.sub(_stash_fenced, text)
+
+    # Inline code spans second.
+    inline_spans: list[str] = []
+
+    def _stash_inline(match: re.Match[str]) -> str:
+        inline_spans.append(match.group(0))
+        return f"\x00INLINE{len(inline_spans) - 1}\x00"
+
+    result = _INLINE_CODE_RE.sub(_stash_inline, result)
+
+    # Phase 2: Sanitize prose content.
+    # URLs first, before @ in URLs gets a zero-width space.
+    result = _GITHUB_URL_RE.sub(r"\1redirect.github.com/", result)
+    result = _MENTION_RE.sub(
+        lambda m: f"@{_ZERO_WIDTH_SPACE}{m.group(1)}",
+        result,
+    )
+    result = _ISSUE_REF_RE.sub(
+        lambda m: f"#{_ZERO_WIDTH_SPACE}{m.group(1)}",
+        result,
+    )
+
+    # Phase 3: Restore placeholders (reverse order of extraction).
+    for i, span in enumerate(inline_spans):
+        result = result.replace(f"\x00INLINE{i}\x00", span)
+    for i, block in enumerate(fenced_blocks):
+        result = result.replace(f"\x00FENCED{i}\x00", block)
+
+    return result
+
 
 # ---------------------------------------------------------------------------
 # uv audit parsing
@@ -980,6 +1099,7 @@ def format_release_notes(notes: dict[str, tuple[str, str, str]]) -> str:
         lines.append("<details>")
         lines.append(f"<summary>{owner}/{repo} (<code>{name}</code>)</summary>")
         lines.append("")
+        body = sanitize_markdown_mentions(body)
         if tag:
             release_url = f"{repo_url}/releases/tag/{tag}"
             lines.append(f"#### [`{tag}`]({release_url})")
