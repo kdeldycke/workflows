@@ -1,0 +1,204 @@
+# Copyright Kevin Deldycke <kevin@deldycke.com> and contributors.
+#
+# This program is Free Software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+"""Tests for :mod:`repomatic.github.gh`."""
+
+from __future__ import annotations
+
+from subprocess import CompletedProcess
+from unittest.mock import patch
+
+import pytest
+
+from repomatic.github.gh import run_gh_command
+
+
+def _make_result(
+    returncode: int = 0,
+    stdout: str = "",
+    stderr: str = "",
+) -> CompletedProcess[str]:
+    return CompletedProcess(args=["gh"], returncode=returncode, stdout=stdout, stderr=stderr)
+
+
+# Minimal env: no token vars at all.  Tests that need specific vars add them.
+_CLEAN_ENV = {"PATH": "/usr/bin", "HOME": "/tmp"}
+
+
+# -- Token resolution: REPOMATIC_PAT > GH_TOKEN > GITHUB_TOKEN ----------------
+
+
+def test_repomatic_pat_injected_as_gh_token():
+    """REPOMATIC_PAT is passed to gh as GH_TOKEN."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict(
+            "os.environ",
+            {**_CLEAN_ENV, "REPOMATIC_PAT": "pat-value"},
+            clear=True,
+        ),
+    ):
+        mock_run.return_value = _make_result(stdout="ok\n")
+        assert run_gh_command(["issue", "list"]) == "ok\n"
+        env_used = mock_run.call_args.kwargs["env"]
+        assert env_used["GH_TOKEN"] == "pat-value"
+
+
+def test_gh_token_used_when_no_repomatic_pat():
+    """Falls back to native GH_TOKEN when REPOMATIC_PAT is absent."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict(
+            "os.environ",
+            {**_CLEAN_ENV, "GH_TOKEN": "gh-tok"},
+            clear=True,
+        ),
+    ):
+        mock_run.return_value = _make_result(stdout="ok\n")
+        assert run_gh_command(["issue", "list"]) == "ok\n"
+        # No explicit env override: gh picks up GH_TOKEN natively.
+        assert mock_run.call_args.kwargs.get("env") is None
+
+
+def test_empty_repomatic_pat_ignored():
+    """Empty REPOMATIC_PAT (unconfigured secret) is treated as absent."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict(
+            "os.environ",
+            {**_CLEAN_ENV, "REPOMATIC_PAT": "", "GH_TOKEN": "gh-tok"},
+            clear=True,
+        ),
+    ):
+        mock_run.return_value = _make_result(stdout="ok\n")
+        run_gh_command(["issue", "list"])
+        assert mock_run.call_args.kwargs.get("env") is None
+
+
+# -- Fallback on 401 Bad Credentials ------------------------------------------
+
+
+def test_success_no_fallback():
+    """Successful commands never trigger fallback."""
+    with patch("repomatic.github.gh.run") as mock_run:
+        mock_run.return_value = _make_result(stdout="ok\n")
+        assert run_gh_command(["issue", "list"]) == "ok\n"
+        assert mock_run.call_count == 1
+
+
+def test_non_401_error_no_fallback():
+    """Non-401 errors raise immediately without retry."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict("os.environ", {"GH_TOKEN": "pat", "GITHUB_TOKEN": "gha"}),
+    ):
+        mock_run.return_value = _make_result(returncode=1, stderr="not found")
+        with pytest.raises(RuntimeError, match="not found"):
+            run_gh_command(["issue", "list"])
+        assert mock_run.call_count == 1
+
+
+@pytest.mark.parametrize(
+    ("env", "clear"),
+    [
+        pytest.param(
+            {"GH_TOKEN": "same-token", "GITHUB_TOKEN": "same-token"},
+            False,
+            id="tokens-identical",
+        ),
+        pytest.param(
+            {**_CLEAN_ENV, "GH_TOKEN": "expired-pat"},
+            True,
+            id="github-token-missing",
+        ),
+    ],
+)
+def test_401_no_fallback(env, clear):
+    """401 does not retry when fallback is unavailable."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict("os.environ", env, clear=clear),
+    ):
+        mock_run.return_value = _make_result(
+            returncode=1,
+            stderr="Bad credentials",
+        )
+        with pytest.raises(RuntimeError, match="Bad credentials"):
+            run_gh_command(["issue", "list"])
+        assert mock_run.call_count == 1
+
+
+def test_401_retries_with_github_token():
+    """401 Bad Credentials triggers retry with GITHUB_TOKEN."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict(
+            "os.environ",
+            {"GH_TOKEN": "expired-pat", "GITHUB_TOKEN": "gha-token"},
+        ),
+    ):
+        mock_run.side_effect = [
+            _make_result(returncode=1, stderr="Bad credentials"),
+            _make_result(stdout="fallback ok\n"),
+        ]
+        result = run_gh_command(["issue", "list"])
+        assert result == "fallback ok\n"
+        assert mock_run.call_count == 2
+        retry_env = mock_run.call_args_list[1].kwargs["env"]
+        assert retry_env["GH_TOKEN"] == "gha-token"
+
+
+def test_repomatic_pat_401_falls_back_to_github_token():
+    """Expired REPOMATIC_PAT falls back to GITHUB_TOKEN."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict(
+            "os.environ",
+            {**_CLEAN_ENV, "REPOMATIC_PAT": "expired-pat", "GITHUB_TOKEN": "gha-token"},
+            clear=True,
+        ),
+    ):
+        mock_run.side_effect = [
+            _make_result(returncode=1, stderr="Bad credentials"),
+            _make_result(stdout="fallback ok\n"),
+        ]
+        result = run_gh_command(["issue", "list"])
+        assert result == "fallback ok\n"
+        assert mock_run.call_count == 2
+        # First call uses REPOMATIC_PAT.
+        first_env = mock_run.call_args_list[0].kwargs["env"]
+        assert first_env["GH_TOKEN"] == "expired-pat"
+        # Second call uses GITHUB_TOKEN.
+        retry_env = mock_run.call_args_list[1].kwargs["env"]
+        assert retry_env["GH_TOKEN"] == "gha-token"
+
+
+def test_401_fallback_also_fails():
+    """When fallback also fails, original 401 error is raised."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict(
+            "os.environ",
+            {"GH_TOKEN": "expired-pat", "GITHUB_TOKEN": "gha-token"},
+        ),
+    ):
+        mock_run.side_effect = [
+            _make_result(returncode=1, stderr="Bad credentials"),
+            _make_result(returncode=1, stderr="Resource not accessible"),
+        ]
+        with pytest.raises(RuntimeError, match="Bad credentials"):
+            run_gh_command(["issue", "list"])
+        assert mock_run.call_count == 2

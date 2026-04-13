@@ -38,7 +38,7 @@ jobs:
       - name: Check Renovate prerequisites
         id: checks
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
         run: uvx --no-progress --from . repomatic check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       # No need to export renovate.json5 here — the renovate job below
@@ -86,7 +86,7 @@ jobs:
       # updates disabled, commit statuses permission).
       - name: Validate Renovate prerequisites
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
         run: uvx --no-progress --from . repomatic check-renovate
 
       - uses: renovatebot/github-action@3633cede7d4d4598438e654eac4a695e46004420 # v46.1.7

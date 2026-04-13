@@ -357,16 +357,19 @@ def check_all_pat_permissions(
 def validate_gh_token_env() -> None:
     """Check that a GitHub token environment variable is set.
 
-    The ``gh`` CLI accepts authentication via ``GH_TOKEN`` (highest
-    priority) or ``GITHUB_TOKEN``.  This function checks both, matching
-    the CLI's own lookup order.
+    Lookup order: ``REPOMATIC_PAT`` > ``GH_TOKEN`` > ``GITHUB_TOKEN``,
+    matching :func:`run_gh_command <repomatic.github.gh.run_gh_command>`.
 
-    :raises RuntimeError: If neither variable is set.
+    :raises RuntimeError: If no variable is set.
     """
-    if not (os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")):
+    if not (
+        os.environ.get("REPOMATIC_PAT")
+        or os.environ.get("GH_TOKEN")
+        or os.environ.get("GITHUB_TOKEN")
+    ):
         msg = (
             "No GitHub token found. "
-            "Set GH_TOKEN or GITHUB_TOKEN to a personal access token. "
+            "Set REPOMATIC_PAT, GH_TOKEN, or GITHUB_TOKEN. "
             "Create one at https://github.com/settings/tokens"
         )
         raise RuntimeError(msg)
@@ -375,10 +378,15 @@ def validate_gh_token_env() -> None:
 def _get_gh_token() -> str:
     """Return the GitHub token from environment variables.
 
-    Uses the same lookup order as :func:`validate_gh_token_env`: ``GH_TOKEN``
-    first, then ``GITHUB_TOKEN``.
+    Lookup order: ``REPOMATIC_PAT`` > ``GH_TOKEN`` > ``GITHUB_TOKEN``,
+    matching :func:`run_gh_command <repomatic.github.gh.run_gh_command>`.
     """
-    return os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
+    return (
+        os.environ.get("REPOMATIC_PAT")
+        or os.environ.get("GH_TOKEN")
+        or os.environ.get("GITHUB_TOKEN")
+        or ""
+    )
 
 
 def validate_gh_api_access() -> tuple[int, dict[str, str], str]:

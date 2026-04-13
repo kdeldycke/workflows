@@ -451,7 +451,7 @@ jobs:
         # See repomatic/github/dev_release.py for rationale.
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
         run: uvx --no-progress --from . repomatic sync-dev-release --live --delete
       - name: Create GitHub release draft
         # Idempotent: skips if release already exists (e.g. workflow re-run).
@@ -585,7 +585,7 @@ jobs:
           --dir ./binaries
       - name: Upload to VirusTotal and update release body
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
           VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
           CURRENT_VERSION: ${{ matrix.current_version }}
         run: >
@@ -619,8 +619,6 @@ jobs:
           path: release_assets
           merge-multiple: true
       - name: Sync dev release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
           uvx --no-progress --from . repomatic sync-dev-release --live
           --upload-assets release_assets

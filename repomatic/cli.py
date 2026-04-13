@@ -1989,11 +1989,12 @@ def _wrap_setup_step(title: str, content: str, *, passed: bool | None) -> str:
     short_help="Manage setup guide issue lifecycle", section=_section_github
 )
 @option(
-    "--has-pat",
-    is_flag=True,
-    default=False,
-    envvar="HAS_REPOMATIC_PAT",
-    help="Whether REPOMATIC_PAT is configured.",
+    "--has-pat/--no-has-pat",
+    default=None,
+    help=(
+        "Whether REPOMATIC_PAT is configured. "
+        "Auto-detected from the REPOMATIC_PAT environment variable when omitted."
+    ),
 )
 @option(
     "--has-virustotal-key",
@@ -2018,7 +2019,7 @@ def _wrap_setup_step(title: str, content: str, *, passed: bool | None) -> str:
 @pass_context
 def setup_guide(
     ctx: Context,
-    has_pat: bool,
+    has_pat: bool | None,
     has_virustotal_key: bool,
     repo: str | None,
     sha: str | None,
@@ -2029,10 +2030,10 @@ def setup_guide(
     indicator: incomplete steps are expanded with a warning emoji,
     completed steps are collapsed with a checkmark.
 
-    The --has-pat flag can also be set via the HAS_REPOMATIC_PAT
-    environment variable (any non-empty value is truthy).
+    PAT availability is auto-detected from the REPOMATIC_PAT environment
+    variable when --has-pat/--no-has-pat is not specified.
 
-    When --has-pat is set and --repo is provided, the command runs
+    When a PAT is detected and --repo is provided, the command runs
     granular PAT permission checks and repository settings checks.
     The issue closes only when all verifiable steps pass.
 
@@ -2047,6 +2048,9 @@ def setup_guide(
         # Secret configured: close the issue if all checks pass
         repomatic setup-guide --has-pat
     """
+    # Auto-detect PAT from env when not explicitly specified on CLI.
+    if has_pat is None:
+        has_pat = bool(os.environ.get("REPOMATIC_PAT"))
     config = get_tool_config(ctx)
     if not config.setup_guide:
         logging.info("[tool.repomatic] setup-guide is disabled. Skipping setup guide.")
@@ -2834,11 +2838,12 @@ def check_renovate(
     help="Repository in 'owner/repo' format. Defaults to $GITHUB_REPOSITORY.",
 )
 @option(
-    "--has-pat",
-    is_flag=True,
-    default=False,
-    envvar="HAS_REPOMATIC_PAT",
-    help="Whether GH_TOKEN contains REPOMATIC_PAT. Enables PAT capability checks.",
+    "--has-pat/--no-has-pat",
+    default=None,
+    help=(
+        "Whether REPOMATIC_PAT is configured. Enables PAT capability checks. "
+        "Auto-detected from the REPOMATIC_PAT environment variable when omitted."
+    ),
 )
 @option(
     "--has-virustotal-key",
@@ -2858,7 +2863,7 @@ def lint_repo(
     ctx: Context,
     repo_name: str | None,
     repo: str | None,
-    has_pat: bool,
+    has_pat: bool | None,
     has_virustotal_key: bool,
     sha: str | None,
 ) -> None:
@@ -2882,7 +2887,7 @@ def lint_repo(
       - VIRUSTOTAL_API_KEY secret missing when Nuitka is active (warning).
 
     \b
-    When --has-pat is set, additional PAT capability checks are run:
+    When a PAT is detected, additional capability checks are run:
       - Contents permission (error).
       - Issues permission (error).
       - Pull requests permission (error).
@@ -2903,6 +2908,10 @@ def lint_repo(
         # With PAT capability checks
         repomatic lint-repo --has-pat --sha abc123
     """
+    # Auto-detect PAT from env when not explicitly specified on CLI.
+    if has_pat is None:
+        has_pat = bool(os.environ.get("REPOMATIC_PAT"))
+
     if repo_name is None and repo:
         # Extract repo name from owner/repo format.
         repo_name = repo.split("/")[-1] if "/" in repo else repo
