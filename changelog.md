@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.12.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.12.0` (2026-04-13)](https://github.com/kdeldycke/repomatic/compare/v6.11.3...v6.12.0)
 
 - Add `repomatic cache` subcommands (`show`, `clean`, `path`) and a global binary cache for downloaded tool executables under `~/Library/Caches/repomatic` on macOS and `~/.cache/repomatic` on Linux. Cached binaries are re-verified against their registry SHA-256 checksum on every use; stale entries are auto-purged after 30 days (configurable via `REPOMATIC_CACHE_MAX_AGE`). Add `--no-cache` to `repomatic run` to bypass the cache.
 - Add HTTP response cache for PyPI metadata (24h TTL) and GitHub release bodies (24h for all-releases, 7d for single-release) to avoid redundant API calls across `changelog`, `sync-uv-lock`, and `sync-github-releases` invocations. Add `--namespace` to `repomatic cache clean` for targeted cleanup.
