@@ -521,16 +521,23 @@ def run_init(
     source_paths = resolve_source_paths(config)
 
     # Parse exclude/include config. User exclude is additive to defaults;
-    # user include overrides both.
+    # user include overrides both. Qualified entries (component/file)
+    # implicitly select the parent component.
     user_exclude: list[str] = config.exclude
     user_include: list[str] = config.include
     if user_include:
-        parse_component_entries(user_include, context="include")
+        include_full, include_files = parse_component_entries(
+            user_include, context="include"
+        )
+    else:
+        include_full, include_files = set(), {}
     default_exclusions = {
         c.name for c in COMPONENTS if c.init_default == InitDefault.EXCLUDE
     }
     exclude_entries = sorted(
-        (default_exclusions | set(user_exclude)) - set(user_include)
+        (default_exclusions | set(user_exclude))
+        - set(user_include)
+        - set(include_files)
     )
     if default_exclusions:
         logging.debug("Default exclusions: %s", ", ".join(sorted(default_exclusions)))
@@ -570,8 +577,7 @@ def run_init(
     # Three exclusion mechanisms, applied in order per component:
     #
     # 1. Scope (component-level and file-level ``RepoScope``).
-    #    Only during bare ``repomatic init``: explicit CLI naming bypasses
-    #    scope so workflows can materialize out-of-scope configs at runtime.
+    #    Bypassed by explicit CLI naming or ``[tool.repomatic] include``.
     #    Scope exclusions on ``selected`` apply in all repos including the
     #    source repo (an AWESOME_ONLY config should not be merged into the
     #    non-awesome source repo's ``pyproject.toml``). Stale-file detection
@@ -594,6 +600,9 @@ def run_init(
         if is_source and reg_comp.files:
             excluded_files.pop(reg_comp.name, None)
 
+        # Scope is bypassed by explicit CLI naming or config include.
+        scope_bypassed = bool(components) or reg_comp.name in include_full
+
         # --- Component-level scope ---
         if not reg_comp.scope.matches(is_awesome_repo):
             logging.debug(
@@ -602,7 +611,7 @@ def run_init(
                 reg_comp.scope.name,
                 repo_label,
             )
-            if not components:
+            if not scope_bypassed and reg_comp.name not in include_files:
                 selected.discard(reg_comp.name)
                 if not is_source:
                     if isinstance(reg_comp, GeneratedComponent) and reg_comp.target:
@@ -631,7 +640,12 @@ def run_init(
                     entry.scope.name,
                     repo_label,
                 )
-                if not components and not is_source:
+                if (
+                    not scope_bypassed
+                    and not is_source
+                    and entry.file_id
+                    not in include_files.get(reg_comp.name, set())
+                ):
                     excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
             if not is_source and not entry.is_enabled(config):
                 logging.debug(

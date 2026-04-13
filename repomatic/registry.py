@@ -70,7 +70,8 @@ class RepoScope(Enum):
     """Which repository types a file entry applies to.
 
     Scope restrictions are defaults: they apply during bare ``repomatic init``
-    but are bypassed when components are explicitly named on the CLI.
+    but are bypassed when components are explicitly named on the CLI or
+    covered by ``[tool.repomatic] include``.
     """
 
     ALL = auto()

@@ -636,16 +636,14 @@ def test_init_creates_all_default_files(
     result = run_init(output_dir=tmp_path)
 
     # All components: changelog, labels, renovate, skills, workflows.
-    # Opt-in workflows and awesome-triage skill are excluded by default.
+    # Opt-in workflows are excluded by default. Awesome-only skills are
+    # included because ``include = ["skills"]`` bypasses scope filtering.
     config_file_count = sum(
         len(c.files) for c in COMPONENTS if isinstance(c, BundledComponent)
     )
     opt_in_count = sum(1 for f in _BY_NAME["workflows"].files if f.config_key)
     default_workflows = len(REUSABLE_WORKFLOWS) - opt_in_count
-    awesome_triage_auto_excluded = 2  # awesome-triage + translation-sync.
-    expected_count = (
-        default_workflows + config_file_count + 1 - awesome_triage_auto_excluded
-    )
+    expected_count = default_workflows + config_file_count + 1
     assert len(result.created) == expected_count
     assert len(result.skipped) == 0
     assert len(result.warnings) == 0
@@ -1425,10 +1423,17 @@ def test_init_codecov_excluded_existing_for_awesome_repo(
     assert ".github/codecov.yaml" in result.excluded_existing
 
 
-def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize(
+    "repo_slug",
+    [
+        pytest.param("user/some-project", id="non-awesome"),
+        pytest.param("user/awesome-python", id="awesome"),
+    ],
+)
+def test_include_config_includes_all_skill_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, repo_slug: str
 ):
-    """Verify awesome-triage skill is auto-excluded for non-awesome repos."""
+    """Config ``include = ["skills"]`` produces all skills regardless of repo type."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
@@ -1436,26 +1441,7 @@ def test_init_awesome_triage_auto_excluded_for_non_awesome_repo(
     )
     monkeypatch.chdir(tmp_path)
 
-    result = run_init(output_dir=tmp_path, repo_slug="user/some-project")
-
-    created_set = set(result.created)
-    assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
-    assert ".claude/skills/translation-sync/SKILL.md" not in created_set
-    assert ".claude/skills/repomatic-init/SKILL.md" in created_set
-
-
-def test_init_awesome_triage_included_for_awesome_repo(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
-    """Verify awesome-triage skill is included for awesome-* repos."""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(
-        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["skills"]\n',
-        encoding="UTF-8",
-    )
-    monkeypatch.chdir(tmp_path)
-
-    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-python")
+    result = run_init(output_dir=tmp_path, repo_slug=repo_slug)
 
     created_set = set(result.created)
     assert ".claude/skills/awesome-triage/SKILL.md" in created_set
@@ -1487,13 +1473,13 @@ def test_explicit_component_bypasses_scope_exclusion(
     assert "renovate.json5" in created_set
 
 
-def test_bare_init_still_applies_scope_exclusion(
+def test_include_config_bypasses_scope_exclusion(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Bare ``repomatic init`` still respects scope exclusions.
+    """Config ``include`` bypasses scope exclusions, like CLI explicit naming.
 
-    Without explicit components, NON_AWESOME components should be excluded
-    in awesome repos and AWESOME_ONLY components excluded in non-awesome repos.
+    ``include = ["renovate"]`` in an awesome repo should create renovate.json5
+    even though renovate is scoped to NON_AWESOME by default.
     """
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -1507,9 +1493,104 @@ def test_bare_init_still_applies_scope_exclusion(
         repo_slug="user/awesome-billing",
     )
 
-    # Bare init: renovate (NON_AWESOME) should be scope-excluded.
     created_set = set(result.created)
-    assert "renovate.json5" not in created_set
+    assert "renovate.json5" in created_set
+
+
+def test_bare_init_applies_scope_exclusion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Bare init without ``include`` or CLI components applies scope exclusions."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "test"\n', encoding="UTF-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-billing")
+
+    created_set = set(result.created)
+    # NON_AWESOME component and workflow files are scope-excluded in awesome repos.
+    assert ".github/codecov.yaml" not in created_set
+    assert ".github/workflows/changelog.yaml" not in created_set
+    assert ".github/workflows/debug.yaml" not in created_set
+    assert ".github/workflows/release.yaml" not in created_set
+    # Non-scoped workflows are still created.
+    assert ".github/workflows/lint.yaml" in created_set
+
+
+def test_file_level_include_bypasses_scope(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """File-level ``include`` entry bypasses scope for that specific file only."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["workflows/changelog.yaml"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/awesome-billing")
+
+    created_set = set(result.created)
+    # changelog.yaml (NON_AWESOME) included via file-level include.
+    assert ".github/workflows/changelog.yaml" in created_set
+    # Other NON_AWESOME workflows remain scope-excluded.
+    assert ".github/workflows/debug.yaml" not in created_set
+    assert ".github/workflows/release.yaml" not in created_set
+
+
+def test_file_level_include_implies_parent_component(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """File-level ``include`` implicitly selects the parent component.
+
+    ``include = ["skills/awesome-triage"]`` should select the skills
+    component (which is default-excluded) and bypass scope for that
+    specific file, without bypassing scope for other AWESOME_ONLY files.
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills/awesome-triage"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/some-project")
+
+    created_set = set(result.created)
+    # awesome-triage created: parent component implicitly selected, scope bypassed.
+    assert ".claude/skills/awesome-triage/SKILL.md" in created_set
+    # Other non-scoped skills also created (component is fully selected).
+    assert ".claude/skills/repomatic-init/SKILL.md" in created_set
+    # translation-sync is AWESOME_ONLY and NOT in include: still scope-excluded.
+    assert ".claude/skills/translation-sync/SKILL.md" not in created_set
+
+
+def test_exclude_overrides_include_scope_bypass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Explicit ``exclude`` entries take precedence over ``include`` scope bypass."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["skills"]\n'
+        'exclude = ["skills/awesome-triage"]\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path, repo_slug="user/some-project")
+
+    created_set = set(result.created)
+    # awesome-triage excluded by explicit exclude despite include scope bypass.
+    assert ".claude/skills/awesome-triage/SKILL.md" not in created_set
+    # Other awesome-only skills are included (scope bypassed by include).
+    assert ".claude/skills/translation-sync/SKILL.md" in created_set
+    assert ".claude/skills/repomatic-init/SKILL.md" in created_set
 
 
 def test_init_respects_exclude_label_files(
@@ -1627,7 +1708,11 @@ def test_init_detects_excluded_skill_file(
 def test_init_detects_auto_excluded_awesome_triage(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """Verify awesome-triage is detected as excluded for non-awesome repos."""
+    """Verify awesome-triage is detected as excluded for non-awesome repos.
+
+    When ``include`` does not cover skills, scope exclusions still apply
+    and stale awesome-only files are flagged in ``excluded_existing``.
+    """
     # Create skills including awesome-triage (as an awesome repo).
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -1640,7 +1725,11 @@ def test_init_detects_auto_excluded_awesome_triage(
     skill_file = tmp_path / ".claude" / "skills" / "awesome-triage" / "SKILL.md"
     assert skill_file.exists()
 
-    # Re-run as a non-awesome repo.
+    # Re-run as a non-awesome repo without include covering skills.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n[tool.repomatic]\n',
+        encoding="UTF-8",
+    )
     result = run_init(output_dir=tmp_path, repo_slug="user/regular-project")
 
     # File is detected but not deleted.

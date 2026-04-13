@@ -327,7 +327,7 @@ When adding a new field to a registry type, ask: will callers branch on this val
 
 ### Scope exclusions are defaults, not absolutes
 
-`RepoScope` restrictions and `[tool.repomatic] exclude` entries only apply during bare `repomatic init` (no CLI arguments). Explicitly naming a component or file on the CLI bypasses both scope and user-config exclusions. This allows workflows to materialize out-of-scope configs at runtime (e.g., `repomatic init renovate` in an awesome repo). Config key exclusions (`config_key` fields) always apply regardless of explicit naming: the user's `[tool.repomatic]` config is authoritative for feature flags.
+`RepoScope` restrictions and `[tool.repomatic] exclude` entries only apply during bare `repomatic init` (no CLI arguments). Explicitly naming a component or file on the CLI, or listing it in `[tool.repomatic] include`, bypasses both scope and user-config exclusions. This allows workflows to materialize out-of-scope configs at runtime (e.g., `repomatic init renovate` in an awesome repo) and lets users opt into scope-restricted items via config (e.g., `include = ["skills"]` to get awesome-only skills in a non-awesome repo). Config key exclusions (`config_key` fields) always apply regardless of explicit naming or include: the user's `[tool.repomatic]` config is authoritative for feature flags.
 
 In the source repo, scope exclusions still remove out-of-scope components from `selected` (preventing e.g., an `AWESOME_ONLY` config from being merged into the non-awesome source repo's `pyproject.toml`), but stale-file detection is suppressed so bundled data files are never flagged for deletion.
 
