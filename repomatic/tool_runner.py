@@ -272,12 +272,6 @@ class BinarySpec:
             # Most-specific group: fewest members.
             return min(candidates, key=lambda c: len(c[0]))
 
-        return self._no_match_error()
-
-    def _no_match_error(self) -> Never:
-        """Raise a descriptive error for unsupported platform/architecture."""
-        arch = current_architecture()
-        plat = current_platform()
         available = ", ".join(
             f"{k[0].name} {k[1].name}" for k in sorted(self.urls, key=str)
         )
@@ -968,6 +962,59 @@ def _store_config_to_cache(
     return [spec.config_flag, str(tmp_path)], tmp_path
 
 
+def _write_cwd_config(spec: ToolSpec, content: str, level: int) -> Path:
+    """Write config content to the first native config path for CWD-discovery.
+
+    For tools without a ``--config`` flag. The caller must clean up the file
+    after the tool exits.
+
+    :param spec: Tool specification (must have ``native_config_files``).
+    :param content: Config file content to write.
+    :param level: Precedence level (2 or 3) for the log message.
+    :return: Path to the written file.
+    """
+    target = Path(spec.native_config_files[0])
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="UTF-8")
+    logging.warning(
+        "%s: wrote config to repo at %s (level %d). "
+        "This tool has no --config flag; the file will be removed "
+        "after the run.",
+        spec.name,
+        target.resolve(),
+        level,
+    )
+    return target
+
+
+def _deliver_config(
+    spec: ToolSpec,
+    content: str,
+    level: int,
+) -> tuple[list[str], Path | None]:
+    """Deliver resolved config content via the appropriate mechanism.
+
+    Tools with ``config_flag`` get a cached file passed via CLI. Tools with
+    only ``native_config_files`` get a CWD file that must be cleaned up.
+
+    :param spec: Tool specification.
+    :param content: Config file content.
+    :param level: Precedence level for logging.
+    :return: Tuple of (extra CLI args, cleanup path or None).
+    """
+    if spec.config_flag:
+        return _store_config_to_cache(spec, content)
+
+    if spec.native_config_files:
+        return [], _write_cwd_config(spec, content, level)
+
+    msg = (
+        f"{spec.name} has config content at level {level} but no config_flag "
+        f"and no native_config_files to write to."
+    )
+    raise NotImplementedError(msg)
+
+
 def resolve_config(
     spec: ToolSpec,
     tool_config: dict[str, Any] | None = None,
@@ -995,7 +1042,6 @@ def resolve_config(
         tool_config = load_pyproject_tool_section(spec.name)
 
     if tool_config:
-        # Tool reads pyproject.toml natively — no translation needed.
         if spec.reads_pyproject:
             logging.info(
                 "%s: using [tool.%s] in pyproject.toml, read natively (level 2).",
@@ -1005,62 +1051,19 @@ def resolve_config(
             return [], None
 
         content = spec.native_format.serialize(tool_config, tool_name=spec.name)
-
         logging.debug(
             "Translated [tool.%s] to %s:\n%s",
             spec.name,
             spec.native_format.value,
             content,
         )
-
-        if spec.config_flag:
-            return _store_config_to_cache(spec, content)
-
-        if spec.native_config_files:
-            # CWD-discovery tool (no --config flag). Write translated config
-            # to the first native config path so the tool picks it up.
-            # Level 1 already verified this file does not exist.
-            target = Path(spec.native_config_files[0])
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="UTF-8")
-            logging.warning(
-                "%s: wrote translated [tool.%s] to repo at %s (level 2). "
-                "This tool has no --config flag; the file will be removed "
-                "after the run.",
-                spec.name,
-                spec.name,
-                target.resolve(),
-            )
-            return [], target
-
-        msg = (
-            f"{spec.name} has [tool.{spec.name}] config but no config_flag "
-            f"and no native_config_files to write to."
-        )
-        raise NotImplementedError(msg)
+        return _deliver_config(spec, content, level=2)
 
     # Level 3: Bundled default from repomatic/data/.
     if spec.default_config:
-        if spec.config_flag:
-            with get_data_file_path(spec.default_config) as bundled_path:
-                content = bundled_path.read_text(encoding="UTF-8")
-            return _store_config_to_cache(spec, content)
-
-        if spec.native_config_files:
-            # CWD-discovery tool — write bundled default for the tool to find.
-            target = Path(spec.native_config_files[0])
-            with get_data_file_path(spec.default_config) as bundled_path:
-                content = bundled_path.read_text(encoding="UTF-8")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="UTF-8")
-            logging.warning(
-                "%s: wrote bundled default to repo at %s (level 3). "
-                "This tool has no --config flag; the file will be removed "
-                "after the run.",
-                spec.name,
-                target.resolve(),
-            )
-            return [], target
+        with get_data_file_path(spec.default_config) as bundled_path:
+            content = bundled_path.read_text(encoding="UTF-8")
+        return _deliver_config(spec, content, level=3)
 
     # Level 4: Bare invocation.
     logging.info("%s: no config found, bare invocation (level 4).", spec.name)
@@ -1070,7 +1073,6 @@ def resolve_config(
 # ---------------------------------------------------------------------------
 # Binary download infrastructure
 # ---------------------------------------------------------------------------
-
 
 
 def _download_and_verify(
@@ -1104,6 +1106,37 @@ def _download_and_verify(
         msg = f"SHA-256 mismatch for {url}: expected {expected_sha256}, got {actual}"
         raise ValueError(msg)
     logging.debug("SHA-256 verified for %s: %s", url, actual)
+
+
+def _check_member_safety(member_path: str) -> None:
+    """Reject archive members with path traversal or absolute paths.
+
+    :raises ValueError: If the member path is unsafe.
+    """
+    parts = PurePosixPath(member_path).parts
+    if ".." in parts or member_path.startswith("/"):
+        msg = f"Unsafe archive member path: {member_path}"
+        raise ValueError(msg)
+
+
+def _finalize_extracted(
+    member_path: str,
+    dest_dir: Path,
+    target: str,
+) -> Path:
+    """Rename an extracted member to its final location and make executable.
+
+    :param member_path: Archive member path as extracted.
+    :param dest_dir: Directory the member was extracted into.
+    :param target: Expected (stripped) filename.
+    :return: Final path to the executable.
+    """
+    extracted = dest_dir / member_path
+    final = dest_dir / PurePosixPath(target).name
+    if extracted != final:
+        extracted.rename(final)
+    final.chmod(0o755)
+    return final
 
 
 def _extract_binary(
@@ -1141,54 +1174,44 @@ def _extract_binary(
         return dest
 
     if fmt == ArchiveFormat.ZIP:
-        return _extract_zip(archive_path, spec, dest_dir, executable)
+        return _extract_from_zip(archive_path, spec, dest_dir, executable)
 
-    # TAR_GZ or TAR_XZ.
-    target = executable
+    return _extract_from_tar(archive_path, fmt, spec, dest_dir, executable)
 
+
+def _extract_from_tar(
+    archive_path: Path,
+    fmt: ArchiveFormat,
+    spec: BinarySpec,
+    dest_dir: Path,
+    executable: str,
+) -> Path:
+    """Extract a tool executable from a tar archive."""
     with tarfile.open(str(archive_path), fmt.tarfile_mode()) as tar:
         for member in tar.getmembers():
-            # Tar member names always use forward slashes. Use PurePosixPath
-            # to avoid backslash issues on Windows.
             parts = PurePosixPath(member.name).parts
             if len(parts) <= spec.strip_components:
                 continue
             stripped = str(PurePosixPath(*parts[spec.strip_components :]))
-            if stripped == target:
-                # Security: validate member path before extraction.
-                if ".." in parts or member.name.startswith("/"):
-                    msg = f"Unsafe archive member path: {member.name}"
-                    raise ValueError(msg)
+            if stripped == executable:
+                _check_member_safety(member.name)
                 if sys.version_info >= (3, 12):
                     tar.extract(member, dest_dir, filter="data")
                 else:
                     tar.extract(member, dest_dir)
-                extracted = dest_dir / member.name
-                final = dest_dir / PurePosixPath(target).name
-                if extracted != final:
-                    extracted.rename(final)
-                final.chmod(0o755)
-                return final
+                return _finalize_extracted(member.name, dest_dir, executable)
 
-    msg = f"Executable {target!r} not found in archive"
+    msg = f"Executable {executable!r} not found in archive"
     raise FileNotFoundError(msg)
 
 
-def _extract_zip(
+def _extract_from_zip(
     archive_path: Path,
     spec: BinarySpec,
     dest_dir: Path,
     executable: str,
 ) -> Path:
-    """Extract a tool executable from a ZIP archive.
-
-    :param archive_path: Path to the downloaded ZIP file.
-    :param spec: Binary specification with strip_components info.
-    :param dest_dir: Directory to extract into.
-    :param executable: Name of the executable to find in the archive.
-    :return: Path to the extracted executable.
-    :raises FileNotFoundError: If the executable is not found in the archive.
-    """
+    """Extract a tool executable from a ZIP archive."""
     # Windows executables may have a .exe suffix inside the archive.
     targets = {executable, f"{executable}.exe"}
 
@@ -1201,17 +1224,9 @@ def _extract_zip(
                 continue
             stripped = str(PurePosixPath(*parts[spec.strip_components :]))
             if stripped in targets:
-                # Security: reject paths with traversal or absolute components.
-                if ".." in parts or info.filename.startswith("/"):
-                    msg = f"Unsafe archive member path: {info.filename}"
-                    raise ValueError(msg)
+                _check_member_safety(info.filename)
                 zf.extract(info, dest_dir)
-                extracted = dest_dir / info.filename
-                final = dest_dir / PurePosixPath(stripped).name
-                if extracted != final:
-                    extracted.rename(final)
-                final.chmod(0o755)
-                return final
+                return _finalize_extracted(info.filename, dest_dir, stripped)
 
     msg = f"Executable {executable!r} not found in archive"
     raise FileNotFoundError(msg)
@@ -1339,9 +1354,7 @@ def _install_binary(
     logging.info("Downloading %s %s for %s...", spec.name, spec.version, cache_key)
     if skip_checksum:
         logging.warning("Checksum verification skipped for %s.", spec.name)
-        _download_and_verify(url, None, archive_path)
-    else:
-        _download_and_verify(url, checksum, archive_path)
+    _download_and_verify(url, None if skip_checksum else checksum, archive_path)
 
     fmt = binary.get_archive_format(key)
     extracted = _extract_binary(archive_path, binary, tmp_dir, spec.name, fmt)
@@ -1530,31 +1543,36 @@ def run_tool(
 # ---------------------------------------------------------------------------
 
 
+def _detect_config_level(spec: ToolSpec) -> tuple[int, str]:
+    """Detect which precedence level is active for a tool's config.
+
+    Performs the same 4-level walk as :func:`resolve_config` but only
+    detects the level without producing config content or CLI args.
+
+    :return: ``(level, description)`` where level is 1-4 and description
+        is a human-readable source label.
+    """
+    for config_file in spec.native_config_files:
+        if Path(config_file).exists():
+            return 1, config_file
+
+    tool_config = load_pyproject_tool_section(spec.name)
+    if tool_config:
+        return 2, f"[tool.{spec.name}] in pyproject.toml"
+
+    if spec.default_config:
+        return 3, "bundled default"
+
+    return 4, "(bare)"
+
+
 def resolve_config_source(spec: ToolSpec) -> str:
     """Return a human-readable description of the active config source.
 
     Used by ``repomatic run --list`` to show which precedence level is active
     for each tool in the current repo.
-
-    :param name: Tool name (registry key).
-    :param spec: Tool specification.
     """
-    # Level 1: Native config file.
-    for config_file in spec.native_config_files:
-        if Path(config_file).exists():
-            return config_file
-
-    # Level 2: [tool.X] in pyproject.toml.
-    tool_config = load_pyproject_tool_section(spec.name)
-    if tool_config:
-        return f"[tool.{spec.name}] in pyproject.toml"
-
-    # Level 3: Bundled default.
-    if spec.default_config:
-        return "bundled default"
-
-    # Level 4: Bare invocation.
-    return "(bare)"
+    return _detect_config_level(spec)[1]
 
 
 def find_unmodified_configs() -> list[tuple[str, str]]:
