@@ -6,6 +6,10 @@
 # both the version bump and the checksum update, so the checksum write
 # is lost. This workflow runs after Renovate's push, downloads the new
 # binaries, and commits the correct hashes to the PR branch.
+#
+# This workflow is repomatic-internal: it patches repomatic/tool_runner.py
+# which only exists in this repo. It is intentionally excluded from the
+# downstream workflow registry in registry.py.
 name: 🔄 Update checksums
 "on":
   push:
@@ -37,7 +41,14 @@ jobs:
           token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Update stale registry checksums
-        run: uvx --no-progress --from . repomatic update-checksums --registry
+        # Must use `uv run` (not `uvx --from .`). uvx builds an isolated
+        # wheel where __file__ points to a temp site-packages path, so
+        # update-checksums writes the new hashes there instead of the git
+        # working tree. `uv run` installs in editable mode: __file__
+        # resolves to the checkout, and git diff can see the changes.
+        # No version pin needed: the workflow runs on this repo's own
+        # source, so the CLI version is always the checked-out commit.
+        run: uv --no-progress run --frozen -- repomatic update-checksums --registry
       - name: Commit and push if changed
         run: |
           git diff --quiet repomatic/tool_runner.py && exit 0
