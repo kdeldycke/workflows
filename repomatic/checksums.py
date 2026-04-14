@@ -32,8 +32,12 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
+import sys
+from contextlib import nullcontext
 from pathlib import Path
 from urllib.request import Request, urlopen
+
+import click
 
 from .tool_runner import TOOL_REGISTRY
 
@@ -105,17 +109,28 @@ def update_checksums(file_path: Path) -> list[tuple[str, str, str]]:
     content = file_path.read_text(encoding="UTF-8")
     lines = content.splitlines()
     updated: list[tuple[str, str, str]] = []
+    pairs = list(_find_checksum_pairs(lines))
 
-    for url, hash_line_idx, old_hash in _find_checksum_pairs(lines):
-        logging.info(f"Verifying checksum for {url}")
-        new_hash = _download_sha256(url)
+    progress = (
+        click.progressbar(
+            pairs, label="Verifying checksums", file=sys.stderr,
+        )
+        if sys.stderr.isatty()
+        else nullcontext(pairs)
+    )
+    with progress as items:
+        for url, hash_line_idx, old_hash in items:
+            logging.info(f"Verifying checksum for {url}")
+            new_hash = _download_sha256(url)
 
-        if old_hash != new_hash:
-            lines[hash_line_idx] = lines[hash_line_idx].replace(old_hash, new_hash)
-            updated.append((url, old_hash, new_hash))
-            logging.info(f"Updated checksum: {old_hash} -> {new_hash}")
-        else:
-            logging.info("Checksum unchanged.")
+            if old_hash != new_hash:
+                lines[hash_line_idx] = lines[hash_line_idx].replace(
+                    old_hash, new_hash,
+                )
+                updated.append((url, old_hash, new_hash))
+                logging.info(f"Updated checksum: {old_hash} -> {new_hash}")
+            else:
+                logging.info("Checksum unchanged.")
 
     if updated:
         file_path.write_text("\n".join(lines) + "\n", encoding="UTF-8")
@@ -137,21 +152,36 @@ def update_registry_checksums(registry_path: Path) -> list[tuple[str, str, str]]
     content = registry_path.read_text(encoding="UTF-8")
     updated: list[tuple[str, str, str]] = []
 
-    for spec in TOOL_REGISTRY.values():
-        if spec.binary is None:
-            continue
-        for platform_key, url_template in spec.binary.urls.items():
-            url = url_template.format(version=spec.version)
-            old_hash = spec.binary.checksums[platform_key]
+    # Flatten all binary platform entries for progress tracking.
+    entries = [
+        (spec, pk, tmpl.format(version=spec.version),
+         spec.binary.checksums[pk])
+        for spec in TOOL_REGISTRY.values()
+        if spec.binary is not None
+        for pk, tmpl in spec.binary.urls.items()
+    ]
+
+    progress = (
+        click.progressbar(
+            entries, label="Verifying checksums", file=sys.stderr,
+        )
+        if sys.stderr.isatty()
+        else nullcontext(entries)
+    )
+    with progress as items:
+        for spec, platform_key, url, old_hash in items:
             logging.info(
-                f"Verifying registry checksum for {spec.name} ({platform_key})"
+                f"Verifying registry checksum for"
+                f" {spec.name} ({platform_key})"
             )
             new_hash = _download_sha256(url)
 
             if old_hash != new_hash:
                 content = content.replace(old_hash, new_hash)
                 updated.append((url, old_hash, new_hash))
-                logging.info(f"Updated checksum: {old_hash} -> {new_hash}")
+                logging.info(
+                    f"Updated checksum: {old_hash} -> {new_hash}"
+                )
             else:
                 logging.info("Checksum unchanged.")
 

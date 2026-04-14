@@ -42,13 +42,14 @@ import sys
 import tarfile
 import zipfile
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass, field as dataclass_field, replace
 from enum import Enum
 from importlib.resources import as_file, files
 from pathlib import Path, PurePosixPath
 from urllib.request import Request, urlopen
 
+import click
 import tomlkit
 import yaml
 from extra_platforms import (
@@ -1079,24 +1080,43 @@ def _download_and_verify(
     url: str,
     expected_sha256: str | None,
     dest_path: Path,
+    *,
+    label: str | None = None,
 ) -> None:
     """Download a file and verify its SHA-256 checksum.
 
     Uses streaming download with chunked hash computation to handle large
-    binaries without loading the entire file into memory.
+    binaries without loading the entire file into memory. Shows a progress
+    bar on interactive terminals when the server provides a
+    ``Content-Length`` header.
 
     :param url: URL to download.
     :param expected_sha256: Expected lowercase hex SHA-256 digest.
         ``None`` skips verification (logs the computed digest for reference).
     :param dest_path: Where to write the downloaded file.
+    :param label: Progress bar label. Defaults to the destination filename.
     :raises ValueError: If the checksum does not match.
     """
     request = Request(url)
     sha256 = hashlib.sha256()
     with urlopen(request) as response, dest_path.open("wb") as f:
-        while chunk := response.read(65536):
-            f.write(chunk)
-            sha256.update(chunk)
+        content_length = response.headers.get("Content-Length")
+        total = int(content_length) if content_length else 0
+        progress = (
+            click.progressbar(
+                length=total,
+                label=label or dest_path.name,
+                file=sys.stderr,
+            )
+            if total and sys.stderr.isatty()
+            else nullcontext()
+        )
+        with progress as bar:
+            while chunk := response.read(65536):
+                f.write(chunk)
+                sha256.update(chunk)
+                if bar is not None:
+                    bar.update(len(chunk))
     actual = sha256.hexdigest()
     if expected_sha256 is None:
         logging.info("SHA-256 of %s: %s (not verified).", url, actual)
@@ -1354,7 +1374,12 @@ def _install_binary(
     logging.info("Downloading %s %s for %s...", spec.name, spec.version, cache_key)
     if skip_checksum:
         logging.warning("Checksum verification skipped for %s.", spec.name)
-    _download_and_verify(url, None if skip_checksum else checksum, archive_path)
+    _download_and_verify(
+        url,
+        None if skip_checksum else checksum,
+        archive_path,
+        label=f"{spec.name} {spec.version}",
+    )
 
     fmt = binary.get_archive_format(key)
     extracted = _extract_binary(archive_path, binary, tmp_dir, spec.name, fmt)
