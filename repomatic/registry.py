@@ -350,6 +350,12 @@ COMPONENTS: tuple[Component, ...] = (
                 phase="Quality",
             ),
             FileEntry(
+                "skill-benchmark-update.md",
+                _skill_target("benchmark-update"),
+                "benchmark-update",
+                phase="Development",
+            ),
+            FileEntry(
                 "skill-brand-assets.md",
                 _skill_target("brand-assets"),
                 "brand-assets",
@@ -426,6 +432,12 @@ COMPONENTS: tuple[Component, ...] = (
                 _skill_target("translation-sync"),
                 "translation-sync",
                 scope=RepoScope.AWESOME_ONLY,
+                phase="Maintenance",
+            ),
+            FileEntry(
+                "skill-upstream-audit.md",
+                _skill_target("upstream-audit"),
+                "upstream-audit",
                 phase="Maintenance",
             ),
         ),

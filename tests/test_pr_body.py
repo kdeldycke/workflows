@@ -220,7 +220,7 @@ def test_get_template_names():
     assert "setup-guide-virustotal" in names
     assert "yanked-admonition" in names
     assert "format-shell" in names
-    assert len(names) == 41
+    assert len(names) == 42
 
 
 def test_load_template_frontmatter():
