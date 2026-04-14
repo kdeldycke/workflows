@@ -24,6 +24,7 @@ import json
 import re
 import sys
 import tarfile
+import zipfile
 from itertools import combinations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -188,6 +189,22 @@ def test_tool_spec_integrity(name, spec):
                 ArchiveFormat.TAR_GZ,
                 ArchiveFormat.TAR_XZ,
             ), f"{name}: strip_components is only valid for tar archive formats"
+
+        # archive_format_overrides keys must be valid platform keys present
+        # in urls, and values must be valid ArchiveFormat members.
+        for pk, fmt in spec.binary.archive_format_overrides.items():
+            assert pk in VALID_PLATFORM_KEYS, (
+                f"{name}: override key {pk!r} is not a valid platform key"
+            )
+            assert pk in spec.binary.urls, (
+                f"{name}: override key {pk!r} has no corresponding URL"
+            )
+            assert isinstance(fmt, ArchiveFormat), (
+                f"{name}: override value for {pk!r} is not an ArchiveFormat"
+            )
+            assert fmt != spec.binary.archive_format, (
+                f"{name}/{pk}: override format equals default — remove the override"
+            )
 
         # RAW archives should not have path separators in archive_executable.
         if (
@@ -408,6 +425,94 @@ def test_extract_binary_tar_unsafe_path(tmp_path):
         _extract_binary(archive, spec, tmp_path, "testtool")
 
 
+def _create_zip(tmp_path, member_name, content=b"MZ fake exe"):
+    """Create a ZIP archive with a single member."""
+    archive_path = tmp_path / "tool.zip"
+    with zipfile.ZipFile(archive_path, "w") as zf:
+        zf.writestr(member_name, content)
+    return archive_path
+
+
+def test_extract_binary_zip(tmp_path):
+    """ZIP format extracts the named executable and makes it executable."""
+    archive = _create_zip(tmp_path, "actionlint.exe")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.ZIP,
+    )
+    result = _extract_binary(archive, spec, tmp_path, "actionlint")
+
+    assert result == tmp_path / "actionlint.exe"
+    assert result.exists()
+    assert result.stat().st_mode & 0o755
+
+
+def test_extract_binary_zip_with_strip_components(tmp_path):
+    """ZIP with strip_components strips leading path components."""
+    archive = _create_zip(tmp_path, "subdir/bin/mytool.exe")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.ZIP,
+        archive_executable="bin/mytool.exe",
+        strip_components=1,
+    )
+    result = _extract_binary(archive, spec, tmp_path, "testtool")
+
+    assert result.name == "mytool.exe"
+    assert result.exists()
+    assert result.stat().st_mode & 0o755
+
+
+def test_extract_binary_zip_missing_executable(tmp_path):
+    """Missing executable in ZIP archive raises FileNotFoundError."""
+    archive = _create_zip(tmp_path, "other.exe")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.ZIP,
+    )
+    with pytest.raises(FileNotFoundError, match="not found in archive"):
+        _extract_binary(archive, spec, tmp_path, "nonexistent")
+
+
+def test_extract_binary_zip_unsafe_path(tmp_path):
+    """ZIP member with path traversal raises ValueError."""
+    archive = _create_zip(tmp_path, "../../../etc/passwd")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.ZIP,
+        archive_executable="../../../etc/passwd",
+    )
+    with pytest.raises(ValueError, match="Unsafe archive member"):
+        _extract_binary(archive, spec, tmp_path, "testtool")
+
+
+def test_extract_binary_format_override(tmp_path):
+    """Per-platform archive format override is used when passed."""
+    archive = _create_zip(tmp_path, "gitleaks.exe")
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format=ArchiveFormat.TAR_GZ,
+        archive_format_overrides={"windows-x64": ArchiveFormat.ZIP},
+    )
+    # Passing the override format directly (as _install_binary does).
+    result = _extract_binary(
+        archive, spec, tmp_path, "gitleaks", ArchiveFormat.ZIP
+    )
+
+    assert result == tmp_path / "gitleaks.exe"
+    assert result.exists()
+
+
 def test_install_binary_missing_platform():
     """Missing platform key in binary spec raises RuntimeError."""
     spec = ToolSpec(
@@ -423,7 +528,7 @@ def test_install_binary_missing_platform():
     )
     with (
         patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
-        pytest.raises(RuntimeError, match="No binary available"),
+        pytest.raises(RuntimeError, match="No testtool binary available"),
     ):
         _install_binary(spec, Path("/tmp"))
 
