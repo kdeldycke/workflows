@@ -28,6 +28,7 @@ from repomatic.binary import (
     BINARY_ARCH_MAPPINGS,
     NUITKA_BUILD_TARGETS,
     SKIP_BINARY_BUILD_BRANCHES,
+    run_exiftool,
     verify_binary_arch,
 )
 from repomatic.metadata import Metadata
@@ -65,6 +66,17 @@ def test_mapping_values(target, expected_field, expected_substring):
     field, substring = BINARY_ARCH_MAPPINGS[target]
     assert field == expected_field
     assert substring == expected_substring
+
+
+def test_run_exiftool_missing_command(tmp_path):
+    """run_exiftool raises FileNotFoundError when exiftool is not on PATH."""
+    binary = tmp_path / "test.bin"
+    binary.touch()
+    with (
+        patch("repomatic.binary.shutil.which", return_value=None),
+        pytest.raises(FileNotFoundError, match="not found on PATH"),
+    ):
+        run_exiftool(binary)
 
 
 def test_unknown_target(tmp_path):

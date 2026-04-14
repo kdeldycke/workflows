@@ -38,7 +38,7 @@ jobs:
       - name: Check Renovate prerequisites
         id: checks
         env:
-          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
         run: uvx --no-progress --from . repomatic check-renovate --format=github --output "$GITHUB_OUTPUT"
 
       # No need to export renovate.json5 here — the renovate job below
@@ -51,7 +51,7 @@ jobs:
 
       - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
-          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
           commit-message: Migrate from Dependabot to Renovate
           title: Migrate from Dependabot to Renovate
@@ -86,14 +86,14 @@ jobs:
       # updates disabled, commit statuses permission).
       - name: Validate Renovate prerequisites
         env:
-          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
         run: uvx --no-progress --from . repomatic check-renovate
 
       - uses: renovatebot/github-action@3633cede7d4d4598438e654eac4a695e46004420 # v46.1.7
         with:
           # Custom PAT required for Renovate to function fully.
           # See readme.md for full list of required permissions.
-          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || github.token }}
         env:
           # Self-hosted configuration.
           RENOVATE_PLATFORM: "github"

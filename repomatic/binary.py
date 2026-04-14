@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -198,6 +199,9 @@ def run_exiftool(binary_path: Path) -> dict[str, str]:
     :raises json.JSONDecodeError: If output is not valid JSON.
     """
     cmd = get_exiftool_command()
+    if not shutil.which(cmd):
+        msg = f"{cmd} not found on PATH. Install exiftool before verifying binaries."
+        raise FileNotFoundError(msg)
     result = subprocess.run(
         [cmd, "-json", "-CPUType", "-MachineType", str(binary_path.resolve())],
         capture_output=True,

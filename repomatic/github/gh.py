@@ -18,11 +18,15 @@
 
 .. note::
 
-    Token resolution is centralized here so that workflow YAML only needs to
-    pass ``REPOMATIC_PAT`` as an env var.  :func:`run_gh_command` prefers
-    ``REPOMATIC_PAT`` over ``GH_TOKEN`` over ``GITHUB_TOKEN`` (the default
-    Actions token).  When the primary token returns 401 Bad Credentials
-    (expired or revoked PAT), it retries with ``GITHUB_TOKEN`` automatically.
+    Workflow steps must set ``GH_TOKEN`` explicitly: ``GITHUB_TOKEN`` is a
+    secret expression in GitHub Actions, not an automatic environment variable.
+    The standard pattern is ``GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}``
+    for steps that prefer a PAT, or ``GH_TOKEN: ${{ github.token }}`` otherwise.
+
+    As defense-in-depth, :func:`run_gh_command` promotes ``REPOMATIC_PAT`` to
+    ``GH_TOKEN`` when set, and promotes ``GITHUB_TOKEN`` to ``GH_TOKEN`` when
+    ``GH_TOKEN`` is absent.  On 401 Bad Credentials (expired or revoked PAT),
+    it retries with ``GITHUB_TOKEN`` if available and different.
 """
 
 from __future__ import annotations
@@ -49,10 +53,18 @@ def run_gh_command(args: list[str]) -> str:
     cmd = ["gh", *args]
     logging.debug(f"Running: {' '.join(cmd)}")
 
-    # Prefer REPOMATIC_PAT when set.  The gh CLI does not recognize this env
-    # var, so inject it as GH_TOKEN.
+    # Build the env override for the gh subprocess.  REPOMATIC_PAT takes
+    # priority; otherwise promote GITHUB_TOKEN to GH_TOKEN so the gh CLI
+    # finds a token in GitHub Actions (where GH_TOKEN is not set by default).
     pat = os.environ.get("REPOMATIC_PAT")
-    env = {**os.environ, "GH_TOKEN": pat} if pat else None
+    gh_token = os.environ.get("GH_TOKEN")
+    github_token = os.environ.get("GITHUB_TOKEN")
+    if pat:
+        env = {**os.environ, "GH_TOKEN": pat}
+    elif not gh_token and github_token:
+        env = {**os.environ, "GH_TOKEN": github_token}
+    else:
+        env = None
     process = run(cmd, capture_output=True, encoding="UTF-8", check=False, env=env)
 
     if process.returncode:

@@ -42,7 +42,7 @@ jobs:
             repomatic-bin-${{ runner.os }}-${{ runner.arch }}-labelmaker-
       - name: Sync labels
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: uvx --no-progress --from . repomatic sync-labels
 
   metadata:
@@ -121,4 +121,6 @@ jobs:
     steps:
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Add sponsor label
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: uvx --no-progress --from . repomatic sponsor-label

@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Cancel in-progress runs for PR branch
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           BRANCH: ${{ github.event.pull_request.head.ref }}
           CURRENT_RUN_ID: ${{ github.run_id }}

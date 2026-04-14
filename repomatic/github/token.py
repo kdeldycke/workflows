@@ -52,7 +52,7 @@ mid-execution.
      vulnerability alerts).
 
    All jobs fall back to ``GITHUB_TOKEN`` when the PAT is unavailable
-   (``secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN``), but
+   (``secrets.REPOMATIC_PAT || github.token``), but
    operations requiring the ``workflows`` permission or workflow triggering
    will silently fail.
 

@@ -73,6 +73,22 @@ def test_gh_token_used_when_no_repomatic_pat():
         assert mock_run.call_args.kwargs.get("env") is None
 
 
+def test_github_token_promoted_to_gh_token():
+    """GITHUB_TOKEN is promoted to GH_TOKEN when GH_TOKEN is absent."""
+    with (
+        patch("repomatic.github.gh.run") as mock_run,
+        patch.dict(
+            "os.environ",
+            {**_CLEAN_ENV, "GITHUB_TOKEN": "gha-tok"},
+            clear=True,
+        ),
+    ):
+        mock_run.return_value = _make_result(stdout="ok\n")
+        assert run_gh_command(["issue", "list"]) == "ok\n"
+        env_used = mock_run.call_args.kwargs["env"]
+        assert env_used["GH_TOKEN"] == "gha-tok"
+
+
 def test_empty_repomatic_pat_ignored():
     """Empty REPOMATIC_PAT (unconfigured secret) is treated as absent."""
     with (

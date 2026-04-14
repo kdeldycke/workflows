@@ -71,7 +71,7 @@ jobs:
       - name: Open issue to notify maintainer
         id: issue
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TITLE: ${{ steps.issue-metadata.outputs.title }}
           BODY: ${{ steps.issue-metadata.outputs.body }}
@@ -162,7 +162,7 @@ jobs:
           github.event_name != 'pull_request'
           || !github.event.pull_request.head.repo.fork
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           for f in ./dist/*; do
@@ -248,7 +248,13 @@ jobs:
         run: brew install exiftool
       - name: Install exiftool - Windows
         if: runner.os == 'Windows'
-        run: choco install exiftool --no-progress --yes --retry-count=3
+        shell: pwsh
+        run: |
+          choco install exiftool --no-progress --yes --retry-count=3
+          if (-not (Get-Command exiftool -ErrorAction SilentlyContinue)) {
+            Write-Error "exiftool not found on PATH after choco install"
+            exit 1
+          }
       - name: Verify binary architecture
         env:
           TARGET: ${{ matrix.target }}
@@ -278,7 +284,7 @@ jobs:
           github.ref == 'refs/heads/main'
           && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           BIN_NAME: ${{ matrix.bin_name }}
         shell: bash
         run: >
@@ -351,7 +357,7 @@ jobs:
           ref: ${{ matrix.commit }}
           # PAT required so tag pushes trigger downstream on.push.tags workflows.
           # See repomatic/git_ops.py module docstring.
-          token: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.REPOMATIC_PAT || github.token }}
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Create and push tag
         # Idempotent: skips if tag already exists instead of failing. This allows re-running
@@ -392,7 +398,7 @@ jobs:
           name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
       - name: Verify build attestations
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           DOWNLOAD_PATH: ${{ steps.download.outputs.download-path }}
         shell: bash
         run: |
@@ -451,12 +457,12 @@ jobs:
         # See repomatic/github/dev_release.py for rationale.
         continue-on-error: true
         env:
-          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
         run: uvx --no-progress --from . repomatic sync-dev-release --live --delete
       - name: Create GitHub release draft
         # Idempotent: skips if release already exists (e.g. workflow re-run).
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           CURRENT_VERSION: ${{ matrix.current_version }}
           COMMIT: ${{ matrix.commit }}
           REPO: ${{ github.repository }}
@@ -479,7 +485,7 @@ jobs:
       - name: Upload attestation bundle to GitHub release draft
         if: steps.attestation-bundle.outputs.download-path
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           CURRENT_VERSION: ${{ matrix.current_version }}
         shell: bash
         run: |
@@ -519,7 +525,7 @@ jobs:
         # Exclude Python packages (.tar.gz, .whl) already uploaded by create-release.
         if: needs.compile-binaries.result == 'success'
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           CURRENT_VERSION: ${{ matrix.current_version }}
         shell: bash
         run: |
@@ -534,7 +540,7 @@ jobs:
       - name: Update release notes with PyPI admonition
         if: needs.publish-pypi.result == 'success'
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           CURRENT_VERSION: ${{ matrix.current_version }}
           RELEASE_NOTES: ${{ fromJSON(needs.metadata.outputs.metadata).release_notes_with_admonition }}
         run: |
@@ -543,7 +549,7 @@ jobs:
             --repo "${{ github.repository }}" <<< "${RELEASE_NOTES}"
       - name: Publish release
         env:
-          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           CURRENT_VERSION: ${{ matrix.current_version }}
           REPO: ${{ github.repository }}
         run: >
@@ -575,7 +581,7 @@ jobs:
           enable-cache: false
       - name: Download release binaries
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           CURRENT_VERSION: ${{ matrix.current_version }}
         run: >
           gh release download "v${CURRENT_VERSION}"
@@ -585,7 +591,7 @@ jobs:
           --dir ./binaries
       - name: Upload to VirusTotal and update release body
         env:
-          REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
           CURRENT_VERSION: ${{ matrix.current_version }}
         run: >
@@ -619,6 +625,8 @@ jobs:
           path: release_assets
           merge-multiple: true
       - name: Sync dev release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: >
           uvx --no-progress --from . repomatic sync-dev-release --live
           --upload-assets release_assets

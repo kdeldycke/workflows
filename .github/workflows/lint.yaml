@@ -52,6 +52,7 @@ jobs:
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - name: Lint repository metadata
         env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}
           HAS_VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY && 'true' || '' }}
         run: uvx --no-progress --from . repomatic lint-repo
