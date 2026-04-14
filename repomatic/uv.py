@@ -339,6 +339,20 @@ _RELATIVE_DURATION_RE = re.compile(r"^(\d+)\s+(days?|weeks?)$")
 """Matches uv's relative duration syntax: ``N day(s)`` or ``N week(s)``."""
 
 
+def _build_inline_table(entries: dict[str, str]) -> tomlkit.items.InlineTable:
+    """Build a tomlkit inline table with pyproject-fmt-compatible formatting.
+
+    ``tomlkit``'s ``InlineTable.append()`` and ``__delitem__`` leave malformed
+    whitespace (doubled spaces after commas, missing inner-brace spaces).
+    Building the table by parsing a pre-formatted string avoids this.
+
+    :param entries: Mapping of key-value pairs for the inline table.
+    :return: A ``tomlkit`` ``InlineTable`` with canonical formatting.
+    """
+    parts = ", ".join(f'{k} = "{entries[k]}"' for k in sorted(entries))
+    return tomlkit.value("{ " + parts + " }")
+
+
 def _parse_relative_duration(value: str) -> timedelta | None:
     """Parse a uv relative duration string into a timedelta.
 
@@ -478,19 +492,22 @@ def add_exclude_newer_packages(
         logging.debug("All packages already in exclude-newer-package, nothing to add.")
         return False
 
+    if pkg_table is None and "exclude-newer" not in uv:
+        logging.warning(
+            "No [tool.uv] exclude-newer or exclude-newer-package found in"
+            f" {pyproject_path}. Cannot persist cooldown exemptions."
+        )
+        return False
+
+    # Merge existing entries with new ones and rebuild the inline table to
+    # produce pyproject-fmt-compatible formatting.
+    all_entries = dict(pkg_table) if pkg_table is not None else {}
+    for pkg in to_add:
+        all_entries[pkg] = "0 day"
+    new_table = _build_inline_table(all_entries)
     if pkg_table is not None:
-        for pkg in sorted(to_add):
-            pkg_table.append(pkg, "0 day")
+        uv["exclude-newer-package"] = new_table
     else:
-        if "exclude-newer" not in uv:
-            logging.warning(
-                "No [tool.uv] exclude-newer or exclude-newer-package found in"
-                f" {pyproject_path}. Cannot persist cooldown exemptions."
-            )
-            return False
-        new_table = tomlkit.inline_table()
-        for pkg in sorted(to_add):
-            new_table.append(pkg, "0 day")
         uv.add("exclude-newer-package", new_table)
 
     pyproject_path.write_text(tomlkit.dumps(doc), encoding="UTF-8")
@@ -582,11 +599,13 @@ def prune_stale_exclude_newer_packages(
         logging.debug("No stale exclude-newer-package entries.")
         return False
 
-    for pkg in stale:
-        del pkg_table[pkg]
+    # Rebuild the inline table without stale entries to produce
+    # pyproject-fmt-compatible formatting.
+    remaining = {k: v for k, v in pkg_table.items() if k not in stale}
+    removed_entirely = len(remaining) == 0
+    if not removed_entirely:
+        uv["exclude-newer-package"] = _build_inline_table(remaining)
 
-    # Remove the key entirely when all entries have been pruned.
-    removed_entirely = len(pkg_table) == 0
     if removed_entirely:
         # Find the comment(s) above the key before tomlkit loses their
         # association. tomlkit preserves standalone comments when their
