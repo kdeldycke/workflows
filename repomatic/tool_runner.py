@@ -1217,18 +1217,54 @@ def _extract_zip(
     raise FileNotFoundError(msg)
 
 
-def _verify_cached_binary(path: Path, expected_sha256: str) -> bool:
-    """Verify the SHA-256 checksum of a cached binary.
+def _compute_file_sha256(path: Path) -> str:
+    """Compute the SHA-256 hex digest of a file.
 
-    :param path: Path to the cached binary.
-    :param expected_sha256: Expected lowercase hex SHA-256 digest.
-    :return: ``True`` if the checksum matches, ``False`` otherwise.
+    :param path: Path to the file.
+    :return: Lowercase hex SHA-256 digest.
     """
     sha256 = hashlib.sha256()
     with path.open("rb") as f:
         while chunk := f.read(65536):
             sha256.update(chunk)
-    return sha256.hexdigest() == expected_sha256
+    return sha256.hexdigest()
+
+
+def _binary_sidecar_path(binary_path: Path) -> Path:
+    """Return the ``.sha256`` sidecar path for a cached binary.
+
+    The sidecar stores the SHA-256 digest of the extracted binary, computed
+    after a verified archive download. This is distinct from the archive
+    checksum in the registry: the archive checksum defends against supply-chain
+    tampering at download time, while the sidecar defends against local cache
+    tampering between runs.
+    """
+    return binary_path.with_suffix(binary_path.suffix + ".sha256")
+
+
+def _write_binary_sidecar(binary_path: Path) -> None:
+    """Compute and write the SHA-256 sidecar for a cached binary.
+
+    Called after a verified archive download + extraction + cache store.
+    The sidecar is the trust anchor for subsequent cache hits.
+    """
+    digest = _compute_file_sha256(binary_path)
+    sidecar = _binary_sidecar_path(binary_path)
+    sidecar.write_text(digest, encoding="UTF-8")
+    logging.debug("Wrote binary sidecar: %s (%s).", sidecar, digest)
+
+
+def _verify_cached_binary(path: Path) -> bool:
+    """Verify a cached binary against its ``.sha256`` sidecar.
+
+    :param path: Path to the cached binary.
+    :return: ``True`` if the sidecar exists and the digest matches.
+    """
+    sidecar = _binary_sidecar_path(path)
+    if not sidecar.is_file():
+        return False
+    expected = sidecar.read_text(encoding="UTF-8").strip()
+    return _compute_file_sha256(path) == expected
 
 
 def _install_binary(
@@ -1239,10 +1275,15 @@ def _install_binary(
 ) -> Path:
     """Download, verify, and extract a binary tool.
 
-    Checks the global binary cache before downloading. On a cache hit, the
-    cached binary is re-verified against the registry checksum (unless
-    ``skip_checksum`` is set). On a cache miss, the binary is downloaded,
-    verified, extracted, and stored in the cache for future use.
+    Two-layer integrity model:
+
+    - **Archive checksum** (download time): the registry checksum is verified
+      against the downloaded archive. This defends against supply-chain
+      tampering and is auditable against the upstream release page.
+    - **Binary sidecar** (cache hit): after a verified download, extraction,
+      and cache store, a ``.sha256`` sidecar is written next to the cached
+      binary. Subsequent cache hits verify the binary against this sidecar,
+      defending against local cache tampering between runs.
 
     :param spec: Tool specification with ``binary`` set.
     :param tmp_dir: Temporary directory for download and extraction.
@@ -1272,30 +1313,22 @@ def _install_binary(
                     cache_key,
                 )
                 return cached
-            if checksum and _verify_cached_binary(cached, checksum):
+            if _verify_cached_binary(cached):
                 logging.info(
-                    "Using cached %s %s for %s (checksum verified).",
+                    "Using cached %s %s for %s (sidecar verified).",
                     spec.name,
                     spec.version,
                     cache_key,
                 )
                 return cached
-            if checksum:
-                logging.warning(
-                    "Cached %s %s failed integrity check, re-downloading.",
-                    spec.name,
-                    spec.version,
-                )
-                cached.unlink(missing_ok=True)
-            else:
-                # No checksum available: trust the cached binary.
-                logging.info(
-                    "Using cached %s %s for %s (no checksum to verify).",
-                    spec.name,
-                    spec.version,
-                    cache_key,
-                )
-                return cached
+            # Sidecar missing or digest mismatch: re-download from source.
+            logging.warning(
+                "Cached %s %s failed integrity check, re-downloading.",
+                spec.name,
+                spec.version,
+            )
+            cached.unlink(missing_ok=True)
+            _binary_sidecar_path(cached).unlink(missing_ok=True)
 
     url = binary.urls[key].format(version=spec.version)
 
@@ -1320,6 +1353,7 @@ def _install_binary(
     if not no_cache:
         cached = store_binary(spec.name, spec.version, cache_key, extracted)
         if cached.is_file():
+            _write_binary_sidecar(cached)
             return cached
         logging.warning(
             "Cached binary missing after store at %s, using temp path.",

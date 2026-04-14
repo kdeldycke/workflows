@@ -573,20 +573,20 @@ def test_install_binary_missing_platform():
 
 
 def test_install_binary_cache_hit(tmp_path, monkeypatch):
-    """_install_binary returns cached path when cache hit and checksum matches."""
+    """_install_binary returns cached path when cache hit and sidecar matches."""
     monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
     monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
 
-    # Pre-populate the cache with a fake binary.
+    # Pre-populate the cache with a fake binary and its .sha256 sidecar.
     fake_binary = b"cached-binary-content"
-    checksum = hashlib.sha256(fake_binary).hexdigest()
+    binary_checksum = hashlib.sha256(fake_binary).hexdigest()
 
     spec = ToolSpec(
         name="testtool",
         version="1.0.0",
         binary=BinarySpec(
             urls={(LINUX, X86_64): "https://example.com/{version}/tool"},
-            checksums={(LINUX, X86_64): checksum},
+            checksums={(LINUX, X86_64): "archive-checksum-not-used-for-cache"},
             archive_format=ArchiveFormat.RAW,
         ),
     )
@@ -597,6 +597,9 @@ def test_install_binary_cache_hit(tmp_path, monkeypatch):
     cache_path.parent.mkdir(parents=True)
     cache_path.write_bytes(fake_binary)
     cache_path.chmod(0o755)
+    # Write the sidecar with the binary's digest.
+    sidecar = cache_path.with_suffix(cache_path.suffix + ".sha256")
+    sidecar.write_text(binary_checksum, encoding="UTF-8")
 
     with (
         patch("repomatic.tool_runner.current_platform", return_value=UBUNTU),
@@ -646,6 +649,10 @@ def test_install_binary_cache_miss_stores(tmp_path, monkeypatch):
     expected_cache = cached_binary_path("testtool", "2.0.0", "linux-x86_64", "testtool")
     assert result == expected_cache
     assert expected_cache.read_bytes() == fake_binary
+    # Sidecar must be written after cache store.
+    sidecar = expected_cache.with_suffix(expected_cache.suffix + ".sha256")
+    assert sidecar.is_file()
+    assert sidecar.read_text(encoding="UTF-8") == hashlib.sha256(fake_binary).hexdigest()
 
 
 def test_install_binary_no_cache_flag(tmp_path, monkeypatch):
@@ -686,25 +693,29 @@ def test_install_binary_no_cache_flag(tmp_path, monkeypatch):
 
 
 def test_install_binary_cache_integrity_failure(tmp_path, monkeypatch):
-    """_install_binary re-downloads when cached binary fails checksum."""
+    """_install_binary re-downloads when cached binary fails sidecar check."""
     monkeypatch.setenv("REPOMATIC_CACHE_DIR", str(tmp_path / "cache"))
     monkeypatch.setenv("REPOMATIC_CACHE_MAX_AGE", "0")
 
-    # Put a tampered binary in the cache.
+    # Put a tampered binary in the cache with a sidecar for the original.
     from repomatic.cache import cached_binary_path
 
     cache_path = cached_binary_path("testtool", "1.0.0", "linux-x86_64", "testtool")
     cache_path.parent.mkdir(parents=True)
     cache_path.write_bytes(b"tampered-content")
     cache_path.chmod(0o755)
+    # Sidecar records the digest of the original binary, not the tampered one.
+    sidecar = cache_path.with_suffix(cache_path.suffix + ".sha256")
+    sidecar.write_text(
+        hashlib.sha256(b"original-content").hexdigest(), encoding="UTF-8"
+    )
 
-    real_checksum = hashlib.sha256(b"real-binary").hexdigest()
     spec = ToolSpec(
         name="testtool",
         version="1.0.0",
         binary=BinarySpec(
             urls={(LINUX, X86_64): "https://example.com/{version}/tool.tar.gz"},
-            checksums={(LINUX, X86_64): real_checksum},
+            checksums={(LINUX, X86_64): "archive-checksum"},
             archive_format=ArchiveFormat.RAW,
         ),
     )

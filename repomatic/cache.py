@@ -20,8 +20,9 @@ generated tool configurations.
 Three cache subtrees under the user-level cache directory:
 
 **Binary cache** (``bin/``): platform-specific tool executables, keyed by
-``{tool}/{version}/{platform}/{executable}``. Integrity is enforced by the
-caller via SHA-256 re-verification on every cache hit.
+``{tool}/{version}/{platform}/{executable}``. Each cached binary has a
+``.sha256`` sidecar written after a verified archive download. Cache hits
+verify the binary against this sidecar to detect local tampering.
 
 **HTTP response cache** (``http/``): JSON API responses from PyPI and GitHub,
 keyed by ``{namespace}/{key}.json``. Freshness is controlled by a per-caller
@@ -279,6 +280,9 @@ def cache_info() -> list[CacheEntry]:
                 for binary in sorted(platform_dir.iterdir()):
                     if not binary.is_file():
                         continue
+                    # Skip .sha256 sidecar files.
+                    if binary.name.endswith(".sha256"):
+                        continue
                     stat = binary.stat()
                     entries.append(
                         CacheEntry(
@@ -323,6 +327,10 @@ def clear_cache(
         try:
             bytes_freed += entry.size
             entry.path.unlink()
+            # Remove the .sha256 sidecar if present.
+            sidecar = entry.path.with_suffix(entry.path.suffix + ".sha256")
+            if sidecar.is_file():
+                sidecar.unlink()
             files_deleted += 1
         except OSError:
             logging.debug("Failed to remove %s.", entry.path)
