@@ -52,12 +52,18 @@ from urllib.request import Request, urlopen
 import tomlkit
 import yaml
 from extra_platforms import (
-    is_aarch64,
+    AARCH64,
+    ALL_PLATFORMS,
+    LINUX,
+    MACOS,
+    WINDOWS,
+    X86_64,
+    Architecture,
+    Group,
+    Platform,
+    current_architecture,
+    current_platform,
     is_github_ci,
-    is_linux,  # Stubs added in extra_platforms 11.0.3.
-    is_macos,
-    is_windows,
-    is_x86_64,
 )
 
 from .cache import get_cached_binary, store_binary
@@ -71,7 +77,7 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
-    from typing import Any, Literal
+    from typing import Any, Literal, Never
 
     from .metadata import Metadata
 
@@ -175,37 +181,58 @@ class NativeFormat(Enum):
         return "\n".join(lines) + "\n"
 
 
+PlatformKey = tuple[Platform | Group, Architecture]
+"""A ``(platform_or_group, architecture)`` pair used as binary lookup key.
+
+The platform element can be a single :class:`~extra_platforms.Platform` (like
+``MACOS``) or a :class:`~extra_platforms.Group` (like ``LINUX``, which matches
+any Linux distribution). The architecture is always a concrete
+:class:`~extra_platforms.Architecture`.
+
+Resolution order in :meth:`BinarySpec.resolve_platform`:
+
+1. Exact Platform match (``current_platform() == key_platform``).
+2. Group membership (``current_platform() in key_group``), preferring the
+   group with fewest members (most specific).
+"""
+
+
 @dataclass(frozen=True)
 class BinarySpec:
     """Platform-specific binary download specification.
 
-    Platform keys: ``linux-x64``, ``linux-arm64``, ``macos-x64``,
-    ``macos-arm64``, ``windows-x64``, ``windows-arm64``.
+    Keys are :data:`PlatformKey` tuples pairing an extra-platforms
+    :class:`~extra_platforms.Platform` or :class:`~extra_platforms.Group`
+    with an :class:`~extra_platforms.Architecture`. This lets callers use
+    broad groups (``LINUX`` matches any distro) or specific platforms
+    (``DEBIAN``) with full detection heuristics from extra-platforms.
 
     .. hint::
-        Structural integrity checks (valid platform keys, checksum format,
-        URL placeholders, strip_components consistency) are enforced in
-        ``test_tool_spec_integrity``. If the registry becomes user-configurable
-        in the future, move these checks to ``__post_init__``.
+        Structural integrity checks (key types, checksum format, URL
+        placeholders, strip_components consistency) are enforced in
+        ``test_tool_spec_integrity``. If the registry becomes
+        user-configurable in the future, move these checks to
+        ``__post_init__``.
     """
 
-    urls: dict[str, str]
+    urls: dict[PlatformKey, str]
     """Platform key to URL template mapping. URLs use ``{version}`` placeholders."""
 
-    checksums: dict[str, str]
+    checksums: dict[PlatformKey, str]
     """Platform key to SHA-256 hex digest mapping."""
 
-    archive_format: ArchiveFormat
-    """Archive format of the downloaded file."""
+    archive_format: ArchiveFormat | dict[PlatformKey | Platform | Group, ArchiveFormat]
+    """Archive format of the downloaded file.
 
-    archive_format_overrides: dict[str, ArchiveFormat] = dataclass_field(
-        default_factory=dict,
-    )
-    """Per-platform archive format overrides.
+    A single :class:`ArchiveFormat` applies to every platform. A dict maps
+    platform specifiers to formats, allowing mixed archives in one spec::
 
-    Most tools ship the same archive format on all platforms (tar.gz on
-    Linux/macOS). Windows releases often use ZIP instead. Entries here
-    override ``archive_format`` for the given platform key.
+        archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP}
+
+    Dict keys follow the same resolution as :meth:`resolve_platform`:
+    exact :data:`PlatformKey` tuple first, then bare
+    :class:`~extra_platforms.Platform` equality, then
+    :class:`~extra_platforms.Group` membership (smallest group wins).
     """
 
     archive_executable: str | None = None
@@ -216,24 +243,97 @@ class BinarySpec:
     strip_components: int = 0
     """Number of leading path components to strip when extracting."""
 
-    def get_archive_format(self, platform_key: str) -> ArchiveFormat:
-        """Return the archive format for the given platform.
+    def resolve_platform(self) -> PlatformKey:
+        """Match the current environment against registered platform keys.
 
-        Looks up ``archive_format_overrides`` first, falls back to the
-        default ``archive_format``.
+        Uses ``current_platform()`` and ``current_architecture()`` from
+        extra-platforms, inheriting its full detection heuristics.
+
+        :return: The matching :data:`PlatformKey`.
+        :raises RuntimeError: If no key matches the current environment.
         """
-        return self.archive_format_overrides.get(platform_key, self.archive_format)
+        arch = current_architecture()
+        plat = current_platform()
 
+        # Pass 1: exact Platform match (highest priority).
+        for key_plat, key_arch in self.urls:
+            if key_arch == arch and isinstance(key_plat, Platform) and key_plat == plat:
+                return (key_plat, key_arch)
 
-VALID_PLATFORM_KEYS = frozenset({
-    "linux-arm64",
-    "linux-x64",
-    "macos-arm64",
-    "macos-x64",
-    "windows-arm64",
-    "windows-x64",
-})
-"""Recognized platform keys for ``BinarySpec.urls`` and ``BinarySpec.checksums``."""
+        # Pass 2: Group membership (prefer smallest group = most specific).
+        candidates: list[PlatformKey] = []
+        for key_plat, key_arch in self.urls:
+            if key_arch == arch and isinstance(key_plat, Group) and plat in key_plat:
+                candidates.append((key_plat, key_arch))
+
+        if len(candidates) == 1:
+            return candidates[0]
+        if candidates:
+            # Most-specific group: fewest members.
+            return min(candidates, key=lambda c: len(c[0]))
+
+        return self._no_match_error()
+
+    def _no_match_error(self) -> Never:
+        """Raise a descriptive error for unsupported platform/architecture."""
+        arch = current_architecture()
+        plat = current_platform()
+        available = ", ".join(
+            f"{k[0].name} {k[1].name}" for k in sorted(self.urls, key=str)
+        )
+        msg = (
+            f"No binary for {plat.name} {arch.name}. "
+            f"Available: {available}."
+        )
+        raise RuntimeError(msg)
+
+    def get_archive_format(self, key: PlatformKey) -> ArchiveFormat:
+        """Return the archive format for the given platform key.
+
+        When ``archive_format`` is a single :class:`ArchiveFormat`, returns
+        it directly. When it is a dict, resolves in order: exact
+        :data:`PlatformKey` tuple, bare Platform equality, then Group
+        membership (smallest group wins).
+        """
+        if isinstance(self.archive_format, ArchiveFormat):
+            return self.archive_format
+
+        fmt_map = self.archive_format
+
+        # Exact tuple match.
+        if key in fmt_map:
+            return fmt_map[key]
+
+        # Bare Platform or Group match.
+        key_plat = key[0]
+        group_hits: list[tuple[Group, ArchiveFormat]] = []
+        for map_key, fmt in fmt_map.items():
+            if isinstance(map_key, tuple):
+                continue
+            if map_key == key_plat:
+                return fmt
+            if isinstance(map_key, Group):
+                # key_plat is a Platform: direct membership check.
+                # key_plat is a Group: check for overlapping members.
+                if isinstance(key_plat, Platform) and key_plat in map_key:
+                    group_hits.append((map_key, fmt))
+                elif isinstance(key_plat, Group) and (key_plat & map_key):
+                    group_hits.append((map_key, fmt))
+
+        if group_hits:
+            # Most-specific group: fewest members.
+            return min(group_hits, key=lambda h: len(h[0]))[1]
+
+        msg = f"No archive format for {key[0].name} {key[1].name}"
+        raise ValueError(msg)
+
+    @staticmethod
+    def platform_cache_key(key: PlatformKey) -> str:
+        """Derive a filesystem-safe cache path segment from a platform key.
+
+        :return: A string like ``linux-aarch64`` or ``macos-x86_64``.
+        """
+        return f"{key[0].id}-{key[1].id}"
 
 
 @dataclass(frozen=True)
@@ -426,26 +526,22 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         default_flags=("-color",),
         binary=BinarySpec(
             urls={
-                "linux-arm64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_linux_arm64.tar.gz",
-                "linux-x64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_linux_amd64.tar.gz",
-                "macos-arm64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_darwin_arm64.tar.gz",
-                "macos-x64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_darwin_amd64.tar.gz",
-                "windows-arm64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_windows_arm64.zip",
-                "windows-x64": "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_windows_amd64.zip",
+                (LINUX, AARCH64): "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_linux_arm64.tar.gz",
+                (LINUX, X86_64): "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_linux_amd64.tar.gz",
+                (MACOS, AARCH64): "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_darwin_arm64.tar.gz",
+                (MACOS, X86_64): "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_darwin_amd64.tar.gz",
+                (WINDOWS, AARCH64): "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_windows_arm64.zip",
+                (WINDOWS, X86_64): "https://github.com/rhysd/actionlint/releases/download/v{version}/actionlint_{version}_windows_amd64.zip",
             },
             checksums={
-                "linux-arm64": "325e971b6ba9bfa504672e29be93c24981eeb1c07576d730e9f7c8805afff0c6",
-                "linux-x64": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
-                "macos-arm64": "aba9ced2dee8d27fecca3dc7feb1a7f9a52caefa1eb46f3271ea66b6e0e6953f",
-                "macos-x64": "5b44c3bc2255115c9b69e30efc0fecdf498fdb63c5d58e17084fd5f16324c644",
-                "windows-arm64": "cadcf7ea4efe3a68728893813643cebe1185e5b1d4be5b96245f65c9a4d5ea41",
-                "windows-x64": "6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9",
+                (LINUX, AARCH64): "325e971b6ba9bfa504672e29be93c24981eeb1c07576d730e9f7c8805afff0c6",
+                (LINUX, X86_64): "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+                (MACOS, AARCH64): "aba9ced2dee8d27fecca3dc7feb1a7f9a52caefa1eb46f3271ea66b6e0e6953f",
+                (MACOS, X86_64): "5b44c3bc2255115c9b69e30efc0fecdf498fdb63c5d58e17084fd5f16324c644",
+                (WINDOWS, AARCH64): "cadcf7ea4efe3a68728893813643cebe1185e5b1d4be5b96245f65c9a4d5ea41",
+                (WINDOWS, X86_64): "6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9",
             },
-            archive_format=ArchiveFormat.TAR_GZ,
-            archive_format_overrides={
-                "windows-arm64": ArchiveFormat.ZIP,
-                "windows-x64": ArchiveFormat.ZIP,
-            },
+            archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP},
         ),
     ),
     # autopep8 configuration reference:
@@ -479,20 +575,20 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         native_format=NativeFormat.JSON,
         binary=BinarySpec(
             urls={
-                "linux-arm64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-linux-arm64",
-                "linux-x64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-linux-x64",
-                "macos-arm64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-darwin-arm64",
-                "macos-x64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-darwin-x64",
-                "windows-arm64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-win32-arm64.exe",
-                "windows-x64": "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-win32-x64.exe",
+                (LINUX, AARCH64): "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-linux-arm64",
+                (LINUX, X86_64): "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-linux-x64",
+                (MACOS, AARCH64): "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-darwin-arm64",
+                (MACOS, X86_64): "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-darwin-x64",
+                (WINDOWS, AARCH64): "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-win32-arm64.exe",
+                (WINDOWS, X86_64): "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40{version}/biome-win32-x64.exe",
             },
             checksums={
-                "linux-arm64": "98a109d54bfea7df1e82b73aa7d37fc2caa880d12105eb2495efe0d653955518",
-                "linux-x64": "a31815f19b0b90fa043eb23fbf769ed931fbcde6d98bb89894ea8be1387d8394",
-                "macos-arm64": "b50a1a5adca140554f44f6c89edcf6383b0b2e3baf9dcd08d597d1fd59f92544",
-                "macos-x64": "7f4d800ddc37c84a0a09aac1cd1ec77d1bbbdd5f97727f36f2062f6b639714e9",
-                "windows-arm64": "12750283a136a1535bcd87e76c67d855d6452274144464afe1c4e7184c1931c3",
-                "windows-x64": "8d382e6a5cd88f381eb7c2825bcce4fec0660fe366e93f95c8e6e2415fe16d21",
+                (LINUX, AARCH64): "98a109d54bfea7df1e82b73aa7d37fc2caa880d12105eb2495efe0d653955518",
+                (LINUX, X86_64): "a31815f19b0b90fa043eb23fbf769ed931fbcde6d98bb89894ea8be1387d8394",
+                (MACOS, AARCH64): "b50a1a5adca140554f44f6c89edcf6383b0b2e3baf9dcd08d597d1fd59f92544",
+                (MACOS, X86_64): "7f4d800ddc37c84a0a09aac1cd1ec77d1bbbdd5f97727f36f2062f6b639714e9",
+                (WINDOWS, AARCH64): "12750283a136a1535bcd87e76c67d855d6452274144464afe1c4e7184c1931c3",
+                (WINDOWS, X86_64): "8d382e6a5cd88f381eb7c2825bcce4fec0660fe366e93f95c8e6e2415fe16d21",
             },
             archive_format=ArchiveFormat.RAW,
         ),
@@ -523,26 +619,22 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         native_format=NativeFormat.TOML,
         binary=BinarySpec(
             urls={
-                "linux-arm64": "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_linux_arm64.tar.gz",
-                "linux-x64": "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_linux_x64.tar.gz",
-                "macos-arm64": "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_darwin_arm64.tar.gz",
-                "macos-x64": "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_darwin_x64.tar.gz",
-                "windows-arm64": "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_windows_arm64.zip",
-                "windows-x64": "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_windows_x64.zip",
+                (LINUX, AARCH64): "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_linux_arm64.tar.gz",
+                (LINUX, X86_64): "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_linux_x64.tar.gz",
+                (MACOS, AARCH64): "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_darwin_arm64.tar.gz",
+                (MACOS, X86_64): "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_darwin_x64.tar.gz",
+                (WINDOWS, AARCH64): "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_windows_arm64.zip",
+                (WINDOWS, X86_64): "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_windows_x64.zip",
             },
             checksums={
-                "linux-arm64": "e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080",
-                "linux-x64": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
-                "macos-arm64": "b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5",
-                "macos-x64": "dfe101a4db2255fc85120ac7f3d25e4342c3c20cf749f2c20a18081af1952709",
-                "windows-arm64": "b95f5e4f5c425cedca7ee203d9afd29597e692c4924a12ed42f970537c72cc0f",
-                "windows-x64": "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e",
+                (LINUX, AARCH64): "e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080",
+                (LINUX, X86_64): "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
+                (MACOS, AARCH64): "b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5",
+                (MACOS, X86_64): "dfe101a4db2255fc85120ac7f3d25e4342c3c20cf749f2c20a18081af1952709",
+                (WINDOWS, AARCH64): "b95f5e4f5c425cedca7ee203d9afd29597e692c4924a12ed42f970537c72cc0f",
+                (WINDOWS, X86_64): "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e",
             },
-            archive_format=ArchiveFormat.TAR_GZ,
-            archive_format_overrides={
-                "windows-arm64": ArchiveFormat.ZIP,
-                "windows-x64": ArchiveFormat.ZIP,
-            },
+            archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP},
         ),
     ),
     # labelmaker configuration reference:
@@ -554,23 +646,20 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         version="0.6.4",
         binary=BinarySpec(
             urls={
-                "linux-arm64": "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-aarch64-unknown-linux-gnu.tar.xz",
-                "linux-x64": "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-unknown-linux-gnu.tar.xz",
-                "macos-arm64": "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-aarch64-apple-darwin.tar.xz",
-                "macos-x64": "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-apple-darwin.tar.xz",
-                "windows-x64": "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-pc-windows-msvc.zip",
+                (LINUX, AARCH64): "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-aarch64-unknown-linux-gnu.tar.xz",
+                (LINUX, X86_64): "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-unknown-linux-gnu.tar.xz",
+                (MACOS, AARCH64): "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-aarch64-apple-darwin.tar.xz",
+                (MACOS, X86_64): "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-apple-darwin.tar.xz",
+                (WINDOWS, X86_64): "https://github.com/jwodder/labelmaker/releases/download/v{version}/labelmaker-x86_64-pc-windows-msvc.zip",
             },
             checksums={
-                "linux-arm64": "4685e142da55150904d16624fe1052161de5dba1a859cddef19ab41833c37728",
-                "linux-x64": "d76f8e64f9671884dac1758fe54a28a6680c5d9bf0ffd593a2c68ba558cc49a2",
-                "macos-arm64": "a52a4e102f0760ce1632da5fdaee2b0debe0e6ddea577b88a94a60172fe85751",
-                "macos-x64": "dc8374d6a9bec4ebf143fb42e3024aeffabe8585bb9bd6f134cfaf0693be7688",
-                "windows-x64": "939195930f9d5fd2b15a5cf43497019a52083e6c6713807d3379de49395c2e10",
+                (LINUX, AARCH64): "4685e142da55150904d16624fe1052161de5dba1a859cddef19ab41833c37728",
+                (LINUX, X86_64): "d76f8e64f9671884dac1758fe54a28a6680c5d9bf0ffd593a2c68ba558cc49a2",
+                (MACOS, AARCH64): "a52a4e102f0760ce1632da5fdaee2b0debe0e6ddea577b88a94a60172fe85751",
+                (MACOS, X86_64): "dc8374d6a9bec4ebf143fb42e3024aeffabe8585bb9bd6f134cfaf0693be7688",
+                (WINDOWS, X86_64): "939195930f9d5fd2b15a5cf43497019a52083e6c6713807d3379de49395c2e10",
             },
-            archive_format=ArchiveFormat.TAR_XZ,
-            archive_format_overrides={
-                "windows-x64": ArchiveFormat.ZIP,
-            },
+            archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_XZ, WINDOWS: ArchiveFormat.ZIP},
             strip_components=1,
         ),
     ),
@@ -588,21 +677,18 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         native_format=NativeFormat.TOML,
         binary=BinarySpec(
             urls={
-                "linux-arm64": "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-aarch64-unknown-linux-gnu.tar.gz",
-                "linux-x64": "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-unknown-linux-gnu.tar.gz",
-                "macos-arm64": "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-arm64-macos.tar.gz",
-                "windows-x64": "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-windows.exe",
+                (LINUX, AARCH64): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-aarch64-unknown-linux-gnu.tar.gz",
+                (LINUX, X86_64): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-unknown-linux-gnu.tar.gz",
+                (MACOS, AARCH64): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-arm64-macos.tar.gz",
+                (WINDOWS, X86_64): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-windows.exe",
             },
             checksums={
-                "linux-arm64": "97eb93b02a7d78a752fc33e5b0983439ccaadbf3db952b68a0a4401acd92e6e0",
-                "linux-x64": "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81",
-                "macos-arm64": "1953bb425486e1b887757201e54e8fdf866c9cada6c270d8f6ed21ffbed4145a",
-                "windows-x64": "0fda7ff0a60c0250939fc25361c2d4e6e7853c31c996733fdd5a1dd760bcb824",
+                (LINUX, AARCH64): "97eb93b02a7d78a752fc33e5b0983439ccaadbf3db952b68a0a4401acd92e6e0",
+                (LINUX, X86_64): "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81",
+                (MACOS, AARCH64): "1953bb425486e1b887757201e54e8fdf866c9cada6c270d8f6ed21ffbed4145a",
+                (WINDOWS, X86_64): "0fda7ff0a60c0250939fc25361c2d4e6e7853c31c996733fdd5a1dd760bcb824",
             },
-            archive_format=ArchiveFormat.TAR_GZ,
-            archive_format_overrides={
-                "windows-x64": ArchiveFormat.RAW,
-            },
+            archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.RAW},
         ),
     ),
     # mdformat configuration reference:
@@ -702,18 +788,18 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         default_flags=("--write",),
         binary=BinarySpec(
             urls={
-                "linux-arm64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_linux_arm64",
-                "linux-x64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_linux_amd64",
-                "macos-arm64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_darwin_arm64",
-                "macos-x64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_darwin_amd64",
-                "windows-x64": "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_windows_amd64.exe",
+                (LINUX, AARCH64): "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_linux_arm64",
+                (LINUX, X86_64): "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_linux_amd64",
+                (MACOS, AARCH64): "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_darwin_arm64",
+                (MACOS, X86_64): "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_darwin_amd64",
+                (WINDOWS, X86_64): "https://github.com/mvdan/sh/releases/download/v{version}/shfmt_v{version}_windows_amd64.exe",
             },
             checksums={
-                "linux-arm64": "32d92acaa5cd8abb29fc49dac123dc412442d5713967819d8af2c29f1b3857c7",
-                "linux-x64": "fb096c5d1ac6beabbdbaa2874d025badb03ee07929f0c9ff67563ce8c75398b1",
-                "macos-arm64": "9680526be4a66ea1ffe988ed08af58e1400fe1e4f4aef5bd88b20bb9b3da33f8",
-                "macos-x64": "6feedafc72915794163114f512348e2437d080d0047ef8b8fa2ec63b575f12af",
-                "windows-x64": "60cd368533d0ad73fa86d93d5bbf95ef40587245ce684ed138c1b31557b5fe97",
+                (LINUX, AARCH64): "32d92acaa5cd8abb29fc49dac123dc412442d5713967819d8af2c29f1b3857c7",
+                (LINUX, X86_64): "fb096c5d1ac6beabbdbaa2874d025badb03ee07929f0c9ff67563ce8c75398b1",
+                (MACOS, AARCH64): "9680526be4a66ea1ffe988ed08af58e1400fe1e4f4aef5bd88b20bb9b3da33f8",
+                (MACOS, X86_64): "6feedafc72915794163114f512348e2437d080d0047ef8b8fa2ec63b575f12af",
+                (WINDOWS, X86_64): "60cd368533d0ad73fa86d93d5bbf95ef40587245ce684ed138c1b31557b5fe97",
             },
             archive_format=ArchiveFormat.RAW,
         ),
@@ -731,23 +817,20 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         default_flags=("--write-changes",),
         binary=BinarySpec(
             urls={
-                "linux-arm64": "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-aarch64-unknown-linux-musl.tar.gz",
-                "linux-x64": "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-x86_64-unknown-linux-musl.tar.gz",
-                "macos-arm64": "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-aarch64-apple-darwin.tar.gz",
-                "macos-x64": "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-x86_64-apple-darwin.tar.gz",
-                "windows-x64": "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-x86_64-pc-windows-msvc.zip",
+                (LINUX, AARCH64): "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-aarch64-unknown-linux-musl.tar.gz",
+                (LINUX, X86_64): "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-x86_64-unknown-linux-musl.tar.gz",
+                (MACOS, AARCH64): "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-aarch64-apple-darwin.tar.gz",
+                (MACOS, X86_64): "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-x86_64-apple-darwin.tar.gz",
+                (WINDOWS, X86_64): "https://github.com/crate-ci/typos/releases/download/v{version}/typos-v{version}-x86_64-pc-windows-msvc.zip",
             },
             checksums={
-                "linux-arm64": "132c20fc5e3c9ba540ec55a0a468dcb9c1504625a405df1c237b10dd4f2ec433",
-                "linux-x64": "1b788b7d764e2f20fe089487428a3944ed218d1fb6fcd8eac4230b5893a38779",
-                "macos-arm64": "ca82d593351dbac519a5c9fa832fc147b176d80100d00d08e855fcb46d43882d",
-                "macos-x64": "70e7cbfd9c0bac3b27d096171413a8fff989cc9f9227d3ef66694ed99fdc7b5c",
-                "windows-x64": "afd85c8f3c5c925ee7452389acdf70b048d8c6eae5e52a581e63a7d1b7655f17",
+                (LINUX, AARCH64): "132c20fc5e3c9ba540ec55a0a468dcb9c1504625a405df1c237b10dd4f2ec433",
+                (LINUX, X86_64): "1b788b7d764e2f20fe089487428a3944ed218d1fb6fcd8eac4230b5893a38779",
+                (MACOS, AARCH64): "ca82d593351dbac519a5c9fa832fc147b176d80100d00d08e855fcb46d43882d",
+                (MACOS, X86_64): "70e7cbfd9c0bac3b27d096171413a8fff989cc9f9227d3ef66694ed99fdc7b5c",
+                (WINDOWS, X86_64): "afd85c8f3c5c925ee7452389acdf70b048d8c6eae5e52a581e63a7d1b7655f17",
             },
-            archive_format=ArchiveFormat.TAR_GZ,
-            archive_format_overrides={
-                "windows-x64": ArchiveFormat.ZIP,
-            },
+            archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP},
         ),
     ),
     # yamllint configuration reference:
@@ -989,33 +1072,6 @@ def resolve_config(
 # ---------------------------------------------------------------------------
 
 
-def _get_platform_key() -> str:
-    """Return platform key for the current OS and architecture.
-
-    :return: One of ``linux-x64``, ``linux-arm64``, ``macos-x64``,
-        ``macos-arm64``, ``windows-x64``, ``windows-arm64``.
-    :raises RuntimeError: If the current platform is not supported.
-    """
-    if is_linux():
-        os_part = "linux"
-    elif is_macos():
-        os_part = "macos"
-    elif is_windows():
-        os_part = "windows"
-    else:
-        msg = f"Unsupported OS for binary downloads: {sys.platform}"
-        raise RuntimeError(msg)
-
-    if is_x86_64():
-        arch_part = "x64"
-    elif is_aarch64():
-        arch_part = "arm64"
-    else:
-        msg = "Binary downloads are only supported on x64 and arm64 architectures."
-        raise RuntimeError(msg)
-
-    return f"{os_part}-{arch_part}"
-
 
 def _download_and_verify(
     url: str,
@@ -1069,7 +1125,13 @@ def _extract_binary(
     :return: Path to the extracted executable.
     :raises FileNotFoundError: If the executable is not found in the archive.
     """
-    fmt = archive_format or spec.archive_format
+    if archive_format is not None:
+        fmt = archive_format
+    elif isinstance(spec.archive_format, ArchiveFormat):
+        fmt = spec.archive_format
+    else:
+        msg = "archive_format is required when spec.archive_format is a dict"
+        raise TypeError(msg)
     executable = spec.archive_executable or tool_name
 
     if fmt == ArchiveFormat.RAW:
@@ -1192,30 +1254,22 @@ def _install_binary(
     binary = spec.binary
     assert binary is not None
 
-    platform_key = _get_platform_key()
-    if platform_key not in binary.urls:
-        available = ", ".join(sorted(binary.urls))
-        msg = (
-            f"No {spec.name} binary available for {platform_key}. "
-            f"Available platforms: {available}."
-        )
-        if spec.package:
-            msg += f" Try: uvx {spec.package}@{spec.version}"
-        raise RuntimeError(msg)
+    key = binary.resolve_platform()
+    cache_key = BinarySpec.platform_cache_key(key)
 
     executable = binary.archive_executable or spec.name
-    checksum = binary.checksums.get(platform_key, "")
+    checksum = binary.checksums.get(key, "")
 
     # Check cache (unless --no-cache).
     if not no_cache:
-        cached = get_cached_binary(spec.name, spec.version, platform_key, executable)
+        cached = get_cached_binary(spec.name, spec.version, cache_key, executable)
         if cached is not None:
             if skip_checksum:
                 logging.info(
                     "Using cached %s %s for %s (checksum skipped).",
                     spec.name,
                     spec.version,
-                    platform_key,
+                    cache_key,
                 )
                 return cached
             if checksum and _verify_cached_binary(cached, checksum):
@@ -1223,7 +1277,7 @@ def _install_binary(
                     "Using cached %s %s for %s (checksum verified).",
                     spec.name,
                     spec.version,
-                    platform_key,
+                    cache_key,
                 )
                 return cached
             if checksum:
@@ -1239,24 +1293,24 @@ def _install_binary(
                     "Using cached %s %s for %s (no checksum to verify).",
                     spec.name,
                     spec.version,
-                    platform_key,
+                    cache_key,
                 )
                 return cached
 
-    url = binary.urls[platform_key].format(version=spec.version)
+    url = binary.urls[key].format(version=spec.version)
 
     # Derive archive filename from URL.
     archive_name = url.rsplit("/", 1)[-1]
     archive_path = tmp_dir / archive_name
 
-    logging.info("Downloading %s %s for %s...", spec.name, spec.version, platform_key)
+    logging.info("Downloading %s %s for %s...", spec.name, spec.version, cache_key)
     if skip_checksum:
         logging.warning("Checksum verification skipped for %s.", spec.name)
         _download_and_verify(url, None, archive_path)
     else:
         _download_and_verify(url, checksum, archive_path)
 
-    fmt = binary.get_archive_format(platform_key)
+    fmt = binary.get_archive_format(key)
     extracted = _extract_binary(archive_path, binary, tmp_dir, spec.name, fmt)
 
     # Store in cache for future use. Verify the cached copy is accessible
@@ -1264,7 +1318,7 @@ def _install_binary(
     # Docker-based CI runners (e.g., ubuntu-slim) can silently lose cached
     # files due to overlay filesystem or mount restrictions.
     if not no_cache:
-        cached = store_binary(spec.name, spec.version, platform_key, extracted)
+        cached = store_binary(spec.name, spec.version, cache_key, extracted)
         if cached.is_file():
             return cached
         logging.warning(
@@ -1368,8 +1422,8 @@ def run_tool(
     if version:
         spec = replace(spec, version=version)
     if checksum and spec.binary:
-        platform_key = _get_platform_key()
-        new_checksums = {**spec.binary.checksums, platform_key: checksum}
+        key = spec.binary.resolve_platform()
+        new_checksums = {**spec.binary.checksums, key: checksum}
         spec = replace(spec, binary=replace(spec.binary, checksums=new_checksums))
 
     logging.info("Resolving config for %s %s...", spec.name, spec.version)

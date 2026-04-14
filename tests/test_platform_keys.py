@@ -16,10 +16,9 @@
 
 """Cross-module integrity tests for platform target keys.
 
-``BINARY_ARCH_MAPPINGS``, ``VALID_PLATFORM_KEYS``, ``NUITKA_BUILD_TARGETS``, and
-the binary filename regex in ``release_prep`` all encode the same set of platform
-targets. These tests enforce that they stay in sync so nobody invents a novel key
-in one place without updating the others.
+``BINARY_ARCH_MAPPINGS``, ``NUITKA_BUILD_TARGETS``, and the binary filename regex
+in ``release_prep`` all encode the same set of platform targets for repomatic's own
+binary builds. These tests enforce that they stay in sync.
 """
 
 from __future__ import annotations
@@ -29,7 +28,6 @@ import re
 import pytest
 
 from repomatic.binary import BINARY_ARCH_MAPPINGS, NUITKA_BUILD_TARGETS
-from repomatic.tool_runner import VALID_PLATFORM_KEYS
 
 # The regex from ReleasePrep.freeze_readme_urls, extracted here so the test
 # breaks loudly if the pattern is changed without updating this file.
@@ -38,25 +36,23 @@ BINARY_FILENAME_RE = re.compile(
     r"((?:linux|macos|windows)-(?:arm64|x64))\.(bin|exe)",
 )
 
+VALID_BUILD_KEYS = frozenset(NUITKA_BUILD_TARGETS)
+"""Canonical set of repomatic's own binary build targets."""
+
 
 def test_all_constants_share_same_keys():
-    """All platform-key constants must define the exact same set of targets."""
+    """Build-target constants must define the exact same set of keys."""
     binary_keys = set(BINARY_ARCH_MAPPINGS)
     nuitka_keys = set(NUITKA_BUILD_TARGETS)
 
-    assert binary_keys == VALID_PLATFORM_KEYS, (
-        "BINARY_ARCH_MAPPINGS vs VALID_PLATFORM_KEYS mismatch: "
-        f"only in binary={binary_keys - VALID_PLATFORM_KEYS}, "
-        f"only in tool_runner={VALID_PLATFORM_KEYS - binary_keys}"
-    )
-    assert nuitka_keys == VALID_PLATFORM_KEYS, (
-        "NUITKA_BUILD_TARGETS vs VALID_PLATFORM_KEYS mismatch: "
-        f"only in metadata={nuitka_keys - VALID_PLATFORM_KEYS}, "
-        f"only in tool_runner={VALID_PLATFORM_KEYS - nuitka_keys}"
+    assert binary_keys == nuitka_keys, (
+        "BINARY_ARCH_MAPPINGS vs NUITKA_BUILD_TARGETS mismatch: "
+        f"only in binary={binary_keys - nuitka_keys}, "
+        f"only in nuitka={nuitka_keys - binary_keys}"
     )
 
 
-@pytest.mark.parametrize("target", sorted(VALID_PLATFORM_KEYS))
+@pytest.mark.parametrize("target", sorted(VALID_BUILD_KEYS))
 def test_binary_filename_regex_matches_all_targets(target):
     """The release-prep regex must match a filename for every known target."""
     extension = NUITKA_BUILD_TARGETS[target]["extension"]

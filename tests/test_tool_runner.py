@@ -37,18 +37,29 @@ if sys.version_info >= (3, 11):
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
 
+from extra_platforms import (
+    AARCH64,
+    LINUX,
+    MACOS,
+    UBUNTU,
+    WINDOWS,
+    X86_64,
+    Architecture,
+    Group,
+    Platform,
+)
+
 from repomatic.tool_runner import (
     _DIRECTIVE_YAML_OPTIONS_RE,
     TOOL_REGISTRY,
-    VALID_PLATFORM_KEYS,
     ArchiveFormat,
     BinarySpec,
     NativeFormat,
+    PlatformKey,
     ToolSpec,
     _download_and_verify,
     _extract_binary,
     _fix_myst_directive_options,
-    _get_platform_key,
     _install_binary,
     _yaml_block_to_field_list,
     binary_tool_context,
@@ -151,59 +162,59 @@ def test_tool_spec_integrity(name, spec):
         )
 
     if spec.binary is not None:
-        assert "linux-x64" in spec.binary.urls, f"{name} binary missing linux-x64 URL"
-        assert "linux-x64" in spec.binary.checksums, (
-            f"{name} binary missing linux-x64 checksum"
+        # Must have at least a Linux x86_64 binary (CI baseline).
+        assert (LINUX, X86_64) in spec.binary.urls, (
+            f"{name} binary missing (LINUX, X86_64) URL"
         )
         assert set(spec.binary.checksums.keys()) == set(spec.binary.urls.keys()), (
             f"{name}: checksum keys must match URL keys exactly"
         )
 
-        # Platform keys must be from the known set.
-        assert set(spec.binary.urls.keys()) <= VALID_PLATFORM_KEYS, (
-            f"{name}: unknown platform keys: "
-            f"{set(spec.binary.urls.keys()) - VALID_PLATFORM_KEYS}"
-        )
+        # Every key must be a (Platform|Group, Architecture) tuple.
+        for key in spec.binary.urls:
+            assert isinstance(key, tuple) and len(key) == 2, (
+                f"{name}: key {key!r} must be a (platform, architecture) tuple"
+            )
+            plat, arch = key
+            assert isinstance(plat, (Platform, Group)), (
+                f"{name}: {key!r} platform element must be Platform or Group"
+            )
+            assert isinstance(arch, Architecture), (
+                f"{name}: {key!r} architecture element must be Architecture"
+            )
 
         # Every URL must contain a {version} placeholder.
-        for platform_key, url in spec.binary.urls.items():
+        for key, url in spec.binary.urls.items():
             assert "{version}" in url, (
-                f"{name}/{platform_key}: URL missing {{version}} placeholder"
+                f"{name}/{key}: URL missing {{version}} placeholder"
             )
 
         # Checksums must be valid SHA-256 hex digests (64 lowercase hex chars).
-        for platform_key, checksum in spec.binary.checksums.items():
+        for key, checksum in spec.binary.checksums.items():
             assert re.fullmatch(r"[0-9a-f]{64}", checksum), (
-                f"{name}/{platform_key}: checksum is not a 64-char lowercase hex digest"
+                f"{name}/{key}: checksum is not a 64-char lowercase hex digest"
             )
 
         # URLs must be HTTPS.
-        for platform_key, url in spec.binary.urls.items():
+        for key, url in spec.binary.urls.items():
             assert url.startswith("https://"), (
-                f"{name}/{platform_key}: URL must use HTTPS"
+                f"{name}/{key}: URL must use HTTPS"
             )
 
-        # strip_components only applies to tar archives.
-        if spec.binary.strip_components:
-            assert spec.binary.archive_format in (
-                ArchiveFormat.TAR_GZ,
-                ArchiveFormat.TAR_XZ,
-            ), f"{name}: strip_components is only valid for tar archive formats"
-
-        # archive_format_overrides keys must be valid platform keys present
-        # in urls, and values must be valid ArchiveFormat members.
-        for pk, fmt in spec.binary.archive_format_overrides.items():
-            assert pk in VALID_PLATFORM_KEYS, (
-                f"{name}: override key {pk!r} is not a valid platform key"
-            )
-            assert pk in spec.binary.urls, (
-                f"{name}: override key {pk!r} has no corresponding URL"
-            )
-            assert isinstance(fmt, ArchiveFormat), (
-                f"{name}: override value for {pk!r} is not an ArchiveFormat"
-            )
-            assert fmt != spec.binary.archive_format, (
-                f"{name}/{pk}: override format equals default — remove the override"
+        # archive_format: when a dict, all values must be ArchiveFormat
+        # and all keys must be valid specifiers.
+        if isinstance(spec.binary.archive_format, dict):
+            for pk, fmt in spec.binary.archive_format.items():
+                assert isinstance(fmt, ArchiveFormat), (
+                    f"{name}: archive_format value for {pk!r} is not ArchiveFormat"
+                )
+                assert isinstance(pk, (tuple, Platform, Group)), (
+                    f"{name}: archive_format key {pk!r} must be a "
+                    f"PlatformKey tuple, Platform, or Group"
+                )
+        else:
+            assert isinstance(spec.binary.archive_format, ArchiveFormat), (
+                f"{name}: archive_format must be ArchiveFormat or dict"
             )
 
         # RAW archives should not have path separators in archive_executable.
@@ -227,49 +238,61 @@ def test_tool_registry_sorted_alphabetically():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    ("linux", "macos", "windows", "x64", "arm64", "expected"),
-    [
-        (True, False, False, True, False, "linux-x64"),
-        (True, False, False, False, True, "linux-arm64"),
-        (False, True, False, True, False, "macos-x64"),
-        (False, True, False, False, True, "macos-arm64"),
-        (False, False, True, True, False, "windows-x64"),
-        (False, False, True, False, True, "windows-arm64"),
-    ],
-)
-def test_get_platform_key(linux, macos, windows, x64, arm64, expected):
-    """Platform key reflects OS and architecture."""
+def test_resolve_platform_exact_match():
+    """Exact Platform match takes priority over Group membership."""
+    spec = BinarySpec(
+        urls={
+            (LINUX, X86_64): "https://example.com/{version}/linux",
+            (MACOS, AARCH64): "https://example.com/{version}/macos",
+        },
+        checksums={
+            (LINUX, X86_64): "a" * 64,
+            (MACOS, AARCH64): "b" * 64,
+        },
+        archive_format=ArchiveFormat.RAW,
+    )
     with (
-        patch("repomatic.tool_runner.is_linux", return_value=linux),
-        patch("repomatic.tool_runner.is_macos", return_value=macos),
-        patch("repomatic.tool_runner.is_windows", return_value=windows),
-        patch("repomatic.tool_runner.is_x86_64", return_value=x64),
-        patch("repomatic.tool_runner.is_aarch64", return_value=arm64),
+        patch("repomatic.tool_runner.current_platform", return_value=MACOS),
+        patch("repomatic.tool_runner.current_architecture", return_value=AARCH64),
     ):
-        assert _get_platform_key() == expected
+        assert spec.resolve_platform() == (MACOS, AARCH64)
 
 
-def test_get_platform_key_unsupported_os():
-    """Unsupported OS raises RuntimeError."""
+def test_resolve_platform_group_match():
+    """Group membership matches when no exact Platform key exists."""
+    spec = BinarySpec(
+        urls={(LINUX, X86_64): "https://example.com/{version}/linux"},
+        checksums={(LINUX, X86_64): "a" * 64},
+        archive_format=ArchiveFormat.RAW,
+    )
+    # Simulate an Ubuntu system (member of LINUX group).
     with (
-        patch("repomatic.tool_runner.is_linux", return_value=False),
-        patch("repomatic.tool_runner.is_macos", return_value=False),
-        patch("repomatic.tool_runner.is_windows", return_value=False),
-        pytest.raises(RuntimeError, match="Unsupported OS"),
+        patch("repomatic.tool_runner.current_platform", return_value=UBUNTU),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
     ):
-        _get_platform_key()
+        assert spec.resolve_platform() == (LINUX, X86_64)
 
 
-def test_get_platform_key_unsupported_arch():
-    """Unsupported architecture raises RuntimeError."""
+def test_resolve_platform_no_match():
+    """No matching key raises RuntimeError."""
+    spec = BinarySpec(
+        urls={(LINUX, AARCH64): "https://example.com/{version}/tool"},
+        checksums={(LINUX, AARCH64): "a" * 64},
+        archive_format=ArchiveFormat.RAW,
+    )
     with (
-        patch("repomatic.tool_runner.is_linux", return_value=True),
-        patch("repomatic.tool_runner.is_x86_64", return_value=False),
-        patch("repomatic.tool_runner.is_aarch64", return_value=False),
-        pytest.raises(RuntimeError, match="x64 and arm64"),
+        patch("repomatic.tool_runner.current_platform", return_value=MACOS),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
+        pytest.raises(RuntimeError, match="No binary"),
     ):
-        _get_platform_key()
+        spec.resolve_platform()
+
+
+def test_platform_cache_key():
+    """Cache key is a filesystem-safe string derived from the PlatformKey."""
+    assert BinarySpec.platform_cache_key((LINUX, AARCH64)) == "linux-aarch64"
+    assert BinarySpec.platform_cache_key((MACOS, X86_64)) == "macos-x86_64"
+    assert BinarySpec.platform_cache_key((WINDOWS, X86_64)) == "windows-x86_64"
 
 
 def test_download_and_verify_success(tmp_path):
@@ -495,22 +518,37 @@ def test_extract_binary_zip_unsafe_path(tmp_path):
 
 
 def test_extract_binary_format_override(tmp_path):
-    """Per-platform archive format override is used when passed."""
+    """Per-platform archive format from dict is used when passed."""
     archive = _create_zip(tmp_path, "gitleaks.exe")
+
+    from extra_platforms import ALL_PLATFORMS
 
     spec = BinarySpec(
         urls={},
         checksums={},
-        archive_format=ArchiveFormat.TAR_GZ,
-        archive_format_overrides={"windows-x64": ArchiveFormat.ZIP},
+        archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP},
     )
-    # Passing the override format directly (as _install_binary does).
+    # _install_binary resolves the format and passes it explicitly.
     result = _extract_binary(
         archive, spec, tmp_path, "gitleaks", ArchiveFormat.ZIP
     )
 
     assert result == tmp_path / "gitleaks.exe"
     assert result.exists()
+
+
+def test_get_archive_format_dict_resolution():
+    """Dict archive_format resolves Platform > Group membership."""
+    from extra_platforms import ALL_PLATFORMS
+
+    spec = BinarySpec(
+        urls={},
+        checksums={},
+        archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP},
+    )
+    assert spec.get_archive_format((LINUX, X86_64)) == ArchiveFormat.TAR_GZ
+    assert spec.get_archive_format((MACOS, AARCH64)) == ArchiveFormat.TAR_GZ
+    assert spec.get_archive_format((WINDOWS, X86_64)) == ArchiveFormat.ZIP
 
 
 def test_install_binary_missing_platform():
@@ -520,15 +558,16 @@ def test_install_binary_missing_platform():
         version="1.0.0",
         package="testtool",
         binary=BinarySpec(
-            urls={"linux-arm64": "https://example.com/{version}/tool"},
-            checksums={"linux-arm64": "a" * 64},
+            urls={(LINUX, AARCH64): "https://example.com/{version}/tool"},
+            checksums={(LINUX, AARCH64): "a" * 64},
             archive_format=ArchiveFormat.RAW,
             archive_executable="testtool",
         ),
     )
     with (
-        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
-        pytest.raises(RuntimeError, match="No testtool binary available"),
+        patch("repomatic.tool_runner.current_platform", return_value=MACOS),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
+        pytest.raises(RuntimeError, match="No binary for"),
     ):
         _install_binary(spec, Path("/tmp"))
 
@@ -546,22 +585,22 @@ def test_install_binary_cache_hit(tmp_path, monkeypatch):
         name="testtool",
         version="1.0.0",
         binary=BinarySpec(
-            urls={"linux-x64": "https://example.com/{version}/tool"},
-            checksums={"linux-x64": checksum},
+            urls={(LINUX, X86_64): "https://example.com/{version}/tool"},
+            checksums={(LINUX, X86_64): checksum},
             archive_format=ArchiveFormat.RAW,
         ),
     )
 
     from repomatic.cache import cached_binary_path
 
-    cache_path = cached_binary_path("testtool", "1.0.0", "linux-x64", "testtool")
+    cache_path = cached_binary_path("testtool", "1.0.0", "linux-x86_64", "testtool")
     cache_path.parent.mkdir(parents=True)
     cache_path.write_bytes(fake_binary)
     cache_path.chmod(0o755)
 
-    with patch(
-        "repomatic.tool_runner._get_platform_key",
-        return_value="linux-x64",
+    with (
+        patch("repomatic.tool_runner.current_platform", return_value=UBUNTU),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
     ):
         result = _install_binary(spec, tmp_path / "staging")
 
@@ -580,8 +619,8 @@ def test_install_binary_cache_miss_stores(tmp_path, monkeypatch):
         name="testtool",
         version="2.0.0",
         binary=BinarySpec(
-            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
-            checksums={"linux-x64": checksum},
+            urls={(LINUX, X86_64): "https://example.com/{version}/tool.tar.gz"},
+            checksums={(LINUX, X86_64): checksum},
             archive_format=ArchiveFormat.RAW,
         ),
     )
@@ -590,7 +629,8 @@ def test_install_binary_cache_miss_stores(tmp_path, monkeypatch):
     staging.mkdir()
 
     with (
-        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner.current_platform", return_value=UBUNTU),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
         patch("repomatic.tool_runner._download_and_verify"),
         patch("repomatic.tool_runner._extract_binary") as mock_extract,
     ):
@@ -603,7 +643,7 @@ def test_install_binary_cache_miss_stores(tmp_path, monkeypatch):
 
     from repomatic.cache import cached_binary_path
 
-    expected_cache = cached_binary_path("testtool", "2.0.0", "linux-x64", "testtool")
+    expected_cache = cached_binary_path("testtool", "2.0.0", "linux-x86_64", "testtool")
     assert result == expected_cache
     assert expected_cache.read_bytes() == fake_binary
 
@@ -617,8 +657,8 @@ def test_install_binary_no_cache_flag(tmp_path, monkeypatch):
         name="testtool",
         version="1.0.0",
         binary=BinarySpec(
-            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
-            checksums={"linux-x64": "a" * 64},
+            urls={(LINUX, X86_64): "https://example.com/{version}/tool.tar.gz"},
+            checksums={(LINUX, X86_64): "a" * 64},
             archive_format=ArchiveFormat.RAW,
         ),
     )
@@ -627,7 +667,8 @@ def test_install_binary_no_cache_flag(tmp_path, monkeypatch):
     staging.mkdir()
 
     with (
-        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner.current_platform", return_value=UBUNTU),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
         patch("repomatic.tool_runner._download_and_verify"),
         patch("repomatic.tool_runner._extract_binary") as mock_extract,
         patch("repomatic.tool_runner.store_binary") as mock_store,
@@ -652,7 +693,7 @@ def test_install_binary_cache_integrity_failure(tmp_path, monkeypatch):
     # Put a tampered binary in the cache.
     from repomatic.cache import cached_binary_path
 
-    cache_path = cached_binary_path("testtool", "1.0.0", "linux-x64", "testtool")
+    cache_path = cached_binary_path("testtool", "1.0.0", "linux-x86_64", "testtool")
     cache_path.parent.mkdir(parents=True)
     cache_path.write_bytes(b"tampered-content")
     cache_path.chmod(0o755)
@@ -662,8 +703,8 @@ def test_install_binary_cache_integrity_failure(tmp_path, monkeypatch):
         name="testtool",
         version="1.0.0",
         binary=BinarySpec(
-            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
-            checksums={"linux-x64": real_checksum},
+            urls={(LINUX, X86_64): "https://example.com/{version}/tool.tar.gz"},
+            checksums={(LINUX, X86_64): real_checksum},
             archive_format=ArchiveFormat.RAW,
         ),
     )
@@ -672,7 +713,8 @@ def test_install_binary_cache_integrity_failure(tmp_path, monkeypatch):
     staging.mkdir()
 
     with (
-        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner.current_platform", return_value=UBUNTU),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
         patch("repomatic.tool_runner._download_and_verify"),
         patch("repomatic.tool_runner._extract_binary") as mock_extract,
     ):
@@ -684,7 +726,7 @@ def test_install_binary_cache_integrity_failure(tmp_path, monkeypatch):
         result = _install_binary(spec, staging)
 
     # Should have re-downloaded and re-cached.
-    new_cached = cached_binary_path("testtool", "1.0.0", "linux-x64", "testtool")
+    new_cached = cached_binary_path("testtool", "1.0.0", "linux-x86_64", "testtool")
     assert result == new_cached
     assert new_cached.read_bytes() == b"real-binary"
 
@@ -701,8 +743,8 @@ def test_install_binary_cache_store_fallback(tmp_path, monkeypatch):
         name="testtool",
         version="2.0.0",
         binary=BinarySpec(
-            urls={"linux-x64": "https://example.com/{version}/tool.tar.gz"},
-            checksums={"linux-x64": checksum},
+            urls={(LINUX, X86_64): "https://example.com/{version}/tool.tar.gz"},
+            checksums={(LINUX, X86_64): checksum},
             archive_format=ArchiveFormat.RAW,
         ),
     )
@@ -715,7 +757,8 @@ def test_install_binary_cache_store_fallback(tmp_path, monkeypatch):
         return tmp_path / "cache" / "bin" / "ghost" / "binary"
 
     with (
-        patch("repomatic.tool_runner._get_platform_key", return_value="linux-x64"),
+        patch("repomatic.tool_runner.current_platform", return_value=UBUNTU),
+        patch("repomatic.tool_runner.current_architecture", return_value=X86_64),
         patch("repomatic.tool_runner._download_and_verify"),
         patch("repomatic.tool_runner._extract_binary") as mock_extract,
         patch("repomatic.tool_runner.store_binary", side_effect=fake_store),
