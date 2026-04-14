@@ -3,12 +3,11 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-04-06T18:59:50.298509046Z"
+exclude-newer = "2026-04-07T06:32:03.427509Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-click-extra = { timestamp = "2026-04-13T18:59:50.298515679Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-13T18:59:50.298521971Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-14T06:32:03.428232Z", span = "PT0S" }
 
 [[package]]
 name = "aiofiles"
