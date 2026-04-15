@@ -281,6 +281,7 @@ Patterns that recur across sessions — watch for these proactively:
 
 ### Agent behavior policy
 
+- **Never post to the web without explicit approval.** Do not create or comment on GitHub issues, PRs, or discussions, and do not post to any external service, without the user's explicit go-ahead. If approval is blocking, draft the content in a temporary markdown file and present it for review.
 - Agents make fixes in the working tree only. Never commit, push, or create PRs. Exception: skills that run autonomously (e.g., `/babysit-ci`) may commit and push, and must include a `Co-Authored-By` trailer for traceability; follow the skill's instructions when they explicitly override this rule.
 - Prefer mechanical enforcement (tests, autofix jobs, linting checks) over prose rules. If a rule can be checked by code, it should be.
 - Agent definitions should reference `CLAUDE.md` sections, not restate them.
