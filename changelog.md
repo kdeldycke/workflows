@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.13.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.13.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.13.0` (2026-04-15)](https://github.com/kdeldycke/repomatic/compare/v6.12.0...v6.13.0)
 
 - Add `nuitka.entry-points` config option to select which `[project.scripts]` entries produce Nuitka binaries. When unset, deduplicates by callable target: keeps the first entry point for each unique `module:callable` pair, so alias entry points (like both `mpm` and `meta-package-manager` pointing to the same function) don't produce duplicate binaries.
