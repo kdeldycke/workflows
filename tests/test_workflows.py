@@ -516,7 +516,8 @@ DATA_DIR = REPO_ROOT / "repomatic" / "data"
 # they are repomatic-internal (patching files that only exist in this repo) and
 # must not be exported to downstream repositories.
 WORKFLOWS_WITHOUT_SYMLINKS = frozenset((
-    "update-checksums.yaml",  # Patches repomatic/tool_runner.py, which only exists here.
+    # Patches repomatic/tool_runner.py, which only exists here.
+    "update-checksums.yaml",
 ))
 
 

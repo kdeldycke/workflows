@@ -113,7 +113,9 @@ def update_checksums(file_path: Path) -> list[tuple[str, str, str]]:
 
     progress = (
         click.progressbar(
-            pairs, label="Verifying checksums", file=sys.stderr,
+            pairs,
+            label="Verifying checksums",
+            file=sys.stderr,
         )
         if sys.stderr.isatty()
         else nullcontext(pairs)
@@ -125,7 +127,8 @@ def update_checksums(file_path: Path) -> list[tuple[str, str, str]]:
 
             if old_hash != new_hash:
                 lines[hash_line_idx] = lines[hash_line_idx].replace(
-                    old_hash, new_hash,
+                    old_hash,
+                    new_hash,
                 )
                 updated.append((url, old_hash, new_hash))
                 logging.info(f"Updated checksum: {old_hash} -> {new_hash}")
@@ -154,8 +157,7 @@ def update_registry_checksums(registry_path: Path) -> list[tuple[str, str, str]]
 
     # Flatten all binary platform entries for progress tracking.
     entries = [
-        (spec, pk, tmpl.format(version=spec.version),
-         spec.binary.checksums[pk])
+        (spec, pk, tmpl.format(version=spec.version), spec.binary.checksums[pk])
         for spec in TOOL_REGISTRY.values()
         if spec.binary is not None
         for pk, tmpl in spec.binary.urls.items()
@@ -163,7 +165,9 @@ def update_registry_checksums(registry_path: Path) -> list[tuple[str, str, str]]
 
     progress = (
         click.progressbar(
-            entries, label="Verifying checksums", file=sys.stderr,
+            entries,
+            label="Verifying checksums",
+            file=sys.stderr,
         )
         if sys.stderr.isatty()
         else nullcontext(entries)
@@ -171,17 +175,14 @@ def update_registry_checksums(registry_path: Path) -> list[tuple[str, str, str]]
     with progress as items:
         for spec, platform_key, url, old_hash in items:
             logging.info(
-                f"Verifying registry checksum for"
-                f" {spec.name} ({platform_key})"
+                f"Verifying registry checksum for {spec.name} ({platform_key})"
             )
             new_hash = _download_sha256(url)
 
             if old_hash != new_hash:
                 content = content.replace(old_hash, new_hash)
                 updated.append((url, old_hash, new_hash))
-                logging.info(
-                    f"Updated checksum: {old_hash} -> {new_hash}"
-                )
+                logging.info(f"Updated checksum: {old_hash} -> {new_hash}")
             else:
                 logging.info("Checksum unchanged.")
 

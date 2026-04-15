@@ -237,19 +237,15 @@ def poll_detection_stats(
                         pending.discard(sha256)
                         r = by_sha[sha256]
                         logging.info(
-                            f"Analysis complete for {r.filename}:"
-                            f" {stats[sha256]}"
+                            f"Analysis complete for {r.filename}: {stats[sha256]}"
                         )
                 except vt.APIError:
-                    logging.debug(
-                        f"File {sha256[:12]}... not yet indexed, will retry."
-                    )
+                    logging.debug(f"File {sha256[:12]}... not yet indexed, will retry.")
 
     if pending:
         filenames = [by_sha[s].filename for s in pending]
         logging.warning(
-            f"Polling timed out after {timeout}s."
-            f" Missing results for: {filenames}"
+            f"Polling timed out after {timeout}s. Missing results for: {filenames}"
         )
 
     return [
@@ -288,11 +284,13 @@ def _extract_results_from_body(body: str) -> list[ScanResult]:
         m = _VT_ROW_RE.search(line)
         if m:
             filename, sha256 = m.group(1), m.group(2)
-            results.append(ScanResult(
-                filename=filename,
-                sha256=sha256,
-                analysis_url=VIRUSTOTAL_GUI_URL.format(sha256=sha256),
-            ))
+            results.append(
+                ScanResult(
+                    filename=filename,
+                    sha256=sha256,
+                    analysis_url=VIRUSTOTAL_GUI_URL.format(sha256=sha256),
+                )
+            )
 
     return results
 

@@ -8,22 +8,16 @@ project_path = Path(__file__).parent.parent.resolve()
 
 # Fetch general information about the project from pyproject.toml.
 toml_path = project_path / "pyproject.toml"
-toml_config = tomllib.loads(
-    toml_path.read_text(encoding="utf-8")
-)
+toml_config = tomllib.loads(toml_path.read_text(encoding="utf-8"))
 
 # Redistribute pyproject.toml config to Sphinx.
 project_id = toml_config["project"]["name"]
 version = release = toml_config["project"]["version"]
 url = toml_config["project"]["urls"]["Homepage"]
-author = ", ".join(
-    a["name"] for a in toml_config["project"]["authors"]
-)
+author = ", ".join(a["name"] for a in toml_config["project"]["authors"])
 
 # Title-case each word of the project ID.
-project = " ".join(
-    word.title() for word in project_id.split("-")
-)
+project = " ".join(word.title() for word in project_id.split("-"))
 
 # Addons.
 extensions = [
@@ -107,10 +101,7 @@ html_title = project
 html_theme_options = {
     "sidebar_hide_name": True,
     # Activates edit links.
-    "source_repository": (
-        "https://github.com/"
-        f"{issues_github_path}"
-    ),
+    "source_repository": (f"https://github.com/{issues_github_path}"),
     "source_branch": "main",
     "source_directory": "docs/",
     "announcement": (

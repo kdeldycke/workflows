@@ -73,11 +73,7 @@ def run_gh_command(args: list[str]) -> str:
         # fall back to GITHUB_TOKEN if available and different.
         fallback = os.environ.get("GITHUB_TOKEN")
         primary = pat or os.environ.get("GH_TOKEN")
-        if (
-            "Bad credentials" in stderr
-            and fallback
-            and fallback != primary
-        ):
+        if "Bad credentials" in stderr and fallback and fallback != primary:
             logging.warning(
                 "Primary token returned 401 Bad Credentials, "
                 "retrying with GITHUB_TOKEN.",

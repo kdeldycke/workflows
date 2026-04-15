@@ -129,9 +129,7 @@ def test_format_virustotal_section(sample_results):
 
 def test_format_virustotal_section_with_download_links(sample_results):
     """Binary names link to GitHub release assets when repo and tag are provided."""
-    section = format_virustotal_section(
-        sample_results, repo="owner/repo", tag="v1.0.0"
-    )
+    section = format_virustotal_section(sample_results, repo="owner/repo", tag="v1.0.0")
     assert (
         "[`app-1.0.0-linux-x64.bin`]"
         "(https://github.com/owner/repo/releases/download/v1.0.0/"
@@ -327,7 +325,7 @@ def test_poll_detection_stats():
         patch("repomatic.virustotal.vt.Client", return_value=mock_client),
         patch("repomatic.virustotal.time.sleep"),
     ):
-            enriched = poll_detection_stats("key", results, timeout=60)
+        enriched = poll_detection_stats("key", results, timeout=60)
 
     assert len(enriched) == 1
     assert enriched[0].detection_stats is not None

@@ -196,9 +196,7 @@ def test_tool_spec_integrity(name, spec):
 
         # URLs must be HTTPS.
         for key, url in spec.binary.urls.items():
-            assert url.startswith("https://"), (
-                f"{name}/{key}: URL must use HTTPS"
-            )
+            assert url.startswith("https://"), f"{name}/{key}: URL must use HTTPS"
 
         # archive_format: when a dict, all values must be ArchiveFormat
         # and all keys must be valid specifiers.
@@ -525,12 +523,13 @@ def test_extract_binary_format_override(tmp_path):
     spec = BinarySpec(
         urls={},
         checksums={},
-        archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP},
+        archive_format={
+            ALL_PLATFORMS: ArchiveFormat.TAR_GZ,
+            WINDOWS: ArchiveFormat.ZIP,
+        },
     )
     # _install_binary resolves the format and passes it explicitly.
-    result = _extract_binary(
-        archive, spec, tmp_path, "gitleaks", ArchiveFormat.ZIP
-    )
+    result = _extract_binary(archive, spec, tmp_path, "gitleaks", ArchiveFormat.ZIP)
 
     assert result == tmp_path / "gitleaks.exe"
     assert result.exists()
@@ -543,7 +542,10 @@ def test_get_archive_format_dict_resolution():
     spec = BinarySpec(
         urls={},
         checksums={},
-        archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP},
+        archive_format={
+            ALL_PLATFORMS: ArchiveFormat.TAR_GZ,
+            WINDOWS: ArchiveFormat.ZIP,
+        },
     )
     assert spec.get_archive_format((LINUX, X86_64)) == ArchiveFormat.TAR_GZ
     assert spec.get_archive_format((MACOS, AARCH64)) == ArchiveFormat.TAR_GZ
@@ -651,7 +653,9 @@ def test_install_binary_cache_miss_stores(tmp_path, monkeypatch):
     # Sidecar must be written after cache store.
     sidecar = expected_cache.with_suffix(expected_cache.suffix + ".sha256")
     assert sidecar.is_file()
-    assert sidecar.read_text(encoding="UTF-8") == hashlib.sha256(fake_binary).hexdigest()
+    assert (
+        sidecar.read_text(encoding="UTF-8") == hashlib.sha256(fake_binary).hexdigest()
+    )
 
 
 def test_install_binary_no_cache_flag(tmp_path, monkeypatch):

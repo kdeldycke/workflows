@@ -600,9 +600,7 @@ def test_format_diff_table():
     table = format_diff_table(changes)
     assert "### Updated packages" in table
     assert "| Package | Change |" in table
-    assert (
-        "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` → `4.12.1` |" in table
-    )
+    assert "| [anyio](https://pypi.org/project/anyio/) | `4.12.0` → `4.12.1` |" in table
     assert "| [new-pkg](https://pypi.org/project/new-pkg/) | (new) `2.0.0` |" in table
     assert (
         "| [old-pkg](https://pypi.org/project/old-pkg/) | `1.0.0` (removed) |" in table
@@ -744,8 +742,7 @@ def test_add_exclude_newer_packages_multiple(tmp_path):
     # All three entries sorted, pyproject-fmt-compatible formatting.
     assert (
         'exclude-newer-package = { click-extra = "0 day",'
-        ' pygments = "0 day", requests = "0 day" }'
-        in content
+        ' pygments = "0 day", requests = "0 day" }' in content
     )
 
 
@@ -1025,8 +1022,7 @@ def test_find_preceding_comments():
 def test_find_preceding_comments_none():
     """Return empty string when no comment precedes the key."""
     text = (
-        'exclude-newer = "1 week"\n'
-        'exclude-newer-package = { "requests" = "0 day" }\n'
+        'exclude-newer = "1 week"\nexclude-newer-package = { "requests" = "0 day" }\n'
     )
     assert _find_preceding_comments(text, "exclude-newer-package") == ""
 
@@ -1436,7 +1432,12 @@ def test_format_release_notes_changelog_fallback():
     notes = {
         "json5": (
             "https://github.com/dpranke/pyjson5",
-            [("", "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)")],
+            [
+                (
+                    "",
+                    "[Changelog](https://github.com/dpranke/pyjson5/blob/master/README.md)",
+                )
+            ],
         ),
     }
     result = format_release_notes(notes)

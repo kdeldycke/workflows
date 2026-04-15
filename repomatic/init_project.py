@@ -643,8 +643,7 @@ def run_init(
                 if (
                     not scope_bypassed
                     and not is_source
-                    and entry.file_id
-                    not in include_files.get(reg_comp.name, set())
+                    and entry.file_id not in include_files.get(reg_comp.name, set())
                 ):
                     excluded_files.setdefault(reg_comp.name, set()).add(entry.file_id)
             if not is_source and not entry.is_enabled(config):

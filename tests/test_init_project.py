@@ -1512,9 +1512,7 @@ def test_include_bypasses_scope_for_bundled_component(
     """
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["codecov"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["codecov"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
@@ -1536,9 +1534,7 @@ def test_include_bypasses_scope_for_tool_config(
     """
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\nname = "test"\n\n'
-        "[tool.repomatic]\n"
-        'include = ["lychee"]\n',
+        '[project]\nname = "test"\n\n[tool.repomatic]\ninclude = ["lychee"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
