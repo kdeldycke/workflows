@@ -443,7 +443,12 @@ def metadata_keys_reference() -> list[tuple[str, str]]:
     docstrings = _extract_field_docstrings()
     for f in sorted(fields(Config), key=lambda f: f.name):
         if (
-            f.name not in ("nuitka_unstable_targets", "nuitka_extra_args")
+            f.name
+            not in (
+                "nuitka_entry_points",
+                "nuitka_extra_args",
+                "nuitka_unstable_targets",
+            )
             and f.name not in SUBCOMMAND_CONFIG_FIELDS
         ):
             desc = docstrings.get(f.name, "").replace("``", "`")
@@ -457,7 +462,12 @@ def all_metadata_keys() -> frozenset[str]:
     config_keys = frozenset(
         f.name
         for f in fields(Config)
-        if f.name not in ("nuitka_unstable_targets", "nuitka_extra_args")
+        if f.name
+        not in (
+            "nuitka_entry_points",
+            "nuitka_extra_args",
+            "nuitka_unstable_targets",
+        )
         and f.name not in SUBCOMMAND_CONFIG_FIELDS
     )
     return frozenset(_METADATA_KEY_DESCRIPTIONS) | config_keys
@@ -1555,6 +1565,44 @@ class Metadata:
         return load_repomatic_config(self.pyproject_toml)
 
     @cached_property
+    def nuitka_entry_points(self) -> list[str]:
+        """Entry points selected for Nuitka binary compilation.
+
+        Reads ``[tool.repomatic].nuitka.entry-points`` from ``pyproject.toml``.
+        When empty (the default), deduplicates by callable target: keeps the
+        first entry point for each unique ``module:callable`` pair, so alias
+        entry points (like both ``mpm`` and ``meta-package-manager`` pointing to
+        the same function) don't produce duplicate binaries.
+        Unrecognized CLI IDs are logged as warnings and discarded.
+        """
+        all_cli_ids = [cli_id for cli_id, _, _ in self.script_entries]
+        if not all_cli_ids:
+            return []
+
+        raw = self.config.nuitka_entry_points
+        if not raw:
+            # Default: first entry point per unique callable target.
+            seen_targets: set[str] = set()
+            unique: list[str] = []
+            for cli_id, module_id, callable_id in self.script_entries:
+                target = f"{module_id}:{callable_id}"
+                if target not in seen_targets:
+                    seen_targets.add(target)
+                    unique.append(cli_id)
+            return unique
+
+        selected = []
+        for cli_id in raw:
+            if cli_id in all_cli_ids:
+                selected.append(cli_id)
+            else:
+                logging.warning(
+                    f"Unrecognized nuitka entry point {cli_id!r};"
+                    f" valid: {all_cli_ids}"
+                )
+        return selected or all_cli_ids[:1]
+
+    @cached_property
     def unstable_targets(self) -> set[str]:
         """Nuitka build targets allowed to fail without blocking the release.
 
@@ -1955,8 +2003,11 @@ class Metadata:
         # Collect extra Nuitka flags from config, plus any auto-detected ones.
         nuitka_extra_args_list = list(self.config.nuitka_extra_args)
 
-        # Augment each entry point with some metadata.
+        # Filter entry points to those selected for Nuitka compilation.
+        selected = set(self.nuitka_entry_points)
         for cli_id, module_id, callable_id in self.script_entries:
+            if cli_id not in selected:
+                continue
             # CLI ID is supposed to be unique, we'll use that as a key.
             matrix.add_variation("entry_point", [cli_id])
             # Derive CLI module path from its ID.
@@ -2279,11 +2330,15 @@ class Metadata:
 
         # Add config from [tool.repomatic] in pyproject.toml.
         # Convert kebab-case config keys to snake_case metadata keys.
-        # Exclude nuitka.unstable-targets (dedicated property with validation logic) and
-        # subcommand config fields (read directly by test-plan and deps-graph).
+        # Exclude nuitka internal config (dedicated properties with validation logic)
+        # and subcommand config fields (read directly by test-plan and deps-graph).
         for f in fields(Config):
             if (
-                f.name not in ("nuitka_unstable_targets", "nuitka_extra_args")
+                f.name not in (
+                    "nuitka_entry_points",
+                    "nuitka_extra_args",
+                    "nuitka_unstable_targets",
+                )
                 and f.name not in SUBCOMMAND_CONFIG_FIELDS
             ):
                 metadata[f.name] = getattr(self.config, f.name)

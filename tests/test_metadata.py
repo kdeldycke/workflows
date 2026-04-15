@@ -1605,6 +1605,115 @@ nuitka.unstable-targets = ["linux-arm64", "unknown-target"]
     assert metadata.unstable_targets == {"linux-arm64"}
 
 
+def test_nuitka_entry_points_default_deduplicates(tmp_path, monkeypatch):
+    """Default: alias entry points sharing a callable are deduplicated."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.scripts]
+short = "my_pkg.__main__:main"
+long-name = "my_pkg.__main__:main"
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    assert metadata.config.nuitka_entry_points == []
+    # Both point to the same callable, so only the first is kept.
+    assert metadata.nuitka_entry_points == ["short"]
+
+
+def test_nuitka_entry_points_default_distinct(tmp_path, monkeypatch):
+    """Default: entry points with different callables are all kept."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.scripts]
+cli-a = "my_pkg.cli:main_a"
+cli-b = "my_pkg.cli:main_b"
+cli-a-alias = "my_pkg.cli:main_a"
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    # cli-a and cli-b have different callables, both kept.
+    # cli-a-alias duplicates cli-a's callable, dropped.
+    assert metadata.nuitka_entry_points == ["cli-a", "cli-b"]
+
+
+def test_nuitka_entry_points_custom(tmp_path, monkeypatch):
+    """Custom entry-points config selects specific entry points."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.scripts]
+short = "my_pkg.__main__:main"
+long-name = "my_pkg.__main__:main"
+
+[tool.repomatic]
+nuitka.entry-points = ["long-name"]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    assert metadata.nuitka_entry_points == ["long-name"]
+
+
+def test_nuitka_entry_points_all(tmp_path, monkeypatch):
+    """Listing all entry points explicitly builds all of them."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.scripts]
+short = "my_pkg.__main__:main"
+long-name = "my_pkg.__main__:main"
+
+[tool.repomatic]
+nuitka.entry-points = ["short", "long-name"]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    assert metadata.nuitka_entry_points == ["short", "long-name"]
+
+
+def test_nuitka_entry_points_ignores_unknown(tmp_path, monkeypatch):
+    """Unrecognized entry points are discarded; falls back to first if all invalid."""
+    pyproject_content = """\
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.scripts]
+short = "my_pkg.__main__:main"
+
+[tool.repomatic]
+nuitka.entry-points = ["nonexistent"]
+"""
+    pyproject_file = tmp_path / "pyproject.toml"
+    pyproject_file.write_text(pyproject_content)
+    monkeypatch.setattr(Metadata, "pyproject_path", pyproject_file)
+
+    metadata = Metadata()
+    # All configured entries are invalid, so falls back to first.
+    assert metadata.nuitka_entry_points == ["short"]
+
+
 def test_nuitka_extra_args_default(tmp_path, monkeypatch):
     """Test that nuitka.extra-args defaults to an empty list."""
     monkeypatch.chdir(tmp_path)
@@ -1651,6 +1760,7 @@ def test_load_repomatic_config_defaults(tmp_path, monkeypatch):
     assert config.dependency_graph.no_extras == []
     assert config.dependency_graph.level is None
     assert config.nuitka_enabled is True
+    assert config.nuitka_entry_points == []
     assert config.nuitka_extra_args == []
     assert config.labels.extra_files == []
     assert config.labels.extra_file_rules == ""

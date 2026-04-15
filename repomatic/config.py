@@ -458,6 +458,19 @@ class Config:
     to ``false`` to opt out of Nuitka compilation.
     """
 
+    nuitka_entry_points: list[str] = field(
+        default_factory=list,
+        metadata={"click_extra.config_path": "nuitka.entry-points"},
+    )
+    """Which ``[project.scripts]`` entry points produce Nuitka binaries.
+
+    List of CLI IDs (e.g., ``["mpm"]``) to compile. When empty (the default),
+    deduplicates by callable target: keeps the first entry point for each
+    unique ``module:callable`` pair. This avoids building duplicate binaries
+    when a project declares alias entry points (like both ``mpm`` and
+    ``meta-package-manager`` pointing to the same function).
+    """
+
     nuitka_extra_args: list[str] = field(
         default_factory=list,
         metadata={"click_extra.config_path": "nuitka.extra-args"},

@@ -183,6 +183,7 @@ labels.extra-file-rules = "docs:\n  - docs/**"
 labels.extra-content-rules = "security:\n  - '(CVE|vulnerability)'"
 
 nuitka.enabled = false
+nuitka.entry-points = ["mpm"]
 nuitka.extra-args = [
   "--include-data-files=my_pkg/data/*.json=my_pkg/data/",
 ]
@@ -231,6 +232,7 @@ workflow.source-paths = ["extra_platforms"]
 | `mailmap.sync`                | bool                        | `true`                             | Whether `.mailmap` sync is enabled for this project.                             |
 | `notification.unsubscribe`    | bool                        | `false`                            | Whether the unsubscribe-threads workflow is enabled.                             |
 | `nuitka.enabled`              | bool                        | `true`                             | Whether Nuitka binary compilation is enabled for this project.                   |
+| `nuitka.entry-points`         | list[str]                   | `[]`                               | Which `[project.scripts]` entry points produce Nuitka binaries. Empty deduplicates by callable. |
 | `nuitka.extra-args`           | list[str]                   | `[]`                               | Extra Nuitka CLI arguments for binary compilation.                               |
 | `nuitka.unstable-targets`     | list[str]                   | `[]`                               | Nuitka build targets allowed to fail without blocking the release.               |
 | `pypi-package-history`        | list[str]                   | `[]`                               | Former PyPI package names for projects that were renamed.                        |
