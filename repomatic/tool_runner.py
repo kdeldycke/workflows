@@ -40,10 +40,10 @@ import re
 import subprocess
 import sys
 import tarfile
-import zipfile
 import tempfile
+import zipfile
 from contextlib import contextmanager, nullcontext
-from dataclasses import dataclass, field as dataclass_field, replace
+from dataclasses import dataclass, replace
 from enum import Enum
 from importlib.resources import as_file, files
 from pathlib import Path, PurePosixPath
@@ -78,7 +78,7 @@ else:
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
-    from typing import Any, Literal, Never
+    from typing import Any, Literal
 
     from .metadata import Metadata
 
@@ -262,7 +262,7 @@ class BinarySpec:
                 return (key_plat, key_arch)
 
         # Pass 2: Group membership (prefer smallest group = most specific).
-        candidates: list[PlatformKey] = []
+        candidates: list[tuple[Group, Architecture]] = []
         for key_plat, key_arch in self.urls:
             if key_arch == arch and isinstance(key_plat, Group) and plat in key_plat:
                 candidates.append((key_plat, key_arch))
@@ -310,9 +310,7 @@ class BinarySpec:
             if isinstance(map_key, Group):
                 # key_plat is a Platform: direct membership check.
                 # key_plat is a Group: check for overlapping members.
-                if isinstance(key_plat, Platform) and key_plat in map_key:
-                    group_hits.append((map_key, fmt))
-                elif isinstance(key_plat, Group) and (key_plat & map_key):
+                if isinstance(key_plat, Platform) and key_plat in map_key or isinstance(key_plat, Group) and (key_plat & map_key):
                     group_hits.append((map_key, fmt))
 
         if group_hits:

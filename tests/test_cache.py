@@ -65,7 +65,7 @@ def test_cache_dir_env_override_tilde(monkeypatch):
 def test_cache_dir_darwin(monkeypatch):
     """macOS uses ~/Library/Caches/repomatic."""
     monkeypatch.delenv("REPOMATIC_CACHE_DIR", raising=False)
-    monkeypatch.setattr("repomatic.cache.sys.platform", "darwin")
+    monkeypatch.setattr("repomatic.cache.platform.system", lambda: "Darwin")
     result = cache_dir()
     assert result == Path.home() / "Library" / "Caches" / "repomatic"
 
@@ -73,7 +73,7 @@ def test_cache_dir_darwin(monkeypatch):
 def test_cache_dir_linux_xdg(monkeypatch):
     """Linux with XDG_CACHE_HOME uses $XDG_CACHE_HOME/repomatic."""
     monkeypatch.delenv("REPOMATIC_CACHE_DIR", raising=False)
-    monkeypatch.setattr("repomatic.cache.sys.platform", "linux")
+    monkeypatch.setattr("repomatic.cache.platform.system", lambda: "Linux")
     monkeypatch.setenv("XDG_CACHE_HOME", "/tmp/xdg-cache")
     assert cache_dir() == Path("/tmp/xdg-cache/repomatic")
 
@@ -82,7 +82,7 @@ def test_cache_dir_linux_default(monkeypatch):
     """Linux without XDG_CACHE_HOME uses ~/.cache/repomatic."""
     monkeypatch.delenv("REPOMATIC_CACHE_DIR", raising=False)
     monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-    monkeypatch.setattr("repomatic.cache.sys.platform", "linux")
+    monkeypatch.setattr("repomatic.cache.platform.system", lambda: "Linux")
     result = cache_dir()
     assert result == Path.home() / ".cache" / "repomatic"
 
@@ -90,7 +90,7 @@ def test_cache_dir_linux_default(monkeypatch):
 def test_cache_dir_windows_localappdata(monkeypatch):
     """Windows uses %LOCALAPPDATA%/repomatic/Cache."""
     monkeypatch.delenv("REPOMATIC_CACHE_DIR", raising=False)
-    monkeypatch.setattr("repomatic.cache.sys.platform", "win32")
+    monkeypatch.setattr("repomatic.cache.platform.system", lambda: "Windows")
     monkeypatch.setenv("LOCALAPPDATA", "/tmp/fake-localappdata")
     result = cache_dir()
     assert result == Path("/tmp/fake-localappdata/repomatic/Cache")

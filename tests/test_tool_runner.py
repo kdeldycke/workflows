@@ -55,7 +55,6 @@ from repomatic.tool_runner import (
     ArchiveFormat,
     BinarySpec,
     NativeFormat,
-    PlatformKey,
     ToolSpec,
     _download_and_verify,
     _extract_binary,

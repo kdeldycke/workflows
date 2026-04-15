@@ -44,8 +44,8 @@ from __future__ import annotations
 
 import logging
 import os
+import platform
 import shutil
-import sys
 import tempfile
 import time
 from dataclasses import dataclass
@@ -128,9 +128,10 @@ def _platform_cache_dir() -> Path:
     - Linux/POSIX: ``$XDG_CACHE_HOME/repomatic`` or ``~/.cache/repomatic``.
     """
     home = Path.home()
-    if sys.platform == "darwin":
+    system = platform.system()
+    if system == "Darwin":
         return home / "Library" / "Caches" / "repomatic"
-    if sys.platform == "win32":
+    if system == "Windows":
         local_app_data = os.environ.get("LOCALAPPDATA")
         if local_app_data:
             return Path(local_app_data) / "repomatic" / "Cache"

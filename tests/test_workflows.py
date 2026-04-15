@@ -512,10 +512,21 @@ def test_runner_uses_ubuntu_slim_by_default(
 # Path to the bundled data directory.
 DATA_DIR = REPO_ROOT / "repomatic" / "data"
 
+# Workflows that are intentionally excluded from the bundled data symlinks because
+# they are repomatic-internal (patching files that only exist in this repo) and
+# must not be exported to downstream repositories.
+WORKFLOWS_WITHOUT_SYMLINKS = frozenset((
+    "update-checksums.yaml",  # Patches repomatic/tool_runner.py, which only exists here.
+))
+
 
 def test_all_workflows_have_symlinks_in_data() -> None:
-    """Verify that every workflow in .github/workflows/ has a symlink in repomatic/data/."""
-    workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
+    """Verify that every exportable workflow has a symlink in repomatic/data/."""
+    workflows = {
+        p.name
+        for p in WORKFLOWS_DIR.glob("*.yaml")
+        if p.name not in WORKFLOWS_WITHOUT_SYMLINKS
+    }
     symlinks = {p.name for p in DATA_DIR.iterdir() if p.is_symlink()}
 
     missing = workflows - symlinks

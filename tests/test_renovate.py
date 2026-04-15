@@ -24,6 +24,7 @@ from unittest.mock import patch
 
 import pytest
 
+from repomatic.github.pr_body import sanitize_markdown_mentions
 from repomatic.github.token import check_commit_statuses_permission
 from repomatic.pypi import get_changelog_url
 from repomatic.renovate import (
@@ -60,7 +61,6 @@ from repomatic.uv import (
     revert_lock_if_noise,
     sync_uv_lock,
 )
-from repomatic.github.pr_body import sanitize_markdown_mentions
 
 if sys.version_info >= (3, 11):
     import tomllib

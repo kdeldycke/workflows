@@ -32,6 +32,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import cast
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -350,7 +351,7 @@ def _build_inline_table(entries: dict[str, str]) -> tomlkit.items.InlineTable:
     :return: A ``tomlkit`` ``InlineTable`` with canonical formatting.
     """
     parts = ", ".join(f'{k} = "{entries[k]}"' for k in sorted(entries))
-    return tomlkit.value("{ " + parts + " }")
+    return cast(tomlkit.items.InlineTable, tomlkit.value("{ " + parts + " }"))
 
 
 def _parse_relative_duration(value: str) -> timedelta | None:
