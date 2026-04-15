@@ -147,9 +147,6 @@ test = [
   # [psutil] extra needed for --numprocesses=auto.
   "pytest-xdist[psutil]>=3.7",
 ]
-# types-boltons: first stub release covering boltons 25.0 API (FrozenDict, unique, flatten,
-# strip_ansi). types-pyyaml: stub release covering PyYAML 6.0 (safe_load, safe_dump, full_load).
-typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 docs = [
   # click-extra[sphinx] provides click_extra.sphinx extension, docutils, pygments,
   # pygments-ansi-color, and sphinx transitively.
@@ -173,6 +170,9 @@ docs = [
   # sphinxext-opengraph 0.13 stabilized OpenGraph metadata generation for Sphinx 8+.
   "sphinxext-opengraph>=0.13",
 ]
+# types-boltons: first stub release covering boltons 25.0 API (FrozenDict, unique, flatten,
+# strip_ansi). types-pyyaml: stub release covering PyYAML 6.0 (safe_load, safe_dump, full_load).
+typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
 
 [tool.uv]
 # Docs group requires Python >= 3.14 for recent MyST-Parser and click-extra features.
