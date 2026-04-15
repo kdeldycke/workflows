@@ -1,0 +1,271 @@
+# `tests` package
+
+```{eval-rst}
+.. automodule:: tests
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## Submodules
+
+## `tests.conftest` module
+
+```{eval-rst}
+.. automodule:: tests.conftest
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_awesome_template` module
+
+```{eval-rst}
+.. automodule:: tests.test_awesome_template
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_binary` module
+
+```{eval-rst}
+.. automodule:: tests.test_binary
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_broken_links` module
+
+```{eval-rst}
+.. automodule:: tests.test_broken_links
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_cache` module
+
+```{eval-rst}
+.. automodule:: tests.test_cache
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_changelog` module
+
+```{eval-rst}
+.. automodule:: tests.test_changelog
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_checksums` module
+
+```{eval-rst}
+.. automodule:: tests.test_checksums
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_deps_graph` module
+
+```{eval-rst}
+.. automodule:: tests.test_deps_graph
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_dev_release` module
+
+```{eval-rst}
+.. automodule:: tests.test_dev_release
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_gh` module
+
+```{eval-rst}
+.. automodule:: tests.test_gh
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_git_ops` module
+
+```{eval-rst}
+.. automodule:: tests.test_git_ops
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_help` module
+
+```{eval-rst}
+.. automodule:: tests.test_help
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_images` module
+
+```{eval-rst}
+.. automodule:: tests.test_images
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_init_project` module
+
+```{eval-rst}
+.. automodule:: tests.test_init_project
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_lint_repo` module
+
+```{eval-rst}
+.. automodule:: tests.test_lint_repo
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_mailmap` module
+
+```{eval-rst}
+.. automodule:: tests.test_mailmap
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_matrix` module
+
+```{eval-rst}
+.. automodule:: tests.test_matrix
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_metadata` module
+
+```{eval-rst}
+.. automodule:: tests.test_metadata
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_platform_keys` module
+
+```{eval-rst}
+.. automodule:: tests.test_platform_keys
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_pr_body` module
+
+```{eval-rst}
+.. automodule:: tests.test_pr_body
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_pyproject` module
+
+```{eval-rst}
+.. automodule:: tests.test_pyproject
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_readme` module
+
+```{eval-rst}
+.. automodule:: tests.test_readme
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_release_prep` module
+
+```{eval-rst}
+.. automodule:: tests.test_release_prep
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_release_sync` module
+
+```{eval-rst}
+.. automodule:: tests.test_release_sync
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_renovate` module
+
+```{eval-rst}
+.. automodule:: tests.test_renovate
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_tool_runner` module
+
+```{eval-rst}
+.. automodule:: tests.test_tool_runner
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_virustotal` module
+
+```{eval-rst}
+.. automodule:: tests.test_virustotal
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_workflow_sync` module
+
+```{eval-rst}
+.. automodule:: tests.test_workflow_sync
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
+
+## `tests.test_workflows` module
+
+```{eval-rst}
+.. automodule:: tests.test_workflows
+   :members:
+   :show-inheritance:
+   :undoc-members:
+```
