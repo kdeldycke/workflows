@@ -337,6 +337,12 @@ COMPONENTS: tuple[Component, ...] = (
         keep_unmodified=True,
         files=(
             FileEntry(
+                "skill-av-false-positive.md",
+                _skill_target("av-false-positive"),
+                "av-false-positive",
+                phase="Release",
+            ),
+            FileEntry(
                 "skill-awesome-triage.md",
                 _skill_target("awesome-triage"),
                 "awesome-triage",

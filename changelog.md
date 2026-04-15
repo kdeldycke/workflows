@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add `nuitka.entry-points` config option to select which `[project.scripts]` entries produce Nuitka binaries. When unset, deduplicates by callable target: keeps the first entry point for each unique `module:callable` pair, so alias entry points (like both `mpm` and `meta-package-manager` pointing to the same function) don't produce duplicate binaries.
+- Add `av-false-positive` skill to scan release binaries on VirusTotal and generate per-vendor false-positive submission files for flagged artifacts. Derives project metadata (name, license, maintainer, URLs) from `pyproject.toml` and git config instead of hardcoding.
 - Add `update-checksums.yaml` workflow that triggers on Renovate pushes to `renovate/**` branches modifying `repomatic/tool_runner.py`. Downloads each binary tool at its new version, computes the SHA-256, and commits corrected checksums to the PR branch. Works around [renovatebot/renovate#42263](https://github.com/renovatebot/renovate/discussions/42263) where `postUpgradeTasks` silently drops changes to the same file the regex manager updated.
 - Upgrade macOS Intel runner from `macos-15-intel` to `macos-26-intel` across binary builds, test matrix, and Nuitka compilation.
 - Include release notes for all intermediate versions in `sync-uv-lock` PR bodies. When a package jumps from `11.0.3` to `11.0.5`, both `11.0.4` and `11.0.5` release notes are shown.
