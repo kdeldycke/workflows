@@ -53,6 +53,7 @@ Determine the GitHub username from `gh api /user --jq '.login'` or `git config u
 #### 2. Identify upstream dependencies
 
 Extract dependencies from `pyproject.toml` (both `[project.dependencies]` and `[project.optional-dependencies]`/`[dependency-groups]`). For each dependency, find its GitHub repository:
+
 - Check PyPI metadata: `pip show <pkg>` or `https://pypi.org/pypi/<pkg>/json`
 - Check `uv.lock` for source URLs
 
@@ -96,15 +97,15 @@ Also check `docs/` and any changelog for upstream references.
 
 #### 6. Categorize each item
 
-| Item type | Status | Section |
-|---|---|---|
-| PR | merged | Code contributed upstream |
-| PR | closed, not merged | Declined by upstream |
-| PR | open | Open upstream |
-| Issue | closed, this project had workaround, workaround removed | Upstreamed from this project |
-| Issue | open or closed, this project provides workaround | Addressed by this project |
-| Issue | closed as not planned | Declined by upstream |
-| Issue | open, no local workaround | Open upstream |
+| Item type | Status                                                  | Section                      |
+| --------- | ------------------------------------------------------- | ---------------------------- |
+| PR        | merged                                                  | Code contributed upstream    |
+| PR        | closed, not merged                                      | Declined by upstream         |
+| PR        | open                                                    | Open upstream                |
+| Issue     | closed, this project had workaround, workaround removed | Upstreamed from this project |
+| Issue     | open or closed, this project provides workaround        | Addressed by this project    |
+| Issue     | closed as not planned                                   | Declined by upstream         |
+| Issue     | open, no local workaround                               | Open upstream                |
 
 To determine whether the project has a workaround for an issue, search the codebase for references to that issue URL or number.
 
@@ -129,12 +130,12 @@ For every GitHub URL in the document, check its current state via `gh`:
 
 Flag items that need to move:
 
-| Current section | New state | Action |
-|---|---|---|
-| Open upstream | PR merged | Move to "Code contributed upstream" |
-| Open upstream | Issue closed as completed | Move to "Upstreamed" or "Addressed" depending on whether a local workaround existed |
-| Open upstream | Closed as not planned | Move to "Declined by upstream" |
-| Addressed by this project | Fixed upstream | Move to "Upstreamed from this project" |
+| Current section           | New state                 | Action                                                                              |
+| ------------------------- | ------------------------- | ----------------------------------------------------------------------------------- |
+| Open upstream             | PR merged                 | Move to "Code contributed upstream"                                                 |
+| Open upstream             | Issue closed as completed | Move to "Upstreamed" or "Addressed" depending on whether a local workaround existed |
+| Open upstream             | Closed as not planned     | Move to "Declined by upstream"                                                      |
+| Addressed by this project | Fixed upstream            | Move to "Upstreamed from this project"                                              |
 
 #### 2. Consistency checks
 
@@ -160,11 +161,11 @@ For each new reference, determine which section it belongs to and report it.
 
 For `audit`, produce a summary:
 
-| Action | Count |
-|---|---|
-| Items to move | N |
-| New items to add | N |
-| Stale items to remove | N |
+| Action                | Count |
+| --------------------- | ----- |
+| Items to move         | N     |
+| New items to add      | N     |
+| Stale items to remove | N     |
 
 Then list each change with: URL, current section, recommended section, reason.
 

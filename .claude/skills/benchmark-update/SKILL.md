@@ -45,6 +45,7 @@ Read `pyproject.toml` for the project name, description, and keywords. Determine
 #### 2. Discover competitors
 
 Search for alternatives in the same space:
+
 - Search GitHub: `gh search repos "<domain keywords>" --sort stars --limit 30`
 - Search PyPI and other registries for similar tools.
 - Check "awesome" lists on GitHub.
@@ -83,7 +84,7 @@ This analysis turns the benchmark from a static comparison into an actionable ro
 
 Follow this template structure:
 
-````markdown
+```markdown
 # {octicon}`trophy` Benchmark
 
 <intro paragraph about why this comparison exists>
@@ -148,7 +149,7 @@ Follow this template structure:
 ## Project URLs
 
 [^1]: [<url>](<url>)
-````
+```
 
 Badge format follows shields.io conventions: `![GitHub](https://img.shields.io/github/<metric>/<owner>/<repo>?label=%20&style=flat-square)` for compact badges with no label text.
 
@@ -159,6 +160,7 @@ Star history chart: `[![Star History Chart](https://api.star-history.com/svg?rep
 #### 1. Maintenance status check
 
 For each project in the benchmark, check via `gh api`:
+
 - Last commit date on the default branch.
 - Last GitHub release date.
 - Whether the repo is archived.
@@ -175,6 +177,7 @@ For each feature row, spot-check 2-3 projects against their current documentatio
 #### 3. Gap analysis freshness
 
 For each item in "Gaps and opportunities", check whether the linked upstream issues have changed status:
+
 - Closed issues: the gap may have been addressed upstream or in this project. Verify and update.
 - New upstream PRs: a fix may be in progress.
 - Features this project has since implemented: the gap should be removed and the feature moved to "Unique strengths" or the feature table updated.
@@ -205,9 +208,9 @@ Verify the star-history.com URL includes all current projects and no excluded on
 
 For `audit`, produce a summary table:
 
-| Project | Status | Issues found |
-|---|---|---|
-| ... | active / stale / ... | badge broken / feature changed / ... |
+| Project | Status               | Issues found                         |
+| ------- | -------------------- | ------------------------------------ |
+| ...     | active / stale / ... | badge broken / feature changed / ... |
 
 Then list recommended actions. Do not edit the file until the user confirms.
 
