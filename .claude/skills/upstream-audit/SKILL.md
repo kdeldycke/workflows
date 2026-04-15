@@ -35,7 +35,7 @@ The page uses five sections:
 4. **Declined by upstream** - PRs or issues rejected by upstream maintainers; this project provides the functionality regardless.
 5. **Open upstream** - PRs and issues still pending upstream.
 
-Items are listed as markdown links: `- [\`#N\` - Title](url)`
+Items are listed as markdown links: `` - [`#N` - Title](url) ``
 
 ### Scope selection
 

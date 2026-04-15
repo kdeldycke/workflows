@@ -83,7 +83,7 @@ This analysis turns the benchmark from a static comparison into an actionable ro
 
 Follow this template structure:
 
-```markdown
+````markdown
 # {octicon}`trophy` Benchmark
 
 <intro paragraph about why this comparison exists>
@@ -141,14 +141,14 @@ Follow this template structure:
 
 ## Excluded projects
 
-```{note}
+~~~{note}
 <Project name> is not included because <reason>.
-```
+~~~
 
 ## Project URLs
 
 [^1]: [<url>](<url>)
-```
+````
 
 Badge format follows shields.io conventions: `![GitHub](https://img.shields.io/github/<metric>/<owner>/<repo>?label=%20&style=flat-square)` for compact badges with no label text.
 
