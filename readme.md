@@ -256,6 +256,7 @@ Some tools have long-standing requests to read configuration from `pyproject.tom
 
 | Tool                                              | `[tool.X]` section  | Translated to |
 | :------------------------------------------------ | :------------------ | :------------ |
+| [actionlint](https://github.com/rhysd/actionlint) | `[tool.actionlint]` | YAML          |
 | [biome](https://biomejs.dev)                      | `[tool.biome]`      | JSON          |
 | [gitleaks](https://github.com/gitleaks/gitleaks)  | `[tool.gitleaks]`   | TOML          |
 | [lychee](https://lychee.cli.rs)                   | `[tool.lychee]`     | TOML          |

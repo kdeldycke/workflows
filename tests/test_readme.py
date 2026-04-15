@@ -24,7 +24,7 @@ from pathlib import Path
 from click.testing import CliRunner
 
 from repomatic.cli import repomatic
-from repomatic.tool_runner import TOOL_REGISTRY
+from repomatic.tool_runner import TOOL_REGISTRY, NativeFormat
 
 REPO_ROOT = Path(__file__).parent.parent
 README = REPO_ROOT / "readme.md"
@@ -78,8 +78,11 @@ def test_readme_config_table_matches() -> None:
 def test_readme_bridge_table_covers_registry() -> None:
     """The bridge table must list every registry tool that supports translation.
 
-    A tool supports ``[tool.X]`` translation when it has a ``config_flag`` and
-    does not natively read ``pyproject.toml`` (``reads_pyproject=False``).
+    A tool supports ``[tool.X]`` translation when it does not natively read
+    ``pyproject.toml`` (``reads_pyproject=False``) and can receive a translated
+    config via either a ``config_flag`` or ``native_config_files`` in a
+    non-editorconfig format (editorconfig files are shared across tools and
+    not suitable as single-tool bridge targets).
     """
     readme = _readme_text()
     match = re.search(
@@ -99,7 +102,14 @@ def test_readme_bridge_table_covers_registry() -> None:
     bridgeable = {
         name
         for name, spec in TOOL_REGISTRY.items()
-        if spec.config_flag and not spec.reads_pyproject
+        if not spec.reads_pyproject
+        and (
+            spec.config_flag
+            or (
+                spec.native_config_files
+                and spec.native_format is not NativeFormat.EDITORCONFIG
+            )
+        )
     }
 
     missing = bridgeable - documented
