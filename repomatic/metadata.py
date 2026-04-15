@@ -1597,8 +1597,7 @@ class Metadata:
                 selected.append(cli_id)
             else:
                 logging.warning(
-                    f"Unrecognized nuitka entry point {cli_id!r};"
-                    f" valid: {all_cli_ids}"
+                    f"Unrecognized nuitka entry point {cli_id!r}; valid: {all_cli_ids}"
                 )
         return selected or all_cli_ids[:1]
 
@@ -2334,7 +2333,8 @@ class Metadata:
         # and subcommand config fields (read directly by test-plan and deps-graph).
         for f in fields(Config):
             if (
-                f.name not in (
+                f.name
+                not in (
                     "nuitka_entry_points",
                     "nuitka_extra_args",
                     "nuitka_unstable_targets",

@@ -2267,7 +2267,11 @@ def setup_guide(
     fork_pr_gate = fork_pr_ok is not False
     pages_gate = bool(pages_ok) if md.is_sphinx else pages_ok is not False
     needs_issue = not (
-        token_ok and dependabot_ok and branch_ok and vt_ok and fork_pr_gate
+        token_ok
+        and dependabot_ok
+        and branch_ok
+        and vt_ok
+        and fork_pr_gate
         and pages_gate
     )
 
@@ -3485,9 +3489,7 @@ def scan_virustotal(
                 if updated:
                     echo(f"Updated release body for {tag}.")
                 else:
-                    echo(
-                        f"Release body for {tag} already has VirusTotal links."
-                    )
+                    echo(f"Release body for {tag} already has VirusTotal links.")
             elif results and update_release and not repo:
                 echo("No --repo specified, skipping release body update.")
 
@@ -3510,18 +3512,14 @@ def scan_virustotal(
             body = json.loads(raw).get("body", "")
             results = _extract_results_from_body(body)
             if not results:
-                echo(
-                    f"No VirusTotal section found in {tag} release body."
-                )
+                echo(f"No VirusTotal section found in {tag} release body.")
                 return
 
         echo(
             f"Polling VirusTotal for {len(results)} file(s)"
             f" (timeout {poll_timeout}s)..."
         )
-        enriched = poll_detection_stats(
-            api_key, results, rate_limit, poll_timeout
-        )
+        enriched = poll_detection_stats(api_key, results, rate_limit, poll_timeout)
 
         for r in enriched:
             stats = str(r.detection_stats) if r.detection_stats else "pending"

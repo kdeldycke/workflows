@@ -31,7 +31,9 @@ def _make_result(
     stdout: str = "",
     stderr: str = "",
 ) -> CompletedProcess[str]:
-    return CompletedProcess(args=["gh"], returncode=returncode, stdout=stdout, stderr=stderr)
+    return CompletedProcess(
+        args=["gh"], returncode=returncode, stdout=stdout, stderr=stderr
+    )
 
 
 # Minimal env: no token vars at all.  Tests that need specific vars add them.
