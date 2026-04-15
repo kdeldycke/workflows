@@ -307,10 +307,10 @@ class BinarySpec:
                 continue
             if map_key == key_plat:
                 return fmt
-            if isinstance(map_key, Group):
-                # key_plat is a Platform: direct membership check.
-                # key_plat is a Group: check for overlapping members.
-                if isinstance(key_plat, Platform) and key_plat in map_key or isinstance(key_plat, Group) and (key_plat & map_key):
+            if isinstance(map_key, Group) and (
+                isinstance(key_plat, Platform) and key_plat in map_key
+                or isinstance(key_plat, Group) and (key_plat & map_key)
+            ):
                     group_hits.append((map_key, fmt))
 
         if group_hits:

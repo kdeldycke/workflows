@@ -37,7 +37,7 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 import tomlkit
-from packaging.version import Version
+from packaging.version import InvalidVersion, Version
 
 from .cache import get_cached_response, store_response
 from .config import load_repomatic_config as _load_repomatic_config
@@ -982,13 +982,13 @@ def _versions_in_range(package: str, old: str, new: str) -> list[str]:
     try:
         old_v = Version(old)
         new_v = Version(new)
-    except Exception:
+    except InvalidVersion:
         return [new]
     intermediate = []
     for version_str in releases:
         try:
             v = Version(version_str)
-        except Exception:
+        except InvalidVersion:
             continue
         if old_v < v <= new_v:
             intermediate.append((v, version_str))

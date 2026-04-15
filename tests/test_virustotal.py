@@ -323,8 +323,10 @@ def test_poll_detection_stats():
     mock_client.__enter__ = MagicMock(return_value=mock_client)
     mock_client.__exit__ = MagicMock(return_value=False)
 
-    with patch("repomatic.virustotal.vt.Client", return_value=mock_client):
-        with patch("repomatic.virustotal.time.sleep"):
+    with (
+        patch("repomatic.virustotal.vt.Client", return_value=mock_client),
+        patch("repomatic.virustotal.time.sleep"),
+    ):
             enriched = poll_detection_stats("key", results, timeout=60)
 
     assert len(enriched) == 1
