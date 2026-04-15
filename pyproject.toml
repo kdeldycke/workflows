@@ -122,6 +122,7 @@ repomatic = "repomatic.__main__:main"
 
 [project.urls]
 "Changelog" = "https://github.com/kdeldycke/repomatic/blob/main/changelog.md"
+"Documentation" = "https://kdeldycke.github.io/repomatic"
 "Download" = "https://github.com/kdeldycke/repomatic/releases/tag/v6.13.1.dev0"
 "Funding" = "https://github.com/sponsors/kdeldycke"
 "Homepage" = "https://github.com/kdeldycke/repomatic"
