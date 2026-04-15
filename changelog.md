@@ -8,6 +8,8 @@
 - Add Sphinx documentation site with Furo theme, MyST-Parser, and 13 extensions. Split the monolithic `readme.md` (1139 lines) into focused pages: installation, configuration reference, CLI parameters (auto-generated via `click_extra.sphinx`), reusable workflow reference, security practices, and Claude Code skills. Deployed to GitHub Pages via the existing `docs.yaml` workflow.
 - Add `docs/docs_update.py` to generate the `[tool.repomatic]` configuration reference as a definition list from the `Config` dataclass, replacing the manually-pasted table.
 - Fix setup guide not reopening when GitHub Pages is not configured. The `check_pages_deployment_source` API returns `None` (indeterminate) when Pages is not set up at all, which the `pages_gate` logic treated as passing. For Sphinx projects, "not configured" is now treated as incomplete, reopening the issue with the Pages setup step.
+- Fix setup guide Pages template assuming Pages is already configured (`PUT` returns 404 on unconfigured repos). Template now shows both `POST` (first-time enable) and `PUT` (update existing) commands.
+- Add `check_stale_gh_pages_branch` lint check and setup guide instructions for deleting leftover `gh-pages` branches after switching to GitHub Actions deployment.
 
 ## [`6.13.0` (2026-04-15)](https://github.com/kdeldycke/repomatic/compare/v6.12.0...v6.13.0)
 

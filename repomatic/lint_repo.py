@@ -607,6 +607,29 @@ def check_pages_deployment_source(repo: str) -> tuple[bool | None, str]:
     )
 
 
+def check_stale_gh_pages_branch(repo: str) -> tuple[bool | None, str]:
+    """Check for a leftover ``gh-pages`` branch after switching to GitHub Actions.
+
+    When Pages is deployed via GitHub Actions, the ``gh-pages`` branch is no
+    longer needed and should be deleted to avoid confusion.
+
+    :param repo: Repository in 'owner/repo' format.
+    :return: Tuple of (passed_or_None, message).
+    """
+    try:
+        run_gh_command(["api", f"repos/{repo}/branches/gh-pages"])
+    except RuntimeError:
+        # 404: branch doesn't exist. That's the desired state.
+        return True, "No stale gh-pages branch found."
+
+    msg = (
+        "Stale `gh-pages` branch detected. Pages is deployed via GitHub"
+        " Actions, so this branch is no longer needed. Delete it with:"
+        f" `gh api --method DELETE repos/{repo}/git/refs/heads/gh-pages`"
+    )
+    return False, msg
+
+
 def check_workflow_permissions() -> list[tuple[str | None, str]]:
     """Check that workflows with custom jobs declare ``permissions: {}``.
 
@@ -722,6 +745,15 @@ def run_repo_lint(
             print(f"✓ {msg}")
         else:
             print(f"ℹ {msg}")
+
+    # Check 3b: Stale gh-pages branch (Sphinx projects only).
+    if is_sphinx and repo:
+        passed, msg = check_stale_gh_pages_branch(repo)
+        if passed is False:
+            emit_annotation(AnnotationLevel.WARNING, msg)
+            print(f"⚠ {msg}")
+        elif passed is True:
+            print(f"✓ {msg}")
 
     # Check 4: Description matches (fatal).
     if project_description:
