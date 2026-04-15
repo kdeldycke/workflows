@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add Sphinx documentation site with Furo theme, MyST-Parser, and 13 extensions. Split the monolithic `readme.md` (1139 lines) into focused pages: installation, configuration reference, CLI parameters (auto-generated via `click_extra.sphinx`), reusable workflow reference, security practices, and Claude Code skills. Deployed to GitHub Pages via the existing `docs.yaml` workflow.
+
 ## [`6.13.0` (2026-04-15)](https://github.com/kdeldycke/repomatic/compare/v6.12.0...v6.13.0)
 
 - Add `nuitka.entry-points` config option to select which `[project.scripts]` entries produce Nuitka binaries. When unset, deduplicates by callable target: keeps the first entry point for each unique `module:callable` pair, so alias entry points (like both `mpm` and `meta-package-manager` pointing to the same function) don't produce duplicate binaries.
