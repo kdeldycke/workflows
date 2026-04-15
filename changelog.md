@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add Sphinx documentation site with Furo theme, MyST-Parser, and 13 extensions. Split the monolithic `readme.md` (1139 lines) into focused pages: installation, configuration reference, CLI parameters (auto-generated via `click_extra.sphinx`), reusable workflow reference, security practices, and Claude Code skills. Deployed to GitHub Pages via the existing `docs.yaml` workflow.
+- Fix setup guide not reopening when GitHub Pages is not configured. The `check_pages_deployment_source` API returns `None` (indeterminate) when Pages is not set up at all, which the `pages_gate` logic treated as passing. For Sphinx projects, "not configured" is now treated as incomplete, reopening the issue with the Pages setup step.
 
 ## [`6.13.0` (2026-04-15)](https://github.com/kdeldycke/repomatic/compare/v6.12.0...v6.13.0)
 

@@ -2172,6 +2172,7 @@ def setup_guide(
     )
 
     # Pages deployment source step: only relevant for Sphinx projects.
+    # Treat "not configured" (None) as incomplete so the step renders open.
     step_pages_source = ""
     if md.is_sphinx:
         step_pages_source = _wrap_setup_step(
@@ -2181,7 +2182,7 @@ def setup_guide(
                 repo_url=repo_url,
                 repo_slug=repo_slug,
             ),
-            passed=pages_ok,
+            passed=pages_ok or False,
         )
 
     # VirusTotal step: only relevant when Nuitka binary compilation is active.
@@ -2259,10 +2260,12 @@ def setup_guide(
 
     # Close issue only when all verifiable steps pass.
     # Immutable releases and verify are excluded (no API to check).
-    # Fork PR approval and Pages source are included only when determinate.
+    # Fork PR approval is included only when determinate.
+    # Pages source: when is_sphinx, treat "not configured" (None) as a
+    # failure so the setup guide reopens with the Pages step.
     vt_ok = not nuitka_active or has_virustotal_key
     fork_pr_gate = fork_pr_ok is not False
-    pages_gate = pages_ok is not False
+    pages_gate = bool(pages_ok) if md.is_sphinx else pages_ok is not False
     needs_issue = not (
         token_ok and dependabot_ok and branch_ok and vt_ok and fork_pr_gate
         and pages_gate
