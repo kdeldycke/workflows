@@ -14,6 +14,9 @@
 
 ## [`6.13.0` (2026-04-15)](https://github.com/kdeldycke/repomatic/compare/v6.12.0...v6.13.0)
 
+> [!NOTE]
+> `6.13.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.13.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.13.0).
+
 - Add `nuitka.entry-points` config option to select which `[project.scripts]` entries produce Nuitka binaries. When unset, deduplicates by callable target: keeps the first entry point for each unique `module:callable` pair, so alias entry points (like both `mpm` and `meta-package-manager` pointing to the same function) don't produce duplicate binaries.
 - Add two-phase VirusTotal scanning: phase 1 uploads binaries and writes an initial table with scan links (binary names link to their GitHub release download URLs), phase 2 (`--poll`) polls for analysis completion and replaces the table with a Detections column showing `flagged / total` engine counts. The workflow uses two sequential steps so users see scan links immediately while detection stats populate asynchronously.
 - Add `av-false-positive` skill to scan release binaries on VirusTotal and generate per-vendor false-positive submission files for flagged artifacts. Derives project metadata (name, license, maintainer, URLs) from `pyproject.toml` and git config instead of hardcoding.
