@@ -786,7 +786,7 @@ docs = [
 
 - 🛡️ **VirusTotal scan** (`scan-virustotal`)
 
-  - Uploads compiled binaries (`.bin` and `.exe`) to [VirusTotal](https://www.virustotal.com/) via `repomatic scan-virustotal`, then appends analysis links to the GitHub release body
+  - Uploads compiled binaries (`.bin` and `.exe`) to [VirusTotal](https://www.virustotal.com/) via `repomatic scan-virustotal`, then appends analysis links to the GitHub release body. A second step polls for analysis completion and replaces the table with detection statistics (`flagged / total` engine counts)
   - Seeds AV vendor databases to reduce false positive detections for downstream distributors (Chocolatey, Scoop, etc.)
   - **Requires**:
     - `VIRUSTOTAL_API_KEY` repository secret ([free API key](https://www.virustotal.com/gui/my-apikey))

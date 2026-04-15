@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import functools
+import json
 import logging
 import os
 import re
@@ -174,7 +175,13 @@ from .uv import (
     format_release_notes,
     sync_uv_lock as _sync_uv_lock,
 )
-from .virustotal import scan_files, update_release_body
+from .virustotal import (
+    ScanResult,
+    _extract_results_from_body,
+    poll_detection_stats,
+    scan_files,
+    update_release_body,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -3387,7 +3394,7 @@ def git_tag(
 @option(
     "--binaries-dir",
     type=dir_path(exists=True, resolve_path=True),
-    required=True,
+    default=None,
     help="Directory containing binary files to upload.",
 )
 @option(
@@ -3402,13 +3409,27 @@ def git_tag(
     default=True,
     help="Append scan links to the GitHub release body.",
 )
+@option(
+    "--poll/--no-poll",
+    default=False,
+    help="Poll for detection statistics after uploading.",
+)
+@option(
+    "--poll-timeout",
+    type=IntRange(60, 3600),
+    default=600,
+    show_default=True,
+    help="Maximum seconds to wait for analysis completion when polling.",
+)
 def scan_virustotal(
     tag: str,
     repo: str | None,
     api_key: str,
-    binaries_dir: Path,
+    binaries_dir: Path | None,
     rate_limit: int,
     update_release: bool,
+    poll: bool,
+    poll_timeout: int,
 ) -> None:
     """Upload release binaries to VirusTotal and update the release body.
 
@@ -3416,41 +3437,96 @@ def scan_virustotal(
     VirusTotal, and optionally appends analysis links to the GitHub release
     body.
 
+    With --poll, polls the VirusTotal API for detection statistics after
+    uploading (or standalone without --binaries-dir to enrich an existing
+    table).
+
     \b
     Examples:
         repomatic scan-virustotal --tag v1.2.3 --binaries-dir ./binaries
 
     \b
-        repomatic scan-virustotal --tag v1.2.3 --binaries-dir ./binaries --no-update-release
+        repomatic scan-virustotal --tag v1.2.3 --repo owner/repo --poll
     """
-    file_paths = sorted(
-        p
-        for p in binaries_dir.iterdir()
-        if p.is_file() and p.suffix in {".bin", ".exe"}
-    )
+    if not binaries_dir and not poll:
+        raise UsageError("At least one of --binaries-dir or --poll is required.")
 
-    if not file_paths:
-        echo("No .bin or .exe files found, nothing to upload.")
-        return
+    results: list[ScanResult] = []
 
-    echo(f"Uploading {len(file_paths)} file(s) to VirusTotal...")
-    results = scan_files(api_key, file_paths, rate_limit)
+    # Phase 1: upload binaries and write initial table.
+    if binaries_dir:
+        file_paths = sorted(
+            p
+            for p in binaries_dir.iterdir()
+            if p.is_file() and p.suffix in {".bin", ".exe"}
+        )
 
-    for r in results:
-        echo(f"  {r.filename}: {r.analysis_url}")
-
-    if not results:
-        echo("All uploads failed.")
-        return
-
-    if update_release and repo:
-        updated = update_release_body(repo, tag, results)
-        if updated:
-            echo(f"Updated release body for {tag}.")
+        if not file_paths:
+            echo("No .bin or .exe files found, nothing to upload.")
+            if not poll:
+                return
         else:
-            echo(f"Release body for {tag} already has VirusTotal links.")
-    elif update_release and not repo:
-        echo("No --repo specified, skipping release body update.")
+            echo(f"Uploading {len(file_paths)} file(s) to VirusTotal...")
+            results = scan_files(api_key, file_paths, rate_limit)
+
+            for r in results:
+                echo(f"  {r.filename}: {r.analysis_url}")
+
+            if not results:
+                echo("All uploads failed.")
+                if not poll:
+                    return
+
+            if results and update_release and repo:
+                updated = update_release_body(repo, tag, results)
+                if updated:
+                    echo(f"Updated release body for {tag}.")
+                else:
+                    echo(
+                        f"Release body for {tag} already has VirusTotal links."
+                    )
+            elif results and update_release and not repo:
+                echo("No --repo specified, skipping release body update.")
+
+    # Phase 2: poll for detection statistics.
+    if poll:
+        if not repo:
+            raise UsageError("--repo is required when using --poll.")
+
+        if not results:
+            # Standalone poll: extract SHA-256s from release body.
+            raw = run_gh_command([
+                "release",
+                "view",
+                tag,
+                "--repo",
+                repo,
+                "--json",
+                "body",
+            ])
+            body = json.loads(raw).get("body", "")
+            results = _extract_results_from_body(body)
+            if not results:
+                echo(
+                    f"No VirusTotal section found in {tag} release body."
+                )
+                return
+
+        echo(
+            f"Polling VirusTotal for {len(results)} file(s)"
+            f" (timeout {poll_timeout}s)..."
+        )
+        enriched = poll_detection_stats(
+            api_key, results, rate_limit, poll_timeout
+        )
+
+        for r in enriched:
+            stats = str(r.detection_stats) if r.detection_stats else "pending"
+            echo(f"  {r.filename}: {stats}")
+
+        if update_release:
+            update_release_body(repo, tag, enriched, replace=True)
+            echo(f"Updated release body for {tag} with detection statistics.")
 
 
 @repomatic.command(

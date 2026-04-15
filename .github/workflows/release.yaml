@@ -599,6 +599,17 @@ jobs:
           --tag "v${CURRENT_VERSION}"
           --repo "${{ github.repository }}"
           --binaries-dir ./binaries
+      - name: Poll VirusTotal for detection statistics
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          CURRENT_VERSION: ${{ matrix.current_version }}
+        run: >
+          uvx --no-progress --from . repomatic scan-virustotal
+          --tag "v${CURRENT_VERSION}"
+          --repo "${{ github.repository }}"
+          --poll
+          --poll-timeout 600
 
   sync-dev-release:
     name: 🔄 Sync dev pre-release
