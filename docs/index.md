@@ -10,6 +10,7 @@ hide-toc: true
 :hidden:
 install
 configuration
+tool-runner
 cli-parameters
 workflows
 security
