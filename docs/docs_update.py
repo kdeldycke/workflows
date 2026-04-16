@@ -139,8 +139,10 @@ def cli_reference() -> str:
         cmd = repomatic.commands[name]
         entries.append(([name], cmd))
         if isinstance(cmd, click.Group):
-            for sub_name in sorted(cmd.commands):
-                entries.append(([name, sub_name], cmd.commands[sub_name]))
+            entries.extend(
+                ([name, sub_name], cmd.commands[sub_name])
+                for sub_name in sorted(cmd.commands)
+            )
 
     # Summary table.
     lines.append("| Command | Description |")
@@ -222,9 +224,7 @@ def tool_reference() -> str:
         if spec.native_config_files:
             files_str = ", ".join(f"`{f}`" for f in spec.native_config_files)
             if spec.reads_pyproject:
-                files_str += (
-                    f" and `[tool.{spec.name}]` in `pyproject.toml` (native)"
-                )
+                files_str += f" and `[tool.{spec.name}]` in `pyproject.toml` (native)"
             lines.append(f"**Config files:** {files_str}")
             lines.append("")
         elif spec.reads_pyproject:
@@ -258,9 +258,7 @@ def tool_reference() -> str:
                 "https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/"
                 + spec.default_config
             )
-            lines.append(
-                f"**Bundled default:** [`{spec.default_config}`]({data_url})"
-            )
+            lines.append(f"**Bundled default:** [`{spec.default_config}`]({data_url})")
             lines.append("")
 
         if spec.with_packages:
@@ -291,15 +289,51 @@ def tool_reference() -> str:
 
     lines.append("## Comparison")
     lines.append("")
-    _badge_table(lines, TOOL_REGISTRY, [
-        ("Stars", lambda _k, _s, r: f"![Stars](https://img.shields.io/github/stars/{r}?{_BADGE})", "right"),
-        ("Last release", _last_release),
-        ("Last commit", lambda _k, _s, r: f"![Last commit](https://img.shields.io/github/last-commit/{r}?{_BADGE})"),
-        ("Commits", lambda _k, _s, r: f"![Commits](https://img.shields.io/github/commit-activity/m/{r}?{_BADGE})", "right"),
-        ("Dependencies", lambda _k, _s, r: f"![Dependencies](https://img.shields.io/librariesio/github/{r}?{_BADGE})"),
-        ("Language", lambda _k, _s, r: f"![Language](https://img.shields.io/github/languages/top/{r}?style=flat-square)"),
-        ("License", lambda _k, _s, r: f"![License](https://img.shields.io/github/license/{r}?{_BADGE})"),
-    ])
+    _badge_table(
+        lines,
+        TOOL_REGISTRY,
+        [
+            (
+                "Stars",
+                lambda _k, _s, r: (
+                    f"![Stars](https://img.shields.io/github/stars/{r}?{_BADGE})"
+                ),
+                "right",
+            ),
+            ("Last release", _last_release),
+            (
+                "Last commit",
+                lambda _k, _s, r: (
+                    f"![Last commit](https://img.shields.io/github/last-commit/{r}?{_BADGE})"
+                ),
+            ),
+            (
+                "Commits",
+                lambda _k, _s, r: (
+                    f"![Commits](https://img.shields.io/github/commit-activity/m/{r}?{_BADGE})"
+                ),
+                "right",
+            ),
+            (
+                "Dependencies",
+                lambda _k, _s, r: (
+                    f"![Dependencies](https://img.shields.io/librariesio/github/{r}?{_BADGE})"
+                ),
+            ),
+            (
+                "Language",
+                lambda _k, _s, r: (
+                    f"![Language](https://img.shields.io/github/languages/top/{r}?style=flat-square)"
+                ),
+            ),
+            (
+                "License",
+                lambda _k, _s, r: (
+                    f"![License](https://img.shields.io/github/license/{r}?{_BADGE})"
+                ),
+            ),
+        ],
+    )
 
     return "\n".join(lines)
 
