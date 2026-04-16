@@ -1,6 +1,6 @@
 # Automated operation contracts
 
-> Referenced from `CLAUDE.md` § Automated operation contracts. This file contains the detailed checklists for each operation type.
+> Referenced from `claude.md` [§ Automated operation contracts](https://github.com/kdeldycke/repomatic/blob/main/claude.md#automated-operation-contracts). This file contains the detailed checklists for each operation type.
 
 ## Sync job contract
 
@@ -12,7 +12,7 @@ Every `sync-*` operation modifies or overwrites user-controlled files or resourc
 2. **CLI command.** A `repomatic sync-*` command that loads config, checks the toggle, and exits cleanly (`ctx.exit(0)`) when disabled. Uses `@pass_context` to receive `ctx`.
 3. **Toggle enforcement.** For CLI-based syncs: the toggle field goes in `SUBCOMMAND_CONFIG_FIELDS` (checked in the CLI, not exposed as metadata). For workflow-only syncs (no CLI command): the toggle is exposed as a metadata output and checked in the job's `if:` condition.
 4. **Workflow job.** A `sync-*` job in the appropriate workflow file (usually `autofix.yaml`, but lifecycle-specific syncs may live elsewhere — e.g., `sync-dev-release` in `release.yaml`, `sync-labels` in `labels.yaml`). Requires: metadata `needs:` when applicable, prerequisite `if:` conditions, PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template sync-*`). Exception: syncs targeting API resources (e.g., labels) rather than repo files apply changes directly.
-5. **Documentation.** Config table row and TOML example in `readme.md`. Job description with "Skipped if" clause in `readme.md`. Changelog entry.
+5. **Documentation.** Config table row and TOML example in `docs/configuration.md`. Job description with "Skipped if" clause in `docs/workflows.md`. Changelog entry.
 6. **Tests.** Default and custom value assertions in `test_repomatic_config_defaults` and `test_repomatic_config_custom_values`.
 
 **Invariants:**
@@ -27,7 +27,7 @@ Every `update-*` operation computes derived artifacts from project state (lockfi
 
 1. **CLI command.** A `repomatic update-*` command.
 2. **Workflow job.** An `update-*` job in the appropriate workflow file with PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template update-*`).
-3. **Documentation.** Job description in `readme.md`. Changelog entry.
+3. **Documentation.** Job description in `docs/workflows.md`. Changelog entry.
 
 **Optional properties:**
 
@@ -43,7 +43,7 @@ Every `format-*` and `fix-*` operation rewrites files using a pinned external to
 
 1. **CLI command.** A `repomatic format-*` or `repomatic fix-*` command that wraps a pinned external tool (e.g., ruff, mdformat, jq, typos).
 2. **Workflow job.** A job in the appropriate workflow file (usually `autofix.yaml`) with PR creation via `peter-evans/create-pull-request` (branch name = job ID, body from `repomatic pr-body --template verb-noun`).
-3. **Documentation.** Job description in `readme.md`. Changelog entry.
+3. **Documentation.** Job description in `docs/workflows.md`. Changelog entry.
 
 **Invariants:**
 
@@ -58,7 +58,7 @@ Every `lint-*` operation checks content without modifying it. Lint operations ar
 
 1. **CLI command.** A `repomatic lint-*` command. Returns exit code 0 on pass, non-zero on failure.
 2. **Workflow job.** A `lint-*` job in `lint.yaml` (not `autofix.yaml`). No PR creation — lints gate merges via status checks.
-3. **Documentation.** Job description in `readme.md`. Changelog entry.
+3. **Documentation.** Job description in `docs/workflows.md`. Changelog entry.
 
 **Optional properties:**
 
@@ -75,7 +75,7 @@ PR body templates in `repomatic/templates/` are the downstream user's primary wi
 
 **Required elements:**
 
-1. **Description.** What the job does, linking to the tool's homepage and the job documentation in `readme.md`.
+1. **Description.** What the job does, linking to the tool's homepage and the job documentation in `docs/workflows.md`.
 2. **Bundled defaults link.** When the operation uses a bundled default config from `repomatic/data/`, link to it so users can inspect the exact settings applied. Use the `blob/main` URL (e.g., `https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/ruff.toml`).
 3. **Customization tip.** A `> [!TIP]` block pointing users to the tool's own configuration documentation, mentioning the `[tool.X]` `pyproject.toml` section and/or native config file as the way to override defaults. Link to the tool's configuration reference (not just the homepage).
 

@@ -25,6 +25,7 @@ skills
 :maxdepth: 2
 :hidden:
 contributing
+operation-contracts
 genindex
 modindex
 changelog

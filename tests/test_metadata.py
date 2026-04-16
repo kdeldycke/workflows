@@ -537,7 +537,7 @@ expected: dict[str, Any] = {
     "doc_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
-        ".claude/docs/operation-contracts.md",
+        "docs/operation-contracts.md",
         ".claude/skills/av-false-positive/SKILL.md",
         ".claude/skills/awesome-triage/SKILL.md",
         ".claude/skills/babysit-ci/SKILL.md",
@@ -609,7 +609,7 @@ expected: dict[str, Any] = {
     "markdown_files": [
         ".claude/agents/grunt-qa.md",
         ".claude/agents/qa-engineer.md",
-        ".claude/docs/operation-contracts.md",
+        "docs/operation-contracts.md",
         ".claude/skills/av-false-positive/SKILL.md",
         ".claude/skills/awesome-triage/SKILL.md",
         ".claude/skills/babysit-ci/SKILL.md",
