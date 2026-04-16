@@ -57,10 +57,32 @@ def replace_content(
     )
 
 
+def _option_anchor(option: str) -> str:
+    """Convert a backtick-wrapped option to an anchor ID.
+
+    ``"`awesome-template.sync`"`` becomes ``"conf-awesome-template-sync"``.
+    """
+    return "conf-" + option.strip("`").replace(".", "-")
+
+
 def config_deflist() -> str:
-    """Render the config reference as a MyST definition list."""
-    lines = []
-    for option, ftype, default, description in config_reference():
+    """Render the config reference as a summary table + anchored definition list."""
+    rows = config_reference()
+    lines: list[str] = []
+
+    # Quick-reference table with deep links to each definition.
+    lines.append("| Option | Type | Default |")
+    lines.append("| :--- | :--- | :--- |")
+    for option, ftype, default, _description in rows:
+        anchor = _option_anchor(option)
+        bare = option.strip("`")
+        lines.append(f"| [`{bare}`](#{anchor}) | {ftype} | {default} |")
+    lines.append("")
+
+    # Detailed definitions with anchor targets.
+    for option, ftype, default, description in rows:
+        anchor = _option_anchor(option)
+        lines.append(f"({anchor})=")
         lines.append(option)
         lines.append(f": **Type:** {ftype} | **Default:** {default}")
         lines.append("")
