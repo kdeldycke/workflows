@@ -41,3 +41,52 @@ Additionally, [`cancel-runs.yaml`](workflows.md#github-workflows-cancel-runs-yam
 
 > [!TIP]
 > For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see the [`repomatic.github.actions`](repomatic.github.html#module-repomatic.github.actions) module docstring.
+
+## AV false-positive submissions
+
+Compiled Python binaries (built with [Nuitka](https://nuitka.net/) `--onefile`) are frequently flagged as malicious by heuristic AV engines. The onefile packaging technique (self-extracting archive with embedded Python runtime) triggers generic "packed/suspicious" signatures. This is a known issue across the Nuitka ecosystem.
+
+The [`scan-virustotal`](workflows.md#github-workflows-release-yaml-jobs) job in `release.yaml` uploads all compiled binaries to [VirusTotal](https://www.virustotal.com/) on every release. This seeds AV vendor databases to reduce false positive rates for downstream distributors (Chocolatey, Scoop, etc.).
+
+When a release is flagged, the `/av-false-positive` [skill](skills.md) generates per-vendor submission files with pre-written text and form field mappings. The vendor details below document the process for manual reference.
+
+### Vendor portals
+
+| Vendor | Engines covered | Portal | Format | Turnaround |
+| :--- | :--- | :--- | :--- | :--- |
+| Microsoft | `Microsoft` | [WDSI file submission](https://www.microsoft.com/en-us/wdsi/filesubmission?persona=SoftwareDeveloper) | One file per form, 1900 char limit on additional info | Fastest |
+| BitDefender | `BitDefender`, `ALYac`, `Arcabit`, `Emsisoft`, `GData`, `MicroWorld-eScan`, `VIPRE` | [bitdefender.com/submit](https://www.bitdefender.com/submit/) | One file per form, screenshot mandatory | Fast |
+| ESET | `ESET-NOD32` | Email to `samples@eset.com` | Single email, password-protected ZIP (`infected`), ~24 MB limit | Reliable |
+| Symantec | `Symantec` | [symsubmit.symantec.com](https://symsubmit.symantec.com/false_positive) | Hash submission only (no `.exe`/`.bin` upload), one hash per form, 5000 char limit | 3-7 business days |
+| Avast/AVG | `Avast`, `AVG` | [avast.com/submit-a-sample](https://www.avast.com/submit-a-sample) | One file per form, shared engine | Medium |
+| Sophos | `Sophos` | [sophos.com filesubmission](https://support.sophos.com/support/s/filesubmission) | One file per form, 25 MB max per submission | Up to 15 business days |
+
+### Submission priority
+
+Submit in this order to maximize impact:
+
+1. **Microsoft**: most influential engine. ML detections (`Sabsik`, `Wacatac`) have the broadest downstream effect.
+2. **BitDefender**: powers ~6 downstream vendor engines. Highest detection-removal-per-submission ratio.
+3. **ESET**: email-based channel with no portal dependency. The most reliable submission path.
+4. **Symantec**: ML detections (`ML.Attribute.*`) may take longer to process.
+5. **Avast/AVG**: shared engine, so one submission covers both.
+6. **Sophos**: PUA detections require justification of the software's legitimate purpose.
+
+### Submission content
+
+Every false-positive submission should include:
+
+- The binary's VirusTotal report link.
+- VirusTotal links for the clean `.whl` and `.tar.gz` source distributions (as comparison evidence).
+- The GitHub release link and direct download URL for the binary.
+- Project homepage and PyPI URL.
+- License from `pyproject.toml`.
+- Reference to any prior false-positive issue in the repository.
+
+All submission text should mention that the binary is compiled with Nuitka `--onefile` from an open-source project.
+
+### Known portal issues
+
+- **Microsoft**: CORS errors or stuck progress modals during upload (auth session expiring). Workaround: sign out, clear cookies for `microsoft.com`, sign back in, submit immediately.
+- **BitDefender**: form sometimes returns "Your request could not be registered!" with no details. Retry later.
+- **Avast**: form sometimes returns "An internal error occurred while sending the form." Retry later.

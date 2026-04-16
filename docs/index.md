@@ -11,6 +11,7 @@ hide-toc: true
 install
 cli
 configuration
+dependencies
 tool-runner
 workflows
 security

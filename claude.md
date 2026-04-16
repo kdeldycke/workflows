@@ -93,7 +93,7 @@ Each piece of knowledge has one canonical home, chosen by audience. Other locati
 | Audience              | Home                      | Content                                                    |
 | :-------------------- | :------------------------ | :--------------------------------------------------------- |
 | GitHub visitors       | `readme.md`               | Landing page: pitch, quick start, links to docs.           |
-| End users             | `docs/`                   | Installation, configuration, workflows, security, skills.  |
+| End users             | `docs/`                   | Installation, configuration, dependencies, workflows, security, skills. |
 | Setup walkthroughs    | `setup-guide.md` issue    | Step-by-step setup with deep links to repo settings pages. |
 | Developers            | Python docstrings         | Design decisions, trade-offs, "why" explanations.          |
 | Workflow maintainers  | YAML comments             | Brief "what" + pointer to Python code for "why."           |
@@ -251,7 +251,7 @@ When adding a new default, grep the codebase for the literal value. If it alread
 
 ## Release checklist
 
-See `.claude/skills/repomatic-release/SKILL.md` § Release checklist for the complete list (git tag, GitHub release, binaries, PyPI, changelog).
+See [`docs/workflows.md` § Release engineering](https://kdeldycke.github.io/repomatic/workflows.html#release-engineering) for the complete list (git tag, GitHub release, binaries, PyPI, changelog) and design rationale.
 
 ## Testing guidelines
 
@@ -295,6 +295,8 @@ Patterns that recur across sessions — watch for these proactively:
 ### Skills
 
 Skills in `.claude/skills/` are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules. Run `repomatic list-skills` to see all skills with descriptions.
+
+**Skills must be self-contained for downstream portability.** Skills are deployed to downstream repos via `repomatic init skills` as standalone SKILL.md files. Downstream repos have no `docs/` directory and skills typically lack `WebFetch` in their `allowed-tools`. All domain knowledge a skill needs to operate must be inline in the SKILL.md: do not replace inline content with links to `docs/` pages. When the same knowledge appears in both a skill and a docs page, the duplication is intentional: `docs/` serves human readers browsing the site, while the skill serves Claude at runtime. Add a cross-reference line pointing to the docs page, but keep the full content inline.
 
 ### Mechanical vs analytical work
 
@@ -345,7 +347,7 @@ Rather than duplicating `if:` conditions on every workflow step, augment the `re
 
 GitHub Actions workflows run in an environment where race conditions, eventual consistency, and partial failures are common. Prefer a **belt-and-suspenders** approach: use multiple independent mechanisms to ensure correctness rather than relying on a single guarantee. If a job depends on external state (tags, published packages, API availability), add a fallback or a graceful default. When possible, make operations [idempotent](#idempotency-by-default) so re-runs are safe.
 
-Release-specific workflow design rationale (`workflow_run` checkout pitfall, immutable releases, concurrency strategies, freeze/unfreeze commit structure) is documented in `.claude/skills/repomatic-release/SKILL.md` § Release workflow design.
+Release-specific workflow design rationale (`workflow_run` checkout pitfall, immutable releases, concurrency strategies, freeze/unfreeze commit structure) is documented in [`docs/workflows.md` § Release engineering](https://kdeldycke.github.io/repomatic/workflows.html#release-engineering).
 
 ### Idempotency by default
 
