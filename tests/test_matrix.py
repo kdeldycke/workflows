@@ -132,27 +132,28 @@ def test_prune(caplog):
     matrix.add_excludes({"os": "windows-11-arm"})
     # No-op exclude: version value does not exist in the axis.
     matrix.add_excludes({"version": "3.15t"})
-    # Exclude referencing a key not in any axis: kept (not a no-op by axis check).
+    # No-op exclude: key not in any axis. GitHub Actions rejects excludes
+    # referencing non-existent matrix keys, so prune must drop these too.
     matrix.add_excludes({"state": "unstable"})
 
     assert len(matrix.exclude) == 4
 
     matrix.prune()
 
-    # Only the effective exclude and the non-axis-key exclude remain.
-    # Reassign with an explicit annotation to widen the type back to a
-    # variable-length tuple.  The ``assert len(...) == 4`` above narrows
-    # ``matrix.exclude`` to a fixed-length 4-tuple; mypy cannot track the
-    # mutation performed by ``prune()``, so without this it considers the
-    # ``len(...) == 2`` assert unreachable.
+    # Only the effective exclude remains. Reassign with an explicit
+    # annotation to widen the type back to a variable-length tuple. The
+    # ``assert len(...) == 4`` above narrows ``matrix.exclude`` to a
+    # fixed-length 4-tuple; mypy cannot track the mutation performed by
+    # ``prune()``, so without this it considers the ``len(...) == 1``
+    # assert unreachable.
     exclude: tuple[dict[str, str], ...] = matrix.exclude
-    assert len(exclude) == 2
+    assert len(exclude) == 1
     assert {"os": "macos-26", "version": "3.10"} in exclude
-    assert {"state": "unstable"} in exclude
 
     assert "Dropping no-op exclude" in caplog.text
     assert "'windows-11-arm'" in caplog.text
     assert "'3.15t'" in caplog.text
+    assert "'state'" in caplog.text
 
 
 def test_remove_variation_value_solve():

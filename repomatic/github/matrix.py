@@ -176,16 +176,20 @@ class Matrix:
     def prune(self) -> None:
         """Remove no-op exclude directives and log about them.
 
-        An exclude is a no-op when it references a key that exists as a
-        variation axis but the value is not present in that axis. Such
-        excludes can never match any combination produced by
-        :meth:`product`.
+        An exclude is a no-op when it references a key that is not a
+        variation axis at all, or when the key exists but the value is
+        not present in that axis. Either way the exclude can never match
+        any combination produced by :meth:`product`, and GitHub Actions
+        rejects excludes that reference non-existent matrix keys.
         """
         effective: list[dict[str, str]] = []
         for exclude in self.exclude:
             noop_key = None
             for key, value in exclude.items():
-                if key in self.variations and value not in self.variations[key]:
+                if key not in self.variations:
+                    noop_key = key
+                    break
+                if value not in self.variations[key]:
                     noop_key = key
                     break
             if noop_key:
