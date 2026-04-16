@@ -38,11 +38,16 @@ $ repomatic run --list
 | [yamllint](https://github.com/adrienverge/yamllint) | `1.38.0` | PyPI | `.yamllint.yaml`, `.yamllint.yml`, `.yamllint` |
 | [zizmor](https://docs.zizmor.sh) | `1.23.0` | PyPI | `zizmor.yaml` |
 
-Tools marked "Binary" are downloaded as platform-specific executables from GitHub Releases. "PyPI" tools are installed via `uvx`. "PyPI (venv)" tools run inside the project virtualenv via `uv run` because they need to import project code.
+- **Binary**: downloaded as platform-specific executables from GitHub Releases.
+- **PyPI**: installed via `uvx`.
+- **PyPI (venv)**: run inside the project virtualenv via `uv run` because they need to import project code.
 
 ## Config resolution
 
 When `repomatic run <tool>` is invoked, configuration is resolved through a 4-level precedence chain. The first match wins: no merging across levels.
+
+> [!TIP]
+> Run `repomatic --verbosity INFO run <tool>` to see which config level was selected and the exact command line being executed. This is useful for debugging unexpected behavior. For full detail (config file contents, environment, caching), use `--verbosity DEBUG`.
 
 ### Level 1: native config file
 
