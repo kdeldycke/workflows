@@ -58,9 +58,9 @@ Options:
                           Strip out all colors and all ANSI codes from output.
                           [default: color]
   --config CONFIG_PATH    Location of the configuration file. Supports local
-                          path with glob patterns or remote URL.  [default:
-                          ~/Library/Application Support/repomatic/{*.toml,*.yaml
-                          ,*.yml,*.json,*.ini,pyproject.toml}]
+                          path with glob patterns or remote URL.  [default: ~/.c
+                          onfig/repomatic/{*.toml,*.yaml,*.yml,*.json,*.ini,pypr
+                          oject.toml}]
   --no-config             Ignore all configuration files and only use command
                           line parameters and environment variables.
   --validate-config FILE  Validate the configuration file and exit.
