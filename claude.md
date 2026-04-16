@@ -2,7 +2,7 @@
 
 ## Downstream repositories
 
-This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that uses the `repomatic` CLI and its [`[tool.repomatic]` configuration](docs/configuration.md), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
+This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that uses the `repomatic` CLI and its [`[tool.repomatic]` configuration](https://kdeldycke.github.io/repomatic/configuration.html), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
 
 In other words, downstream repositories should mirror the patterns established here for code style, documentation, testing, and design principles.
 
@@ -228,7 +228,7 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 
 ### Automated operation contracts
 
-Every automated operation follows the [naming conventions](#naming-conventions-for-automated-operations) and is [idempotent](#idempotency-by-default). For the detailed checklists of required properties, invariants, and optional elements for each operation type (sync, update, format/fix, lint, PR body templates), see [`docs/operation-contracts.md`](docs/operation-contracts.md).
+Every automated operation follows the [naming conventions](#naming-conventions-for-automated-operations) and is [idempotent](#idempotency-by-default). For the detailed checklists of required properties, invariants, and optional elements for each operation type (sync, update, format/fix, lint, PR body templates), see [`docs/operation-contracts.md`](https://kdeldycke.github.io/repomatic/operation-contracts.html).
 
 ### Ordering conventions
 
@@ -316,7 +316,7 @@ The `repomatic` CLI and its `[tool.repomatic]` configuration in `pyproject.toml`
 
 ### Linting and formatting
 
-[Linting](docs/workflows.md#github-workflows-lint-yaml-jobs) and [formatting](docs/workflows.md#github-workflows-autofix-yaml-jobs) are automated via GitHub workflows. Developers don't need to run these manually during development, but are still expected to do best effort. Push your changes and the workflows will catch any issues and perform the nitpicking.
+[Linting](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-lint-yaml-jobs) and [formatting](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-autofix-yaml-jobs) are automated via GitHub workflows. Developers don't need to run these manually during development, but are still expected to do best effort. Push your changes and the workflows will catch any issues and perform the nitpicking.
 
 ### Registry types own their query logic
 

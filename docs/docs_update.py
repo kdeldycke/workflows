@@ -177,6 +177,164 @@ def cli_reference() -> str:
     return "\n".join(lines)
 
 
+def _github_repo(url: str) -> str | None:
+    """Extract ``owner/repo`` from a GitHub URL."""
+    m = re.match(r"https?://github\.com/([^/]+/[^/]+)", url or "")
+    return m.group(1) if m else None
+
+
+# Tools that lack a usable GitHub "latest release" object.
+# mdformat has zero GitHub Releases; mypy only has pre-releases.
+_PYPI_RELEASE_TOOLS = frozenset({"mdformat", "mypy"})
+
+_BADGE = "label=%20&style=flat-square"
+
+
+def tool_reference() -> str:
+    """Generate per-tool detail sections + comparison tables."""
+    from repomatic.tool_runner import TOOL_REGISTRY
+
+    lines: list[str] = []
+
+    # --- Per-tool detail sections ---
+    for key in sorted(TOOL_REGISTRY):
+        spec = TOOL_REGISTRY[key]
+        anchor = f"tool-{key}"
+        label = spec.display_name or spec.name
+        name_link = f"[{label}]({spec.source_url})" if spec.source_url else label
+
+        lines.append(f"({anchor})=")
+        lines.append(f"### {name_link}")
+        lines.append("")
+
+        lines.append(f"**Installed version:** `{spec.version}`")
+        lines.append("")
+
+        if spec.binary:
+            install_type = "Binary (downloaded from GitHub Releases)"
+        elif spec.needs_venv:
+            install_type = "PyPI, runs in project virtualenv via `uv run`"
+        else:
+            install_type = "PyPI, installed via `uvx`"
+        lines.append(f"**Installation method:** {install_type}")
+        lines.append("")
+
+        if spec.native_config_files:
+            files_str = ", ".join(f"`{f}`" for f in spec.native_config_files)
+            if spec.reads_pyproject:
+                files_str += (
+                    f" and `[tool.{spec.name}]` in `pyproject.toml` (native)"
+                )
+            lines.append(f"**Config files:** {files_str}")
+            lines.append("")
+        elif spec.reads_pyproject:
+            lines.append(
+                f"**Config:** `[tool.{spec.name}]` in `pyproject.toml` (native)"
+            )
+            lines.append("")
+        else:
+            lines.append("**Config:** CLI flags only")
+            lines.append("")
+
+        if spec.config_flag and not spec.reads_pyproject:
+            lines.append(
+                f"**`[tool.{spec.name}]` bridge:** repomatic translates to"
+                f" {spec.native_format.name} and passes via `{spec.config_flag}`."
+            )
+            lines.append("")
+
+        if spec.default_flags:
+            flags_str = " ".join(f"`{f}`" for f in spec.default_flags)
+            lines.append(f"**Default flags:** {flags_str}")
+            lines.append("")
+
+        if spec.ci_flags:
+            ci_str = " ".join(f"`{f}`" for f in spec.ci_flags)
+            lines.append(f"**CI flags:** {ci_str}")
+            lines.append("")
+
+        if spec.default_config:
+            data_url = (
+                "https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/"
+                + spec.default_config
+            )
+            lines.append(
+                f"**Bundled default:** [`{spec.default_config}`]({data_url})"
+            )
+            lines.append("")
+
+        if spec.with_packages:
+            lines.append("**Plugins:**")
+            lines.append("")
+            for pkg in spec.with_packages:
+                display = pkg.split("==")[0].split("@")[0].strip()
+                lines.append(f"- `{display}`")
+            lines.append("")
+
+        doc_links = []
+        if spec.source_url:
+            doc_links.append(f"[Source]({spec.source_url})")
+        if spec.config_docs_url:
+            doc_links.append(f"[Config reference]({spec.config_docs_url})")
+        if spec.cli_docs_url:
+            doc_links.append(f"[CLI usage]({spec.cli_docs_url})")
+        if doc_links:
+            lines.append(" | ".join(doc_links))
+            lines.append("")
+
+    # --- Comparison table ---
+    def _last_release(key, spec, repo):
+        pkg = spec.package or spec.name
+        if key in _PYPI_RELEASE_TOOLS:
+            return f"![Last release](https://img.shields.io/pypi/v/{pkg}?{_BADGE})"
+        return f"![Last release](https://img.shields.io/github/release-date/{repo}?{_BADGE})"
+
+    lines.append("## Comparison")
+    lines.append("")
+    _badge_table(lines, TOOL_REGISTRY, [
+        ("Stars", lambda _k, _s, r: f"![Stars](https://img.shields.io/github/stars/{r}?{_BADGE})", "right"),
+        ("Last release", _last_release),
+        ("Last commit", lambda _k, _s, r: f"![Last commit](https://img.shields.io/github/last-commit/{r}?{_BADGE})"),
+        ("Commits", lambda _k, _s, r: f"![Commits](https://img.shields.io/github/commit-activity/m/{r}?{_BADGE})", "right"),
+        ("Dependencies", lambda _k, _s, r: f"![Dependencies](https://img.shields.io/librariesio/github/{r}?{_BADGE})"),
+        ("Language", lambda _k, _s, r: f"![Language](https://img.shields.io/github/languages/top/{r}?style=flat-square)"),
+        ("License", lambda _k, _s, r: f"![License](https://img.shields.io/github/license/{r}?{_BADGE})"),
+    ])
+
+    return "\n".join(lines)
+
+
+def _badge_table(
+    lines: list[str],
+    registry: dict,
+    columns: list[tuple],
+) -> None:
+    """Append a badge comparison table for all tools.
+
+    Each column is ``(name, badge_fn)`` or ``(name, badge_fn, align)``
+    where align is ``"left"``, ``"center"`` (default), or ``"right"``.
+    """
+    _align_map = {"left": ":---", "center": ":---:", "right": "---:"}
+    header = ["Tool"] + [c[0] for c in columns]
+    aligns = [_align_map.get(c[2], ":---:") if len(c) > 2 else ":---:" for c in columns]
+    lines.append("| " + " | ".join(header) + " |")
+    lines.append("| :--- | " + " | ".join(aligns) + " |")
+
+    for key in sorted(registry):
+        spec = registry[key]
+        repo = _github_repo(spec.source_url)
+        if not repo:
+            continue
+        label = spec.display_name or spec.name
+        cells = [f"[{label}](#tool-{key})"]
+        for col in columns:
+            fn = col[1]
+            cells.append(fn(key, spec, repo))
+        lines.append("| " + " | ".join(cells) + " |")
+
+    lines.append("")
+
+
 def update_configuration() -> None:
     """Update ``configuration.md`` with the config reference list."""
     config_md = PROJECT_ROOT / "docs" / "configuration.md"
@@ -190,7 +348,7 @@ def update_configuration() -> None:
 
 def update_cli_parameters() -> None:
     """Update ``cli-parameters.md`` with the CLI reference."""
-    cli_md = PROJECT_ROOT / "docs" / "cli-parameters.md"
+    cli_md = PROJECT_ROOT / "docs" / "cli.md"
     replace_content(
         cli_md,
         "\n" + cli_reference(),
@@ -199,6 +357,18 @@ def update_cli_parameters() -> None:
     )
 
 
+def update_tool_runner() -> None:
+    """Update ``tool-runner.md`` with per-tool detail sections."""
+    tr_md = PROJECT_ROOT / "docs" / "tool-runner.md"
+    replace_content(
+        tr_md,
+        "\n" + tool_reference(),
+        "<!-- tool-reference-start -->",
+        "<!-- tool-reference-end -->",
+    )
+
+
 if __name__ == "__main__":
     update_configuration()
     update_cli_parameters()
+    update_tool_runner()

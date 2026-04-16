@@ -362,7 +362,12 @@ class ToolSpec:
     package name, and default executable name.
     """
 
-    version: str
+    display_name: str | None = None
+    """Human-readable name with proper casing for documentation (like
+    ``'Biome'``, ``'Gitleaks'``). ``None`` defaults to ``name``.
+    """
+
+    version: str = ""
     """Pinned version (e.g., ``'1.38.0'``)."""
 
     package: str | None = None
@@ -449,6 +454,15 @@ class ToolSpec:
     as a binary instead of installed via ``uvx`` or ``uv run``.
     """
 
+    source_url: str | None = None
+    """GitHub repository or project homepage URL."""
+
+    config_docs_url: str | None = None
+    """URL to the tool's configuration reference."""
+
+    cli_docs_url: str | None = None
+    """URL to the tool's CLI usage documentation."""
+
 
 # ---------------------------------------------------------------------------
 # Post-process callbacks
@@ -504,18 +518,15 @@ def _fix_myst_directive_options(extra_args: Sequence[str]) -> None:
 # ---------------------------------------------------------------------------
 
 TOOL_REGISTRY: dict[str, ToolSpec] = {
-    # actionlint configuration reference:
-    # - Config discovery: https://github.com/rhysd/actionlint/blob/main/docs/config.md
-    #   Searches .github/actionlint.yaml, .github/actionlint.yml.
-    # - CLI flags: https://github.com/rhysd/actionlint/blob/main/docs/usage.md
-    #   -color for colored output; -ignore for suppressing specific errors.
-    # - Source: https://github.com/rhysd/actionlint
     "actionlint": ToolSpec(
         name="actionlint",
         version="1.7.12",
         native_config_files=(".github/actionlint.yaml",),
         native_format=NativeFormat.YAML,
         default_flags=("-color",),
+        source_url="https://github.com/rhysd/actionlint",
+        config_docs_url="https://github.com/rhysd/actionlint/blob/main/docs/config.md",
+        cli_docs_url="https://github.com/rhysd/actionlint/blob/main/docs/usage.md",
         binary=BinarySpec(
             urls={
                 (
@@ -575,13 +586,11 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             },
         ),
     ),
-    # autopep8 configuration reference:
-    # - CLI flags: https://pypi.org/project/autopep8/
-    #   No config file support; all options via CLI flags.
-    # - Source: https://github.com/hhatto/autopep8
     "autopep8": ToolSpec(
         name="autopep8",
         version="2.3.2",
+        source_url="https://github.com/hhatto/autopep8",
+        cli_docs_url="https://pypi.org/project/autopep8/",
         default_flags=(
             "--recursive",
             "--in-place",
@@ -591,15 +600,13 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             "E501",
         ),
     ),
-    # biome configuration reference:
-    # - Config discovery: https://biomejs.dev/reference/configuration/
-    #   Searches biome.json, biome.jsonc in CWD and parents.
-    # - CLI flags: https://biomejs.dev/reference/cli/
-    #   format --write for formatting; --no-errors-on-unmatched to skip unknown files.
-    # - Source: https://github.com/biomejs/biome
     "biome": ToolSpec(
         name="biome",
+        display_name="Biome",
         version="2.4.5",
+        source_url="https://github.com/biomejs/biome",
+        config_docs_url="https://biomejs.dev/reference/configuration/",
+        cli_docs_url="https://biomejs.dev/reference/cli/",
         native_config_files=("biome.json", "biome.jsonc"),
         config_flag="--config-path",
         config_after_subcommand=True,
@@ -660,27 +667,21 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             archive_format=ArchiveFormat.RAW,
         ),
     ),
-    # bump-my-version configuration reference:
-    # - Config discovery: https://callowayproject.github.io/bump-my-version/reference/configuration/
-    #   Reads [tool.bumpversion] from pyproject.toml, .bumpversion.toml.
-    # - CLI flags: https://callowayproject.github.io/bump-my-version/reference/cli/
-    #   bump and show are subcommands; --verbose for detailed output.
-    # - Source: https://github.com/callowayproject/bump-my-version
     "bump-my-version": ToolSpec(
         name="bump-my-version",
         version="1.2.7",
         reads_pyproject=True,
+        source_url="https://github.com/callowayproject/bump-my-version",
+        config_docs_url="https://callowayproject.github.io/bump-my-version/reference/configuration/",
+        cli_docs_url="https://callowayproject.github.io/bump-my-version/reference/cli/",
     ),
-    # gitleaks configuration reference:
-    # - Config discovery: https://github.com/gitleaks/gitleaks#configuration
-    #   Searches .gitleaks.toml in CWD.
-    # - CLI flags: https://github.com/gitleaks/gitleaks#usage
-    #   detect subcommand; -c / --config for explicit config; --report-format
-    #   for output format (json, csv, junit, sarif).
-    # - Source: https://github.com/gitleaks/gitleaks
     "gitleaks": ToolSpec(
         name="gitleaks",
+        display_name="Gitleaks",
         version="8.30.1",
+        source_url="https://github.com/gitleaks/gitleaks",
+        config_docs_url="https://github.com/gitleaks/gitleaks#configuration",
+        cli_docs_url="https://github.com/gitleaks/gitleaks#usage",
         native_config_files=(".gitleaks.toml", ".github/gitleaks.toml"),
         config_flag="--config",
         native_format=NativeFormat.TOML,
@@ -743,13 +744,11 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             },
         ),
     ),
-    # labelmaker configuration reference:
-    # - CLI flags: https://github.com/jwodder/labelmaker
-    #   apply subcommand with label file and repository arguments.
-    # - Source: https://github.com/jwodder/labelmaker
     "labelmaker": ToolSpec(
         name="labelmaker",
         version="0.6.4",
+        source_url="https://github.com/jwodder/labelmaker",
+        cli_docs_url="https://github.com/jwodder/labelmaker",
         binary=BinarySpec(
             urls={
                 (
@@ -802,15 +801,13 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             strip_components=1,
         ),
     ),
-    # lychee configuration reference:
-    # - Config discovery: https://lychee.cli.rs/configuration/
-    #   Searches lychee.toml, .lycheerc in CWD.
-    # - CLI flags: https://lychee.cli.rs/usage/cli/
-    #   --format for output format; --hidden to check hidden files.
-    # - Source: https://github.com/lycheeverse/lychee
     "lychee": ToolSpec(
         name="lychee",
+        display_name="Lychee",
         version="0.23.0",
+        source_url="https://github.com/lycheeverse/lychee",
+        config_docs_url="https://lychee.cli.rs/configuration/",
+        cli_docs_url="https://lychee.cli.rs/usage/cli/",
         native_config_files=("lychee.toml",),
         config_flag="--config",
         native_format=NativeFormat.TOML,
@@ -857,18 +854,15 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             },
         ),
     ),
-    # mdformat configuration reference:
-    # - Config discovery: https://mdformat.readthedocs.io/en/stable/users/configuration_file.html
-    #   Searches .mdformat.toml in CWD and parents.
-    # - CLI flags: https://mdformat.readthedocs.io/en/stable/users/cli.html
-    #   --strict-front-matter for YAML front matter validation (plugin flag).
-    # - Source: https://github.com/hukkin/mdformat
-    # - TODO: add config_flag="--config" once upstream adds --config support.
+    # TODO: add config_flag="--config" once upstream adds --config support.
     #   See https://github.com/hukkin/mdformat/issues/432
     #   and https://github.com/hukkin/mdformat/issues/562
     "mdformat": ToolSpec(
         name="mdformat",
         version="1.0.0",
+        source_url="https://github.com/hukkin/mdformat",
+        config_docs_url="https://mdformat.readthedocs.io/en/stable/users/configuration_file.html",
+        cli_docs_url="https://mdformat.readthedocs.io/en/stable/users/cli.html",
         native_config_files=(".mdformat.toml",),
         native_format=NativeFormat.TOML,
         default_config="mdformat.toml",
@@ -895,60 +889,48 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         ),
         post_process=_fix_myst_directive_options,
     ),
-    # mypy configuration reference:
-    # - Config discovery: https://mypy.readthedocs.io/en/stable/config_file.html
-    #   Reads [tool.mypy] from pyproject.toml natively.
-    # - CLI flags: https://mypy.readthedocs.io/en/stable/command_line.html
-    #   --python-version for target version; --color-output for colored output.
-    # - Source: https://github.com/python/mypy
     "mypy": ToolSpec(
         name="mypy",
         version="1.19.1",
+        source_url="https://github.com/python/mypy",
+        config_docs_url="https://mypy.readthedocs.io/en/stable/config_file.html",
+        cli_docs_url="https://mypy.readthedocs.io/en/stable/command_line.html",
         reads_pyproject=True,
         needs_venv=True,
         default_flags=("--color-output",),
         computed_params=lambda m: m.mypy_params or [],
     ),
-    # pyproject-fmt configuration reference:
-    # - Config discovery: https://pyproject-fmt.readthedocs.io/en/latest/
-    #   Reads [tool.pyproject-fmt] from pyproject.toml natively.
-    # - CLI flags: https://pyproject-fmt.readthedocs.io/en/latest/
-    #   --expand-tables for table expansion. Returns exit code 1 when file is
-    #   reformatted.
-    # - Source: https://github.com/tox-dev/pyproject-fmt
     "pyproject-fmt": ToolSpec(
         name="pyproject-fmt",
         version="2.16.2",
+        source_url="https://github.com/tox-dev/pyproject-fmt",
+        config_docs_url="https://pyproject-fmt.readthedocs.io/en/latest/",
+        cli_docs_url="https://pyproject-fmt.readthedocs.io/en/latest/",
         reads_pyproject=True,
         default_flags=(
             "--expand-tables",
             "project.entry-points,project.optional-dependencies,project.urls,project.scripts",
         ),
     ),
-    # ruff configuration reference:
-    # - Config discovery: https://docs.astral.sh/ruff/configuration/
-    #   Reads [tool.ruff] from pyproject.toml, ruff.toml, .ruff.toml.
-    # - CLI flags: https://docs.astral.sh/ruff/configuration/#command-line-interface
-    #   check and format are subcommands; --output-format for CI annotations.
-    # - Source: https://github.com/astral-sh/ruff
     "ruff": ToolSpec(
         name="ruff",
+        display_name="Ruff",
         version="0.15.5",
+        source_url="https://github.com/astral-sh/ruff",
+        config_docs_url="https://docs.astral.sh/ruff/configuration/",
+        cli_docs_url="https://docs.astral.sh/ruff/configuration/#command-line-interface",
         native_config_files=("ruff.toml", ".ruff.toml"),
         config_flag="--config",
         native_format=NativeFormat.TOML,
         default_config="ruff.toml",
         reads_pyproject=True,
     ),
-    # shfmt configuration reference:
-    # - Config discovery: https://github.com/mvdan/sh#editorconfig
-    #   Reads .editorconfig in CWD and parents. No --config flag.
-    # - CLI flags: https://github.com/mvdan/sh#usage
-    #   --write for in-place; --diff for diff; --simplify for simplification.
-    # - Source: https://github.com/mvdan/sh
     "shfmt": ToolSpec(
         name="shfmt",
         version="3.13.1",
+        source_url="https://github.com/mvdan/sh",
+        config_docs_url="https://github.com/mvdan/sh#editorconfig",
+        cli_docs_url="https://github.com/mvdan/sh#usage",
         native_config_files=(".editorconfig",),
         native_format=NativeFormat.EDITORCONFIG,
         default_flags=("--write",),
@@ -1000,15 +982,12 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             archive_format=ArchiveFormat.RAW,
         ),
     ),
-    # typos configuration reference:
-    # - Config discovery: https://github.com/crate-ci/typos/blob/master/docs/reference.md
-    #   Reads [tool.typos] from pyproject.toml, typos.toml, .typos.toml, _typos.toml.
-    # - CLI flags: https://github.com/crate-ci/typos/blob/master/docs/reference.md
-    #   --write-changes for in-place fixes.
-    # - Source: https://github.com/crate-ci/typos
     "typos": ToolSpec(
         name="typos",
         version="1.44.0",
+        source_url="https://github.com/crate-ci/typos",
+        config_docs_url="https://github.com/crate-ci/typos/blob/master/docs/reference.md",
+        cli_docs_url="https://github.com/crate-ci/typos/blob/master/docs/reference.md",
         reads_pyproject=True,
         default_flags=("--write-changes",),
         binary=BinarySpec(
@@ -1062,15 +1041,12 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             },
         ),
     ),
-    # yamllint configuration reference:
-    # - Config discovery: https://yamllint.readthedocs.io/en/stable/configuration.html
-    #   Searches .yamllint, .yamllint.yaml, .yamllint.yml in CWD and parents.
-    # - CLI flags: https://yamllint.readthedocs.io/en/stable/quickstart.html
-    #   -c / --config-file for explicit config; -f / --format for output format.
-    # - Source: https://github.com/adrienverge/yamllint
     "yamllint": ToolSpec(
         name="yamllint",
         version="1.38.0",
+        source_url="https://github.com/adrienverge/yamllint",
+        config_docs_url="https://yamllint.readthedocs.io/en/stable/configuration.html",
+        cli_docs_url="https://yamllint.readthedocs.io/en/stable/quickstart.html",
         native_config_files=(
             ".yamllint.yaml",
             ".yamllint.yml",
@@ -1081,17 +1057,12 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
         default_flags=("--strict",),
         ci_flags=("--format", "github"),
     ),
-    # zizmor configuration reference:
-    # - Config discovery: https://docs.zizmor.sh/configuration/
-    #   Searches zizmor.yml / zizmor.yaml in input dir, .github/, then parents
-    #   up to first .git directory.
-    # - CLI flags: https://docs.zizmor.sh/usage/
-    #   --config for explicit config; --format for output format; --offline to
-    #   disable network requests.
-    # - Source: https://github.com/zizmorcore/zizmor
     "zizmor": ToolSpec(
         name="zizmor",
         version="1.23.0",
+        source_url="https://github.com/zizmorcore/zizmor",
+        config_docs_url="https://docs.zizmor.sh/configuration/",
+        cli_docs_url="https://docs.zizmor.sh/usage/",
         native_config_files=("zizmor.yaml",),
         config_flag="--config",
         default_config="zizmor.yaml",

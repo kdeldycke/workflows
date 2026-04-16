@@ -9,9 +9,9 @@ hide-toc: true
 :maxdepth: 2
 :hidden:
 install
+cli
 configuration
 tool-runner
-cli-parameters
 workflows
 security
 skills

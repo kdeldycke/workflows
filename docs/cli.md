@@ -1,4 +1,4 @@
-# {octicon}`command-palette` CLI parameters
+# {octicon}`command-palette` CLI
 
 > [!TIP]
 > Each `[tool.repomatic]` config option maps to CLI behavior. See the [configuration reference](configuration.md) for project-level defaults.
