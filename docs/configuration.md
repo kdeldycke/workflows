@@ -2,7 +2,7 @@
 
 ## `[tool.repomatic]` configuration
 
-Downstream projects can customize workflow behavior by adding a `[tool.repomatic]` section in their `pyproject.toml`:
+Downstream projects can customize workflow behavior by adding a `[tool.repomatic]` section in their `pyproject.toml`. These options control the defaults for the corresponding [CLI commands](cli-parameters.md).
 
 ```toml
 [tool.repomatic]

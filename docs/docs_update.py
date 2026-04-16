@@ -21,7 +21,12 @@ via ``repomatic update-docs``.
 
 from __future__ import annotations
 
+import os
+import re
 from pathlib import Path
+
+import click
+from click.testing import CliRunner
 
 from repomatic.config import config_reference
 
@@ -91,6 +96,87 @@ def config_deflist() -> str:
     return "\n".join(lines)
 
 
+def _strip_ansi(text: str) -> str:
+    """Remove ANSI escape sequences from terminal output."""
+    return re.sub(r"\x1b\[[0-9;]*m", "", text)
+
+
+def _capture_help(cmd_path: list[str]) -> str:
+    """Invoke a CLI command with ``--help`` and return clean output."""
+    from repomatic.cli import repomatic
+
+    runner = CliRunner()
+    # Suppress color codes.
+    old_val = os.environ.get("NO_COLOR")
+    os.environ["NO_COLOR"] = "1"
+    try:
+        result = runner.invoke(repomatic, [*cmd_path, "--help"])
+    finally:
+        if old_val is None:
+            os.environ.pop("NO_COLOR", None)
+        else:
+            os.environ["NO_COLOR"] = old_val
+    return _strip_ansi(result.output).rstrip()
+
+
+def _command_anchor(cmd_path: list[str]) -> str:
+    """Build an anchor ID from a command path.
+
+    ``["cache", "show"]`` becomes ``"cli-cache-show"``.
+    """
+    return "cli-" + "-".join(cmd_path)
+
+
+def cli_reference() -> str:
+    """Generate CLI reference with a summary table and per-command sections."""
+    from repomatic.cli import repomatic
+
+    lines: list[str] = []
+
+    # Collect all commands (top-level + subcommands of groups).
+    entries: list[tuple[list[str], click.BaseCommand]] = []
+    for name in sorted(repomatic.commands):
+        cmd = repomatic.commands[name]
+        entries.append(([name], cmd))
+        if isinstance(cmd, click.Group):
+            for sub_name in sorted(cmd.commands):
+                entries.append(([name, sub_name], cmd.commands[sub_name]))
+
+    # Summary table.
+    lines.append("| Command | Description |")
+    lines.append("| :--- | :--- |")
+    for path, cmd in entries:
+        anchor = _command_anchor(path)
+        label = " ".join(path)
+        desc = (cmd.get_short_help_str() or "").rstrip(".")
+        lines.append(f"| [`repomatic {label}`](#{anchor}) | {desc} |")
+    lines.append("")
+
+    # Main help screen.
+    lines.append("## Help screen")
+    lines.append("")
+    lines.append("```text")
+    lines.append(_capture_help([]))
+    lines.append("```")
+    lines.append("")
+
+    # Per-command sections.
+    for path, _cmd in entries:
+        anchor = _command_anchor(path)
+        label = " ".join(path)
+        depth = len(path)
+        heading = "#" * (depth + 1)
+        lines.append(f"({anchor})=")
+        lines.append(f"{heading} `repomatic {label}`")
+        lines.append("")
+        lines.append("```text")
+        lines.append(_capture_help(path))
+        lines.append("```")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def update_configuration() -> None:
     """Update ``configuration.md`` with the config reference list."""
     config_md = PROJECT_ROOT / "docs" / "configuration.md"
@@ -102,5 +188,17 @@ def update_configuration() -> None:
     )
 
 
+def update_cli_parameters() -> None:
+    """Update ``cli-parameters.md`` with the CLI reference."""
+    cli_md = PROJECT_ROOT / "docs" / "cli-parameters.md"
+    replace_content(
+        cli_md,
+        "\n" + cli_reference(),
+        "<!-- cli-reference-start -->",
+        "<!-- cli-reference-end -->",
+    )
+
+
 if __name__ == "__main__":
     update_configuration()
+    update_cli_parameters()
