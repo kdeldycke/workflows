@@ -10,21 +10,19 @@ A Python CLI and `pyproject.toml` configuration that let you **release Python pa
 
 **Maintainer-in-the-loop**: nothing is done behind your back. A PR or issue is created every time a change is proposed or action is needed.
 
-Automates:
+## What it automates
 
-- Version bumping
+- Version bumping, git tagging, and GitHub release creation
 - Changelog management
-- Formatting autofix for: Python, Markdown, JSON, Shell, typos
-- Linting: Python types with `mypy`, YAML, `zsh`, GitHub Actions, workflow security, URLS & redirects, Awesome lists, secrets
-- Compiling of Python binaries for Linux / macOS / Windows on `x86_64` & `arm64`
-- Building of Python packages and upload to PyPI
-- Produce attestations
-- Git version tagging and GitHub release creation
-- Synchronization of: `uv.lock`, `.gitignore`, `.mailmap` and Mermaid dependency graph
-- Auto-locking of inactive closed issues
+- Python package building and PyPI publishing with supply chain attestations
+- Cross-platform binary compilation (Linux / macOS / Windows, x86_64 / arm64)
+- Formatting autofix for Python, Markdown, JSON, Shell, and typos
+- Linting: Python types with mypy, YAML, GitHub Actions, workflow security, URLs, secrets, and Awesome lists
+- Synchronization of `uv.lock`, `.gitignore`, `.mailmap`, and Mermaid dependency graph
+- Label management with file-based and content-based rules
+- Inactive issue locking
 - Static image optimization
-- Sphinx documentation building & deployment, and `autodoc` updates
-- Label management, with file-based and content-based rules
+- Sphinx documentation building, deployment, and autodoc updates
 - Awesome list template synchronization
 
 ## Quick start
@@ -33,13 +31,13 @@ Automates:
 $ cd my-project
 $ uvx -- repomatic init
 $ git add .
-$ git commit -m "Update repomatic files"
+$ git commit -m "Add repomatic"
 $ git push
 ```
 
-This **works for both new and existing repositories** — managed files (workflows, configs, skills) are always regenerated to the latest version. The only exception is `changelog.md`, which is never overwritten once it exists. The workflows will start running and guide you through any remaining setup via issues and PRs in your repository.
+Works for new and existing repositories. Managed files are always regenerated to the latest version; `changelog.md` is never overwritten. Push, and the workflows guide you through remaining setup via issues and PRs.
 
-Run `repomatic init --help` to see available components and options.
+See `repomatic init --help` for available components and options.
 
 ## Documentation
 
@@ -68,7 +66,7 @@ Check these projects to get real-life examples of usage and inspiration:
 - ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/repomatic?label=%E2%AD%90&style=flat-square) [repomatic](https://github.com/kdeldycke/repomatic) - Itself. Eat your own dog-food.
 - ![GitHub stars](https://img.shields.io/github/stars/kdeldycke/extra-platforms?label=%E2%AD%90&style=flat-square) [Extra Platforms](https://github.com/kdeldycke/extra-platforms) - Detect platforms and group them by family.
 
-Feel free to send a PR to add your project in this list if you are relying on these scripts.
+Send a PR to add your project if you use repomatic.
 
 ## Development
 
