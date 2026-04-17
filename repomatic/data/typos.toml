@@ -6,5 +6,7 @@
 
 # Correct capitalization for proper nouns referenced in claude.md.
 default.extend-identifiers = { Github = "GitHub", IOS = "iOS", Javascript = "JavaScript", MacOS = "macOS", PyPi = "PyPI", Typescript = "TypeScript" }
+# False positive: "oject" appears when "pyproject.toml" is split across line breaks in CLI help output.
+default.extend-words = { oject = "oject" }
 # Skip content between <!-- typos:off --> and <!-- typos:on --> markers.
 default.extend-ignore-re = [ "(?s)<!-- typos:off -->.*?<!-- typos:on -->" ]
