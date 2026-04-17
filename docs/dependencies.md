@@ -53,7 +53,7 @@ Comments and changelogs can lie; the codebase is the source of truth. For each d
 ### Special cases
 
 - **Backport packages** (like `tomli`, `exceptiongroup`) exist solely to provide a stdlib class to older Python versions. Their entire API is the backported class, available in all versions. The floor is typically `>=1` unless a specific bug fix is needed.
-- **Conditional deps with stale bug-fix floors.** A dep gated by `python_version<'3.11'` that has a floor set for a bug affecting Python <3.8.6: if `requires-python` is `>=3.10`, that bug is irrelevant and the floor can be lowered.
+- **Conditional deps with stale bug-fix floors.** A dep gated by `python_version<'3.11'` that has a floor set for a bug affecting Python `<3.8.6`: if `requires-python` is `>=3.10`, that bug is irrelevant and the floor can be lowered.
 - **pytest plugins** with no special API beyond auto-registration have low effective floors. Set the floor at the major version introducing the current plugin interface, not at the latest release.
 
 ### Red flag patterns in floor comments

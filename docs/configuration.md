@@ -60,342 +60,342 @@ workflow.source-paths = ["extra_platforms"]
 <!-- config-reference-start -->
 | Option | Type | Default |
 | :--- | :--- | :--- |
-| [`awesome-template.sync`](#conf-awesome-template-sync) | bool | `true` |
-| [`bumpversion.sync`](#conf-bumpversion-sync) | bool | `true` |
-| [`cache.dir`](#conf-cache-dir) | str | `""` |
-| [`cache.github-release-ttl`](#conf-cache-github-release-ttl) | int | `604800` |
-| [`cache.github-releases-ttl`](#conf-cache-github-releases-ttl) | int | `86400` |
-| [`cache.max-age`](#conf-cache-max-age) | int | `30` |
-| [`cache.pypi-ttl`](#conf-cache-pypi-ttl) | int | `86400` |
-| [`changelog.location`](#conf-changelog-location) | str | `"./changelog.md"` |
-| [`dependency-graph.all-extras`](#conf-dependency-graph-all-extras) | bool | `true` |
-| [`dependency-graph.all-groups`](#conf-dependency-graph-all-groups) | bool | `true` |
-| [`dependency-graph.level`](#conf-dependency-graph-level) | int | *(none)* |
-| [`dependency-graph.no-extras`](#conf-dependency-graph-no-extras) | list[str] | `[]` |
-| [`dependency-graph.no-groups`](#conf-dependency-graph-no-groups) | list[str] | `[]` |
-| [`dependency-graph.output`](#conf-dependency-graph-output) | str | `"./docs/assets/dependencies.mmd"` |
-| [`dev-release.sync`](#conf-dev-release-sync) | bool | `true` |
-| [`docs.apidoc-exclude`](#conf-docs-apidoc-exclude) | list[str] | `[]` |
-| [`docs.apidoc-extra-args`](#conf-docs-apidoc-extra-args) | list[str] | `[]` |
-| [`docs.update-script`](#conf-docs-update-script) | str | `"./docs/docs_update.py"` |
-| [`exclude`](#conf-exclude) | list[str] | `[]` |
-| [`gitignore.extra-categories`](#conf-gitignore-extra-categories) | list[str] | `[]` |
-| [`gitignore.extra-content`](#conf-gitignore-extra-content) | str | *(see example)* |
-| [`gitignore.location`](#conf-gitignore-location) | str | `"./.gitignore"` |
-| [`gitignore.sync`](#conf-gitignore-sync) | bool | `true` |
-| [`include`](#conf-include) | list[str] | `[]` |
-| [`labels.extra-content-rules`](#conf-labels-extra-content-rules) | str | `""` |
-| [`labels.extra-file-rules`](#conf-labels-extra-file-rules) | str | `""` |
-| [`labels.extra-files`](#conf-labels-extra-files) | list[str] | `[]` |
-| [`labels.sync`](#conf-labels-sync) | bool | `true` |
-| [`mailmap.sync`](#conf-mailmap-sync) | bool | `true` |
-| [`notification.unsubscribe`](#conf-notification-unsubscribe) | bool | `false` |
-| [`nuitka.enabled`](#conf-nuitka-enabled) | bool | `true` |
-| [`nuitka.entry-points`](#conf-nuitka-entry-points) | list[str] | `[]` |
-| [`nuitka.extra-args`](#conf-nuitka-extra-args) | list[str] | `[]` |
-| [`nuitka.unstable-targets`](#conf-nuitka-unstable-targets) | list[str] | `[]` |
-| [`pypi-package-history`](#conf-pypi-package-history) | list[str] | `[]` |
-| [`setup-guide`](#conf-setup-guide) | bool | `true` |
-| [`skills.location`](#conf-skills-location) | str | `"./.claude/skills/"` |
-| [`test-matrix.exclude`](#conf-test-matrix-exclude) | list\[dict[str, str]\] | `[]` |
-| [`test-matrix.include`](#conf-test-matrix-include) | list\[dict[str, str]\] | `[]` |
-| [`test-matrix.remove`](#conf-test-matrix-remove) | dict\[str, list[str]\] | {} |
-| [`test-matrix.replace`](#conf-test-matrix-replace) | dict\[str, dict[str, str]\] | {} |
-| [`test-matrix.variations`](#conf-test-matrix-variations) | dict\[str, list[str]\] | {} |
-| [`test-plan.file`](#conf-test-plan-file) | str | `"./tests/cli-test-plan.yaml"` |
-| [`test-plan.inline`](#conf-test-plan-inline) | str | *(none)* |
-| [`test-plan.timeout`](#conf-test-plan-timeout) | int | *(none)* |
-| [`uv-lock.sync`](#conf-uv-lock-sync) | bool | `true` |
-| [`workflow.source-paths`](#conf-workflow-source-paths) | list[str] | *(none)* |
-| [`workflow.sync`](#conf-workflow-sync) | bool | `true` |
-
-(conf-awesome-template-sync)=
-`awesome-template.sync`
-: **Type:** bool | **Default:** `true`
-
-  Whether awesome-template sync is enabled for this project.
-
-(conf-bumpversion-sync)=
-`bumpversion.sync`
-: **Type:** bool | **Default:** `true`
-
-  Whether bumpversion config sync is enabled for this project.
-
-(conf-cache-dir)=
-`cache.dir`
-: **Type:** str | **Default:** `""`
-
-  Override the binary cache directory path.
-
-(conf-cache-github-release-ttl)=
-`cache.github-release-ttl`
-: **Type:** int | **Default:** `604800`
-
-  Freshness TTL for cached single-release bodies (seconds).
-
-(conf-cache-github-releases-ttl)=
-`cache.github-releases-ttl`
-: **Type:** int | **Default:** `86400`
-
-  Freshness TTL for cached all-releases responses (seconds).
-
-(conf-cache-max-age)=
-`cache.max-age`
-: **Type:** int | **Default:** `30`
-
-  Auto-purge cached entries older than this many days.
-
-(conf-cache-pypi-ttl)=
-`cache.pypi-ttl`
-: **Type:** int | **Default:** `86400`
+| [`awesome-template.sync`](#awesome-template-sync) | bool | `true` |
+| [`bumpversion.sync`](#bumpversion-sync) | bool | `true` |
+| [`cache.dir`](#cache-dir) | str | `""` |
+| [`cache.github-release-ttl`](#cache-github-release-ttl) | int | `604800` |
+| [`cache.github-releases-ttl`](#cache-github-releases-ttl) | int | `86400` |
+| [`cache.max-age`](#cache-max-age) | int | `30` |
+| [`cache.pypi-ttl`](#cache-pypi-ttl) | int | `86400` |
+| [`changelog.location`](#changelog-location) | str | `"./changelog.md"` |
+| [`dependency-graph.all-extras`](#dependency-graph-all-extras) | bool | `true` |
+| [`dependency-graph.all-groups`](#dependency-graph-all-groups) | bool | `true` |
+| [`dependency-graph.level`](#dependency-graph-level) | int | *(none)* |
+| [`dependency-graph.no-extras`](#dependency-graph-no-extras) | list[str] | `[]` |
+| [`dependency-graph.no-groups`](#dependency-graph-no-groups) | list[str] | `[]` |
+| [`dependency-graph.output`](#dependency-graph-output) | str | `"./docs/assets/dependencies.mmd"` |
+| [`dev-release.sync`](#dev-release-sync) | bool | `true` |
+| [`docs.apidoc-exclude`](#docs-apidoc-exclude) | list[str] | `[]` |
+| [`docs.apidoc-extra-args`](#docs-apidoc-extra-args) | list[str] | `[]` |
+| [`docs.update-script`](#docs-update-script) | str | `"./docs/docs_update.py"` |
+| [`exclude`](#exclude) | list[str] | `[]` |
+| [`gitignore.extra-categories`](#gitignore-extra-categories) | list[str] | `[]` |
+| [`gitignore.extra-content`](#gitignore-extra-content) | str | *(see example)* |
+| [`gitignore.location`](#gitignore-location) | str | `"./.gitignore"` |
+| [`gitignore.sync`](#gitignore-sync) | bool | `true` |
+| [`include`](#include) | list[str] | `[]` |
+| [`labels.extra-content-rules`](#labels-extra-content-rules) | str | `""` |
+| [`labels.extra-file-rules`](#labels-extra-file-rules) | str | `""` |
+| [`labels.extra-files`](#labels-extra-files) | list[str] | `[]` |
+| [`labels.sync`](#labels-sync) | bool | `true` |
+| [`mailmap.sync`](#mailmap-sync) | bool | `true` |
+| [`notification.unsubscribe`](#notification-unsubscribe) | bool | `false` |
+| [`nuitka.enabled`](#nuitka-enabled) | bool | `true` |
+| [`nuitka.entry-points`](#nuitka-entry-points) | list[str] | `[]` |
+| [`nuitka.extra-args`](#nuitka-extra-args) | list[str] | `[]` |
+| [`nuitka.unstable-targets`](#nuitka-unstable-targets) | list[str] | `[]` |
+| [`pypi-package-history`](#pypi-package-history) | list[str] | `[]` |
+| [`setup-guide`](#setup-guide) | bool | `true` |
+| [`skills.location`](#skills-location) | str | `"./.claude/skills/"` |
+| [`test-matrix.exclude`](#test-matrix-exclude) | list\[dict[str, str]\] | `[]` |
+| [`test-matrix.include`](#test-matrix-include) | list\[dict[str, str]\] | `[]` |
+| [`test-matrix.remove`](#test-matrix-remove) | dict\[str, list[str]\] | {} |
+| [`test-matrix.replace`](#test-matrix-replace) | dict\[str, dict[str, str]\] | {} |
+| [`test-matrix.variations`](#test-matrix-variations) | dict\[str, list[str]\] | {} |
+| [`test-plan.file`](#test-plan-file) | str | `"./tests/cli-test-plan.yaml"` |
+| [`test-plan.inline`](#test-plan-inline) | str | *(none)* |
+| [`test-plan.timeout`](#test-plan-timeout) | int | *(none)* |
+| [`uv-lock.sync`](#uv-lock-sync) | bool | `true` |
+| [`workflow.source-paths`](#workflow-source-paths) | list[str] | *(none)* |
+| [`workflow.sync`](#workflow-sync) | bool | `true` |
 
-  Freshness TTL for cached PyPI metadata (seconds).
-
-(conf-changelog-location)=
-`changelog.location`
-: **Type:** str | **Default:** `"./changelog.md"`
+### `awesome-template.sync`
 
-  File path of the changelog, relative to the root of the repository.
+**Type:** bool | **Default:** `true`
 
-(conf-dependency-graph-all-extras)=
-`dependency-graph.all-extras`
-: **Type:** bool | **Default:** `true`
+Whether awesome-template sync is enabled for this project.
 
-  Whether to include all optional extras in the graph.
+### `bumpversion.sync`
 
-(conf-dependency-graph-all-groups)=
-`dependency-graph.all-groups`
-: **Type:** bool | **Default:** `true`
+**Type:** bool | **Default:** `true`
 
-  Whether to include all dependency groups in the graph.
+Whether bumpversion config sync is enabled for this project.
 
-(conf-dependency-graph-level)=
-`dependency-graph.level`
-: **Type:** int | **Default:** *(none)*
+### `cache.dir`
 
-  Maximum depth of the dependency graph.
+**Type:** str | **Default:** `""`
 
-(conf-dependency-graph-no-extras)=
-`dependency-graph.no-extras`
-: **Type:** list[str] | **Default:** `[]`
+Override the binary cache directory path.
 
-  Optional extras to exclude from the graph.
+### `cache.github-release-ttl`
 
-(conf-dependency-graph-no-groups)=
-`dependency-graph.no-groups`
-: **Type:** list[str] | **Default:** `[]`
+**Type:** int | **Default:** `604800`
 
-  Dependency groups to exclude from the graph.
+Freshness TTL for cached single-release bodies (seconds).
 
-(conf-dependency-graph-output)=
-`dependency-graph.output`
-: **Type:** str | **Default:** `"./docs/assets/dependencies.mmd"`
+### `cache.github-releases-ttl`
 
-  Path where the dependency graph Mermaid diagram should be written.
+**Type:** int | **Default:** `86400`
 
-(conf-dev-release-sync)=
-`dev-release.sync`
-: **Type:** bool | **Default:** `true`
+Freshness TTL for cached all-releases responses (seconds).
 
-  Whether dev pre-release sync is enabled for this project.
+### `cache.max-age`
 
-(conf-docs-apidoc-exclude)=
-`docs.apidoc-exclude`
-: **Type:** list[str] | **Default:** `[]`
+**Type:** int | **Default:** `30`
 
-  Glob patterns for modules to exclude from `sphinx-apidoc`.
+Auto-purge cached entries older than this many days.
 
-(conf-docs-apidoc-extra-args)=
-`docs.apidoc-extra-args`
-: **Type:** list[str] | **Default:** `[]`
+### `cache.pypi-ttl`
 
-  Extra arguments appended to the `sphinx-apidoc` invocation.
+**Type:** int | **Default:** `86400`
 
-(conf-docs-update-script)=
-`docs.update-script`
-: **Type:** str | **Default:** `"./docs/docs_update.py"`
+Freshness TTL for cached PyPI metadata (seconds).
 
-  Path to a Python script run after `sphinx-apidoc` to generate dynamic content.
+### `changelog.location`
 
-(conf-exclude)=
-`exclude`
-: **Type:** list[str] | **Default:** `[]`
+**Type:** str | **Default:** `"./changelog.md"`
 
-  Additional components and files to exclude from repomatic operations.
+File path of the changelog, relative to the root of the repository.
 
-(conf-gitignore-extra-categories)=
-`gitignore.extra-categories`
-: **Type:** list[str] | **Default:** `[]`
+### `dependency-graph.all-extras`
 
-  Additional gitignore template categories to fetch from gitignore.io.
+**Type:** bool | **Default:** `true`
 
-(conf-gitignore-extra-content)=
-`gitignore.extra-content`
-: **Type:** str | **Default:** *(see example)*
+Whether to include all optional extras in the graph.
 
-  Additional content to append at the end of the generated `.gitignore` file.
+### `dependency-graph.all-groups`
 
-(conf-gitignore-location)=
-`gitignore.location`
-: **Type:** str | **Default:** `"./.gitignore"`
+**Type:** bool | **Default:** `true`
 
-  File path of the `.gitignore` to update, relative to the root of the repository.
+Whether to include all dependency groups in the graph.
 
-(conf-gitignore-sync)=
-`gitignore.sync`
-: **Type:** bool | **Default:** `true`
+### `dependency-graph.level`
 
-  Whether `.gitignore` sync is enabled for this project.
+**Type:** int | **Default:** *(none)*
 
-(conf-include)=
-`include`
-: **Type:** list[str] | **Default:** `[]`
+Maximum depth of the dependency graph.
 
-  Components and files to force-include, overriding default exclusions.
+### `dependency-graph.no-extras`
 
-(conf-labels-extra-content-rules)=
-`labels.extra-content-rules`
-: **Type:** str | **Default:** `""`
+**Type:** list[str] | **Default:** `[]`
 
-  Additional YAML rules appended to the content-based labeller configuration.
+Optional extras to exclude from the graph.
 
-(conf-labels-extra-file-rules)=
-`labels.extra-file-rules`
-: **Type:** str | **Default:** `""`
+### `dependency-graph.no-groups`
 
-  Additional YAML rules appended to the file-based labeller configuration.
+**Type:** list[str] | **Default:** `[]`
 
-(conf-labels-extra-files)=
-`labels.extra-files`
-: **Type:** list[str] | **Default:** `[]`
+Dependency groups to exclude from the graph.
 
-  URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
+### `dependency-graph.output`
 
-(conf-labels-sync)=
-`labels.sync`
-: **Type:** bool | **Default:** `true`
+**Type:** str | **Default:** `"./docs/assets/dependencies.mmd"`
 
-  Whether label sync is enabled for this project.
+Path where the dependency graph Mermaid diagram should be written.
 
-(conf-mailmap-sync)=
-`mailmap.sync`
-: **Type:** bool | **Default:** `true`
+### `dev-release.sync`
 
-  Whether `.mailmap` sync is enabled for this project.
+**Type:** bool | **Default:** `true`
 
-(conf-notification-unsubscribe)=
-`notification.unsubscribe`
-: **Type:** bool | **Default:** `false`
+Whether dev pre-release sync is enabled for this project.
 
-  Whether the unsubscribe-threads workflow is enabled.
+### `docs.apidoc-exclude`
 
-(conf-nuitka-enabled)=
-`nuitka.enabled`
-: **Type:** bool | **Default:** `true`
+**Type:** list[str] | **Default:** `[]`
 
-  Whether Nuitka binary compilation is enabled for this project.
+Glob patterns for modules to exclude from `sphinx-apidoc`.
 
-(conf-nuitka-entry-points)=
-`nuitka.entry-points`
-: **Type:** list[str] | **Default:** `[]`
+### `docs.apidoc-extra-args`
 
-  Which `[project.scripts]` entry points produce Nuitka binaries.
+**Type:** list[str] | **Default:** `[]`
 
-(conf-nuitka-extra-args)=
-`nuitka.extra-args`
-: **Type:** list[str] | **Default:** `[]`
+Extra arguments appended to the `sphinx-apidoc` invocation.
 
-  Extra Nuitka CLI arguments for binary compilation.
+### `docs.update-script`
 
-(conf-nuitka-unstable-targets)=
-`nuitka.unstable-targets`
-: **Type:** list[str] | **Default:** `[]`
+**Type:** str | **Default:** `"./docs/docs_update.py"`
 
-  Nuitka build targets allowed to fail without blocking the release.
+Path to a Python script run after `sphinx-apidoc` to generate dynamic content.
 
-(conf-pypi-package-history)=
-`pypi-package-history`
-: **Type:** list[str] | **Default:** `[]`
+### `exclude`
 
-  Former PyPI package names for projects that were renamed.
+**Type:** list[str] | **Default:** `[]`
 
-(conf-setup-guide)=
-`setup-guide`
-: **Type:** bool | **Default:** `true`
+Additional components and files to exclude from repomatic operations.
 
-  Whether the setup guide issue is enabled for this project.
+### `gitignore.extra-categories`
 
-(conf-skills-location)=
-`skills.location`
-: **Type:** str | **Default:** `"./.claude/skills/"`
+**Type:** list[str] | **Default:** `[]`
 
-  Directory prefix for Claude Code skill files, relative to the repository root.
+Additional gitignore template categories to fetch from gitignore.io.
 
-(conf-test-matrix-exclude)=
-`test-matrix.exclude`
-: **Type:** list\[dict[str, str]\] | **Default:** `[]`
+### `gitignore.extra-content`
 
-  Extra exclude rules applied to both full and PR test matrices.
+**Type:** str | **Default:** *(see example)*
 
-(conf-test-matrix-include)=
-`test-matrix.include`
-: **Type:** list\[dict[str, str]\] | **Default:** `[]`
+Additional content to append at the end of the generated `.gitignore` file.
 
-  Extra include directives applied to both full and PR test matrices.
+### `gitignore.location`
 
-(conf-test-matrix-remove)=
-`test-matrix.remove`
-: **Type:** dict\[str, list[str]\] | **Default:** {}
+**Type:** str | **Default:** `"./.gitignore"`
 
-  Per-axis value removals applied to both full and PR test matrices.
+File path of the `.gitignore` to update, relative to the root of the repository.
 
-(conf-test-matrix-replace)=
-`test-matrix.replace`
-: **Type:** dict\[str, dict[str, str]\] | **Default:** {}
+### `gitignore.sync`
 
-  Per-axis value replacements applied to both full and PR test matrices.
+**Type:** bool | **Default:** `true`
 
-(conf-test-matrix-variations)=
-`test-matrix.variations`
-: **Type:** dict\[str, list[str]\] | **Default:** {}
+Whether `.gitignore` sync is enabled for this project.
 
-  Extra matrix dimension values added to the full test matrix only.
+### `include`
 
-(conf-test-plan-file)=
-`test-plan.file`
-: **Type:** str | **Default:** `"./tests/cli-test-plan.yaml"`
+**Type:** list[str] | **Default:** `[]`
 
-  Path to the YAML test plan file for binary testing.
+Components and files to force-include, overriding default exclusions.
 
-(conf-test-plan-inline)=
-`test-plan.inline`
-: **Type:** str | **Default:** *(none)*
+### `labels.extra-content-rules`
 
-  Inline YAML test plan for binaries.
+**Type:** str | **Default:** `""`
 
-(conf-test-plan-timeout)=
-`test-plan.timeout`
-: **Type:** int | **Default:** *(none)*
+Additional YAML rules appended to the content-based labeller configuration.
 
-  Timeout in seconds for each binary test.
+### `labels.extra-file-rules`
 
-(conf-uv-lock-sync)=
-`uv-lock.sync`
-: **Type:** bool | **Default:** `true`
+**Type:** str | **Default:** `""`
 
-  Whether `uv.lock` sync is enabled for this project.
+Additional YAML rules appended to the file-based labeller configuration.
 
-(conf-workflow-source-paths)=
-`workflow.source-paths`
-: **Type:** list[str] | **Default:** *(none)*
+### `labels.extra-files`
 
-  Source code directory names for workflow trigger `paths:` filters.
+**Type:** list[str] | **Default:** `[]`
 
-(conf-workflow-sync)=
-`workflow.sync`
-: **Type:** bool | **Default:** `true`
+URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
 
-  Whether workflow sync is enabled for this project.
+### `labels.sync`
+
+**Type:** bool | **Default:** `true`
+
+Whether label sync is enabled for this project.
+
+### `mailmap.sync`
+
+**Type:** bool | **Default:** `true`
+
+Whether `.mailmap` sync is enabled for this project.
+
+### `notification.unsubscribe`
+
+**Type:** bool | **Default:** `false`
+
+Whether the unsubscribe-threads workflow is enabled.
+
+### `nuitka.enabled`
+
+**Type:** bool | **Default:** `true`
+
+Whether Nuitka binary compilation is enabled for this project.
+
+### `nuitka.entry-points`
+
+**Type:** list[str] | **Default:** `[]`
+
+Which `[project.scripts]` entry points produce Nuitka binaries.
+
+### `nuitka.extra-args`
+
+**Type:** list[str] | **Default:** `[]`
+
+Extra Nuitka CLI arguments for binary compilation.
+
+### `nuitka.unstable-targets`
+
+**Type:** list[str] | **Default:** `[]`
+
+Nuitka build targets allowed to fail without blocking the release.
+
+### `pypi-package-history`
+
+**Type:** list[str] | **Default:** `[]`
+
+Former PyPI package names for projects that were renamed.
+
+### `setup-guide`
+
+**Type:** bool | **Default:** `true`
+
+Whether the setup guide issue is enabled for this project.
+
+### `skills.location`
+
+**Type:** str | **Default:** `"./.claude/skills/"`
+
+Directory prefix for Claude Code skill files, relative to the repository root.
+
+### `test-matrix.exclude`
+
+**Type:** list\[dict[str, str]\] | **Default:** `[]`
+
+Extra exclude rules applied to both full and PR test matrices.
+
+### `test-matrix.include`
+
+**Type:** list\[dict[str, str]\] | **Default:** `[]`
+
+Extra include directives applied to both full and PR test matrices.
+
+### `test-matrix.remove`
+
+**Type:** dict\[str, list[str]\] | **Default:** {}
+
+Per-axis value removals applied to both full and PR test matrices.
+
+### `test-matrix.replace`
+
+**Type:** dict\[str, dict[str, str]\] | **Default:** {}
+
+Per-axis value replacements applied to both full and PR test matrices.
+
+### `test-matrix.variations`
+
+**Type:** dict\[str, list[str]\] | **Default:** {}
+
+Extra matrix dimension values added to the full test matrix only.
+
+### `test-plan.file`
+
+**Type:** str | **Default:** `"./tests/cli-test-plan.yaml"`
+
+Path to the YAML test plan file for binary testing.
+
+### `test-plan.inline`
+
+**Type:** str | **Default:** *(none)*
+
+Inline YAML test plan for binaries.
+
+### `test-plan.timeout`
+
+**Type:** int | **Default:** *(none)*
+
+Timeout in seconds for each binary test.
+
+### `uv-lock.sync`
+
+**Type:** bool | **Default:** `true`
+
+Whether `uv.lock` sync is enabled for this project.
+
+### `workflow.source-paths`
+
+**Type:** list[str] | **Default:** *(none)*
+
+Source code directory names for workflow trigger `paths:` filters.
+
+### `workflow.sync`
+
+**Type:** bool | **Default:** `true`
+
+Whether workflow sync is enabled for this project.
 <!-- config-reference-end -->
 
 ## `[tool.X]` bridge and tool runner

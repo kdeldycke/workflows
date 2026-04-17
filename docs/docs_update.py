@@ -62,36 +62,36 @@ def replace_content(
     )
 
 
-def _option_anchor(option: str) -> str:
-    """Convert a backtick-wrapped option to an anchor ID.
+def _option_slug(option: str) -> str:
+    """Derive the Sphinx heading ID from an option name.
 
-    ``"`awesome-template.sync`"`` becomes ``"conf-awesome-template-sync"``.
+    ``"awesome-template.sync"`` becomes ``"awesome-template-sync"``.
     """
-    return "conf-" + option.strip("`").replace(".", "-")
+    slug = option.strip("`").lower()
+    return re.sub(r"[^a-z0-9]+", "-", slug).strip("-")
 
 
 def config_deflist() -> str:
-    """Render the config reference as a summary table + anchored definition list."""
+    """Render the config reference as a summary table + per-option sections."""
     rows = config_reference()
     lines: list[str] = []
 
-    # Quick-reference table with deep links to each definition.
+    # Quick-reference table with deep links to each heading.
     lines.append("| Option | Type | Default |")
     lines.append("| :--- | :--- | :--- |")
     for option, ftype, default, _description in rows:
-        anchor = _option_anchor(option)
         bare = option.strip("`")
-        lines.append(f"| [`{bare}`](#{anchor}) | {ftype} | {default} |")
+        slug = _option_slug(option)
+        lines.append(f"| [`{bare}`](#{slug}) | {ftype} | {default} |")
     lines.append("")
 
-    # Detailed definitions with anchor targets.
+    # Per-option heading sections.
     for option, ftype, default, description in rows:
-        anchor = _option_anchor(option)
-        lines.append(f"({anchor})=")
-        lines.append(option)
-        lines.append(f": **Type:** {ftype} | **Default:** {default}")
+        lines.append(f"### {option}")
         lines.append("")
-        lines.append(f"  {description}")
+        lines.append(f"**Type:** {ftype} | **Default:** {default}")
+        lines.append("")
+        lines.append(description)
         lines.append("")
     return "\n".join(lines)
 
@@ -120,11 +120,11 @@ def _capture_help(cmd_path: list[str]) -> str:
 
 
 def _command_anchor(cmd_path: list[str]) -> str:
-    """Build an anchor ID from a command path.
+    """Build a heading slug from a command path.
 
-    ``["cache", "show"]`` becomes ``"cli-cache-show"``.
+    ``["cache", "show"]`` becomes ``"repomatic-cache-show"``.
     """
-    return "cli-" + "-".join(cmd_path)
+    return "repomatic-" + "-".join(cmd_path)
 
 
 def cli_reference() -> str:
@@ -164,11 +164,9 @@ def cli_reference() -> str:
 
     # Per-command sections.
     for path, _cmd in entries:
-        anchor = _command_anchor(path)
         label = " ".join(path)
         depth = len(path)
         heading = "#" * (depth + 1)
-        lines.append(f"({anchor})=")
         lines.append(f"{heading} `repomatic {label}`")
         lines.append("")
         lines.append("```text")
@@ -201,11 +199,9 @@ def tool_reference() -> str:
     # --- Per-tool detail sections ---
     for key in sorted(TOOL_REGISTRY):
         spec = TOOL_REGISTRY[key]
-        anchor = f"tool-{key}"
         label = spec.display_name or spec.name
         name_link = f"[{label}]({spec.source_url})" if spec.source_url else label
 
-        lines.append(f"({anchor})=")
         lines.append(f"### {name_link}")
         lines.append("")
 
@@ -360,7 +356,7 @@ def _badge_table(
         if not repo:
             continue
         label = spec.display_name or spec.name
-        cells = [f"[{label}](#tool-{key})"]
+        cells = [f"[{label}](#{label.lower()})"]
         for col in columns:
             fn = col[1]
             cells.append(fn(key, spec, repo))

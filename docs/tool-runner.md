@@ -186,12 +186,12 @@ $ repomatic run shfmt --version 3.14.0 --checksum abc123... -- .
 
 Cached binaries are re-verified against their registry SHA-256 checksum on every use. Entries older than 30 days are auto-purged.
 
-Both settings are configurable via `[tool.repomatic]` (see [`cache.dir`](configuration.md#conf-cache-dir) and [`cache.max-age`](configuration.md#conf-cache-max-age)) or environment variables. The env var takes precedence over the config.
+Both settings are configurable via `[tool.repomatic]` (see [`cache.dir`](configuration.md#cache-dir) and [`cache.max-age`](configuration.md#cache-max-age)) or environment variables. The env var takes precedence over the config.
 
 | Environment variable | Config key | Default | Description |
 | :------------------- | :--------- | :------ | :---------- |
-| `REPOMATIC_CACHE_DIR` | [`cache.dir`](configuration.md#conf-cache-dir) | *(platform-specific)* | Override the cache directory path. |
-| `REPOMATIC_CACHE_MAX_AGE` | [`cache.max-age`](configuration.md#conf-cache-max-age) | `30` | Auto-purge entries older than this many days. `0` disables. |
+| `REPOMATIC_CACHE_DIR` | [`cache.dir`](configuration.md#cache-dir) | *(platform-specific)* | Override the cache directory path. |
+| `REPOMATIC_CACHE_MAX_AGE` | [`cache.max-age`](configuration.md#cache-max-age) | `30` | Auto-purge entries older than this many days. `0` disables. |
 
 Cache management commands:
 
@@ -219,7 +219,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 ## Tool details
 
 <!-- tool-reference-start -->
-(tool-actionlint)=
 ### [actionlint](https://github.com/rhysd/actionlint)
 
 **Installed version:** `1.7.12`
@@ -232,7 +231,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/rhysd/actionlint) | [Config reference](https://github.com/rhysd/actionlint/blob/main/docs/config.md) | [CLI usage](https://github.com/rhysd/actionlint/blob/main/docs/usage.md)
 
-(tool-autopep8)=
 ### [autopep8](https://github.com/hhatto/autopep8)
 
 **Installed version:** `2.3.2`
@@ -245,7 +243,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/hhatto/autopep8) | [CLI usage](https://pypi.org/project/autopep8/)
 
-(tool-biome)=
 ### [Biome](https://github.com/biomejs/biome)
 
 **Installed version:** `2.4.5`
@@ -258,7 +255,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/biomejs/biome) | [Config reference](https://biomejs.dev/reference/configuration/) | [CLI usage](https://biomejs.dev/reference/cli/)
 
-(tool-bump-my-version)=
 ### [bump-my-version](https://github.com/callowayproject/bump-my-version)
 
 **Installed version:** `1.2.7`
@@ -269,7 +265,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/callowayproject/bump-my-version) | [Config reference](https://callowayproject.github.io/bump-my-version/reference/configuration/) | [CLI usage](https://callowayproject.github.io/bump-my-version/reference/cli/)
 
-(tool-gitleaks)=
 ### [Gitleaks](https://github.com/gitleaks/gitleaks)
 
 **Installed version:** `8.30.1`
@@ -282,7 +277,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/gitleaks/gitleaks) | [Config reference](https://github.com/gitleaks/gitleaks#configuration) | [CLI usage](https://github.com/gitleaks/gitleaks#usage)
 
-(tool-labelmaker)=
 ### [labelmaker](https://github.com/jwodder/labelmaker)
 
 **Installed version:** `0.6.4`
@@ -293,7 +287,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/jwodder/labelmaker) | [CLI usage](https://github.com/jwodder/labelmaker)
 
-(tool-lychee)=
 ### [Lychee](https://github.com/lycheeverse/lychee)
 
 **Installed version:** `0.23.0`
@@ -306,7 +299,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/lycheeverse/lychee) | [Config reference](https://lychee.cli.rs/configuration/) | [CLI usage](https://lychee.cli.rs/usage/cli/)
 
-(tool-mdformat)=
 ### [mdformat](https://github.com/hukkin/mdformat)
 
 **Installed version:** `1.0.0`
@@ -341,7 +333,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/hukkin/mdformat) | [Config reference](https://mdformat.readthedocs.io/en/stable/users/configuration_file.html) | [CLI usage](https://mdformat.readthedocs.io/en/stable/users/cli.html)
 
-(tool-mypy)=
 ### [mypy](https://github.com/python/mypy)
 
 **Installed version:** `1.19.1`
@@ -354,7 +345,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/python/mypy) | [Config reference](https://mypy.readthedocs.io/en/stable/config_file.html) | [CLI usage](https://mypy.readthedocs.io/en/stable/command_line.html)
 
-(tool-pyproject-fmt)=
 ### [pyproject-fmt](https://github.com/tox-dev/pyproject-fmt)
 
 **Installed version:** `2.16.2`
@@ -367,7 +357,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/tox-dev/pyproject-fmt) | [Config reference](https://pyproject-fmt.readthedocs.io/en/latest/) | [CLI usage](https://pyproject-fmt.readthedocs.io/en/latest/)
 
-(tool-ruff)=
 ### [Ruff](https://github.com/astral-sh/ruff)
 
 **Installed version:** `0.15.5`
@@ -380,7 +369,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/astral-sh/ruff) | [Config reference](https://docs.astral.sh/ruff/configuration/) | [CLI usage](https://docs.astral.sh/ruff/configuration/#command-line-interface)
 
-(tool-shfmt)=
 ### [shfmt](https://github.com/mvdan/sh)
 
 **Installed version:** `3.13.1`
@@ -393,7 +381,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/mvdan/sh) | [Config reference](https://github.com/mvdan/sh#editorconfig) | [CLI usage](https://github.com/mvdan/sh#usage)
 
-(tool-typos)=
 ### [typos](https://github.com/crate-ci/typos)
 
 **Installed version:** `1.44.0`
@@ -406,7 +393,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/crate-ci/typos) | [Config reference](https://github.com/crate-ci/typos/blob/master/docs/reference.md) | [CLI usage](https://github.com/crate-ci/typos/blob/master/docs/reference.md)
 
-(tool-yamllint)=
 ### [yamllint](https://github.com/adrienverge/yamllint)
 
 **Installed version:** `1.38.0`
@@ -425,7 +411,6 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 [Source](https://github.com/adrienverge/yamllint) | [Config reference](https://yamllint.readthedocs.io/en/stable/configuration.html) | [CLI usage](https://yamllint.readthedocs.io/en/stable/quickstart.html)
 
-(tool-zizmor)=
 ### [zizmor](https://github.com/zizmorcore/zizmor)
 
 **Installed version:** `1.23.0`
@@ -448,20 +433,20 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 | Tool | Stars | Last release | Last commit | Commits | Dependencies | Language | License |
 | :--- | ---: | :---: | :---: | ---: | :---: | :---: | :---: |
-| [actionlint](#tool-actionlint) | ![Stars](https://img.shields.io/github/stars/rhysd/actionlint?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/rhysd/actionlint?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/rhysd/actionlint?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/rhysd/actionlint?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/rhysd/actionlint?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/rhysd/actionlint?style=flat-square) | ![License](https://img.shields.io/github/license/rhysd/actionlint?label=%20&style=flat-square) |
-| [autopep8](#tool-autopep8) | ![Stars](https://img.shields.io/github/stars/hhatto/autopep8?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/hhatto/autopep8?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/hhatto/autopep8?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/hhatto/autopep8?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/hhatto/autopep8?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/hhatto/autopep8?style=flat-square) | ![License](https://img.shields.io/github/license/hhatto/autopep8?label=%20&style=flat-square) |
-| [Biome](#tool-biome) | ![Stars](https://img.shields.io/github/stars/biomejs/biome?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/biomejs/biome?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/biomejs/biome?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/biomejs/biome?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/biomejs/biome?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/biomejs/biome?style=flat-square) | ![License](https://img.shields.io/github/license/biomejs/biome?label=%20&style=flat-square) |
-| [bump-my-version](#tool-bump-my-version) | ![Stars](https://img.shields.io/github/stars/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/callowayproject/bump-my-version?style=flat-square) | ![License](https://img.shields.io/github/license/callowayproject/bump-my-version?label=%20&style=flat-square) |
-| [Gitleaks](#tool-gitleaks) | ![Stars](https://img.shields.io/github/stars/gitleaks/gitleaks?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/gitleaks/gitleaks?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/gitleaks/gitleaks?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/gitleaks/gitleaks?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/gitleaks/gitleaks?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/gitleaks/gitleaks?style=flat-square) | ![License](https://img.shields.io/github/license/gitleaks/gitleaks?label=%20&style=flat-square) |
-| [labelmaker](#tool-labelmaker) | ![Stars](https://img.shields.io/github/stars/jwodder/labelmaker?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/jwodder/labelmaker?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/jwodder/labelmaker?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/jwodder/labelmaker?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/jwodder/labelmaker?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/jwodder/labelmaker?style=flat-square) | ![License](https://img.shields.io/github/license/jwodder/labelmaker?label=%20&style=flat-square) |
-| [Lychee](#tool-lychee) | ![Stars](https://img.shields.io/github/stars/lycheeverse/lychee?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/lycheeverse/lychee?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/lycheeverse/lychee?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/lycheeverse/lychee?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/lycheeverse/lychee?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/lycheeverse/lychee?style=flat-square) | ![License](https://img.shields.io/github/license/lycheeverse/lychee?label=%20&style=flat-square) |
-| [mdformat](#tool-mdformat) | ![Stars](https://img.shields.io/github/stars/hukkin/mdformat?label=%20&style=flat-square) | ![Last release](https://img.shields.io/pypi/v/mdformat?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/hukkin/mdformat?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/hukkin/mdformat?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/hukkin/mdformat?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/hukkin/mdformat?style=flat-square) | ![License](https://img.shields.io/github/license/hukkin/mdformat?label=%20&style=flat-square) |
-| [mypy](#tool-mypy) | ![Stars](https://img.shields.io/github/stars/python/mypy?label=%20&style=flat-square) | ![Last release](https://img.shields.io/pypi/v/mypy?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/python/mypy?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/python/mypy?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/python/mypy?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/python/mypy?style=flat-square) | ![License](https://img.shields.io/github/license/python/mypy?label=%20&style=flat-square) |
-| [pyproject-fmt](#tool-pyproject-fmt) | ![Stars](https://img.shields.io/github/stars/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/tox-dev/pyproject-fmt?style=flat-square) | ![License](https://img.shields.io/github/license/tox-dev/pyproject-fmt?label=%20&style=flat-square) |
-| [Ruff](#tool-ruff) | ![Stars](https://img.shields.io/github/stars/astral-sh/ruff?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/astral-sh/ruff?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/astral-sh/ruff?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/astral-sh/ruff?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/astral-sh/ruff?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/astral-sh/ruff?style=flat-square) | ![License](https://img.shields.io/github/license/astral-sh/ruff?label=%20&style=flat-square) |
-| [shfmt](#tool-shfmt) | ![Stars](https://img.shields.io/github/stars/mvdan/sh?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/mvdan/sh?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/mvdan/sh?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/mvdan/sh?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/mvdan/sh?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/mvdan/sh?style=flat-square) | ![License](https://img.shields.io/github/license/mvdan/sh?label=%20&style=flat-square) |
-| [typos](#tool-typos) | ![Stars](https://img.shields.io/github/stars/crate-ci/typos?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/crate-ci/typos?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/crate-ci/typos?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/crate-ci/typos?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/crate-ci/typos?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/crate-ci/typos?style=flat-square) | ![License](https://img.shields.io/github/license/crate-ci/typos?label=%20&style=flat-square) |
-| [yamllint](#tool-yamllint) | ![Stars](https://img.shields.io/github/stars/adrienverge/yamllint?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/adrienverge/yamllint?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/adrienverge/yamllint?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/adrienverge/yamllint?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/adrienverge/yamllint?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/adrienverge/yamllint?style=flat-square) | ![License](https://img.shields.io/github/license/adrienverge/yamllint?label=%20&style=flat-square) |
-| [zizmor](#tool-zizmor) | ![Stars](https://img.shields.io/github/stars/zizmorcore/zizmor?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/zizmorcore/zizmor?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/zizmorcore/zizmor?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/zizmorcore/zizmor?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/zizmorcore/zizmor?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/zizmorcore/zizmor?style=flat-square) | ![License](https://img.shields.io/github/license/zizmorcore/zizmor?label=%20&style=flat-square) |
+| [actionlint](#actionlint) | ![Stars](https://img.shields.io/github/stars/rhysd/actionlint?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/rhysd/actionlint?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/rhysd/actionlint?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/rhysd/actionlint?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/rhysd/actionlint?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/rhysd/actionlint?style=flat-square) | ![License](https://img.shields.io/github/license/rhysd/actionlint?label=%20&style=flat-square) |
+| [autopep8](#autopep8) | ![Stars](https://img.shields.io/github/stars/hhatto/autopep8?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/hhatto/autopep8?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/hhatto/autopep8?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/hhatto/autopep8?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/hhatto/autopep8?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/hhatto/autopep8?style=flat-square) | ![License](https://img.shields.io/github/license/hhatto/autopep8?label=%20&style=flat-square) |
+| [Biome](#biome) | ![Stars](https://img.shields.io/github/stars/biomejs/biome?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/biomejs/biome?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/biomejs/biome?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/biomejs/biome?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/biomejs/biome?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/biomejs/biome?style=flat-square) | ![License](https://img.shields.io/github/license/biomejs/biome?label=%20&style=flat-square) |
+| [bump-my-version](#bump-my-version) | ![Stars](https://img.shields.io/github/stars/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/callowayproject/bump-my-version?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/callowayproject/bump-my-version?style=flat-square) | ![License](https://img.shields.io/github/license/callowayproject/bump-my-version?label=%20&style=flat-square) |
+| [Gitleaks](#gitleaks) | ![Stars](https://img.shields.io/github/stars/gitleaks/gitleaks?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/gitleaks/gitleaks?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/gitleaks/gitleaks?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/gitleaks/gitleaks?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/gitleaks/gitleaks?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/gitleaks/gitleaks?style=flat-square) | ![License](https://img.shields.io/github/license/gitleaks/gitleaks?label=%20&style=flat-square) |
+| [labelmaker](#labelmaker) | ![Stars](https://img.shields.io/github/stars/jwodder/labelmaker?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/jwodder/labelmaker?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/jwodder/labelmaker?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/jwodder/labelmaker?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/jwodder/labelmaker?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/jwodder/labelmaker?style=flat-square) | ![License](https://img.shields.io/github/license/jwodder/labelmaker?label=%20&style=flat-square) |
+| [Lychee](#lychee) | ![Stars](https://img.shields.io/github/stars/lycheeverse/lychee?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/lycheeverse/lychee?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/lycheeverse/lychee?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/lycheeverse/lychee?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/lycheeverse/lychee?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/lycheeverse/lychee?style=flat-square) | ![License](https://img.shields.io/github/license/lycheeverse/lychee?label=%20&style=flat-square) |
+| [mdformat](#mdformat) | ![Stars](https://img.shields.io/github/stars/hukkin/mdformat?label=%20&style=flat-square) | ![Last release](https://img.shields.io/pypi/v/mdformat?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/hukkin/mdformat?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/hukkin/mdformat?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/hukkin/mdformat?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/hukkin/mdformat?style=flat-square) | ![License](https://img.shields.io/github/license/hukkin/mdformat?label=%20&style=flat-square) |
+| [mypy](#mypy) | ![Stars](https://img.shields.io/github/stars/python/mypy?label=%20&style=flat-square) | ![Last release](https://img.shields.io/pypi/v/mypy?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/python/mypy?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/python/mypy?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/python/mypy?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/python/mypy?style=flat-square) | ![License](https://img.shields.io/github/license/python/mypy?label=%20&style=flat-square) |
+| [pyproject-fmt](#pyproject-fmt) | ![Stars](https://img.shields.io/github/stars/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/tox-dev/pyproject-fmt?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/tox-dev/pyproject-fmt?style=flat-square) | ![License](https://img.shields.io/github/license/tox-dev/pyproject-fmt?label=%20&style=flat-square) |
+| [Ruff](#ruff) | ![Stars](https://img.shields.io/github/stars/astral-sh/ruff?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/astral-sh/ruff?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/astral-sh/ruff?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/astral-sh/ruff?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/astral-sh/ruff?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/astral-sh/ruff?style=flat-square) | ![License](https://img.shields.io/github/license/astral-sh/ruff?label=%20&style=flat-square) |
+| [shfmt](#shfmt) | ![Stars](https://img.shields.io/github/stars/mvdan/sh?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/mvdan/sh?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/mvdan/sh?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/mvdan/sh?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/mvdan/sh?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/mvdan/sh?style=flat-square) | ![License](https://img.shields.io/github/license/mvdan/sh?label=%20&style=flat-square) |
+| [typos](#typos) | ![Stars](https://img.shields.io/github/stars/crate-ci/typos?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/crate-ci/typos?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/crate-ci/typos?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/crate-ci/typos?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/crate-ci/typos?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/crate-ci/typos?style=flat-square) | ![License](https://img.shields.io/github/license/crate-ci/typos?label=%20&style=flat-square) |
+| [yamllint](#yamllint) | ![Stars](https://img.shields.io/github/stars/adrienverge/yamllint?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/adrienverge/yamllint?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/adrienverge/yamllint?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/adrienverge/yamllint?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/adrienverge/yamllint?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/adrienverge/yamllint?style=flat-square) | ![License](https://img.shields.io/github/license/adrienverge/yamllint?label=%20&style=flat-square) |
+| [zizmor](#zizmor) | ![Stars](https://img.shields.io/github/stars/zizmorcore/zizmor?label=%20&style=flat-square) | ![Last release](https://img.shields.io/github/release-date/zizmorcore/zizmor?label=%20&style=flat-square) | ![Last commit](https://img.shields.io/github/last-commit/zizmorcore/zizmor?label=%20&style=flat-square) | ![Commits](https://img.shields.io/github/commit-activity/m/zizmorcore/zizmor?label=%20&style=flat-square) | ![Dependencies](https://img.shields.io/librariesio/github/zizmorcore/zizmor?label=%20&style=flat-square) | ![Language](https://img.shields.io/github/languages/top/zizmorcore/zizmor?style=flat-square) | ![License](https://img.shields.io/github/license/zizmorcore/zizmor?label=%20&style=flat-square) |
 <!-- tool-reference-end -->
 

@@ -6,45 +6,45 @@
 <!-- cli-reference-start -->
 | Command | Description |
 | :--- | :--- |
-| [`repomatic broken-links`](#cli-broken-links) | Manage broken links issue lifecycle |
-| [`repomatic cache`](#cli-cache) | Manage the download cache |
-| [`repomatic cache clean`](#cli-cache-clean) | Remove cached entries |
-| [`repomatic cache path`](#cli-cache-path) | Print the cache directory path |
-| [`repomatic cache show`](#cli-cache-show) | List cached entries |
-| [`repomatic changelog`](#cli-changelog) | Maintain a Markdown-formatted changelog |
-| [`repomatic check-renovate`](#cli-check-renovate) | Check Renovate migration prerequisites |
-| [`repomatic clean-unmodified-configs`](#cli-clean-unmodified-configs) | Remove config files that match bundled defaults |
-| [`repomatic fix-vulnerable-deps`](#cli-fix-vulnerable-deps) | Upgrade packages with known vulnerabilities |
-| [`repomatic format-images`](#cli-format-images) | Format images with lossless optimization |
-| [`repomatic git-tag`](#cli-git-tag) | Create and push a Git tag |
-| [`repomatic init`](#cli-init) | Bootstrap a repository to use reusable workflows |
-| [`repomatic lint-changelog`](#cli-lint-changelog) | Check changelog dates against release dates |
-| [`repomatic lint-repo`](#cli-lint-repo) | Run repository consistency checks |
-| [`repomatic list-skills`](#cli-list-skills) | List available Claude Code skills |
-| [`repomatic metadata`](#cli-metadata) | Output project metadata |
-| [`repomatic pr-body`](#cli-pr-body) | Generate PR body with workflow metadata |
-| [`repomatic release-prep`](#cli-release-prep) | Prepare files for a release |
-| [`repomatic run`](#cli-run) | Run an external tool with managed config |
-| [`repomatic scan-virustotal`](#cli-scan-virustotal) | Upload release binaries to VirusTotal |
-| [`repomatic setup-guide`](#cli-setup-guide) | Manage setup guide issue lifecycle |
-| [`repomatic show-config`](#cli-show-config) | Print [tool.repomatic] configuration reference |
-| [`repomatic sponsor-label`](#cli-sponsor-label) | Label issues/PRs from GitHub sponsors |
-| [`repomatic sync-bumpversion`](#cli-sync-bumpversion) | Sync bumpversion config from bundled template |
-| [`repomatic sync-dev-release`](#cli-sync-dev-release) | Sync rolling dev pre-release on GitHub |
-| [`repomatic sync-github-releases`](#cli-sync-github-releases) | Sync GitHub release notes from changelog |
-| [`repomatic sync-gitignore`](#cli-sync-gitignore) | Sync .gitignore from gitignore.io templates |
-| [`repomatic sync-labels`](#cli-sync-labels) | Sync repository labels via labelmaker |
-| [`repomatic sync-mailmap`](#cli-sync-mailmap) | Sync Git's .mailmap file with missing contributors |
-| [`repomatic sync-uv-lock`](#cli-sync-uv-lock) | Re-lock dependencies and prune stale cooldown overrides |
-| [`repomatic test-plan`](#cli-test-plan) | Run a test plan from a file against a binary |
-| [`repomatic unsubscribe-threads`](#cli-unsubscribe-threads) | Unsubscribe from closed, inactive notification threads |
-| [`repomatic update-checksums`](#cli-update-checksums) | Update SHA-256 checksums for binary downloads |
-| [`repomatic update-deps-graph`](#cli-update-deps-graph) | Generate dependency graph from uv lockfile |
-| [`repomatic update-docs`](#cli-update-docs) | Regenerate Sphinx API docs and run update script |
-| [`repomatic verify-binary`](#cli-verify-binary) | Verify binary architecture using exiftool |
-| [`repomatic version-check`](#cli-version-check) | Check if a version bump is allowed |
-| [`repomatic workflow`](#cli-workflow) | Lint downstream workflow caller files |
-| [`repomatic workflow lint`](#cli-workflow-lint) | Lint workflow files for common issues |
+| [`repomatic broken-links`](#repomatic-broken-links) | Manage broken links issue lifecycle |
+| [`repomatic cache`](#repomatic-cache) | Manage the download cache |
+| [`repomatic cache clean`](#repomatic-cache-clean) | Remove cached entries |
+| [`repomatic cache path`](#repomatic-cache-path) | Print the cache directory path |
+| [`repomatic cache show`](#repomatic-cache-show) | List cached entries |
+| [`repomatic changelog`](#repomatic-changelog) | Maintain a Markdown-formatted changelog |
+| [`repomatic check-renovate`](#repomatic-check-renovate) | Check Renovate migration prerequisites |
+| [`repomatic clean-unmodified-configs`](#repomatic-clean-unmodified-configs) | Remove config files that match bundled defaults |
+| [`repomatic fix-vulnerable-deps`](#repomatic-fix-vulnerable-deps) | Upgrade packages with known vulnerabilities |
+| [`repomatic format-images`](#repomatic-format-images) | Format images with lossless optimization |
+| [`repomatic git-tag`](#repomatic-git-tag) | Create and push a Git tag |
+| [`repomatic init`](#repomatic-init) | Bootstrap a repository to use reusable workflows |
+| [`repomatic lint-changelog`](#repomatic-lint-changelog) | Check changelog dates against release dates |
+| [`repomatic lint-repo`](#repomatic-lint-repo) | Run repository consistency checks |
+| [`repomatic list-skills`](#repomatic-list-skills) | List available Claude Code skills |
+| [`repomatic metadata`](#repomatic-metadata) | Output project metadata |
+| [`repomatic pr-body`](#repomatic-pr-body) | Generate PR body with workflow metadata |
+| [`repomatic release-prep`](#repomatic-release-prep) | Prepare files for a release |
+| [`repomatic run`](#repomatic-run) | Run an external tool with managed config |
+| [`repomatic scan-virustotal`](#repomatic-scan-virustotal) | Upload release binaries to VirusTotal |
+| [`repomatic setup-guide`](#repomatic-setup-guide) | Manage setup guide issue lifecycle |
+| [`repomatic show-config`](#repomatic-show-config) | Print [tool.repomatic] configuration reference |
+| [`repomatic sponsor-label`](#repomatic-sponsor-label) | Label issues/PRs from GitHub sponsors |
+| [`repomatic sync-bumpversion`](#repomatic-sync-bumpversion) | Sync bumpversion config from bundled template |
+| [`repomatic sync-dev-release`](#repomatic-sync-dev-release) | Sync rolling dev pre-release on GitHub |
+| [`repomatic sync-github-releases`](#repomatic-sync-github-releases) | Sync GitHub release notes from changelog |
+| [`repomatic sync-gitignore`](#repomatic-sync-gitignore) | Sync .gitignore from gitignore.io templates |
+| [`repomatic sync-labels`](#repomatic-sync-labels) | Sync repository labels via labelmaker |
+| [`repomatic sync-mailmap`](#repomatic-sync-mailmap) | Sync Git's .mailmap file with missing contributors |
+| [`repomatic sync-uv-lock`](#repomatic-sync-uv-lock) | Re-lock dependencies and prune stale cooldown overrides |
+| [`repomatic test-plan`](#repomatic-test-plan) | Run a test plan from a file against a binary |
+| [`repomatic unsubscribe-threads`](#repomatic-unsubscribe-threads) | Unsubscribe from closed, inactive notification threads |
+| [`repomatic update-checksums`](#repomatic-update-checksums) | Update SHA-256 checksums for binary downloads |
+| [`repomatic update-deps-graph`](#repomatic-update-deps-graph) | Generate dependency graph from uv lockfile |
+| [`repomatic update-docs`](#repomatic-update-docs) | Regenerate Sphinx API docs and run update script |
+| [`repomatic verify-binary`](#repomatic-verify-binary) | Verify binary architecture using exiftool |
+| [`repomatic version-check`](#repomatic-version-check) | Check if a version bump is allowed |
+| [`repomatic workflow`](#repomatic-workflow) | Lint downstream workflow caller files |
+| [`repomatic workflow lint`](#repomatic-workflow-lint) | Lint workflow files for common issues |
 
 ## Help screen
 
@@ -124,7 +124,6 @@ GitHub issues & PRs:
   pr-body                   Generate PR body with workflow metadata
 ```
 
-(cli-broken-links)=
 ## `repomatic broken-links`
 
 ```text
@@ -167,7 +166,6 @@ Options:
   -h, --help                  Show this message and exit.
 ```
 
-(cli-cache)=
 ## `repomatic cache`
 
 ```text
@@ -187,7 +185,6 @@ Commands:
   show   List cached entries
 ```
 
-(cli-cache-clean)=
 ### `repomatic cache clean`
 
 ```text
@@ -213,7 +210,6 @@ Options:
   -h, --help         Show this message and exit.
 ```
 
-(cli-cache-path)=
 ### `repomatic cache path`
 
 ```text
@@ -227,7 +223,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-cache-show)=
 ### `repomatic cache show`
 
 ```text
@@ -239,7 +234,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-changelog)=
 ## `repomatic changelog`
 
 ```text
@@ -253,7 +247,6 @@ Options:
   -h, --help     Show this message and exit.
 ```
 
-(cli-check-renovate)=
 ## `repomatic check-renovate`
 
 ```text
@@ -298,7 +291,6 @@ Options:
   -h, --help                   Show this message and exit.
 ```
 
-(cli-clean-unmodified-configs)=
 ## `repomatic clean-unmodified-configs`
 
 ```text
@@ -317,7 +309,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-fix-vulnerable-deps)=
 ## `repomatic fix-vulnerable-deps`
 
 ```text
@@ -348,7 +339,6 @@ Options:
   -h, --help       Show this message and exit.
 ```
 
-(cli-format-images)=
 ## `repomatic format-images`
 
 ```text
@@ -391,7 +381,6 @@ Options:
   -h, --help                 Show this message and exit.
 ```
 
-(cli-git-tag)=
 ## `repomatic git-tag`
 
 ```text
@@ -430,7 +419,6 @@ Options:
   -h, --help          Show this message and exit.
 ```
 
-(cli-init)=
 ## `repomatic init`
 
 ```text
@@ -505,7 +493,6 @@ Options:
   -h, --help              Show this message and exit.
 ```
 
-(cli-lint-changelog)=
 ## `repomatic lint-changelog`
 
 ```text
@@ -558,7 +545,6 @@ Options:
   -h, --help        Show this message and exit.
 ```
 
-(cli-lint-repo)=
 ## `repomatic lint-repo`
 
 ```text
@@ -614,7 +600,6 @@ Options:
   -h, --help                Show this message and exit.
 ```
 
-(cli-list-skills)=
 ## `repomatic list-skills`
 
 ```text
@@ -629,7 +614,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-metadata)=
 ## `repomatic metadata`
 
 ```text
@@ -658,7 +642,6 @@ Options:
   -h, --help         Show this message and exit.
 ```
 
-(cli-pr-body)=
 ## `repomatic pr-body`
 
 ```text
@@ -706,7 +689,6 @@ Options:
   -h, --help      Show this message and exit.
 ```
 
-(cli-release-prep)=
 ## `repomatic release-prep`
 
 ```text
@@ -752,7 +734,6 @@ Options:
   -h, --help                Show this message and exit.
 ```
 
-(cli-run)=
 ## `repomatic run`
 
 ```text
@@ -788,7 +769,6 @@ Options:
   -h, --help       Show this message and exit.
 ```
 
-(cli-scan-virustotal)=
 ## `repomatic scan-virustotal`
 
 ```text
@@ -824,7 +804,6 @@ Options:
   -h, --help                    Show this message and exit.
 ```
 
-(cli-setup-guide)=
 ## `repomatic setup-guide`
 
 ```text
@@ -864,7 +843,6 @@ Options:
   -h, --help                Show this message and exit.
 ```
 
-(cli-show-config)=
 ## `repomatic show-config`
 
 ```text
@@ -880,7 +858,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-sponsor-label)=
 ## `repomatic sponsor-label`
 
 ```text
@@ -925,7 +902,6 @@ Options:
   -h, --help              Show this message and exit.
 ```
 
-(cli-sync-bumpversion)=
 ## `repomatic sync-bumpversion`
 
 ```text
@@ -941,7 +917,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-sync-dev-release)=
 ## `repomatic sync-dev-release`
 
 ```text
@@ -978,7 +953,6 @@ Options:
   -h, --help                 Show this message and exit.
 ```
 
-(cli-sync-github-releases)=
 ## `repomatic sync-github-releases`
 
 ```text
@@ -1002,7 +976,6 @@ Options:
   -h, --help          Show this message and exit.
 ```
 
-(cli-sync-gitignore)=
 ## `repomatic sync-gitignore`
 
 ```text
@@ -1030,7 +1003,6 @@ Options:
   -h, --help     Show this message and exit.
 ```
 
-(cli-sync-labels)=
 ## `repomatic sync-labels`
 
 ```text
@@ -1050,7 +1022,6 @@ Options:
   -h, --help   Show this message and exit.
 ```
 
-(cli-sync-mailmap)=
 ## `repomatic sync-mailmap`
 
 ```text
@@ -1077,7 +1048,6 @@ Options:
   -h, --help     Show this message and exit.
 ```
 
-(cli-sync-uv-lock)=
 ## `repomatic sync-uv-lock`
 
 ```text
@@ -1126,7 +1096,6 @@ Options:
   -h, --help            Show this message and exit.
 ```
 
-(cli-test-plan)=
 ## `repomatic test-plan`
 
 ```text
@@ -1168,7 +1137,6 @@ Options:
   -h, --help                     Show this message and exit.
 ```
 
-(cli-unsubscribe-threads)=
 ## `repomatic unsubscribe-threads`
 
 ```text
@@ -1206,7 +1174,6 @@ Options:
   -h, --help                  Show this message and exit.
 ```
 
-(cli-update-checksums)=
 ## `repomatic update-checksums`
 
 ```text
@@ -1238,7 +1205,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-update-deps-graph)=
 ## `repomatic update-deps-graph`
 
 ```text
@@ -1309,7 +1275,6 @@ Other options:
   -h, --help                 Show this message and exit.
 ```
 
-(cli-update-docs)=
 ## `repomatic update-docs`
 
 ```text
@@ -1330,7 +1295,6 @@ Options:
   -h, --help  Show this message and exit.
 ```
 
-(cli-verify-binary)=
 ## `repomatic verify-binary`
 
 ```text
@@ -1357,7 +1321,6 @@ Options:
   -h, --help     Show this message and exit.
 ```
 
-(cli-version-check)=
 ## `repomatic version-check`
 
 ```text
@@ -1379,7 +1342,6 @@ Options:
   -h, --help            Show this message and exit.
 ```
 
-(cli-workflow)=
 ## `repomatic workflow`
 
 ```text
@@ -1398,7 +1360,6 @@ Commands:
   lint  Lint workflow files for common issues
 ```
 
-(cli-workflow-lint)=
 ### `repomatic workflow lint`
 
 ```text
