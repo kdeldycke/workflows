@@ -58,56 +58,57 @@ workflow.source-paths = ["extra_platforms"]
 ```
 
 <!-- config-reference-start -->
-| Option | Type | Default |
-| :--- | :--- | :--- |
-| [`awesome-template.sync`](#awesome-template-sync) | bool | `true` |
-| [`bumpversion.sync`](#bumpversion-sync) | bool | `true` |
-| [`cache.dir`](#cache-dir) | str | `""` |
-| [`cache.github-release-ttl`](#cache-github-release-ttl) | int | `604800` |
-| [`cache.github-releases-ttl`](#cache-github-releases-ttl) | int | `86400` |
-| [`cache.max-age`](#cache-max-age) | int | `30` |
-| [`cache.pypi-ttl`](#cache-pypi-ttl) | int | `86400` |
-| [`changelog.location`](#changelog-location) | str | `"./changelog.md"` |
-| [`dependency-graph.all-extras`](#dependency-graph-all-extras) | bool | `true` |
-| [`dependency-graph.all-groups`](#dependency-graph-all-groups) | bool | `true` |
-| [`dependency-graph.level`](#dependency-graph-level) | int | *(none)* |
-| [`dependency-graph.no-extras`](#dependency-graph-no-extras) | list[str] | `[]` |
-| [`dependency-graph.no-groups`](#dependency-graph-no-groups) | list[str] | `[]` |
-| [`dependency-graph.output`](#dependency-graph-output) | str | `"./docs/assets/dependencies.mmd"` |
-| [`dev-release.sync`](#dev-release-sync) | bool | `true` |
-| [`docs.apidoc-exclude`](#docs-apidoc-exclude) | list[str] | `[]` |
-| [`docs.apidoc-extra-args`](#docs-apidoc-extra-args) | list[str] | `[]` |
-| [`docs.update-script`](#docs-update-script) | str | `"./docs/docs_update.py"` |
-| [`exclude`](#exclude) | list[str] | `[]` |
-| [`gitignore.extra-categories`](#gitignore-extra-categories) | list[str] | `[]` |
-| [`gitignore.extra-content`](#gitignore-extra-content) | str | *(see example)* |
-| [`gitignore.location`](#gitignore-location) | str | `"./.gitignore"` |
-| [`gitignore.sync`](#gitignore-sync) | bool | `true` |
-| [`include`](#include) | list[str] | `[]` |
-| [`labels.extra-content-rules`](#labels-extra-content-rules) | str | `""` |
-| [`labels.extra-file-rules`](#labels-extra-file-rules) | str | `""` |
-| [`labels.extra-files`](#labels-extra-files) | list[str] | `[]` |
-| [`labels.sync`](#labels-sync) | bool | `true` |
-| [`mailmap.sync`](#mailmap-sync) | bool | `true` |
-| [`notification.unsubscribe`](#notification-unsubscribe) | bool | `false` |
-| [`nuitka.enabled`](#nuitka-enabled) | bool | `true` |
-| [`nuitka.entry-points`](#nuitka-entry-points) | list[str] | `[]` |
-| [`nuitka.extra-args`](#nuitka-extra-args) | list[str] | `[]` |
-| [`nuitka.unstable-targets`](#nuitka-unstable-targets) | list[str] | `[]` |
-| [`pypi-package-history`](#pypi-package-history) | list[str] | `[]` |
-| [`setup-guide`](#setup-guide) | bool | `true` |
-| [`skills.location`](#skills-location) | str | `"./.claude/skills/"` |
-| [`test-matrix.exclude`](#test-matrix-exclude) | list\[dict[str, str]\] | `[]` |
-| [`test-matrix.include`](#test-matrix-include) | list\[dict[str, str]\] | `[]` |
-| [`test-matrix.remove`](#test-matrix-remove) | dict\[str, list[str]\] | {} |
-| [`test-matrix.replace`](#test-matrix-replace) | dict\[str, dict[str, str]\] | {} |
-| [`test-matrix.variations`](#test-matrix-variations) | dict\[str, list[str]\] | {} |
-| [`test-plan.file`](#test-plan-file) | str | `"./tests/cli-test-plan.yaml"` |
-| [`test-plan.inline`](#test-plan-inline) | str | *(none)* |
-| [`test-plan.timeout`](#test-plan-timeout) | int | *(none)* |
-| [`uv-lock.sync`](#uv-lock-sync) | bool | `true` |
-| [`workflow.source-paths`](#workflow-source-paths) | list[str] | *(none)* |
-| [`workflow.sync`](#workflow-sync) | bool | `true` |
+
+| Option                                                        | Type                        | Default                            |
+| :------------------------------------------------------------ | :-------------------------- | :--------------------------------- |
+| [`awesome-template.sync`](#awesome-template-sync)             | bool                        | `true`                             |
+| [`bumpversion.sync`](#bumpversion-sync)                       | bool                        | `true`                             |
+| [`cache.dir`](#cache-dir)                                     | str                         | `""`                               |
+| [`cache.github-release-ttl`](#cache-github-release-ttl)       | int                         | `604800`                           |
+| [`cache.github-releases-ttl`](#cache-github-releases-ttl)     | int                         | `86400`                            |
+| [`cache.max-age`](#cache-max-age)                             | int                         | `30`                               |
+| [`cache.pypi-ttl`](#cache-pypi-ttl)                           | int                         | `86400`                            |
+| [`changelog.location`](#changelog-location)                   | str                         | `"./changelog.md"`                 |
+| [`dependency-graph.all-extras`](#dependency-graph-all-extras) | bool                        | `true`                             |
+| [`dependency-graph.all-groups`](#dependency-graph-all-groups) | bool                        | `true`                             |
+| [`dependency-graph.level`](#dependency-graph-level)           | int                         | *(none)*                           |
+| [`dependency-graph.no-extras`](#dependency-graph-no-extras)   | list[str]                   | `[]`                               |
+| [`dependency-graph.no-groups`](#dependency-graph-no-groups)   | list[str]                   | `[]`                               |
+| [`dependency-graph.output`](#dependency-graph-output)         | str                         | `"./docs/assets/dependencies.mmd"` |
+| [`dev-release.sync`](#dev-release-sync)                       | bool                        | `true`                             |
+| [`docs.apidoc-exclude`](#docs-apidoc-exclude)                 | list[str]                   | `[]`                               |
+| [`docs.apidoc-extra-args`](#docs-apidoc-extra-args)           | list[str]                   | `[]`                               |
+| [`docs.update-script`](#docs-update-script)                   | str                         | `"./docs/docs_update.py"`          |
+| [`exclude`](#exclude)                                         | list[str]                   | `[]`                               |
+| [`gitignore.extra-categories`](#gitignore-extra-categories)   | list[str]                   | `[]`                               |
+| [`gitignore.extra-content`](#gitignore-extra-content)         | str                         | *(see example)*                    |
+| [`gitignore.location`](#gitignore-location)                   | str                         | `"./.gitignore"`                   |
+| [`gitignore.sync`](#gitignore-sync)                           | bool                        | `true`                             |
+| [`include`](#include)                                         | list[str]                   | `[]`                               |
+| [`labels.extra-content-rules`](#labels-extra-content-rules)   | str                         | `""`                               |
+| [`labels.extra-file-rules`](#labels-extra-file-rules)         | str                         | `""`                               |
+| [`labels.extra-files`](#labels-extra-files)                   | list[str]                   | `[]`                               |
+| [`labels.sync`](#labels-sync)                                 | bool                        | `true`                             |
+| [`mailmap.sync`](#mailmap-sync)                               | bool                        | `true`                             |
+| [`notification.unsubscribe`](#notification-unsubscribe)       | bool                        | `false`                            |
+| [`nuitka.enabled`](#nuitka-enabled)                           | bool                        | `true`                             |
+| [`nuitka.entry-points`](#nuitka-entry-points)                 | list[str]                   | `[]`                               |
+| [`nuitka.extra-args`](#nuitka-extra-args)                     | list[str]                   | `[]`                               |
+| [`nuitka.unstable-targets`](#nuitka-unstable-targets)         | list[str]                   | `[]`                               |
+| [`pypi-package-history`](#pypi-package-history)               | list[str]                   | `[]`                               |
+| [`setup-guide`](#setup-guide)                                 | bool                        | `true`                             |
+| [`skills.location`](#skills-location)                         | str                         | `"./.claude/skills/"`              |
+| [`test-matrix.exclude`](#test-matrix-exclude)                 | list\[dict[str, str]\]      | `[]`                               |
+| [`test-matrix.include`](#test-matrix-include)                 | list\[dict[str, str]\]      | `[]`                               |
+| [`test-matrix.remove`](#test-matrix-remove)                   | dict\[str, list[str]\]      | {}                                 |
+| [`test-matrix.replace`](#test-matrix-replace)                 | dict\[str, dict[str, str]\] | {}                                 |
+| [`test-matrix.variations`](#test-matrix-variations)           | dict\[str, list[str]\]      | {}                                 |
+| [`test-plan.file`](#test-plan-file)                           | str                         | `"./tests/cli-test-plan.yaml"`     |
+| [`test-plan.inline`](#test-plan-inline)                       | str                         | *(none)*                           |
+| [`test-plan.timeout`](#test-plan-timeout)                     | int                         | *(none)*                           |
+| [`uv-lock.sync`](#uv-lock-sync)                               | bool                        | `true`                             |
+| [`workflow.source-paths`](#workflow-source-paths)             | list[str]                   | *(none)*                           |
+| [`workflow.sync`](#workflow-sync)                             | bool                        | `true`                             |
 
 ### `awesome-template.sync`
 
@@ -396,6 +397,7 @@ Source code directory names for workflow trigger `paths:` filters.
 **Type:** bool | **Default:** `true`
 
 Whether workflow sync is enabled for this project.
+
 <!-- config-reference-end -->
 
 ## `[tool.X]` bridge and tool runner

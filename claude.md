@@ -90,15 +90,15 @@ The following documentation artifacts must stay in sync with the code. When chan
 
 Each piece of knowledge has one canonical home, chosen by audience. Other locations get a brief pointer ("See `module.py` for rationale.").
 
-| Audience              | Home                      | Content                                                    |
-| :-------------------- | :------------------------ | :--------------------------------------------------------- |
-| GitHub visitors       | `readme.md`               | Landing page: pitch, quick start, links to docs.           |
+| Audience              | Home                      | Content                                                                 |
+| :-------------------- | :------------------------ | :---------------------------------------------------------------------- |
+| GitHub visitors       | `readme.md`               | Landing page: pitch, quick start, links to docs.                        |
 | End users             | `docs/`                   | Installation, configuration, dependencies, workflows, security, skills. |
-| Setup walkthroughs    | `setup-guide.md` issue    | Step-by-step setup with deep links to repo settings pages. |
-| Developers            | Python docstrings         | Design decisions, trade-offs, "why" explanations.          |
-| Workflow maintainers  | YAML comments             | Brief "what" + pointer to Python code for "why."           |
-| Bug reporters         | `.github/ISSUE_TEMPLATE/` | Reproduction steps, version commands.                      |
-| Contributors / Claude | `claude.md`               | Conventions, policies, non-obvious rules.                  |
+| Setup walkthroughs    | `setup-guide.md` issue    | Step-by-step setup with deep links to repo settings pages.              |
+| Developers            | Python docstrings         | Design decisions, trade-offs, "why" explanations.                       |
+| Workflow maintainers  | YAML comments             | Brief "what" + pointer to Python code for "why."                        |
+| Bug reporters         | `.github/ISSUE_TEMPLATE/` | Reproduction steps, version commands.                                   |
+| Contributors / Claude | `claude.md`               | Conventions, policies, non-obvious rules.                               |
 
 **YAML → Python distillation:** When workflow YAML files contain lengthy "why" explanations, migrate the rationale to Python module, class, or constant docstrings (using reST admonitions like `.. note::` and `.. warning::`). Trim the YAML comment to a one-line "what" plus a pointer: `# See repomatic/module.py for rationale.`
 
