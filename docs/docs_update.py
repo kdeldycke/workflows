@@ -27,6 +27,7 @@ from pathlib import Path
 
 import click
 from click.testing import CliRunner
+from click_extra import TableFormat, render_table
 
 from repomatic.config import config_reference
 
@@ -77,12 +78,16 @@ def config_deflist() -> str:
     lines: list[str] = []
 
     # Quick-reference table with deep links to each heading.
-    lines.append("| Option | Type | Default |")
-    lines.append("| :--- | :--- | :--- |")
+    table_rows = []
     for option, ftype, default, _description in rows:
         bare = option.strip("`")
         slug = _option_slug(option)
-        lines.append(f"| [`{bare}`](#{slug}) | {ftype} | {default} |")
+        table_rows.append([f"[`{bare}`](#{slug})", ftype, default])
+    lines.append(render_table(
+        table_rows,
+        headers=["Option", "Type", "Default"],
+        table_format=TableFormat.GITHUB,
+    ))
     lines.append("")
 
     # Per-option heading sections.
@@ -145,13 +150,17 @@ def cli_reference() -> str:
             )
 
     # Summary table.
-    lines.append("| Command | Description |")
-    lines.append("| :--- | :--- |")
+    table_rows = []
     for path, cmd in entries:
         anchor = _command_anchor(path)
         label = " ".join(path)
         desc = (cmd.get_short_help_str() or "").rstrip(".")
-        lines.append(f"| [`repomatic {label}`](#{anchor}) | {desc} |")
+        table_rows.append([f"[`repomatic {label}`](#{anchor})", desc])
+    lines.append(render_table(
+        table_rows,
+        headers=["Command", "Description"],
+        table_format=TableFormat.GITHUB,
+    ))
     lines.append("")
 
     # Main help screen.
@@ -344,12 +353,12 @@ def _badge_table(
     Each column is ``(name, badge_fn)`` or ``(name, badge_fn, align)``
     where align is ``"left"``, ``"center"`` (default), or ``"right"``.
     """
-    _align_map = {"left": ":---", "center": ":---:", "right": "---:"}
-    header = ["Tool"] + [c[0] for c in columns]
-    aligns = [_align_map.get(c[2], ":---:") if len(c) > 2 else ":---:" for c in columns]
-    lines.append("| " + " | ".join(header) + " |")
-    lines.append("| :--- | " + " | ".join(aligns) + " |")
+    headers = ["Tool"] + [c[0] for c in columns]
+    colalign = tuple(
+        ["left"] + [c[2] if len(c) > 2 else "center" for c in columns]
+    )
 
+    table_rows: list[list[str]] = []
     for key in sorted(registry):
         spec = registry[key]
         repo = _github_repo(spec.source_url)
@@ -360,8 +369,14 @@ def _badge_table(
         for col in columns:
             fn = col[1]
             cells.append(fn(key, spec, repo))
-        lines.append("| " + " | ".join(cells) + " |")
+        table_rows.append(cells)
 
+    lines.append(render_table(
+        table_rows,
+        headers=headers,
+        table_format=TableFormat.GITHUB,
+        colalign=colalign,
+    ))
     lines.append("")
 
 
@@ -370,7 +385,7 @@ def update_configuration() -> None:
     config_md = PROJECT_ROOT / "docs" / "configuration.md"
     replace_content(
         config_md,
-        "\n" + config_deflist(),
+        "\n\n" + config_deflist() + "\n",
         "<!-- config-reference-start -->",
         "<!-- config-reference-end -->",
     )
@@ -381,7 +396,7 @@ def update_cli_parameters() -> None:
     cli_md = PROJECT_ROOT / "docs" / "cli.md"
     replace_content(
         cli_md,
-        "\n" + cli_reference(),
+        "\n\n" + cli_reference() + "\n",
         "<!-- cli-reference-start -->",
         "<!-- cli-reference-end -->",
     )
@@ -392,7 +407,7 @@ def update_tool_runner() -> None:
     tr_md = PROJECT_ROOT / "docs" / "tool-runner.md"
     replace_content(
         tr_md,
-        "\n" + tool_reference(),
+        "\n\n" + tool_reference() + "\n",
         "<!-- tool-reference-start -->",
         "<!-- tool-reference-end -->",
     )
