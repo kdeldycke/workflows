@@ -83,11 +83,13 @@ def config_deflist() -> str:
         bare = option.strip("`")
         slug = _option_slug(option)
         table_rows.append([f"[`{bare}`](#{slug})", ftype, default])
-    lines.append(render_table(
-        table_rows,
-        headers=["Option", "Type", "Default"],
-        table_format=TableFormat.GITHUB,
-    ))
+    lines.append(
+        render_table(
+            table_rows,
+            headers=["Option", "Type", "Default"],
+            table_format=TableFormat.GITHUB,
+        )
+    )
     lines.append("")
 
     # Per-option heading sections.
@@ -156,11 +158,13 @@ def cli_reference() -> str:
         label = " ".join(path)
         desc = (cmd.get_short_help_str() or "").rstrip(".")
         table_rows.append([f"[`repomatic {label}`](#{anchor})", desc])
-    lines.append(render_table(
-        table_rows,
-        headers=["Command", "Description"],
-        table_format=TableFormat.GITHUB,
-    ))
+    lines.append(
+        render_table(
+            table_rows,
+            headers=["Command", "Description"],
+            table_format=TableFormat.GITHUB,
+        )
+    )
     lines.append("")
 
     # Main help screen.
@@ -354,9 +358,7 @@ def _badge_table(
     where align is ``"left"``, ``"center"`` (default), or ``"right"``.
     """
     headers = ["Tool"] + [c[0] for c in columns]
-    colalign = tuple(
-        ["left"] + [c[2] if len(c) > 2 else "center" for c in columns]
-    )
+    colalign = tuple(["left"] + [c[2] if len(c) > 2 else "center" for c in columns])
 
     table_rows: list[list[str]] = []
     for key in sorted(registry):
@@ -371,12 +373,14 @@ def _badge_table(
             cells.append(fn(key, spec, repo))
         table_rows.append(cells)
 
-    lines.append(render_table(
-        table_rows,
-        headers=headers,
-        table_format=TableFormat.GITHUB,
-        colalign=colalign,
-    ))
+    lines.append(
+        render_table(
+            table_rows,
+            headers=headers,
+            table_format=TableFormat.GITHUB,
+            colalign=colalign,
+        )
+    )
     lines.append("")
 
 
