@@ -20,6 +20,85 @@
 > [!WARNING]
 > **Known gap: multi-person release approval.** Astral gates releases behind a dedicated [GitHub deployment environment](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/reviewing-deployments) with required reviewers, so that a single compromised account cannot publish. `repomatic` does not enforce this, but if the repository has multiple maintainers, I recommend adding an `environment: release` key to the `publish-pypi` and `create-release` jobs in a downstream caller workflow and configuring required reviewers on that environment in repo settings.
 
+### Third-party action minimization
+
+Every third-party GitHub Action executes with access to `GITHUB_TOKEN` and repository secrets. Each action is a trust delegation: you depend on the maintainer's security practices, their CI pipeline, and their transitive dependencies. A compromised action can steal secrets, inject code into builds, or tamper with releases.
+
+`repomatic` has systematically eliminated 18 third-party actions since late 2025, replacing them with internal CLI commands, SHA-256-verified binary downloads, and runner built-in tools:
+
+| Removed action | Replacement | Strategy |
+| :--- | :--- | :--- |
+| `calibreapp/image-actions` | `repomatic format-images` | Internal CLI |
+| `crazy-max/ghaction-virustotal` | `repomatic scan-virustotal` | Internal CLI |
+| `AndreasAugustin/actions-template-sync` | `repomatic sync-awesome-template` | Internal CLI |
+| `JasonEtco/is-sponsor-label-action` | `repomatic sponsor-label` | Internal CLI |
+| `lycheeverse/lychee-action` | `repomatic run lychee` | Direct binary + SHA-256 |
+| `crate-ci/typos` | `repomatic run typos` | Direct binary + SHA-256 |
+| `biomejs/setup-biome` | `repomatic run biome` | Direct binary + SHA-256 |
+| `gitleaks/gitleaks-action` | `repomatic run gitleaks` | Direct binary + SHA-256 |
+| `julb/action-manage-label` | `repomatic run labelmaker` | Direct binary + SHA-256 |
+| `taiki-e/install-action` | Direct `curl` + checksum | Direct binary + SHA-256 |
+| `softprops/action-gh-release` | `gh release create` | Runner built-in |
+| `actions/github-script` | Bash + `gh` CLI | Runner built-in |
+| `actions-rust-lang/setup-rust-toolchain` | Runner built-in Rust | Runner built-in |
+| `actions/setup-python` | `astral-sh/setup-uv` | Consolidated |
+| `peaceiris/actions-gh-pages` | `actions/deploy-pages` | First-party replacement |
+| `codecov/codecov-action` | `codecov-cli` via `uvx` | Pinned CLI |
+| `codecov/test-results-action` | `codecov-cli` via `uvx` | Pinned CLI |
+| `GitHubSecurityLab/actions-permissions` | Explicit `permissions:` key | Removed entirely |
+
+The remaining third-party actions (5 of 14 total) are:
+
+| Action | Purpose |
+| :--- | :--- |
+| `astral-sh/setup-uv` | Core toolchain: installs `uv` |
+| `peter-evans/create-pull-request` | Creates autofix PRs |
+| `dessant/lock-threads` | Locks inactive issues |
+| `renovatebot/github-action` | Dependency updates |
+| `crazy-max/ghaction-dump-context` | Debug diagnostics (no secrets access) |
+
+Replacement strategies, ordered from most to least isolated:
+
+1. **Internal CLI**: the operation runs inside `repomatic` Python code with no external process.
+2. **Direct binary download**: checksummed binary fetched from a GitHub release URL, no action code path involved.
+3. **Runner built-in**: uses tools pre-installed on the GitHub Actions runner (`gh`, Rust toolchain).
+4. **First-party replacement**: swaps a community action for an official `actions/*` equivalent maintained by GitHub.
+
+### Ruff consolidation
+
+Eight separate Python linters and formatters have been absorbed into `ruff`, eliminating eight runtime or dev dependencies:
+
+| Removed tool | What it did | Replaced |
+| :--- | :--- | :--- |
+| `pylint` | Static analysis and linting | Feb 2023 |
+| `pydocstyle` | Docstring convention enforcement | Feb 2023 |
+| `pycln` | Unused import removal | Feb 2023 |
+| `pyupgrade` | Python syntax modernization | Feb 2023 |
+| `isort` | Import sorting | Feb 2023 |
+| `black` | Code formatting | Sep 2023 |
+| `docformatter` | Docstring formatting | Jan 2024 |
+| `blacken-docs` | Python formatting in Markdown code blocks | Feb 2026 |
+
+The `mdformat-black` plugin was also swapped for `mdformat-ruff` (Aug 2024): same dependency count, but aligns the Markdown pipeline with ruff's formatting rules.
+
+`autopep8` is the only legacy formatter still in use: it handles long-line comment wrapping that ruff does not yet cover.
+
+### uv consolidation
+
+Five separate packaging and install tools have been absorbed into `uv`, which now handles dependency management, builds, publishing, auditing, and Python version installation:
+
+| Removed tool | What it did | Replaced |
+| :--- | :--- | :--- |
+| `poetry` | Dependency management, lock files, virtual environments | Jun 2024 |
+| `build` / `python -m build` | Package building (wheels and sdists) | Sep 2024 |
+| `twine` | PyPI uploads | Jan 2025 |
+| `check-wheel-contents` | Wheel validation | Jan 2025 |
+| `pip-audit` | Vulnerability scanning | Mar 2026 |
+
+`uv` also consolidated command-line usage that previously required separate tools: `pip install` became `uv pip install` / `uv sync`, `pipx` became `uvx`, and `actions/setup-python` was replaced by `astral-sh/setup-uv` (counted in the [action minimization table](#third-party-action-minimization) above).
+
+Two other Python packages were eliminated outside the ruff/uv consolidations: `pipdeptree` (replaced by an internal `deps-graph` implementation) and `gitignore-parser` (replaced by `py-walk`).
+
 ## Permissions and token
 
 Several workflows need a `REPOMATIC_PAT` secret to create PRs that modify files in `.github/workflows/` and to trigger downstream workflows. Without it, those jobs silently fall back to the default `GITHUB_TOKEN`, which lacks the required permissions.

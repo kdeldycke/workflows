@@ -25,6 +25,21 @@ A Python CLI and `pyproject.toml` configuration that let you **release Python pa
 - Sphinx documentation building, deployment, and autodoc updates
 - Awesome list template synchronization
 
+## Why repomatic
+
+- [18 third-party GitHub Actions replaced](https://kdeldycke.github.io/repomatic/security.html#third-party-action-minimization) by internal CLI commands and SHA-256-verified binary downloads, keeping the supply chain attack surface minimal
+- [8 Python linters and formatters](https://kdeldycke.github.io/repomatic/security.html#ruff-consolidation) (pylint, black, isort, pyupgrade, pydocstyle, pycln, docformatter, blacken-docs) consolidated into ruff
+- [5 packaging and install tools](https://kdeldycke.github.io/repomatic/security.html#uv-consolidation) (poetry, build, twine, check-wheel-contents, pip-audit) consolidated into uv
+- All `uses:` references [pinned to full commit SHAs](https://kdeldycke.github.io/repomatic/security.html#supply-chain-security) via Renovate, with stabilization windows before adopting new versions
+- [SLSA provenance attestations](https://kdeldycke.github.io/repomatic/security.html#supply-chain-security) on every release artifact (wheels and compiled binaries)
+- [VirusTotal scanning](https://kdeldycke.github.io/repomatic/security.html#av-false-positive-submissions) of compiled binaries to seed AV vendor databases and reduce false positives
+- [Trusted Publishing](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-release-yaml-jobs) for PyPI uploads: no long-lived tokens stored as secrets
+- [Immutable releases](https://kdeldycke.github.io/repomatic/security.html#supply-chain-security) enforced via GitHub's tag protection and release locking
+- Workflow security linting with [`zizmor`](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-lint-yaml-jobs) on every push to catch dangerous triggers and excessive permissions
+- Credential scanning with [`gitleaks`](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-lint-yaml-jobs) to prevent secret leakage
+- Single [`pyproject.toml` configuration](https://kdeldycke.github.io/repomatic/configuration.html): no extra dotfiles, no JSON configs, no YAML presets to maintain
+- [15+ code quality tools](https://kdeldycke.github.io/repomatic/tool-runner.html) (ruff, mypy, biome, typos, mdformat, shfmt, yamllint, actionlint, lychee, oxipng, jpegoptim, pyproject-fmt, labelmaker, gitleaks, zizmor) managed through one `repomatic run <tool>` interface with automatic installation and platform-specific binary caching
+
 ## Quick start
 
 ```shell-session
