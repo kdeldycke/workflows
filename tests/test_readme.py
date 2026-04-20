@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Tests for readme.md documentation sync with code."""
+"""Tests for documentation sync with code."""
 
 from __future__ import annotations
 
@@ -27,19 +27,16 @@ from repomatic.cli import repomatic
 from repomatic.tool_runner import TOOL_REGISTRY, NativeFormat
 
 REPO_ROOT = Path(__file__).parent.parent
-README = REPO_ROOT / "readme.md"
+CLI_MD = REPO_ROOT / "docs" / "cli.md"
+CONFIGURATION_MD = REPO_ROOT / "docs" / "configuration.md"
+TOOL_RUNNER_MD = REPO_ROOT / "docs" / "tool-runner.md"
 
 # The --config default path includes a platform-specific directory
 # (~/Library/Application Support/ on macOS, ~/.config/ on Linux, etc.).
 # Different path lengths also cause different line-wrapping in the help output.
 # Strip the entire --config block (from "--config" to "--no-config") so the
-# README (written on macOS) matches CI (Linux/Windows).
+# docs (written on macOS) match CI (Linux/Windows).
 _CONFIG_OPTION_RE = re.compile(r"  --config CONFIG_PATH.+?(?=  --no-config)", re.DOTALL)
-
-
-def _readme_text() -> str:
-    """Read readme.md once and cache for the module."""
-    return README.read_text(encoding="UTF-8")
 
 
 def _normalize_config_path(text: str) -> str:
@@ -47,36 +44,67 @@ def _normalize_config_path(text: str) -> str:
     return _CONFIG_OPTION_RE.sub("", text)
 
 
-def test_readme_cli_help_matches() -> None:
-    """CLI help output in readme.md must match actual ``repomatic --help``."""
+def _parse_tool_runner_table() -> dict[str, str]:
+    """Parse the combined tool table in docs/tool-runner.md.
+
+    Returns a dict mapping display name to support column content,
+    for rows that list either 'repomatic bridge' or 'Native' support.
+    """
+    tool_runner_text = TOOL_RUNNER_MD.read_text(encoding="UTF-8")
+    result = {}
+    for line in tool_runner_text.splitlines():
+        if not line.startswith("| "):
+            continue
+        cols = [c.strip() for c in line.split("|")]
+        if len(cols) < 5:
+            continue
+        tool_col = cols[1]
+        support_col = cols[4]
+        if "repomatic bridge" not in support_col and "Native" not in support_col:
+            continue
+        m = re.match(r"\[([^\]]+)\]", tool_col)
+        if m:
+            result[m.group(1)] = support_col
+    return result
+
+
+def test_docs_cli_help_matches() -> None:
+    """CLI help output in docs/cli.md must match actual ``repomatic --help``."""
     runner = CliRunner()
     result = runner.invoke(repomatic, ["--no-color", "--help"])
     assert result.exit_code == 0
     assert result.output, "No output from `repomatic --help`"
-    assert _normalize_config_path(result.output) in _normalize_config_path(
-        _readme_text()
+    cli_text = CLI_MD.read_text(encoding="UTF-8")
+    assert _normalize_config_path(result.output.rstrip()) in _normalize_config_path(
+        cli_text
     ), (
-        "CLI help output in readme.md is out of sync. "
-        "Re-run `repomatic --no-color --help` and paste the output."
+        "CLI help output in docs/cli.md is out of sync. "
+        "Re-run: repomatic update-docs"
     )
 
 
-def test_readme_config_table_matches() -> None:
-    """Config table in readme.md must match ``show-config`` output."""
+def test_docs_config_table_matches() -> None:
+    """All show-config options must be documented in docs/configuration.md."""
     runner = CliRunner()
     result = runner.invoke(
         repomatic, ["--no-color", "--table-format", "github", "show-config"]
     )
     assert result.exit_code == 0
     assert result.output, "No output from `repomatic show-config`"
-    assert result.output in _readme_text(), (
-        "Config table in readme.md is out of sync. "
-        "Re-run `repomatic --table-format github show-config` and paste the output."
+    config_text = CONFIGURATION_MD.read_text(encoding="UTF-8")
+    # Extract option names from lines like: | `option-name` | type | default |
+    option_re = re.compile(r"^\|\s*`([^`]+)`\s*\|", re.MULTILINE)
+    options = {m.group(1) for m in option_re.finditer(result.output)}
+    assert options, "No options found in show-config output"
+    missing = {opt for opt in options if f"`{opt}`" not in config_text}
+    assert not missing, (
+        f"Options from show-config missing from docs/configuration.md: "
+        f"{sorted(missing)}. Re-run: repomatic update-docs"
     )
 
 
-def test_readme_bridge_table_covers_registry() -> None:
-    """The bridge table must list every registry tool that supports translation.
+def test_docs_bridge_table_covers_registry() -> None:
+    """The tool-runner.md table must list every registry tool that supports translation.
 
     A tool supports ``[tool.X]`` translation when it does not natively read
     ``pyproject.toml`` (``reads_pyproject=False``) and can receive a translated
@@ -84,20 +112,10 @@ def test_readme_bridge_table_covers_registry() -> None:
     non-editorconfig format (editorconfig files are shared across tools and
     not suitable as single-tool bridge targets).
     """
-    readme = _readme_text()
-    match = re.search(
-        r"### `\[tool\.X\]` bridge for third-party tools.*?"
-        r"\| Tool\s+\|.*?\n\| :-+.*?\n(.*?)\n\n",
-        readme,
-        re.DOTALL,
-    )
-    assert match, "Bridge table not found in readme.md"
-    documented = set()
-    for line in match.group(1).strip().splitlines():
-        # Extract tool name from markdown link: | [name](url) |
-        m = re.match(r"\|\s*\[([^\]]+)\]", line)
-        if m:
-            documented.add(m.group(1))
+    tool_table = _parse_tool_runner_table()
+    documented = {
+        name for name, support in tool_table.items() if "repomatic bridge" in support
+    }
 
     bridgeable = {
         name
@@ -114,55 +132,44 @@ def test_readme_bridge_table_covers_registry() -> None:
 
     missing = bridgeable - documented
     assert not missing, (
-        f"Tools with [tool.X] bridge support missing from readme bridge table: "
-        f"{sorted(missing)}. Add them to the '### `[tool.X]` bridge' section."
+        f"Tools with [tool.X] bridge support missing from tool-runner.md table: "
+        f"{sorted(missing)}. Add them to the tool table in docs/tool-runner.md."
     )
 
     extra = documented - bridgeable
     assert not extra, (
-        f"Tools listed in readme bridge table but not bridgeable in registry: "
+        f"Tools listed in tool-runner.md bridge rows but not bridgeable in registry: "
         f"{sorted(extra)}. Remove them or update the registry."
     )
 
 
-def test_readme_tip_table_covers_registry() -> None:
-    """The TIP table must list every registry tool that natively reads pyproject.toml.
+def test_docs_tip_table_covers_registry() -> None:
+    """The tool-runner.md table must list every registry tool that natively reads pyproject.toml.
 
     Tools with ``reads_pyproject=True`` in the registry should appear in the
-    TIP admonition table. The table may also list non-registry tools (e.g.,
-    coverage.py, pytest, uv) that the workflows use and that natively read
-    ``[tool.*]`` sections.
+    tool table with 'Native' support. The table may also list non-registry tools
+    (like coverage.py, pytest, uv) that the workflows use and that natively
+    read ``[tool.*]`` sections.
     """
-    readme = _readme_text()
-    match = re.search(
-        r"> \[!TIP\].*?"
-        r"> \| Tool\s+\|.*?\n> \| :-+.*?\n(.*?)\n>\n",
-        readme,
-        re.DOTALL,
-    )
-    assert match, "TIP table not found in readme.md"
-    documented = set()
-    for line in match.group(1).strip().splitlines():
-        # Extract tool name from: > | [name](url) |
-        m = re.match(r">\s*\|\s*\[([^\]]+)\]", line)
-        if m:
-            documented.add(m.group(1))
+    tool_table = _parse_tool_runner_table()
+    documented = {
+        name for name, support in tool_table.items() if "Native" in support
+    }
 
     native_readers = {
         name for name, spec in TOOL_REGISTRY.items() if spec.reads_pyproject
     }
 
     # Registry tool names may differ from display names (e.g., "bump-my-version"
-    # is displayed as "bump-my-version" in the registry but the table shows it
-    # by its PyPI/branded name). Map registry names to the names used in the
-    # table.
-    display_names = set()
-    for name in native_readers:
-        spec = TOOL_REGISTRY[name]
-        display_names.add(spec.package or spec.name)
+    # is the package name while the registry key is also "bump-my-version"). Map
+    # registry names to the display names used in the table.
+    display_names = {
+        TOOL_REGISTRY[name].package or TOOL_REGISTRY[name].name
+        for name in native_readers
+    }
 
     missing = display_names - documented
     assert not missing, (
-        f"Tools with reads_pyproject=True missing from readme TIP table: "
-        f"{sorted(missing)}. Add them to the '[tool.*] sections' TIP."
+        f"Tools with reads_pyproject=True missing from tool-runner.md table: "
+        f"{sorted(missing)}. Add them to the tool table in docs/tool-runner.md."
     )

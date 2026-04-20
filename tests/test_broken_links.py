@@ -668,12 +668,14 @@ def _partial_fail_pat_results():
 @patch("repomatic.cli.manage_issue_lifecycle")
 @patch("repomatic.cli.check_branch_ruleset_on_default")
 @patch("repomatic.cli._token_mod.check_all_pat_permissions")
+@patch("repomatic.cli.check_pages_deployment_source")
 def test_setup_guide_all_checks_pass_closes_issue(
-    mock_check, mock_branch, mock_lifecycle, _mock_token
+    mock_pages, mock_check, mock_branch, mock_lifecycle, _mock_token
 ):
     """When PAT, permissions, branch ruleset, and VT key all pass, the issue closes."""
     mock_check.return_value = _all_pass_pat_results()
     mock_branch.return_value = (True, "Active branch rulesets found: main.")
+    mock_pages.return_value = (True, "Pages deployment source is GitHub Actions.")
     runner = CliRunner()
     result = runner.invoke(
         repomatic_cli,
