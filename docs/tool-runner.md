@@ -384,7 +384,7 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 ### [typos](https://github.com/crate-ci/typos)
 
-**Installed version:** `1.44.0`
+**Installed version:** `1.45.0`
 
 **Installation method:** Binary (downloaded from GitHub Releases)
 

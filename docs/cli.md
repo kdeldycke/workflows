@@ -15,6 +15,7 @@
 | [`repomatic changelog`](#repomatic-changelog)                               | Maintain a Markdown-formatted changelog                 |
 | [`repomatic check-renovate`](#repomatic-check-renovate)                     | Check Renovate migration prerequisites                  |
 | [`repomatic clean-unmodified-configs`](#repomatic-clean-unmodified-configs) | Remove config files that match bundled defaults         |
+| [`repomatic convert-to-myst`](#repomatic-convert-to-myst)                   | Convert reST docstrings to MyST in Python files         |
 | [`repomatic fix-vulnerable-deps`](#repomatic-fix-vulnerable-deps)           | Upgrade packages with known vulnerabilities             |
 | [`repomatic format-images`](#repomatic-format-images)                       | Format images with lossless optimization                |
 | [`repomatic git-tag`](#repomatic-git-tag)                                   | Create and push a Git tag                               |
@@ -84,6 +85,7 @@ Project setup:
   workflow                  Lint downstream workflow caller files
   update-deps-graph         Generate dependency graph from uv lockfile
   update-docs               Regenerate Sphinx API docs and run update script
+  convert-to-myst           Convert reST docstrings to MyST in Python files
   list-skills               List available Claude Code skills
   update-checksums          Update SHA-256 checksums for binary downloads
   format-images             Format images with lossless optimization
@@ -305,6 +307,27 @@ Usage: repomatic clean-unmodified-configs [OPTIONS]
 
   Designed for standalone use. The sync-repomatic autofix job uses repomatic
   init --delete-unmodified instead.
+
+Options:
+  -h, --help  Show this message and exit.
+```
+
+## `repomatic convert-to-myst`
+
+```text
+Usage: repomatic convert-to-myst [OPTIONS] [DIRECTORY]
+
+  Convert reST docstrings to MyST markdown in Python source files.
+
+  Transforms reST markup in docstrings and `#:` comment blocks to MyST. The
+  companion Sphinx extension `repomatic.myst_docstrings` converts the MyST back
+  to reST at build time, so `sphinx.ext.autodoc` still works.
+
+  If DIRECTORY is not specified, auto-detects the source package directory from
+  the project's script entry points in `pyproject.toml`.
+
+  Safe to re-run: already-converted MyST syntax does not match the reST
+  patterns, so the conversion is idempotent.
 
 Options:
   -h, --help  Show this message and exit.
@@ -1285,12 +1308,12 @@ Usage: repomatic update-docs [OPTIONS]
 
   Orchestrates three phases:
 
-  1. Run ``sphinx-apidoc`` to generate RST stubs for all modules. 2. If MyST-
+  1. Run `sphinx-apidoc` to generate RST stubs for all modules. 2. If MyST-
   Parser is detected, convert the RST stubs to MyST markdown    with ``{eval-
-  rst}`` blocks. 3. Run the project-specific ``docs/docs_update.py`` script (if
+  rst}`` blocks. 3. Run the project-specific `docs/docs_update.py` script (if
   present)    to generate dynamic content.
 
-  Configuration is read from ``[tool.repomatic]`` in ``pyproject.toml``.
+  Configuration is read from `[tool.repomatic]` in `pyproject.toml`.
 
 Options:
   -h, --help  Show this message and exit.
