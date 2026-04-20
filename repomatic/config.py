@@ -720,7 +720,7 @@ def config_reference() -> list[tuple[str, str, str, str]]:
             key = f"`{_field_to_key(f.name)}`"
             ftype = _format_type(Config.__annotations__[f.name])
             default = _format_default(getattr(schema, f.name))
-            # Convert reST double backticks to markdown single backticks.
+            # Convert double backticks to markdown single backticks.
             desc = docstrings.get(f.name, "").replace("``", "`")
             rows.append((key, ftype, default, desc))
 

@@ -44,7 +44,9 @@ Inline code (single backtick) is converted to reST double backticks.
 Field lists (``{param}`, `{returns}``) need no conversion.
 
 :::{note}
-Register this extension in your Sphinx `conf.py`::
+Register this extension in your Sphinx `conf.py`:
+
+.. code-block:: python
 
     extensions = [
         "sphinx.ext.autodoc",
