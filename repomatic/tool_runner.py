@@ -1017,23 +1017,23 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 (
                     LINUX,
                     AARCH64,
-                ): "132c20fc5e3c9ba540ec55a0a468dcb9c1504625a405df1c237b10dd4f2ec433",
+                ): "dde3b5c5bd5d0ab6ff76a1465658dc6485e7d420cf8eccfdfbdea37809bed793",
                 (
                     LINUX,
                     X86_64,
-                ): "1b788b7d764e2f20fe089487428a3944ed218d1fb6fcd8eac4230b5893a38779",
+                ): "fa10c3c77c61bdf03f2f6f8245eb6fb89d92115450272a4eabe326b3967ac375",
                 (
                     MACOS,
                     AARCH64,
-                ): "ca82d593351dbac519a5c9fa832fc147b176d80100d00d08e855fcb46d43882d",
+                ): "c42f8d8af49bff559f0bf0a45d1fb704f9e13446cc8faebfb30a3f669b89c802",
                 (
                     MACOS,
                     X86_64,
-                ): "70e7cbfd9c0bac3b27d096171413a8fff989cc9f9227d3ef66694ed99fdc7b5c",
+                ): "4a4c1060b248c13ce7bc6c1ffe5cb75120885e8ecb62e7ba2b40f5567680f9ba",
                 (
                     WINDOWS,
                     X86_64,
-                ): "afd85c8f3c5c925ee7452389acdf70b048d8c6eae5e52a581e63a7d1b7655f17",
+                ): "dc89f5f175ee1a389e1f5cc5173353d9db3751e2cddedf34339d8ec45cd38aa0",
             },
             archive_format={
                 ALL_PLATFORMS: ArchiveFormat.TAR_GZ,
