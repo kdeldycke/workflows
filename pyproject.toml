@@ -211,9 +211,9 @@ lint.isort.combine-as-imports = true
 lint.future-annotations = true
 
 [tool.typos]
-default.extend-identifiers = { Github = "GitHub", IOS = "iOS", Javascript = "JavaScript", MacOS = "macOS", PyPi = "PyPI", Typescript = "TypeScript" }
+default.extend-identifiers = { Github = "GitHub", IOS = "iOS", Javascript = "JavaScript", MacOS = "macOS", PNGs = "PNGs", PyPi = "PyPI", Typescript = "TypeScript" }
 # False positives.
-default.extend-words = { oject = "oject", PNGs = "PNGs" }
+default.extend-words = { oject = "oject" }
 # Skip content between <!-- typos:off --> and <!-- typos:on --> markers.
 default.extend-ignore-re = [ "(?s)<!-- typos:off -->.*?<!-- typos:on -->" ]
 default.extend-ignore-identifiers-re = [
