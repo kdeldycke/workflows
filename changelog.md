@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.14.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.13.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.14.0` (2026-04-20)](https://github.com/kdeldycke/repomatic/compare/v6.13.0...v6.14.0)
 
 - Add Sphinx documentation site with Furo theme and MyST-Parser. Splits the monolithic `readme.md` (1139 lines) into focused pages: installation, configuration reference (auto-generated from `Config` dataclass docstrings), CLI parameters (auto-generated via `click_extra.sphinx`), reusable workflow reference, security practices, Claude Code skills, and a tool runner tutorial covering the 4-level config precedence chain, available tools, `[tool.X]` bridge, binary caching, and version overrides. Deployed to GitHub Pages via the existing `docs.yaml` workflow.
 - Add `repomatic.myst_docstrings` Sphinx extension and `repomatic.myst_converter` utility module. The extension hooks into `autodoc-process-docstring` to convert MyST markdown in Python docstrings to reST at Sphinx build time, so `sphinx.ext.autodoc` works without modification. Supports colon-fenced and backtick-fenced directives (`:::{note}` and `` ```{note} ``), cross-references with hyphenated names (like `{eval-rst}`, `{code-block}`), markdown links, and inline code. The converter is a standalone migration utility that rewrites Python source files from reST to MyST in place. Both are idempotent.
