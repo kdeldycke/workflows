@@ -24,7 +24,7 @@ unchanged. This allows incremental migration one module at a time.
 
 Supported conversions:
 
-:::{list-table}
+```{list-table}
 :header-rows: 1
 
 * - Construct
@@ -39,12 +39,12 @@ Supported conversions:
 * - Markdown links
   - `[text](url)`
   - ```text <url>`_``
-:::
+```
 
 Inline code (single backtick) is converted to reST double backticks.
 Field lists (``{param}`, `{returns}``) need no conversion.
 
-:::{note}
+```{note}
 Register this extension in your Sphinx `conf.py`:
 
 .. code-block:: python
@@ -55,7 +55,7 @@ Register this extension in your Sphinx `conf.py`:
     ]
 
 This requires `repomatic` in your docs dependency group.
-:::
+```
 """
 
 from __future__ import annotations

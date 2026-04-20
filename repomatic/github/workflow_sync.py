@@ -23,12 +23,12 @@ lint those callers by parsing the canonical workflow definitions.
 
 See {class}`WorkflowFormat` for available output formats and their behavior.
 
-:::{caution}
+```{caution}
 PyYAML destroys formatting and comments on round-trip. Until we find a
 layout-preserving YAML parsing and rendering solution, we use raw text
 extraction to manipulate workflow files while preserving formatting and
 comments.
-:::
+```
 """
 
 from __future__ import annotations

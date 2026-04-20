@@ -15,10 +15,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 """Allow the module to be run as a CLI. I.e.:
 
-:::{code-block} shell-session
+```{code-block} shell-session
 
 $ python -m repomatic
-:::
+```
 
 The CI test suite (`tests.yaml`) verifies launchability via multiple
 invocation paths to catch entry-point and import issues early:
@@ -37,10 +37,10 @@ from repomatic.cli import repomatic
 def main():
     """Execute the CLI but force its name to not let Click defaults to:
 
-    :::{code-block} shell-session
+    ```{code-block} shell-session
     $ python -m repomatic --version
     python -m repomatic, version 4.0.0
-    :::
+    ```
 
     Indirection via this `main()` method was [required to reconcile](https://github.com/python-poetry/poetry/issues/5981):
 

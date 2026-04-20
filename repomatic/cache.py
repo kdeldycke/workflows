@@ -34,11 +34,11 @@ TTL (seconds); stale entries remain on disk until auto-purge removes them.
 tools via explicit `--config` flags so repomatic never writes to the
 user's repository.
 
-:::{note}
+```{note}
 The cache module is intentionally a pure storage layer. It does not know
 about checksums, registries, API semantics, or tool specifications. All
 trust and freshness decisions belong to the caller.
-:::
+```
 """
 
 from __future__ import annotations

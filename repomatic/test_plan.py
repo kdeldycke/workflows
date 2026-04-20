@@ -50,10 +50,10 @@ class SkippedTest(Exception):
 def _split_args(cli: str) -> list[str]:
     """Split a string or sequence of strings into a tuple of arguments.
 
-    :::{todo}
+    ```{todo}
     Evaluate better Windows CLI parsing with:
     [w32lex](https://github.com/maxpat78/w32lex).
-    :::
+    ```
     """
     if is_windows():
         return cli.split()
@@ -94,12 +94,12 @@ class CLITestCase:
     def __post_init__(self) -> None:
         """Normalize all fields.
 
-        :::{note}
+        ```{note}
         We iterate with `fields()` + `getattr()` instead of `asdict()`
         because `asdict()` deep-copies field values via `copy.deepcopy()`,
         which fails on Python < 3.13 for `MappingProxyType` objects (used
         internally by `extra_platforms`).
-        :::
+        ```
         """
         for f in fields(self):
             field_id = f.name
@@ -187,14 +187,14 @@ class CLITestCase:
         - a command name to be searched in the `PATH`,
         - a command line with arguments to be parsed and executed by the shell.
 
-        :::{todo}
+        ```{todo}
         Add support for environment variables.
-        :::
+        ```
 
-        :::{todo}
+        ```{todo}
         Add support for proper mixed <stdout>/<stderr> stream as a single,
         intertwined output.
-        :::
+        ```
         """
         if self.only_platforms and current_platform() not in self.only_platforms:  # type: ignore[operator]
             raise SkippedTest(f"Test case only runs on platform: {current_platform()}")

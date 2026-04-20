@@ -25,15 +25,15 @@ Tools used per format:
 - PNG: `oxipng` (lossless, multithreaded Rust optimizer).
 - JPEG/JPG: `jpegoptim` (lossless Huffman optimization + metadata stripping).
 
-:::{note}
+```{note}
 Both tools are strictly **lossless**: `oxipng` finds optimal PNG encoding
 parameters without altering pixel data, and `jpegoptim` (without `-m`)
 rewrites Huffman tables only. This means optimization is **idempotent** — a
 second run produces no further changes, so the workflow never creates noisy
 PRs for negligible savings.
-:::
+```
 
-:::{warning}
+```{warning}
 WebP and AVIF are intentionally **not** optimized. The only available tools
 (`cwebp`, `avifenc`) work by lossy re-encoding: decode → re-compress at
 a target quality. This is **not idempotent** — each pass re-compresses the
@@ -45,7 +45,7 @@ modes exist but typically *increase* file size when applied to already
 lossy-encoded images, making them counterproductive. Since WebP and AVIF are
 modern formats chosen specifically for their compression efficiency, files in
 these formats are almost always already well-optimized at creation time.
-:::
+```
 """
 
 from __future__ import annotations

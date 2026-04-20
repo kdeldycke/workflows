@@ -25,12 +25,12 @@ guards (e.g. `skip_existing` on tag creation). This ensures correctness
 in the face of race conditions, API eventual consistency, and partial failures
 that are common in GitHub Actions.
 
-:::{warning} Tag push requires `REPOMATIC_PAT`
+```{warning} Tag push requires `REPOMATIC_PAT`
 
 Tags pushed with the default `GITHUB_TOKEN` do not trigger downstream
 `on.push.tags` workflows. The custom PAT is required so that tagging
 a release commit actually fires the publish and release creation jobs.
-:::
+```
 """
 
 from __future__ import annotations
@@ -45,11 +45,11 @@ from pydriller import Git
 SHORT_SHA_LENGTH = 7
 """Default SHA length hard-coded to `7`.
 
-:::{caution}
+```{caution}
 
 The [default is subject to change](https://stackoverflow.com/a/21015031) and
 depends on the size of the repository.
-:::
+```
 """
 
 GITHUB_REMOTE_PATTERN = re.compile(r"github\.com[:/](?P<slug>[^/]+/[^/]+?)(?:\.git)?$")

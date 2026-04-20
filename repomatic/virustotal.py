@@ -24,11 +24,11 @@ Supports two-phase operation: phase 1 uploads files and writes an initial table
 with scan links, phase 2 polls for analysis completion and replaces the table
 with detection statistics.
 
-:::{note}
+```{note}
 
 The free-tier API allows 4 requests per minute. All API calls (uploads and
 polls) are rate-limited with a sleep between each request.
-:::
+```
 """
 
 from __future__ import annotations

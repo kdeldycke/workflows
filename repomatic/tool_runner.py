@@ -22,14 +22,14 @@ external tool at a pinned version, resolves its configuration through a strict
 `pyproject.toml` into the tool's native format, and invokes the tool with
 the resolved config.
 
-:::{important}
+```{important}
 Config resolution precedence (first match wins, no merging):
 
 1. **Native config file** — tool's own config file in the repo.
 2. **`[tool.X]` in `pyproject.toml`** — translated to native format.
 3. **Bundled default** — from `repomatic/data/`.
 4. **Bare invocation** — no config at all.
-:::
+```
 """
 
 from __future__ import annotations
@@ -209,13 +209,13 @@ class BinarySpec:
     broad groups (`LINUX` matches any distro) or specific platforms
     (`DEBIAN`) with full detection heuristics from extra-platforms.
 
-    :::{hint}
+    ```{hint}
     Structural integrity checks (key types, checksum format, URL
     placeholders, strip_components consistency) are enforced in
     `test_tool_spec_integrity`. If the registry becomes
     user-configurable in the future, move these checks to
     `__post_init__`.
-    :::
+    ```
     """
 
     urls: dict[PlatformKey, str]
@@ -334,14 +334,14 @@ class BinarySpec:
 class ToolSpec:
     """Specification for an external tool managed by repomatic.
 
-    :::{hint}
+    ```{hint}
     Structural integrity checks (name format, version format, flag
     conventions, field consistency) are enforced in
     `test_tool_spec_integrity`. If the registry becomes user-configurable
     in the future, move these checks to `__post_init__`.
-    :::
+    ```
 
-    :::{hint} CLI parser quirks for `config_after_subcommand`
+    ```{hint} CLI parser quirks for `config_after_subcommand`
 
     Tools that use subcommands (`tool <subcmd> [flags] [files]`) may
     require `config_flag` to appear after the subcommand name, depending
@@ -358,7 +358,7 @@ class ToolSpec:
       the subcommand variant, so `tool <subcmd> --flag` works but
       `tool --flag <subcmd>` does not. Set
       `config_after_subcommand=True`. Used by: biome.
-    :::
+    ```
     """
 
     name: str
@@ -481,12 +481,12 @@ _DIRECTIVE_YAML_OPTIONS_RE = re.compile(
 )
 """Match YAML-block directive options immediately after a MyST fence opening.
 
-:::{note}
+```{note}
 Workaround for [executablebooks/mdformat-myst#21](https://github.com/executablebooks/mdformat-myst/issues/21) where
 `mdformat-myst` unconditionally converts `:key: value` directive
 options to YAML blocks (`---` / `key: value` / `---`). Remove when
 upstream merges [executablebooks/mdformat-myst#49](https://github.com/executablebooks/mdformat-myst/pull/49).
-:::
+```
 """
 
 

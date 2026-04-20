@@ -132,7 +132,7 @@ def _strip_renovate_repo_settings(content: str) -> str:
     Removes `assignees` (repo-specific) and the self-referencing uv
     `customManagers` entry that targets `renovate.json5` itself.
 
-    :::{note}
+    ```{note}
     The self-referencing uv `customManagers` entry is excluded because it
     creates an endless update loop in downstream repos: Renovate bumps the
     pinned uv version, the merged PR triggers `repomatic init`, which
@@ -140,7 +140,7 @@ def _strip_renovate_repo_settings(content: str) -> str:
     the bump), and Renovate opens the same PR again — indefinitely. All
     other `customManagers` entries are included since they target workflow
     files, not `renovate.json5` itself.
-    :::
+    ```
 
     :param content: Raw Renovate config content.
     :return: The config with repo-specific settings removed.
@@ -236,13 +236,13 @@ def _update_tool_config(
     values for keys listed in `comp.preserved_keys` and any local
     array-of-tables entries not present in the template.
 
-    :::{note}
+    ```{note}
     Comments attached to local array-of-tables entries are preserved
     when they appear between entries (tomlkit stores them as trailing
     trivia on the preceding entry). A comment immediately before the
     *first* local entry may be lost: tomlkit stores it in the parent
     table body, not in the AoT.
-    :::
+    ```
 
     :param content: The current pyproject.toml content.
     :param comp: The component whose config is being synced.
@@ -462,14 +462,14 @@ def run_init(
     For `awesome-*` repositories, the `awesome-template` component is
     auto-included when no explicit component selection is made.
 
-    :::{note}
+    ```{note}
     Scope exclusions (`RepoScope.NON_AWESOME`, `AWESOME_ONLY`) and
     user-config exclusions (`[tool.repomatic] exclude`) only apply
     during bare `repomatic init`. When components are explicitly named
     on the CLI, scope is bypassed: the caller knows what they asked for.
     This allows workflows to materialize out-of-scope configs at runtime
     (e.g., `repomatic init renovate` in an awesome repo).
-    :::
+    ```
 
     :param output_dir: Root directory of the target repository.
     :param components: Components to initialize. Empty means all defaults.
@@ -846,11 +846,11 @@ def _is_source_repo(output_dir: Path) -> bool:
     deleting files that are the source of truth (skills, opt-in workflows,
     bundled configs).
 
-    :::{note}
+    ```{note}
     Detection is based on `output_dir` contents, not on `__file__`,
     because `uvx --from .` installs the package into a temp venv where
     `__file__` no longer points to the source checkout.
-    :::
+    ```
     """
     resolved = output_dir.resolve()
     return (resolved / "repomatic" / "__init__.py").exists() and (

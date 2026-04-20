@@ -20,7 +20,7 @@ This module provides utilities for working with GitHub Actions: multiline
 output formatting, workflow annotations, event payload loading, and
 GitHub-specific constants and enums shared across multiple modules.
 
-:::{note} Concurrency quirks addressed by the workflows
+```{note} Concurrency quirks addressed by the workflows
 
 **SHA-based groups (`release.yaml`):** `cancel-in-progress` is
 evaluated on the *new* workflow, not the old one. If a regular commit is
@@ -41,7 +41,7 @@ commit on the default branch), never `workflow_run.head_sha` (the
 commit that *triggered* the upstream workflow). After a release cycle
 adds commits (freeze + unfreeze), `head_sha` is stale and produces
 a tree that conflicts with current `main`.
-:::
+```
 """
 
 from __future__ import annotations
@@ -137,9 +137,9 @@ def generate_delimiter() -> str:
 
     :return: A unique delimiter string.
 
-    :::{seealso}
+    ```{seealso}
     https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
-    :::
+    ```
     """
     return f"GHA_DELIMITER_{randint(10**8, (10**9) - 1)}"
 
@@ -149,13 +149,13 @@ def format_multiline_output(name: str, value: str) -> str:
 
     Produces output in the heredoc format required by `$GITHUB_OUTPUT`:
 
-    :::{code-block} text
+    ```{code-block} text
 
     name<<GHA_DELIMITER_NNNNNNNNN
     value line 1
     value line 2
     GHA_DELIMITER_NNNNNNNNN
-    :::
+    ```
 
     :param name: The output variable name.
     :param value: The multiline value.
@@ -177,9 +177,9 @@ def emit_annotation(
     :param level: The annotation level (error, warning, or notice).
     :param message: The annotation message.
 
-    :::{seealso}
+    ```{seealso}
     https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-error-message
-    :::
+    ```
     """
     if isinstance(level, str):
         level = AnnotationLevel(level)

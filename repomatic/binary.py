@@ -82,23 +82,23 @@ Values are dictionaries with the following keys:
 
 - `os`: Operating system name, as used in [GitHub-hosted runners](https://docs.github.com/en/actions/writing-workflows/choosing-where-your-workflow-runs/choosing-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories).
 
-    :::{hint}
+    ```{hint}
     We choose to run the compilation only on the latest supported version of each
     OS, for each architecture. Note that macOS and Windows do not have the latest
     version available for each architecture.
-    :::
+    ```
 
 - `platform_id`: Platform identifier, as defined by [Extra Platform](https://github.com/kdeldycke/extra-platforms).
 
 - `arch`: Architecture identifier.
 
-    :::{note}
+    ```{note}
     Architecture IDs are [inspired from those specified for self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures)
-    :::
+    ```
 
-    :::{note}
+    ```{note}
     Maybe we should just adopt [target triple](https://mcyoung.xyz/2025/04/14/target-triples/).
-    :::
+    ```
 
 - `extension`: File extension of the compiled binary.
 """

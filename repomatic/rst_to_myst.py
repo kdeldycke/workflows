@@ -15,7 +15,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 """Convert `sphinx-apidoc` RST output to MyST markdown.
 
-:::{note}
+```{note}
 The converter handles only the narrow RST subset that `sphinx-apidoc`
 generates: section headings (title + underline), `automodule` directives
 with indented options, and structural headers like `Submodules`.
@@ -23,7 +23,7 @@ with indented options, and structural headers like `Submodules`.
 Autodoc directives cannot be used as native MyST directives because they
 perform internal rST nested parsing that requires an rST parser context
 only ``{eval-rst}`` provides. See [MyST-Parser #587](https://github.com/executablebooks/MyST-Parser/issues/587).
-:::
+```
 """
 
 from __future__ import annotations
@@ -48,14 +48,14 @@ def _clean_heading(title: str) -> str:
     reference interpretation) and wraps qualified Python identifiers in
     backticks so they render as code.
 
-    :::{note}
+    ```{note}
     `sphinx-apidoc` produces headings like
     `meta\\_package\\_manager.managers.apm module`.  The backslash
     escapes are necessary in RST but meaningless in markdown, where they
     cause a tug-of-war with `mdformat` (which strips them on every
     reformat pass).  Wrapping the identifier in backticks makes the
     escaping moot and produces cleaner output.
-    :::
+    ```
     """
     # Strip RST backslash-escapes (\_  →  _).
     title = title.replace("\\_", "_")

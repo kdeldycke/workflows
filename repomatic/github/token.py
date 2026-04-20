@@ -20,7 +20,7 @@ Provides early validation for CLI commands that depend on the GitHub API,
 so users get clear error messages at startup rather than opaque failures
 mid-execution.
 
-:::{note} Why `REPOMATIC_PAT` is needed
+```{note} Why `REPOMATIC_PAT` is needed
 
 GitHub's `GITHUB_TOKEN` cannot modify workflow files in `.github/`.
 Neither `contents: write`, `actions: write`, nor ``permissions:
@@ -64,7 +64,7 @@ Token permission mapping:
 - **Dependabot alerts** — Renovate vulnerability alert reading.
 - **Issues** — Renovate Dependency Dashboard.
 - **Metadata** — Required for all fine-grained token API operations.
-:::
+```
 """
 
 from __future__ import annotations
@@ -186,13 +186,13 @@ def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
     alerts are enabled. Fails on 403 (token lacks the permission) or 404
     (alerts not enabled).
 
-    :::{note}
+    ```{note}
 
     The older ``GET /repos/{owner}/{repo}/vulnerability-alerts`` endpoint
     requires the `Administration: read` fine-grained token permission,
     not `Dependabot alerts`. The Dependabot alerts listing endpoint used
     here correctly maps to the `vulnerability_alerts` permission scope.
-    :::
+    ```
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed, message).

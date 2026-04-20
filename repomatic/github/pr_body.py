@@ -100,11 +100,11 @@ def sanitize_markdown_mentions(text: str) -> str:
     :param text: Raw markdown text from an external source.
     :return: Sanitized markdown safe for embedding in a GitHub PR or issue body.
 
-    :::{note}
+    ```{note}
     Only call this on externally-sourced content (upstream release notes,
     third-party tool output). Do not call on content authored by the
     repository owner where mentions are intentional.
-    :::
+    ```
     """
     if not text:
         return text
@@ -152,12 +152,12 @@ def sanitize_markdown_mentions(text: str) -> str:
 def _unescape_dollars(text: str) -> str:
     r"""Replace `\$` with `$` in template text.
 
-    :::{caution}
+    ```{caution}
     Workaround for mdformat escaping `$` characters in markdown files.
     Templates use `string.Template` (`$variable` syntax), but mdformat
     rewrites `$var` as `\$var`. We undo this at load time so that
     `string.Template.substitute()` sees the original placeholders.
-    :::
+    ```
     """
     return text.replace(r"\$", "$")
 

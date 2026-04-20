@@ -38,7 +38,7 @@ pattern, with the `release-notes.md` template as the single source of
 truth for section layout. Both are idempotent: re-running them produces
 the same result. This is critical for CI workflows that may be retried.
 
-:::{note}
+```{note}
 This is a custom implementation. After evaluating all major
 alternatives — [towncrier](https://github.com/twisted/towncrier),
 [commitizen](https://github.com/commitizen-tools/commitizen),
@@ -49,7 +49,7 @@ alternatives — [towncrier](https://github.com/twisted/towncrier),
 [git-changelog](https://github.com/pawamoy/git-changelog)
 (see [issue #94](https://github.com/kdeldycke/repomatic/issues/94)) — none
 were found to cover even half of the requirements.
-:::
+```
 
 Why not use an off-the-shelf tool?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -731,14 +731,14 @@ def lint_changelog_dates(
       is *not* available (missing from PyPI, GitHub, or both).
     - A `[!CAUTION]` admonition for yanked releases.
 
-    :::{caution}
+    ```{caution}
 
     The `fix-changelog` workflow job skips this function during the
     release cycle (when `release_commits_matrix` is non-empty). At that
     point the release pipeline hasn't published to PyPI or created a
     GitHub release yet, so this function would incorrectly add "not
     available" admonitions to the freshly-released version.
-    :::
+    ```
     - Placeholder sections for orphaned versions, with comparison URLs
       linking to adjacent versions.
 

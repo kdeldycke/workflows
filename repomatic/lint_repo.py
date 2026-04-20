@@ -370,13 +370,13 @@ def check_fork_pr_approval_policy(repo: str) -> tuple[bool | None, str]:
     and returns `False` when the policy is weaker than
     `first_time_contributors`.
 
-    :::{note}
+    ```{note}
 
     This endpoint requires the `Actions: read` permission. When the
     `REPOMATIC_PAT` lacks it (or the API call fails for any other
     reason), the check returns `None` to signal that the result is
     indeterminate rather than negative.
-    :::
+    ```
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed_or_None, message). `None` means the check
@@ -474,14 +474,14 @@ def check_branch_ruleset_on_default(repo: str) -> tuple[bool, str]:
     evidence that the default branch is protected (restrict deletions and
     block force pushes).
 
-    :::{note}
+    ```{note}
 
     This is a heuristic: it does not verify the ruleset targets the
     default branch specifically, nor that it enables the exact rules
     recommended by the setup guide. A deeper check would require
     fetching each ruleset's conditions via
     ``GET /repos/{repo}/rulesets/{id}``, adding N+1 API calls.
-    :::
+    ```
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed, message).
@@ -522,13 +522,13 @@ def check_immutable_releases(repo: str) -> tuple[bool | None, str]:
     Queries ``GET /repos/{repo}/immutable-releases`` and inspects the
     `enabled` field in the response.
 
-    :::{note}
+    ```{note}
 
     This endpoint requires the "Administration: Read-only" permission on
     fine-grained PATs. The `REPOMATIC_PAT` does not include this scope
     (too broad), so the check returns `None` when the API call fails,
     signaling that the result is indeterminate rather than negative.
-    :::
+    ```
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed_or_None, message). `None` means the check
@@ -566,12 +566,12 @@ def check_pages_deployment_source(repo: str) -> tuple[bool | None, str]:
     Queries ``GET /repos/{repo}/pages` and inspects the `build_type``
     field in the response.
 
-    :::{note}
+    ```{note}
 
     A 404 means Pages is not configured at all. This is treated as
     indeterminate (`None`) rather than a failure, because the repo
     may not have deployed docs yet.
-    :::
+    ```
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed_or_None, message). `None` means the check

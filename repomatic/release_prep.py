@@ -243,13 +243,13 @@ class ReleasePrep:
         Both are transformed to:
         ``/releases/download/v{version}/repomatic-{version}-linux-arm64.bin``
 
-        :::{note}
+        ```{note}
         No unfreeze method is needed. Unlike workflow URLs (which toggle
         `@main` ↔ `@vX.Y.Z`), readme download URLs ratchet forward —
         they always point to a specific release. After unfreeze, the readme
         still shows the last release's URLs, which is correct for users
         wanting stable binaries.
-        :::
+        ```
 
         :param version: The release version to freeze to.
         :return: True if the file was modified.

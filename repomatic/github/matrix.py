@@ -36,7 +36,7 @@ class Matrix:
 
     See GitHub official documentation on [how-to implement variations of jobs in a workflow](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow).
 
-    :::{note} Why matrices are pre-computed in the `metadata` job
+    ```{note} Why matrices are pre-computed in the `metadata` job
 
     GitHub Actions matrix outputs are not cumulative — the last job in a
     matrix wins ([community discussion](https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626)).
@@ -46,7 +46,7 @@ class Matrix:
     The workaround is a single preliminary `metadata` job that computes
     all matrices upfront. Downstream jobs depend on that job and consume
     the pre-built matrices, rather than computing them themselves.
-    :::
+    ```
 
     This Matrix behave like a `dict` and works everywhere a `dict` would. Only that
     it is immutable and based on {class}`FrozenDict`. If you want to populate the matrix
@@ -264,11 +264,11 @@ class Matrix:
     def solve(self, strict: bool = False) -> Iterator[dict[str, str]]:
         """Returns all combinations and apply `include` and `exclude` constraints.
 
-        :::{caution}
+        ```{caution}
         As per GitHub specifications, all `include` combinations are processed
         after `exclude`. This allows you to use `include` to add back
         combinations that were previously excluded.
-        :::
+        ```
         """
         # GitHub jobs fails with the following message if the exclude directive is
         # referencing keys that are not present in the original base matrix:

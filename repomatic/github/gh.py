@@ -16,7 +16,7 @@
 
 """Generic wrapper for the `gh` CLI.
 
-:::{note}
+```{note}
 
 Workflow steps must set `GH_TOKEN` explicitly: `GITHUB_TOKEN` is a
 secret expression in GitHub Actions, not an automatic environment variable.
@@ -27,7 +27,7 @@ As defense-in-depth, {func}`run_gh_command` promotes `REPOMATIC_PAT` to
 `GH_TOKEN` when set, and promotes `GITHUB_TOKEN` to `GH_TOKEN` when
 `GH_TOKEN` is absent.  On 401 Bad Credentials (expired or revoked PAT),
 it retries with `GITHUB_TOKEN` if available and different.
-:::
+```
 """
 
 from __future__ import annotations

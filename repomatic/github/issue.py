@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 def list_issues(title: str = "") -> list[dict[str, Any]]:
     """List all issues (open and closed), optionally filtered by title.
 
-    :::{note}
+    ```{note}
 
     No `--author` filter is applied. When `REPOMATIC_PAT`
     is configured, `gh` authenticates as the token owner (not
@@ -54,7 +54,7 @@ def list_issues(title: str = "") -> list[dict[str, Any]]:
     Filtering by author would miss issues created under the other identity,
     breaking deduplication. The caller ({func}`triage_issues`) already
     matches by exact title, so author-agnostic listing is safe.
-    :::
+    ```
 
     :param title: If provided, only return issues whose title matches exactly.
     :return: List of issue dicts with `number`, `title`, `createdAt`,

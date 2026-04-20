@@ -32,7 +32,7 @@ special handling (tagging, PyPI publishing, GitHub release creation).
 
 The following variables are [printed to the environment file](https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files):
 
-:::{code-block} text
+```{code-block} text
 is_bot=false
 new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5f6c2
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
@@ -276,13 +276,13 @@ nuitka_matrix={
         {"state": "stable"}
     ]
 }
-:::
+```
 
-:::{warning}
+```{warning}
 Fields with serialized lists and dictionaries, like `new_commits_matrix`,
 `build_targets` or `nuitka_matrix`, are pretty-printed in the example above for
 readability. They are inlined in the actual output and not formatted this way.
-:::
+```
 """
 
 from __future__ import annotations
@@ -504,10 +504,10 @@ def is_version_bump_allowed(part: Literal["minor", "major"]) -> bool:
     - Last release: `v5.0.1`, current: `5.1.0` → minor bump NOT allowed (bumped)
     - Last release: `v5.0.1`, current: `6.0.0` → major bump NOT allowed (bumped)
 
-    :::{note}
+    ```{note}
     When tags are not available (e.g., due to race conditions between workflows),
     this function falls back to parsing version from recent commit messages.
-    :::
+    ```
 
     :param part: The version part to check (`minor` or `major`).
     :return: `True` if the bump should proceed, `False` if it should be skipped.
@@ -708,20 +708,20 @@ class Metadata:
     def commit_matrix(self, commits: Iterable[Commit] | None) -> Matrix | None:
         """Pre-compute a matrix of commits.
 
-        :::{danger}
+        ```{danger}
         This method temporarily modify the state of the repository to compute
         version metadata from the past.
 
         To prevent any loss of uncommitted data, it stashes and unstash the
         local changes between checkouts.
-        :::
+        ```
 
         The list of commits is augmented with long and short SHA values, as well as
         current version. Most recent commit is first, oldest is last.
 
         Returns a ready-to-use matrix structure:
 
-        :::{code-block} python
+        ```{code-block} python
         {
             "commit": [
                 "346ce664f055fbd042a25ee0b7e96702e95",
@@ -740,7 +740,7 @@ class Metadata:
                 },
             ],
         }
-        :::
+        ```
         """
         if not commits:
             return None
@@ -833,14 +833,14 @@ class Metadata:
     def event_type(self) -> WorkflowEvent | None:
         """Returns the type of event that triggered the workflow run.
 
-        :::{caution}
+        ```{caution}
         This property is based on a crude heuristics as it only looks at the value
         of the `GITHUB_BASE_REF` environment variable. Which is [only set when the event that triggers a workflow run is either pull_request or pull_request_target](https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables).
-        :::
+        ```
 
-        :::{todo}
+        ```{todo}
         Add detection of all workflow trigger events.
-        :::
+        ```
         """
         if not is_github_ci():
             logging.warning(
@@ -1177,15 +1177,15 @@ class Metadata:
         New commits need to be fetched differently in `push` and `pull_request`
         events.
 
-        :::{seealso}
+        ```{seealso}
         - https://stackoverflow.com/a/67204539
         - https://stackoverflow.com/a/62953566
         - https://stackoverflow.com/a/61861763
-        :::
+        ```
 
-        :::{seealso}
+        ```{seealso}
         Pull request events on GitHub are a bit complex, see: [The Many SHAs of a GitHub Pull Request](https://www.kenmuse.com/blog/the-many-shas-of-a-github-pull-request/).
-        :::
+        ```
         """
         if not self.github_event or not self.event_type:
             return None
@@ -1423,9 +1423,9 @@ class Metadata:
     def json_files(self) -> list[Path]:
         """Returns a list of JSON files.
 
-        :::{note}
+        ```{note}
         JSON5 files are excluded because Biome doesn't support them.
-        :::
+        ```
         """
         return self.glob_files(
             "**/*.{json,jsonc}",
@@ -1544,11 +1544,11 @@ class Metadata:
         Returns `None` if the `pyproject.toml` does not exists or does not respects
         the PEP standards.
 
-        :::{warning}
+        ```{warning}
         Some third-party apps have their configuration saved into
         `pyproject.toml` file, but that does not means the project is a Python
         one. For that, the `pyproject.toml` needs to respect the PEPs.
-        :::
+        ```
         """
         toml = self.pyproject_toml
         if toml:
@@ -1642,21 +1642,21 @@ class Metadata:
 
         Results are derived from the script entries of `pyproject.toml`. So that:
 
-        :::{code-block} toml
+        ```{code-block} toml
         [project.scripts]
         mdedup = "mail_deduplicate.cli:mdedup"
         mpm = "meta_package_manager.__main__:main"
-        :::
+        ```
 
         Will yields the following list:
 
-        :::{code-block} python
+        ```{code-block} python
         (
             ("mdedup", "mail_deduplicate.cli", "mdedup"),
             ("mpm", "meta_package_manager.__main__", "main"),
             ...,
         )
-        :::
+        ```
         """
         entries = []
         if self.pyproject:
@@ -1701,9 +1701,9 @@ class Metadata:
 
         Same as calling the CLI:
 
-            :::{code-block} shell-session
+            ```{code-block} shell-session
             $ bump-my-version show current_version
-            :::
+            ```
         """
         conf_file = find_config_file()
         if not conf_file:
@@ -1827,7 +1827,7 @@ class Metadata:
         specific extra parameters by the way of matching parameters in the `include`
         directive.
 
-        :::{code-block} python
+        ```{code-block} python
         {
             "os": [
                 "ubuntu-24.04-arm",
@@ -1981,7 +1981,7 @@ class Metadata:
                 },
             ],
         }
-        :::
+        ```
         """
         # Only produce a matrix if the project is providing CLI entry points.
         if not self.script_entries:

@@ -29,14 +29,14 @@ all existing assets before uploading new ones, preventing stale files from
 accumulating when the naming scheme changes. Stale dev releases from previous
 versions are always deleted.
 
-:::{note}
+```{note}
 Dev releases are created as **drafts** so they remain mutable even
 when GitHub's immutable releases setting is enabled. Immutability
 only blocks **asset uploads** on published releases — deletion still
 works. But because the workflow needs to upload binaries *after*
 creation, the release must stay as a draft throughout its lifetime
 to allow asset uploads. See `CLAUDE.md` § Immutable releases.
-:::
+```
 """
 
 from __future__ import annotations
@@ -52,11 +52,11 @@ from .release_sync import build_expected_body
 DEV_ASSET_PATTERNS = ("*.bin", "*.exe", "*.whl", "*.tar.gz")
 """Glob patterns for dev release assets.
 
-:::{note}
+```{note}
 Bare extensions (no `repomatic-` prefix) keep patterns generic so
 downstream repositories can reuse the same logic regardless of their
 package name.
-:::
+```
 """
 
 

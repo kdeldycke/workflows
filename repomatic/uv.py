@@ -257,11 +257,11 @@ run when a relative `exclude-newer-package` offset is configured.
 def is_lock_diff_only_timestamp_noise(lock_path: Path) -> bool:
     """Check whether the only changes in a lock file are timestamp noise.
 
-    :::{note}
+    ```{note}
     This is a workaround for uv writing a new resolved timestamp on every
     `uv lock` run even when no packages changed.
     See [uv#18155](https://github.com/astral-sh/uv/issues/18155).
-    :::
+    ```
 
     Runs `git diff` on the given path and inspects every added/removed
     content line. Returns `True` only when *all* changed lines match the
@@ -313,12 +313,12 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
     Calls {func}`is_lock_diff_only_timestamp_noise` and, if `True`,
     runs `git checkout` to discard the noise changes.
 
-    :::{note}
+    ```{note}
     In Renovate's `postUpgradeTasks` context, the revert is ineffective
     because Renovate captures file content after its own `uv lock --upgrade`
     manager step *before* `postUpgradeTasks` run, and commits its cached
     content regardless of working tree changes.
-    :::
+    ```
 
     :param lock_path: Path to the lock file to inspect and potentially revert.
     :return: `True` if the file was reverted, `False` otherwise.
@@ -543,10 +543,10 @@ def prune_stale_exclude_newer_packages(
 ) -> bool:
     """Remove stale entries from `[tool.uv].exclude-newer-package`.
 
-    :::{note}
+    ```{note}
     This is a workaround until uv supports native pruning.
     See [uv#18792](https://github.com/astral-sh/uv/issues/18792).
-    :::
+    ```
 
     An entry is stale when its locked version's upload time falls before the
     `exclude-newer` cutoff, meaning `uv lock --upgrade` would resolve to
