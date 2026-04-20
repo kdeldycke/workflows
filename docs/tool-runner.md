@@ -246,7 +246,7 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 ### [Biome](https://github.com/biomejs/biome)
 
-**Installed version:** `2.4.5`
+**Installed version:** `2.4.11`
 
 **Installation method:** Binary (downloaded from GitHub Releases)
 
