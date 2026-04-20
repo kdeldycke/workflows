@@ -52,7 +52,7 @@
     - "mailmap_exists=true"
     - "is_python_project=true"
     - "package_name=repomatic"
-    - "is_sphinx=false"
+    - "is_sphinx=true"
   stdout_regex_matches:
     - "is_bot=(true|false)"
     - "skip_binary_build=(true|false)"

@@ -141,7 +141,7 @@ def cli_reference() -> str:
     lines: list[str] = []
 
     # Collect all commands (top-level + subcommands of groups).
-    entries: list[tuple[list[str], click.BaseCommand]] = []
+    entries: list[tuple[list[str], click.Command]] = []
     for name in sorted(repomatic.commands):
         cmd = repomatic.commands[name]
         entries.append(([name], cmd))
