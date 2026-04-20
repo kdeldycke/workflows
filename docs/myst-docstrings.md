@@ -67,7 +67,7 @@ The `~` prefix for abbreviating to the last component works the same way.
 
 Both colon fences and backtick fences are supported:
 
-```python
+````python
 def detect():
     """Detect the current platform.
 
@@ -76,19 +76,19 @@ def detect():
     platform check is unavailable.
     ```
     """
-```
+````
 
 The colon-fence equivalent (`:::{note}` / `:::`) works identically. All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`.
 
 Admonitions with titles:
 
-```python
+````python
 """
 ```{warning} Experimental API
 This function may change in future releases.
 ```
 """
-```
+````
 
 ### Links
 
@@ -114,7 +114,7 @@ Use single backticks. The extension doubles them for reST:
 
 Use fenced `code-block` directives (either backtick or colon style):
 
-```python
+````python
 """
 ```{code-block} python
 extensions = [
@@ -123,7 +123,7 @@ extensions = [
 ]
 ```
 """
-```
+````
 
 Plain triple-backtick fences *without* a directive name (like ```` ``` python ````) are **not** converted. Use ```` ```{code-block} python ```` or `:::{code-block} python` instead.
 
