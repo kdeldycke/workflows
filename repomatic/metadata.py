@@ -835,7 +835,7 @@ class Metadata:
 
         ```{caution}
         This property is based on a crude heuristics as it only looks at the value
-        of the `GITHUB_BASE_REF` environment variable. Which is [only set when the event that triggers a workflow run is either pull_request or pull_request_target](https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables).
+        of the `GITHUB_BASE_REF` environment variable. Which is [only set when the event that triggers a workflow run is either pull_request or pull_request_target](https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables).
         ```
 
         ```{todo}

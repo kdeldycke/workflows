@@ -146,7 +146,7 @@ class Mailmap:
         attached to all commits are considered.
 
         For format output syntax, see:
-        https://git-scm.com/docs/pretty-formats#Documentation/pretty-formats.txt-emaNem
+        https://git-scm.com/docs/pretty-formats#Documentation/pretty-formats.txt-aN
         """
         contributors = set()
 

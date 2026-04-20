@@ -18,7 +18,7 @@
 | Fork PR approval policy                                        | [`check_fork_pr_approval_policy`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/lint_repo.py) warns when the policy is weaker than `first_time_contributors`, and the [setup guide](https://github.com/kdeldycke/repomatic/blob/main/repomatic/templates/setup-guide-fork-pr-approval.md) ships a pre-filled `gh api` one-liner to fix it                                      |
 
 > [!WARNING]
-> **Known gap: multi-person release approval.** Astral gates releases behind a dedicated [GitHub deployment environment](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/reviewing-deployments) with required reviewers, so that a single compromised account cannot publish. `repomatic` does not enforce this, but if the repository has multiple maintainers, I recommend adding an `environment: release` key to the `publish-pypi` and `create-release` jobs in a downstream caller workflow and configuring required reviewers on that environment in repo settings.
+> **Known gap: multi-person release approval.** Astral gates releases behind a dedicated [GitHub deployment environment](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) with required reviewers, so that a single compromised account cannot publish. `repomatic` does not enforce this, but if the repository has multiple maintainers, I recommend adding an `environment: release` key to the `publish-pypi` and `create-release` jobs in a downstream caller workflow and configuring required reviewers on that environment in repo settings.
 
 ### Third-party action minimization
 

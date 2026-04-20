@@ -16,7 +16,7 @@ extensions = [
 ]
 ```
 
-Order does not matter. The extension hooks into the [`autodoc-process-docstring`](https://www.sphinx-doc.org/en/master/event.html#event-autodoc-process-docstring) event, which is fired by autodoc during the build regardless of extension load order. If `sphinx.ext.autodoc` is absent, the event never fires and the extension silently does nothing.
+Order does not matter. The extension hooks into the [`autodoc-process-docstring`](https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#event-autodoc-process-docstring) event, which is fired by autodoc during the build regardless of extension load order. If `sphinx.ext.autodoc` is absent, the event never fires and the extension silently does nothing.
 
 ### 2. Add the dependency
 

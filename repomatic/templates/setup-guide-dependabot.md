@@ -3,7 +3,7 @@ args: [repo_url, repo_slug]
 footer: 'false'
 ---
 
-Enable [vulnerability alerts](https://docs.github.com/en/code-security/dependabot/dependabot-alerts/configuring-dependabot-alerts) ([Renovate reads these via API](https://docs.renovatebot.com/configuration-options/#vulnerabilityalerts)) and [disable automated security fixes](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates) ([Renovate handles security PRs](https://docs.renovatebot.com/upgrade-best-practices/#vulnerability-remediation)):
+Enable [vulnerability alerts](https://docs.github.com/en/code-security/dependabot/dependabot-alerts/configuring-dependabot-alerts) ([Renovate reads these via API](https://docs.renovatebot.com/configuration-options/#vulnerabilityalerts)) and [disable automated security fixes](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates) ([Renovate handles security PRs](https://docs.renovatebot.com/upgrade-best-practices/#youll-be-ready-for-cve-patches)):
 
 ```shell
 gh api repos/$repo_slug/vulnerability-alerts --method PUT

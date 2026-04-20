@@ -23,4 +23,4 @@ This PR is ready to be merged. See the [`prepare-release` job documentation](htt
 2. **Click `Rebase and merge`** button below
 
 > [!CAUTION]
-> Do not `Squash and merge`: [we need the 2 distinct commits](https://github.com/kdeldycke/repomatic/blob/main/claude.md#release-pr-freeze-and-unfreeze-commits) in this PR.
+> Do not `Squash and merge`: [we need the 2 distinct commits](https://github.com/kdeldycke/repomatic/blob/main/docs/workflows.md#freeze-and-unfreeze-commits) in this PR.

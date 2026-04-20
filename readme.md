@@ -60,7 +60,7 @@ See the **[full documentation](https://kdeldycke.github.io/repomatic/)** for:
 
 - [Installation methods and executables](https://kdeldycke.github.io/repomatic/install.html)
 - [`[tool.repomatic]` configuration reference](https://kdeldycke.github.io/repomatic/configuration.html)
-- [CLI parameters](https://kdeldycke.github.io/repomatic/cli-parameters.html)
+- [CLI parameters](https://kdeldycke.github.io/repomatic/cli.html)
 - [Reusable workflow reference](https://kdeldycke.github.io/repomatic/workflows.html) (all 13 workflows with job descriptions)
 - [Security practices and token setup](https://kdeldycke.github.io/repomatic/security.html)
 - [Claude Code skills](https://kdeldycke.github.io/repomatic/skills.html)

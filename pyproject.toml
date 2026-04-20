@@ -337,7 +337,7 @@ overrides = [
 ]
 
 [tool.lychee]
-# https://lychee.cli.rs/configuration/
+# https://lychee.cli.rs/guides/config/
 # Native pyproject.toml support landed upstream (lycheeverse/lychee#1930),
 # pending next release after 0.23.0.
 exclude = [
