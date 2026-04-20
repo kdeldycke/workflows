@@ -32,7 +32,7 @@ special handling (tagging, PyPI publishing, GitHub release creation).
 
 The following variables are [printed to the environment file](https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files):
 
-```text
+:::{code-block} text
 is_bot=false
 new_commits=346ce664f055fbd042a25ee0b7e96702e95 6f27db47612aaee06fdf08744b09a9f5f6c2
 release_commits=6f27db47612aaee06fdf08744b09a9f5f6c2
@@ -276,7 +276,7 @@ nuitka_matrix={
         {"state": "stable"}
     ]
 }
-```
+:::
 
 :::{warning}
 Fields with serialized lists and dictionaries, like `new_commits_matrix`,
