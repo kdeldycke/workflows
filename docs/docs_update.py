@@ -203,6 +203,41 @@ _PYPI_RELEASE_TOOLS = frozenset({"mdformat", "mypy"})
 _BADGE = "label=%20&style=flat-square"
 
 
+def tool_summary() -> str:
+    """Generate the summary table of all managed tools."""
+    from repomatic.tool_runner import TOOL_REGISTRY
+
+    rows: list[list[str]] = []
+    for key in sorted(TOOL_REGISTRY):
+        spec = TOOL_REGISTRY[key]
+        label = spec.display_name or spec.name
+        name_link = f"[{label}]({spec.source_url})" if spec.source_url else label
+
+        if spec.binary:
+            install_type = "Binary"
+        elif spec.needs_venv:
+            install_type = "PyPI (venv)"
+        else:
+            install_type = "PyPI"
+
+        # Config discovery column.
+        parts: list[str] = []
+        if spec.native_config_files:
+            parts.extend(f"`{f}`" for f in spec.native_config_files)
+        if spec.reads_pyproject:
+            parts.append(f"`[tool.{spec.name}]` in `pyproject.toml`")
+        config_str = ", ".join(parts) if parts else "CLI flags only"
+
+        rows.append([name_link, f"`{spec.version}`", install_type, config_str])
+
+    return render_table(
+        rows,
+        headers=["Tool", "Version", "Type", "Config discovery"],
+        table_format=TableFormat.GITHUB,
+        colalign=("left", "left", "left", "left"),
+    )
+
+
 def tool_reference() -> str:
     """Generate per-tool detail sections + comparison tables."""
     from repomatic.tool_runner import TOOL_REGISTRY
@@ -407,8 +442,14 @@ def update_cli_parameters() -> None:
 
 
 def update_tool_runner() -> None:
-    """Update ``tool-runner.md`` with per-tool detail sections."""
+    """Update ``tool-runner.md`` with summary table and per-tool detail sections."""
     tr_md = PROJECT_ROOT / "docs" / "tool-runner.md"
+    replace_content(
+        tr_md,
+        "\n\n" + tool_summary() + "\n",
+        "<!-- tool-summary-start -->",
+        "<!-- tool-summary-end -->",
+    )
     replace_content(
         tr_md,
         "\n\n" + tool_reference() + "\n",

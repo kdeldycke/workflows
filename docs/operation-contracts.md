@@ -1,4 +1,4 @@
-# Automated operation contracts
+# {octicon}`tasklist` Automated operation contracts
 
 > Referenced from `claude.md` [§ Automated operation contracts](https://github.com/kdeldycke/repomatic/blob/main/claude.md#automated-operation-contracts). This file contains the detailed checklists for each operation type.
 

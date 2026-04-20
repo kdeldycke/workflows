@@ -52,188 +52,188 @@ GitHub Actions has several design limitations that the workflows work around:
 
 *Setup* — guide new users through initial configuration:
 
-- 📖 **Setup guide** (`setup-guide`)
+#### 📖 Setup guide (`setup-guide`)
 
-  - Detects missing `REPOMATIC_PAT` secret and opens an issue with step-by-step setup instructions
-  - When the PAT is present, validates all required permissions (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses) using the same checks as `lint-repo`
-  - Keeps the issue open with a diagnostic table when the PAT exists but permissions are incomplete
-  - When Nuitka binary compilation is active, includes a VirusTotal API key setup step and keeps the issue open until the key is configured
-  - Automatically closes the issue once the secret is configured and all permissions are verified
-  - **Skipped if**:
-    - upstream `kdeldycke/repomatic` repo, `workflow_call` events
-    - `setup-guide = false` in `[tool.repomatic]`
+- Detects missing `REPOMATIC_PAT` secret and opens an issue with step-by-step setup instructions
+- When the PAT is present, validates all required permissions (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses) using the same checks as `lint-repo`
+- Keeps the issue open with a diagnostic table when the PAT exists but permissions are incomplete
+- When Nuitka binary compilation is active, includes a VirusTotal API key setup step and keeps the issue open until the key is configured
+- Automatically closes the issue once the secret is configured and all permissions are verified
+- **Skipped if**:
+  - upstream `kdeldycke/repomatic` repo, `workflow_call` events
+  - `setup-guide = false` in `[tool.repomatic]`
 
 *Formatters* — rewrite files to enforce canonical style:
 
-- 🐍 **Format Python** (`format-python`)
+#### 🐍 Format Python (`format-python`)
 
-  - Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8) and [`ruff`](https://github.com/astral-sh/ruff)
-  - **Requires**:
-    - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository, or
-    - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`)
+- Auto-formats Python code using [`autopep8`](https://github.com/hhatto/autopep8) and [`ruff`](https://github.com/astral-sh/ruff)
+- **Requires**:
+  - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository, or
+  - documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`)
 
-- 📐 **Format `pyproject.toml`** (`format-pyproject`)
+#### 📐 Format `pyproject.toml` (`format-pyproject`)
 
-  - Auto-formats `pyproject.toml` using [`pyproject-fmt`](https://github.com/tox-dev/pyproject-fmt)
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
+- Auto-formats `pyproject.toml` using [`pyproject-fmt`](https://github.com/tox-dev/pyproject-fmt)
+- **Requires**:
+  - Python package with a `pyproject.toml` file
 
-- ✍️ **Format Markdown** (`format-markdown`)
+#### ✍️ Format Markdown (`format-markdown`)
 
-  - Auto-formats Markdown files using [`mdformat`](https://github.com/hukkin/mdformat)
-  - **Requires**:
-    - Markdown files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}`) in the repository
+- Auto-formats Markdown files using [`mdformat`](https://github.com/hukkin/mdformat)
+- **Requires**:
+  - Markdown files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx}`) in the repository
 
-- 🐚 **Format Shell** (`format-shell`)
+#### 🐚 Format Shell (`format-shell`)
 
-  - Auto-formats shell scripts using [`shfmt`](https://github.com/mvdan/sh)
-  - **Requires**:
-    - Shell files (`**/*.{bash,bats,ksh,mksh,sh,zsh}`) or shell dotfiles (`.bashrc`, `.zshrc`, etc.) in the repository
+- Auto-formats shell scripts using [`shfmt`](https://github.com/mvdan/sh)
+- **Requires**:
+  - Shell files (`**/*.{bash,bats,ksh,mksh,sh,zsh}`) or shell dotfiles (`.bashrc`, `.zshrc`, etc.) in the repository
 
-- 🔧 **Format JSON** (`format-json`)
+#### 🔧 Format JSON (`format-json`)
 
-  - Auto-formats JSON, JSONC, and JSON5 files using [Biome](https://github.com/biomejs/biome)
-  - **Requires**:
-    - JSON files (`**/*.{json,jsonc,json5}`, `**/.code-workspace`, `!**/package-lock.json`) in the repository
+- Auto-formats JSON, JSONC, and JSON5 files using [Biome](https://github.com/biomejs/biome)
+- **Requires**:
+  - JSON files (`**/*.{json,jsonc,json5}`, `**/.code-workspace`, `!**/package-lock.json`) in the repository
 
 *Fixers* — correct or improve existing content in-place:
 
-- ✏️ **Fix typos** (`fix-typos`)
+#### ✏️ Fix typos (`fix-typos`)
 
-  - Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
+- Automatically fixes typos in the codebase using [`typos`](https://github.com/crate-ci/typos)
 
-- 🛡️ **Fix vulnerable dependencies** (`fix-vulnerable-deps`)
+#### 🛡️ Fix vulnerable dependencies (`fix-vulnerable-deps`)
 
-  - Detects vulnerable packages using [`uv audit`](https://docs.astral.sh/uv/reference/cli/#uv-audit) against the [Python Packaging Advisory Database](https://github.com/pypa/advisory-database) and creates PRs to upgrade them
-  - Uses `uv lock --upgrade-package` with [`--exclude-newer-package`](https://docs.astral.sh/uv/reference/settings/#exclude-newer-package) bypass to resolve fix versions that may be within the [`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer) cooldown period
-  - PR body includes a table of vulnerabilities and updated package versions with release notes
-  - **Requires**:
-    - Python package (with a `pyproject.toml` file)
+- Detects vulnerable packages using [`uv audit`](https://docs.astral.sh/uv/reference/cli/#uv-audit) against the [Python Packaging Advisory Database](https://github.com/pypa/advisory-database) and creates PRs to upgrade them
+- Uses `uv lock --upgrade-package` with [`--exclude-newer-package`](https://docs.astral.sh/uv/reference/settings/#exclude-newer-package) bypass to resolve fix versions that may be within the [`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer) cooldown period
+- PR body includes a table of vulnerabilities and updated package versions with release notes
+- **Requires**:
+  - Python package (with a `pyproject.toml` file)
 
-- 🖼️ **Format images** (`format-images`)
+#### 🖼️ Format images (`format-images`)
 
-  - Losslessly compresses PNG and JPEG images using [`repomatic format-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
-  - Skips files where savings are below `--min-savings` (percentage, default 5%) or `--min-savings-bytes` (absolute, default 1024 bytes)
-  - **Requires**:
-    - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
+- Losslessly compresses PNG and JPEG images using [`repomatic format-images`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/images.py) with `oxipng` and `jpegoptim`
+- Skips files where savings are below `--min-savings` (percentage, default 5%) or `--min-savings-bytes` (absolute, default 1024 bytes)
+- **Requires**:
+  - Image files (`**/*.{jpeg,jpg,png,webp,avif}`) in the repository
 
 *Syncers* — regenerate files from external sources or project state:
 
-- 🙈 **Sync `.gitignore`** (`sync-gitignore`)
+#### 🙈 Sync `.gitignore` (`sync-gitignore`)
 
-  - Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`repomatic sync-gitignore`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py)
-  - **Requires**:
-    - A `.gitignore` file in the repository
-  - **Skipped if**:
-    - `gitignore.sync = false` in `[tool.repomatic]`
+- Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates using [`repomatic sync-gitignore`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py)
+- **Requires**:
+  - A `.gitignore` file in the repository
+- **Skipped if**:
+  - `gitignore.sync = false` in `[tool.repomatic]`
 
-- 🔄 **Sync bumpversion config** (`sync-bumpversion`)
+#### 🔄 Sync bumpversion config (`sync-bumpversion`)
 
-  - Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`repomatic sync-bumpversion`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py)
-  - **Skipped if**:
-    - `[tool.bumpversion]` section already exists in `pyproject.toml`
-    - `bumpversion.sync = false` in `[tool.repomatic]`
+- Syncs the `[tool.bumpversion]` configuration in `pyproject.toml` using [`repomatic sync-bumpversion`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py)
+- **Skipped if**:
+  - `[tool.bumpversion]` section already exists in `pyproject.toml`
+  - `bumpversion.sync = false` in `[tool.repomatic]`
 
-- 🔄 **Sync repomatic** (`sync-repomatic`)
+#### 🔄 Sync repomatic (`sync-repomatic`)
 
-  - Runs [`repomatic init --delete-unmodified --delete-excluded`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py) to sync all repomatic-managed files: thin-caller workflows, configuration files, and skill definitions
-  - Removes unmodified config files identical to bundled defaults and cleans up excluded or stale files (disabled opt-in workflows, auto-excluded skills)
-  - In the upstream repository, regenerates the bundled `repomatic/data/renovate.json5` from the root config (workflows are excluded via `[tool.repomatic]`)
+- Runs [`repomatic init --delete-unmodified --delete-excluded`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/init_project.py) to sync all repomatic-managed files: thin-caller workflows, configuration files, and skill definitions
+- Removes unmodified config files identical to bundled defaults and cleans up excluded or stale files (disabled opt-in workflows, auto-excluded skills)
+- In the upstream repository, regenerates the bundled `repomatic/data/renovate.json5` from the root config (workflows are excluded via `[tool.repomatic]`)
 
-- 📬 **Sync `.mailmap`** (`sync-mailmap`)
+#### 📬 Sync `.mailmap` (`sync-mailmap`)
 
-  - Keeps `.mailmap` file up to date with contributors using [`repomatic sync-mailmap`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/mailmap.py)
-  - **Requires**:
-    - A `.mailmap` file in the repository root
-  - **Skipped if**:
-    - `mailmap.sync = false` in `[tool.repomatic]`
+- Keeps `.mailmap` file up to date with contributors using [`repomatic sync-mailmap`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/mailmap.py)
+- **Requires**:
+  - A `.mailmap` file in the repository root
+- **Skipped if**:
+  - `mailmap.sync = false` in `[tool.repomatic]`
 
-- ⛓️ **Sync `uv.lock`** (`sync-uv-lock`)
+#### ⛓️ Sync `uv.lock` (`sync-uv-lock`)
 
-  - Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`repomatic sync-uv-lock`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/renovate.py)
-  - Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
-  - PR body includes a table of updated packages with version ranges linked to GitHub comparison diffs, plus collapsible release notes for all intermediate versions
-  - Replaces Renovate's `lockFileMaintenance`, which cannot reliably revert noise-only changes
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
-  - **Skipped if**:
-    - `uv-lock.sync = false` in `[tool.repomatic]`
+- Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions using [`repomatic sync-uv-lock`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/renovate.py)
+- Only creates a PR when the lock file contains real dependency changes (timestamp-only noise is detected and skipped)
+- PR body includes a table of updated packages with version ranges linked to GitHub comparison diffs, plus collapsible release notes for all intermediate versions
+- Replaces Renovate's `lockFileMaintenance`, which cannot reliably revert noise-only changes
+- **Requires**:
+  - Python package with a `pyproject.toml` file
+- **Skipped if**:
+  - `uv-lock.sync = false` in `[tool.repomatic]`
 
-- 🕸️ **Update dependency graph** (`update-deps-graph`)
+#### 🕸️ Update dependency graph (`update-deps-graph`)
 
-  - Generates a Mermaid dependency graph of the Python project using [`repomatic update-deps-graph`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/deps_graph.py)
-  - **Requires**:
-    - Python package with a `uv.lock` file
+- Generates a Mermaid dependency graph of the Python project using [`repomatic update-deps-graph`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/deps_graph.py)
+- **Requires**:
+  - Python package with a `uv.lock` file
 
-- 📚 **Update docs** (`update-docs`)
+#### 📚 Update docs (`update-docs`)
 
-  - Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
-  - Runs `docs/docs_update.py` if present to generate dynamic content (tables, diagrams, Sphinx directives)
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
-    - `docs` dependency group
-    - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
+- Regenerates Sphinx autodoc files using [`sphinx-apidoc`](https://github.com/sphinx-doc/sphinx)
+- Runs `docs/docs_update.py` if present to generate dynamic content (tables, diagrams, Sphinx directives)
+- **Requires**:
+  - Python package with a `pyproject.toml` file
+  - `docs` dependency group
+  - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
 
 ### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autolock.yaml)
 
-- 🔒 **Lock inactive threads** (`lock`)
+#### 🔒 Lock inactive threads (`lock`)
 
-  - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
+- Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
 
 ### 🩺 [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/debug.yaml)
 
-- 🩺 **Dump context** (`dump-context`)
+#### 🩺 Dump context (`dump-context`)
 
-  - Dumps GitHub Actions context and runner environment info across all build targets using [`ghaction-dump-context`](https://github.com/crazy-max/ghaction-dump-context)
-  - Useful for debugging runner differences and CI environment issues
-  - **Runs on**:
-    - Push to `main` (only when `debug.yaml` itself changes)
-    - Monthly schedule
-    - Manual dispatch
-    - `workflow_call` from downstream repositories
+- Dumps GitHub Actions context and runner environment info across all build targets using [`ghaction-dump-context`](https://github.com/crazy-max/ghaction-dump-context)
+- Useful for debugging runner differences and CI environment issues
+- **Runs on**:
+  - Push to `main` (only when `debug.yaml` itself changes)
+  - Monthly schedule
+  - Manual dispatch
+  - `workflow_call` from downstream repositories
 
 ### ✂️ [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/cancel-runs.yaml)
 
-- ✂️ **Cancel PR runs** (`cancel-runs`)
+#### ✂️ Cancel PR runs (`cancel-runs`)
 
-  - Cancels all in-progress and queued workflow runs for a PR's branch when the PR is closed
-  - Prevents wasted CI resources from long-running jobs (e.g. Nuitka binary builds) that continue after a PR is closed
-  - GitHub Actions does not natively cancel runs on PR close — the `concurrency` mechanism only triggers cancellation when a *new* run enters the same group
+- Cancels all in-progress and queued workflow runs for a PR's branch when the PR is closed
+- Prevents wasted CI resources from long-running jobs (e.g. Nuitka binary builds) that continue after a PR is closed
+- GitHub Actions does not natively cancel runs on PR close — the `concurrency` mechanism only triggers cancellation when a *new* run enters the same group
 
 ### 🆙 [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/changelog.yaml)
 
-- 🆙 **Bump version** (`bump-version`)
+#### 🆙 Bump version (`bump-version`)
 
-  - Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
-  - Syncs `uv.lock` to include the new version in the same commit
-  - Uses commit message parsing as fallback when tags aren't available yet
-  - **Requires**:
-    - `bump-my-version` configuration in `pyproject.toml`
-    - A `changelog.md` file
-  - **Runs on**:
-    - Schedule (daily at 6:00 UTC)
-    - Manual dispatch
-    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger, to ensure tags exist before checking bump eligibility). Checks out the latest `main` HEAD, not the triggering workflow's commit.
+- Creates PRs for minor and major version bumps using [`bump-my-version`](https://github.com/callowayproject/bump-my-version)
+- Syncs `uv.lock` to include the new version in the same commit
+- Uses commit message parsing as fallback when tags aren't available yet
+- **Requires**:
+  - `bump-my-version` configuration in `pyproject.toml`
+  - A `changelog.md` file
+- **Runs on**:
+  - Schedule (daily at 6:00 UTC)
+  - Manual dispatch
+  - After `release.yaml` workflow completes successfully (via `workflow_run` trigger, to ensure tags exist before checking bump eligibility). Checks out the latest `main` HEAD, not the triggering workflow's commit.
 
-- 📋 **Fix changelog** (`fix-changelog`)
+#### 📋 Fix changelog (`fix-changelog`)
 
-  - Checks and fixes changelog dates, availability admonitions, and orphaned versions using [`repomatic lint-changelog --fix`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
-  - **Runs on**:
-    - Push to `main` (when `changelog.md`, `pyproject.toml`, or workflow files change). Skipped during release cycles.
-    - After `release.yaml` workflow completes successfully (via `workflow_run` trigger), when the GitHub release is published and visible to the public API.
+- Checks and fixes changelog dates, availability admonitions, and orphaned versions using [`repomatic lint-changelog --fix`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
+- **Runs on**:
+  - Push to `main` (when `changelog.md`, `pyproject.toml`, or workflow files change). Skipped during release cycles.
+  - After `release.yaml` workflow completes successfully (via `workflow_run` trigger), when the GitHub release is published and visible to the public API.
 
-- 🎬 **Prepare release** (`prepare-release`)
+#### 🎬 Prepare release (`prepare-release`)
 
-  - Creates a release PR with two commits: a **freeze commit** that freezes everything to the release version, and an **unfreeze commit** that reverts to development references and bumps the patch version
-  - Uses [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`repomatic changelog`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
-  - Must be merged with "Rebase and merge" (not squash) — the auto-tagging job needs both commits separate
-  - **Requires**:
-    - `bump-my-version` configuration in `pyproject.toml`
-    - A `changelog.md` file
-  - **Runs on**:
-    - Push to `main` (when `changelog.md`, `pyproject.toml`, or workflow files change)
-    - Manual dispatch
-    - `workflow_call` from downstream repositories
+- Creates a release PR with two commits: a **freeze commit** that freezes everything to the release version, and an **unfreeze commit** that reverts to development references and bumps the patch version
+- Uses [`bump-my-version`](https://github.com/callowayproject/bump-my-version) and [`repomatic changelog`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/changelog.py)
+- Must be merged with "Rebase and merge" (not squash) — the auto-tagging job needs both commits separate
+- **Requires**:
+  - `bump-my-version` configuration in `pyproject.toml`
+  - A `changelog.md` file
+- **Runs on**:
+  - Push to `main` (when `changelog.md`, `pyproject.toml`, or workflow files change)
+  - Manual dispatch
+  - `workflow_call` from downstream repositories
 
 ### 📚 [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/docs.yaml)
 
@@ -249,136 +249,136 @@ docs = [
 ]
 ```
 
-- 📖 **Deploy Sphinx doc** (`deploy-docs`)
+#### 📖 Deploy Sphinx doc (`deploy-docs`)
 
-  - Builds Sphinx-based documentation and publishes it to GitHub Pages using [`sphinx`](https://github.com/sphinx-doc/sphinx), [`upload-pages-artifact`](https://github.com/actions/upload-pages-artifact) and [`deploy-pages`](https://github.com/actions/deploy-pages)
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
-    - `docs` dependency group
-    - Sphinx configuration file at `docs/conf.py`
+- Builds Sphinx-based documentation and publishes it to GitHub Pages using [`sphinx`](https://github.com/sphinx-doc/sphinx), [`upload-pages-artifact`](https://github.com/actions/upload-pages-artifact) and [`deploy-pages`](https://github.com/actions/deploy-pages)
+- **Requires**:
+  - Python package with a `pyproject.toml` file
+  - `docs` dependency group
+  - Sphinx configuration file at `docs/conf.py`
 
-- 🔗 **Sphinx linkcheck** (`check-sphinx-links`)
+#### 🔗 Sphinx linkcheck (`check-sphinx-links`)
 
-  - Runs Sphinx's built-in [`linkcheck`](https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.linkcheck.CheckExternalLinksBuilder) builder to detect broken auto-generated links (intersphinx, autodoc, type annotations) that Lychee cannot see
-  - Creates/updates issues for broken documentation links found
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
-    - `docs` dependency group
-    - Sphinx configuration file at `docs/conf.py`
-  - **Skipped for**:
-    - Pull requests
-    - `prepare-release` branch
-    - Post-release version bump commits
+- Runs Sphinx's built-in [`linkcheck`](https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.linkcheck.CheckExternalLinksBuilder) builder to detect broken auto-generated links (intersphinx, autodoc, type annotations) that Lychee cannot see
+- Creates/updates issues for broken documentation links found
+- **Requires**:
+  - Python package with a `pyproject.toml` file
+  - `docs` dependency group
+  - Sphinx configuration file at `docs/conf.py`
+- **Skipped for**:
+  - Pull requests
+  - `prepare-release` branch
+  - Post-release version bump commits
 
-- 💔 **Check broken links** (`check-broken-links`)
+#### 💔 Check broken links (`check-broken-links`)
 
-  - Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
-  - Creates/updates issues for broken links found
-  - **Requires**:
-    - Documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`) in the repository
-  - **Skipped for**:
-    - All PRs (only runs on push to main)
-    - `prepare-release` branch
-    - Post-release bump commits
+- Checks for broken links in documentation using [`lychee`](https://github.com/lycheeverse/lychee)
+- Creates/updates issues for broken links found
+- **Requires**:
+  - Documentation files (`**/*.{markdown,mdown,mkdn,mdwn,mkd,md,mdtxt,mdtext,mdx,rst,tex}`) in the repository
+- **Skipped for**:
+  - All PRs (only runs on push to main)
+  - `prepare-release` branch
+  - Post-release bump commits
 
 ### 🏷️ [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/labels.yaml)
 
-- 🔄 **Sync labels** (`sync-labels`)
+#### 🔄 Sync labels (`sync-labels`)
 
-  - Synchronizes repository labels using [`repomatic sync-labels`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py) and [`labelmaker`](https://github.com/jwodder/labelmaker)
-  - Uses [`labels.toml`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/labels.toml) with multiple profiles:
-    - `default` profile applied to all repositories
-    - `awesome` profile additionally applied to `awesome-*` repositories
-  - **Skipped if**:
-    - `labels.sync = false` in `[tool.repomatic]`
+- Synchronizes repository labels using [`repomatic sync-labels`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py) and [`labelmaker`](https://github.com/jwodder/labelmaker)
+- Uses [`labels.toml`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/data/labels.toml) with multiple profiles:
+  - `default` profile applied to all repositories
+  - `awesome` profile additionally applied to `awesome-*` repositories
+- **Skipped if**:
+  - `labels.sync = false` in `[tool.repomatic]`
 
-- 📁 **File-based PR labeller** (`file-labeller`)
+#### 📁 File-based PR labeller (`file-labeller`)
 
-  - Automatically labels PRs based on changed file paths using [`labeler`](https://github.com/actions/labeler)
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Automatically labels PRs based on changed file paths using [`labeler`](https://github.com/actions/labeler)
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
-- 📝 **Content-based labeller** (`content-labeller`)
+#### 📝 Content-based labeller (`content-labeller`)
 
-  - Automatically labels issues and PRs based on title and body content using [`issue-labeler`](https://github.com/github/issue-labeler)
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Automatically labels issues and PRs based on title and body content using [`issue-labeler`](https://github.com/github/issue-labeler)
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
-- 💝 **Tag sponsors** (`sponsor-labeller`)
+#### 💝 Tag sponsors (`sponsor-labeller`)
 
-  - Adds a `💖 sponsors` label to issues and PRs from sponsors using the GitHub GraphQL API
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Adds a `💖 sponsors` label to issues and PRs from sponsors using the GitHub GraphQL API
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
 ### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/lint.yaml)
 
-- 🏠 **Lint repository metadata** (`lint-repo`)
+#### 🏠 Lint repository metadata (`lint-repo`)
 
-  - Validates repository metadata (package name, Sphinx docs, project description) and Dependabot configuration using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly. When `REPOMATIC_PAT` is configured, also validates PAT capabilities (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses permissions). Warns when the fork PR workflow approval policy is weaker than `first_time_contributors`. Warns about missing `VIRUSTOTAL_API_KEY` when Nuitka binary compilation is active.
-  - **Requires**:
-    - Python package (with a `pyproject.toml` file)
+- Validates repository metadata (package name, Sphinx docs, project description) and Dependabot configuration using [`repomatic lint-repo`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/cli.py). Reads `pyproject.toml` directly. When `REPOMATIC_PAT` is configured, also validates PAT capabilities (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses permissions). Warns when the fork PR workflow approval policy is weaker than `first_time_contributors`. Warns about missing `VIRUSTOTAL_API_KEY` when Nuitka binary compilation is active.
+- **Requires**:
+  - Python package (with a `pyproject.toml` file)
 
-- 🔤 **Lint types** (`lint-types`)
+#### 🔤 Lint types (`lint-types`)
 
-  - Type-checks Python code using [`mypy`](https://github.com/python/mypy)
-  - **Requires**:
-    - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository
-  - **Skipped for**:
-    - `prepare-release` branch
+- Type-checks Python code using [`mypy`](https://github.com/python/mypy)
+- **Requires**:
+  - Python files (`**/*.{py,pyi,pyw,pyx,ipynb}`) in the repository
+- **Skipped for**:
+  - `prepare-release` branch
 
-- 📄 **Lint YAML** (`lint-yaml`)
+#### 📄 Lint YAML (`lint-yaml`)
 
-  - Lints YAML files using [`yamllint`](https://github.com/adrienverge/yamllint)
-  - **Requires**:
-    - YAML files (`**/*.{yaml,yml}`) in the repository
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Lints YAML files using [`yamllint`](https://github.com/adrienverge/yamllint)
+- **Requires**:
+  - YAML files (`**/*.{yaml,yml}`) in the repository
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
-- 🐚 **Lint Zsh** (`lint-zsh`)
+#### 🐚 Lint Zsh (`lint-zsh`)
 
-  - Syntax-checks Zsh scripts using `zsh --no-exec`
-  - **Requires**:
-    - Zsh files (`**/*.zsh`) in the repository
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Syntax-checks Zsh scripts using `zsh --no-exec`
+- **Requires**:
+  - Zsh files (`**/*.zsh`) in the repository
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
-- ⚡ **Lint GitHub Actions** (`lint-github-actions`)
+#### ⚡ Lint GitHub Actions (`lint-github-actions`)
 
-  - Lints workflow files using [`actionlint`](https://github.com/rhysd/actionlint) and [`shellcheck`](https://github.com/koalaman/shellcheck)
-  - **Requires**:
-    - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Lints workflow files using [`actionlint`](https://github.com/rhysd/actionlint) and [`shellcheck`](https://github.com/koalaman/shellcheck)
+- **Requires**:
+  - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
-- 🔒 **Lint workflow security** (`lint-workflow-security`)
+#### 🔒 Lint workflow security (`lint-workflow-security`)
 
-  - Audits workflow files for security issues using [`zizmor`](https://github.com/zizmorcore/zizmor) (template injection, excessive permissions, supply chain risks, etc.)
-  - **Requires**:
-    - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Audits workflow files for security issues using [`zizmor`](https://github.com/zizmorcore/zizmor) (template injection, excessive permissions, supply chain risks, etc.)
+- **Requires**:
+  - Workflow files (`.github/workflows/**/*.{yaml,yml}`) in the repository
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
-- 🌟 **Lint Awesome list** (`lint-awesome`)
+#### 🌟 Lint Awesome list (`lint-awesome`)
 
-  - Lints awesome lists using [`awesome-lint`](https://github.com/sindresorhus/awesome-lint)
-  - **Requires**:
-    - Repository name starts with `awesome-`
-  - **Skipped for**:
-    - `prepare-release` branch
+- Lints awesome lists using [`awesome-lint`](https://github.com/sindresorhus/awesome-lint)
+- **Requires**:
+  - Repository name starts with `awesome-`
+- **Skipped for**:
+  - `prepare-release` branch
 
-- 🔐 **Lint secrets** (`lint-secrets`)
+#### 🔐 Lint secrets (`lint-secrets`)
 
-  - Scans for leaked secrets using [`gitleaks`](https://github.com/gitleaks/gitleaks)
-  - **Skipped for**:
-    - `prepare-release` branch
-    - Bot-created PRs
+- Scans for leaked secrets using [`gitleaks`](https://github.com/gitleaks/gitleaks)
+- **Skipped for**:
+  - `prepare-release` branch
+  - Bot-created PRs
 
 ### 🚀 [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/release.yaml)
 
@@ -386,171 +386,171 @@ docs = [
 
 **Cross-platform binaries** — Targets 6 platform/architecture combinations (Linux/macOS/Windows × `x86_64`/`arm64`). Unstable targets use `continue-on-error` so builds don't fail on experimental platforms. Job names are prefixed with ✅ (stable, must pass) or ⁉️ (unstable, allowed to fail) for quick visual triage in the GitHub Actions UI.
 
-- 🧯 **Detect squash merge** (`detect-squash-merge`)
+#### 🧯 Detect squash merge (`detect-squash-merge`)
 
-  - Detects squash-merged release PRs, opens a GitHub issue to notify the maintainer, and fails the workflow
-  - The release is effectively skipped: `create-tag` only matches commits with the `[changelog] Release v` prefix, so no tag, PyPI publish, or GitHub release is created from a squash merge
-  - The net effect of squashing freeze + unfreeze leaves `main` in a valid state for the next development cycle; the maintainer just releases the next version when ready
-  - **Runs on**:
-    - Push to `main` only
+- Detects squash-merged release PRs, opens a GitHub issue to notify the maintainer, and fails the workflow
+- The release is effectively skipped: `create-tag` only matches commits with the `[changelog] Release v` prefix, so no tag, PyPI publish, or GitHub release is created from a squash merge
+- The net effect of squashing freeze + unfreeze leaves `main` in a valid state for the next development cycle; the maintainer just releases the next version when ready
+- **Runs on**:
+  - Push to `main` only
 
-- 📦 **Build package** (`build-package`)
+#### 📦 Build package (`build-package`)
 
-  - Builds Python wheel and sdist packages using [`uv build`](https://github.com/astral-sh/uv)
-  - **Requires**:
-    - Python package with a `pyproject.toml` file
+- Builds Python wheel and sdist packages using [`uv build`](https://github.com/astral-sh/uv)
+- **Requires**:
+  - Python package with a `pyproject.toml` file
 
-- ✅ **Compile binaries** (`compile-binaries`)
+#### ✅ Compile binaries (`compile-binaries`)
 
-  - Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
-  - On release pushes, each binary generates an attestation and uploads itself to the GitHub release as its build completes
-  - **Requires**:
-    - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
-  - **Skipped if** `[tool.repomatic] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
-  - **Skipped for** branches that don't affect code:
-    - `format-json` (JSON formatting)
-    - `format-markdown` (documentation formatting)
-    - `format-images` (image formatting)
-    - `sync-gitignore` (`.gitignore` sync)
-    - `sync-mailmap` (`.mailmap` sync)
-    - `update-deps-graph` (dependency graph docs)
+- Compiles standalone binaries using [`Nuitka`](https://github.com/Nuitka/Nuitka) for Linux/macOS/Windows on `x64`/`arm64`
+- On release pushes, each binary generates an attestation and uploads itself to the GitHub release as its build completes
+- **Requires**:
+  - Python package with [CLI entry points](https://docs.astral.sh/uv/concepts/projects/config/#entry-points) defined in `pyproject.toml`
+- **Skipped if** `[tool.repomatic] nuitka = false` is set in `pyproject.toml` (for projects with CLI entry points that don't need standalone binaries)
+- **Skipped for** branches that don't affect code:
+  - `format-json` (JSON formatting)
+  - `format-markdown` (documentation formatting)
+  - `format-images` (image formatting)
+  - `sync-gitignore` (`.gitignore` sync)
+  - `sync-mailmap` (`.mailmap` sync)
+  - `update-deps-graph` (dependency graph docs)
 
-- ✅ **Test binaries** (`test-binaries`)
+#### ✅ Test binaries (`test-binaries`)
 
-  - Runs test plans against compiled binaries using [`repomatic test-plan`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/test_plan.py)
-  - **Requires**:
-    - Compiled binaries from `compile-binaries` job
-    - Test plan file (default: `./tests/cli-test-plan.yaml`)
-  - **Skipped for**:
-    - Same branches as `compile-binaries`
+- Runs test plans against compiled binaries using [`repomatic test-plan`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/test_plan.py)
+- **Requires**:
+  - Compiled binaries from `compile-binaries` job
+  - Test plan file (default: `./tests/cli-test-plan.yaml`)
+- **Skipped for**:
+  - Same branches as `compile-binaries`
 
-- 📌 **Create tag** (`create-tag`)
+#### 📌 Create tag (`create-tag`)
 
-  - Creates a Git tag for the release version
-  - **Requires**:
-    - Push to `main` branch
-    - Release commits matrix from [`repomatic metadata`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/metadata.py)
+- Creates a Git tag for the release version
+- **Requires**:
+  - Push to `main` branch
+  - Release commits matrix from [`repomatic metadata`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/metadata.py)
 
-- 🐍 **Publish to PyPI** (`publish-pypi`)
+#### 🐍 Publish to PyPI (`publish-pypi`)
 
-  - Uploads packages to PyPI with attestations using [`uv publish`](https://github.com/astral-sh/uv)
-  - **Requires**:
-    - `PYPI_TOKEN` secret
-    - Built packages from `build-package` job
+- Uploads packages to PyPI with attestations using [`uv publish`](https://github.com/astral-sh/uv)
+- **Requires**:
+  - `PYPI_TOKEN` secret
+  - Built packages from `build-package` job
 
-- 🐙 **Create release draft** (`create-release`)
+#### 🐙 Create release draft (`create-release`)
 
-  - Creates a GitHub release **draft** with the Python package attached using `gh release create`
-  - Binaries are attached independently by each `compile-binaries` matrix entry as they complete (uploading to drafts is allowed)
-  - **Requires**:
-    - Successful `create-tag` job
+- Creates a GitHub release **draft** with the Python package attached using `gh release create`
+- Binaries are attached independently by each `compile-binaries` matrix entry as they complete (uploading to drafts is allowed)
+- **Requires**:
+  - Successful `create-tag` job
 
-- 🎉 **Publish release** (`publish-release`)
+#### 🎉 Publish release (`publish-release`)
 
-  - Publishes the draft GitHub release after all assets have been uploaded
-  - Supports [GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases): once published, tags and assets are locked
-  - Uses `always()` so it runs even when `compile-binaries` is skipped (non-binary projects) or partially fails (unstable platforms)
-  - **Requires**:
-    - Successful `create-release` job (draft must exist)
+- Publishes the draft GitHub release after all assets have been uploaded
+- Supports [GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases): once published, tags and assets are locked
+- Uses `always()` so it runs even when `compile-binaries` is skipped (non-binary projects) or partially fails (unstable platforms)
+- **Requires**:
+  - Successful `create-release` job (draft must exist)
 
-- 🛡️ **VirusTotal scan** (`scan-virustotal`)
+#### 🛡️ VirusTotal scan (`scan-virustotal`)
 
-  - Uploads compiled binaries (`.bin` and `.exe`) to [VirusTotal](https://www.virustotal.com/) via `repomatic scan-virustotal`, then appends analysis links to the GitHub release body. A second step polls for analysis completion and replaces the table with detection statistics (`flagged / total` engine counts)
-  - Seeds AV vendor databases to reduce false positive detections for downstream distributors (Chocolatey, Scoop, etc.)
-  - **Requires**:
-    - `VIRUSTOTAL_API_KEY` repository secret ([free API key](https://www.virustotal.com/gui/my-apikey))
-    - Successful `publish-release` job
-  - **Skipped if**:
-    - `VIRUSTOTAL_API_KEY` secret is not configured
-    - `publish-release` job did not succeed
+- Uploads compiled binaries (`.bin` and `.exe`) to [VirusTotal](https://www.virustotal.com/) via `repomatic scan-virustotal`, then appends analysis links to the GitHub release body. A second step polls for analysis completion and replaces the table with detection statistics (`flagged / total` engine counts)
+- Seeds AV vendor databases to reduce false positive detections for downstream distributors (Chocolatey, Scoop, etc.)
+- **Requires**:
+  - `VIRUSTOTAL_API_KEY` repository secret ([free API key](https://www.virustotal.com/gui/my-apikey))
+  - Successful `publish-release` job
+- **Skipped if**:
+  - `VIRUSTOTAL_API_KEY` secret is not configured
+  - `publish-release` job did not succeed
 
-- 🔄 **Sync dev pre-release** (`sync-dev-release`)
+#### 🔄 Sync dev pre-release (`sync-dev-release`)
 
-  - Maintains a rolling dev pre-release on GitHub that mirrors the unreleased changelog section
-  - Attaches binaries and Python packages from build jobs via `--upload-assets`
-  - The dev tag (e.g. `v6.1.1.dev0`) is force-updated to point to the latest `main` commit
-  - Automatically cleaned up when a real release is created
-  - **Runs on**: Non-release pushes to `main` only
-  - **Requires**:
-    - `build-package` and `compile-binaries` jobs (uses `always()` for resilience)
-  - **Skipped if**:
-    - `dev-release.sync = false` in `[tool.repomatic]`
+- Maintains a rolling dev pre-release on GitHub that mirrors the unreleased changelog section
+- Attaches binaries and Python packages from build jobs via `--upload-assets`
+- The dev tag (e.g. `v6.1.1.dev0`) is force-updated to point to the latest `main` commit
+- Automatically cleaned up when a real release is created
+- **Runs on**: Non-release pushes to `main` only
+- **Requires**:
+  - `build-package` and `compile-binaries` jobs (uses `always()` for resilience)
+- **Skipped if**:
+  - `dev-release.sync = false` in `[tool.repomatic]`
 
 ### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
 
-- 🚚 **Migrate to Renovate** (`migrate-to-renovate`)
+#### 🚚 Migrate to Renovate (`migrate-to-renovate`)
 
-  - Automatically migrates from Dependabot to Renovate by creating a PR that:
-    - Exports `renovate.json5` configuration file (if missing)
-    - Removes `.github/dependabot.yaml` or `.github/dependabot.yml` (if present)
-  - PR body includes a prerequisites status table showing:
-    - What this PR fixes (config file creation, Dependabot removal)
-    - What needs manual action (security updates settings, token permissions)
-    - Links to relevant settings pages for easy access
-  - Uses [`peter-evans/create-pull-request`](https://github.com/peter-evans/create-pull-request) for consistent PR creation
-  - **Skipped if**:
-    - No changes needed (`renovate.json5` already exists and no Dependabot config is present)
+- Automatically migrates from Dependabot to Renovate by creating a PR that:
+  - Exports `renovate.json5` configuration file (if missing)
+  - Removes `.github/dependabot.yaml` or `.github/dependabot.yml` (if present)
+- PR body includes a prerequisites status table showing:
+  - What this PR fixes (config file creation, Dependabot removal)
+  - What needs manual action (security updates settings, token permissions)
+  - Links to relevant settings pages for easy access
+- Uses [`peter-evans/create-pull-request`](https://github.com/peter-evans/create-pull-request) for consistent PR creation
+- **Skipped if**:
+  - No changes needed (`renovate.json5` already exists and no Dependabot config is present)
 
-- 🆕 **Renovate** (`renovate`)
+#### 🆕 Renovate (`renovate`)
 
-  - Materializes the bundled default `renovate.json5` at runtime when the file is absent, so downstream repos can safely remove unmodified copies via `clean-unmodified-configs`
-  - Validates prerequisites before running (fails if not met):
-    - No Dependabot config file present
-    - Dependabot security updates disabled
-  - Runs self-hosted [Renovate](https://github.com/renovatebot/renovate) to update dependencies
-  - Creates PRs for outdated dependencies with stabilization periods
-  - Handles security vulnerabilities via `vulnerabilityAlerts`
-  - **Requires**:
-    - `REPOMATIC_PAT` secret with Dependabot alerts permission
+- Materializes the bundled default `renovate.json5` at runtime when the file is absent, so downstream repos can safely remove unmodified copies via `clean-unmodified-configs`
+- Validates prerequisites before running (fails if not met):
+  - No Dependabot config file present
+  - Dependabot security updates disabled
+- Runs self-hosted [Renovate](https://github.com/renovatebot/renovate) to update dependencies
+- Creates PRs for outdated dependencies with stabilization periods
+- Handles security vulnerabilities via `vulnerabilityAlerts`
+- **Requires**:
+  - `REPOMATIC_PAT` secret with Dependabot alerts permission
 
 ### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/tests.yaml)
 
-- 📦 **Package install** (`test-package-install`)
+#### 📦 Package install (`test-package-install`)
 
-  - Verifies the package can be installed and all CLI entry points run correctly via every install method: `uvx`, `uvx --from`, `uv run --with`, module invocation (`-m`), `uv tool install`, and `pipx run`
-  - Tests both the latest PyPI release and the current `main` branch from GitHub
-  - Runs once on a single stable OS/Python — install correctness does not vary by platform
-  - **Requires**:
-    - `cli_scripts` from `metadata` job (skipped if no `[project.scripts]` entries)
+- Verifies the package can be installed and all CLI entry points run correctly via every install method: `uvx`, `uvx --from`, `uv run --with`, module invocation (`-m`), `uv tool install`, and `pipx run`
+- Tests both the latest PyPI release and the current `main` branch from GitHub
+- Runs once on a single stable OS/Python — install correctness does not vary by platform
+- **Requires**:
+  - `cli_scripts` from `metadata` job (skipped if no `[project.scripts]` entries)
 
-- 🔬 **Run tests** (`tests`)
+#### 🔬 Run tests (`tests`)
 
-  - Runs the test suite across a matrix of OS (Linux/macOS/Windows × `x86_64`/`arm64`) and Python versions (`3.10`, `3.14`, `3.14t`, `3.15`)
-  - Installs all optional extras (`--all-extras`) to catch incompatibilities between optional dependency groups
-  - Runs `pytest` with coverage reporting to Codecov
-  - Runs self-tests against the CLI test plan
-  - Job names prefixed with **✅** (stable) or **⁉️** (unstable, e.g., unreleased Python versions)
+- Runs the test suite across a matrix of OS (Linux/macOS/Windows × `x86_64`/`arm64`) and Python versions (`3.10`, `3.14`, `3.14t`, `3.15`)
+- Installs all optional extras (`--all-extras`) to catch incompatibilities between optional dependency groups
+- Runs `pytest` with coverage reporting to Codecov
+- Runs self-tests against the CLI test plan
+- Job names prefixed with **✅** (stable) or **⁉️** (unstable, e.g., unreleased Python versions)
 
-- 🖥️ **Validate architecture** (`validate-arch`)
+#### 🖥️ Validate architecture (`validate-arch`)
 
-  - Checks that the detected CPU architecture matches what the runner image advertises
-  - Ensures runners are not silently using emulation (e.g., x86_64 on aarch64)
-  - **Requires**:
-    - Build targets from `metadata` job
+- Checks that the detected CPU architecture matches what the runner image advertises
+- Ensures runners are not silently using emulation (e.g., x86_64 on aarch64)
+- **Requires**:
+  - Build targets from `metadata` job
 
 ### 🔄 [`.github/workflows/update-checksums.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/update-checksums.yaml)
 
-- 🔄 **Update checksums** (`update-checksums`)
+#### 🔄 Update checksums (`update-checksums`)
 
-  - Workaround for [renovatebot/renovate#42263](https://github.com/renovatebot/renovate/discussions/42263): Renovate's `postUpgradeTasks` silently drops file changes when the task modifies the same file the regex manager already updated
-  - Triggers when Renovate pushes a version bump to `repomatic/tool_runner.py` on a `renovate/**` branch
-  - Downloads each binary tool at its new version, computes the SHA-256, and commits the corrected checksums to the PR branch
-  - Uses `REPOMATIC_PAT` for the push so the fix commit re-triggers CI checks on the PR
-  - Safe against infinite loops: a second trigger finds all checksums already correct and exits without pushing
-  - **Source-repo only**: not bundled for downstream repos (they have no tool registry)
+- Workaround for [renovatebot/renovate#42263](https://github.com/renovatebot/renovate/discussions/42263): Renovate's `postUpgradeTasks` silently drops file changes when the task modifies the same file the regex manager already updated
+- Triggers when Renovate pushes a version bump to `repomatic/tool_runner.py` on a `renovate/**` branch
+- Downloads each binary tool at its new version, computes the SHA-256, and commits the corrected checksums to the PR branch
+- Uses `REPOMATIC_PAT` for the push so the fix commit re-triggers CI checks on the PR
+- Safe against infinite loops: a second trigger finds all checksums already correct and exits without pushing
+- **Source-repo only**: not bundled for downstream repos (they have no tool registry)
 
 ### 🔕 [`.github/workflows/unsubscribe.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/unsubscribe.yaml)
 
-- 🔕 **Unsubscribe from closed threads** (`unsubscribe-threads`)
+#### 🔕 Unsubscribe from closed threads (`unsubscribe-threads`)
 
-  - Unsubscribes from notification threads of closed issues and pull requests after a configurable inactivity period (default: 3 months)
-  - Processes threads in batches (default: 200 per run) to stay within API rate limits
-  - Supports dry-run mode via `workflow_dispatch` to preview candidates without acting
-  - **Requires**:
-    - `REPOMATIC_NOTIFICATIONS_PAT` secret (skips silently when not configured)
-    - `notification.unsubscribe = true` in `[tool.repomatic]` (opt-in; thin caller workflow is not generated by default)
-  - **Skipped if**:
-    - upstream `kdeldycke/repomatic` repo (except via `workflow_call`)
+- Unsubscribes from notification threads of closed issues and pull requests after a configurable inactivity period (default: 3 months)
+- Processes threads in batches (default: 200 per run) to stay within API rate limits
+- Supports dry-run mode via `workflow_dispatch` to preview candidates without acting
+- **Requires**:
+  - `REPOMATIC_NOTIFICATIONS_PAT` secret (skips silently when not configured)
+  - `notification.unsubscribe = true` in `[tool.repomatic]` (opt-in; thin caller workflow is not generated by default)
+- **Skipped if**:
+  - upstream `kdeldycke/repomatic` repo (except via `workflow_call`)
 
 ### 🧬 What is this `metadata` job?
 
