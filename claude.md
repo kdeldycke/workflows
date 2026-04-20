@@ -167,7 +167,7 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 ### Comments and docstrings
 
 - All comments in Python files must end with a period.
-- Docstrings use MyST markdown format. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time, so `sphinx.ext.autodoc` works transparently. Use ``{role}`target` `` for cross-references, `:::{directive}` for admonitions, `[text](url)` for links, and single backticks for inline code. Run `uv run repomatic convert-to-myst` to batch-convert any remaining reST docstrings.
+- Docstrings use MyST markdown format. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time, so `sphinx.ext.autodoc` works transparently. Use `` {role}`target`  `` for cross-references, `:::{directive}` for admonitions, `[text](url)` for links, and single backticks for inline code. Run `uv run repomatic convert-to-myst` to batch-convert any remaining reST docstrings.
 - Documentation in `./docs/` uses MyST markdown format where possible. Fallback to reStructuredText if necessary.
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit — do not hard-wrap prose in markdown. Each sentence or logical clause should flow as a single long line; let the renderer handle wrapping.
 - Titles in markdown use sentence case.
