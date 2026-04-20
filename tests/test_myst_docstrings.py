@@ -424,8 +424,7 @@ def test_real_detection_function():
     assert ":data:`~extra_platforms.ANDROID`" in result
     assert ".. seealso::" in result
     assert (
-        "    `kivy/utils.py"
-        " <https://github.com/kivy/kivy/blob/master/kivy/utils.py>`_"
+        "    `kivy/utils.py <https://github.com/kivy/kivy/blob/master/kivy/utils.py>`_"
     ) in result
 
 
@@ -471,9 +470,7 @@ def test_all_conversions_combined():
     # Inline code doubled.
     assert "``path``" in result
     # Link converted.
-    assert (
-        "`os.path <https://docs.python.org/3/library/os.path.html>`_" in result
-    )
+    assert "`os.path <https://docs.python.org/3/library/os.path.html>`_" in result
     # Backtick fence converted.
     assert ".. warning::" in result
     assert "    Symlinks are not resolved." in result
