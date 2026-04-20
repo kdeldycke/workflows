@@ -225,8 +225,7 @@ def convert_comment_blocks(text: str) -> str:
                 break
             # Strip the #: prefix (with optional trailing space).
             after = s[2:]
-            if after.startswith(" "):
-                after = after[1:]
+            after = after.removeprefix(" ")
             block_contents.append(after)
             i += 1
 
@@ -285,8 +284,9 @@ def convert_directory(directory: Path) -> list[Path]:
     :param directory: Directory to process recursively.
     :returns: List of files that were modified.
     """
-    changed: list[Path] = []
-    for filepath in sorted(directory.glob("**/*.py")):
-        if convert_file(filepath):
-            changed.append(filepath)
+    changed: list[Path] = [
+        filepath
+        for filepath in sorted(directory.glob("**/*.py"))
+        if convert_file(filepath)
+    ]
     return changed

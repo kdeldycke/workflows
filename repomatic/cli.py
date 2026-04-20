@@ -1906,8 +1906,8 @@ def convert_to_myst(directory: str | None) -> None:
     Safe to re-run: already-converted MyST syntax does not match the reST
     patterns, so the conversion is idempotent.
     """
-    from .myst_converter import convert_directory
     from .metadata import Metadata
+    from .myst_converter import convert_directory
 
     if directory:
         root = Path(directory)

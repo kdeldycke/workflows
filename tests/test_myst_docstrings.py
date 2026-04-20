@@ -262,8 +262,7 @@ def test_real_detection_function():
     assert ":data:`~extra_platforms.ANDROID`" in result
     assert ".. seealso::" in result
     assert (
-        "    `kivy/utils.py"
-        " <https://github.com/kivy/kivy/blob/master/kivy/utils.py>`_"
+        "    `kivy/utils.py <https://github.com/kivy/kivy/blob/master/kivy/utils.py>`_"
     ) in result
 
 
@@ -305,7 +304,6 @@ def test_real_caution_with_code_block():
     assert ":data:`True`" in result
     assert ".. caution::" in result
     assert (
-        "    ``platform.machine()`` returns different values"
-        " depending on the OS:"
+        "    ``platform.machine()`` returns different values depending on the OS:"
     ) in result
     assert "    - Linux: ``aarch64``" in result

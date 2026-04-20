@@ -112,9 +112,7 @@ def _convert_fence(match: re.Match) -> str:
             # Preserve relative indentation within the body.
             stripped = line.lstrip()
             extra_spaces = len(line) - len(stripped) - len(indent)
-            converted_lines.append(
-                body_indent + " " * max(0, extra_spaces) + stripped
-            )
+            converted_lines.append(body_indent + " " * max(0, extra_spaces) + stripped)
         else:
             converted_lines.append("")
 
