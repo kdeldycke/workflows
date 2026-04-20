@@ -685,8 +685,13 @@ def _format_type(annotation: str) -> str:
     return result
 
 
-CONFIG_REFERENCE_HEADERS = ("Option", "Type", "Default", "Description")
-"""Column headers for the `[tool.repomatic]` configuration reference table."""
+CONFIG_REFERENCE_HEADER_DEFS: tuple[tuple[str, str], ...] = (
+    ("Option", "option"),
+    ("Type", "type"),
+    ("Default", "default"),
+    ("Description", "description"),
+)
+"""Column definitions for the `[tool.repomatic]` configuration reference table."""
 
 
 def config_reference() -> list[tuple[str, str, str, str]]:

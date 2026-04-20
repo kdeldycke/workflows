@@ -426,8 +426,11 @@ _METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
 """One-liner descriptions for each metadata key produced by {meth}`Metadata.dump`."""
 
 
-METADATA_KEYS_HEADERS = ("Key", "Description")
-"""Column headers for the metadata keys reference table."""
+METADATA_KEYS_HEADER_DEFS: tuple[tuple[str, str], ...] = (
+    ("Key", "key"),
+    ("Description", "description"),
+)
+"""Column definitions for the metadata keys reference table."""
 
 
 def metadata_keys_reference() -> list[tuple[str, str]]:
@@ -435,13 +438,14 @@ def metadata_keys_reference() -> list[tuple[str, str]]:
 
     Returns a list of `(key, description)` tuples for all keys produced by
     {meth}`Metadata.dump`, including `[tool.repomatic]` config fields that are
-    exposed as metadata outputs.
+    exposed as metadata outputs. Rows are unsorted: sorting is handled by the
+    CLI's `SortByOption`.
     """
     rows = [(k, v) for k, v in _METADATA_KEY_DESCRIPTIONS.items()]
 
     # Add config fields exposed as metadata (same filter as dump()).
     docstrings = _extract_field_docstrings()
-    for f in sorted(fields(Config), key=lambda f: f.name):
+    for f in fields(Config):
         if (
             f.name
             not in (

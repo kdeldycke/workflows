@@ -53,6 +53,7 @@ from click_extra import (
 )
 from click_extra.config import get_tool_config
 from click_extra.envvar import merge_envvar_ids
+from click_extra.table import SortByOption
 from extra_platforms import ALL_IDS, is_github_ci
 
 from . import __version__
@@ -73,7 +74,7 @@ from .cache import (
 from .changelog import Changelog, lint_changelog_dates
 from .checksums import update_checksums, update_registry_checksums
 from .config import (
-    CONFIG_REFERENCE_HEADERS,
+    CONFIG_REFERENCE_HEADER_DEFS,
     Config,
     config_reference,
 )
@@ -126,7 +127,7 @@ from .lint_repo import (
 )
 from .mailmap import Mailmap
 from .metadata import (
-    METADATA_KEYS_HEADERS,
+    METADATA_KEYS_HEADER_DEFS,
     Dialect,
     Metadata,
     all_metadata_keys,
@@ -596,7 +597,14 @@ init_project.help = init_project.help.format(
 )
 
 
-@repomatic.command(short_help="Output project metadata", section=_section_setup)
+_metadata_sort = SortByOption(*METADATA_KEYS_HEADER_DEFS, default="key")
+
+
+@repomatic.command(
+    short_help="Output project metadata",
+    section=_section_setup,
+    params=[_metadata_sort],
+)
 @option(
     "--format",
     type=EnumChoice(Dialect),
@@ -639,7 +647,7 @@ def metadata(ctx, format, overwrite, output, list_keys, keys):
             current_version is_python_project
     """
     if list_keys:
-        ctx.find_root().print_table(metadata_keys_reference(), METADATA_KEYS_HEADERS)
+        ctx.print_table(METADATA_KEYS_HEADER_DEFS, metadata_keys_reference())
         ctx.exit(0)
 
     # Validate requested keys.
@@ -689,10 +697,14 @@ def metadata(ctx, format, overwrite, output, list_keys, keys):
     echo(content, file=prep_path(output))
 
 
+_show_config_sort = SortByOption(*CONFIG_REFERENCE_HEADER_DEFS, default="option")
+
+
 @repomatic.command(
     name="show-config",
     short_help="Print [tool.repomatic] configuration reference",
     section=_section_setup,
+    params=[_show_config_sort],
 )
 @pass_context
 def show_config(ctx):
@@ -700,9 +712,9 @@ def show_config(ctx):
 
     Renders a table of all available options, their types, defaults,
     and descriptions — generated from the Config dataclass docstrings.
-    Respects the global --table-format option.
+    Respects the global --table-format and --sort-by options.
     """
-    ctx.find_root().print_table(config_reference(), CONFIG_REFERENCE_HEADERS)
+    ctx.print_table(CONFIG_REFERENCE_HEADER_DEFS, config_reference())
 
 
 @repomatic.command(
@@ -3114,8 +3126,14 @@ def lint_changelog(
     ctx.exit(exit_code)
 
 
-TOOL_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Config source")
-"""Column headers for the `repomatic run --list` table."""
+TOOL_LIST_HEADER_DEFS: tuple[tuple[str, str], ...] = (
+    ("Tool", "tool"),
+    ("Version", "version"),
+    ("Config source", "config-source"),
+)
+"""Column definitions for the `repomatic run --list` table."""
+
+_run_sort = SortByOption(*TOOL_LIST_HEADER_DEFS, default="tool")
 
 
 @repomatic.command(
@@ -3123,6 +3141,7 @@ TOOL_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Config source")
     short_help="Run an external tool with managed config",
     section=_section_lint,
     context_settings={"ignore_unknown_options": True},
+    params=[_run_sort],
 )
 @argument("tool_name", required=False, default=None)
 @argument("extra_args", nargs=-1, type=UNPROCESSED)
@@ -3187,9 +3206,9 @@ def run_cmd(
     if list_tools:
         rows = [
             (spec.name, spec.version, resolve_config_source(spec))
-            for spec in sorted(TOOL_REGISTRY.values(), key=lambda s: s.name)
+            for spec in TOOL_REGISTRY.values()
         ]
-        ctx.find_root().print_table(rows, TOOL_LIST_HEADERS)
+        ctx.print_table(TOOL_LIST_HEADER_DEFS, rows)
         ctx.exit(0)
 
     if tool_name is None:
@@ -3208,14 +3227,14 @@ def run_cmd(
     ctx.exit(exit_code)
 
 
-CACHE_LIST_HEADERS: tuple[str, ...] = (
-    "Type",
-    "Name",
-    "Detail",
-    "Size",
-    "Age",
+CACHE_LIST_HEADER_DEFS: tuple[tuple[str, str], ...] = (
+    ("Type", "type"),
+    ("Name", "name"),
+    ("Detail", "detail"),
+    ("Size", "size"),
+    ("Age", "age"),
 )
-"""Column headers for the `repomatic cache show` table."""
+"""Column definitions for the `repomatic cache show` table."""
 
 
 @repomatic.group(short_help="Manage the download cache", section=_section_lint)
@@ -3238,7 +3257,10 @@ def _format_age(mtime: float) -> str:
     return f"{age_days} days"
 
 
-@cache.command(short_help="List cached entries")
+_cache_show_sort = SortByOption(*CACHE_LIST_HEADER_DEFS, default="name")
+
+
+@cache.command(short_help="List cached entries", params=[_cache_show_sort])
 @pass_context
 def show(ctx):
     """List all cached binaries and HTTP responses."""
@@ -3279,7 +3301,7 @@ def show(ctx):
             _format_age(cfg_entry.mtime),
         ))
 
-    ctx.find_root().print_table(rows, CACHE_LIST_HEADERS)
+    ctx.print_table(CACHE_LIST_HEADER_DEFS, rows)
     total_count = len(bin_entries) + len(http_entries) + len(cfg_entries)
     echo(f"\nTotal: {total_count} file(s), {_format_size(total_size)}")
 

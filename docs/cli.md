@@ -10,6 +10,7 @@
 | [`repomatic broken-links`](#repomatic-broken-links)                         | Manage broken links issue lifecycle                     |
 | [`repomatic cache`](#repomatic-cache)                                       | Manage the download cache                               |
 | [`repomatic cache clean`](#repomatic-cache-clean)                           | Remove cached entries                                   |
+| [`repomatic cache help`](#repomatic-cache-help)                             | Show help for a command                                 |
 | [`repomatic cache path`](#repomatic-cache-path)                             | Print the cache directory path                          |
 | [`repomatic cache show`](#repomatic-cache-show)                             | List cached entries                                     |
 | [`repomatic changelog`](#repomatic-changelog)                               | Maintain a Markdown-formatted changelog                 |
@@ -19,6 +20,7 @@
 | [`repomatic fix-vulnerable-deps`](#repomatic-fix-vulnerable-deps)           | Upgrade packages with known vulnerabilities             |
 | [`repomatic format-images`](#repomatic-format-images)                       | Format images with lossless optimization                |
 | [`repomatic git-tag`](#repomatic-git-tag)                                   | Create and push a Git tag                               |
+| [`repomatic help`](#repomatic-help)                                         | Show help for a command                                 |
 | [`repomatic init`](#repomatic-init)                                         | Bootstrap a repository to use reusable workflows        |
 | [`repomatic lint-changelog`](#repomatic-lint-changelog)                     | Check changelog dates against release dates             |
 | [`repomatic lint-repo`](#repomatic-lint-repo)                               | Run repository consistency checks                       |
@@ -46,6 +48,7 @@
 | [`repomatic verify-binary`](#repomatic-verify-binary)                       | Verify binary architecture using exiftool               |
 | [`repomatic version-check`](#repomatic-version-check)                       | Check if a version bump is allowed                      |
 | [`repomatic workflow`](#repomatic-workflow)                                 | Lint downstream workflow caller files                   |
+| [`repomatic workflow help`](#repomatic-workflow-help)                       | Show help for a command                                 |
 | [`repomatic workflow lint`](#repomatic-workflow-lint)                       | Lint workflow files for common issues                   |
 
 ## Help screen
@@ -125,6 +128,9 @@ GitHub issues & PRs:
   unsubscribe-threads       Unsubscribe from closed, inactive notification
                             threads
   pr-body                   Generate PR body with workflow metadata
+
+Other commands:
+  help                      Show help for a command.
 ```
 
 ## `repomatic broken-links`
@@ -184,6 +190,7 @@ Options:
 
 Commands:
   clean  Remove cached entries
+  help   Show help for a command.
   path   Print the cache directory path
   show   List cached entries
 ```
@@ -213,6 +220,19 @@ Options:
   -h, --help         Show this message and exit.
 ```
 
+### `repomatic cache help`
+
+```text
+Usage: repomatic cache help [OPTIONS]
+                            [COMMAND_PATH]...
+
+  Show help for a command.
+
+Options:
+  --search TEXT  Search all subcommands for matching options or descriptions.
+  -h, --help     Show this message and exit.
+```
+
 ### `repomatic cache path`
 
 ```text
@@ -234,6 +254,9 @@ Usage: repomatic cache show [OPTIONS]
   List all cached binaries and HTTP responses.
 
 Options:
+  --sort-by [type|name|detail|size|age]
+              Sort table by this column. Repeat to set priority.  [default:
+              name]
   -h, --help  Show this message and exit.
 ```
 
@@ -441,6 +464,18 @@ Options:
                       [default: skip-existing]
   -o, --output FILE   Output file for created=true/false (e.g., $GITHUB_OUTPUT).
   -h, --help          Show this message and exit.
+```
+
+## `repomatic help`
+
+```text
+Usage: repomatic help [OPTIONS] [COMMAND_PATH]...
+
+  Show help for a command.
+
+Options:
+  --search TEXT  Search all subcommands for matching options or descriptions.
+  -h, --help     Show this message and exit.
 ```
 
 ## `repomatic init`
@@ -656,14 +691,18 @@ Usage: repomatic metadata [OPTIONS] [KEYS]...
 
 Options:
   --format [github|github-json|json]
-                     Rendering format of the metadata.  [default: github]
+                               Rendering format of the metadata.  [default:
+                               github]
   --overwrite, --force, --replace / --no-overwrite, --no-force, --no-replace
-                     Overwrite output file if it already exists.  [default:
-                     overwrite]
-  -o, --output FILE  Output file path. Defaults to stdout.  [default: -]
-  --list-keys        List all available metadata keys with descriptions and
-                     exit.
-  -h, --help         Show this message and exit.
+                               Overwrite output file if it already exists.
+                               [default: overwrite]
+  -o, --output FILE            Output file path. Defaults to stdout.  [default:
+                               -]
+  --list-keys                  List all available metadata keys with
+                               descriptions and exit.
+  --sort-by [key|description]  Sort table by this column. Repeat to set
+                               priority.  [default: key]
+  -h, --help                   Show this message and exit.
 ```
 
 ## `repomatic pr-body`
@@ -790,6 +829,9 @@ Options:
   --checksum TEXT  Override the SHA-256 checksum for the current platform.
   --skip-checksum  Skip SHA-256 verification of binary downloads.
   --no-cache       Bypass the binary cache (download fresh every time).
+  --sort-by [tool|version|config-source]
+                   Sort table by this column. Repeat to set priority.  [default:
+                   tool]
   -h, --help       Show this message and exit.
 ```
 
@@ -876,9 +918,12 @@ Usage: repomatic show-config [OPTIONS]
 
   Renders a table of all available options, their types, defaults, and
   descriptions — generated from the Config dataclass docstrings. Respects the
-  global --table-format option.
+  global --table-format and --sort-by options.
 
 Options:
+  --sort-by [option|type|default|description]
+              Sort table by this column. Repeat to set priority.  [default:
+              option]
   -h, --help  Show this message and exit.
 ```
 
@@ -1381,7 +1426,21 @@ Options:
   -h, --help  Show this message and exit.
 
 Commands:
+  help  Show help for a command.
   lint  Lint workflow files for common issues
+```
+
+### `repomatic workflow help`
+
+```text
+Usage: repomatic workflow help [OPTIONS]
+                               [COMMAND_PATH]...
+
+  Show help for a command.
+
+Options:
+  --search TEXT  Search all subcommands for matching options or descriptions.
+  -h, --help     Show this message and exit.
 ```
 
 ### `repomatic workflow lint`
