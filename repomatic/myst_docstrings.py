@@ -33,8 +33,8 @@ Supported conversions:
 * - Cross-references
   - ``{role}`target```
   - ``{role}`target```
-* - Colon-fence admonitions
-  - ``:::{note}``
+* - Fenced directives
+  - ``:::{note}`` or `` ```{note} ``
   - `.. note::`
 * - Markdown links
   - `[text](url)`
@@ -63,13 +63,18 @@ from __future__ import annotations
 import re
 
 # {role}`target` -> {role}`target`
-_XREF_RE = re.compile(r"\{([\w-]+)\}`([^`]*?)`")
+# Negative lookbehind prevents matching inside double backticks (``{version}``).
+_XREF_RE = re.compile(r"(?<!``)\{([\w-]+)\}`([^`]*?)`")
 
-# :::{directive} optional-title
-# body
-# :::
-_FENCE_RE = re.compile(
+# :::{directive} optional-title        ```{directive} optional-title
+# body                          or     body
+# :::                                  ```
+_COLON_FENCE_RE = re.compile(
     r"^( *):::\{([\w-]+)\}[ ]*([^\n]*)\n(.*?)^\1:::\s*$",
+    re.MULTILINE | re.DOTALL,
+)
+_BACKTICK_FENCE_RE = re.compile(
+    r"^( *)```\{([\w-]+)\}[ ]*([^\n]*)\n(.*?)^\1```\s*$",
     re.MULTILINE | re.DOTALL,
 )
 
@@ -132,12 +137,14 @@ def myst_to_rst(lines: list[str]) -> None:
     # 1. Cross-references: {role}`target` -> {role}`target`.
     text = _XREF_RE.sub(r":\1:`\2`", text)
 
-    # 2. Colon-fenced directives -> reST directives.
+    # 2. Fenced directives -> reST directives.
+    # Handles both colon fences (:::) and backtick fences (```).
     # Loop handles nesting (rare in docstrings, but correct).
     prev = None
     while prev != text:
         prev = text
-        text = _FENCE_RE.sub(_convert_fence, text)
+        text = _COLON_FENCE_RE.sub(_convert_fence, text)
+        text = _BACKTICK_FENCE_RE.sub(_convert_fence, text)
 
     # 3. Single-backtick inline code -> double-backtick.
     # Protect reST backtick spans (cross-references from step 1, and reST

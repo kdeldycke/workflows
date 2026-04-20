@@ -65,28 +65,28 @@ The `~` prefix for abbreviating to the last component works the same way.
 
 ### Admonitions
 
-Use colon-fenced directives:
+Both colon fences and backtick fences are supported:
 
 ```python
 def detect():
     """Detect the current platform.
 
-    :::{note}
+    ```{note}
     Falls back to generic detection if the specific
     platform check is unavailable.
-    :::
+    ```
     """
 ```
 
-All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`.
+The colon-fence equivalent (`:::{note}` / `:::`) works identically. All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`.
 
 Admonitions with titles:
 
 ```python
 """
-:::{warning} Experimental API
+```{warning} Experimental API
 This function may change in future releases.
-:::
+```
 """
 ```
 
@@ -112,18 +112,20 @@ Use single backticks. The extension doubles them for reST:
 
 ### Code blocks
 
-Use colon-fenced `code-block` directives (not triple-backtick fences, which the extension does not convert):
+Use fenced `code-block` directives (either backtick or colon style):
 
 ```python
 """
-:::{code-block} python
+```{code-block} python
 extensions = [
     "sphinx.ext.autodoc",
     "repomatic.myst_docstrings",
 ]
-:::
+```
 """
 ```
+
+Plain triple-backtick fences *without* a directive name (like ```` ``` python ````) are **not** converted. Use ```` ```{code-block} python ```` or `:::{code-block} python` instead.
 
 ### Field lists
 
@@ -156,8 +158,8 @@ Content containing `{` inside inline code is left as double backticks to avoid c
 
 The extension handles the constructs listed above. It does **not** convert:
 
-- **Triple-backtick fenced code blocks** (`` ``` ``). Use `:::{code-block}` instead.
-- **Nested colon fences** (`::::` / `:::`). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
+- **Plain triple-backtick code blocks** (`` ``` python `` without `{code-block}`). Use `` ```{code-block} python `` or `:::{code-block} python` instead.
+- **Nested fences of the same type** (`::::` / `:::` or ```` ```` / ``` ````). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
 - **Complex tables** (`:::{list-table}`, `:::{csv-table}`). These work in module-level docstrings processed by `myst-parser` but are unlikely to appear in function docstrings.
 - **`{` inside single backticks**. Content like `` `{version}` `` would be misinterpreted as a cross-reference. The converter intentionally keeps these as double backticks (``` ``{version}`` ```), which the extension passes through to Sphinx as-is.
 

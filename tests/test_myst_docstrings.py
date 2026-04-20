@@ -43,14 +43,29 @@ def _convert(text: str) -> str:
             ":func:`is_a`, :func:`is_b` and :data:`C`",
         ),
         ("a {class}`frozenset` of items", "a :class:`frozenset` of items"),
+        # Adjacent xrefs with no whitespace.
+        ("{func}`a`{func}`b`", ":func:`a`:func:`b`"),
+        # Hyphenated role name.
+        ("{pull-request}`#42`", ":pull-request:`#42`"),
+        # Empty target (Sphinx will warn later).
+        ("{func}``", ":func:``"),
     ],
-    ids=["simple", "tilde", "custom-role", "multiple", "mid-sentence"],
+    ids=[
+        "simple",
+        "tilde",
+        "custom-role",
+        "multiple",
+        "mid-sentence",
+        "adjacent-no-space",
+        "hyphenated-role",
+        "empty-target",
+    ],
 )
 def test_xref_conversion(myst, expected):
     assert _convert(myst) == expected
 
 
-# ---- Admonitions: :::{directive} -> .. directive:: -------------------------
+# ---- Colon-fenced directives: :::{directive} -> .. directive:: -------------
 
 
 @pytest.mark.parametrize(
@@ -76,18 +91,89 @@ def test_xref_conversion(myst, expected):
             ":::{seealso}\nSource: <https://example.com>\n:::",
             [".. seealso::", "    Source: <https://example.com>"],
         ),
+        # Empty body.
+        (":::{note}\n:::", [".. note::"]),
+        # Indented fence (nested context).
+        (
+            "    :::{warning}\n    Watch out.\n    :::",
+            ["    .. warning::", "        Watch out."],
+        ),
+        # Directive with option lines.
+        (
+            ":::{list-table}\n:header-rows: 1\n\n* - A\n  - B\n:::",
+            [".. list-table::", "    :header-rows: 1"],
+        ),
     ],
-    ids=["note", "multiline", "with-title", "indented-body", "seealso"],
+    ids=[
+        "note",
+        "multiline",
+        "with-title",
+        "indented-body",
+        "seealso",
+        "empty-body",
+        "indented-fence",
+        "directive-options",
+    ],
 )
-def test_admonition_conversion(myst, expected_fragments):
+def test_colon_fence_conversion(myst, expected_fragments):
     result = _convert(myst)
     for fragment in expected_fragments:
         assert fragment in result
 
 
-def test_admonition_preserves_blank_lines():
+def test_colon_fence_preserves_blank_lines():
     result = _convert(":::{note}\nFirst.\n\nSecond.\n:::")
     assert "" in result.split("\n")
+
+
+def test_colon_fence_blank_line_before_body():
+    """Converted directive inserts blank line between header and body."""
+    result = _convert(":::{code-block} python\nprint(1)\n:::")
+    lines = result.split("\n")
+    header_idx = next(i for i, l in enumerate(lines) if ".. code-block::" in l)
+    assert lines[header_idx + 1] == "", "blank line required after directive header"
+
+
+# ---- Backtick-fenced directives: ```{directive} -> .. directive:: ----------
+
+
+@pytest.mark.parametrize(
+    ("myst", "expected_fragments"),
+    [
+        (
+            "```{note}\nSome content.\n```",
+            [".. note::", "    Some content."],
+        ),
+        (
+            "```{warning} Be careful\nDon't do this.\n```",
+            [".. warning:: Be careful", "    Don't do this."],
+        ),
+        (
+            "```{code-block} python\nprint(1)\n```",
+            [".. code-block:: python", "    print(1)"],
+        ),
+        # Empty body.
+        ("```{tip}\n```", [".. tip::"]),
+        # Inline code inside body must not close the fence.
+        (
+            "```{note}\nUse `foo` here.\n```",
+            [".. note::", "    Use ``foo`` here."],
+        ),
+    ],
+    ids=["note", "with-title", "code-block", "empty-body", "inline-code-in-body"],
+)
+def test_backtick_fence_conversion(myst, expected_fragments):
+    result = _convert(myst)
+    for fragment in expected_fragments:
+        assert fragment in result
+
+
+def test_mixed_colon_outer_backtick_inner():
+    """Colon fence wrapping a backtick-fenced code block."""
+    myst = ":::{note}\nExample:\n\n```{code-block} python\nx = 1\n```\n:::"
+    result = _convert(myst)
+    assert ".. note::" in result
+    assert ".. code-block:: python" in result
 
 
 # ---- Links: [text](url) -> `text <url>`_ ----------------------------------
@@ -108,16 +194,35 @@ def test_admonition_preserves_blank_lines():
             "[Wikipedia](https://en.wikipedia.org/wiki/Foo)",
             "`Wikipedia <https://en.wikipedia.org/wiki/Foo>`_",
         ),
+        # Adjacent to punctuation.
+        (
+            "See [docs](https://example.com).",
+            "See `docs <https://example.com>`_.",
+        ),
     ],
-    ids=["simple", "mid-sentence", "parens-in-url"],
+    ids=["simple", "mid-sentence", "parens-in-url", "adjacent-to-punctuation"],
 )
 def test_link_conversion(myst, expected):
     assert _convert(myst) == expected
 
 
-def test_image_link_not_converted():
-    text = "![logo](https://example.com/logo.png)"
-    assert _convert(text) == text
+@pytest.mark.parametrize(
+    ("myst", "expected"),
+    [
+        # Image links must not be converted.
+        ("![logo](https://example.com/logo.png)", None),
+    ],
+    ids=["image-link"],
+)
+def test_link_not_converted(myst, expected):
+    assert _convert(myst) == (expected if expected is not None else myst)
+
+
+def test_multiple_links_on_same_line():
+    myst = "[A](https://example.com/a) and [B](https://example.com/b)"
+    result = _convert(myst)
+    assert "`A <https://example.com/a>`_" in result
+    assert "`B <https://example.com/b>`_" in result
 
 
 @pytest.mark.parametrize(
@@ -153,16 +258,56 @@ def test_link_strips_backticks_from_label(myst, expected):
         ("Returns `True` if detected.", "Returns ``True`` if detected."),
         ("`foo` and `bar`", "``foo`` and ``bar``"),
         ("`platform.machine()`", "``platform.machine()``"),
+        # Single character.
+        ("`x`", "``x``"),
+        # Regex metacharacters.
+        ("`foo*bar`", "``foo*bar``"),
+        ("`a[0]`", "``a[0]``"),
+        # Adjacent to punctuation.
+        ("`code`.", "``code``."),
+        ("(`code`)", "(``code``)"),
+        # At line boundaries.
+        ("`start`", "``start``"),
+        ("end `here`", "end ``here``"),
     ],
-    ids=["simple", "in-sentence", "multiple", "dotted-call"],
+    ids=[
+        "simple",
+        "in-sentence",
+        "multiple",
+        "dotted-call",
+        "single-char",
+        "regex-star",
+        "regex-bracket",
+        "before-period",
+        "in-parens",
+        "start-of-line",
+        "end-of-line",
+    ],
 )
 def test_inline_code_conversion(myst, expected):
     assert _convert(myst) == expected
 
 
-def test_inline_code_preserves_double_backticks():
-    """Already-doubled backticks must not be quadrupled."""
-    text = "Returns ``True`` if detected."
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Already-doubled backticks must not be quadrupled.
+        "Returns ``True`` if detected.",
+        # Double backticks with braces (converter output) must pass through.
+        "``{version}``",
+        # Triple backticks must not be mangled.
+        "```not inline```",
+        # Backtick span across newlines must not match.
+        "`start\nend`",
+    ],
+    ids=[
+        "double-backtick-passthrough",
+        "braces-in-double-backticks",
+        "triple-backticks",
+        "across-newlines",
+    ],
+)
+def test_inline_code_not_converted(text):
     assert _convert(text) == text
 
 
@@ -180,11 +325,6 @@ def test_inline_code_no_cross_contamination_with_xref(myst, expected):
     assert _convert(myst) == expected
 
 
-def test_inline_code_no_match_across_newlines():
-    text = "`start\nend`"
-    assert _convert(text) == text
-
-
 # ---- Idempotent pass-through for reST docstrings ---------------------------
 
 
@@ -193,14 +333,36 @@ def test_inline_code_no_match_across_newlines():
     [
         ":func:`~extra_platforms.is_linux`",
         ".. note::\n    Some content.",
+        ".. code-block:: python\n\n    print(1)",
         "`click here <https://example.com>`_",
+        "`click here <https://example.com>`__",
         "Returns ``True`` if detected.",
         ":param name: The name.\n:returns: A value.",
     ],
-    ids=["xref", "admonition", "link", "double-backtick", "field-list"],
+    ids=[
+        "xref",
+        "admonition",
+        "code-block",
+        "named-hyperlink",
+        "anonymous-hyperlink",
+        "double-backtick",
+        "field-list",
+    ],
 )
 def test_idempotent_rst_passthrough(text):
     assert _convert(text) == text
+
+
+def test_idempotent_already_converted():
+    """Running the converter twice produces the same result."""
+    myst = (
+        "{func}`foo` returns `True`.\n"
+        "\n"
+        ":::{note}\nSee [docs](https://example.com).\n:::"
+    )
+    first = _convert(myst)
+    second = _convert(first)
+    assert first == second
 
 
 def test_idempotent_full_rst_docstring():
@@ -262,7 +424,8 @@ def test_real_detection_function():
     assert ":data:`~extra_platforms.ANDROID`" in result
     assert ".. seealso::" in result
     assert (
-        "    `kivy/utils.py <https://github.com/kivy/kivy/blob/master/kivy/utils.py>`_"
+        "    `kivy/utils.py"
+        " <https://github.com/kivy/kivy/blob/master/kivy/utils.py>`_"
     ) in result
 
 
@@ -285,6 +448,39 @@ def test_real_group_with_wikipedia_link():
         " (`according Wikipedia <https://en.wikipedia.org/wiki/Template:Unix>`_):"
     ) in result
     assert "    - ``386BSD`` (``FreeBSD``, ``NetBSD``)" in result
+
+
+def test_all_conversions_combined():
+    """A docstring exercising every conversion step in one pass."""
+    myst = (
+        "Return {data}`True` if `path` exists.\n"
+        "\n"
+        "See [os.path](https://docs.python.org/3/library/os.path.html)\n"
+        "for details.\n"
+        "\n"
+        "```{warning}\n"
+        "Symlinks are not resolved.\n"
+        "```\n"
+        "\n"
+        ":param path: The filesystem path.\n"
+        ":returns: `True` or `False`.\n"
+    )
+    result = _convert(myst)
+    # Xref converted.
+    assert ":data:`True`" in result
+    # Inline code doubled.
+    assert "``path``" in result
+    # Link converted.
+    assert (
+        "`os.path <https://docs.python.org/3/library/os.path.html>`_" in result
+    )
+    # Backtick fence converted.
+    assert ".. warning::" in result
+    assert "    Symlinks are not resolved." in result
+    # Field list unchanged.
+    assert ":param path:" in result
+    # Inline code in field list doubled.
+    assert "``True`` or ``False``" in result
 
 
 def test_real_caution_with_code_block():
