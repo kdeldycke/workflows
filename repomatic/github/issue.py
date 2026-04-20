@@ -227,11 +227,12 @@ def manage_issue_lifecycle(
     """Manage the full issue lifecycle: list, triage, close, create/update.
 
     This function handles:
+
     1. Listing all issues (open and closed) via `gh issue list`.
     2. Triaging matching issues (keep newest if needed, close duplicates).
     3. Closing duplicate open issues via `gh issue close`.
-    4. Creating, updating, or reopening the main issue via ``gh issue
-       create`, `gh issue edit`, or `gh issue reopen``.
+    4. Creating, updating, or reopening the main issue via `gh issue create`,
+       `gh issue edit`, or `gh issue reopen`.
 
     When `has_issues` is `True` and the most recent matching issue is
     closed, it is reopened and updated rather than creating a duplicate.

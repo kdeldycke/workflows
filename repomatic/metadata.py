@@ -2232,6 +2232,7 @@ class Metadata:
         """Transform Python value to GitHub-friendly, JSON-like, console string.
 
         Renders:
+
         - `str` as-is
         - `None` into empty string
         - `bool` into lower-cased string

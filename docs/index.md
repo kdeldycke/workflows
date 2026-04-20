@@ -16,6 +16,7 @@ tool-runner
 workflows
 security
 skills
+myst-docstrings
 ```
 
 % Furo doesn't support icons in toctree entries natively.

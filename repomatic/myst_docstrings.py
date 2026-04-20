@@ -17,6 +17,7 @@
 
 Hooks into `autodoc-process-docstring` to transparently convert MyST markdown
 syntax in Python docstrings to reStructuredText before Sphinx processes them.
+See {doc}`/myst-docstrings` for setup and usage.
 
 The conversion is idempotent: docstrings already in reST pass through
 unchanged. This allows incremental migration one module at a time.
@@ -116,7 +117,8 @@ def _convert_fence(match: re.Match) -> str:
         else:
             converted_lines.append("")
 
-    return header + "\n".join(converted_lines) + "\n"
+    # reST directives need a blank line between the header and the body.
+    return header + "\n" + "\n".join(converted_lines) + "\n"
 
 
 def myst_to_rst(lines: list[str]) -> None:

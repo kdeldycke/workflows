@@ -310,6 +310,7 @@ def run_migration_checks(repo: str, sha: str) -> int:
     """Run Renovate migration prerequisite checks with console output.
 
     Checks for:
+
     - Missing renovate.json5 configuration
     - Existing Dependabot configuration
     - Dependabot security updates enabled

@@ -1,0 +1,164 @@
+# {octicon}`pencil` MyST docstrings
+
+Python docstrings in this project use [MyST markdown](https://myst-parser.readthedocs.io/en/latest/) instead of reStructuredText. A Sphinx extension ({mod}`repomatic.myst_docstrings`) transparently converts MyST back to reST at build time, so `sphinx.ext.autodoc` works without modification. A companion CLI command ({ref}`repomatic convert-to-myst <repomatic-convert-to-myst>`) handles the one-time source migration.
+
+## Setup
+
+### 1. Add the extension
+
+In your Sphinx `conf.py`, add {mod}`repomatic.myst_docstrings` alongside `sphinx.ext.autodoc`:
+
+```python
+extensions = [
+    "sphinx.ext.autodoc",
+    "repomatic.myst_docstrings",
+    # ... other extensions
+]
+```
+
+Order does not matter. The extension hooks into the [`autodoc-process-docstring`](https://www.sphinx-doc.org/en/master/event.html#event-autodoc-process-docstring) event, which is fired by autodoc during the build regardless of extension load order. If `sphinx.ext.autodoc` is absent, the event never fires and the extension silently does nothing.
+
+### 2. Add the dependency
+
+`repomatic` must be importable during the docs build. Add it to your docs dependency group in `pyproject.toml`:
+
+```toml
+[dependency-groups]
+docs = [
+    "repomatic",
+    "sphinx>=8",
+    # ...
+]
+```
+
+### 3. Migrate existing docstrings
+
+Run the converter on your source directory:
+
+```shell-session
+$ uv run repomatic convert-to-myst
+```
+
+The command auto-detects the package directory from `pyproject.toml` entry points. You can also pass an explicit path:
+
+```shell-session
+$ uv run repomatic convert-to-myst src/mypackage
+```
+
+The conversion is idempotent: re-running it on already-converted files is a no-op.
+
+## Syntax reference
+
+Write docstrings in standard MyST markdown. The extension handles the reST translation at build time.
+
+### Cross-references
+
+Use MyST `` {role}`target` `` syntax instead of reST `` :role:`target` `` syntax:
+
+| MyST (write this)                        | reST (produced at build time)             |
+| :--------------------------------------- | :---------------------------------------- |
+| `` {func}`foo` ``                        | `` :func:`foo` ``                         |
+| `` {data}`~extra_platforms.MACOS` ``     | `` :data:`~extra_platforms.MACOS` ``      |
+| `` {class}`str` ``                       | `` :class:`str` ``                        |
+
+The `~` prefix for abbreviating to the last component works the same way.
+
+### Admonitions
+
+Use colon-fenced directives:
+
+```python
+def detect():
+    """Detect the current platform.
+
+    :::{note}
+    Falls back to generic detection if the specific
+    platform check is unavailable.
+    :::
+    """
+```
+
+All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`.
+
+Admonitions with titles:
+
+```python
+"""
+:::{warning} Experimental API
+This function may change in future releases.
+:::
+"""
+```
+
+### Links
+
+Use standard markdown links:
+
+| MyST (write this)                                  | reST (produced at build time)                              |
+| :------------------------------------------------- | :--------------------------------------------------------- |
+| `[click here](https://example.com)`                | `` `click here <https://example.com>`_ ``                  |
+| `` [`sys.platform`](https://docs.python.org/3) ``  | `` `sys.platform <https://docs.python.org/3>`_ ``          |
+
+Backticks in link labels are stripped automatically because reST does not support nested markup.
+
+### Inline code
+
+Use single backticks. The extension doubles them for reST:
+
+| MyST (write this)          | reST (produced at build time) |
+| :------------------------- | :---------------------------- |
+| `` `True` ``               | ``` ``True`` ```              |
+| `` `platform.machine()` `` | ``` ``platform.machine()`` ```|
+
+### Code blocks
+
+Use colon-fenced `code-block` directives (not triple-backtick fences, which the extension does not convert):
+
+```python
+"""
+:::{code-block} python
+extensions = [
+    "sphinx.ext.autodoc",
+    "repomatic.myst_docstrings",
+]
+:::
+"""
+```
+
+### Field lists
+
+`:param:`, `:returns:`, `:raises:` and other Sphinx field list entries work identically in MyST and reST. No conversion is needed:
+
+```python
+def read(path, encoding="utf-8"):
+    """Read a file and return its contents.
+
+    :param path: Path to the file.
+    :param encoding: Text encoding.
+    :returns: File contents as a string.
+    :raises FileNotFoundError: If the path does not exist.
+    """
+```
+
+## What the converter does
+
+{ref}`repomatic convert-to-myst <repomatic-convert-to-myst>` applies these transformations to Python source files, in order:
+
+1. **Cross-references**: `` :role:`target` `` becomes `` {role}`target` ``
+2. **Named links**: `` `text <url>`_ `` becomes `[text](url)`
+3. **Inline code**: ``` ``code`` ``` becomes `` `code` ``
+4. **`#:` comment blocks**: prefix stripped, directives converted, prefix restored
+5. **Directives**: `.. directive::` + indented body becomes `:::{directive}` / `:::`
+
+Content containing `{` inside inline code is left as double backticks to avoid clashing with MyST cross-reference syntax. These pass through the extension unchanged.
+
+## Limitations
+
+The extension handles the constructs listed above. It does **not** convert:
+
+- **Triple-backtick fenced code blocks** (`` ``` ``). Use `:::{code-block}` instead.
+- **Nested colon fences** (`::::` / `:::`). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
+- **Complex tables** (`:::{list-table}`, `:::{csv-table}`). These work in module-level docstrings processed by `myst-parser` but are unlikely to appear in function docstrings.
+- **`{` inside single backticks**. Content like `` `{version}` `` would be misinterpreted as a cross-reference. The converter intentionally keeps these as double backticks (``` ``{version}`` ```), which the extension passes through to Sphinx as-is.
+
+For constructs the extension does not handle, use reST syntax directly in the docstring body. The extension is idempotent: reST content passes through unchanged.
