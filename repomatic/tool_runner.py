@@ -642,27 +642,27 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 (
                     LINUX,
                     AARCH64,
-                ): "98a109d54bfea7df1e82b73aa7d37fc2caa880d12105eb2495efe0d653955518",
+                ): "80619897f3d0ca35e7b17413ea17f7bbaadf36393b7afdf64e66b0a52dd21991",
                 (
                     LINUX,
                     X86_64,
-                ): "a31815f19b0b90fa043eb23fbf769ed931fbcde6d98bb89894ea8be1387d8394",
+                ): "e96cb8bc743df1fbd3ecaa2f18c1dd1a7d33ff73859e65a646a7d3808c837dd5",
                 (
                     MACOS,
                     AARCH64,
-                ): "b50a1a5adca140554f44f6c89edcf6383b0b2e3baf9dcd08d597d1fd59f92544",
+                ): "9de8fa513c170b33933f397e4906eb4f8af21890aa5f36a36db22df3d9ed1978",
                 (
                     MACOS,
                     X86_64,
-                ): "7f4d800ddc37c84a0a09aac1cd1ec77d1bbbdd5f97727f36f2062f6b639714e9",
+                ): "9069156955cfd53efc273cfcd4ece85a7af2ed715d20a8717a63bde3e05b5a40",
                 (
                     WINDOWS,
                     AARCH64,
-                ): "12750283a136a1535bcd87e76c67d855d6452274144464afe1c4e7184c1931c3",
+                ): "a0b928f3894dfaea97906974e30785948e44e9fbab8b3d86897fb7da55ab36a9",
                 (
                     WINDOWS,
                     X86_64,
-                ): "8d382e6a5cd88f381eb7c2825bcce4fec0660fe366e93f95c8e6e2415fe16d21",
+                ): "6c626fdf119215234cbe51455b07995eb67b24ada85819d9273a02b7c6770fbd",
             },
             archive_format=ArchiveFormat.RAW,
         ),
