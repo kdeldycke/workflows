@@ -25,9 +25,9 @@ Order does not matter. The extension hooks into the [`autodoc-process-docstring`
 ```toml
 [dependency-groups]
 docs = [
-    "repomatic",
-    "sphinx>=8",
-    # ...
+  "repomatic",
+  "sphinx>=8",
+  # ...
 ]
 ```
 
@@ -55,11 +55,11 @@ Write docstrings in standard MyST markdown. The extension handles the reST trans
 
 Use MyST `` {role}`target` `` syntax instead of reST `` :role:`target` `` syntax:
 
-| MyST (write this)                        | reST (produced at build time)             |
-| :--------------------------------------- | :---------------------------------------- |
-| `` {func}`foo` ``                        | `` :func:`foo` ``                         |
-| `` {data}`~extra_platforms.MACOS` ``     | `` :data:`~extra_platforms.MACOS` ``      |
-| `` {class}`str` ``                       | `` :class:`str` ``                        |
+| MyST (write this)                    | reST (produced at build time)        |
+| :----------------------------------- | :----------------------------------- |
+| `` {func}`foo` ``                    | `` :func:`foo` ``                    |
+| `` {data}`~extra_platforms.MACOS` `` | `` :data:`~extra_platforms.MACOS` `` |
+| `` {class}`str` ``                   | `` :class:`str` ``                   |
 
 The `~` prefix for abbreviating to the last component works the same way.
 
@@ -94,10 +94,10 @@ This function may change in future releases.
 
 Use standard markdown links:
 
-| MyST (write this)                                  | reST (produced at build time)                              |
-| :------------------------------------------------- | :--------------------------------------------------------- |
-| `[click here](https://example.com)`                | `` `click here <https://example.com>`_ ``                  |
-| `` [`sys.platform`](https://docs.python.org/3) ``  | `` `sys.platform <https://docs.python.org/3>`_ ``          |
+| MyST (write this)                                 | reST (produced at build time)                     |
+| :------------------------------------------------ | :------------------------------------------------ |
+| `[click here](https://example.com)`               | `` `click here <https://example.com>`_ ``         |
+| `` [`sys.platform`](https://docs.python.org/3) `` | `` `sys.platform <https://docs.python.org/3>`_ `` |
 
 Backticks in link labels are stripped automatically because reST does not support nested markup.
 
@@ -105,10 +105,10 @@ Backticks in link labels are stripped automatically because reST does not suppor
 
 Use single backticks. The extension doubles them for reST:
 
-| MyST (write this)          | reST (produced at build time) |
-| :------------------------- | :---------------------------- |
-| `` `True` ``               | ``` ``True`` ```              |
-| `` `platform.machine()` `` | ``` ``platform.machine()`` ```|
+| MyST (write this)          | reST (produced at build time)  |
+| :------------------------- | :----------------------------- |
+| `` `True` ``               | ``` ``True`` ```               |
+| `` `platform.machine()` `` | ``` ``platform.machine()`` ``` |
 
 ### Code blocks
 
@@ -158,8 +158,8 @@ Content containing `{` inside inline code is left as double backticks to avoid c
 
 The extension handles the constructs listed above. It does **not** convert:
 
-- **Plain triple-backtick code blocks** (`` ``` python `` without `{code-block}`). Use `` ```{code-block} python `` or `:::{code-block} python` instead.
-- **Nested fences of the same type** (`::::` / `:::` or ```` ```` / ``` ````). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
+- **Plain triple-backtick code blocks** (```` ``` python ```` without `{code-block}`). Use ```` ```{code-block} python ```` or `:::{code-block} python` instead.
+- **Nested fences of the same type** (`::::` / `:::` or ` ` / \`\`\` \`\`\`\`). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
 - **Complex tables** (`:::{list-table}`, `:::{csv-table}`). These work in module-level docstrings processed by `myst-parser` but are unlikely to appear in function docstrings.
 - **`{` inside single backticks**. Content like `` `{version}` `` would be misinterpreted as a cross-reference. The converter intentionally keeps these as double backticks (``` ``{version}`` ```), which the extension passes through to Sphinx as-is.
 
