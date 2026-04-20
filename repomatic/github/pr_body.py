@@ -16,13 +16,13 @@
 
 """Generate PR body with workflow metadata for auto-created pull requests.
 
-Uses :class:`~repomatic.metadata.Metadata` for CI context to produce a
-collapsible ``<details>`` block containing a metadata table. Template prefixes
-are loaded from markdown files in ``repomatic/templates/``, optionally with
+Uses {class}`~repomatic.metadata.Metadata` for CI context to produce a
+collapsible `<details>` block containing a metadata table. Template prefixes
+are loaded from markdown files in `repomatic/templates/`, optionally with
 YAML frontmatter for templates that require arguments.
 
-Also provides :func:`sanitize_markdown_mentions` for neutralizing ``@mentions``,
-``#issue`` refs, and GitHub URLs in externally-sourced markdown before embedding
+Also provides {func}`sanitize_markdown_mentions` for neutralizing `@mentions`,
+`#issue` refs, and GitHub URLs in externally-sourced markdown before embedding
 it in PR or issue bodies.
 """
 
@@ -38,16 +38,12 @@ from ..metadata import Metadata
 _ZERO_WIDTH_SPACE = "\u200b"
 """Unicode zero-width space inserted to break GitHub's mention/issue parser.
 
-Both Dependabot (`dependabot/dependabot-core#3157
-<https://github.com/dependabot/dependabot-core/pull/3157>`_,
-`link_and_mention_sanitizer.rb
-<https://github.com/dependabot/dependabot-core/blob/main/common/lib/dependabot/pull_request_creator/message_builder/link_and_mention_sanitizer.rb>`_)
-and Renovate (`renovatebot/renovate#1083
-<https://github.com/renovatebot/renovate/pull/1083>`_,
-`markdown.ts
-<https://github.com/renovatebot/renovate/blob/main/lib/util/markdown.ts>`_)
-independently converged on this character to neutralize ``@mentions`` and
-``#issue`` references in PR bodies without affecting visual rendering.
+Both Dependabot ([dependabot/dependabot-core#3157](https://github.com/dependabot/dependabot-core/pull/3157),
+[link_and_mention_sanitizer.rb](https://github.com/dependabot/dependabot-core/blob/main/common/lib/dependabot/pull_request_creator/message_builder/link_and_mention_sanitizer.rb))
+and Renovate ([renovatebot/renovate#1083](https://github.com/renovatebot/renovate/pull/1083),
+[markdown.ts](https://github.com/renovatebot/renovate/blob/main/lib/util/markdown.ts))
+independently converged on this character to neutralize `@mentions` and
+`#issue` references in PR bodies without affecting visual rendering.
 """
 
 _FENCED_CODE_BLOCK_RE = re.compile(
@@ -63,26 +59,26 @@ _MENTION_RE = re.compile(
     r"(?<![a-zA-Z0-9._%+\-/])@"
     r"([a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?(?:/[a-zA-Z0-9](?:[a-zA-Z0-9\-]*[a-zA-Z0-9])?)?)",
 )
-"""Matches ``@username`` and ``@org/team`` mentions in prose.
+"""Matches `@username` and `@org/team` mentions in prose.
 
-The negative lookbehind excludes email addresses (``user@example.com``),
-URL user-info (``git@github.com``), and URL paths (``/compare/@v1``).
+The negative lookbehind excludes email addresses (`user@example.com`),
+URL user-info (`git@github.com`), and URL paths (`/compare/@v1`).
 """
 
 _ISSUE_REF_RE = re.compile(r"(?<![&a-zA-Z0-9/])#(\d+)")
-"""Matches ``#123`` issue/PR references in prose.
+"""Matches `#123` issue/PR references in prose.
 
-The negative lookbehind excludes HTML entities (``&#8203;``), URL fragments
-(``page#section``), and path-like references (``path/#1``). Markdown headings
-(``# Title``) are excluded because ``#`` is followed by a space, not a digit.
+The negative lookbehind excludes HTML entities (`&#8203;`), URL fragments
+(`page#section`), and path-like references (`path/#1`). Markdown headings
+(`# Title`) are excluded because `#` is followed by a space, not a digit.
 """
 
 _GITHUB_URL_RE = re.compile(r"(https?://)(github\.com/)")
-"""Matches ``github.com`` URLs for rewriting to ``redirect.github.com``."""
+"""Matches `github.com` URLs for rewriting to `redirect.github.com`."""
 
 
 def sanitize_markdown_mentions(text: str) -> str:
-    """Neutralize ``@mentions``, ``#issue`` refs, and GitHub URLs in markdown.
+    """Neutralize `@mentions`, `#issue` refs, and GitHub URLs in markdown.
 
     Prevents GitHub from auto-linking mentions and issue references in
     externally-sourced markdown (upstream release notes, third-party tool
@@ -92,25 +88,23 @@ def sanitize_markdown_mentions(text: str) -> str:
     spans are temporarily replaced with unique placeholders before sanitization,
     then restored afterward. This avoids the fragile "sanitize then restore"
     pattern that caused bugs in both Dependabot (2019 code-fence regression,
-    `dependabot/dependabot-core#1421
-    <https://github.com/dependabot/dependabot-core/issues/1421>`_) and Renovate
-    (ongoing restoration pass edge cases, `renovatebot/renovate#8823
-    <https://github.com/renovatebot/renovate/issues/8823>`_,
-    `renovatebot/renovate#2554
-    <https://github.com/renovatebot/renovate/issues/2554>`_).
+    [dependabot/dependabot-core#1421](https://github.com/dependabot/dependabot-core/issues/1421)) and Renovate
+    (ongoing restoration pass edge cases, [renovatebot/renovate#8823](https://github.com/renovatebot/renovate/issues/8823),
+    [renovatebot/renovate#2554](https://github.com/renovatebot/renovate/issues/2554)).
 
-    Inserts a Unicode zero-width space (U+200B) after ``@`` and ``#`` to break
+    Inserts a Unicode zero-width space (U+200B) after `@` and `#` to break
     GitHub's mention and issue parsers without affecting visual rendering.
-    Rewrites ``github.com`` URLs to ``redirect.github.com`` to prevent backlink
+    Rewrites `github.com` URLs to `redirect.github.com` to prevent backlink
     cross-references on upstream issues.
 
     :param text: Raw markdown text from an external source.
     :return: Sanitized markdown safe for embedding in a GitHub PR or issue body.
 
-    .. note::
-        Only call this on externally-sourced content (upstream release notes,
-        third-party tool output). Do not call on content authored by the
-        repository owner where mentions are intentional.
+    :::{note}
+    Only call this on externally-sourced content (upstream release notes,
+    third-party tool output). Do not call on content authored by the
+    repository owner where mentions are intentional.
+    :::
     """
     if not text:
         return text
@@ -156,13 +150,14 @@ def sanitize_markdown_mentions(text: str) -> str:
 
 
 def _unescape_dollars(text: str) -> str:
-    r"""Replace ``\$`` with ``$`` in template text.
+    r"""Replace `\$` with `$` in template text.
 
-    .. caution::
-        Workaround for mdformat escaping ``$`` characters in markdown files.
-        Templates use ``string.Template`` (``$variable`` syntax), but mdformat
-        rewrites ``$var`` as ``\$var``. We undo this at load time so that
-        ``string.Template.substitute()`` sees the original placeholders.
+    :::{caution}
+    Workaround for mdformat escaping `$` characters in markdown files.
+    Templates use `string.Template` (`$variable` syntax), but mdformat
+    rewrites `$var` as `\$var`. We undo this at load time so that
+    `string.Template.substitute()` sees the original placeholders.
+    :::
     """
     return text.replace(r"\$", "$")
 
@@ -181,7 +176,7 @@ def _parse_frontmatter(raw: str) -> tuple[dict[str, object], str]:
     yaml_block = raw[3:end].strip()
     body = _unescape_dollars(raw[end + 3 :].lstrip("\n"))
 
-    # Minimal YAML parsing: supports ``key: value`` and ``key: [items]``.
+    # Minimal YAML parsing: supports `key: value` and `key: [items]`.
     meta: dict[str, object] = {}
     for line in yaml_block.splitlines():
         if ":" not in line:
@@ -205,16 +200,16 @@ def _parse_frontmatter(raw: str) -> tuple[dict[str, object], str]:
 
 
 def load_template(name: str) -> tuple[dict[str, object], str]:
-    """Load a PR body template from the ``repomatic/templates/`` package.
+    """Load a PR body template from the `repomatic/templates/` package.
 
-    Tries ``{name}.md.noformat`` first, then ``{name}.md``.  The
-    ``.md.noformat`` extension is used for templates whose
-    ``string.Template`` placeholders confuse mdformat (e.g.
-    ``$rerun_row`` at the start of a table row is parsed as a cell value,
-    breaking the table structure).  See ``pr-metadata.md.noformat`` for
+    Tries ``{name}.md.noformat` first, then `{name}.md``.  The
+    `.md.noformat` extension is used for templates whose
+    `string.Template` placeholders confuse mdformat (e.g.
+    `$rerun_row` at the start of a table row is parsed as a cell value,
+    breaking the table structure).  See `pr-metadata.md.noformat` for
     the canonical example.
 
-    :param name: Template name without extension (e.g. ``bump-version``).
+    :param name: Template name without extension (e.g. `bump-version`).
     :return: A tuple of (frontmatter metadata dict, template body string).
     :raises FileNotFoundError: If neither file exists.
     """
@@ -231,10 +226,10 @@ def load_template(name: str) -> tuple[dict[str, object], str]:
 
 
 def _substitute(text: str, kwargs: dict[str, str | None]) -> str:
-    """Apply ``string.Template`` substitution if kwargs are provided.
+    """Apply `string.Template` substitution if kwargs are provided.
 
-    ``None`` values are normalized to empty strings so callers can pass
-    :class:`~repomatic.metadata.Metadata` properties directly without
+    `None` values are normalized to empty strings so callers can pass
+    {class}`~repomatic.metadata.Metadata` properties directly without
     coercing at the call site.
     """
     if kwargs:
@@ -246,7 +241,7 @@ def _substitute(text: str, kwargs: dict[str, str | None]) -> str:
 def _render_single(name: str, kwargs: dict[str, str | None]) -> tuple[str, bool]:
     """Render a single template and return its body with footer preference.
 
-    :param name: Template name without ``.md`` extension.
+    :param name: Template name without `.md` extension.
     :param kwargs: Variables to substitute into the template.
     :return: A tuple of (rendered body, wants_footer).
     """
@@ -260,18 +255,18 @@ def render_template(*names: str, **kwargs: str | None) -> str:
     """Load and render one or more templates with variable substitution.
 
     When multiple template names are given, each is rendered and joined with
-    a blank line. The ``generated-footer`` attribution is appended
+    a blank line. The `generated-footer` attribution is appended
     once at the end if **any** of the templates wants it (i.e. does not have
-    ``footer: false`` in its frontmatter).
+    `footer: false` in its frontmatter).
 
-    Static templates (no ``$variable`` placeholders) are returned as-is.
-    Dynamic templates use ``string.Template`` (``$variable`` syntax) to avoid
-    conflicts with markdown braces like ``[tool.repomatic]``.
+    Static templates (no `$variable` placeholders) are returned as-is.
+    Dynamic templates use `string.Template` (`$variable` syntax) to avoid
+    conflicts with markdown braces like `[tool.repomatic]`.
 
     Consecutive blank lines left by empty variables are collapsed to a single
     blank line.
 
-    :param names: One or more template names without ``.md`` extension.
+    :param names: One or more template names without `.md` extension.
     :param kwargs: Variables to substitute into all templates.
     :return: The rendered markdown string.
     """
@@ -296,10 +291,10 @@ def render_template(*names: str, **kwargs: str | None) -> str:
 def render_title(name: str, **kwargs: str | None) -> str:
     """Load and render a template's PR title with variable substitution.
 
-    :param name: Template name without ``.md`` extension.
+    :param name: Template name without `.md` extension.
     :param kwargs: Variables to substitute into the title.
     :return: The rendered title string.
-    :raises KeyError: If the template has no ``title`` in its frontmatter.
+    :raises KeyError: If the template has no `title` in its frontmatter.
     """
     meta, _body = load_template(name)
     title = meta.get("title")
@@ -312,9 +307,9 @@ def render_title(name: str, **kwargs: str | None) -> str:
 def render_commit_message(name: str, **kwargs: str | None) -> str:
     """Load and render a template's commit message with variable substitution.
 
-    Falls back to the ``title`` if no ``commit_message`` is defined.
+    Falls back to the `title` if no `commit_message` is defined.
 
-    :param name: Template name without ``.md`` extension.
+    :param name: Template name without `.md` extension.
     :param kwargs: Variables to substitute into the commit message.
     :return: The rendered commit message string.
     """
@@ -329,8 +324,8 @@ def render_commit_message(name: str, **kwargs: str | None) -> str:
 def template_args(name: str) -> list[str]:
     """Return the list of required arguments for a template.
 
-    :param name: Template name without ``.md`` extension.
-    :return: List of argument names from the frontmatter ``args`` field.
+    :param name: Template name without `.md` extension.
+    :return: List of argument names from the frontmatter `args` field.
     """
     meta, _body = load_template(name)
     args = meta.get("args", [])
@@ -342,7 +337,7 @@ def template_args(name: str) -> list[str]:
 def get_template_names() -> list[str]:
     """Discover all available template names from the templates package.
 
-    :return: Sorted list of template names (without ``.md`` extension).
+    :return: Sorted list of template names (without `.md` extension).
     """
     template_dir = files("repomatic.templates")
     names = []
@@ -357,11 +352,11 @@ def get_template_names() -> list[str]:
 
 
 def extract_workflow_filename(workflow_ref: str | None) -> str:
-    """Extract the workflow filename from ``GITHUB_WORKFLOW_REF``.
+    """Extract the workflow filename from `GITHUB_WORKFLOW_REF`.
 
     :param workflow_ref: The full workflow reference, e.g.
-        ``owner/repo/.github/workflows/name.yaml@refs/heads/branch``.
-    :return: The workflow filename (e.g. ``name.yaml``), or an empty string
+        `owner/repo/.github/workflows/name.yaml@refs/heads/branch`.
+    :return: The workflow filename (e.g. `name.yaml`), or an empty string
         if the reference is empty or malformed.
     """
     if not workflow_ref:
@@ -374,8 +369,8 @@ def extract_workflow_filename(workflow_ref: str | None) -> str:
 def generate_pr_metadata_block() -> str:
     """Generate a collapsible metadata block from CI context.
 
-    Uses :class:`~repomatic.metadata.Metadata` to read ``GITHUB_*``
-    environment variables and returns a markdown ``<details>`` block
+    Uses {class}`~repomatic.metadata.Metadata` to read `GITHUB_*`
+    environment variables and returns a markdown `<details>` block
     containing a table of workflow metadata fields.
 
     :return: A markdown string with the metadata block.
@@ -409,7 +404,7 @@ def generate_pr_metadata_block() -> str:
 def _repo_url() -> str | None:
     """Build repository URL from CI context.
 
-    Delegates to :attr:`Metadata.repo_url <repomatic.metadata.Metadata.repo_url>`.
+    Delegates to {attr}`Metadata.repo_url <repomatic.metadata.Metadata.repo_url>`.
     """
     return Metadata().repo_url
 
@@ -417,10 +412,10 @@ def _repo_url() -> str | None:
 def generate_refresh_tip() -> str:
     """Generate a tip admonition inviting users to refresh the PR manually.
 
-    Uses :class:`~repomatic.metadata.Metadata` for the repository URL and
-    ``GITHUB_WORKFLOW_REF`` to build the workflow dispatch URL.
+    Uses {class}`~repomatic.metadata.Metadata` for the repository URL and
+    `GITHUB_WORKFLOW_REF` to build the workflow dispatch URL.
 
-    :return: A GitHub-flavored markdown ``[!TIP]`` blockquote, or an empty
+    :return: A GitHub-flavored markdown `[!TIP]` blockquote, or an empty
         string if the workflow reference is unavailable.
     """
     md = Metadata()
@@ -437,12 +432,12 @@ def generate_refresh_tip() -> str:
 def build_pr_body(prefix: str, metadata_block: str) -> str:
     """Concatenate prefix, refresh tip, and metadata block into a PR body.
 
-    The ``metadata_block`` already includes the attribution footer (appended
-    automatically by :func:`render_template`).
+    The `metadata_block` already includes the attribution footer (appended
+    automatically by {func}`render_template`).
 
     :param prefix: Content to prepend before the metadata block. Can be empty.
     :param metadata_block: The collapsible metadata block from
-        :func:`generate_pr_metadata_block`, with footer.
+        {func}`generate_pr_metadata_block`, with footer.
     :return: The complete PR body string.
     """
     parts: list[str] = []

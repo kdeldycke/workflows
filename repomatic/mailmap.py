@@ -26,7 +26,7 @@ from subprocess import run
 from boltons.iterutils import unique
 
 MAILMAP_PATH = Path(".mailmap")
-"""Canonical path to the ``.mailmap`` file in the repository root."""
+"""Canonical path to the `.mailmap` file in the repository root."""
 
 
 @dataclass(order=True)
@@ -69,10 +69,9 @@ class Record:
 
 
 class Mailmap:
-    """Helpers to manipulate ``.mailmap`` files.
+    """Helpers to manipulate `.mailmap` files.
 
-    ``.mailmap`` `file format is documented on Git website
-    <https://git-scm.com/docs/gitmailmap>`_.
+    `.mailmap` [file format is documented on Git website](https://git-scm.com/docs/gitmailmap).
     """
 
     records: list[Record]
@@ -126,7 +125,7 @@ class Mailmap:
                 self.records.append(record)
 
     def find(self, identity: str) -> bool:
-        """Returns ``True`` if the provided identity matched any record."""
+        """Returns `True` if the provided identity matched any record."""
         identity_token = identity.lower()
         for record in self.records:
             # Identity matching is case insensitive:

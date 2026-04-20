@@ -20,51 +20,51 @@ Provides early validation for CLI commands that depend on the GitHub API,
 so users get clear error messages at startup rather than opaque failures
 mid-execution.
 
-.. note:: Why ``REPOMATIC_PAT`` is needed
+:::{note} Why `REPOMATIC_PAT` is needed
 
-   GitHub's ``GITHUB_TOKEN`` cannot modify workflow files in ``.github/``.
-   Neither ``contents: write``, ``actions: write``, nor ``permissions:
-   write-all`` grant this ability. The only way to push changes to workflow
-   YAML files is via a fine-grained Personal Access Token with the
-   **Workflows** permission. Without it, pushes are rejected with::
+GitHub's `GITHUB_TOKEN` cannot modify workflow files in `.github/`.
+Neither `contents: write`, `actions: write`, nor ``permissions:
+write-all`` grant this ability. The only way to push changes to workflow
+YAML files is via a fine-grained Personal Access Token with the
+**Workflows** permission. Without it, pushes are rejected with::
 
-       ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a
-       GitHub App to create or update workflow
-       `.github/workflows/my_workflow.yaml` without `workflows` permission)
+    ! [remote rejected] branch_xxx -> branch_xxx (refusing to allow a
+    GitHub App to create or update workflow
+    `.github/workflows/my_workflow.yaml` without `workflows` permission)
 
-   Additionally, events triggered by ``GITHUB_TOKEN`` do not start new
-   workflow runs (see `GitHub docs
-   <https://docs.github.com/en/actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow>`_),
-   so tag pushes also need the PAT to trigger downstream workflows.
+Additionally, events triggered by `GITHUB_TOKEN` do not start new
+workflow runs (see [GitHub docs](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow)),
+so tag pushes also need the PAT to trigger downstream workflows.
 
-   The **Settings → Actions → General → Workflow permissions** setting has
-   no effect on this limitation — it's a hard security boundary enforced by
-   GitHub regardless of repository-level settings.
+The **Settings → Actions → General → Workflow permissions** setting has
+no effect on this limitation — it's a hard security boundary enforced by
+GitHub regardless of repository-level settings.
 
-   Jobs that use ``REPOMATIC_PAT``:
+Jobs that use `REPOMATIC_PAT`:
 
-   - ``autofix.yaml``: fix-typos, sync-repomatic
-     (PRs touching ``.github/workflows/`` files).
-   - ``changelog.yaml``: prepare-release (freezes versions in workflow files).
-   - ``release.yaml``: create-tag (push triggers ``on.push.tags``),
-     create-release (triggers downstream workflows).
-   - ``renovate.yaml``: renovate (dependency PRs, status checks, dashboard,
-     vulnerability alerts).
+- `autofix.yaml`: fix-typos, sync-repomatic
+  (PRs touching `.github/workflows/` files).
+- `changelog.yaml`: prepare-release (freezes versions in workflow files).
+- `release.yaml`: create-tag (push triggers `on.push.tags`),
+  create-release (triggers downstream workflows).
+- `renovate.yaml`: renovate (dependency PRs, status checks, dashboard,
+  vulnerability alerts).
 
-   All jobs fall back to ``GITHUB_TOKEN`` when the PAT is unavailable
-   (``secrets.REPOMATIC_PAT || github.token``), but
-   operations requiring the ``workflows`` permission or workflow triggering
-   will silently fail.
+All jobs fall back to `GITHUB_TOKEN` when the PAT is unavailable
+(`secrets.REPOMATIC_PAT || github.token`), but
+operations requiring the `workflows` permission or workflow triggering
+will silently fail.
 
-   Token permission mapping:
+Token permission mapping:
 
-   - **Workflows** — PRs that touch ``.github/workflows/`` files.
-   - **Contents** — Tag pushes, release publishing, PR branch creation.
-   - **Pull requests** — All PR-creating jobs.
-   - **Commit statuses** — Renovate ``stability-days`` status checks.
-   - **Dependabot alerts** — Renovate vulnerability alert reading.
-   - **Issues** — Renovate Dependency Dashboard.
-   - **Metadata** — Required for all fine-grained token API operations.
+- **Workflows** — PRs that touch `.github/workflows/` files.
+- **Contents** — Tag pushes, release publishing, PR branch creation.
+- **Pull requests** — All PR-creating jobs.
+- **Commit statuses** — Renovate `stability-days` status checks.
+- **Dependabot alerts** — Renovate vulnerability alert reading.
+- **Issues** — Renovate Dependency Dashboard.
+- **Metadata** — Required for all fine-grained token API operations.
+:::
 """
 
 from __future__ import annotations
@@ -182,16 +182,17 @@ def check_pat_vulnerability_alerts_permission(repo: str) -> tuple[bool, str]:
     """Check that the token has Dependabot alerts permission and alerts are enabled.
 
     Tests access via ``GET /repos/{owner}/{repo}/dependabot/alerts?per_page=1``.
-    Returns 200 when the token has the ``vulnerability_alerts`` permission and
+    Returns 200 when the token has the `vulnerability_alerts` permission and
     alerts are enabled. Fails on 403 (token lacks the permission) or 404
     (alerts not enabled).
 
-    .. note::
+    :::{note}
 
-        The older ``GET /repos/{owner}/{repo}/vulnerability-alerts`` endpoint
-        requires the ``Administration: read`` fine-grained token permission,
-        not ``Dependabot alerts``. The Dependabot alerts listing endpoint used
-        here correctly maps to the ``vulnerability_alerts`` permission scope.
+    The older ``GET /repos/{owner}/{repo}/vulnerability-alerts`` endpoint
+    requires the `Administration: read` fine-grained token permission,
+    not `Dependabot alerts`. The Dependabot alerts listing endpoint used
+    here correctly maps to the `vulnerability_alerts` permission scope.
+    :::
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed, message).
@@ -230,7 +231,7 @@ def check_pat_workflows_permission(repo: str) -> tuple[bool, str]:
     """Check that the token has workflows permission.
 
     Tests access via ``GET /repos/{owner}/{repo}/actions/workflows``.
-    Fine-grained PATs with the **Workflows** permission get ``actions:read``
+    Fine-grained PATs with the **Workflows** permission get `actions:read`
     access. Without it, this endpoint returns 403.
 
     :param repo: Repository in 'owner/repo' format.
@@ -279,31 +280,31 @@ def check_commit_statuses_permission(repo: str, sha: str) -> tuple[bool, str]:
 class PatPermissionResults:
     """Results of all PAT permission checks.
 
-    Each field holds a ``(passed, message)`` tuple from the corresponding
-    ``check_pat_*`` function. The ``commit_statuses`` field is ``None`` when
+    Each field holds a `(passed, message)` tuple from the corresponding
+    `check_pat_*` function. The `commit_statuses` field is `None` when
     no commit SHA was available to probe.
     """
 
     contents: tuple[bool, str]
-    """Result of :func:`check_pat_contents_permission`."""
+    """Result of {func}`check_pat_contents_permission`."""
 
     issues: tuple[bool, str]
-    """Result of :func:`check_pat_issues_permission`."""
+    """Result of {func}`check_pat_issues_permission`."""
 
     pull_requests: tuple[bool, str]
-    """Result of :func:`check_pat_pull_requests_permission`."""
+    """Result of {func}`check_pat_pull_requests_permission`."""
 
     vulnerability_alerts: tuple[bool, str]
-    """Result of :func:`check_pat_vulnerability_alerts_permission`."""
+    """Result of {func}`check_pat_vulnerability_alerts_permission`."""
 
     workflows: tuple[bool, str]
-    """Result of :func:`check_pat_workflows_permission`."""
+    """Result of {func}`check_pat_workflows_permission`."""
 
     commit_statuses: tuple[bool, str] | None = None
-    """Result of :func:`check_commit_statuses_permission`, or ``None`` if skipped."""
+    """Result of {func}`check_commit_statuses_permission`, or `None` if skipped."""
 
     def all_passed(self) -> bool:
-        """Return ``True`` when every executed check passed."""
+        """Return `True` when every executed check passed."""
         for f in fields(self):
             result = getattr(self, f.name)
             if result is not None and not result[0]:
@@ -311,7 +312,7 @@ class PatPermissionResults:
         return True
 
     def failed(self) -> list[tuple[str, str]]:
-        """Return ``(field_name, message)`` pairs for each failed check."""
+        """Return `(field_name, message)` pairs for each failed check."""
         failures: list[tuple[str, str]] = []
         for f in fields(self):
             result = getattr(self, f.name)
@@ -320,7 +321,7 @@ class PatPermissionResults:
         return failures
 
     def iter_results(self) -> list[tuple[bool, str]]:
-        """Yield all non-``None`` ``(passed, message)`` tuples."""
+        """Yield all non-`None` `(passed, message)` tuples."""
         results: list[tuple[bool, str]] = []
         for f in fields(self):
             result = getattr(self, f.name)
@@ -336,13 +337,13 @@ def check_all_pat_permissions(
     """Run all PAT permission checks and return structured results.
 
     This is the single entry point for PAT permission validation. Both
-    ``lint-repo`` and ``setup-guide`` call this function so that adding a
+    `lint-repo` and `setup-guide` call this function so that adding a
     new permission check benefits all consumers automatically.
 
     :param repo: Repository in 'owner/repo' format.
-    :param sha: Commit SHA for the statuses check. When ``None``, the
-        ``commit_statuses`` field is set to ``None`` (skipped).
-    :return: :class:`PatPermissionResults` with all check outcomes.
+    :param sha: Commit SHA for the statuses check. When `None`, the
+        `commit_statuses` field is set to `None` (skipped).
+    :return: {class}`PatPermissionResults` with all check outcomes.
     """
     return PatPermissionResults(
         contents=check_pat_contents_permission(repo),
@@ -357,8 +358,8 @@ def check_all_pat_permissions(
 def validate_gh_token_env() -> None:
     """Check that a GitHub token environment variable is set.
 
-    Lookup order: ``REPOMATIC_PAT`` > ``GH_TOKEN`` > ``GITHUB_TOKEN``,
-    matching :func:`run_gh_command <repomatic.github.gh.run_gh_command>`.
+    Lookup order: `REPOMATIC_PAT` > `GH_TOKEN` > `GITHUB_TOKEN`,
+    matching {func}`run_gh_command <repomatic.github.gh.run_gh_command>`.
 
     :raises RuntimeError: If no variable is set.
     """
@@ -378,8 +379,8 @@ def validate_gh_token_env() -> None:
 def _get_gh_token() -> str:
     """Return the GitHub token from environment variables.
 
-    Lookup order: ``REPOMATIC_PAT`` > ``GH_TOKEN`` > ``GITHUB_TOKEN``,
-    matching :func:`run_gh_command <repomatic.github.gh.run_gh_command>`.
+    Lookup order: `REPOMATIC_PAT` > `GH_TOKEN` > `GITHUB_TOKEN`,
+    matching {func}`run_gh_command <repomatic.github.gh.run_gh_command>`.
     """
     return (
         os.environ.get("REPOMATIC_PAT")
@@ -392,10 +393,10 @@ def _get_gh_token() -> str:
 def validate_gh_api_access() -> tuple[int, dict[str, str], str]:
     """Smoke-test the GitHub API and return parsed response.
 
-    Calls ``GET https://api.github.com/rate_limit`` with the token from
+    Calls `GET https://api.github.com/rate_limit` with the token from
     environment variables.
 
-    :return: Tuple of ``(status_code, headers, body)``.
+    :return: Tuple of `(status_code, headers, body)`.
     :raises RuntimeError: If the API returns a 4xx/5xx status.
     """
     request = Request("https://api.github.com/rate_limit")
@@ -428,11 +429,11 @@ def validate_classic_pat_scope(required_scope: str) -> list[str]:
 
     1. A GitHub token environment variable is set.
     2. GitHub API is reachable (smoke-test GET).
-    3. Token is a classic PAT (has ``X-OAuth-Scopes`` header).
+    3. Token is a classic PAT (has `X-OAuth-Scopes` header).
     4. Token has the required scope.
 
     :param required_scope: The OAuth scope to require
-        (e.g. ``"notifications"``).
+        (e.g. `"notifications"`).
     :return: The full list of scopes on the token.
     :raises RuntimeError: If any check fails.
     """

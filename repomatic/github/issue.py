@@ -17,11 +17,11 @@
 """GitHub issue lifecycle management.
 
 Generic primitives for listing, creating, updating, closing, and triaging
-GitHub issues via the ``gh`` CLI. Used by :mod:`broken_links` and potentially
+GitHub issues via the `gh` CLI. Used by {mod}`broken_links` and potentially
 other modules that manage bot-created issues.
 
 We need to manually manage the life-cycle of issues created in CI jobs because the
-``create-issue-from-file`` action blindly creates issues ad-nauseam.
+`create-issue-from-file` action blindly creates issues ad-nauseam.
 
 See:
 - https://github.com/peter-evans/create-issue-from-file/issues/298
@@ -46,18 +46,19 @@ if TYPE_CHECKING:
 def list_issues(title: str = "") -> list[dict[str, Any]]:
     """List all issues (open and closed), optionally filtered by title.
 
-    .. note::
+    :::{note}
 
-        No ``--author`` filter is applied. When ``REPOMATIC_PAT``
-        is configured, ``gh`` authenticates as the token owner (not
-        ``github-actions[bot]``), so issues may be authored by either identity.
-        Filtering by author would miss issues created under the other identity,
-        breaking deduplication. The caller (:func:`triage_issues`) already
-        matches by exact title, so author-agnostic listing is safe.
+    No `--author` filter is applied. When `REPOMATIC_PAT`
+    is configured, `gh` authenticates as the token owner (not
+    `github-actions[bot]`), so issues may be authored by either identity.
+    Filtering by author would miss issues created under the other identity,
+    breaking deduplication. The caller ({func}`triage_issues`) already
+    matches by exact title, so author-agnostic listing is safe.
+    :::
 
     :param title: If provided, only return issues whose title matches exactly.
-    :return: List of issue dicts with ``number``, ``title``, ``createdAt``,
-        and ``state``.
+    :return: List of issue dicts with `number`, `title`, `createdAt`,
+        and `state`.
     """
     args = [
         "issue",
@@ -71,7 +72,7 @@ def list_issues(title: str = "") -> list[dict[str, Any]]:
         args.extend(["--search", f"{title} in:title"])
     output = run_gh_command(args)
     issues: list[dict[str, Any]] = json.loads(output)
-    # ``--search`` is full-text, not exact match. Filter to exact title.
+    # `--search` is full-text, not exact match. Filter to exact title.
     if title:
         issues = [i for i in issues if i["title"] == title]
     return issues
@@ -80,11 +81,11 @@ def list_issues(title: str = "") -> list[dict[str, Any]]:
 def list_open_issues(title: str = "") -> list[dict[str, Any]]:
     """List open issues, optionally filtered by title.
 
-    Convenience wrapper around :func:`list_issues` that filters to open issues
-    only and strips the ``state`` field for backward compatibility.
+    Convenience wrapper around {func}`list_issues` that filters to open issues
+    only and strips the `state` field for backward compatibility.
 
     :param title: If provided, only return issues whose title matches exactly.
-    :return: List of issue dicts with ``number``, ``title``, and ``createdAt``.
+    :return: List of issue dicts with `number`, `title`, and `createdAt`.
     """
     return [
         {k: v for k, v in issue.items() if k != "state"}
@@ -178,17 +179,17 @@ def triage_issues(
     """Triage issues matching a title for deduplication.
 
     :param issues: List of issue dicts from ``gh issue list --json
-        number,title,createdAt,state``. The ``state`` field is optional for
-        backward compatibility; when absent it defaults to ``"OPEN"``.
+        number,title,createdAt,state`. The `state`` field is optional for
+        backward compatibility; when absent it defaults to `"OPEN"`.
     :param title: Issue title to match against.
     :param needed: Whether an issue with this title should exist.
     :return: A tuple of ``(issue_needed, issue_to_update, issue_state,
         issues_to_close)``.
 
-    If ``needed`` is ``True``, the most recent matching issue is kept as
-    ``issue_to_update`` (with its ``issue_state``) and all older matching
-    issues are collected in ``issues_to_close``. If ``needed`` is ``False``,
-    all open matching issues are placed in ``issues_to_close`` (already-closed
+    If `needed` is `True`, the most recent matching issue is kept as
+    `issue_to_update` (with its `issue_state`) and all older matching
+    issues are collected in `issues_to_close`. If `needed` is `False`,
+    all open matching issues are placed in `issues_to_close` (already-closed
     issues are skipped).
     """
     issue_to_update: int | None = None
@@ -226,13 +227,13 @@ def manage_issue_lifecycle(
     """Manage the full issue lifecycle: list, triage, close, create/update.
 
     This function handles:
-    1. Listing all issues (open and closed) via ``gh issue list``.
+    1. Listing all issues (open and closed) via `gh issue list`.
     2. Triaging matching issues (keep newest if needed, close duplicates).
-    3. Closing duplicate open issues via ``gh issue close``.
+    3. Closing duplicate open issues via `gh issue close`.
     4. Creating, updating, or reopening the main issue via ``gh issue
-       create``, ``gh issue edit``, or ``gh issue reopen``.
+       create`, `gh issue edit`, or `gh issue reopen``.
 
-    When ``has_issues`` is ``True`` and the most recent matching issue is
+    When `has_issues` is `True` and the most recent matching issue is
     closed, it is reopened and updated rather than creating a duplicate.
 
     :param has_issues: Whether issues were found that warrant an open issue.

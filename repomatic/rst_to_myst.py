@@ -13,17 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-"""Convert ``sphinx-apidoc`` RST output to MyST markdown.
+"""Convert `sphinx-apidoc` RST output to MyST markdown.
 
-.. note::
-    The converter handles only the narrow RST subset that ``sphinx-apidoc``
-    generates: section headings (title + underline), ``automodule`` directives
-    with indented options, and structural headers like ``Submodules``.
+:::{note}
+The converter handles only the narrow RST subset that `sphinx-apidoc`
+generates: section headings (title + underline), `automodule` directives
+with indented options, and structural headers like `Submodules`.
 
-    Autodoc directives cannot be used as native MyST directives because they
-    perform internal rST nested parsing that requires an rST parser context
-    only ``{eval-rst}`` provides. See `MyST-Parser #587
-    <https://github.com/executablebooks/MyST-Parser/issues/587>`_.
+Autodoc directives cannot be used as native MyST directives because they
+perform internal rST nested parsing that requires an rST parser context
+only ``{eval-rst}`` provides. See [MyST-Parser #587](https://github.com/executablebooks/MyST-Parser/issues/587).
+:::
 """
 
 from __future__ import annotations
@@ -44,17 +44,18 @@ _RST_UNDERLINE_LEVELS: dict[str, str] = {
 def _clean_heading(title: str) -> str:
     """Normalize an RST heading for markdown.
 
-    Strips RST-specific backslash escapes (e.g. ``\\_`` used to prevent
+    Strips RST-specific backslash escapes (e.g. `\\_` used to prevent
     reference interpretation) and wraps qualified Python identifiers in
     backticks so they render as code.
 
-    .. note::
-        ``sphinx-apidoc`` produces headings like
-        ``meta\\_package\\_manager.managers.apm module``.  The backslash
-        escapes are necessary in RST but meaningless in markdown, where they
-        cause a tug-of-war with ``mdformat`` (which strips them on every
-        reformat pass).  Wrapping the identifier in backticks makes the
-        escaping moot and produces cleaner output.
+    :::{note}
+    `sphinx-apidoc` produces headings like
+    `meta\\_package\\_manager.managers.apm module`.  The backslash
+    escapes are necessary in RST but meaningless in markdown, where they
+    cause a tug-of-war with `mdformat` (which strips them on every
+    reformat pass).  Wrapping the identifier in backticks makes the
+    escaping moot and produces cleaner output.
+    :::
     """
     # Strip RST backslash-escapes (\_  →  _).
     title = title.replace("\\_", "_")
@@ -63,9 +64,9 @@ def _clean_heading(title: str) -> str:
 
 
 def convert_apidoc_rst_to_myst(content: str) -> str:
-    """Convert ``sphinx-apidoc`` RST to MyST markdown with ``{eval-rst}`` blocks.
+    """Convert `sphinx-apidoc` RST to MyST markdown with ``{eval-rst}`` blocks.
 
-    :param content: RST content produced by ``sphinx-apidoc``.
+    :param content: RST content produced by `sphinx-apidoc`.
     :returns: Equivalent MyST markdown.
     """
     lines = content.splitlines()
@@ -115,17 +116,17 @@ def convert_apidoc_rst_to_myst(content: str) -> str:
 
 
 def convert_rst_files_in_directory(directory: Path) -> list[Path]:
-    """Convert ``sphinx-apidoc`` RST files to MyST markdown in the given directory.
+    """Convert `sphinx-apidoc` RST files to MyST markdown in the given directory.
 
-    For each ``.rst`` file containing ``.. automodule::`` directives:
+    For each `.rst` file containing `.. automodule::` directives:
 
-    - If a ``.md`` file with the same stem exists, delete the ``.rst`` (the
+    - If a `.md` file with the same stem exists, delete the `.rst` (the
       existing markdown takes precedence).
-    - Otherwise, convert the RST content to MyST and write a ``.md`` file,
-      then delete the ``.rst``.
+    - Otherwise, convert the RST content to MyST and write a `.md` file,
+      then delete the `.rst`.
 
-    :param directory: Directory to scan for ``.rst`` files.
-    :returns: List of newly created ``.md`` file paths.
+    :param directory: Directory to scan for `.rst` files.
+    :returns: List of newly created `.md` file paths.
     """
     converted: list[Path] = []
 

@@ -14,19 +14,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Generic wrapper for the ``gh`` CLI.
+"""Generic wrapper for the `gh` CLI.
 
-.. note::
+:::{note}
 
-    Workflow steps must set ``GH_TOKEN`` explicitly: ``GITHUB_TOKEN`` is a
-    secret expression in GitHub Actions, not an automatic environment variable.
-    The standard pattern is ``GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}``
-    for steps that prefer a PAT, or ``GH_TOKEN: ${{ github.token }}`` otherwise.
+Workflow steps must set `GH_TOKEN` explicitly: `GITHUB_TOKEN` is a
+secret expression in GitHub Actions, not an automatic environment variable.
+The standard pattern is ``GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}``
+for steps that prefer a PAT, or ``GH_TOKEN: ${{ github.token }}`` otherwise.
 
-    As defense-in-depth, :func:`run_gh_command` promotes ``REPOMATIC_PAT`` to
-    ``GH_TOKEN`` when set, and promotes ``GITHUB_TOKEN`` to ``GH_TOKEN`` when
-    ``GH_TOKEN`` is absent.  On 401 Bad Credentials (expired or revoked PAT),
-    it retries with ``GITHUB_TOKEN`` if available and different.
+As defense-in-depth, {func}`run_gh_command` promotes `REPOMATIC_PAT` to
+`GH_TOKEN` when set, and promotes `GITHUB_TOKEN` to `GH_TOKEN` when
+`GH_TOKEN` is absent.  On 401 Bad Credentials (expired or revoked PAT),
+it retries with `GITHUB_TOKEN` if available and different.
+:::
 """
 
 from __future__ import annotations
@@ -37,16 +38,16 @@ from subprocess import run
 
 
 def run_gh_command(args: list[str]) -> str:
-    """Run a ``gh`` CLI command and return stdout.
+    """Run a `gh` CLI command and return stdout.
 
-    Token priority: ``REPOMATIC_PAT`` > ``GH_TOKEN`` > ``GITHUB_TOKEN``.
-    The ``gh`` CLI does not recognize ``REPOMATIC_PAT``, so when set it is
-    injected as ``GH_TOKEN``.  On 401 Bad Credentials the command is retried
-    with ``GITHUB_TOKEN`` if available and different, letting CI jobs degrade
+    Token priority: `REPOMATIC_PAT` > `GH_TOKEN` > `GITHUB_TOKEN`.
+    The `gh` CLI does not recognize `REPOMATIC_PAT`, so when set it is
+    injected as `GH_TOKEN`.  On 401 Bad Credentials the command is retried
+    with `GITHUB_TOKEN` if available and different, letting CI jobs degrade
     gracefully to the standard Actions token instead of failing outright on a
     stale PAT.
 
-    :param args: Command arguments to pass to ``gh``.
+    :param args: Command arguments to pass to `gh`.
     :return: The stdout output from the command.
     :raises RuntimeError: If the command fails (after fallback, if attempted).
     """

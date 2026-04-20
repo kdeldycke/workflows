@@ -13,17 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-"""Declarative registry of all components managed by the ``init`` subcommand.
+"""Declarative registry of all components managed by the `init` subcommand.
 
-Every resource the ``init`` subcommand can create, sync, or merge is declared
-here as a :class:`Component` subclass instance in the :data:`COMPONENTS` tuple.
+Every resource the `init` subcommand can create, sync, or merge is declared
+here as a {class}`Component` subclass instance in the {data}`COMPONENTS` tuple.
 Each component carries all its metadata: what kind it is, whether it is
 selected by default, which files it manages, and any per-file properties like
 repo-scope gating or config keys.
 
-All derived constants (``ALL_COMPONENTS``, ``COMPONENT_FILES``,
-``REUSABLE_WORKFLOWS``, ``SKILL_PHASES``, etc.) are computed from this single
-registry in :mod:`repomatic.init_project`.
+All derived constants (`ALL_COMPONENTS`, `COMPONENT_FILES`,
+`REUSABLE_WORKFLOWS`, `SKILL_PHASES`, etc.) are computed from this single
+registry in {mod}`repomatic.init_project`.
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 class InitDefault(Enum):
-    """How ``init`` treats the component when no explicit CLI args are given."""
+    """How `init` treats the component when no explicit CLI args are given."""
 
     INCLUDE = auto()
     """Included by default (e.g., changelog, renovate, workflows)."""
@@ -56,7 +56,7 @@ class InitDefault(Enum):
 
 
 class SyncMode(Enum):
-    """How a ``ToolConfigComponent`` behaves when the section already exists."""
+    """How a `ToolConfigComponent` behaves when the section already exists."""
 
     BOOTSTRAP = auto()
     """Insert once, skip if section already exists (e.g., ruff, pytest)."""
@@ -69,9 +69,9 @@ class SyncMode(Enum):
 class RepoScope(Enum):
     """Which repository types a file entry applies to.
 
-    Scope restrictions are defaults: they apply during bare ``repomatic init``
+    Scope restrictions are defaults: they apply during bare `repomatic init`
     but are bypassed when components are explicitly named on the CLI or
-    covered by ``[tool.repomatic] include``.
+    covered by `[tool.repomatic] include`.
     """
 
     ALL = auto()
@@ -86,7 +86,7 @@ class RepoScope(Enum):
     def matches(self, is_awesome: bool) -> bool:
         """Whether this scope applies to the given repository type.
 
-        :param is_awesome: ``True`` for ``awesome-*`` repositories.
+        :param is_awesome: `True` for `awesome-*` repositories.
         """
         if self is RepoScope.ALL:
             return True
@@ -100,40 +100,40 @@ class FileEntry:
     """A single file managed within a component."""
 
     source: str
-    """Filename in ``repomatic/data/``."""
+    """Filename in `repomatic/data/`."""
 
     target: str = ""
     """Relative output path in the target repository.
-    Defaults to ``source`` (root-level file)."""
+    Defaults to `source` (root-level file)."""
 
     file_id: str = ""
-    """Identifier for file-level ``--include``/``--exclude``.
-    Defaults to the filename portion of ``target``."""
+    """Identifier for file-level `--include`/`--exclude`.
+    Defaults to the filename portion of `target`."""
 
     scope: RepoScope = RepoScope.ALL
     """Which repository types get this file."""
 
     config_key: str = ""
-    """``[tool.repomatic]`` key that gates this entry."""
+    """`[tool.repomatic]` key that gates this entry."""
 
     config_default: bool = False
-    """Value assumed when ``config_key`` is absent from config. ``False``
-    means opt-in (excluded unless enabled), ``True`` means opt-out
+    """Value assumed when `config_key` is absent from config. `False`
+    means opt-in (excluded unless enabled), `True` means opt-out
     (included unless disabled)."""
 
     reusable: bool = True
-    """Workflow-specific: supports ``workflow_call`` trigger."""
+    """Workflow-specific: supports `workflow_call` trigger."""
 
     phase: str = ""
-    """Skill-specific: lifecycle phase for ``list-skills`` display."""
+    """Skill-specific: lifecycle phase for `list-skills` display."""
 
     def is_enabled(self, config: object) -> bool:
-        """Whether this entry is enabled by the given ``Config`` object.
+        """Whether this entry is enabled by the given `Config` object.
 
-        Returns ``True`` when no ``config_key`` is set (unconditionally
+        Returns `True` when no `config_key` is set (unconditionally
         enabled) or when the corresponding config field is truthy.
 
-        :param config: A :class:`~repomatic.config.Config` instance.
+        :param config: A {class}`~repomatic.config.Config` instance.
         """
         if not self.config_key:
             return True
@@ -141,7 +141,7 @@ class FileEntry:
         return getattr(config, field, self.config_default)
 
     def __post_init__(self) -> None:
-        """Derive ``target`` and ``file_id`` from ``source`` when omitted."""
+        """Derive `target` and `file_id` from `source` when omitted."""
         if not self.target:
             object.__setattr__(self, "target", self.source)
         if not self.file_id:
@@ -158,42 +158,42 @@ class Component:
     """Base class for all init components."""
 
     name: str
-    """Component name used on the CLI (e.g., ``"skills"``)."""
+    """Component name used on the CLI (e.g., `"skills"`)."""
 
     description: str
     """Human-readable description for help text."""
 
     init_default: InitDefault = InitDefault.INCLUDE
-    """How ``init`` treats this component when no explicit CLI selection
+    """How `init` treats this component when no explicit CLI selection
     is made."""
 
     scope: RepoScope = RepoScope.ALL
     """Which repository types get this component.  Checked at the component
     level during auto-exclusion, complementing the file-level
-    :attr:`FileEntry.scope`."""
+    {attr}`FileEntry.scope`."""
 
     files: tuple[FileEntry, ...] = ()
     """File entries this component manages."""
 
     config_key: str = ""
-    """``[tool.repomatic]`` key that gates this component."""
+    """`[tool.repomatic]` key that gates this component."""
 
     config_default: bool = True
-    """Value assumed when ``config_key`` is absent from config. ``True``
+    """Value assumed when `config_key` is absent from config. `True`
     means opt-out (included unless disabled)."""
 
     keep_unmodified: bool = False
     """Preserve files on disk even when identical to the bundled default.
-    When ``False``, unmodified copies are flagged for cleanup by
-    ``--delete-unmodified``."""
+    When `False`, unmodified copies are flagged for cleanup by
+    `--delete-unmodified`."""
 
     def is_enabled(self, config: object) -> bool:
-        """Whether this component is enabled by the given ``Config`` object.
+        """Whether this component is enabled by the given `Config` object.
 
-        Returns ``True`` when no ``config_key`` is set (unconditionally
+        Returns `True` when no `config_key` is set (unconditionally
         enabled) or when the corresponding config field is truthy.
 
-        :param config: A :class:`~repomatic.config.Config` instance.
+        :param config: A {class}`~repomatic.config.Config` instance.
         """
         if not self.config_key:
             return True
@@ -203,7 +203,7 @@ class Component:
 
 @dataclass(frozen=True)
 class BundledComponent(Component):
-    """Files copied from ``repomatic/data/`` to a target path."""
+    """Files copied from `repomatic/data/` to a target path."""
 
 
 @dataclass(frozen=True)
@@ -213,34 +213,34 @@ class WorkflowComponent(Component):
 
 @dataclass(frozen=True)
 class ToolConfigComponent(Component):
-    """Merged into ``pyproject.toml``."""
+    """Merged into `pyproject.toml`."""
 
     source_file: str = ""
-    """Filename in ``repomatic/data/``."""
+    """Filename in `repomatic/data/`."""
 
     tool_section: str = ""
-    """The ``[tool.X]`` section name to check for existence."""
+    """The `[tool.X]` section name to check for existence."""
 
     insert_after: tuple[str, ...] = ()
-    """Sections to insert after in ``pyproject.toml``
+    """Sections to insert after in `pyproject.toml`
     (in priority order)."""
 
     insert_before: tuple[str, ...] = ()
-    """Sections to insert before in ``pyproject.toml``
-    (if ``insert_after`` not found)."""
+    """Sections to insert before in `pyproject.toml`
+    (if `insert_after` not found)."""
 
     sync_mode: SyncMode = SyncMode.BOOTSTRAP
     """How this config behaves when the section already exists.
 
-    ``BOOTSTRAP``: insert once, skip if the section is present.
-    ``ONGOING``: replace template content on every sync while preserving
+    `BOOTSTRAP`: insert once, skip if the section is present.
+    `ONGOING`: replace template content on every sync while preserving
     local additions (extra array-of-tables entries, etc.).
     """
 
     preserved_keys: tuple[str, ...] = ()
     """Top-level keys whose existing values survive an ongoing sync.
 
-    Only meaningful when ``sync_mode`` is ``ONGOING``. During replacement,
+    Only meaningful when `sync_mode` is `ONGOING`. During replacement,
     these keys keep their value from the existing config rather than being
     overwritten by the template placeholder.
     """
@@ -270,8 +270,8 @@ class TemplateComponent(Component):
 class GeneratedComponent(Component):
     """Produced from code (changelog).
 
-    Unlike bundled components, generated components have no ``files`` tuple.
-    The ``target`` field records the output path so the auto-exclusion logic
+    Unlike bundled components, generated components have no `files` tuple.
+    The `target` field records the output path so the auto-exclusion logic
     can detect stale copies on disk.
     """
 
@@ -568,7 +568,7 @@ COMPONENTS: tuple[Component, ...] = (
 )
 """The component registry.
 
-Single source of truth for all resources managed by the ``init`` subcommand.
+Single source of truth for all resources managed by the `init` subcommand.
 Every component declares its kind, selection default, file entries, and
 behavioral flags. All derived constants are computed from this tuple.
 """
@@ -582,7 +582,7 @@ DEFAULT_REPO: str = "kdeldycke/repomatic"
 UPSTREAM_SOURCE_GLOB: str = "repomatic/**"
 """Path glob for the upstream source directory in canonical workflows.
 
-Canonical workflow ``paths:`` filters use this glob to match source code
+Canonical workflow `paths:` filters use this glob to match source code
 changes. In downstream repos, this is replaced with the project's own source
 directory.
 """
@@ -591,9 +591,9 @@ UPSTREAM_SOURCE_PREFIX: str = "repomatic/"
 """Path prefix for upstream-specific files in canonical workflows.
 
 Paths starting with this prefix (but not matching
-:data:`UPSTREAM_SOURCE_GLOB`) are dropped in downstream thin callers because
+{data}`UPSTREAM_SOURCE_GLOB`) are dropped in downstream thin callers because
 they reference files that only exist in the upstream repository (e.g.,
-``repomatic/data/renovate.json5``).
+`repomatic/data/renovate.json5`).
 """
 
 SKILL_PHASE_ORDER: tuple[str, ...] = (
@@ -603,7 +603,7 @@ SKILL_PHASE_ORDER: tuple[str, ...] = (
     "Maintenance",
     "Release",
 )
-"""Canonical display order for lifecycle phases in ``list-skills`` output."""
+"""Canonical display order for lifecycle phases in `list-skills` output."""
 
 
 # ---------------------------------------------------------------------------
@@ -616,12 +616,12 @@ ALL_COMPONENTS: dict[str, str] = {c.name: c.description for c in COMPONENTS}
 REUSABLE_WORKFLOWS: tuple[str, ...] = tuple(
     f.file_id for f in _BY_NAME["workflows"].files if f.reusable
 )
-"""Workflow filenames that support ``workflow_call`` triggers."""
+"""Workflow filenames that support `workflow_call` triggers."""
 
 NON_REUSABLE_WORKFLOWS: frozenset[str] = frozenset(
     f.file_id for f in _BY_NAME["workflows"].files if not f.reusable
 )
-"""Workflows without ``workflow_call`` that cannot be used as thin callers."""
+"""Workflows without `workflow_call` that cannot be used as thin callers."""
 
 ALL_WORKFLOW_FILES: tuple[str, ...] = tuple(
     sorted(f.file_id for f in _BY_NAME["workflows"].files)
@@ -635,7 +635,7 @@ SKILL_PHASES: dict[str, str] = {
 
 
 FILE_SELECTOR_COMPONENTS: tuple[str, ...] = tuple(c.name for c in COMPONENTS if c.files)
-"""Components that support file-level ``component/file`` selectors."""
+"""Components that support file-level `component/file` selectors."""
 
 _MAX_NAME = max(len(c.name) for c in COMPONENTS)
 COMPONENT_HELP_TABLE: str = "\n".join(
@@ -647,7 +647,7 @@ COMPONENT_HELP_TABLE: str = "\n".join(
 def valid_file_ids(component: str) -> frozenset[str]:
     """Return valid file identifiers for a component.
 
-    Components with file entries report their declared ``file_id`` values.
+    Components with file entries report their declared `file_id` values.
     Returns an empty set for components without file-level selection
     (e.g., changelog, tool configs).
     """
@@ -660,7 +660,7 @@ def valid_file_ids(component: str) -> frozenset[str]:
 def excluded_rel_path(component: str, file_id: str) -> str | None:
     """Map a component and file identifier to its relative output path.
 
-    Returns ``None`` when the identifier cannot be resolved (e.g., for tool
+    Returns `None` when the identifier cannot be resolved (e.g., for tool
     config components that have no file-level exclusion support).
     """
     comp = _BY_NAME.get(component)
@@ -679,17 +679,17 @@ def parse_component_entries(
 ) -> tuple[set[str], dict[str, set[str]]]:
     """Parse component entries into full-component and file-level sets.
 
-    Bare names (no ``/``) must be component names from
-    :data:`ALL_COMPONENTS`. Qualified ``component/identifier`` entries
-    target individual files. Raises ``ValueError`` on unknown entries.
+    Bare names (no `/`) must be component names from
+    {data}`ALL_COMPONENTS`. Qualified `component/identifier` entries
+    target individual files. Raises `ValueError` on unknown entries.
 
-    Used by both the ``exclude`` config path and the CLI positional
+    Used by both the `exclude` config path and the CLI positional
     selection, with *context* controlling error message wording.
 
-    :param context: Label for error messages (e.g., ``"exclude"``,
-        ``"selection"``).
-    :return: ``(full_components, file_selections)`` where
-        ``file_selections`` maps component names to sets of file
+    :param context: Label for error messages (e.g., `"exclude"`,
+        `"selection"`).
+    :return: `(full_components, file_selections)` where
+        `file_selections` maps component names to sets of file
         identifiers.
     """
     full_components: set[str] = set()

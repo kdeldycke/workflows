@@ -15,38 +15,41 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 """Convert reST docstrings to MyST in Python source files.
 
-Transforms reST markup in docstrings and ``#:`` comment blocks to MyST
-markdown.  The companion Sphinx extension :mod:`repomatic.myst_docstrings`
-converts the MyST back to reST at build time, so ``sphinx.ext.autodoc``
+Transforms reST markup in docstrings and `#:` comment blocks to MyST
+markdown.  The companion Sphinx extension {mod}`repomatic.myst_docstrings`
+converts the MyST back to reST at build time, so `sphinx.ext.autodoc`
 still works.
 
 Conversions applied (in order):
 
-1. Cross-references: ``:role:`target``` -> ``{role}`target```
-2. Named links: ```text <url>`_`` -> ``[text](url)``
+1. Cross-references: ``{role}`target``` -> ``{role}`target```
+2. Named links: ```text <url>`_` -> `[text](url)``
 3. Inline code: ````code```` -> ```code```
-4. ``#:`` comment blocks: strip prefix, convert directives, re-wrap.
-5. Directives: ``.. directive::`` + indented body -> ``:::{directive}`` /
-   ``:::``
+4. `#:` comment blocks: strip prefix, convert directives, re-wrap.
+5. Directives: `.. directive::` + indented body -> ``:::{directive}`` /
+   `:::`
 
 Safe to re-run: already-converted MyST syntax does not match the reST
 patterns, so the script is idempotent.
 
-.. note::
-    **f-string exclusion**: Cross-reference and inline-code regexes exclude
-    targets containing ``{`` so that f-string interpolations (like
-    ``f":func:`~{self.id}`"``) are untouched.
+:::{note}
+**f-string exclusion**: Cross-reference and inline-code regexes exclude
+targets containing ``{`` so that f-string interpolations (like
+``f":func:`~{self.id}`"``) are untouched.
+:::
 
-.. note::
-    **Nested directives stay as reST**: A ``.. code-block::`` inside a
-    converted ``:::{warning}`` fence is emitted as-is.  The hook handles
-    this correctly because it re-indents the body when converting back to
-    reST.
+:::{note}
+**Nested directives stay as reST**: A `.. code-block::` inside a
+converted ``:::{warning}`` fence is emitted as-is.  The hook handles
+this correctly because it re-indents the body when converting back to
+reST.
+:::
 
-.. note::
-    **Link labels lose backticks**: ``[`sys.platform`](url)`` is valid MyST
-    but reST has no nested markup.  The hook strips backticks from labels
-    before emitting the reST link.
+:::{note}
+**Link labels lose backticks**: ``[`sys.platform`](url)`` is valid MyST
+but reST has no nested markup.  The hook strips backticks from labels
+before emitting the reST link.
+:::
 """
 
 from __future__ import annotations
@@ -57,7 +60,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # 1. Cross-references
 # ---------------------------------------------------------------------------
-# :role:`target` -> {role}`target`
+# {role}`target` -> {role}`target`
 # Exclude targets containing { so f-string interpolations are untouched.
 XREF_RE = re.compile(r":(\w+):`([^`{]*?)`")
 
@@ -87,7 +90,7 @@ def convert_links(text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# 3. Inline code:  ``code``  ->  `code`
+# 3. Inline code:  `code`  ->  `code`
 # ---------------------------------------------------------------------------
 # Exclude content containing { so f-string interpolations like
 # ``{self.id}`` are untouched.
@@ -108,11 +111,11 @@ DIRECTIVE_RE = re.compile(r"^(\s*)\.\. ([\w-]+)::\s*(.*)")
 def convert_directives(text: str) -> str:
     """Convert reST directives to MyST colon fences in a single pass.
 
-    Body lines are collected by indentation (deeper than the ``..`` line)
+    Body lines are collected by indentation (deeper than the `..` line)
     and dedented to the fence level.  Trailing blank lines between
     consecutive directives are preserved as a single separator.
 
-    Nested directives (like ``.. code-block::`` inside ``.. warning::``)
+    Nested directives (like `.. code-block::` inside `.. warning::`)
     are emitted as-is in the fence body.  The hook re-indents them during
     the reST round-trip.
     """
@@ -195,9 +198,9 @@ def convert_directives(text: str) -> str:
 
 
 def convert_comment_blocks(text: str) -> str:
-    """Convert ``#:`` Sphinx comment docstrings.
+    """Convert `#:` Sphinx comment docstrings.
 
-    Consecutive ``#:`` lines are collected, the prefix is stripped, all
+    Consecutive `#:` lines are collected, the prefix is stripped, all
     conversions are applied to the extracted content, and the prefix is
     re-added.
     """
@@ -250,14 +253,14 @@ def convert_comment_blocks(text: str) -> str:
 def convert_file(filepath: Path) -> bool:
     """Apply all conversions to a single Python file.
 
-    Returns ``True`` if the file was modified.
+    Returns `True` if the file was modified.
 
     Ordering matters:
 
     1. Cross-references and links are simple global regexes.
-    2. Inline code runs before directives so that ``code`` inside
+    2. Inline code runs before directives so that `code` inside
        directive bodies is converted when the body is dedented.
-    3. ``#:`` comment blocks are processed before directives so that
+    3. `#:` comment blocks are processed before directives so that
        their inner directives are converted in isolation.
     4. Directives run last on the full text.
     """

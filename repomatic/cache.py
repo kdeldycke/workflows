@@ -19,25 +19,26 @@ generated tool configurations.
 
 Three cache subtrees under the user-level cache directory:
 
-**Binary cache** (``bin/``): platform-specific tool executables, keyed by
+**Binary cache** (`bin/`): platform-specific tool executables, keyed by
 ``{tool}/{version}/{platform}/{executable}``. Each cached binary has a
-``.sha256`` sidecar written after a verified archive download. Cache hits
+`.sha256` sidecar written after a verified archive download. Cache hits
 verify the binary against this sidecar to detect local tampering.
 
-**HTTP response cache** (``http/``): JSON API responses from PyPI and GitHub,
+**HTTP response cache** (`http/`): JSON API responses from PyPI and GitHub,
 keyed by ``{namespace}/{key}.json``. Freshness is controlled by a per-caller
 TTL (seconds); stale entries remain on disk until auto-purge removes them.
 
-**Config cache** (``config/``): generated tool configuration files, keyed by
+**Config cache** (`config/`): generated tool configuration files, keyed by
 ``{tool}/{filename}``. Overwritten on every invocation from the current
-``[tool.X]`` section in ``pyproject.toml`` or bundled defaults. Passed to
-tools via explicit ``--config`` flags so repomatic never writes to the
+`[tool.X]` section in `pyproject.toml` or bundled defaults. Passed to
+tools via explicit `--config` flags so repomatic never writes to the
 user's repository.
 
-.. note::
-    The cache module is intentionally a pure storage layer. It does not know
-    about checksums, registries, API semantics, or tool specifications. All
-    trust and freshness decisions belong to the caller.
+:::{note}
+The cache module is intentionally a pure storage layer. It does not know
+about checksums, registries, API semantics, or tool specifications. All
+trust and freshness decisions belong to the caller.
+:::
 """
 
 from __future__ import annotations
@@ -66,7 +67,7 @@ class CacheEntry:
     """Pinned version string."""
 
     platform: str
-    """Platform key (e.g., ``linux-x64``, ``macos-arm64``)."""
+    """Platform key (e.g., `linux-x64`, `macos-arm64`)."""
 
     executable: str
     """Executable filename."""
@@ -86,10 +87,10 @@ class HttpCacheEntry:
     """A single cached HTTP response with its metadata."""
 
     namespace: str
-    """Cache namespace (e.g., ``pypi``, ``github-releases``)."""
+    """Cache namespace (e.g., `pypi`, `github-releases`)."""
 
     key: str
-    """Cache key within the namespace (e.g., ``requests``, ``astral-sh/ruff``)."""
+    """Cache key within the namespace (e.g., `requests`, `astral-sh/ruff`)."""
 
     size: int
     """File size in bytes."""
@@ -109,7 +110,7 @@ class ConfigCacheEntry:
     """Tool name (registry key)."""
 
     filename: str
-    """Config filename (e.g., ``yamllint.yaml``, ``biome.json``)."""
+    """Config filename (e.g., `yamllint.yaml`, `biome.json`)."""
 
     size: int
     """File size in bytes."""
@@ -124,9 +125,9 @@ class ConfigCacheEntry:
 def _platform_cache_dir() -> Path:
     """Return the platform-appropriate default cache directory.
 
-    - macOS: ``~/Library/Caches/repomatic``.
-    - Windows: ``%LOCALAPPDATA%\\repomatic\\Cache``.
-    - Linux/POSIX: ``$XDG_CACHE_HOME/repomatic`` or ``~/.cache/repomatic``.
+    - macOS: `~/Library/Caches/repomatic`.
+    - Windows: `%LOCALAPPDATA%\\repomatic\\Cache`.
+    - Linux/POSIX: `$XDG_CACHE_HOME/repomatic` or `~/.cache/repomatic`.
     """
     home = Path.home()
     if is_macos():
@@ -148,8 +149,8 @@ def cache_dir() -> Path:
 
     Precedence (highest to lowest):
 
-    1. ``REPOMATIC_CACHE_DIR`` environment variable.
-    2. ``cache.dir`` in ``[tool.repomatic]``.
+    1. `REPOMATIC_CACHE_DIR` environment variable.
+    2. `cache.dir` in `[tool.repomatic]`.
     3. Platform-specific default.
 
     :return: Absolute path to the cache root (may not exist yet).
@@ -169,7 +170,7 @@ def cache_dir() -> Path:
 
 
 def _bin_dir() -> Path:
-    """Return the ``bin/`` subdirectory under the cache root."""
+    """Return the `bin/` subdirectory under the cache root."""
     return cache_dir() / "bin"
 
 
@@ -183,7 +184,7 @@ def cached_binary_path(
 
     :param name: Tool name.
     :param version: Pinned version.
-    :param platform_key: Platform key (e.g., ``linux-x64``).
+    :param platform_key: Platform key (e.g., `linux-x64`).
     :param executable: Executable filename.
     :return: Absolute path where the binary would be cached.
     """
@@ -199,13 +200,13 @@ def get_cached_binary(
     """Return the cached binary path if it exists and is executable.
 
     Does **not** verify the checksum. The caller is responsible for integrity
-    checks since it owns the checksum value and the ``skip_checksum`` flag.
+    checks since it owns the checksum value and the `skip_checksum` flag.
 
     :param name: Tool name.
     :param version: Pinned version.
     :param platform_key: Platform key.
     :param executable: Executable filename.
-    :return: Path to the cached binary, or ``None`` if not cached.
+    :return: Path to the cached binary, or `None` if not cached.
     """
     path = cached_binary_path(name, version, platform_key, executable)
     if path.is_file() and os.access(path, os.X_OK):
@@ -223,9 +224,9 @@ def store_binary(
 
     Writes to a temporary file in the target directory, then renames to the
     final name. This is atomic on POSIX (same-filesystem rename) and safe on
-    Windows (``Path.replace`` overwrites atomically).
+    Windows (`Path.replace` overwrites atomically).
 
-    Triggers :func:`auto_purge` after a successful store.
+    Triggers {func}`auto_purge` after a successful store.
 
     :param name: Tool name.
     :param version: Pinned version.
@@ -261,7 +262,7 @@ def store_binary(
 def cache_info() -> list[CacheEntry]:
     """List all cached binaries.
 
-    :return: List of :class:`CacheEntry` instances, sorted by tool name then
+    :return: List of {class}`CacheEntry` instances, sorted by tool name then
         version.
     """
     bin_root = _bin_dir()
@@ -347,7 +348,7 @@ def clear_cache(
 
 
 def _http_dir() -> Path:
-    """Return the ``http/`` subdirectory under the cache root."""
+    """Return the `http/` subdirectory under the cache root."""
     return cache_dir() / "http"
 
 
@@ -358,12 +359,12 @@ def get_cached_response(
 ) -> bytes | None:
     """Return a cached HTTP response if it exists and is fresh.
 
-    :param namespace: Cache namespace (e.g., ``pypi``, ``github-releases``).
-    :param key: Cache key, may contain ``/`` for nested paths.
+    :param namespace: Cache namespace (e.g., `pypi`, `github-releases`).
+    :param key: Cache key, may contain `/` for nested paths.
     :param max_age_seconds: Maximum age in seconds. Entries with mtime older
-        than this are considered stale and ignored. ``<= 0`` disables the
-        cache (always returns ``None``).
-    :return: Raw cached response bytes, or ``None`` if not cached or stale.
+        than this are considered stale and ignored. `<= 0` disables the
+        cache (always returns `None`).
+    :return: Raw cached response bytes, or `None` if not cached or stale.
     """
     if max_age_seconds <= 0:
         return None
@@ -387,13 +388,13 @@ def store_response(
 ) -> Path | None:
     """Store an HTTP response in the cache atomically.
 
-    Uses the same write-to-temp-then-rename pattern as :func:`store_binary`.
-    Triggers :func:`auto_purge` after a successful store.
+    Uses the same write-to-temp-then-rename pattern as {func}`store_binary`.
+    Triggers {func}`auto_purge` after a successful store.
 
     :param namespace: Cache namespace.
-    :param key: Cache key, may contain ``/`` for nested paths.
+    :param key: Cache key, may contain `/` for nested paths.
     :param data: Raw response bytes to cache.
-    :return: Path to the cached response file, or ``None`` if the write
+    :return: Path to the cached response file, or `None` if the write
         failed (permissions, read-only filesystem, sandbox restrictions).
     """
     dest = _http_dir() / namespace / f"{key}.json"
@@ -424,7 +425,7 @@ def store_response(
 def http_cache_info() -> list[HttpCacheEntry]:
     """List all cached HTTP responses.
 
-    :return: List of :class:`HttpCacheEntry` instances, sorted by namespace
+    :return: List of {class}`HttpCacheEntry` instances, sorted by namespace
         then key.
     """
     http_root = _http_dir()
@@ -498,7 +499,7 @@ def clear_http_cache(
 
 
 def _config_dir() -> Path:
-    """Return the ``config/`` subdirectory under the cache root."""
+    """Return the `config/` subdirectory under the cache root."""
     return cache_dir() / "config"
 
 
@@ -509,14 +510,14 @@ def store_config(
 ) -> Path | None:
     """Store a generated tool config in the cache atomically.
 
-    Uses the same write-to-temp-then-rename pattern as :func:`store_response`.
-    Does **not** trigger :func:`auto_purge`: config files are tiny and
+    Uses the same write-to-temp-then-rename pattern as {func}`store_response`.
+    Does **not** trigger {func}`auto_purge`: config files are tiny and
     overwritten on every invocation, so age-based pruning is unnecessary.
 
     :param tool_name: Tool name (registry key).
-    :param filename: Config filename (e.g., ``yamllint.yaml``).
+    :param filename: Config filename (e.g., `yamllint.yaml`).
     :param content: Config file content as text.
-    :return: Path to the cached config file, or ``None`` if the write
+    :return: Path to the cached config file, or `None` if the write
         failed (permissions, read-only filesystem, sandbox restrictions).
     """
     dest = _config_dir() / tool_name / filename
@@ -546,7 +547,7 @@ def store_config(
 def config_cache_info() -> list[ConfigCacheEntry]:
     """List all cached tool configurations.
 
-    :return: List of :class:`ConfigCacheEntry` instances, sorted by tool name.
+    :return: List of {class}`ConfigCacheEntry` instances, sorted by tool name.
     """
     config_root = _config_dir()
     if not config_root.is_dir():
@@ -624,11 +625,11 @@ def _max_age_days() -> int:
 
     Precedence (highest to lowest):
 
-    1. ``REPOMATIC_CACHE_MAX_AGE`` environment variable.
-    2. ``cache.max-age`` in ``[tool.repomatic]``.
-    3. ``CacheConfig.max_age`` field default.
+    1. `REPOMATIC_CACHE_MAX_AGE` environment variable.
+    2. `cache.max-age` in `[tool.repomatic]`.
+    3. `CacheConfig.max_age` field default.
 
-    :return: TTL in days. ``0`` means auto-purge is disabled.
+    :return: TTL in days. `0` means auto-purge is disabled.
     """
     # 1. Environment variable (highest priority).
     raw = os.environ.get("REPOMATIC_CACHE_MAX_AGE", "")
@@ -649,11 +650,11 @@ def _max_age_days() -> int:
 def auto_purge() -> None:
     """Remove cached entries older than the configured TTL.
 
-    Called automatically after :func:`store_binary` and
-    :func:`store_response`. Purges both binary and HTTP cache entries.
-    Resolves the TTL from ``REPOMATIC_CACHE_MAX_AGE`` env var, then
-    ``cache.max-age`` in ``[tool.repomatic]``, then the
-    ``CacheConfig.max_age`` field default. Set to ``0`` to disable.
+    Called automatically after {func}`store_binary` and
+    {func}`store_response`. Purges both binary and HTTP cache entries.
+    Resolves the TTL from `REPOMATIC_CACHE_MAX_AGE` env var, then
+    `cache.max-age` in `[tool.repomatic]`, then the
+    `CacheConfig.max_age` field default. Set to `0` to disable.
     """
     days = _max_age_days()
     if days <= 0:

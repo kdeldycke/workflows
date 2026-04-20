@@ -34,29 +34,27 @@ RESERVED_MATRIX_KEYWORDS = ["include", "exclude"]
 class Matrix:
     """A matrix as defined by GitHub's actions workflows.
 
-    See GitHub official documentation on `how-to implement variations of jobs in a
-    workflow
-    <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow>`_.
+    See GitHub official documentation on [how-to implement variations of jobs in a workflow](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow).
 
-    .. note:: Why matrices are pre-computed in the ``metadata`` job
+    :::{note} Why matrices are pre-computed in the `metadata` job
 
-       GitHub Actions matrix outputs are not cumulative — the last job in a
-       matrix wins (`community discussion
-       <https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626>`_).
-       This makes a matrix-based job terminal in a dependency graph: no
-       downstream job can depend on its aggregated outputs.
+    GitHub Actions matrix outputs are not cumulative — the last job in a
+    matrix wins ([community discussion](https://github.community/t/bug-jobs-output-should-return-a-list-for-a-matrix-job/128626)).
+    This makes a matrix-based job terminal in a dependency graph: no
+    downstream job can depend on its aggregated outputs.
 
-       The workaround is a single preliminary ``metadata`` job that computes
-       all matrices upfront. Downstream jobs depend on that job and consume
-       the pre-built matrices, rather than computing them themselves.
+    The workaround is a single preliminary `metadata` job that computes
+    all matrices upfront. Downstream jobs depend on that job and consume
+    the pre-built matrices, rather than computing them themselves.
+    :::
 
-    This Matrix behave like a ``dict`` and works everywhere a ``dict`` would. Only that
-    it is immutable and based on :class:`FrozenDict`. If you want to populate the matrix
+    This Matrix behave like a `dict` and works everywhere a `dict` would. Only that
+    it is immutable and based on {class}`FrozenDict`. If you want to populate the matrix
     you have to use the following methods:
 
-    - :meth:`add_variation`
-    - :meth:`add_includes`
-    - :meth:`add_excludes`
+    - {meth}`add_variation`
+    - {meth}`add_includes`
+    - {meth}`add_excludes`
 
     The implementation respects the order in which items were inserted. This provides a
     natural and visual sorting that should ease the inspection and debugging of large
@@ -77,7 +75,7 @@ class Matrix:
     ) -> FrozenDict[str, tuple[str, ...] | tuple[dict[str, str], ...]]:
         """Returns a copy of the matrix.
 
-        The special ``include`` and ``excludes`` directives will be added by default.
+        The special `include` and `excludes` directives will be added by default.
         You can selectively ignore them by passing the corresponding boolean parameters.
         """
         dict_copy = self.variations.copy()
@@ -121,7 +119,7 @@ class Matrix:
 
         The new value takes the position of the old value. If the new value
         already exists elsewhere in the axis, the duplicate is removed by
-        :func:`boltons.iterutils.unique`.
+        {func}`boltons.iterutils.unique`.
 
         Silently skips if the axis does not exist or does not contain the
         old value, making the operation idempotent.
@@ -166,11 +164,11 @@ class Matrix:
         return tuple(result)
 
     def add_includes(self, *new_includes: dict[str, str]) -> None:
-        """Add one or more ``include`` special directives to the matrix."""
+        """Add one or more `include` special directives to the matrix."""
         self.include = self._add_and_dedup_dicts(*self.include, *new_includes)
 
     def add_excludes(self, *new_excludes: dict[str, str]) -> None:
-        """Add one or more ``exclude`` special directives to the matrix."""
+        """Add one or more `exclude` special directives to the matrix."""
         self.exclude = self._add_and_dedup_dicts(*self.exclude, *new_excludes)
 
     def prune(self) -> None:
@@ -179,7 +177,7 @@ class Matrix:
         An exclude is a no-op when it references a key that is not a
         variation axis at all, or when the key exists but the value is
         not present in that axis. Either way the exclude can never match
-        any combination produced by :meth:`product`, and GitHub Actions
+        any combination produced by {meth}`product`, and GitHub Actions
         rejects excludes that reference non-existent matrix keys.
         """
         effective: list[dict[str, str]] = []
@@ -211,12 +209,12 @@ class Matrix:
     ) -> dict[str, tuple[str, ...]]:
         """Collect all variations encountered in the matrix.
 
-        Extra variations mentioned in the special ``include`` and ``exclude``
+        Extra variations mentioned in the special `include` and `exclude`
         directives will be ignored by default.
 
         You can selectively expand or restrict the resulting inventory of variations by
-        passing the corresponding ``with_matrix``, ``with_includes`` and
-        ``with_excludes`` boolean filter parameters.
+        passing the corresponding `with_matrix`, `with_includes` and
+        `with_excludes` boolean filter parameters.
         """
         all_variations = {}
         if with_matrix:
@@ -238,8 +236,8 @@ class Matrix:
     ) -> Iterator[dict[str, str]]:
         """Only returns the combinations of the base matrix by default.
 
-        You can optionally add any variation referenced in the ``include`` and
-        ``exclude`` special directives.
+        You can optionally add any variation referenced in the `include` and
+        `exclude` special directives.
 
         Respects the order of variations and their values.
         """
@@ -264,12 +262,13 @@ class Matrix:
             logging.critical("GitHub job matrix limit of 256 jobs reached")
 
     def solve(self, strict: bool = False) -> Iterator[dict[str, str]]:
-        """Returns all combinations and apply ``include`` and ``exclude`` constraints.
+        """Returns all combinations and apply `include` and `exclude` constraints.
 
-        .. caution::
-            As per GitHub specifications, all ``include`` combinations are processed
-            after ``exclude``. This allows you to use ``include`` to add back
-            combinations that were previously excluded.
+        :::{caution}
+        As per GitHub specifications, all `include` combinations are processed
+        after `exclude`. This allows you to use `include` to add back
+        combinations that were previously excluded.
+        :::
         """
         # GitHub jobs fails with the following message if the exclude directive is
         # referencing keys that are not present in the original base matrix:

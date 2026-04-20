@@ -17,25 +17,25 @@
 """Bundled data files, configuration templates, and repository initialization.
 
 Provides a unified interface for accessing bundled data files from
-``repomatic/data/`` and orchestrates repository bootstrapping via
-``repomatic init``.
+`repomatic/data/` and orchestrates repository bootstrapping via
+`repomatic init`.
 
-Available components (``repomatic init <component>``):
+Available components (`repomatic init <component>`):
 
-- ``workflows`` - Thin-caller workflow files
-- ``labels`` - Label definitions (labels.toml + labeller rules)
-- ``renovate`` - Renovate dependency update configuration (renovate.json5)
-- ``changelog`` - Minimal changelog.md
-- ``ruff`` - Merges ``[tool.ruff]`` into pyproject.toml
-- ``pytest`` - Merges ``[tool.pytest]`` into pyproject.toml
-- ``mypy`` - Merges ``[tool.mypy]`` into pyproject.toml
-- ``bumpversion`` - Merges ``[tool.bumpversion]`` into pyproject.toml
-- ``skills`` - Claude Code skill definitions (.claude/skills/)
-- ``awesome-template`` - Boilerplate for ``awesome-*`` repositories
+- `workflows` - Thin-caller workflow files
+- `labels` - Label definitions (labels.toml + labeller rules)
+- `renovate` - Renovate dependency update configuration (renovate.json5)
+- `changelog` - Minimal changelog.md
+- `ruff` - Merges `[tool.ruff]` into pyproject.toml
+- `pytest` - Merges `[tool.pytest]` into pyproject.toml
+- `mypy` - Merges `[tool.mypy]` into pyproject.toml
+- `bumpversion` - Merges `[tool.bumpversion]` into pyproject.toml
+- `skills` - Claude Code skill definitions (.claude/skills/)
+- `awesome-template` - Boilerplate for `awesome-*` repositories
 
-Selectors use the same ``component[/file]`` syntax as the ``exclude``
-config option in ``[tool.repomatic]``.  Qualified entries like
-``skills/repomatic-topics`` select a single file within a component.
+Selectors use the same `component[/file]` syntax as the `exclude`
+config option in `[tool.repomatic]`.  Qualified entries like
+`skills/repomatic-topics` select a single file within a component.
 """
 
 from __future__ import annotations
@@ -99,7 +99,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
 }
 """Registry of all exportable files: maps filename to default output path.
 
-``None`` means stdout (for pyproject.toml templates that need merging).
+`None` means stdout (for pyproject.toml templates that need merging).
 """
 
 
@@ -111,7 +111,7 @@ EXPORTABLE_FILES: dict[str, str | None] = {
 def get_data_content(filename: str) -> str:
     """Get the content of a bundled data file.
 
-    This is the low-level function for reading any file from ``repomatic/data/``.
+    This is the low-level function for reading any file from `repomatic/data/`.
 
     :param filename: Name of the file to retrieve (e.g., "labels.toml").
     :return: Content of the file as a string.
@@ -129,17 +129,18 @@ def get_data_content(filename: str) -> str:
 def _strip_renovate_repo_settings(content: str) -> str:
     """Strip upstream repo-specific settings from a Renovate config.
 
-    Removes ``assignees`` (repo-specific) and the self-referencing uv
-    ``customManagers`` entry that targets ``renovate.json5`` itself.
+    Removes `assignees` (repo-specific) and the self-referencing uv
+    `customManagers` entry that targets `renovate.json5` itself.
 
-    .. note::
-        The self-referencing uv ``customManagers`` entry is excluded because it
-        creates an endless update loop in downstream repos: Renovate bumps the
-        pinned uv version, the merged PR triggers ``repomatic init``, which
-        overwrites ``renovate.json5`` back to the bundled template (reverting
-        the bump), and Renovate opens the same PR again — indefinitely. All
-        other ``customManagers`` entries are included since they target workflow
-        files, not ``renovate.json5`` itself.
+    :::{note}
+    The self-referencing uv `customManagers` entry is excluded because it
+    creates an endless update loop in downstream repos: Renovate bumps the
+    pinned uv version, the merged PR triggers `repomatic init`, which
+    overwrites `renovate.json5` back to the bundled template (reverting
+    the bump), and Renovate opens the same PR again — indefinitely. All
+    other `customManagers` entries are included since they target workflow
+    files, not `renovate.json5` itself.
+    :::
 
     :param content: Raw Renovate config content.
     :return: The config with repo-specific settings removed.
@@ -162,10 +163,10 @@ def _strip_renovate_repo_settings(content: str) -> str:
 def _get_renovate_config() -> str:
     """Get Renovate config, with repo-specific settings stripped.
 
-    When running from the source repository (via ``uv run``), reads the root
-    ``renovate.json5`` and strips repo-specific settings. When installed as a
-    package (via ``uvx``), falls back to the pre-processed bundled file in
-    ``repomatic/data/renovate.json5``.
+    When running from the source repository (via `uv run`), reads the root
+    `renovate.json5` and strips repo-specific settings. When installed as a
+    package (via `uvx`), falls back to the pre-processed bundled file in
+    `repomatic/data/renovate.json5`.
 
     :return: The clean Renovate configuration content.
     """
@@ -210,10 +211,10 @@ def export_content(filename: str) -> str:
 def _template_to_table(template_text: str) -> tomlkit.items.Table:
     """Parse native-format template text into a tomlkit Table.
 
-    Uses ``Container.append`` to preserve standalone comments and whitespace
+    Uses `Container.append` to preserve standalone comments and whitespace
     from the template during the copy.
 
-    :param template_text: Template content in native format (no ``[tool.X]``
+    :param template_text: Template content in native format (no `[tool.X]`
         prefix), with file-level header comments already stripped.
     :return: A tomlkit Table suitable for assignment into a document.
     """
@@ -229,23 +230,24 @@ def _update_tool_config(
     comp: ToolConfigComponent,
     pyproject_path: Path,
 ) -> str | None:
-    """Replace an existing ``[tool.X]`` section from the bundled template.
+    """Replace an existing `[tool.X]` section from the bundled template.
 
     Replaces the entire section with the canonical template, preserving
-    values for keys listed in ``comp.preserved_keys`` and any local
+    values for keys listed in `comp.preserved_keys` and any local
     array-of-tables entries not present in the template.
 
-    .. note::
-        Comments attached to local array-of-tables entries are preserved
-        when they appear between entries (tomlkit stores them as trailing
-        trivia on the preceding entry). A comment immediately before the
-        *first* local entry may be lost: tomlkit stores it in the parent
-        table body, not in the AoT.
+    :::{note}
+    Comments attached to local array-of-tables entries are preserved
+    when they appear between entries (tomlkit stores them as trailing
+    trivia on the preceding entry). A comment immediately before the
+    *first* local entry may be lost: tomlkit stores it in the parent
+    table body, not in the AoT.
+    :::
 
     :param content: The current pyproject.toml content.
     :param comp: The component whose config is being synced.
     :param pyproject_path: Path to pyproject.toml (for resolving managed files).
-    :return: Modified pyproject.toml content, or ``None`` if already up to date.
+    :return: Modified pyproject.toml content, or `None` if already up to date.
     """
     doc = tomlkit.parse(content)
     tool_name = comp.tool_section.removeprefix("tool.")
@@ -307,7 +309,7 @@ def _update_tool_config(
     modified = tomlkit.dumps(doc)
 
     # tomlkit may omit the newline before section headers when replacing
-    # or appending entries. Normalize so every ``[`` or ``[[`` starts on
+    # or appending entries. Normalize so every `[` or `[[` starts on
     # its own line with a preceding blank line. This is a workaround for
     # several long-standing tomlkit bugs around whitespace after
     # programmatic edits:
@@ -316,20 +318,20 @@ def _update_tool_config(
     # - https://github.com/python-poetry/tomlkit/issues/400
     # No normalization API exists in tomlkit; revisit if one is added.
     # Regex on the serialized string is preferred over manipulating
-    # tomlkit's per-item ``_trivia.indent`` because the internal
-    # representation of dotted tables (``[tool.X]``) is non-trivial to
-    # walk, and the trivia heuristics in ``_replace_at``/``_insert_at``
+    # tomlkit's per-item `_trivia.indent` because the internal
+    # representation of dotted tables (`[tool.X]`) is non-trivial to
+    # walk, and the trivia heuristics in `_replace_at`/`_insert_at`
     # are themselves the source of the inconsistencies.
     #
-    # 1. Fix ``[[`` not starting on its own line (AoT appending).
+    # 1. Fix `[[` not starting on its own line (AoT appending).
     modified = re.sub(r"(?<!\n)(\[\[)", r"\n\n\1", modified)
-    # 2. Ensure a blank line before single-bracket ``[table]`` headers.
-    #    ``(?!\[)`` avoids matching the inner ``[`` of ``[[``.
+    # 2. Ensure a blank line before single-bracket `[table]` headers.
+    #    `(?!\[)` avoids matching the inner `[` of `[[`.
     modified = re.sub(r"([^\n])\n(\[(?!\[))", r"\1\n\n\2", modified)
     # 3. Collapse excessive blank lines (3+) down to exactly one.
     modified = re.sub(r"\n{3,}\[", r"\n\n[", modified)
     # 4. Remove blank lines that step 2 inserted between a comment and
-    #    the ``[table]`` header it describes.
+    #    the `[table]` header it describes.
     modified = re.sub(r"(^#[^\n]*)\n\n(\[)", r"\1\n\2", modified, flags=re.MULTILINE)
     if modified.strip() == content.strip():
         logging.info(f"[{comp.tool_section}] already up to date.")
@@ -345,14 +347,14 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
     Reads the pyproject.toml file, checks if the tool section already exists,
     and if not, inserts the bundled template at the appropriate location.
 
-    The template is stored in native format (without ``[tool.X]`` prefix) and
-    is parsed by tomlkit and added under the ``[tool]`` table.
+    The template is stored in native format (without `[tool.X]` prefix) and
+    is parsed by tomlkit and added under the `[tool]` table.
 
-    :param config_type: The configuration type (e.g., ``"ruff"``,
-        ``"bumpversion"``).
+    :param config_type: The configuration type (e.g., `"ruff"`,
+        `"bumpversion"`).
     :param pyproject_path: Path to pyproject.toml. Defaults to
-        ``./pyproject.toml``.
-    :return: The modified pyproject.toml content, or ``None`` if no changes
+        `./pyproject.toml`.
+    :return: The modified pyproject.toml content, or `None` if no changes
         needed.
     :raises ValueError: If the config type is not supported.
     """
@@ -407,10 +409,10 @@ def init_config(config_type: str, pyproject_path: Path | None = None) -> str | N
 
 
 def default_version_pin() -> str:
-    """Derive the default version pin from ``__version__``.
+    """Derive the default version pin from `__version__`.
 
-    Strips any ``.dev0`` suffix and prefixes with ``v``. For example,
-    ``"5.10.0.dev0"`` becomes ``"v5.10.0"``.
+    Strips any `.dev0` suffix and prefixes with `v`. For example,
+    `"5.10.0.dev0"` becomes `"v5.10.0"`.
     """
     version = re.sub(r"\.dev\d*$", "", __version__)
     return f"v{version}"
@@ -450,31 +452,32 @@ def run_init(
     repo_slug: str | None = None,
     config: Config | None = None,
 ) -> InitResult:
-    """Bootstrap a repository for use with ``kdeldycke/repomatic``.
+    """Bootstrap a repository for use with `kdeldycke/repomatic`.
 
     Creates thin-caller workflow files, exports configuration files, and
-    generates a minimal ``changelog.md`` if missing. Managed files (workflows,
+    generates a minimal `changelog.md` if missing. Managed files (workflows,
     configs, skills) are always overwritten. User-owned files
-    (``changelog.md``, ``zizmor.yaml``) are created once and never overwritten.
+    (`changelog.md`, `zizmor.yaml`) are created once and never overwritten.
 
-    For ``awesome-*`` repositories, the ``awesome-template`` component is
+    For `awesome-*` repositories, the `awesome-template` component is
     auto-included when no explicit component selection is made.
 
-    .. note::
-        Scope exclusions (``RepoScope.NON_AWESOME``, ``AWESOME_ONLY``) and
-        user-config exclusions (``[tool.repomatic] exclude``) only apply
-        during bare ``repomatic init``. When components are explicitly named
-        on the CLI, scope is bypassed: the caller knows what they asked for.
-        This allows workflows to materialize out-of-scope configs at runtime
-        (e.g., ``repomatic init renovate`` in an awesome repo).
+    :::{note}
+    Scope exclusions (`RepoScope.NON_AWESOME`, `AWESOME_ONLY`) and
+    user-config exclusions (`[tool.repomatic] exclude`) only apply
+    during bare `repomatic init`. When components are explicitly named
+    on the CLI, scope is bypassed: the caller knows what they asked for.
+    This allows workflows to materialize out-of-scope configs at runtime
+    (e.g., `repomatic init renovate` in an awesome repo).
+    :::
 
     :param output_dir: Root directory of the target repository.
     :param components: Components to initialize. Empty means all defaults.
         When non-empty, scope and user-config exclusions are bypassed.
-    :param version: Version pin for upstream workflows (e.g., ``v5.10.0``).
+    :param version: Version pin for upstream workflows (e.g., `v5.10.0`).
     :param repo: Upstream repository containing reusable workflows.
-    :param repo_slug: Repository ``owner/name`` slug for awesome-template URL
-        rewriting. Auto-detected via :class:`Metadata` if not provided.
+    :param repo_slug: Repository `owner/name` slug for awesome-template URL
+        rewriting. Auto-detected via {class}`Metadata` if not provided.
     :return: Summary of created, updated, skipped, and warned items.
     """
     if version is None:
@@ -576,19 +579,19 @@ def run_init(
     #
     # Three exclusion mechanisms, applied in order per component:
     #
-    # 1. Scope (component-level and file-level ``RepoScope``).
-    #    Bypassed by explicit CLI naming or ``[tool.repomatic] include``.
-    #    Scope exclusions on ``selected`` apply in all repos including the
+    # 1. Scope (component-level and file-level `RepoScope`).
+    #    Bypassed by explicit CLI naming or `[tool.repomatic] include`.
+    #    Scope exclusions on `selected` apply in all repos including the
     #    source repo (an AWESOME_ONLY config should not be merged into the
-    #    non-awesome source repo's ``pyproject.toml``). Stale-file detection
+    #    non-awesome source repo's `pyproject.toml`). Stale-file detection
     #    is suppressed in the source repo so bundled data files are never
     #    flagged for deletion.
     #
-    # 2. Config key (component-level and file-level ``config_key``).
+    # 2. Config key (component-level and file-level `config_key`).
     #    Always applies, even with explicit CLI naming: the user's
-    #    ``[tool.repomatic]`` config is authoritative for feature flags.
+    #    `[tool.repomatic]` config is authoritative for feature flags.
     #
-    # 3. User config (``[tool.repomatic] exclude``/``include``).
+    # 3. User config (`[tool.repomatic] exclude`/`include`).
     #    Already applied above, before this loop.
     is_source = _is_source_repo(output_dir)
     scope_excluded_targets: list[str] = []
@@ -750,7 +753,7 @@ def _init_workflows(
 ) -> None:
     """Generate thin-caller workflows and sync non-reusable workflow headers.
 
-    :param include: When not ``None``, only generate files in this set.
+    :param include: When not `None`, only generate files in this set.
     """
     # Lazy import to avoid circular dependency with workflow_sync.
     from . import __git_tag_sha__
@@ -835,18 +838,19 @@ def _init_workflows(
 
 
 def _is_source_repo(output_dir: Path) -> bool:
-    """Detect whether ``output_dir`` is the repomatic source repository root.
+    """Detect whether `output_dir` is the repomatic source repository root.
 
-    Returns ``True`` when ``output_dir`` contains the ``repomatic`` Python
-    package source tree (``repomatic/__init__.py`` and ``repomatic/data/``).
+    Returns `True` when `output_dir` contains the `repomatic` Python
+    package source tree (`repomatic/__init__.py` and `repomatic/data/`).
     Only the upstream source repo has these. This prevents auto-exclusion from
     deleting files that are the source of truth (skills, opt-in workflows,
     bundled configs).
 
-    .. note::
-        Detection is based on ``output_dir`` contents, not on ``__file__``,
-        because ``uvx --from .`` installs the package into a temp venv where
-        ``__file__`` no longer points to the source checkout.
+    :::{note}
+    Detection is based on `output_dir` contents, not on `__file__`,
+    because `uvx --from .` installs the package into a temp venv where
+    `__file__` no longer points to the source checkout.
+    :::
     """
     resolved = output_dir.resolve()
     return (resolved / "repomatic" / "__init__.py").exists() and (
@@ -855,10 +859,10 @@ def _is_source_repo(output_dir: Path) -> bool:
 
 
 def _is_renovate_source_repo(output_dir: Path) -> bool:
-    """Detect whether ``output_dir`` has the upstream renovate config pair.
+    """Detect whether `output_dir` has the upstream renovate config pair.
 
-    Returns ``True`` when the directory is the source repo and contains the
-    root ``renovate.json5``. Used by :func:`_init_config_files` to regenerate
+    Returns `True` when the directory is the source repo and contains the
+    root `renovate.json5`. Used by {func}`_init_config_files` to regenerate
     the bundled copy instead of overwriting the root config.
     """
     resolved = output_dir.resolve()
@@ -866,10 +870,10 @@ def _is_renovate_source_repo(output_dir: Path) -> bool:
 
 
 def _resolve_skills_target(entry_target: str, config: Config | None) -> str:
-    """Apply ``skills.location`` override to a skill file's target path.
+    """Apply `skills.location` override to a skill file's target path.
 
-    Replaces the default ``.claude/skills/`` prefix with the configured
-    ``skills_location`` when the config specifies a non-default value.
+    Replaces the default `.claude/skills/` prefix with the configured
+    `skills_location` when the config specifies a non-default value.
     """
     # Normalize the Config default (which has a "./" prefix) to match the
     # registry target format (which omits it).
@@ -893,20 +897,20 @@ def _init_config_files(
 ) -> None:
     """Export bundled config files for a component.
 
-    For components without ``keep_unmodified``, files already on disk that
+    For components without `keep_unmodified`, files already on disk that
     are identical to the bundled template are flagged as unmodified and not
     overwritten.
 
     **Upstream renovate handling:** When running in the repomatic source
-    repository, the root ``renovate.json5`` is the authoritative config (it
-    contains ``assignees`` and self-referencing ``customManagers``). Instead
+    repository, the root `renovate.json5` is the authoritative config (it
+    contains `assignees` and self-referencing `customManagers`). Instead
     of overwriting it with the stripped template, this function regenerates
-    ``repomatic/data/renovate.json5`` — the bundled copy shipped to downstream
+    `repomatic/data/renovate.json5` — the bundled copy shipped to downstream
     repos.
 
     :param exclude_ids: File identifiers to skip within this component.
-    :param include_ids: When not ``None``, only export files in this set.
-    :param config: Repomatic config for path overrides (e.g., ``skills.location``).
+    :param include_ids: When not `None`, only export files in this set.
+    :param config: Repomatic config for path overrides (e.g., `skills.location`).
     """
     comp = _BY_NAME[component_name]
     for entry in comp.files:
@@ -970,8 +974,8 @@ AWESOME_TEMPLATE_SLUG = "kdeldycke/awesome-template"
 def _copy_template_tree(root: Traversable, dest: Path) -> tuple[int, int]:
     """Recursively copy files from a traversable resource tree to disk.
 
-    Skips ``__init__.py`` and ``__pycache__`` entries. Returns
-    ``(created, updated)`` counts.
+    Skips `__init__.py` and `__pycache__` entries. Returns
+    `(created, updated)` counts.
     """
     created = 0
     updated = 0
@@ -1003,13 +1007,13 @@ def init_awesome_template(
 ) -> None:
     """Copy bundled awesome-template files and rewrite URLs.
 
-    Copies all files from the ``repomatic/data/awesome_template/`` bundle into
-    *output_dir* and rewrites ``kdeldycke/awesome-template`` URLs in
-    ``.github/`` markdown and YAML files to match *repo_slug*.
+    Copies all files from the `repomatic/data/awesome_template/` bundle into
+    *output_dir* and rewrites `kdeldycke/awesome-template` URLs in
+    `.github/` markdown and YAML files to match *repo_slug*.
 
     :param output_dir: Root directory of the target repository.
-    :param repo_slug: Target ``owner/name`` slug for URL rewriting.
-    :param result: :class:`InitResult` accumulator for created/updated files.
+    :param repo_slug: Target `owner/name` slug for URL rewriting.
+    :param result: {class}`InitResult` accumulator for created/updated files.
     """
     template_root = files("repomatic.data").joinpath("awesome_template")
     created, updated = _copy_template_tree(template_root, output_dir)
@@ -1036,14 +1040,14 @@ def init_awesome_template(
 def find_unmodified_init_files() -> list[tuple[str, str]]:
     """Find init-managed config files identical to their bundled defaults.
 
-    Checks bundled components without ``keep_unmodified`` for files on disk
-    whose content matches the bundled template (via :func:`export_content`)
-    after trailing-whitespace normalization (``.rstrip() + "\\n"``).
+    Checks bundled components without `keep_unmodified` for files on disk
+    whose content matches the bundled template (via {func}`export_content`)
+    after trailing-whitespace normalization (`.rstrip() + "\\n"`).
 
-    Mirrors the API of :func:`tool_runner.find_unmodified_configs`, returning
-    ``(component_name, relative_path)`` tuples.
+    Mirrors the API of {func}`tool_runner.find_unmodified_configs`, returning
+    `(component_name, relative_path)` tuples.
 
-    :return: List of ``(component_name, relative_path)`` tuples for each
+    :return: List of `(component_name, relative_path)` tuples for each
         unmodified file found.
     """
     unmodified: list[tuple[str, str]] = []
@@ -1067,10 +1071,10 @@ def find_all_unmodified_configs() -> list[tuple[str, str]]:
     """Find all config files identical to their bundled defaults.
 
     Combines tool configs (yamllint, zizmor, etc.) from
-    :func:`tool_runner.find_unmodified_configs` and init-managed configs
-    (labels, renovate) from :func:`find_unmodified_init_files`.
+    {func}`tool_runner.find_unmodified_configs` and init-managed configs
+    (labels, renovate) from {func}`find_unmodified_init_files`.
 
-    :return: List of ``(label, relative_path)`` tuples for each unmodified
+    :return: List of `(label, relative_path)` tuples for each unmodified
         file found.
     """
     return find_unmodified_configs() + find_unmodified_init_files()
@@ -1085,7 +1089,7 @@ def _init_changelog(
     """Create a minimal changelog.md if it doesn't exist.
 
     The changelog stub is only useful for bootstrapping new repositories.
-    An existing ``changelog.md`` is never overwritten — it contains real
+    An existing `changelog.md` is never overwritten — it contains real
     release history that would be destroyed by the stub template.
     """
     location = (config or Config()).changelog_location.removeprefix("./")
@@ -1110,10 +1114,10 @@ def _fetch_extra_labels(
     result: InitResult,
     config: Config | None = None,
 ) -> None:
-    """Download extra label files from ``[tool.repomatic]`` config.
+    """Download extra label files from `[tool.repomatic]` config.
 
-    Reads ``labels.extra-files`` URLs and downloads each file to an
-    ``extra-labels/`` subdirectory under ``output_dir``.
+    Reads `labels.extra-files` URLs and downloads each file to an
+    `extra-labels/` subdirectory under `output_dir`.
     Does nothing if no URLs are configured.
     """
     if config is None:

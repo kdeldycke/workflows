@@ -16,7 +16,7 @@
 
 """Upload release binaries to VirusTotal and update GitHub release notes.
 
-Submits compiled binaries (``.bin``, ``.exe``) to the VirusTotal API for malware
+Submits compiled binaries (`.bin`, `.exe`) to the VirusTotal API for malware
 scanning, then appends analysis links to the GitHub release body so users can
 verify scan results.
 
@@ -24,10 +24,11 @@ Supports two-phase operation: phase 1 uploads files and writes an initial table
 with scan links, phase 2 polls for analysis completion and replaces the table
 with detection statistics.
 
-.. note::
+:::{note}
 
-    The free-tier API allows 4 requests per minute. All API calls (uploads and
-    polls) are rate-limited with a sleep between each request.
+The free-tier API allows 4 requests per minute. All API calls (uploads and
+polls) are rate-limited with a sleep between each request.
+:::
 """
 
 from __future__ import annotations
@@ -51,7 +52,7 @@ VIRUSTOTAL_SECTION_HEADER = "### \U0001f6e1\ufe0f VirusTotal scans"
 """Markdown header identifying the VirusTotal section in release bodies.
 
 Used for idempotency: if this header is already present, the release body
-is not modified (unless ``replace=True`` is passed to ``update_release_body``).
+is not modified (unless `replace=True` is passed to `update_release_body`).
 """
 
 DETECTION_PENDING = "*pending*"
@@ -75,7 +76,7 @@ class DetectionStats:
     """Detection statistics from a completed VirusTotal analysis.
 
     Stores only the four categories that constitute a definitive verdict.
-    ``type-unsupported``, ``timeout``, and ``failure`` from the API response
+    `type-unsupported`, `timeout`, and `failure` from the API response
     are excluded from the total.
     """
 
@@ -119,7 +120,7 @@ class ScanResult:
     """VirusTotal web GUI URL for the file analysis."""
 
     detection_stats: DetectionStats | None = None
-    """Detection statistics, or ``None`` if analysis is still pending."""
+    """Detection statistics, or `None` if analysis is still pending."""
 
 
 def _compute_sha256(path: Path) -> str:
@@ -142,7 +143,7 @@ def scan_files(
 ) -> list[ScanResult]:
     """Upload files to VirusTotal and return scan results.
 
-    Uses the synchronous ``vt.Client`` API. Sleeps between uploads to respect
+    Uses the synchronous `vt.Client` API. Sleeps between uploads to respect
     the free-tier rate limit.
 
     :param api_key: VirusTotal API key.
@@ -195,7 +196,7 @@ def poll_detection_stats(
     :param results: Scan results from a previous upload.
     :param rate_limit: Maximum API requests per minute (shared with uploads).
     :param timeout: Maximum seconds to wait for all analyses to complete.
-    :return: Results with ``detection_stats`` populated (or ``None`` for
+    :return: Results with `detection_stats` populated (or `None` for
         files whose analysis did not complete before the timeout).
     """
     if not results:
@@ -302,13 +303,13 @@ def format_virustotal_section(
 ) -> str:
     """Format scan results as a markdown section for a GitHub release body.
 
-    When any result has ``detection_stats``, a three-column table is rendered
+    When any result has `detection_stats`, a three-column table is rendered
     with a Detections column. Otherwise the simpler two-column format is used.
 
     :param results: Scan results to format.
-    :param repo: Repository in ``owner/repo`` format. When provided along with
-        ``tag``, binary names are linked to their GitHub release download URLs.
-    :param tag: Release tag (e.g., ``v6.11.1``).
+    :param repo: Repository in `owner/repo` format. When provided along with
+        `tag`, binary names are linked to their GitHub release download URLs.
+    :param tag: Release tag (e.g., `v6.11.1`).
     :return: Markdown string, or empty string if no results.
     """
     if not results:
@@ -359,13 +360,13 @@ def update_release_body(
 ) -> bool:
     """Append or replace VirusTotal scan links in a GitHub release body.
 
-    :param repo: Repository in ``owner/repo`` format.
-    :param tag: Release tag (e.g., ``v6.11.1``).
+    :param repo: Repository in `owner/repo` format.
+    :param tag: Release tag (e.g., `v6.11.1`).
     :param results: Scan results to write.
-    :param replace: When ``True``, replace an existing VirusTotal section
-        instead of skipping. When ``False`` (default), skip if the section
+    :param replace: When `True`, replace an existing VirusTotal section
+        instead of skipping. When `False` (default), skip if the section
         is already present.
-    :return: ``True`` if the body was updated, ``False`` if skipped.
+    :return: `True` if the body was updated, `False` if skipped.
     """
     if not results:
         logging.info("No scan results to add to release body.")

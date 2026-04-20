@@ -19,26 +19,26 @@
 A release cycle produces exactly two commits that **must** be merged via
 "Rebase and merge" (never squash):
 
-1. **Freeze commit** (``[changelog] Release vX.Y.Z``):
+1. **Freeze commit** (`[changelog] Release vX.Y.Z`):
 
-   - Strips the ``.dev0`` suffix from the version.
+   - Strips the `.dev0` suffix from the version.
    - Finalizes the changelog date and comparison URL.
-   - Freezes workflow action references: ``@main`` → ``@vX.Y.Z``.
-   - Freezes CLI invocations: ``--from . repomatic`` → ``'repomatic==X.Y.Z'``.
+   - Freezes workflow action references: `@main` → `@vX.Y.Z`.
+   - Freezes CLI invocations: `--from . repomatic` → `'repomatic==X.Y.Z'`.
    - Freezes readme binary download URLs to versioned release paths.
-   - Sets the release date in ``citation.cff``.
+   - Sets the release date in `citation.cff`.
 
-2. **Unfreeze commit** (``[changelog] Post-release bump vX.Y.Z → vX.Y.(Z+1)``):
+2. **Unfreeze commit** (`[changelog] Post-release bump vX.Y.Z → vX.Y.(Z+1)`):
 
-   - Reverts action references: ``@vX.Y.Z`` → ``@main``.
+   - Reverts action references: `@vX.Y.Z` → `@main`.
    - Reverts CLI invocations back to local source for dogfooding.
-   - Bumps the version with a ``.dev0`` suffix.
+   - Bumps the version with a `.dev0` suffix.
    - Adds a new unreleased changelog section.
 
-The auto-tagging job in ``release.yaml`` depends on these being **separate
-commits** — it uses ``release_commits_matrix`` to identify and tag only the
+The auto-tagging job in `release.yaml` depends on these being **separate
+commits** — it uses `release_commits_matrix` to identify and tag only the
 freeze commit. Squash-merging would collapse both into one, breaking the
-tagging logic. See the ``detect-squash-merge`` job for the safeguard.
+tagging logic. See the `detect-squash-merge` job for the safeguard.
 
 Both operations are idempotent: re-running on an already-frozen or
 already-unfrozen tree is a no-op.
@@ -108,7 +108,7 @@ class ReleasePrep:
         return False
 
     def set_citation_release_date(self) -> bool:
-        """Update the ``date-released`` field in citation.cff.
+        """Update the `date-released` field in citation.cff.
 
         :return: True if the file was modified.
         """
@@ -132,7 +132,7 @@ class ReleasePrep:
         This is part of the **freeze** step: it freezes workflow references to
         the release tag so released versions reference immutable URLs.
 
-        Replaces ``/repomatic/{default_branch}/`` with ``/repomatic/v{version}/``
+        Replaces ``/repomatic/{default_branch}/` with `/repomatic/v{version}/``
         and ``/repomatic/.github/actions/...@{default_branch}`` with
         ``/repomatic/.github/actions/...@v{version}`` in all workflow YAML files.
 
@@ -165,8 +165,8 @@ class ReleasePrep:
     def _json5_files(self) -> list[Path]:
         """Return renovate.json5 files that need CLI freeze/unfreeze.
 
-        Includes the repo-root ``renovate.json5`` and the bundled copy under
-        ``repomatic/data/``.
+        Includes the repo-root `renovate.json5` and the bundled copy under
+        `repomatic/data/`.
         """
         # Repo root is two levels up from .github/workflows/.
         repo_root = self.workflow_dir.parent.parent
@@ -185,7 +185,7 @@ class ReleasePrep:
         """Replace a string only in non-comment lines.
 
         Comment lines (where the first non-whitespace character is
-        ``comment_prefix``) are preserved unchanged. This prevents
+        `comment_prefix`) are preserved unchanged. This prevents
         freeze/unfreeze operations from corrupting explanatory comments that
         mention the search string.
 
@@ -231,24 +231,25 @@ class ReleasePrep:
 
         This is part of the **freeze** step: it freezes readme download links
         to a specific GitHub release so users get explicit, versioned URLs
-        instead of the ``/releases/latest/download/`` redirect.
+        instead of the `/releases/latest/download/` redirect.
 
         Handles two input forms:
 
         - **Initial** (never frozen):
-          ``/releases/latest/download/repomatic-linux-arm64.bin``
+          `/releases/latest/download/repomatic-linux-arm64.bin`
         - **Previously frozen**:
-          ``/releases/download/v6.0.0/repomatic-6.0.0-linux-arm64.bin``
+          `/releases/download/v6.0.0/repomatic-6.0.0-linux-arm64.bin`
 
         Both are transformed to:
         ``/releases/download/v{version}/repomatic-{version}-linux-arm64.bin``
 
-        .. note::
-            No unfreeze method is needed. Unlike workflow URLs (which toggle
-            ``@main`` ↔ ``@vX.Y.Z``), readme download URLs ratchet forward —
-            they always point to a specific release. After unfreeze, the readme
-            still shows the last release's URLs, which is correct for users
-            wanting stable binaries.
+        :::{note}
+        No unfreeze method is needed. Unlike workflow URLs (which toggle
+        `@main` ↔ `@vX.Y.Z`), readme download URLs ratchet forward —
+        they always point to a specific release. After unfreeze, the readme
+        still shows the last release's URLs, which is correct for users
+        wanting stable binaries.
+        :::
 
         :param version: The release version to freeze to.
         :return: True if the file was modified.
@@ -282,19 +283,19 @@ class ReleasePrep:
     def freeze_cli_version(self, version: str) -> int:
         """Replace local source CLI invocations with a frozen PyPI version.
 
-        This is part of the **freeze** step: it freezes ``repomatic``
+        This is part of the **freeze** step: it freezes `repomatic`
         invocations to a specific PyPI version so the released workflow files
         reference a published package. Downstream repos that check out a tagged
         release will install from PyPI rather than expecting a local source
         tree.
 
-        Replaces ``--from . repomatic`` with ``'repomatic=={version}'`` in all
+        Replaces `--from . repomatic` with ``'repomatic=={version}'`` in all
         workflow YAML files, and with ``repomatic=={version}`` (unquoted) in
-        ``renovate.json5`` files (where the command lives inside ``bash -c '...'``
+        `renovate.json5` files (where the command lives inside `bash -c '...'`
         and single quotes would break the outer quoting).
 
-        Comment lines in YAML (starting with ``#``) and JSON5 (starting with
-        ``//``) are skipped to avoid corrupting explanatory comments.
+        Comment lines in YAML (starting with `#`) and JSON5 (starting with
+        `//`) are skipped to avoid corrupting explanatory comments.
 
         :param version: The PyPI version to freeze to.
         :return: Number of files modified.
@@ -334,15 +335,15 @@ class ReleasePrep:
     def unfreeze_cli_version(self) -> int:
         """Replace frozen PyPI CLI invocations with local source.
 
-        This is part of the **unfreeze** step: it reverts ``repomatic``
-        invocations back to local source (``--from . repomatic``) for the next
-        development cycle on ``main``.
+        This is part of the **unfreeze** step: it reverts `repomatic`
+        invocations back to local source (`--from . repomatic`) for the next
+        development cycle on `main`.
 
-        Replaces ``'repomatic==X.Y.Z'`` (quoted, in YAML) and
-        ``repomatic==X.Y.Z`` (unquoted, in ``renovate.json5``) with
-        ``--from . repomatic``.
+        Replaces `'repomatic==X.Y.Z'` (quoted, in YAML) and
+        `repomatic==X.Y.Z` (unquoted, in `renovate.json5`) with
+        `--from . repomatic`.
 
-        Comment lines are skipped (see :meth:`freeze_cli_version`).
+        Comment lines are skipped (see {meth}`freeze_cli_version`).
 
         :return: Number of files modified.
         """
@@ -384,7 +385,7 @@ class ReleasePrep:
         This is part of the **unfreeze** step: it reverts workflow references back
         to the default branch for the next development cycle.
 
-        Replaces ``/repomatic/v{version}/`` with ``/repomatic/{default_branch}/``
+        Replaces ``/repomatic/v{version}/` with `/repomatic/{default_branch}/``
         and ``/repomatic/.github/actions/...@v{version}`` with
         ``/repomatic/.github/actions/...@{default_branch}`` in all workflow YAML files.
 

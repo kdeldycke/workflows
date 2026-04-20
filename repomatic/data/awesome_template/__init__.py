@@ -16,10 +16,10 @@
 
 """Bundled awesome-template boilerplate files.
 
-These files are synced into downstream ``awesome-*`` repositories by the
-``repomatic sync-awesome-template`` command. The directory structure mirrors
-the target repository layout. URLs containing ``kdeldycke/awesome-template``
+These files are synced into downstream `awesome-*` repositories by the
+`repomatic sync-awesome-template` command. The directory structure mirrors
+the target repository layout. URLs containing `kdeldycke/awesome-template`
 are rewritten to match the downstream repository at sync time.
 
-All files are accessible at runtime via ``importlib.resources``.
+All files are accessible at runtime via `importlib.resources`.
 """

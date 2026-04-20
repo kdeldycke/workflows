@@ -18,20 +18,19 @@
 
 This module solves a fundamental limitation of GitHub Actions: a workflow run is
 triggered by a singular event, which might encapsulate **multiple commits**. GitHub only
-exposes ``github.event.head_commit`` (the most recent commit), but workflows often need
+exposes `github.event.head_commit` (the most recent commit), but workflows often need
 to process all commits in the push event.
 
 This is critical for releases, where two commits are pushed together:
 
-1. ``[changelog] Release vX.Y.Z`` — the release commit to be tagged and published
-2. ``[changelog] Post-release bump vX.Y.Z → vX.Y.Z`` — bumps version for the next dev cycle
+1. `[changelog] Release vX.Y.Z` — the release commit to be tagged and published
+2. `[changelog] Post-release bump vX.Y.Z → vX.Y.Z` — bumps version for the next dev cycle
 
-Since ``github.event.head_commit`` only sees the post-release bump, this module extracts
+Since `github.event.head_commit` only sees the post-release bump, this module extracts
 the full commit range from the push event and identifies release commits that need
 special handling (tagging, PyPI publishing, GitHub release creation).
 
-The following variables are `printed to the environment file
-<https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files>`_:
+The following variables are [printed to the environment file](https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files):
 
 ```text
 is_bot=false
@@ -279,10 +278,11 @@ nuitka_matrix={
 }
 ```
 
-.. warning::
-    Fields with serialized lists and dictionaries, like ``new_commits_matrix``,
-    ``build_targets`` or ``nuitka_matrix``, are pretty-printed in the example above for
-    readability. They are inlined in the actual output and not formatted this way.
+:::{warning}
+Fields with serialized lists and dictionaries, like `new_commits_matrix`,
+`build_targets` or `nuitka_matrix`, are pretty-printed in the example above for
+readability. They are inlined in the actual output and not formatted this way.
+:::
 """
 
 from __future__ import annotations
@@ -423,7 +423,7 @@ _METADATA_KEY_DESCRIPTIONS: Final[dict[str, str]] = {
     "minor_bump_allowed": "Minor version bump is allowed by commit history.",
     "major_bump_allowed": "Major version bump is allowed by commit history.",
 }
-"""One-liner descriptions for each metadata key produced by :meth:`Metadata.dump`."""
+"""One-liner descriptions for each metadata key produced by {meth}`Metadata.dump`."""
 
 
 METADATA_KEYS_HEADERS = ("Key", "Description")
@@ -433,8 +433,8 @@ METADATA_KEYS_HEADERS = ("Key", "Description")
 def metadata_keys_reference() -> list[tuple[str, str]]:
     """Build the metadata keys reference as table rows.
 
-    Returns a list of ``(key, description)`` tuples for all keys produced by
-    :meth:`Metadata.dump`, including ``[tool.repomatic]`` config fields that are
+    Returns a list of `(key, description)` tuples for all keys produced by
+    {meth}`Metadata.dump`, including `[tool.repomatic]` config fields that are
     exposed as metadata outputs.
     """
     rows = [(k, v) for k, v in _METADATA_KEY_DESCRIPTIONS.items()]
@@ -482,7 +482,7 @@ HEREDOC_FIELDS: Final[frozenset[str]] = frozenset((
 """Metadata fields that should always use heredoc format in GitHub Actions output.
 
 Some fields may contain special characters (brackets, parentheses, emojis, or potential
-newlines) that can break GitHub Actions parsing when using simple ``key=value`` format.
+newlines) that can break GitHub Actions parsing when using simple `key=value` format.
 These fields will use the heredoc delimiter format regardless of whether they currently
 contain multiple lines.
 """
@@ -500,16 +500,17 @@ def is_version_bump_allowed(part: Literal["minor", "major"]) -> bool:
     tagged release.
 
     For example:
-    - Last release: ``v5.0.1``, current: ``5.0.2`` → minor bump allowed
-    - Last release: ``v5.0.1``, current: ``5.1.0`` → minor bump NOT allowed (bumped)
-    - Last release: ``v5.0.1``, current: ``6.0.0`` → major bump NOT allowed (bumped)
+    - Last release: `v5.0.1`, current: `5.0.2` → minor bump allowed
+    - Last release: `v5.0.1`, current: `5.1.0` → minor bump NOT allowed (bumped)
+    - Last release: `v5.0.1`, current: `6.0.0` → major bump NOT allowed (bumped)
 
-    .. note::
-        When tags are not available (e.g., due to race conditions between workflows),
-        this function falls back to parsing version from recent commit messages.
+    :::{note}
+    When tags are not available (e.g., due to race conditions between workflows),
+    this function falls back to parsing version from recent commit messages.
+    :::
 
-    :param part: The version part to check (``minor`` or ``major``).
-    :return: ``True`` if the bump should proceed, ``False`` if it should be skipped.
+    :param part: The version part to check (`minor` or `major`).
+    :return: `True` if the bump should proceed, `False` if it should be skipped.
     """
     # Validate part argument early.
     if part not in ("minor", "major"):
@@ -582,9 +583,9 @@ class JSONMetadata(json.JSONEncoder):
 class Metadata:
     """Metadata class.
 
-    Implemented as a singleton: every ``Metadata()`` call returns the same
+    Implemented as a singleton: every `Metadata()` call returns the same
     instance within a process. This is safe because env vars and project files
-    do not change during a single CLI invocation. Use :meth:`reset` in test
+    do not change during a single CLI invocation. Use {meth}`reset` in test
     teardown to discard the cached instance between tests.
     """
 
@@ -611,9 +612,9 @@ class Metadata:
 
     @cached_property
     def github_event(self) -> dict[str, Any]:
-        """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
+        """Load the GitHub event payload from `GITHUB_EVENT_PATH`.
 
-        GitHub Actions automatically sets ``GITHUB_EVENT_PATH`` to a JSON file
+        GitHub Actions automatically sets `GITHUB_EVENT_PATH` to a JSON file
         containing the complete webhook event payload.
         """
         event_path = os.environ.get("GITHUB_EVENT_PATH")
@@ -647,12 +648,12 @@ class Metadata:
     def git_deepen(
         self, commit_hash: str, max_attempts: int = 10, deepen_increment: int = 50
     ) -> bool:
-        """Deepen a shallow clone until the provided ``commit_hash`` is found.
+        """Deepen a shallow clone until the provided `commit_hash` is found.
 
         Progressively fetches more commits from the current repository until the
         specified commit is found or max attempts is reached.
 
-        Returns ``True`` if the commit was found, ``False`` otherwise.
+        Returns `True` if the commit was found, `False` otherwise.
         """
         # Cache the current depth to avoid repeated subprocess calls.
         current_depth: int | None = None
@@ -707,37 +708,39 @@ class Metadata:
     def commit_matrix(self, commits: Iterable[Commit] | None) -> Matrix | None:
         """Pre-compute a matrix of commits.
 
-        .. danger::
-            This method temporarily modify the state of the repository to compute
-            version metadata from the past.
+        :::{danger}
+        This method temporarily modify the state of the repository to compute
+        version metadata from the past.
 
-            To prevent any loss of uncommitted data, it stashes and unstash the
-            local changes between checkouts.
+        To prevent any loss of uncommitted data, it stashes and unstash the
+        local changes between checkouts.
+        :::
 
         The list of commits is augmented with long and short SHA values, as well as
         current version. Most recent commit is first, oldest is last.
 
         Returns a ready-to-use matrix structure:
 
-        .. code-block:: python
-            {
-                "commit": [
-                    "346ce664f055fbd042a25ee0b7e96702e95",
-                    "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                ],
-                "include": [
-                    {
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "short_sha": "346ce66",
-                        "current_version": "2.0.1",
-                    },
-                    {
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "short_sha": "6f27db4",
-                        "current_version": "2.0.0",
-                    },
-                ],
-            }
+        :::{code-block} python
+        {
+            "commit": [
+                "346ce664f055fbd042a25ee0b7e96702e95",
+                "6f27db47612aaee06fdf08744b09a9f5f6c2",
+            ],
+            "include": [
+                {
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "short_sha": "346ce66",
+                    "current_version": "2.0.1",
+                },
+                {
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "short_sha": "6f27db4",
+                    "current_version": "2.0.0",
+                },
+            ],
+        }
+        :::
         """
         if not commits:
             return None
@@ -768,7 +771,7 @@ class Metadata:
                 )
 
             # Save the initial commit reference and SHA of the repository. The
-            # reference is either the canonical active branch name (i.e. ``main``), or
+            # reference is either the canonical active branch name (i.e. `main`), or
             # the commit SHA if the current HEAD commit is detached from a branch.
             if self.git.repo.head.is_detached:
                 init_ref = current_commit
@@ -830,15 +833,14 @@ class Metadata:
     def event_type(self) -> WorkflowEvent | None:
         """Returns the type of event that triggered the workflow run.
 
-        .. caution::
-            This property is based on a crude heuristics as it only looks at the value
-            of the ``GITHUB_BASE_REF`` environment variable. Which is `only set when
-            the event that triggers a workflow run is either pull_request or
-            pull_request_target
-            <https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables>`_.
+        :::{caution}
+        This property is based on a crude heuristics as it only looks at the value
+        of the `GITHUB_BASE_REF` environment variable. Which is [only set when the event that triggers a workflow run is either pull_request or pull_request_target](https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables).
+        :::
 
-        .. todo::
-            Add detection of all workflow trigger events.
+        :::{todo}
+        Add detection of all workflow trigger events.
+        :::
         """
         if not is_github_ci():
             logging.warning(
@@ -871,13 +873,13 @@ class Metadata:
 
     @cached_property
     def is_bot(self) -> bool:
-        """Returns ``True`` if the workflow was triggered by a bot or automated process.
+        """Returns `True` if the workflow was triggered by a bot or automated process.
 
         This is useful to only run some jobs on human-triggered events. Or skip jobs
         triggered by bots to avoid infinite loops.
 
-        Also detects Renovate PRs by branch name pattern (``renovate/*``), which handles
-        cases where Renovate runs as a user account rather than the ``renovate[bot]`` app.
+        Also detects Renovate PRs by branch name pattern (`renovate/*`), which handles
+        cases where Renovate runs as a user account rather than the `renovate[bot]` app.
         """
         # XXX replace by self.event_sender_type != "User"?
         if self.event_sender_type == "Bot" or self.event_actor in (
@@ -895,12 +897,11 @@ class Metadata:
         """Returns the head branch name for pull request events.
 
         For pull request events, this is the source branch name
-        (e.g., ``update-mailmap``). For push events, returns ``None`` since
+        (e.g., `update-mailmap`). For push events, returns `None` since
         there's no head branch concept.
 
-        The branch name is extracted from the ``GITHUB_HEAD_REF`` environment variable,
-        which is `only set for pull request events
-        <https://docs.github.com/en/actions/learn-github-actions/variables>`_.
+        The branch name is extracted from the `GITHUB_HEAD_REF` environment variable,
+        which is [only set for pull request events](https://docs.github.com/en/actions/learn-github-actions/variables).
         """
         head_ref = os.environ.get("GITHUB_HEAD_REF")
         if head_ref:
@@ -911,9 +912,9 @@ class Metadata:
     def event_name(self) -> str | None:
         """Returns the name of the event that triggered the workflow.
 
-        Reads ``GITHUB_EVENT_NAME``. This is the raw event name (e.g.,
-        ``"push"``, ``"pull_request"``, ``"workflow_run"``), as opposed to
-        :attr:`event_type` which returns a :class:`WorkflowEvent` enum based
+        Reads `GITHUB_EVENT_NAME`. This is the raw event name (e.g.,
+        `"push"`, `"pull_request"`, `"workflow_run"`), as opposed to
+        {attr}`event_type` which returns a {class}`WorkflowEvent` enum based
         on heuristics.
         """
         return os.environ.get("GITHUB_EVENT_NAME") or None
@@ -922,7 +923,7 @@ class Metadata:
     def job_name(self) -> str | None:
         """Returns the ID of the current job in the workflow.
 
-        Reads ``GITHUB_JOB``.
+        Reads `GITHUB_JOB`.
         """
         return os.environ.get("GITHUB_JOB") or None
 
@@ -930,7 +931,7 @@ class Metadata:
     def ref_name(self) -> str | None:
         """Returns the short ref name of the branch or tag.
 
-        Reads ``GITHUB_REF_NAME``.
+        Reads `GITHUB_REF_NAME`.
         """
         return os.environ.get("GITHUB_REF_NAME") or None
 
@@ -938,7 +939,7 @@ class Metadata:
     def repo_name(self) -> str | None:
         """Returns the repository name without owner prefix.
 
-        Derived from :attr:`repo_slug` by splitting on ``/``.
+        Derived from {attr}`repo_slug` by splitting on `/`.
         """
         slug = self.repo_slug
         return slug.split("/")[-1] if slug else None
@@ -947,7 +948,7 @@ class Metadata:
     def is_awesome(self) -> bool:
         """Whether this is an awesome-list repository.
 
-        Detected by the ``awesome-`` prefix on the repository name.
+        Detected by the `awesome-` prefix on the repository name.
         """
         name = self.repo_name
         return bool(name and name.startswith("awesome-"))
@@ -956,8 +957,8 @@ class Metadata:
     def repo_owner(self) -> str | None:
         """Returns the repository owner.
 
-        Reads ``GITHUB_REPOSITORY_OWNER``, falling back to the owner
-        component of :attr:`repo_slug`.
+        Reads `GITHUB_REPOSITORY_OWNER`, falling back to the owner
+        component of {attr}`repo_slug`.
         """
         owner = os.environ.get("GITHUB_REPOSITORY_OWNER") or None
         if not owner:
@@ -968,9 +969,9 @@ class Metadata:
 
     @cached_property
     def repo_slug(self) -> str | None:
-        """Returns the ``owner/name`` slug for the current repository.
+        """Returns the `owner/name` slug for the current repository.
 
-        Resolution order: ``GITHUB_REPOSITORY`` env var (CI), ``gh repo view``
+        Resolution order: `GITHUB_REPOSITORY` env var (CI), `gh repo view`
         (authenticated local), git remote URL parsing (offline fallback).
         """
         slug = os.environ.get("GITHUB_REPOSITORY") or None
@@ -1001,7 +1002,7 @@ class Metadata:
     def repo_url(self) -> str | None:
         """Returns the full URL to the repository.
 
-        Derived from :attr:`server_url` and :attr:`repo_slug`.
+        Derived from {attr}`server_url` and {attr}`repo_slug`.
         """
         slug = self.repo_slug
         if slug:
@@ -1012,7 +1013,7 @@ class Metadata:
     def run_attempt(self) -> str | None:
         """Returns the run attempt number.
 
-        Reads ``GITHUB_RUN_ATTEMPT``.
+        Reads `GITHUB_RUN_ATTEMPT`.
         """
         return os.environ.get("GITHUB_RUN_ATTEMPT") or None
 
@@ -1020,7 +1021,7 @@ class Metadata:
     def run_id(self) -> str | None:
         """Returns the unique ID of the current workflow run.
 
-        Reads ``GITHUB_RUN_ID``.
+        Reads `GITHUB_RUN_ID`.
         """
         return os.environ.get("GITHUB_RUN_ID") or None
 
@@ -1028,7 +1029,7 @@ class Metadata:
     def run_number(self) -> str | None:
         """Returns the run number for the current workflow.
 
-        Reads ``GITHUB_RUN_NUMBER``.
+        Reads `GITHUB_RUN_NUMBER`.
         """
         return os.environ.get("GITHUB_RUN_NUMBER") or None
 
@@ -1036,7 +1037,7 @@ class Metadata:
     def server_url(self) -> str:
         """Returns the GitHub server URL.
 
-        Reads ``GITHUB_SERVER_URL``, defaulting to ``https://github.com``.
+        Reads `GITHUB_SERVER_URL`, defaulting to `https://github.com`.
         """
         return os.environ.get("GITHUB_SERVER_URL") or "https://github.com"
 
@@ -1044,7 +1045,7 @@ class Metadata:
     def sha(self) -> str | None:
         """Returns the commit SHA that triggered the workflow.
 
-        Reads ``GITHUB_SHA``.
+        Reads `GITHUB_SHA`.
         """
         return os.environ.get("GITHUB_SHA") or None
 
@@ -1052,8 +1053,8 @@ class Metadata:
     def triggering_actor(self) -> str | None:
         """Returns the login of the user that initiated the workflow run.
 
-        Reads ``GITHUB_TRIGGERING_ACTOR``. This differs from
-        :attr:`event_actor` (``GITHUB_ACTOR``) when a workflow is re-run by a
+        Reads `GITHUB_TRIGGERING_ACTOR`. This differs from
+        {attr}`event_actor` (`GITHUB_ACTOR`) when a workflow is re-run by a
         different user.
         """
         return os.environ.get("GITHUB_TRIGGERING_ACTOR") or None
@@ -1062,8 +1063,8 @@ class Metadata:
     def workflow_ref(self) -> str | None:
         """Returns the full workflow reference.
 
-        Reads ``GITHUB_WORKFLOW_REF``. The format is
-        ``owner/repo/.github/workflows/name.yaml@refs/heads/branch``.
+        Reads `GITHUB_WORKFLOW_REF`. The format is
+        `owner/repo/.github/workflows/name.yaml@refs/heads/branch`.
         """
         return os.environ.get("GITHUB_WORKFLOW_REF") or None
 
@@ -1071,8 +1072,8 @@ class Metadata:
     def changed_files(self) -> tuple[str, ...] | None:
         """Returns the list of files changed in the current event's commit range.
 
-        Uses ``git diff --name-only`` between the start and end of the commit range.
-        Returns ``None`` if no commit range is available (e.g., outside CI).
+        Uses `git diff --name-only` between the start and end of the commit range.
+        Returns `None` if no commit range is available (e.g., outside CI).
         """
         if not self.commit_range:
             return None
@@ -1092,12 +1093,12 @@ class Metadata:
     def binary_affecting_paths(self) -> tuple[str, ...]:
         """Path prefixes that affect compiled binaries for this project.
 
-        Combines the static :data:`BINARY_AFFECTING_PATHS` (common files like
-        ``pyproject.toml``, ``uv.lock``, ``tests/``) with project-specific source
-        directories derived from ``[project.scripts]`` in ``pyproject.toml``.
+        Combines the static {data}`BINARY_AFFECTING_PATHS` (common files like
+        `pyproject.toml`, `uv.lock`, `tests/`) with project-specific source
+        directories derived from `[project.scripts]` in `pyproject.toml`.
 
-        For example, a project with ``mpm = "meta_package_manager.__main__:main"``
-        adds ``meta_package_manager/`` as an affecting path. This makes the check
+        For example, a project with `mpm = "meta_package_manager.__main__:main"`
+        adds `meta_package_manager/` as an affecting path. This makes the check
         reusable across downstream repositories without hardcoding source directories.
         """
         # Derive top-level source package directories from script entry points.
@@ -1111,7 +1112,7 @@ class Metadata:
 
     @cached_property
     def skip_binary_build(self) -> bool:
-        """Returns ``True`` if binary builds should be skipped for this event.
+        """Returns `True` if binary builds should be skipped for this event.
 
         Binary builds are expensive and time-consuming. This property identifies
         contexts where the changes cannot possibly affect compiled binaries,
@@ -1120,10 +1121,10 @@ class Metadata:
         Two mechanisms are checked:
 
         1. **Branch name** — PRs from known non-code branches (documentation,
-           ``.mailmap``, ``.gitignore``, etc.) are skipped.
+           `.mailmap`, `.gitignore`, etc.) are skipped.
         2. **Changed files** — Push events where all changed files fall outside
-           :attr:`binary_affecting_paths` are skipped. This avoids ~2h of Nuitka
-           builds for documentation-only commits to ``main``.
+           {attr}`binary_affecting_paths` are skipped. This avoids ~2h of Nuitka
+           builds for documentation-only commits to `main`.
         """
         if self.head_branch and self.head_branch in SKIP_BINARY_BUILD_BRANCHES:
             logging.info(
@@ -1160,31 +1161,31 @@ class Metadata:
 
         This is critical for releases where two commits are pushed together:
 
-        1. ``[changelog] Release vX.Y.Z`` — the release commit
-        2. ``[changelog] Post-release bump vX.Y.Z → vX.Y.Z`` — the post-release bump
+        1. `[changelog] Release vX.Y.Z` — the release commit
+        2. `[changelog] Post-release bump vX.Y.Z → vX.Y.Z` — the post-release bump
 
         Without extracting the full commit range, the release commit would be missed
-        since ``github.event.head_commit`` only exposes the post-release bump.
+        since `github.event.head_commit` only exposes the post-release bump.
 
         This property also enables processing each commit individually when we want to
         keep a carefully constructed commit history. The typical example is a pull
         request that is merged upstream but we'd like to produce artifacts (builds,
         packages, etc.) for each individual commit.
 
-        The default ``GITHUB_SHA`` environment variable is not enough as it only points
+        The default `GITHUB_SHA` environment variable is not enough as it only points
         to the last commit. We need to inspect the commit history to find all new ones.
-        New commits need to be fetched differently in ``push`` and ``pull_request``
+        New commits need to be fetched differently in `push` and `pull_request`
         events.
 
-        .. seealso::
-            - https://stackoverflow.com/a/67204539
-            - https://stackoverflow.com/a/62953566
-            - https://stackoverflow.com/a/61861763
+        :::{seealso}
+        - https://stackoverflow.com/a/67204539
+        - https://stackoverflow.com/a/62953566
+        - https://stackoverflow.com/a/61861763
+        :::
 
-        .. seealso::
-            Pull request events on GitHub are a bit complex, see: `The Many SHAs of a
-            GitHub Pull Request
-            <https://www.kenmuse.com/blog/the-many-shas-of-a-github-pull-request/>`_.
+        :::{seealso}
+        Pull request events on GitHub are a bit complex, see: [The Many SHAs of a GitHub Pull Request](https://www.kenmuse.com/blog/the-many-shas-of-a-github-pull-request/).
+        :::
         """
         if not self.github_event or not self.event_type:
             return None
@@ -1209,7 +1210,7 @@ class Metadata:
 
     @cached_property
     def current_commit(self) -> Commit | None:
-        """Returns the current ``Commit`` object."""
+        """Returns the current `Commit` object."""
         return next(Repository(".", single="HEAD").traverse_commits())
 
     @cached_property
@@ -1219,9 +1220,9 @@ class Metadata:
 
     @cached_property
     def new_commits(self) -> tuple[Commit, ...] | None:
-        """Returns list of all ``Commit`` objects bundled within the triggering event.
+        """Returns list of all `Commit` objects bundled within the triggering event.
 
-        This extracts **all commits** from the push event, not just ``head_commit``.
+        This extracts **all commits** from the push event, not just `head_commit`.
         For releases, this typically includes both the release commit and the
         post-release bump commit, allowing downstream jobs to process each one.
 
@@ -1280,24 +1281,24 @@ class Metadata:
 
     @cached_property
     def release_commits(self) -> tuple[Commit, ...] | None:
-        """Returns list of ``Commit`` objects to be tagged within the triggering event.
+        """Returns list of `Commit` objects to be tagged within the triggering event.
 
-        This filters ``new_commits`` to find release commits that need special handling:
+        This filters `new_commits` to find release commits that need special handling:
         tagging, PyPI publishing, and GitHub release creation.
 
-        This is essential because when a release is pushed, ``github.event.head_commit``
+        This is essential because when a release is pushed, `github.event.head_commit`
         only exposes the post-release bump commit, not the release commit. By extracting
-        all commits from the event (via ``new_commits``) and filtering for release
+        all commits from the event (via `new_commits`) and filtering for release
         commits here, we ensure the release workflow can properly identify and process
-        the ``[changelog] Release vX.Y.Z`` commit.
+        the `[changelog] Release vX.Y.Z` commit.
 
-        We cannot identify a release commit based on the presence of a ``vX.Y.Z`` tag
-        alone. That's because the tag is not present in the ``prepare-release`` pull
-        request produced by the ``changelog.yaml`` workflow. The tag is created later
-        by the ``release.yaml`` workflow, when the pull request is merged to ``main``.
+        We cannot identify a release commit based on the presence of a `vX.Y.Z` tag
+        alone. That's because the tag is not present in the `prepare-release` pull
+        request produced by the `changelog.yaml` workflow. The tag is created later
+        by the `release.yaml` workflow, when the pull request is merged to `main`.
 
         Our best option is to identify a release based on the full commit message,
-        using the template from the ``changelog.yaml`` workflow.
+        using the template from the `changelog.yaml` workflow.
         """
         if not self.new_commits:
             return None
@@ -1339,7 +1340,7 @@ class Metadata:
 
     @cached_property
     def gitignore_parser(self) -> Parser | None:
-        """Returns a parser for the ``.gitignore`` file, if it exists."""
+        """Returns a parser for the `.gitignore` file, if it exists."""
         if self.gitignore_exists:
             logging.debug(f"Parse {GITIGNORE_PATH}")
             return get_parser_from_file(GITIGNORE_PATH)
@@ -1349,20 +1350,20 @@ class Metadata:
         return bool(self.gitignore_parser and self.gitignore_parser.match(file_path))
 
     def glob_files(self, *patterns: str) -> list[Path]:
-        """Return all file path matching the ``patterns``.
+        """Return all file path matching the `patterns`.
 
-        Patterns are glob patterns supporting ``**`` for recursive search, and ``!``
+        Patterns are glob patterns supporting `**` for recursive search, and `!`
         for negation.
 
         All directories are traversed, whether they are hidden (i.e. starting with a
-        dot ``.``) or not, including symlinks.
+        dot `.`) or not, including symlinks.
 
         Skips:
 
         - files which does not exists
         - directories
         - broken symlinks
-        - files matching patterns specified by ``.gitignore`` file
+        - files matching patterns specified by `.gitignore` file
 
         Returns both hidden and non-hidden files.
 
@@ -1422,8 +1423,9 @@ class Metadata:
     def json_files(self) -> list[Path]:
         """Returns a list of JSON files.
 
-        .. note::
-            JSON5 files are excluded because Biome doesn't support them.
+        :::{note}
+        JSON5 files are excluded because Biome doesn't support them.
+        :::
         """
         return self.glob_files(
             "**/*.{json,jsonc}",
@@ -1443,7 +1445,7 @@ class Metadata:
 
     @cached_property
     def pyproject_files(self) -> list[Path]:
-        """Returns a list of ``pyproject.toml`` files."""
+        """Returns a list of `pyproject.toml` files."""
         return self.glob_files("**/pyproject.toml")
 
     @cached_property
@@ -1469,29 +1471,28 @@ class Metadata:
     def image_files(self) -> list[Path]:
         """Returns a list of image files.
 
-        Covers the formats handled by ``repomatic format-images``: JPEG, PNG,
-        WebP, and AVIF. See :mod:`repomatic.images` for the optimization tools.
+        Covers the formats handled by `repomatic format-images`: JPEG, PNG,
+        WebP, and AVIF. See {mod}`repomatic.images` for the optimization tools.
         """
         return self.glob_files("**/*.{jpeg,jpg,png,webp,avif}")
 
     @cached_property
     def shfmt_files(self) -> list[Path]:
-        """Returns a list of shell files that ``shfmt`` can reliably format.
+        """Returns a list of shell files that `shfmt` can reliably format.
 
-        ``shfmt`` supports the following dialects (``-ln`` flag):
+        `shfmt` supports the following dialects (`-ln` flag):
 
         - **bash**: GNU Bourne Again Shell.
-        - **posix**: POSIX Shell (``/bin/sh``).
+        - **posix**: POSIX Shell (`/bin/sh`).
         - **mksh**: MirBSD Korn Shell.
         - **bats**: Bash Automated Testing System.
 
-        Zsh is excluded. ``shfmt`` added experimental Zsh support in v3.13.0
-        but it fails on common constructs: ``for var (list)`` short-form loops
-        and ``for ... { }`` brace-delimited loops. See `mvdan/sh#1203
-        <https://github.com/mvdan/sh/issues/1203>`_ for upstream tracking.
+        Zsh is excluded. `shfmt` added experimental Zsh support in v3.13.0
+        but it fails on common constructs: `for var (list)` short-form loops
+        and ``for ... { }`` brace-delimited loops. See [mvdan/sh#1203](https://github.com/mvdan/sh/issues/1203) for upstream tracking.
 
-        Files are excluded by extension (``.zsh``, ``.zshrc``, etc.) and by
-        shebang (any ``.sh`` file whose first line references ``zsh``).
+        Files are excluded by extension (`.zsh`, `.zshrc`, etc.) and by
+        shebang (any `.sh` file whose first line references `zsh`).
         """
         candidates = self.glob_files(
             "**/*.{bash,bats,ksh,mksh,sh}",
@@ -1516,16 +1517,16 @@ class Metadata:
 
     @cached_property
     def is_python_project(self):
-        """Returns ``True`` if repository is a Python project.
+        """Returns `True` if repository is a Python project.
 
-        Presence of a ``pyproject.toml`` file that respects the standards is enough
+        Presence of a `pyproject.toml` file that respects the standards is enough
         to consider the project as a Python one.
         """
         return not self.pyproject is None
 
     @cached_property
     def pyproject_toml(self) -> dict[str, Any]:
-        """Returns the raw parsed content of ``pyproject.toml``.
+        """Returns the raw parsed content of `pyproject.toml`.
 
         Returns an empty dict if the file does not exist.
         """
@@ -1538,15 +1539,16 @@ class Metadata:
 
     @cached_property
     def pyproject(self) -> StandardMetadata | None:
-        """Returns metadata stored in the ``pyproject.toml`` file.
+        """Returns metadata stored in the `pyproject.toml` file.
 
-        Returns ``None`` if the ``pyproject.toml`` does not exists or does not respects
+        Returns `None` if the `pyproject.toml` does not exists or does not respects
         the PEP standards.
 
-        .. warning::
-            Some third-party apps have their configuration saved into
-            ``pyproject.toml`` file, but that does not means the project is a Python
-            one. For that, the ``pyproject.toml`` needs to respect the PEPs.
+        :::{warning}
+        Some third-party apps have their configuration saved into
+        `pyproject.toml` file, but that does not means the project is a Python
+        one. For that, the `pyproject.toml` needs to respect the PEPs.
+        :::
         """
         toml = self.pyproject_toml
         if toml:
@@ -1558,9 +1560,9 @@ class Metadata:
 
     @cached_property
     def config(self) -> Config:
-        """Returns the ``[tool.repomatic]`` section from ``pyproject.toml``.
+        """Returns the `[tool.repomatic]` section from `pyproject.toml`.
 
-        Merges user configuration with defaults from ``Config``.
+        Merges user configuration with defaults from `Config`.
         """
         return load_repomatic_config(self.pyproject_toml)
 
@@ -1568,10 +1570,10 @@ class Metadata:
     def nuitka_entry_points(self) -> list[str]:
         """Entry points selected for Nuitka binary compilation.
 
-        Reads ``[tool.repomatic].nuitka.entry-points`` from ``pyproject.toml``.
+        Reads `[tool.repomatic].nuitka.entry-points` from `pyproject.toml`.
         When empty (the default), deduplicates by callable target: keeps the
-        first entry point for each unique ``module:callable`` pair, so alias
-        entry points (like both ``mpm`` and ``meta-package-manager`` pointing to
+        first entry point for each unique `module:callable` pair, so alias
+        entry points (like both `mpm` and `meta-package-manager` pointing to
         the same function) don't produce duplicate binaries.
         Unrecognized CLI IDs are logged as warnings and discarded.
         """
@@ -1605,7 +1607,7 @@ class Metadata:
     def unstable_targets(self) -> set[str]:
         """Nuitka build targets allowed to fail without blocking the release.
 
-        Reads ``[tool.repomatic].nuitka.unstable-targets`` from ``pyproject.toml``.
+        Reads `[tool.repomatic].nuitka.unstable-targets` from `pyproject.toml`.
         Defaults to an empty set.
 
         Unrecognized target names are logged as warnings and discarded.
@@ -1638,21 +1640,23 @@ class Metadata:
         """Returns a list of tuples containing the script name, its module and
         callable.
 
-        Results are derived from the script entries of ``pyproject.toml``. So that:
+        Results are derived from the script entries of `pyproject.toml`. So that:
 
-        .. code-block:: toml
-            [project.scripts]
-            mdedup = "mail_deduplicate.cli:mdedup"
-            mpm = "meta_package_manager.__main__:main"
+        :::{code-block} toml
+        [project.scripts]
+        mdedup = "mail_deduplicate.cli:mdedup"
+        mpm = "meta_package_manager.__main__:main"
+        :::
 
         Will yields the following list:
 
-        .. code-block:: python
-            (
-                ("mdedup", "mail_deduplicate.cli", "mdedup"),
-                ("mpm", "meta_package_manager.__main__", "main"),
-                ...,
-            )
+        :::{code-block} python
+        (
+            ("mdedup", "mail_deduplicate.cli", "mdedup"),
+            ("mpm", "meta_package_manager.__main__", "main"),
+            ...,
+        )
+        :::
         """
         entries = []
         if self.pyproject:
@@ -1666,12 +1670,12 @@ class Metadata:
 
     @cached_property
     def mypy_params(self) -> list[str] | None:
-        """Generates ``mypy`` parameters.
+        """Generates `mypy` parameters.
 
-        Mypy needs to be fed with this parameter: ``--python-version 3.x``.
+        Mypy needs to be fed with this parameter: `--python-version 3.x`.
 
-        Extracts the minimum Python version from the project's ``requires-python``
-        specifier. Only takes ``major.minor`` into account.
+        Extracts the minimum Python version from the project's `requires-python`
+        specifier. Only takes `major.minor` into account.
         """
         if not self.pyproject or not self.pyproject.requires_python:
             return None
@@ -1697,8 +1701,9 @@ class Metadata:
 
         Same as calling the CLI:
 
-            .. code-block:: shell-session
-                $ bump-my-version show current_version
+            :::{code-block} shell-session
+            $ bump-my-version show current_version
+            :::
         """
         conf_file = find_config_file()
         if not conf_file:
@@ -1711,16 +1716,16 @@ class Metadata:
     def current_version(self) -> str | None:
         """Returns the current version.
 
-        Current version is fetched from the ``bump-my-version`` configuration file.
+        Current version is fetched from the `bump-my-version` configuration file.
 
         During a release, two commits are bundled into a single push event:
 
-        1. ``[changelog] Release vX.Y.Z`` — freezes the version to the release number
-        2. ``[changelog] Post-release bump vX.Y.Z → vX.Y.Z`` — bumps to the next dev version
+        1. `[changelog] Release vX.Y.Z` — freezes the version to the release number
+        2. `[changelog] Post-release bump vX.Y.Z → vX.Y.Z` — bumps to the next dev version
 
         In this situation, the current version returned is the one from the most recent
         commit (the post-release bump), which represents the next development version.
-        Use ``released_version`` to get the version from the release commit.
+        Use `released_version` to get the version from the release commit.
         """
         version = None
         if self.new_commits_matrix:
@@ -1736,11 +1741,11 @@ class Metadata:
         """Returns the version of the release commit.
 
         During a release push event, this extracts the version from the
-        ``[changelog] Release vX.Y.Z`` commit, which is distinct from
-        ``current_version`` (the post-release bump version). This is used for
+        `[changelog] Release vX.Y.Z` commit, which is distinct from
+        `current_version` (the post-release bump version). This is used for
         tagging, PyPI publishing, and GitHub release creation.
 
-        Returns ``None`` if no release commit is found in the current event.
+        Returns `None` if no release commit is found in the current event.
         """
         version = None
         if self.release_commits_matrix:
@@ -1754,7 +1759,7 @@ class Metadata:
 
     @cached_property
     def is_sphinx(self) -> bool:
-        """Returns ``True`` if the Sphinx config file is present."""
+        """Returns `True` if the Sphinx config file is present."""
         # The Sphinx config file is present, that's enough for us.
         return self.sphinx_conf_path.exists() and self.sphinx_conf_path.is_file()
 
@@ -1775,10 +1780,10 @@ class Metadata:
         return is_version_bump_allowed("major")
 
     def _has_sphinx_extension(self, extension_name: str) -> bool:
-        """Check if a Sphinx extension is listed in ``conf.py``'s ``extensions``.
+        """Check if a Sphinx extension is listed in `conf.py`'s `extensions`.
 
         Parses the Sphinx configuration file as an AST and looks for an
-        ``extensions = [...]`` assignment containing ``extension_name``.
+        `extensions = [...]` assignment containing `extension_name`.
         """
         if not self.is_sphinx:
             return False
@@ -1800,12 +1805,12 @@ class Metadata:
 
     @cached_property
     def active_autodoc(self) -> bool:
-        """Returns ``True`` if Sphinx autodoc is active."""
+        """Returns `True` if Sphinx autodoc is active."""
         return self._has_sphinx_extension("sphinx.ext.autodoc")
 
     @cached_property
     def uses_myst(self) -> bool:
-        """Returns ``True`` if MyST-Parser is active in Sphinx."""
+        """Returns `True` if MyST-Parser is active in Sphinx."""
         return self._has_sphinx_extension("myst_parser")
 
     @cached_property
@@ -1822,160 +1827,161 @@ class Metadata:
         specific extra parameters by the way of matching parameters in the `include`
         directive.
 
-        .. code-block:: python
-            {
-                "os": [
-                    "ubuntu-24.04-arm",
-                    "ubuntu-24.04",
-                    "macos-26",
-                    "macos-26-intel",
-                    "windows-11-arm",
-                    "windows-2025",
-                ],
-                "entry_point": [
-                    "mpm",
-                ],
-                "commit": [
-                    "346ce664f055fbd042a25ee0b7e96702e95",
-                    "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                ],
-                "include": [
-                    {
-                        "target": "linux-arm64",
-                        "os": "ubuntu-24.04-arm",
-                        "platform_id": "linux",
-                        "arch": "arm64",
-                        "extension": "bin",
-                    },
-                    {
-                        "target": "linux-x64",
-                        "os": "ubuntu-24.04",
-                        "platform_id": "linux",
-                        "arch": "x64",
-                        "extension": "bin",
-                    },
-                    {
-                        "target": "macos-arm64",
-                        "os": "macos-26",
-                        "platform_id": "macos",
-                        "arch": "arm64",
-                        "extension": "bin",
-                    },
-                    {
-                        "target": "macos-x64",
-                        "os": "macos-26-intel",
-                        "platform_id": "macos",
-                        "arch": "x64",
-                        "extension": "bin",
-                    },
-                    {
-                        "target": "windows-arm64",
-                        "os": "windows-11-arm",
-                        "platform_id": "windows",
-                        "arch": "arm64",
-                        "extension": "exe",
-                    },
-                    {
-                        "target": "windows-x64",
-                        "os": "windows-2025",
-                        "platform_id": "windows",
-                        "arch": "x64",
-                        "extension": "exe",
-                    },
-                    {
-                        "entry_point": "mpm",
-                        "cli_id": "mpm",
-                        "module_id": "meta_package_manager.__main__",
-                        "callable_id": "main",
-                        "module_path": "meta_package_manager",
-                    },
-                    {
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "short_sha": "346ce66",
-                        "current_version": "2.0.0",
-                    },
-                    {
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "short_sha": "6f27db4",
-                        "current_version": "1.9.1",
-                    },
-                    {
-                        "os": "ubuntu-24.04-arm",
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-2.0.0-linux-arm64.bin",
-                    },
-                    {
-                        "os": "ubuntu-24.04-arm",
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-1.9.1-linux-arm64.bin",
-                    },
-                    {
-                        "os": "ubuntu-24.04",
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-2.0.0-linux-x64.bin",
-                    },
-                    {
-                        "os": "ubuntu-24.04",
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-1.9.1-linux-x64.bin",
-                    },
-                    {
-                        "os": "macos-26",
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-2.0.0-macos-arm64.bin",
-                    },
-                    {
-                        "os": "macos-26",
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-1.9.1-macos-arm64.bin",
-                    },
-                    {
-                        "os": "macos-26-intel",
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-2.0.0-macos-x64.bin",
-                    },
-                    {
-                        "os": "macos-26-intel",
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-1.9.1-macos-x64.bin",
-                    },
-                    {
-                        "os": "windows-11-arm",
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-2.0.0-windows-arm64.exe",
-                    },
-                    {
-                        "os": "windows-11-arm",
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-1.9.1-windows-arm64.exe",
-                    },
-                    {
-                        "os": "windows-2025",
-                        "entry_point": "mpm",
-                        "commit": "346ce664f055fbd042a25ee0b7e96702e95",
-                        "bin_name": "mpm-2.0.0-windows-x64.exe",
-                    },
-                    {
-                        "os": "windows-2025",
-                        "entry_point": "mpm",
-                        "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
-                        "bin_name": "mpm-1.9.1-windows-x64.exe",
-                    },
-                    {
-                        "state": "stable",
-                    },
-                ],
-            }
+        :::{code-block} python
+        {
+            "os": [
+                "ubuntu-24.04-arm",
+                "ubuntu-24.04",
+                "macos-26",
+                "macos-26-intel",
+                "windows-11-arm",
+                "windows-2025",
+            ],
+            "entry_point": [
+                "mpm",
+            ],
+            "commit": [
+                "346ce664f055fbd042a25ee0b7e96702e95",
+                "6f27db47612aaee06fdf08744b09a9f5f6c2",
+            ],
+            "include": [
+                {
+                    "target": "linux-arm64",
+                    "os": "ubuntu-24.04-arm",
+                    "platform_id": "linux",
+                    "arch": "arm64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "linux-x64",
+                    "os": "ubuntu-24.04",
+                    "platform_id": "linux",
+                    "arch": "x64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "macos-arm64",
+                    "os": "macos-26",
+                    "platform_id": "macos",
+                    "arch": "arm64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "macos-x64",
+                    "os": "macos-26-intel",
+                    "platform_id": "macos",
+                    "arch": "x64",
+                    "extension": "bin",
+                },
+                {
+                    "target": "windows-arm64",
+                    "os": "windows-11-arm",
+                    "platform_id": "windows",
+                    "arch": "arm64",
+                    "extension": "exe",
+                },
+                {
+                    "target": "windows-x64",
+                    "os": "windows-2025",
+                    "platform_id": "windows",
+                    "arch": "x64",
+                    "extension": "exe",
+                },
+                {
+                    "entry_point": "mpm",
+                    "cli_id": "mpm",
+                    "module_id": "meta_package_manager.__main__",
+                    "callable_id": "main",
+                    "module_path": "meta_package_manager",
+                },
+                {
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "short_sha": "346ce66",
+                    "current_version": "2.0.0",
+                },
+                {
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "short_sha": "6f27db4",
+                    "current_version": "1.9.1",
+                },
+                {
+                    "os": "ubuntu-24.04-arm",
+                    "entry_point": "mpm",
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "bin_name": "mpm-2.0.0-linux-arm64.bin",
+                },
+                {
+                    "os": "ubuntu-24.04-arm",
+                    "entry_point": "mpm",
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "bin_name": "mpm-1.9.1-linux-arm64.bin",
+                },
+                {
+                    "os": "ubuntu-24.04",
+                    "entry_point": "mpm",
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "bin_name": "mpm-2.0.0-linux-x64.bin",
+                },
+                {
+                    "os": "ubuntu-24.04",
+                    "entry_point": "mpm",
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "bin_name": "mpm-1.9.1-linux-x64.bin",
+                },
+                {
+                    "os": "macos-26",
+                    "entry_point": "mpm",
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "bin_name": "mpm-2.0.0-macos-arm64.bin",
+                },
+                {
+                    "os": "macos-26",
+                    "entry_point": "mpm",
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "bin_name": "mpm-1.9.1-macos-arm64.bin",
+                },
+                {
+                    "os": "macos-26-intel",
+                    "entry_point": "mpm",
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "bin_name": "mpm-2.0.0-macos-x64.bin",
+                },
+                {
+                    "os": "macos-26-intel",
+                    "entry_point": "mpm",
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "bin_name": "mpm-1.9.1-macos-x64.bin",
+                },
+                {
+                    "os": "windows-11-arm",
+                    "entry_point": "mpm",
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "bin_name": "mpm-2.0.0-windows-arm64.exe",
+                },
+                {
+                    "os": "windows-11-arm",
+                    "entry_point": "mpm",
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "bin_name": "mpm-1.9.1-windows-arm64.exe",
+                },
+                {
+                    "os": "windows-2025",
+                    "entry_point": "mpm",
+                    "commit": "346ce664f055fbd042a25ee0b7e96702e95",
+                    "bin_name": "mpm-2.0.0-windows-x64.exe",
+                },
+                {
+                    "os": "windows-2025",
+                    "entry_point": "mpm",
+                    "commit": "6f27db47612aaee06fdf08744b09a9f5f6c2",
+                    "bin_name": "mpm-1.9.1-windows-x64.exe",
+                },
+                {
+                    "state": "stable",
+                },
+            ],
+        }
+        :::
         """
         # Only produce a matrix if the project is providing CLI entry points.
         if not self.script_entries:
@@ -2015,9 +2021,9 @@ class Metadata:
             module_path = Path(f"{module_id.replace('.', '/')}.py")
             assert module_path.exists()
 
-            # When the entry point is a ``__main__.py`` inside a package,
+            # When the entry point is a `__main__.py` inside a package,
             # Nuitka expects the package directory (not the file) along
-            # with ``--python-flag=-m``.  Passing the file directly
+            # with `--python-flag=-m`.  Passing the file directly
             # produces a binary that silently exits without output.
             if module_path.name == "__main__.py":
                 package_dir = module_path.parent
@@ -2078,10 +2084,10 @@ class Metadata:
         return matrix
 
     def _apply_test_matrix_config(self, matrix: Matrix, full: bool = False) -> None:
-        """Apply per-project ``[tool.repomatic.test-matrix]`` config to a matrix.
+        """Apply per-project `[tool.repomatic.test-matrix]` config to a matrix.
 
         :param matrix: The matrix to modify in-place.
-        :param full: If ``True``, also apply ``variations`` (extra dimension
+        :param full: If `True`, also apply `variations` (extra dimension
             values). Variations are only added to the full matrix, not the PR
             matrix, to keep PR CI fast.
         """
@@ -2108,8 +2114,8 @@ class Metadata:
 
         Combines all runner OS images and Python versions, excluding known
         incompatible combinations. Marks development Python versions as
-        unstable so CI can use ``continue-on-error``. Per-project config
-        from ``[tool.repomatic.test-matrix]`` is applied last.
+        unstable so CI can use `continue-on-error`. Per-project config
+        from `[tool.repomatic.test-matrix]` is applied last.
         """
         matrix = Matrix()
         matrix.add_variation("os", TEST_RUNNERS_FULL)
@@ -2128,7 +2134,7 @@ class Metadata:
 
         Skips experimental Python versions and redundant architecture
         variants to reduce CI load on PRs. Per-project config excludes and
-        includes from ``[tool.repomatic.test-matrix]`` are applied, but
+        includes from `[tool.repomatic.test-matrix]` are applied, but
         variations are not (to keep the PR matrix small).
         """
         matrix = Matrix()
@@ -2142,7 +2148,7 @@ class Metadata:
     def release_notes(self) -> str | None:
         """Generate notes to be attached to the GitHub release.
 
-        Renders the ``github-releases`` template with changelog
+        Renders the `github-releases` template with changelog
         content for the version. The template is the single place
         that defines the release body layout.
         """
@@ -2170,13 +2176,13 @@ class Metadata:
     def release_notes_with_admonition(self) -> str | None:
         """Generate release notes with a pre-computed availability admonition.
 
-        Builds the same body as :attr:`release_notes`, but injects a
-        ``> [!NOTE]`` admonition linking to PyPI and GitHub even before
-        ``fix-changelog`` has a chance to update ``changelog.md``.  This
-        lets the ``create-release`` workflow step include the admonition
-        at creation time when ``publish-pypi`` succeeds.
+        Builds the same body as {attr}`release_notes`, but injects a
+        `> [!NOTE]` admonition linking to PyPI and GitHub even before
+        `fix-changelog` has a chance to update `changelog.md`.  This
+        lets the `create-release` workflow step include the admonition
+        at creation time when `publish-pypi` succeeds.
 
-        Returns ``None`` when the project is not on PyPI, has no
+        Returns `None` when the project is not on PyPI, has no
         changelog, or has no version to release.
         """
         # Lazy import to avoid circular dependency:
@@ -2365,17 +2371,17 @@ class Metadata:
                     delimiter = generate_delimiter()
                     content += f"{env_name}<<{delimiter}\n{env_value}\n{delimiter}\n"
         elif dialect == Dialect.github_json:
-            # Bundle all metadata into a single ``metadata`` output key as JSON.
+            # Bundle all metadata into a single `metadata` output key as JSON.
             # Downstream jobs access values via
-            # ``fromJSON(needs.metadata.outputs.metadata).key``,
-            # eliminating the need for per-key ``outputs:`` declarations.
+            # `fromJSON(needs.metadata.outputs.metadata).key`,
+            # eliminating the need for per-key `outputs:` declarations.
             #
             # Pre-format list/tuple values via format_github_value(). GitHub
             # Actions stringifies JSON arrays as "Array" when interpolated in
-            # ${{ }} expressions, so workflows that splice lists into ``run:``
-            # or ``env:`` contexts would receive the literal word "Array".
+            # ${{ }} expressions, so workflows that splice lists into `run:`
+            # or `env:` contexts would receive the literal word "Array".
             # Matrix objects are excluded: they serialize to JSON objects via
-            # JSONMetadata and are consumed directly in ``strategy: matrix:``
+            # JSONMetadata and are consumed directly in `strategy: matrix:`
             # blocks, which accept expression objects without string coercion.
             formatted = {}
             for k, v in metadata.items():

@@ -100,11 +100,11 @@ Each piece of knowledge has one canonical home, chosen by audience. Other locati
 | Bug reporters         | `.github/ISSUE_TEMPLATE/` | Reproduction steps, version commands.                                   |
 | Contributors / Claude | `claude.md`               | Conventions, policies, non-obvious rules.                               |
 
-**YAML → Python distillation:** When workflow YAML files contain lengthy "why" explanations, migrate the rationale to Python module, class, or constant docstrings (using reST admonitions like `.. note::` and `.. warning::`). Trim the YAML comment to a one-line "what" plus a pointer: `# See repomatic/module.py for rationale.`
+**YAML → Python distillation:** When workflow YAML files contain lengthy "why" explanations, migrate the rationale to Python module, class, or constant docstrings (using MyST admonitions like `:::{note}` and `:::{warning}`). Trim the YAML comment to a one-line "what" plus a pointer: `# See repomatic/module.py for rationale.`
 
 ### Documenting code decisions
 
-Document design decisions, trade-offs, and non-obvious implementation choices directly in the code using docstring admonitions (reST `.. warning::`, `.. note::`, `.. caution::`), inline comments, and module-level docstrings for constants that need context.
+Document design decisions, trade-offs, and non-obvious implementation choices directly in the code using MyST docstring admonitions (`:::{warning}`, `:::{note}`, `:::{caution}`), inline comments, and module-level docstrings for constants that need context.
 
 ### Example data
 
@@ -161,18 +161,18 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 
 1. **No `v` prefix on package versions.** Anywhere the version identifies the *package* (PyPI, changelog heading, CLI output, `pyproject.toml`), use the bare version: `1.2.3`.
 2. **`v` prefix on tag references.** Anywhere the version identifies a *git tag* (comparison URLs, action refs, commit messages, PR titles), use `v1.2.3`.
-3. **Always backtick-escape versions in prose.** Both `v1.2.3` (tag) and `1.2.3` (package) are identifiers, not natural language. In markdown, wrap them in backticks: `` `v1.2.3` ``, `` `1.2.3` ``. In reST docstrings, use double backticks: ``` ``v1.2.3`` ```.
+3. **Always backtick-escape versions in prose.** Both `v1.2.3` (tag) and `1.2.3` (package) are identifiers, not natural language. Wrap them in single backticks: `` `v1.2.3` ``, `` `1.2.3` `` (in both markdown and MyST docstrings).
 4. **Development versions** follow PEP 440: `1.2.3.dev0` with optional `+{short_sha}` local identifier.
 
 ### Comments and docstrings
 
 - All comments in Python files must end with a period.
-- Docstrings use reStructuredText format (vanilla style, not Google/NumPy).
+- Docstrings use MyST markdown format. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time, so `sphinx.ext.autodoc` works transparently. Use `{role}`target`` for cross-references, `:::{directive}` for admonitions, `[text](url)` for links, and single backticks for inline code. Run `uv run repomatic convert-to-myst` to batch-convert any remaining reST docstrings.
 - Documentation in `./docs/` uses MyST markdown format where possible. Fallback to reStructuredText if necessary.
 - Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit — do not hard-wrap prose in markdown. Each sentence or logical clause should flow as a single long line; let the renderer handle wrapping.
 - Titles in markdown use sentence case.
 - **Dataclass field docs:** In dataclasses, document fields with attribute docstrings (a string literal immediately after the field declaration), not `:param:` entries in the class docstring. Attribute docstrings are co-located with the field they describe, recognized by Sphinx, and stay in sync when fields are added or reordered. The class docstring should contain only a summary of the class purpose.
-- **CLI help text:** Click command docstrings serve double duty (Sphinx docs and terminal help). Click renders them as plain text, so avoid reST markup in the prose sections that appear in `--help` output. Use plain text for command names, option names, file paths, and tool names. reST markup (double backticks, `:param:`, admonitions) belongs in non-CLI docstrings only.
+- **CLI help text:** Click command docstrings serve double duty (Sphinx docs and terminal help). Click renders them as plain text, so avoid MyST markup in the prose sections that appear in `--help` output. Use plain text for command names, option names, file paths, and tool names. MyST markup (backtick code spans, `{role}` cross-references, admonitions) belongs in non-CLI docstrings only.
 
 ### `__init__.py` files
 

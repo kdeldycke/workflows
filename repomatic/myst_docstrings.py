@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-"""Convert MyST-flavored docstrings to reST for ``sphinx.ext.autodoc``.
+"""Convert MyST-flavored docstrings to reST for `sphinx.ext.autodoc`.
 
-Hooks into ``autodoc-process-docstring`` to transparently convert MyST markdown
+Hooks into `autodoc-process-docstring` to transparently convert MyST markdown
 syntax in Python docstrings to reStructuredText before Sphinx processes them.
 
 The conversion is idempotent: docstrings already in reST pass through
@@ -23,41 +23,43 @@ unchanged. This allows incremental migration one module at a time.
 
 Supported conversions:
 
-.. list-table::
-   :header-rows: 1
+:::{list-table}
+:header-rows: 1
 
-   * - Construct
-     - MyST input
-     - reST output
-   * - Cross-references
-     - ``{role}`target```
-     - ``:role:`target```
-   * - Colon-fence admonitions
-     - ``:::{note}``
-     - ``.. note::``
-   * - Markdown links
-     - ``[text](url)``
-     - ```text <url>`_``
+* - Construct
+  - MyST input
+  - reST output
+* - Cross-references
+  - ``{role}`target```
+  - ``{role}`target```
+* - Colon-fence admonitions
+  - ``:::{note}``
+  - `.. note::`
+* - Markdown links
+  - `[text](url)`
+  - ```text <url>`_``
+:::
 
 Inline code (single backtick) is converted to reST double backticks.
-Field lists (``:param:``, ``:returns:``) need no conversion.
+Field lists (``{param}`, `{returns}``) need no conversion.
 
-.. note::
-    Register this extension in your Sphinx ``conf.py``::
+:::{note}
+Register this extension in your Sphinx `conf.py`::
 
-        extensions = [
-            "sphinx.ext.autodoc",
-            "repomatic.myst_docstrings",
-        ]
+    extensions = [
+        "sphinx.ext.autodoc",
+        "repomatic.myst_docstrings",
+    ]
 
-    This requires ``repomatic`` in your docs dependency group.
+This requires `repomatic` in your docs dependency group.
+:::
 """
 
 from __future__ import annotations
 
 import re
 
-# {role}`target` -> :role:`target`
+# {role}`target` -> {role}`target`
 _XREF_RE = re.compile(r"\{(\w+)\}`([^`]*?)`")
 
 # :::{directive} optional-title
@@ -84,7 +86,7 @@ def _convert_link(match: re.Match) -> str:
 _INLINE_CODE_RE = re.compile(r"(?<!`)`([^`\n]+)`(?!`)")
 
 # Backtick spans that must NOT be treated as inline code.  Matches:
-#   :role:`target`   — reST cross-references (from step 1)
+#   {role}`target`   — reST cross-references (from step 1)
 #   `text`_          — reST hyperlink references (idempotent pass-through)
 _PROTECTED_RE = re.compile(r":\w+:`[^`]*`|`[^`]+`_{1,2}")
 
@@ -125,7 +127,7 @@ def myst_to_rst(lines: list[str]) -> None:
     """
     text = "\n".join(lines)
 
-    # 1. Cross-references: {role}`target` -> :role:`target`.
+    # 1. Cross-references: {role}`target` -> {role}`target`.
     text = _XREF_RE.sub(r":\1:`\2`", text)
 
     # 2. Colon-fenced directives -> reST directives.
@@ -166,7 +168,7 @@ def myst_to_rst(lines: list[str]) -> None:
 
 
 def _on_process_docstring(app, what, name, obj, options, lines):
-    """``autodoc-process-docstring`` event handler."""
+    """`autodoc-process-docstring` event handler."""
     myst_to_rst(lines)
 
 

@@ -204,7 +204,7 @@ output_format_option = option(
 def is_stdout(filepath: Path) -> bool:
     """Check if a file path is set to stdout.
 
-    Prevents the creation of a ``-`` file in the current directory.
+    Prevents the creation of a `-` file in the current directory.
     """
     return str(filepath) == "-"
 
@@ -213,10 +213,10 @@ def prep_path(filepath: Path) -> IO:
     """Prepare the output file parameter for Click's echo function.
 
     Always returns a UTF-8 encoded file object, including for stdout. This avoids
-    ``UnicodeEncodeError`` on Windows where the default stdout encoding is ``cp1252``.
+    `UnicodeEncodeError` on Windows where the default stdout encoding is `cp1252`.
 
     For non-stdout paths, parent directories are created automatically if they don't
-    exist. This absorbs the ``mkdir -p`` step that workflows previously had to do.
+    exist. This absorbs the `mkdir -p` step that workflows previously had to do.
     """
     if is_stdout(filepath):
         return open(sys.stdout.fileno(), "w", encoding="UTF-8", closefd=False)
@@ -260,8 +260,8 @@ def remove_header(content: str) -> str:
 def _require_token(module, attr):
     """Decorator that runs a token validator before the Click command body.
 
-    Uses late-bound ``getattr(module, attr)`` so that
-    ``unittest.mock.patch`` can replace the module attribute after import
+    Uses late-bound `getattr(module, attr)` so that
+    `unittest.mock.patch` can replace the module attribute after import
     and the decorator sees the mock at call time.
     """
 
@@ -296,12 +296,12 @@ _section_sync = Section("Sync")
 
 
 class ComponentSelector(ParamType):
-    """Accepts bare component names or qualified ``component/file`` selectors.
+    """Accepts bare component names or qualified `component/file` selectors.
 
-    Bare names (e.g., ``skills``) select an entire component.  Qualified
-    entries (e.g., ``skills/repomatic-topics``) select a single file within
-    a component.  The same syntax is used by the ``exclude`` config option
-    in ``[tool.repomatic]``.
+    Bare names (e.g., `skills`) select an entire component.  Qualified
+    entries (e.g., `skills/repomatic-topics`) select a single file within
+    a component.  The same syntax is used by the `exclude` config option
+    in `[tool.repomatic]`.
     """
 
     name = "selector"
@@ -892,15 +892,15 @@ GITIGNORE_BASE_CATEGORIES: tuple[str, ...] = (
     "visualstudiocode",
     "windows",
 )
-"""Base gitignore.io template categories included in every generated ``.gitignore``.
+"""Base gitignore.io template categories included in every generated `.gitignore`.
 
 These cover common development environments, operating systems, and tools.
-Downstream projects can add more via ``gitignore-extra-categories`` in
-``[tool.repomatic]``.
+Downstream projects can add more via `gitignore-extra-categories` in
+`[tool.repomatic]`.
 """
 
 GITIGNORE_IO_URL = "https://www.toptal.com/developers/gitignore/api"
-"""gitignore.io API endpoint for fetching ``.gitignore`` templates."""
+"""gitignore.io API endpoint for fetching `.gitignore` templates."""
 
 
 @repomatic.command(
@@ -1765,9 +1765,9 @@ def deps_graph(
 def _validate_docs_script_path(script: str, repo_root: Path) -> Path | None:
     """Validate and resolve a docs update script path.
 
-    Returns the resolved path if the script exists, or ``None`` if the
-    configured value is empty. Raises ``ClickException`` if the path
-    escapes the repository root or is not under the ``docs/`` directory.
+    Returns the resolved path if the script exists, or `None` if the
+    configured value is empty. Raises `ClickException` if the path
+    escapes the repository root or is not under the `docs/` directory.
     """
     if not script:
         return None
@@ -1798,13 +1798,13 @@ def update_docs() -> None:
 
     Orchestrates three phases:
 
-    1. Run ``sphinx-apidoc`` to generate RST stubs for all modules.
+    1. Run `sphinx-apidoc` to generate RST stubs for all modules.
     2. If MyST-Parser is detected, convert the RST stubs to MyST markdown
        with ``{eval-rst}`` blocks.
-    3. Run the project-specific ``docs/docs_update.py`` script (if present)
+    3. Run the project-specific `docs/docs_update.py` script (if present)
        to generate dynamic content.
 
-    Configuration is read from ``[tool.repomatic]`` in ``pyproject.toml``.
+    Configuration is read from `[tool.repomatic]` in `pyproject.toml`.
     """
     from .metadata import Metadata
     from .rst_to_myst import convert_rst_files_in_directory
@@ -1895,13 +1895,13 @@ def update_docs() -> None:
 def convert_to_myst(directory: str | None) -> None:
     """Convert reST docstrings to MyST markdown in Python source files.
 
-    Transforms reST markup in docstrings and ``#:`` comment blocks to MyST.
-    The companion Sphinx extension ``repomatic.myst_docstrings`` converts
-    the MyST back to reST at build time, so ``sphinx.ext.autodoc`` still
+    Transforms reST markup in docstrings and `#:` comment blocks to MyST.
+    The companion Sphinx extension `repomatic.myst_docstrings` converts
+    the MyST back to reST at build time, so `sphinx.ext.autodoc` still
     works.
 
     If DIRECTORY is not specified, auto-detects the source package directory
-    from the project's script entry points in ``pyproject.toml``.
+    from the project's script entry points in `pyproject.toml`.
 
     Safe to re-run: already-converted MyST syntax does not match the reST
     patterns, so the conversion is idempotent.
@@ -2018,18 +2018,18 @@ def broken_links(
 
 
 def _wrap_setup_step(title: str, content: str, *, passed: bool | None) -> str:
-    """Wrap a setup step in a collapsible ``<details>`` block with status emoji.
+    """Wrap a setup step in a collapsible `<details>` block with status emoji.
 
-    Incomplete steps (``passed=False``) render as open sections with a
-    warning emoji. Completed steps (``passed=True``) render collapsed
-    with a checkmark. Indeterminate steps (``passed=None``) render
+    Incomplete steps (`passed=False`) render as open sections with a
+    warning emoji. Completed steps (`passed=True`) render collapsed
+    with a checkmark. Indeterminate steps (`passed=None`) render
     collapsed with an info emoji when the check could not run.
 
-    :param title: Step heading shown in the ``<summary>`` line.
+    :param title: Step heading shown in the `<summary>` line.
     :param content: Markdown body of the step.
-    :param passed: Whether the step is verified complete. ``None`` means the
+    :param passed: Whether the step is verified complete. `None` means the
         check could not run (e.g., insufficient token permissions).
-    :return: HTML ``<details>`` block string.
+    :return: HTML `<details>` block string.
     """
     if passed is None:
         emoji = "\u2139\ufe0f"
@@ -2751,7 +2751,7 @@ def sync_labels(ctx: Context, repository: str | None) -> None:
 
 
 def _run_labelmaker(labelmaker_path: Path, *args: str) -> None:
-    """Run a ``labelmaker`` command.
+    """Run a `labelmaker` command.
 
     :param labelmaker_path: Path to the labelmaker binary.
     :param args: Arguments to pass to labelmaker.
@@ -2774,8 +2774,8 @@ def _run_labelmaker(labelmaker_path: Path, *args: str) -> None:
 def _parse_skill_frontmatter(content: str) -> dict[str, str]:
     """Extract YAML frontmatter fields from a skill definition file.
 
-    Parses the ``---``-delimited frontmatter block and returns a dict of
-    key-value pairs. Only handles simple ``key: value`` lines (no nested
+    Parses the `---`-delimited frontmatter block and returns a dict of
+    key-value pairs. Only handles simple `key: value` lines (no nested
     structures).
     """
     parts = content.split("---", 2)
@@ -3115,7 +3115,7 @@ def lint_changelog(
 
 
 TOOL_LIST_HEADERS: tuple[str, ...] = ("Tool", "Version", "Config source")
-"""Column headers for the ``repomatic run --list`` table."""
+"""Column headers for the `repomatic run --list` table."""
 
 
 @repomatic.command(
@@ -3215,7 +3215,7 @@ CACHE_LIST_HEADERS: tuple[str, ...] = (
     "Size",
     "Age",
 )
-"""Column headers for the ``repomatic cache show`` table."""
+"""Column headers for the `repomatic cache show` table."""
 
 
 @repomatic.group(short_help="Manage the download cache", section=_section_lint)

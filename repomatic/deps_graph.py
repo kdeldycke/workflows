@@ -15,16 +15,17 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 """Generate Mermaid dependency graphs from uv lockfiles.
 
-.. note::
-    Uses ``uv export --format cyclonedx1.5`` which provides structured JSON
-    with dependency relationships, replacing the need for pipdeptree.
+:::{note}
+Uses `uv export --format cyclonedx1.5` which provides structured JSON
+with dependency relationships, replacing the need for pipdeptree.
+:::
 
-.. warning::
-    The generated Mermaid syntax targets the version bundled with
-    ``sphinxcontrib-mermaid``, currently ``11.12.1``. See the hard-coded
-    ``MERMAID_VERSION`` constant in `sphinxcontrib-mermaid's source
-    <https://github.com/mgaitan/sphinxcontrib-mermaid/blob/master/sphinxcontrib/mermaid/__init__.py>`_.
-    Avoid using Mermaid features introduced after that version.
+:::{warning}
+The generated Mermaid syntax targets the version bundled with
+`sphinxcontrib-mermaid`, currently `11.12.1`. See the hard-coded
+`MERMAID_VERSION` constant in [sphinxcontrib-mermaid's source](https://github.com/mgaitan/sphinxcontrib-mermaid/blob/master/sphinxcontrib/mermaid/__init__.py).
+Avoid using Mermaid features introduced after that version.
+:::
 """
 
 from __future__ import annotations
@@ -133,9 +134,10 @@ MERMAID_RESERVED_KEYWORDS: frozenset[str] = frozenset((
 ))
 """Mermaid keywords that cannot be used as node IDs.
 
-.. seealso::
-    https://github.com/mermaid-js/mermaid/issues/4182#issuecomment-1454787806
-    https://github.com/tox-dev/pipdeptree/pull/201
+:::{seealso}
+https://github.com/mermaid-js/mermaid/issues/4182#issuecomment-1454787806
+https://github.com/tox-dev/pipdeptree/pull/201
+:::
 """
 
 
@@ -143,7 +145,7 @@ def normalize_package_name(name: str) -> str:
     """Normalize package name for use as Mermaid node ID.
 
     Converts to lowercase and replaces non-alphanumeric characters with underscores.
-    Appends ``_0`` suffix to avoid conflicts with Mermaid reserved keywords.
+    Appends `_0` suffix to avoid conflicts with Mermaid reserved keywords.
     """
     node_id = re.sub(r"[^a-z0-9]", "_", name.lower())
     if node_id in MERMAID_RESERVED_KEYWORDS:
@@ -154,7 +156,7 @@ def normalize_package_name(name: str) -> str:
 def parse_bom_ref(bom_ref: str) -> tuple[str, str]:
     """Parse a CycloneDX bom-ref into package name and version.
 
-    The format is typically ``name-index@version`` (e.g., ``click-extra-11@7.4.0``).
+    The format is typically `name-index@version` (e.g., `click-extra-11@7.4.0`).
 
     :param bom_ref: The bom-ref string from CycloneDX.
     :return: Tuple of (package_name, version).
@@ -373,7 +375,7 @@ def trim_graph_to_depth(
     """Trim the graph to only include nodes within a given depth from the root.
 
     Performs a breadth-first traversal from the root, keeping only nodes
-    reachable within ``depth`` hops and edges between those nodes.
+    reachable within `depth` hops and edges between those nodes.
 
     :param root_name: The root package name.
     :param nodes: Dictionary mapping bom-ref to (name, version) tuples.
@@ -453,7 +455,7 @@ def _compute_subtree_sizes(edges: list[tuple[str, str]]) -> dict[str, int]:
     cache: dict[str, int] = {}
 
     def _dfs(node: str, visited: set[str]) -> set[str]:
-        """Return the set of all reachable descendants of ``node``."""
+        """Return the set of all reachable descendants of `node`."""
         if node in visited:
             return set()
         visited.add(node)
@@ -509,21 +511,22 @@ def render_mermaid(
 ) -> str:
     """Render the dependency graph as a Mermaid flowchart.
 
-    .. warning::
-        Output must stay compatible with the Mermaid version bundled in
-        ``sphinxcontrib-mermaid``. See module docstring for details.
+    :::{warning}
+    Output must stay compatible with the Mermaid version bundled in
+    `sphinxcontrib-mermaid`. See module docstring for details.
+    :::
 
     :param root_name: The root package name (used to highlight it).
     :param nodes: Dictionary mapping bom-ref to (name, version) tuples.
     :param edges: List of (from_name, to_name) edge tuples.
     :param group_packages: Optional dict mapping group names to sets of package names
         that are unique to that group. These will be rendered in subgraphs with
-        ``--group`` prefix.
+        `--group` prefix.
     :param extra_packages: Optional dict mapping extra names to sets of package names
         that are unique to that extra. These will be rendered in subgraphs with
-        ``--extra`` prefix.
-    :param lock_specs: Optional specifiers extracted from ``uv.lock``. Provides
-        edge labels (``by_package``) and subgraph node labels (``by_subgraph``).
+        `--extra` prefix.
+    :param lock_specs: Optional specifiers extracted from `uv.lock`. Provides
+        edge labels (`by_package`) and subgraph node labels (`by_subgraph`).
     :return: Mermaid flowchart string.
     """
     lines = ["flowchart LR"]
@@ -539,8 +542,8 @@ def render_mermaid(
         packages.add(to_name)
 
     # Determine which packages belong to which group or extra.
-    # Subgraph IDs are prefixed with ``grp_`` / ``ext_`` to avoid collisions
-    # with node IDs (e.g., the ``json5`` package inside a ``json5`` extra).
+    # Subgraph IDs are prefixed with `grp_` / `ext_` to avoid collisions
+    # with node IDs (e.g., the `json5` package inside a `json5` extra).
     package_to_subgraph: dict[str, str] = {}
     if group_packages:
         for group_name, pkg_names in group_packages.items():
@@ -756,7 +759,7 @@ def generate_dependency_graph(
     :param depth: Optional maximum depth from root. If None, shows the full tree.
     :param exclude_base: If True, exclude main (base) dependencies from the graph,
         showing only packages unique to the requested groups/extras. Used by
-        ``--only-group`` and ``--only-extra``.
+        `--only-group` and `--only-extra`.
     :return: The graph in Mermaid format.
     """
     # Get the full SBOM with all requested groups and extras.

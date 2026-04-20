@@ -14,11 +14,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Sync GitHub release notes from ``changelog.md``.
+"""Sync GitHub release notes from `changelog.md`.
 
 Compares each GitHub release body against the corresponding
-``changelog.md`` section and updates any that have drifted.
-``changelog.md`` is the single source of truth.
+`changelog.md` section and updates any that have drifted.
+`changelog.md` is the single source of truth.
 """
 
 from __future__ import annotations
@@ -75,15 +75,15 @@ def build_expected_body(
     """Build the expected release body from the changelog.
 
     Decomposes the changelog section into discrete elements and renders
-    them through the ``github-releases`` template. This allows the
+    them through the `github-releases` template. This allows the
     GitHub release body to include a different subset of elements than
-    the ``release-notes`` template used for ``changelog.md`` entries.
+    the `release-notes` template used for `changelog.md` entries.
 
     :param changelog: Parsed changelog instance.
-    :param version: Version string (e.g. ``1.2.3``).
+    :param version: Version string (e.g. `1.2.3`).
     :param admonition_override: If provided, replaces the
-        ``availability_admonition`` from the changelog. Used by
-        ``release_notes_with_admonition`` to inject a pre-computed
+        `availability_admonition` from the changelog. Used by
+        `release_notes_with_admonition` to inject a pre-computed
         admonition at release time.
     :return: The rendered release body, or empty string if the
         version has no changelog section.
@@ -130,16 +130,16 @@ def sync_github_releases(
     changelog_path: Path,
     dry_run: bool = True,
 ) -> SyncResult:
-    """Sync GitHub release bodies from ``changelog.md``.
+    """Sync GitHub release bodies from `changelog.md`.
 
     For each released version in the changelog, compares the expected
-    body (from ``changelog.md``) with the actual GitHub release body.
-    In live mode, updates drifted releases via ``gh release edit``.
+    body (from `changelog.md`) with the actual GitHub release body.
+    In live mode, updates drifted releases via `gh release edit`.
 
     :param repo_url: Repository URL (e.g.
-        ``https://github.com/user/repo``).
-    :param changelog_path: Path to ``changelog.md``.
-    :param dry_run: If ``True``, report without making changes.
+        `https://github.com/user/repo`).
+    :param changelog_path: Path to `changelog.md`.
+    :param dry_run: If `True`, report without making changes.
     :return: Structured sync results.
     """
     result = SyncResult(dry_run=dry_run)

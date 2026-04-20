@@ -14,11 +14,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-"""Configuration schema and loading for ``[tool.repomatic]`` in ``pyproject.toml``.
+"""Configuration schema and loading for `[tool.repomatic]` in `pyproject.toml`.
 
-Defines the ``Config`` dataclass, its TOML serialization helpers, and the
-``load_repomatic_config`` function that reads, validates, and returns a typed
-``Config`` instance.
+Defines the `Config` dataclass, its TOML serialization helpers, and the
+`load_repomatic_config` function that reads, validates, and returns a typed
+`Config` instance.
 """
 
 from __future__ import annotations
@@ -44,15 +44,15 @@ if TYPE_CHECKING:
 
 @dataclass
 class CacheConfig:
-    """Nested schema for ``[tool.repomatic.cache]``."""
+    """Nested schema for `[tool.repomatic.cache]`."""
 
     dir: str = ""
     """Override the binary cache directory path.
 
     When empty (the default), the cache uses the platform convention:
-    ``~/Library/Caches/repomatic`` on macOS, ``$XDG_CACHE_HOME/repomatic``
-    or ``~/.cache/repomatic`` on Linux, ``%LOCALAPPDATA%\\repomatic\\Cache``
-    on Windows. The ``REPOMATIC_CACHE_DIR`` environment variable takes
+    `~/Library/Caches/repomatic` on macOS, `$XDG_CACHE_HOME/repomatic`
+    or `~/.cache/repomatic` on Linux, `%LOCALAPPDATA%\\repomatic\\Cache`
+    on Windows. The `REPOMATIC_CACHE_DIR` environment variable takes
     precedence over this setting.
     """
 
@@ -60,7 +60,7 @@ class CacheConfig:
     """Freshness TTL for cached single-release bodies (seconds).
 
     GitHub release bodies are immutable once published, so a long TTL (7 days)
-    is safe. Set to ``0`` to disable caching for single-release lookups.
+    is safe. Set to `0` to disable caching for single-release lookups.
     """
 
     github_releases_ttl: int = 86400
@@ -73,7 +73,7 @@ class CacheConfig:
     max_age: int = 30
     """Auto-purge cached entries older than this many days.
 
-    Set to ``0`` to disable auto-purge. The ``REPOMATIC_CACHE_MAX_AGE``
+    Set to `0` to disable auto-purge. The `REPOMATIC_CACHE_MAX_AGE`
     environment variable takes precedence over this setting.
     """
 
@@ -87,43 +87,43 @@ class CacheConfig:
 
 @dataclass
 class DependencyGraphConfig:
-    """Nested schema for ``[tool.repomatic.dependency-graph]``."""
+    """Nested schema for `[tool.repomatic.dependency-graph]`."""
 
     all_extras: bool = True
     """Whether to include all optional extras in the graph.
 
-    When ``True``, the ``update-deps-graph`` command behaves as if
-    ``--all-extras`` was passed.
+    When `True`, the `update-deps-graph` command behaves as if
+    `--all-extras` was passed.
     """
 
     all_groups: bool = True
     """Whether to include all dependency groups in the graph.
 
-    When ``True``, the ``update-deps-graph`` command behaves as if
-    ``--all-groups`` was passed. Projects that want to exclude development
+    When `True`, the `update-deps-graph` command behaves as if
+    `--all-groups` was passed. Projects that want to exclude development
     dependency groups (docs, test, typing) from their published graph can
-    set this to ``false``.
+    set this to `false`.
     """
 
     level: int | None = None
     """Maximum depth of the dependency graph.
 
-    ``None`` means unlimited. ``1`` = primary deps only, ``2`` = primary +
-    their deps, etc. Equivalent to ``--level``.
+    `None` means unlimited. `1` = primary deps only, `2` = primary +
+    their deps, etc. Equivalent to `--level`.
     """
 
     no_extras: list[str] = field(default_factory=list)
     """Optional extras to exclude from the graph.
 
-    Equivalent to passing ``--no-extra`` for each entry. Takes precedence
-    over ``dependency-graph.all-extras``.
+    Equivalent to passing `--no-extra` for each entry. Takes precedence
+    over `dependency-graph.all-extras`.
     """
 
     no_groups: list[str] = field(default_factory=list)
     """Dependency groups to exclude from the graph.
 
-    Equivalent to passing ``--no-group`` for each entry. Takes precedence
-    over ``dependency-graph.all-groups``.
+    Equivalent to passing `--no-group` for each entry. Takes precedence
+    over `dependency-graph.all-groups`.
     """
 
     output: str = "./docs/assets/dependencies.mmd"
@@ -135,39 +135,39 @@ class DependencyGraphConfig:
 
 @dataclass
 class DocsConfig:
-    """Nested schema for ``[tool.repomatic.docs]``."""
+    """Nested schema for `[tool.repomatic.docs]`."""
 
     apidoc_exclude: list[str] = field(default_factory=list)
-    """Glob patterns for modules to exclude from ``sphinx-apidoc``.
+    """Glob patterns for modules to exclude from `sphinx-apidoc`.
 
     Passed as positional exclude arguments after the source directory
-    (e.g., ``["setup.py", "tests"]``).
+    (e.g., `["setup.py", "tests"]`).
     """
 
     apidoc_extra_args: list[str] = field(default_factory=list)
-    """Extra arguments appended to the ``sphinx-apidoc`` invocation.
+    """Extra arguments appended to the `sphinx-apidoc` invocation.
 
-    The base flags ``--no-toc --module-first`` are always applied.
-    Use this for project-specific options (e.g., ``["--implicit-namespaces"]``).
+    The base flags `--no-toc --module-first` are always applied.
+    Use this for project-specific options (e.g., `["--implicit-namespaces"]`).
     """
 
     update_script: str = "./docs/docs_update.py"
-    """Path to a Python script run after ``sphinx-apidoc`` to generate dynamic content.
+    """Path to a Python script run after `sphinx-apidoc` to generate dynamic content.
 
-    Resolved relative to the repository root. Must reside under the ``docs/``
+    Resolved relative to the repository root. Must reside under the `docs/`
     directory for security. Set to an empty string to disable.
     """
 
 
 @dataclass
 class GitignoreConfig:
-    """Nested schema for ``[tool.repomatic.gitignore]``."""
+    """Nested schema for `[tool.repomatic.gitignore]`."""
 
     extra_categories: list[str] = field(default_factory=list)
     """Additional gitignore template categories to fetch from gitignore.io.
 
-    List of template names (e.g., ``["Python", "Node", "Terraform"]``) to combine
-    with the generated ``.gitignore`` content.
+    List of template names (e.g., `["Python", "Node", "Terraform"]`) to combine
+    with the generated `.gitignore` content.
     """
 
     extra_content: str = field(
@@ -181,57 +181,57 @@ class GitignoreConfig:
             """
         ).strip()
     )
-    """Additional content to append at the end of the generated ``.gitignore`` file.
+    """Additional content to append at the end of the generated `.gitignore` file.
     """
 
     location: str = "./.gitignore"
-    """File path of the ``.gitignore`` to update, relative to the root of the repository.
+    """File path of the `.gitignore` to update, relative to the root of the repository.
     """
 
     sync: bool = True
-    """Whether ``.gitignore`` sync is enabled for this project.
+    """Whether `.gitignore` sync is enabled for this project.
 
-    Projects that manage their own ``.gitignore`` and do not want the autofix job
-    to overwrite it can set this to ``false``.
+    Projects that manage their own `.gitignore` and do not want the autofix job
+    to overwrite it can set this to `false`.
     """
 
 
 @dataclass
 class LabelsConfig:
-    """Nested schema for ``[tool.repomatic.labels]``."""
+    """Nested schema for `[tool.repomatic.labels]`."""
 
     extra_content_rules: str = ""
     """Additional YAML rules appended to the content-based labeller configuration.
 
-    Appended to the bundled ``labeller-content-based.yaml`` during export.
+    Appended to the bundled `labeller-content-based.yaml` during export.
     """
 
     extra_file_rules: str = ""
     """Additional YAML rules appended to the file-based labeller configuration.
 
-    Appended to the bundled ``labeller-file-based.yaml`` during export.
+    Appended to the bundled `labeller-file-based.yaml` during export.
     """
 
     extra_files: list[str] = field(default_factory=list)
     """URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
 
-    Each URL is downloaded and applied separately by ``labelmaker``.
+    Each URL is downloaded and applied separately by `labelmaker`.
     """
 
     sync: bool = True
     """Whether label sync is enabled for this project.
 
     Projects that manage their own repository labels and do not want the
-    labels workflow to overwrite them can set this to ``false``.
+    labels workflow to overwrite them can set this to `false`.
     """
 
 
 @dataclass
 class TestMatrixConfig:
-    """Nested schema for ``[tool.repomatic.test-matrix]``.
+    """Nested schema for `[tool.repomatic.test-matrix]`.
 
-    Keys inside ``replace`` and ``variations`` are GitHub Actions matrix
-    identifiers (e.g., ``os``, ``python-version``) and must not be
+    Keys inside `replace` and `variations` are GitHub Actions matrix
+    identifiers (e.g., `os`, `python-version`) and must not be
     normalized to snake_case.  Click Extra's ``click_extra.normalize_keys =
     False`` metadata on the parent field prevents this.
     """
@@ -254,7 +254,7 @@ class TestMatrixConfig:
     remove: dict[str, list[str]] = field(default_factory=dict)
     """Per-axis value removals applied to both full and PR test matrices.
 
-    Outer key is the variation/axis ID (e.g., ``os``, ``python-version``).
+    Outer key is the variation/axis ID (e.g., `os`, `python-version`).
     Inner list contains values to drop from that axis. Applied after
     replacements but before excludes, includes, and variations.
     """
@@ -262,7 +262,7 @@ class TestMatrixConfig:
     replace: dict[str, dict[str, str]] = field(default_factory=dict)
     """Per-axis value replacements applied to both full and PR test matrices.
 
-    Outer key is the variation/axis ID (e.g., ``os``, ``python-version``).
+    Outer key is the variation/axis ID (e.g., `os`, `python-version`).
     Inner dict maps old values to new values. Applied before removals,
     excludes, includes, and variations.
     """
@@ -270,7 +270,7 @@ class TestMatrixConfig:
     variations: dict[str, list[str]] = field(default_factory=dict)
     """Extra matrix dimension values added to the full test matrix only.
 
-    Each key is a dimension ID (e.g., ``os``, ``click-version``) and its value
+    Each key is a dimension ID (e.g., `os`, `click-version`) and its value
     is a list of additional entries. For existing dimensions, values are merged
     with the upstream defaults. For new dimension IDs, a new axis is created.
     Only affects the full matrix; the PR matrix stays a curated reduced set.
@@ -279,7 +279,7 @@ class TestMatrixConfig:
 
 @dataclass
 class TestPlanConfig:
-    """Nested schema for ``[tool.repomatic.test-plan]``."""
+    """Nested schema for `[tool.repomatic.test-plan]`."""
 
     file: str = "./tests/cli-test-plan.yaml"
     """Path to the YAML test plan file for binary testing.
@@ -291,46 +291,46 @@ class TestPlanConfig:
     inline: str | None = None
     """Inline YAML test plan for binaries.
 
-    Alternative to ``test_plan_file``. Allows specifying the test plan directly in
-    ``pyproject.toml`` instead of a separate file.
+    Alternative to `test_plan_file`. Allows specifying the test plan directly in
+    `pyproject.toml` instead of a separate file.
     """
 
     timeout: int | None = None
     """Timeout in seconds for each binary test.
 
-    If set, each test command will be terminated after this duration. ``None`` means no
+    If set, each test command will be terminated after this duration. `None` means no
     timeout (tests can run indefinitely).
     """
 
 
 @dataclass
 class WorkflowConfig:
-    """Nested schema for ``[tool.repomatic.workflow]``."""
+    """Nested schema for `[tool.repomatic.workflow]`."""
 
     source_paths: list[str] | None = None
-    """Source code directory names for workflow trigger ``paths:`` filters.
+    """Source code directory names for workflow trigger `paths:` filters.
 
-    When set, thin-caller and header-only workflows include ``paths:`` filters
-    using these directory names (as ``name/**`` globs) alongside universal paths
-    like ``pyproject.toml`` and ``uv.lock``.
+    When set, thin-caller and header-only workflows include `paths:` filters
+    using these directory names (as `name/**` globs) alongside universal paths
+    like `pyproject.toml` and `uv.lock`.
 
-    When ``None`` (default), source paths are auto-derived from
-    ``[project.name]`` in ``pyproject.toml`` by replacing hyphens with
+    When `None` (default), source paths are auto-derived from
+    `[project.name]` in `pyproject.toml` by replacing hyphens with
     underscores — the universal Python convention. For example,
-    ``name = "extra-platforms"`` automatically uses ``["extra_platforms"]``.
+    `name = "extra-platforms"` automatically uses `["extra_platforms"]`.
     """
 
     sync: bool = True
     """Whether workflow sync is enabled for this project.
 
     Projects that manage their own workflow files and do not want the autofix job
-    to sync thin callers or headers can set this to ``false``.
+    to sync thin callers or headers can set this to `false`.
     """
 
 
 @dataclass
 class Config:
-    """Configuration schema for ``[tool.repomatic]`` in ``pyproject.toml``.
+    """Configuration schema for `[tool.repomatic]` in `pyproject.toml`.
 
     This dataclass defines the structure and default values for repomatic configuration.
     Each field has a docstring explaining its purpose.
@@ -342,8 +342,8 @@ class Config:
     )
     """Whether awesome-template sync is enabled for this project.
 
-    Repositories whose name starts with ``awesome-`` get their boilerplate synced
-    from files bundled in ``repomatic``. Set to ``false`` to opt out.
+    Repositories whose name starts with `awesome-` get their boilerplate synced
+    from files bundled in `repomatic`. Set to `false` to opt out.
     """
 
     bumpversion_sync: bool = field(
@@ -352,8 +352,8 @@ class Config:
     )
     """Whether bumpversion config sync is enabled for this project.
 
-    Projects that manage their own ``[tool.bumpversion]`` section and do not want
-    the autofix job to overwrite it can set this to ``false``.
+    Projects that manage their own `[tool.bumpversion]` section and do not want
+    the autofix job to overwrite it can set this to `false`.
     """
 
     cache: CacheConfig = field(
@@ -381,7 +381,7 @@ class Config:
     """Whether dev pre-release sync is enabled for this project.
 
     Projects that do not want a rolling draft pre-release maintained on
-    GitHub can set this to ``false``.
+    GitHub can set this to `false`.
     """
 
     docs: DocsConfig = field(
@@ -393,13 +393,13 @@ class Config:
     exclude: list[str] = field(default_factory=list)
     """Additional components and files to exclude from repomatic operations.
 
-    Additive to the default exclusions (``labels``, ``skills``). Bare names
-    exclude an entire component (e.g., ``"workflows"``). Qualified
-    ``component/identifier`` entries exclude a specific file within a component
-    (e.g., ``"workflows/debug.yaml"``, ``"skills/repomatic-audit"``,
-    ``"labels/labeller-content-based.yaml"``).
+    Additive to the default exclusions (`labels`, `skills`). Bare names
+    exclude an entire component (e.g., `"workflows"`). Qualified
+    `component/identifier` entries exclude a specific file within a component
+    (e.g., `"workflows/debug.yaml"`, `"skills/repomatic-audit"`,
+    `"labels/labeller-content-based.yaml"`).
 
-    Affects ``repomatic init``, ``workflow sync``, and ``workflow create``.
+    Affects `repomatic init`, `workflow sync`, and `workflow create`.
     Explicit CLI positional arguments override this list.
     """
 
@@ -407,17 +407,17 @@ class Config:
         default_factory=GitignoreConfig,
         metadata={"click_extra.config_path": "gitignore"},
     )
-    """``.gitignore`` sync configuration."""
+    """`.gitignore` sync configuration."""
 
     include: list[str] = field(default_factory=list)
     """Components and files to force-include, overriding default exclusions.
 
-    Use this to opt into components that are excluded by default (``labels``,
-    ``skills``). Each entry is subtracted from the effective exclude set
-    (defaults + user ``exclude``) and bypasses ``RepoScope`` filtering,
+    Use this to opt into components that are excluded by default (`labels`,
+    `skills`). Each entry is subtracted from the effective exclude set
+    (defaults + user `exclude`) and bypasses `RepoScope` filtering,
     so scope-restricted files (like awesome-only skills) are included
-    regardless of repository type. Qualified entries (``component/file``)
-    implicitly select the parent component. Same syntax as ``exclude``.
+    regardless of repository type. Qualified entries (`component/file`)
+    implicitly select the parent component. Same syntax as `exclude`.
     """
 
     labels: LabelsConfig = field(
@@ -430,10 +430,10 @@ class Config:
         default=True,
         metadata={"click_extra.config_path": "mailmap.sync"},
     )
-    """Whether ``.mailmap`` sync is enabled for this project.
+    """Whether `.mailmap` sync is enabled for this project.
 
-    Projects that manage their own ``.mailmap`` and do not want the autofix job
-    to overwrite it can set this to ``false``.
+    Projects that manage their own `.mailmap` and do not want the autofix job
+    to overwrite it can set this to `false`.
     """
 
     notification_unsubscribe: bool = field(
@@ -444,7 +444,7 @@ class Config:
 
     Notifications are per-user across all repos. Enable on the single repo where
     you want scheduled cleanup of closed notification threads. Requires a classic
-    PAT with ``notifications`` scope stored as ``REPOMATIC_NOTIFICATIONS_PAT``.
+    PAT with `notifications` scope stored as `REPOMATIC_NOTIFICATIONS_PAT`.
     """
 
     nuitka_enabled: bool = field(
@@ -453,22 +453,22 @@ class Config:
     )
     """Whether Nuitka binary compilation is enabled for this project.
 
-    Projects with ``[project.scripts]`` entries that are not intended to produce
+    Projects with `[project.scripts]` entries that are not intended to produce
     standalone binaries (e.g., libraries with convenience CLI wrappers) can set this
-    to ``false`` to opt out of Nuitka compilation.
+    to `false` to opt out of Nuitka compilation.
     """
 
     nuitka_entry_points: list[str] = field(
         default_factory=list,
         metadata={"click_extra.config_path": "nuitka.entry-points"},
     )
-    """Which ``[project.scripts]`` entry points produce Nuitka binaries.
+    """Which `[project.scripts]` entry points produce Nuitka binaries.
 
-    List of CLI IDs (e.g., ``["mpm"]``) to compile. When empty (the default),
+    List of CLI IDs (e.g., `["mpm"]`) to compile. When empty (the default),
     deduplicates by callable target: keeps the first entry point for each
-    unique ``module:callable`` pair. This avoids building duplicate binaries
-    when a project declares alias entry points (like both ``mpm`` and
-    ``meta-package-manager`` pointing to the same function).
+    unique `module:callable` pair. This avoids building duplicate binaries
+    when a project declares alias entry points (like both `mpm` and
+    `meta-package-manager` pointing to the same function).
     """
 
     nuitka_extra_args: list[str] = field(
@@ -477,8 +477,8 @@ class Config:
     )
     """Extra Nuitka CLI arguments for binary compilation.
 
-    Project-specific flags (e.g., ``--include-data-files``,
-    ``--include-package-data``) that are passed to the Nuitka build command.
+    Project-specific flags (e.g., `--include-data-files`,
+    `--include-package-data`) that are passed to the Nuitka build command.
     """
 
     nuitka_unstable_targets: list[str] = field(
@@ -487,7 +487,7 @@ class Config:
     )
     """Nuitka build targets allowed to fail without blocking the release.
 
-    List of target names (e.g., ``["linux-arm64", "windows-x64"]``) that are marked as
+    List of target names (e.g., `["linux-arm64", "windows-x64"]`) that are marked as
     unstable. Jobs for these targets will be allowed to fail without preventing the
     release workflow from succeeding.
     """
@@ -496,15 +496,15 @@ class Config:
     """Former PyPI package names for projects that were renamed.
 
     When a project changes its PyPI name, older versions remain published under
-    the previous name. List former names here so ``lint-changelog`` can fetch
+    the previous name. List former names here so `lint-changelog` can fetch
     release metadata from all names and generate correct PyPI URLs.
     """
 
     setup_guide: bool = True
     """Whether the setup guide issue is enabled for this project.
 
-    Projects that do not need ``REPOMATIC_PAT`` or manage their
-    own PAT setup can set this to ``false`` to suppress the setup guide issue.
+    Projects that do not need `REPOMATIC_PAT` or manage their
+    own PAT setup can set this to `false` to suppress the setup guide issue.
     """
 
     skills_location: str = field(
@@ -514,7 +514,7 @@ class Config:
     """Directory prefix for Claude Code skill files, relative to the repository root.
 
     Skill files are written as ``{skills_location}/{skill-id}/SKILL.md``.
-    Useful for repositories where ``.claude/`` is not at the root (e.g.,
+    Useful for repositories where `.claude/` is not at the root (e.g.,
     dotfiles repos that store configs under a subdirectory).
     """
 
@@ -528,7 +528,7 @@ class Config:
     """Per-project customizations for the GitHub Actions CI test matrix.
 
     Keys inside this section are GitHub Actions matrix identifiers (e.g.,
-    ``os``, ``python-version``) and must not be normalized to snake_case.
+    `os`, `python-version`) and must not be normalized to snake_case.
     """
 
     test_plan: TestPlanConfig = field(
@@ -541,10 +541,10 @@ class Config:
         default=True,
         metadata={"click_extra.config_path": "uv-lock.sync"},
     )
-    """Whether ``uv.lock`` sync is enabled for this project.
+    """Whether `uv.lock` sync is enabled for this project.
 
     Projects that manage their own lock file strategy and do not want the
-    ``sync-uv-lock`` job to run ``uv lock --upgrade`` can set this to ``false``.
+    `sync-uv-lock` job to run `uv lock --upgrade` can set this to `false`.
     """
 
     workflow: WorkflowConfig = field(
@@ -578,8 +578,8 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.
 
-The ``test-plan`` and ``deps-graph`` subcommands now read these values directly from
-``[tool.repomatic]`` in ``pyproject.toml``, so they no longer need to be passed through
+The `test-plan` and `deps-graph` subcommands now read these values directly from
+`[tool.repomatic]` in `pyproject.toml`, so they no longer need to be passed through
 workflow metadata outputs.
 """
 
@@ -587,11 +587,11 @@ workflow metadata outputs.
 def _field_to_key(name: str, cls: type | None = None) -> str:
     """Convert a dataclass field name to its TOML config key.
 
-    For fields with ``click_extra.config_path`` metadata, returns that path
+    For fields with `click_extra.config_path` metadata, returns that path
     directly. Otherwise, falls back to simple kebab-case conversion
-    (e.g., ``setup_guide`` → ``setup-guide``).
+    (e.g., `setup_guide` → `setup-guide`).
 
-    :param cls: Dataclass to inspect for metadata. Defaults to ``Config``.
+    :param cls: Dataclass to inspect for metadata. Defaults to `Config`.
     """
     if cls is None:
         cls = Config
@@ -611,7 +611,7 @@ def _extract_field_docstrings(cls: type | None = None) -> dict[str, str]:
     assignment in a class body (PEP 257 convention). Returns a mapping of field
     name to the first paragraph of its docstring (stripped and dedented).
 
-    :param cls: Dataclass to inspect. Defaults to ``Config``.
+    :param cls: Dataclass to inspect. Defaults to `Config`.
     """
     if cls is None:
         cls = Config
@@ -644,7 +644,7 @@ def _extract_field_docstrings(cls: type | None = None) -> dict[str, str]:
 
 
 def _format_default(value: object) -> str:
-    """Format a ``Config`` field default for the reference table."""
+    """Format a `Config` field default for the reference table."""
     if value is None:
         return "*(none)*"
     if isinstance(value, bool):
@@ -665,16 +665,16 @@ def _format_default(value: object) -> str:
 def _format_type(annotation: str) -> str:
     """Simplify a type annotation string for the reference table.
 
-    Strips ``| None`` suffixes since the default column already shows whether
-    ``None`` is the default. Escapes outer brackets in nested generic types so
-    the output is stable under mdformat (which escapes ``[`` to ``\\[`` to
+    Strips `| None` suffixes since the default column already shows whether
+    `None` is the default. Escapes outer brackets in nested generic types so
+    the output is stable under mdformat (which escapes `[` to `\\[` to
     prevent spurious link detection).
     """
     result = annotation.replace(" | None", "")
     # Escape the outermost brackets only when they contain nested brackets
-    # (e.g. ``list[dict[str, str]]`` → ``list\\[dict[str, str]\\]``).
+    # (e.g. `list[dict[str, str]]` → `list\\[dict[str, str]\\]`).
     # mdformat escapes these to prevent spurious markdown link detection.
-    # Simple generics like ``list[str]`` have no nested brackets and stay
+    # Simple generics like `list[str]` have no nested brackets and stay
     # unescaped.
     if "[" in result:
         first = result.index("[")
@@ -686,17 +686,17 @@ def _format_type(annotation: str) -> str:
 
 
 CONFIG_REFERENCE_HEADERS = ("Option", "Type", "Default", "Description")
-"""Column headers for the ``[tool.repomatic]`` configuration reference table."""
+"""Column headers for the `[tool.repomatic]` configuration reference table."""
 
 
 def config_reference() -> list[tuple[str, str, str, str]]:
-    """Build the ``[tool.repomatic]`` configuration reference as table rows.
+    """Build the `[tool.repomatic]` configuration reference as table rows.
 
-    Introspects the ``Config`` dataclass fields, their type annotations,
+    Introspects the `Config` dataclass fields, their type annotations,
     defaults, and attribute docstrings. Nested dataclass fields are expanded
     into individual rows with dotted keys. Returns a list of
-    ``(option, type, default, description)`` tuples suitable for
-    ``click_extra.table.print_table``.
+    `(option, type, default, description)` tuples suitable for
+    `click_extra.table.print_table`.
     """
     schema = Config()
     docstrings = _extract_field_docstrings()
@@ -730,14 +730,14 @@ def config_reference() -> list[tuple[str, str, str, str]]:
 def load_repomatic_config(
     pyproject_data: dict[str, Any] | None = None,
 ) -> Config:
-    """Load ``[tool.repomatic]`` config merged with ``Config`` defaults.
+    """Load `[tool.repomatic]` config merged with `Config` defaults.
 
     Delegates to click-extra's schema-aware dataclass instantiation, which
     handles normalization, flattening, nested dataclasses, and opaque field
     extraction automatically based on field metadata and type hints.
 
-    :param pyproject_data: Pre-parsed ``pyproject.toml`` dict. If ``None``,
-        reads and parses ``pyproject.toml`` from the current working directory.
+    :param pyproject_data: Pre-parsed `pyproject.toml` dict. If `None`,
+        reads and parses `pyproject.toml` from the current working directory.
     """
     from click_extra.config import _make_schema_callable
 

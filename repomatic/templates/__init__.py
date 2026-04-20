@@ -16,9 +16,9 @@
 
 """PR body templates for auto-created pull requests.
 
-Each ``.md`` file contains the markdown body, optionally preceded by a YAML
-frontmatter header listing required ``args``. Templates use
-``string.Template`` ``$variable`` syntax for substitution.
+Each `.md` file contains the markdown body, optionally preceded by a YAML
+frontmatter header listing required `args`. Templates use
+`string.Template` `$variable` syntax for substitution.
 
-All files are accessible at runtime via ``importlib.resources``.
+All files are accessible at runtime via `importlib.resources`.
 """

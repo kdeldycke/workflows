@@ -35,7 +35,7 @@ class GitHubRelease(NamedTuple):
     """Release metadata for a single version from GitHub."""
 
     date: str
-    """Publication date in ``YYYY-MM-DD`` format."""
+    """Publication date in `YYYY-MM-DD` format."""
 
     body: str
     """Release description body (markdown)."""
@@ -45,12 +45,12 @@ def get_github_releases(repo_url: str) -> dict[str, GitHubRelease]:
     """Get versions and dates for all GitHub releases.
 
     Fetches all releases via the GitHub API with pagination. Extracts
-    version numbers by stripping the ``v`` prefix from tag names. Uses
-    ``published_at`` (falling back to ``created_at``) for the date.
+    version numbers by stripping the `v` prefix from tag names. Uses
+    `published_at` (falling back to `created_at`) for the date.
 
     :param repo_url: Repository URL (e.g.
-        ``https://github.com/user/repo``).
-    :return: Dict mapping version strings to :class:`GitHubRelease`
+        `https://github.com/user/repo`).
+    :return: Dict mapping version strings to {class}`GitHubRelease`
         tuples. Empty dict if the request fails.
     """
     # Parse owner/repo from the URL.

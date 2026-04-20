@@ -16,19 +16,20 @@
 
 """Unified tool runner with managed config resolution.
 
-Provides ``repomatic run <tool>`` — a single entry point that installs an
+Provides `repomatic run <tool>` — a single entry point that installs an
 external tool at a pinned version, resolves its configuration through a strict
-4-level precedence chain, translates ``[tool.X]`` sections from
-``pyproject.toml`` into the tool's native format, and invokes the tool with
+4-level precedence chain, translates `[tool.X]` sections from
+`pyproject.toml` into the tool's native format, and invokes the tool with
 the resolved config.
 
-.. important::
-    Config resolution precedence (first match wins, no merging):
+:::{important}
+Config resolution precedence (first match wins, no merging):
 
-    1. **Native config file** — tool's own config file in the repo.
-    2. **``[tool.X]`` in ``pyproject.toml``** — translated to native format.
-    3. **Bundled default** — from ``repomatic/data/``.
-    4. **Bare invocation** — no config at all.
+1. **Native config file** — tool's own config file in the repo.
+2. **`[tool.X]` in `pyproject.toml`** — translated to native format.
+3. **Bundled default** — from `repomatic/data/`.
+4. **Bare invocation** — no config at all.
+:::
 """
 
 from __future__ import annotations
@@ -88,16 +89,16 @@ GENERATED_HEADER_TEMPLATE = (
 )
 """Template for the first line of generated-file headers.
 
-Used by both CLI commands (e.g. ``sync-mailmap``) and the tool runner
-(e.g. ``run shfmt``) to stamp files with provenance.  Format fields:
-``command`` (full command path) and ``version`` (package version).
+Used by both CLI commands (e.g. `sync-mailmap`) and the tool runner
+(e.g. `run shfmt`) to stamp files with provenance.  Format fields:
+`command` (full command path) and `version` (package version).
 """
 
 
 def generated_header(command: str, comment_prefix: str = "# ") -> str:
     """Return a generated-by header block with timestamp.
 
-    :param command: Full command path (e.g. ``repomatic sync-mailmap``).
+    :param command: Full command path (e.g. `repomatic sync-mailmap`).
     :param comment_prefix: Comment prefix for the target format.
     """
     from datetime import datetime, timezone
@@ -118,7 +119,7 @@ class ArchiveFormat(Enum):
     ZIP = "zip"
 
     def tarfile_mode(self) -> Literal["r:gz", "r:xz"]:
-        """Return the ``tarfile.open`` mode string for this format.
+        """Return the `tarfile.open` mode string for this format.
 
         :raises ValueError: If called on a non-tar format.
         """
@@ -131,7 +132,7 @@ class ArchiveFormat(Enum):
 
 
 class NativeFormat(Enum):
-    """Target format for ``[tool.X]`` translation."""
+    """Target format for `[tool.X]` translation."""
 
     YAML = "yaml"
     TOML = "toml"
@@ -145,7 +146,7 @@ class NativeFormat(Enum):
         """
         if self is NativeFormat.JSON:
             return ""
-        # YAML, TOML, and editorconfig all use ``#`` comments.
+        # YAML, TOML, and editorconfig all use `#` comments.
         return generated_header(f"repomatic run {tool_name}")
 
     def serialize(self, data: dict, tool_name: str = "") -> str:
@@ -169,7 +170,7 @@ class NativeFormat(Enum):
     def _serialize_editorconfig(data: dict, header: str) -> str:
         """Serialize a flat dict to editorconfig format.
 
-        Emits all keys under ``[*]`` (match-all glob). TOML-style hyphens in
+        Emits all keys under `[*]` (match-all glob). TOML-style hyphens in
         key names are converted to underscores (editorconfig convention).
         """
         lines = [f"{header}root = true", "", "[*]"]
@@ -183,17 +184,17 @@ class NativeFormat(Enum):
 
 
 PlatformKey = tuple[Platform | Group, Architecture]
-"""A ``(platform_or_group, architecture)`` pair used as binary lookup key.
+"""A `(platform_or_group, architecture)` pair used as binary lookup key.
 
-The platform element can be a single :class:`~extra_platforms.Platform` (like
-``MACOS``) or a :class:`~extra_platforms.Group` (like ``LINUX``, which matches
+The platform element can be a single {class}`~extra_platforms.Platform` (like
+`MACOS`) or a {class}`~extra_platforms.Group` (like `LINUX`, which matches
 any Linux distribution). The architecture is always a concrete
-:class:`~extra_platforms.Architecture`.
+{class}`~extra_platforms.Architecture`.
 
-Resolution order in :meth:`BinarySpec.resolve_platform`:
+Resolution order in {meth}`BinarySpec.resolve_platform`:
 
-1. Exact Platform match (``current_platform() == key_platform``).
-2. Group membership (``current_platform() in key_group``), preferring the
+1. Exact Platform match (`current_platform() == key_platform`).
+2. Group membership (`current_platform() in key_group`), preferring the
    group with fewest members (most specific).
 """
 
@@ -202,18 +203,19 @@ Resolution order in :meth:`BinarySpec.resolve_platform`:
 class BinarySpec:
     """Platform-specific binary download specification.
 
-    Keys are :data:`PlatformKey` tuples pairing an extra-platforms
-    :class:`~extra_platforms.Platform` or :class:`~extra_platforms.Group`
-    with an :class:`~extra_platforms.Architecture`. This lets callers use
-    broad groups (``LINUX`` matches any distro) or specific platforms
-    (``DEBIAN``) with full detection heuristics from extra-platforms.
+    Keys are {data}`PlatformKey` tuples pairing an extra-platforms
+    {class}`~extra_platforms.Platform` or {class}`~extra_platforms.Group`
+    with an {class}`~extra_platforms.Architecture`. This lets callers use
+    broad groups (`LINUX` matches any distro) or specific platforms
+    (`DEBIAN`) with full detection heuristics from extra-platforms.
 
-    .. hint::
-        Structural integrity checks (key types, checksum format, URL
-        placeholders, strip_components consistency) are enforced in
-        ``test_tool_spec_integrity``. If the registry becomes
-        user-configurable in the future, move these checks to
-        ``__post_init__``.
+    :::{hint}
+    Structural integrity checks (key types, checksum format, URL
+    placeholders, strip_components consistency) are enforced in
+    `test_tool_spec_integrity`. If the registry becomes
+    user-configurable in the future, move these checks to
+    `__post_init__`.
+    :::
     """
 
     urls: dict[PlatformKey, str]
@@ -225,20 +227,20 @@ class BinarySpec:
     archive_format: ArchiveFormat | dict[PlatformKey | Platform | Group, ArchiveFormat]
     """Archive format of the downloaded file.
 
-    A single :class:`ArchiveFormat` applies to every platform. A dict maps
+    A single {class}`ArchiveFormat` applies to every platform. A dict maps
     platform specifiers to formats, allowing mixed archives in one spec::
 
         archive_format={ALL_PLATFORMS: ArchiveFormat.TAR_GZ, WINDOWS: ArchiveFormat.ZIP}
 
-    Dict keys follow the same resolution as :meth:`resolve_platform`:
-    exact :data:`PlatformKey` tuple first, then bare
-    :class:`~extra_platforms.Platform` equality, then
-    :class:`~extra_platforms.Group` membership (smallest group wins).
+    Dict keys follow the same resolution as {meth}`resolve_platform`:
+    exact {data}`PlatformKey` tuple first, then bare
+    {class}`~extra_platforms.Platform` equality, then
+    {class}`~extra_platforms.Group` membership (smallest group wins).
     """
 
     archive_executable: str | None = None
-    """Path of the executable inside the archive. ``None`` defaults to the
-    tool name. For ``RAW`` format, used as the final filename.
+    """Path of the executable inside the archive. `None` defaults to the
+    tool name. For `RAW` format, used as the final filename.
     """
 
     strip_components: int = 0
@@ -247,10 +249,10 @@ class BinarySpec:
     def resolve_platform(self) -> PlatformKey:
         """Match the current environment against registered platform keys.
 
-        Uses ``current_platform()`` and ``current_architecture()`` from
+        Uses `current_platform()` and `current_architecture()` from
         extra-platforms, inheriting its full detection heuristics.
 
-        :return: The matching :data:`PlatformKey`.
+        :return: The matching {data}`PlatformKey`.
         :raises RuntimeError: If no key matches the current environment.
         """
         arch = current_architecture()
@@ -282,9 +284,9 @@ class BinarySpec:
     def get_archive_format(self, key: PlatformKey) -> ArchiveFormat:
         """Return the archive format for the given platform key.
 
-        When ``archive_format`` is a single :class:`ArchiveFormat`, returns
+        When `archive_format` is a single {class}`ArchiveFormat`, returns
         it directly. When it is a dict, resolves in order: exact
-        :data:`PlatformKey` tuple, bare Platform equality, then Group
+        {data}`PlatformKey` tuple, bare Platform equality, then Group
         membership (smallest group wins).
         """
         if isinstance(self.archive_format, ArchiveFormat):
@@ -323,7 +325,7 @@ class BinarySpec:
     def platform_cache_key(key: PlatformKey) -> str:
         """Derive a filesystem-safe cache path segment from a platform key.
 
-        :return: A string like ``linux-aarch64`` or ``macos-x86_64``.
+        :return: A string like `linux-aarch64` or `macos-x86_64`.
         """
         return f"{key[0].id}-{key[1].id}"
 
@@ -332,118 +334,120 @@ class BinarySpec:
 class ToolSpec:
     """Specification for an external tool managed by repomatic.
 
-    .. hint::
-        Structural integrity checks (name format, version format, flag
-        conventions, field consistency) are enforced in
-        ``test_tool_spec_integrity``. If the registry becomes user-configurable
-        in the future, move these checks to ``__post_init__``.
+    :::{hint}
+    Structural integrity checks (name format, version format, flag
+    conventions, field consistency) are enforced in
+    `test_tool_spec_integrity`. If the registry becomes user-configurable
+    in the future, move these checks to `__post_init__`.
+    :::
 
-    .. hint:: CLI parser quirks for ``config_after_subcommand``
+    :::{hint} CLI parser quirks for `config_after_subcommand`
 
-        Tools that use subcommands (``tool <subcmd> [flags] [files]``) may
-        require ``config_flag`` to appear after the subcommand name, depending
-        on the CLI parser framework:
+    Tools that use subcommands (`tool <subcmd> [flags] [files]`) may
+    require `config_flag` to appear after the subcommand name, depending
+    on the CLI parser framework:
 
-        - **clap** (Rust): global flags accepted before or after the
-          subcommand. No special handling needed. Used by: ruff, labelmaker.
-        - **cobra** (Go): root-level flags inherited by all subcommands,
-          accepted in both positions. No special handling needed.
-          Used by: gitleaks.
-        - **click** (Python): global flags accepted before or after the
-          subcommand. No special handling needed. Used by: bump-my-version.
-        - **bpaf** (Rust): ``#[bpaf(external)]`` fields are scoped inside
-          the subcommand variant, so ``tool <subcmd> --flag`` works but
-          ``tool --flag <subcmd>`` does not. Set
-          ``config_after_subcommand=True``. Used by: biome.
+    - **clap** (Rust): global flags accepted before or after the
+      subcommand. No special handling needed. Used by: ruff, labelmaker.
+    - **cobra** (Go): root-level flags inherited by all subcommands,
+      accepted in both positions. No special handling needed.
+      Used by: gitleaks.
+    - **click** (Python): global flags accepted before or after the
+      subcommand. No special handling needed. Used by: bump-my-version.
+    - **bpaf** (Rust): `#[bpaf(external)]` fields are scoped inside
+      the subcommand variant, so `tool <subcmd> --flag` works but
+      `tool --flag <subcmd>` does not. Set
+      `config_after_subcommand=True`. Used by: biome.
+    :::
     """
 
     name: str
-    """Tool identity: CLI name for ``repomatic run <name>``, default PyPI
+    """Tool identity: CLI name for `repomatic run <name>`, default PyPI
     package name, and default executable name.
     """
 
     display_name: str | None = None
     """Human-readable name with proper casing for documentation (like
-    ``'Biome'``, ``'Gitleaks'``). ``None`` defaults to ``name``.
+    `'Biome'`, `'Gitleaks'`). `None` defaults to `name`.
     """
 
     version: str = ""
-    """Pinned version (e.g., ``'1.38.0'``)."""
+    """Pinned version (e.g., `'1.38.0'`)."""
 
     package: str | None = None
-    """PyPI package name. ``None`` defaults to ``name``. Only set when the
+    """PyPI package name. `None` defaults to `name`. Only set when the
     package name differs from the tool name.
     """
 
     executable: str | None = None
-    """Executable name if different from the tool name. ``None`` defaults to
+    """Executable name if different from the tool name. `None` defaults to
     the registry key.
     """
 
     native_config_files: tuple[str, ...] = ()
     """Config filenames the tool auto-discovers, checked in order.
 
-    Paths relative to repo root (e.g., ``'zizmor.yaml'``,
-    ``'.github/actionlint.yaml'``). Empty for tools with no config file.
+    Paths relative to repo root (e.g., `'zizmor.yaml'`,
+    `'.github/actionlint.yaml'`). Empty for tools with no config file.
     """
 
     config_flag: str | None = None
-    """CLI flag to pass a config file path (e.g., ``'--config'``,
-    ``'--config-file'``). ``None`` if the tool only reads from fixed paths.
+    """CLI flag to pass a config file path (e.g., `'--config'`,
+    `'--config-file'`). `None` if the tool only reads from fixed paths.
     """
 
     native_format: NativeFormat = NativeFormat.YAML
-    """Target format for ``[tool.X]`` translation."""
+    """Target format for `[tool.X]` translation."""
 
     default_config: str | None = None
-    """Filename in ``repomatic/data/`` for bundled defaults, stored in
-    ``native_format``. ``None`` if no bundled default exists.
+    """Filename in `repomatic/data/` for bundled defaults, stored in
+    `native_format`. `None` if no bundled default exists.
     """
 
     reads_pyproject: bool = False
-    """Whether the tool natively reads ``[tool.X]`` from ``pyproject.toml``.
+    """Whether the tool natively reads `[tool.X]` from `pyproject.toml`.
 
-    When ``True`` and ``[tool.X]`` exists in ``pyproject.toml``, repomatic
+    When `True` and `[tool.X]` exists in `pyproject.toml`, repomatic
     skips Level 2 translation (the tool reads it directly). Resolution still
     falls through to Level 3 (bundled default) and Level 4 (bare) when no
     config is found.
     """
 
     default_flags: tuple[str, ...] = ()
-    """Flags always passed to the tool (e.g., ``('--strict',)``)."""
+    """Flags always passed to the tool (e.g., `('--strict',)`)."""
 
     ci_flags: tuple[str, ...] = ()
-    """Flags added only when ``$GITHUB_ACTIONS`` is set (e.g., output format)."""
+    """Flags added only when `$GITHUB_ACTIONS` is set (e.g., output format)."""
 
     with_packages: tuple[str, ...] = ()
     """Extra packages installed alongside the tool (e.g., mdformat plugins).
 
-    Passed as ``--with <pkg>`` to uvx.
+    Passed as `--with <pkg>` to uvx.
     """
 
     needs_venv: bool = False
-    """If ``True``, use ``uv run`` (project venv) instead of ``uvx`` (isolated).
+    """If `True`, use `uv run` (project venv) instead of `uvx` (isolated).
 
     Required when the tool imports project code (mypy, pytest).
     """
 
     computed_params: Callable[[Metadata], list[str]] | None = None
-    """Callable that receives a ``Metadata`` instance and returns extra CLI args
-    derived from project metadata (e.g., mypy's ``--python-version`` from
-    ``requires-python``). ``None`` if no computed params.
+    """Callable that receives a `Metadata` instance and returns extra CLI args
+    derived from project metadata (e.g., mypy's `--python-version` from
+    `requires-python`). `None` if no computed params.
     """
 
     config_after_subcommand: bool = False
-    """Insert ``config_flag`` after the first token of ``extra_args``.
+    """Insert `config_flag` after the first token of `extra_args`.
 
     Needed for tools whose CLI parser (e.g., bpaf) scopes global options inside
-    the subcommand, so ``tool subcommand --config-path X`` is valid but
-    ``tool --config-path X subcommand`` is not. When ``True``, ``config_args``
-    are spliced after the first element of ``extra_args`` (the subcommand name).
+    the subcommand, so `tool subcommand --config-path X` is valid but
+    `tool --config-path X subcommand` is not. When `True`, `config_args`
+    are spliced after the first element of `extra_args` (the subcommand name).
     """
 
     post_process: Callable[[Sequence[str]], None] | None = None
-    """Callback invoked on ``extra_args`` after the tool exits successfully.
+    """Callback invoked on `extra_args` after the tool exits successfully.
 
     Intended for temporary workarounds that fix known upstream formatting bugs
     in-place. Remove the callback once upstream ships the fix.
@@ -451,7 +455,7 @@ class ToolSpec:
 
     binary: BinarySpec | None = None
     """Platform-specific binary download spec. When set, the tool is downloaded
-    as a binary instead of installed via ``uvx`` or ``uv run``.
+    as a binary instead of installed via `uvx` or `uv run`.
     """
 
     source_url: str | None = None
@@ -477,13 +481,12 @@ _DIRECTIVE_YAML_OPTIONS_RE = re.compile(
 )
 """Match YAML-block directive options immediately after a MyST fence opening.
 
-.. note::
-    Workaround for `executablebooks/mdformat-myst#21
-    <https://github.com/executablebooks/mdformat-myst/issues/21>`_ where
-    ``mdformat-myst`` unconditionally converts ``:key: value`` directive
-    options to YAML blocks (``---`` / ``key: value`` / ``---``). Remove when
-    upstream merges `executablebooks/mdformat-myst#49
-    <https://github.com/executablebooks/mdformat-myst/pull/49>`_.
+:::{note}
+Workaround for [executablebooks/mdformat-myst#21](https://github.com/executablebooks/mdformat-myst/issues/21) where
+`mdformat-myst` unconditionally converts `:key: value` directive
+options to YAML blocks (`---` / `key: value` / `---`). Remove when
+upstream merges [executablebooks/mdformat-myst#49](https://github.com/executablebooks/mdformat-myst/pull/49).
+:::
 """
 
 
@@ -491,7 +494,7 @@ def _yaml_block_to_field_list(match: re.Match[str]) -> str:
     """Convert a single YAML-block directive option to field-list syntax."""
     directive_line = match.group(1)
     yaml_lines = match.group(2)
-    # Prepend ":" to each non-empty line: ``key: value`` → ``:key: value``.
+    # Prepend ":" to each non-empty line: `key: value` → `:key: value`.
     field_lines = re.sub(r"^(?=\S)", ":", yaml_lines, flags=re.MULTILINE)
     return directive_line + field_lines
 
@@ -1081,9 +1084,9 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
 def get_data_file_path(filename: str) -> Iterator[Path]:
     """Yield the filesystem path of a bundled data file.
 
-    Unlike ``init_project.get_data_content()`` which returns string content,
-    this yields a ``Path`` suitable for passing to external tools via
-    ``--config <path>``. The path is valid only within the context manager.
+    Unlike `init_project.get_data_content()` which returns string content,
+    this yields a `Path` suitable for passing to external tools via
+    `--config <path>`. The path is valid only within the context manager.
     """
     data_files = files("repomatic.data")
     with as_file(data_files.joinpath(filename)) as path:
@@ -1099,7 +1102,7 @@ def get_data_file_path(filename: str) -> Iterator[Path]:
 
 
 def load_pyproject_tool_section(tool_name: str) -> dict[str, Any]:
-    """Load ``[tool.<tool_name>]`` from ``pyproject.toml`` in the current directory.
+    """Load `[tool.<tool_name>]` from `pyproject.toml` in the current directory.
 
     :return: The tool's config dict, or empty dict if not found.
     """
@@ -1119,7 +1122,7 @@ def load_pyproject_tool_section(tool_name: str) -> dict[str, Any]:
 def _config_filename(spec: ToolSpec) -> str:
     """Derive the canonical config filename for the cache.
 
-    Uses the first ``native_config_files`` entry (without leading dots or path
+    Uses the first `native_config_files` entry (without leading dots or path
     components) if available, otherwise constructs from the native format
     extension.
     """
@@ -1134,8 +1137,8 @@ def _store_config_to_cache(
 ) -> tuple[list[str], Path | None]:
     """Write config content to the cache and return CLI args.
 
-    :return: ``([flag, cache_path], None)`` on success, or falls back to a temp
-        file returning ``([flag, tmp_path], tmp_path)`` if the cache is not
+    :return: `([flag, cache_path], None)` on success, or falls back to a temp
+        file returning `([flag, tmp_path], tmp_path)` if the cache is not
         writable.
     """
     from .cache import store_config
@@ -1171,10 +1174,10 @@ def _store_config_to_cache(
 def _write_cwd_config(spec: ToolSpec, content: str, level: int) -> Path:
     """Write config content to the first native config path for CWD-discovery.
 
-    For tools without a ``--config`` flag. The caller must clean up the file
+    For tools without a `--config` flag. The caller must clean up the file
     after the tool exits.
 
-    :param spec: Tool specification (must have ``native_config_files``).
+    :param spec: Tool specification (must have `native_config_files`).
     :param content: Config file content to write.
     :param level: Precedence level (2 or 3) for the log message.
     :return: Path to the written file.
@@ -1200,8 +1203,8 @@ def _deliver_config(
 ) -> tuple[list[str], Path | None]:
     """Deliver resolved config content via the appropriate mechanism.
 
-    Tools with ``config_flag`` get a cached file passed via CLI. Tools with
-    only ``native_config_files`` get a CWD file that must be cleaned up.
+    Tools with `config_flag` get a cached file passed via CLI. Tools with
+    only `native_config_files` get a CWD file that must be cleaned up.
 
     :param spec: Tool specification.
     :param content: Config file content.
@@ -1228,12 +1231,12 @@ def resolve_config(
     """Resolve config for a tool using the 4-level precedence chain.
 
     :param spec: Tool specification.
-    :param tool_config: Pre-loaded ``[tool.X]`` config dict. If ``None``,
-        reads from ``pyproject.toml`` in the current directory.
+    :param tool_config: Pre-loaded `[tool.X]` config dict. If `None`,
+        reads from `pyproject.toml` in the current directory.
     :return: Tuple of (extra CLI args for config, path to clean up).
-        The path is ``None`` when no cleanup is needed (cache-based configs
-        persist across runs). Non-``None`` paths are CWD files written for
-        tools that have no ``--config`` flag.
+        The path is `None` when no cleanup is needed (cache-based configs
+        persist across runs). Non-`None` paths are CWD files written for
+        tools that have no `--config` flag.
     """
     # Level 1: Native config file exists in the repo.
     for config_file in spec.native_config_files:
@@ -1293,11 +1296,11 @@ def _download_and_verify(
     Uses streaming download with chunked hash computation to handle large
     binaries without loading the entire file into memory. Shows a progress
     bar on interactive terminals when the server provides a
-    ``Content-Length`` header.
+    `Content-Length` header.
 
     :param url: URL to download.
     :param expected_sha256: Expected lowercase hex SHA-256 digest.
-        ``None`` skips verification (logs the computed digest for reference).
+        `None` skips verification (logs the computed digest for reference).
     :param dest_path: Where to write the downloaded file.
     :param label: Progress bar label. Defaults to the destination filename.
     :raises ValueError: If the checksum does not match.
@@ -1376,10 +1379,10 @@ def _extract_binary(
     :param archive_path: Path to the downloaded archive file.
     :param spec: Binary specification with format and executable info.
     :param dest_dir: Directory to extract into.
-    :param tool_name: Tool name, used as default for ``archive_executable``.
+    :param tool_name: Tool name, used as default for `archive_executable`.
     :param archive_format: Override the spec's default archive format.
-        Used by ``_install_binary`` to pass the per-platform format from
-        ``BinarySpec.get_archive_format``.
+        Used by `_install_binary` to pass the per-platform format from
+        `BinarySpec.get_archive_format`.
     :return: Path to the extracted executable.
     :raises FileNotFoundError: If the executable is not found in the archive.
     """
@@ -1471,7 +1474,7 @@ def _compute_file_sha256(path: Path) -> str:
 
 
 def _binary_sidecar_path(binary_path: Path) -> Path:
-    """Return the ``.sha256`` sidecar path for a cached binary.
+    """Return the `.sha256` sidecar path for a cached binary.
 
     The sidecar stores the SHA-256 digest of the extracted binary, computed
     after a verified archive download. This is distinct from the archive
@@ -1495,10 +1498,10 @@ def _write_binary_sidecar(binary_path: Path) -> None:
 
 
 def _verify_cached_binary(path: Path) -> bool:
-    """Verify a cached binary against its ``.sha256`` sidecar.
+    """Verify a cached binary against its `.sha256` sidecar.
 
     :param path: Path to the cached binary.
-    :return: ``True`` if the sidecar exists and the digest matches.
+    :return: `True` if the sidecar exists and the digest matches.
     """
     sidecar = _binary_sidecar_path(path)
     if not sidecar.is_file():
@@ -1521,14 +1524,14 @@ def _install_binary(
       against the downloaded archive. This defends against supply-chain
       tampering and is auditable against the upstream release page.
     - **Binary sidecar** (cache hit): after a verified download, extraction,
-      and cache store, a ``.sha256`` sidecar is written next to the cached
+      and cache store, a `.sha256` sidecar is written next to the cached
       binary. Subsequent cache hits verify the binary against this sidecar,
       defending against local cache tampering between runs.
 
-    :param spec: Tool specification with ``binary`` set.
+    :param spec: Tool specification with `binary` set.
     :param tmp_dir: Temporary directory for download and extraction.
-    :param skip_checksum: Skip SHA-256 verification when ``True``.
-    :param no_cache: Bypass the cache entirely when ``True``.
+    :param skip_checksum: Skip SHA-256 verification when `True`.
+    :param no_cache: Bypass the cache entirely when `True`.
     :return: Path to the ready-to-run executable.
     :raises RuntimeError: If no binary is available for the current platform.
     """
@@ -1613,12 +1616,12 @@ def binary_tool_context(
     """Download a binary tool and yield its executable path.
 
     For tools invoked indirectly by repomatic commands (e.g., labelmaker
-    called by ``sync-labels``) rather than via ``run_tool()``. Downloads
+    called by `sync-labels`) rather than via `run_tool()`. Downloads
     once; the binary stays valid for the context's duration. On a cache hit
     the yielded path points to the cache and the staging directory is empty.
 
-    :param name: Tool name (must be in ``TOOL_REGISTRY`` with ``binary`` set).
-    :param no_cache: Bypass the binary cache when ``True``.
+    :param name: Tool name (must be in `TOOL_REGISTRY` with `binary` set).
+    :param no_cache: Bypass the binary cache when `True`.
     :yields: Path to the ready-to-run executable.
     """
     spec = TOOL_REGISTRY[name]
@@ -1656,7 +1659,7 @@ def _splice_config_args(
 ) -> list[str]:
     """Combine config and extra args in the order the tool expects.
 
-    When ``spec.config_after_subcommand`` is ``True`` and ``extra_args``
+    When `spec.config_after_subcommand` is `True` and `extra_args`
     starts with a subcommand name, config args are inserted after it::
 
         [subcommand] + config_args + [remaining extra_args]
@@ -1678,12 +1681,12 @@ def run_tool(
 ) -> int:
     """Run an external tool with managed config resolution.
 
-    :param name: Tool name (must be in ``TOOL_REGISTRY``).
+    :param name: Tool name (must be in `TOOL_REGISTRY`).
     :param extra_args: Extra arguments passed through to the tool.
     :param version: Override the pinned version.
     :param checksum: Override the SHA-256 checksum for the current platform.
     :param skip_checksum: Skip SHA-256 verification entirely.
-    :param no_cache: Bypass the binary cache when ``True``.
+    :param no_cache: Bypass the binary cache when `True`.
     :return: The tool's exit code.
     """
     if name not in TOOL_REGISTRY:
@@ -1776,10 +1779,10 @@ def run_tool(
 def _detect_config_level(spec: ToolSpec) -> tuple[int, str]:
     """Detect which precedence level is active for a tool's config.
 
-    Performs the same 4-level walk as :func:`resolve_config` but only
+    Performs the same 4-level walk as {func}`resolve_config` but only
     detects the level without producing config content or CLI args.
 
-    :return: ``(level, description)`` where level is 1-4 and description
+    :return: `(level, description)` where level is 1-4 and description
         is a human-readable source label.
     """
     for config_file in spec.native_config_files:
@@ -1799,7 +1802,7 @@ def _detect_config_level(spec: ToolSpec) -> tuple[int, str]:
 def resolve_config_source(spec: ToolSpec) -> str:
     """Return a human-readable description of the active config source.
 
-    Used by ``repomatic run --list`` to show which precedence level is active
+    Used by `repomatic run --list` to show which precedence level is active
     for each tool in the current repo.
     """
     return _detect_config_level(spec)[1]
@@ -1808,15 +1811,15 @@ def resolve_config_source(spec: ToolSpec) -> str:
 def find_unmodified_configs() -> list[tuple[str, str]]:
     """Find native config files identical to their bundled defaults.
 
-    Iterates over every tool in :data:`TOOL_REGISTRY` that has a
-    ``default_config``.  For each, checks whether any of its
-    ``native_config_files`` exists on disk and is content-identical
+    Iterates over every tool in {data}`TOOL_REGISTRY` that has a
+    `default_config`.  For each, checks whether any of its
+    `native_config_files` exists on disk and is content-identical
     to the bundled default after trailing-whitespace normalization.
 
-    The normalization (``rstrip() + "\\n"``) matches the convention
-    used by ``_init_config_files`` when writing files during ``init``.
+    The normalization (`rstrip() + "\\n"`) matches the convention
+    used by `_init_config_files` when writing files during `init`.
 
-    :return: List of ``(tool_name, relative_path)`` tuples for each
+    :return: List of `(tool_name, relative_path)` tuples for each
         unmodified file found.
     """
     unmodified: list[tuple[str, str]] = []

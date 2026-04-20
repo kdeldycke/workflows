@@ -21,10 +21,10 @@ Ruff configuration, workflow templates, Claude Code skill definitions, and
 awesome-template boilerplate files.
 
 Configuration files (labels, labellers, bumpversion, ruff) are stored directly
-in this directory. Workflow templates are symlinked from ``.github/workflows/``
-and skill definitions from ``.claude/skills/`` to maintain a single source of
-truth while still being bundled in the package. The ``awesome_template/``
-sub-package contains boilerplate files for downstream ``awesome-*`` repositories.
+in this directory. Workflow templates are symlinked from `.github/workflows/`
+and skill definitions from `.claude/skills/` to maintain a single source of
+truth while still being bundled in the package. The `awesome_template/`
+sub-package contains boilerplate files for downstream `awesome-*` repositories.
 
-All files are accessible at runtime via ``importlib.resources``.
+All files are accessible at runtime via `importlib.resources`.
 """

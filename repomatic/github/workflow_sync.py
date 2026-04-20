@@ -16,18 +16,19 @@
 
 """Generation, sync, and lint for downstream workflows.
 
-Downstream repositories consuming reusable workflows from ``kdeldycke/repomatic``
+Downstream repositories consuming reusable workflows from `kdeldycke/repomatic`
 manually write caller workflows that often miss triggers like
-``workflow_dispatch``. This module provides tools to generate, synchronize, and
+`workflow_dispatch`. This module provides tools to generate, synchronize, and
 lint those callers by parsing the canonical workflow definitions.
 
-See :class:`WorkflowFormat` for available output formats and their behavior.
+See {class}`WorkflowFormat` for available output formats and their behavior.
 
-.. caution::
-    PyYAML destroys formatting and comments on round-trip. Until we find a
-    layout-preserving YAML parsing and rendering solution, we use raw text
-    extraction to manipulate workflow files while preserving formatting and
-    comments.
+:::{caution}
+PyYAML destroys formatting and comments on round-trip. Until we find a
+layout-preserving YAML parsing and rendering solution, we use raw text
+extraction to manipulate workflow files while preserving formatting and
+comments.
+:::
 """
 
 from __future__ import annotations
@@ -74,10 +75,10 @@ class WorkflowFormat(StrEnum):
     """
 
     HEADER_ONLY = "header-only"
-    """Sync only the header (``name``, ``on``, ``concurrency``) from upstream.
+    """Sync only the header (`name`, `on`, `concurrency`) from upstream.
 
-    Replaces everything before the ``jobs:`` line in an existing downstream file
-    with the canonical header. The downstream ``jobs:`` section is preserved.
+    Replaces everything before the `jobs:` line in an existing downstream file
+    with the canonical header. The downstream `jobs:` section is preserved.
     Requires the target file to already exist; does not create new files.
     """
 
@@ -92,9 +93,9 @@ class WorkflowFormat(StrEnum):
     """Generate a minimal caller that delegates to the reusable upstream workflow.
 
     Creates or overwrites the target with a lightweight workflow containing only
-    ``name``, ``on`` triggers, and a ``jobs:`` section that calls the upstream
-    workflow via ``workflow_call``. Only works for reusable workflows (those with
-    a ``workflow_call`` trigger).
+    `name`, `on` triggers, and a `jobs:` section that calls the upstream
+    workflow via `workflow_call`. Only works for reusable workflows (those with
+    a `workflow_call` trigger).
 
     When the target file already exists and contains extra jobs beyond the
     managed caller job, those jobs are preserved and appended after the
@@ -105,9 +106,9 @@ class WorkflowFormat(StrEnum):
 DEFAULT_VERSION: Final[str] = "main" if ".dev" in __version__ else f"v{__version__}"
 """Default version reference for upstream workflows.
 
-For release builds (e.g., ``repomatic==5.11.0``), this resolves to the
-corresponding tag (``v5.11.0``). For development builds (``5.11.1.dev0``),
-it falls back to ``main`` since the tag does not exist yet.
+For release builds (e.g., `repomatic==5.11.0`), this resolves to the
+corresponding tag (`v5.11.0`). For development builds (`5.11.1.dev0`),
+it falls back to `main` since the tag does not exist yet.
 """
 
 
@@ -115,12 +116,12 @@ def _extract_raw_section(content: str, section_name: str) -> str | None:
     """Extract a top-level YAML section as raw text.
 
     Finds a line matching ``{section_name}:`` at column 0 and returns it along
-    with all indented continuation lines (including comments). Returns ``None``
+    with all indented continuation lines (including comments). Returns `None`
     if the section is not found.
 
     :param content: Full workflow file content.
-    :param section_name: Top-level key to extract (e.g., ``"concurrency"``).
-    :return: Raw text of the section, or ``None`` if absent.
+    :param section_name: Top-level key to extract (e.g., `"concurrency"`).
+    :return: Raw text of the section, or `None` if absent.
     """
     pattern = re.compile(rf"^{re.escape(section_name)}:", re.MULTILINE)
     match = pattern.search(content)
@@ -143,11 +144,11 @@ def _extract_raw_section(content: str, section_name: str) -> str | None:
 
 
 def _extract_raw_header(content: str) -> str:
-    """Extract everything before the ``jobs:`` line as raw text.
+    """Extract everything before the `jobs:` line as raw text.
 
     :param content: Full workflow file content.
-    :return: Raw header text (up to but not including ``jobs:``).
-    :raises ValueError: If no ``jobs:`` line is found.
+    :return: Raw header text (up to but not including `jobs:`).
+    :raises ValueError: If no `jobs:` line is found.
     """
     match = re.search(r"^jobs:", content, re.MULTILINE)
     if match is None:
@@ -161,25 +162,25 @@ class WorkflowTriggerInfo:
     """Parsed trigger information from a canonical workflow."""
 
     name: str
-    """Workflow display name from the ``name:`` field."""
+    """Workflow display name from the `name:` field."""
 
     filename: str
-    """Workflow filename (e.g., ``release.yaml``)."""
+    """Workflow filename (e.g., `release.yaml`)."""
 
     non_call_triggers: dict[str, Any]
-    """All triggers except ``workflow_call``, preserving their configuration."""
+    """All triggers except `workflow_call`, preserving their configuration."""
 
     call_inputs: dict[str, Any]
-    """Inputs defined under ``workflow_call.inputs``."""
+    """Inputs defined under `workflow_call.inputs`."""
 
     call_secrets: dict[str, Any]
-    """Secrets defined under ``workflow_call.secrets``."""
+    """Secrets defined under `workflow_call.secrets`."""
 
     has_workflow_call: bool
-    """Whether the workflow defines a ``workflow_call`` trigger."""
+    """Whether the workflow defines a `workflow_call` trigger."""
 
     concurrency: dict[str, Any] | None
-    """Parsed concurrency configuration, or ``None`` if absent."""
+    """Parsed concurrency configuration, or `None` if absent."""
 
     raw_concurrency: str | None
     """Raw text of the concurrency block, preserving formatting and comments."""
@@ -202,10 +203,10 @@ class LintResult:
 def extract_trigger_info(filename: str) -> WorkflowTriggerInfo:
     """Extract trigger information from a bundled canonical workflow.
 
-    Parses the workflow YAML and separates ``workflow_call`` configuration from
+    Parses the workflow YAML and separates `workflow_call` configuration from
     other triggers.
 
-    :param filename: Workflow filename (e.g., ``release.yaml``).
+    :param filename: Workflow filename (e.g., `release.yaml`).
     :return: Parsed trigger information.
     :raises FileNotFoundError: If the workflow file is not bundled.
     """
@@ -214,8 +215,8 @@ def extract_trigger_info(filename: str) -> WorkflowTriggerInfo:
 
     name = data.get("name", filename)
 
-    # Handle YAML parsing of bare ``on`` keyword: PyYAML reads bare ``on`` as
-    # boolean ``True``, while quoted ``"on"`` is a string key.
+    # Handle YAML parsing of bare `on` keyword: PyYAML reads bare `on` as
+    # boolean `True`, while quoted `"on"` is a string key.
     triggers: dict[str, Any] = {}
     if True in data:
         triggers = data[True] or {}
@@ -342,7 +343,7 @@ def _render_triggers(triggers: dict[str, Any]) -> str:
     """Render the complete trigger block for a thin caller workflow.
 
     :param triggers: Dictionary of trigger names to their configurations.
-    :return: YAML text for the ``"on":`` block.
+    :return: YAML text for the `"on":` block.
     """
     lines = ['"on":']
     for trigger_name, trigger_config in triggers.items():
@@ -362,14 +363,14 @@ def _adapt_trigger_paths(
     trigger_config: dict[str, Any],
     source_paths: list[str] | None,
 ) -> dict[str, Any]:
-    """Adapt ``paths`` and ``paths-ignore`` in a trigger for downstream use.
+    """Adapt `paths` and `paths-ignore` in a trigger for downstream use.
 
     When *source_paths* is provided, replaces upstream source paths with
-    downstream equivalents via :func:`_substitute_source_paths`. When
-    ``None``, strips ``paths`` and ``paths-ignore`` entirely.
+    downstream equivalents via {func}`_substitute_source_paths`. When
+    `None`, strips `paths` and `paths-ignore` entirely.
 
     :param trigger_config: Trigger configuration dict (e.g., push config).
-    :param source_paths: Downstream source directory names, or ``None``.
+    :param source_paths: Downstream source directory names, or `None`.
     :return: New trigger config dict with adapted path filters.
     """
     if source_paths is not None:
@@ -390,13 +391,13 @@ def _substitute_source_paths(
 ) -> list[str]:
     """Replace upstream source directory paths with downstream source paths.
 
-    For each path in the canonical workflow's ``paths:`` list:
+    For each path in the canonical workflow's `paths:` list:
 
-    - :data:`UPSTREAM_SOURCE_GLOB` (``repomatic/**``) is replaced with
+    - {data}`UPSTREAM_SOURCE_GLOB` (`repomatic/**`) is replaced with
       ``{source}/**`` for each entry in *source_paths*.
-    - Other paths starting with :data:`UPSTREAM_SOURCE_PREFIX` are dropped
-      (upstream-specific files like ``repomatic/data/renovate.json5``).
-    - All other paths (universal paths like ``pyproject.toml``, ``tests/**``)
+    - Other paths starting with {data}`UPSTREAM_SOURCE_PREFIX` are dropped
+      (upstream-specific files like `repomatic/data/renovate.json5`).
+    - All other paths (universal paths like `pyproject.toml`, `tests/**`)
       are kept as-is.
 
     :param paths: Original paths list from a canonical workflow trigger.
@@ -424,29 +425,29 @@ def generate_thin_caller(
 ) -> str:
     """Generate a thin caller workflow for a reusable canonical workflow.
 
-    The generated caller includes all non-``workflow_call`` triggers from the
-    canonical workflow, always ensures ``workflow_dispatch`` is present, and
-    delegates to the upstream workflow via ``uses:``.
+    The generated caller includes all non-`workflow_call` triggers from the
+    canonical workflow, always ensures `workflow_dispatch` is present, and
+    delegates to the upstream workflow via `uses:`.
 
-    When *source_paths* is provided, canonical ``paths:`` filters are adapted
+    When *source_paths* is provided, canonical `paths:` filters are adapted
     for the downstream project by replacing the upstream source directory glob
-    with downstream equivalents. When ``None``, paths are stripped entirely
+    with downstream equivalents. When `None`, paths are stripped entirely
     (conservative but correct — triggers on any file change).
 
-    When *commit_sha* is provided, the ``uses:`` reference is SHA-pinned
-    (``@sha # version``) matching Renovate's pin format. This eliminates
+    When *commit_sha* is provided, the `uses:` reference is SHA-pinned
+    (`@sha # version`) matching Renovate's pin format. This eliminates
     Renovate's initial "pin dependencies" PR on downstream repos.
 
-    :param filename: Canonical workflow filename (e.g., ``release.yaml``).
-    :param repo: Upstream repository (default: ``kdeldycke/repomatic``).
-    :param version: Version reference (default: ``main``).
+    :param filename: Canonical workflow filename (e.g., `release.yaml`).
+    :param repo: Upstream repository (default: `kdeldycke/repomatic`).
+    :param version: Version reference (default: `main`).
     :param source_paths: Downstream source directory names (e.g.,
-        ``["extra_platforms"]``). ``None`` strips all path filters.
+        `["extra_platforms"]`). `None` strips all path filters.
     :param commit_sha: Full 40-character commit SHA for the version tag.
-        When provided, produces ``@sha # version``. When ``None``, produces
-        ``@version``.
+        When provided, produces `@sha # version`. When `None`, produces
+        `@version`.
     :return: Complete YAML content for the thin caller workflow.
-    :raises ValueError: If the workflow does not support ``workflow_call``.
+    :raises ValueError: If the workflow does not support `workflow_call`.
     """
     info = extract_trigger_info(filename)
 
@@ -468,7 +469,7 @@ def generate_thin_caller(
 
     # Build the YAML content programmatically.
     # Concurrency is intentionally omitted: the reusable workflow's own
-    # concurrency block applies when called via ``workflow_call``, so
+    # concurrency block applies when called via `workflow_call`, so
     # duplicating it in the thin caller would be redundant.
     if commit_sha:
         uses_ref = f"{commit_sha} # {version}"
@@ -486,7 +487,7 @@ def generate_thin_caller(
     ]
 
     # Pass only the specific secrets the canonical workflow declares, so
-    # downstream callers don't trigger zizmor's ``secrets-inherit`` finding.
+    # downstream callers don't trigger zizmor's `secrets-inherit` finding.
     if info.call_secrets:
         lines.append("    secrets:")
         lines.extend(
@@ -506,11 +507,11 @@ def identify_canonical_workflow(
 ) -> str | None:
     """Identify if a workflow is a thin caller for a canonical upstream workflow.
 
-    Scans jobs for a ``uses:`` reference matching the upstream repository pattern.
+    Scans jobs for a `uses:` reference matching the upstream repository pattern.
 
     :param workflow_path: Path to the workflow file.
     :param repo: Upstream repository to match against.
-    :return: Canonical workflow filename, or ``None`` if not a thin caller.
+    :return: Canonical workflow filename, or `None` if not a thin caller.
     """
     try:
         content = workflow_path.read_text(encoding="UTF-8")
@@ -545,7 +546,7 @@ def extract_extra_jobs(
     """Extract extra downstream jobs from an existing thin-caller workflow.
 
     Parses the file with YAML to identify the managed thin-caller job (the one
-    whose ``uses:`` references the upstream repository), then returns all raw
+    whose `uses:` references the upstream repository), then returns all raw
     text after that job: blank lines, comments, and additional job definitions.
 
     Uses raw text slicing (not YAML round-tripping) to preserve formatting and
@@ -618,7 +619,7 @@ def extract_extra_jobs(
 
 
 def check_has_workflow_dispatch(workflow_path: Path) -> LintResult:
-    """Check that a workflow has a ``workflow_dispatch`` trigger.
+    """Check that a workflow has a `workflow_dispatch` trigger.
 
     :param workflow_path: Path to the workflow file.
     :return: Lint result.
@@ -657,7 +658,7 @@ def check_version_pinned(
     workflow_path: Path,
     repo: str = DEFAULT_REPO,
 ) -> LintResult:
-    """Check that a thin caller pins to a version tag, not ``@main``.
+    """Check that a thin caller pins to a version tag, not `@main`.
 
     :param workflow_path: Path to the workflow file.
     :param repo: Upstream repository to match against.
@@ -693,7 +694,7 @@ def check_triggers_match(
 ) -> LintResult:
     """Check that a thin caller's triggers match the canonical workflow.
 
-    Verifies that the caller includes all non-``workflow_call`` triggers
+    Verifies that the caller includes all non-`workflow_call` triggers
     defined in the canonical workflow.
 
     :param workflow_path: Path to the caller workflow file.
@@ -742,8 +743,8 @@ def check_secrets_passed(
     """Check that a thin caller passes all required secrets explicitly.
 
     Verifies that every secret declared by the canonical workflow is forwarded
-    by the caller, either via explicit ``secrets:`` mapping or via
-    ``secrets: inherit``.
+    by the caller, either via explicit `secrets:` mapping or via
+    `secrets: inherit`.
 
     :param workflow_path: Path to the caller workflow file.
     :param canonical_filename: Filename of the canonical upstream workflow.
@@ -782,7 +783,7 @@ def check_secrets_passed(
         if not isinstance(job_config, dict):
             continue
         job_secrets = job_config.get("secrets")
-        # ``secrets: inherit`` forwards everything.
+        # `secrets: inherit` forwards everything.
         if job_secrets == "inherit":
             return LintResult(
                 message=f"{workflow_path.name}: secrets: inherit is set.",
@@ -887,19 +888,19 @@ def generate_workflow_header(
 ) -> str:
     """Return the raw header of a canonical workflow.
 
-    The header is everything before the ``jobs:`` line: ``name``, ``on``
-    triggers, ``concurrency``, and any comments.
+    The header is everything before the `jobs:` line: `name`, `on`
+    triggers, `concurrency`, and any comments.
 
     When *source_paths* is provided, upstream source directory references in
-    ``paths:`` filters are replaced with downstream equivalents via text
-    substitution. When ``None``, the header is returned unmodified.
+    `paths:` filters are replaced with downstream equivalents via text
+    substitution. When `None`, the header is returned unmodified.
 
-    :param filename: Canonical workflow filename (e.g., ``tests.yaml``).
+    :param filename: Canonical workflow filename (e.g., `tests.yaml`).
     :param source_paths: Downstream source directory names (e.g.,
-        ``["extra_platforms"]``). ``None`` leaves paths unmodified.
+        `["extra_platforms"]`). `None` leaves paths unmodified.
     :return: Raw header text.
     :raises FileNotFoundError: If the workflow file is not bundled.
-    :raises ValueError: If no ``jobs:`` line is found.
+    :raises ValueError: If no `jobs:` line is found.
     """
     content = get_data_content(filename)
     header = _extract_raw_header(content)
@@ -927,12 +928,12 @@ def run_workflow_lint(
 ) -> int:
     """Lint all workflow files in a directory.
 
-    Runs ``check_has_workflow_dispatch`` on all YAML files, and caller-specific
+    Runs `check_has_workflow_dispatch` on all YAML files, and caller-specific
     checks on files identified as thin callers.
 
     :param workflow_dir: Directory containing workflow YAML files.
     :param repo: Upstream repository to match against.
-    :param fatal: If ``True``, return exit code 1 when issues are found.
+    :param fatal: If `True`, return exit code 1 when issues are found.
     :return: Exit code (0 for clean, 1 if fatal and issues found).
     """
     if not workflow_dir.is_dir():
@@ -1006,18 +1007,18 @@ def generate_workflows(
 ) -> int:
     """Generate workflow files in the specified format.
 
-    Shared logic for the ``create`` and ``sync`` subcommands.
+    Shared logic for the `create` and `sync` subcommands.
 
     :param names: Workflow filenames to generate. Empty tuple means all.
-    :param output_format: See :class:`WorkflowFormat` for available formats.
+    :param output_format: See {class}`WorkflowFormat` for available formats.
     :param version: Version reference for thin callers.
     :param repo: Upstream repository.
     :param output_dir: Directory to write files to.
     :param overwrite: Whether to overwrite existing files.
-    :param source_paths: Downstream source directory names for ``paths:``
-        filters. ``None`` strips all path filters (conservative default).
+    :param source_paths: Downstream source directory names for `paths:`
+        filters. `None` strips all path filters (conservative default).
     :param commit_sha: Full 40-character commit SHA for SHA-pinned
-        ``uses:`` references. Passed through to :func:`generate_thin_caller`.
+        `uses:` references. Passed through to {func}`generate_thin_caller`.
     :return: Exit code (0 for success, 1 for errors).
     """
     # Default to all reusable workflows for thin-caller, non-reusable for

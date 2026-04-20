@@ -16,7 +16,7 @@
 
 """GitHub integration package.
 
-Submodules provide GitHub Actions utilities (``actions``), a ``gh`` CLI
-wrapper (``gh``), and helpers for issues, matrices, PR bodies, tokens,
+Submodules provide GitHub Actions utilities (`actions`), a `gh` CLI
+wrapper (`gh`), and helpers for issues, matrices, PR bodies, tokens,
 unsubscribing, and workflow syncing.
 """

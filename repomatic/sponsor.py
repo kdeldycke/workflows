@@ -16,13 +16,13 @@
 
 """Check if a GitHub user is a sponsor of another user or organization.
 
-Uses the GitHub GraphQL API via the ``gh`` CLI to query sponsorship data.
+Uses the GitHub GraphQL API via the `gh` CLI to query sponsorship data.
 Supports both user and organization owners, with pagination for accounts
 that have more than 100 sponsors.
 
 When run in GitHub Actions, defaults are read from
-:class:`~repomatic.metadata.Metadata` for owner and repository, and from
-``GITHUB_EVENT_PATH`` for the author and issue/PR number.
+{class}`~repomatic.metadata.Metadata` for owner and repository, and from
+`GITHUB_EVENT_PATH` for the author and issue/PR number.
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 def get_default_owner() -> str | None:
     """Get the repository owner from CI context.
 
-    Delegates to :attr:`Metadata.repo_owner
+    Delegates to {attr}`Metadata.repo_owner
     <repomatic.metadata.Metadata.repo_owner>`.
     """
     owner = Metadata().repo_owner
@@ -54,7 +54,7 @@ def get_default_owner() -> str | None:
 def get_default_repo() -> str | None:
     """Get the repository slug from CI context.
 
-    Delegates to :attr:`Metadata.repo_slug
+    Delegates to {attr}`Metadata.repo_slug
     <repomatic.metadata.Metadata.repo_slug>`.
     """
     slug = Metadata().repo_slug
@@ -144,7 +144,7 @@ def _iter_sponsors(owner: str, query: str, data_path: str) -> Iterator[str]:
 
     :param owner: The owner (user or org) to query.
     :param query: The GraphQL query to use.
-    :param data_path: Path to the data in the response (e.g., ``"user"``).
+    :param data_path: Path to the data in the response (e.g., `"user"`).
     :yields: Login names of sponsors.
     """
     cursor = None

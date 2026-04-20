@@ -21,7 +21,7 @@ GitHub issue. Sphinx linkcheck parsing detects broken auto-generated links
 (intersphinx, autodoc, type annotations) that Lychee cannot see because they
 only exist in the rendered HTML output.
 
-Issue lifecycle management is delegated to :mod:`~repomatic.issue`.
+Issue lifecycle management is delegated to {mod}`~repomatic.issue`.
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ LYCHEE_DEFAULT_BODY = Path("./lychee/out.md")
 """Default output path used by the lychee-action GitHub Action."""
 
 SPHINX_DEFAULT_OUTPUT = Path("./docs/linkcheck/output.json")
-"""Default Sphinx linkcheck output path produced by the ``docs.yaml`` workflow."""
+"""Default Sphinx linkcheck output path produced by the `docs.yaml` workflow."""
 
 
 # ---------------------------------------------------------------------------
@@ -62,7 +62,7 @@ SPHINX_DEFAULT_OUTPUT = Path("./docs/linkcheck/output.json")
 
 @dataclass(frozen=True)
 class LinkcheckResult:
-    """A single result entry from Sphinx linkcheck ``output.json``.
+    """A single result entry from Sphinx linkcheck `output.json`.
 
     Each line in the JSON-lines file corresponds to one checked URI.
     """
@@ -76,12 +76,12 @@ class LinkcheckResult:
 
 
 def parse_output_json(output_json: Path) -> list[LinkcheckResult]:
-    """Parse the Sphinx linkcheck ``output.json`` file.
+    """Parse the Sphinx linkcheck `output.json` file.
 
     The file uses JSON-lines format: one JSON object per line.
     Blank lines are skipped.
 
-    :param output_json: Path to the ``output.json`` file.
+    :param output_json: Path to the `output.json` file.
     :return: List of parsed linkcheck results.
     """
     results: list[LinkcheckResult] = []
@@ -109,7 +109,7 @@ def filter_broken(results: Iterable[LinkcheckResult]) -> list[LinkcheckResult]:
     """Filter results to only broken and timed-out links.
 
     :param results: Iterable of linkcheck results.
-    :return: List of results with ``status`` of ``"broken"`` or ``"timeout"``.
+    :return: List of results with `status` of `"broken"` or `"timeout"`.
     """
     broken = [r for r in results if r.status in ("broken", "timeout")]
     logging.info(f"Found {len(broken)} broken/timed-out links")
@@ -179,7 +179,7 @@ def get_label(repo_name: str) -> str:
     """Return the appropriate label based on repository name.
 
     :param repo_name: The repository name.
-    :return: ``"🩹 fix link"`` for ``awesome-*`` repos, else ``"📚 documentation"``.
+    :return: `"🩹 fix link"` for `awesome-*` repos, else `"📚 documentation"`.
     """
     if repo_name.startswith("awesome-"):
         return "🩹 fix link"
@@ -206,33 +206,33 @@ def manage_combined_broken_links_issue(
     show a "No broken links found." message.
 
     When running in GitHub Actions, most parameters are auto-detected from
-    :class:`~repomatic.metadata.Metadata` and well-known file paths:
+    {class}`~repomatic.metadata.Metadata` and well-known file paths:
 
-    - ``repo_name`` defaults to :attr:`Metadata.repo_name
+    - `repo_name` defaults to {attr}`Metadata.repo_name
       <repomatic.metadata.Metadata.repo_name>`.
-    - ``lychee_body_file`` defaults to ``./lychee/out.md`` when
-      ``lychee_exit_code`` is provided and the file exists.
-    - ``sphinx_output_json`` defaults to ``./docs/linkcheck/output.json``
+    - `lychee_body_file` defaults to `./lychee/out.md` when
+      `lychee_exit_code` is provided and the file exists.
+    - `sphinx_output_json` defaults to `./docs/linkcheck/output.json`
       when the file exists.
-    - ``sphinx_source_url`` is composed from :attr:`Metadata.repo_url
-      <repomatic.metadata.Metadata.repo_url>` and :attr:`Metadata.sha
+    - `sphinx_source_url` is composed from {attr}`Metadata.repo_url
+      <repomatic.metadata.Metadata.repo_url>` and {attr}`Metadata.sha
       <repomatic.metadata.Metadata.sha>`.
 
     :param repo_name: Repository name (for label selection). Defaults to
-        :attr:`Metadata.repo_name <repomatic.metadata.Metadata.repo_name>`.
+        {attr}`Metadata.repo_name <repomatic.metadata.Metadata.repo_name>`.
     :param lychee_exit_code: Exit code from lychee (0=no broken links,
-        2=broken links found). ``None`` if lychee was not run.
+        2=broken links found). `None` if lychee was not run.
     :param lychee_body_file: Path to the lychee output file. Defaults to
-        ``./lychee/out.md`` when ``lychee_exit_code`` is provided and the
+        `./lychee/out.md` when `lychee_exit_code` is provided and the
         file exists.
-    :param sphinx_output_json: Path to Sphinx linkcheck ``output.json``.
-        Defaults to ``./docs/linkcheck/output.json`` when the file exists.
+    :param sphinx_output_json: Path to Sphinx linkcheck `output.json`.
+        Defaults to `./docs/linkcheck/output.json` when the file exists.
     :param sphinx_source_url: Base URL for linking filenames and line numbers
-        in the Sphinx report. Auto-composed from :attr:`Metadata.repo_url
-        <repomatic.metadata.Metadata.repo_url>` and :attr:`Metadata.sha
+        in the Sphinx report. Auto-composed from {attr}`Metadata.repo_url
+        <repomatic.metadata.Metadata.repo_url>` and {attr}`Metadata.sha
         <repomatic.metadata.Metadata.sha>`.
-    :raises ValueError: If lychee exit code is not 0, 2, or ``None``.
-    :raises ValueError: If ``repo_name`` cannot be determined.
+    :raises ValueError: If lychee exit code is not 0, 2, or `None`.
+    :raises ValueError: If `repo_name` cannot be determined.
     """
     # Shared Metadata instance for all CI context lookups.
     md = Metadata()

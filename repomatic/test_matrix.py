@@ -18,7 +18,7 @@
 
 Defines the GitHub-hosted runner images and Python versions used to build
 test matrices. Separating these from
-:mod:`repomatic.metadata` makes the CI matrix configuration self-contained
+{mod}`repomatic.metadata` makes the CI matrix configuration self-contained
 and easier to update when runner images or Python releases change.
 """
 
@@ -37,7 +37,7 @@ TEST_RUNNERS_FULL = (
 """GitHub-hosted runners for the full test matrix.
 
 Two variants per platform (one per architecture) to keep the matrix small.
-See `available images <https://github.com/actions/runner-images#available-images>`_.
+See [available images](https://github.com/actions/runner-images#available-images).
 """
 
 TEST_RUNNERS_PR = (
@@ -73,13 +73,12 @@ Skips experimental versions (free-threaded, development) to reduce CI load.
 UNSTABLE_PYTHON_VERSIONS: Final[frozenset[str]] = frozenset({"3.15"})
 """Python versions still in development.
 
-Jobs using these versions run with ``continue-on-error`` in CI.
+Jobs using these versions run with `continue-on-error` in CI.
 """
 
 
 MYPY_VERSION_MIN: Final = (3, 8)
-"""Earliest version supported by Mypy's ``--python-version 3.x`` parameter.
+"""Earliest version supported by Mypy's `--python-version 3.x` parameter.
 
-`Sourced from Mypy original implementation
-<https://github.com/python/mypy/blob/master/mypy/defaults.py>`_.
+[Sourced from Mypy original implementation](https://github.com/python/mypy/blob/master/mypy/defaults.py).
 """

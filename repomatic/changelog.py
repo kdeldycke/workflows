@@ -19,57 +19,54 @@
 This module is the single source of truth for all changelog management
 decisions and operations. It handles two phases of the release cycle:
 
-**Post-release (unfreeze)** — :meth:`Changelog.update`:
+**Post-release (unfreeze)** — {meth}`Changelog.update`:
 
-Decomposes the latest release section via :meth:`Changelog.decompose_version`,
-transforms the elements into an unreleased entry (date → ``unreleased``,
-comparison URL → ``...main``, body → development warning), renders via the
-``release-notes`` template, and prepends the result to the changelog.
+Decomposes the latest release section via {meth}`Changelog.decompose_version`,
+transforms the elements into an unreleased entry (date → `unreleased`,
+comparison URL → `...main`, body → development warning), renders via the
+`release-notes` template, and prepends the result to the changelog.
 
-**Release preparation (freeze)** — :meth:`Changelog.freeze`:
+**Release preparation (freeze)** — {meth}`Changelog.freeze`:
 
 Decomposes the current unreleased section, sets the release date, freezes
-the comparison URL to ``...vX.Y.Z``, clears the development warning,
-renders via the ``release-notes`` template, and replaces the section
+the comparison URL to `...vX.Y.Z`, clears the development warning,
+renders via the `release-notes` template, and replaces the section
 in place.
 
 Both operations follow the same decompose → modify → render → replace
-pattern, with the ``release-notes.md`` template as the single source of
+pattern, with the `release-notes.md` template as the single source of
 truth for section layout. Both are idempotent: re-running them produces
 the same result. This is critical for CI workflows that may be retried.
 
-.. note::
-    This is a custom implementation. After evaluating all major
-    alternatives — `towncrier <https://github.com/twisted/towncrier>`_,
-    `commitizen <https://github.com/commitizen-tools/commitizen>`_,
-    `python-semantic-release <https://github.com/python-semantic-release/python-semantic-release>`_,
-    `generate-changelog <https://github.com/lob/generate-changelog>`_,
-    `release-please <https://github.com/googleapis/release-please>`_,
-    `scriv <https://github.com/nedbat/scriv>`_, and
-    `git-changelog <https://github.com/pawamoy/git-changelog>`_
-    (see `issue #94
-    <https://github.com/kdeldycke/repomatic/issues/94>`_) — none
-    were found to cover even half of the requirements.
+:::{note}
+This is a custom implementation. After evaluating all major
+alternatives — [towncrier](https://github.com/twisted/towncrier),
+[commitizen](https://github.com/commitizen-tools/commitizen),
+[python-semantic-release](https://github.com/python-semantic-release/python-semantic-release),
+[generate-changelog](https://github.com/lob/generate-changelog),
+[release-please](https://github.com/googleapis/release-please),
+[scriv](https://github.com/nedbat/scriv), and
+[git-changelog](https://github.com/pawamoy/git-changelog)
+(see [issue #94](https://github.com/kdeldycke/repomatic/issues/94)) — none
+were found to cover even half of the requirements.
+:::
 
 Why not use an off-the-shelf tool?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Existing tools fall into two camps, neither of which fits:
 
-**Commit-driven** tools (`python-semantic-release
-<https://github.com/python-semantic-release/python-semantic-release>`_,
-`commitizen <https://github.com/commitizen-tools/commitizen>`_,
-`generate-changelog <https://github.com/lob/generate-changelog>`_,
-`release-please <https://github.com/googleapis/release-please>`_)
+**Commit-driven** tools ([python-semantic-release](https://github.com/python-semantic-release/python-semantic-release),
+[commitizen](https://github.com/commitizen-tools/commitizen),
+[generate-changelog](https://github.com/lob/generate-changelog),
+[release-please](https://github.com/googleapis/release-please))
 auto-generate changelogs from Git history. This conflicts with the
 project's philosophy of hand-curated changelogs: entries are written
 for *users*, consolidated by hand, and summarize only changes worth
 knowing about. Auto-generated logs from developer commits are too
 noisy and don't account for back-and-forth during development.
 
-**Fragment-driven** tools (`towncrier
-<https://github.com/twisted/towncrier>`_, `scriv
-<https://github.com/nedbat/scriv>`_) avoid merge conflicts by using
+**Fragment-driven** tools ([towncrier](https://github.com/twisted/towncrier), [scriv](https://github.com/nedbat/scriv)) avoid merge conflicts by using
 per-change files, but handle none of the release orchestration:
 comparison URL management, GFM warning lifecycle, workflow action
 reference freezing, or the two-commit freeze/unfreeze release cycle.
@@ -79,20 +76,20 @@ there is no 1:1 mapping between fragments and changelog entries.
 Specific gaps across all evaluated tools:
 
 - **No comparison URL management.** None generate GitHub
-  ``v1.0.0...v1.1.0`` diff links, or update them from ``...main``
-  to ``...vX.Y.Z`` at release time.
+  `v1.0.0...v1.1.0` diff links, or update them from `...main`
+  to `...vX.Y.Z` at release time.
 - **No unreleased section lifecycle.** None manage the
-  ``[!WARNING]`` GFM alert warning that the version is under
+  `[!WARNING]` GFM alert warning that the version is under
   active development, inserting it post-release and removing it at
   release time.
 - **No workflow action reference freezing.** None handle the
-  freeze/unfreeze cycle for ``@main`` ↔ ``@vX.Y.Z`` references
+  freeze/unfreeze cycle for `@main` ↔ `@vX.Y.Z` references
   in workflow files.
 - **No two-commit release workflow.** None support the freeze
-  commit (``[changelog] Release vX.Y.Z``) plus unfreeze commit
-  (``[changelog] Post-release bump``) pattern that
-  ``changelog.yaml`` uses.
-- **No citation file integration.** None update ``citation.cff``
+  commit (`[changelog] Release vX.Y.Z`) plus unfreeze commit
+  (`[changelog] Post-release bump`) pattern that
+  `changelog.yaml` uses.
+- **No citation file integration.** None update `citation.cff`
   release dates.
 - **No version bump eligibility checks.** None prevent double
   version increments by comparing the current version against the
@@ -105,12 +102,12 @@ of this code *and* adding a new dependency — more complexity, not less.
 Related modules
 ^^^^^^^^^^^^^^^
 
-- ``release_prep.py`` orchestrates the full release preparation
+- `release_prep.py` orchestrates the full release preparation
   across changelog, citation, and workflow files, delegating
   changelog operations to this module.
-- ``metadata.py`` handles version bump eligibility checks and
+- `metadata.py` handles version bump eligibility checks and
   release commit identification.
-- ``changelog.yaml`` workflow drives the two-commit release PR.
+- `changelog.yaml` workflow drives the two-commit release PR.
 """
 
 from __future__ import annotations
@@ -140,7 +137,7 @@ DATE_PATTERN = re.compile(r"\d{4}\-\d{2}\-\d{2}")
 """Pattern matching release dates in YYYY-MM-DD format."""
 
 VERSION_COMPARE_PATTERN = re.compile(r"v(\d+\.\d+\.\d+)\.\.\.v(\d+\.\d+\.\d+)")
-"""Pattern matching GitHub comparison URLs like ``v1.0.0...v1.0.1``."""
+"""Pattern matching GitHub comparison URLs like `v1.0.0...v1.0.1`."""
 
 RELEASED_VERSION_PATTERN = re.compile(
     rf"^{SECTION_START}\s*\[`?(\d+\.\d+\.\d+)`?\s+\((\d{{4}}-\d{{2}}-\d{{2}})\)\]",
@@ -150,7 +147,7 @@ RELEASED_VERSION_PATTERN = re.compile(
 
 Captures version and date from headings like
 ``## [`5.9.1` (2026-02-14)](...)``. Skips unreleased versions which
-use ``(unreleased)`` instead of a date. Backticks around the version
+use `(unreleased)` instead of a date. Backticks around the version
 are optional.
 """
 
@@ -162,8 +159,8 @@ HEADING_PARTS_PATTERN = re.compile(
 )
 """Pattern extracting version, date/label, and URL from a heading.
 
-Used by :meth:`Changelog.decompose_version` to populate the heading
-fields of :class:`VersionElements`.
+Used by {meth}`Changelog.decompose_version` to populate the heading
+fields of {class}`VersionElements`.
 """
 
 AVAILABLE_VERB = "is available on"
@@ -198,33 +195,33 @@ class VersionElements:
 
     Each field is a pre-formatted markdown block (or empty string when absent).
     Templates compose these elements into the final section layout. Empty
-    variables produce empty strings, which ``render_template``'s 3+ newline
+    variables produce empty strings, which `render_template`'s 3+ newline
     collapsing handles gracefully.
 
-    Heading fields (``compare_url``, ``date``, ``version``) are populated by
-    :meth:`Changelog.decompose_version` and used by the ``release-notes``
-    template to render the ``##`` heading line. Body fields are unchanged.
+    Heading fields (`compare_url`, `date`, `version`) are populated by
+    {meth}`Changelog.decompose_version` and used by the `release-notes`
+    template to render the `##` heading line. Body fields are unchanged.
     """
 
     compare_url: str = ""
-    """GitHub comparison URL from the heading (e.g. ``repo/compare/vA...vB``)."""
+    """GitHub comparison URL from the heading (e.g. `repo/compare/vA...vB`)."""
 
     date: str = ""
-    """Release date or ``unreleased`` label from the heading."""
+    """Release date or `unreleased` label from the heading."""
 
     version: str = ""
-    """Version string extracted from the heading (e.g. ``1.2.3``)."""
+    """Version string extracted from the heading (e.g. `1.2.3`)."""
 
     # --- body fields ---
 
     availability_admonition: str = ""
-    """``[!NOTE]`` or ``[!WARNING]`` block for platform availability."""
+    """`[!NOTE]` or `[!WARNING]` block for platform availability."""
 
     changes: str = ""
     """Hand-written changelog entries (bullet points, prose)."""
 
     development_warning: str = ""
-    """``[!WARNING]`` block for unreleased versions under active development."""
+    """`[!WARNING]` block for unreleased versions under active development."""
 
     editorial_admonition: str = ""
     """Hand-written GFM alert blocks not matching auto-generated patterns.
@@ -233,7 +230,7 @@ class VersionElements:
     """
 
     yanked_admonition: str = ""
-    """``[!CAUTION]`` block for releases yanked from PyPI."""
+    """`[!CAUTION]` block for releases yanked from PyPI."""
 
 
 class Changelog:
@@ -255,8 +252,8 @@ class Changelog:
         """Add a new unreleased entry at the top of the changelog.
 
         Decomposes the current version section, transforms it into an
-        unreleased entry (date set to ``unreleased``, comparison URL
-        retargeted to ``main``, body replaced with the development
+        unreleased entry (date set to `unreleased`, comparison URL
+        retargeted to `main`, body replaced with the development
         warning), and prepends it to the changelog.
 
         Idempotent: returns the current content unchanged if an
@@ -309,10 +306,10 @@ class Changelog:
 
         Decomposes the current version section, sets the release date,
         freezes the comparison URL to the release tag, clears the
-        development warning, and re-renders via the ``release-notes``
+        development warning, and re-renders via the `release-notes`
         template.
 
-        :param release_date: Date in ``YYYY-MM-DD`` format.
+        :param release_date: Date in `YYYY-MM-DD` format.
             Defaults to today (UTC).
         :param default_branch: Branch name for comparison URL.
         :return: True if the content was modified.
@@ -354,11 +351,11 @@ class Changelog:
         """Freeze a changelog file in place.
 
         Reads the file, applies all freeze operations via
-        :meth:`freeze`, and writes the result back.
+        {meth}`freeze`, and writes the result back.
 
         :param path: Path to the changelog file.
         :param version: Current version string.
-        :param release_date: Date in ``YYYY-MM-DD`` format.
+        :param release_date: Date in `YYYY-MM-DD` format.
             Defaults to today (UTC).
         :param default_branch: Branch name for comparison URL.
         :return: True if the file was modified.
@@ -382,9 +379,9 @@ class Changelog:
     def extract_repo_url(self) -> str:
         """Extract the repository URL from changelog comparison links.
 
-        Parses the first ``## [...](<repo_url>/compare/...)`` heading
+        Parses the first `## [...](<repo_url>/compare/...)` heading
         and returns the base repository URL (e.g.
-        ``https://github.com/user/repo``).
+        `https://github.com/user/repo`).
 
         :return: The repository URL, or empty string if not found.
         """
@@ -400,16 +397,16 @@ class Changelog:
     def extract_all_releases(self) -> list[tuple[str, str]]:
         """Extract all released versions and their dates from the changelog.
 
-        Scans for headings matching ``## [X.Y.Z (YYYY-MM-DD)](...)``.
-        Unreleased versions (with ``(unreleased)``) are skipped.
+        Scans for headings matching `## [X.Y.Z (YYYY-MM-DD)](...)`.
+        Unreleased versions (with `(unreleased)`) are skipped.
 
-        :return: List of ``(version, date)`` tuples ordered as they
+        :return: List of `(version, date)` tuples ordered as they
             appear in the changelog (newest first).
         """
         return RELEASED_VERSION_PATTERN.findall(self.content)
 
     def extract_all_version_headings(self) -> set[str]:
-        """Extract all version strings from ``##`` headings.
+        """Extract all version strings from `##` headings.
 
         Includes both released and unreleased versions, so the caller
         can avoid false-positive orphan detection for the current
@@ -442,8 +439,8 @@ class Changelog:
 
         Idempotent: returns False if the version heading already exists.
 
-        :param version: Version string (e.g. ``1.2.3``).
-        :param date: Release date in ``YYYY-MM-DD`` format.
+        :param version: Version string (e.g. `1.2.3`).
+        :param date: Release date in `YYYY-MM-DD` format.
         :param repo_url: Repository URL for comparison links.
         :param all_versions: All known versions sorted descending.
         :return: True if the content was modified.
@@ -508,11 +505,11 @@ class Changelog:
     def update_comparison_base(self, version: str, new_base: str) -> bool:
         """Replace the base version in a version heading's comparison URL.
 
-        Changes ``compare/vOLD...vX.Y.Z`` to ``compare/vNEW...vX.Y.Z``
+        Changes `compare/vOLD...vX.Y.Z` to `compare/vNEW...vX.Y.Z`
         in the heading for the given version.
 
         :param version: The version whose heading to update.
-        :param new_base: New base version (without ``v`` prefix).
+        :param new_base: New base version (without `v` prefix).
         :return: True if the content was modified.
         """
         pattern = re.compile(
@@ -532,12 +529,12 @@ class Changelog:
         Parses both the heading (version, date, URL) and the body
         (admonitions, changes).
 
-        Classifies each GFM alert block (consecutive ``>`` lines) as one
+        Classifies each GFM alert block (consecutive `>` lines) as one
         of the auto-generated element types. Everything not classified
-        as auto-generated is preserved as ``changes``.
+        as auto-generated is preserved as `changes`.
 
-        :param version: Version string (e.g. ``1.2.3``).
-        :return: A :class:`VersionElements` with each field populated.
+        :param version: Version string (e.g. `1.2.3`).
+        :return: A {class}`VersionElements` with each field populated.
         """
         section_pattern = re.compile(
             rf"^{SECTION_START}\s*\[`?{re.escape(version)}`?\s[^\n]+\n"
@@ -611,9 +608,9 @@ class Changelog:
         """Replace the entire section (heading + body) for a version.
 
         Locates the version heading and replaces everything up to the
-        next ``##`` heading (or EOF) with ``new_section``.
+        next `##` heading (or EOF) with `new_section`.
 
-        :param version: Version string (e.g. ``1.2.3``).
+        :param version: Version string (e.g. `1.2.3`).
         :param new_section: New section content including heading.
         :return: True if the content was modified.
         """
@@ -645,12 +642,12 @@ def build_release_admonition(
 ) -> str:
     """Build a GFM release admonition with available distribution links.
 
-    :param version: Version string (e.g. ``1.2.3``).
+    :param version: Version string (e.g. `1.2.3`).
     :param pypi_url: PyPI project URL, or empty if not on PyPI.
     :param github_url: GitHub release URL, or empty if no release exists.
     :param first_on_all: Whether every listed platform is a first appearance.
-        When ``True``, uses "is the *first version* available on" wording.
-    :return: A ``> [!NOTE]`` admonition block, or empty string if neither
+        When `True`, uses "is the *first version* available on" wording.
+    :return: A `> [!NOTE]` admonition block, or empty string if neither
         URL is provided.
     """
     links: list[str] = []
@@ -678,10 +675,10 @@ def build_unavailable_admonition(
 ) -> str:
     """Build a GFM warning admonition for platforms missing a version.
 
-    :param version: Version string (e.g. ``1.2.3``).
+    :param version: Version string (e.g. `1.2.3`).
     :param missing_pypi: Whether the version is missing from PyPI.
     :param missing_github: Whether the version is missing from GitHub.
-    :return: A ``> [!WARNING]`` admonition block, or empty string if
+    :return: A `> [!WARNING]` admonition block, or empty string if
         neither platform is missing.
     """
     names: list[str] = []
@@ -724,36 +721,37 @@ def lint_changelog_dates(
     GitHub releases, or PyPI packages but have no corresponding changelog
     entry. Orphans are logged as warnings and cause a non-zero exit code.
 
-    When ``fix`` is enabled, date mismatches are corrected in-place and
+    When `fix` is enabled, date mismatches are corrected in-place and
     admonitions are added to the changelog:
 
-    - A ``[!NOTE]`` admonition listing available distribution links
+    - A `[!NOTE]` admonition listing available distribution links
       (PyPI, GitHub) for each version. Links are conditional: only
       sources where the version exists are included.
-    - A ``[!WARNING]`` admonition listing platforms where the version
+    - A `[!WARNING]` admonition listing platforms where the version
       is *not* available (missing from PyPI, GitHub, or both).
-    - A ``[!CAUTION]`` admonition for yanked releases.
+    - A `[!CAUTION]` admonition for yanked releases.
 
-    .. caution::
+    :::{caution}
 
-       The ``fix-changelog`` workflow job skips this function during the
-       release cycle (when ``release_commits_matrix`` is non-empty). At that
-       point the release pipeline hasn't published to PyPI or created a
-       GitHub release yet, so this function would incorrectly add "not
-       available" admonitions to the freshly-released version.
+    The `fix-changelog` workflow job skips this function during the
+    release cycle (when `release_commits_matrix` is non-empty). At that
+    point the release pipeline hasn't published to PyPI or created a
+    GitHub release yet, so this function would incorrectly add "not
+    available" admonitions to the freshly-released version.
+    :::
     - Placeholder sections for orphaned versions, with comparison URLs
       linking to adjacent versions.
 
     :param changelog_path: Path to the changelog file.
-    :param package: PyPI package name. If ``None``, auto-detected from
-        ``pyproject.toml``. If detection fails, falls back to git tags.
+    :param package: PyPI package name. If `None`, auto-detected from
+        `pyproject.toml`. If detection fails, falls back to git tags.
     :param fix: If True, fix dates and add admonitions to the file.
     :param pypi_package_history: Former PyPI package names for renamed
         projects. Releases from each former name are merged into the
         lookup table so versions published under old names are recognized.
         The current package name wins on version collisions.
-    :return: ``0`` if all dates match or references are missing,
-        ``1`` if any date mismatch or orphan is found.
+    :return: `0` if all dates match or references are missing,
+        `1` if any date mismatch or orphan is found.
     """
     content = changelog_path.read_text(encoding="UTF-8")
     changelog = Changelog(content)

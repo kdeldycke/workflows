@@ -19,15 +19,15 @@
 Processes notification threads in two phases:
 
 1. **REST notification threads** — Fetches all Issue/PullRequest notification
-   threads via ``/notifications``, inspects each for closed + stale status,
-   and unsubscribes via ``DELETE`` + ``PATCH``.
+   threads via `/notifications`, inspects each for closed + stale status,
+   and unsubscribes via `DELETE` + `PATCH`.
 
 2. **GraphQL threadless subscriptions** — Searches for closed issues/PRs the
    user is involved in but that lack notification threads, and unsubscribes
-   via the ``updateSubscription`` mutation.
+   via the `updateSubscription` mutation.
 
-Requires the ``gh`` CLI to be installed and authenticated with a token that
-has the ``notifications`` scope (classic PAT) or equivalent fine-grained
+Requires the `gh` CLI to be installed and authenticated with a token that
+has the `notifications` scope (classic PAT) or equivalent fine-grained
 permissions.
 """
 
@@ -53,7 +53,7 @@ GRAPHQL_PAGE_SIZE = 25
 """Per-page count for GraphQL search results."""
 
 NOTIFICATION_PAGE_SIZE = 50
-"""Per-page count for REST ``/notifications`` results."""
+"""Per-page count for REST `/notifications` results."""
 
 NOTIFICATION_SUBJECT_TYPES = frozenset({"Issue", "PullRequest"})
 """Notification subject types to process."""
@@ -160,9 +160,9 @@ class UnsubscribeResult:
 
 
 def _compute_cutoff(months: int) -> datetime:
-    """Compute a cutoff datetime by subtracting ``months`` from now.
+    """Compute a cutoff datetime by subtracting `months` from now.
 
-    Uses ``calendar.monthrange`` for day-clamping to avoid invalid dates
+    Uses `calendar.monthrange` for day-clamping to avoid invalid dates
     (e.g., subtracting 1 month from March 31 yields February 28/29).
 
     :param months: Number of months to subtract.
@@ -212,12 +212,12 @@ def _fetch_notification_threads(
     """Fetch Issue/PullRequest notification threads via REST API.
 
     Returns the total count of matching threads and a batch sorted
-    oldest-first, truncated to ``batch_size``.
+    oldest-first, truncated to `batch_size`.
 
     :param batch_size: Maximum number of threads to return.
-    :return: Tuple of ``(total_count, truncated_batch)``. Each thread dict
-        contains ``id``, ``subject_url``, ``subject_type``, ``repo``,
-        ``title``.
+    :return: Tuple of `(total_count, truncated_batch)`. Each thread dict
+        contains `id`, `subject_url`, `subject_type`, `repo`,
+        `title`.
     """
     # The --jq filter selects Issue/PullRequest types and extracts fields.
     jq_filter = (
@@ -268,8 +268,8 @@ def _get_thread_details(subject_url: str) -> dict[str, Any] | None:
     """Fetch details for a notification thread's subject.
 
     :param subject_url: The API URL of the thread's subject (issue or PR).
-    :return: Dict with ``state``, ``updated_at``, ``html_url``, ``number``,
-        or ``None`` if the subject is inaccessible.
+    :return: Dict with `state`, `updated_at`, `html_url`, `number`,
+        or `None` if the subject is inaccessible.
     """
     try:
         output = run_gh_command([
@@ -296,7 +296,7 @@ def _unsubscribe_rest_thread(thread_id: str) -> bool:
     2. ``PATCH /notifications/threads/{id}``
 
     :param thread_id: The notification thread ID.
-    :return: ``True`` if both calls succeeded, ``False`` otherwise.
+    :return: `True` if both calls succeeded, `False` otherwise.
     """
     try:
         run_gh_command([
@@ -326,7 +326,7 @@ def _unsubscribe_rest_thread(thread_id: str) -> bool:
 def _validate_notifications_token() -> None:
     """Validate that the current token can access the notifications API.
 
-    Delegates to :func:`validate_classic_pat_scope` for generic checks,
+    Delegates to {func}`validate_classic_pat_scope` for generic checks,
     then warns if the token has more scopes than needed.
 
     :raises RuntimeError: If validation fails.
@@ -359,12 +359,12 @@ def _iter_closed_items(
     """Iterate over closed issues/PRs matching a GraphQL search query.
 
     Uses cursor-based GraphQL pagination. Yields all items regardless
-    of ``viewerSubscription``; callers filter as needed.
+    of `viewerSubscription`; callers filter as needed.
 
     :param search_query: The GitHub search query string.
     :param batch_size: Maximum total items to yield.
-    :yields: Dicts with ``id``, ``number``, ``title``, ``repository``,
-        ``updatedAt``, ``url``, ``viewerSubscription``.
+    :yields: Dicts with `id`, `number`, `title`, `repository`,
+        `updatedAt`, `url`, `viewerSubscription`.
     """
     cursor = None
     yielded = 0
@@ -406,7 +406,7 @@ def _graphql_unsubscribe(node_id: str) -> bool:
     """Unsubscribe from an issue or PR via GraphQL mutation.
 
     :param node_id: The global node ID of the subscribable.
-    :return: ``True`` if the mutation succeeded, ``False`` otherwise.
+    :return: `True` if the mutation succeeded, `False` otherwise.
     """
     try:
         run_gh_command([
@@ -453,7 +453,7 @@ def render_report(result: UnsubscribeResult) -> str:
     """Render a markdown report from unsubscribe results.
 
     Pure function that produces the same markdown structure as the
-    downstream ``unsubscribe.yaml`` workflow's ``$GITHUB_STEP_SUMMARY``.
+    downstream `unsubscribe.yaml` workflow's `$GITHUB_STEP_SUMMARY`.
 
     :param result: Structured results from both phases.
     :return: Markdown report string.
@@ -601,7 +601,7 @@ def unsubscribe_threads(
 
     :param months: Inactivity threshold in months.
     :param batch_size: Maximum threads/items to process per phase.
-    :param dry_run: If ``True``, report what would be done without acting.
+    :param dry_run: If `True`, report what would be done without acting.
     :return: Structured results from both phases.
     """
     result = UnsubscribeResult(dry_run=dry_run, months=months)

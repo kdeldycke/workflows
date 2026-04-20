@@ -20,27 +20,28 @@ This module provides utilities for working with GitHub Actions: multiline
 output formatting, workflow annotations, event payload loading, and
 GitHub-specific constants and enums shared across multiple modules.
 
-.. note:: Concurrency quirks addressed by the workflows
+:::{note} Concurrency quirks addressed by the workflows
 
-   **SHA-based groups (``release.yaml``):** ``cancel-in-progress`` is
-   evaluated on the *new* workflow, not the old one. If a regular commit is
-   pushed while a release workflow is running, the new workflow would cancel
-   it (same group). Solution: release commits (freeze and unfreeze) get a
-   unique group keyed by ``github.sha``, so they can never be cancelled.
+**SHA-based groups (`release.yaml`):** `cancel-in-progress` is
+evaluated on the *new* workflow, not the old one. If a regular commit is
+pushed while a release workflow is running, the new workflow would cancel
+it (same group). Solution: release commits (freeze and unfreeze) get a
+unique group keyed by `github.sha`, so they can never be cancelled.
 
-   **Event-scoped groups (``changelog.yaml``):** ``changelog.yaml`` has
-   both ``push`` and ``workflow_run`` triggers. Without ``event_name`` in
-   the concurrency group, a fast-completing ``workflow_run`` event would
-   cancel the ``push`` event's ``prepare-release`` job, then skip
-   ``prepare-release`` itself (guarded by ``if: event_name != 'workflow_run'``),
-   so it would never run. Including ``event_name`` prevents cross-event
-   cancellation.
+**Event-scoped groups (`changelog.yaml`):** `changelog.yaml` has
+both `push` and `workflow_run` triggers. Without `event_name` in
+the concurrency group, a fast-completing `workflow_run` event would
+cancel the `push` event's `prepare-release` job, then skip
+`prepare-release` itself (guarded by `if: event_name != 'workflow_run'`),
+so it would never run. Including `event_name` prevents cross-event
+cancellation.
 
-   **``workflow_run`` checkout ref:** Always use ``github.sha`` (latest
-   commit on the default branch), never ``workflow_run.head_sha`` (the
-   commit that *triggered* the upstream workflow). After a release cycle
-   adds commits (freeze + unfreeze), ``head_sha`` is stale and produces
-   a tree that conflicts with current ``main``.
+**`workflow_run` checkout ref:** Always use `github.sha` (latest
+commit on the default branch), never `workflow_run.head_sha` (the
+commit that *triggered* the upstream workflow). After a release cycle
+adds commits (freeze + unfreeze), `head_sha` is stale and produces
+a tree that conflicts with current `main`.
+:::
 """
 
 from __future__ import annotations
@@ -67,7 +68,7 @@ if TYPE_CHECKING:
 NULL_SHA = "0" * 40
 """The null SHA used by Git to represent a non-existent commit.
 
-GitHub sends this value as the ``before`` SHA when a tag is created, since there is no
+GitHub sends this value as the `before` SHA when a tag is created, since there is no
 previous commit to compare against.
 """
 
@@ -75,8 +76,7 @@ previous commit to compare against.
 class WorkflowEvent(StrEnum):
     """Workflow events that cause a workflow to run.
 
-    `List of events
-    <https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows>`_.
+    [List of events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
     """
 
     branch_protection_rule = "branch_protection_rule"
@@ -129,16 +129,17 @@ def generate_delimiter() -> str:
     """Generate a unique delimiter for GitHub Actions multiline output.
 
     GitHub Actions requires a unique delimiter to encode multiline values in
-    ``$GITHUB_OUTPUT``. This function generates a random delimiter that is
+    `$GITHUB_OUTPUT`. This function generates a random delimiter that is
     extremely unlikely to appear in the output content.
 
-    The delimiter format is ``GHA_DELIMITER_NNNNNNNNN`` where N is a digit,
+    The delimiter format is `GHA_DELIMITER_NNNNNNNNN` where N is a digit,
     producing a 9-digit random suffix.
 
     :return: A unique delimiter string.
 
-    .. seealso::
-        https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
+    :::{seealso}
+    https://github.com/orgs/community/discussions/26288#discussioncomment-3876281
+    :::
     """
     return f"GHA_DELIMITER_{randint(10**8, (10**9) - 1)}"
 
@@ -146,18 +147,19 @@ def generate_delimiter() -> str:
 def format_multiline_output(name: str, value: str) -> str:
     """Format a multiline value for GitHub Actions output.
 
-    Produces output in the heredoc format required by ``$GITHUB_OUTPUT``:
+    Produces output in the heredoc format required by `$GITHUB_OUTPUT`:
 
-    .. code-block:: text
+    :::{code-block} text
 
-        name<<GHA_DELIMITER_NNNNNNNNN
-        value line 1
-        value line 2
-        GHA_DELIMITER_NNNNNNNNN
+    name<<GHA_DELIMITER_NNNNNNNNN
+    value line 1
+    value line 2
+    GHA_DELIMITER_NNNNNNNNN
+    :::
 
     :param name: The output variable name.
     :param value: The multiline value.
-    :return: Formatted string for ``$GITHUB_OUTPUT``.
+    :return: Formatted string for `$GITHUB_OUTPUT`.
     """
     delimiter = generate_delimiter()
     return f"{name}<<{delimiter}\n{value}\n{delimiter}"
@@ -175,8 +177,9 @@ def emit_annotation(
     :param level: The annotation level (error, warning, or notice).
     :param message: The annotation message.
 
-    .. seealso::
-        https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-error-message
+    :::{seealso}
+    https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-error-message
+    :::
     """
     if isinstance(level, str):
         level = AnnotationLevel(level)
@@ -185,7 +188,7 @@ def emit_annotation(
 
 @lru_cache(maxsize=1)
 def get_github_event() -> dict[str, Any]:
-    """Load the GitHub event payload from ``GITHUB_EVENT_PATH``.
+    """Load the GitHub event payload from `GITHUB_EVENT_PATH`.
 
     :return: The parsed event payload, or empty dict if not available.
     """

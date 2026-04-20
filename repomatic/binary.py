@@ -80,28 +80,27 @@ user-friendlyness. As such, it is used to name the compiled binary.
 
 Values are dictionaries with the following keys:
 
-- ``os``: Operating system name, as used in `GitHub-hosted runners
-    <https://docs.github.com/en/actions/writing-workflows/choosing-where-your-workflow-runs/choosing-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories>`_.
+- `os`: Operating system name, as used in [GitHub-hosted runners](https://docs.github.com/en/actions/writing-workflows/choosing-where-your-workflow-runs/choosing-the-runner-for-a-job#standard-github-hosted-runners-for-public-repositories).
 
-    .. hint::
-        We choose to run the compilation only on the latest supported version of each
-        OS, for each architecture. Note that macOS and Windows do not have the latest
-        version available for each architecture.
+    :::{hint}
+    We choose to run the compilation only on the latest supported version of each
+    OS, for each architecture. Note that macOS and Windows do not have the latest
+    version available for each architecture.
+    :::
 
-- ``platform_id``: Platform identifier, as defined by `Extra Platform
-  <https://github.com/kdeldycke/extra-platforms>`_.
+- `platform_id`: Platform identifier, as defined by [Extra Platform](https://github.com/kdeldycke/extra-platforms).
 
-- ``arch``: Architecture identifier.
+- `arch`: Architecture identifier.
 
-    .. note::
-        Architecture IDs are `inspired from those specified for self-hosted runners
-        <https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures>`_
+    :::{note}
+    Architecture IDs are [inspired from those specified for self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/supported-architectures-and-operating-systems-for-self-hosted-runners#supported-processor-architectures)
+    :::
 
-    .. note::
-        Maybe we should just adopt `target triple
-        <https://mcyoung.xyz/2025/04/14/target-triples/>`_.
+    :::{note}
+    Maybe we should just adopt [target triple](https://mcyoung.xyz/2025/04/14/target-triples/).
+    :::
 
-- ``extension``: File extension of the compiled binary.
+- `extension`: File extension of the compiled binary.
 """
 
 
@@ -120,9 +119,9 @@ BINARY_AFFECTING_PATHS: Final[tuple[str, ...]] = (
 )
 """Path prefixes that always affect compiled binaries, regardless of the project.
 
-Project-specific source directories (derived from ``[project.scripts]`` in
-``pyproject.toml``) are added dynamically by
-:attr:`~repomatic.metadata.Metadata.binary_affecting_paths`.
+Project-specific source directories (derived from `[project.scripts]` in
+`pyproject.toml`) are added dynamically by
+{attr}`~repomatic.metadata.Metadata.binary_affecting_paths`.
 """
 
 SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
@@ -139,9 +138,9 @@ SKIP_BINARY_BUILD_BRANCHES: Final[frozenset[str]] = frozenset((
 
 These branches contain changes that do not affect compiled binaries:
 
-- ``.mailmap`` updates only affect contributor attribution
+- `.mailmap` updates only affect contributor attribution
 - Documentation and image changes don't affect code
-- ``.gitignore`` and JSON config changes don't affect binaries
+- `.gitignore` and JSON config changes don't affect binaries
 
 This allows workflows to skip expensive Nuitka compilation jobs for PRs that cannot
 possibly change the binary output.
@@ -167,25 +166,25 @@ BINARY_ARCH_MAPPINGS: Final[dict[str, tuple[str, str]]] = {
 }
 """Mapping of build targets to (exiftool_field, expected_substring) tuples.
 
-ABI signatures reported by ``file(1)`` for each compiled binary:
+ABI signatures reported by `file(1)` for each compiled binary:
 
-- ``linux-arm64``: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV),
+- `linux-arm64`: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV),
   dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, for GNU/Linux 3.7.0,
   stripped
-- ``linux-x64``: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV),
+- `linux-x64`: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV),
   dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0,
   stripped
-- ``macos-arm64``: Mach-O 64-bit executable arm64
-- ``macos-x64``: Mach-O 64-bit executable x86_64
-- ``windows-arm64``: PE32+ executable (console) Aarch64, for MS Windows
-- ``windows-x64``: PE32+ executable (console) x86-64, for MS Windows
+- `macos-arm64`: Mach-O 64-bit executable arm64
+- `macos-x64`: Mach-O 64-bit executable x86_64
+- `windows-arm64`: PE32+ executable (console) Aarch64, for MS Windows
+- `windows-x64`: PE32+ executable (console) x86-64, for MS Windows
 """
 
 
 def get_exiftool_command() -> str:
     """Return the platform-appropriate exiftool command.
 
-    On Windows, exiftool is installed as ``exiftool.exe``.
+    On Windows, exiftool is installed as `exiftool.exe`.
     """
     return "exiftool.exe" if is_windows() else "exiftool"
 

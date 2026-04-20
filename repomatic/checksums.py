@@ -19,11 +19,11 @@
 Two update modes:
 
 1. **Workflow files** — scans for GitHub release download URLs paired with
-   ``sha256sum --check`` verification lines. Replaces stale hashes in-place.
-2. **Tool registry** — iterates ``TOOL_REGISTRY`` entries with ``binary``
-   specs, downloads each URL, and replaces stale hashes in ``tool_runner.py``.
+   `sha256sum --check` verification lines. Replaces stale hashes in-place.
+2. **Tool registry** — iterates `TOOL_REGISTRY` entries with `binary`
+   specs, downloads each URL, and replaces stale hashes in `tool_runner.py`.
 
-Designed to be called by Renovate ``postUpgradeTasks`` after version bumps,
+Designed to be called by Renovate `postUpgradeTasks` after version bumps,
 but also works standalone for manual checksum updates.
 """
 
@@ -74,8 +74,8 @@ def _find_checksum_pairs(lines: list[str]) -> Iterator[tuple[str, int, str]]:
     """Find (url, hash_line_index, old_hash) triples in workflow file lines.
 
     For each GitHub release URL found, searches the next few lines for a
-    ``sha256sum --check`` line. The hash may be on that same line (single-line
-    pattern) or on a preceding line (multi-line ``echo ... | sha256sum``).
+    `sha256sum --check` line. The hash may be on that same line (single-line
+    pattern) or on a preceding line (multi-line `echo ... | sha256sum`).
 
     :param lines: Lines of the workflow file.
     :return: Iterator of (url, hash_line_index, old_hash) triples.
@@ -144,11 +144,11 @@ def update_checksums(file_path: Path) -> list[tuple[str, str, str]]:
 def update_registry_checksums(registry_path: Path) -> list[tuple[str, str, str]]:
     """Update SHA-256 checksums for binary tools in the tool runner registry.
 
-    Iterates all ``TOOL_REGISTRY`` entries with ``binary`` specs, downloads
+    Iterates all `TOOL_REGISTRY` entries with `binary` specs, downloads
     each URL, computes the SHA-256, and replaces stale hashes in-place in the
     Python source file.
 
-    :param registry_path: Path to ``tool_runner.py``.
+    :param registry_path: Path to `tool_runner.py`.
     :return: List of (url, old_hash, new_hash) for each updated checksum.
         Empty if all checksums are already correct.
     """

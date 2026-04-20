@@ -18,24 +18,25 @@
 
 Maintains a single **draft** pre-release that mirrors the unreleased
 changelog section and always carries the latest successful dev binaries
-and Python package. The dev tag (e.g. ``v6.1.1.dev0``) is force-updated
-to point to the latest ``main`` commit — no tag proliferation.
+and Python package. The dev tag (e.g. `v6.1.1.dev0`) is force-updated
+to point to the latest `main` commit — no tag proliferation.
 
 When the current version's dev release already exists, it is **edited**
 (not deleted and recreated) so that previously uploaded assets — especially
 compiled binaries — survive pushes that skip binary compilation (e.g.
-documentation-only changes). The ``upload_release_assets()`` function deletes
+documentation-only changes). The `upload_release_assets()` function deletes
 all existing assets before uploading new ones, preventing stale files from
 accumulating when the naming scheme changes. Stale dev releases from previous
 versions are always deleted.
 
-.. note::
-    Dev releases are created as **drafts** so they remain mutable even
-    when GitHub's immutable releases setting is enabled. Immutability
-    only blocks **asset uploads** on published releases — deletion still
-    works. But because the workflow needs to upload binaries *after*
-    creation, the release must stay as a draft throughout its lifetime
-    to allow asset uploads. See ``CLAUDE.md`` § Immutable releases.
+:::{note}
+Dev releases are created as **drafts** so they remain mutable even
+when GitHub's immutable releases setting is enabled. Immutability
+only blocks **asset uploads** on published releases — deletion still
+works. But because the workflow needs to upload binaries *after*
+creation, the release must stay as a draft throughout its lifetime
+to allow asset uploads. See `CLAUDE.md` § Immutable releases.
+:::
 """
 
 from __future__ import annotations
@@ -51,10 +52,11 @@ from .release_sync import build_expected_body
 DEV_ASSET_PATTERNS = ("*.bin", "*.exe", "*.whl", "*.tar.gz")
 """Glob patterns for dev release assets.
 
-.. note::
-    Bare extensions (no ``repomatic-`` prefix) keep patterns generic so
-    downstream repositories can reuse the same logic regardless of their
-    package name.
+:::{note}
+Bare extensions (no `repomatic-` prefix) keep patterns generic so
+downstream repositories can reuse the same logic regardless of their
+package name.
+:::
 """
 
 
@@ -68,23 +70,23 @@ def sync_dev_release(
     """Create or update the dev pre-release on GitHub.
 
     Reads the changelog, renders the release body for the given version
-    via :func:`build_expected_body`, then either edits the existing dev
+    via {func}`build_expected_body`, then either edits the existing dev
     release or creates a new one. Stale dev releases from previous
     versions are always cleaned up.
 
     Existing releases are edited (not deleted and recreated) to preserve
     assets like compiled binaries from previous successful builds.
-    When ``asset_dir`` is provided, existing assets are deleted and new
-    ones uploaded via :func:`upload_release_assets`.
+    When `asset_dir` is provided, existing assets are deleted and new
+    ones uploaded via {func}`upload_release_assets`.
 
-    :param changelog_path: Path to ``changelog.md``.
-    :param version: Current version string (e.g. ``6.1.1.dev0``).
-    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
-    :param dry_run: If ``True``, report without making changes.
-    :param asset_dir: Directory containing assets to upload. If ``None``,
+    :param changelog_path: Path to `changelog.md`.
+    :param version: Current version string (e.g. `6.1.1.dev0`).
+    :param nwo: Repository name-with-owner (e.g. `user/repo`).
+    :param dry_run: If `True`, report without making changes.
+    :param asset_dir: Directory containing assets to upload. If `None`,
         no asset upload is performed.
-    :return: ``True`` if the release was synced (or would be in
-        dry-run), ``False`` if the changelog section is empty.
+    :return: `True` if the release was synced (or would be in
+        dry-run), `False` if the changelog section is empty.
     """
     content = changelog_path.read_text(encoding="UTF-8")
     changelog = Changelog(content)
@@ -147,7 +149,7 @@ def sync_dev_release(
 
 
 def _collect_asset_files(asset_dir: Path) -> list[Path]:
-    """Collect files matching :data:`DEV_ASSET_PATTERNS` from a directory.
+    """Collect files matching {data}`DEV_ASSET_PATTERNS` from a directory.
 
     :param asset_dir: Directory to scan.
     :return: Sorted list of matching file paths.
@@ -161,12 +163,12 @@ def _collect_asset_files(asset_dir: Path) -> list[Path]:
 def _delete_release_assets(tag: str, nwo: str) -> int:
     """Delete all assets from an existing release.
 
-    Fetches the asset list via ``gh release view`` and deletes each asset
+    Fetches the asset list via `gh release view` and deletes each asset
     individually via the GitHub API. Continues on per-asset failures,
-    mirroring the shell script's ``|| true`` behavior.
+    mirroring the shell script's `|| true` behavior.
 
-    :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
-    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    :param tag: Git tag name (e.g. `v6.1.1.dev0`).
+    :param nwo: Repository name-with-owner (e.g. `user/repo`).
     :return: Number of assets successfully deleted.
     """
     try:
@@ -208,14 +210,14 @@ def upload_release_assets(
 ) -> list[Path]:
     """Upload assets to a GitHub release.
 
-    Scans ``asset_dir`` for files matching :data:`DEV_ASSET_PATTERNS`. If
+    Scans `asset_dir` for files matching {data}`DEV_ASSET_PATTERNS`. If
     no matching files are found, returns immediately without modifying the
     release — this preserves existing assets for documentation-only pushes.
     When files are found, all existing assets are deleted first to prevent
     stale files from accumulating when the naming scheme changes.
 
-    :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
-    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    :param tag: Git tag name (e.g. `v6.1.1.dev0`).
+    :param nwo: Repository name-with-owner (e.g. `user/repo`).
     :param asset_dir: Directory containing assets to upload.
     :return: List of uploaded file paths.
     """
@@ -243,14 +245,14 @@ def upload_release_assets(
 def cleanup_dev_releases(nwo: str, *, keep_tag: str | None = None) -> None:
     """Delete stale dev pre-releases from GitHub.
 
-    Lists all releases and deletes any whose tag ends with ``.dev0``,
-    except ``keep_tag`` which is preserved so its assets (e.g. compiled
+    Lists all releases and deletes any whose tag ends with `.dev0`,
+    except `keep_tag` which is preserved so its assets (e.g. compiled
     binaries) survive. This handles stale dev releases left behind after
     version bumps. Silently succeeds if no dev releases exist or if
     individual deletions fail.
 
-    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
-    :param keep_tag: Tag to preserve (e.g. ``v6.2.0.dev0``). If ``None``,
+    :param nwo: Repository name-with-owner (e.g. `user/repo`).
+    :param keep_tag: Tag to preserve (e.g. `v6.2.0.dev0`). If `None`,
         all dev releases are deleted.
     """
     try:
@@ -277,13 +279,13 @@ def _edit_dev_release(tag: str, version: str, body: str, nwo: str) -> bool:
     """Edit an existing dev release's metadata.
 
     Updates the title and body of an existing release without touching its
-    assets. Returns ``False`` if the release does not exist.
+    assets. Returns `False` if the release does not exist.
 
-    :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
-    :param version: Version string for the title (e.g. ``6.1.1.dev0``).
+    :param tag: Git tag name (e.g. `v6.1.1.dev0`).
+    :param version: Version string for the title (e.g. `6.1.1.dev0`).
     :param body: Release body text.
-    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
-    :return: ``True`` if the release was edited, ``False`` if it doesn't exist.
+    :param nwo: Repository name-with-owner (e.g. `user/repo`).
+    :return: `True` if the release was edited, `False` if it doesn't exist.
     """
     try:
         run_gh_command([
@@ -310,8 +312,8 @@ def delete_dev_release(version: str, nwo: str) -> None:
     real releases to clean up the dev pre-release for the version
     being released.
 
-    :param version: Dev version string (e.g. ``6.1.1.dev0``).
-    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    :param version: Dev version string (e.g. `6.1.1.dev0`).
+    :param nwo: Repository name-with-owner (e.g. `user/repo`).
     """
     delete_release_by_tag(f"v{version}", nwo)
 
@@ -321,8 +323,8 @@ def delete_release_by_tag(tag: str, nwo: str) -> None:
 
     Silently succeeds if the release does not exist or cannot be deleted.
 
-    :param tag: Git tag name (e.g. ``v6.1.1.dev0``).
-    :param nwo: Repository name-with-owner (e.g. ``user/repo``).
+    :param tag: Git tag name (e.g. `v6.1.1.dev0`).
+    :param nwo: Repository name-with-owner (e.g. `user/repo`).
     """
     try:
         run_gh_command([

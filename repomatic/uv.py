@@ -16,7 +16,7 @@
 
 """uv lock file operations and vulnerability auditing.
 
-This module provides utilities for managing ``uv.lock`` files: parsing versions,
+This module provides utilities for managing `uv.lock` files: parsing versions,
 detecting timestamp noise, computing diff tables, auditing for vulnerabilities,
 and fetching release notes from GitHub.
 """
@@ -64,10 +64,10 @@ if TYPE_CHECKING:
 
 
 def uv_cmd(subcommand: str, *, frozen: bool = False) -> list[str]:
-    """Build a ``uv <subcommand>`` command prefix with standard flags.
+    """Build a `uv <subcommand>` command prefix with standard flags.
 
-    Always includes ``--no-progress``.  Adds ``--frozen`` when requested
-    (appropriate for ``run``, ``export``, ``sync`` — not for ``lock``).
+    Always includes `--no-progress`.  Adds `--frozen` when requested
+    (appropriate for `run`, `export`, `sync` — not for `lock`).
     """
     cmd = ["uv", "--no-progress", subcommand]
     if frozen:
@@ -76,7 +76,7 @@ def uv_cmd(subcommand: str, *, frozen: bool = False) -> list[str]:
 
 
 def uvx_cmd() -> list[str]:
-    """Build a ``uvx`` command prefix with standard flags."""
+    """Build a `uvx` command prefix with standard flags."""
     return ["uvx", "--no-progress"]
 
 
@@ -96,19 +96,19 @@ RELEASE_NOTES_MAX_LENGTH = 2000
 _AUDIT_PACKAGE_HEADER_RE = re.compile(
     r"^(\S+)\s+(\S+)\s+has\s+\d+\s+known\s+vulnerabilit"
 )
-"""Matches the package header line in ``uv audit`` output.
+"""Matches the package header line in `uv audit` output.
 
-Example: ``pygments 2.19.2 has 1 known vulnerability:``
+Example: `pygments 2.19.2 has 1 known vulnerability:`
 """
 
 _AUDIT_ADVISORY_RE = re.compile(r"^-\s+((?:GHSA|CVE|PYSEC)-\S+):\s+(.+)$")
-"""Matches advisory ID and title lines in ``uv audit`` output."""
+"""Matches advisory ID and title lines in `uv audit` output."""
 
 _AUDIT_FIXED_RE = re.compile(r"^\s+Fixed in:\s+(.+)$")
-"""Matches ``Fixed in:`` lines in ``uv audit`` output."""
+"""Matches `Fixed in:` lines in `uv audit` output."""
 
 _AUDIT_URL_RE = re.compile(r"^\s+Advisory information:\s+(\S+)$")
-"""Matches advisory URL lines in ``uv audit`` output."""
+"""Matches advisory URL lines in `uv audit` output."""
 
 
 @dataclass
@@ -122,7 +122,7 @@ class VulnerablePackage:
     """Currently resolved version."""
 
     advisory_id: str
-    """Advisory identifier (e.g., ``GHSA-xxxx-xxxx-xxxx``)."""
+    """Advisory identifier (e.g., `GHSA-xxxx-xxxx-xxxx`)."""
 
     advisory_title: str
     """Short description of the vulnerability."""
@@ -135,13 +135,13 @@ class VulnerablePackage:
 
 
 def parse_uv_audit_output(output: str) -> list[VulnerablePackage]:
-    """Parse the text output of ``uv audit`` into structured vulnerability data.
+    """Parse the text output of `uv audit` into structured vulnerability data.
 
     Handles multiple advisories per package and packages without a known fix
     version. Unrecognized lines are silently skipped.
 
-    :param output: Combined stdout/stderr from ``uv audit``.
-    :return: A list of :class:`VulnerablePackage` entries.
+    :param output: Combined stdout/stderr from `uv audit`.
+    :return: A list of {class}`VulnerablePackage` entries.
     """
     vulns: list[VulnerablePackage] = []
     current_name = ""
@@ -203,8 +203,8 @@ def parse_uv_audit_output(output: str) -> list[VulnerablePackage]:
 def format_vulnerability_table(vulns: list[VulnerablePackage]) -> str:
     """Format vulnerability data as a markdown table.
 
-    :param vulns: List of :class:`VulnerablePackage` entries.
-    :return: A markdown string with a ``### Vulnerabilities`` heading and table,
+    :param vulns: List of {class}`VulnerablePackage` entries.
+    :return: A markdown string with a `### Vulnerabilities` heading and table,
         or an empty string if no vulnerabilities are provided.
     """
     if not vulns:
@@ -234,8 +234,8 @@ def format_vulnerability_table(vulns: list[VulnerablePackage]) -> str:
 # ---------------------------------------------------------------------------
 
 # Pattern matching exclude-newer timestamp lines in uv.lock diffs.
-# These lines appear in the ``[options]`` section (``exclude-newer``) and the
-# ``[options.exclude-newer-package]`` section (per-package entries) and represent
+# These lines appear in the `[options]` section (`exclude-newer`) and the
+# `[options.exclude-newer-package]` section (per-package entries) and represent
 # no actual dependency changes.
 _TIMESTAMP_LINE_RE = re.compile(
     r"^\s*("
@@ -244,30 +244,31 @@ _TIMESTAMP_LINE_RE = re.compile(
     r'\S+\s*=\s*\{[^}]*timestamp\s*=\s*"[^"]*"[^}]*\}'
     r")\s*$"
 )
-"""Matches ``exclude-newer`` and per-package timestamp lines in uv.lock diffs.
+"""Matches `exclude-newer` and per-package timestamp lines in uv.lock diffs.
 
-The first alternative matches the top-level ``exclude-newer = "<ISO datetime>"``
-line from the ``[options]`` section. The second matches per-package lines like
+The first alternative matches the top-level `exclude-newer = "<ISO datetime>"`
+line from the `[options]` section. The second matches per-package lines like
 ``repomatic = { timestamp = "<ISO datetime>", span = "PT0S" }`` from the
-``[options.exclude-newer-package]`` section. Both change on every ``uv lock``
-run when a relative ``exclude-newer-package`` offset is configured.
+`[options.exclude-newer-package]` section. Both change on every `uv lock`
+run when a relative `exclude-newer-package` offset is configured.
 """
 
 
 def is_lock_diff_only_timestamp_noise(lock_path: Path) -> bool:
     """Check whether the only changes in a lock file are timestamp noise.
 
-    .. note::
-        This is a workaround for uv writing a new resolved timestamp on every
-        ``uv lock`` run even when no packages changed.
-        See `uv#18155 <https://github.com/astral-sh/uv/issues/18155>`_.
+    :::{note}
+    This is a workaround for uv writing a new resolved timestamp on every
+    `uv lock` run even when no packages changed.
+    See [uv#18155](https://github.com/astral-sh/uv/issues/18155).
+    :::
 
-    Runs ``git diff`` on the given path and inspects every added/removed
-    content line. Returns ``True`` only when *all* changed lines match the
-    ``exclude-newer-package`` timestamp pattern (``timestamp =`` / ``span =``).
+    Runs `git diff` on the given path and inspects every added/removed
+    content line. Returns `True` only when *all* changed lines match the
+    `exclude-newer-package` timestamp pattern (`timestamp =` / `span =`).
 
     :param lock_path: Path to the lock file to inspect.
-    :return: ``True`` if the diff contains only timestamp noise, ``False``
+    :return: `True` if the diff contains only timestamp noise, `False`
         if there are no changes or any real dependency change is present.
     """
     result = subprocess.run(
@@ -309,17 +310,18 @@ def is_lock_diff_only_timestamp_noise(lock_path: Path) -> bool:
 def revert_lock_if_noise(lock_path: Path) -> bool:
     """Revert a lock file if its only changes are timestamp noise.
 
-    Calls :func:`is_lock_diff_only_timestamp_noise` and, if ``True``,
-    runs ``git checkout`` to discard the noise changes.
+    Calls {func}`is_lock_diff_only_timestamp_noise` and, if `True`,
+    runs `git checkout` to discard the noise changes.
 
-    .. note::
-        In Renovate's ``postUpgradeTasks`` context, the revert is ineffective
-        because Renovate captures file content after its own ``uv lock --upgrade``
-        manager step *before* ``postUpgradeTasks`` run, and commits its cached
-        content regardless of working tree changes.
+    :::{note}
+    In Renovate's `postUpgradeTasks` context, the revert is ineffective
+    because Renovate captures file content after its own `uv lock --upgrade`
+    manager step *before* `postUpgradeTasks` run, and commits its cached
+    content regardless of working tree changes.
+    :::
 
     :param lock_path: Path to the lock file to inspect and potentially revert.
-    :return: ``True`` if the file was reverted, ``False`` otherwise.
+    :return: `True` if the file was reverted, `False` otherwise.
     """
     if not is_lock_diff_only_timestamp_noise(lock_path):
         return False
@@ -337,18 +339,18 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
 # ---------------------------------------------------------------------------
 
 _RELATIVE_DURATION_RE = re.compile(r"^(\d+)\s+(days?|weeks?)$")
-"""Matches uv's relative duration syntax: ``N day(s)`` or ``N week(s)``."""
+"""Matches uv's relative duration syntax: `N day(s)` or `N week(s)`."""
 
 
 def _build_inline_table(entries: dict[str, str]) -> tomlkit.items.InlineTable:
     """Build a tomlkit inline table with pyproject-fmt-compatible formatting.
 
-    ``tomlkit``'s ``InlineTable.append()`` and ``__delitem__`` leave malformed
+    `tomlkit`'s `InlineTable.append()` and `__delitem__` leave malformed
     whitespace (doubled spaces after commas, missing inner-brace spaces).
     Building the table by parsing a pre-formatted string avoids this.
 
     :param entries: Mapping of key-value pairs for the inline table.
-    :return: A ``tomlkit`` ``InlineTable`` with canonical formatting.
+    :return: A `tomlkit` `InlineTable` with canonical formatting.
     """
     parts = ", ".join(f'{k} = "{entries[k]}"' for k in sorted(entries))
     return cast(tomlkit.items.InlineTable, tomlkit.value("{ " + parts + " }"))
@@ -357,11 +359,11 @@ def _build_inline_table(entries: dict[str, str]) -> tomlkit.items.InlineTable:
 def _parse_relative_duration(value: str) -> timedelta | None:
     """Parse a uv relative duration string into a timedelta.
 
-    Handles ``"N day"``, ``"N days"``, ``"N week"``, and ``"N weeks"``.
+    Handles `"N day"`, `"N days"`, `"N week"`, and `"N weeks"`.
 
-    :param value: The duration string from ``exclude-newer`` in
-        ``pyproject.toml``.
-    :return: A :class:`~datetime.timedelta`, or ``None`` if the value is not
+    :param value: The duration string from `exclude-newer` in
+        `pyproject.toml`.
+    :return: A {class}`~datetime.timedelta`, or `None` if the value is not
         a recognized relative duration.
     """
     match = _RELATIVE_DURATION_RE.match(value.strip())
@@ -378,12 +380,12 @@ def _parse_iso_datetime(iso_str: str) -> datetime | None:
     """Parse an ISO 8601 datetime string into a timezone-aware datetime.
 
     Handles nanosecond-precision timestamps that uv emits, which Python
-    3.10's ``fromisoformat`` rejects. Truncates fractional seconds to
+    3.10's `fromisoformat` rejects. Truncates fractional seconds to
     microseconds (6 digits) for compatibility.
 
     :param iso_str: An ISO 8601 datetime string (e.g.,
-        ``"2026-03-13T18:30:00Z"``).
-    :return: A timezone-aware :class:`~datetime.datetime`, or ``None`` if
+        `"2026-03-13T18:30:00Z"`).
+    :return: A timezone-aware {class}`~datetime.datetime`, or `None` if
         parsing fails.
     """
     try:
@@ -404,14 +406,14 @@ def _packages_outside_cooldown(
 ) -> set[str]:
     """Return the subset of *packages* whose upload time exceeds the cooldown.
 
-    A package needs an ``exclude-newer-package`` exemption only when its locked
-    version was uploaded *after* the ``exclude-newer`` cutoff, meaning a regular
-    ``uv lock --upgrade`` would not resolve it.
+    A package needs an `exclude-newer-package` exemption only when its locked
+    version was uploaded *after* the `exclude-newer` cutoff, meaning a regular
+    `uv lock --upgrade` would not resolve it.
 
-    :param pyproject_path: Path to the ``pyproject.toml`` file.
-    :param lock_path: Path to the ``uv.lock`` file.
+    :param pyproject_path: Path to the `pyproject.toml` file.
+    :param lock_path: Path to the `uv.lock` file.
     :param packages: Candidate package names.
-    :return: The subset that actually requires a ``"0 day"`` override.
+    :return: The subset that actually requires a `"0 day"` override.
     """
     content = pyproject_path.read_text(encoding="UTF-8")
     doc = tomlkit.parse(content)
@@ -459,19 +461,19 @@ def add_exclude_newer_packages(
     pyproject_path: Path,
     packages: set[str],
 ) -> bool:
-    """Add packages to ``[tool.uv].exclude-newer-package`` in ``pyproject.toml``.
+    """Add packages to `[tool.uv].exclude-newer-package` in `pyproject.toml`.
 
-    Persists ``"0 day"`` exemptions for the given packages so that subsequent
-    ``uv lock --upgrade`` runs (e.g. from the ``sync-uv-lock`` job) do not
+    Persists `"0 day"` exemptions for the given packages so that subsequent
+    `uv lock --upgrade` runs (e.g. from the `sync-uv-lock` job) do not
     downgrade security-fixed packages back to versions within the
-    ``exclude-newer`` cooldown window.
+    `exclude-newer` cooldown window.
 
-    Skips packages that already have an entry. Returns ``True`` if the file
+    Skips packages that already have an entry. Returns `True` if the file
     was modified.
 
-    :param pyproject_path: Path to the ``pyproject.toml`` file.
+    :param pyproject_path: Path to the `pyproject.toml` file.
     :param packages: Package names to add.
-    :return: ``True`` if the file was updated, ``False`` if no changes were
+    :return: `True` if the file was updated, `False` if no changes were
         needed.
     """
     content = pyproject_path.read_text(encoding="UTF-8")
@@ -539,22 +541,23 @@ def prune_stale_exclude_newer_packages(
     pyproject_path: Path,
     lock_path: Path,
 ) -> bool:
-    """Remove stale entries from ``[tool.uv].exclude-newer-package``.
+    """Remove stale entries from `[tool.uv].exclude-newer-package`.
 
-    .. note::
-        This is a workaround until uv supports native pruning.
-        See `uv#18792 <https://github.com/astral-sh/uv/issues/18792>`_.
+    :::{note}
+    This is a workaround until uv supports native pruning.
+    See [uv#18792](https://github.com/astral-sh/uv/issues/18792).
+    :::
 
     An entry is stale when its locked version's upload time falls before the
-    ``exclude-newer`` cutoff, meaning ``uv lock --upgrade`` would resolve to
-    the same (or newer) version without the ``"0 day"`` override.
+    `exclude-newer` cutoff, meaning `uv lock --upgrade` would resolve to
+    the same (or newer) version without the `"0 day"` override.
 
     Packages without an upload time in the lock file (git or path sources)
     are treated as permanent exemptions and never pruned.
 
-    :param pyproject_path: Path to the ``pyproject.toml`` file.
-    :param lock_path: Path to the ``uv.lock`` file.
-    :return: ``True`` if the file was modified, ``False`` otherwise.
+    :param pyproject_path: Path to the `pyproject.toml` file.
+    :param lock_path: Path to the `uv.lock` file.
+    :return: `True` if the file was modified, `False` otherwise.
     """
     content = pyproject_path.read_text(encoding="UTF-8")
     doc = tomlkit.parse(content)
@@ -631,9 +634,9 @@ def prune_stale_exclude_newer_packages(
 
 
 def parse_lock_versions(lock_path: Path) -> dict[str, str]:
-    """Parse a ``uv.lock`` file and return a mapping of package names to versions.
+    """Parse a `uv.lock` file and return a mapping of package names to versions.
 
-    :param lock_path: Path to the ``uv.lock`` file.
+    :param lock_path: Path to the `uv.lock` file.
     :return: A dict mapping normalized package names to their version strings.
     """
     if not lock_path.exists():
@@ -648,13 +651,13 @@ def parse_lock_versions(lock_path: Path) -> dict[str, str]:
 
 
 def parse_lock_upload_times(lock_path: Path) -> dict[str, str]:
-    """Parse a ``uv.lock`` file and return a mapping of package names to upload times.
+    """Parse a `uv.lock` file and return a mapping of package names to upload times.
 
-    Extracts the ``upload-time`` field from each package's ``sdist`` entry.
+    Extracts the `upload-time` field from each package's `sdist` entry.
 
-    :param lock_path: Path to the ``uv.lock`` file.
+    :param lock_path: Path to the `uv.lock` file.
     :return: A dict mapping normalized package names to ISO 8601 upload-time
-        strings. Packages without an ``sdist`` or ``upload-time`` are omitted.
+        strings. Packages without an `sdist` or `upload-time` are omitted.
     """
     if not lock_path.exists():
         return {}
@@ -670,10 +673,10 @@ def parse_lock_upload_times(lock_path: Path) -> dict[str, str]:
 
 
 def parse_lock_exclude_newer(lock_path: Path) -> str:
-    """Parse the ``exclude-newer`` timestamp from a ``uv.lock`` file.
+    """Parse the `exclude-newer` timestamp from a `uv.lock` file.
 
-    :param lock_path: Path to the ``uv.lock`` file.
-    :return: The ``exclude-newer`` ISO 8601 datetime string, or an empty string
+    :param lock_path: Path to the `uv.lock` file.
+    :return: The `exclude-newer` ISO 8601 datetime string, or an empty string
         if not present.
     """
     if not lock_path.exists():
@@ -685,7 +688,7 @@ def parse_lock_exclude_newer(lock_path: Path) -> str:
 
 
 def load_lock_data(lock_path: Path | None = None) -> dict[str, Any]:
-    """Load and parse a ``uv.lock`` file.
+    """Load and parse a `uv.lock` file.
 
     :param lock_path: Path to uv.lock file. If None, looks in current directory.
     :return: Parsed TOML data as a dict, or empty dict if the file does not exist.
@@ -700,16 +703,16 @@ def load_lock_data(lock_path: Path | None = None) -> dict[str, Any]:
 
 @dataclass
 class LockSpecifiers:
-    """Dependency specifiers extracted from a ``uv.lock`` file.
+    """Dependency specifiers extracted from a `uv.lock` file.
 
     Two views of the same data, built in a single pass over the lock packages:
 
-    ``by_package``
+    `by_package`
         ``{package_name: {dep_name: specifier}}``. Every dependency declared by
         a package (main and dev) keyed by the declaring package name. Used for
         edge labels in dependency graphs.
 
-    ``by_subgraph``
+    `by_subgraph`
         ``{subgraph_name: {dep_name: specifier}}``. Primary dependencies keyed
         by dev-group name or extra name. Used for node labels inside subgraphs.
     """
@@ -723,16 +726,16 @@ def parse_lock_specifiers(
     *,
     lock_data: dict[str, Any] | None = None,
 ) -> LockSpecifiers:
-    """Parse ``uv.lock`` and extract dependency specifiers.
+    """Parse `uv.lock` and extract dependency specifiers.
 
     A single pass builds two complementary indexes from
-    ``[package.metadata].requires-dist`` and
-    ``[package.metadata.requires-dev]``. See :class:`LockSpecifiers` for the
+    `[package.metadata].requires-dist` and
+    `[package.metadata.requires-dev]`. See {class}`LockSpecifiers` for the
     two views returned.
 
     :param lock_path: Path to uv.lock file. If None, looks in current directory.
         Ignored when *lock_data* is provided.
-    :param lock_data: Pre-loaded lock data from :func:`load_lock_data`. When
+    :param lock_data: Pre-loaded lock data from {func}`load_lock_data`. When
         provided, skips file I/O.
     """
     if lock_data is None:
@@ -794,8 +797,8 @@ def _format_upload_date(iso_datetime: str) -> str:
     """Format an ISO 8601 datetime as a human-readable date string.
 
     :param iso_datetime: An ISO 8601 datetime string (e.g.,
-        ``"2026-03-13T12:00:00Z"``).
-    :return: A formatted date like ``2026-03-13``, or the raw string if parsing
+        `"2026-03-13T12:00:00Z"`).
+    :return: A formatted date like `2026-03-13`, or the raw string if parsing
         fails.
     """
     dt = _parse_iso_datetime(iso_datetime)
@@ -812,8 +815,8 @@ def diff_lock_versions(
 
     :param before: Package versions before the upgrade.
     :param after: Package versions after the upgrade.
-    :return: A sorted list of ``(name, old_version, new_version)`` tuples.
-        ``old_version`` is empty for added packages; ``new_version`` is empty
+    :return: A sorted list of `(name, old_version, new_version)` tuples.
+        `old_version` is empty for added packages; `new_version` is empty
         for removed packages.
     """
     changes = []
@@ -833,20 +836,20 @@ def format_diff_table(
 ) -> str:
     """Format version changes as a markdown table with heading.
 
-    When ``upload_times`` is provided, a "Released" column is added so
+    When `upload_times` is provided, a "Released" column is added so
     reviewers can visually verify that all updated packages respect the
-    ``exclude-newer`` cutoff. The cutoff itself is shown above the table
-    when ``exclude_newer`` is non-empty.
+    `exclude-newer` cutoff. The cutoff itself is shown above the table
+    when `exclude_newer` is non-empty.
 
-    :param changes: List of ``(name, old_version, new_version)`` tuples
-        as returned by :func:`diff_lock_versions`.
+    :param changes: List of `(name, old_version, new_version)` tuples
+        as returned by {func}`diff_lock_versions`.
     :param upload_times: Optional mapping of package names to ISO 8601
-        upload-time strings, as returned by :func:`parse_lock_upload_times`.
-    :param exclude_newer: Optional ``exclude-newer`` ISO 8601 datetime from
-        the lock file, as returned by :func:`parse_lock_exclude_newer`.
+        upload-time strings, as returned by {func}`parse_lock_upload_times`.
+    :param exclude_newer: Optional `exclude-newer` ISO 8601 datetime from
+        the lock file, as returned by {func}`parse_lock_exclude_newer`.
     :param comparison_urls: Optional mapping of package names to GitHub
-        comparison URLs, as returned by :func:`build_comparison_urls`.
-    :return: A markdown string with a ``### Updated packages`` heading and
+        comparison URLs, as returned by {func}`build_comparison_urls`.
+    :return: A markdown string with a `### Updated packages` heading and
         table, or an empty string if there are no changes.
     """
     if not changes:
@@ -894,7 +897,7 @@ def format_diff_table(
 def _github_api_request(url: str) -> Request:
     """Build a GitHub API request with optional token authentication.
 
-    Uses ``GITHUB_TOKEN`` or ``GH_TOKEN`` from the environment when available
+    Uses `GITHUB_TOKEN` or `GH_TOKEN` from the environment when available
     to raise the rate limit from 60 to 1000 requests/hour.
     """
     headers = {"Accept": "application/vnd.github+json"}
@@ -905,11 +908,11 @@ def _github_api_request(url: str) -> Request:
 
 
 def _parse_github_owner_repo(repo_url: str) -> tuple[str, str] | None:
-    """Extract ``(owner, repo)`` from a GitHub URL.
+    """Extract `(owner, repo)` from a GitHub URL.
 
     :param repo_url: A GitHub repository URL (e.g.,
-        ``https://github.com/nedbat/coveragepy``).
-    :return: A tuple of ``(owner, repo)``, or ``None`` if parsing fails.
+        `https://github.com/nedbat/coveragepy`).
+    :return: A tuple of `(owner, repo)`, or `None` if parsing fails.
     """
     parts = repo_url.rstrip("/").removesuffix(".git").split("/")
     if len(parts) < 2:
@@ -924,9 +927,9 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
     the bare ``{version}`` tag.
 
     :param repo_url: GitHub repository URL.
-    :param version: The version string (e.g., ``7.13.5``).
-    :return: A tuple of ``(tag, body)`` where ``tag`` is the matched tag name
-        and ``body`` is the release notes markdown. Both are empty strings if
+    :param version: The version string (e.g., `7.13.5`).
+    :return: A tuple of `(tag, body)` where `tag` is the matched tag name
+        and `body` is the release notes markdown. Both are empty strings if
         no release is found.
     """
     parsed = _parse_github_owner_repo(repo_url)
@@ -971,9 +974,9 @@ def get_github_release_body(repo_url: str, version: str) -> tuple[str, str]:
 
 
 def _versions_in_range(package: str, old: str, new: str) -> list[str]:
-    """Return PyPI versions of *package* in the half-open range ``(old, new]``.
+    """Return PyPI versions of *package* in the half-open range `(old, new]`.
 
-    Versions are sorted in ascending order. Falls back to ``[new]`` if no
+    Versions are sorted in ascending order. Falls back to `[new]` if no
     intermediate versions are found or PyPI is unreachable.
     """
     releases = get_pypi_release_dates(package)
@@ -1005,14 +1008,14 @@ def fetch_release_notes(
 
     For each package with a new version, discovers the GitHub repository via
     PyPI and fetches the release notes from GitHub Releases for all versions
-    in the range ``(old, new]``. Falls back to a changelog link from PyPI
-    ``project_urls`` when no GitHub Release exists.
+    in the range `(old, new]`. Falls back to a changelog link from PyPI
+    `project_urls` when no GitHub Release exists.
 
-    :param changes: List of ``(name, old_version, new_version)`` tuples.
-    :return: A dict mapping package names to ``(repo_url, versions)`` tuples
-        where ``versions`` is a list of ``(tag, body)`` pairs sorted ascending.
+    :param changes: List of `(name, old_version, new_version)` tuples.
+    :return: A dict mapping package names to `(repo_url, versions)` tuples
+        where `versions` is a list of `(tag, body)` pairs sorted ascending.
         Only packages with at least one non-empty body are included. When a
-        changelog URL is used as fallback, ``tag`` is empty and ``body``
+        changelog URL is used as fallback, `tag` is empty and `body`
         contains a markdown link.
     """
     notes: dict[str, tuple[str, list[tuple[str, str]]]] = {}
@@ -1051,15 +1054,15 @@ def fetch_release_notes(
 def format_release_notes(
     notes: dict[str, tuple[str, list[tuple[str, str]]]],
 ) -> str:
-    """Render release notes as collapsible ``<details>`` blocks.
+    """Render release notes as collapsible `<details>` blocks.
 
     Follows Renovate's visual pattern: a "Release notes" heading with one
     collapsible section per package. Long release bodies are truncated to
-    :data:`RELEASE_NOTES_MAX_LENGTH` characters with a link to the full release.
+    {data}`RELEASE_NOTES_MAX_LENGTH` characters with a link to the full release.
 
-    :param notes: A dict mapping package names to ``(repo_url, versions)``
-        tuples where ``versions`` is a list of ``(tag, body)`` pairs, as
-        returned by :func:`fetch_release_notes`.
+    :param notes: A dict mapping package names to `(repo_url, versions)`
+        tuples where `versions` is a list of `(tag, body)` pairs, as
+        returned by {func}`fetch_release_notes`.
     :return: A markdown string with the release notes section, or an empty
         string if no notes are available.
     """
@@ -1097,12 +1100,12 @@ def build_comparison_urls(
 ) -> dict[str, str]:
     """Build GitHub comparison URLs from version changes and release notes.
 
-    Uses the tag format discovered by :func:`fetch_release_notes` to construct
+    Uses the tag format discovered by {func}`fetch_release_notes` to construct
     comparison URLs. Only packages with both old and new versions and a known
     GitHub repository are included.
 
-    :param changes: List of ``(name, old_version, new_version)`` tuples.
-    :param notes: Release notes dict as returned by :func:`fetch_release_notes`.
+    :param changes: List of `(name, old_version, new_version)` tuples.
+    :param notes: Release notes dict as returned by {func}`fetch_release_notes`.
     :return: Dict mapping package names to GitHub comparison URLs.
     """
     urls: dict[str, str] = {}
@@ -1128,16 +1131,16 @@ def build_comparison_urls(
 def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
     """Detect vulnerable packages and upgrade them in the lock file.
 
-    Runs ``uv audit`` to detect vulnerabilities, then upgrades each fixable
-    package with ``uv lock --upgrade-package`` using ``--exclude-newer-package``
-    to bypass the ``exclude-newer`` cooldown for security fixes. Also persists
-    the exemptions in ``pyproject.toml`` so that subsequent ``uv lock --upgrade``
-    runs (e.g. from the ``sync-uv-lock`` job) do not downgrade the fixed
+    Runs `uv audit` to detect vulnerabilities, then upgrades each fixable
+    package with `uv lock --upgrade-package` using `--exclude-newer-package`
+    to bypass the `exclude-newer` cooldown for security fixes. Also persists
+    the exemptions in `pyproject.toml` so that subsequent `uv lock --upgrade`
+    runs (e.g. from the `sync-uv-lock` job) do not downgrade the fixed
     packages back within the cooldown window.
 
-    :param lock_path: Path to the ``uv.lock`` file.
-    :return: A tuple of ``(has_fixes, diff_table)``. ``has_fixes`` is ``True``
-        when at least one vulnerable package was upgraded. ``diff_table`` is a
+    :param lock_path: Path to the `uv.lock` file.
+    :return: A tuple of `(has_fixes, diff_table)`. `has_fixes` is `True`
+        when at least one vulnerable package was upgraded. `diff_table` is a
         markdown-formatted string with vulnerability details and version changes,
         or an empty string if no fixable vulnerabilities were found.
     """
@@ -1201,7 +1204,7 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
 
     # Step 7: Persist cooldown exemptions only for packages whose fixed
     # version falls outside the exclude-newer window. Packages already
-    # reachable by a normal ``uv lock --upgrade`` do not need an override.
+    # reachable by a normal `uv lock --upgrade` do not need an override.
     pyproject_path = lock_path.parent / "pyproject.toml"
     if pyproject_path.exists():
         upgraded = {name for name, _old, _new in changes}
@@ -1232,32 +1235,32 @@ def fix_vulnerable_deps(lock_path: Path) -> tuple[bool, str]:
 
 @dataclass
 class SyncResult:
-    """Result of a ``sync-uv-lock`` operation."""
+    """Result of a `sync-uv-lock` operation."""
 
     reverted: bool
-    """Whether ``uv.lock`` was reverted (only timestamp noise changed)."""
+    """Whether `uv.lock` was reverted (only timestamp noise changed)."""
 
     changes: list[tuple[str, str, str]]
-    """Version changes as ``(name, old_version, new_version)`` tuples."""
+    """Version changes as `(name, old_version, new_version)` tuples."""
 
     upload_times: dict[str, str]
     """Package name to ISO 8601 upload-time mapping from the lock file."""
 
     exclude_newer: str
-    """The ``exclude-newer`` cutoff from the lock file, or empty string."""
+    """The `exclude-newer` cutoff from the lock file, or empty string."""
 
 
 def sync_uv_lock(lock_path: Path) -> SyncResult:
-    """Re-lock with ``--upgrade`` and revert if only timestamp noise changed.
+    """Re-lock with `--upgrade` and revert if only timestamp noise changed.
 
-    First prunes stale ``exclude-newer-package`` entries from
-    ``pyproject.toml`` (entries whose locked version was uploaded before the
-    ``exclude-newer`` cutoff), then runs ``uv lock --upgrade`` to update
+    First prunes stale `exclude-newer-package` entries from
+    `pyproject.toml` (entries whose locked version was uploaded before the
+    `exclude-newer` cutoff), then runs `uv lock --upgrade` to update
     transitive dependencies. If the resulting diff contains only timestamp
-    noise, reverts ``uv.lock`` so no spurious changes are committed.
+    noise, reverts `uv.lock` so no spurious changes are committed.
 
-    :param lock_path: Path to the ``uv.lock`` file.
-    :return: A :class:`SyncResult` with structured version change data.
+    :param lock_path: Path to the `uv.lock` file.
+    :return: A {class}`SyncResult` with structured version change data.
     """
     # Step 1: Prune stale exclude-newer-package entries before relocking so
     # uv resolves those packages through the normal cooldown window.

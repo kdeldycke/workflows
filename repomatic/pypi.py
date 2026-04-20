@@ -16,8 +16,8 @@
 """PyPI API client for package metadata lookups.
 
 Provides a shared HTTP client and domain-specific query functions used by
-:mod:`repomatic.changelog` (release dates, yanked status) and
-:mod:`repomatic.renovate` (source repository discovery).
+{mod}`repomatic.changelog` (release dates, yanked status) and
+{mod}`repomatic.renovate` (source repository discovery).
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
 PYPI_LABEL = "🐍 PyPI"
 """Display label for PyPI releases in admonitions."""
 
-# Keys in PyPI ``project_urls`` that typically point to a changelog,
+# Keys in PyPI `project_urls` that typically point to a changelog,
 # checked in priority order.
 _CHANGELOG_URL_KEYS = (
     "Changelog",
@@ -50,7 +50,7 @@ _CHANGELOG_URL_KEYS = (
     "History",
 )
 
-# Keys in PyPI ``project_urls`` that typically point to a GitHub repository,
+# Keys in PyPI `project_urls` that typically point to a GitHub repository,
 # checked in priority order.
 _SOURCE_URL_KEYS = (
     "Source",
@@ -65,11 +65,11 @@ _SOURCE_URL_KEYS = (
 def _fetch_json(package: str) -> dict | None:
     """Fetch the full JSON metadata for a PyPI package.
 
-    Results are cached under the ``pypi`` namespace. Freshness TTL is read
-    from ``CacheConfig.pypi_ttl``.
+    Results are cached under the `pypi` namespace. Freshness TTL is read
+    from `CacheConfig.pypi_ttl`.
 
     :param package: The PyPI package name.
-    :return: Parsed JSON response, or ``None`` on any failure.
+    :return: Parsed JSON response, or `None` on any failure.
     """
     ttl = load_repomatic_config().cache.pypi_ttl
     cached = get_cached_response("pypi", package, ttl)
@@ -98,7 +98,7 @@ class PyPIRelease(NamedTuple):
     """Release metadata for a single version from PyPI."""
 
     date: str
-    """Earliest upload date across all files in ``YYYY-MM-DD`` format."""
+    """Earliest upload date across all files in `YYYY-MM-DD` format."""
 
     yanked: bool
     """Whether all files for this version are yanked."""
@@ -121,7 +121,7 @@ def get_release_dates(package: str) -> dict[str, PyPIRelease]:
     **all** of its files are yanked.
 
     :param package: The PyPI package name.
-    :return: Dict mapping version strings to :class:`PyPIRelease` tuples.
+    :return: Dict mapping version strings to {class}`PyPIRelease` tuples.
         Empty dict if the package is not found or the request fails.
     """
     data = _fetch_json(package)
@@ -149,11 +149,11 @@ def get_release_dates(package: str) -> dict[str, PyPIRelease]:
 def get_source_url(package: str) -> str | None:
     """Discover the GitHub repository URL for a PyPI package.
 
-    Queries the PyPI JSON API and scans ``project_urls`` for keys that
+    Queries the PyPI JSON API and scans `project_urls` for keys that
     typically point to a source repository on GitHub.
 
     :param package: The PyPI package name.
-    :return: The GitHub repository URL, or ``None`` if not found.
+    :return: The GitHub repository URL, or `None` if not found.
     """
     data = _fetch_json(package)
     if data is None:
@@ -174,11 +174,11 @@ def get_source_url(package: str) -> str | None:
 def get_changelog_url(package: str) -> str | None:
     """Discover the changelog URL for a PyPI package.
 
-    Queries the PyPI JSON API and scans ``project_urls`` for keys that
+    Queries the PyPI JSON API and scans `project_urls` for keys that
     typically point to a changelog or release notes page.
 
     :param package: The PyPI package name.
-    :return: The changelog URL, or ``None`` if not found.
+    :return: The changelog URL, or `None` if not found.
     """
     data = _fetch_json(package)
     if data is None:

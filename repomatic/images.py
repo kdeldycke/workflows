@@ -16,34 +16,36 @@
 
 """Image optimization using external CLI tools.
 
-Replaces the Docker-based ``calibreapp/image-actions`` GitHub Action with direct
+Replaces the Docker-based `calibreapp/image-actions` GitHub Action with direct
 invocations of lightweight CLI tools, removing the Docker dependency and enabling
-``ubuntu-slim`` runners.
+`ubuntu-slim` runners.
 
 Tools used per format:
 
-- PNG: ``oxipng`` (lossless, multithreaded Rust optimizer).
-- JPEG/JPG: ``jpegoptim`` (lossless Huffman optimization + metadata stripping).
+- PNG: `oxipng` (lossless, multithreaded Rust optimizer).
+- JPEG/JPG: `jpegoptim` (lossless Huffman optimization + metadata stripping).
 
-.. note::
-    Both tools are strictly **lossless**: ``oxipng`` finds optimal PNG encoding
-    parameters without altering pixel data, and ``jpegoptim`` (without ``-m``)
-    rewrites Huffman tables only. This means optimization is **idempotent** — a
-    second run produces no further changes, so the workflow never creates noisy
-    PRs for negligible savings.
+:::{note}
+Both tools are strictly **lossless**: `oxipng` finds optimal PNG encoding
+parameters without altering pixel data, and `jpegoptim` (without `-m`)
+rewrites Huffman tables only. This means optimization is **idempotent** — a
+second run produces no further changes, so the workflow never creates noisy
+PRs for negligible savings.
+:::
 
-.. warning::
-    WebP and AVIF are intentionally **not** optimized. The only available tools
-    (``cwebp``, ``avifenc``) work by lossy re-encoding: decode → re-compress at
-    a target quality. This is **not idempotent** — each pass re-compresses the
-    previous output, producing progressively smaller (and worse) files. The
-    earlier ``calibreapp/image-actions`` suffered from this: it required multiple
-    workflow runs to stabilize below the savings threshold, generating repeated
-    PRs with diminishing returns and cumulative quality loss. Lossless WebP/AVIF
-    modes exist but typically *increase* file size when applied to already
-    lossy-encoded images, making them counterproductive. Since WebP and AVIF are
-    modern formats chosen specifically for their compression efficiency, files in
-    these formats are almost always already well-optimized at creation time.
+:::{warning}
+WebP and AVIF are intentionally **not** optimized. The only available tools
+(`cwebp`, `avifenc`) work by lossy re-encoding: decode → re-compress at
+a target quality. This is **not idempotent** — each pass re-compresses the
+previous output, producing progressively smaller (and worse) files. The
+earlier `calibreapp/image-actions` suffered from this: it required multiple
+workflow runs to stabilize below the savings threshold, generating repeated
+PRs with diminishing returns and cumulative quality loss. Lossless WebP/AVIF
+modes exist but typically *increase* file size when applied to already
+lossy-encoded images, making them counterproductive. Since WebP and AVIF are
+modern formats chosen specifically for their compression efficiency, files in
+these formats are almost always already well-optimized at creation time.
+:::
 """
 
 from __future__ import annotations
@@ -93,7 +95,7 @@ def format_file_size(size_bytes: int) -> str:
     """Format a byte count as a human-readable string.
 
     Uses KB/MB/GB with one decimal place, matching the format produced by
-    ``calibreapp/image-actions``.
+    `calibreapp/image-actions`.
     """
     if size_bytes < 1024:
         return f"{size_bytes:,} B"
@@ -105,12 +107,12 @@ def format_file_size(size_bytes: int) -> str:
 
 
 def _check_tool(name: str) -> bool:
-    """Return ``True`` if *name* is found on ``$PATH``."""
+    """Return `True` if *name* is found on `$PATH`."""
     return shutil.which(name) is not None
 
 
 def _optimize_png(path: Path) -> None:
-    """Optimize a PNG file in-place with ``oxipng``."""
+    """Optimize a PNG file in-place with `oxipng`."""
     subprocess.run(
         ["oxipng", "--opt", OXIPNG_OPT_LEVEL, "--strip", "safe", str(path)],
         capture_output=True,
@@ -120,7 +122,7 @@ def _optimize_png(path: Path) -> None:
 
 
 def _optimize_jpeg(path: Path) -> None:
-    """Optimize a JPEG file in-place with ``jpegoptim``."""
+    """Optimize a JPEG file in-place with `jpegoptim`."""
     subprocess.run(
         ["jpegoptim", *JPEGOPTIM_FLAGS, str(path)],
         capture_output=True,
@@ -150,8 +152,8 @@ def optimize_image(
     :param min_savings_bytes: Minimum absolute byte savings to keep the result.
         Prevents noisy diffs for tiny files where even a high percentage
         represents negligible absolute savings.
-    :return: An :class:`OptimizationResult` if the file was optimized, or
-        ``None`` if the format is unsupported, the required tool is missing,
+    :return: An {class}`OptimizationResult` if the file was optimized, or
+        `None` if the format is unsupported, the required tool is missing,
         or savings were below the threshold.
     """
     ext = path.suffix.lower()
@@ -245,7 +247,7 @@ def optimize_images(
 def generate_markdown_summary(results: list[OptimizationResult]) -> str:
     """Generate a markdown summary table of optimization results.
 
-    Produces a table similar to ``calibreapp/image-actions`` output, showing
+    Produces a table similar to `calibreapp/image-actions` output, showing
     before/after sizes and percentage improvement for each optimized file.
     """
     if not results:

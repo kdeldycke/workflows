@@ -18,7 +18,7 @@
 
 This module provides utilities for managing Renovate prerequisites and
 migrating from Dependabot to Renovate. uv lock file operations (version
-parsing, noise detection, vulnerability auditing) live in :mod:`repomatic.uv`.
+parsing, noise detection, vulnerability auditing) live in {mod}`repomatic.uv`.
 """
 
 from __future__ import annotations

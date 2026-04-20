@@ -132,7 +132,7 @@ def check_description_matches(
 
 
 def _funding_file_exists() -> bool:
-    """Check whether a ``.github/FUNDING.yml`` file exists (case-insensitive).
+    """Check whether a `.github/FUNDING.yml` file exists (case-insensitive).
 
     GitHub accepts any casing of the filename.
     """
@@ -145,11 +145,11 @@ def _funding_file_exists() -> bool:
 
 
 def check_funding_file(repo: str) -> tuple[str | None, str]:
-    """Check that repos with GitHub Sponsors have a ``FUNDING.yml``.
+    """Check that repos with GitHub Sponsors have a `FUNDING.yml`.
 
     Skips forks (they inherit the parent's sponsor button) and owners
     without a Sponsors listing. Uses the GraphQL API because the REST API
-    does not expose ``hasSponsorsListing``.
+    does not expose `hasSponsorsListing`.
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (warning_message or None, info_message).
@@ -196,10 +196,10 @@ def check_funding_file(repo: str) -> tuple[str | None, str]:
 def check_stale_draft_releases(repo: str) -> tuple[str | None, str]:
     """Check for draft releases that are not dev pre-releases.
 
-    Draft releases whose tag does not end with ``.dev0`` are likely
+    Draft releases whose tag does not end with `.dev0` are likely
     leftovers from abandoned or failed release attempts. The only
     expected drafts are the rolling dev pre-releases managed by
-    ``sync-dev-release``.
+    `sync-dev-release`.
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (warning_message or None, info_message).
@@ -240,7 +240,7 @@ def check_topics_subset_of_keywords(
     """Check that GitHub repo topics are a subset of pyproject.toml keywords.
 
     :param repo: Repository in 'owner/repo' format.
-    :param keywords: Keywords from pyproject.toml. If ``None``, check is skipped.
+    :param keywords: Keywords from pyproject.toml. If `None`, check is skipped.
     :return: Tuple of (warning_message or None, info_message).
     """
     if not keywords:
@@ -275,9 +275,9 @@ def check_pat_repository_scope(repo: str) -> tuple[str | None, str]:
 
     Two strategies are tried in order:
 
-    1. ``GET /installation/repositories`` — returns the repos the token
-       can access, including a ``repository_selection`` field.
-    2. Cross-repo probe — check ``permissions.push`` on another repo
+    1. `GET /installation/repositories` — returns the repos the token
+       can access, including a `repository_selection` field.
+    2. Cross-repo probe — check `permissions.push` on another repo
        owned by the same user. If the token can push to a repo it should
        not have access to, it is over-scoped.
 
@@ -355,30 +355,31 @@ def check_fork_pr_approval_policy(repo: str) -> tuple[bool | None, str]:
     GitHub Actions has a per-repository policy that controls when workflows
     from fork pull requests must be approved by a maintainer before they run.
     The three values, from weakest to strongest, are
-    ``first_time_contributors_new_to_github``,
-    ``first_time_contributors``, and ``all_external_contributors``.
+    `first_time_contributors_new_to_github`,
+    `first_time_contributors`, and `all_external_contributors`.
 
-    The default (``first_time_contributors_new_to_github``) only catches
+    The default (`first_time_contributors_new_to_github`) only catches
     brand-new GitHub accounts, which is trivial to bypass with a slightly
-    aged account. The minimum acceptable setting is ``first_time_contributors``,
+    aged account. The minimum acceptable setting is `first_time_contributors`,
     which requires approval for any first-time contributor to this repository.
     This is one of the mitigations recommended in Astral's open-source security
     post: see https://astral.sh/blog/open-source-security-at-astral.
 
     Queries
     ``GET /repos/{repo}/actions/permissions/fork-pr-contributor-approval``
-    and returns ``False`` when the policy is weaker than
-    ``first_time_contributors``.
+    and returns `False` when the policy is weaker than
+    `first_time_contributors`.
 
-    .. note::
+    :::{note}
 
-        This endpoint requires the ``Actions: read`` permission. When the
-        ``REPOMATIC_PAT`` lacks it (or the API call fails for any other
-        reason), the check returns ``None`` to signal that the result is
-        indeterminate rather than negative.
+    This endpoint requires the `Actions: read` permission. When the
+    `REPOMATIC_PAT` lacks it (or the API call fails for any other
+    reason), the check returns `None` to signal that the result is
+    indeterminate rather than negative.
+    :::
 
     :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed_or_None, message). ``None`` means the check
+    :return: Tuple of (passed_or_None, message). `None` means the check
         could not run (API inaccessible, unparsable, or unknown policy).
     """
     try:
@@ -418,10 +419,10 @@ def check_fork_pr_approval_policy(repo: str) -> tuple[bool | None, str]:
 
 
 def check_tag_protection_rules(repo: str) -> tuple[str | None, str]:
-    """Check that no tag rulesets could block the ``create-tag`` workflow job.
+    """Check that no tag rulesets could block the `create-tag` workflow job.
 
     Tag rulesets that restrict creation or require status checks can prevent
-    ``REPOMATIC_PAT`` (or ``GITHUB_TOKEN``) from pushing release tags. This
+    `REPOMATIC_PAT` (or `GITHUB_TOKEN`) from pushing release tags. This
     check queries the repository rulesets API and warns when any ruleset
     targets tags.
 
@@ -468,18 +469,19 @@ def check_branch_ruleset_on_default(repo: str) -> tuple[bool, str]:
     """Check that at least one active branch ruleset exists.
 
     Queries the same ``GET /repos/{repo}/rulesets`` endpoint as
-    :func:`check_tag_protection_rules` and looks for active rulesets with
-    ``target == "branch"``. The presence of any such ruleset is taken as
+    {func}`check_tag_protection_rules` and looks for active rulesets with
+    `target == "branch"`. The presence of any such ruleset is taken as
     evidence that the default branch is protected (restrict deletions and
     block force pushes).
 
-    .. note::
+    :::{note}
 
-        This is a heuristic: it does not verify the ruleset targets the
-        default branch specifically, nor that it enables the exact rules
-        recommended by the setup guide. A deeper check would require
-        fetching each ruleset's conditions via
-        ``GET /repos/{repo}/rulesets/{id}``, adding N+1 API calls.
+    This is a heuristic: it does not verify the ruleset targets the
+    default branch specifically, nor that it enables the exact rules
+    recommended by the setup guide. A deeper check would require
+    fetching each ruleset's conditions via
+    ``GET /repos/{repo}/rulesets/{id}``, adding N+1 API calls.
+    :::
 
     :param repo: Repository in 'owner/repo' format.
     :return: Tuple of (passed, message).
@@ -518,17 +520,18 @@ def check_immutable_releases(repo: str) -> tuple[bool | None, str]:
     """Check that immutable releases are enabled for the repository.
 
     Queries ``GET /repos/{repo}/immutable-releases`` and inspects the
-    ``enabled`` field in the response.
+    `enabled` field in the response.
 
-    .. note::
+    :::{note}
 
-        This endpoint requires the "Administration: Read-only" permission on
-        fine-grained PATs. The ``REPOMATIC_PAT`` does not include this scope
-        (too broad), so the check returns ``None`` when the API call fails,
-        signaling that the result is indeterminate rather than negative.
+    This endpoint requires the "Administration: Read-only" permission on
+    fine-grained PATs. The `REPOMATIC_PAT` does not include this scope
+    (too broad), so the check returns `None` when the API call fails,
+    signaling that the result is indeterminate rather than negative.
+    :::
 
     :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed_or_None, message). ``None`` means the check
+    :return: Tuple of (passed_or_None, message). `None` means the check
         could not run (API inaccessible or unparsable).
     """
     try:
@@ -555,22 +558,23 @@ def check_immutable_releases(repo: str) -> tuple[bool | None, str]:
 def check_pages_deployment_source(repo: str) -> tuple[bool | None, str]:
     """Check that GitHub Pages is deployed via GitHub Actions, not a branch.
 
-    The ``docs.yaml`` workflow uses ``actions/upload-pages-artifact`` and
-    ``actions/deploy-pages``, which require the Pages source to be set to
+    The `docs.yaml` workflow uses `actions/upload-pages-artifact` and
+    `actions/deploy-pages`, which require the Pages source to be set to
     **GitHub Actions** in the repository settings. Branch-based deployment
-    (``legacy``) is incompatible.
+    (`legacy`) is incompatible.
 
-    Queries ``GET /repos/{repo}/pages`` and inspects the ``build_type``
+    Queries ``GET /repos/{repo}/pages` and inspects the `build_type``
     field in the response.
 
-    .. note::
+    :::{note}
 
-        A 404 means Pages is not configured at all. This is treated as
-        indeterminate (``None``) rather than a failure, because the repo
-        may not have deployed docs yet.
+    A 404 means Pages is not configured at all. This is treated as
+    indeterminate (`None`) rather than a failure, because the repo
+    may not have deployed docs yet.
+    :::
 
     :param repo: Repository in 'owner/repo' format.
-    :return: Tuple of (passed_or_None, message). ``None`` means the check
+    :return: Tuple of (passed_or_None, message). `None` means the check
         could not run (Pages not configured, or API inaccessible).
     """
     try:
@@ -608,9 +612,9 @@ def check_pages_deployment_source(repo: str) -> tuple[bool | None, str]:
 
 
 def check_stale_gh_pages_branch(repo: str) -> tuple[bool | None, str]:
-    """Check for a leftover ``gh-pages`` branch after switching to GitHub Actions.
+    """Check for a leftover `gh-pages` branch after switching to GitHub Actions.
 
-    When Pages is deployed via GitHub Actions, the ``gh-pages`` branch is no
+    When Pages is deployed via GitHub Actions, the `gh-pages` branch is no
     longer needed and should be deleted to avoid confusion.
 
     :param repo: Repository in 'owner/repo' format.
@@ -633,9 +637,9 @@ def check_stale_gh_pages_branch(repo: str) -> tuple[bool | None, str]:
 def check_workflow_permissions() -> list[tuple[str | None, str]]:
     """Check that workflows with custom jobs declare ``permissions: {}``.
 
-    Thin-caller workflows (all jobs use ``uses:`` to call a reusable workflow)
+    Thin-caller workflows (all jobs use `uses:` to call a reusable workflow)
     inherit permissions from the called workflow and do not need a top-level
-    ``permissions`` key. Workflows that define their own ``steps:`` should
+    `permissions` key. Workflows that define their own `steps:` should
     declare ``permissions: {}`` to follow the principle of least privilege.
 
     :return: List of (warning_message or None, info_message) tuples.
@@ -704,8 +708,8 @@ def run_repo_lint(
     :param project_description: Description from pyproject.toml.
     :param keywords: Keywords list from pyproject.toml.
     :param repo: Repository in 'owner/repo' format.
-    :param has_pat: Whether ``GH_TOKEN`` contains ``REPOMATIC_PAT``.
-    :param has_virustotal_key: Whether ``VIRUSTOTAL_API_KEY`` is configured.
+    :param has_pat: Whether `GH_TOKEN` contains `REPOMATIC_PAT`.
+    :param has_virustotal_key: Whether `VIRUSTOTAL_API_KEY` is configured.
     :param sha: Commit SHA for permission checks.
     :return: Exit code (0 for success, 1 for errors).
     """

@@ -15,17 +15,18 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 """Allow the module to be run as a CLI. I.e.:
 
-.. code-block:: shell-session
+:::{code-block} shell-session
 
-    $ python -m repomatic
+$ python -m repomatic
+:::
 
-The CI test suite (``tests.yaml``) verifies launchability via multiple
+The CI test suite (`tests.yaml`) verifies launchability via multiple
 invocation paths to catch entry-point and import issues early:
 
-- ``uv run -m repomatic`` (module invocation)
-- ``uv run -- repomatic`` (from local project)
-- ``uvx -- repomatic`` (installed from PyPI)
-- ``uvx --from git+https://...`` (installed from git)
+- `uv run -m repomatic` (module invocation)
+- `uv run -- repomatic` (from local project)
+- `uvx -- repomatic` (installed from PyPI)
+- `uvx --from git+https://...` (installed from git)
 """
 
 from __future__ import annotations
@@ -36,17 +37,17 @@ from repomatic.cli import repomatic
 def main():
     """Execute the CLI but force its name to not let Click defaults to:
 
-    .. code-block:: shell-session
-        $ python -m repomatic --version
-        python -m repomatic, version 4.0.0
+    :::{code-block} shell-session
+    $ python -m repomatic --version
+    python -m repomatic, version 4.0.0
+    :::
 
-    Indirection via this ``main()`` method was `required to reconcile
-    <https://github.com/python-poetry/poetry/issues/5981>`_:
+    Indirection via this `main()` method was [required to reconcile](https://github.com/python-poetry/poetry/issues/5981):
 
-        - plain inline package call: ``python -m repomatic``,
-        - Poetry's script entry point: ``repomatic = 'repomatic.__main__:main``,
+        - plain inline package call: `python -m repomatic`,
+        - Poetry's script entry point: `repomatic = 'repomatic.__main__:main`,
         - Nuitka's main module invocation requirement:
-          ``python -m nuitka (...) repomatic/__main__.py``
+          `python -m nuitka (...) repomatic/__main__.py`
 
     That way we can deduce all three cases from the entry point.
     """
