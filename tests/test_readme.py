@@ -77,10 +77,7 @@ def test_docs_cli_help_matches() -> None:
     cli_text = CLI_MD.read_text(encoding="UTF-8")
     assert _normalize_config_path(result.output.rstrip()) in _normalize_config_path(
         cli_text
-    ), (
-        "CLI help output in docs/cli.md is out of sync. "
-        "Re-run: repomatic update-docs"
-    )
+    ), "CLI help output in docs/cli.md is out of sync. Re-run: repomatic update-docs"
 
 
 def test_docs_config_table_matches() -> None:
@@ -152,9 +149,7 @@ def test_docs_tip_table_covers_registry() -> None:
     read ``[tool.*]`` sections.
     """
     tool_table = _parse_tool_runner_table()
-    documented = {
-        name for name, support in tool_table.items() if "Native" in support
-    }
+    documented = {name for name, support in tool_table.items() if "Native" in support}
 
     native_readers = {
         name for name, spec in TOOL_REGISTRY.items() if spec.reads_pyproject
