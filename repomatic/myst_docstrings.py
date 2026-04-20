@@ -62,13 +62,13 @@ from __future__ import annotations
 import re
 
 # {role}`target` -> {role}`target`
-_XREF_RE = re.compile(r"\{(\w+)\}`([^`]*?)`")
+_XREF_RE = re.compile(r"\{([\w-]+)\}`([^`]*?)`")
 
 # :::{directive} optional-title
 # body
 # :::
 _FENCE_RE = re.compile(
-    r"^( *):::\{(\w+)\}[ ]*([^\n]*)\n(.*?)^\1:::\s*$",
+    r"^( *):::\{([\w-]+)\}[ ]*([^\n]*)\n(.*?)^\1:::\s*$",
     re.MULTILINE | re.DOTALL,
 )
 
@@ -90,7 +90,7 @@ _INLINE_CODE_RE = re.compile(r"(?<!`)`([^`\n]+)`(?!`)")
 # Backtick spans that must NOT be treated as inline code.  Matches:
 #   {role}`target`   — reST cross-references (from step 1)
 #   `text`_          — reST hyperlink references (idempotent pass-through)
-_PROTECTED_RE = re.compile(r":\w+:`[^`]*`|`[^`]+`_{1,2}")
+_PROTECTED_RE = re.compile(r":[\w-]+:`[^`]*`|`[^`]+`_{1,2}")
 
 
 def _convert_fence(match: re.Match) -> str:

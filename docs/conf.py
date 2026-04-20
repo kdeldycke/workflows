@@ -38,6 +38,7 @@ extensions = [
     "myst_parser",
     "sphinx.ext.autosectionlabel",
     "sphinx_autodoc_typehints",
+    "repomatic.myst_docstrings",
     "click_extra.sphinx",
     "sphinxcontrib.mermaid",
 ]
