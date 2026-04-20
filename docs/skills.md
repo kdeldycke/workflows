@@ -22,8 +22,8 @@ $ uvx -- repomatic list-skills
 
 ## Available skills
 
-| Phase       | Skill                                                                                                        | Description                                                      |
-| :---------- | :----------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------- |
+| Phase       | Skill                                                                                                                  | Description                                                      |
+| :---------- | :--------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------- |
 | Setup       | [`/repomatic-init`](https://github.com/kdeldycke/repomatic/blob/main/.claude/skills/repomatic-init/SKILL.md)           | Bootstrap a repository with reusable workflows                   |
 | Setup       | [`/repomatic-sync`](https://github.com/kdeldycke/repomatic/blob/main/.claude/skills/repomatic-sync/SKILL.md)           | Sync workflow caller files with upstream                         |
 | Development | [`/brand-assets`](https://github.com/kdeldycke/repomatic/blob/main/.claude/skills/brand-assets/SKILL.md)               | Create and export project logo/banner SVG assets to PNG variants |
