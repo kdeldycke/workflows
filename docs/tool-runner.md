@@ -39,7 +39,6 @@ $ repomatic run --list
 | [typos](https://github.com/crate-ci/typos)                            | `1.45.0` | Binary      | `[tool.typos]` in `pyproject.toml`                           |
 | [yamllint](https://github.com/adrienverge/yamllint)                   | `1.38.0` | PyPI        | `.yamllint.yaml`, `.yamllint.yml`, `.yamllint`               |
 | [zizmor](https://github.com/zizmorcore/zizmor)                        | `1.23.0` | PyPI        | `zizmor.yaml`                                                |
-
 <!-- tool-summary-end -->
 
 - **Binary**: downloaded as platform-specific executables from GitHub Releases.
