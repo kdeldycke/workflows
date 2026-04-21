@@ -15,9 +15,17 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 """Convert MyST-flavored docstrings to reST for `sphinx.ext.autodoc`.
 
+Lightweight replacement for
+[`sphinx-autodoc2`](https://github.com/sphinx-extensions2/sphinx-autodoc2),
+which provided native MyST docstring parsing but is abandoned (last release
+`0.5.0`, November 2023; incompatible with current Sphinx and docutils).
+
 Hooks into `autodoc-process-docstring` to transparently convert MyST markdown
 syntax in Python docstrings to reStructuredText before Sphinx processes them.
-See {doc}`/myst-docstrings` for setup and usage.
+Preserves full compatibility with `sphinx_autodoc_typehints`,
+`autodoc_default_options`, and every other extension that builds on
+`sphinx.ext.autodoc`. See {doc}`/myst-docstrings` for setup, usage, and
+limitations.
 
 The conversion is idempotent: docstrings already in reST pass through
 unchanged. This allows incremental migration one module at a time.
@@ -42,19 +50,21 @@ Supported conversions:
 ```
 
 Inline code (single backtick) is converted to reST double backticks.
-Field lists (``{param}`, `{return}``) need no conversion.
+Field list markers (`:param:`, `:return:`) need no conversion; the content
+inside field list entries is converted normally (inline code, cross-references,
+links).
 
 ```{note}
 Register this extension in your Sphinx `conf.py`, before
 `sphinx_autodoc_typehints` if present:
 
-.. code-block:: python
-
-    extensions = [
-        "sphinx.ext.autodoc",
-        "repomatic.myst_docstrings",
-        "sphinx_autodoc_typehints",  # must come after
-    ]
+:::{code-block} python
+extensions = [
+    "sphinx.ext.autodoc",
+    "repomatic.myst_docstrings",
+    "sphinx_autodoc_typehints",  # must come after
+]
+:::
 
 This requires `repomatic` in your docs dependency group.
 ```

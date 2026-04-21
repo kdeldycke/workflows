@@ -1170,10 +1170,10 @@ def test_parse_github_owner_repo():
 
 
 def _make_urlopen_mock(responses):
-    """Build a side_effect function for mocking ``urlopen``.
+    """Build a side_effect function for mocking `urlopen`.
 
     :param responses: A dict mapping URL substrings to (status, body) tuples.
-        If body is ``None``, a ``URLError`` is raised for that URL.
+        If body is `None`, a `URLError` is raised for that URL.
     """
     from io import BytesIO
     from urllib.error import URLError

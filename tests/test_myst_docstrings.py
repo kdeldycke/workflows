@@ -502,6 +502,266 @@ def test_real_caution_with_code_block():
     assert "    - Linux: ``aarch64``" in result
 
 
+# ---- MyST inside field lists (:param:, :return:, :raises:) -------------------
+
+
+@pytest.mark.parametrize(
+    ("myst", "expected"),
+    [
+        # Inline code inside :param:.
+        (
+            ":param path: The `path` to the file.",
+            ":param path: The ``path`` to the file.",
+        ),
+        # Cross-reference inside :param:.
+        (
+            ":param config: A {class}`Config` instance.",
+            ":param config: A :class:`Config` instance.",
+        ),
+        # Cross-reference with tilde inside :return:.
+        (
+            ":return: A {class}`~repomatic.config.Config` object.",
+            ":return: A :class:`~repomatic.config.Config` object.",
+        ),
+        # Markdown link inside :param:.
+        (
+            ":param url: See [the docs](https://example.com) for format.",
+            ":param url: See `the docs <https://example.com>`_ for format.",
+        ),
+        # Multiple inline codes inside :return:.
+        (
+            ":return: `True` if valid, `False` otherwise.",
+            ":return: ``True`` if valid, ``False`` otherwise.",
+        ),
+        # Mixed xref and inline code inside :raises:.
+        (
+            ":raises ValueError: If `name` is not a {class}`str`.",
+            ":raises ValueError: If ``name`` is not a :class:`str`.",
+        ),
+        # Inline code in multi-line :param: continuation.
+        (
+            ":param items: A list of `str` values.\n"
+            "    Each must be a valid {class}`Path`.",
+            ":param items: A list of ``str`` values.\n"
+            "    Each must be a valid :class:`Path`.",
+        ),
+    ],
+    ids=[
+        "inline-code-in-param",
+        "xref-in-param",
+        "tilde-xref-in-return",
+        "link-in-param",
+        "multiple-codes-in-return",
+        "mixed-in-raises",
+        "multiline-param-continuation",
+    ],
+)
+def test_myst_inside_field_lists(myst, expected):
+    """MyST inline constructs inside field list entries are converted."""
+    assert _convert(myst) == expected
+
+
+def test_full_docstring_with_myst_field_lists():
+    """Realistic docstring with MyST in both prose and field list entries."""
+    myst = (
+        "Process a configuration file.\n"
+        "\n"
+        ":::{note}\n"
+        "Only `TOML` files are supported.\n"
+        ":::\n"
+        "\n"
+        ":param path: Filesystem `path` to process.\n"
+        ":param config: A {class}`~repomatic.config.Config` instance.\n"
+        ":return: `True` if the file was processed.\n"
+        ":raises FileNotFoundError: If `path` does not exist.\n"
+    )
+    result = _convert(myst)
+    # Prose converted.
+    assert ".. note::" in result
+    assert "    Only ``TOML`` files are supported." in result
+    # Field list markers unchanged.
+    assert ":param path:" in result
+    assert ":param config:" in result
+    assert ":return:" in result
+    assert ":raises FileNotFoundError:" in result
+    # Content inside field lists converted.
+    assert "Filesystem ``path`` to process." in result
+    assert ":class:`~repomatic.config.Config`" in result
+    assert "``True`` if the file was processed." in result
+    assert "If ``path`` does not exist." in result
+
+
+# ---- Unsupported constructs and known limitations ----------------------------
+
+
+@pytest.mark.parametrize(
+    ("myst", "description"),
+    [
+        # Footnote references are not converted.
+        ("See this note[^1].", "footnote-reference"),
+        # Footnote definitions are not converted.
+        ("[^1]: This is a footnote.", "footnote-definition"),
+        # MyST substitution references are not converted.
+        ("The version is {{version}}.", "substitution-reference"),
+        # Definition list syntax is not converted.
+        ("Term\n: Definition of the term.", "definition-list"),
+        # Heading syntax is not converted (and should not appear in docstrings).
+        ("## Subheading", "heading-syntax"),
+        # Strikethrough is not converted.
+        ("This is ~~deleted~~ text.", "strikethrough"),
+        # Task list checkboxes are not converted.
+        ("- [x] Done\n- [ ] Not done", "task-list"),
+    ],
+    ids=[
+        "footnote-reference",
+        "footnote-definition",
+        "substitution-reference",
+        "definition-list",
+        "heading-syntax",
+        "strikethrough",
+        "task-list",
+    ],
+)
+def test_unsupported_constructs_pass_through(myst, description):
+    """Unsupported MyST constructs pass through unchanged."""
+    assert _convert(myst) == myst, f"Expected {description} to pass through unchanged"
+
+
+def test_curly_braces_in_inline_code():
+    """Inline code containing `{` and `}` characters.
+
+    A standalone `{word}` in single backticks is safe: it gets doubled to
+    ``{word}`` because the xref regex needs the `{word}`target`` pattern
+    (two backtick-delimited spans). Double-backtick input also passes through.
+
+    The dangerous case is `{word}`text`` where the braces plus adjacent
+    backtick-delimited span mimics the xref pattern. The `convert-to-myst`
+    command intentionally keeps these as double backticks to avoid this.
+    """
+    # Double backticks with braces: safe, passes through.
+    assert _convert("``{version}``") == "``{version}``"
+    # Single backtick with braces but no adjacent backtick span: safe.
+    assert _convert("`{version}`") == "``{version}``"
+    # Pattern that mimics a cross-reference: {word}`target`.
+    # This IS misinterpreted as a xref.
+    result = _convert("`{foo}`bar`")
+    assert result != "``{foo}`bar``", (
+        "Known limitation: `{foo}`bar` is misinterpreted as a cross-reference"
+    )
+
+
+def test_plain_triple_backtick_code_block_not_converted():
+    """Plain fenced code blocks without a directive name are not converted."""
+    myst = "```python\nprint('hello')\n```"
+    result = _convert(myst)
+    # The opening fence is not converted to a directive.
+    assert ".. code-block::" not in result
+    # Content passes through (backticks inside are not doubled because they
+    # are part of a triple-backtick span, not inline code).
+    assert "```python" in result
+
+
+def test_nested_same_type_fences_not_supported():
+    """Nested fences of the same type are not reliably converted.
+
+    A colon fence inside a colon fence, or a backtick fence inside a backtick
+    fence, may not parse correctly because the regex matches the first closing
+    fence it finds.
+    """
+    myst = (
+        ":::{note}\n"
+        "Outer content.\n"
+        "\n"
+        ":::{warning}\n"
+        "Inner content.\n"
+        ":::\n"
+        "\n"
+        ":::"
+    )
+    result = _convert(myst)
+    # The outer note should be converted.
+    assert ".. note::" in result
+    # The inner warning may or may not convert correctly depending on regex
+    # greediness. We just verify no crash.
+    assert "Inner content." in result
+
+
+def test_directive_inside_field_list_not_supported():
+    """Fenced directives inside field list entries do not render correctly.
+
+    Field list entries in Sphinx are paragraph-level constructs.
+    Block-level MyST content (admonitions, code blocks) inside them is
+    converted by the regex but won't render correctly in Sphinx.
+    """
+    myst = (
+        ":param path: The path.\n"
+        "\n"
+        "    :::{note}\n"
+        "    Extra info.\n"
+        "    :::\n"
+    )
+    result = _convert(myst)
+    # The directive syntax is converted (the regex does not know about context).
+    assert ".. note::" in result
+    # But this won't render correctly as a field list continuation in Sphinx.
+    assert ":param path:" in result
+
+
+def test_link_with_parentheses_in_url():
+    """Markdown links where the URL contains parentheses."""
+    myst = "[wiki](https://en.wikipedia.org/wiki/Foo_(bar))"
+    result = _convert(myst)
+    # The regex matches the first closing `)`, so the URL is truncated.
+    # This is a known limitation of the simple regex approach.
+    assert "`_" in result
+
+
+def test_consecutive_field_list_entries_all_converted():
+    """Multiple consecutive field list entries each get their content converted."""
+    myst = (
+        ":param a: First `param`.\n"
+        ":param b: Second {class}`Config`.\n"
+        ":param c: Third [link](https://example.com).\n"
+        ":return: A `bool`.\n"
+    )
+    result = _convert(myst)
+    assert "First ``param``." in result
+    assert "Second :class:`Config`." in result
+    assert "Third `link <https://example.com>`_." in result
+    assert "A ``bool``." in result
+
+
+def test_empty_field_list_content():
+    """Field list entries with empty or whitespace-only content."""
+    assert _convert(":param x:") == ":param x:"
+    assert _convert(":return:") == ":return:"
+    assert _convert(":param x: ") == ":param x: "
+
+
+def test_xref_adjacent_to_field_list_colon():
+    """Cross-reference immediately after the field list colon."""
+    myst = ":param x: {class}`Foo` instance."
+    expected = ":param x: :class:`Foo` instance."
+    assert _convert(myst) == expected
+
+
+def test_multiple_xrefs_in_single_field_entry():
+    """Multiple cross-references in one field list entry."""
+    myst = ":return: A {class}`dict` mapping {class}`str` to {class}`int`."
+    expected = ":return: A :class:`dict` mapping :class:`str` to :class:`int`."
+    assert _convert(myst) == expected
+
+
+def test_link_with_backtick_label_in_field_list():
+    """Markdown link with backtick-wrapped label inside a field list entry."""
+    myst = ":param url: See [`requests`](https://example.com) docs."
+    expected = ":param url: See `requests <https://example.com>`_ docs."
+    assert _convert(myst) == expected
+
+
+# ---- Extension setup ---------------------------------------------------------
+
+
 def test_setup_rejects_wrong_extension_order():
     """Extension must error if sphinx_autodoc_typehints loaded first."""
     from types import SimpleNamespace

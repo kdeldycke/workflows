@@ -178,13 +178,13 @@ def triage_issues(
 ) -> tuple[bool, int | None, str | None, set[int]]:
     """Triage issues matching a title for deduplication.
 
-    :param issues: List of issue dicts from ``gh issue list --json
-        number,title,createdAt,state`. The `state`` field is optional for
+    :param issues: List of issue dicts from `gh issue list --json
+        number,title,createdAt,state`. The `state` field is optional for
         backward compatibility; when absent it defaults to `"OPEN"`.
     :param title: Issue title to match against.
     :param needed: Whether an issue with this title should exist.
-    :return: A tuple of ``(issue_needed, issue_to_update, issue_state,
-        issues_to_close)``.
+    :return: A tuple of `(issue_needed, issue_to_update, issue_state,
+        issues_to_close)`.
 
     If `needed` is `True`, the most recent matching issue is kept as
     `issue_to_update` (with its `issue_state`) and all older matching
