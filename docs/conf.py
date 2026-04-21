@@ -106,6 +106,8 @@ autosectionlabel_prefix_document = True
 # Theme config.
 html_theme = "furo"
 html_title = project
+html_logo = "assets/logo-square.svg"
+html_favicon = "assets/favicon.svg"
 html_theme_options = {
     "sidebar_hide_name": True,
     # Activates edit links.
@@ -145,6 +147,9 @@ linkcheck_ignore = [
     # These sites return 403 to bots but are valid.
     r"https://docutils\.sourceforge\.io",
 ]
+
+# OpenGraph / social previews.
+ogp_image = "assets/banner-social-light.png"
 
 # Footer content.
 html_last_updated_fmt = "%Y-%m-%d"

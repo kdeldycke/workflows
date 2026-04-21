@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo-banner.svg" alt="repomatic">
+</p>
+
 # `repomatic`
 
 [![Last release](https://img.shields.io/pypi/v/repomatic.svg)](https://pypi.org/project/repomatic/)

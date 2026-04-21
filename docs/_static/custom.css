@@ -1,3 +1,8 @@
+/* Hide the readme banner on the Sphinx front page (logo already in sidebar). */
+article p[align="center"]:has(img[alt="repomatic"]) {
+    display: none;
+}
+
 /* Extend Furo's --icon-* convention with octicons for sidebar toctree entries.
  * SVG paths from sphinx-design's octicons.json (mark-github is also the same
  * icon Furo uses in its own page.html footer).
