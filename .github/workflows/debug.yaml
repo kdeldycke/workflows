@@ -1,13 +1,13 @@
 ---
 name: 🩺 Debug
 "on":
+  workflow_call:
+  workflow_dispatch:
   push:
     branches:
       - main
     paths:
       - .github/workflows/debug.yaml
-  workflow_call:
-  workflow_dispatch:
   schedule:
     # Run monthly on the 1st at 12:00 UTC to spot silent regressions.
     - cron: "0 12 1 * *"

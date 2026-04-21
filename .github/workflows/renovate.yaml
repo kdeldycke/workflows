@@ -5,10 +5,10 @@ name: 🆕 Renovate
     secrets:
       REPOMATIC_PAT:
         required: false
+  workflow_dispatch:
   schedule:
     # Run weekly.
     - cron: "3 17 * * 1"
-  workflow_dispatch:
   push:
     branches:
       - main
