@@ -195,7 +195,7 @@ For constructs the extension does not handle, use reST syntax directly in the do
 
 ## Comparison with `sphinx-autodoc2`
 
-[`sphinx-autodoc2`](https://github.com/sphinx-extensions2/sphinx-autodoc2) took a different architectural approach: it replaced `sphinx.ext.autodoc` entirely and parsed docstrings as native MyST using `myst-parser` directly. This eliminated the need for any conversion step. The project is abandoned (last release `v0.5.0`, November 2023; incompatible with Sphinx 8+, docutils 0.21+, and astroid 4+).
+[`sphinx-autodoc2`](https://github.com/sphinx-extensions2/sphinx-autodoc2) took a different architectural approach: it replaced `sphinx.ext.autodoc` entirely and parsed docstrings as native MyST using `myst-parser` directly. This eliminated the need for any conversion step. The project is abandoned (last release `v0.5.0`, November 2023; incompatible with Sphinx 8+, docutils 0.21+, and asteroid 4+).
 
 {mod}`repomatic.myst_docstrings` covers the same docstring-authoring use case with a lighter approach: regex-based conversion inside `autodoc-process-docstring`. The trade-off is a handful of unsupported constructs (listed above) in exchange for full compatibility with the existing `sphinx.ext.autodoc` ecosystem.
 
@@ -203,7 +203,7 @@ Architectural differences that are inherent to `sphinx.ext.autodoc` and cannot b
 
 | Capability | `sphinx-autodoc2` | `autodoc` + `myst_docstrings` |
 | :-- | :-- | :-- |
-| Static analysis (no module import) | Yes (via `astroid`) | No: modules must be importable at build time |
+| Static analysis (no module import) | Yes (via `asteroid`) | No: modules must be importable at build time |
 | Integrated module discovery | Yes (no `sphinx-apidoc` step) | No: requires separate `sphinx-apidoc` or manual stubs |
 | Incremental per-object rebuilds | Yes | No: full rebuild on any change |
 | `TYPE_CHECKING` block visibility | Yes (static analysis sees all imports) | No: only sees runtime imports |
