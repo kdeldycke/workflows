@@ -282,7 +282,7 @@ def convert_directory(directory: Path) -> list[Path]:
     """Convert all Python files in a directory from reST to MyST docstrings.
 
     :param directory: Directory to process recursively.
-    :returns: List of files that were modified.
+    :return: List of files that were modified.
     """
     changed: list[Path] = [
         filepath

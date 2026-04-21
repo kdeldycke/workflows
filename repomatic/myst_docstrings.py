@@ -42,7 +42,7 @@ Supported conversions:
 ```
 
 Inline code (single backtick) is converted to reST double backticks.
-Field lists (``{param}`, `{returns}``) need no conversion.
+Field lists (``{param}`, `{return}``) need no conversion.
 
 ```{note}
 Register this extension in your Sphinx `conf.py`:

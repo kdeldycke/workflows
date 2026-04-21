@@ -67,7 +67,7 @@ def convert_apidoc_rst_to_myst(content: str) -> str:
     """Convert `sphinx-apidoc` RST to MyST markdown with ``{eval-rst}`` blocks.
 
     :param content: RST content produced by `sphinx-apidoc`.
-    :returns: Equivalent MyST markdown.
+    :return: Equivalent MyST markdown.
     """
     lines = content.splitlines()
     result: list[str] = []
@@ -126,7 +126,7 @@ def convert_rst_files_in_directory(directory: Path) -> list[Path]:
       then delete the `.rst`.
 
     :param directory: Directory to scan for `.rst` files.
-    :returns: List of newly created `.md` file paths.
+    :return: List of newly created `.md` file paths.
     """
     converted: list[Path] = []
 

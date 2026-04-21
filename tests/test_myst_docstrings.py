@@ -337,7 +337,7 @@ def test_inline_code_no_cross_contamination_with_xref(myst, expected):
         "`click here <https://example.com>`_",
         "`click here <https://example.com>`__",
         "Returns ``True`` if detected.",
-        ":param name: The name.\n:returns: A value.",
+        ":param name: The name.\n:return: A value.",
     ],
     ids=[
         "xref",
@@ -462,7 +462,7 @@ def test_all_conversions_combined():
         "```\n"
         "\n"
         ":param path: The filesystem path.\n"
-        ":returns: `True` or `False`.\n"
+        ":return: `True` or `False`.\n"
     )
     result = _convert(myst)
     # Xref converted.
