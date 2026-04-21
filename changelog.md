@@ -5,6 +5,9 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Fix `myst_docstrings` Sphinx extension hook priority to guarantee MyST-to-reST conversion runs before `sphinx_autodoc_typehints`. Registers at priority 400 (vs default 500) and enforces `conf.py` extension ordering at load time with a clear `ExtensionError`.
+- Align `myst_docstrings` Sphinx extension version with the `repomatic` package version.
+
 ## [`6.14.0` (2026-04-20)](https://github.com/kdeldycke/repomatic/compare/v6.13.0...v6.14.0)
 
 - Add Sphinx documentation site with Furo theme and MyST-Parser. Splits the monolithic `readme.md` (1139 lines) into focused pages: installation, configuration reference (auto-generated from `Config` dataclass docstrings), CLI parameters (auto-generated via `click_extra.sphinx`), reusable workflow reference, security practices, Claude Code skills, and a tool runner tutorial covering the 4-level config precedence chain, available tools, `[tool.X]` bridge, binary caching, and version overrides. Deployed to GitHub Pages via the existing `docs.yaml` workflow.
