@@ -2,8 +2,6 @@
   <img src="docs/assets/logo-banner.svg" alt="repomatic">
 </p>
 
-# `repomatic`
-
 [![Last release](https://img.shields.io/pypi/v/repomatic.svg)](https://pypi.org/project/repomatic/)
 [![Python versions](https://img.shields.io/pypi/pyversions/repomatic.svg)](https://pypi.org/project/repomatic/)
 [![Downloads](https://static.pepy.tech/badge/repomatic/month)](https://pepy.tech/projects/repomatic)
