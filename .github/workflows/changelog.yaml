@@ -96,7 +96,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template fix-changelog
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -146,7 +146,7 @@ jobs:
           --template bump-version
           --part "${{ matrix.part }}"
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         if: fromJSON(needs.metadata.outputs.metadata)[format('{0}_bump_allowed', matrix.part)]
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
@@ -222,7 +222,7 @@ jobs:
           --template prepare-release
           --version "${CURRENT_VERSION}"
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           # We need custom PAT with workflows permission to hard-code version numbers in URLs in
           # .github/workflows/*.yaml files.

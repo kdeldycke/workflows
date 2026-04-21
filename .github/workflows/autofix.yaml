@@ -89,7 +89,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-python
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -127,7 +127,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-pyproject
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -175,7 +175,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-markdown
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -213,7 +213,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-shell
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -257,7 +257,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-json
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -292,7 +292,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template fix-typos
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           # We need custom PAT with workflows permissions to fix typos in .github/workflows/*.yaml` files.
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
@@ -328,7 +328,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template fix-vulnerable-deps
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -357,7 +357,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-repomatic
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           # We need custom PAT with workflows permissions to update .github/workflows/*.yaml files.
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
@@ -405,7 +405,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template format-images
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -437,7 +437,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-gitignore
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -467,7 +467,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-bumpversion
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -500,7 +500,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-mailmap
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -536,7 +536,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template sync-uv-lock
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -570,7 +570,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template update-deps-graph
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
@@ -603,7 +603,7 @@ jobs:
           uvx --no-progress --from . repomatic pr-body --output-format github-actions
           --template update-docs
           --output "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.REPOMATIC_PAT || github.token }}
           assignees: ${{ github.actor }}
