@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add plain triple-backtick code fence conversion to `myst_docstrings` extension. Fences like ```` ```python ```` are now converted to `.. code-block:: python` directives, in addition to the existing ```` ```{code-block} ```` directive fence support.
+- Add footnote conversion to `myst_docstrings` extension. References (`[^label]`) convert to `[#label]_` and definitions (`[^label]: text`) convert to `.. [#label] text`.
 - Fix `myst_docstrings` Sphinx extension hook priority to guarantee MyST-to-reST conversion runs before `sphinx_autodoc_typehints`. Registers at priority 400 (vs default 500) and enforces `conf.py` extension ordering at load time with a clear `ExtensionError`.
 - Align `myst_docstrings` Sphinx extension version with the `repomatic` package version.
 

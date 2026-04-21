@@ -44,9 +44,18 @@ Supported conversions:
 * - Fenced directives
   - ``:::{note}`` or `` ```{note} ``
   - `.. note::`
+* - Plain code fences
+  - ```` ```python ````
+  - `.. code-block:: python`
 * - Markdown links
   - `[text](url)`
   - ```text <url>`_``
+* - Footnote references
+  - `[^label]`
+  - `[#label]_`
+* - Footnote definitions
+  - `[^label]: text`
+  - `.. [#label] text`
 ```
 
 Inline code (single backtick) is converted to reST double backticks.
@@ -93,6 +102,22 @@ _BACKTICK_FENCE_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 
+# ```language           (plain code fence, no {directive})
+# code
+# ```
+# Negative lookahead for `{` prevents matching directive fences that were not
+# consumed by the directive regex (malformed body, etc.).
+_PLAIN_CODE_FENCE_RE = re.compile(
+    r"^( *)```(?!\{)([\w.+-][\w.+-]*)?\s*\n(.*?)^\1```\s*$",
+    re.MULTILINE | re.DOTALL,
+)
+
+# [^label] -> [#label]_   (footnote reference, not followed by ":" definition)
+_FOOTNOTE_REF_RE = re.compile(r"\[\^([\w-]+)\](?!:)")
+
+# [^label]: text -> .. [#label] text   (footnote definition)
+_FOOTNOTE_DEF_RE = re.compile(r"^\[\^([\w-]+)\]:\s?(.*)$", re.MULTILINE)
+
 # [text](url) but not ![alt](url)
 _LINK_RE = re.compile(r"(?<!!)\[([^\]]+)\]\(([^)]+)\)")
 
@@ -112,6 +137,31 @@ _INLINE_CODE_RE = re.compile(r"(?<!`)`([^`\n]+)`(?!`)")
 #   {role}`target`   — reST cross-references (from step 1)
 #   `text`_          — reST hyperlink references (idempotent pass-through)
 _PROTECTED_RE = re.compile(r":[\w-]+:`[^`]*`|`[^`]+`_{1,2}")
+
+
+def _convert_plain_code_fence(match: re.Match) -> str:
+    """Convert a plain triple-backtick code fence to a reST `code-block`."""
+    indent = match.group(1)
+    lang = match.group(2) or ""
+    body = match.group(3)
+
+    header = f"{indent}.. code-block::"
+    if lang:
+        header += f" {lang}"
+    header += "\n"
+
+    body_indent = indent + "    "
+    converted_lines: list[str] = []
+    for line in body.split("\n"):
+        if line.strip():
+            stripped = line.lstrip()
+            extra_spaces = len(line) - len(stripped) - len(indent)
+            converted_lines.append(body_indent + " " * max(0, extra_spaces) + stripped)
+        else:
+            converted_lines.append("")
+
+    # reST directives need a blank line between the header and the body.
+    return header + "\n" + "\n".join(converted_lines) + "\n"
 
 
 def _convert_fence(match: re.Match) -> str:
@@ -161,7 +211,15 @@ def myst_to_rst(lines: list[str]) -> None:
         text = _COLON_FENCE_RE.sub(_convert_fence, text)
         text = _BACKTICK_FENCE_RE.sub(_convert_fence, text)
 
-    # 3. Single-backtick inline code -> double-backtick.
+    # 3. Plain code fences -> reST code-block directives.
+    # Runs after directive fences are consumed so only plain fences remain.
+    text = _PLAIN_CODE_FENCE_RE.sub(_convert_plain_code_fence, text)
+
+    # 4. Footnote definitions: [^label]: text -> .. [#label] text.
+    # Runs before inline code so the reST output is not mangled.
+    text = _FOOTNOTE_DEF_RE.sub(r".. [#\1] \2", text)
+
+    # 5. Single-backtick inline code -> double-backtick.
     # Protect reST backtick spans (cross-references from step 1, and reST
     # hyperlink references in idempotent pass-through) with placeholders so
     # their backticks are not mistaken for inline code boundaries.
@@ -180,9 +238,14 @@ def myst_to_rst(lines: list[str]) -> None:
     for key, value in placeholders.items():
         text = text.replace(key, value)
 
-    # 4. Markdown links -> reST links.
+    # 6. Footnote references: [^label] -> [#label]_.
+    # Runs after inline code (no backticks involved) and before links so that
+    # [^label] is not mistaken for a markdown link with text "^label".
+    text = _FOOTNOTE_REF_RE.sub(r"[#\1]_", text)
+
+    # 7. Markdown links -> reST links.
     # Runs after inline code so that the reST links it produces (which use
-    # single backticks: `text <url>`_) are not doubled by step 3.
+    # single backticks: `text <url>`_) are not doubled by step 5.
     # Backticks in link labels are stripped because reST does not support
     # nested markup (inline code inside hyperlinks).  This lets authors write
     # idiomatic MyST like [`sys.platform`](url) and get a clean reST link.

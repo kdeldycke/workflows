@@ -6,7 +6,7 @@ Python docstrings in this project use [MyST markdown](https://myst-parser.readth
 
 [`sphinx-autodoc2`](https://github.com/sphinx-extensions2/sphinx-autodoc2) was designed as a full replacement for `sphinx.ext.autodoc` with native MyST support. It parses docstrings as MyST directly, eliminating the need for a conversion step. In practice the project is abandoned: the last release (`v0.5.0`) dates from November 2023, its test suite does not pass against current Sphinx or docutils versions, and it has no compatibility with `sphinx_autodoc_typehints`.
 
-{mod}`repomatic.myst_docstrings` fills the same gap with a lighter approach: it hooks into `sphinx.ext.autodoc`'s existing `autodoc-process-docstring` event and converts MyST constructs to reST before Sphinx processes them. This preserves full compatibility with `sphinx_autodoc_typehints`, `autodoc_default_options`, `autoclass_content`, and every other extension or setting that builds on `sphinx.ext.autodoc`. The conversion is regex-based, idempotent, and handles all inline constructs that are valid inside docstrings (cross-references, inline code, links, fenced directives).
+{mod}`repomatic.myst_docstrings` fills the same gap with a lighter approach: it hooks into `sphinx.ext.autodoc`'s existing `autodoc-process-docstring` event and converts MyST constructs to reST before Sphinx processes them. This preserves full compatibility with `sphinx_autodoc_typehints`, `autodoc_default_options`, `autoclass_content`, and every other extension or setting that builds on `sphinx.ext.autodoc`. The conversion is regex-based, idempotent, and handles all inline and block constructs that are valid inside docstrings: cross-references, inline code, links, fenced directives, plain code blocks, and footnotes. See [Comparison with `sphinx-autodoc2`](#comparison-with-sphinx-autodoc2) for a detailed feature matrix.
 
 ## Setup
 
@@ -123,11 +123,11 @@ Use single backticks. The extension doubles them for reST:
 
 ### Code blocks
 
-Use fenced `code-block` directives (either backtick or colon style):
+Both plain triple-backtick fences and `{code-block}` directive fences are supported:
 
 ````python
 """
-```{code-block} python
+```python
 extensions = [
     "sphinx.ext.autodoc",
     "repomatic.myst_docstrings",
@@ -136,7 +136,18 @@ extensions = [
 """
 ````
 
-Plain triple-backtick fences *without* a directive name (like ```` ``` python ````) are **not** converted. Use ```` ```{code-block} python ```` or `:::{code-block} python` instead.
+Plain fences (```` ```python ````) are converted to `.. code-block:: python` directives. Directive fences (```` ```{code-block} python ````) are also converted. The language identifier is optional: a bare ```` ``` ```` fence becomes `.. code-block::` with no language.
+
+### Footnotes
+
+Footnote references and definitions are converted:
+
+| MyST (write this)        | reST (produced at build time) |
+| :----------------------- | :---------------------------- |
+| `[^1]`                   | `[#1]_`                       |
+| `[^label]: Footnote text.` | `.. [#label] Footnote text.`  |
+
+Continuation lines in multi-line footnote definitions pass through with their indentation preserved.
 
 ### Field lists
 
@@ -171,13 +182,31 @@ Content containing `{` inside inline code is left as double backticks to avoid c
 
 The extension handles the constructs listed above. It does **not** convert:
 
-- **Plain triple-backtick code blocks** (```` ``` python ```` without `{code-block}`). Use ```` ```{code-block} python ```` or `:::{code-block} python` instead.
-- **Nested fences of the same type** (`::::` / `:::` or ` ` / \`\`\` \`\`\`\`). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
+- **Nested fences of the same type** (`::::` / `:::` or ```` ```` ```` / ```` ``` ````). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
 - **Complex tables** (`:::{list-table}`, `:::{csv-table}`). These work in module-level docstrings processed by `myst-parser` but are unlikely to appear in function docstrings.
 - **`{` inside single backticks**. Content like `` `{version}` `` would be misinterpreted as a cross-reference. The converter intentionally keeps these as double backticks (``` ``{version}`` ```), which the extension passes through to Sphinx as-is.
-- **MyST footnotes** (`[^1]` / `[^1]: text`). Footnote syntax is not recognized and passes through as literal text. Footnotes are rare in docstrings but would need reST syntax (``.. [1]``) if required.
 - **MyST substitution references** (`{{variable}}`). These are a `myst-parser` feature for `.md` files and are not processed inside docstrings.
-- **MyST definition lists**. The `deflist` extension syntax (term on one line, `: definition` on the next) is not converted. Use reST definition lists or restructure as a field list.
+- **MyST definition lists**. The `deflist` extension syntax (term on one line, `: definition` on the next) is not converted. The `: ` prefix is ambiguous with field list continuations and other reST constructs, making reliable regex detection impractical without a full parser. Use reST definition lists or restructure as a field list.
 - **Heading syntax** (`#`, `##`). Markdown headings inside docstrings are not converted to reST sections. Docstrings should not contain headings.
+- **Strikethrough** (`~~text~~`). Not a standard reST construct; no conversion target exists.
+- **Task lists** (`- [x]`, `- [ ]`). No reST equivalent.
 
 For constructs the extension does not handle, use reST syntax directly in the docstring body. The extension is idempotent: reST content passes through unchanged.
+
+## Comparison with `sphinx-autodoc2`
+
+[`sphinx-autodoc2`](https://github.com/sphinx-extensions2/sphinx-autodoc2) took a different architectural approach: it replaced `sphinx.ext.autodoc` entirely and parsed docstrings as native MyST using `myst-parser` directly. This eliminated the need for any conversion step. The project is abandoned (last release `v0.5.0`, November 2023; incompatible with Sphinx 8+, docutils 0.21+, and astroid 4+).
+
+{mod}`repomatic.myst_docstrings` covers the same docstring-authoring use case with a lighter approach: regex-based conversion inside `autodoc-process-docstring`. The trade-off is a handful of unsupported constructs (listed above) in exchange for full compatibility with the existing `sphinx.ext.autodoc` ecosystem.
+
+Architectural differences that are inherent to `sphinx.ext.autodoc` and cannot be addressed by a conversion extension:
+
+| Capability | `sphinx-autodoc2` | `autodoc` + `myst_docstrings` |
+| :-- | :-- | :-- |
+| Static analysis (no module import) | Yes (via `astroid`) | No: modules must be importable at build time |
+| Integrated module discovery | Yes (no `sphinx-apidoc` step) | No: requires separate `sphinx-apidoc` or manual stubs |
+| Incremental per-object rebuilds | Yes | No: full rebuild on any change |
+| `TYPE_CHECKING` block visibility | Yes (static analysis sees all imports) | No: only sees runtime imports |
+| Native MyST output files | Yes (generates `.md` API docs) | No: generates reST internally |
+
+These are limitations of `sphinx.ext.autodoc` itself, not of the conversion extension. They affect how Sphinx discovers and imports modules, not how docstring content is authored or rendered.

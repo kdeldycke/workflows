@@ -176,6 +176,148 @@ def test_mixed_colon_outer_backtick_inner():
     assert ".. code-block:: python" in result
 
 
+# ---- Plain code fences: ```lang -> .. code-block:: lang ---------------------
+
+
+@pytest.mark.parametrize(
+    ("myst", "expected_fragments"),
+    [
+        # With language identifier.
+        (
+            "```python\nprint(1)\n```",
+            [".. code-block:: python", "    print(1)"],
+        ),
+        # No language identifier.
+        (
+            "```\nsome code\n```",
+            [".. code-block::", "    some code"],
+        ),
+        # Language with hyphen.
+        (
+            "```shell-session\n$ ls\n```",
+            [".. code-block:: shell-session", "    $ ls"],
+        ),
+        # Multi-line body.
+        (
+            "```python\nx = 1\ny = 2\n```",
+            [".. code-block:: python", "    x = 1", "    y = 2"],
+        ),
+        # Indented fence.
+        (
+            "    ```python\n    x = 1\n    ```",
+            ["    .. code-block:: python", "        x = 1"],
+        ),
+        # Language with dots (like c++, c#).
+        (
+            "```c++\nint x = 0;\n```",
+            [".. code-block:: c++", "    int x = 0;"],
+        ),
+    ],
+    ids=[
+        "with-language",
+        "no-language",
+        "hyphenated-language",
+        "multiline-body",
+        "indented-fence",
+        "language-with-special-chars",
+    ],
+)
+def test_plain_code_fence_conversion(myst, expected_fragments):
+    result = _convert(myst)
+    for fragment in expected_fragments:
+        assert fragment in result
+
+
+def test_plain_code_fence_blank_line_before_body():
+    """Converted plain code fence inserts blank line between header and body."""
+    result = _convert("```python\nprint(1)\n```")
+    lines = result.split("\n")
+    header_idx = next(i for i, l in enumerate(lines) if ".. code-block::" in l)
+    assert lines[header_idx + 1] == "", "blank line required after directive header"
+
+
+def test_plain_code_fence_not_directive():
+    """Plain code fences must not be confused with directive fences."""
+    # Directive fence: already handled by the directive regex.
+    directive = "```{note}\nSome content.\n```"
+    result = _convert(directive)
+    assert ".. note::" in result
+    assert ".. code-block::" not in result
+
+
+def test_plain_code_fence_idempotent():
+    """Already-converted code-block directive passes through unchanged."""
+    rst = ".. code-block:: python\n\n    print(1)"
+    assert _convert(rst) == rst
+
+
+# ---- Footnotes: [^label] -> [#label]_ / [^label]: -> .. [#label] -----------
+
+
+@pytest.mark.parametrize(
+    ("myst", "expected"),
+    [
+        # Simple reference.
+        ("See this note[^1].", "See this note[#1]_."),
+        # Reference with word label.
+        ("Details in[^footnote-a].", "Details in[#footnote-a]_."),
+        # Multiple references.
+        (
+            "Text[^a] and more[^b].",
+            "Text[#a]_ and more[#b]_.",
+        ),
+        # Reference at end of line.
+        ("End of line[^ref]", "End of line[#ref]_"),
+    ],
+    ids=[
+        "simple-ref",
+        "word-label-ref",
+        "multiple-refs",
+        "ref-at-eol",
+    ],
+)
+def test_footnote_reference_conversion(myst, expected):
+    assert _convert(myst) == expected
+
+
+@pytest.mark.parametrize(
+    ("myst", "expected"),
+    [
+        # Single-line definition.
+        ("[^1]: This is a footnote.", ".. [#1] This is a footnote."),
+        # Definition with word label.
+        ("[^note-a]: Explanation here.", ".. [#note-a] Explanation here."),
+        # Definition with empty text (opening line of multi-line footnote).
+        ("[^label]:", ".. [#label] "),
+    ],
+    ids=[
+        "simple-def",
+        "word-label-def",
+        "empty-text-def",
+    ],
+)
+def test_footnote_definition_conversion(myst, expected):
+    assert _convert(myst) == expected
+
+
+def test_footnote_ref_and_def_combined():
+    """Footnote reference and definition in the same docstring."""
+    myst = "Some claim[^1].\n\n[^1]: Source for the claim."
+    result = _convert(myst)
+    assert "[#1]_" in result
+    assert ".. [#1] Source for the claim." in result
+
+
+def test_footnote_def_not_matched_as_ref():
+    """Footnote definition must not also produce a spurious reference."""
+    myst = "[^1]: The definition."
+    result = _convert(myst)
+    # The definition is converted.
+    assert result.startswith(".. [#1]")
+    # No stray reference marker inside the definition line.
+    assert "[#1]_" not in result
+
+
 # ---- Links: [text](url) -> `text <url>`_ ----------------------------------
 
 
@@ -597,10 +739,6 @@ def test_full_docstring_with_myst_field_lists():
 @pytest.mark.parametrize(
     ("myst", "description"),
     [
-        # Footnote references are not converted.
-        ("See this note[^1].", "footnote-reference"),
-        # Footnote definitions are not converted.
-        ("[^1]: This is a footnote.", "footnote-definition"),
         # MyST substitution references are not converted.
         ("The version is {{version}}.", "substitution-reference"),
         # Definition list syntax is not converted.
@@ -613,8 +751,6 @@ def test_full_docstring_with_myst_field_lists():
         ("- [x] Done\n- [ ] Not done", "task-list"),
     ],
     ids=[
-        "footnote-reference",
-        "footnote-definition",
         "substitution-reference",
         "definition-list",
         "heading-syntax",
@@ -650,15 +786,11 @@ def test_curly_braces_in_inline_code():
     )
 
 
-def test_plain_triple_backtick_code_block_not_converted():
-    """Plain fenced code blocks without a directive name are not converted."""
-    myst = "```python\nprint('hello')\n```"
+def test_plain_code_fence_empty_body():
+    """Plain code fence with an empty body."""
+    myst = "```python\n```"
     result = _convert(myst)
-    # The opening fence is not converted to a directive.
-    assert ".. code-block::" not in result
-    # Content passes through (backticks inside are not doubled because they
-    # are part of a triple-backtick span, not inline code).
-    assert "```python" in result
+    assert ".. code-block:: python" in result
 
 
 def test_nested_same_type_fences_not_supported():
