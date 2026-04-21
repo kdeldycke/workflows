@@ -222,4 +222,7 @@ def setup(app):
         )
         raise ExtensionError(msg)
     app.connect("autodoc-process-docstring", _on_process_docstring, _PRIORITY)
-    return {"version": "0.1", "parallel_read_safe": True}
+
+    from repomatic import __version__
+
+    return {"version": __version__, "parallel_read_safe": True}
