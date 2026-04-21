@@ -45,13 +45,15 @@ Inline code (single backtick) is converted to reST double backticks.
 Field lists (``{param}`, `{return}``) need no conversion.
 
 ```{note}
-Register this extension in your Sphinx `conf.py`:
+Register this extension in your Sphinx `conf.py`, before
+`sphinx_autodoc_typehints` if present:
 
 .. code-block:: python
 
     extensions = [
         "sphinx.ext.autodoc",
         "repomatic.myst_docstrings",
+        "sphinx_autodoc_typehints",  # must come after
     ]
 
 This requires `repomatic` in your docs dependency group.
@@ -60,7 +62,10 @@ This requires `repomatic` in your docs dependency group.
 
 from __future__ import annotations
 
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 # {role}`target` -> {role}`target`
 # Negative lookbehind prevents matching inside double backticks (``{version}``).
@@ -181,7 +186,40 @@ def _on_process_docstring(app, what, name, obj, options, lines):
     myst_to_rst(lines)
 
 
+_TYPEHINTS_EXT = "sphinx_autodoc_typehints"
+"""Extension whose `autodoc-process-docstring` hook must run after ours.
+
+`sphinx_autodoc_typehints` hooks at default priority 500. We register at 400
+so MyST-to-reST conversion always runs first, regardless of `conf.py`
+ordering. The `setup()` check is a belt-and-suspenders safety net: it catches
+misconfiguration early with a clear message rather than letting it surface as
+garbled backticks in the rendered docs.
+"""
+
+_PRIORITY = 400
+"""Event priority for `autodoc-process-docstring`.
+
+Sphinx invokes callbacks in ascending priority order. The default is 500.
+We use 400 to guarantee MyST-to-reST conversion runs before any extension
+that injects reST markup into docstrings (like `sphinx_autodoc_typehints`).
+"""
+
+
 def setup(app):
-    """Sphinx extension entry point."""
-    app.connect("autodoc-process-docstring", _on_process_docstring)
+    """Sphinx extension entry point.
+
+    :raises ExtensionError: If `sphinx_autodoc_typehints` is already loaded.
+    """
+    if _TYPEHINTS_EXT in app.extensions:
+        from sphinx.errors import ExtensionError
+
+        msg = (
+            f"repomatic.myst_docstrings must be listed before"
+            f" {_TYPEHINTS_EXT} in conf.py extensions."
+            f" Both hook autodoc-process-docstring; while priority"
+            f" ordering (400 vs 500) handles execution order,"
+            f" listing myst_docstrings first makes the intent explicit."
+        )
+        raise ExtensionError(msg)
+    app.connect("autodoc-process-docstring", _on_process_docstring, _PRIORITY)
     return {"version": "0.1", "parallel_read_safe": True}

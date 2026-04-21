@@ -12,11 +12,16 @@ In your Sphinx `conf.py`, add {mod}`repomatic.myst_docstrings` alongside `sphinx
 extensions = [
     "sphinx.ext.autodoc",
     "repomatic.myst_docstrings",
+    "sphinx_autodoc_typehints",  # must come after myst_docstrings
     # ... other extensions
 ]
 ```
 
-Order does not matter. The extension hooks into the [`autodoc-process-docstring`](https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#event-autodoc-process-docstring) event, which is fired by autodoc during the build regardless of extension load order. If `sphinx.ext.autodoc` is absent, the event never fires and the extension silently does nothing.
+If `sphinx.ext.autodoc` is absent, the `autodoc-process-docstring` event never fires and the extension silently does nothing.
+
+:::{warning}
+If you also use `sphinx_autodoc_typehints`, list `repomatic.myst_docstrings` **before** it in the `extensions` list. The extension registers its `autodoc-process-docstring` hook at priority 400 (vs the default 500 used by `sphinx_autodoc_typehints`), so MyST-to-reST conversion always runs first regardless of registration order. Listing it first makes the intent explicit and is enforced at load time: if `sphinx_autodoc_typehints` is already registered when `repomatic.myst_docstrings` loads, the build fails with a clear error.
+:::
 
 ### 2. Add the dependency
 
@@ -129,7 +134,7 @@ Plain triple-backtick fences *without* a directive name (like ```` ``` python ``
 
 ### Field lists
 
-`:param:`, `:returns:`, `:raises:` and other Sphinx field list entries work identically in MyST and reST. No conversion is needed:
+`:param:`, `:return:`, `:raises:` and other Sphinx field list entries work identically in MyST and reST. No conversion is needed:
 
 ```python
 def read(path, encoding="utf-8"):
@@ -137,7 +142,7 @@ def read(path, encoding="utf-8"):
 
     :param path: Path to the file.
     :param encoding: Text encoding.
-    :returns: File contents as a string.
+    :return: File contents as a string.
     :raises FileNotFoundError: If the path does not exist.
     """
 ```

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import pytest
 
-from repomatic.myst_docstrings import myst_to_rst
+from repomatic.myst_docstrings import _TYPEHINTS_EXT, myst_to_rst, setup
 
 
 def _convert(text: str) -> str:
@@ -500,3 +500,31 @@ def test_real_caution_with_code_block():
         "    ``platform.machine()`` returns different values depending on the OS:"
     ) in result
     assert "    - Linux: ``aarch64``" in result
+
+
+def test_setup_rejects_wrong_extension_order():
+    """Extension must error if sphinx_autodoc_typehints loaded first."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from sphinx.errors import ExtensionError
+
+    app = MagicMock()
+    # Simulate sphinx_autodoc_typehints already registered.
+    app.extensions = {_TYPEHINTS_EXT: SimpleNamespace()}
+
+    with pytest.raises(ExtensionError, match="must be listed before"):
+        setup(app)
+
+
+def test_setup_accepts_correct_order():
+    """Extension loads normally when sphinx_autodoc_typehints is absent."""
+    from unittest.mock import MagicMock
+
+    app = MagicMock()
+    app.extensions = {}
+
+    result = setup(app)
+    assert result["parallel_read_safe"] is True
+    app.connect.assert_called_once()
+    assert app.connect.call_args[0][0] == "autodoc-process-docstring"
