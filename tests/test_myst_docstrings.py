@@ -800,16 +800,7 @@ def test_nested_same_type_fences_not_supported():
     fence, may not parse correctly because the regex matches the first closing
     fence it finds.
     """
-    myst = (
-        ":::{note}\n"
-        "Outer content.\n"
-        "\n"
-        ":::{warning}\n"
-        "Inner content.\n"
-        ":::\n"
-        "\n"
-        ":::"
-    )
+    myst = ":::{note}\nOuter content.\n\n:::{warning}\nInner content.\n:::\n\n:::"
     result = _convert(myst)
     # The outer note should be converted.
     assert ".. note::" in result
@@ -825,13 +816,7 @@ def test_directive_inside_field_list_not_supported():
     Block-level MyST content (admonitions, code blocks) inside them is
     converted by the regex but won't render correctly in Sphinx.
     """
-    myst = (
-        ":param path: The path.\n"
-        "\n"
-        "    :::{note}\n"
-        "    Extra info.\n"
-        "    :::\n"
-    )
+    myst = ":param path: The path.\n\n    :::{note}\n    Extra info.\n    :::\n"
     result = _convert(myst)
     # The directive syntax is converted (the regex does not know about context).
     assert ".. note::" in result
