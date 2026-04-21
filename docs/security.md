@@ -119,7 +119,7 @@ Workflows are grouped by:
 Additionally, [`cancel-runs.yaml`](workflows.md#github-workflows-cancel-runs-yaml-jobs) actively cancels in-progress and queued runs when a PR is closed. This complements passive concurrency groups, which only trigger cancellation when a *new* run enters the same group — closing a PR doesn't produce such an event.
 
 > [!TIP]
-> For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see the [`repomatic.github.actions`](repomatic.github.html#module-repomatic.github.actions) module docstring.
+> For implementation details on how concurrency groups are computed and why `release.yaml` needs special handling, see the {mod}`repomatic.github.actions` module docstring.
 
 ## AV false-positive submissions
 

@@ -143,9 +143,15 @@ linkcheck_anchors_ignore = [
     r"L\d+",
 ]
 
+# GitHub README anchors are JS-rendered and invisible to linkcheck.
+linkcheck_anchors_ignore_for_url = [
+    r"https://github\.com/",
+]
+
 linkcheck_ignore = [
     # These sites return 403 to bots but are valid.
     r"https://docutils\.sourceforge\.io",
+    r"https://www\.bitdefender\.com/submit/",
 ]
 
 # OpenGraph / social previews.

@@ -94,6 +94,8 @@ def config_deflist() -> str:
 
     # Per-option heading sections.
     for option, ftype, default, description in rows:
+        slug = _option_slug(option)
+        lines.append(f"({slug})=")
         lines.append(f"### {option}")
         lines.append("")
         lines.append(f"**Type:** {ftype} | **Default:** {default}")
