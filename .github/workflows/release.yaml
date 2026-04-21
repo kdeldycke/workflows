@@ -144,7 +144,7 @@ jobs:
         env:
           COMMIT: ${{ matrix.commit }}
         run: >
-          uvx --no-progress 'click-extra==7.10.0'
+          uvx --no-progress 'click-extra==7.10.1'
           prebake field git_tag_sha "${COMMIT}"
       - name: Build package
         run: uv --no-progress build
@@ -211,7 +211,7 @@ jobs:
         run: uv --no-progress pip install 'nuitka[onefile]==2.8.10'
       - name: Pre-bake build metadata
         if: contains(matrix.current_version, '.dev')
-        run: uvx --no-progress 'click-extra==7.10.0' prebake all
+        run: uvx --no-progress 'click-extra==7.10.1' prebake all
       - name: Nuitka + compilers versions
         run: uv --no-progress run --frozen -- nuitka --version
       - name: Build binary
