@@ -9,6 +9,7 @@
 - Add footnote conversion to `myst_docstrings` extension. References (`[^label]`) convert to `[#label]_` and definitions (`[^label]: text`) convert to `.. [#label] text`.
 - Fix `myst_docstrings` Sphinx extension hook priority to guarantee MyST-to-reST conversion runs before `sphinx_autodoc_typehints`. Registers at priority 400 (vs default 500) and enforces `conf.py` extension ordering at load time with a clear `ExtensionError`.
 - Align `myst_docstrings` Sphinx extension version with the `repomatic` package version.
+- Remove unused `sphinx-issues` dependency. No `:issue:`, `:pr:`, `:user:`, or `:commit:` roles were referenced anywhere in the documentation.
 
 ## [`6.14.0` (2026-04-20)](https://github.com/kdeldycke/repomatic/compare/v6.13.0...v6.14.0)
 

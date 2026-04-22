@@ -32,8 +32,6 @@ extensions = [
     # Adds a copy button to code blocks.
     "sphinx_copybutton",
     "sphinx_design",
-    # Link to GitHub issues and PRs.
-    "sphinx_issues",
     "sphinxext.opengraph",
     "myst_parser",
     "sphinx.ext.autosectionlabel",
@@ -83,9 +81,7 @@ autodoc_default_options = {
 # If true, `todo` and `todoList` produce output.
 todo_include_todos = True
 
-# GitHub pre-implemented shortcuts.
 github_user = "kdeldycke"
-issues_github_path = f"{github_user}/{project_id}"
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
@@ -111,7 +107,7 @@ html_favicon = "assets/favicon.svg"
 html_theme_options = {
     "sidebar_hide_name": True,
     # Activates edit links.
-    "source_repository": (f"https://github.com/{issues_github_path}"),
+    "source_repository": f"https://github.com/{github_user}/{project_id}",
     "source_branch": "main",
     "source_directory": "docs/",
     "announcement": (
