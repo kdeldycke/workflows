@@ -884,7 +884,8 @@ def test_setup_rejects_wrong_extension_order():
     from types import SimpleNamespace
     from unittest.mock import MagicMock
 
-    from sphinx.errors import ExtensionError
+    sphinx_errors = pytest.importorskip("sphinx.errors")
+    ExtensionError = sphinx_errors.ExtensionError
 
     app = MagicMock()
     # Simulate sphinx_autodoc_typehints already registered.
