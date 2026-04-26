@@ -232,11 +232,18 @@ def tool_summary() -> str:
 
         rows.append([name_link, f"`{spec.version}`", install_type, config_str])
 
-    return render_table(
-        rows,
-        headers=["Tool", "Version", "Type", "Config discovery"],
-        table_format=TableFormat.GITHUB,
-        colalign=("left", "left", "left", "left"),
+    # Trailing newline ensures a blank line before the closing marker.
+    # Without it, mdformat-gfm reinserts one on every run (a GFM table
+    # needs a blank line before the next HTML comment), causing an
+    # `update-docs` ↔ `format-markdown` ping-pong on `main`.
+    return (
+        render_table(
+            rows,
+            headers=["Tool", "Version", "Type", "Config discovery"],
+            table_format=TableFormat.GITHUB,
+            colalign=("left", "left", "left", "left"),
+        )
+        + "\n"
     )
 
 
