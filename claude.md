@@ -2,25 +2,15 @@
 
 ## Downstream repositories
 
-This repository serves as the **canonical reference** for conventions and best practices. When Claude is used in any repository that uses the `repomatic` CLI and its [`[tool.repomatic]` configuration](https://kdeldycke.github.io/repomatic/configuration.html), it should follow the same conventions defined here—including the structure and guidelines of this `claude.md` file itself.
+This repository is the **canonical reference** for conventions. Repos using the `repomatic` CLI and its [`[tool.repomatic]` configuration](https://kdeldycke.github.io/repomatic/configuration.html) should mirror the patterns defined here for code style, documentation, testing, and design.
 
-In other words, downstream repositories should mirror the patterns established here for code style, documentation, testing, and design principles.
 
-**Contributing upstream:** If Claude spots inefficiencies, potential improvements, performance bottlenecks, missing features, or opportunities for better adaptability in the `repomatic` CLI, its configuration, the reusable workflows, or this `claude.md` file itself, it should propose these changes upstream via a pull request or issue at [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/issues). This benefits all downstream repositories.
-
-**Upstream runtime dependency boundary:** Downstream repos must have only **one runtime dependency** on the upstream repository: reusable workflow `uses:` calls (e.g., `kdeldycke/repomatic/.github/workflows/autofix.yaml@vX.Y.Z`). These are version-pinned to a git tag, giving downstream repos control over when to upgrade. All other references to the upstream (documentation links in PR body templates, footer attribution) are **informational only** — they do not affect functionality if the upstream is unavailable. Do not introduce new runtime dependencies on the upstream repo (e.g., Renovate shareable presets, remote config extends, API calls to upstream) as they create unversioned coupling where an upstream breakage would cascade to all downstream repos simultaneously.
+**Contributing upstream:** Propose improvements to the `repomatic` CLI, configuration, reusable workflows, or this file via PR or issue at [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/issues).
+**Upstream runtime dependency boundary:** The only runtime dependency on the upstream repo is reusable workflow `uses:` calls (e.g., `kdeldycke/repomatic/.github/workflows/autofix.yaml@vX.Y.Z`), version-pinned to a git tag. All other references (PR body links, footer attribution) are informational. Do not introduce new runtime dependencies (Renovate shareable presets, remote config extends, API calls) — they create unversioned coupling where an upstream break cascades to all downstream repos.
 
 **Self-contained `claude.md`:** This file is deployed as-is to downstream repos via `repomatic init`. It must stand on its own: do not rely on the presence of any user-level `~/.claude/CLAUDE.md` or other external instruction file. Every rule Claude needs to follow when working in this repo (or a downstream repo) must be inline here. When in doubt, restate.
 
 ## Documentation requirements
-
-### Scope of `claude.md` vs `docs/` vs `readme.md`
-
-- **`claude.md`**: Contributor and Claude-focused directives: code style, testing guidelines, design principles, internal conventions.
-- **`docs/`**: User-facing reference published to Sphinx: installation, configuration, workflows, security, skills, API. Each topic gets its own page.
-- **`readme.md`**: GitHub landing page: project pitch, quick start, links to docs site. Keep it under ~80 lines.
-
-When adding new content, consider whether it benefits end users (`docs/`), GitHub visitors skimming the landing page (`readme.md`), or contributors/Claude working on the codebase (`claude.md`).
 
 ### Keeping `claude.md` lean
 
@@ -92,16 +82,16 @@ Use lowercase filenames everywhere. Avoid shouting-case names like `FUNDING.YML`
 
 GitHub silently ignores certain files unless they use the exact name it expects. These are the known hard constraints where you **cannot** use `.yaml` or lowercase:
 
-| File                     | Required name                       | Why                                               |
-| ------------------------ | ----------------------------------- | ------------------------------------------------- |
-| Issue form templates     | `.github/ISSUE_TEMPLATE/*.yml`      | `.yaml` is not recognized for issue forms         |
-| Issue template config    | `.github/ISSUE_TEMPLATE/config.yml` | `.yaml` not recognized                            |
-| Funding config           | `.github/funding.yml`               | Only `.yml` documented; no evidence `.yaml` works |
-| Release notes config     | `.github/release.yml`               | Only `.yml` documented                            |
-| Issue template directory | `.github/ISSUE_TEMPLATE/`           | Must be uppercase; GitHub ignores lowercase       |
-| Code owners              | `CODEOWNERS`                        | Must be uppercase; no extension                   |
+| File                     | Required name                       |
+| ------------------------ | ----------------------------------- |
+| Issue form templates     | `.github/ISSUE_TEMPLATE/*.yml`      |
+| Issue template config    | `.github/ISSUE_TEMPLATE/config.yml` |
+| Funding config           | `.github/funding.yml`               |
+| Release notes config     | `.github/release.yml`               |
+| Issue template directory | `.github/ISSUE_TEMPLATE/`           |
+| Code owners              | `CODEOWNERS`                        |
 
-Workflows (`.github/workflows/*.yaml`) and action metadata (`action.yaml`) officially support both `.yml` and `.yaml` — use `.yaml`.
+GitHub silently ignores these unless they use the exact name shown. Workflows (`.github/workflows/*.yaml`) and action metadata (`action.yaml`) support both `.yml` and `.yaml` — use `.yaml`.
 
 ## Code style
 
@@ -135,16 +125,16 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 ### Comments and docstrings
 
 - All comments in Python files must end with a period.
-- Docstrings use MyST markdown format. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time, so `sphinx.ext.autodoc` works transparently. Use `` {role}`target`  `` for cross-references (not reST `:role:`), `:::{directive}` for admonitions, `[text](url)` for links, and single backticks for inline code. Run `uv run repomatic convert-to-myst` to batch-convert any remaining reST docstrings. This applies to dynamically constructed docstrings too: if code builds a docstring string with cross-references, use `{func}`, `{data}`, `{class}` syntax, not `:func:`, `:data:`, `:class:`.
-- **Sphinx extension order:** In `docs/conf.py`, list `repomatic.myst_docstrings` before `sphinx_autodoc_typehints`. The extension registers at priority 400 (vs the default 500) so it always runs first, but listing it first makes the intent explicit. The extension enforces this at load time and raises `ExtensionError` if `sphinx_autodoc_typehints` is already registered.
-- **No Google-style docstring sections.** This project does not use `sphinx.ext.napoleon`. Do not use `Args:`, `Returns:`, `Raises:`, `Attributes:`, or `Yields:` section headers. Use reST field lists instead: `:param name:`, `:return:`, `:raises ExceptionType:`.
-- Documentation in `./docs/` uses MyST markdown format where possible. Fallback to reStructuredText if necessary.
-- Keep lines within 88 characters in Python files, including docstrings and comments (ruff default). Markdown files have no line-length limit — do not hard-wrap prose in markdown. Each sentence or logical clause should flow as a single long line; let the renderer handle wrapping.
+- Docstrings use MyST markdown. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time. Use `` {role}`target`  `` for cross-references (not `:role:`), `:::{directive}` for admonitions, `[text](url)` for links, single backticks for inline code. Same syntax applies to dynamically constructed docstrings. Run `uv run repomatic convert-to-myst` to batch-convert reST docstrings.
+- **Sphinx extension order:** In `docs/conf.py`, list `repomatic.myst_docstrings` before `sphinx_autodoc_typehints`. The extension enforces this at load time and raises `ExtensionError` otherwise.
+- **No Google-style docstring sections** (`Args:`, `Returns:`, `Raises:`, `Attributes:`, `Yields:`). Use reST field lists: `:param name:`, `:return:`, `:raises ExceptionType:`. This project does not use `sphinx.ext.napoleon`.
+- Documentation in `./docs/` uses MyST markdown where possible.
+- Keep lines within 88 characters in Python files (ruff default). Markdown files have no line-length limit — do not hard-wrap prose; let the renderer handle wrapping.
 - Titles in markdown use sentence case.
-- **Heading anchors:** Use the natural auto-generated heading anchor (e.g., `#comparison-with-sphinx-autodoc2` for `## Comparison with sphinx-autodoc2`) for cross-references. Do not add explicit MyST anchor targets (`(my-anchor)=`) unless the natural anchor is structurally unavailable (duplicate headings, anchors needed on non-heading elements).
-- **Parameter and return documentation:** Use reST field lists (`:param name:`, `:return:`) for function/method arguments and return values. The field list markers pass through the MyST→reST converter unchanged, but the content inside field list entries is converted normally: inline code, cross-references, and links all work (e.g., `:param config: A {class}\`Config\` instance.` converts the `{class}` reference while preserving `:param config:`). Use `:return:` (not `:returns:`). Continuation lines are indented to align with the description text above.
-- **Dataclass field docs:** In dataclasses, document fields with attribute docstrings (a string literal immediately after the field declaration), not `:param:` entries in the class docstring. Attribute docstrings are co-located with the field they describe, recognized by Sphinx, and stay in sync when fields are added or reordered. The class docstring should contain only a summary of the class purpose.
-- **CLI help text:** Click command docstrings serve double duty (Sphinx docs and terminal help). Click renders them as plain text, so avoid MyST markup in the prose sections that appear in `--help` output. Use plain text for command names, option names, file paths, and tool names. MyST markup (backtick code spans, `{role}` cross-references, admonitions) belongs in non-CLI docstrings only.
+- **Heading anchors:** Use the natural auto-generated anchor for cross-references. Add explicit MyST anchors (`(my-anchor)=`) only when the natural anchor is unavailable (duplicate headings, non-heading targets).
+- **Parameter and return documentation:** Use reST field lists (`:param name:`, `:return:`). The markers pass through unchanged, but content inside is MyST-converted (inline code, `{role}` references, links all work). Use `:return:`, not `:returns:`. Continuation lines are indented to align with the description text above.
+- **Dataclass field docs:** Document fields with attribute docstrings (string literal immediately after the field), not `:param:` entries in the class docstring. The class docstring is for the class purpose only.
+- **CLI help text:** Click renders docstrings as plain text in `--help`. Avoid MyST markup in Click command docstrings — use plain text for command names, option names, paths.
 
 ### `__init__.py` files
 
@@ -193,10 +183,10 @@ CLI commands, workflow job IDs, PR branch names, and PR body template names must
 
 **Rules:**
 
-1. **Pick the verb that matches the data source.** If the operation pulls from an external template, API, or canonical reference, it is a `sync`. If it computes from local project state (lockfiles, git history, source code), it is an `update`. If it reformats existing content, it is a `format`.
-2. **Name the specific tool or file, not a generic category.** The noun in `verb-noun` must identify the concrete tool, file, or resource the operation targets (e.g., `sync-zizmor`, `sync-gitignore`, `sync-mailmap`). Do not use abstract groupings like `sync-linter-configs` or `sync-vcs-configs`. If a second tool is added to a category, create a separate operation for it.
+1. **Pick the verb that matches the data source.** External template/API/canonical reference → `sync`. Local project state (lockfiles, git history, source code) → `update`. Reformatting existing content → `format`.
+2. **Name the specific tool or file, not a generic category.** The noun must identify a concrete tool, file, or resource (`sync-zizmor`, `sync-gitignore`). Avoid abstract groupings like `sync-linter-configs`. If a second tool joins a category, create a separate operation.
 3. **All four dimensions must agree.** When adding a file-modifying operation, the CLI command, workflow job ID, PR branch name, and PR body template file name must all use the same `verb-noun` identifier (e.g., `sync-gitignore` everywhere). For read-only operations (`lint-*`), only the CLI command and workflow job ID apply.
-4. **Function names follow the CLI name.** The Python function backing a CLI command uses the underscore equivalent of the CLI name (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter to override (e.g., `@repomatic.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
+4. **Function names follow the CLI name.** The Python function uses the underscore equivalent (e.g., `sync_gitignore` for `sync-gitignore`). Exception: when the function name would collide with an imported module, use the Click `name=` parameter (e.g., `@repomatic.command(name="update-deps-graph")` on a function named `deps_graph`) or append a `_cmd` suffix (e.g., `sync_uv_lock_cmd` to avoid collision with `from .renovate import sync_uv_lock`).
 
 ### Automated operation contracts
 
@@ -360,22 +350,11 @@ CLI commands that produce structured output should separate terminal display fro
 
 When adding or modifying a tool in `TOOL_REGISTRY`, choose the right mechanism for each default based on whether downstream repos should be able to override it:
 
-**`default_flags`** — for operational and cosmetic flags that are always applied and should not be overridable. These are non-negotiable aspects of how repomatic invokes the tool.
+**`default_flags`** — operational/cosmetic flags that are always applied and not overridable: output formatting (`--color`), operational mode (`--write-changes`, `--in-place`), enforcement level (`--strict`), network policy (`--offline`), tool-specific quirks with no config-file equivalent.
 
-- Output formatting: `--color`, `--color-output`.
-- Operational mode: `--write-changes`, `--in-place`, `--recursive`.
-- Enforcement level: `--strict`, `--strict-front-matter`.
-- Network policy: `--offline`.
-- Tool-specific quirks with no config-file equivalent (plugin CLI flags).
+**`default_config`** (bundled file in `repomatic/data/`) — behavioral preferences a downstream repo might legitimately want to override via its own config: lint rule selection, formatting preferences (numbering, line length), spell-check dictionaries, tool-specific rule configuration (severity, thresholds).
 
-**`default_config`** (bundled file in `repomatic/data/`) — for behavioral preferences that a downstream repo might legitimately want to override via its own config file or `[tool.X]` section.
-
-- Lint rule selection: which rules to enable/disable/ignore.
-- Formatting preferences: numbering style, line length, wrapping.
-- Spell-checking dictionaries and exceptions.
-- Tool-specific rule configuration (severity, thresholds).
-
-The test: if a downstream repo might reasonably want the opposite setting, it belongs in a config file, not a flag. CLI flags take precedence over config files in most tools, so putting an overridable preference in `default_flags` silently prevents downstream customization.
+The test: if a downstream repo might reasonably want the opposite setting, it belongs in a config file. CLI flags take precedence over config files in most tools, so an overridable preference in `default_flags` silently prevents downstream customization.
 
 **Config delivery has two paths** depending on whether the tool accepts a `--config` flag:
 
