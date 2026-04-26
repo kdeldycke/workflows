@@ -163,6 +163,15 @@ class VulnerablePackage:
     advisory came from a code path that pre-dates source attribution.
     """
 
+    source_urls: dict[AdvisorySource, str] = field(default_factory=dict)
+    """Per-source URL pointing to the advisory page in each database.
+
+    Each source has its own canonical URL even when reporting the same
+    advisory ID (PyPA's `osv.dev` page vs. GitHub's `/advisories/` page),
+    so the rendered table can link the source name to the database that
+    actually surfaced it.
+    """
+
 
 def parse_uv_audit_output(output: str) -> list[VulnerablePackage]:
     """Parse the text output of `uv audit` into structured vulnerability data.
@@ -192,6 +201,9 @@ def parse_uv_audit_output(output: str) -> list[VulnerablePackage]:
                     fixed_version=current_fixed,
                     advisory_url=current_url,
                     sources={AdvisorySource.UV_AUDIT},
+                    source_urls=(
+                        {AdvisorySource.UV_AUDIT: current_url} if current_url else {}
+                    ),
                 )
             )
 
@@ -257,10 +269,14 @@ def format_vulnerability_table(vulns: list[VulnerablePackage]) -> str:
         else:
             adv_link = v.advisory_id
         fixed = f"`{v.fixed_version}`" if v.fixed_version else "unknown"
-        sources = (
-            ", ".join(f"`{s.value}`" for s in sorted(v.sources, key=lambda s: s.value))
-            or "—"
-        )
+        # Link each source name to its own advisory URL so reviewers can
+        # inspect both databases when they agree.
+        source_cells: list[str] = []
+        for s in sorted(v.sources, key=lambda s: s.value):
+            url = v.source_urls.get(s, "")
+            label = f"`{s.value}`"
+            source_cells.append(f"[{label}]({url})" if url else label)
+        sources = ", ".join(source_cells) or "—"
         lines.append(
             f"| {pkg_link} | {adv_link}: {v.advisory_title} "
             f"| `{v.current_version}` | {fixed} | {sources} |"
@@ -1259,6 +1275,8 @@ def collect_vulnerable_packages(
             merged[key] = v
             continue
         existing.sources |= v.sources
+        for src, url in v.source_urls.items():
+            existing.source_urls.setdefault(src, url)
         # Prefer non-empty fields from whichever source has them.
         if not existing.current_version and v.current_version:
             existing.current_version = v.current_version

@@ -117,6 +117,9 @@ def fetch_dependabot_alerts(repo: str) -> list[VulnerablePackage]:
                 fixed_version=first_patched,
                 advisory_url=url,
                 sources={AdvisorySource.GITHUB_ADVISORIES},
+                source_urls=(
+                    {AdvisorySource.GITHUB_ADVISORIES: url} if url else {}
+                ),
             )
         )
     logging.info(f"Fetched {len(vulns)} fixable Dependabot alert(s) for {repo}.")

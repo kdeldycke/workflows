@@ -285,3 +285,63 @@ def test_format_vulnerability_table_includes_sources_column():
     assert "Sources" in table
     assert "`uv-audit`" in table
     assert "`github-advisories`" in table
+
+
+def test_format_vulnerability_table_links_each_source_to_its_url():
+    """Each source name in the Sources column links to its own advisory page."""
+    vulns = [
+        VulnerablePackage(
+            name="apricot",
+            current_version="1.0",
+            advisory_id="GHSA-orchard-9999-yyyy",
+            advisory_title="Apricot pit cracking",
+            fixed_version="1.1",
+            advisory_url="https://github.com/advisories/GHSA-orchard-9999-yyyy",
+            sources={AdvisorySource.UV_AUDIT, AdvisorySource.GITHUB_ADVISORIES},
+            source_urls={
+                AdvisorySource.UV_AUDIT: "https://osv.dev/vulnerability/PYSEC",
+                AdvisorySource.GITHUB_ADVISORIES: (
+                    "https://github.com/advisories/GHSA-orchard-9999-yyyy"
+                ),
+            },
+        ),
+    ]
+    table = format_vulnerability_table(vulns)
+    assert "[`uv-audit`](https://osv.dev/vulnerability/PYSEC)" in table
+    assert (
+        "[`github-advisories`]"
+        "(https://github.com/advisories/GHSA-orchard-9999-yyyy)"
+    ) in table
+
+
+def test_collect_keeps_distinct_per_source_urls(lock_with_raspberry):
+    """Merging same advisory from two sources retains both URLs."""
+    audit = VulnerablePackage(
+        name="raspberry",
+        current_version="3.1.46",
+        advisory_id="GHSA-fruit-1111-aaaa",
+        advisory_title="",
+        fixed_version="3.1.47",
+        advisory_url="https://osv.dev/vulnerability/PYSEC-raspberry",
+        sources={AdvisorySource.UV_AUDIT},
+        source_urls={
+            AdvisorySource.UV_AUDIT: "https://osv.dev/vulnerability/PYSEC-raspberry",
+        },
+    )
+    with (
+        patch("repomatic.uv._run_uv_audit", return_value=[audit]),
+        patch(
+            "repomatic.github.advisories.run_gh_command",
+            return_value=json.dumps(ALERTS_FIXTURE[:1]),
+        ),
+    ):
+        merged = collect_vulnerable_packages(
+            lock_with_raspberry, repo="orchard/raspberry"
+        )
+
+    assert len(merged) == 1
+    only = merged[0]
+    assert only.source_urls[AdvisorySource.UV_AUDIT].startswith("https://osv.dev/")
+    assert only.source_urls[AdvisorySource.GITHUB_ADVISORIES].startswith(
+        "https://github.com/advisories/"
+    )
