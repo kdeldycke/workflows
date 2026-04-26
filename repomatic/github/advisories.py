@@ -104,9 +104,8 @@ def fetch_dependabot_alerts(repo: str) -> list[VulnerablePackage]:
             current_version = ""  # filled in by the caller from parse_lock_versions
         ghsa_id = advisory.get("ghsa_id", "")
         summary = advisory.get("summary", "")
-        url = (
-            advisory.get("html_url")
-            or (f"https://github.com/advisories/{ghsa_id}" if ghsa_id else "")
+        url = advisory.get("html_url") or (
+            f"https://github.com/advisories/{ghsa_id}" if ghsa_id else ""
         )
         vulns.append(
             VulnerablePackage(
@@ -117,9 +116,7 @@ def fetch_dependabot_alerts(repo: str) -> list[VulnerablePackage]:
                 fixed_version=first_patched,
                 advisory_url=url,
                 sources={AdvisorySource.GITHUB_ADVISORIES},
-                source_urls=(
-                    {AdvisorySource.GITHUB_ADVISORIES: url} if url else {}
-                ),
+                source_urls=({AdvisorySource.GITHUB_ADVISORIES: url} if url else {}),
             )
         )
     logging.info(f"Fetched {len(vulns)} fixable Dependabot alert(s) for {repo}.")

@@ -168,8 +168,8 @@ from .tool_runner import (
     run_tool,
 )
 from .uv import (
-    _format_upload_date,
     AdvisorySource,
+    _format_upload_date,
     build_comparison_urls,
     fetch_release_notes,
     fix_vulnerable_deps as _fix_vulnerable_deps,
