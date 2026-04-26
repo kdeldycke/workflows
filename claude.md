@@ -4,7 +4,6 @@
 
 This repository is the **canonical reference** for conventions. Repos using the `repomatic` CLI and its [`[tool.repomatic]` configuration](https://kdeldycke.github.io/repomatic/configuration.html) should mirror the patterns defined here for code style, documentation, testing, and design.
 
-
 **Contributing upstream:** Propose improvements to the `repomatic` CLI, configuration, reusable workflows, or this file via PR or issue at [`kdeldycke/repomatic`](https://github.com/kdeldycke/repomatic/issues).
 **Upstream runtime dependency boundary:** The only runtime dependency on the upstream repo is reusable workflow `uses:` calls (e.g., `kdeldycke/repomatic/.github/workflows/autofix.yaml@vX.Y.Z`), version-pinned to a git tag. All other references (PR body links, footer attribution) are informational. Do not introduce new runtime dependencies (Renovate shareable presets, remote config extends, API calls) — they create unversioned coupling where an upstream break cascades to all downstream repos.
 
