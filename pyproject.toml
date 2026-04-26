@@ -149,7 +149,7 @@ test = [
 ]
 docs = [
   # click-extra[sphinx] provides click_extra.sphinx extension, docutils, pygments,
-  # pygments-ansi-color, and sphinx transitively.
+  # and sphinx transitively.
   "click-extra[sphinx]",
   # furo 2024.8.6+ supports Sphinx 8; pinned to recent CalVer release.
   "furo>=2025.9.25",
