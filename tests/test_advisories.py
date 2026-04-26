@@ -233,9 +233,7 @@ def test_collect_respects_sources_filter(lock_with_raspberry):
         )
 
     audit.assert_not_called()
-    assert all(
-        v.sources == {AdvisorySource.GITHUB_ADVISORIES} for v in result
-    )
+    assert all(v.sources == {AdvisorySource.GITHUB_ADVISORIES} for v in result)
 
 
 def test_collect_backfills_current_version_across_case_difference(tmp_path):
@@ -309,8 +307,7 @@ def test_format_vulnerability_table_links_each_source_to_its_url():
     table = format_vulnerability_table(vulns)
     assert "[`uv-audit`](https://osv.dev/vulnerability/PYSEC)" in table
     assert (
-        "[`github-advisories`]"
-        "(https://github.com/advisories/GHSA-orchard-9999-yyyy)"
+        "[`github-advisories`](https://github.com/advisories/GHSA-orchard-9999-yyyy)"
     ) in table
 
 
