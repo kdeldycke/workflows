@@ -89,7 +89,7 @@ def detect():
     """
 ````
 
-All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`. Colon fences (```` :::{note} ```` / `:::`) parse identically in MyST but `mdformat` treats them as literal text and escapes the colons, so prefer backtick fences.
+All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`. Colon fences (`:::{note}` / `:::`) parse identically in MyST but `mdformat` treats them as literal text and escapes the colons, so prefer backtick fences.
 
 Admonitions with titles:
 
@@ -142,9 +142,9 @@ Plain fences (```` ```python ````) are converted to `.. code-block:: python` dir
 
 Footnote references and definitions are converted:
 
-| MyST (write this)        | reST (produced at build time) |
-| :----------------------- | :---------------------------- |
-| `[^1]`                   | `[#1]_`                       |
+| MyST (write this)          | reST (produced at build time) |
+| :------------------------- | :---------------------------- |
+| `[^1]`                     | `[#1]_`                       |
 | `[^label]: Footnote text.` | `.. [#label] Footnote text.`  |
 
 Continuation lines in multi-line footnote definitions pass through with their indentation preserved.
@@ -182,7 +182,7 @@ Content containing `{` inside inline code is left as double backticks to avoid c
 
 The extension handles the constructs listed above. It does **not** convert:
 
-- **Nested fences of the same type** (```` ```` ```` / ```` ``` ````). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
+- **Nested fences of the same type** (` ` `/` \`\`\` \`\`\`\`). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
 - **Complex tables** (```` ```{list-table} ````, ```` ```{csv-table} ````). These work in module-level docstrings processed by `myst-parser` but are unlikely to appear in function docstrings.
 - **`{` inside single backticks**. Content like `` `{version}` `` would be misinterpreted as a cross-reference. The converter intentionally keeps these as double backticks (``` ``{version}`` ```), which the extension passes through to Sphinx as-is.
 - **MyST substitution references** (`{{variable}}`). These are a `myst-parser` feature for `.md` files and are not processed inside docstrings.
@@ -201,12 +201,12 @@ For constructs the extension does not handle, use reST syntax directly in the do
 
 Architectural differences that are inherent to `sphinx.ext.autodoc` and cannot be addressed by a conversion extension:
 
-| Capability | `sphinx-autodoc2` | `autodoc` + `myst_docstrings` |
-| :-- | :-- | :-- |
-| Static analysis (no module import) | Yes (via `astroid`) | No: modules must be importable at build time |
-| Integrated module discovery | Yes (no `sphinx-apidoc` step) | No: requires separate `sphinx-apidoc` or manual stubs |
-| Incremental per-object rebuilds | Yes | No: full rebuild on any change |
-| `TYPE_CHECKING` block visibility | Yes (static analysis sees all imports) | No: only sees runtime imports |
-| Native MyST output files | Yes (generates `.md` API docs) | No: generates reST internally |
+| Capability                         | `sphinx-autodoc2`                      | `autodoc` + `myst_docstrings`                         |
+| :--------------------------------- | :------------------------------------- | :---------------------------------------------------- |
+| Static analysis (no module import) | Yes (via `astroid`)                    | No: modules must be importable at build time          |
+| Integrated module discovery        | Yes (no `sphinx-apidoc` step)          | No: requires separate `sphinx-apidoc` or manual stubs |
+| Incremental per-object rebuilds    | Yes                                    | No: full rebuild on any change                        |
+| `TYPE_CHECKING` block visibility   | Yes (static analysis sees all imports) | No: only sees runtime imports                         |
+| Native MyST output files           | Yes (generates `.md` API docs)         | No: generates reST internally                         |
 
 These are limitations of `sphinx.ext.autodoc` itself, not of the conversion extension. They affect how Sphinx discovers and imports modules, not how docstring content is authored or rendered.
