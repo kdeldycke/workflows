@@ -807,13 +807,17 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "lychee": ToolSpec(
         name="lychee",
         display_name="Lychee",
-        version="0.23.0",
+        version="0.24.1",
         source_url="https://github.com/lycheeverse/lychee",
         config_docs_url="https://lychee.cli.rs/guides/config/",
         cli_docs_url="https://lychee.cli.rs/guides/cli/",
         native_config_files=("lychee.toml",),
         config_flag="--config",
         native_format=NativeFormat.TOML,
+        # Since v0.24.0 (https://github.com/lycheeverse/lychee/issues/1930,
+        # https://github.com/lycheeverse/lychee/pull/2104), lychee natively reads
+        # [tool.lychee] from pyproject.toml, so repomatic skips the translation bridge.
+        reads_pyproject=True,
         binary=BinarySpec(
             urls={
                 (
@@ -827,34 +831,35 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
                 (
                     MACOS,
                     AARCH64,
-                ): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-arm64-macos.tar.gz",
+                ): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-aarch64-apple-darwin.tar.gz",
                 (
                     WINDOWS,
                     X86_64,
-                ): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-windows.exe",
+                ): "https://github.com/lycheeverse/lychee/releases/download/lychee-v{version}/lychee-x86_64-pc-windows-msvc.zip",
             },
             checksums={
                 (
                     LINUX,
                     AARCH64,
-                ): "97eb93b02a7d78a752fc33e5b0983439ccaadbf3db952b68a0a4401acd92e6e0",
+                ): "55c1af98a86120c8a895323cf38ad4bef59139ed90288636e39c8265181e39ec",
                 (
                     LINUX,
                     X86_64,
-                ): "1fcb6ccf10d04c22b8c5873c5b9cb7be32ee7423e12169d6f1a79a6f1962ef81",
+                ): "3ecad9a6e5ec42efaa9cdbdbad2406fdeef11ee38f7774aaf038f981d3248684",
                 (
                     MACOS,
                     AARCH64,
-                ): "1953bb425486e1b887757201e54e8fdf866c9cada6c270d8f6ed21ffbed4145a",
+                ): "7485ac758fcaf9f8bd660a2d585a1baba9c2a0d48055fd3259e9284ed659a815",
                 (
                     WINDOWS,
                     X86_64,
-                ): "0fda7ff0a60c0250939fc25361c2d4e6e7853c31c996733fdd5a1dd760bcb824",
+                ): "34a12a7da946e4db1babe8cb3f7549e036129d524b36f2baf3068acdef66d0c3",
             },
             archive_format={
                 ALL_PLATFORMS: ArchiveFormat.TAR_GZ,
-                WINDOWS: ArchiveFormat.RAW,
+                WINDOWS: ArchiveFormat.ZIP,
             },
+            strip_components=1,
         ),
     ),
     # TODO: add config_flag="--config" once upstream adds --config support.
