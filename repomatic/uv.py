@@ -1382,7 +1382,8 @@ def fix_vulnerable_deps(
     # Step 8: Build the combined output.
     vuln_table = format_vulnerability_table(vulns)
     upload_times = parse_lock_upload_times(lock_path)
-    diff_table = format_diff_table(changes, upload_times)
+    exclude_newer = parse_lock_exclude_newer(lock_path)
+    diff_table = format_diff_table(changes, upload_times, exclude_newer)
 
     # Fetch and append release notes.
     notes = fetch_release_notes(changes)
