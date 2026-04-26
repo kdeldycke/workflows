@@ -10,39 +10,7 @@ In other words, downstream repositories should mirror the patterns established h
 
 **Upstream runtime dependency boundary:** Downstream repos must have only **one runtime dependency** on the upstream repository: reusable workflow `uses:` calls (e.g., `kdeldycke/repomatic/.github/workflows/autofix.yaml@vX.Y.Z`). These are version-pinned to a git tag, giving downstream repos control over when to upgrade. All other references to the upstream (documentation links in PR body templates, footer attribution) are **informational only** — they do not affect functionality if the upstream is unavailable. Do not introduce new runtime dependencies on the upstream repo (e.g., Renovate shareable presets, remote config extends, API calls to upstream) as they create unversioned coupling where an upstream breakage would cascade to all downstream repos simultaneously.
 
-## Commands
-
-### Testing
-
-```shell-session
-# Run all tests with coverage.
-$ uv run --group test pytest
-
-# Run a single test file.
-$ uv run --group test pytest tests/test_changelog.py
-
-# Run a specific test.
-$ uv run --group test pytest tests/test_changelog.py::test_function_name
-
-# Run tests in parallel.
-$ uv run --group test pytest -n auto
-```
-
-### Type checking
-
-```shell-session
-$ uv run --group typing repomatic run mypy -- repomatic
-```
-
-### Running the CLI
-
-```shell-session
-# Run locally during development.
-$ uv run repomatic --help
-
-# Try without installation using uvx.
-$ uvx -- repomatic --help
-```
+**Self-contained `claude.md`:** This file is deployed as-is to downstream repos via `repomatic init`. It must stand on its own: do not rely on the presence of any user-level `~/.claude/CLAUDE.md` or other external instruction file. Every rule Claude needs to follow when working in this repo (or a downstream repo) must be inline here. When in doubt, restate.
 
 ## Documentation requirements
 
