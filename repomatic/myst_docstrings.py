@@ -42,7 +42,7 @@ Supported conversions:
   - ``{role}`target```
   - ``{role}`target```
 * - Fenced directives
-  - ``:::{note}`` or `` ```{note} ``
+  - `` ```{note} ``
   - `.. note::`
 * - Plain code fences
   - ```` ```python ````
@@ -63,20 +63,20 @@ Field list markers (`:param:`, `:return:`) need no conversion; the content
 inside field list entries is converted normally (inline code, cross-references,
 links).
 
-```{note}
+````{note}
 Register this extension in your Sphinx `conf.py`, before
 `sphinx_autodoc_typehints` if present:
 
-:::{code-block} python
+```{code-block} python
 extensions = [
     "sphinx.ext.autodoc",
     "repomatic.myst_docstrings",
     "sphinx_autodoc_typehints",  # must come after
 ]
-:::
+```
 
 This requires `repomatic` in your docs dependency group.
-```
+````
 """
 
 from __future__ import annotations
@@ -90,9 +90,11 @@ logger = logging.getLogger(__name__)
 # Negative lookbehind prevents matching inside double backticks (``{version}``).
 _XREF_RE = re.compile(r"(?<!``)\{([\w-]+)\}`([^`]*?)`")
 
-# :::{directive} optional-title        ```{directive} optional-title
-# body                          or     body
-# :::                                  ```
+# Colon fences are recognized for legacy docstrings; new content uses
+# backtick fences (see ``_BACKTICK_FENCE_RE`` below).
+# :::{directive} optional-title
+# body
+# :::
 _COLON_FENCE_RE = re.compile(
     r"^( *):::\{([\w-]+)\}[ ]*([^\n]*)\n(.*?)^\1:::\s*$",
     re.MULTILINE | re.DOTALL,

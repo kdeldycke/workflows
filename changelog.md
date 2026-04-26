@@ -6,6 +6,8 @@
 > This version is **not released yet** and is under active development.
 
 - Upgrade lychee to `0.24.1`. The `0.24.x` series adds native `[tool.lychee]` support in `pyproject.toml`, so repomatic skips the TOML translation bridge and lets lychee read its config directly. macOS arm64 and Windows x86_64 asset names changed upstream (now `aarch64-apple-darwin.tar.gz` and `x86_64-pc-windows-msvc.zip`), the Windows download is now a `zip` archive instead of a raw `.exe`, and tarballs now wrap the binary in a per-target directory that the extractor strips.
+- Switch MyST admonitions to backtick fences (```` ```{note} ````) instead of colon fences (`:::{note}`) project-wide so that `mdformat` preserves them instead of escaping the colons. The Sphinx extension still recognizes both, and the `convert-to-myst` migration command now emits backtick fences.
+- Drop explicit `({slug})=` anchors emitted by the configuration docs generator. The natural heading anchor produced by docutils for `### option.name` already matches the desired `option-name` slug.
 - Add plain triple-backtick code fence conversion to `myst_docstrings` extension. Fences like ```` ```python ```` are now converted to `.. code-block:: python` directives, in addition to the existing ```` ```{code-block} ```` directive fence support.
 - Add footnote conversion to `myst_docstrings` extension. References (`[^label]`) convert to `[#label]_` and definitions (`[^label]: text`) convert to `.. [#label] text`.
 - Fix `myst_docstrings` Sphinx extension hook priority to guarantee MyST-to-reST conversion runs before `sphinx_autodoc_typehints`. Registers at priority 400 (vs default 500) and enforces `conf.py` extension ordering at load time with a clear `ExtensionError`.

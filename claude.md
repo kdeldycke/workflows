@@ -58,11 +58,11 @@ Each piece of knowledge has one canonical home, chosen by audience. Other locati
 | Bug reporters         | `.github/ISSUE_TEMPLATE/` | Reproduction steps, version commands.                                   |
 | Contributors / Claude | `claude.md`               | Conventions, policies, non-obvious rules.                               |
 
-**YAML → Python distillation:** When workflow YAML files contain lengthy "why" explanations, migrate the rationale to Python module, class, or constant docstrings (using MyST admonitions like `:::{note}` and `:::{warning}`). Trim the YAML comment to a one-line "what" plus a pointer: `# See repomatic/module.py for rationale.`
+**YAML → Python distillation:** When workflow YAML files contain lengthy "why" explanations, migrate the rationale to Python module, class, or constant docstrings (using MyST admonitions like ```` ```{note} ```` and ```` ```{warning} ````). Trim the YAML comment to a one-line "what" plus a pointer: `# See repomatic/module.py for rationale.`
 
 ### Documenting code decisions
 
-Document design decisions, trade-offs, and non-obvious implementation choices directly in the code using MyST docstring admonitions (`:::{warning}`, `:::{note}`, `:::{caution}`), inline comments, and module-level docstrings for constants that need context.
+Document design decisions, trade-offs, and non-obvious implementation choices directly in the code using MyST docstring admonitions (```` ```{warning} ````, ```` ```{note} ````, ```` ```{caution} ````), inline comments, and module-level docstrings for constants that need context.
 
 ### Example data
 
@@ -125,7 +125,7 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 ### Comments and docstrings
 
 - All comments in Python files must end with a period.
-- Docstrings use MyST markdown. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time. Use `` {role}`target`  `` for cross-references (not `:role:`), `:::{directive}` for admonitions, `[text](url)` for links, single backticks for inline code. Same syntax applies to dynamically constructed docstrings. Run `uv run repomatic convert-to-myst` to batch-convert reST docstrings.
+- Docstrings use MyST markdown. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time. Use `` {role}`target`  `` for cross-references (not `:role:`), ```` ```{directive} ```` for admonitions, `[text](url)` for links, single backticks for inline code. Same syntax applies to dynamically constructed docstrings. Run `uv run repomatic convert-to-myst` to batch-convert reST docstrings.
 - **Sphinx extension order:** In `docs/conf.py`, list `repomatic.myst_docstrings` before `sphinx_autodoc_typehints`. The extension enforces this at load time and raises `ExtensionError` otherwise.
 - **No Google-style docstring sections** (`Args:`, `Returns:`, `Raises:`, `Attributes:`, `Yields:`). Use reST field lists: `:param name:`, `:return:`, `:raises ExceptionType:`. This project does not use `sphinx.ext.napoleon`.
 - Documentation in `./docs/` uses MyST markdown where possible.

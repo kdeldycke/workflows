@@ -25,9 +25,9 @@ extensions = [
 
 If `sphinx.ext.autodoc` is absent, the `autodoc-process-docstring` event never fires and the extension silently does nothing.
 
-:::{warning}
+```{warning}
 If you also use `sphinx_autodoc_typehints`, list `repomatic.myst_docstrings` **before** it in the `extensions` list. The extension registers its `autodoc-process-docstring` hook at priority 400 (vs the default 500 used by `sphinx_autodoc_typehints`), so MyST-to-reST conversion always runs first regardless of registration order. Listing it first makes the intent explicit and is enforced at load time: if `sphinx_autodoc_typehints` is already registered when `repomatic.myst_docstrings` loads, the build fails with a clear error.
-:::
+```
 
 ### 2. Add the dependency
 
@@ -76,7 +76,7 @@ The `~` prefix for abbreviating to the last component works the same way.
 
 ### Admonitions
 
-Both colon fences and backtick fences are supported:
+Use backtick fences:
 
 ````python
 def detect():
@@ -89,7 +89,7 @@ def detect():
     """
 ````
 
-The colon-fence equivalent (`:::{note}` / `:::`) works identically. All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`.
+All standard Sphinx admonitions work: `note`, `warning`, `caution`, `hint`, `tip`, `seealso`, `danger`, `important`. Colon fences (```` :::{note} ```` / `:::`) parse identically in MyST but `mdformat` treats them as literal text and escapes the colons, so prefer backtick fences.
 
 Admonitions with titles:
 
@@ -174,7 +174,7 @@ In the example above, single-backtick code spans (`path`, `True`) are doubled fo
 2. **Named links**: `` `text <url>`_ `` becomes `[text](url)`
 3. **Inline code**: ``` ``code`` ``` becomes `` `code` ``
 4. **`#:` comment blocks**: prefix stripped, directives converted, prefix restored
-5. **Directives**: `.. directive::` + indented body becomes `:::{directive}` / `:::`
+5. **Directives**: `.. directive::` + indented body becomes ```` ```{directive} ```` / ```` ``` ````
 
 Content containing `{` inside inline code is left as double backticks to avoid clashing with MyST cross-reference syntax. These pass through the extension unchanged.
 
@@ -182,8 +182,8 @@ Content containing `{` inside inline code is left as double backticks to avoid c
 
 The extension handles the constructs listed above. It does **not** convert:
 
-- **Nested fences of the same type** (`::::` / `:::` or ```` ```` ```` / ```` ``` ````). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
-- **Complex tables** (`:::{list-table}`, `:::{csv-table}`). These work in module-level docstrings processed by `myst-parser` but are unlikely to appear in function docstrings.
+- **Nested fences of the same type** (```` ```` ```` / ```` ``` ````). A single nesting level works because the inner directive (like `.. code-block::`) stays as reST inside the converted outer fence.
+- **Complex tables** (```` ```{list-table} ````, ```` ```{csv-table} ````). These work in module-level docstrings processed by `myst-parser` but are unlikely to appear in function docstrings.
 - **`{` inside single backticks**. Content like `` `{version}` `` would be misinterpreted as a cross-reference. The converter intentionally keeps these as double backticks (``` ``{version}`` ```), which the extension passes through to Sphinx as-is.
 - **MyST substitution references** (`{{variable}}`). These are a `myst-parser` feature for `.md` files and are not processed inside docstrings.
 - **MyST definition lists**. The `deflist` extension syntax (term on one line, `: definition` on the next) is not converted. The `: ` prefix is ambiguous with field list continuations and other reST constructs, making reliable regex detection impractical without a full parser. Use reST definition lists or restructure as a field list.

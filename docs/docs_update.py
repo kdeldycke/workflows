@@ -64,9 +64,11 @@ def replace_content(
 
 
 def _option_slug(option: str) -> str:
-    """Derive the Sphinx heading ID from an option name.
+    """Derive the auto-generated Sphinx heading ID for an option name.
 
-    ``"awesome-template.sync"`` becomes ``"awesome-template-sync"``.
+    Mirrors docutils' ``make_id`` so the summary table can link to each
+    section's natural anchor (e.g., ``"awesome-template.sync"`` →
+    ``"awesome-template-sync"``).
     """
     slug = option.strip("`").lower()
     return re.sub(r"[^a-z0-9]+", "-", slug).strip("-")
@@ -94,8 +96,6 @@ def config_deflist() -> str:
 
     # Per-option heading sections.
     for option, ftype, default, description in rows:
-        slug = _option_slug(option)
-        lines.append(f"({slug})=")
         lines.append(f"### {option}")
         lines.append("")
         lines.append(f"**Type:** {ftype} | **Default:** {default}")

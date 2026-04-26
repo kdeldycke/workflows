@@ -26,30 +26,30 @@ Conversions applied (in order):
 2. Named links: ```text <url>`_` -> `[text](url)``
 3. Inline code: ````code```` -> ```code```
 4. `#:` comment blocks: strip prefix, convert directives, re-wrap.
-5. Directives: `.. directive::` + indented body -> ``:::{directive}`` /
-   `:::`
+5. Directives: `.. directive::` + indented body -> ```` ```{directive} ```` /
+   ```` ``` ````
 
 Safe to re-run: already-converted MyST syntax does not match the reST
 patterns, so the script is idempotent.
 
-:::{note}
+```{note}
 **f-string exclusion**: Cross-reference and inline-code regexes exclude
 targets containing ``{`` so that f-string interpolations (like
 ``f":func:`~{self.id}`"``) are untouched.
-:::
+```
 
-:::{note}
+```{note}
 **Nested directives stay as reST**: A `.. code-block::` inside a
-converted ``:::{warning}`` fence is emitted as-is.  The hook handles
-this correctly because it re-indents the body when converting back to
-reST.
-:::
+converted backtick-fenced `warning` directive is emitted as-is.  The
+hook handles this correctly because it re-indents the body when
+converting back to reST.
+```
 
-:::{note}
+```{note}
 **Link labels lose backticks**: ``[`sys.platform`](url)`` is valid MyST
 but reST has no nested markup.  The hook strips backticks from labels
 before emitting the reST link.
-:::
+```
 """
 
 from __future__ import annotations
@@ -109,7 +109,7 @@ DIRECTIVE_RE = re.compile(r"^(\s*)\.\. ([\w-]+)::\s*(.*)")
 
 
 def convert_directives(text: str) -> str:
-    """Convert reST directives to MyST colon fences in a single pass.
+    """Convert reST directives to MyST backtick fences in a single pass.
 
     Body lines are collected by indentation (deeper than the `..` line)
     and dedented to the fence level.  Trailing blank lines between
@@ -167,7 +167,7 @@ def convert_directives(text: str) -> str:
             trailing_blanks += 1
 
         # Opening fence.
-        fence = f"{indent}:::{{{directive}}}"
+        fence = f"{indent}```{{{directive}}}"
         if argument:
             fence += f" {argument}"
         result.append(fence)
@@ -183,7 +183,7 @@ def convert_directives(text: str) -> str:
                 result.append(bl[remove:])
 
         # Closing fence.
-        result.append(f"{indent}:::")
+        result.append(f"{indent}```")
 
         # Re-emit one blank line if the original had trailing blanks.
         if trailing_blanks:
