@@ -5,6 +5,7 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Detect vulnerable dependencies from the GitHub Advisory Database in addition to the PyPA Advisory Database. The `fix-vulnerable-deps` job now unions `uv audit` and the repository's Dependabot alerts feed, deduplicates by `(package, advisory_id)`, and credits each entry's source(s) in the PR body. Catches CVEs against transitive `uv.lock` packages that `uv audit` does not yet see. Configurable via `[tool.repomatic] vulnerable-deps.sources`.
 - Upgrade lychee to `0.24.1`. The `0.24.x` series adds native `[tool.lychee]` support in `pyproject.toml`, so repomatic skips the TOML translation bridge and lets lychee read its config directly. macOS arm64 and Windows x86_64 asset names changed upstream (now `aarch64-apple-darwin.tar.gz` and `x86_64-pc-windows-msvc.zip`), the Windows download is now a `zip` archive instead of a raw `.exe`, and tarballs now wrap the binary in a per-target directory that the extractor strips.
 - Switch MyST admonitions to backtick fences (```` ```{note} ````) instead of colon fences (`:::{note}`) project-wide so that `mdformat` preserves them instead of escaping the colons. The Sphinx extension still recognizes both, and the `convert-to-myst` migration command now emits backtick fences.
 - Drop explicit `({slug})=` anchors emitted by the configuration docs generator. The natural heading anchor produced by docutils for `### option.name` already matches the desired `option-name` slug.

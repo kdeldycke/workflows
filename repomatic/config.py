@@ -304,6 +304,36 @@ class TestPlanConfig:
 
 
 @dataclass
+class VulnerableDepsConfig:
+    """Nested schema for `[tool.repomatic.vulnerable-deps]`."""
+
+    sources: list[str] = field(
+        default_factory=lambda: ["uv-audit", "github-advisories"],
+    )
+    """Advisory databases to consult for known vulnerabilities.
+
+    Recognized values:
+
+    - `"uv-audit"`: PyPA Advisory Database via `uv audit` (works locally
+      and in CI without a GitHub token).
+    - `"github-advisories"`: GitHub Advisory Database via the repository's
+      Dependabot alerts (CI-only, requires a token with `Dependabot
+      alerts: Read-only`).
+
+    Sources are unioned and deduplicated by `(package, advisory_id)`.
+    Repositories that distrust GHSA — or have no Dependabot alerts
+    enabled — can opt out with `sources = ["uv-audit"]`.
+    """
+
+    sync: bool = True
+    """Whether the `fix-vulnerable-deps` job is enabled for this project.
+
+    Projects that manage their own vulnerability remediation flow can set
+    this to `false` to skip the autofix job.
+    """
+
+
+@dataclass
 class WorkflowConfig:
     """Nested schema for `[tool.repomatic.workflow]`."""
 
@@ -547,6 +577,12 @@ class Config:
     `sync-uv-lock` job to run `uv lock --upgrade` can set this to `false`.
     """
 
+    vulnerable_deps: VulnerableDepsConfig = field(
+        default_factory=lambda: VulnerableDepsConfig(),
+        metadata={"click_extra.config_path": "vulnerable-deps"},
+    )
+    """Vulnerable dependency detection and remediation configuration."""
+
     workflow: WorkflowConfig = field(
         default_factory=WorkflowConfig,
         metadata={"click_extra.config_path": "workflow"},
@@ -574,6 +610,7 @@ SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
     "test_matrix",
     "test_plan",
     "uv_lock_sync",
+    "vulnerable_deps",
     "workflow",
 ))
 """Config fields consumed directly by subcommands, not needed as metadata outputs.

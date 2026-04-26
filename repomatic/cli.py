@@ -169,6 +169,7 @@ from .tool_runner import (
 )
 from .uv import (
     _format_upload_date,
+    AdvisorySource,
     build_comparison_urls,
     fetch_release_notes,
     fix_vulnerable_deps as _fix_vulnerable_deps,
@@ -2458,6 +2459,16 @@ def verify_binary(target: str, binary_path: Path) -> None:
     help="Path to the uv.lock file.",
 )
 @option(
+    "--repo",
+    "repo",
+    type=str,
+    default=lambda: os.environ.get("GITHUB_REPOSITORY", ""),
+    help=(
+        "Repository in OWNER/NAME format. Required to query the GitHub"
+        " Advisory Database. Defaults to GITHUB_REPOSITORY when set."
+    ),
+)
+@option(
     "--output",
     type=file_path(writable=True, resolve_path=True, allow_dash=True),
     default=None,
@@ -2468,28 +2479,62 @@ def verify_binary(target: str, binary_path: Path) -> None:
 def fix_vulnerable_deps_cmd(
     ctx: Context,
     lockfile: Path,
+    repo: str,
     output: Path | None,
     output_format: str,
 ) -> None:
     """Detect and upgrade packages with known security vulnerabilities.
 
     \b
-    Wraps uv audit + uv lock --upgrade-package and:
+    Queries every advisory database enabled in
+    [tool.repomatic] vulnerable-deps.sources (default: uv-audit and
+    github-advisories), unions and deduplicates the results, then upgrades
+    each fixable package with uv lock --upgrade-package and:
       - bypasses the exclude-newer cooldown for security fixes
       - persists exclude-newer-package entries in pyproject.toml
       - prints a markdown report of vulnerabilities and version changes
 
     \b
     Examples:
-        # Scan and fix vulnerabilities
+        # Scan and fix vulnerabilities (uses GITHUB_REPOSITORY when set)
         repomatic fix-vulnerable-deps
+
+    \b
+        # Force a specific repository for the GHSA query
+        repomatic fix-vulnerable-deps --repo owner/name
 
     \b
         # CI: write markdown report as a GitHub Actions step output
         repomatic fix-vulnerable-deps \\
             --output "$GITHUB_OUTPUT" --output-format github-actions
     """
-    has_fixes, diff_table = _fix_vulnerable_deps(lockfile)
+    config = get_tool_config(ctx)
+    if not config.vulnerable_deps.sync:
+        logging.info(
+            "[tool.repomatic] vulnerable-deps.sync is disabled."
+            " Skipping vulnerability scan."
+        )
+        ctx.exit(0)
+
+    sources: list[AdvisorySource] = []
+    for raw in config.vulnerable_deps.sources:
+        try:
+            sources.append(AdvisorySource(raw))
+        except ValueError:
+            logging.warning(
+                f"Unknown vulnerable-deps source {raw!r};"
+                f" expected one of {[s.value for s in AdvisorySource]}."
+            )
+    if AdvisorySource.GITHUB_ADVISORIES in sources and not repo:
+        logging.info(
+            "GitHub Advisory Database source skipped:"
+            " --repo not provided and GITHUB_REPOSITORY not set."
+        )
+        sources = [s for s in sources if s is not AdvisorySource.GITHUB_ADVISORIES]
+
+    has_fixes, diff_table = _fix_vulnerable_deps(
+        lockfile, repo=repo or None, sources=sources or None
+    )
 
     if not has_fixes:
         echo("No fixable vulnerabilities found.")

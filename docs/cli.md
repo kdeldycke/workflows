@@ -363,14 +363,20 @@ Usage: repomatic fix-vulnerable-deps [OPTIONS]
 
   Detect and upgrade packages with known security vulnerabilities.
 
-  Wraps uv audit + uv lock --upgrade-package and:
+  Queries every advisory database enabled in
+  [tool.repomatic] vulnerable-deps.sources (default: uv-audit and
+  github-advisories), unions and deduplicates the results, then upgrades
+  each fixable package with uv lock --upgrade-package and:
     - bypasses the exclude-newer cooldown for security fixes
     - persists exclude-newer-package entries in pyproject.toml
     - prints a markdown report of vulnerabilities and version changes
 
   Examples:
-      # Scan and fix vulnerabilities
+      # Scan and fix vulnerabilities (uses GITHUB_REPOSITORY when set)
       repomatic fix-vulnerable-deps
+
+      # Force a specific repository for the GHSA query
+      repomatic fix-vulnerable-deps --repo owner/name
 
       # CI: write markdown report as a GitHub Actions step output
       repomatic fix-vulnerable-deps \
@@ -378,6 +384,9 @@ Usage: repomatic fix-vulnerable-deps [OPTIONS]
 
 Options:
   --lockfile FILE  Path to the uv.lock file.  [default: uv.lock]
+  --repo TEXT      Repository in OWNER/NAME format. Required to query the GitHub
+                   Advisory Database. Defaults to GITHUB_REPOSITORY when set.
+                   [default: (dynamic)]
   --output FILE    Write a markdown report (vulnerabilities + updates) to this
                    file.
   --output-format [markdown|github-actions]

@@ -318,8 +318,16 @@ jobs:
       - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
       - id: fix
         name: Fix vulnerable dependencies
+        # GH_TOKEN lets repomatic query the GitHub Advisory Database via the
+        # repo's Dependabot alerts. PAT is preferred when present so the
+        # token has the Dependabot alerts permission; falls back to the
+        # workflow token (which carries the same permission scope under
+        # security-events: read).
+        env:
+          GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
         run: >
           uvx --no-progress --from . repomatic fix-vulnerable-deps
+          --repo "${{ github.repository }}"
           --output "$GITHUB_OUTPUT" --output-format github-actions
       - id: pr-metadata
         env:
