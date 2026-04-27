@@ -78,12 +78,10 @@ flowchart LR
         docutils(["`docutils`"])
         accessible_pygments(["`accessible-pygments`"])
         mdit_py_plugins(["`mdit-py-plugins`"])
-        pygments_ansi_color(["`pygments-ansi-color`"])
         sphinx_autodoc_typehints{{"`sphinx-autodoc-typehints >=2.4`"}}
         sphinx_basic_ng(["`sphinx-basic-ng`"])
         sphinx_copybutton{{"`sphinx-copybutton >=0.5.2`"}}
         sphinx_design{{"`sphinx-design >=0.6`"}}
-        sphinx_issues{{"`sphinx-issues >=5`"}}
         sphinxext_opengraph{{"`sphinxext-opengraph >=0.13`"}}
         alabaster(["`alabaster`"])
         babel(["`babel`"])
@@ -159,7 +157,6 @@ flowchart LR
     click_extra --> docutils
     click_extra ==> boltons
     click_extra ==> extra_platforms
-    click_extra --> pygments_ansi_color
     click_extra --> tabulate
     click_extra --> deepmerge
     pytest --> pygments
@@ -213,7 +210,6 @@ flowchart LR
     sphinx_autodoc_typehints ==> sphinx
     sphinx_copybutton ==> sphinx
     sphinx_design ==> sphinx
-    sphinx_issues ==> sphinx
     sphinxext_opengraph ==> sphinx
     aiohttp --> yarl
     aiohttp --> aiosignal
@@ -257,7 +253,6 @@ flowchart LR
     accessible_pygments --> pygments
     gitpython --> gitdb
     mdit_py_plugins --> markdown_it_py
-    pygments_ansi_color --> pygments
     questionary --> prompt_toolkit
     sphinx_basic_ng ==> sphinx
     tabulate --> wcwidth
@@ -338,7 +333,6 @@ flowchart LR
     click pydantic_settings "https://pypi.org/project/pydantic-settings/" _blank
     click pydriller "https://pypi.org/project/pydriller/" _blank
     click pygments "https://pypi.org/project/pygments/" _blank
-    click pygments_ansi_color "https://pypi.org/project/pygments-ansi-color/" _blank
     click pyproject_metadata "https://pypi.org/project/pyproject-metadata/" _blank
     click pytest "https://pypi.org/project/pytest/" _blank
     click pytest_cov "https://pypi.org/project/pytest-cov/" _blank
@@ -363,7 +357,6 @@ flowchart LR
     click sphinx_basic_ng "https://pypi.org/project/sphinx-basic-ng/" _blank
     click sphinx_copybutton "https://pypi.org/project/sphinx-copybutton/" _blank
     click sphinx_design "https://pypi.org/project/sphinx-design/" _blank
-    click sphinx_issues "https://pypi.org/project/sphinx-issues/" _blank
     click sphinxcontrib_applehelp "https://pypi.org/project/sphinxcontrib-applehelp/" _blank
     click sphinxcontrib_devhelp "https://pypi.org/project/sphinxcontrib-devhelp/" _blank
     click sphinxcontrib_htmlhelp "https://pypi.org/project/sphinxcontrib-htmlhelp/" _blank
@@ -409,7 +402,6 @@ flowchart LR
     style sphinx_autodoc_typehints stroke-width:3px
     style sphinx_copybutton stroke-width:3px
     style sphinx_design stroke-width:3px
-    style sphinx_issues stroke-width:3px
     style sphinxcontrib_mermaid stroke-width:3px
     style sphinxext_opengraph stroke-width:3px
     style tomli stroke-width:3px
