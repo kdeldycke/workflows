@@ -512,6 +512,7 @@ Usage: repomatic init [OPTIONS]
       labels              Label config files (labels.toml + labeller rules)
       codecov             Codecov PR comment config (.github/codecov.yaml)
       renovate            Renovate config (renovate.json5)
+      agents              Claude Code agent definitions (.claude/agents/)
       skills              Claude Code skill definitions (.claude/skills/)
       workflows           Thin-caller workflow files
       awesome-template    Boilerplate for awesome-* repositories
@@ -524,7 +525,7 @@ Usage: repomatic init [OPTIONS]
       bumpversion         bump-my-version configuration
       typos               Typos spell checker configuration
 
-  File-level selectors (labels, codecov, renovate, skills, workflows):
+  File-level selectors (labels, codecov, renovate, agents, skills, workflows):
       workflows/autofix.yaml    A single workflow
       skills/repomatic-topics   A single skill
       labels/labels.toml        A single label config file

@@ -30,6 +30,7 @@ Available components (`repomatic init <component>`):
 - `pytest` - Merges `[tool.pytest]` into pyproject.toml
 - `mypy` - Merges `[tool.mypy]` into pyproject.toml
 - `bumpversion` - Merges `[tool.bumpversion]` into pyproject.toml
+- `agents` - Claude Code agent definitions (.claude/agents/)
 - `skills` - Claude Code skill definitions (.claude/skills/)
 - `awesome-template` - Boilerplate for `awesome-*` repositories
 
@@ -663,7 +664,9 @@ def run_init(
         for fid in sorted(file_ids):
             rel = excluded_rel_path(comp_name, fid)
             if rel:
-                if comp_name == "skills":
+                if comp_name == "agents":
+                    rel = _resolve_agents_target(rel, config)
+                elif comp_name == "skills":
                     rel = _resolve_skills_target(rel, config)
                 if (output_dir / rel).exists():
                     result.excluded_existing.append(rel)
@@ -877,6 +880,21 @@ def _is_renovate_source_repo(output_dir: Path) -> bool:
     return _is_source_repo(output_dir) and (resolved / "renovate.json5").exists()
 
 
+def _resolve_agents_target(entry_target: str, config: Config | None) -> str:
+    """Apply `agents.location` override to an agent file's target path.
+
+    Replaces the default `.claude/agents/` prefix with the configured
+    `agents_location` when the config specifies a non-default value.
+    """
+    default = Config.agents_location.removeprefix("./").rstrip("/") + "/"
+    if not config or not entry_target.startswith(default):
+        return entry_target
+    custom = config.agents_location.removeprefix("./").rstrip("/") + "/"
+    if custom == default:
+        return entry_target
+    return custom + entry_target[len(default) :]
+
+
 def _resolve_skills_target(entry_target: str, config: Config | None) -> str:
     """Apply `skills.location` override to a skill file's target path.
 
@@ -918,7 +936,8 @@ def _init_config_files(
 
     :param exclude_ids: File identifiers to skip within this component.
     :param include_ids: When not `None`, only export files in this set.
-    :param config: Repomatic config for path overrides (e.g., `skills.location`).
+    :param config: Repomatic config for path overrides (like `skills.location`
+        or `agents.location`).
     """
     comp = _BY_NAME[component_name]
     for entry in comp.files:
@@ -926,11 +945,12 @@ def _init_config_files(
             continue
         if exclude_ids and entry.file_id in exclude_ids:
             continue
-        effective_target = (
-            _resolve_skills_target(entry.target, config)
-            if component_name == "skills"
-            else entry.target
-        )
+        if component_name == "agents":
+            effective_target = _resolve_agents_target(entry.target, config)
+        elif component_name == "skills":
+            effective_target = _resolve_skills_target(entry.target, config)
+        else:
+            effective_target = entry.target
         target = output_dir / effective_target
         rel = target.relative_to(output_dir).as_posix()
 

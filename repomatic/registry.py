@@ -284,6 +284,12 @@ class GeneratedComponent(Component):
 # ---------------------------------------------------------------------------
 
 
+def _agent_target(agent_id: str) -> str:
+    """Build the default target path for an agent file from the Config default."""
+    prefix = Config.agents_location.removeprefix("./").rstrip("/")
+    return f"{prefix}/{agent_id}.md"
+
+
 def _skill_target(skill_id: str) -> str:
     """Build the default target path for a skill file from the Config default."""
     prefix = Config.skills_location.removeprefix("./").rstrip("/")
@@ -327,6 +333,27 @@ COMPONENTS: tuple[Component, ...] = (
         scope=RepoScope.NON_AWESOME,
         init_default=InitDefault.EXCLUDE,
         files=(FileEntry("renovate.json5"),),
+    ),
+    BundledComponent(
+        name="agents",
+        description="Claude Code agent definitions (.claude/agents/)",
+        init_default=InitDefault.EXCLUDE,
+        # Agents are user-facing documents that Claude Code auto-invokes by
+        # description. Keep them on disk even when unmodified so the runtime
+        # can always discover them.
+        keep_unmodified=True,
+        files=(
+            FileEntry(
+                "agent-grunt-qa.md",
+                _agent_target("grunt-qa"),
+                "grunt-qa",
+            ),
+            FileEntry(
+                "agent-qa-engineer.md",
+                _agent_target("qa-engineer"),
+                "qa-engineer",
+            ),
+        ),
     ),
     BundledComponent(
         name="skills",

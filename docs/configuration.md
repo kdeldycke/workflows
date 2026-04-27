@@ -61,6 +61,7 @@ workflow.source-paths = ["extra_platforms"]
 
 | Option                                                        | Type                        | Default                             |
 | :------------------------------------------------------------ | :-------------------------- | :---------------------------------- |
+| [`agents.location`](#agents-location)                         | str                         | `"./.claude/agents/"`               |
 | [`awesome-template.sync`](#awesome-template-sync)             | bool                        | `true`                              |
 | [`bumpversion.sync`](#bumpversion-sync)                       | bool                        | `true`                              |
 | [`cache.dir`](#cache-dir)                                     | str                         | `""`                                |
@@ -111,6 +112,12 @@ workflow.source-paths = ["extra_platforms"]
 | [`vulnerable-deps.sync`](#vulnerable-deps-sync)               | bool                        | `true`                              |
 | [`workflow.source-paths`](#workflow-source-paths)             | list[str]                   | *(none)*                            |
 | [`workflow.sync`](#workflow-sync)                             | bool                        | `true`                              |
+
+### `agents.location`
+
+**Type:** str | **Default:** `"./.claude/agents/"`
+
+Directory prefix for Claude Code agent files, relative to the repository root.
 
 ### `awesome-template.sync`
 

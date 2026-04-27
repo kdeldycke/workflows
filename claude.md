@@ -229,6 +229,8 @@ See [`docs/workflows.md` § Release engineering](https://kdeldycke.github.io/rep
 
 This repository uses two Claude Code agents defined in `.claude/agents/`. Their definitions should be lean — if a rule belongs in `CLAUDE.md`, put it here and reference it from the agent file. Do not duplicate.
 
+**Agents must be self-contained for downstream portability.** Agents are deployed to downstream repos via `repomatic init agents` as standalone files in `.claude/agents/`. Claude auto-invokes them based on their `description:` frontmatter. The same self-containment rule that applies to skills applies here: all knowledge an agent needs must be inline or reference `claude.md` sections, not upstream `docs/` URLs or upstream-only paths. When mining session history or distilling patterns, default to local `claude.md` updates; file an upstream proposal only when the pattern is generic across repos.
+
 ### Source of truth hierarchy
 
 `CLAUDE.md` defines the rules. The codebase and GitHub (issues, PRs, CI logs) are what you measure against those rules. When they disagree, fix the code to match the rules. If the rules are wrong, fix `CLAUDE.md`.
@@ -258,6 +260,8 @@ Patterns that recur across sessions — watch for these proactively:
 Skills in `.claude/skills/` are user-invocable only (`disable-model-invocation: true`) and follow agent conventions: lean definitions, no duplication with `CLAUDE.md`, reference sections instead of restating rules. Run `repomatic list-skills` to see all skills with descriptions.
 
 **Skills must be self-contained for downstream portability.** Skills are deployed to downstream repos via `repomatic init skills` as standalone SKILL.md files. Downstream repos have no `docs/` directory and skills typically lack `WebFetch` in their `allowed-tools`. All domain knowledge a skill needs to operate must be inline in the SKILL.md: do not replace inline content with links to `docs/` pages. When the same knowledge appears in both a skill and a docs page, the duplication is intentional: `docs/` serves human readers browsing the site, while the skill serves Claude at runtime. Add a cross-reference line pointing to the docs page, but keep the full content inline.
+
+**Cross-references between skills and agents must degrade gracefully.** A SKILL.md "Next steps" line that suggests `/other-skill` is informational: the referenced skill may be excluded in this repo (via `[tool.repomatic] exclude = [...]` or scope filtering), in which case the slash command will not exist. Treat such suggestions as optional. Likewise, an agent that mentions its teammate (`grunt-qa` and `qa-engineer`) must remain useful when invoked alone, because the user may have excluded the other via `exclude = ["agents/grunt-qa"]` or `exclude = ["agents/qa-engineer"]`. Write skill and agent prose so a missing cross-reference is a no-op, not a blocker.
 
 ### Mechanical vs analytical work
 

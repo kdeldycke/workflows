@@ -537,24 +537,27 @@ def test_all_workflows_have_symlinks_in_data() -> None:
     )
 
 
-def test_only_workflows_and_skills_are_symlinks_in_data() -> None:
-    """Verify that only workflow and skill files are symlinks in repomatic/data/."""
+def test_only_workflows_skills_and_agents_are_symlinks_in_data() -> None:
+    """Verify only workflow, skill, and agent files are symlinks in repomatic/data/."""
     workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
     skills = {p.name for p in DATA_DIR.iterdir() if p.name.startswith("skill-")}
-    expected = workflows | skills
+    agents = {p.name for p in DATA_DIR.iterdir() if p.name.startswith("agent-")}
+    expected = workflows | skills | agents
     symlinks = {p.name for p in DATA_DIR.iterdir() if p.is_symlink()}
 
     extra = symlinks - expected
     assert not extra, (
         f"Unexpected symlinks in repomatic/data/: {sorted(extra)}. "
-        "Only workflow and skill files should be symlinked."
+        "Only workflow, skill, and agent files should be symlinked."
     )
 
 
 def test_workflow_symlinks_resolve_correctly() -> None:
     """Verify that workflow symlinks in repomatic/data/ point to the correct targets."""
     for symlink in sorted(DATA_DIR.iterdir()):
-        if not symlink.is_symlink() or symlink.name.startswith("skill-"):
+        if not symlink.is_symlink():
+            continue
+        if symlink.name.startswith("skill-") or symlink.name.startswith("agent-"):
             continue
         target = symlink.resolve()
         expected = (WORKFLOWS_DIR / symlink.name).resolve()
@@ -572,6 +575,21 @@ def test_skill_symlinks_resolve_correctly() -> None:
         # skill-repomatic-changelog.md -> .claude/skills/repomatic-changelog/SKILL.md.
         skill_name = symlink.name.removeprefix("skill-").removesuffix(".md")
         expected = (skills_dir / skill_name / "SKILL.md").resolve()
+        target = symlink.resolve()
+        assert target == expected, (
+            f"Symlink {symlink.name} points to {target}, expected {expected}"
+        )
+
+
+def test_agent_symlinks_resolve_correctly() -> None:
+    """Verify that agent symlinks in repomatic/data/ point to the correct targets."""
+    agents_dir = REPO_ROOT / ".claude" / "agents"
+    for symlink in sorted(DATA_DIR.iterdir()):
+        if not symlink.is_symlink() or not symlink.name.startswith("agent-"):
+            continue
+        # agent-grunt-qa.md -> .claude/agents/grunt-qa.md.
+        agent_name = symlink.name.removeprefix("agent-")
+        expected = (agents_dir / agent_name).resolve()
         target = symlink.resolve()
         assert target == expected, (
             f"Symlink {symlink.name} points to {target}, expected {expected}"

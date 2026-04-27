@@ -26,6 +26,7 @@ import pytest
 from repomatic.config import Config
 from repomatic.init_project import (
     EXPORTABLE_FILES,
+    _resolve_agents_target,
     _resolve_skills_target,
     _strip_renovate_repo_settings,
     _update_tool_config,
@@ -628,14 +629,14 @@ def test_init_creates_all_default_files(
     pyproject.write_text(
         '[project]\nname = "test"\n\n'
         "[tool.repomatic]\n"
-        'include = ["labels", "renovate", "skills"]\n',
+        'include = ["agents", "labels", "renovate", "skills"]\n',
         encoding="UTF-8",
     )
     monkeypatch.chdir(tmp_path)
 
     result = run_init(output_dir=tmp_path)
 
-    # All components: changelog, labels, renovate, skills, workflows.
+    # All components: agents, changelog, labels, renovate, skills, workflows.
     # Opt-in workflows are excluded by default. Awesome-only skills are
     # included because ``include = ["skills"]`` bypasses scope filtering.
     config_file_count = sum(
@@ -1303,7 +1304,7 @@ def test_local_entry_comments_preserved(tmp_path: Path) -> None:
 
 
 def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Verify default exclude skips labels and skills."""
+    """Verify default exclude skips agents, labels, renovate, and skills."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname = "test"\n',
@@ -1314,16 +1315,18 @@ def test_init_default_excludes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Labels, skills, and renovate are excluded by default.
+    # Agents, labels, skills, and renovate are excluded by default.
     assert "labels.toml" not in created_set
     assert "renovate.json5" not in created_set
+    for _, rel_path in ((e.source, e.target) for e in _BY_NAME["agents"].files):
+        assert rel_path not in created_set
     for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
 
     # Other default components should still be created.
     assert "changelog.md" in created_set
 
-    assert result.excluded == ["labels", "renovate", "skills"]
+    assert result.excluded == ["agents", "labels", "renovate", "skills"]
 
 
 def test_init_respects_exclude_components(
@@ -1353,7 +1356,7 @@ def test_init_respects_exclude_components(
     # Other default components should still be created.
     assert "changelog.md" in created_set
 
-    assert result.excluded == ["labels", "renovate", "skills"]
+    assert result.excluded == ["agents", "labels", "renovate", "skills"]
 
 
 def test_init_respects_exclude_workflow_files(
@@ -1877,6 +1880,106 @@ def test_init_skills_custom_location(tmp_path: Path, monkeypatch: pytest.MonkeyP
     assert not (tmp_path / ".claude" / "skills" / "repomatic-init").exists()
 
 
+@pytest.mark.parametrize(
+    ("location", "target", "expected"),
+    [
+        # Default location, no change.
+        (
+            "./.claude/agents/",
+            ".claude/agents/foo.md",
+            ".claude/agents/foo.md",
+        ),
+        # Equivalent default without leading "./".
+        (
+            ".claude/agents/",
+            ".claude/agents/foo.md",
+            ".claude/agents/foo.md",
+        ),
+        # Custom location replaces prefix.
+        ("./custom/", ".claude/agents/foo.md", "custom/foo.md"),
+        # Custom location without leading "./".
+        ("custom/dir/", ".claude/agents/foo.md", "custom/dir/foo.md"),
+        # Non-matching target is returned unchanged.
+        ("./custom/", "other/path.md", "other/path.md"),
+        # Hidden directory preserved with removeprefix (not strip).
+        (
+            "./.hidden/agents/",
+            ".claude/agents/foo.md",
+            ".hidden/agents/foo.md",
+        ),
+    ],
+)
+def test_resolve_agents_target(location: str, target: str, expected: str):
+    """Verify agent target path resolution with various config values."""
+    config = Config(agents_location=location)
+    assert _resolve_agents_target(target, config) == expected
+
+
+def test_resolve_agents_target_no_config():
+    """Verify no-op when config is None."""
+    assert (
+        _resolve_agents_target(".claude/agents/x.md", None)
+        == ".claude/agents/x.md"
+    )
+
+
+def test_init_agents_custom_location(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify agents are written to a custom location when configured."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["agents"]\n'
+        'agents.location = "./custom/agents/"\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = run_init(output_dir=tmp_path)
+
+    # Agents should be in the custom location.
+    custom_agent = tmp_path / "custom" / "agents" / "grunt-qa.md"
+    assert custom_agent.exists()
+    assert "custom/agents/grunt-qa.md" in result.created
+
+    # Default location should not exist.
+    assert not (tmp_path / ".claude" / "agents" / "grunt-qa.md").exists()
+
+
+def test_init_detects_excluded_agent_custom_location(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Verify excluded agent detection works at custom locations."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["agents"]\n'
+        'agents.location = "./custom/agents/"\n',
+        encoding="UTF-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    run_init(output_dir=tmp_path)
+
+    agent_file = tmp_path / "custom" / "agents" / "grunt-qa.md"
+    assert agent_file.exists()
+
+    # Exclude that agent and re-run.
+    pyproject.write_text(
+        '[project]\nname = "test"\n\n'
+        "[tool.repomatic]\n"
+        'include = ["agents"]\n'
+        'exclude = ["agents/grunt-qa"]\n'
+        'agents.location = "./custom/agents/"\n',
+        encoding="UTF-8",
+    )
+
+    result = run_init(output_dir=tmp_path)
+
+    assert agent_file.exists()
+    assert "custom/agents/grunt-qa.md" in result.excluded_existing
+
+
 def test_init_detects_excluded_skill_custom_location(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
@@ -2117,12 +2220,14 @@ def test_init_include_overrides_default_exclusions(
     result = run_init(output_dir=tmp_path)
 
     created_set = set(result.created)
-    # Labels included via include; renovate and skills still excluded by default.
+    # Labels included via include; agents, renovate, skills still excluded by default.
     assert "labels.toml" in created_set
     assert "renovate.json5" not in created_set
+    for _, rel_path in ((e.source, e.target) for e in _BY_NAME["agents"].files):
+        assert rel_path not in created_set
     for _, rel_path in ((e.source, e.target) for e in _BY_NAME["skills"].files):
         assert rel_path not in created_set
-    assert result.excluded == ["renovate", "skills"]
+    assert result.excluded == ["agents", "renovate", "skills"]
 
 
 def test_init_exclude_additive_to_defaults(

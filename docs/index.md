@@ -16,6 +16,7 @@ tool-runner
 workflows
 security
 skills
+agents
 myst-docstrings
 ```
 

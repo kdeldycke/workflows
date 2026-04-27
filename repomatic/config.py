@@ -537,6 +537,17 @@ class Config:
     own PAT setup can set this to `false` to suppress the setup guide issue.
     """
 
+    agents_location: str = field(
+        default="./.claude/agents/",
+        metadata={"click_extra.config_path": "agents.location"},
+    )
+    """Directory prefix for Claude Code agent files, relative to the repository root.
+
+    Agent files are written as ``{agents_location}/{agent-id}.md``.
+    Useful for repositories where `.claude/` is not at the root (like
+    dotfiles repos that store configs under a subdirectory).
+    """
+
     skills_location: str = field(
         default="./.claude/skills/",
         metadata={"click_extra.config_path": "skills.location"},
@@ -544,7 +555,7 @@ class Config:
     """Directory prefix for Claude Code skill files, relative to the repository root.
 
     Skill files are written as ``{skills_location}/{skill-id}/SKILL.md``.
-    Useful for repositories where `.claude/` is not at the root (e.g.,
+    Useful for repositories where `.claude/` is not at the root (like
     dotfiles repos that store configs under a subdirectory).
     """
 
@@ -591,6 +602,7 @@ class Config:
 
 
 SUBCOMMAND_CONFIG_FIELDS: Final[frozenset[str]] = frozenset((
+    "agents_location",
     "awesome_template_sync",
     "bumpversion_sync",
     "cache",
