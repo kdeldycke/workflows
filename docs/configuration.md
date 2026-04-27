@@ -55,6 +55,11 @@ test-plan.inline = "- args: --version"
 
 workflow.sync = false
 workflow.source-paths = ["extra_platforms"]
+workflow.extra-paths = ["install.sh", "dotfiles/**"]
+workflow.ignore-paths = ["uv.lock"]
+
+[tool.repomatic.workflow.paths]
+"tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
 ```
 
 <!-- config-reference-start -->

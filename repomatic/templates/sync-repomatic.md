@@ -16,4 +16,9 @@ Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-
 exclude = ["labels", "workflows/debug.yaml", "skills/awesome-triage"]
 workflow.sync = true
 workflow.source-paths = ["src", "lib"]
+workflow.extra-paths = ["install.sh"]
+workflow.ignore-paths = ["uv.lock"]
+
+[tool.repomatic.workflow.paths]
+"tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
 ```

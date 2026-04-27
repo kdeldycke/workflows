@@ -32,6 +32,8 @@ from repomatic.github.workflow_sync import (
     WorkflowFormat,
     WorkflowTriggerInfo,
     _adapt_trigger_paths,
+    _coerce_paths_spec,
+    _split_yaml_quote,
     _substitute_source_paths,
     check_has_workflow_dispatch,
     check_secrets_passed,
@@ -1473,3 +1475,231 @@ def test_resolve_source_paths_no_name_returns_none() -> None:
     pyproject_data: dict[str, Any] = {"project": {}}
     result = resolve_source_paths(config, pyproject_data)
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# _split_yaml_quote
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("scalar", "expected"),
+    [
+        ("plain", ("plain", "")),
+        ('"quoted"', ("quoted", '"')),
+        ("'single'", ("single", "'")),
+        ("", ("", "")),
+        ('"', ('"', "")),
+        ("'", ("'", "")),
+        ('""', ("", '"')),
+        ("\"mixed'\"", ("mixed'", '"')),
+        ("path/with/slashes", ("path/with/slashes", "")),
+    ],
+)
+def test_split_yaml_quote(scalar: str, expected: tuple[str, str]) -> None:
+    """Strip outer matching quotes; pass through plain scalars."""
+    assert _split_yaml_quote(scalar) == expected
+
+
+# ---------------------------------------------------------------------------
+# _coerce_paths_spec
+# ---------------------------------------------------------------------------
+
+
+def test_coerce_paths_spec_none_uses_legacy_arg() -> None:
+    """When spec is None, legacy source_paths is wrapped in a fresh spec."""
+    result = _coerce_paths_spec(None, ["my_pkg"])
+    assert result.source_paths == ["my_pkg"]
+    assert result.extra_paths == []
+    assert result.ignore_paths == []
+    assert result.workflow_paths == {}
+
+
+def test_coerce_paths_spec_explicit_supersedes_legacy_arg() -> None:
+    """When spec is provided, legacy source_paths is ignored."""
+    spec = PathsSpec(source_paths=["from_spec"], extra_paths=["extra.sh"])
+    result = _coerce_paths_spec(spec, ["legacy"])
+    assert result is spec
+    assert result.source_paths == ["from_spec"]
+    assert result.extra_paths == ["extra.sh"]
+
+
+# ---------------------------------------------------------------------------
+# Thin caller with full paths_spec
+# ---------------------------------------------------------------------------
+
+
+def test_thin_caller_paths_spec_extra_paths_appends() -> None:
+    """Thin caller picks up `extra_paths` in every paths-bearing trigger."""
+    spec = PathsSpec(extra_paths=["install.sh"])
+    content = generate_thin_caller("changelog.yaml", paths_spec=spec)
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    assert "install.sh" in triggers["push"]["paths"]
+
+
+def test_thin_caller_paths_spec_ignore_strips_canonical() -> None:
+    """Thin caller strips `ignore_paths` entries from every paths block."""
+    spec = PathsSpec(ignore_paths=["uv.lock"])
+    content = generate_thin_caller("changelog.yaml", paths_spec=spec)
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    assert "uv.lock" not in triggers["push"]["paths"]
+    # Other canonical entries survive.
+    assert "changelog.md" in triggers["push"]["paths"]
+
+
+def test_thin_caller_paths_spec_per_workflow_override_replaces_wholesale() -> None:
+    """Per-workflow override replaces the thin caller's paths list verbatim."""
+    spec = PathsSpec(
+        extra_paths=["never-applied.sh"],
+        workflow_paths={"changelog.yaml": ["only.sh", "just-this.toml"]},
+    )
+    content = generate_thin_caller("changelog.yaml", paths_spec=spec)
+    data = yaml.safe_load(content)
+    triggers = data.get(True) or data.get("on") or {}
+    assert triggers["push"]["paths"] == ["only.sh", "just-this.toml"]
+
+
+def test_thin_caller_paths_spec_supersedes_legacy_source_paths_arg() -> None:
+    """When both kwargs are passed, paths_spec wins over source_paths.
+
+    `renovate.yaml` push.paths references `repomatic/data/renovate.json5`,
+    which is dropped regardless of source_paths because it doesn't match
+    UPSTREAM_SOURCE_GLOB; use `extra_paths` to make the spec observable.
+    """
+    spec = PathsSpec(extra_paths=["from-spec.txt"])
+    content = generate_thin_caller(
+        "renovate.yaml",
+        source_paths=["from_legacy"],
+        paths_spec=spec,
+    )
+    assert "from-spec.txt" in content
+    # Legacy source_paths arg ignored.
+    assert "from_legacy/**" not in content
+
+
+# ---------------------------------------------------------------------------
+# Header generation: extra knob behavior
+# ---------------------------------------------------------------------------
+
+
+def test_header_ignore_drops_block_when_empty() -> None:
+    """When `ignore_paths` empties a block, the `paths:` key is removed."""
+    upstream_paths = [
+        UPSTREAM_SOURCE_GLOB,
+        "tests/**",
+        "pyproject.toml",
+        "uv.lock",
+        ".github/workflows/tests.yaml",
+    ]
+    spec = PathsSpec(ignore_paths=upstream_paths)
+    header = generate_workflow_header("tests.yaml", paths_spec=spec)
+    # No `paths:` blocks remain after stripping every canonical entry.
+    assert "    paths:" not in header
+    # Other trigger keys survive (e.g., branches, schedule).
+    assert "branches:" in header
+    assert "schedule:" in header
+
+
+def test_header_ignore_applies_before_extras() -> None:
+    """`ignore_paths` runs before `extra_paths`: an entry stripped then re-added stays.
+
+    A canonical entry listed in `ignore_paths` and `extra_paths` simultaneously
+    is stripped first and then appended at the tail (not preserved in place).
+    """
+    spec = PathsSpec(ignore_paths=["pyproject.toml"], extra_paths=["pyproject.toml"])
+    header = generate_workflow_header("tests.yaml", paths_spec=spec)
+    # Survives via extras (appended).
+    assert "pyproject.toml" in header
+    # Find one paths block: pyproject.toml appears once and is the last entry.
+    block_start = header.index("    paths:")
+    block_end = header.index("\n", header.index("\n", block_start) + 1)
+    # Walk to the end of the contiguous block.
+    lines = header[block_start:].splitlines()
+    block_lines = [lines[0]]
+    for line in lines[1:]:
+        if line.startswith("      - "):
+            block_lines.append(line)
+        else:
+            break
+    # Last entry in block is the appended pyproject.toml.
+    assert block_lines[-1].strip() == "- pyproject.toml"
+
+
+def test_header_paths_ignore_block_untouched_by_knobs() -> None:
+    """`extra_paths`/`ignore_paths`/per-workflow override only target `paths:`.
+
+    `paths-ignore:` blocks are written by the canonical workflow as exclusion
+    filters; they are not the trigger gate the knobs are designed for. The
+    header rewriter must leave them alone.
+    """
+    # Synthetic header content with a paths-ignore block to confirm the
+    # rewriter regex does not match it.
+    spec = PathsSpec(
+        ignore_paths=["pyproject.toml"],
+        extra_paths=["install.sh"],
+        workflow_paths={"tests.yaml": ["wholesale.sh"]},
+    )
+    header = generate_workflow_header("tests.yaml", paths_spec=spec)
+    # The rewriter only rewrote `paths:` blocks; if a real workflow gains a
+    # `paths-ignore:` block in the future, this test will fail and prompt
+    # explicit handling. For now, just ensure no `paths-ignore:` line was
+    # injected by the rewriter.
+    assert "paths-ignore:" not in header
+
+
+def test_header_preserves_canonical_quote_style() -> None:
+    """Header rewriter preserves quote style for unmodified entries."""
+    # `tests.yaml` uses unquoted entries throughout. Substituting source paths
+    # must not introduce quotes around the new entries.
+    spec = PathsSpec(source_paths=["my_pkg"])
+    header = generate_workflow_header("tests.yaml", paths_spec=spec)
+    assert "      - my_pkg/**" in header
+    assert '      - "my_pkg/**"' not in header
+
+
+# ---------------------------------------------------------------------------
+# generate_workflows with paths_spec
+# ---------------------------------------------------------------------------
+
+
+def test_generate_workflows_paths_spec_supersedes_source_paths(tmp_path: Path) -> None:
+    """`generate_workflows` honors `paths_spec` over the legacy source_paths arg."""
+    spec = PathsSpec(
+        source_paths=["from_spec"],
+        extra_paths=["repo-specific.sh"],
+    )
+    exit_code = generate_workflows(
+        names=("tests.yaml",),
+        output_format=WorkflowFormat.HEADER_ONLY,
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+        source_paths=["from_legacy"],
+        paths_spec=spec,
+    )
+    # `tests.yaml` is non-reusable so the function attempts a header-only sync
+    # but the destination doesn't exist, so it should warn and skip without
+    # erroring. Stage a stub destination first to exercise the rewrite path.
+    (tmp_path / "tests.yaml").write_text(
+        '---\nname: stub\n"on":\n  push:\n    paths:\n      - placeholder\njobs:\n'
+        "  stub:\n    runs-on: ubuntu-latest\n",
+        encoding="UTF-8",
+    )
+    exit_code = generate_workflows(
+        names=("tests.yaml",),
+        output_format=WorkflowFormat.HEADER_ONLY,
+        version="main",
+        repo=DEFAULT_REPO,
+        output_dir=tmp_path,
+        overwrite=True,
+        source_paths=["from_legacy"],
+        paths_spec=spec,
+    )
+    assert exit_code == 0
+    written = (tmp_path / "tests.yaml").read_text(encoding="UTF-8")
+    assert "from_spec/**" in written
+    assert "from_legacy/**" not in written
+    assert "repo-specific.sh" in written

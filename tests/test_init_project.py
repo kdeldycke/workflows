@@ -682,6 +682,47 @@ def test_init_creates_parent_dirs(tmp_path: Path):
     assert (tmp_path / ".github" / "workflows").is_dir()
 
 
+def test_init_workflow_paths_config_flows_to_generated_files(tmp_path: Path):
+    """`[tool.repomatic.workflow]` paths knobs reach the generated workflows.
+
+    End-to-end check that a `Config` carrying `extra_paths`, `ignore_paths`,
+    and per-workflow `paths` overrides is honored by `_init_workflows` when
+    rendering thin callers.
+    """
+    from repomatic.config import WorkflowConfig
+
+    config = Config(
+        workflow=WorkflowConfig(
+            extra_paths=["repo-specific.sh"],
+            ignore_paths=["uv.lock"],
+            paths={"renovate.yaml": ["only-this.json5"]},
+        ),
+    )
+    run_init(
+        output_dir=tmp_path,
+        components=("workflows",),
+        config=config,
+    )
+
+    # Per-workflow override replaces the renovate.yaml caller's paths.
+    renovate = (tmp_path / ".github" / "workflows" / "renovate.yaml").read_text(
+        encoding="UTF-8",
+    )
+    assert "only-this.json5" in renovate
+    # Override skips global knobs: extras don't leak to overridden workflows.
+    assert "repo-specific.sh" not in renovate
+
+    # changelog.yaml has push.paths in canonical and is not overridden, so
+    # global knobs apply.
+    changelog = (tmp_path / ".github" / "workflows" / "changelog.yaml").read_text(
+        encoding="UTF-8",
+    )
+    assert "repo-specific.sh" in changelog
+    assert "uv.lock" not in changelog
+    # Untouched canonical entries survive.
+    assert "changelog.md" in changelog
+
+
 def test_init_existing_changelog_skipped(tmp_path: Path):
     """Verify existing changelog is not overwritten."""
     changelog = tmp_path / "changelog.md"
