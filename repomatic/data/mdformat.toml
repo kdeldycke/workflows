@@ -6,3 +6,9 @@
 
 # Apply consecutive numbering to ordered lists (1. 2. 3. instead of 1. 1. 1.).
 number = true
+
+# Disable URL validation so mdformat-recover-urls can decode percent-encoded
+# non-ASCII characters in link destinations back to their original form.
+# See https://github.com/hukkin/mdformat/issues/312 and
+# https://github.com/holy-two/mdformat-recover-urls.
+validate = false
