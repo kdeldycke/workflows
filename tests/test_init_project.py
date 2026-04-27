@@ -1917,10 +1917,7 @@ def test_resolve_agents_target(location: str, target: str, expected: str):
 
 def test_resolve_agents_target_no_config():
     """Verify no-op when config is None."""
-    assert (
-        _resolve_agents_target(".claude/agents/x.md", None)
-        == ".claude/agents/x.md"
-    )
+    assert _resolve_agents_target(".claude/agents/x.md", None) == ".claude/agents/x.md"
 
 
 def test_init_agents_custom_location(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
