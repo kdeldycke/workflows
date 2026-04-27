@@ -12,6 +12,9 @@
 
 ## [`6.15.0` (2026-04-27)](https://github.com/kdeldycke/repomatic/compare/v6.14.0...v6.15.0)
 
+> [!NOTE]
+> `6.15.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/6.15.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v6.15.0).
+
 - Set `validate = false` in the bundled `mdformat.toml` so `mdformat-recover-urls` decodes percent-encoded non-ASCII characters in link destinations back to their original form. Without this, anchor links with Chinese, accented, or other non-ASCII characters got rewritten to `%XX` sequences on every `format-markdown` run.
 - Add 💸/🆓 licensing markers to the awesome-list contributing guide, issue template, and PR template (English and Chinese mirrors). Tool, dataset, and project entries are now flagged with 💸 (commercial vendor selling a paid version on top of the OSS core) or 🆓 (fully open-source: foundation-governed, community-driven, corporate-OSS without a paid product, or support-only commercial model). Articles, papers, blog posts, news items, and curation lists remain unmarked. The two markers are mutually exclusive and the awesome-list entry format keeps `awesome-lint`-compatible ` - ` syntax.
 - Detect vulnerable dependencies from the GitHub Advisory Database in addition to the PyPA Advisory Database. The `fix-vulnerable-deps` job now unions `uv audit` and the repository's Dependabot alerts feed, deduplicates by `(package, advisory_id)`, credits each entry's source(s) in the PR body, and shows the `exclude-newer` cooldown cutoff above the updated packages table so reviewers can confirm which upgrades required a cooldown bypass. Configurable via `[tool.repomatic] vulnerable-deps.sources`.
