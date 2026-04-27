@@ -29,6 +29,7 @@ benchmark
 :maxdepth: 2
 :hidden:
 contributing
+upstream-development
 operation-contracts
 genindex
 modindex
