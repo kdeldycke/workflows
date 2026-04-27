@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
@@ -676,6 +677,34 @@ def test_parse_lock_exclude_newer_missing(tmp_path):
     """Return empty string when exclude-newer is absent."""
     lock = tmp_path / "uv.lock"
     lock.write_text('version = 1\n\n[[package]]\nname = "foo"\nversion = "1.0"\n')
+    assert parse_lock_exclude_newer(lock) == ""
+
+
+def test_parse_lock_exclude_newer_span_fallback(tmp_path):
+    """Fall back to `exclude-newer-span` when the sentinel timestamp is set."""
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        "[options]\n"
+        'exclude-newer = "0001-01-01T00:00:00Z"\n'
+        'exclude-newer-span = "P1W"\n\n'
+        '[[package]]\nname = "foo"\nversion = "1.0"\n'
+    )
+    result = parse_lock_exclude_newer(lock)
+    cutoff = datetime.fromisoformat(result.replace("Z", "+00:00"))
+    expected = datetime.now(timezone.utc) - timedelta(weeks=1)
+    assert abs((cutoff - expected).total_seconds()) < 60
+
+
+def test_parse_lock_exclude_newer_sentinel_without_span(tmp_path):
+    """Return empty string when only the sentinel is present without a span."""
+    lock = tmp_path / "uv.lock"
+    lock.write_text(
+        "version = 1\n\n"
+        "[options]\n"
+        'exclude-newer = "0001-01-01T00:00:00Z"\n\n'
+        '[[package]]\nname = "foo"\nversion = "1.0"\n'
+    )
     assert parse_lock_exclude_newer(lock) == ""
 
 

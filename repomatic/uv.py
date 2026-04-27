@@ -396,6 +396,24 @@ def revert_lock_if_noise(lock_path: Path) -> bool:
 _RELATIVE_DURATION_RE = re.compile(r"^(\d+)\s+(days?|weeks?)$")
 """Matches uv's relative duration syntax: `N day(s)` or `N week(s)`."""
 
+_LOCK_DURATION_RE = re.compile(
+    r"^P"
+    r"(?:(?P<weeks>\d+)W)?"
+    r"(?:(?P<days>\d+)D)?"
+    r"(?:T"
+    r"(?:(?P<hours>\d+)H)?"
+    r"(?:(?P<minutes>\d+)M)?"
+    r"(?:(?P<seconds>\d+(?:\.\d+)?)S)?"
+    r")?$"
+)
+"""Matches the subset of ISO 8601 durations uv emits in `uv.lock`'s
+`options.exclude-newer-span`: `P{N}W`, `P{N}D`, `PT{N}S`, and combinations."""
+
+LOCK_TIMESTAMP_SENTINEL = "0001-01-01T00:00:00Z"
+"""Placeholder uv writes to `options.exclude-newer` in `uv.lock` when the
+user-configured value is a relative span. The real cutoff is in
+`options.exclude-newer-span` as an ISO 8601 duration."""
+
 
 def _build_inline_table(entries: dict[str, str]) -> tomlkit.items.InlineTable:
     """Build a tomlkit inline table with pyproject-fmt-compatible formatting.
@@ -429,6 +447,32 @@ def _parse_relative_duration(value: str) -> timedelta | None:
     if unit.startswith("week"):
         return timedelta(weeks=count)
     return timedelta(days=count)
+
+
+def _parse_lock_duration(value: str) -> timedelta | None:
+    """Parse an ISO 8601 duration from `uv.lock` into a timedelta.
+
+    Handles the subset uv emits in `options.exclude-newer-span` and the
+    per-package `span` field: `P{N}W`, `P{N}D`, `PT{N}S`, and
+    combinations like `P1DT2H`.
+
+    :param value: The duration string from `uv.lock`.
+    :return: A {class}`~datetime.timedelta`, or `None` if the value is
+        not a recognized lock-file duration. A bare `P` returns `None`.
+    """
+    match = _LOCK_DURATION_RE.match(value.strip())
+    if not match:
+        return None
+    parts = match.groupdict()
+    if not any(parts.values()):
+        return None
+    return timedelta(
+        weeks=int(parts["weeks"] or 0),
+        days=int(parts["days"] or 0),
+        hours=int(parts["hours"] or 0),
+        minutes=int(parts["minutes"] or 0),
+        seconds=float(parts["seconds"] or 0),
+    )
 
 
 def _parse_iso_datetime(iso_str: str) -> datetime | None:
@@ -728,18 +772,34 @@ def parse_lock_upload_times(lock_path: Path) -> dict[str, str]:
 
 
 def parse_lock_exclude_newer(lock_path: Path) -> str:
-    """Parse the `exclude-newer` timestamp from a `uv.lock` file.
+    """Parse the effective `exclude-newer` cutoff from a `uv.lock` file.
+
+    When the user configures a relative span (`exclude-newer = "1 week"`
+    in `pyproject.toml`), recent uv versions write the
+    {data}`LOCK_TIMESTAMP_SENTINEL` into `options.exclude-newer` and the
+    real value into `options.exclude-newer-span` as an ISO 8601 duration.
+    In that case the effective cutoff is computed as `now - span`.
 
     :param lock_path: Path to the `uv.lock` file.
-    :return: The `exclude-newer` ISO 8601 datetime string, or an empty string
-        if not present.
+    :return: An ISO 8601 datetime string for the effective cutoff, or an
+        empty string if neither field is present (or the sentinel is
+        present without a parseable span).
     """
     if not lock_path.exists():
         return ""
     with lock_path.open("rb") as f:
         data = tomllib.load(f)
-    result: str = data.get("options", {}).get("exclude-newer", "")
-    return result
+    options = data.get("options", {})
+    timestamp: str = options.get("exclude-newer", "")
+    if timestamp and timestamp != LOCK_TIMESTAMP_SENTINEL:
+        return timestamp
+    span = options.get("exclude-newer-span", "")
+    if span:
+        duration = _parse_lock_duration(span)
+        if duration is not None:
+            cutoff = datetime.now(timezone.utc) - duration
+            return cutoff.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return ""
 
 
 def load_lock_data(lock_path: Path | None = None) -> dict[str, Any]:
