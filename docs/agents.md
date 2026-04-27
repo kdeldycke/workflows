@@ -26,10 +26,10 @@ agents.location = "./dotfiles/.claude/agents/"
 
 ## Available agents
 
-| Agent                                                                                                  | Role                                                                                                       |
-| :----------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
-| [`grunt-qa`](https://github.com/kdeldycke/repomatic/blob/main/.claude/agents/grunt-qa.md)             | Hands-on worker that fixes typos, ordering, style, doc-sync issues, and other mechanical CLAUDE.md violations. |
-| [`qa-engineer`](https://github.com/kdeldycke/repomatic/blob/main/.claude/agents/qa-engineer.md)       | Senior engineer that handles deep code analysis, bug-class sweeps, and design decisions.                   |
+| Agent                                                                                           | Role                                                                                                           |
+| :---------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| [`grunt-qa`](https://github.com/kdeldycke/repomatic/blob/main/.claude/agents/grunt-qa.md)       | Hands-on worker that fixes typos, ordering, style, doc-sync issues, and other mechanical CLAUDE.md violations. |
+| [`qa-engineer`](https://github.com/kdeldycke/repomatic/blob/main/.claude/agents/qa-engineer.md) | Senior engineer that handles deep code analysis, bug-class sweeps, and design decisions.                       |
 
 ## Self-containment
 
