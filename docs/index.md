@@ -18,6 +18,7 @@ security
 skills
 agents
 myst-docstrings
+benchmark
 ```
 
 % Furo doesn't support icons in toctree entries natively.
