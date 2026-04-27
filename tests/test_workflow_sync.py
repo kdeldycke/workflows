@@ -566,8 +566,7 @@ def test_extra_trigger(tmp_path: Path) -> None:
             for k, v in trigger_config.items():
                 if isinstance(v, list):
                     on_lines.append(f"    {k}:")
-                    for item in v:
-                        on_lines.append(f"      - {item}")
+                    on_lines.extend(f"      - {item}" for item in v)
                 else:
                     on_lines.append(f"    {k}: {v}")
     on_lines.append("  workflow_dispatch:")
@@ -1169,7 +1168,11 @@ def test_adapt_trigger_paths_none_drops_upstream_keeps_universal() -> None:
     """Drop upstream paths but keep universal entries when source_paths is None."""
     config = {
         "branches": ["main"],
-        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml", "repomatic/data/renovate.json5"],
+        "paths": [
+            UPSTREAM_SOURCE_GLOB,
+            "pyproject.toml",
+            "repomatic/data/renovate.json5",
+        ],
     }
     result = _adapt_trigger_paths(config, "tests.yaml", PathsSpec())
     assert result["branches"] == ["main"]
@@ -1492,7 +1495,7 @@ def test_resolve_source_paths_no_name_returns_none() -> None:
         ('"', ('"', "")),
         ("'", ("'", "")),
         ('""', ("", '"')),
-        ("\"mixed'\"", ("mixed'", '"')),
+        ('"mixed\'"', ("mixed'", '"')),
         ("path/with/slashes", ("path/with/slashes", "")),
     ],
 )
@@ -1614,7 +1617,7 @@ def test_header_ignore_applies_before_extras() -> None:
     assert "pyproject.toml" in header
     # Find one paths block: pyproject.toml appears once and is the last entry.
     block_start = header.index("    paths:")
-    block_end = header.index("\n", header.index("\n", block_start) + 1)
+    header.index("\n", header.index("\n", block_start) + 1)
     # Walk to the end of the contiguous block.
     lines = header[block_start:].splitlines()
     block_lines = [lines[0]]
