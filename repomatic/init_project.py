@@ -837,9 +837,7 @@ def _init_workflows(
             continue
         rel = target.relative_to(output_dir).as_posix()
         try:
-            canonical_header = generate_workflow_header(
-                filename, paths_spec=paths_spec
-            )
+            canonical_header = generate_workflow_header(filename, paths_spec=paths_spec)
         except (ValueError, FileNotFoundError):
             logging.warning(f"Cannot extract header for {filename}. Skipping.")
             continue

@@ -1232,9 +1232,7 @@ def generate_workflows(
                 continue
 
             try:
-                canonical_header = generate_workflow_header(
-                    filename, paths_spec=spec
-                )
+                canonical_header = generate_workflow_header(filename, paths_spec=spec)
             except (ValueError, FileNotFoundError) as e:
                 logging.error(f"Failed to extract header for {filename}: {e}")
                 errors += 1
