@@ -73,10 +73,10 @@ def test_copy_template_tree(tmp_path):
     # pyproject.toml is no longer in the bundle (lychee is a ToolConfigComponent).
     assert not (tmp_path / "pyproject.toml").exists()
 
-    # Second run reports updates, not creates.
+    # Second run is a no-op: files already exist and are identical.
     created2, updated2 = _copy_template_tree(TEMPLATE_ROOT, tmp_path)
     assert created2 == 0
-    assert updated2 == len(EXPECTED_FILES)
+    assert updated2 == 0
 
 
 def test_copy_template_tree_creates_directories(tmp_path):

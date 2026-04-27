@@ -443,7 +443,7 @@ def test_thin_caller_sync_preserves_extra_jobs(tmp_path: Path) -> None:
     # Generate the initial thin caller, then append an extra job.
     exit_code = generate_workflows(
         names=("release.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="v6.0.0",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -459,7 +459,7 @@ def test_thin_caller_sync_preserves_extra_jobs(tmp_path: Path) -> None:
     # Re-sync with a new version. The extra job must survive.
     exit_code = generate_workflows(
         names=("release.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="v7.0.0",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -667,7 +667,7 @@ def test_create_thin_callers(tmp_path: Path) -> None:
     """Generate thin callers for all reusable workflows."""
     exit_code = generate_workflows(
         names=(),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -682,7 +682,7 @@ def test_create_specific_workflow(tmp_path: Path) -> None:
     """Generate a single thin caller."""
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="v5.8.0",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -699,7 +699,7 @@ def test_create_errors_if_exists(tmp_path: Path) -> None:
     (tmp_path / "lint.yaml").write_text("existing", encoding="UTF-8")
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -713,7 +713,7 @@ def test_sync_overwrites(tmp_path: Path) -> None:
     (tmp_path / "lint.yaml").write_text("old content", encoding="UTF-8")
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -728,7 +728,7 @@ def test_skip_non_reusable_thin_caller(tmp_path: Path) -> None:
     """Skip non-reusable workflows in thin-caller mode."""
     exit_code = generate_workflows(
         names=("tests.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -742,7 +742,7 @@ def test_full_copy(tmp_path: Path) -> None:
     """Generate full copy of a workflow."""
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.FULL_COPY,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.FULL_COPY,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -760,7 +760,7 @@ def test_creates_output_dir(tmp_path: Path) -> None:
     output_dir = tmp_path / "sub" / "dir"
     exit_code = generate_workflows(
         names=("lint.yaml",),
-        output_format=WorkflowFormat.THIN_CALLER,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.THIN_CALLER,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=output_dir,
@@ -772,10 +772,10 @@ def test_creates_output_dir(tmp_path: Path) -> None:
 
 def test_values() -> None:
     """Verify expected enum values."""
-    assert WorkflowFormat.FULL_COPY == "full-copy"
-    assert WorkflowFormat.HEADER_ONLY == "header-only"
-    assert WorkflowFormat.SYMLINK == "symlink"
-    assert WorkflowFormat.THIN_CALLER == "thin-caller"
+    assert WorkflowFormat.FULL_COPY.value == "full-copy"
+    assert WorkflowFormat.HEADER_ONLY.value == "header-only"
+    assert WorkflowFormat.SYMLINK.value == "symlink"
+    assert WorkflowFormat.THIN_CALLER.value == "thin-caller"
 
 
 def test_from_string() -> None:
@@ -982,7 +982,7 @@ def test_header_only_syncs_header(tmp_path: Path) -> None:
     )
     exit_code = generate_workflows(
         names=("tests.yaml",),
-        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.HEADER_ONLY,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -1005,7 +1005,7 @@ def test_header_only_warns_on_missing_file(
     with caplog.at_level(logging.WARNING):
         exit_code = generate_workflows(
             names=("tests.yaml",),
-            output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+            output_format=WorkflowFormat.HEADER_ONLY,
             version="main",
             repo=DEFAULT_REPO,
             output_dir=tmp_path,
@@ -1021,7 +1021,7 @@ def test_header_only_errors_on_no_jobs(tmp_path: Path) -> None:
     target.write_text("---\nname: No Jobs\n", encoding="UTF-8")
     exit_code = generate_workflows(
         names=("tests.yaml",),
-        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.HEADER_ONLY,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -1034,7 +1034,7 @@ def test_header_only_defaults_filter_to_existing(tmp_path: Path) -> None:
     """Header-only defaults skip non-existent workflows silently."""
     exit_code = generate_workflows(
         names=(),
-        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.HEADER_ONLY,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,
@@ -1055,7 +1055,7 @@ def test_header_only_defaults_to_non_reusable(tmp_path: Path) -> None:
         )
     exit_code = generate_workflows(
         names=(),
-        output_format=WorkflowFormat.HEADER_ONLY,  # type: ignore[arg-type]
+        output_format=WorkflowFormat.HEADER_ONLY,
         version="main",
         repo=DEFAULT_REPO,
         output_dir=tmp_path,

@@ -7,12 +7,12 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-19T22:58:44.099390378Z"
+exclude-newer = "2026-04-20T05:53:12.816764Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-gitpython = { timestamp = "2026-04-26T22:58:44.098054737Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-26T22:58:44.099397558Z", span = "PT0S" }
+gitpython = { timestamp = "2026-04-27T05:53:12.817093Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-27T05:53:12.817382Z", span = "PT0S" }
 
 [[package]]
 name = "accessible-pygments"
@@ -1743,6 +1743,7 @@ test = [
     { name = "pytest-xdist", extra = ["psutil"] },
 ]
 typing = [
+    { name = "backports-strenum" },
     { name = "types-boltons" },
     { name = "types-pyyaml" },
 ]
@@ -1786,6 +1787,7 @@ test = [
     { name = "pytest-xdist", extras = ["psutil"], specifier = ">=3.7" },
 ]
 typing = [
+    { name = "backports-strenum", specifier = ">=1" },
     { name = "types-boltons", specifier = ">=25.0.0.20250822" },
     { name = "types-pyyaml", specifier = ">=6.0.12.9" },
 ]

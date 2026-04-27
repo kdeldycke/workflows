@@ -359,7 +359,7 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib  # type: ignore[import-not-found]
-    from backports.strenum import StrEnum  # type: ignore[import-not-found]
+    from backports.strenum import StrEnum
 
 from .config import (
     SUBCOMMAND_CONFIG_FIELDS,
@@ -858,8 +858,8 @@ class Metadata:
             return None
 
         if bool(os.environ.get("GITHUB_BASE_REF")):
-            return WorkflowEvent.pull_request  # type: ignore[return-value]
-        return WorkflowEvent.push  # type: ignore[return-value]
+            return WorkflowEvent.pull_request
+        return WorkflowEvent.push
 
     @cached_property
     def event_actor(self) -> str | None:
@@ -2289,7 +2289,7 @@ class Metadata:
 
     def dump(
         self,
-        dialect: Dialect = Dialect.github,  # type: ignore[assignment]
+        dialect: Dialect = Dialect.github,
         keys: tuple[str, ...] = (),
     ) -> str:
         """Returns metadata in the specified format.

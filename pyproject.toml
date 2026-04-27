@@ -170,7 +170,13 @@ docs = [
 ]
 # types-boltons: first stub release covering boltons 25.0 API (FrozenDict, unique, flatten,
 # strip_ansi). types-pyyaml: stub release covering PyYAML 6.0 (safe_load, safe_dump, full_load).
-typing = [ "types-boltons>=25.0.0.20250822", "types-pyyaml>=6.0.12.9" ]
+typing = [
+  # backports-strenum: provides StrEnum stubs for mypy --python-version 3.10 analysis;
+  # not in main deps (version-gated to Python<3.11 there), so added here unconditionally.
+  "backports-strenum>=1",
+  "types-boltons>=25.0.0.20250822",
+  "types-pyyaml>=6.0.12.9",
+]
 
 [tool.uv]
 # Docs group requires Python >= 3.14 for recent MyST-Parser and click-extra features.

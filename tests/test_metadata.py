@@ -997,7 +997,7 @@ expected: dict[str, Any] = {
 
 
 def test_metadata_github_json_format():
-    raw = Metadata().dump(Dialect.github_json)  # type: ignore[arg-type]
+    raw = Metadata().dump(Dialect.github_json)
     assert isinstance(raw, str)
 
     # Output must be a single line starting with "metadata=".
@@ -1036,7 +1036,7 @@ def test_metadata_github_json_format():
 
 def test_metadata_github_json_format_key_filtering():
     raw = Metadata().dump(
-        Dialect.github_json,  # type: ignore[arg-type]
+        Dialect.github_json,
         keys=("is_python_project", "current_version"),
     )
     json_str = raw.strip().removeprefix("metadata=")
@@ -1046,7 +1046,7 @@ def test_metadata_github_json_format_key_filtering():
 
 
 def test_metadata_json_format():
-    metadata = Metadata().dump(Dialect.json)  # type: ignore[arg-type]
+    metadata = Metadata().dump(Dialect.json)
     assert isinstance(metadata, str)
 
     iter_checks(json.loads(metadata), expected, metadata)

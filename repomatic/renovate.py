@@ -42,7 +42,7 @@ from .github.token import check_all_pat_permissions
 if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:
-    from backports.strenum import StrEnum  # type: ignore[import-not-found]
+    from backports.strenum import StrEnum
 
 
 class CheckFormat(StrEnum):

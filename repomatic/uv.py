@@ -56,7 +56,7 @@ else:
 if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:
-    from backports.strenum import StrEnum  # type: ignore[import-not-found]
+    from backports.strenum import StrEnum
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -1261,9 +1261,9 @@ def collect_vulnerable_packages(
             for v in ghsa:
                 if v.current_version:
                     continue
-                key = _canonical_name(v.name)
-                if key in locked_canonical:
-                    v.current_version = locked_canonical[key]
+                pkg_canonical = _canonical_name(v.name)
+                if pkg_canonical in locked_canonical:
+                    v.current_version = locked_canonical[pkg_canonical]
             collected.extend(ghsa)
 
     # Deduplicate by (canonical package name, advisory_id), unioning sources.
