@@ -359,31 +359,113 @@ def _render_triggers(triggers: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+@dataclass
+class PathsSpec:
+    """Bundle of downstream `paths:` adaptation knobs.
+
+    Each field maps to a `[tool.repomatic.workflow]` option.
+
+    :param source_paths: Substituted in for the canonical `repomatic/**` glob
+        in every workflow that references it. `None` drops the glob without
+        substitution.
+    :param extra_paths: Appended to every workflow's `paths:` list (after
+        source substitution and `ignore_paths` filtering, before render).
+        Skipped for workflows listed in *workflow_paths*.
+    :param ignore_paths: Removed from every workflow's `paths:` list by exact
+        string match. Skipped for workflows listed in *workflow_paths*.
+    :param workflow_paths: Per-workflow override keyed by filename. The value
+        is treated as the complete `paths:` list for that workflow; the other
+        knobs do not apply.
+    """
+
+    source_paths: list[str] | None = None
+    extra_paths: list[str] = field(default_factory=list)
+    ignore_paths: list[str] = field(default_factory=list)
+    workflow_paths: dict[str, list[str]] = field(default_factory=dict)
+
+
+def _coerce_paths_spec(
+    spec: PathsSpec | None,
+    source_paths: list[str] | None,
+) -> PathsSpec:
+    """Build a {class}`PathsSpec` from the legacy *source_paths* arg.
+
+    When *spec* is `None`, returns a fresh spec carrying *source_paths*.
+    When *spec* is provided, *source_paths* is ignored.
+    """
+    if spec is not None:
+        return spec
+    return PathsSpec(source_paths=source_paths)
+
+
+def _apply_paths_spec(
+    paths: list[str],
+    filename: str,
+    spec: PathsSpec,
+) -> list[str]:
+    """Adapt a canonical `paths:` list using the spec's knobs.
+
+    Order of operations (skipped when a per-workflow override is set):
+
+    1. Substitute {data}`UPSTREAM_SOURCE_GLOB` with ``{sp}/**`` for each
+       *source_paths* entry, drop other {data}`UPSTREAM_SOURCE_PREFIX` paths.
+    2. Strip *ignore_paths* entries (exact string match).
+    3. Append *extra_paths* (deduplicated, order-preserving).
+
+    :param paths: Original paths list from a canonical workflow trigger.
+    :param filename: Workflow filename (e.g., `tests.yaml`) used to look up
+        per-workflow overrides in *spec*.
+    :param spec: Active paths spec.
+    :return: Adapted paths list. Empty when every entry is dropped.
+    """
+    if filename in spec.workflow_paths:
+        return list(spec.workflow_paths[filename])
+
+    result = _substitute_source_paths(paths, spec.source_paths or [])
+
+    if spec.ignore_paths:
+        ignored = set(spec.ignore_paths)
+        result = [p for p in result if p not in ignored]
+
+    for entry in spec.extra_paths:
+        if entry not in result:
+            result.append(entry)
+
+    return result
+
+
 def _adapt_trigger_paths(
     trigger_config: dict[str, Any],
-    source_paths: list[str] | None,
+    filename: str,
+    spec: PathsSpec,
 ) -> dict[str, Any]:
     """Adapt `paths` and `paths-ignore` in a trigger for downstream use.
 
-    Universal path entries (e.g., `pyproject.toml`, `renovate.json5`,
-    `.github/workflows/*.yaml`) are always kept. Upstream source-tree
-    references are either substituted with *source_paths* equivalents or
-    dropped when *source_paths* is `None`.
+    `paths` runs through the full {func}`_apply_paths_spec` pipeline.
+    `paths-ignore` only receives source-path substitution; the global
+    `extra_paths`/`ignore_paths` knobs and per-workflow overrides target
+    `paths:` (the trigger gate), not exclusion lists.
 
     :param trigger_config: Trigger configuration dict (e.g., push config).
-    :param source_paths: Downstream source directory names, or `None` to
-        drop upstream source references without substitution.
+    :param filename: Workflow filename for per-workflow override lookup.
+    :param spec: Active paths spec.
     :return: New trigger config dict with adapted path filters.
     """
     result = dict(trigger_config)
-    for key in ("paths", "paths-ignore"):
-        if key not in result:
-            continue
-        adapted = _substitute_source_paths(result[key], source_paths or [])
+    if "paths" in result:
+        adapted = _apply_paths_spec(result["paths"], filename, spec)
         if adapted:
-            result[key] = adapted
+            result["paths"] = adapted
         else:
-            del result[key]
+            del result["paths"]
+    if "paths-ignore" in result:
+        adapted_ignore = _substitute_source_paths(
+            result["paths-ignore"], spec.source_paths or []
+        )
+        if adapted_ignore:
+            result["paths-ignore"] = adapted_ignore
+        else:
+            del result["paths-ignore"]
     return result
 
 
@@ -426,6 +508,7 @@ def generate_thin_caller(
     version: str = DEFAULT_VERSION,
     source_paths: list[str] | None = None,
     commit_sha: str | None = None,
+    paths_spec: PathsSpec | None = None,
 ) -> str:
     """Generate a thin caller workflow for a reusable canonical workflow.
 
@@ -434,10 +517,9 @@ def generate_thin_caller(
     `workflow_dispatch` is not injected: workflows that should expose manual
     dispatch declare it in the canonical definition.
 
-    When *source_paths* is provided, canonical `paths:` filters are adapted
-    for the downstream project by replacing the upstream source directory glob
-    with downstream equivalents. When `None`, paths are stripped entirely
-    (conservative but correct — triggers on any file change).
+    Canonical `paths:` filters are adapted via *paths_spec* (see
+    {class}`PathsSpec`). The legacy *source_paths* kwarg builds a spec
+    automatically when *paths_spec* is `None`.
 
     When *commit_sha* is provided, the `uses:` reference is SHA-pinned
     (`@sha # version`) matching Renovate's pin format. This eliminates
@@ -446,14 +528,16 @@ def generate_thin_caller(
     :param filename: Canonical workflow filename (e.g., `release.yaml`).
     :param repo: Upstream repository (default: `kdeldycke/repomatic`).
     :param version: Version reference (default: `main`).
-    :param source_paths: Downstream source directory names (e.g.,
-        `["extra_platforms"]`). `None` strips all path filters.
+    :param source_paths: Backward-compat shortcut; ignored when *paths_spec*
+        is provided.
     :param commit_sha: Full 40-character commit SHA for the version tag.
         When provided, produces `@sha # version`. When `None`, produces
         `@version`.
+    :param paths_spec: Full paths-adaptation spec; supersedes *source_paths*.
     :return: Complete YAML content for the thin caller workflow.
     :raises ValueError: If the workflow does not support `workflow_call`.
     """
+    spec = _coerce_paths_spec(paths_spec, source_paths)
     info = extract_trigger_info(filename)
 
     if not info.has_workflow_call:
@@ -467,7 +551,7 @@ def generate_thin_caller(
     triggers: dict[str, Any] = {}
     for trigger_name, trigger_config in info.non_call_triggers.items():
         if isinstance(trigger_config, dict):
-            trigger_config = _adapt_trigger_paths(trigger_config, source_paths)
+            trigger_config = _adapt_trigger_paths(trigger_config, filename, spec)
         triggers[trigger_name] = trigger_config
 
     # Build the YAML content programmatically.
@@ -891,51 +975,95 @@ def check_concurrency_match(
     )
 
 
+_PATHS_BLOCK_RE = re.compile(
+    r"^([ \t]*)paths:[ \t]*\n((?:\1[ \t]+- [^\n]*\n)+)",
+    re.MULTILINE,
+)
+"""Match a `paths:` block and capture its key indent and entry lines.
+
+Group 1 is the indent of the `paths:` key (assumes entries indent further
+with the same prefix). Group 2 is the contiguous block of entry lines.
+Inline comments inside the entry block would terminate the match early.
+"""
+
+
 def generate_workflow_header(
     filename: str,
     source_paths: list[str] | None = None,
+    paths_spec: PathsSpec | None = None,
 ) -> str:
     """Return the raw header of a canonical workflow.
 
     The header is everything before the `jobs:` line: `name`, `on`
     triggers, `concurrency`, and any comments.
 
-    Upstream source-tree references (`repomatic/**` glob and
-    `repomatic/`-prefixed paths) are always adapted for downstream use:
-    when *source_paths* is provided, the glob is rewritten as
-    ``{sp}/**`` for each entry; when `None`, the upstream lines are
-    dropped entirely. Universal entries (e.g., `pyproject.toml`,
-    `tests/**`, `renovate.json5`) are preserved in both cases.
+    Each `paths:` block in the header is rewritten using *paths_spec*:
+    upstream source references substituted via *source_paths*, optional
+    extras appended, ignored entries stripped, or replaced wholesale via
+    a per-workflow override (see {class}`PathsSpec`). When the resulting
+    list is empty, the entire `paths:` block is removed. Comments outside
+    the rewritten blocks are preserved verbatim; comments inside an
+    entry block are not supported.
 
     :param filename: Canonical workflow filename (e.g., `tests.yaml`).
-    :param source_paths: Downstream source directory names (e.g.,
-        `["extra_platforms"]`). `None` drops the upstream source lines.
+    :param source_paths: Backward-compat shortcut; ignored when *paths_spec*
+        is provided.
+    :param paths_spec: Full paths-adaptation spec; supersedes *source_paths*.
     :return: Raw header text.
     :raises FileNotFoundError: If the workflow file is not bundled.
     :raises ValueError: If no `jobs:` line is found.
     """
+    spec = _coerce_paths_spec(paths_spec, source_paths)
     content = get_data_content(filename)
     header = _extract_raw_header(content)
-    glob_line_marker = f"      - {UPSTREAM_SOURCE_GLOB}"
-    if source_paths:
-        replacement = "\n".join(f"      - {sp}/**" for sp in source_paths)
-        header = header.replace(glob_line_marker, replacement)
-    else:
-        # No downstream source paths: drop the upstream glob line entirely.
-        header = "\n".join(
-            line for line in header.split("\n") if line != glob_line_marker
-        )
-    # Drop upstream-specific path lines (e.g., repomatic/data/...).
-    header = "\n".join(
-        line
-        for line in header.split("\n")
-        if not (
-            line.strip().startswith("- ")
-            and UPSTREAM_SOURCE_PREFIX in line
-            and UPSTREAM_SOURCE_GLOB not in line
-        )
-    )
-    return header
+
+    def _rewrite(match: re.Match[str]) -> str:
+        key_indent = match.group(1)
+        body = match.group(2)
+        entry_indent = ""
+        # Track each entry's original quote char (or "" when unquoted) so the
+        # rewritten block round-trips with the canonical style. Substitutions
+        # and additions inherit the dominant style of the canonical block.
+        unquoted: list[str] = []
+        quotes: list[str] = []
+        for line in body.splitlines():
+            stripped = line.lstrip()
+            if not stripped.startswith("- "):
+                continue
+            if not entry_indent:
+                entry_indent = line[: len(line) - len(stripped)]
+            value, quote = _split_yaml_quote(stripped[2:].strip())
+            unquoted.append(value)
+            quotes.append(quote)
+        adapted = _apply_paths_spec(unquoted, filename, spec)
+        if not adapted:
+            return ""
+        if not entry_indent:
+            entry_indent = key_indent + "  "
+        # Pick the dominant canonical quote style for new entries; use the
+        # original quote when an entry was preserved by value.
+        quote_by_value = dict(zip(unquoted, quotes, strict=False))
+        canonical_quote = next((q for q in quotes if q), "")
+        new_lines = []
+        for entry in adapted:
+            quote = quote_by_value.get(entry, canonical_quote)
+            rendered = f"{quote}{entry}{quote}" if quote else entry
+            new_lines.append(f"{entry_indent}- {rendered}\n")
+        return f"{key_indent}paths:\n{''.join(new_lines)}"
+
+    return _PATHS_BLOCK_RE.sub(_rewrite, header)
+
+
+def _split_yaml_quote(scalar: str) -> tuple[str, str]:
+    """Split a YAML scalar from its surrounding quote.
+
+    :param scalar: Raw scalar text as it appears in the YAML source.
+    :return: ``(value, quote_char)`` where *quote_char* is `"` or `'` for
+        quoted scalars and the empty string for plain ones.
+    """
+    if len(scalar) >= 2 and scalar[0] == scalar[-1] and scalar[0] in ('"', "'"):
+        return scalar[1:-1], scalar[0]
+    return scalar, ""
 
 
 def run_workflow_lint(
@@ -1020,6 +1148,7 @@ def generate_workflows(
     overwrite: bool,
     source_paths: list[str] | None = None,
     commit_sha: str | None = None,
+    paths_spec: PathsSpec | None = None,
 ) -> int:
     """Generate workflow files in the specified format.
 
@@ -1031,12 +1160,14 @@ def generate_workflows(
     :param repo: Upstream repository.
     :param output_dir: Directory to write files to.
     :param overwrite: Whether to overwrite existing files.
-    :param source_paths: Downstream source directory names for `paths:`
-        filters. `None` strips all path filters (conservative default).
+    :param source_paths: Backward-compat shortcut; ignored when *paths_spec*
+        is provided.
     :param commit_sha: Full 40-character commit SHA for SHA-pinned
         `uses:` references. Passed through to {func}`generate_thin_caller`.
+    :param paths_spec: Full paths-adaptation spec; supersedes *source_paths*.
     :return: Exit code (0 for success, 1 for errors).
     """
+    spec = _coerce_paths_spec(paths_spec, source_paths)
     # Default to all reusable workflows for thin-caller, non-reusable for
     # header-only, all for other modes.
     names_defaulted = not names
@@ -1078,7 +1209,7 @@ def generate_workflows(
                     filename,
                     repo,
                     version,
-                    source_paths=source_paths,
+                    paths_spec=spec,
                     commit_sha=commit_sha,
                 )
             except ValueError as e:
@@ -1102,7 +1233,7 @@ def generate_workflows(
 
             try:
                 canonical_header = generate_workflow_header(
-                    filename, source_paths=source_paths
+                    filename, paths_spec=spec
                 )
             except (ValueError, FileNotFoundError) as e:
                 logging.error(f"Failed to extract header for {filename}: {e}")

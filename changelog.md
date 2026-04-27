@@ -8,6 +8,7 @@
 - Generated thin caller workflows now mirror the canonical workflow's triggers verbatim instead of always injecting `workflow_dispatch`. Callers wrapping `cancel-runs.yaml` or `release.yaml` (which intentionally lack manual dispatch) no longer carry a synthetic trigger that diverges from upstream.
 - Path filters in thin callers preserve universal entries (`pyproject.toml`, `renovate.json5`, workflow self-references) instead of being stripped wholesale. Only upstream source-tree references (`repomatic/**` glob and `repomatic/`-prefixed paths) are dropped or substituted via the `--source-paths` option.
 - `repomatic workflow lint` now flags thin callers with **extra** triggers absent from the canonical workflow, in addition to missing ones. Standalone workflows are still checked for the `workflow_dispatch` trigger; thin callers are exempt from that check because trigger match against the canonical workflow is authoritative.
+- Add three `[tool.repomatic.workflow]` knobs to customize `paths:` filters in generated thin callers and synced headers without forking workflows: `extra-paths` appends repo-specific entries (e.g., `install.sh`, `dotfiles/**`) to every workflow's filter, `ignore-paths` strips canonical entries that don't exist downstream (e.g., `tests/**`, `uv.lock`) by exact match, and `paths` keyed by workflow filename replaces a workflow's filter wholesale. The wholesale override skips the other knobs and `source-paths` for the listed filename.
 
 ## [`6.15.0` (2026-04-27)](https://github.com/kdeldycke/repomatic/compare/v6.14.0...v6.15.0)
 

@@ -350,6 +350,45 @@ class WorkflowConfig:
     `name = "extra-platforms"` automatically uses `["extra_platforms"]`.
     """
 
+    extra_paths: list[str] = field(default_factory=list)
+    """Literal entries to append to every workflow's `paths:` filter.
+
+    Applies to thin-caller and header-only sync. Useful for repo-specific
+    files that should re-trigger CI but are not detected by the canonical
+    `paths:` filter (e.g., `install.sh`, `dotfiles/**`).
+
+    Per-workflow overrides in `paths` ignore this list: when an entry exists
+    for a given filename, that entry is treated as the complete list.
+    """
+
+    ignore_paths: list[str] = field(default_factory=list)
+    """Literal entries to strip from every workflow's `paths:` filter.
+
+    Useful for canonical entries that don't exist downstream (e.g.,
+    `tests/**`, `uv.lock` in repos with no Python tests or lockfile).
+    Match is by exact string equality. Applies before `extra_paths`.
+
+    Per-workflow overrides in `paths` ignore this list.
+    """
+
+    paths: dict[str, list[str]] = field(default_factory=dict)
+    """Per-workflow override of the `paths:` filter, keyed by filename.
+
+    When a workflow filename appears here, its `paths:` blocks (in `push`,
+    `pull_request`, etc.) are replaced wholesale with the listed entries.
+    `source_paths`, `extra_paths`, and `ignore_paths` do **not** apply when
+    a per-workflow override is set: the list is treated as authoritative.
+
+    Override only takes effect on triggers that already have a `paths:`
+    filter in the canonical workflow. Workflows without `paths:` upstream
+    keep their unrestricted trigger semantics.
+
+    Example:
+
+        [tool.repomatic.workflow.paths]
+        "tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
+    """
+
     sync: bool = True
     """Whether workflow sync is enabled for this project.
 

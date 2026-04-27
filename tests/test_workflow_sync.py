@@ -28,6 +28,7 @@ from repomatic.config import Config, WorkflowConfig
 from repomatic.github.actions import AnnotationLevel
 from repomatic.github.workflow_sync import (
     LintResult,
+    PathsSpec,
     WorkflowFormat,
     WorkflowTriggerInfo,
     _adapt_trigger_paths,
@@ -1156,7 +1157,8 @@ def test_adapt_trigger_paths_with_source_paths() -> None:
         "branches": ["main"],
         "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml"],
     }
-    result = _adapt_trigger_paths(config, ["extra_platforms"])
+    spec = PathsSpec(source_paths=["extra_platforms"])
+    result = _adapt_trigger_paths(config, "tests.yaml", spec)
     assert result["branches"] == ["main"]
     assert result["paths"] == ["extra_platforms/**", "pyproject.toml"]
 
@@ -1167,7 +1169,7 @@ def test_adapt_trigger_paths_none_drops_upstream_keeps_universal() -> None:
         "branches": ["main"],
         "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml", "repomatic/data/renovate.json5"],
     }
-    result = _adapt_trigger_paths(config, None)
+    result = _adapt_trigger_paths(config, "tests.yaml", PathsSpec())
     assert result["branches"] == ["main"]
     assert result["paths"] == ["pyproject.toml"]
 
@@ -1178,7 +1180,7 @@ def test_adapt_trigger_paths_none_drops_paths_when_only_upstream() -> None:
         "branches": ["main"],
         "paths": [UPSTREAM_SOURCE_GLOB, "repomatic/data/renovate.json5"],
     }
-    result = _adapt_trigger_paths(config, None)
+    result = _adapt_trigger_paths(config, "tests.yaml", PathsSpec())
     assert "paths" not in result
     assert result["branches"] == ["main"]
 
@@ -1186,8 +1188,63 @@ def test_adapt_trigger_paths_none_drops_paths_when_only_upstream() -> None:
 def test_adapt_trigger_paths_no_paths_key() -> None:
     """Pass through trigger config that has no paths key."""
     config = {"branches": ["main"]}
-    result = _adapt_trigger_paths(config, ["extra_platforms"])
+    spec = PathsSpec(source_paths=["extra_platforms"])
+    result = _adapt_trigger_paths(config, "tests.yaml", spec)
     assert result == {"branches": ["main"]}
+
+
+def test_adapt_trigger_paths_with_extra_paths() -> None:
+    """`extra_paths` are appended to the path list, deduped."""
+    config = {
+        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml"],
+    }
+    spec = PathsSpec(
+        source_paths=["my_pkg"],
+        extra_paths=["install.sh", "pyproject.toml"],  # already-present is deduped.
+    )
+    result = _adapt_trigger_paths(config, "tests.yaml", spec)
+    assert result["paths"] == ["my_pkg/**", "pyproject.toml", "install.sh"]
+
+
+def test_adapt_trigger_paths_with_ignore_paths() -> None:
+    """`ignore_paths` strips matching upstream entries before extras are added."""
+    config = {
+        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml", "uv.lock"],
+    }
+    spec = PathsSpec(
+        source_paths=["my_pkg"],
+        ignore_paths=["uv.lock"],
+    )
+    result = _adapt_trigger_paths(config, "tests.yaml", spec)
+    assert result["paths"] == ["my_pkg/**", "pyproject.toml"]
+
+
+def test_adapt_trigger_paths_per_workflow_override_replaces_wholesale() -> None:
+    """Per-workflow `paths` override ignores other knobs and replaces the list."""
+    config = {
+        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml", "uv.lock"],
+    }
+    spec = PathsSpec(
+        source_paths=["my_pkg"],
+        extra_paths=["never-applied.sh"],
+        ignore_paths=["pyproject.toml"],
+        workflow_paths={"tests.yaml": ["install.sh", "packages.toml"]},
+    )
+    result = _adapt_trigger_paths(config, "tests.yaml", spec)
+    assert result["paths"] == ["install.sh", "packages.toml"]
+
+
+def test_adapt_trigger_paths_per_workflow_override_does_not_leak_to_others() -> None:
+    """Per-workflow override only applies to its own filename."""
+    config = {
+        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml"],
+    }
+    spec = PathsSpec(
+        source_paths=["my_pkg"],
+        workflow_paths={"tests.yaml": ["install.sh"]},
+    )
+    result = _adapt_trigger_paths(config, "lint.yaml", spec)
+    assert result["paths"] == ["my_pkg/**", "pyproject.toml"]
 
 
 # ---------------------------------------------------------------------------
@@ -1292,6 +1349,55 @@ def test_header_with_source_paths_drops_upstream_specific() -> None:
     """Verify header generation drops upstream-specific paths."""
     header = generate_workflow_header("renovate.yaml", source_paths=["my_pkg"])
     assert f"{UPSTREAM_SOURCE_PREFIX}data" not in header
+    assert "renovate.json5" in header
+
+
+def test_header_with_extra_paths_appends() -> None:
+    """`extra_paths` are appended to every paths block in the header."""
+    spec = PathsSpec(extra_paths=["install.sh", "dotfiles/**"])
+    header = generate_workflow_header("tests.yaml", paths_spec=spec)
+    # Both `push.paths` and `pull_request.paths` blocks pick up the extras.
+    assert header.count("install.sh") >= 2
+    assert header.count("dotfiles/**") >= 2
+    # Universal canonical entries survive.
+    assert "pyproject.toml" in header
+
+
+def test_header_with_ignore_paths_strips_canonical() -> None:
+    """`ignore_paths` removes matching entries from every paths block."""
+    spec = PathsSpec(ignore_paths=["uv.lock", "tests/**"])
+    header = generate_workflow_header("tests.yaml", paths_spec=spec)
+    assert "uv.lock" not in header
+    assert "tests/**" not in header
+    assert "pyproject.toml" in header
+
+
+def test_header_per_workflow_override_replaces_paths_blocks() -> None:
+    """Per-workflow `paths` override replaces every block in the workflow."""
+    override = [
+        "install.sh",
+        "packages.toml",
+        ".github/workflows/tests.yaml",
+    ]
+    spec = PathsSpec(workflow_paths={"tests.yaml": override})
+    header = generate_workflow_header("tests.yaml", paths_spec=spec)
+    # Override entries appear (twice: push + pull_request).
+    assert header.count("install.sh") == 2
+    assert header.count("packages.toml") == 2
+    # Canonical-only entries are gone.
+    assert "uv.lock" not in header
+    assert "tests/**" not in header
+    assert UPSTREAM_SOURCE_GLOB not in header
+
+
+def test_header_per_workflow_override_does_not_apply_to_other_files() -> None:
+    """Override scoped to one filename does not affect another workflow's header."""
+    spec = PathsSpec(
+        workflow_paths={"tests.yaml": ["install.sh"]},
+    )
+    header = generate_workflow_header("renovate.yaml", paths_spec=spec)
+    assert "install.sh" not in header
+    # Universal canonical entry kept.
     assert "renovate.json5" in header
 
 

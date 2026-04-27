@@ -761,6 +761,7 @@ def _init_workflows(
     # Lazy import to avoid circular dependency with workflow_sync.
     from . import __git_tag_sha__
     from .github.workflow_sync import (
+        PathsSpec,
         extract_extra_jobs,
         generate_thin_caller,
         generate_workflow_header,
@@ -782,6 +783,13 @@ def _init_workflows(
         if entry.file_id in workflows and not entry.is_enabled(config):
             workflows = tuple(w for w in workflows if w != entry.file_id)
 
+    paths_spec = PathsSpec(
+        source_paths=source_paths,
+        extra_paths=list(config.workflow.extra_paths),
+        ignore_paths=list(config.workflow.ignore_paths),
+        workflow_paths={k: list(v) for k, v in config.workflow.paths.items()},
+    )
+
     workflows_dir = output_dir / ".github" / "workflows"
     workflows_dir.mkdir(parents=True, exist_ok=True)
 
@@ -794,7 +802,7 @@ def _init_workflows(
             filename,
             repo,
             version,
-            source_paths=source_paths,
+            paths_spec=paths_spec,
             commit_sha=commit_sha,
         )
         # Preserve extra downstream jobs from the existing file.
@@ -830,7 +838,7 @@ def _init_workflows(
         rel = target.relative_to(output_dir).as_posix()
         try:
             canonical_header = generate_workflow_header(
-                filename, source_paths=source_paths
+                filename, paths_spec=paths_spec
             )
         except (ValueError, FileNotFoundError):
             logging.warning(f"Cannot extract header for {filename}. Skipping.")

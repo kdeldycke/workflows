@@ -110,6 +110,9 @@ workflow.source-paths = ["extra_platforms"]
 | [`uv-lock.sync`](#uv-lock-sync)                               | bool                        | `true`                              |
 | [`vulnerable-deps.sources`](#vulnerable-deps-sources)         | list[str]                   | `['uv-audit', 'github-advisories']` |
 | [`vulnerable-deps.sync`](#vulnerable-deps-sync)               | bool                        | `true`                              |
+| [`workflow.extra-paths`](#workflow-extra-paths)               | list[str]                   | `[]`                                |
+| [`workflow.ignore-paths`](#workflow-ignore-paths)             | list[str]                   | `[]`                                |
+| [`workflow.paths`](#workflow-paths)                           | dict\[str, list[str]\]      | {}                                  |
 | [`workflow.source-paths`](#workflow-source-paths)             | list[str]                   | *(none)*                            |
 | [`workflow.sync`](#workflow-sync)                             | bool                        | `true`                              |
 
@@ -406,6 +409,24 @@ Advisory databases to consult for known vulnerabilities.
 **Type:** bool | **Default:** `true`
 
 Whether the `fix-vulnerable-deps` job is enabled for this project.
+
+### `workflow.extra-paths`
+
+**Type:** list[str] | **Default:** `[]`
+
+Literal entries to append to every workflow's `paths:` filter.
+
+### `workflow.ignore-paths`
+
+**Type:** list[str] | **Default:** `[]`
+
+Literal entries to strip from every workflow's `paths:` filter.
+
+### `workflow.paths`
+
+**Type:** dict\[str, list[str]\] | **Default:** {}
+
+Per-workflow override of the `paths:` filter, keyed by filename.
 
 ### `workflow.source-paths`
 
