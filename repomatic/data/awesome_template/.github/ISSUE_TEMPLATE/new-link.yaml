@@ -47,8 +47,12 @@ body:
         for the precise definition of each marker.
       options:
         - "Not applicable (article, paper, blog post, news item, or curation list)"
-        - "💸 — primary maintainer is a commercial vendor selling a paid version (cloud, Enterprise tier, proprietary modules)"
-        - "🆓 — fully open-source: foundation-governed, community-driven, corporate-OSS without paid product, or support-only commercial model"
+        - >-
+          💸 — primary maintainer is a commercial vendor selling a paid version
+          (cloud, Enterprise tier, proprietary modules)
+        - >-
+          🆓 — fully open-source: foundation-governed, community-driven,
+          corporate-OSS without paid product, or support-only commercial model
     validations:
       required: true
 
