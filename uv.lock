@@ -7,12 +7,12 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-20T09:05:28.053023418Z"
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-gitpython = { timestamp = "2026-04-27T09:05:28.053030842Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-27T09:05:28.05303502Z", span = "PT0S" }
+gitpython = { timestamp = "0001-01-01T00:00:00Z", span = "PT0S" }
+repomatic = { timestamp = "0001-01-01T00:00:00Z", span = "PT0S" }
 
 [[package]]
 name = "accessible-pygments"
@@ -1703,7 +1703,7 @@ wheels = [
 
 [[package]]
 name = "repomatic"
-version = "6.15.1.dev0"
+version = "6.16.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
