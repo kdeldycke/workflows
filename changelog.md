@@ -16,6 +16,7 @@
 - Remove unused `sphinx-issues` dependency. No `:issue:`, `:pr:`, `:user:`, or `:commit:` roles were referenced anywhere in the documentation.
 - Fix `update-docs` ↔ `format-markdown` ping-pong on `docs/tool-runner.md`. The `tool_summary()` generator was missing a trailing newline, so the regenerated section had no blank line between the GFM table and the closing `<!-- tool-summary-end -->` HTML comment. `mdformat-gfm` reinserted that blank line on every run, generating an endless stream of "Update docs" PRs.
 - Show the `exclude-newer` cooldown cutoff above the "Updated packages" table in `fix-vulnerable-deps` PR bodies, matching `sync-uv-lock`. Reviewers can now compare each package's `Released` date against the cutoff to confirm which upgrades required a cooldown bypass.
+- Fix `repomatic init` reporting unchanged files as updated. Workflows, skills, the awesome-template tree, and non-reusable workflow headers now compare on-disk content to what would be written and skip the file (without touching its mtime) when the two match. Re-running `repomatic init` against an unchanged tree is now a true no-op.
 
 ## [`6.14.0` (2026-04-20)](https://github.com/kdeldycke/repomatic/compare/v6.13.0...v6.14.0)
 

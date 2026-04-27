@@ -795,10 +795,15 @@ def _init_workflows(
             commit_sha=commit_sha,
         )
         # Preserve extra downstream jobs from the existing file.
+        existing_content: str | None = None
         if existed:
-            extra = extract_extra_jobs(target.read_text(encoding="UTF-8"), repo)
+            existing_content = target.read_text(encoding="UTF-8")
+            extra = extract_extra_jobs(existing_content, repo)
             if extra:
                 content += extra
+            if existing_content == content:
+                logging.debug(f"Unchanged: {rel}")
+                continue
         target.write_text(content, encoding="UTF-8")
         if existed:
             result.updated.append(rel)
@@ -832,6 +837,9 @@ def _init_workflows(
         if jobs_match is None:
             continue
         content = canonical_header + existing[jobs_match.start() :]
+        if content == existing:
+            logging.debug(f"Header already in sync: {rel}")
+            continue
         target.write_text(content, encoding="UTF-8")
         result.updated.append(rel)
         logging.info(f"Synced header: {rel}")
@@ -953,9 +961,12 @@ def _init_config_files(
 
         if target.exists():
             existing = target.read_text(encoding="UTF-8").rstrip() + "\n"
-            if not comp.keep_unmodified and existing == normalized:
-                result.unmodified_configs.append(rel)
-                logging.info(f"Unmodified (matches bundled default): {rel}")
+            if existing == normalized:
+                if not comp.keep_unmodified:
+                    result.unmodified_configs.append(rel)
+                    logging.info(f"Unmodified (matches bundled default): {rel}")
+                else:
+                    logging.debug(f"Unchanged: {rel}")
                 continue
             target.write_text(normalized, encoding="UTF-8")
             result.updated.append(rel)
@@ -989,8 +1000,11 @@ def _copy_template_tree(root: Traversable, dest: Path) -> tuple[int, int]:
         else:
             target = dest / entry.name
             existed = target.exists()
+            new_bytes = entry.read_bytes()
+            if existed and target.read_bytes() == new_bytes:
+                continue
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(entry.read_bytes())
+            target.write_bytes(new_bytes)
             if existed:
                 updated += 1
                 logging.info(f"Updated: {target}")

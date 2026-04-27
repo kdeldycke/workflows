@@ -694,8 +694,11 @@ def test_init_existing_changelog_skipped(tmp_path: Path):
 
 
 def test_init_idempotent(tmp_path: Path):
-    """Verify second run updates managed files, skips changelog, and
-    detects identical init configs as unmodified."""
+    """Verify a second run with no on-disk changes produces no updates.
+
+    Re-running `repomatic init` against an unchanged tree must be a no-op:
+    files identical to what `init` would write are not reported as updated.
+    """
     result1 = run_init(output_dir=tmp_path)
     assert len(result1.created) > 0
     assert len(result1.updated) == 0
@@ -703,13 +706,35 @@ def test_init_idempotent(tmp_path: Path):
 
     result2 = run_init(output_dir=tmp_path)
     assert len(result2.created) == 0
-    # Managed files are overwritten (reported as updated), except
-    # init config files identical to bundled defaults (unmodified).
-    managed_count = len(result1.created) - 1  # Minus changelog.
-    unmodified_count = len(result2.unmodified_configs)
-    assert len(result2.updated) == managed_count - unmodified_count
+    assert len(result2.updated) == 0
     # Only changelog is skipped (never overwritten).
     assert result2.skipped == ["changelog.md"]
+
+
+@pytest.mark.parametrize(
+    "component",
+    [
+        "workflows",
+        "skills",
+        "labels",
+        "renovate",
+    ],
+)
+def test_init_per_component_idempotent(tmp_path: Path, component: str):
+    """Verify re-running a single-component init produces no spurious updates.
+
+    Locks in the per-component no-op behavior: when bundled content matches
+    what is already on disk, the second run must not report any file as
+    `updated`. Regression guard for skills/workflows wrongly flagged as
+    updated when their content was unchanged.
+    """
+    first = run_init(output_dir=tmp_path, components=(component,))
+    assert len(first.created) > 0
+    assert len(first.updated) == 0
+
+    second = run_init(output_dir=tmp_path, components=(component,))
+    assert second.created == []
+    assert second.updated == []
 
 
 def test_init_only_labels(tmp_path: Path):
