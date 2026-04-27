@@ -7,12 +7,12 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-20T05:53:12.816764Z"
+exclude-newer = "2026-04-20T09:05:28.053023418Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-gitpython = { timestamp = "2026-04-27T05:53:12.817093Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-27T05:53:12.817382Z", span = "PT0S" }
+gitpython = { timestamp = "2026-04-27T09:05:28.053030842Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-27T09:05:28.05303502Z", span = "PT0S" }
 
 [[package]]
 name = "accessible-pygments"
@@ -1703,7 +1703,7 @@ wheels = [
 
 [[package]]
 name = "repomatic"
-version = "6.15.0.dev0"
+version = "6.15.1.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },

@@ -1,5 +1,10 @@
 # Changelog
 
+## [`6.15.1.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.15.0...main)
+
+> [!WARNING]
+> This version is **not released yet** and is under active development.
+
 ## [`6.15.0` (2026-04-27)](https://github.com/kdeldycke/repomatic/compare/v6.14.0...v6.15.0)
 
 - Set `validate = false` in the bundled `mdformat.toml` so `mdformat-recover-urls` decodes percent-encoded non-ASCII characters in link destinations back to their original form. Without this, anchor links with Chinese, accented, or other non-ASCII characters got rewritten to `%XX` sequences on every `format-markdown` run.
