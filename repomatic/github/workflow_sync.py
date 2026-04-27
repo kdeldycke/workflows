@@ -365,24 +365,26 @@ def _adapt_trigger_paths(
 ) -> dict[str, Any]:
     """Adapt `paths` and `paths-ignore` in a trigger for downstream use.
 
-    When *source_paths* is provided, replaces upstream source paths with
-    downstream equivalents via {func}`_substitute_source_paths`. When
-    `None`, strips `paths` and `paths-ignore` entirely.
+    Universal path entries (e.g., `pyproject.toml`, `renovate.json5`,
+    `.github/workflows/*.yaml`) are always kept. Upstream source-tree
+    references are either substituted with *source_paths* equivalents or
+    dropped when *source_paths* is `None`.
 
     :param trigger_config: Trigger configuration dict (e.g., push config).
-    :param source_paths: Downstream source directory names, or `None`.
+    :param source_paths: Downstream source directory names, or `None` to
+        drop upstream source references without substitution.
     :return: New trigger config dict with adapted path filters.
     """
-    if source_paths is not None:
-        result = dict(trigger_config)
-        for key in ("paths", "paths-ignore"):
-            if key in result:
-                result[key] = _substitute_source_paths(result[key], source_paths)
-        return result
-    # No source paths: strip paths entirely (conservative but correct).
-    return {
-        k: v for k, v in trigger_config.items() if k not in {"paths", "paths-ignore"}
-    }
+    result = dict(trigger_config)
+    for key in ("paths", "paths-ignore"):
+        if key not in result:
+            continue
+        adapted = _substitute_source_paths(result[key], source_paths or [])
+        if adapted:
+            result[key] = adapted
+        else:
+            del result[key]
+    return result
 
 
 def _substitute_source_paths(
@@ -394,14 +396,16 @@ def _substitute_source_paths(
     For each path in the canonical workflow's `paths:` list:
 
     - {data}`UPSTREAM_SOURCE_GLOB` (`repomatic/**`) is replaced with
-      ``{source}/**`` for each entry in *source_paths*.
+      ``{source}/**`` for each entry in *source_paths*; when *source_paths*
+      is empty the glob is dropped entirely.
     - Other paths starting with {data}`UPSTREAM_SOURCE_PREFIX` are dropped
       (upstream-specific files like `repomatic/data/renovate.json5`).
     - All other paths (universal paths like `pyproject.toml`, `tests/**`)
       are kept as-is.
 
     :param paths: Original paths list from a canonical workflow trigger.
-    :param source_paths: Downstream source directory names.
+    :param source_paths: Downstream source directory names. Empty list
+        drops the upstream source glob without substitution.
     :return: New paths list with substitutions applied.
     """
     result: list[str] = []
@@ -425,9 +429,10 @@ def generate_thin_caller(
 ) -> str:
     """Generate a thin caller workflow for a reusable canonical workflow.
 
-    The generated caller includes all non-`workflow_call` triggers from the
-    canonical workflow, always ensures `workflow_dispatch` is present, and
-    delegates to the upstream workflow via `uses:`.
+    The generated caller mirrors the canonical workflow's non-`workflow_call`
+    triggers verbatim and delegates to the upstream workflow via `uses:`.
+    `workflow_dispatch` is not injected: workflows that should expose manual
+    dispatch declare it in the canonical definition.
 
     When *source_paths* is provided, canonical `paths:` filters are adapted
     for the downstream project by replacing the upstream source directory glob
@@ -458,14 +463,12 @@ def generate_thin_caller(
         )
         raise ValueError(msg)
 
-    # Build trigger dict, ensuring workflow_dispatch is present.
+    # Mirror canonical triggers verbatim; do not synthesize workflow_dispatch.
     triggers: dict[str, Any] = {}
     for trigger_name, trigger_config in info.non_call_triggers.items():
         if isinstance(trigger_config, dict):
             trigger_config = _adapt_trigger_paths(trigger_config, source_paths)
         triggers[trigger_name] = trigger_config
-    if "workflow_dispatch" not in triggers:
-        triggers["workflow_dispatch"] = None
 
     # Build the YAML content programmatically.
     # Concurrency is intentionally omitted: the reusable workflow's own
@@ -717,14 +720,20 @@ def check_triggers_match(
         caller_triggers = set(raw.keys()) if isinstance(raw, dict) else set()
 
     info = extract_trigger_info(canonical_filename)
-    expected = set(info.non_call_triggers.keys()) | {"workflow_dispatch"}
+    expected = set(info.non_call_triggers.keys())
 
     missing = expected - caller_triggers
+    extra = caller_triggers - expected - {"workflow_call"}
+    problems: list[str] = []
     if missing:
+        problems.append(f"missing: {', '.join(sorted(missing))}")
+    if extra:
+        problems.append(f"extra: {', '.join(sorted(extra))}")
+    if problems:
         return LintResult(
             message=(
-                f"{workflow_path.name}: missing triggers vs canonical"
-                f" {canonical_filename}: {', '.join(sorted(missing))}."
+                f"{workflow_path.name}: triggers diverge from canonical"
+                f" {canonical_filename} ({'; '.join(problems)})."
             ),
             is_issue=True,
             level=AnnotationLevel.WARNING,
@@ -891,33 +900,41 @@ def generate_workflow_header(
     The header is everything before the `jobs:` line: `name`, `on`
     triggers, `concurrency`, and any comments.
 
-    When *source_paths* is provided, upstream source directory references in
-    `paths:` filters are replaced with downstream equivalents via text
-    substitution. When `None`, the header is returned unmodified.
+    Upstream source-tree references (`repomatic/**` glob and
+    `repomatic/`-prefixed paths) are always adapted for downstream use:
+    when *source_paths* is provided, the glob is rewritten as
+    ``{sp}/**`` for each entry; when `None`, the upstream lines are
+    dropped entirely. Universal entries (e.g., `pyproject.toml`,
+    `tests/**`, `renovate.json5`) are preserved in both cases.
 
     :param filename: Canonical workflow filename (e.g., `tests.yaml`).
     :param source_paths: Downstream source directory names (e.g.,
-        `["extra_platforms"]`). `None` leaves paths unmodified.
+        `["extra_platforms"]`). `None` drops the upstream source lines.
     :return: Raw header text.
     :raises FileNotFoundError: If the workflow file is not bundled.
     :raises ValueError: If no `jobs:` line is found.
     """
     content = get_data_content(filename)
     header = _extract_raw_header(content)
-    if source_paths is not None:
-        # Replace the upstream source glob with downstream equivalents.
+    glob_line_marker = f"      - {UPSTREAM_SOURCE_GLOB}"
+    if source_paths:
         replacement = "\n".join(f"      - {sp}/**" for sp in source_paths)
-        header = header.replace(f"      - {UPSTREAM_SOURCE_GLOB}", replacement)
-        # Drop upstream-specific path lines (e.g., repomatic/data/...).
+        header = header.replace(glob_line_marker, replacement)
+    else:
+        # No downstream source paths: drop the upstream glob line entirely.
         header = "\n".join(
-            line
-            for line in header.split("\n")
-            if not (
-                line.strip().startswith("- ")
-                and UPSTREAM_SOURCE_PREFIX in line
-                and UPSTREAM_SOURCE_GLOB not in line
-            )
+            line for line in header.split("\n") if line != glob_line_marker
         )
+    # Drop upstream-specific path lines (e.g., repomatic/data/...).
+    header = "\n".join(
+        line
+        for line in header.split("\n")
+        if not (
+            line.strip().startswith("- ")
+            and UPSTREAM_SOURCE_PREFIX in line
+            and UPSTREAM_SOURCE_GLOB not in line
+        )
+    )
     return header
 
 
@@ -928,8 +945,15 @@ def run_workflow_lint(
 ) -> int:
     """Lint all workflow files in a directory.
 
-    Runs `check_has_workflow_dispatch` on all YAML files, and caller-specific
-    checks on files identified as thin callers.
+    For thin callers (workflows that delegate to a canonical upstream workflow
+    via `uses:`), runs caller-specific checks: version pinning, trigger match,
+    and secrets passed. For standalone workflows, runs
+    {func}`check_has_workflow_dispatch` to flag missing manual triggers.
+
+    Thin callers are exempt from {func}`check_has_workflow_dispatch` because
+    {func}`check_triggers_match` is authoritative: a thin caller mirrors its
+    canonical workflow exactly, and some canonical workflows (e.g.,
+    `cancel-runs.yaml`, `release.yaml`) intentionally lack `workflow_dispatch`.
 
     :param workflow_dir: Directory containing workflow YAML files.
     :param repo: Upstream repository to match against.
@@ -948,34 +972,26 @@ def run_workflow_lint(
     issues_found = False
 
     for wf_path in yaml_files:
-        # Check 1: workflow_dispatch presence.
-        result = check_has_workflow_dispatch(wf_path)
-        _emit_lint_result(result)
-        if result.is_issue:
-            issues_found = True
-
-        # Identify if this is a thin caller.
         canonical = identify_canonical_workflow(wf_path, repo)
+
         if canonical is None:
+            # Standalone workflow: enforce manual-dispatch convention.
+            result = check_has_workflow_dispatch(wf_path)
+            _emit_lint_result(result)
+            if result.is_issue:
+                issues_found = True
             continue
 
-        # Check 2: version pinning.
-        result = check_version_pinned(wf_path, repo)
-        _emit_lint_result(result)
-        if result.is_issue:
-            issues_found = True
-
-        # Check 3: trigger match.
-        result = check_triggers_match(wf_path, canonical)
-        _emit_lint_result(result)
-        if result.is_issue:
-            issues_found = True
-
-        # Check 4: secrets passed.
-        result = check_secrets_passed(wf_path, canonical)
-        _emit_lint_result(result)
-        if result.is_issue:
-            issues_found = True
+        # Thin caller: trigger match is authoritative, so skip the
+        # standalone workflow_dispatch check.
+        for result in (
+            check_version_pinned(wf_path, repo),
+            check_triggers_match(wf_path, canonical),
+            check_secrets_passed(wf_path, canonical),
+        ):
+            _emit_lint_result(result)
+            if result.is_issue:
+                issues_found = True
 
     if issues_found and fatal:
         return 1

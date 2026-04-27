@@ -1155,10 +1155,11 @@ def lint(ctx, workflow_dir, repo, fatal):
     Checks all YAML files in the workflow directory for:
 
     \b
-    - Missing workflow_dispatch trigger.
+    - Standalone workflows missing the workflow_dispatch trigger.
     - Thin callers using @main instead of a version tag.
-    - Thin callers with mismatched triggers vs canonical workflows.
-    - Thin callers missing secrets: inherit when required.
+    - Thin callers with triggers that diverge from the canonical workflow
+      (missing or extra entries).
+    - Thin callers missing required secrets.
 
     \b
     Examples:

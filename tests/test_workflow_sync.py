@@ -201,12 +201,14 @@ def test_generates_valid_yaml(filename: str) -> None:
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
-def test_includes_workflow_dispatch(filename: str) -> None:
-    """Verify generated caller always includes workflow_dispatch."""
+def test_mirrors_canonical_dispatch(filename: str) -> None:
+    """Caller's workflow_dispatch presence mirrors canonical, no synthesis."""
     content = generate_thin_caller(filename)
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
-    assert "workflow_dispatch" in triggers
+    canonical = extract_trigger_info(filename)
+    canonical_has_dispatch = "workflow_dispatch" in canonical.non_call_triggers
+    assert ("workflow_dispatch" in triggers) is canonical_has_dispatch
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
@@ -548,7 +550,30 @@ def test_missing_trigger(tmp_path: Path) -> None:
     )
     result = check_triggers_match(wf, "lint.yaml")
     assert result.is_issue is True
-    assert "missing triggers" in result.message
+    assert "missing:" in result.message
+
+
+def test_extra_trigger(tmp_path: Path) -> None:
+    """Fail when a caller declares a trigger absent from canonical."""
+    canonical = extract_trigger_info("cancel-runs.yaml")
+    on_lines = ['"on":']
+    for trigger_name, trigger_config in canonical.non_call_triggers.items():
+        on_lines.append(f"  {trigger_name}:")
+        if isinstance(trigger_config, dict):
+            for k, v in trigger_config.items():
+                if isinstance(v, list):
+                    on_lines.append(f"    {k}:")
+                    for item in v:
+                        on_lines.append(f"      - {item}")
+                else:
+                    on_lines.append(f"    {k}: {v}")
+    on_lines.append("  workflow_dispatch:")
+    body = "\n".join(on_lines)
+    wf = tmp_path / "cancel-runs.yaml"
+    wf.write_text(f"---\n{body}\n", encoding="UTF-8")
+    result = check_triggers_match(wf, "cancel-runs.yaml")
+    assert result.is_issue is True
+    assert "extra: workflow_dispatch" in result.message
 
 
 def test_explicit_secrets_passed(tmp_path: Path) -> None:
@@ -661,6 +686,19 @@ def test_fatal_mode(tmp_path: Path) -> None:
     wf.write_text('---\n"on":\n  push:\n', encoding="UTF-8")
     exit_code = run_workflow_lint(tmp_path, fatal=True)
     assert exit_code == 1
+
+
+def test_thin_caller_exempt_from_workflow_dispatch_check(tmp_path: Path) -> None:
+    """Thin callers wrapping a canonical without workflow_dispatch lint clean.
+
+    `cancel-runs.yaml` and `release.yaml` intentionally lack
+    `workflow_dispatch`. A thin caller mirroring them must not be flagged
+    by the standalone `workflow_dispatch` check.
+    """
+    content = generate_thin_caller("cancel-runs.yaml", version="v5.8.0")
+    (tmp_path / "cancel-runs.yaml").write_text(content, encoding="UTF-8")
+    exit_code = run_workflow_lint(tmp_path, fatal=True)
+    assert exit_code == 0
 
 
 def test_create_thin_callers(tmp_path: Path) -> None:
@@ -867,28 +905,29 @@ def test_thin_caller_omits_concurrency(filename: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Thin caller omits paths filters
+# Thin caller omits upstream-only paths but keeps universal entries
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
-def test_thin_caller_omits_paths_filter(filename: str) -> None:
-    """Verify thin callers never include paths or paths-ignore filters.
+def test_thin_caller_drops_upstream_source_paths(filename: str) -> None:
+    """Thin callers drop `repomatic/`-prefixed paths even without source_paths.
 
-    Canonical workflow paths reference the repomatic source tree and would
-    incorrectly restrict CI triggers in downstream repos.
+    Universal entries (`pyproject.toml`, `renovate.json5`, workflow self-refs)
+    are preserved so trigger semantics carry over from the canonical workflow.
     """
     content = generate_thin_caller(filename)
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
     for trigger_name, trigger_config in triggers.items():
-        if isinstance(trigger_config, dict):
-            assert "paths" not in trigger_config, (
-                f"{filename}: trigger '{trigger_name}' has a paths filter."
-            )
-            assert "paths-ignore" not in trigger_config, (
-                f"{filename}: trigger '{trigger_name}' has a paths-ignore filter."
-            )
+        if not isinstance(trigger_config, dict):
+            continue
+        for key in ("paths", "paths-ignore"):
+            for path in trigger_config.get(key, []) or []:
+                assert not path.startswith("repomatic/"), (
+                    f"{filename}: trigger '{trigger_name}' kept upstream path"
+                    f" '{path}' in {key}."
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -1122,11 +1161,22 @@ def test_adapt_trigger_paths_with_source_paths() -> None:
     assert result["paths"] == ["extra_platforms/**", "pyproject.toml"]
 
 
-def test_adapt_trigger_paths_none_strips() -> None:
-    """Strip paths when source_paths is None."""
+def test_adapt_trigger_paths_none_drops_upstream_keeps_universal() -> None:
+    """Drop upstream paths but keep universal entries when source_paths is None."""
     config = {
         "branches": ["main"],
-        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml"],
+        "paths": [UPSTREAM_SOURCE_GLOB, "pyproject.toml", "repomatic/data/renovate.json5"],
+    }
+    result = _adapt_trigger_paths(config, None)
+    assert result["branches"] == ["main"]
+    assert result["paths"] == ["pyproject.toml"]
+
+
+def test_adapt_trigger_paths_none_drops_paths_when_only_upstream() -> None:
+    """Drop the paths key when only upstream entries are present."""
+    config = {
+        "branches": ["main"],
+        "paths": [UPSTREAM_SOURCE_GLOB, "repomatic/data/renovate.json5"],
     }
     result = _adapt_trigger_paths(config, None)
     assert "paths" not in result
@@ -1202,16 +1252,20 @@ def test_thin_caller_lint_no_paths_with_source_paths() -> None:
 
 
 @pytest.mark.parametrize("filename", REUSABLE_WORKFLOWS)
-def test_thin_caller_no_source_paths_strips_all(filename: str) -> None:
-    """Verify thin callers without source_paths strip all paths filters."""
+def test_thin_caller_no_source_paths_drops_upstream_only(filename: str) -> None:
+    """Without source_paths, thin callers drop upstream entries but keep universal ones."""
     content = generate_thin_caller(filename, source_paths=None)
     data = yaml.safe_load(content)
     triggers = data.get(True) or data.get("on") or {}
     for trigger_name, trigger_config in triggers.items():
-        if isinstance(trigger_config, dict):
-            assert "paths" not in trigger_config, (
-                f"{filename}: trigger '{trigger_name}' has a paths filter."
-            )
+        if not isinstance(trigger_config, dict):
+            continue
+        for key in ("paths", "paths-ignore"):
+            for path in trigger_config.get(key, []) or []:
+                assert not path.startswith("repomatic/"), (
+                    f"{filename}: trigger '{trigger_name}' kept upstream path"
+                    f" '{path}' in {key}."
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -1226,10 +1280,12 @@ def test_header_with_source_paths_substitutes() -> None:
     assert UPSTREAM_SOURCE_GLOB not in header
 
 
-def test_header_without_source_paths_unchanged() -> None:
-    """Verify header generation without source_paths is unmodified."""
+def test_header_without_source_paths_drops_upstream_glob() -> None:
+    """Without source_paths, the upstream source glob is dropped from the header."""
     header = generate_workflow_header("tests.yaml")
-    assert UPSTREAM_SOURCE_GLOB in header
+    assert UPSTREAM_SOURCE_GLOB not in header
+    # Universal entries survive.
+    assert "pyproject.toml" in header
 
 
 def test_header_with_source_paths_drops_upstream_specific() -> None:

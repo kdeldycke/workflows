@@ -5,6 +5,10 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Generated thin caller workflows now mirror the canonical workflow's triggers verbatim instead of always injecting `workflow_dispatch`. Callers wrapping `cancel-runs.yaml` or `release.yaml` (which intentionally lack manual dispatch) no longer carry a synthetic trigger that diverges from upstream.
+- Path filters in thin callers preserve universal entries (`pyproject.toml`, `renovate.json5`, workflow self-references) instead of being stripped wholesale. Only upstream source-tree references (`repomatic/**` glob and `repomatic/`-prefixed paths) are dropped or substituted via the `--source-paths` option.
+- `repomatic workflow lint` now flags thin callers with **extra** triggers absent from the canonical workflow, in addition to missing ones. Standalone workflows are still checked for the `workflow_dispatch` trigger; thin callers are exempt from that check because trigger match against the canonical workflow is authoritative.
+
 ## [`6.15.0` (2026-04-27)](https://github.com/kdeldycke/repomatic/compare/v6.14.0...v6.15.0)
 
 - Set `validate = false` in the bundled `mdformat.toml` so `mdformat-recover-urls` decodes percent-encoded non-ASCII characters in link destinations back to their original form. Without this, anchor links with Chinese, accented, or other non-ASCII characters got rewritten to `%XX` sequences on every `format-markdown` run.
