@@ -111,6 +111,24 @@ For config file sync, `copier` and `cruft` sync files only as part of a full tem
 - **Changelog lifecycle**: hand-curated changelogs with a freeze/unfreeze release cycle, producing human-written release notes rather than auto-generated commit logs.
 - **pyproject.toml-native configuration**: all settings live in `[tool.repomatic]` with schema-aware dataclass support, field-level documentation, and CLI flag overrides. No extra configuration files needed.
 
+## Gaps and opportunities
+
+### Branch protection management
+
+`tf-github`, `settings`, and `safe-settings` can declaratively create and modify branch protection rules and rulesets. `allstar` monitors compliance and opens issues when protection is missing. `repomatic` validates repository metadata via `lint-repo` but does not manage branch protection.
+
+### Template conflict resolution
+
+`copier` provides Git-native conflict resolution during template updates: inline conflict markers or `.rej` sidecar files, plus a migrations system for handling breaking template changes across versions. `repomatic`'s file sync is convergent (applying the same operation twice is a no-op) but does not surface conflicts interactively when upstream and local changes collide.
+
+### Org-wide settings inheritance
+
+`safe-settings` defines org-level defaults in `.github/settings.yml` with per-repo overrides, applying settings across all repos in an organization from a single configuration source. `repomatic` operates per-repository: downstream repos opt into upstream conventions by deploying thin-caller workflows pinned to a version tag.
+
+### Commit-based version computation
+
+`semantic-release` automatically determines the next semver version by analyzing conventional commit messages, with support for pre-release channels and multi-branch releases. `repomatic` uses `bump-my-version` for manual version bumping, giving the maintainer full control over version selection at the cost of automation.
+
 ## Activity
 
 | Metrics                      |                                                `repomatic`                                                 |                                                `cookiecutter`[^1]                                                |                                                  `semantic-release`[^2]                                                  |                                               `copier`[^3]                                               |                                            `cruft`[^4]                                             |                                            `allstar`[^5]                                            |                                                        `tf-github`[^6]                                                        |                                                 `settings`[^7]                                                 |                                             `safe-settings`[^8]                                             |                                              `all-repos`[^9]                                              |
