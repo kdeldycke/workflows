@@ -52,7 +52,8 @@ jobs:
     needs:
       - metadata
     strategy:
-      # We delegate the failure decision to each job, by the way of the "continue-on-error" flag.
+      # Info-gathering matrix with per-cell continue-on-error deciding what
+      # fails the workflow: see docs/workflows.md "Matrix fail-fast strategy".
       fail-fast: false
       # Matrix is pre-computed by repomatic metadata. PRs get a reduced matrix
       # (fewer OS variants and Python versions) to save CI minutes.

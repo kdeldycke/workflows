@@ -192,6 +192,8 @@ jobs:
       fromJSON(needs.metadata.outputs.metadata).nuitka_matrix
       && !(fromJSON(needs.metadata.outputs.metadata).skip_binary_build || false)
     strategy:
+      # Asset-producing matrix: see docs/workflows.md "Matrix fail-fast strategy".
+      fail-fast: false
       matrix: ${{ fromJSON(needs.metadata.outputs.metadata).nuitka_matrix }}
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
@@ -311,6 +313,7 @@ jobs:
       fromJSON(needs.metadata.outputs.metadata).nuitka_matrix
       && !(fromJSON(needs.metadata.outputs.metadata).skip_binary_build || false)
     strategy:
+      # Advisory matrix (default fail-fast): see docs/workflows.md "Matrix fail-fast strategy".
       matrix: ${{ fromJSON(needs.metadata.outputs.metadata).nuitka_matrix }}
     runs-on: ${{ matrix.os }}
     # We keep going when a job flagged as not stable fails.
@@ -515,7 +518,9 @@ jobs:
       contents: write
     steps:
       - name: Download binary and attestation artifacts
-        if: needs.compile-binaries.result == 'success'
+        # Gate on != 'skipped' (not == 'success') so partial-matrix runs still
+        # attach their healthy binaries: see docs/workflows.md "Matrix fail-fast strategy".
+        if: needs.compile-binaries.result != 'skipped'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: "*-${{ matrix.short_sha }}"
@@ -523,7 +528,7 @@ jobs:
           merge-multiple: true
       - name: Upload binaries and attestation bundles to release
         # Exclude Python packages (.tar.gz, .whl) already uploaded by create-release.
-        if: needs.compile-binaries.result == 'success'
+        if: needs.compile-binaries.result != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.REPOMATIC_PAT || github.token }}
           CURRENT_VERSION: ${{ matrix.current_version }}

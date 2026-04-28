@@ -54,6 +54,8 @@ jobs:
       - metadata
     if: needs.metadata.outputs.build_targets
     strategy:
+      # Info-gathering matrix: see docs/workflows.md "Matrix fail-fast strategy".
+      fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.metadata.outputs.build_targets) }}
     runs-on: ${{ matrix.os }}
