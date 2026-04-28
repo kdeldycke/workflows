@@ -353,6 +353,11 @@ COMPONENTS: tuple[Component, ...] = (
                 _agent_target("qa-engineer"),
                 "qa-engineer",
             ),
+            FileEntry(
+                "agent-sphinx-docs.md",
+                _agent_target("sphinx-docs"),
+                "sphinx-docs",
+            ),
         ),
     ),
     BundledComponent(

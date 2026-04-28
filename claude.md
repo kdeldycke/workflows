@@ -116,8 +116,7 @@ The version string is always bare (e.g., `1.2.3`). The `v` prefix is a **tag nam
 ### Comments and docstrings
 
 - All comments in Python files must end with a period.
-- Docstrings use MyST markdown. The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time. Use `` {role}`target`  `` for cross-references (not `:role:`), ```` ```{directive} ```` for admonitions, `[text](url)` for links, single backticks for inline code. Same syntax applies to dynamically constructed docstrings. Run `uv run repomatic convert-to-myst` to batch-convert reST docstrings.
-- **Sphinx extension order:** In repos with a Sphinx `docs/conf.py` that uses both `repomatic.myst_docstrings` and `sphinx_autodoc_typehints`, list the former first. The extension enforces this at load time and raises `ExtensionError` otherwise.
+- Docstrings use MyST markdown (single-backtick inline code, `[text](url)` links, `` {role}`target` `` cross-references, ```` ```{directive} ```` admonitions). The `repomatic.myst_docstrings` Sphinx extension converts them to reST at build time. For Sphinx-specific operational detail (extension load order, `mdformat`-friendly admonition fence style, conversion lifecycle, `convert-to-myst` migration command, page-roster conventions, `conf.py` hygiene), see `.claude/agents/sphinx-docs.md`.
 - **No Google-style docstring sections** (`Args:`, `Returns:`, `Raises:`, `Attributes:`, `Yields:`). Use reST field lists: `:param name:`, `:return:`, `:raises ExceptionType:`. This project does not use `sphinx.ext.napoleon`.
 - Documentation in `./docs/` uses MyST markdown where possible.
 - Keep lines within 88 characters in Python files (ruff default). Markdown files have no line-length limit — do not hard-wrap prose; let the renderer handle wrapping.
