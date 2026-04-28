@@ -739,9 +739,7 @@ def _extract_field_docstrings(
                     docstrings[current_field] = text
                 else:
                     # Collapse the first paragraph onto a single line.
-                    docstrings[current_field] = " ".join(
-                        text.split("\n\n")[0].split()
-                    )
+                    docstrings[current_field] = " ".join(text.split("\n\n")[0].split())
                 current_field = None
         else:
             current_field = None

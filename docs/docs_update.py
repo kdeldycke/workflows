@@ -561,9 +561,7 @@ def _python_compat_groups() -> list[tuple[str, str, str, tuple[str, ...]]]:
         )
         if show.returncode != 0:
             continue
-        versions = tuple(
-            sorted(set(classifier_re.findall(show.stdout)), key=_sort_key)
-        )
+        versions = tuple(sorted(set(classifier_re.findall(show.stdout)), key=_sort_key))
         if not versions:
             continue
         if groups and groups[-1][3] == versions:
@@ -586,9 +584,7 @@ def python_compat_table() -> str:
     def _sort_key(version: str) -> tuple[int, ...]:
         return tuple(int(p) for p in version.split("."))
 
-    all_versions = sorted(
-        {v for _, _, _, vers in groups for v in vers}, key=_sort_key
-    )
+    all_versions = sorted({v for _, _, _, vers in groups for v in vers}, key=_sort_key)
 
     def _range_label(first: str, last: str) -> str:
         first_minor = ".".join(first.lstrip("v").split(".")[:2])
