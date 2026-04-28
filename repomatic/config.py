@@ -232,15 +232,16 @@ class TestMatrixConfig:
 
     Keys inside `replace` and `variations` are GitHub Actions matrix
     identifiers (e.g., `os`, `python-version`) and must not be
-    normalized to snake_case.  Click Extra's ``click_extra.normalize_keys =
-    False`` metadata on the parent field prevents this.
+    normalized to snake_case. Click Extra's
+    `click_extra.normalize_keys = False` metadata on the parent field
+    prevents this.
     """
 
     exclude: list[dict[str, str]] = field(default_factory=list)
     """Extra exclude rules applied to both full and PR test matrices.
 
-    Each entry is a dict of GitHub Actions matrix keys (e.g.,
-    ``{"os": "windows-11-arm"}``) that removes matching combinations.
+    Each entry is a dict of GitHub Actions matrix keys (like
+    `{"os": "windows-11-arm"}`) that removes matching combinations.
     Additive to the upstream default excludes.
     """
 
@@ -316,9 +317,9 @@ class VulnerableDepsConfig:
 
     - `"uv-audit"`: PyPA Advisory Database via `uv audit` (works locally
       and in CI without a GitHub token).
-    - `"github-advisories"`: GitHub Advisory Database via the repository's
-      Dependabot alerts (CI-only, requires a token with `Dependabot
-      alerts: Read-only`).
+    - `"github-advisories"`: GitHub Advisory Database via the
+      repository's Dependabot alerts (CI-only, requires a token with
+      `Dependabot alerts: Read-only`).
 
     Sources are unioned and deduplicated by `(package, advisory_id)`.
     Repositories that distrust GHSA — or have no Dependabot alerts
@@ -385,8 +386,10 @@ class WorkflowConfig:
 
     Example:
 
-        [tool.repomatic.workflow.paths]
-        "tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
+    ```toml
+    [tool.repomatic.workflow.paths]
+    "tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
+    ```
     """
 
     sync: bool = True
@@ -582,7 +585,7 @@ class Config:
     )
     """Directory prefix for Claude Code agent files, relative to the repository root.
 
-    Agent files are written as ``{agents_location}/{agent-id}.md``.
+    Agent files are written as `{agents_location}/{agent-id}.md`.
     Useful for repositories where `.claude/` is not at the root (like
     dotfiles repos that store configs under a subdirectory).
     """
@@ -593,7 +596,7 @@ class Config:
     )
     """Directory prefix for Claude Code skill files, relative to the repository root.
 
-    Skill files are written as ``{skills_location}/{skill-id}/SKILL.md``.
+    Skill files are written as `{skills_location}/{skill-id}/SKILL.md`.
     Useful for repositories where `.claude/` is not at the root (like
     dotfiles repos that store configs under a subdirectory).
     """
@@ -814,11 +817,11 @@ def config_full_descriptions() -> dict[str, str]:
             sub_docs = _extract_field_docstrings(sub_cls, full=True)
             for sf in fields(sub_cls):
                 key = f"{prefix}.{sf.name.replace('_', '-')}"
-                descriptions[key] = sub_docs.get(sf.name, "").replace("``", "`")
+                descriptions[key] = sub_docs.get(sf.name, "")
         else:
             key = _field_to_key(f.name)
             full_docs = _extract_field_docstrings(full=True)
-            descriptions[key] = full_docs.get(f.name, "").replace("``", "`")
+            descriptions[key] = full_docs.get(f.name, "")
     return descriptions
 
 
@@ -847,14 +850,13 @@ def config_reference() -> list[tuple[str, str, str, str]]:
                 key = f"`{prefix}.{sf.name.replace('_', '-')}`"
                 ftype = _format_type(sub_cls.__annotations__[sf.name])
                 default = _format_default(getattr(sub_type, sf.name))
-                desc = sub_docstrings.get(sf.name, "").replace("``", "`")
+                desc = sub_docstrings.get(sf.name, "")
                 rows.append((key, ftype, default, desc))
         else:
             key = f"`{_field_to_key(f.name)}`"
             ftype = _format_type(Config.__annotations__[f.name])
             default = _format_default(getattr(schema, f.name))
-            # Convert double backticks to markdown single backticks.
-            desc = docstrings.get(f.name, "").replace("``", "`")
+            desc = docstrings.get(f.name, "")
             rows.append((key, ftype, default, desc))
 
     return rows

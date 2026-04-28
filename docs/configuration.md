@@ -745,7 +745,7 @@ Extra exclude rules applied to both full and PR test matrices.
 
 **Type:** `list\[dict[str, str]\]` | **Default:** `[]`
 
-Each entry is a dict of GitHub Actions matrix keys (e.g.,
+Each entry is a dict of GitHub Actions matrix keys (like
 `{"os": "windows-11-arm"}`) that removes matching combinations.
 Additive to the upstream default excludes.
 
@@ -863,8 +863,9 @@ Recognized values:
 
 - `"uv-audit"`: PyPA Advisory Database via `uv audit` (works locally
   and in CI without a GitHub token).
-- `"github-advisories"`: GitHub Advisory Database via the repository's
-  Dependabot alerts (CI-only, requires a token with `Dependabot alerts: Read-only`).
+- `"github-advisories"`: GitHub Advisory Database via the
+  repository's Dependabot alerts (CI-only, requires a token with
+  `Dependabot alerts: Read-only`).
 
 Sources are unioned and deduplicated by `(package, advisory_id)`.
 Repositories that distrust GHSA — or have no Dependabot alerts
@@ -949,7 +950,7 @@ keep their unrestricted trigger semantics.
 
 Example:
 
-```
+```toml
 [tool.repomatic.workflow.paths]
 "tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
 ```
