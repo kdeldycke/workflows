@@ -497,14 +497,26 @@ def _badge_table(
     lines.append("")
 
 
-def _python_compat_groups() -> list[tuple[str, str, tuple[str, ...]]]:
+def _tag_date(tag: str) -> str:
+    """Return the ISO date (`YYYY-MM-DD`) of a git tag's commit."""
+    proc = subprocess.run(
+        ["git", "log", "-1", "--format=%as", tag],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=PROJECT_ROOT,
+    )
+    return proc.stdout.strip()
+
+
+def _python_compat_groups() -> list[tuple[str, str, str, tuple[str, ...]]]:
     """Walk every `vX.Y.Z` git tag and group consecutive releases that
     declare the same set of `Programming Language :: Python :: 3.X`
     classifiers in `pyproject.toml`.
 
-    :return: List of ``(first_tag, last_tag, python_versions)`` per group,
-        in chronological order. Tags without a `pyproject.toml` or without
-        Python classifiers are skipped.
+    :return: List of ``(first_tag, last_tag, first_date, python_versions)``
+        per group, in chronological order. Tags without a `pyproject.toml`
+        or without Python classifiers are skipped.
     """
     proc = subprocess.run(
         ["git", "tag", "--sort=version:refname"],
@@ -536,11 +548,11 @@ def _python_compat_groups() -> list[tuple[str, str, tuple[str, ...]]]:
         )
         if not versions:
             continue
-        if groups and groups[-1][2] == versions:
+        if groups and groups[-1][3] == versions:
             groups[-1][1] = tag
         else:
-            groups.append([tag, tag, versions])
-    return [(first, last, vers) for first, last, vers in groups]
+            groups.append([tag, tag, _tag_date(tag), versions])
+    return [(first, last, date, vers) for first, last, date, vers in groups]
 
 
 def python_compat_table() -> str:
@@ -557,7 +569,7 @@ def python_compat_table() -> str:
         return tuple(int(p) for p in version.split("."))
 
     all_versions = sorted(
-        {v for _, _, vers in groups for v in vers}, key=_sort_key
+        {v for _, _, _, vers in groups for v in vers}, key=_sort_key
     )
 
     def _range_label(first: str, last: str) -> str:
@@ -568,12 +580,12 @@ def python_compat_table() -> str:
         return f"`{first_minor}.x` → `{last_minor}.x`"
 
     rows = []
-    for first, last, vers in reversed(groups):
+    for first, last, date, vers in reversed(groups):
         cells = ["✅" if v in vers else "❌" for v in all_versions]
-        rows.append([_range_label(first, last), *cells])
+        rows.append([_range_label(first, last), date, *cells])
 
-    headers = ["`repomatic`", *(f"`{v}`" for v in all_versions)]
-    colalign = ("left", *("center",) * len(all_versions))
+    headers = ["`repomatic`", "Released", *(f"`{v}`" for v in all_versions)]
+    colalign = ("left", "left", *("center",) * len(all_versions))
     return render_table(
         rows,
         headers=headers,
