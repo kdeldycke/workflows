@@ -556,6 +556,7 @@ def _python_compat_groups() -> list[tuple[str, str, str, tuple[str, ...]]]:
             ["git", "show", f"{tag}:pyproject.toml"],
             capture_output=True,
             text=True,
+            check=False,
             cwd=PROJECT_ROOT,
         )
         if show.returncode != 0:
