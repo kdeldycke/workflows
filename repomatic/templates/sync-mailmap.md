@@ -5,13 +5,10 @@ footer: false
 
 ### Description
 
-Synchronizes the `.mailmap` file with the project's Git contributors. See the [`sync-mailmap` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
+Synchronizes the `.mailmap` file with the project's Git contributors. See the [`sync-mailmap` job documentation](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-autofix-yaml-jobs) for details.
 
 ### Configuration
 
-Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+Relevant [`[tool.repomatic]`](https://kdeldycke.github.io/repomatic/configuration.html) options:
 
-```toml
-[tool.repomatic]
-mailmap.sync = true
-```
+- [`mailmap.sync`](https://kdeldycke.github.io/repomatic/configuration.html#mailmap-sync)

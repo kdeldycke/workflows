@@ -5,18 +5,15 @@ footer: false
 
 ### Description
 
-Regenerates the Mermaid dependency graph from the `uv` lockfile. See the [`update-deps-graph` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
+Regenerates the Mermaid dependency graph from the `uv` lockfile. See the [`update-deps-graph` job documentation](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-autofix-yaml-jobs) for details.
 
 ### Configuration
 
-Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+Relevant [`[tool.repomatic]`](https://kdeldycke.github.io/repomatic/configuration.html) options:
 
-```toml
-[tool.repomatic]
-dependency-graph.output = "docs/dependency-graph.md"
-dependency-graph.all-groups = true
-dependency-graph.all-extras = true
-dependency-graph.no-groups = []
-dependency-graph.no-extras = []
-dependency-graph.level = 0
-```
+- [`dependency-graph.all-extras`](https://kdeldycke.github.io/repomatic/configuration.html#dependency-graph-all-extras)
+- [`dependency-graph.all-groups`](https://kdeldycke.github.io/repomatic/configuration.html#dependency-graph-all-groups)
+- [`dependency-graph.level`](https://kdeldycke.github.io/repomatic/configuration.html#dependency-graph-level)
+- [`dependency-graph.no-extras`](https://kdeldycke.github.io/repomatic/configuration.html#dependency-graph-no-extras)
+- [`dependency-graph.no-groups`](https://kdeldycke.github.io/repomatic/configuration.html#dependency-graph-no-groups)
+- [`dependency-graph.output`](https://kdeldycke.github.io/repomatic/configuration.html#dependency-graph-output)

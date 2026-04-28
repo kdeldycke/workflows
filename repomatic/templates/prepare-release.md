@@ -6,7 +6,7 @@ footer: false
 
 ### Description
 
-This PR is ready to be merged. See the [`prepare-release` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowschangelogyaml-jobs) for details. The [merge event will trigger](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsreleaseyaml-jobs) the:
+This PR is ready to be merged. See the [`prepare-release` job documentation](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-changelog-yaml-jobs) for details. The [merge event will trigger](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-release-yaml-jobs) the:
 
 1. Creation of a `v$version` tag on `main` branch
 

@@ -5,21 +5,13 @@ footer: false
 
 ### Description
 
-Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates. See the [`sync-gitignore` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
+Regenerates `.gitignore` from [gitignore.io](https://github.com/toptal/gitignore.io) templates. See the [`sync-gitignore` job documentation](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-autofix-yaml-jobs) for details.
 
 ### Configuration
 
-Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+Relevant [`[tool.repomatic]`](https://kdeldycke.github.io/repomatic/configuration.html) options:
 
-```toml
-[tool.repomatic]
-gitignore.sync = true
-gitignore.location = "./.gitignore"
-gitignore.extra-categories = ["terraform", "go"]
-gitignore.extra-content = '''
-junit.xml
-
-# Claude Code
-.claude/
-'''
-```
+- [`gitignore.extra-categories`](https://kdeldycke.github.io/repomatic/configuration.html#gitignore-extra-categories)
+- [`gitignore.extra-content`](https://kdeldycke.github.io/repomatic/configuration.html#gitignore-extra-content)
+- [`gitignore.location`](https://kdeldycke.github.io/repomatic/configuration.html#gitignore-location)
+- [`gitignore.sync`](https://kdeldycke.github.io/repomatic/configuration.html#gitignore-sync)

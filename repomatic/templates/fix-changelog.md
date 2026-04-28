@@ -9,9 +9,6 @@ Fixes changelog release dates and updates availability admonitions.
 
 ### Configuration
 
-Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+Relevant [`[tool.repomatic]`](https://kdeldycke.github.io/repomatic/configuration.html) options:
 
-```toml
-[tool.repomatic]
-pypi-package-history = ["old-package-name"]
-```
+- [`pypi-package-history`](https://kdeldycke.github.io/repomatic/configuration.html#pypi-package-history)

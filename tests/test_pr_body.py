@@ -300,7 +300,7 @@ def test_render_bump_version():
     assert "Ready for review" in result
     assert "Rebase and merge" in result
     assert "bump-version" in result
-    assert "changelogyaml-jobs" in result
+    assert "changelog-yaml-jobs" in result
 
 
 def test_render_prepare_release(monkeypatch):
@@ -320,8 +320,8 @@ def test_render_prepare_release(monkeypatch):
     assert "Squash and merge" in result
     assert "PyPI" in result
     assert "prepare-release" in result
-    assert "changelogyaml-jobs" in result
-    assert "releaseyaml-jobs" in result
+    assert "changelog-yaml-jobs" in result
+    assert "release-yaml-jobs" in result
 
 
 def test_render_sync_gitignore():
@@ -344,7 +344,7 @@ def test_render_fix_typos():
 
     assert "### Description" in result
     assert "typos" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 def test_render_format_json():
@@ -353,7 +353,7 @@ def test_render_format_json():
 
     assert "### Description" in result
     assert "Biome" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 def test_render_format_markdown():
@@ -362,7 +362,7 @@ def test_render_format_markdown():
 
     assert "### Description" in result
     assert "mdformat" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 def test_render_format_pyproject():
@@ -371,7 +371,7 @@ def test_render_format_pyproject():
 
     assert "### Description" in result
     assert "pyproject-fmt" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 def test_render_format_python():
@@ -382,7 +382,7 @@ def test_render_format_python():
     assert "autopep8" in result
     assert "Ruff" in result
     assert "[tool.ruff]" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 def test_render_sync_bumpversion():
@@ -391,7 +391,7 @@ def test_render_sync_bumpversion():
 
     assert "### Description" in result
     assert "bumpversion" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 def test_render_update_deps_graph():
@@ -400,7 +400,7 @@ def test_render_update_deps_graph():
 
     assert "### Description" in result
     assert "Mermaid" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
     assert "### Configuration" in result
     assert "dependency-graph.output" in result
     assert "[tool.repomatic]" in result
@@ -413,7 +413,7 @@ def test_render_update_docs():
     assert "### Description" in result
     assert "sphinx-apidoc" in result
     assert "docs_update.py" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 def test_render_sync_mailmap():
@@ -422,7 +422,7 @@ def test_render_sync_mailmap():
 
     assert "### Description" in result
     assert ".mailmap" in result
-    assert "autofixyaml-jobs" in result
+    assert "autofix-yaml-jobs" in result
 
 
 FAKE_FOOTER = (

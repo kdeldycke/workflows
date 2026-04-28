@@ -6,15 +6,12 @@ footer: false
 
 ### Description
 
-Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions. See the [`sync-uv-lock` job documentation](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#githubworkflowsautofixyaml-jobs) for details.
+Runs `uv lock --upgrade` to update transitive dependencies to their latest allowed versions. See the [`sync-uv-lock` job documentation](https://kdeldycke.github.io/repomatic/workflows.html#github-workflows-autofix-yaml-jobs) for details.
 
 \$diff_table
 
 ### Configuration
 
-Relevant [`[tool.repomatic]`](https://github.com/kdeldycke/repomatic?tab=readme-ov-file#toolrepomatic-configuration) options:
+Relevant [`[tool.repomatic]`](https://kdeldycke.github.io/repomatic/configuration.html) options:
 
-```toml
-[tool.repomatic]
-uv-lock.sync = true
-```
+- [`uv-lock.sync`](https://kdeldycke.github.io/repomatic/configuration.html#uv-lock-sync)
