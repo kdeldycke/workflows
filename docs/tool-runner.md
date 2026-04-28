@@ -16,7 +16,6 @@ List all managed tools and their resolved config source:
 
 ```{click:source}
 :hide-source:
-
 from repomatic.cli import repomatic
 ```
 

@@ -53,7 +53,6 @@
 
 ```{click:source}
 :hide-source:
-
 from repomatic.cli import repomatic
 ```
 
