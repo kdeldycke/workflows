@@ -14,8 +14,9 @@ The `--` separates repomatic's own options from the arguments forwarded to the t
 
 List all managed tools and their resolved config source:
 
-```shell-session
-$ repomatic run --list
+```{click:run}
+from repomatic.cli import repomatic
+invoke(repomatic, args=['run', '--list'])
 ```
 
 ## Available tools
@@ -118,8 +119,8 @@ If none of the above applies (no config file, no `[tool.X]`, no bundled default)
 
 To see which precedence level is active for each tool in your repo:
 
-```shell-session
-$ repomatic run --list
+```{click:run}
+invoke(repomatic, args=['run', '--list'])
 ```
 
 The "Config source" column shows whether the tool is using a native config file (level 1), `[tool.X]` (level 2), a bundled default (level 3), or bare invocation (level 4).

@@ -190,20 +190,23 @@ def _command_anchor(cmd_path: list[str]) -> str:
     return "repomatic-" + "-".join(cmd_path)
 
 
-def _click_run_block(args: list[str]) -> list[str]:
+def _click_run_block(args: list[str], *, with_import: bool = False) -> list[str]:
     """Render a ``{click:run}`` directive block invoking ``repomatic`` with ``args``.
 
     Sphinx executes the block at build time via ``click_extra.sphinx``, so the
     rendered help text is always live and ANSI-colored (``ansi-shell-session``
-    Pygments lexer).
+    Pygments lexer). The directive hides its source by default, so when
+    ``with_import=True`` the import line runs silently and seeds the runner
+    namespace for every subsequent block in the same document.
     """
     args_repr = ", ".join(repr(a) for a in args)
-    return [
-        "```{click:run}",
-        f"invoke(repomatic, args=[{args_repr}])",
-        "```",
-        "",
-    ]
+    body = ["```{click:run}"]
+    if with_import:
+        body.append("from repomatic.cli import repomatic")
+    body.append(f"invoke(repomatic, args=[{args_repr}])")
+    body.append("```")
+    body.append("")
+    return body
 
 
 def cli_reference() -> str:
@@ -239,20 +242,12 @@ def cli_reference() -> str:
     )
     lines.append("")
 
-    # Hidden source block: imports `repomatic` once into the click_extra
-    # runner namespace so every subsequent `{click:run}` block can call
-    # `invoke(repomatic, ...)` without repeating the import.
-    lines.append("```{click:source}")
-    lines.append(":hide-source:")
-    lines.append("")
-    lines.append("from repomatic.cli import repomatic")
-    lines.append("```")
-    lines.append("")
-
-    # Main help screen.
+    # Main help screen — first block imports `repomatic` into the runner
+    # namespace; the directive hides its source so the import is invisible
+    # and every subsequent block can reuse the imported name.
     lines.append("## Help screen")
     lines.append("")
-    lines.extend(_click_run_block(["--help"]))
+    lines.extend(_click_run_block(["--help"], with_import=True))
 
     # Per-command sections.
     for path, _cmd in entries:

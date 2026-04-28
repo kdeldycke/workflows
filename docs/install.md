@@ -26,6 +26,11 @@ Thanks to `uv`, you can run it in one command, without installation or venv:
 ```shell-session
 $ uvx -- repomatic --help
 ```
+
+```{click:run}
+from repomatic.cli import repomatic
+invoke(repomatic, args=['--help'])
+```
 ````
 
 ````{tab-item} Specific version

@@ -16,8 +16,9 @@ Selectors use the same `component[/file]` syntax as the `exclude` config option 
 
 To list all available skills with descriptions:
 
-```shell-session
-$ uvx -- repomatic list-skills
+```{click:run}
+from repomatic.cli import repomatic
+invoke(repomatic, args=['list-skills'])
 ```
 
 ## Available skills
