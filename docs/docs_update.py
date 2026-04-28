@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+from dataclasses import fields
 from pathlib import Path
 
 import click
@@ -73,34 +74,111 @@ def _option_slug(option: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", slug).strip("-")
 
 
+def _toml_value(value: object) -> str | None:
+    """Format a Python value as a TOML literal. Returns ``None`` when no
+    sensible literal exists (``None`` defaults, opaque objects)."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, str):
+        if "\n" in value:
+            return "'''\n" + value + "\n'''"
+        return f'"{value}"'
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        items = [_toml_value(v) for v in value]
+        if any(v is None for v in items):
+            return None
+        return "[" + ", ".join(items) + "]"  # type: ignore[arg-type]
+    return None
+
+
+def _toml_key(field_obj) -> str:
+    """Extract the TOML key from a dataclass field (honors ``config_path`` metadata)."""
+    path = field_obj.metadata.get("click_extra.config_path")
+    if path:
+        return path
+    return field_obj.name.replace("_", "-")
+
+
+def _config_examples() -> dict[str, str]:
+    """Build a TOML example assignment for each ``[tool.repomatic]`` option."""
+    schema = Config()
+    examples: dict[str, str] = {}
+    for f in fields(Config):
+        sub = getattr(schema, f.name)
+        if hasattr(sub, "__dataclass_fields__"):
+            prefix = _toml_key(f)
+            for sf in fields(type(sub)):
+                key = f"{prefix}.{sf.name.replace('_', '-')}"
+                value = _toml_value(getattr(sub, sf.name))
+                if value is not None:
+                    examples[key] = f"{key} = {value}"
+        else:
+            key = _toml_key(f)
+            value = _toml_value(getattr(schema, f.name))
+            if value is not None:
+                examples[key] = f"{key} = {value}"
+    return examples
+
+
 def config_deflist() -> str:
     """Render the config reference as a summary table + per-option sections."""
     rows = config_reference()
+    examples = _config_examples()
+    full_descriptions = config_full_descriptions()
     lines: list[str] = []
 
     # Quick-reference table with deep links to each heading.
     table_rows = []
-    for option, ftype, default, _description in rows:
+    for option, _ftype, default, description in rows:
         bare = option.strip("`")
         slug = _option_slug(option)
-        table_rows.append([f"[`{bare}`](#{slug})", ftype, default])
+        # `description` is already the single-line summary; escape pipes
+        # so they don't break GFM table rendering.
+        short = description.replace("|", "\\|")
+        table_rows.append([f"[`{bare}`](#{slug})", short, default])
     lines.append(
         render_table(
             table_rows,
-            headers=["Option", "Type", "Default"],
+            headers=["Option", "Description", "Default"],
             table_format=TableFormat.GITHUB,
         )
     )
     lines.append("")
 
-    # Per-option heading sections.
+    # Per-option heading sections: lead with the short description, then
+    # type/default, then the rest of the docstring, and finally a TOML
+    # example pinned to the field's default value.
     for option, ftype, default, description in rows:
+        bare = option.strip("`")
+        full = full_descriptions.get(bare, description)
+        head, _, tail = full.partition("\n\n")
+        short = " ".join(head.split())
+        rest = tail.strip()
+
         lines.append(f"### {option}")
         lines.append("")
-        lines.append(f"**Type:** {ftype} | **Default:** {default}")
+        if short:
+            lines.append(short)
+            lines.append("")
+        lines.append(f"**Type:** `{ftype}` | **Default:** {default}")
         lines.append("")
-        lines.append(description)
-        lines.append("")
+        if rest:
+            lines.append(rest)
+            lines.append("")
+        if bare in examples:
+            lines.append("**Example:**")
+            lines.append("")
+            lines.append("```toml")
+            lines.append("[tool.repomatic]")
+            lines.append(examples[bare])
+            lines.append("```")
+            lines.append("")
     return "\n".join(lines)
 
 

@@ -692,14 +692,22 @@ def _field_to_key(name: str, cls: type | None = None) -> str:
     return name.replace("_", "-")
 
 
-def _extract_field_docstrings(cls: type | None = None) -> dict[str, str]:
+def _extract_field_docstrings(
+    cls: type | None = None,
+    *,
+    full: bool = False,
+) -> dict[str, str]:
     """Extract attribute docstrings from a dataclass via AST.
 
     Attribute docstrings are string literals immediately following an annotated
-    assignment in a class body (PEP 257 convention). Returns a mapping of field
-    name to the first paragraph of its docstring (stripped and dedented).
+    assignment in a class body (PEP 257 convention). By default, returns a
+    mapping of field name to the first paragraph of its docstring (stripped,
+    dedented, single-spaced). When `full=True`, returns the entire docstring
+    with paragraph breaks preserved.
 
     :param cls: Dataclass to inspect. Defaults to `Config`.
+    :param full: When `True`, keep the complete docstring. When `False`,
+        keep only the first paragraph collapsed onto a single line.
     """
     if cls is None:
         cls = Config
@@ -719,11 +727,18 @@ def _extract_field_docstrings(cls: type | None = None) -> dict[str, str]:
             and isinstance(node.value.value, str)
         ):
             if current_field:
-                # Take the first paragraph only.
-                full = textwrap.dedent(node.value.value).strip()
-                first_para = full.split("\n\n")[0]
-                # Collapse internal newlines into a single space.
-                docstrings[current_field] = " ".join(first_para.split())
+                # cleandoc trims the first line and dedents the rest based on
+                # the common indent of subsequent lines (PEP 257), unlike
+                # textwrap.dedent which fails when the first line has no
+                # leading whitespace but subsequent lines do.
+                text = inspect.cleandoc(node.value.value)
+                if full:
+                    docstrings[current_field] = text
+                else:
+                    # Collapse the first paragraph onto a single line.
+                    docstrings[current_field] = " ".join(
+                        text.split("\n\n")[0].split()
+                    )
                 current_field = None
         else:
             current_field = None
@@ -780,6 +795,31 @@ CONFIG_REFERENCE_HEADER_DEFS: tuple[tuple[str, str], ...] = (
     ("Description", "description"),
 )
 """Column definitions for the `[tool.repomatic]` configuration reference table."""
+
+
+def config_full_descriptions() -> dict[str, str]:
+    """Return full attribute docstrings keyed by TOML option name.
+
+    Unlike `config_reference()` which truncates to a one-line summary
+    suitable for the `show-config` CLI table, this returns the entire
+    docstring for use in long-form documentation.
+    """
+    schema = Config()
+    descriptions: dict[str, str] = {}
+    for f in fields(Config):
+        sub = getattr(schema, f.name)
+        if hasattr(sub, "__dataclass_fields__"):
+            prefix = _field_to_key(f.name)
+            sub_cls = type(sub)
+            sub_docs = _extract_field_docstrings(sub_cls, full=True)
+            for sf in fields(sub_cls):
+                key = f"{prefix}.{sf.name.replace('_', '-')}"
+                descriptions[key] = sub_docs.get(sf.name, "").replace("``", "`")
+        else:
+            key = _field_to_key(f.name)
+            full_docs = _extract_field_docstrings(full=True)
+            descriptions[key] = full_docs.get(f.name, "").replace("``", "`")
+    return descriptions
 
 
 def config_reference() -> list[tuple[str, str, str, str]]:
