@@ -83,7 +83,7 @@ The auto-generated `cli.md` reference (one block per `--help` per command) is th
 
 Anti-patterns to remove on sight:
 
-- Plain ` ```text ` fences holding captured `--help` output. The fence has no lexer, no color, and rots after every option change.
+- Plain ```` ```text ```` fences holding captured `--help` output. The fence has no lexer, no color, and rots after every option change.
 - Capture helpers that set `NO_COLOR=1`, run `CliRunner.invoke(...)`, and regex out `\x1b\[[0-9;]*m`. They strip the very codes the directive needs to render colors.
 - A standalone hidden `{click:source}` whose only purpose is to import the CLI. Inline the import inside the first `{click:run}` instead: source is hidden by default so the line never appears in the rendered output.
 - "Update the docs" commit messages that rerun a capture script. The directive eliminates the script.
@@ -96,13 +96,13 @@ Keep static `shell-session` blocks when the example shows **how to invoke** a co
 
 Conversion lifecycle:
 
-- Authors write **MyST** in `*.py` docstrings (`{role}`target``, `[text](url)`, single-backtick inline code, ```` ```{directive} ```` admonitions).
+- Authors write **MyST** in `*.py` docstrings (`` {role}`target` ``, `[text](url)`, single-backtick inline code, ```` ```{directive} ```` admonitions).
 - The `repomatic.myst_docstrings` Sphinx extension hooks `autodoc-process-docstring` at priority 400 and converts MyST to reST at build time, before `sphinx_autodoc_typehints` runs. So the rendered HTML is the same as if the docstrings were always reST, while the source files stay editable in MyST.
 - Run `uv run repomatic convert-to-myst` (or `repomatic convert-to-myst path/to/pkg/`) to migrate an existing reST codebase. The converter is idempotent — already-MyST docstrings are a no-op.
 
 Extension load order (the rule, with the rationale):
 
-- `repomatic.myst_docstrings` must be listed in `extensions = [...]` *before* `sphinx_autodoc_typehints`. Both hook `autodoc-process-docstring`; conversion has to run first or the typehints extension sees half-converted text. The concrete failure mode if the order is wrong: the inline-code converter doubles the backticks inside domain-qualified roles (like `` :py:obj:`None` ``) that `sphinx_autodoc_typehints` injects, producing visible `` ``...`` `` in the rendered HTML.
+- `repomatic.myst_docstrings` must be listed in `extensions = [...]` *before* `sphinx_autodoc_typehints`. Both hook `autodoc-process-docstring`; conversion has to run first or the typehints extension sees half-converted text. The concrete failure mode if the order is wrong: the inline-code converter doubles the backticks inside domain-qualified roles (like `` :py:obj:`None` ``) that `sphinx_autodoc_typehints` injects, producing visible double-backtick wrappers in the rendered HTML.
 - The extension enforces this at load time and raises `ExtensionError` if the order is wrong, so downstream repos that misorder get a clear failure on first build instead of a silent rendering bug.
 - Downstream repos that adopt `repomatic.myst_docstrings` must also add `repomatic` to their `[dependency-groups] docs` in `pyproject.toml` (the package must be importable at build time). Pin to a recent minor (e.g., `repomatic>=6.14`) so older bug fixes don't propagate.
 
@@ -110,7 +110,35 @@ Admonition fence style:
 
 - Use **backtick fences** for all MyST admonitions and code-with-language directives: ```` ```{note} ````, ```` ```{warning} ````, ```` ```{caution} ````, ```` ```{tip} ````, ```` ```{seealso} ````, ```` ```{deprecated} 1.2.3 ````.
 - **Don't use colon fences** (`:::{note}`). They render the same but `mdformat-gfm` escapes the colons on every format pass, churning the file. The MyST parser still recognizes both, so this is purely about format-stability.
-- Same goes for code blocks with a language: `` ```python `` (plain triple backtick + language) is the form `mdformat-shfmt` and friends preserve correctly.
+- Same goes for code blocks with a language: ```` ```python ```` (plain triple backtick + language) is the form `mdformat-shfmt` and friends preserve correctly.
+
+mdformat code-span pitfalls. Every `.md` file in this lineage is reformatted by `repomatic run mdformat` on every push. The reformatter has known regressions when source markdown tries to **display literal backtick markup as inline code**. Author defensively so files round-trip unchanged:
+
+1. **Inline display of a MyST role** (a name in curly braces followed by a backtick-wrapped target). Use a double-backtick code span with one space of padding around the content. Single-backtick wraps with backslash-escaped backticks do *not* work: CommonMark code spans don't honor backslash escapes, so `mdformat` collapses the wrap and leaves literal backslash-backtick sequences in the rendered output. Stable form, shown as a fenced block:
+
+   ```markdown
+   See `` {role}`target` `` for the role syntax.
+   ```
+
+2. **Inline display of a fenced-block opener** (triple backtick + language or directive). Use a four-backtick wrap with padding. Shorter wraps either collapse or get upgraded by `mdformat` on the next pass. Stable form:
+
+   `````markdown
+   The fence ```` ```python ```` opens a Python block.
+   `````
+
+3. **Inline display of a double-backtick wrapper as literal text**. Not currently preservable. `mdformat` collapses double-backtick code spans to single-backtick whenever the content has no internal single backtick. The maintainer marked this **by-design** at [`hukkin/mdformat#130`](https://github.com/hukkin/mdformat/issues/130). Use prose ("a double-backtick wrap") or a fenced block instead of trying to show the literal markup inline.
+
+4. **Significant leading or trailing single space inside a code span**. `mdformat` strips it per the CommonMark trim-spaces rule. For instance, `awesome-lint`'s bullet separator (a literal space-hyphen-space sequence) cannot be shown as inline code. Move the example into a fenced block:
+
+   ```markdown
+   The awesome-list bullet separator is a literal ` - ` (space-hyphen-space).
+   ```
+
+5. **Autolinks** (`<https://…>`) in repos that load `mdformat-recover-urls`. Rewritten to the `[url](url)` form on every pass — the plugin's `_recover_urls` always emits the bracketed form. No upstream issue filed yet; bug lives in [`holy-two/mdformat-recover-urls`](https://github.com/holy-two/mdformat-recover-urls/issues).
+
+6. **Numbered lists with 10+ items when `number = true` is set in `mdformat.toml`**. Markers get zero-padded to align column width (`01.`, `02.`, …, `10.`). No upstream issue filed yet. If the padding is visually distracting, keep the list to 9 items or drop `number = true` for that file.
+
+Revisit this section when any of the linked upstream issues changes state — the workarounds become unnecessary as soon as `mdformat` or `mdformat-recover-urls` ships a fix. Cases 4-6 don't have upstream tracking issues yet; file them against [`hukkin/mdformat`](https://github.com/hukkin/mdformat/issues) or the responsible plugin before adding more workarounds.
 
 Cross-references that survive renames:
 
@@ -150,7 +178,7 @@ Choices that are project-specific:
 
 - **`repomatic.myst_docstrings`** — only when the project authors docstrings in MyST. Skip on projects still on reST (some sibling repos run `click_extra.sphinx` without the MyST docstring extension).
 - **`sphinx_click` vs `click_extra.sphinx`** — `click_extra.sphinx` provides the `{click:run}`/`{click:source}` directives this lineage uses for live CLI rendering. `sphinx_click` provides the `.. click::` autodoc-style directive for sub-command tree generation. They serve different output shapes and can coexist (e.g., `meta-package-manager` uses both: `sphinx_click` for the auto-generated tree, `click_extra.sphinx` for invocation rendering). Default to `click_extra.sphinx` only; add `sphinx_click` when the project needs an auto-generated command tree.
-- **`sphinxcontrib.mermaid`** — pair with `myst_fence_as_directive = ["mermaid"]` so authors write ```` ```mermaid ```` (without curly braces) and the directive still fires. Comment block scalar in `conf.py`: `# Allow ```mermaid``` without curly braces, see https://github.com/mgaitan/sphinxcontrib-mermaid/issues/99#issuecomment-2339587001`. Keep `mermaid_d3_zoom = True` so dependency-graph diagrams remain navigable.
+- **`sphinxcontrib.mermaid`** — pair with `myst_fence_as_directive = ["mermaid"]` so authors write ```` ```mermaid ```` (without curly braces) and the directive still fires. Reference comment for `conf.py`: `# Allow plain mermaid fences (without curly braces), see <https://github.com/mgaitan/sphinxcontrib-mermaid/issues/99#issuecomment-2339587001>`. Keep `mermaid_d3_zoom = True` so dependency-graph diagrams remain navigable.
 - **`sphinx_issues`** — **don't adopt**. The extension's `:issue:`/`:pr:`/`:user:`/`:commit:` roles only render inside Sphinx, so the same source files (changelogs, docstrings, comments) display as raw `` :issue:`1234` `` text everywhere else: GitHub's markdown viewer in the repo browser, IDE previews, `pip show`, the PyPI long-description page, downstream tooling reading the changelog. Replace these roles with explicit GitHub URLs that work in every renderer and keep the changelog identically readable on GitHub and on the docs site. See § Migrating off `sphinx_issues`.
 
 Standard `myst_enable_extensions`, alphabetized (omit only when the project demonstrably doesn't use the syntax):
@@ -168,13 +196,13 @@ Standard `myst_enable_extensions`, alphabetized (omit only when the project demo
 
 When a repo carries `sphinx_issues` roles, replace them with explicit GitHub URLs in one PR per repo. The roles and their URL equivalents (where `{owner}/{repo}` is the project's GitHub slug):
 
-| `sphinx_issues` role     | Replacement                                            |
-| :----------------------- | :----------------------------------------------------- |
-| `` {issue}`N` ``         | `[#N](https://github.com/{owner}/{repo}/issues/N)`     |
-| `` {pr}`N` ``            | `[#N](https://github.com/{owner}/{repo}/pull/N)`       |
-| `` {user}`name` ``       | `[@name](https://github.com/name)`                     |
-| `` {commit}`sha` ``      | `` [`sha`](https://github.com/{owner}/{repo}/commit/sha) `` |
-| reST `` :issue:`N` ``    | same as `` {issue}`N` `` (some Python source files predate the MyST migration; the reST forms surface the same warning as MyST forms outside Sphinx). |
+| `sphinx_issues` role  | Replacement                                                                                                                                           |
+| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `` {issue}`N` ``      | `[#N](https://github.com/{owner}/{repo}/issues/N)`                                                                                                    |
+| `` {pr}`N` ``         | `[#N](https://github.com/{owner}/{repo}/pull/N)`                                                                                                      |
+| `` {user}`name` ``    | `[@name](https://github.com/name)`                                                                                                                    |
+| `` {commit}`sha` ``   | `` [`sha`](https://github.com/{owner}/{repo}/commit/sha) ``                                                                                           |
+| reST `` :issue:`N` `` | same as `` {issue}`N` `` (some Python source files predate the MyST migration; the reST forms surface the same warning as MyST forms outside Sphinx). |
 
 GitHub redirects `/issues/N` ↔ `/pull/N` based on the entity's actual type, so a typo between `issue` and `pr` still resolves; mirror the original role's intent anyway so the URL is self-documenting.
 
@@ -362,7 +390,7 @@ Development toctree, in this order:
 Page-shape rules that apply across the roster:
 
 - **Single-source content with `{include}`.** `changelog.md`, `code-of-conduct.md`, `license.md`, and `contributing.md` should `{include}` the root-level file when one exists. Two copies drift; one copy is enforced.
-- **Title octicons.** Every top-level page heading uses an `{octicon}` icon for visual scanning: `# {octicon}\`download\` Installation`, `# {octicon}\`command-palette\` CLI`, etc. Not just decoration — the Furo theme's sidebar uses them as visual anchors. Canonical icon registry, alphabetized:
+- **Title octicons.** Every top-level page heading uses an `{octicon}` icon for visual scanning: `` # {octicon}`download` Installation ``, `` # {octicon}`command-palette` CLI ``, etc. Not just decoration — the Furo theme's sidebar uses them as visual anchors. Canonical icon registry, alphabetized:
 
   | Page                  | Octicon            |
   | :-------------------- | :----------------- |
