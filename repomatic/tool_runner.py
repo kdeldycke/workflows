@@ -885,10 +885,11 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
             "mdformat-gfm==1.0.0",
             "mdformat_gfm_alerts==2.0.0",
             "mdformat_myst==0.3.0",
-            # Pinned to a fork that fixes the link-renderer conflict with mdformat-gfm 1.0.0
-            # and mdformat-recover-urls. Pending upstream merge:
-            # https://github.com/gaige/mdformat-pelican/pull/11
-            "mdformat-pelican @ git+https://github.com/kdeldycke/mdformat-pelican@b7e98ba54ab139930a7ea81bcb8924f1ad21a545",
+            # Pinned to an upstream commit that includes the link-renderer fix
+            # (https://github.com/gaige/mdformat-pelican/pull/11) resolving the
+            # conflict with mdformat-gfm 1.0.0 and mdformat-recover-urls. Bump
+            # to a tagged release once one ships.
+            "mdformat-pelican @ git+https://github.com/gaige/mdformat-pelican@b2d58d3a8e57d82558a7b8d40704250151aa5e7d",
             "mdformat_pyproject==0.1.1",
             "mdformat-recover-urls==0.0.2",
             "mdformat-ruff==0.1.3",
