@@ -14,8 +14,13 @@ The `--` separates repomatic's own options from the arguments forwarded to the t
 
 List all managed tools and their resolved config source:
 
-```{click:run}
+```{click:source}
+:hide-source:
+
 from repomatic.cli import repomatic
+```
+
+```{click:run}
 invoke(repomatic, args=['run', '--list'])
 ```
 
