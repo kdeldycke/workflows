@@ -54,12 +54,10 @@ from repomatic.uv import (
     format_release_notes,
     get_github_release_body,
     get_pypi_source_url,
-    is_lock_diff_only_timestamp_noise,
     parse_lock_exclude_newer,
     parse_lock_upload_times,
     parse_lock_versions,
     prune_stale_exclude_newer_packages,
-    revert_lock_if_noise,
     sync_uv_lock,
 )
 
@@ -407,123 +405,21 @@ def test_missing_renovate_config(tmp_path, monkeypatch):
         assert result.renovate_config_exists is False
 
 
-# Sample diff containing only exclude-newer timestamp noise.
-_TIMESTAMP_ONLY_DIFF = """\
-diff --git a/uv.lock b/uv.lock
-index abc1234..def5678 100644
---- a/uv.lock
-+++ b/uv.lock
-@@ -5,7 +5,7 @@
--exclude-newer = "2026-02-11T13:52:20.092144Z"
-+exclude-newer = "2026-02-11T14:09:32.945450358Z"
-@@ -9,3 +9,3 @@
--repomatic = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
-+repomatic = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
-"""
-
-# Sample diff with real dependency changes mixed in.
-_REAL_CHANGE_DIFF = """\
-diff --git a/uv.lock b/uv.lock
-index abc1234..def5678 100644
---- a/uv.lock
-+++ b/uv.lock
-@@ -5,7 +5,7 @@
--exclude-newer = "2026-02-11T13:52:20.092144Z"
-+exclude-newer = "2026-02-11T14:09:32.945450358Z"
-@@ -9,3 +9,3 @@
--repomatic = { timestamp = "2026-02-18T13:52:20.092402Z", span = "PT0S" }
-+repomatic = { timestamp = "2026-02-18T14:09:32.94545704Z", span = "PT0S" }
--version = "1.2.3"
-+version = "1.2.4"
-"""
-
-
-def _mock_subprocess_run(stdout):
-    """Create a mock for subprocess.run returning the given stdout."""
-    mock_result = type("Result", (), {"stdout": stdout, "returncode": 0})()
-    return patch("repomatic.uv.subprocess.run", return_value=mock_result)
-
-
-def test_timestamp_only_diff_is_noise(tmp_path):
-    """Return True when diff contains only timestamp changes."""
-    lock_path = tmp_path / "uv.lock"
-    with _mock_subprocess_run(_TIMESTAMP_ONLY_DIFF):
-        assert is_lock_diff_only_timestamp_noise(lock_path) is True
-
-
-def test_real_changes_are_not_noise(tmp_path):
-    """Return False when diff contains real dependency changes."""
-    lock_path = tmp_path / "uv.lock"
-    with _mock_subprocess_run(_REAL_CHANGE_DIFF):
-        assert is_lock_diff_only_timestamp_noise(lock_path) is False
-
-
-def test_empty_diff_is_not_noise(tmp_path):
-    """Return False when there is no diff output."""
-    lock_path = tmp_path / "uv.lock"
-    with _mock_subprocess_run(""):
-        assert is_lock_diff_only_timestamp_noise(lock_path) is False
-
-
-def test_revert_lock_if_noise_reverts(tmp_path):
-    """Revert lock file when diff is only timestamp noise."""
-    lock_path = tmp_path / "uv.lock"
-    with (
-        patch("repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=True),
-        patch("repomatic.uv.subprocess.run") as mock_run,
-    ):
-        result = revert_lock_if_noise(lock_path)
-        assert result is True
-        mock_run.assert_called_once_with(
-            ["git", "checkout", "--", str(lock_path)],
-            check=True,
-        )
-
-
-def test_revert_lock_if_noise_keeps(tmp_path):
-    """Keep lock file when diff contains real changes."""
-    lock_path = tmp_path / "uv.lock"
-    with patch("repomatic.uv.is_lock_diff_only_timestamp_noise", return_value=False):
-        result = revert_lock_if_noise(lock_path)
-        assert result is False
-
-
-def test_sync_uv_lock_keeps_real_changes(tmp_path):
-    """Keep lock file when real dependency changes exist."""
+def test_sync_uv_lock_no_changes(tmp_path):
+    """Return empty changes when no package versions changed."""
     lock_path = tmp_path / "uv.lock"
     with (
         patch("repomatic.uv.subprocess.run") as mock_run,
-        patch(
-            "repomatic.uv.is_lock_diff_only_timestamp_noise",
-            return_value=False,
-        ),
         patch("repomatic.uv.parse_lock_versions", return_value={}),
     ):
         result = sync_uv_lock(lock_path)
-        assert result.reverted is False
+        assert result.changes == []
         # uv lock was called in the project directory.
         mock_run.assert_called_once_with(
             ["uv", "--no-progress", "lock", "--upgrade"],
             check=True,
             cwd=tmp_path,
         )
-
-
-def test_sync_uv_lock_reverts_noise(tmp_path):
-    """Revert lock file when only timestamp noise changed."""
-    lock_path = tmp_path / "uv.lock"
-    with (
-        patch("repomatic.uv.subprocess.run") as mock_run,
-        patch(
-            "repomatic.uv.is_lock_diff_only_timestamp_noise",
-            return_value=True,
-        ),
-    ):
-        result = sync_uv_lock(lock_path)
-        assert result.reverted is True
-        assert result.changes == []
-        # uv lock + git checkout were called.
-        assert mock_run.call_count == 2
 
 
 def test_sync_uv_lock_returns_changes(tmp_path):
@@ -533,14 +429,9 @@ def test_sync_uv_lock_returns_changes(tmp_path):
     after = {"anyio": "4.12.1", "boltons": "25.0.0"}
     with (
         patch("repomatic.uv.subprocess.run"),
-        patch(
-            "repomatic.uv.is_lock_diff_only_timestamp_noise",
-            return_value=False,
-        ),
         patch("repomatic.uv.parse_lock_versions", side_effect=[before, after]),
     ):
         result = sync_uv_lock(lock_path)
-        assert result.reverted is False
         assert len(result.changes) == 1
         assert result.changes[0] == ("anyio", "4.12.0", "4.12.1")
 

@@ -17,8 +17,8 @@
 """uv lock file operations and vulnerability auditing.
 
 This module provides utilities for managing `uv.lock` files: parsing versions,
-detecting timestamp noise, computing diff tables, auditing for vulnerabilities,
-and fetching release notes from GitHub.
+computing diff tables, auditing for vulnerabilities, and fetching release notes
+from GitHub.
 """
 
 from __future__ import annotations
@@ -282,111 +282,6 @@ def format_vulnerability_table(vulns: list[VulnerablePackage]) -> str:
             f"| `{v.current_version}` | {fixed} | {sources} |"
         )
     return "\n".join(lines)
-
-
-# ---------------------------------------------------------------------------
-# Lock file noise detection
-# ---------------------------------------------------------------------------
-
-# Pattern matching exclude-newer timestamp lines in uv.lock diffs.
-# These lines appear in the `[options]` section (`exclude-newer`) and the
-# `[options.exclude-newer-package]` section (per-package entries) and represent
-# no actual dependency changes.
-_TIMESTAMP_LINE_RE = re.compile(
-    r"^\s*("
-    r'exclude-newer\s*=\s*"[^"]*"'
-    r"|"
-    r'\S+\s*=\s*\{[^}]*timestamp\s*=\s*"[^"]*"[^}]*\}'
-    r")\s*$"
-)
-"""Matches `exclude-newer` and per-package timestamp lines in uv.lock diffs.
-
-The first alternative matches the top-level `exclude-newer = "<ISO datetime>"`
-line from the `[options]` section. The second matches per-package lines like
-``repomatic = { timestamp = "<ISO datetime>", span = "PT0S" }`` from the
-`[options.exclude-newer-package]` section. Both change on every `uv lock`
-run when a relative `exclude-newer-package` offset is configured.
-"""
-
-
-def is_lock_diff_only_timestamp_noise(lock_path: Path) -> bool:
-    """Check whether the only changes in a lock file are timestamp noise.
-
-    ```{note}
-    This is a workaround for uv writing a new resolved timestamp on every
-    `uv lock` run even when no packages changed.
-    See [uv#18155](https://github.com/astral-sh/uv/issues/18155).
-    ```
-
-    Runs `git diff` on the given path and inspects every added/removed
-    content line. Returns `True` only when *all* changed lines match the
-    `exclude-newer-package` timestamp pattern (`timestamp =` / `span =`).
-
-    :param lock_path: Path to the lock file to inspect.
-    :return: `True` if the diff contains only timestamp noise, `False`
-        if there are no changes or any real dependency change is present.
-    """
-    result = subprocess.run(
-        ["git", "diff", "--", str(lock_path)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    diff_output = result.stdout
-    if not diff_output:
-        logging.debug(f"No diff output for {lock_path}.")
-        return False
-
-    changed_lines: list[str] = []
-    for line in diff_output.splitlines():
-        # Skip diff metadata lines.
-        if line.startswith(("---", "+++", "@@", "diff ", "index ")):
-            continue
-        # Collect content lines (added or removed).
-        if line.startswith(("+", "-")):
-            changed_lines.append(line[1:])
-
-    if not changed_lines:
-        logging.debug("Diff contains only metadata, no content changes.")
-        return False
-
-    for line in changed_lines:
-        if not _TIMESTAMP_LINE_RE.match(line):
-            logging.debug(f"Non-timestamp change found: {line!r}")
-            return False
-
-    logging.info(
-        f"All {len(changed_lines)} changed line(s) in {lock_path}"
-        " are exclude-newer-package timestamp noise."
-    )
-    return True
-
-
-def revert_lock_if_noise(lock_path: Path) -> bool:
-    """Revert a lock file if its only changes are timestamp noise.
-
-    Calls {func}`is_lock_diff_only_timestamp_noise` and, if `True`,
-    runs `git checkout` to discard the noise changes.
-
-    ```{note}
-    In Renovate's `postUpgradeTasks` context, the revert is ineffective
-    because Renovate captures file content after its own `uv lock --upgrade`
-    manager step *before* `postUpgradeTasks` run, and commits its cached
-    content regardless of working tree changes.
-    ```
-
-    :param lock_path: Path to the lock file to inspect and potentially revert.
-    :return: `True` if the file was reverted, `False` otherwise.
-    """
-    if not is_lock_diff_only_timestamp_noise(lock_path):
-        return False
-
-    logging.info(f"Reverting {lock_path}: only exclude-newer-package timestamp noise.")
-    subprocess.run(
-        ["git", "checkout", "--", str(lock_path)],
-        check=True,
-    )
-    return True
 
 
 # ---------------------------------------------------------------------------
@@ -775,10 +670,10 @@ def parse_lock_exclude_newer(lock_path: Path) -> str:
     """Parse the effective `exclude-newer` cutoff from a `uv.lock` file.
 
     When the user configures a relative span (`exclude-newer = "1 week"`
-    in `pyproject.toml`), recent uv versions write the
-    {data}`LOCK_TIMESTAMP_SENTINEL` into `options.exclude-newer` and the
-    real value into `options.exclude-newer-span` as an ISO 8601 duration.
-    In that case the effective cutoff is computed as `now - span`.
+    in `pyproject.toml`), uv writes the {data}`LOCK_TIMESTAMP_SENTINEL`
+    into `options.exclude-newer` and the real value into
+    `options.exclude-newer-span` as an ISO 8601 duration. In that case
+    the effective cutoff is computed as `now - span`.
 
     :param lock_path: Path to the `uv.lock` file.
     :return: An ISO 8601 datetime string for the effective cutoff, or an
@@ -1413,19 +1308,14 @@ def fix_vulnerable_deps(
     logging.info(f"Upgrading: {', '.join(sorted(fixable_packages))}...")
     subprocess.run(cmd, check=True, cwd=lock_path.parent)
 
-    # Step 5: Check if the lock file actually changed.
-    if revert_lock_if_noise(lock_path):
-        logging.info("Lock file changes were only timestamp noise.")
-        return False, ""
-
-    # Step 6: Compute version diff.
+    # Step 5: Compute version diff.
     after = parse_lock_versions(lock_path)
     changes = diff_lock_versions(before, after)
     if not changes:
         logging.info("No version changes after upgrading vulnerable packages.")
         return False, ""
 
-    # Step 7: Persist cooldown exemptions only for packages whose fixed
+    # Step 6: Persist cooldown exemptions only for packages whose fixed
     # version falls outside the exclude-newer window. Packages already
     # reachable by a normal `uv lock --upgrade` do not need an override.
     pyproject_path = lock_path.parent / "pyproject.toml"
@@ -1439,7 +1329,7 @@ def fix_vulnerable_deps(
         if needs_exemption:
             add_exclude_newer_packages(pyproject_path, needs_exemption)
 
-    # Step 8: Build the combined output.
+    # Step 7: Build the combined output.
     vuln_table = format_vulnerability_table(vulns)
     upload_times = parse_lock_upload_times(lock_path)
     exclude_newer = parse_lock_exclude_newer(lock_path)
@@ -1461,9 +1351,6 @@ def fix_vulnerable_deps(
 class SyncResult:
     """Result of a `sync-uv-lock` operation."""
 
-    reverted: bool
-    """Whether `uv.lock` was reverted (only timestamp noise changed)."""
-
     changes: list[tuple[str, str, str]]
     """Version changes as `(name, old_version, new_version)` tuples."""
 
@@ -1475,13 +1362,12 @@ class SyncResult:
 
 
 def sync_uv_lock(lock_path: Path) -> SyncResult:
-    """Re-lock with `--upgrade` and revert if only timestamp noise changed.
+    """Re-lock with `--upgrade` and report version changes.
 
     First prunes stale `exclude-newer-package` entries from
     `pyproject.toml` (entries whose locked version was uploaded before the
     `exclude-newer` cutoff), then runs `uv lock --upgrade` to update
-    transitive dependencies. If the resulting diff contains only timestamp
-    noise, reverts `uv.lock` so no spurious changes are committed.
+    transitive dependencies.
 
     :param lock_path: Path to the `uv.lock` file.
     :return: A {class}`SyncResult` with structured version change data.
@@ -1500,18 +1386,13 @@ def sync_uv_lock(lock_path: Path) -> SyncResult:
     logging.info(f"Running uv lock --upgrade in {project_dir}...")
     subprocess.run([*uv_cmd("lock"), "--upgrade"], check=True, cwd=project_dir)
 
-    # Step 4: Revert uv.lock if only timestamp noise changed.
-    if revert_lock_if_noise(lock_path):
-        return SyncResult(reverted=True, changes=[], upload_times={}, exclude_newer="")
-
-    # Step 5: Compute version diff.
+    # Step 4: Compute version diff.
     after = parse_lock_versions(lock_path)
     changes = diff_lock_versions(before, after)
     upload_times = parse_lock_upload_times(lock_path)
     exclude_newer = parse_lock_exclude_newer(lock_path)
 
     return SyncResult(
-        reverted=False,
         changes=changes,
         upload_times=upload_times,
         exclude_newer=exclude_newer,

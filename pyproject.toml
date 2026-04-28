@@ -182,8 +182,8 @@ typing = [
 # Docs group requires Python >= 3.14 for recent MyST-Parser and click-extra features.
 dependency-groups.docs = { requires-python = ">= 3.14" }
 # Cooldown period: 7-day buffer before using newly released packages.
-# Relative dates are fine here because the Renovate lock-maintenance job
-# (sync-uv-lock) reverts uv.lock when the only diff is timestamp noise.
+# Relative dates are fine here: uv 0.11.8+ writes a sentinel timestamp to
+# uv.lock for relative spans, so re-resolving never produces churn.
 exclude-newer = "1 week"
 # repomatic is pinned to git main.
 exclude-newer-package = { gitpython = "0 day", repomatic = "0 day" }

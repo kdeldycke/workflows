@@ -2595,7 +2595,6 @@ def sync_uv_lock_cmd(
     Wraps uv lock --upgrade and:
       - prunes stale exclude-newer-package entries from pyproject.toml
         whose locked version has aged past the exclude-newer cutoff
-      - reverts uv.lock when the only diff is timestamp noise
       - prints a table of updated packages with upload dates
       - optionally fetches release notes from GitHub (markdown)
 
@@ -2630,10 +2629,6 @@ def sync_uv_lock_cmd(
         ctx.exit(0)
 
     result = _sync_uv_lock(lockfile)
-
-    if result.reverted:
-        echo("Reverted uv.lock: only timestamp noise.")
-        ctx.exit(0)
 
     if not result.changes:
         echo("No dependency changes.")
