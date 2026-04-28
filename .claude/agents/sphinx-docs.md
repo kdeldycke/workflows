@@ -18,14 +18,20 @@ Documentation must reflect the **current** state of the code. Static snapshots r
 When a doc shows the result of running code, prefer a Sphinx directive that executes at build time over a hand-pasted block. For Click CLIs use `click_extra.sphinx` ([upstream reference](https://kdeldycke.github.io/click-extra/sphinx.html) — full directive options, `:show-source:`/`:hide-results:` toggles, `:emphasize-lines:`, language overrides, and the `isolated_filesystem()` helper):
 
 - `{click:run}` renders the simulated terminal output with ANSI colors via the `ansi-shell-session` Pygments lexer. By default it hides the source and shows only the results, so import statements inside the block run silently. Use it for `--help`, `--list`, and any command whose output is the point of the example.
-- `{click:source}` renders the Python source instead of the result. Use only when teaching readers what a Click `invoke(...)` call looks like.
-- The runner namespace persists across blocks in the same document, so importing the CLI once in the first `{click:run}` is enough; later blocks can call `invoke(...)` directly.
+- `{click:source}` renders the Python source instead of the result. Use to teach readers what a Click `invoke(...)` call looks like, or with `:hide-source:` to seed shared symbols (see below).
+- **Namespace persistence is asymmetric across the two directives.** `{click:source}` calls `exec(code, namespace)`, so top-level assignments land in the per-document runner namespace and are visible to every later block. `{click:run}` calls `exec(code, namespace, local_vars)`, so top-level assignments land in `local_vars` (per Python's exec semantics when `globals != locals`) and are discarded after the block. An `import` inside a `{click:run}` block is local to that block. Source: `click_extra/sphinx/click.py:206-216` vs `:283-285`.
+- Therefore: when a document has **more than one** `{click:run}` block, seed shared imports in a leading `{click:source}` `:hide-source:` block. When the document has only one `{click:run}`, an inline import inside that block is fine.
 
-Pattern to copy:
+Pattern to copy (multi-block document):
 
 ````markdown
-```{click:run}
+```{click:source}
+:hide-source:
+
 from {package}.cli import {cli}
+```
+
+```{click:run}
 invoke({cli}, args=["--help"])
 ```
 
@@ -33,6 +39,17 @@ invoke({cli}, args=["--help"])
 invoke({cli}, args=["sub-command", "--help"])
 ```
 ````
+
+Pattern to copy (single-block document):
+
+````markdown
+```{click:run}
+from {package}.cli import {cli}
+invoke({cli}, args=["--help"])
+```
+````
+
+Verification rule for any future claim about per-document persistence: check the directive's `exec()` call shape in the upstream source. `exec(code, globals)` persists top-level assignments; `exec(code, globals, locals)` does not. Sphinx caches surface this asymmetry only on a full build, not on incremental rebuilds, so always run `sphinx-build` from a clean `_build/` after touching shared-namespace patterns.
 
 ## Anchor docs with assertions (docs as tests)
 
@@ -85,7 +102,6 @@ Anti-patterns to remove on sight:
 
 - Plain ```` ```text ```` fences holding captured `--help` output. The fence has no lexer, no color, and rots after every option change.
 - Capture helpers that set `NO_COLOR=1`, run `CliRunner.invoke(...)`, and regex out `\x1b\[[0-9;]*m`. They strip the very codes the directive needs to render colors.
-- A standalone hidden `{click:source}` whose only purpose is to import the CLI. Inline the import inside the first `{click:run}` instead: source is hidden by default so the line never appears in the rendered output.
 - "Update the docs" commit messages that rerun a capture script. The directive eliminates the script.
 
 Keep static `shell-session` blocks when the example shows **how to invoke** a command (e.g., `uvx --from <git-url> ...` in installation pages) rather than what it prints.
@@ -318,8 +334,9 @@ Walk the Click command tree (`<cli>.commands` and any `Group.commands`), collect
 Emit, in order:
 
 1. A summary table `Command | Description` linking each `[`<cli> <path>`](#<cli>-<path>)`. Description is `cmd.get_short_help_str()` with trailing periods stripped.
-2. A `## Help screen` section with one `{click:run}` block invoking `[--help]`. **The first block in the document also carries `from <package>.cli import <cli>`** — the directive hides its source by default, so the import line never appears in the rendered output but seeds the runner namespace.
-3. One section per command, heading depth = path length, body = a `{click:run}` block invoking `[*path, "--help"]`.
+2. A leading `{click:source}` `:hide-source:` block carrying `from <package>.cli import <cli>` so the symbol persists into every later `{click:run}`. (See § Live-rendering over captured output for why the import cannot live inside the first `{click:run}`: per-block `local_vars` discard top-level assignments.)
+3. A `## Help screen` section with one `{click:run}` block invoking `[--help]`.
+4. One section per command, heading depth = path length, body = a `{click:run}` block invoking `[*path, "--help"]`.
 
 Mechanical safeguards:
 

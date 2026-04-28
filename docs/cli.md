@@ -51,15 +51,10 @@
 | [`repomatic workflow help`](#repomatic-workflow-help)                       | Show help for a command                                 |
 | [`repomatic workflow lint`](#repomatic-workflow-lint)                       | Lint workflow files for common issues                   |
 
-```{click:source}
-:hide-source:
-
-from repomatic.cli import repomatic
-```
-
 ## Help screen
 
 ```{click:run}
+from repomatic.cli import repomatic
 invoke(repomatic, args=['--help'])
 ```
 
