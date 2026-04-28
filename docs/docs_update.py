@@ -40,7 +40,14 @@ def replace_content(
     start_tag: str,
     end_tag: str | None = None,
 ) -> None:
-    """Replace in a file the content between start and end tags."""
+    """Replace in a file the content between start and end tags.
+
+    The ``new_content`` payload is wrapped with a blank line on both sides so
+    the resulting region is format-stable through ``mdformat``. ``mdformat``
+    treats the surrounding ``<!-- ... -->`` markers as block-level HTML and
+    inserts blank lines around them on every pass: emitting them up front
+    avoids a generator/formatter ping-pong on every CI run.
+    """
     filepath = filepath.resolve()
     assert filepath.exists(), f"File {filepath} does not exist."
     assert filepath.is_file(), f"File {filepath} is not a file."
@@ -58,8 +65,9 @@ def replace_content(
         end_tag = ""
         post_content = ""
 
+    wrapped = f"\n\n{new_content.strip()}\n\n" if new_content.strip() else "\n\n"
     filepath.write_text(
-        f"{pre_content}{start_tag}{new_content}{end_tag}{post_content}",
+        f"{pre_content}{start_tag}{wrapped}{end_tag}{post_content}",
     )
 
 
@@ -599,7 +607,7 @@ def update_install() -> None:
     install_md = PROJECT_ROOT / "docs" / "install.md"
     replace_content(
         install_md,
-        "\n\n" + python_compat_table() + "\n",
+        python_compat_table(),
         "<!-- python-compat-start -->",
         "<!-- python-compat-end -->",
     )
@@ -610,7 +618,7 @@ def update_configuration() -> None:
     config_md = PROJECT_ROOT / "docs" / "configuration.md"
     replace_content(
         config_md,
-        "\n\n" + config_deflist() + "\n",
+        config_deflist(),
         "<!-- config-reference-start -->",
         "<!-- config-reference-end -->",
     )
@@ -621,7 +629,7 @@ def update_cli_parameters() -> None:
     cli_md = PROJECT_ROOT / "docs" / "cli.md"
     replace_content(
         cli_md,
-        "\n\n" + cli_reference() + "\n",
+        cli_reference(),
         "<!-- cli-reference-start -->",
         "<!-- cli-reference-end -->",
     )
@@ -632,13 +640,13 @@ def update_tool_runner() -> None:
     tr_md = PROJECT_ROOT / "docs" / "tool-runner.md"
     replace_content(
         tr_md,
-        "\n\n" + tool_summary() + "\n",
+        tool_summary(),
         "<!-- tool-summary-start -->",
         "<!-- tool-summary-end -->",
     )
     replace_content(
         tr_md,
-        "\n\n" + tool_reference() + "\n",
+        tool_reference(),
         "<!-- tool-reference-start -->",
         "<!-- tool-reference-end -->",
     )

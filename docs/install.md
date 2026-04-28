@@ -111,6 +111,7 @@ The table below shows which Python versions each `repomatic` release range suppo
 | `4.7.x` → `4.14.x`  | 2024-11-03 |  ❌   |  ❌   |   ✅   |   ✅   |   ✅   |   ✅   |   ❌   |
 | `4.4.x` → `4.6.x`   | 2024-07-27 |  ❌   |  ✅   |   ✅   |   ✅   |   ✅   |   ❌   |   ❌   |
 | `4.0.x` → `4.3.x`   | 2024-06-29 |  ✅   |  ✅   |   ✅   |   ✅   |   ✅   |   ❌   |   ❌   |
+
 <!-- python-compat-end -->
 
 ## Executables
