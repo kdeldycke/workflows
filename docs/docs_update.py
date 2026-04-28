@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import re
 import subprocess
-from dataclasses import fields
+from dataclasses import Field, fields
 from pathlib import Path
 
 import click
@@ -105,11 +105,11 @@ def _toml_value(value: object) -> str | None:
     return None
 
 
-def _toml_key(field_obj) -> str:
+def _toml_key(field_obj: Field) -> str:
     """Extract the TOML key from a dataclass field (honors ``config_path`` metadata)."""
     path = field_obj.metadata.get("click_extra.config_path")
     if path:
-        return path
+        return str(path)
     return field_obj.name.replace("_", "-")
 
 
@@ -199,23 +199,22 @@ def _command_anchor(cmd_path: list[str]) -> str:
     return "repomatic-" + "-".join(cmd_path)
 
 
-def _click_run_block(args: list[str], *, with_import: bool = False) -> list[str]:
+def _click_run_block(args: list[str]) -> list[str]:
     """Render a ``{click:run}`` directive block invoking ``repomatic`` with ``args``.
 
     Sphinx executes the block at build time via ``click_extra.sphinx``, so the
     rendered help text is always live and ANSI-colored (``ansi-shell-session``
-    Pygments lexer). The directive hides its source by default, so when
-    ``with_import=True`` the import line runs silently and seeds the runner
-    namespace for every subsequent block in the same document.
+    Pygments lexer). The block assumes ``repomatic`` is already in the runner
+    namespace — seed it once with a leading ``{click:source}`` ``:hide-source:``
+    block (see :func:`cli_reference`).
     """
     args_repr = ", ".join(repr(a) for a in args)
-    body = ["```{click:run}"]
-    if with_import:
-        body.append("from repomatic.cli import repomatic")
-    body.append(f"invoke(repomatic, args=[{args_repr}])")
-    body.append("```")
-    body.append("")
-    return body
+    return [
+        "```{click:run}",
+        f"invoke(repomatic, args=[{args_repr}])",
+        "```",
+        "",
+    ]
 
 
 def cli_reference() -> str:
@@ -251,12 +250,21 @@ def cli_reference() -> str:
     )
     lines.append("")
 
-    # Main help screen — first block imports `repomatic` into the runner
-    # namespace; the directive hides its source so the import is invisible
-    # and every subsequent block can reuse the imported name.
+    # Seed the per-document runner namespace with `repomatic` so every
+    # `{click:run}` block below can call `invoke(repomatic, ...)` without
+    # re-importing. `{click:source}` persists top-level assignments to the
+    # namespace; `{click:run}` does not (see `.claude/agents/sphinx-docs.md`
+    # § Live-rendering over captured output).
+    lines.append("```{click:source}")
+    lines.append(":hide-source:")
+    lines.append("")
+    lines.append("from repomatic.cli import repomatic")
+    lines.append("```")
+    lines.append("")
+
     lines.append("## Help screen")
     lines.append("")
-    lines.extend(_click_run_block(["--help"], with_import=True))
+    lines.extend(_click_run_block(["--help"]))
 
     # Per-command sections.
     for path, _cmd in entries:
