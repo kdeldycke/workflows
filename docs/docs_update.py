@@ -23,13 +23,14 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 from pathlib import Path
 
 import click
 from click.testing import CliRunner
 from click_extra import TableFormat, render_table
 
-from repomatic.config import config_reference
+from repomatic.config import Config, config_full_descriptions, config_reference
 
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
@@ -428,6 +429,101 @@ def _badge_table(
     lines.append("")
 
 
+def _python_compat_groups() -> list[tuple[str, str, tuple[str, ...]]]:
+    """Walk every `vX.Y.Z` git tag and group consecutive releases that
+    declare the same set of `Programming Language :: Python :: 3.X`
+    classifiers in `pyproject.toml`.
+
+    :return: List of ``(first_tag, last_tag, python_versions)`` per group,
+        in chronological order. Tags without a `pyproject.toml` or without
+        Python classifiers are skipped.
+    """
+    proc = subprocess.run(
+        ["git", "tag", "--sort=version:refname"],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=PROJECT_ROOT,
+    )
+    tag_re = re.compile(r"^v\d+\.\d+\.\d+$")
+    classifier_re = re.compile(r"Programming Language :: Python :: (3\.\d+)")
+
+    def _sort_key(version: str) -> tuple[int, ...]:
+        return tuple(int(p) for p in version.split("."))
+
+    groups: list[list] = []
+    for tag in proc.stdout.split():
+        if not tag_re.match(tag):
+            continue
+        show = subprocess.run(
+            ["git", "show", f"{tag}:pyproject.toml"],
+            capture_output=True,
+            text=True,
+            cwd=PROJECT_ROOT,
+        )
+        if show.returncode != 0:
+            continue
+        versions = tuple(
+            sorted(set(classifier_re.findall(show.stdout)), key=_sort_key)
+        )
+        if not versions:
+            continue
+        if groups and groups[-1][2] == versions:
+            groups[-1][1] = tag
+        else:
+            groups.append([tag, tag, versions])
+    return [(first, last, vers) for first, last, vers in groups]
+
+def python_compat_table() -> str:
+    """Render the Python compatibility matrix as a GFM table.
+
+    Newest releases on top so the supported-version streak progresses from
+    the upper-left toward the lower-right corner over time.
+    """
+    groups = _python_compat_groups()
+    if not groups:
+        return ""
+
+    def _sort_key(version: str) -> tuple[int, ...]:
+        return tuple(int(p) for p in version.split("."))
+
+    all_versions = sorted(
+        {v for _, _, vers in groups for v in vers}, key=_sort_key
+    )
+
+    def _range_label(first: str, last: str) -> str:
+        first_minor = ".".join(first.lstrip("v").split(".")[:2])
+        last_minor = ".".join(last.lstrip("v").split(".")[:2])
+        if first_minor == last_minor:
+            return f"`{first_minor}.x`"
+        return f"`{first_minor}.x` → `{last_minor}.x`"
+
+    rows = []
+    for first, last, vers in reversed(groups):
+        cells = ["✅" if v in vers else "❌" for v in all_versions]
+        rows.append([_range_label(first, last), *cells])
+
+    headers = ["`repomatic`", *(f"`{v}`" for v in all_versions)]
+    colalign = ("left", *("center",) * len(all_versions))
+    return render_table(
+        rows,
+        headers=headers,
+        table_format=TableFormat.GITHUB,
+        colalign=colalign,
+    )
+
+
+def update_install() -> None:
+    """Update ``install.md`` with the Python compatibility matrix."""
+    install_md = PROJECT_ROOT / "docs" / "install.md"
+    replace_content(
+        install_md,
+        "\n\n" + python_compat_table() + "\n",
+        "<!-- python-compat-start -->",
+        "<!-- python-compat-end -->",
+    )
+
+
 def update_configuration() -> None:
     """Update ``configuration.md`` with the config reference list."""
     config_md = PROJECT_ROOT / "docs" / "configuration.md"
@@ -470,4 +566,5 @@ def update_tool_runner() -> None:
 if __name__ == "__main__":
     update_configuration()
     update_cli_parameters()
+    update_install()
     update_tool_runner()

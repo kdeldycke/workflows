@@ -92,6 +92,22 @@ $ pacaur -S python-repomatic
 
 `````
 
+## Python compatibility
+
+The table below shows which Python versions each `repomatic` release range supports, derived from the `requires-python` field and `Programming Language :: Python` classifiers across all release tags. Releases prior to `4.0.0` did not declare an explicit `requires-python` constraint and are not represented.
+
+<!-- python-compat-start -->
+
+| `repomatic`         | `3.8` | `3.9` | `3.10` | `3.11` | `3.12` | `3.13` | `3.14` |
+| :------------------ | :---: | :---: | :----: | :----: | :----: | :----: | :----: |
+| `4.25.x` → `6.15.x` |  ❌   |  ❌   |   ✅   |   ✅   |   ✅   |   ✅   |   ✅   |
+| `4.20.x` → `4.24.x` |  ❌   |  ❌   |   ❌   |   ✅   |   ✅   |   ✅   |   ✅   |
+| `4.15.x` → `4.19.x` |  ❌   |  ❌   |   ❌   |   ✅   |   ✅   |   ✅   |   ❌   |
+| `4.7.x` → `4.14.x`  |  ❌   |  ❌   |   ✅   |   ✅   |   ✅   |   ✅   |   ❌   |
+| `4.4.x` → `4.6.x`   |  ❌   |  ✅   |   ✅   |   ✅   |   ✅   |   ❌   |   ❌   |
+| `4.0.x` → `4.3.x`   |  ✅   |  ✅   |   ✅   |   ✅   |   ✅   |   ❌   |   ❌   |
+<!-- python-compat-end -->
+
 ## Executables
 
 To ease deployment, standalone executables of `repomatic`'s latest version are available as direct downloads for several platforms and architectures:
