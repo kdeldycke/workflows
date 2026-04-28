@@ -353,6 +353,10 @@ exclude = [
   "bitdefender\\.com",
   # archive.ph rate-limits crawlers.
   "archive\\.ph",
+  # npmjs.com returns 403 to bots.
+  "^https://www\\.npmjs\\.com/package/.*$",
+  # star-history.com fragments are JS-rendered and invisible to lychee.
+  "^https://star-history\\.com/.*$",
 ]
 exclude_path = [
   # Template files contain $variable placeholders that are not real URLs.

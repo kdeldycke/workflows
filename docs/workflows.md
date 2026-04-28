@@ -48,9 +48,7 @@ GitHub Actions has several design limitations that the workflows work around:
 | [No native way to depend on all matrix jobs completing](https://github.com/orgs/community/discussions/26822)                                                                     | ❌ Not addressed   | GitHub limitation; use `needs:` with a summary job as workaround                                                                                                     |
 | [`actionlint` false positives for runtime env vars](https://github.com/rhysd/actionlint/issues/57)                                                                               | 🚫 Not addressable | Linter limitation, not GitHub's                                                                                                                                      |
 
-(github-workflows-autofix-yaml-jobs)=
-
-### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autofix.yaml)
+### 🪄 [`.github/workflows/autofix.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autofix.yaml) {#github-workflows-autofix-yaml-jobs}
 
 *Setup* — guide new users through initial configuration:
 
@@ -181,17 +179,13 @@ GitHub Actions has several design limitations that the workflows work around:
   - `docs` dependency group
   - Sphinx autodoc enabled (checks for `sphinx.ext.autodoc` in `docs/conf.py`)
 
-(github-workflows-autolock-yaml-jobs)=
-
-### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autolock.yaml)
+### 🔒 [`.github/workflows/autolock.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/autolock.yaml) {#github-workflows-autolock-yaml-jobs}
 
 #### 🔒 Lock inactive threads (`lock`)
 
 - Automatically locks closed issues and PRs after 90 days of inactivity using [`lock-threads`](https://github.com/dessant/lock-threads)
 
-(github-workflows-debug-yaml-jobs)=
-
-### 🩺 [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/debug.yaml)
+### 🩺 [`.github/workflows/debug.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/debug.yaml) {#github-workflows-debug-yaml-jobs}
 
 #### 🩺 Dump context (`dump-context`)
 
@@ -203,9 +197,7 @@ GitHub Actions has several design limitations that the workflows work around:
   - Manual dispatch
   - `workflow_call` from downstream repositories
 
-(github-workflows-cancel-runs-yaml-jobs)=
-
-### ✂️ [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/cancel-runs.yaml)
+### ✂️ [`.github/workflows/cancel-runs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/cancel-runs.yaml) {#github-workflows-cancel-runs-yaml-jobs}
 
 #### ✂️ Cancel PR runs (`cancel-runs`)
 
@@ -213,9 +205,7 @@ GitHub Actions has several design limitations that the workflows work around:
 - Prevents wasted CI resources from long-running jobs (e.g. Nuitka binary builds) that continue after a PR is closed
 - GitHub Actions does not natively cancel runs on PR close — the `concurrency` mechanism only triggers cancellation when a *new* run enters the same group
 
-(github-workflows-changelog-yaml-jobs)=
-
-### 🆙 [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/changelog.yaml)
+### 🆙 [`.github/workflows/changelog.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/changelog.yaml) {#github-workflows-changelog-yaml-jobs}
 
 #### 🆙 Bump version (`bump-version`)
 
@@ -250,9 +240,7 @@ GitHub Actions has several design limitations that the workflows work around:
   - Manual dispatch
   - `workflow_call` from downstream repositories
 
-(github-workflows-docs-yaml-jobs)=
-
-### 📚 [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/docs.yaml)
+### 📚 [`.github/workflows/docs.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/docs.yaml) {#github-workflows-docs-yaml-jobs}
 
 These jobs require a `docs` [dependency group](https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups) in `pyproject.toml` so they can determine the right Sphinx version to install and its dependencies:
 
@@ -298,9 +286,7 @@ docs = [
   - `prepare-release` branch
   - Post-release bump commits
 
-(github-workflows-labels-yaml-jobs)=
-
-### 🏷️ [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/labels.yaml)
+### 🏷️ [`.github/workflows/labels.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/labels.yaml) {#github-workflows-labels-yaml-jobs}
 
 #### 🔄 Sync labels (`sync-labels`)
 
@@ -332,9 +318,7 @@ docs = [
   - `prepare-release` branch
   - Bot-created PRs
 
-(github-workflows-lint-yaml-jobs)=
-
-### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/lint.yaml)
+### 🧹 [`.github/workflows/lint.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/lint.yaml) {#github-workflows-lint-yaml-jobs}
 
 #### 🏠 Lint repository metadata (`lint-repo`)
 
@@ -401,9 +385,7 @@ docs = [
   - `prepare-release` branch
   - Bot-created PRs
 
-(github-workflows-release-yaml-jobs)=
-
-### 🚀 [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/release.yaml)
+### 🚀 [`.github/workflows/release.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/release.yaml) {#github-workflows-release-yaml-jobs}
 
 [Release Engineering is a full-time job, and full of edge-cases](https://web.archive.org/web/20250126113318/https://blog.axo.dev/2023/02/cargo-dist) that nobody wants to deal with. This workflow automates most of it for Python projects.
 
@@ -499,9 +481,7 @@ docs = [
 - **Skipped if**:
   - `dev-release.sync = false` in `[tool.repomatic]`
 
-(github-workflows-renovate-yaml-jobs)=
-
-### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml)
+### 🆕 [`.github/workflows/renovate.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/renovate.yaml) {#github-workflows-renovate-yaml-jobs}
 
 #### 🚚 Migrate to Renovate (`migrate-to-renovate`)
 
@@ -528,9 +508,7 @@ docs = [
 - **Requires**:
   - `REPOMATIC_PAT` secret with Dependabot alerts permission
 
-(github-workflows-tests-yaml-jobs)=
-
-### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/tests.yaml)
+### 🔬 [`.github/workflows/tests.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/tests.yaml) {#github-workflows-tests-yaml-jobs}
 
 #### 📦 Package install (`test-package-install`)
 
@@ -555,9 +533,7 @@ docs = [
 - **Requires**:
   - Build targets from `metadata` job
 
-(github-workflows-update-checksums-yaml-jobs)=
-
-### 🔄 [`.github/workflows/update-checksums.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/update-checksums.yaml)
+### 🔄 [`.github/workflows/update-checksums.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/update-checksums.yaml) {#github-workflows-update-checksums-yaml-jobs}
 
 #### 🔄 Update checksums (`update-checksums`)
 
@@ -568,9 +544,7 @@ docs = [
 - Safe against infinite loops: a second trigger finds all checksums already correct and exits without pushing
 - **Source-repo only**: not bundled for downstream repos (they have no tool registry)
 
-(github-workflows-unsubscribe-yaml-jobs)=
-
-### 🔕 [`.github/workflows/unsubscribe.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/unsubscribe.yaml)
+### 🔕 [`.github/workflows/unsubscribe.yaml` jobs](https://github.com/kdeldycke/repomatic/blob/main/.github/workflows/unsubscribe.yaml) {#github-workflows-unsubscribe-yaml-jobs}
 
 #### 🔕 Unsubscribe from closed threads (`unsubscribe-threads`)
 
@@ -583,9 +557,7 @@ docs = [
 - **Skipped if**:
   - upstream `kdeldycke/repomatic` repo (except via `workflow_call`)
 
-(what-is-this-metadata-job)=
-
-### 🧬 What is this `metadata` job?
+### 🧬 What is this `metadata` job? {#what-is-this-metadata-job}
 
 Most jobs in this repository depend on a shared parent job called `metadata`. It runs first to extract contextual information, reconcile and combine it, and expose it for downstream jobs to consume.
 

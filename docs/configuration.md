@@ -121,7 +121,7 @@ workflow.ignore-paths = ["uv.lock"]
 | [`workflow.source-paths`](#workflow-source-paths)             | Source code directory names for workflow trigger `paths:` filters.               | *(none)*                            |
 | [`workflow.sync`](#workflow-sync)                             | Whether workflow sync is enabled for this project.                               | `true`                              |
 
-### `agents.location`
+### `agents.location` {#agents-location}
 
 Directory prefix for Claude Code agent files, relative to the repository root.
 
@@ -138,7 +138,7 @@ dotfiles repos that store configs under a subdirectory).
 agents.location = "./.claude/agents/"
 ```
 
-### `awesome-template.sync`
+### `awesome-template.sync` {#awesome-template-sync}
 
 Whether awesome-template sync is enabled for this project.
 
@@ -154,7 +154,7 @@ from files bundled in `repomatic`. Set to `false` to opt out.
 awesome-template.sync = true
 ```
 
-### `bumpversion.sync`
+### `bumpversion.sync` {#bumpversion-sync}
 
 Whether bumpversion config sync is enabled for this project.
 
@@ -170,7 +170,7 @@ the autofix job to overwrite it can set this to `false`.
 bumpversion.sync = true
 ```
 
-### `cache.dir`
+### `cache.dir` {#cache-dir}
 
 Override the binary cache directory path.
 
@@ -189,7 +189,7 @@ precedence over this setting.
 cache.dir = ""
 ```
 
-### `cache.github-release-ttl`
+### `cache.github-release-ttl` {#cache-github-release-ttl}
 
 Freshness TTL for cached single-release bodies (seconds).
 
@@ -205,7 +205,7 @@ is safe. Set to `0` to disable caching for single-release lookups.
 cache.github-release-ttl = 604800
 ```
 
-### `cache.github-releases-ttl`
+### `cache.github-releases-ttl` {#cache-github-releases-ttl}
 
 Freshness TTL for cached all-releases responses (seconds).
 
@@ -221,7 +221,7 @@ freshness with API savings.
 cache.github-releases-ttl = 86400
 ```
 
-### `cache.max-age`
+### `cache.max-age` {#cache-max-age}
 
 Auto-purge cached entries older than this many days.
 
@@ -237,7 +237,7 @@ environment variable takes precedence over this setting.
 cache.max-age = 30
 ```
 
-### `cache.pypi-ttl`
+### `cache.pypi-ttl` {#cache-pypi-ttl}
 
 Freshness TTL for cached PyPI metadata (seconds).
 
@@ -253,7 +253,7 @@ avoids redundant API calls while keeping data reasonably current.
 cache.pypi-ttl = 86400
 ```
 
-### `changelog.location`
+### `changelog.location` {#changelog-location}
 
 File path of the changelog, relative to the root of the repository.
 
@@ -266,7 +266,7 @@ File path of the changelog, relative to the root of the repository.
 changelog.location = "./changelog.md"
 ```
 
-### `dependency-graph.all-extras`
+### `dependency-graph.all-extras` {#dependency-graph-all-extras}
 
 Whether to include all optional extras in the graph.
 
@@ -282,7 +282,7 @@ When `True`, the `update-deps-graph` command behaves as if
 dependency-graph.all-extras = true
 ```
 
-### `dependency-graph.all-groups`
+### `dependency-graph.all-groups` {#dependency-graph-all-groups}
 
 Whether to include all dependency groups in the graph.
 
@@ -300,7 +300,7 @@ set this to `false`.
 dependency-graph.all-groups = true
 ```
 
-### `dependency-graph.level`
+### `dependency-graph.level` {#dependency-graph-level}
 
 Maximum depth of the dependency graph.
 
@@ -309,7 +309,7 @@ Maximum depth of the dependency graph.
 `None` means unlimited. `1` = primary deps only, `2` = primary +
 their deps, etc. Equivalent to `--level`.
 
-### `dependency-graph.no-extras`
+### `dependency-graph.no-extras` {#dependency-graph-no-extras}
 
 Optional extras to exclude from the graph.
 
@@ -325,7 +325,7 @@ over `dependency-graph.all-extras`.
 dependency-graph.no-extras = []
 ```
 
-### `dependency-graph.no-groups`
+### `dependency-graph.no-groups` {#dependency-graph-no-groups}
 
 Dependency groups to exclude from the graph.
 
@@ -341,7 +341,7 @@ over `dependency-graph.all-groups`.
 dependency-graph.no-groups = []
 ```
 
-### `dependency-graph.output`
+### `dependency-graph.output` {#dependency-graph-output}
 
 Path where the dependency graph Mermaid diagram should be written.
 
@@ -356,7 +356,7 @@ The dependency graph visualizes the project's dependency tree in Mermaid format.
 dependency-graph.output = "./docs/assets/dependencies.mmd"
 ```
 
-### `dev-release.sync`
+### `dev-release.sync` {#dev-release-sync}
 
 Whether dev pre-release sync is enabled for this project.
 
@@ -372,7 +372,7 @@ GitHub can set this to `false`.
 dev-release.sync = true
 ```
 
-### `docs.apidoc-exclude`
+### `docs.apidoc-exclude` {#docs-apidoc-exclude}
 
 Glob patterns for modules to exclude from `sphinx-apidoc`.
 
@@ -388,7 +388,7 @@ Passed as positional exclude arguments after the source directory
 docs.apidoc-exclude = []
 ```
 
-### `docs.apidoc-extra-args`
+### `docs.apidoc-extra-args` {#docs-apidoc-extra-args}
 
 Extra arguments appended to the `sphinx-apidoc` invocation.
 
@@ -404,7 +404,7 @@ Use this for project-specific options (e.g., `["--implicit-namespaces"]`).
 docs.apidoc-extra-args = []
 ```
 
-### `docs.update-script`
+### `docs.update-script` {#docs-update-script}
 
 Path to a Python script run after `sphinx-apidoc` to generate dynamic content.
 
@@ -420,7 +420,7 @@ directory for security. Set to an empty string to disable.
 docs.update-script = "./docs/docs_update.py"
 ```
 
-### `exclude`
+### `exclude` {#exclude}
 
 Additional components and files to exclude from repomatic operations.
 
@@ -442,7 +442,7 @@ Explicit CLI positional arguments override this list.
 exclude = []
 ```
 
-### `gitignore.extra-categories`
+### `gitignore.extra-categories` {#gitignore-extra-categories}
 
 Additional gitignore template categories to fetch from gitignore.io.
 
@@ -458,7 +458,7 @@ with the generated `.gitignore` content.
 gitignore.extra-categories = []
 ```
 
-### `gitignore.extra-content`
+### `gitignore.extra-content` {#gitignore-extra-content}
 
 Additional content to append at the end of the generated `.gitignore` file.
 
@@ -477,7 +477,7 @@ junit.xml
 '''
 ```
 
-### `gitignore.location`
+### `gitignore.location` {#gitignore-location}
 
 File path of the `.gitignore` to update, relative to the root of the repository.
 
@@ -490,7 +490,7 @@ File path of the `.gitignore` to update, relative to the root of the repository.
 gitignore.location = "./.gitignore"
 ```
 
-### `gitignore.sync`
+### `gitignore.sync` {#gitignore-sync}
 
 Whether `.gitignore` sync is enabled for this project.
 
@@ -506,7 +506,7 @@ to overwrite it can set this to `false`.
 gitignore.sync = true
 ```
 
-### `include`
+### `include` {#include}
 
 Components and files to force-include, overriding default exclusions.
 
@@ -526,7 +526,7 @@ implicitly select the parent component. Same syntax as `exclude`.
 include = []
 ```
 
-### `labels.extra-content-rules`
+### `labels.extra-content-rules` {#labels-extra-content-rules}
 
 Additional YAML rules appended to the content-based labeller configuration.
 
@@ -541,7 +541,7 @@ Appended to the bundled `labeller-content-based.yaml` during export.
 labels.extra-content-rules = ""
 ```
 
-### `labels.extra-file-rules`
+### `labels.extra-file-rules` {#labels-extra-file-rules}
 
 Additional YAML rules appended to the file-based labeller configuration.
 
@@ -556,7 +556,7 @@ Appended to the bundled `labeller-file-based.yaml` during export.
 labels.extra-file-rules = ""
 ```
 
-### `labels.extra-files`
+### `labels.extra-files` {#labels-extra-files}
 
 URLs of additional label definition files (JSON, JSON5, TOML, or YAML).
 
@@ -571,7 +571,7 @@ Each URL is downloaded and applied separately by `labelmaker`.
 labels.extra-files = []
 ```
 
-### `labels.sync`
+### `labels.sync` {#labels-sync}
 
 Whether label sync is enabled for this project.
 
@@ -587,7 +587,7 @@ labels workflow to overwrite them can set this to `false`.
 labels.sync = true
 ```
 
-### `mailmap.sync`
+### `mailmap.sync` {#mailmap-sync}
 
 Whether `.mailmap` sync is enabled for this project.
 
@@ -603,7 +603,7 @@ to overwrite it can set this to `false`.
 mailmap.sync = true
 ```
 
-### `notification.unsubscribe`
+### `notification.unsubscribe` {#notification-unsubscribe}
 
 Whether the unsubscribe-threads workflow is enabled.
 
@@ -620,7 +620,7 @@ PAT with `notifications` scope stored as `REPOMATIC_NOTIFICATIONS_PAT`.
 notification.unsubscribe = false
 ```
 
-### `nuitka.enabled`
+### `nuitka.enabled` {#nuitka-enabled}
 
 Whether Nuitka binary compilation is enabled for this project.
 
@@ -637,7 +637,7 @@ to `false` to opt out of Nuitka compilation.
 nuitka.enabled = true
 ```
 
-### `nuitka.entry-points`
+### `nuitka.entry-points` {#nuitka-entry-points}
 
 Which `[project.scripts]` entry points produce Nuitka binaries.
 
@@ -656,7 +656,7 @@ when a project declares alias entry points (like both `mpm` and
 nuitka.entry-points = []
 ```
 
-### `nuitka.extra-args`
+### `nuitka.extra-args` {#nuitka-extra-args}
 
 Extra Nuitka CLI arguments for binary compilation.
 
@@ -672,7 +672,7 @@ Project-specific flags (e.g., `--include-data-files`,
 nuitka.extra-args = []
 ```
 
-### `nuitka.unstable-targets`
+### `nuitka.unstable-targets` {#nuitka-unstable-targets}
 
 Nuitka build targets allowed to fail without blocking the release.
 
@@ -689,7 +689,7 @@ release workflow from succeeding.
 nuitka.unstable-targets = []
 ```
 
-### `pypi-package-history`
+### `pypi-package-history` {#pypi-package-history}
 
 Former PyPI package names for projects that were renamed.
 
@@ -706,7 +706,7 @@ release metadata from all names and generate correct PyPI URLs.
 pypi-package-history = []
 ```
 
-### `setup-guide`
+### `setup-guide` {#setup-guide}
 
 Whether the setup guide issue is enabled for this project.
 
@@ -722,7 +722,7 @@ own PAT setup can set this to `false` to suppress the setup guide issue.
 setup-guide = true
 ```
 
-### `skills.location`
+### `skills.location` {#skills-location}
 
 Directory prefix for Claude Code skill files, relative to the repository root.
 
@@ -739,7 +739,7 @@ dotfiles repos that store configs under a subdirectory).
 skills.location = "./.claude/skills/"
 ```
 
-### `test-matrix.exclude`
+### `test-matrix.exclude` {#test-matrix-exclude}
 
 Extra exclude rules applied to both full and PR test matrices.
 
@@ -756,7 +756,7 @@ Additive to the upstream default excludes.
 test-matrix.exclude = []
 ```
 
-### `test-matrix.include`
+### `test-matrix.include` {#test-matrix-include}
 
 Extra include directives applied to both full and PR test matrices.
 
@@ -772,7 +772,7 @@ matrix combinations. Additive to the upstream default includes.
 test-matrix.include = []
 ```
 
-### `test-matrix.remove`
+### `test-matrix.remove` {#test-matrix-remove}
 
 Per-axis value removals applied to both full and PR test matrices.
 
@@ -782,7 +782,7 @@ Outer key is the variation/axis ID (e.g., `os`, `python-version`).
 Inner list contains values to drop from that axis. Applied after
 replacements but before excludes, includes, and variations.
 
-### `test-matrix.replace`
+### `test-matrix.replace` {#test-matrix-replace}
 
 Per-axis value replacements applied to both full and PR test matrices.
 
@@ -792,7 +792,7 @@ Outer key is the variation/axis ID (e.g., `os`, `python-version`).
 Inner dict maps old values to new values. Applied before removals,
 excludes, includes, and variations.
 
-### `test-matrix.variations`
+### `test-matrix.variations` {#test-matrix-variations}
 
 Extra matrix dimension values added to the full test matrix only.
 
@@ -803,7 +803,7 @@ is a list of additional entries. For existing dimensions, values are merged
 with the upstream defaults. For new dimension IDs, a new axis is created.
 Only affects the full matrix; the PR matrix stays a curated reduced set.
 
-### `test-plan.file`
+### `test-plan.file` {#test-plan-file}
 
 Path to the YAML test plan file for binary testing.
 
@@ -819,7 +819,7 @@ Each test case specifies command-line arguments and expected output patterns.
 test-plan.file = "./tests/cli-test-plan.yaml"
 ```
 
-### `test-plan.inline`
+### `test-plan.inline` {#test-plan-inline}
 
 Inline YAML test plan for binaries.
 
@@ -828,7 +828,7 @@ Inline YAML test plan for binaries.
 Alternative to `test_plan_file`. Allows specifying the test plan directly in
 `pyproject.toml` instead of a separate file.
 
-### `test-plan.timeout`
+### `test-plan.timeout` {#test-plan-timeout}
 
 Timeout in seconds for each binary test.
 
@@ -837,7 +837,7 @@ Timeout in seconds for each binary test.
 If set, each test command will be terminated after this duration. `None` means no
 timeout (tests can run indefinitely).
 
-### `uv-lock.sync`
+### `uv-lock.sync` {#uv-lock-sync}
 
 Whether `uv.lock` sync is enabled for this project.
 
@@ -853,7 +853,7 @@ Projects that manage their own lock file strategy and do not want the
 uv-lock.sync = true
 ```
 
-### `vulnerable-deps.sources`
+### `vulnerable-deps.sources` {#vulnerable-deps-sources}
 
 Advisory databases to consult for known vulnerabilities.
 
@@ -878,7 +878,7 @@ enabled — can opt out with `sources = ["uv-audit"]`.
 vulnerable-deps.sources = ["uv-audit", "github-advisories"]
 ```
 
-### `vulnerable-deps.sync`
+### `vulnerable-deps.sync` {#vulnerable-deps-sync}
 
 Whether the `fix-vulnerable-deps` job is enabled for this project.
 
@@ -894,7 +894,7 @@ this to `false` to skip the autofix job.
 vulnerable-deps.sync = true
 ```
 
-### `workflow.extra-paths`
+### `workflow.extra-paths` {#workflow-extra-paths}
 
 Literal entries to append to every workflow's `paths:` filter.
 
@@ -914,7 +914,7 @@ for a given filename, that entry is treated as the complete list.
 workflow.extra-paths = []
 ```
 
-### `workflow.ignore-paths`
+### `workflow.ignore-paths` {#workflow-ignore-paths}
 
 Literal entries to strip from every workflow's `paths:` filter.
 
@@ -933,7 +933,7 @@ Per-workflow overrides in `paths` ignore this list.
 workflow.ignore-paths = []
 ```
 
-### `workflow.paths`
+### `workflow.paths` {#workflow-paths}
 
 Per-workflow override of the `paths:` filter, keyed by filename.
 
@@ -953,7 +953,7 @@ Example:
     [tool.repomatic.workflow.paths]
     "tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
 
-### `workflow.source-paths`
+### `workflow.source-paths` {#workflow-source-paths}
 
 Source code directory names for workflow trigger `paths:` filters.
 
@@ -968,7 +968,7 @@ When `None` (default), source paths are auto-derived from
 underscores — the universal Python convention. For example,
 `name = "extra-platforms"` automatically uses `["extra_platforms"]`.
 
-### `workflow.sync`
+### `workflow.sync` {#workflow-sync}
 
 Whether workflow sync is enabled for this project.
 

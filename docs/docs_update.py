@@ -168,8 +168,9 @@ def config_deflist() -> str:
         head, _, tail = full.partition("\n\n")
         short = " ".join(head.split())
         rest = tail.strip()
+        slug = _option_slug(option)
 
-        lines.append(f"### {option}")
+        lines.append(f"### {option} {{#{slug}}}")
         lines.append("")
         if short:
             lines.append(short)
