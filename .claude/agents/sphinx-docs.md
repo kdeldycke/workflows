@@ -102,8 +102,9 @@ Conversion lifecycle:
 
 Extension load order (the rule, with the rationale):
 
-- `repomatic.myst_docstrings` must be listed in `extensions = [...]` *before* `sphinx_autodoc_typehints`. Both hook `autodoc-process-docstring`; conversion has to run first or the typehints extension sees half-converted text.
+- `repomatic.myst_docstrings` must be listed in `extensions = [...]` *before* `sphinx_autodoc_typehints`. Both hook `autodoc-process-docstring`; conversion has to run first or the typehints extension sees half-converted text. The concrete failure mode if the order is wrong: the inline-code converter doubles the backticks inside domain-qualified roles (like `` :py:obj:`None` ``) that `sphinx_autodoc_typehints` injects, producing visible `` ``...`` `` in the rendered HTML.
 - The extension enforces this at load time and raises `ExtensionError` if the order is wrong, so downstream repos that misorder get a clear failure on first build instead of a silent rendering bug.
+- Downstream repos that adopt `repomatic.myst_docstrings` must also add `repomatic` to their `[dependency-groups] docs` in `pyproject.toml` (the package must be importable at build time). Pin to a recent minor (e.g., `repomatic>=6.14`) so older bug fixes don't propagate.
 
 Admonition fence style:
 
@@ -116,9 +117,140 @@ Cross-references that survive renames:
 - Always cross-reference external projects through `intersphinx_mapping` and a `{role}` ref, not a bare URL. A renamed function in click-extra surfaces as a Sphinx build error; a bare URL silently 404s in the rendered HTML.
 - For headings, prefer the auto-generated docutils anchor (e.g., `### option.name` → `option-name`). Add an explicit `(my-anchor)=` only when the natural anchor isn't unique or the target isn't a heading. (See `CLAUDE.md` § Code style for the markdown-anchor rule.)
 
+## Standard extension set
+
+The canonical `extensions = [...]` block for a Sphinx site in this lineage:
+
+```python
+extensions = [
+    # Core Sphinx.
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+    # UI/UX add-ons.
+    "sphinx_copybutton",
+    "sphinx_design",
+    "sphinxext.opengraph",
+    # MyST and live CLI rendering.
+    "myst_parser",
+    # Adopt only when the project authors docstrings in MyST. Hooks
+    # `autodoc-process-docstring` at priority 400; must precede
+    # `sphinx_autodoc_typehints` (default 500) to avoid double-backticking
+    # the `:py:obj:` roles the typehints extension injects.
+    "repomatic.myst_docstrings",
+    "sphinx_autodoc_typehints",
+    "click_extra.sphinx",
+    "sphinxcontrib.mermaid",
+]
+```
+
+Choices that are project-specific:
+
+- **`repomatic.myst_docstrings`** — only when the project authors docstrings in MyST. Skip on projects still on reST (some sibling repos run `click_extra.sphinx` without the MyST docstring extension).
+- **`sphinx_click` vs `click_extra.sphinx`** — `click_extra.sphinx` provides the `{click:run}`/`{click:source}` directives this lineage uses for live CLI rendering. `sphinx_click` provides the `.. click::` autodoc-style directive for sub-command tree generation. They serve different output shapes and can coexist (e.g., `meta-package-manager` uses both: `sphinx_click` for the auto-generated tree, `click_extra.sphinx` for invocation rendering). Default to `click_extra.sphinx` only; add `sphinx_click` when the project needs an auto-generated command tree.
+- **`sphinxcontrib.mermaid`** — pair with `myst_fence_as_directive = ["mermaid"]` so authors write ```` ```mermaid ```` (without curly braces) and the directive still fires. Comment block scalar in `conf.py`: `# Allow ```mermaid``` without curly braces, see https://github.com/mgaitan/sphinxcontrib-mermaid/issues/99#issuecomment-2339587001`. Keep `mermaid_d3_zoom = True` so dependency-graph diagrams remain navigable.
+- **`sphinx_issues`** — **don't adopt**. The extension's `:issue:`/`:pr:`/`:user:`/`:commit:` roles only render inside Sphinx, so the same source files (changelogs, docstrings, comments) display as raw `` :issue:`1234` `` text everywhere else: GitHub's markdown viewer in the repo browser, IDE previews, `pip show`, the PyPI long-description page, downstream tooling reading the changelog. Replace these roles with explicit GitHub URLs that work in every renderer and keep the changelog identically readable on GitHub and on the docs site. See § Migrating off `sphinx_issues`.
+
+Standard `myst_enable_extensions`, alphabetized (omit only when the project demonstrably doesn't use the syntax):
+
+- `attrs_block`, `attrs_inline` — class/style attributes on blocks and inline spans.
+- `colon_fence` — also enables GitHub `[!NOTE]` admonitions when paired with `myst_parser` ≥ 3.
+- `deflist` — definition lists (`term : definition`).
+- `fieldlist` — `:param:`, `:return:` field lists in MyST source.
+- `replacements` — typographic replacements (`(c)` → ©, etc.).
+- `smartquotes` — curly quotes.
+- `strikethrough` — `~~text~~`. Triggers `myst.strikethrough` warnings when building non-HTML; suppress those (see § `suppress_warnings` governance) rather than dropping the extension.
+- `tasklist` — GitHub-style `- [ ]` checkboxes.
+
+## Migrating off `sphinx_issues`
+
+When a repo carries `sphinx_issues` roles, replace them with explicit GitHub URLs in one PR per repo. The roles and their URL equivalents (where `{owner}/{repo}` is the project's GitHub slug):
+
+| `sphinx_issues` role     | Replacement                                            |
+| :----------------------- | :----------------------------------------------------- |
+| `` {issue}`N` ``         | `[#N](https://github.com/{owner}/{repo}/issues/N)`     |
+| `` {pr}`N` ``            | `[#N](https://github.com/{owner}/{repo}/pull/N)`       |
+| `` {user}`name` ``       | `[@name](https://github.com/name)`                     |
+| `` {commit}`sha` ``      | `` [`sha`](https://github.com/{owner}/{repo}/commit/sha) `` |
+| reST `` :issue:`N` ``    | same as `` {issue}`N` `` (some Python source files predate the MyST migration; the reST forms surface the same warning as MyST forms outside Sphinx). |
+
+GitHub redirects `/issues/N` ↔ `/pull/N` based on the entity's actual type, so a typo between `issue` and `pr` still resolves; mirror the original role's intent anyway so the URL is self-documenting.
+
+For cross-repo references that worked via role-side prefixing (`` :issue:`astanin/python-tabulate#151` ``), use the full GitHub URL: `[astanin/python-tabulate#151](https://github.com/astanin/python-tabulate/issues/151)`.
+
+After replacing every occurrence:
+
+1. Drop `"sphinx_issues"` from `extensions` in `conf.py`.
+2. Drop `"sphinx-issues>=…"` from `[dependency-groups] docs` in `pyproject.toml`.
+3. Drop `issues_github_path = …` from `conf.py` if the variable isn't read by any other extension.
+4. Build `sphinx-build -W` to confirm no orphan references survive.
+
+A Python helper to run the migration in-place (handles MyST roles, reST roles, and cross-repo prefixed forms):
+
+```python
+import re
+from pathlib import Path
+
+OWNER_REPO = "kdeldycke/click-extra"  # adjust per repo.
+
+PATTERNS = [
+    # MyST roles.
+    (re.compile(r"\{issue\}`([^`]+)`"), lambda m: _link("issues", m.group(1))),
+    (re.compile(r"\{pr\}`([^`]+)`"), lambda m: _link("pull", m.group(1))),
+    (re.compile(r"\{user\}`([^`]+)`"), lambda m: f"[@{m.group(1)}](https://github.com/{m.group(1)})"),
+    (re.compile(r"\{commit\}`([^`]+)`"), lambda m: f"[`{m.group(1)}`](https://github.com/{OWNER_REPO}/commit/{m.group(1)})"),
+    # reST roles (in .py files and stale .rst).
+    (re.compile(r":issue:`([^`]+)`"), lambda m: _link("issues", m.group(1))),
+    (re.compile(r":pr:`([^`]+)`"), lambda m: _link("pull", m.group(1))),
+    (re.compile(r":user:`([^`]+)`"), lambda m: f"[@{m.group(1)}](https://github.com/{m.group(1)})"),
+    (re.compile(r":commit:`([^`]+)`"), lambda m: f"[`{m.group(1)}`](https://github.com/{OWNER_REPO}/commit/{m.group(1)})"),
+]
+
+
+def _link(kind, target):
+    # Handle cross-repo refs like `astanin/python-tabulate#151` and labelled forms `text <N>`.
+    m = re.match(r"(.+) <(.+)>", target)
+    if m:
+        label, ref = m.groups()
+    else:
+        label = ref = target
+    if "#" in ref:
+        repo, num = ref.split("#", 1)
+        url = f"https://github.com/{repo}/{kind}/{num}"
+        text = f"{repo}#{num}" if label == ref else label
+    else:
+        url = f"https://github.com/{OWNER_REPO}/{kind}/{ref}"
+        text = f"#{ref}" if label == ref else label
+    return f"[{text}]({url})"
+
+
+for path in Path(".").rglob("*"):
+    if path.suffix not in {".md", ".rst", ".py"} or not path.is_file():
+        continue
+    text = path.read_text(encoding="utf-8")
+    for pattern, replacement in PATTERNS:
+        text = pattern.sub(replacement, text)
+    path.write_text(text, encoding="utf-8")
+```
+
+For Python source files (where the role appeared inside docstrings or comments), the replacement keeps the same `[#N](url)` form since `repomatic.myst_docstrings` recognizes Markdown links inside docstrings; `:issue:` in a `# comment` was never rendered anyway and becomes a plain link.
+
 ## Auto-generated reference tables
 
-For `pyproject.toml` schemas, CLI command lists, and tool registries, generate the markdown from the source of truth. The pattern: a `docs/docs_update.py` script writes between `<!-- start -->`/`<!-- end -->` markers, invoked by the upstream `docs.yaml` workflow via `repomatic update-docs`.
+For `pyproject.toml` schemas, CLI command lists, and tool registries, generate the markdown from the source of truth. The pattern: a `docs/docs_update.py` script writes between named auto-region markers, invoked by the upstream `docs.yaml` workflow via `repomatic update-docs`.
+
+**Marker naming convention.** Use descriptive `<!-- {feature}-{kind}-start -->` / `<!-- {feature}-{kind}-end -->` pairs, never bare `<!-- start -->`/`<!-- end -->`. Rationale: a single doc page often holds two or three auto-regions (a summary table, a Mermaid graph, an autodata block). Bare markers force the regenerator to use index-based dispatch and break the moment a region is reordered or removed; named markers stay correct under any rearrangement and grep cleanly. Examples from the lineage:
+
+- `<!-- managers-sankey-start -->` / `<!-- managers-sankey-end -->` (a Mermaid sankey of supported managers).
+- `<!-- operation-matrix-start -->` / `<!-- operation-matrix-end -->` (a feature-coverage table).
+- `<!-- pytest-decorators-autodata-start -->` / `<!-- pytest-decorators-autodata-end -->` (autodata blocks for pytest fixtures).
+- `<!-- cli-reference-start -->` / `<!-- cli-reference-end -->` (the auto-generated CLI command tree in `cli.md`).
+
+Pick the `{feature}` slug from the canonical name of the source-of-truth (registry name, dataclass name, command path); pick the `{kind}` slug from the output shape (`table`, `sankey`, `mindmap`, `autodata`, `automodule`, `autodoc`, `reference`).
+
+When a page has only one auto-region, still name it: cheap insurance against a future second region, and consistency across the doc tree.
 
 When extracting attribute docstrings via AST, use `inspect.cleandoc`, not `textwrap.dedent`. `cleandoc` follows PEP 257: it ignores the first line's indent (zero, because docstrings open with `"""Text...`) and dedents subsequent lines based on their common indent. `textwrap.dedent` returns the input unchanged when the first line has no leading whitespace, leaving stray 4-space indents on every continuation line.
 
@@ -230,7 +362,36 @@ Development toctree, in this order:
 Page-shape rules that apply across the roster:
 
 - **Single-source content with `{include}`.** `changelog.md`, `code-of-conduct.md`, `license.md`, and `contributing.md` should `{include}` the root-level file when one exists. Two copies drift; one copy is enforced.
-- **Title octicons.** Every top-level page heading uses an `{octicon}` icon for visual scanning: `# {octicon}\`download\` Installation`, `# {octicon}\`command-palette\` CLI`, etc. Not just decoration — the Furo theme's sidebar uses them as visual anchors.
+- **Title octicons.** Every top-level page heading uses an `{octicon}` icon for visual scanning: `# {octicon}\`download\` Installation`, `# {octicon}\`command-palette\` CLI`, etc. Not just decoration — the Furo theme's sidebar uses them as visual anchors. Canonical icon registry, alphabetized:
+
+  | Page                  | Octicon            |
+  | :-------------------- | :----------------- |
+  | `agents.md`           | `dependabot`       |
+  | `architectures.md`    | `cpu`              |
+  | `benchmark.md`        | `trophy`           |
+  | `changelog.md`        | `diff`             |
+  | `cli.md`              | `command-palette`  |
+  | `code-of-conduct.md`  | `code-of-conduct`  |
+  | `configuration.md`    | `sliders`          |
+  | `contributing.md`     | `git-pull-request` |
+  | `dependencies.md`     | `package-dependents` |
+  | `falsehoods.md`       | `unverified`       |
+  | `history.md`          | `log`              |
+  | `install.md`          | `download`         |
+  | `license.md`          | `law`              |
+  | `myst-docstrings.md`  | `pencil`           |
+  | `operation-contracts.md` | `checklist`     |
+  | `platforms.md`        | `codespaces`       |
+  | `releasing.md`        | `rocket`           |
+  | `security.md`         | `shield-check`     |
+  | `shells.md`           | `terminal`         |
+  | `skills.md`           | `mortar-board`     |
+  | `tests.md`            | `meter`            |
+  | `tool-runner.md`      | `tools`            |
+  | `usecase.md`          | `light-bulb`       |
+  | `workflows.md`        | `workflow`         |
+
+  When introducing a page that's not in the table, pick the closest [GitHub Octicon](https://primer.style/foundations/icons) and add the entry here so the next repo follows suit.
 - **Sentence case in titles.** "Repository conventions", not "Repository Conventions" (per `CLAUDE.md` § Code style).
 - **`{include}` external readme last in body.** `index.md`'s body is typically `{include} ../readme.md`. Avoid duplicating the readme content elsewhere in `docs/`.
 - **External links go in the toctree, not the body.** Putting `GitHub repository` and `Funding` in the toctree gives them sidebar entries on every page; in the body they only show on the landing page.
@@ -273,7 +434,15 @@ MyST and theme config:
 Linkcheck and intersphinx:
 
 - `linkcheck_anchors_ignore` is for *known* JS-rendered anchors (GitHub `issuecomment-`, README anchors, `Lnnn` blob lines). Each pattern needs a one-line comment naming the source. Don't add catch-all patterns to silence linkcheck — fix the broken link instead.
-- `linkcheck_ignore` is for hosts that 403 bots or have flaky availability. Each entry needs a one-line comment naming the host and reason. Re-test on every release; remove patterns that have started working again.
+- `linkcheck_anchors_ignore_for_url` (Sphinx ≥ 7.1) silences anchor checks on a per-host basis instead of a per-anchor basis. Use it for hosts whose entire anchor set is JS-rendered (e.g., `r"https://github\.com/"`) instead of a stack of individual anchor patterns. Fewer entries to maintain, fewer false positives when the host adds new fragment shapes.
+- `linkcheck_ignore` is for hosts that 403 bots or have flaky availability. Each entry needs a one-line comment naming the host and reason. Re-test on every release; remove patterns that have started working again. Categorize entries so the comment style matches the cause:
+
+  | Category | Examples | Comment style |
+  | :------- | :------- | :------------ |
+  | Bot-blocked (403/418) | `docutils.sourceforge.io`, `guix.gnu.org`, `slackware.com`, `freedesktop.org`, `zenodo.org` | `# {host} returns 403 to bots but is valid.` |
+  | Auth-required | `claude.ai/code`, internal tools | `# {host} requires authentication.` |
+  | Client-side fragments | `github.com/.../runner-images#...`, `github.com/.../README#...` | `# Fragment anchors rendered client-side.` (prefer `linkcheck_anchors_ignore_for_url` when possible). |
+  | CI flakiness | `gnu.org`, `midnightbsd.org` | `# Intermittently unreachable from CI.` |
 - `intersphinx_mapping` should cover every external project the docs cross-reference. Use `{role}` cross-refs in prose instead of bare URLs so a project move shows up as a build error, not a silent 404 in the rendered HTML.
 
 Strictness flags:
@@ -281,12 +450,46 @@ Strictness flags:
 - `nitpicky = True` is the default in this lineage. Missing references fail the build instead of producing a half-rendered page. Don't disable it; fix the missing target.
 - `autosectionlabel_prefix_document = True` avoids duplicate-label warnings when two pages have the same heading. Pair with `autosectionlabel = True` in extensions.
 
+`suppress_warnings` governance:
+
+- The list is **not a dumping ground for noise**. Every entry must have a comment naming the example warning text and a one-paragraph explanation of why suppression is the right answer (rather than a fix). Without that paragraph, the entry rots: a future reader can't tell whether the underlying issue is still present or whether the suppression hides a real bug.
+- Suppress only **categories with no actionable fix**: third-party extension limitations, intentional design choices that trip a check, dynamically-generated symbols autodoc can't see. Never suppress to make a build green during a refactor — fix the root cause.
+- Canonical entries observed across sibling repos:
+  - `sphinx_autodoc_typehints.forward_reference` — pytest decorators dynamically generated at import time; pytest's `Mark` type is unavailable during the docs build. Cosmetic.
+  - `myst.directive` — empty mermaid directives produced by automated diagram generators with sparse data.
+  - `myst.xref_missing` — MyST validates anchors before autodoc generates them; false positives only.
+  - `myst.domains` — upstream limitation in `click_extra.sphinx` (no `resolve_any_xref` method on the click domain).
+  - `myst.strikethrough` — `~~text~~` marks deprecated/incorrect spellings in docstrings; the project ships HTML only.
+  - `myst.header` — `readme.md` starts at `## ` because GitHub supplies the H1 from the repo name; intentional.
+  - `docutils` — code examples in docstrings whose indentation trips reST parsing; usually in test fixtures.
+- On every Sphinx or extension upgrade, sweep `suppress_warnings` and re-run a clean build with the entry removed. If the warning no longer fires, drop the entry in the same PR.
+
+`nitpick_ignore` governance:
+
+- Use `nitpick_ignore = [(domain_role, target), ...]` for legitimate references the cross-ref machinery cannot resolve, not as a workaround for typos. Common case: a private base class that is intentionally excluded from public docs but is referenced by `sphinx_autodoc_typehints` in concrete subclasses (e.g., `("py:class", "extra_platforms.trait._Identifiable")`).
+- Each entry stays close to its source: comment with the exact name and one line on why the target is intentionally absent from public docs.
+
+Theme assets and OpenGraph:
+
+- `html_logo = "assets/logo-square.svg"` and `html_favicon = "assets/favicon.svg"` are the canonical paths. Both files live under `docs/assets/` and ship as SVG so the Furo theme's dark-mode swap works without a separate asset bundle. The `/brand-assets` skill is the canonical producer of these files: it manages the SVG sources (favicon, square logo, banner, social banner), exports light/dark PNG variants, and wires the new files into `docs/conf.py`. When `html_logo`/`html_favicon` are missing or out of date, run `/brand-assets` instead of editing the assets by hand.
+- `ogp_image = "assets/banner-social-light.png"` — set when the project has a banner asset for social previews. Without `ogp_image`, `sphinxext.opengraph` falls back to the favicon, which scales poorly. The PNG is exported from `assets/banner-social.svg` by the `/brand-assets` skill (which also produces the dark variant for dark-mode social cards on platforms that support them).
+- The Furo `announcement` banner template across this lineage references the same `github_user` constant defined at the top of `conf.py`. Rebuilding the announcement string locally inside `html_theme_options` avoids a per-theme override layer.
+
 Pruning checklist before merging any `conf.py` change:
 
 1. Is every setting the file modifies non-default? If equal to default, delete.
 2. Does every non-default setting have either an obvious purpose or a one-line comment?
 3. Does the comment block above an exception (extension order, theme override) name the upstream issue or hook priority that motivates it?
 4. Does `sphinx-build -W` complete without warnings on the touched branch?
+
+## Sphinx tests
+
+The build itself is the strongest test: `sphinx-build -W` fails on missing references, broken `{click:run}` examples, and unresolved typehints. Beyond that, two test patterns recur in this lineage and are worth keeping in mind:
+
+- **CLI directive tests** (e.g., `tests/sphinx/test_sphinx_click.py` in `click-extra`). Cover `{click:run}` and `{click:source}` directive options (`:show-source:`, `:hide-results:`, `:emphasize-lines:`, language overrides), runner-namespace persistence across blocks, exit-code propagation, and isolated-filesystem helpers. Only relevant for projects that *publish* their own Sphinx directive; consumer projects use the directives without testing them.
+- **Cross-reference render tests** (e.g., `tests/test_sphinx_crossrefs.py` in `extra-platforms`). Build the docs once via a `built_docs()` fixture, then parametrize over `(source page, link text, expected href)` triples to assert that rendered links resolve to the right anchors. Catches: a `{data}` cross-ref that silently 404s, a renamed symbol whose autodoc anchor changed, an `intersphinx_mapping` URL that drifted. Use `pytest.mark.xdist_group("sphinx")` so the build runs in a single worker; gate the test on the docs floor (Linux + minimum Python the docs require).
+
+When introducing a new doc convention worth defending mechanically (e.g., "every CLI option must have an anchor"), prefer a render test over prose: a test that walks the rendered HTML catches drift the moment it lands, while a prose rule depends on a future reader noticing the violation.
 
 ## Knowledge placement
 
@@ -322,6 +525,10 @@ Watch for these every pass:
 - A `## Development` section in `readme.md` that should have been removed when the project added a `claude.md`. Once `claude.md` exists, the developer-facing setup goes there; keeping a duplicated section in the readme creates two places to update.
 - A `dependencies.md` page whose embedded Mermaid graph hasn't been regenerated since the last `uv lock` change. The graph stays in sync only if `repomatic update-deps-graph` is wired into the autofix workflow; manual regeneration drifts.
 - `pyproject.toml` declaring a docs dependency that's no longer imported by `conf.py` (or vice-versa: importing one not declared). The mismatch passes Sphinx but trips a fresh `uv sync --group docs` run on a CI runner.
+- `repomatic.myst_docstrings` listed in `extensions` without `repomatic` declared in `[dependency-groups] docs`. Builds work on the maintainer's machine if `repomatic` is installed globally, then break in CI.
+- `suppress_warnings` entries that no longer fire because the upstream extension was fixed. Sweep on every upgrade — entries should grow stale and be removed, not accumulate.
+- Auto-region markers using bare `<!-- start -->` / `<!-- end -->` instead of named `<!-- {feature}-{kind}-start -->`. Migrate on first touch; the regenerator must be updated in the same commit.
+- Two pages on the same project using different octicons for the same concept (e.g., one page uses `book` for documentation, another uses `pencil`). Pick from the canonical registry in § Standard page roster › Title octicons; if none fit, add to the table.
 
 ## Coordination
 

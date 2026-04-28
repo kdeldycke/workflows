@@ -27,6 +27,8 @@ If `sphinx.ext.autodoc` is absent, the `autodoc-process-docstring` event never f
 
 ```{warning}
 If you also use `sphinx_autodoc_typehints`, list `repomatic.myst_docstrings` **before** it in the `extensions` list. The extension registers its `autodoc-process-docstring` hook at priority 400 (vs the default 500 used by `sphinx_autodoc_typehints`), so MyST-to-reST conversion always runs first regardless of registration order. Listing it first makes the intent explicit and is enforced at load time: if `sphinx_autodoc_typehints` is already registered when `repomatic.myst_docstrings` loads, the build fails with a clear error.
+
+The concrete failure mode if the order is wrong: the inline-code converter doubles the backticks inside domain-qualified roles (like `` :py:obj:`None` ``) that `sphinx_autodoc_typehints` injects into the docstring after type-hint resolution. The result is visible `` ``...`` `` in the rendered HTML around return-type annotations.
 ```
 
 ### 2. Add the dependency
