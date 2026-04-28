@@ -14,9 +14,7 @@ $ git commit -m "Update repomatic files"
 $ git push
 ```
 
-This **works for both new and existing repositories** — managed files (workflows, configs, skills) are always regenerated to the latest version. The only exception is `changelog.md`, which is never overwritten once it exists. The workflows will start running and guide you through any remaining setup (like [creating a `REPOMATIC_PAT` secret](security.md#permissions-and-token)) via issues and PRs in your repository. After that, the [autofix workflow](workflows.md#github-workflows-autofix-yaml-jobs) handles ongoing sync.
-
-Run `repomatic init --help` to see available components and options.
+Works for both new and existing repositories. Run `repomatic init --help` to see available components and options: the workflows then take it from there, opening issues and PRs to guide any remaining setup.
 
 ## Try it
 
@@ -46,23 +44,49 @@ $ uvx --from "repomatic @ git+https://github.com/kdeldycke/repomatic" -- repomat
 
 ## Install methods
 
+`repomatic` is available on a couple of package managers:
+
 `````{tab-set}
 
 ````{tab-item} uv
-```shell-session
+Easiest way is to [install `uv`](https://docs.astral.sh/uv/getting-started/installation/), then install `repomatic` system-wide with the [`uv tool`](https://docs.astral.sh/uv/guides/tools/#installing-tools) command:
+
+```{code-block} shell-session
 $ uv tool install repomatic
 ```
 ````
 
+````{tab-item} pip
+You can install the latest stable release and its dependencies with a simple `pip` call:
+
+```{code-block} shell-session
+$ python -m pip install repomatic
+```
+
+If you have difficulties to use `pip`, see [`pip`'s own installation instructions](https://pip.pypa.io/en/stable/installation/).
+````
+
 ````{tab-item} pipx
-```shell-session
+[`pipx`](https://pipx.pypa.io/stable/installation/) is a great way to install Python applications globally:
+
+```{code-block} shell-session
 $ pipx install repomatic
 ```
 ````
 
-````{tab-item} pip
-```shell-session
-$ pip install repomatic
+````{tab-item} Arch Linux
+A `repomatic` package is [available on AUR](https://aur.archlinux.org/packages/python-repomatic) and can be installed with any AUR helper:
+
+```{code-block} shell-session
+$ yay -S python-repomatic
+```
+
+```{code-block} shell-session
+$ paru -S python-repomatic
+```
+
+```{code-block} shell-session
+$ pacaur -S python-repomatic
 ```
 ````
 
