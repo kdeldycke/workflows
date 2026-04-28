@@ -864,8 +864,7 @@ Recognized values:
 - `"uv-audit"`: PyPA Advisory Database via `uv audit` (works locally
   and in CI without a GitHub token).
 - `"github-advisories"`: GitHub Advisory Database via the repository's
-  Dependabot alerts (CI-only, requires a token with `Dependabot
-  alerts: Read-only`).
+  Dependabot alerts (CI-only, requires a token with `Dependabot alerts: Read-only`).
 
 Sources are unioned and deduplicated by `(package, advisory_id)`.
 Repositories that distrust GHSA — or have no Dependabot alerts
@@ -950,8 +949,10 @@ keep their unrestricted trigger semantics.
 
 Example:
 
-    [tool.repomatic.workflow.paths]
-    "tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
+```
+[tool.repomatic.workflow.paths]
+"tests.yaml" = ["install.sh", "packages.toml", ".github/workflows/tests.yaml"]
+```
 
 ### `workflow.source-paths`
 
