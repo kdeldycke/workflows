@@ -31,18 +31,6 @@ CLI_MD = REPO_ROOT / "docs" / "cli.md"
 CONFIGURATION_MD = REPO_ROOT / "docs" / "configuration.md"
 TOOL_RUNNER_MD = REPO_ROOT / "docs" / "tool-runner.md"
 
-# The --config default path includes a platform-specific directory
-# (~/Library/Application Support/ on macOS, ~/.config/ on Linux, etc.).
-# Different path lengths also cause different line-wrapping in the help output.
-# Strip the entire --config block (from "--config" to "--no-config") so the
-# docs (written on macOS) match CI (Linux/Windows).
-_CONFIG_OPTION_RE = re.compile(r"  --config CONFIG_PATH.+?(?=  --no-config)", re.DOTALL)
-
-
-def _normalize_config_path(text: str) -> str:
-    """Strip the platform-specific --config option block."""
-    return _CONFIG_OPTION_RE.sub("", text)
-
 
 def _parse_tool_runner_table() -> dict[str, str]:
     """Parse the combined tool table in docs/tool-runner.md.
@@ -68,16 +56,25 @@ def _parse_tool_runner_table() -> dict[str, str]:
     return result
 
 
-def test_docs_cli_help_matches() -> None:
-    """CLI help output in docs/cli.md must match actual ``repomatic --help``."""
-    runner = CliRunner()
-    result = runner.invoke(repomatic, ["--no-color", "--help"])
-    assert result.exit_code == 0
-    assert result.output, "No output from `repomatic --help`"
+def test_docs_cli_reference_covers_all_commands() -> None:
+    """Every command must have a ``{click:run}`` directive in docs/cli.md.
+
+    Help text is rendered live by ``click_extra.sphinx`` at build time, so we
+    only check that each command path has a directive block invoking it.
+    """
     cli_text = CLI_MD.read_text(encoding="UTF-8")
-    assert _normalize_config_path(result.output.rstrip()) in _normalize_config_path(
-        cli_text
-    ), "CLI help output in docs/cli.md is out of sync. Re-run: repomatic update-docs"
+    paths: list[list[str]] = [["--help"]]
+    for name, cmd in repomatic.commands.items():
+        paths.append([name, "--help"])
+        if hasattr(cmd, "commands"):
+            paths.extend([name, sub, "--help"] for sub in cmd.commands)
+    for path in paths:
+        args_repr = ", ".join(repr(a) for a in path)
+        invocation = f"invoke(repomatic, args=[{args_repr}])"
+        assert invocation in cli_text, (
+            f"Missing {{click:run}} block for `{path}` in docs/cli.md. "
+            "Re-run: repomatic update-docs"
+        )
 
 
 def test_docs_config_table_matches() -> None:

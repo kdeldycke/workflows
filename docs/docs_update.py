@@ -21,13 +21,11 @@ via ``repomatic update-docs``.
 
 from __future__ import annotations
 
-import os
 import re
 import subprocess
 from pathlib import Path
 
 import click
-from click.testing import CliRunner
 from click_extra import TableFormat, render_table
 
 from repomatic.config import Config, config_full_descriptions, config_reference
@@ -106,35 +104,28 @@ def config_deflist() -> str:
     return "\n".join(lines)
 
 
-def _strip_ansi(text: str) -> str:
-    """Remove ANSI escape sequences from terminal output."""
-    return re.sub(r"\x1b\[[0-9;]*m", "", text)
-
-
-def _capture_help(cmd_path: list[str]) -> str:
-    """Invoke a CLI command with ``--help`` and return clean output."""
-    from repomatic.cli import repomatic
-
-    runner = CliRunner()
-    # Suppress color codes.
-    old_val = os.environ.get("NO_COLOR")
-    os.environ["NO_COLOR"] = "1"
-    try:
-        result = runner.invoke(repomatic, [*cmd_path, "--help"])
-    finally:
-        if old_val is None:
-            os.environ.pop("NO_COLOR", None)
-        else:
-            os.environ["NO_COLOR"] = old_val
-    return _strip_ansi(result.output).rstrip()
-
-
 def _command_anchor(cmd_path: list[str]) -> str:
     """Build a heading slug from a command path.
 
     ``["cache", "show"]`` becomes ``"repomatic-cache-show"``.
     """
     return "repomatic-" + "-".join(cmd_path)
+
+
+def _click_run_block(args: list[str]) -> list[str]:
+    """Render a ``{click:run}`` directive block invoking ``repomatic`` with ``args``.
+
+    Sphinx executes the block at build time via ``click_extra.sphinx``, so the
+    rendered help text is always live and ANSI-colored (``ansi-shell-session``
+    Pygments lexer).
+    """
+    args_repr = ", ".join(repr(a) for a in args)
+    return [
+        "```{click:run}",
+        f"invoke(repomatic, args=[{args_repr}])",
+        "```",
+        "",
+    ]
 
 
 def cli_reference() -> str:
@@ -170,13 +161,20 @@ def cli_reference() -> str:
     )
     lines.append("")
 
+    # Hidden source block: imports `repomatic` once into the click_extra
+    # runner namespace so every subsequent `{click:run}` block can call
+    # `invoke(repomatic, ...)` without repeating the import.
+    lines.append("```{click:source}")
+    lines.append(":hide-source:")
+    lines.append("")
+    lines.append("from repomatic.cli import repomatic")
+    lines.append("```")
+    lines.append("")
+
     # Main help screen.
     lines.append("## Help screen")
     lines.append("")
-    lines.append("```text")
-    lines.append(_capture_help([]))
-    lines.append("```")
-    lines.append("")
+    lines.extend(_click_run_block(["--help"]))
 
     # Per-command sections.
     for path, _cmd in entries:
@@ -185,10 +183,7 @@ def cli_reference() -> str:
         heading = "#" * (depth + 1)
         lines.append(f"{heading} `repomatic {label}`")
         lines.append("")
-        lines.append("```text")
-        lines.append(_capture_help(path))
-        lines.append("```")
-        lines.append("")
+        lines.extend(_click_run_block([*path, "--help"]))
 
     return "\n".join(lines)
 
@@ -473,6 +468,7 @@ def _python_compat_groups() -> list[tuple[str, str, tuple[str, ...]]]:
         else:
             groups.append([tag, tag, versions])
     return [(first, last, vers) for first, last, vers in groups]
+
 
 def python_compat_table() -> str:
     """Render the Python compatibility matrix as a GFM table.
