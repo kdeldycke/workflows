@@ -212,17 +212,26 @@ When releasing `kdeldycke/repomatic`, see [`docs/upstream-development.md` § Rel
 ## Testing guidelines
 
 - Use `@pytest.mark.parametrize` when testing the same logic for multiple inputs. Prefer parametrize over copy-pasted test functions that differ only in their data — it deduplicates test logic, improves readability, and makes it trivial to add new cases.
+
 - Keep test logic simple with straightforward asserts.
+
 - Tests should be sorted logically and alphabetically where applicable.
+
 - Test coverage is tracked with `pytest-cov` and reported to Codecov.
+
 - Do not use classes for grouping tests. Write test functions as top-level module functions. Only use test classes when they provide shared fixtures, setup/teardown methods, or class-level state.
+
 - **`@pytest.mark.once` for run-once tests.** Downstream repos can define a custom `once` marker (in `[tool.pytest].markers`) to tag tests that only need to run once — not across the full CI matrix. Typical candidates: CLI entry point invocability, plugin registration, package metadata checks. The main test matrix filters them out with `pytest -m "not once"`, while a dedicated `once-tests` job runs them on a single runner. This avoids wasting CI minutes on redundant cross-platform runs.
+
 - **CI-only pytest flags belong in workflow steps, not `[tool.pytest].addopts`.** Flags like `--cov-report=xml`, `--junitxml=junit.xml`, and `--override-ini=junit_family=legacy` produce artifacts only needed in CI. Placing them in `addopts` pollutes local test runs with `junit.xml` files and XML coverage reports. Keep `addopts` for flags that apply everywhere (`--cov`, `--cov-report=term`, `--durations`, `--numprocesses`). Pass CI-specific flags in the workflow `run:` step.
+
 - **Coverage configuration belongs in `[tool.coverage]`.** Use the `[tool.coverage]` section in `pyproject.toml` for `run.branch`, `run.source`, and `report.precision` instead of `--cov=<source>`, `--cov-branch`, and `--cov-precision` flags in `addopts`. This keeps coverage configuration canonical and `addopts` clean. The pytest `addopts` should only contain `--cov` (to activate the plugin) and `--cov-report=term` (for local feedback).
+
 - **Write conformance tests when fixing a class of bugs.** When you encounter a bug that represents a *category* (not a one-off), add a generic test that locks in the invariant for the whole category, not just the single occurrence. The test should iterate over every member of the relevant set (registry entries, generator functions, exported symbols, data files, sorted lists) and assert the property uniformly via `@pytest.mark.parametrize` or a loop. This deters regressions in adjacent code paths and informs future maintainers and agents of the convention without adding inline checks to production code. Heuristics for when a test belongs in this category:
-    - The bug stems from a shared convention (sort order, naming pattern, format invariant, cross-reference integrity, ordering relative to a canonical list).
-    - The fix touches one site but the same mistake could be made at any sibling site.
-    - The invariant is checkable purely from the codebase (no fixtures or mocks needed).
+
+  - The bug stems from a shared convention (sort order, naming pattern, format invariant, cross-reference integrity, ordering relative to a canonical list).
+  - The fix touches one site but the same mistake could be made at any sibling site.
+  - The invariant is checkable purely from the codebase (no fixtures or mocks needed).
 
   Examples to model on: `tests/test_readme.py::test_docs_generator_matches_in_tree_state` (every `docs_update.py` generator is a fixed point under `mdformat`), `extra-platforms/tests/test_trait.py::test_all_traits_generated_constants` and `::test_shared_icons_belong_to_same_canonical_group` and `::test_trait_data_sorting` and `::test_pyproject_keywords` and `::test_module_root_declarations` and `::test_pyproject_classifiers`, `click-extra/tests/tests_pygments.py::test_ansi_lexers_candidates`, `meta-package-manager/tests/test_pool.py::test_manager_classes_order`. The common shape: enumerate the population, assert the invariant on each, fail with a message that names the violator.
 
