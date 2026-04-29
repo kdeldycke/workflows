@@ -261,9 +261,7 @@ def _substitute(text: str, kwargs: dict[str, str | None]) -> str:
     return text
 
 
-def _render_single(
-    name: str | Path, kwargs: dict[str, str | None]
-) -> tuple[str, bool]:
+def _render_single(name: str | Path, kwargs: dict[str, str | None]) -> tuple[str, bool]:
     """Render a single template and return its body with footer preference.
 
     :param name: Template name without `.md` extension, or a
