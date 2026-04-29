@@ -2359,7 +2359,7 @@ class Metadata:
                 and f.name not in SUBCOMMAND_CONFIG_FIELDS
             ):
                 # Bind ``f.name`` to ``name`` to avoid late-binding closure pitfalls.
-                factories[f.name] = lambda name=f.name: getattr(self.config, name)
+                factories[f.name] = lambda name=f.name: getattr(self.config, name)  # type: ignore[misc]
 
         keys_set = set(keys)
         metadata: dict[str, Any] = {
