@@ -590,17 +590,27 @@ def python_compat_table() -> str:
 
     all_versions = sorted({v for _, _, _, vers in groups for v in vers}, key=_sort_key)
 
-    def _range_label(first: str, last: str) -> str:
+    def _range_label(first: str, last: str, *, is_latest: bool = False) -> str:
+        """Render the version range label for a Python-compat group.
+
+        For the most recent (open-ended) group, collapse the upper bound to
+        the major-version wildcard (e.g., ``6.x``) so the label is stable
+        across new minor releases that share the same Python compatibility.
+        Closed historical groups keep the precise minor-version bounds.
+        """
         first_minor = ".".join(first.lstrip("v").split(".")[:2])
         last_minor = ".".join(last.lstrip("v").split(".")[:2])
         if first_minor == last_minor:
             return f"`{first_minor}.x`"
+        if is_latest:
+            last_major = last.lstrip("v").split(".")[0]
+            return f"`{first_minor}.x` → `{last_major}.x`"
         return f"`{first_minor}.x` → `{last_minor}.x`"
 
     rows = []
-    for first, last, date, vers in reversed(groups):
+    for index, (first, last, date, vers) in enumerate(reversed(groups)):
         cells = ["✅" if v in vers else "❌" for v in all_versions]
-        rows.append([_range_label(first, last), date, *cells])
+        rows.append([_range_label(first, last, is_latest=index == 0), date, *cells])
 
     headers = ["`repomatic`", "Released", *(f"`{v}`" for v in all_versions)]
     colalign = ("left", "left", *("center",) * len(all_versions))

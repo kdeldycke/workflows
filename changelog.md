@@ -6,6 +6,7 @@
 > This version is **not released yet** and is under active development.
 
 - Add `--template-file <path>` and `--template-arg KEY=VALUE` flags to `repomatic pr-body` so downstream repos can render project-specific PR templates without forking repomatic. `--template` and `--template-file` are mutually exclusive. `load_template`, `render_template`, `render_title`, `render_commit_message`, and `template_args` now accept a {class}`~pathlib.Path` to read a template from disk in addition to a packaged-resource name. `render_title` returns an empty string instead of raising `KeyError` when the frontmatter defines no `title`.
+- Collapse the most recent row of the Python compatibility matrix in `docs/install.md` to a major-version wildcard (like `4.25.x` → `6.x`) so the table stays unchanged across new minor releases that share the same Python compatibility window. Closed historical rows keep their precise minor-version bounds.
 
 ## [`6.16.0` (2026-04-29)](https://github.com/kdeldycke/repomatic/compare/v6.15.0...v6.16.0)
 
