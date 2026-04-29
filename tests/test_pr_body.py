@@ -240,6 +240,69 @@ def test_load_template_title_only_frontmatter():
     assert body.startswith("### Description")
 
 
+def test_load_template_external_file(tmp_path):
+    """A {class}`~pathlib.Path` argument loads the template from disk."""
+    template_path = tmp_path / "custom.md.noformat"
+    template_path.write_text(
+        "---\n"
+        "args: [version]\n"
+        'title: "Update package to v$version"\n'
+        "---\n\n"
+        "### Update\n\n"
+        "Bumped to `$version`.\n",
+        encoding="UTF-8",
+    )
+
+    meta, body = load_template(template_path)
+
+    assert meta["args"] == ["version"]
+    assert meta["title"] == "Update package to v$version"
+    assert body.startswith("### Update")
+
+
+def test_load_template_external_file_missing(tmp_path):
+    """Pointing at a non-existent file raises FileNotFoundError."""
+    missing = tmp_path / "does-not-exist.md"
+    with pytest.raises(FileNotFoundError, match="does not exist"):
+        load_template(missing)
+
+
+def test_render_template_external_file(tmp_path):
+    """External templates render with substitution like packaged ones."""
+    template_path = tmp_path / "external.md"
+    template_path.write_text(
+        "---\n"
+        "args: [channel]\n"
+        'title: "Update $channel package"\n'
+        'commit_message: "Sync $channel"\n'
+        "---\n\n"
+        "### Update\n\nChannel: $channel.\n",
+        encoding="UTF-8",
+    )
+
+    rendered = render_template(template_path, channel="Nix")
+    assert "Channel: Nix." in rendered
+
+    assert render_title(template_path, channel="Nix") == "Update Nix package"
+    assert render_commit_message(template_path, channel="Nix") == "Sync Nix"
+
+
+def test_render_title_no_title_returns_empty(tmp_path):
+    """A template without a `title` field renders to an empty string."""
+    template_path = tmp_path / "bodyless.md"
+    template_path.write_text("### Notice\n\nNothing to report.\n", encoding="UTF-8")
+
+    assert render_title(template_path) == ""
+
+
+def test_render_commit_message_no_title_returns_empty(tmp_path):
+    """Templates with neither `commit_message` nor `title` render empty."""
+    template_path = tmp_path / "bodyless.md"
+    template_path.write_text("### Notice\n\nNothing to report.\n", encoding="UTF-8")
+
+    assert render_commit_message(template_path) == ""
+
+
 def test_template_args_parameterized():
     """Parameterized templates report their required arguments."""
     assert template_args("bump-version") == ["version", "part"]
@@ -647,3 +710,134 @@ def test_templates_match_workflow_references():
         "Workflow --template references with no template file: "
         + ", ".join(sorted(missing_templates))
     )
+
+
+# ---------------------------------------------------------------------------
+# CLI integration tests for --template-file and --template-arg
+# ---------------------------------------------------------------------------
+
+
+def _invoke_pr_body(
+    args: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+    output_path: Path,
+):
+    """Invoke ``repomatic pr-body`` with all GITHUB_* env vars cleared.
+
+    Writes to ``output_path`` instead of stdout so the assertion target is
+    stable and {func}`~repomatic.cli.prep_path` does not call ``fileno()`` on
+    the in-memory stream that Click's runner installs.
+    """
+    from click.testing import CliRunner
+
+    from repomatic.cli import repomatic
+
+    for key in GITHUB_ENV_VARS:
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.delenv("GHA_PR_BODY_PREFIX", raising=False)
+    return CliRunner().invoke(
+        repomatic,
+        ["pr-body", "--output", str(output_path), *args],
+    )
+
+
+def test_cli_template_file(tmp_path, monkeypatch):
+    """`--template-file` renders a markdown body from an external template."""
+    template_path = tmp_path / "release-fruit.md"
+    template_path.write_text(
+        "---\n"
+        "args: [fruit]\n"
+        'title: "Pack $fruit"\n'
+        "---\n\n"
+        "### Pack $fruit\n\nReady for shipment.\n",
+        encoding="UTF-8",
+    )
+
+    output_path = tmp_path / "body.txt"
+    result = _invoke_pr_body(
+        [
+            "--template-file",
+            str(template_path),
+            "--template-arg",
+            "fruit=mango",
+            "--output-format",
+            "github-actions",
+        ],
+        monkeypatch,
+        output_path,
+    )
+
+    assert result.exit_code == 0, result.output
+    rendered = output_path.read_text(encoding="UTF-8")
+    assert "### Pack mango" in rendered
+    assert "title=Pack mango" in rendered
+
+
+def test_cli_template_and_template_file_mutually_exclusive(tmp_path, monkeypatch):
+    """Passing both `--template` and `--template-file` is rejected."""
+    template_path = tmp_path / "external.md"
+    template_path.write_text(
+        '---\ntitle: "Empty"\n---\n\n### Empty\n',
+        encoding="UTF-8",
+    )
+
+    result = _invoke_pr_body(
+        ["--template", "fix-typos", "--template-file", str(template_path)],
+        monkeypatch,
+        tmp_path / "body.txt",
+    )
+
+    assert result.exit_code != 0
+    assert "mutually exclusive" in result.output
+
+
+def test_cli_template_arg_invalid_format(tmp_path, monkeypatch):
+    """`--template-arg` without `=` is rejected with a clear error."""
+    template_path = tmp_path / "fruit.md"
+    template_path.write_text(
+        '---\nargs: [fruit]\ntitle: "Pack $fruit"\n---\n\n### Pack $fruit\n',
+        encoding="UTF-8",
+    )
+
+    result = _invoke_pr_body(
+        ["--template-file", str(template_path), "--template-arg", "fruit"],
+        monkeypatch,
+        tmp_path / "body.txt",
+    )
+
+    assert result.exit_code != 0
+    assert "KEY=VALUE" in result.output
+
+
+def test_cli_template_arg_overrides_dedicated_flag(tmp_path, monkeypatch):
+    """`--template-arg` values supersede the dedicated `--version` flag."""
+    template_path = tmp_path / "release.md"
+    template_path.write_text(
+        "---\n"
+        "args: [version]\n"
+        'title: "Release $version"\n'
+        "---\n\n"
+        "### Release $version\n",
+        encoding="UTF-8",
+    )
+
+    output_path = tmp_path / "body.txt"
+    result = _invoke_pr_body(
+        [
+            "--template-file",
+            str(template_path),
+            "--version",
+            "1.0.0",
+            "--template-arg",
+            "version=2.0.0",
+            "--output-format",
+            "github-actions",
+        ],
+        monkeypatch,
+        output_path,
+    )
+
+    assert result.exit_code == 0, result.output
+    rendered = output_path.read_text(encoding="UTF-8")
+    assert "### Release 2.0.0" in rendered
+    assert "title=Release 2.0.0" in rendered

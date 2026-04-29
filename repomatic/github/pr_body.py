@@ -21,6 +21,17 @@ collapsible `<details>` block containing a metadata table. Template prefixes
 are loaded from markdown files in `repomatic/templates/`, optionally with
 YAML frontmatter for templates that require arguments.
 
+```{note}
+{func}`load_template` and the `render_*` helpers also accept a
+{class}`~pathlib.Path` to read a template from disk. Downstream repos can ship
+project-specific templates and feed them through `repomatic pr-body
+--template-file path/to/template.md` (paired with one or more
+`--template-arg KEY=VALUE` entries to fill the placeholders) without forking
+repomatic. External templates should set `footer: false` in their frontmatter
+to avoid duplicating the attribution footer that already ships with the
+metadata block.
+```
+
 Also provides {func}`sanitize_markdown_mentions` for neutralizing `@mentions`,
 `#issue` refs, and GitHub URLs in externally-sourced markdown before embedding
 it in PR or issue bodies.
@@ -30,6 +41,7 @@ from __future__ import annotations
 
 import re
 from importlib.resources import as_file, files
+from pathlib import Path
 from string import Template
 
 from .. import __version__
@@ -199,20 +211,31 @@ def _parse_frontmatter(raw: str) -> tuple[dict[str, object], str]:
     return meta, body
 
 
-def load_template(name: str) -> tuple[dict[str, object], str]:
-    """Load a PR body template from the `repomatic/templates/` package.
+def load_template(name: str | Path) -> tuple[dict[str, object], str]:
+    """Load a PR body template by name or filesystem path.
 
-    Tries ``{name}.md.noformat` first, then `{name}.md``.  The
-    `.md.noformat` extension is used for templates whose
-    `string.Template` placeholders confuse mdformat (e.g.
-    `$rerun_row` at the start of a table row is parsed as a cell value,
-    breaking the table structure).  See `pr-metadata.md.noformat` for
-    the canonical example.
+    Dispatch is type-based:
 
-    :param name: Template name without extension (e.g. `bump-version`).
+    - `str` (e.g. `"bump-version"`): looked up as a packaged resource under
+      `repomatic.templates`. Tries `{name}.md.noformat` first, then `{name}.md`.
+      The `.md.noformat` extension is used for templates whose
+      `string.Template` placeholders confuse mdformat (e.g. `$rerun_row` at
+      the start of a table row is parsed as a cell value, breaking the table
+      structure). See `pr-metadata.md.noformat` for the canonical example.
+    - `Path`: read directly from the filesystem. Lets downstream repos ship
+      project-specific templates without forking repomatic.
+
+    :param name: Template name without extension, or a {class}`~pathlib.Path`
+        pointing to a template file.
     :return: A tuple of (frontmatter metadata dict, template body string).
-    :raises FileNotFoundError: If neither file exists.
+    :raises FileNotFoundError: If neither resource nor file exists.
     """
+    if isinstance(name, Path):
+        if not name.is_file():
+            msg = f"Template file {str(name)!r} does not exist"
+            raise FileNotFoundError(msg)
+        return _parse_frontmatter(name.read_text(encoding="UTF-8"))
+
     template_files = files("repomatic.templates")
     # XXX: .md.noformat avoids mdformat mangling $-placeholder table hacks.
     for ext in (".md.noformat", ".md"):
@@ -238,10 +261,13 @@ def _substitute(text: str, kwargs: dict[str, str | None]) -> str:
     return text
 
 
-def _render_single(name: str, kwargs: dict[str, str | None]) -> tuple[str, bool]:
+def _render_single(
+    name: str | Path, kwargs: dict[str, str | None]
+) -> tuple[str, bool]:
     """Render a single template and return its body with footer preference.
 
-    :param name: Template name without `.md` extension.
+    :param name: Template name without `.md` extension, or a
+        {class}`~pathlib.Path` pointing to a template file.
     :param kwargs: Variables to substitute into the template.
     :return: A tuple of (rendered body, wants_footer).
     """
@@ -251,7 +277,7 @@ def _render_single(name: str, kwargs: dict[str, str | None]) -> tuple[str, bool]
     return result, wants_footer
 
 
-def render_template(*names: str, **kwargs: str | None) -> str:
+def render_template(*names: str | Path, **kwargs: str | None) -> str:
     """Load and render one or more templates with variable substitution.
 
     When multiple template names are given, each is rendered and joined with
@@ -266,7 +292,8 @@ def render_template(*names: str, **kwargs: str | None) -> str:
     Consecutive blank lines left by empty variables are collapsed to a single
     blank line.
 
-    :param names: One or more template names without `.md` extension.
+    :param names: One or more template names (without `.md` extension) or
+        {class}`~pathlib.Path` objects pointing to template files.
     :param kwargs: Variables to substitute into all templates.
     :return: The rendered markdown string.
     """
@@ -288,43 +315,47 @@ def render_template(*names: str, **kwargs: str | None) -> str:
     return result
 
 
-def render_title(name: str, **kwargs: str | None) -> str:
+def render_title(name: str | Path, **kwargs: str | None) -> str:
     """Load and render a template's PR title with variable substitution.
 
-    :param name: Template name without `.md` extension.
+    :param name: Template name without `.md` extension, or a
+        {class}`~pathlib.Path` pointing to a template file.
     :param kwargs: Variables to substitute into the title.
-    :return: The rendered title string.
-    :raises KeyError: If the template has no `title` in its frontmatter.
+    :return: The rendered title string, or an empty string when the template
+        has no `title` field in its frontmatter.
     """
     meta, _body = load_template(name)
     title = meta.get("title")
     if not title or not isinstance(title, str):
-        msg = f"Template {name!r} has no 'title' in frontmatter"
-        raise KeyError(msg)
+        return ""
     return _substitute(title, kwargs)
 
 
-def render_commit_message(name: str, **kwargs: str | None) -> str:
+def render_commit_message(name: str | Path, **kwargs: str | None) -> str:
     """Load and render a template's commit message with variable substitution.
 
-    Falls back to the `title` if no `commit_message` is defined.
+    Falls back to the `title` if no `commit_message` is defined, and to an
+    empty string if neither is set (templates without a title or commit
+    message render only their body).
 
-    :param name: Template name without `.md` extension.
+    :param name: Template name without `.md` extension, or a
+        {class}`~pathlib.Path` pointing to a template file.
     :param kwargs: Variables to substitute into the commit message.
-    :return: The rendered commit message string.
+    :return: The rendered commit message string, or an empty string when the
+        template defines neither `commit_message` nor `title`.
     """
     meta, _body = load_template(name)
     commit_msg = meta.get("commit_message")
     if commit_msg and isinstance(commit_msg, str):
         return _substitute(commit_msg, kwargs)
-    # Fall back to title.
     return render_title(name, **kwargs)
 
 
-def template_args(name: str) -> list[str]:
+def template_args(name: str | Path) -> list[str]:
     """Return the list of required arguments for a template.
 
-    :param name: Template name without `.md` extension.
+    :param name: Template name without `.md` extension, or a
+        {class}`~pathlib.Path` pointing to a template file.
     :return: List of argument names from the frontmatter `args` field.
     """
     meta, _body = load_template(name)

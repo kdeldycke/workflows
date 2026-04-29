@@ -3664,6 +3664,32 @@ def scan_virustotal(
     help="Use a built-in prefix template instead of --prefix.",
 )
 @option(
+    "--template-file",
+    "template_file",
+    type=file_path(exists=True, readable=True, resolve_path=True),
+    default=None,
+    help=(
+        "Use an external template file (markdown with optional YAML"
+        " frontmatter). Mutually exclusive with --template. Lets downstream"
+        " repos ship project-specific PR templates without modifying"
+        " repomatic. Templates should set 'footer: false' in their"
+        " frontmatter to avoid duplicating the attribution footer that"
+        " ships with the metadata block."
+    ),
+)
+@option(
+    "--template-arg",
+    "template_args_cli",
+    multiple=True,
+    metavar="KEY=VALUE",
+    help=(
+        "Pass an arbitrary key/value pair to the template. Repeat to provide"
+        " multiple. Use this to feed template variables not covered by the"
+        " dedicated --version / --part / --pr-ref flags. Example:"
+        " --template-arg channel=Nix."
+    ),
+)
+@option(
     "--version",
     "version",
     default=None,
@@ -3699,6 +3725,8 @@ def scan_virustotal(
 def pr_body(
     prefix: str,
     template: str | None,
+    template_file: Path | None,
+    template_args_cli: tuple[str, ...],
     version: str | None,
     part: str | None,
     pr_ref: str | None,
@@ -3731,9 +3759,18 @@ def pr_body(
             --version 1.2.0 --part minor
 
     \b
+        # Use a downstream-shipped template with custom variables
+        repomatic pr-body --template-file path/to/template.md \\
+            --template-arg fruit=mango --template-arg crate=10
+
+    \b
         # With a prefix via environment variable
         GHA_PR_BODY_PREFIX="Fix formatting" repomatic pr-body
     """
+
+    if template and template_file:
+        msg = "--template and --template-file are mutually exclusive."
+        raise UsageError(msg)
 
     def _auto_version() -> str:
         """Read current_version from bumpversion config and strip .dev suffix."""
@@ -3745,7 +3782,16 @@ def pr_body(
         logging.info(f"Auto-detected version: {ver}")
         return ver
 
-    # Map argument names to their values or callables.
+    cli_extra_args: dict[str, str | None] = {}
+    for entry in template_args_cli:
+        if "=" not in entry:
+            msg = f"--template-arg expects KEY=VALUE, got {entry!r}."
+            raise UsageError(msg)
+        key, _, raw_value = entry.partition("=")
+        cli_extra_args[key.strip()] = raw_value
+
+    # Map argument names to their values or callables. CLI-provided extras
+    # override built-in flag-driven sources so callers can pass any name.
     arg_sources: dict[str, str | None | Callable[[], str | None]] = {
         "diff_table": os.getenv("REPOMATIC_DIFF_TABLE", ""),
         "part": part,
@@ -3753,28 +3799,31 @@ def pr_body(
         "repo_url": _repo_url,  # Callable, will be invoked if needed.
         "version": version if version is not None else _auto_version,
     }
+    arg_sources.update(cli_extra_args)
 
     title_str = ""
     commit_msg_str = ""
 
-    if template:
+    template_ref: str | Path | None = template or template_file
+
+    if template_ref:
         kwargs: dict[str, str | None] = {}
-        for arg in template_args(template):
+        for arg in template_args(template_ref):
             value = arg_sources.get(arg)
             if value is None:
-                msg = f"--{arg} is required for template '{template}'"
+                msg = f"--{arg} is required for template {template_ref!r}"
                 raise UsageError(msg)
             # Call if callable, otherwise use the value directly.
             kwargs[arg] = value() if callable(value) else value
 
-        template_content = render_template(template, **kwargs)
+        template_content = render_template(template_ref, **kwargs)
         # Combine prefix (e.g. from GHA_PR_BODY_PREFIX) with template content.
         if prefix:
             prefix = prefix + "\n\n" + template_content
         else:
             prefix = template_content
-        title_str = render_title(template, **kwargs)
-        commit_msg_str = render_commit_message(template, **kwargs)
+        title_str = render_title(template_ref, **kwargs)
+        commit_msg_str = render_commit_message(template_ref, **kwargs)
 
     metadata_block = generate_pr_metadata_block()
     body = build_pr_body(prefix, metadata_block)

@@ -5,6 +5,8 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- Add `--template-file <path>` and `--template-arg KEY=VALUE` flags to `repomatic pr-body` so downstream repos can render project-specific PR templates without forking repomatic. `--template` and `--template-file` are mutually exclusive. `load_template`, `render_template`, `render_title`, `render_commit_message`, and `template_args` now accept a {class}`~pathlib.Path` to read a template from disk in addition to a packaged-resource name. `render_title` returns an empty string instead of raising `KeyError` when the frontmatter defines no `title`.
+
 ## [`6.16.0` (2026-04-29)](https://github.com/kdeldycke/repomatic/compare/v6.15.0...v6.16.0)
 
 - Add `sphinx-docs` agent to the `agents` component (deployed by `repomatic init agents` alongside `grunt-qa` and `qa-engineer`, or via `[tool.repomatic] include = ["agents"]`). The agent carries a canonical Sphinx extension set with notes on `sphinx_click` vs `click_extra.sphinx`, a standard octicon registry, governance rules for `suppress_warnings`/`nitpick_ignore`/`linkcheck_ignore` entries, the `<!-- {feature}-{kind}-start -->` auto-region marker convention, and a Sphinx cross-reference render test recipe. Drops `sphinx_issues` from the set: its `:issue:`/`:pr:`/`:user:`/`:commit:` roles render only inside Sphinx, appearing as raw role text in GitHub's repo browser, IDE previews, and PyPI descriptions; a Python migration script (covering MyST roles, reST roles, and cross-repo prefixed forms) and a matching `sphinx-docs-sync` audit category are included. `docs/myst-docstrings.md` documents the load-order failure mode (backtick-doubled `:py:obj:` roles) when `repomatic.myst_docstrings` loads after `sphinx_autodoc_typehints`.
