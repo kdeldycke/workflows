@@ -7,12 +7,13 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer = "2026-04-22T06:24:23.785422Z"
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-gitpython = { timestamp = "0001-01-01T00:00:00Z", span = "PT0S" }
-repomatic = { timestamp = "0001-01-01T00:00:00Z", span = "PT0S" }
+extra-platforms = { timestamp = "2026-04-29T06:24:23.786069Z", span = "PT0S" }
+gitpython = { timestamp = "2026-04-29T06:24:23.785753Z", span = "PT0S" }
+repomatic = { timestamp = "2026-04-29T06:24:23.786068Z", span = "PT0S" }
 
 [[package]]
 name = "accessible-pygments"
@@ -630,11 +631,11 @@ wheels = [
 
 [[package]]
 name = "extra-platforms"
-version = "11.1.0"
+version = "12.0.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7c/7b/0049f8a7817ac4eb6ad1af72c7938fff3e2677d55468c87de792208e068c/extra_platforms-11.1.0.tar.gz", hash = "sha256:3045d722cab2b422a8fcbcba7f52026c33523cb147616d99fc50947f8e952375", size = 69265, upload-time = "2026-04-21T08:28:21.694Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/0c/420cc75c36630d333c10494eb5f87d34eb80918e1a99a63288352d07ae94/extra_platforms-12.0.2.tar.gz", hash = "sha256:4f66c74bdd6fa5b757ce00ab05f7e4de24abd1d06d468161349e86e6928c2123", size = 72988, upload-time = "2026-04-28T15:44:24.926Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/75/5985d4b10248cc03f5d0ef03026f3cc69a427baa77b6b07fe26a674bba1a/extra_platforms-11.1.0-py3-none-any.whl", hash = "sha256:5d4476774e5d639813060c239b40481a714f785515db66bcbb19a7b3881debc1", size = 72560, upload-time = "2026-04-21T08:28:20.216Z" },
+    { url = "https://files.pythonhosted.org/packages/21/9f/cc755a9279210bbcf552c1a9fca420a7b3526e7fe4d57a2285b6624381c2/extra_platforms-12.0.2-py3-none-any.whl", hash = "sha256:e25d63534dd4e38d01b09b9e340a41a43338be08cbbd7b87dbd8eb18b332e7e3", size = 76128, upload-time = "2026-04-28T15:44:25.951Z" },
 ]
 
 [[package]]
@@ -1754,7 +1755,7 @@ requires-dist = [
     { name = "boltons", specifier = ">=25" },
     { name = "bump-my-version", specifier = ">=1.2.6" },
     { name = "click-extra", specifier = ">=7.10.1" },
-    { name = "extra-platforms", specifier = ">=8" },
+    { name = "extra-platforms", specifier = ">=12.0.2" },
     { name = "packaging", specifier = ">=17" },
     { name = "py-walk", specifier = ">=0.3.1" },
     { name = "pydriller", specifier = ">=2" },

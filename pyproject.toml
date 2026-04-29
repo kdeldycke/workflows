@@ -86,9 +86,10 @@ dependencies = [
   # type-aware flattening, field metadata (config_path, normalize_keys),
   # and nested dataclasses.
   "click-extra>=7.10.1",
-  # extra-platforms 8.0.0 exposed is_windows(), is_linux(), ALL_IDS, and other
-  # platform detection APIs used in tool_runner.py and test_plan.py.
-  "extra-platforms>=8",
+  # extra-platforms 12.0.2 reimplemented is_macos() with sys.platform, avoiding
+  # the platform.platform() shell-out to ``cmd /c ver`` on Windows that broke
+  # under patched subprocess in tests and triggered a CPython 3.10.x bug.
+  "extra-platforms>=12.0.2",
   # canonicalize_name() available since packaging 16; Version() since 17.
   "packaging>=17",
   # py-walk 0.3.x introduced get_parser_from_file(); replaced gitignore-parser
@@ -186,7 +187,10 @@ dependency-groups.docs = { requires-python = ">= 3.14" }
 # uv.lock for relative spans, so re-resolving never produces churn.
 exclude-newer = "1 week"
 # repomatic is pinned to git main.
-exclude-newer-package = { gitpython = "0 day", repomatic = "0 day" }
+# extra-platforms 12.0.0 fixes is_macos() shelling out on Windows
+# (https://github.com/kdeldycke/extra-platforms): bypass the cooldown so the
+# fix lands without waiting a week.
+exclude-newer-package = { gitpython = "0 day", repomatic = "0 day", extra-platforms = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 
