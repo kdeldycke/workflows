@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.17.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.16.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.17.0` (2026-04-29)](https://github.com/kdeldycke/repomatic/compare/v6.16.0...v6.17.0)
 
 - Fix backslash-escaped brackets rendering literally in `docs/configuration.md` per-option `**Type:**` lines (like `list\[dict[str, str]\]`). The escape, needed only for raw GFM table cells in the `repomatic show-config` CLI output (where `mdformat` would otherwise interpret `[…]` as a markdown link), was leaking into inline-code spans where backslashes are literal in CommonMark. `_format_type` now returns clean Python type strings; the new `escape_type_for_gfm_table` helper is applied only at the CLI rendering layer.
 - Add `--template-file <path>` and `--template-arg KEY=VALUE` flags to `repomatic pr-body` so downstream repos can render project-specific PR templates without forking repomatic. `--template` and `--template-file` are mutually exclusive. `load_template`, `render_template`, `render_title`, `render_commit_message`, and `template_args` now accept a {class}`~pathlib.Path` to read a template from disk in addition to a packaged-resource name. `render_title` returns an empty string instead of raising `KeyError` when the frontmatter defines no `title`.
