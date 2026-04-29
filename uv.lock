@@ -7,13 +7,13 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-22T06:24:23.785422Z"
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-extra-platforms = { timestamp = "2026-04-29T06:24:23.786069Z", span = "PT0S" }
-gitpython = { timestamp = "2026-04-29T06:24:23.785753Z", span = "PT0S" }
-repomatic = { timestamp = "2026-04-29T06:24:23.786068Z", span = "PT0S" }
+extra-platforms = { timestamp = "0001-01-01T00:00:00Z", span = "PT0S" }
+gitpython = { timestamp = "0001-01-01T00:00:00Z", span = "PT0S" }
+repomatic = { timestamp = "0001-01-01T00:00:00Z", span = "PT0S" }
 
 [[package]]
 name = "accessible-pygments"
@@ -789,14 +789,14 @@ wheels = [
 
 [[package]]
 name = "gitpython"
-version = "3.1.48"
+version = "3.1.49"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "gitdb" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/c3/e4a9656f3cdb280f5dc65a68cc6fc46e79f897d27c1a36bbb4f0f47aaac5/gitpython-3.1.48.tar.gz", hash = "sha256:b7c49ff4a49946fce38ac84116efa311b15e7dad06dc3787fc9e206bf9ef75e1", size = 217288, upload-time = "2026-04-28T05:35:45.328Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/63/210aaa302d6a0a78daa67c5c15bbac2cad361722841278b0209b6da20855/gitpython-3.1.49.tar.gz", hash = "sha256:42f9399c9eb33fc581014bedd76049dfbaf6375aa2a5754575966387280315e1", size = 219367, upload-time = "2026-04-29T00:31:20.478Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/50/bb9703c364c00e7be67ccda03536f3d684766ce109d184c9d1f072d866ca/gitpython-3.1.48-py3-none-any.whl", hash = "sha256:737698b05889cca0f9aba7054d796620df2092c68926ee1470e5c7f5ac886680", size = 209800, upload-time = "2026-04-28T05:35:42.543Z" },
+    { url = "https://files.pythonhosted.org/packages/fd/6f/b842bfa6f21d6f87c57f9abf7194225e55279d96d869775e19e9f7236fc5/gitpython-3.1.49-py3-none-any.whl", hash = "sha256:024b0422d7f84d15cd794844e029ffebd4c5d42a7eb9b936b458697ef550a02c", size = 212190, upload-time = "2026-04-29T00:31:18.412Z" },
 ]
 
 [[package]]
@@ -877,15 +877,15 @@ wheels = [
 
 [[package]]
 name = "lizard"
-version = "1.21.6"
+version = "1.22.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pathspec" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/e6/c9ffd177f15905835e076570d6aebc7b8944b2f15f810aef7e93dede8b76/lizard-1.21.6.tar.gz", hash = "sha256:2b05a65754faefc91bda8db03ca75fada5efd827235244c74bf90274270eed65", size = 90128, upload-time = "2026-04-17T07:51:06.883Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/5e/8b4f17dcc5ea18562cc4b86d139700d7ac8e877c253dea0d9a4a905fe277/lizard-1.22.0.tar.gz", hash = "sha256:a5f5ef82a9781a93cee163af0aa7eae588238d4827287deb51cae4af73a00b73", size = 90667, upload-time = "2026-04-22T01:46:47.42Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/80/778b6274e0e45bcae98ad6d63a000a1e74edd6a82f57815300bd084dd606/lizard-1.21.6-py2.py3-none-any.whl", hash = "sha256:15de71e63a9a6fcd0c2228eacac42067c4803604d5fae1d72417e3bff7c720eb", size = 98556, upload-time = "2026-04-17T07:51:05.311Z" },
+    { url = "https://files.pythonhosted.org/packages/74/c2/3f228da174a5e5c554eeba7e33d5d91d8b742255b1d238e66608c284810c/lizard-1.22.0-py2.py3-none-any.whl", hash = "sha256:7601655673c1ebe12fe8d9a9ad6adc132874da108a077efaac9684d02a80e6fc", size = 98704, upload-time = "2026-04-22T01:46:45.554Z" },
 ]
 
 [[package]]
