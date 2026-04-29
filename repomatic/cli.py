@@ -77,6 +77,7 @@ from .config import (
     CONFIG_REFERENCE_HEADER_DEFS,
     Config,
     config_reference,
+    escape_type_for_gfm_table,
 )
 from .deps_graph import (
     generate_dependency_graph,
@@ -715,7 +716,11 @@ def show_config(ctx):
     and descriptions — generated from the Config dataclass docstrings.
     Respects the global --table-format and --sort-by options.
     """
-    ctx.print_table(CONFIG_REFERENCE_HEADER_DEFS, config_reference())
+    rows = [
+        (option, escape_type_for_gfm_table(ftype), default, desc)
+        for option, ftype, default, desc in config_reference()
+    ]
+    ctx.print_table(CONFIG_REFERENCE_HEADER_DEFS, rows)
 
 
 @repomatic.command(

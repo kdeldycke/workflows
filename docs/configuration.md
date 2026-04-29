@@ -743,7 +743,7 @@ skills.location = "./.claude/skills/"
 
 Extra exclude rules applied to both full and PR test matrices.
 
-**Type:** `list\[dict[str, str]\]` | **Default:** `[]`
+**Type:** `list[dict[str, str]]` | **Default:** `[]`
 
 Each entry is a dict of GitHub Actions matrix keys (like
 `{"os": "windows-11-arm"}`) that removes matching combinations.
@@ -760,7 +760,7 @@ test-matrix.exclude = []
 
 Extra include directives applied to both full and PR test matrices.
 
-**Type:** `list\[dict[str, str]\]` | **Default:** `[]`
+**Type:** `list[dict[str, str]]` | **Default:** `[]`
 
 Each entry is a dict of GitHub Actions matrix keys that adds or augments
 matrix combinations. Additive to the upstream default includes.
@@ -776,7 +776,7 @@ test-matrix.include = []
 
 Per-axis value removals applied to both full and PR test matrices.
 
-**Type:** `dict\[str, list[str]\]` | **Default:** {}
+**Type:** `dict[str, list[str]]` | **Default:** {}
 
 Outer key is the variation/axis ID (e.g., `os`, `python-version`).
 Inner list contains values to drop from that axis. Applied after
@@ -786,7 +786,7 @@ replacements but before excludes, includes, and variations.
 
 Per-axis value replacements applied to both full and PR test matrices.
 
-**Type:** `dict\[str, dict[str, str]\]` | **Default:** {}
+**Type:** `dict[str, dict[str, str]]` | **Default:** {}
 
 Outer key is the variation/axis ID (e.g., `os`, `python-version`).
 Inner dict maps old values to new values. Applied before removals,
@@ -796,7 +796,7 @@ excludes, includes, and variations.
 
 Extra matrix dimension values added to the full test matrix only.
 
-**Type:** `dict\[str, list[str]\]` | **Default:** {}
+**Type:** `dict[str, list[str]]` | **Default:** {}
 
 Each key is a dimension ID (e.g., `os`, `click-version`) and its value
 is a list of additional entries. For existing dimensions, values are merged
@@ -937,7 +937,7 @@ workflow.ignore-paths = []
 
 Per-workflow override of the `paths:` filter, keyed by filename.
 
-**Type:** `dict\[str, list[str]\]` | **Default:** {}
+**Type:** `dict[str, list[str]]` | **Default:** {}
 
 When a workflow filename appears here, its `paths:` blocks (in `push`,
 `pull_request`, etc.) are replaced wholesale with the listed entries.

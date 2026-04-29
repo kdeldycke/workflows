@@ -770,23 +770,32 @@ def _format_type(annotation: str) -> str:
     """Simplify a type annotation string for the reference table.
 
     Strips `| None` suffixes since the default column already shows whether
-    `None` is the default. Escapes outer brackets in nested generic types so
-    the output is stable under mdformat (which escapes `[` to `\\[` to
-    prevent spurious link detection).
+    `None` is the default.
     """
-    result = annotation.replace(" | None", "")
-    # Escape the outermost brackets only when they contain nested brackets
-    # (e.g. `list[dict[str, str]]` → `list\\[dict[str, str]\\]`).
-    # mdformat escapes these to prevent spurious markdown link detection.
-    # Simple generics like `list[str]` have no nested brackets and stay
-    # unescaped.
-    if "[" in result:
-        first = result.index("[")
-        last = result.rindex("]")
-        inner = result[first + 1 : last]
+    return annotation.replace(" | None", "")
+
+
+def escape_type_for_gfm_table(ftype: str) -> str:
+    """Escape outer brackets of nested generics for raw GFM table cells.
+
+    Nested generics like `list[dict[str, str]]` would otherwise be
+    interpreted by mdformat as a markdown link reference and re-escaped on
+    every reformat. Escaping the outermost brackets up front keeps the
+    cell stable under mdformat. Simple generics like `list[str]` have no
+    nested brackets and stay unescaped.
+
+    Apply this only when the value lands directly in a raw GFM table cell
+    (e.g. CLI `show-config` output). Do not apply when wrapping the value
+    in inline code backticks: inside a code span, backslashes are literal
+    characters in CommonMark and would render visibly as `\\[`.
+    """
+    if "[" in ftype:
+        first = ftype.index("[")
+        last = ftype.rindex("]")
+        inner = ftype[first + 1 : last]
         if "[" in inner:
-            result = result[:first] + "\\[" + inner + "\\]" + result[last + 1 :]
-    return result
+            return ftype[:first] + "\\[" + inner + "\\]" + ftype[last + 1 :]
+    return ftype
 
 
 CONFIG_REFERENCE_HEADER_DEFS: tuple[tuple[str, str], ...] = (
