@@ -523,7 +523,7 @@ def _tag_date(tag: str) -> str:
     proc = subprocess.run(
         ["git", "log", "-1", "--format=%as", tag],
         capture_output=True,
-        text=True,
+        encoding="utf-8",
         check=True,
         cwd=PROJECT_ROOT,
     )
@@ -542,7 +542,7 @@ def _python_compat_groups() -> list[tuple[str, str, str, tuple[str, ...]]]:
     proc = subprocess.run(
         ["git", "tag", "--sort=version:refname"],
         capture_output=True,
-        text=True,
+        encoding="utf-8",
         check=True,
         cwd=PROJECT_ROOT,
     )
@@ -559,7 +559,7 @@ def _python_compat_groups() -> list[tuple[str, str, str, tuple[str, ...]]]:
         show = subprocess.run(
             ["git", "show", f"{tag}:pyproject.toml"],
             capture_output=True,
-            text=True,
+            encoding="utf-8",
             check=False,
             cwd=PROJECT_ROOT,
         )
