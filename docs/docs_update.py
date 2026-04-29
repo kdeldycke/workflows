@@ -255,9 +255,13 @@ def cli_reference() -> str:
     # re-importing. `{click:source}` persists top-level assignments to the
     # namespace; `{click:run}` does not (see `.claude/agents/sphinx-docs.md`
     # § Live-rendering over captured output).
+    # No blank line between `:hide-source:` and the source line: mdformat-myst
+    # rewrites the directive option as a YAML block, then the post-process in
+    # `repomatic.tool_runner._fix_myst_directive_options` converts it back to
+    # field-list syntax without a trailing blank. Emitting one here would
+    # cause an `update-docs` ↔ `format-markdown` ping-pong on every CI run.
     lines.append("```{click:source}")
     lines.append(":hide-source:")
-    lines.append("")
     lines.append("from repomatic.cli import repomatic")
     lines.append("```")
     lines.append("")
