@@ -182,11 +182,36 @@ def _between(text: str, start: str, end: str) -> str:
 @pytest.mark.parametrize(
     ("md_path", "start", "end", "generator_name"),
     [
-        (CLI_MD, "<!-- cli-reference-start -->", "<!-- cli-reference-end -->", "cli_reference"),
-        (CONFIGURATION_MD, "<!-- config-reference-start -->", "<!-- config-reference-end -->", "config_deflist"),
-        (TOOL_RUNNER_MD, "<!-- tool-summary-start -->", "<!-- tool-summary-end -->", "tool_summary"),
-        (TOOL_RUNNER_MD, "<!-- tool-reference-start -->", "<!-- tool-reference-end -->", "tool_reference"),
-        (INSTALL_MD, "<!-- python-compat-start -->", "<!-- python-compat-end -->", "python_compat_table"),
+        (
+            CLI_MD,
+            "<!-- cli-reference-start -->",
+            "<!-- cli-reference-end -->",
+            "cli_reference",
+        ),
+        (
+            CONFIGURATION_MD,
+            "<!-- config-reference-start -->",
+            "<!-- config-reference-end -->",
+            "config_deflist",
+        ),
+        (
+            TOOL_RUNNER_MD,
+            "<!-- tool-summary-start -->",
+            "<!-- tool-summary-end -->",
+            "tool_summary",
+        ),
+        (
+            TOOL_RUNNER_MD,
+            "<!-- tool-reference-start -->",
+            "<!-- tool-reference-end -->",
+            "tool_reference",
+        ),
+        (
+            INSTALL_MD,
+            "<!-- python-compat-start -->",
+            "<!-- python-compat-end -->",
+            "python_compat_table",
+        ),
     ],
 )
 def test_docs_generator_matches_in_tree_state(
