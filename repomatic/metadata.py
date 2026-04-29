@@ -292,7 +292,7 @@ import json
 import logging
 import os
 import sys
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import fields
 from functools import cached_property
 from operator import itemgetter
@@ -2295,47 +2295,53 @@ class Metadata:
         """Returns metadata in the specified format.
 
         Defaults to GitHub dialect. When *keys* is non-empty, only the
-        requested keys are included in the output.
+        requested keys are computed and included in the output. Filtered-out
+        keys are never accessed, so callers requesting a small subset avoid
+        triggering expensive dependent computations (git history walks, file
+        system scans, build matrix expansion).
         """
-        metadata: dict[str, Any] = {
-            "is_bot": self.is_bot,
-            "skip_binary_build": self.skip_binary_build,
-            "new_commits": self.new_commits_hash,
-            "release_commits": self.release_commits_hash,
-            "mailmap_exists": self.mailmap_exists,
-            "gitignore_exists": self.gitignore_exists,
-            "renovate_config_exists": self.renovate_config_exists,
-            "python_files": self.python_files,
-            "json_files": self.json_files,
-            "yaml_files": self.yaml_files,
-            "toml_files": self.toml_files,
-            "pyproject_files": self.pyproject_files,
-            "workflow_files": self.workflow_files,
-            "doc_files": self.doc_files,
-            "markdown_files": self.markdown_files,
-            "image_files": self.image_files,
-            "shfmt_files": self.shfmt_files,
-            "zsh_files": self.zsh_files,
-            "is_python_project": self.is_python_project,
-            "package_name": self.package_name,
-            "cli_scripts": [cli_id for cli_id, _, _ in self.script_entries],
-            "project_description": self.project_description,
-            "mypy_params": self.mypy_params,
-            "current_version": self.current_version,
-            "released_version": self.released_version,
-            "is_sphinx": self.is_sphinx,
-            "active_autodoc": self.active_autodoc,
-            "uses_myst": self.uses_myst,
-            "release_notes": self.release_notes,
-            "release_notes_with_admonition": self.release_notes_with_admonition,
-            "new_commits_matrix": self.new_commits_matrix,
-            "release_commits_matrix": self.release_commits_matrix,
-            "build_targets": FLAT_BUILD_TARGETS,
-            "nuitka_matrix": self.nuitka_matrix,
-            "test_matrix": self.test_matrix,
-            "test_matrix_pr": self.test_matrix_pr,
-            "minor_bump_allowed": self.minor_bump_allowed,
-            "major_bump_allowed": self.major_bump_allowed,
+        # Lazy factories: each value is computed only when the key is included.
+        # This lets ``keys=("is_python_project",)`` skip ``nuitka_matrix`` and
+        # the pydriller ``Repository(...)`` walk it pulls in.
+        factories: dict[str, Callable[[], Any]] = {
+            "is_bot": lambda: self.is_bot,
+            "skip_binary_build": lambda: self.skip_binary_build,
+            "new_commits": lambda: self.new_commits_hash,
+            "release_commits": lambda: self.release_commits_hash,
+            "mailmap_exists": lambda: self.mailmap_exists,
+            "gitignore_exists": lambda: self.gitignore_exists,
+            "renovate_config_exists": lambda: self.renovate_config_exists,
+            "python_files": lambda: self.python_files,
+            "json_files": lambda: self.json_files,
+            "yaml_files": lambda: self.yaml_files,
+            "toml_files": lambda: self.toml_files,
+            "pyproject_files": lambda: self.pyproject_files,
+            "workflow_files": lambda: self.workflow_files,
+            "doc_files": lambda: self.doc_files,
+            "markdown_files": lambda: self.markdown_files,
+            "image_files": lambda: self.image_files,
+            "shfmt_files": lambda: self.shfmt_files,
+            "zsh_files": lambda: self.zsh_files,
+            "is_python_project": lambda: self.is_python_project,
+            "package_name": lambda: self.package_name,
+            "cli_scripts": lambda: [cli_id for cli_id, _, _ in self.script_entries],
+            "project_description": lambda: self.project_description,
+            "mypy_params": lambda: self.mypy_params,
+            "current_version": lambda: self.current_version,
+            "released_version": lambda: self.released_version,
+            "is_sphinx": lambda: self.is_sphinx,
+            "active_autodoc": lambda: self.active_autodoc,
+            "uses_myst": lambda: self.uses_myst,
+            "release_notes": lambda: self.release_notes,
+            "release_notes_with_admonition": lambda: self.release_notes_with_admonition,
+            "new_commits_matrix": lambda: self.new_commits_matrix,
+            "release_commits_matrix": lambda: self.release_commits_matrix,
+            "build_targets": lambda: FLAT_BUILD_TARGETS,
+            "nuitka_matrix": lambda: self.nuitka_matrix,
+            "test_matrix": lambda: self.test_matrix,
+            "test_matrix_pr": lambda: self.test_matrix_pr,
+            "minor_bump_allowed": lambda: self.minor_bump_allowed,
+            "major_bump_allowed": lambda: self.major_bump_allowed,
         }
 
         # Add config from [tool.repomatic] in pyproject.toml.
@@ -2352,10 +2358,15 @@ class Metadata:
                 )
                 and f.name not in SUBCOMMAND_CONFIG_FIELDS
             ):
-                metadata[f.name] = getattr(self.config, f.name)
+                # Bind ``f.name`` to ``name`` to avoid late-binding closure pitfalls.
+                factories[f.name] = lambda name=f.name: getattr(self.config, name)
 
-        if keys:
-            metadata = {k: v for k, v in metadata.items() if k in keys}
+        keys_set = set(keys)
+        metadata: dict[str, Any] = {
+            name: factory()
+            for name, factory in factories.items()
+            if not keys_set or name in keys_set
+        }
 
         logging.debug(f"Raw metadata: {metadata!r}")
         logging.debug(f"Format metadata into {dialect} format.")
