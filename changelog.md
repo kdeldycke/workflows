@@ -1,9 +1,6 @@
 # Changelog
 
-## [`6.17.0.dev0` (unreleased)](https://github.com/kdeldycke/repomatic/compare/v6.16.0...main)
-
-> [!WARNING]
-> This version is **not released yet** and is under active development.
+## [`6.17.0` (2026-05-03)](https://github.com/kdeldycke/repomatic/compare/v6.16.0...v6.17.0)
 
 - Fix parallel `OSError: Lock for file .git/config did already exist` test failures. `tests/test_git_ops.py` and `tests/test_metadata.py` share `pytestmark = pytest.mark.xdist_group("git")` so pydriller's `Git(".")` initialization (which acquires `.git/config.lock` on every call) is serialized to a single pytest-xdist worker. Add `mypy_path = "docs"` to `[tool.mypy]` so mypy resolves `import docs_update` in `tests/test_readme.py` against `docs/docs_update.py`.
 - Fix backslash-escaped brackets rendering literally in `docs/configuration.md` per-option `**Type:**` lines (like `list\[dict[str, str]\]`). The escape, needed only for raw GFM table cells in the `repomatic show-config` CLI output (where `mdformat` would otherwise interpret `[…]` as a markdown link), was leaking into inline-code spans where backslashes are literal in CommonMark. `_format_type` now returns clean Python type strings; the new `escape_type_for_gfm_table` helper is applied only at the CLI rendering layer.
