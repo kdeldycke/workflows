@@ -328,6 +328,7 @@ replace = "date-released: {utcnow:%Y-%m-%d}"
 
 [tool.mypy]
 check_untyped_defs = true
+mypy_path = "docs"
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
