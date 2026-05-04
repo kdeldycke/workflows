@@ -15,7 +15,7 @@ Documentation must reflect the **current** state of the code. Static snapshots r
 
 ## Live-rendering over captured output
 
-When a doc shows the result of running code, prefer a Sphinx directive that executes at build time over a hand-pasted block. For Click CLIs use `click_extra.sphinx` ([upstream reference](https://kdeldycke.github.io/click-extra/sphinx.html) — full directive options, `:show-source:`/`:hide-results:` toggles, `:emphasize-lines:`, language overrides, and the `isolated_filesystem()` helper):
+When a doc shows the result of running code, prefer a Sphinx directive that executes at build time over a hand-pasted block. For Click CLIs use `click_extra.sphinx` ([upstream reference](https://kdeldycke.github.io/click-extra/sphinx.html) — full directive options, `:show-source:`/`:hide-results:` toggles, `:emphasize-lines:`, language overrides, and the `isolated_filesystem()` helper). All `{click:*}` and `{python:*}` directives below are gated on `click_extra_enable_exec_directives = True` in `conf.py` (off by default since click-extra `v7.15.0` because they execute arbitrary Python at build time with full Sphinx-process privileges); see § Standard extension set:
 
 - `{click:run}` renders the simulated terminal output with ANSI colors via the `ansi-shell-session` Pygments lexer. By default it hides the source and shows only the results, so import statements inside the block run silently. Use it for `--help`, `--list`, and any command whose output is the point of the example.
 - `{click:source}` renders the Python source instead of the result. Use to teach readers what a Click `invoke(...)` call looks like, or with `:hide-source:` to seed shared symbols (see below).
@@ -106,6 +106,60 @@ Anti-patterns to remove on sight:
 
 Keep static `shell-session` blocks when the example shows **how to invoke** a command (e.g., `uvx --from <git-url> ...` in installation pages) rather than what it prints.
 
+## Generic Python execution: `{python:*}` directives
+
+`click_extra.sphinx` ships five siblings to the Click directives — registered under a separate `python` domain (distinct from Sphinx's built-in `py` domain for documenting API objects). They run arbitrary Python at build time without requiring a Click CLI.
+
+- `{python:source}` shows source, runs silently. Use to teach a snippet and seed imports/variables for follow-up blocks.
+- `{python:run}` captures `stdout` and renders it in a code block (default lexer `text`; override with the `:language:` option for structured output). Use it whenever a doc shows the output of a Python expression — string formatting, computed lookups, library demos.
+- `{python:render}`, `{python:render-myst}`, and `{python:render-rst}` capture `stdout` and **parse it as live document content**. Generated tables, headings, admonitions, and cross-references become first-class document nodes — not a code block. The three differ only in which parser they invoke:
+  - `{python:render}` uses the host file's parser. Default choice when the generated content is authored in the same format as the page (MyST output in a `.md` host, reST output in a `.rst` host).
+  - `{python:render-myst}` forces MyST parsing regardless of host. Use when a `.rst` page needs to embed MyST-generated content.
+  - `{python:render-rst}` forces reST parsing regardless of host. Use when a `.md` page needs to embed reST-generated content.
+
+The Python and Click runners hold **independent per-document namespaces**, so a `{python:source}` import isn't visible to a `{click:run}` block and vice versa. Within the same domain, namespace persistence follows the same asymmetry as the Click directives (see § Live-rendering over captured output): `*:source` blocks persist top-level assignments to the runner namespace, `*:run` blocks discard them. Seed shared imports with `{python:source}` (`:hide-source:` if you don't want the snippet rendered), not with the first `{python:run}` block.
+
+The `render` family is the killer feature: it obsoletes the `docs_update.py` regenerator + marker-region pattern. Instead of:
+
+```python
+# docs/docs_update.py
+def update_topics() -> None:
+    rows = build_topics_table()
+    replace_content(docs_md, rows, "<!-- topics-start -->", "<!-- topics-end -->")
+```
+
+…run by `repomatic update-docs` or a CI job, write the generation inline:
+
+````markdown
+```{python:render}
+from {package}.topics import build_topics_table
+print(build_topics_table())
+```
+````
+
+The build-time render is always current (no regenerator step, no marker drift, no commit churn from auto-generated content). Use cases that map well:
+
+- Tables driven by a registry (skills, tools, plugins, supported formats, supported platforms).
+- Lists keyed off a dataclass schema or enum.
+- Per-item sections produced by walking source code (configuration options, command help, plugin metadata).
+- Cross-reference indexes that change with every release.
+
+Cases that don't:
+
+- Static reference content the user writes by hand (don't replace human prose with a generator).
+- Output that involves shelling out to subprocess (the build server may not have the binaries; use `{click:run}` only for CLIs the project itself ships).
+- Output that depends on remote state at build time (CI builds shouldn't hit external APIs; pin to local fixtures or the project's own data).
+
+Anti-pattern: any `render`-family block that takes more than a second or two to run. Sphinx executes every block on every build; slow blocks make `sphinx-build` painful for editors. Move heavy computation into the source-of-truth module, cache results, and have the directive call a fast accessor.
+
+When migrating an existing `docs_update.py` to `{python:render}`:
+
+1. Identify the renderer functions (the ones that return a Markdown string between markers).
+2. For each, replace the marker region in the `.md` page with a `{python:render}` block calling the renderer (or `{python:render-myst}` / `{python:render-rst}` when the host page format and the generated format differ).
+3. Drop the `update_<page>()` orchestrator function and the corresponding `replace_content()` call.
+4. Once every renderer is inlined, delete `docs/docs_update.py` and remove the `[tool.repomatic] docs.update-script` config (or whatever the project uses to register the script).
+5. Run `sphinx-build -W` to confirm no `<!-- start -->`/`<!-- end -->` markers got orphaned.
+
 ## MyST docstrings and admonitions
 
 `CLAUDE.md` § Comments and docstrings carries the project-wide rules (MyST in docstrings, no Google-style sections, reST field lists for `:param:`/`:return:`, no MyST in Click `--help` strings). The Sphinx-specific operational detail lives here.
@@ -188,6 +242,18 @@ extensions = [
     "click_extra.sphinx",
     "sphinxcontrib.mermaid",
 ]
+```
+
+The `{click:*}` and `{python:*}` execution directives are gated by an opt-in flag, off by default since click-extra `v7.15.0`. Set in `conf.py`:
+
+```python
+# Enable `{click:run}`/`{click:source}` and `{python:source}`/`{python:run}`/
+# `{python:render*}` directives. Disabled upstream in click-extra `v7.15.0`
+# because they execute arbitrary Python at build time with full Sphinx-process
+# privileges; every project that adopted them before then was opted in
+# implicitly. Without this flag, every directive reference logs an
+# "Unknown directive" warning at build time.
+click_extra_enable_exec_directives = True
 ```
 
 Choices that are project-specific:
@@ -600,6 +666,7 @@ Watch for these every pass:
 - A `dependencies.md` page whose embedded Mermaid graph hasn't been regenerated since the last `uv lock` change. The graph stays in sync only if `repomatic update-deps-graph` is wired into the autofix workflow; manual regeneration drifts.
 - `pyproject.toml` declaring a docs dependency that's no longer imported by `conf.py` (or vice-versa: importing one not declared). The mismatch passes Sphinx but trips a fresh `uv sync --group docs` run on a CI runner.
 - `repomatic.myst_docstrings` listed in `extensions` without `repomatic` declared in `[dependency-groups] docs`. Builds work on the maintainer's machine if `repomatic` is installed globally, then break in CI.
+- `click_extra.sphinx` listed in `extensions` without `click_extra_enable_exec_directives = True` in `conf.py`. Since click-extra `v7.15.0` the directives are off by default; without the flag, every `{click:run}` / `{click:source}` / `{python:*}` reference logs an "Unknown directive" warning and the page renders without the live block.
 - `suppress_warnings` entries that no longer fire because the upstream extension was fixed. Sweep on every upgrade — entries should grow stale and be removed, not accumulate.
 - Auto-region markers using bare `<!-- start -->` / `<!-- end -->` instead of named `<!-- {feature}-{kind}-start -->`. Migrate on first touch; the regenerator must be updated in the same commit.
 - Two pages on the same project using different octicons for the same concept (e.g., one page uses `book` for documentation, another uses `pencil`). Pick from the canonical registry in § Standard page roster › Title octicons; if none fit, add to the table.
