@@ -425,7 +425,7 @@ wheels = [
 
 [[package]]
 name = "click-extra"
-version = "7.14.0"
+version = "7.14.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boltons" },
@@ -438,9 +438,9 @@ dependencies = [
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "wcmatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dc/44/e8200fc42682c544c4597f4674910fad1358af63c5b6d45bf89d20a18708/click_extra-7.14.0.tar.gz", hash = "sha256:7e2f83aa631219bcff414208e20bd23d3f1bf92802e2820b3c49a9a87fa5f771", size = 144761, upload-time = "2026-04-24T13:35:04.859Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/20/c9/f02eef46dd487565fac61a0cf7b77bd2c1ce255129bbf04507a6bd3a2cf5/click_extra-7.14.1.tar.gz", hash = "sha256:acfa952375f5051e509643623ef9e66e2691435b9f4ceb50f5fb078e87761028", size = 145060, upload-time = "2026-04-26T20:34:58.762Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/50/f5159c0fe0a59b7ad8c1fb12e4133e2b073bc99778d19ab9b111378117d4/click_extra-7.14.0-py3-none-any.whl", hash = "sha256:3aaa50566d44db263db3aed02552c89950b1d09f01df300c041907bcf29882e6", size = 159274, upload-time = "2026-04-24T13:35:05.95Z" },
+    { url = "https://files.pythonhosted.org/packages/af/a4/61d5e395a62cd8e8a8cca9eb4a055666a56841fef11eaa6fbea3d13ac779/click_extra-7.14.1-py3-none-any.whl", hash = "sha256:1dc23b5f0caeade5d643e3f162f3b8b5acef16ee56e39944bbec6744dd2f2e23", size = 159513, upload-time = "2026-04-26T20:34:56.885Z" },
 ]
 
 [package.optional-dependencies]
@@ -1172,11 +1172,11 @@ wheels = [
 
 [[package]]
 name = "pathspec"
-version = "1.1.0"
+version = "1.1.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/2e/17/9c3094b822982b9f1ea666d8580ce59000f61f87c1663556fb72031ad9ec/pathspec-1.1.0.tar.gz", hash = "sha256:f5d7c555da02fd8dde3e4a2354b6aba817a89112fa8f333f7917a2a4834dd080", size = 133918, upload-time = "2026-04-23T01:46:22.298Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/82/42f767fc1c1143d6fd36efb827202a2d997a375e160a71eb2888a925aac1/pathspec-1.1.1.tar.gz", hash = "sha256:17db5ecd524104a120e173814c90367a96a98d07c45b2e10c2f3919fff91bf5a", size = 135180, upload-time = "2026-04-27T01:46:08.907Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/c9/8eed0486f074e9f1ca7f8ce5ad663e65f12fdab344028d658fa1b03d35e0/pathspec-1.1.0-py3-none-any.whl", hash = "sha256:574b128f7456bd899045ccd142dd446af7e6cfd0072d63ad73fbc55fbb4aaa42", size = 56264, upload-time = "2026-04-23T01:46:20.606Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/d9/7fb5aa316bc299258e68c73ba3bddbc499654a07f151cba08f6153988714/pathspec-1.1.1-py3-none-any.whl", hash = "sha256:a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189", size = 57328, upload-time = "2026-04-27T01:46:07.06Z" },
 ]
 
 [[package]]
