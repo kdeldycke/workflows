@@ -101,9 +101,20 @@ def temp_workflows(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def temp_workflows_with_actions(tmp_path: Path) -> Path:
-    """Create workflows with composite action references."""
+    """Create workflows referencing a discoverable composite action.
+
+    The action freeze/unfreeze logic enumerates `.github/actions/*/action.y*ml`
+    to decide which action names to rewrite, so the fixture materializes a
+    dummy `pr-metadata/action.yaml` alongside the workflow that references it.
+    """
     workflow_dir = tmp_path / ".github" / "workflows"
     workflow_dir.mkdir(parents=True)
+    actions_dir = tmp_path / ".github" / "actions" / "pr-metadata"
+    actions_dir.mkdir(parents=True)
+    (actions_dir / "action.yaml").write_text(
+        "name: pr-metadata\nruns:\n  using: composite\n  steps: []\n",
+        encoding="UTF-8",
+    )
 
     (workflow_dir / "autofix.yaml").write_text(
         dedent("""\
@@ -213,6 +224,88 @@ def test_freeze_action_reference(
     assert "@main" not in content
     assert "@v1.2.3" in content
     assert "kdeldycke/repomatic/.github/actions/pr-metadata@v1.2.3" in content
+
+
+def test_composite_action_names_enumerates_actions_dir(tmp_path: Path) -> None:
+    """`composite_action_names` discovers every action.y(a)ml directory.
+
+    Conformance test: a freshly-created action under `.github/actions/`
+    must appear in the discovery list without code changes elsewhere.
+    """
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    actions_dir = tmp_path / ".github" / "actions"
+    for name in ("alpha", "bravo", "charlie"):
+        action_dir = actions_dir / name
+        action_dir.mkdir(parents=True)
+        (action_dir / "action.yaml").write_text(
+            "runs:\n  using: composite\n  steps: []\n",
+            encoding="UTF-8",
+        )
+
+    prep = ReleasePrep(workflow_dir=workflow_dir)
+    assert prep.composite_action_names == ["alpha", "bravo", "charlie"]
+
+
+def test_composite_action_names_empty_when_no_actions_dir(tmp_path: Path) -> None:
+    """`composite_action_names` returns an empty list when actions/ is absent."""
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    prep = ReleasePrep(workflow_dir=workflow_dir)
+    assert prep.composite_action_names == []
+
+
+def test_freeze_unfreeze_round_trip_per_action(
+    tmp_path: Path,
+    temp_pyproject: Path,
+    monkeypatch,
+) -> None:
+    """Every discovered action is frozen and unfrozen idempotently.
+
+    Parametrize-style conformance check: enumerate the population of
+    discovered composite actions, run freeze then unfreeze, and assert each
+    action's `@main` ↔ `@v{version}` substitution round-trips. Mirrors the
+    "enumerate the population" pattern called out in `claude.md` § Testing.
+    """
+    monkeypatch.chdir(tmp_path)
+    workflow_dir = tmp_path / ".github" / "workflows"
+    workflow_dir.mkdir(parents=True)
+    actions_dir = tmp_path / ".github" / "actions"
+    action_names = ("alpha", "bravo")
+    for name in action_names:
+        action_dir = actions_dir / name
+        action_dir.mkdir(parents=True)
+        (action_dir / "action.yaml").write_text(
+            "runs:\n  using: composite\n  steps: []\n",
+            encoding="UTF-8",
+        )
+
+    workflow_file = workflow_dir / "demo.yaml"
+    references = "\n".join(
+        f"      - uses: kdeldycke/repomatic/.github/actions/{name}@main"
+        for name in action_names
+    )
+    workflow_file.write_text(
+        "name: Demo\non: push\njobs:\n  demo:\n    steps:\n" + references + "\n",
+        encoding="UTF-8",
+    )
+
+    prep = ReleasePrep(workflow_dir=workflow_dir)
+    prep.freeze_workflow_urls()
+    frozen = workflow_file.read_text(encoding="UTF-8")
+    for name in action_names:
+        assert f"actions/{name}@v1.2.3" in frozen, (
+            f"Freeze did not rewrite the {name} action reference"
+        )
+        assert f"actions/{name}@main" not in frozen
+
+    prep.unfreeze_workflow_urls()
+    unfrozen = workflow_file.read_text(encoding="UTF-8")
+    for name in action_names:
+        assert f"actions/{name}@main" in unfrozen, (
+            f"Unfreeze did not restore the {name} action reference"
+        )
+        assert f"actions/{name}@v1.2.3" not in unfrozen
 
 
 def test_freeze_cli_version(

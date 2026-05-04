@@ -126,6 +126,26 @@ class ReleasePrep:
 
         return self._update_file(self.citation_path, content, original)
 
+    @cached_property
+    def composite_action_names(self) -> list[str]:
+        """Discover composite action directories under `.github/actions/`.
+
+        Enumerates every `.github/actions/*/action.yaml` (or `.yml`) and
+        returns the directory names. New composite actions automatically
+        participate in freeze/unfreeze without requiring code changes here.
+
+        :return: Sorted list of composite action directory names.
+        """
+        actions_dir = self.workflow_dir.parent / "actions"
+        if not actions_dir.exists():
+            return []
+        names = {
+            path.parent.name
+            for pattern in ("*/action.yaml", "*/action.yml")
+            for path in actions_dir.glob(pattern)
+        }
+        return sorted(names)
+
     def freeze_workflow_urls(self) -> int:
         """Replace workflow URLs from default branch to versioned tag.
 
@@ -133,8 +153,10 @@ class ReleasePrep:
         the release tag so released versions reference immutable URLs.
 
         Replaces ``/repomatic/{default_branch}/` with `/repomatic/v{version}/``
-        and ``/repomatic/.github/actions/...@{default_branch}`` with
-        ``/repomatic/.github/actions/...@v{version}`` in all workflow YAML files.
+        and every ``/repomatic/.github/actions/{name}@{default_branch}`` with
+        ``/repomatic/.github/actions/{name}@v{version}`` in all workflow YAML
+        files. Composite action names are discovered from
+        :attr:`composite_action_names`.
 
         :return: Number of files modified.
         """
@@ -146,16 +168,20 @@ class ReleasePrep:
         # URL pattern: /repomatic/main/ -> /repomatic/v1.2.3/
         url_search = f"/repomatic/{self.default_branch}/"
         url_replace = f"/repomatic/v{self.current_version}/"
-        # Action reference pattern: /repomatic/.github/...@main -> @v1.2.3
-        action_search = f"/repomatic/.github/actions/pr-metadata@{self.default_branch}"
-        action_replace = (
-            f"/repomatic/.github/actions/pr-metadata@v{self.current_version}"
-        )
+        # Action reference pattern: /repomatic/.github/actions/{name}@main -> @v1.2.3
+        action_pairs = [
+            (
+                f"/repomatic/.github/actions/{name}@{self.default_branch}",
+                f"/repomatic/.github/actions/{name}@v{self.current_version}",
+            )
+            for name in self.composite_action_names
+        ]
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
             content = original.replace(url_search, url_replace)
-            content = content.replace(action_search, action_replace)
+            for action_search, action_replace in action_pairs:
+                content = content.replace(action_search, action_replace)
             if self._update_file(workflow_file, content, original):
                 count += 1
 
@@ -386,8 +412,10 @@ class ReleasePrep:
         to the default branch for the next development cycle.
 
         Replaces ``/repomatic/v{version}/` with `/repomatic/{default_branch}/``
-        and ``/repomatic/.github/actions/...@v{version}`` with
-        ``/repomatic/.github/actions/...@{default_branch}`` in all workflow YAML files.
+        and every ``/repomatic/.github/actions/{name}@v{version}`` with
+        ``/repomatic/.github/actions/{name}@{default_branch}`` in all workflow
+        YAML files. Composite action names are discovered from
+        :attr:`composite_action_names`.
 
         :return: Number of files modified.
         """
@@ -400,15 +428,19 @@ class ReleasePrep:
         url_search = f"/repomatic/v{self.current_version}/"
         url_replace = f"/repomatic/{self.default_branch}/"
         # Action reference pattern: @v1.2.3 -> @main
-        action_search = (
-            f"/repomatic/.github/actions/pr-metadata@v{self.current_version}"
-        )
-        action_replace = f"/repomatic/.github/actions/pr-metadata@{self.default_branch}"
+        action_pairs = [
+            (
+                f"/repomatic/.github/actions/{name}@v{self.current_version}",
+                f"/repomatic/.github/actions/{name}@{self.default_branch}",
+            )
+            for name in self.composite_action_names
+        ]
 
         for workflow_file in self.workflow_dir.glob("*.yaml"):
             original = workflow_file.read_text(encoding="UTF-8")
             content = original.replace(url_search, url_replace)
-            content = content.replace(action_search, action_replace)
+            for action_search, action_replace in action_pairs:
+                content = content.replace(action_search, action_replace)
             if self._update_file(workflow_file, content, original):
                 count += 1
 

@@ -86,6 +86,20 @@ if TYPE_CHECKING:
         from importlib.abc import Traversable
 
 
+RUNTIME_FRAGMENTS: tuple[str, ...] = (
+    "release-publish-pypi-job.yaml",
+)
+"""Bundled YAML fragments loaded by `repomatic` at runtime.
+
+These files live in `repomatic/data/` so they ship in the wheel and are
+discoverable via {func}`get_data_content`, but they are not deployed by
+`repomatic init`: they are templates the package uses to assemble outputs
+on the fly (like the caller-side `publish-pypi` job emitted into downstream
+thin callers). New entries must be added explicitly so the data-file
+registry tests stay authoritative.
+"""
+
+
 # Exportable files: all registry entries + tool runner bundled defaults.
 EXPORTABLE_FILES: dict[str, str | None] = {
     **{f.source: f.target for c in COMPONENTS for f in c.files},
@@ -97,10 +111,14 @@ EXPORTABLE_FILES: dict[str, str | None] = {
         for spec in TOOL_REGISTRY.values()
         if spec.default_config
     },
+    # Internal-use YAML fragments loaded by the package at runtime.
+    **{name: None for name in RUNTIME_FRAGMENTS},
 }
 """Registry of all exportable files: maps filename to default output path.
 
-`None` means stdout (for pyproject.toml templates that need merging).
+`None` means the file is bundled but not directly written to a target path
+by `repomatic init` (used for `pyproject.toml` templates that need merging,
+tool-runner default configs, and runtime fragments).
 """
 
 

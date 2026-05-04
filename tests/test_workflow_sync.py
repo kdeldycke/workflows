@@ -26,6 +26,7 @@ import yaml
 
 from repomatic.config import Config, WorkflowConfig
 from repomatic.github.actions import AnnotationLevel
+from repomatic.init_project import get_data_content
 from repomatic.github.workflow_sync import (
     LintResult,
     PathsSpec,
@@ -129,9 +130,14 @@ def test_changelog_has_secrets() -> None:
 
 
 def test_release_has_secrets() -> None:
-    """Verify release.yaml defines secrets."""
+    """Verify release.yaml defines secrets.
+
+    `PYPI_TOKEN` was removed once the publish step migrated to OIDC-based
+    Trusted Publishing via the `publish-pypi` composite action invoked from
+    the caller workflow. See pypi/warehouse#11096 for context.
+    """
     info = extract_trigger_info("release.yaml")
-    assert "PYPI_TOKEN" in info.call_secrets
+    assert "PYPI_TOKEN" not in info.call_secrets
     assert "REPOMATIC_PAT" in info.call_secrets
 
 
@@ -251,11 +257,86 @@ def test_changelog_passes_secrets_explicitly() -> None:
 
 
 def test_release_passes_secrets_explicitly() -> None:
-    """Verify release.yaml thin caller passes secrets explicitly."""
+    """Verify release.yaml thin caller passes secrets explicitly.
+
+    `PYPI_TOKEN` is no longer in the secrets surface: PyPI uploads run via
+    OIDC Trusted Publishing inside the caller-side `publish-pypi` job.
+    """
     content = generate_thin_caller("release.yaml")
     assert "secrets: inherit" not in content
-    assert "PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}" in content
+    assert "PYPI_TOKEN" not in content
     assert "REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}" in content
+
+
+def test_release_thin_caller_emits_publish_pypi_job() -> None:
+    """Verify the release.yaml thin caller appends the caller-side publish-pypi job."""
+    content = generate_thin_caller("release.yaml", version="v9.9.9")
+    assert "  publish-pypi:" in content
+    assert "needs: release" in content
+    assert "needs.release.outputs.release_commits_matrix" in content
+    assert "id-token: write" in content
+    assert (
+        f"{DEFAULT_REPO}/.github/actions/publish-pypi@v9.9.9" in content
+    )
+    assert (
+        "artifact-name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}"
+        in content
+    )
+
+
+def test_release_thin_caller_publish_pypi_uses_sha_pin() -> None:
+    """Verify SHA-pinned commit form propagates to the publish-pypi action ref."""
+    sha = "1234567890abcdef1234567890abcdef12345678"
+    content = generate_thin_caller(
+        "release.yaml", version="v9.9.9", commit_sha=sha
+    )
+    assert (
+        f"{DEFAULT_REPO}/.github/actions/publish-pypi@{sha} # v9.9.9" in content
+    )
+
+
+def test_non_release_thin_caller_omits_publish_pypi_job() -> None:
+    """Verify non-release thin callers do not gain a publish-pypi job."""
+    for filename in REUSABLE_WORKFLOWS:
+        if filename == "release.yaml":
+            continue
+        content = generate_thin_caller(filename)
+        assert "publish-pypi:" not in content, (
+            f"{filename} unexpectedly emits a publish-pypi job"
+        )
+
+
+def test_release_thin_caller_publish_pypi_omits_checkout() -> None:
+    """The downstream publish-pypi job should not require an explicit checkout.
+
+    The cross-repo composite action `uses:` form is fetched by GitHub
+    automatically: dropping `actions/checkout` keeps the generator free of
+    third-party action SHA pins (which would otherwise be invisible to
+    Renovate, since the generator's source is `.py`, not `.yaml`).
+    """
+    content = generate_thin_caller("release.yaml")
+    assert "actions/checkout" not in content
+
+
+def test_release_thin_caller_loads_fragment_from_data() -> None:
+    """The publish-pypi job body must be sourced from a bundled YAML file.
+
+    Locking in the file-backed template means any future SHA pins inside
+    the job body live in a `.yaml` file Renovate can scan, not in Python
+    string literals. The fragment carries a real working default action ref
+    that the generator rewrites via `.replace()` (same convention as
+    `release_prep.freeze_workflow_urls`): no bespoke templating syntax.
+    """
+    fragment = get_data_content("release-publish-pypi-job.yaml")
+    parsed = yaml.safe_load(fragment)
+    assert "publish-pypi" in parsed
+    job = parsed["publish-pypi"]
+    assert job["permissions"]["id-token"] == "write"
+    # The fragment ships with the upstream's own working ref so it parses as
+    # a real, copy-pasteable workflow snippet.
+    assert (
+        f"{DEFAULT_REPO}/.github/actions/publish-pypi@main" in fragment
+    )
 
 
 def test_renovate_passes_secrets_explicitly() -> None:
@@ -367,7 +448,7 @@ def test_extract_extra_jobs_single() -> None:
         "      - main\n  workflow_dispatch:\n\njobs:\n\n  release:\n"
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v6.0.0\n"
         "    secrets:\n"
-        "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n"
+        "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n"
         "\n"
         "  # Custom packaging job.\n"
         "  chocolatey:\n"
@@ -382,7 +463,41 @@ def test_extract_extra_jobs_single() -> None:
     assert "needs: release" in extra
     assert "# Custom packaging job." in extra
     # The managed job should not appear in extra.
-    assert "PYPI_TOKEN" not in extra
+    assert "REPOMATIC_PAT" not in extra
+
+
+def test_extract_extra_jobs_treats_publish_pypi_as_managed() -> None:
+    """Verify the caller-side publish-pypi job is recognized as managed.
+
+    When a thin-caller for `release.yaml` is regenerated, the publish-pypi
+    job (which uses `kdeldycke/repomatic/.github/actions/publish-pypi@...`)
+    must be treated as part of the managed surface and not preserved as
+    an extra job. Otherwise re-syncing would duplicate it.
+    """
+    content = (
+        f"---\nname: Release\njobs:\n\n  release:\n"
+        f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v6.0.0\n"
+        "\n"
+        "  publish-pypi:\n"
+        "    needs: release\n"
+        "    permissions:\n"
+        "      id-token: write\n"
+        "    runs-on: ubuntu-latest\n"
+        "    steps:\n"
+        f"      - uses: {DEFAULT_REPO}/.github/actions/publish-pypi@v6.0.0\n"
+        "        with:\n"
+        "          artifact-name: foo\n"
+        "\n"
+        "  notify:\n"
+        "    needs: publish-pypi\n"
+        "    runs-on: ubuntu-latest\n"
+        "    steps:\n"
+        "      - run: echo done\n"
+    )
+    extra = extract_extra_jobs(content)
+    assert "publish-pypi:" not in extra
+    assert "notify:" in extra
+    assert "needs: publish-pypi" in extra
 
 
 def test_extract_extra_jobs_multiple() -> None:
@@ -585,7 +700,6 @@ def test_explicit_secrets_passed(tmp_path: Path) -> None:
         "---\njobs:\n  release:\n"
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n"
         "    secrets:\n"
-        "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n"
         "      REPOMATIC_PAT: ${{ secrets.REPOMATIC_PAT }}\n"
         "      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}\n",
         encoding="UTF-8",
@@ -627,7 +741,7 @@ def test_partial_secrets_missing(tmp_path: Path) -> None:
         "---\njobs:\n  release:\n"
         f"    uses: {DEFAULT_REPO}/.github/workflows/release.yaml@v5.8.0\n"
         "    secrets:\n"
-        "      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}\n",
+        "      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}\n",
         encoding="UTF-8",
     )
     result = check_secrets_passed(wf, "release.yaml")

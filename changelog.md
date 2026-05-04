@@ -5,6 +5,11 @@
 > [!WARNING]
 > This version is **not released yet** and is under active development.
 
+- **Breaking**: drop `PYPI_TOKEN` from the `release.yaml` `workflow_call.secrets:` interface. Downstream repos must regenerate their thin-caller workflow with `repomatic init workflows` and register a [PyPI Trusted Publisher](https://docs.pypi.org/trusted-publishers/adding-a-publisher/) for their own `release.yaml`. This re-enables OIDC-based PyPI publishing previously reverted in [#528](https://github.com/kdeldycke/repomatic/issues/528), this time via a composite action that sidesteps the reusable-workflow `job_workflow_ref` mismatch ([pypi/warehouse#11096](https://github.com/pypi/warehouse/issues/11096)).
+- Add the [`publish-pypi`](https://github.com/kdeldycke/repomatic/blob/main/.github/actions/publish-pypi/action.yaml) composite action wrapping `uv publish --trusted-publishing automatic` with build-attestation verification. Each downstream thin-caller now contains a generated `publish-pypi` job that invokes this action with `permissions: id-token: write`, inheriting the caller's OIDC context.
+- Add `release_commits_matrix` and `package_name` outputs to the reusable `release.yaml` so caller-side jobs can drive their own matrix and condition execution on a release commit being present.
+- Generalize composite-action ref freeze/unfreeze in `release_prep.py` to enumerate every `.github/actions/*/action.y*ml` directory rather than hardcoding a single name. New composite actions now participate in `@main` ↔ `@vX.Y.Z` rewrites without requiring code changes.
+
 ## [`6.17.0` (2026-05-03)](https://github.com/kdeldycke/repomatic/compare/v6.16.0...v6.17.0)
 
 - Fix parallel `OSError: Lock for file .git/config did already exist` test failures. `tests/test_git_ops.py` and `tests/test_metadata.py` share `pytestmark = pytest.mark.xdist_group("git")` so pydriller's `Git(".")` initialization (which acquires `.git/config.lock` on every call) is serialized to a single pytest-xdist worker. Add `mypy_path = "docs"` to `[tool.mypy]` so mypy resolves `import docs_update` in `tests/test_readme.py` against `docs/docs_update.py`.

@@ -1,0 +1,26 @@
+---
+# Caller-side `publish-pypi` job appended to every downstream `release.yaml`
+# thin-caller. The composite action it invokes inherits the calling job's
+# OIDC context, so the OIDC `job_workflow_ref` claim resolves to the
+# downstream's own workflow file: that path is what each downstream registers
+# with PyPI as a Trusted Publisher. See pypi/warehouse#11096 for context.
+#
+# The action ref below is a real, working default (upstream repo at `@main`).
+# `repomatic.github.workflow_sync._render_publish_pypi_job` rewrites it to
+# the requested {repo, version, sha} via the same `.replace()`-based
+# convention `repomatic.release_prep` uses on workflow files at freeze time.
+# No bespoke templating syntax is involved: the fragment is plain YAML with
+# real values, copy-pasteable into any workflow.
+publish-pypi:
+  name: 🐍 Publish to PyPI (${{ matrix.short_sha }})
+  needs: release
+  if: needs.release.outputs.release_commits_matrix
+  strategy:
+    matrix: ${{ fromJSON(needs.release.outputs.release_commits_matrix) }}
+  runs-on: ubuntu-latest
+  permissions:
+    id-token: write
+  steps:
+    - uses: kdeldycke/repomatic/.github/actions/publish-pypi@main
+      with:
+        artifact-name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}

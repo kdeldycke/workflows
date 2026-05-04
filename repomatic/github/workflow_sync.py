@@ -562,6 +562,7 @@ def generate_thin_caller(
         uses_ref = f"{commit_sha} # {version}"
     else:
         uses_ref = version
+    main_job = filename.removesuffix(".yaml")
     lines = [
         "---",
         f"name: {info.name}",
@@ -569,7 +570,7 @@ def generate_thin_caller(
         "",
         "jobs:",
         "",
-        f"  {filename.removesuffix('.yaml')}:",
+        f"  {main_job}:",
         f"    uses: {repo}/.github/workflows/{filename}@{uses_ref}",
     ]
 
@@ -582,10 +583,95 @@ def generate_thin_caller(
             for secret_name in info.call_secrets
         )
 
+    # Append the publish-pypi caller-side job for release.yaml. The composite
+    # action runs in the caller's OIDC context so its `job_workflow_ref` claim
+    # resolves to the downstream's own release.yaml: that path is what each
+    # downstream registers with PyPI's Trusted Publisher. See
+    # pypi/warehouse#11096 for why a job inside the reusable workflow can't
+    # serve this role.
+    if filename == "release.yaml":
+        lines.extend(
+            _render_publish_pypi_job(repo=repo, version=version, commit_sha=commit_sha)
+        )
+
     # Trailing newline.
     lines.append("")
 
     return "\n".join(lines)
+
+
+_PUBLISH_PYPI_FRAGMENT_FILE = "release-publish-pypi-job.yaml"
+"""Bundled YAML fragment containing the caller-side `publish-pypi` job.
+
+Registered in :data:`repomatic.init_project.RUNTIME_FRAGMENTS` so that the
+data-file registry recognizes it as bundled-but-not-deployed (the same
+treatment as tool-runner default configs).
+"""
+
+_PUBLISH_PYPI_DEFAULT_ACTION_REF: Final[str] = (
+    f"{DEFAULT_REPO}/.github/actions/publish-pypi@main"
+)
+"""Literal default action ref carried inside the bundled fragment.
+
+The fragment ships with this exact string so it parses as a working YAML
+snippet. The generator below rewrites it to the requested
+{repo, version, sha} on the way out via plain `.replace()`, mirroring the
+convention used by :mod:`repomatic.release_prep` to rewrite action refs in
+workflow files at freeze time.
+"""
+
+
+def _render_publish_pypi_job(
+    repo: str,
+    version: str,
+    commit_sha: str | None,
+) -> list[str]:
+    """Render the caller-side `publish-pypi` job for downstream `release.yaml`.
+
+    The job runs only when the upstream workflow emits a non-empty
+    `release_commits_matrix` (i.e., the push contains a release commit). The
+    composite action it invokes inherits the calling job's OIDC context, so
+    PyPI's Trusted Publisher matches the downstream's own workflow file path.
+
+    The job body lives in the bundled file
+    `repomatic/data/release-publish-pypi-job.yaml` and ships with the upstream
+    `@main` ref baked in. This function rewrites that single ref into the
+    {repo, version, sha} the caller requests via plain `.replace()`, the same
+    text-substitution convention used by :mod:`repomatic.release_prep` to
+    freeze action refs in workflow files at release time.
+
+    :param repo: Upstream repository owning the composite action.
+    :param version: Version reference for the action ref.
+    :param commit_sha: Optional 40-character SHA for pin-style refs (renders
+        as `@sha # version` like Renovate).
+    :return: YAML lines (without trailing blank).
+    """
+    if commit_sha:
+        action_ref = f"{commit_sha} # {version}"
+    else:
+        action_ref = version
+    target_ref = f"{repo}/.github/actions/publish-pypi@{action_ref}"
+
+    fragment = get_data_content(_PUBLISH_PYPI_FRAGMENT_FILE)
+    # Drop the document marker, the file's leading comment block, and any
+    # trailing blank lines: only the `publish-pypi:` job mapping is appended
+    # under the workflow's `jobs:` key.
+    body_lines: list[str] = []
+    seen_job_key = False
+    for line in fragment.splitlines():
+        if not seen_job_key:
+            if line.startswith("publish-pypi:"):
+                seen_job_key = True
+            else:
+                continue
+        body_lines.append(line)
+    while body_lines and body_lines[-1] == "":
+        body_lines.pop()
+
+    indented = ["  " + line if line else "" for line in body_lines]
+    rendered = "\n".join(indented)
+    rendered = rendered.replace(_PUBLISH_PYPI_DEFAULT_ACTION_REF, target_ref)
+    return ["", *rendered.split("\n")]
 
 
 def identify_canonical_workflow(
@@ -643,7 +729,11 @@ def extract_extra_jobs(
     :param repo: Upstream repository to match against.
     :return: Raw text of extra jobs (empty string when there are none).
     """
-    # Identify the managed job key via YAML parsing.
+    # Identify all managed job keys via YAML parsing. A job is "managed" when
+    # its body references the upstream repo: either at the job-level `uses:`
+    # (reusable workflow) or at any `steps[*].uses:` (composite action like
+    # `kdeldycke/repomatic/.github/actions/publish-pypi`). The last managed
+    # job in document order is the boundary; everything after it is extra.
     try:
         data = yaml.safe_load(content)
     except yaml.YAMLError:
@@ -654,42 +744,54 @@ def extract_extra_jobs(
     if not isinstance(jobs, dict):
         return ""
 
-    uses_pattern = re.compile(rf"^{re.escape(repo)}/\.github/workflows/[^@]+@.+$")
-    managed_key = None
+    upstream_pattern = re.compile(rf"{re.escape(repo)}/\.github/(workflows|actions)/")
+    managed_keys: list[str] = []
     for key, config in jobs.items():
-        if isinstance(config, dict) and uses_pattern.match(config.get("uses", "")):
-            managed_key = str(key)
-            break
-    if managed_key is None:
-        return ""
-
-    # In raw text, find the managed job key line and walk past its body.
-    all_lines = content.split("\n")
-    managed_prefix = f"  {managed_key}:"
-    managed_idx = None
-    for i, line in enumerate(all_lines):
-        if line == managed_prefix or line.startswith(managed_prefix + " "):
-            managed_idx = i
-            break
-    if managed_idx is None:
-        return ""
-
-    # The managed job body consists of lines at 4+ space indent. Blank lines
-    # between body lines are separators, not content. Track the index of the
-    # last 4+-indent line to use as the boundary.
-    last_body_idx = managed_idx
-    for i in range(managed_idx + 1, len(all_lines)):
-        line = all_lines[i]
-        if line.startswith("    "):
-            last_body_idx = i
-        elif line == "":
-            # Blank line: might be mid-body or a separator. Keep scanning.
+        if not isinstance(config, dict):
             continue
-        else:
-            # Non-blank, non-body line: past the managed job.
-            break
+        if upstream_pattern.search(config.get("uses", "")):
+            managed_keys.append(str(key))
+            continue
+        steps = config.get("steps") or []
+        if isinstance(steps, list) and any(
+            isinstance(step, dict) and upstream_pattern.search(step.get("uses", ""))
+            for step in steps
+        ):
+            managed_keys.append(str(key))
+    if not managed_keys:
+        return ""
 
-    # Everything after the last body line is extra content.
+    # In raw text, walk past each managed job body. Find each job header line
+    # then advance through its body (4+ space indent). Use the last managed
+    # job's boundary as the cutoff for extras.
+    all_lines = content.split("\n")
+    last_body_idx = -1
+    for managed_key in managed_keys:
+        managed_prefix = f"  {managed_key}:"
+        managed_idx = None
+        for i, line in enumerate(all_lines):
+            if i <= last_body_idx:
+                continue
+            if line == managed_prefix or line.startswith(managed_prefix + " "):
+                managed_idx = i
+                break
+        if managed_idx is None:
+            continue
+        body_idx = managed_idx
+        for i in range(managed_idx + 1, len(all_lines)):
+            line = all_lines[i]
+            if line.startswith("    "):
+                body_idx = i
+            elif line == "":
+                continue
+            else:
+                break
+        last_body_idx = body_idx
+
+    if last_body_idx < 0:
+        return ""
+
+    # Everything after the last managed job body is extra content.
     extra_start = last_body_idx + 1
     if extra_start >= len(all_lines):
         return ""

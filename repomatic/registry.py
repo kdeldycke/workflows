@@ -335,6 +335,20 @@ COMPONENTS: tuple[Component, ...] = (
         files=(FileEntry("renovate.json5"),),
     ),
     BundledComponent(
+        name="publish-pypi-action",
+        description=(
+            "Composite action that publishes to PyPI via Trusted Publishing"
+            " (.github/actions/publish-pypi/)"
+        ),
+        scope=RepoScope.NON_AWESOME,
+        files=(
+            FileEntry(
+                "action-publish-pypi.yaml",
+                ".github/actions/publish-pypi/action.yaml",
+            ),
+        ),
+    ),
+    BundledComponent(
         name="agents",
         description="Claude Code agent definitions (.claude/agents/)",
         init_default=InitDefault.EXCLUDE,

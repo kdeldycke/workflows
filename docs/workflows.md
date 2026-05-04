@@ -456,10 +456,13 @@ docs = [
 
 #### 🐍 Publish to PyPI (`publish-pypi`)
 
-- Uploads packages to PyPI with attestations using [`uv publish`](https://github.com/astral-sh/uv)
+- Uploads packages to PyPI with attestations using [`uv publish --trusted-publishing automatic`](https://github.com/astral-sh/uv) over OIDC: no long-lived API token is required.
+- The job is generated in each downstream caller workflow (not in the upstream reusable workflow) and invokes the [`publish-pypi`](https://github.com/kdeldycke/repomatic/blob/main/.github/actions/publish-pypi/action.yaml) composite action. Composite actions inherit the calling job's OIDC context, so the token's `job_workflow_ref` claim resolves to the downstream's own workflow file: that path is what each downstream registers with PyPI as a Trusted Publisher. This works around [pypi/warehouse#11096](https://github.com/pypi/warehouse/issues/11096), where a job inside the reusable workflow would claim the upstream path and fail the publisher match.
 - **Requires**:
-  - `PYPI_TOKEN` secret
-  - Built packages from `build-package` job
+  - A one-time PyPI Trusted Publisher registration for the downstream repository's caller workflow (see [PyPI Trusted Publishers docs](https://docs.pypi.org/trusted-publishers/adding-a-publisher/)).
+  - `id-token: write` permission on the caller-side job (auto-emitted by `repomatic init workflows`).
+  - The `release_commits_matrix` output from the upstream `release.yaml` (drives the matrix and the `if:` gate).
+  - Built packages from the upstream `build-package` job.
 
 #### 🐙 Create release draft (`create-release`)
 

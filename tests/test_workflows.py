@@ -512,6 +512,9 @@ def test_runner_uses_ubuntu_slim_by_default(
 # Path to the bundled data directory.
 DATA_DIR = REPO_ROOT / "repomatic" / "data"
 
+# Path to the composite actions directory.
+ACTIONS_DIR = REPO_ROOT / ".github" / "actions"
+
 # Workflows that are intentionally excluded from the bundled data symlinks because
 # they are repomatic-internal (patching files that only exist in this repo) and
 # must not be exported to downstream repositories.
@@ -537,18 +540,21 @@ def test_all_workflows_have_symlinks_in_data() -> None:
     )
 
 
-def test_only_workflows_skills_and_agents_are_symlinks_in_data() -> None:
-    """Verify only workflow, skill, and agent files are symlinks in repomatic/data/."""
+def test_only_workflows_skills_agents_and_actions_are_symlinks_in_data() -> None:
+    """Verify only workflow, skill, agent, and composite-action files are symlinks
+    in repomatic/data/.
+    """
     workflows = {p.name for p in WORKFLOWS_DIR.glob("*.yaml")}
     skills = {p.name for p in DATA_DIR.iterdir() if p.name.startswith("skill-")}
     agents = {p.name for p in DATA_DIR.iterdir() if p.name.startswith("agent-")}
-    expected = workflows | skills | agents
+    actions = {p.name for p in DATA_DIR.iterdir() if p.name.startswith("action-")}
+    expected = workflows | skills | agents | actions
     symlinks = {p.name for p in DATA_DIR.iterdir() if p.is_symlink()}
 
     extra = symlinks - expected
     assert not extra, (
         f"Unexpected symlinks in repomatic/data/: {sorted(extra)}. "
-        "Only workflow, skill, and agent files should be symlinked."
+        "Only workflow, skill, agent, and composite-action files should be symlinked."
     )
 
 
@@ -557,10 +563,24 @@ def test_workflow_symlinks_resolve_correctly() -> None:
     for symlink in sorted(DATA_DIR.iterdir()):
         if not symlink.is_symlink():
             continue
-        if symlink.name.startswith("skill-") or symlink.name.startswith("agent-"):
+        if symlink.name.startswith(("skill-", "agent-", "action-")):
             continue
         target = symlink.resolve()
         expected = (WORKFLOWS_DIR / symlink.name).resolve()
+        assert target == expected, (
+            f"Symlink {symlink.name} points to {target}, expected {expected}"
+        )
+
+
+def test_action_symlinks_resolve_correctly() -> None:
+    """Verify that composite-action symlinks in repomatic/data/ resolve correctly."""
+    for symlink in sorted(DATA_DIR.iterdir()):
+        if not symlink.is_symlink() or not symlink.name.startswith("action-"):
+            continue
+        # action-publish-pypi.yaml -> .github/actions/publish-pypi/action.yaml.
+        action_name = symlink.name.removeprefix("action-").removesuffix(".yaml")
+        expected = (ACTIONS_DIR / action_name / "action.yaml").resolve()
+        target = symlink.resolve()
         assert target == expected, (
             f"Symlink {symlink.name} points to {target}, expected {expected}"
         )

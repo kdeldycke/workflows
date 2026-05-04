@@ -4,8 +4,6 @@ name: 🚀 Build & release
 "on":
   workflow_call:
     secrets:
-      PYPI_TOKEN:
-        required: false
       REPOMATIC_PAT:
         required: false
       VIRUSTOTAL_API_KEY:
@@ -14,6 +12,14 @@ name: 🚀 Build & release
       nuitka_matrix:
         description: Nuitka build matrix
         value: ${{ toJSON(fromJSON(jobs.metadata.outputs.metadata).nuitka_matrix) }}
+      release_commits_matrix:
+        description: >
+          Matrix of release commits (used by the downstream caller's
+          publish-pypi job to drive its own matrix and gate execution).
+        value: ${{ toJSON(fromJSON(jobs.metadata.outputs.metadata).release_commits_matrix) }}
+      package_name:
+        description: Python package name (empty when not a Python project).
+        value: ${{ fromJSON(jobs.metadata.outputs.metadata).package_name }}
 
   # Targets are chosen so that all commits get a chance to have their package tested.
   push:
@@ -379,10 +385,16 @@ jobs:
     needs:
       - metadata
       - build-package
-    # Guard release_commits_matrix: without create-tag gating this job, it would attempt to run
-    # on non-release pushes where the matrix is null.
+    # Only runs in the upstream's own self-release context (push to main).
+    # When invoked via `workflow_call` from a downstream caller, this job is
+    # skipped: PyPI's Trusted Publisher matches OIDC `job_workflow_ref`
+    # against the caller's workflow file, but a job inside this reusable
+    # workflow always claims this file. Downstream callers run their own
+    # publish-pypi job using the .github/actions/publish-pypi composite
+    # action, which inherits the caller's OIDC context. See pypi/warehouse#11096.
     if: >-
-      fromJSON(needs.metadata.outputs.metadata).package_name
+      github.event_name == 'push'
+      && fromJSON(needs.metadata.outputs.metadata).package_name
       && fromJSON(needs.metadata.outputs.metadata).release_commits_matrix
     strategy:
       matrix: ${{ fromJSON(needs.metadata.outputs.metadata).release_commits_matrix }}
@@ -390,34 +402,12 @@ jobs:
     permissions:
       id-token: write
     steps:
-      # No checkout in this job; only pre-built artifacts are downloaded.
-      - uses: astral-sh/setup-uv@6ee6290f1cbc4156c0bdd66691b2c144ef8df19a # v7.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          enable-cache: false
-      - name: Download build artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        id: download
+          ref: ${{ matrix.commit }}
+      - uses: ./.github/actions/publish-pypi
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
-      - name: Verify build attestations
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DOWNLOAD_PATH: ${{ steps.download.outputs.download-path }}
-        shell: bash
-        run: |
-          for f in "${DOWNLOAD_PATH}"/*; do
-            echo "Verifying: ${f}"
-            gh attestation verify "${f}" \
-              --repo "${{ github.repository }}" \
-              --signer-repo kdeldycke/repomatic
-          done
-      - name: Push to PyPI
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          DOWNLOAD_PATH: ${{ steps.download.outputs.download-path }}
-        run: >
-          uv --no-progress publish --token "${PYPI_TOKEN}"
-          "${DOWNLOAD_PATH}/*"
+          artifact-name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
 
   create-release:
     name: 🐙 Create GitHub release draft (${{ matrix.short_sha }})

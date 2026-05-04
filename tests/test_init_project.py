@@ -26,6 +26,7 @@ import pytest
 from repomatic.config import Config
 from repomatic.init_project import (
     EXPORTABLE_FILES,
+    RUNTIME_FRAGMENTS,
     _resolve_agents_target,
     _resolve_skills_target,
     _strip_renovate_repo_settings,
@@ -2321,7 +2322,9 @@ def test_all_data_files_registered_in_exportable_files() -> None:
 
 
 def test_every_data_file_maps_to_a_component() -> None:
-    """Every file in EXPORTABLE_FILES belongs to a registry component or tool runner."""
+    """Every file in EXPORTABLE_FILES belongs to a registry component, tool
+    runner default, or registered runtime fragment.
+    """
     # Collect all source filenames from the registry.
     registry_filenames: set[str] = set()
     for comp in COMPONENTS:
@@ -2335,7 +2338,7 @@ def test_every_data_file_maps_to_a_component() -> None:
         spec.default_config for spec in TOOL_REGISTRY.values() if spec.default_config
     }
 
-    covered = registry_filenames | bundled_defaults
+    covered = registry_filenames | bundled_defaults | set(RUNTIME_FRAGMENTS)
     uncovered = set(EXPORTABLE_FILES.keys()) - covered
     assert not uncovered, (
         f"EXPORTABLE_FILES entries not mapped to any component: {sorted(uncovered)}"
