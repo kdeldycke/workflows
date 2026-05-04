@@ -606,7 +606,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "biome": ToolSpec(
         name="biome",
         display_name="Biome",
-        version="2.4.12",
+        version="2.4.13",
         source_url="https://github.com/biomejs/biome",
         config_docs_url="https://biomejs.dev/reference/configuration/",
         cli_docs_url="https://biomejs.dev/reference/cli/",
