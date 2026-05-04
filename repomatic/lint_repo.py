@@ -31,6 +31,21 @@ import yaml
 from .github.actions import AnnotationLevel, emit_annotation
 from .github.gh import run_gh_command
 from .github.token import check_all_pat_permissions
+from .pypi import (
+    PYPI_TRUSTED_PUBLISHER_SETTINGS_URL,
+    get_latest_release_file,
+    get_trusted_publishers,
+)
+
+PYPI_TRUSTED_PUBLISHER_WORKFLOW = "release.yaml"
+"""Workflow filename each downstream registers as the Trusted Publisher.
+
+The caller-side ``publish-pypi`` job is appended to ``release.yaml`` in every
+downstream repo (see ``repomatic/data/release-publish-pypi-job.yaml``), and the
+composite action it invokes inherits the calling job's OIDC context. The
+OIDC ``job_workflow_ref`` claim therefore names this file: that is what the
+PyPI Trusted Publisher entry must match.
+"""
 
 
 def get_repo_metadata(repo: str) -> dict[str, str | None]:
@@ -611,6 +626,89 @@ def check_pages_deployment_source(repo: str) -> tuple[bool | None, str]:
     )
 
 
+def check_pypi_trusted_publisher(
+    repo: str,
+    package_name: str | None,
+) -> tuple[bool | None, str]:
+    """Check that the PyPI Trusted Publisher entry is registered for this repo.
+
+    PyPI's Trusted Publisher settings are owner-only at
+    ``/manage/project/<name>/settings/publishing/`` and not exposed through
+    any public API. The only public surface where the OIDC publisher is
+    observable is the PEP 740 provenance attached to releases uploaded via
+    OIDC: see :func:`repomatic.pypi.get_trusted_publishers`.
+    This check probes the latest release's provenance and looks for a
+    bundle whose ``repository`` matches ``repo`` and whose ``workflow``
+    is :data:`PYPI_TRUSTED_PUBLISHER_WORKFLOW`.
+    A match means the publisher is wired up and a previous release uploaded
+    successfully through it.
+    A mismatch (provenance exists but names a different repo or workflow)
+    is a misconfiguration: typical cause is registering the upstream
+    reusable workflow instead of the downstream caller's ``release.yaml``,
+    which fails on the first upload after migration.
+    Indeterminate (``None``) covers two cases that look identical from the
+    outside: no published release yet, and provenance missing because past
+    releases were uploaded via API token. In both cases the setup guide
+    nags until the next OIDC-attested upload appears.
+
+    :param repo: Repository in ``"owner/repo"`` format.
+    :param package_name: PyPI package name. The check is skipped when not
+        provided.
+    :return: Tuple of ``(passed_or_None, message)``.
+    """
+    if not package_name:
+        return None, (
+            "PyPI Trusted Publisher check: skipped (no package name)."
+        )
+
+    latest = get_latest_release_file(package_name)
+    if latest is None:
+        return None, (
+            f"PyPI Trusted Publisher check: skipped (no released version of"
+            f" '{package_name}' on PyPI yet)."
+        )
+    version, filename = latest
+
+    publishers = get_trusted_publishers(package_name, version, filename)
+    if publishers is None:
+        return None, (
+            f"PyPI Trusted Publisher check: skipped (no provenance for"
+            f" '{package_name}' {version}; previous release likely uploaded"
+            f" via API token)."
+        )
+
+    if not publishers:
+        return None, (
+            f"PyPI Trusted Publisher check: skipped (provenance for"
+            f" '{package_name}' {version} contains no publisher bundles)."
+        )
+
+    for publisher in publishers:
+        if (
+            publisher.kind == "GitHub"
+            and publisher.repository == repo
+            and publisher.workflow == PYPI_TRUSTED_PUBLISHER_WORKFLOW
+        ):
+            return True, (
+                f"PyPI Trusted Publisher matches: {publisher.repository}"
+                f" via {publisher.workflow}."
+            )
+
+    observed = ", ".join(
+        f"{p.repository}:{p.workflow}" for p in publishers
+    )
+    settings_url = PYPI_TRUSTED_PUBLISHER_SETTINGS_URL.format(
+        package=package_name
+    )
+    msg = (
+        f"PyPI Trusted Publisher mismatch for '{package_name}' {version}."
+        f" Expected {repo} via {PYPI_TRUSTED_PUBLISHER_WORKFLOW},"
+        f" but provenance names: {observed}."
+        f" Register the correct entry at {settings_url}."
+    )
+    return False, msg
+
+
 def check_stale_gh_pages_branch(repo: str) -> tuple[bool | None, str]:
     """Check for a leftover `gh-pages` branch after switching to GitHub Actions.
 
@@ -801,6 +899,17 @@ def run_repo_lint(
     # Check 9: Fork PR approval policy strict enough (warning).
     if repo:
         passed, msg = check_fork_pr_approval_policy(repo)
+        if passed is False:
+            emit_annotation(AnnotationLevel.WARNING, msg)
+            print(f"⚠ {msg}")
+        elif passed is True:
+            print(f"✓ {msg}")
+        else:
+            print(f"ℹ {msg}")
+
+    # Check 9b: PyPI Trusted Publisher entry registered (warning).
+    if repo and package_name:
+        passed, msg = check_pypi_trusted_publisher(repo, package_name)
         if passed is False:
             emit_annotation(AnnotationLevel.WARNING, msg)
             print(f"⚠ {msg}")

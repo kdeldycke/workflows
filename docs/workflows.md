@@ -59,6 +59,7 @@ GitHub Actions has several design limitations that the workflows work around:
 - Detects missing `REPOMATIC_PAT` secret and opens an issue with step-by-step setup instructions
 - When the PAT is present, validates all required permissions (contents, issues, pull requests, Dependabot alerts, workflows, commit statuses) using the same checks as `lint-repo`
 - Keeps the issue open with a diagnostic table when the PAT exists but permissions are incomplete
+- For projects published to PyPI, probes the latest release's PEP 740 provenance and keeps the issue open until a successful OIDC-attested upload confirms the [Trusted Publisher entry](https://docs.pypi.org/trusted-publishers/adding-a-publisher/) is registered for this repo's own `release.yaml`
 - When Nuitka binary compilation is active, includes a VirusTotal API key setup step and keeps the issue open until the key is configured
 - Automatically closes the issue once the secret is configured and all permissions are verified
 - **Skipped if**:

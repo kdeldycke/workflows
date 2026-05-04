@@ -37,6 +37,23 @@ PYPI_API_URL = "https://pypi.org/pypi/{package}/json"
 PYPI_PROJECT_URL = "https://pypi.org/project/{package}/{version}/"
 """PyPI project page URL for a specific version."""
 
+PYPI_PROVENANCE_URL = (
+    "https://pypi.org/integrity/{package}/{version}/{filename}/provenance"
+)
+"""PyPI integrity API endpoint exposing PEP 740 attestation bundles for a file.
+
+The response includes a ``publisher`` object per bundle that names the OIDC
+identity used to upload (kind, repository, workflow filename, environment).
+This is the only public surface where the OIDC ``job_workflow_ref`` claim is
+observable: project-level Trusted Publisher settings live behind the owner-only
+``/manage/project/<name>/settings/publishing/`` page.
+"""
+
+PYPI_TRUSTED_PUBLISHER_SETTINGS_URL = (
+    "https://pypi.org/manage/project/{package}/settings/publishing/"
+)
+"""Owner-only page where Trusted Publisher entries are registered."""
+
 PYPI_LABEL = "🐍 PyPI"
 """Display label for PyPI releases in admonitions."""
 
@@ -169,6 +186,117 @@ def get_source_url(package: str) -> str | None:
         if "github.com" in candidate:
             return candidate.rstrip("/").removesuffix(".git")
     return None
+
+
+class TrustedPublisher(NamedTuple):
+    """OIDC publisher metadata extracted from a PyPI provenance bundle."""
+
+    kind: str
+    """Publisher kind, e.g., ``"GitHub"`` or ``"GitLab"``."""
+
+    repository: str
+    """Repository slug (``"owner/name"`` for GitHub publishers)."""
+
+    workflow: str
+    """Workflow filename within ``.github/workflows/`` (e.g., ``"release.yaml"``)."""
+
+    environment: str | None
+    """GitHub Actions environment name, when the publisher was scoped to one."""
+
+
+def get_latest_release_file(package: str) -> tuple[str, str] | None:
+    """Return ``(version, filename)`` for the latest non-yanked release on PyPI.
+
+    Picks the version with the most recent earliest-upload time and returns
+    a representative distribution file from that version. Wheels are
+    preferred over sdists since wheels are guaranteed to exist for any
+    package built with modern tooling.
+
+    :param package: The PyPI package name.
+    :return: Tuple of ``(version, filename)``, or ``None`` if the package
+        has no published releases or the request fails.
+    """
+    data = _fetch_json(package)
+    if data is None:
+        return None
+
+    releases: dict[str, list[dict]] = data.get("releases") or {}
+    candidates: list[tuple[str, str, str]] = []
+    for version, files in releases.items():
+        live_files = [f for f in files if not f.get("yanked", False)]
+        if not live_files:
+            continue
+        upload_dates = [f["upload_time"] for f in live_files if f.get("upload_time")]
+        if not upload_dates:
+            continue
+        candidates.append((min(upload_dates), version, ""))
+        wheels = [f for f in live_files if f.get("filename", "").endswith(".whl")]
+        chosen = wheels[0] if wheels else live_files[0]
+        candidates[-1] = (min(upload_dates), version, chosen["filename"])
+
+    if not candidates:
+        return None
+    candidates.sort()
+    _, version, filename = candidates[-1]
+    return version, filename
+
+
+def get_trusted_publishers(package: str, version: str, filename: str) -> (
+    list[TrustedPublisher] | None
+):
+    """Fetch PEP 740 provenance for a file and extract publisher entries.
+
+    Calls :data:`PYPI_PROVENANCE_URL` and parses the ``attestation_bundles``
+    array. Each bundle's ``publisher`` object names the OIDC identity that
+    uploaded the file.
+
+    :param package: The PyPI package name.
+    :param version: The release version (e.g., ``"1.2.3"``).
+    :param filename: The distribution filename (e.g.,
+        ``"my_pkg-1.2.3-py3-none-any.whl"``).
+    :return: List of :class:`TrustedPublisher` entries (possibly empty when
+        provenance exists but no bundles are present), or ``None`` when the
+        endpoint returns 404 or any network/parse error occurs (signal that
+        no provenance is available rather than that none was registered).
+    """
+    url = PYPI_PROVENANCE_URL.format(
+        package=package, version=version, filename=filename
+    )
+    request = Request(url, headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=10) as response:
+            raw = response.read()
+            data: dict[str, object] = json.loads(raw)
+    except (URLError, TimeoutError, json.JSONDecodeError) as exc:
+        logging.debug(f"PyPI provenance lookup failed for {package} {version}: {exc}")
+        return None
+
+    bundles = data.get("attestation_bundles") or []
+    publishers: list[TrustedPublisher] = []
+    for bundle in bundles:
+        if not isinstance(bundle, dict):
+            continue
+        publisher = bundle.get("publisher")
+        if not isinstance(publisher, dict):
+            continue
+        kind = publisher.get("kind")
+        repository = publisher.get("repository")
+        workflow = publisher.get("workflow")
+        if not (isinstance(kind, str) and isinstance(repository, str)
+                and isinstance(workflow, str)):
+            continue
+        environment = publisher.get("environment")
+        if environment is not None and not isinstance(environment, str):
+            environment = None
+        publishers.append(
+            TrustedPublisher(
+                kind=kind,
+                repository=repository,
+                workflow=workflow,
+                environment=environment,
+            )
+        )
+    return publishers
 
 
 def get_changelog_url(package: str) -> str | None:

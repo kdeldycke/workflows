@@ -124,6 +124,7 @@ from .lint_repo import (
     check_fork_pr_approval_policy,
     check_immutable_releases,
     check_pages_deployment_source,
+    check_pypi_trusted_publisher,
     run_repo_lint,
 )
 from .mailmap import Mailmap
@@ -135,6 +136,7 @@ from .metadata import (
     is_version_bump_allowed,
     metadata_keys_reference,
 )
+from .pypi import PYPI_TRUSTED_PUBLISHER_SETTINGS_URL
 from .pyproject import get_project_name
 from .registry import (
     _BY_NAME,
@@ -2191,6 +2193,12 @@ def setup_guide(
     if has_pat and repo:
         fork_pr_ok, _ = check_fork_pr_approval_policy(repo)
 
+    # PyPI Trusted Publisher check (only for projects that publish to PyPI).
+    # The probe does not need a PAT: it hits the public PyPI integrity API.
+    pypi_publisher_ok: bool | None = None
+    if repo and md.package_name:
+        pypi_publisher_ok, _ = check_pypi_trusted_publisher(repo, md.package_name)
+
     # Pages deployment source check (Sphinx projects only).
     pages_ok: bool | None = None
     if md.is_sphinx and repo:
@@ -2243,6 +2251,27 @@ def setup_guide(
         ),
         passed=fork_pr_ok,
     )
+
+    # PyPI Trusted Publisher step: only relevant for projects that publish to
+    # PyPI. Treat indeterminate (None: never released, or pre-OIDC release with
+    # no provenance) as incomplete so the step keeps prompting until a
+    # successful OIDC-attested upload is observed.
+    step_pypi_trusted_publisher = ""
+    if md.package_name:
+        package_name = md.package_name
+        step_pypi_trusted_publisher = _wrap_setup_step(
+            "Register the PyPI Trusted Publisher entry",
+            render_template(
+                "setup-guide-pypi-trusted-publisher",
+                package_name=package_name,
+                repo_owner=repo_owner,
+                repo_name=repo_name,
+                settings_url=PYPI_TRUSTED_PUBLISHER_SETTINGS_URL.format(
+                    package=package_name
+                ),
+            ),
+            passed=pypi_publisher_ok or False,
+        )
 
     # Pages deployment source step: only relevant for Sphinx projects.
     # Treat "not configured" (None) as incomplete so the step renders open.
@@ -2316,6 +2345,7 @@ def setup_guide(
         immutable_releases_step=immutable_releases_step,
         step_branch_ruleset=step_branch_ruleset,
         step_fork_pr_approval=step_fork_pr_approval,
+        step_pypi_trusted_publisher=step_pypi_trusted_publisher,
         step_pages_source=step_pages_source,
         step_virustotal=step_virustotal,
         step_verify=step_verify,
@@ -2339,6 +2369,13 @@ def setup_guide(
     vt_ok = not nuitka_active or has_virustotal_key
     fork_pr_gate = fork_pr_ok is not False
     pages_gate = bool(pages_ok) if md.is_sphinx else pages_ok is not False
+    # Trusted Publisher: when the project publishes to PyPI, only close once
+    # provenance confirms the entry is wired. None (no published release yet,
+    # or pre-OIDC release) keeps the step open. When the project does not
+    # publish to PyPI (no package_name), the gate is a no-op.
+    pypi_publisher_gate = (
+        bool(pypi_publisher_ok) if md.package_name else True
+    )
     needs_issue = not (
         token_ok
         and dependabot_ok
@@ -2346,6 +2383,7 @@ def setup_guide(
         and vt_ok
         and fork_pr_gate
         and pages_gate
+        and pypi_publisher_gate
     )
 
     try:

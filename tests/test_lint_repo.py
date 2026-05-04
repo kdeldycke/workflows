@@ -33,12 +33,14 @@ from repomatic.lint_repo import (
     check_description_matches,
     check_funding_file,
     check_package_name_vs_repo,
+    check_pypi_trusted_publisher,
     check_stale_draft_releases,
     check_topics_subset_of_keywords,
     check_website_for_sphinx,
     get_repo_metadata,
     run_repo_lint,
 )
+from repomatic.pypi import TrustedPublisher
 
 
 def test_successful_fetch():
@@ -620,3 +622,135 @@ def test_pat_checks_no_sha(capsys):
         assert "skipped (no SHA provided)" in captured.out
         # Other PAT checks still run.
         assert "Contents: token has access" in captured.out
+
+
+def test_pypi_trusted_publisher_no_package_name():
+    """Skip when package name is not provided."""
+    passed, msg = check_pypi_trusted_publisher("owner/repo", None)
+    assert passed is None
+    assert "skipped" in msg
+    assert "no package name" in msg
+
+
+def test_pypi_trusted_publisher_no_release():
+    """Skip when the package has no published version."""
+    with patch(
+        "repomatic.lint_repo.get_latest_release_file",
+        return_value=None,
+    ):
+        passed, msg = check_pypi_trusted_publisher("owner/cherries", "cherries")
+    assert passed is None
+    assert "no released version" in msg
+    assert "cherries" in msg
+
+
+def test_pypi_trusted_publisher_no_provenance():
+    """Indeterminate when provenance fetch fails (pre-OIDC release)."""
+    with (
+        patch(
+            "repomatic.lint_repo.get_latest_release_file",
+            return_value=("1.2.3", "cherries-1.2.3-py3-none-any.whl"),
+        ),
+        patch(
+            "repomatic.lint_repo.get_trusted_publishers",
+            return_value=None,
+        ),
+    ):
+        passed, msg = check_pypi_trusted_publisher("owner/cherries", "cherries")
+    assert passed is None
+    assert "no provenance" in msg
+    assert "API token" in msg
+
+
+def test_pypi_trusted_publisher_empty_bundles():
+    """Indeterminate when provenance contains no publisher bundles."""
+    with (
+        patch(
+            "repomatic.lint_repo.get_latest_release_file",
+            return_value=("1.2.3", "cherries-1.2.3-py3-none-any.whl"),
+        ),
+        patch(
+            "repomatic.lint_repo.get_trusted_publishers",
+            return_value=[],
+        ),
+    ):
+        passed, msg = check_pypi_trusted_publisher("owner/cherries", "cherries")
+    assert passed is None
+    assert "no publisher bundles" in msg
+
+
+def test_pypi_trusted_publisher_match():
+    """Pass when a publisher bundle names this repo and `release.yaml`."""
+    with (
+        patch(
+            "repomatic.lint_repo.get_latest_release_file",
+            return_value=("1.2.3", "cherries-1.2.3-py3-none-any.whl"),
+        ),
+        patch(
+            "repomatic.lint_repo.get_trusted_publishers",
+            return_value=[
+                TrustedPublisher(
+                    kind="GitHub",
+                    repository="owner/cherries",
+                    workflow="release.yaml",
+                    environment=None,
+                ),
+            ],
+        ),
+    ):
+        passed, msg = check_pypi_trusted_publisher("owner/cherries", "cherries")
+    assert passed is True
+    assert "matches" in msg
+    assert "owner/cherries" in msg
+
+
+def test_pypi_trusted_publisher_workflow_mismatch():
+    """Fail when provenance names a different workflow."""
+    with (
+        patch(
+            "repomatic.lint_repo.get_latest_release_file",
+            return_value=("1.2.3", "cherries-1.2.3-py3-none-any.whl"),
+        ),
+        patch(
+            "repomatic.lint_repo.get_trusted_publishers",
+            return_value=[
+                TrustedPublisher(
+                    kind="GitHub",
+                    repository="owner/cherries",
+                    workflow="publish.yaml",
+                    environment=None,
+                ),
+            ],
+        ),
+    ):
+        passed, msg = check_pypi_trusted_publisher("owner/cherries", "cherries")
+    assert passed is False
+    assert "mismatch" in msg
+    assert "publish.yaml" in msg
+    assert (
+        "https://pypi.org/manage/project/cherries/settings/publishing/" in msg
+    )
+
+
+def test_pypi_trusted_publisher_repository_mismatch():
+    """Fail when provenance names a different repository (e.g., upstream)."""
+    with (
+        patch(
+            "repomatic.lint_repo.get_latest_release_file",
+            return_value=("1.2.3", "cherries-1.2.3-py3-none-any.whl"),
+        ),
+        patch(
+            "repomatic.lint_repo.get_trusted_publishers",
+            return_value=[
+                TrustedPublisher(
+                    kind="GitHub",
+                    repository="upstream/orchard",
+                    workflow="release.yaml",
+                    environment=None,
+                ),
+            ],
+        ),
+    ):
+        passed, msg = check_pypi_trusted_publisher("owner/cherries", "cherries")
+    assert passed is False
+    assert "upstream/orchard" in msg
