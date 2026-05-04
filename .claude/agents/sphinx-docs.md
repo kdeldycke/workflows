@@ -51,6 +51,14 @@ invoke({cli}, args=["--help"])
 
 Verification rule for any future claim about per-document persistence: check the directive's `exec()` call shape in the upstream source. `exec(code, globals)` persists top-level assignments; `exec(code, globals, locals)` does not. Sphinx caches surface this asymmetry only on a full build, not on incremental rebuilds, so always run `sphinx-build` from a clean `_build/` after touching shared-namespace patterns.
 
+### Demo-first composition
+
+For any section whose value is visual or output-heavy (colors, rendering, formatted output, tables, before/after comparisons), lead with the live demo and let the explanation read the demo back, not the other way around. The reader who only scans the first screen should see the artifact that justifies the section's existence; the reader who wants the architectural rationale finds it underneath. Concrete heuristic: if the section's first content block is ≥3 paragraphs and 0 directives, the inversion almost always improves it.
+
+Apply when: a feature renders a visible difference (color quantization vs true RGB, themed help screen, ANSI-styled log levels, generated table). Skip when: the section is pure reference (option spec, API enumeration, configuration schema) or purely conceptual.
+
+The inversion is structural, not just reordering: split the explanatory prose into a "what you're seeing" caption right after the demo (one paragraph, names the salient features) and "why it works that way" subsections after that (architecture, opt-outs, gotchas). Subsections like `### How it renders` and `### Falling back to <opt-out mode>` keep depth-readers oriented without forcing skimmers through them.
+
 ## Anchor docs with assertions (docs as tests)
 
 The runner inside a `{click:run}` block executes real Python at Sphinx build time. Bind `invoke(...)` to `result` and add `assert` statements to verify the output. When the CLI drifts, the build fails — every example becomes a regression test, on top of looking right in the rendered HTML.
@@ -111,7 +119,7 @@ Keep static `shell-session` blocks when the example shows **how to invoke** a co
 `click_extra.sphinx` ships five siblings to the Click directives — registered under a separate `python` domain (distinct from Sphinx's built-in `py` domain for documenting API objects). They run arbitrary Python at build time without requiring a Click CLI.
 
 - `{python:source}` shows source, runs silently. Use to teach a snippet and seed imports/variables for follow-up blocks.
-- `{python:run}` captures `stdout` and renders it in a code block (default lexer `text`; override with the `:language:` option for structured output). Use it whenever a doc shows the output of a Python expression — string formatting, computed lookups, library demos.
+- `{python:run}` captures `stdout` and renders it in a code block (default lexer `text`; override with the `:language:` option for structured output). Use it whenever a doc shows the output of a Python expression — string formatting, computed lookups, library demos. **Defaults to source hidden** (mirrors `{click:run}`); pass `:show-source:` whenever the snippet itself is the lesson, not just plumbing for the result. The combination "`:show-source:` + `:language: html`/`css`/`json`" is the right shape for any "here's the API call, here's its actual structured output" demo (rendering an ANSI string through `pygments.highlight()`, dumping `formatter.get_style_defs()`, serializing a config to JSON).
 - `{python:render}`, `{python:render-myst}`, and `{python:render-rst}` capture `stdout` and **parse it as live document content**. Generated tables, headings, admonitions, and cross-references become first-class document nodes — not a code block. The three differ only in which parser they invoke:
   - `{python:render}` uses the host file's parser. Default choice when the generated content is authored in the same format as the page (MyST output in a `.md` host, reST output in a `.rst` host).
   - `{python:render-myst}` forces MyST parsing regardless of host. Use when a `.rst` page needs to embed MyST-generated content.
@@ -151,6 +159,41 @@ Cases that don't:
 - Output that depends on remote state at build time (CI builds shouldn't hit external APIs; pin to local fixtures or the project's own data).
 
 Anti-pattern: any `render`-family block that takes more than a second or two to run. Sphinx executes every block on every build; slow blocks make `sphinx-build` painful for editors. Move heavy computation into the source-of-truth module, cache results, and have the directive call a fast accessor.
+
+### `:emphasize-lines:` vs `:emphasize-result-lines:`
+
+`{click:run}` and `{python:run}` accept a paired set of emphasis options: `:emphasize-lines:` highlights specific lines in the **source** block, `:emphasize-result-lines:` highlights specific lines in the **captured-output** block. Same `1,3-5` syntax for both. Reach for both when the source has one key call-site and the output has one key line — point each emphasis at the relevant target instead of letting one option spill into the wrong block. Common shape:
+
+````markdown
+```{click:run}
+:show-source:
+:emphasize-lines: 7
+:emphasize-result-lines: 2
+result = invoke(cli, args=["--show-params"])
+```
+````
+
+The reader's eye lands on line 7 of the Python and line 2 of the captured table without you having to write "look at the call to invoke(...) and the row reading 555."
+
+### Emitting raw HTML from `{python:render}`
+
+`{python:render}` parses captured stdout as MyST, and MyST passes block-level raw HTML straight through to the rendered page. So a generator that produces HTML can just `print(html)` — no `{raw} html` wrap, no extra plumbing:
+
+````markdown
+```{python:render}
+from pygments import highlight
+from click_extra.pygments import AnsiColorLexer, AnsiHtmlFormatter
+
+ansi = "\x1b[38;2;255;165;0morange\x1b[0m"
+print(highlight(ansi, AnsiColorLexer(), AnsiHtmlFormatter(nowrap=True)))
+```
+````
+
+The block-level HTML rule is the standard CommonMark/MyST behavior: a line that opens with `<div>`, `<pre>`, `<table>`, or any block-level tag starts a raw HTML block that closes at the next blank line. Inline HTML (a `<span>` mid-paragraph) also passes through, but block-level wrapping is what you usually want for visual demos. If the generated HTML risks colliding with markdown syntax inside the body (asterisks, brackets, table-pipe characters that MyST might reinterpret), wrap defensively in a `{raw} html` block — but treat that as the exception, not the default.
+
+One scoping rule that does carry over from the underlying Pygments machinery: when the emitted HTML contains tokens from `AnsiHtmlFormatter`, wrap the `<pre>` in `<div class="highlight">`. The Pygments stylesheet rules are scoped to `.highlight` (e.g., `.highlight .-Ansi-Red { color: #ef2929 }`); without that ancestor, every span inherits the parent's text color and the page renders monochrome. `AnsiHtmlFormatter(nowrap=True)` strips that wrapper, so callers using `nowrap=True` have to put it back.
+
+A native `python:render-html` directive (mirroring `python:render-myst` and `python:render-rst`, but emitting captured stdout as a `nodes.raw(format="html")` node bypassing the parser entirely) would remove the "block-level by accident" subtlety. Worth proposing upstream to `click_extra.sphinx` if a project hits this often. Until then, the `print(html)`-into-`{python:render}` pattern is enough for every visual-demo case in this lineage.
 
 When migrating an existing `docs_update.py` to `{python:render}`:
 
@@ -214,6 +257,22 @@ Cross-references that survive renames:
 
 - Always cross-reference external projects through `intersphinx_mapping` and a `{role}` ref, not a bare URL. A renamed function in click-extra surfaces as a Sphinx build error; a bare URL silently 404s in the rendered HTML.
 - For headings, prefer the auto-generated docutils anchor (e.g., `### option.name` → `option-name`). Add an explicit `(my-anchor)=` only when the natural anchor isn't unique or the target isn't a heading. (See `CLAUDE.md` § Code style for the markdown-anchor rule.)
+
+## Inline syntax highlighting in prose
+
+The `attrs_inline` MyST extension (already in the standard `myst_enable_extensions` set) lets you tag any inline code span with a Pygments lexer:
+
+```markdown
+Renders as `<span style="color: #rrggbb">`{l=html} tags.
+The `[tool.click-extra.wrap.<script>]`{l=toml} table sets defaults.
+The default is `Style(fg="green")`{l=python}.
+```
+
+Apply when the inline snippet has internal structure that Pygments can visually distinguish: HTML tags with attributes, TOML/INI table headers, Python function calls with kwargs, CSS rules. Skip when the snippet is a single identifier (`@command`, `default_map`, `tool.cli`) — Pygments would tokenize it as one name with no visible difference from the plain monospace, just adding wrapper markup.
+
+Heuristic: if the snippet contains at least two of `<>`, `=`, `()`, `[]`, `:`, or quoted strings, it benefits from `{l=lang}`. If it's a bare identifier, it doesn't.
+
+The shorthand is portable across hosts (`l=python`, `l=html`, `l=css`, `l=toml`, `l=yaml`, `l=json`, `l=ansi-shell-session`, `l=ansi-pycon`, etc.) — anything Pygments has a lexer for. Verify with `get_lexer_by_name(lang)` if unsure.
 
 ## Standard extension set
 
@@ -670,6 +729,10 @@ Watch for these every pass:
 - `suppress_warnings` entries that no longer fire because the upstream extension was fixed. Sweep on every upgrade — entries should grow stale and be removed, not accumulate.
 - Auto-region markers using bare `<!-- start -->` / `<!-- end -->` instead of named `<!-- {feature}-{kind}-start -->`. Migrate on first touch; the regenerator must be updated in the same commit.
 - Two pages on the same project using different octicons for the same concept (e.g., one page uses `book` for documentation, another uses `pencil`). Pick from the canonical registry in § Standard page roster › Title octicons; if none fit, add to the table.
+- `{click:run}` block whose `result.output` is missing ANSI codes despite the example being about colored output. `runner.invoke(color=True)` controls Click's TTY emulation, but click-extra's `--color/--no-color` callback re-evaluates from the env-var family (`NO_COLOR`, `FORCE_COLOR`, `CLICOLOR`, …) and overrides the runner's flag. The reliable fix is to pass `env={"FORCE_COLOR": "1"}` to the invocation: `result = invoke(cli, args=[...], env={"FORCE_COLOR": "1"})`. Symptom in the rendered HTML: a code block with `<span class="gp">$ </span>` for the prompt and plain unstyled text for everything else, no `-Ansi-*` classes anywhere in the output region.
+- Sphinx auto-anchor slugs strip leading digits. `## 256-color palette swatch` → `#color-palette-swatch`, `## 24-bit true color` → `#bit-true-color`. Plan link targets accordingly: when writing `[text](#anchor)` cross-refs, derive the anchor from the heading minus any leading digits, or add an explicit `(canonical-anchor)=` directly above the heading.
+- Hand-typed expected output paired with a static `code-block` source. Even when the captured value was correct on the day it was written, library updates (Pygments token names, CLI option additions, formatter CSS reorderings) silently drift the real output away from the documented one. Convert to `{python:run :show-source:}` (or `{click:run :show-source:}`) so the result block is captured live at build time. The pattern with the highest drift risk: a `print(...)` source block followed by a hand-typed result block of the same shape. Replace both with one dynamic block.
+- `assert` lines bound to `result` that hand-type the expected output verbatim. The block does dual-duty as docs + regression test, but the hand-typed assertion drifts in lock-step with whatever it's checking. Prefer substring or prefix assertions over exact-match for anything longer than a single line, and reserve `==` for `--version`-shaped one-shot strings (see § Anchor docs with assertions).
 
 ## Coordination
 
