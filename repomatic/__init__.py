@@ -17,5 +17,5 @@
 
 from __future__ import annotations
 
-__version__ = "6.17.1.dev0"
+__version__ = "6.18.0.dev0"
 __git_tag_sha__ = ""
