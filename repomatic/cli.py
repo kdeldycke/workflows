@@ -2373,9 +2373,7 @@ def setup_guide(
     # provenance confirms the entry is wired. None (no published release yet,
     # or pre-OIDC release) keeps the step open. When the project does not
     # publish to PyPI (no package_name), the gate is a no-op.
-    pypi_publisher_gate = (
-        bool(pypi_publisher_ok) if md.package_name else True
-    )
+    pypi_publisher_gate = bool(pypi_publisher_ok) if md.package_name else True
     needs_issue = not (
         token_ok
         and dependabot_ok
