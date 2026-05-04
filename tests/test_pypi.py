@@ -180,9 +180,12 @@ def test_get_trusted_publishers_empty_bundles():
         "repomatic.pypi.urlopen",
         return_value=_FakeResponse(body),
     ):
-        assert get_trusted_publishers(
-            "cherries", "1.2.3", "cherries-1.2.3-py3-none-any.whl"
-        ) == []
+        assert (
+            get_trusted_publishers(
+                "cherries", "1.2.3", "cherries-1.2.3-py3-none-any.whl"
+            )
+            == []
+        )
 
 
 def test_get_trusted_publishers_network_failure():

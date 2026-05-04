@@ -727,9 +727,7 @@ def test_pypi_trusted_publisher_workflow_mismatch():
     assert passed is False
     assert "mismatch" in msg
     assert "publish.yaml" in msg
-    assert (
-        "https://pypi.org/manage/project/cherries/settings/publishing/" in msg
-    )
+    assert "https://pypi.org/manage/project/cherries/settings/publishing/" in msg
 
 
 def test_pypi_trusted_publisher_repository_mismatch():

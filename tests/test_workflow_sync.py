@@ -26,7 +26,6 @@ import yaml
 
 from repomatic.config import Config, WorkflowConfig
 from repomatic.github.actions import AnnotationLevel
-from repomatic.init_project import get_data_content
 from repomatic.github.workflow_sync import (
     LintResult,
     PathsSpec,
@@ -48,6 +47,7 @@ from repomatic.github.workflow_sync import (
     identify_canonical_workflow,
     run_workflow_lint,
 )
+from repomatic.init_project import get_data_content
 from repomatic.pyproject import derive_source_paths, resolve_source_paths
 from repomatic.registry import (
     ALL_WORKFLOW_FILES,
@@ -275,9 +275,7 @@ def test_release_thin_caller_emits_publish_pypi_job() -> None:
     assert "needs: release" in content
     assert "needs.release.outputs.release_commits_matrix" in content
     assert "id-token: write" in content
-    assert (
-        f"{DEFAULT_REPO}/.github/actions/publish-pypi@v9.9.9" in content
-    )
+    assert f"{DEFAULT_REPO}/.github/actions/publish-pypi@v9.9.9" in content
     assert (
         "artifact-name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}"
         in content
@@ -287,12 +285,8 @@ def test_release_thin_caller_emits_publish_pypi_job() -> None:
 def test_release_thin_caller_publish_pypi_uses_sha_pin() -> None:
     """Verify SHA-pinned commit form propagates to the publish-pypi action ref."""
     sha = "1234567890abcdef1234567890abcdef12345678"
-    content = generate_thin_caller(
-        "release.yaml", version="v9.9.9", commit_sha=sha
-    )
-    assert (
-        f"{DEFAULT_REPO}/.github/actions/publish-pypi@{sha} # v9.9.9" in content
-    )
+    content = generate_thin_caller("release.yaml", version="v9.9.9", commit_sha=sha)
+    assert f"{DEFAULT_REPO}/.github/actions/publish-pypi@{sha} # v9.9.9" in content
 
 
 def test_non_release_thin_caller_omits_publish_pypi_job() -> None:
@@ -334,9 +328,7 @@ def test_release_thin_caller_loads_fragment_from_data() -> None:
     assert job["permissions"]["id-token"] == "write"
     # The fragment ships with the upstream's own working ref so it parses as
     # a real, copy-pasteable workflow snippet.
-    assert (
-        f"{DEFAULT_REPO}/.github/actions/publish-pypi@main" in fragment
-    )
+    assert f"{DEFAULT_REPO}/.github/actions/publish-pypi@main" in fragment
 
 
 def test_renovate_passes_secrets_explicitly() -> None:

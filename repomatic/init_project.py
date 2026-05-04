@@ -86,9 +86,7 @@ if TYPE_CHECKING:
         from importlib.abc import Traversable
 
 
-RUNTIME_FRAGMENTS: tuple[str, ...] = (
-    "release-publish-pypi-job.yaml",
-)
+RUNTIME_FRAGMENTS: tuple[str, ...] = ("release-publish-pypi-job.yaml",)
 """Bundled YAML fragments loaded by `repomatic` at runtime.
 
 These files live in `repomatic/data/` so they ship in the wheel and are

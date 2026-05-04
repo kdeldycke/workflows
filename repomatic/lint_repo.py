@@ -657,9 +657,7 @@ def check_pypi_trusted_publisher(
     :return: Tuple of ``(passed_or_None, message)``.
     """
     if not package_name:
-        return None, (
-            "PyPI Trusted Publisher check: skipped (no package name)."
-        )
+        return None, ("PyPI Trusted Publisher check: skipped (no package name).")
 
     latest = get_latest_release_file(package_name)
     if latest is None:
@@ -694,12 +692,8 @@ def check_pypi_trusted_publisher(
                 f" via {publisher.workflow}."
             )
 
-    observed = ", ".join(
-        f"{p.repository}:{p.workflow}" for p in publishers
-    )
-    settings_url = PYPI_TRUSTED_PUBLISHER_SETTINGS_URL.format(
-        package=package_name
-    )
+    observed = ", ".join(f"{p.repository}:{p.workflow}" for p in publishers)
+    settings_url = PYPI_TRUSTED_PUBLISHER_SETTINGS_URL.format(package=package_name)
     msg = (
         f"PyPI Trusted Publisher mismatch for '{package_name}' {version}."
         f" Expected {repo} via {PYPI_TRUSTED_PUBLISHER_WORKFLOW},"

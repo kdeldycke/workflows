@@ -241,9 +241,9 @@ def get_latest_release_file(package: str) -> tuple[str, str] | None:
     return version, filename
 
 
-def get_trusted_publishers(package: str, version: str, filename: str) -> (
-    list[TrustedPublisher] | None
-):
+def get_trusted_publishers(
+    package: str, version: str, filename: str
+) -> list[TrustedPublisher] | None:
     """Fetch PEP 740 provenance for a file and extract publisher entries.
 
     Calls :data:`PYPI_PROVENANCE_URL` and parses the ``attestation_bundles``
@@ -282,8 +282,11 @@ def get_trusted_publishers(package: str, version: str, filename: str) -> (
         kind = publisher.get("kind")
         repository = publisher.get("repository")
         workflow = publisher.get("workflow")
-        if not (isinstance(kind, str) and isinstance(repository, str)
-                and isinstance(workflow, str)):
+        if not (
+            isinstance(kind, str)
+            and isinstance(repository, str)
+            and isinstance(workflow, str)
+        ):
             continue
         environment = publisher.get("environment")
         if environment is not None and not isinstance(environment, str):
