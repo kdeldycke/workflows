@@ -31,7 +31,7 @@ invoke(repomatic, args=['run', '--list'])
 | :-------------------------------------------------------------------- | :------- | :---------- | :----------------------------------------------------------- |
 | [actionlint](https://github.com/rhysd/actionlint)                     | `1.7.12` | Binary      | `.github/actionlint.yaml`                                    |
 | [autopep8](https://github.com/hhatto/autopep8)                        | `2.3.2`  | PyPI        | CLI flags only                                               |
-| [Biome](https://github.com/biomejs/biome)                             | `2.4.12` | Binary      | `biome.json`, `biome.jsonc`                                  |
+| [Biome](https://github.com/biomejs/biome)                             | `2.4.13` | Binary      | `biome.json`, `biome.jsonc`                                  |
 | [bump-my-version](https://github.com/callowayproject/bump-my-version) | `1.2.7`  | PyPI        | `[tool.bump-my-version]` in `pyproject.toml`                 |
 | [Gitleaks](https://github.com/gitleaks/gitleaks)                      | `8.30.1` | Binary      | `.gitleaks.toml`, `.github/gitleaks.toml`                    |
 | [labelmaker](https://github.com/jwodder/labelmaker)                   | `0.6.4`  | Binary      | CLI flags only                                               |
@@ -255,7 +255,7 @@ For tools with subcommands (ruff, biome, gitleaks), the subcommand goes after `-
 
 ### [Biome](https://github.com/biomejs/biome)
 
-**Installed version:** `2.4.12`
+**Installed version:** `2.4.13`
 
 **Installation method:** Binary (downloaded from GitHub Releases)
 
