@@ -9,13 +9,13 @@ The publisher matches the OIDC `job_workflow_ref` claim, which names the **calle
 
 Open the [**Trusted Publishers settings page**]($settings_url) and add a **GitHub** publisher with these values:
 
-| Field                         | Value             |
-| :---------------------------- | :---------------- |
-| **PyPI Project Name**         | `$package_name`   |
-| **Owner**                     | `$repo_owner`     |
-| **Repository name**           | `$repo_name`      |
-| **Workflow name**             | `release.yaml`    |
-| **Environment name**          | *(leave blank)*   |
+| Field                 | Value           |
+| :-------------------- | :-------------- |
+| **PyPI Project Name** | `$package_name` |
+| **Owner**             | `$repo_owner`   |
+| **Repository name**   | `$repo_name`    |
+| **Workflow name**     | `release.yaml`  |
+| **Environment name**  | *(leave blank)* |
 
 > [!NOTE]
 > The workflow name must be `release.yaml`, not the upstream reusable workflow path. The composite action invoked from `release.yaml` inherits the caller's OIDC context, so the claim resolves to this repo's own file. Registering the upstream path triggers [pypi/warehouse#11096](https://github.com/pypi/warehouse/issues/11096) on first publish.
