@@ -10,6 +10,7 @@
 - Add the [`publish-pypi`](https://github.com/kdeldycke/repomatic/blob/main/.github/actions/publish-pypi/action.yaml) composite action wrapping `uv publish --trusted-publishing automatic` with build-attestation verification. Each downstream thin-caller now contains a generated `publish-pypi` job that invokes this action with `permissions: id-token: write`, inheriting the caller's OIDC context.
 - Add `release_commits_matrix` and `package_name` outputs to the reusable `release.yaml` so caller-side jobs can drive their own matrix and condition execution on a release commit being present.
 - Generalize composite-action ref freeze/unfreeze in `release_prep.py` to enumerate every `.github/actions/*/action.y*ml` directory rather than hardcoding a single name. New composite actions now participate in `@main` ↔ `@vX.Y.Z` rewrites without requiring code changes.
+- Fix `sync-repomatic` autofix proposing to delete `.github/actions/publish-pypi/action.yaml` whenever it matched the bundled default. The `publish-pypi-action` `BundledComponent` now sets `keep_unmodified=True`: GitHub Actions resolves `uses: ./.github/actions/publish-pypi` and `uses: kdeldycke/repomatic/.github/actions/publish-pypi@vX.Y.Z` directly from the repo path, so the file must remain on disk regardless of content equality. Add a conformance test that asserts every `BundledComponent` shipping a target under `.github/actions/` carries the flag.
 
 ## [`6.17.0` (2026-05-04)](https://github.com/kdeldycke/repomatic/compare/v6.16.0...v6.17.0)
 

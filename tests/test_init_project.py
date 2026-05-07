@@ -87,6 +87,28 @@ def test_all_component_types_handled() -> None:
         )
 
 
+def test_composite_actions_keep_unmodified() -> None:
+    """Composite actions under ``.github/actions/`` must set ``keep_unmodified=True``.
+
+    GitHub Actions resolves ``uses: ./.github/actions/X`` and
+    ``uses: owner/repo/.github/actions/X@ref`` directly from the repo path.
+    The action file must remain on disk even when byte-identical to the
+    bundled default; otherwise the autofix workflow deletes it as
+    "redundant" and breaks every caller (upstream and downstream).
+    """
+    for comp in COMPONENTS:
+        if not isinstance(comp, BundledComponent):
+            continue
+        for entry in comp.files:
+            if not entry.target.startswith(".github/actions/"):
+                continue
+            assert comp.keep_unmodified, (
+                f"Component {comp.name!r} ships {entry.target!r} (a composite"
+                " action consumed in-place by GitHub Actions) but does not"
+                " set `keep_unmodified=True`."
+            )
+
+
 @pytest.mark.parametrize(
     ("scope", "is_awesome", "expected"),
     [

@@ -341,6 +341,11 @@ COMPONENTS: tuple[Component, ...] = (
             " (.github/actions/publish-pypi/)"
         ),
         scope=RepoScope.NON_AWESOME,
+        # GitHub Actions resolves `uses: ./.github/actions/publish-pypi` and
+        # `uses: kdeldycke/repomatic/.github/actions/publish-pypi@vX.Y.Z`
+        # directly from the repo path; the file must stay on disk even when
+        # byte-identical to the bundled default.
+        keep_unmodified=True,
         files=(
             FileEntry(
                 "action-publish-pypi.yaml",
