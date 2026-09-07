@@ -39,6 +39,7 @@
 - Fix stale references in the bundled `babysit-ci`, `repomatic-audit`, `repomatic-changelog`, `repomatic-ship` and `repomatic-test-matrix` skills: dangling `claude.md` pointers, a retired `lychee.toml` path, an inverted binary-build condition and stale workflow names.
 - The bundled `file-bug-report` skill now states when a GitHub permalink renders as a code snippet, and how to read a line range off the commit it pins.
 - The bundled `babysit-ci` and `repomatic-ship` skills now treat a wall-clock budget failing on a shared runner as a test defect to fix, not transient infra to re-run.
+- The bundled `repomatic-ship` skill now warns that `actionlint` and `zizmor` can contradict each other, and says how to settle a conflict between them.
 - Document the mdformat defect that silently deletes a backtick code span inside a Markdown image's alt-text.
 
 ## [`7.14.0` (2026-08-27)](https://github.com/kdeldycke/repomatic/compare/v7.13.0...v7.14.0)
