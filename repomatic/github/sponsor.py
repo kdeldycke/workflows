@@ -46,7 +46,7 @@ def get_default_owner() -> str | None:
     <repomatic.metadata.env.EnvironmentMetadata.repo_owner>`.
     """
     owner = Metadata().repo_owner
-    return owner if owner else None
+    return owner or None
 
 
 SPONSORS_QUERY_TEMPLATE = """
@@ -99,8 +99,7 @@ def get_sponsors(owner: str) -> frozenset[str]:
 
     # Try user query first.
     try:
-        for login in _iter_sponsors(owner, "user"):
-            sponsors.add(login)
+        sponsors.update(_iter_sponsors(owner, "user"))
         logging.debug(f"Found {len(sponsors)} sponsors for user {owner}")
         return frozenset(sponsors)
     except RuntimeError:
@@ -108,8 +107,7 @@ def get_sponsors(owner: str) -> frozenset[str]:
 
     # Fall back to organization query.
     try:
-        for login in _iter_sponsors(owner, "organization"):
-            sponsors.add(login)
+        sponsors.update(_iter_sponsors(owner, "organization"))
         logging.debug(f"Found {len(sponsors)} sponsors for organization {owner}")
     except RuntimeError:
         logging.debug(f"Organization query also failed for {owner}")

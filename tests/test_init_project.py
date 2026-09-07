@@ -4301,8 +4301,7 @@ def test_every_data_file_maps_to_a_component() -> None:
     # Collect all source filenames from the registry.
     registry_filenames: set[str] = set()
     for comp in COMPONENTS:
-        for entry in comp.files:
-            registry_filenames.add(entry.source)
+        registry_filenames.update(entry.source for entry in comp.files)
         if isinstance(comp, ToolConfigComponent):
             registry_filenames.add(comp.source_file)
 
@@ -4618,7 +4617,7 @@ def test_parse_component_entries_accepts_valid_qualified_entries(entry: str) -> 
     """Qualified component/file entries are accepted by parse_component_entries."""
     components, files = parse_component_entries([entry])
     assert not components
-    component = entry.split("/")[0]
+    component = entry.split("/", maxsplit=1)[0]
     file_id = entry.split("/")[1]
     assert file_id in files[component]
 

@@ -153,9 +153,9 @@ def resolve_source_paths(
     """
     configured = config.workflow.source_paths
     if configured is not None:
-        return configured if configured else None
+        return configured or None
     derived = derive_source_paths(pyproject_data)
-    return derived if derived else None
+    return derived or None
 
 
 def get_project_name(

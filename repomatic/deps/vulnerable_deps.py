@@ -616,8 +616,10 @@ def fetch_dependabot_alerts(repo: str) -> list[VulnerablePackage]:
         # Cross-referenced identifiers (CVE, GHSA) let the same advisory
         # deduplicate against `uv audit`, which keys records by OSV/PYSEC IDs.
         aliases = {advisory.get("cve_id") or ""}
-        for identifier in advisory.get("identifiers") or []:
-            aliases.add(identifier.get("value") or "")
+        aliases.update(
+            identifier.get("value") or ""
+            for identifier in advisory.get("identifiers") or []
+        )
         aliases.discard("")
         aliases.discard(ghsa_id)
         url = advisory.get("html_url") or (
