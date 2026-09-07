@@ -286,7 +286,7 @@ def resolve_subgraph_selection(
         excluded = tuple(config_excluded)
     if only:
         explicit = only
-    resolved = explicit if explicit else None
+    resolved = explicit or None
     if select_all:
         resolved = kind.available()
         logging.info(f"Discovered {kind.value}s: {', '.join(resolved)}")

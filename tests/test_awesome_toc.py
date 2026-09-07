@@ -64,7 +64,9 @@ def render_readme(sections: tuple[str, ...]) -> str:
 
 def toc_entries(content: str) -> list[str]:
     """List the link texts of a readme's ToC block."""
-    block = content.split("mdformat-toc start")[1].split("mdformat-toc end")[0]
+    block = content.split("mdformat-toc start")[1].split(
+        "mdformat-toc end", maxsplit=1
+    )[0]
     return [
         line.strip().removeprefix("- [").split("](")[0]
         for line in block.splitlines()

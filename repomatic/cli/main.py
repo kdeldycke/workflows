@@ -572,7 +572,7 @@ def _render_pr_content(
             repo_url=md.repo_url or None,
         )
 
-    arg_sources: dict[str, str | None | Callable[[], str | None]] = {
+    arg_sources: dict[str, str | Callable[[], str | None] | None] = {
         "changes_review": lambda: _review_step("changes_review"),
         "dev_release_review": lambda: _review_step("dev_release_review"),
         "diff_table": read_file_output("REPOMATIC_DIFF_TABLE"),
