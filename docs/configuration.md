@@ -205,9 +205,9 @@ output = "./docs/assets/star-history-compared.svg"
 
 A chart plots one metric, `stars` unless `metric` names another, and only a metric the store accrues can be charted. The two axes are set independently: `mode` measures the horizontal one as `absolute` (one shared calendar) or `relative` (every curve measured from its own origin, which compares trajectories rather than dates), and `scale` measures the vertical one as `linear` or `logarithmic`. A chart comparing projects of different sizes usually wants both, since a shared origin still leaves the smallest curve flat against the axis. `title` names the chart for a screen reader. Hues come from a twelve-slot palette assigned in draw order; pin one with `[tool.repomatic.metrics.colors]` when it must survive a reordering.
 
-Two collectors are GitHub-only and skip every other forge with a note. An **exact reconstruction** rebuilds a star curve from the timestamp of every star a repository still holds, which works wherever the token administers it, so that curve is complete from day one rather than starting on the day sampling did. An **archive backfill** (`--backfill-wayback`) mines contemporaneous counts from archived `github.com` pages, for a repository nobody administers. Both are one-offs the scheduled job never runs.
+One collector is GitHub-only and skips every other forge with a note. The **reconstruction** (`--reconstruct`, on by default) rebuilds a subject's whole star curve from GitHub's star history, so the curve is complete from the repository's first star rather than starting on the day sampling did. The endpoint is anonymous, so this covers every subject a project tracks and not only the ones its token administers.
 
-`--import-csv` loads a star-history.com calendar export, for a repository the archives never captured either. That service read the same stargazer endpoint GitHub has since closed, so an export taken while it worked is the only surviving record of that repository's past: a replacement cannot be downloaded today.
+It reads by week and stores by week, keeping one reading per week that gained a star. The endpoint resolves to the day, but a cumulative curve counts the stars a repository *still* holds, so one withdrawal years ago lowers every later point: at daily resolution a single unstar would rewrite thousands of committed rows.
 
 ### Flavors
 

@@ -29,7 +29,7 @@ import pytest
 import yaml
 from click_extra import ClickException
 
-from repomatic import metrics, pypi
+from repomatic import pypi
 from repomatic.github.actions import get_github_event
 from repomatic.github.token import PatPermissionResults
 from repomatic.github.workflow_sync import (
@@ -150,7 +150,6 @@ def _reset_process_caches() -> None:
     get_data_content.cache_clear()
     extract_trigger_info.cache_clear()
     canonical_caller_permissions.cache_clear()
-    metrics._LAST_FETCH_REASONS.clear()
 
 
 @pytest.fixture(autouse=True)

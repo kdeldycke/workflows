@@ -18,14 +18,10 @@
 
 from __future__ import annotations
 
-import gzip
 import json
 import re
-import urllib.error
-import zlib
 from collections import Counter
 from datetime import date, datetime, timezone
-from email.message import Message
 from pathlib import Path
 
 import pytest
@@ -45,25 +41,17 @@ from repomatic.metric_chart import (
 )
 from repomatic.metrics import (
     CHARTABLE_METRICS,
-    GITHUB_EPOCH,
     METRIC_HEADERS,
     METRICS,
     METRICS_BY_ID,
     PREDECESSOR_SUFFIX,
     SOURCE_RANK,
     SOURCES,
-    WAYBACK_STAR_PATTERNS,
+    STAR_HISTORY_MAX_PAGES,
     MetricRecord,
     Retention,
-    backfill_wayback,
     collected_subjects,
-    fetch,
-    gunzip,
-    import_star_history_csv,
-    last_fetch_failure,
     load_metrics,
-    parse_csv_day,
-    read_star_counter,
     reconstruct_from_github,
     sample_subject,
     save_metrics,
@@ -78,27 +66,19 @@ REPO_ROOT = Path(__file__).parent.parent
 STORE = REPO_ROOT / "docs" / "assets" / "metrics.csv"
 """This repository's own readings, accrued by the scheduled sampler."""
 
+GITHUB_EPOCH = date(2008, 1, 1)
+"""No star predates GitHub, so a reading dated earlier is a parsing fault.
+
+Catches a store row holding a Unix timestamp where a calendar day belongs:
+seconds read as a day land in the 1970s, decades before any repository.
+"""
+
 APRICOT = "https://github.com/fruits/apricot"
 PAPAYA = "https://github.com/fruits/papaya"
 OLD_PAPAYA = "https://github.com/old-fruits/papaya"
 
 SUBJECTS = {"apricot": "fruits/apricot", "papaya": "fruits/papaya"}
 PREDECESSORS = {"papaya": "old-fruits/papaya"}
-
-WAYBACK_MARKUPS = (
-    '<span id="repo-stars-counter-star" title="4,412">4.4k</span>',
-    '<span title="4,412" id="repo-stars-counter-star">4.4k</span>',
-    '<a aria-label="4412 users starred this repository" href="/x/y/stargazers">',
-    '<a href="/x/y/stargazers" class="social-count js-social-count">4,412</a>',
-    '<a class="social-count" href="/x/y/stargazers">4,412</a>',
-)
-"""One archived markup per pattern, newest layout first.
-
-Paired positionally with {data}`~repomatic.metrics.WAYBACK_STAR_PATTERNS`, so a
-pattern dropped or reordered without its sample fails rather than silently
-losing a decade of captures.
-"""
-
 
 def repo_config() -> Config:
     """Load this repository's own `[tool.repomatic]` section."""
@@ -123,12 +103,6 @@ def history():
     ):
         records[record.key] = record
     return records
-
-
-@pytest.fixture(autouse=True)
-def _reset_refusal_streak(monkeypatch):
-    """Reset the wayback refusal streak, run-scoped state held across calls."""
-    monkeypatch.setattr("repomatic.metrics._WAYBACK_REFUSAL_STREAK", 0)
 
 
 # ---------------------------------------------------------------------------
@@ -208,6 +182,12 @@ def test_upsert_is_idempotent_within_a_day():
         ("wayback", "sample", True),
         ("star-history", "wayback", True),
         ("sample", "github", True),
+        # The creation origin assumes a count of zero, so any measurement of
+        # that same day beats it, and it never overwrites one.
+        ("created", "github", True),
+        ("created", "wayback", True),
+        ("github", "created", False),
+        ("sample", "created", False),
     ),
 )
 def test_upsert_honors_source_precedence(stored, incoming, wins):
@@ -273,25 +253,26 @@ def test_save_metrics_writes_a_sorted_csv(tmp_path, history):
     assert save_metrics(store, history) is False
 
 
-def test_save_metrics_merges_what_is_already_on_disk(tmp_path):
-    """Check a flush cannot drop rows another writer recorded meanwhile.
+def test_save_metrics_writes_exactly_what_it_is_given(tmp_path):
+    """Check the file becomes the caller's records, deletions included.
 
-    A slow backfill flushes across a run lasting hours, holding a snapshot that
-    goes stale the moment anything else records a reading.
+    A collector re-deriving a whole curve has to be able to retire a reading it
+    no longer dates, so the write cannot merge the file back under itself.
     """
     store = tmp_path / "metrics.csv"
     first = MetricRecord(PAPAYA, "stars", "2026-08-01", "10", "sample")
     save_metrics(store, {first.key: first})
     second = MetricRecord(APRICOT, "stars", "2026-08-02", "20", "sample")
     save_metrics(store, {second.key: second})
-    assert len(load_metrics(store)) == 2
+    assert list(load_metrics(store)) == [second.key]
 
 
 def test_save_metrics_cannot_resurrect_a_pruned_attribute(tmp_path):
-    """Check the disk merge does not undo an attribute's retention.
+    """Check a round trip through the file leaves an attribute one reading.
 
-    The merge is additive, so a superseded row coming back from disk would
-    leave two readings of a metric that keeps one.
+    Loading, upserting and writing is what every collector does, and a
+    superseded row surviving it would leave two readings of a metric that
+    keeps one.
     """
     store = tmp_path / "metrics.csv"
     records = load_metrics(store)
@@ -422,13 +403,24 @@ def test_sample_subject_survives_an_unreadable_forge(monkeypatch):
     assert not records
 
 
-def test_reconstruct_accumulates_one_row_per_day_that_moved(monkeypatch):
-    """Check per-star timestamps collapse into a cumulative daily curve."""
+def star_week(sunday: str, days: list[int]) -> dict[str, object]:
+    """Build one week of the star-history endpoint's payload.
+
+    :param sunday: Calendar date labelling the week, as the endpoint reports it.
+    :param days: Stars gained on each of the week's seven days.
+    """
+    start = datetime.fromisoformat(sunday).replace(tzinfo=timezone.utc)
+    return {"week": int(start.timestamp()), "total": sum(days), "days": days}
+
+
+def test_reconstruct_accumulates_one_row_per_week_that_moved(monkeypatch):
+    """Check the daily buckets collapse into a cumulative weekly curve."""
     pages = [
+        # Newest first, as the endpoint serves them.
         json.dumps([
-            {"starred_at": "2021-12-09T10:00:00Z"},
-            {"starred_at": "2021-12-09T11:00:00Z"},
-            {"starred_at": "2022-03-01T09:00:00Z"},
+            star_week("2022-02-27", [0, 1, 0, 0, 0, 0, 0]),
+            star_week("2022-01-30", [0, 0, 0, 0, 0, 0, 0]),
+            star_week("2021-12-05", [0, 0, 0, 0, 2, 0, 0]),
         ]),
         json.dumps([]),
     ]
@@ -437,16 +429,59 @@ def test_reconstruct_accumulates_one_row_per_day_that_moved(monkeypatch):
     outcome = reconstruct_from_github(records, "papaya", PAPAYA)
 
     assert outcome.stars == 3
+    # Dated on the last day of the week that gained a star, not the week start.
     assert records[(PAPAYA, "stars", "2021-12-09")].value == "2"
-    assert records[(PAPAYA, "stars", "2022-03-01")].value == "3"
+    assert records[(PAPAYA, "stars", "2022-02-28")].value == "3"
+    # The quiet week in between earns no row at all.
+    assert len(records) == 2
     assert all(record.source == "github" for record in records.values())
+
+
+def test_reconstruct_dates_a_day_without_converting_the_timezone(monkeypatch):
+    """Check a day is the week's label plus its offset, left in GitHub's zone.
+
+    The endpoint buckets days in `America/Los_Angeles`. Its `week` field is
+    midnight UTC on the date labelling that local week, so the calendar date of
+    that instant already carries the local day: converting it into a zone would
+    shift every reading.
+    """
+    pages = [
+        json.dumps([star_week("2024-11-10", [0, 1, 0, 0, 0, 0, 0])]),
+        json.dumps([]),
+    ]
+    monkeypatch.setattr("repomatic.metrics.run_gh_command", lambda args: pages.pop(0))
+    records: dict[tuple[str, str, str], MetricRecord] = {}
+    reconstruct_from_github(records, "papaya", PAPAYA)
+    assert (PAPAYA, "stars", "2024-11-11") in records
+
+
+def test_reconstruct_replaces_the_rows_it_wrote_before(monkeypatch):
+    """Check a re-derived curve drops the days its previous run had claimed.
+
+    The walk rebuilds the whole curve, so a day that no longer carries a
+    reading must disappear rather than linger stating a total the rest of the
+    curve contradicts. Rows from every other source are left alone.
+    """
+    stale = MetricRecord(PAPAYA, "stars", "2019-06-01", "99", "github")
+    kept = MetricRecord(PAPAYA, "stars", "2019-06-02", "98", "wayback")
+    elsewhere = MetricRecord(APRICOT, "stars", "2019-06-01", "97", "github")
+    records = {r.key: r for r in (stale, kept, elsewhere)}
+
+    pages = [json.dumps([star_week("2021-12-05", [0, 0, 0, 0, 2, 0, 0])]), json.dumps([])]
+    monkeypatch.setattr("repomatic.metrics.run_gh_command", lambda args: pages.pop(0))
+    reconstruct_from_github(records, "papaya", PAPAYA)
+
+    assert stale.key not in records
+    assert records[kept.key] == kept
+    assert records[elsewhere.key] == elsewhere
+    assert records[(PAPAYA, "stars", "2021-12-09")].value == "2"
 
 
 def test_reconstruct_skips_a_subject_off_github():
     """Check a GitLab subject is skipped with a reason, not failed.
 
-    Per-star timestamps are a GitHub endpoint; every other forge simply has
-    nothing to reconstruct from.
+    The star history is a GitHub endpoint; every other forge simply has nothing
+    to reconstruct from.
     """
     records: dict[tuple[str, str, str], MetricRecord] = {}
     outcome = reconstruct_from_github(
@@ -456,8 +491,8 @@ def test_reconstruct_skips_a_subject_off_github():
     assert not records
 
 
-def test_reconstruct_reports_a_repository_the_token_cannot_administer(monkeypatch):
-    """Check the restricted endpoint's 404 reads as a skip, not a failure."""
+def test_reconstruct_reports_a_repository_that_is_gone(monkeypatch):
+    """Check a 404 on the first page reads as a skip, not a failure."""
 
     def refuse(args):
         msg = "gh: Not Found (HTTP 404)"
@@ -466,22 +501,34 @@ def test_reconstruct_reports_a_repository_the_token_cannot_administer(monkeypatc
     monkeypatch.setattr("repomatic.metrics.run_gh_command", refuse)
     records: dict[tuple[str, str, str], MetricRecord] = {}
     outcome = reconstruct_from_github(records, "papaya", PAPAYA)
-    assert outcome.note == "not an admin, not readable"
+    assert outcome.note == "no such repository"
+    assert not records
+
+
+def test_reconstruct_reports_a_repository_with_no_star(monkeypatch):
+    """Check an unstarred repository is a note, not an empty curve."""
+    monkeypatch.setattr(
+        "repomatic.metrics.run_gh_command", lambda args: json.dumps([])
+    )
+    records: dict[tuple[str, str, str], MetricRecord] = {}
+    outcome = reconstruct_from_github(records, "papaya", PAPAYA)
+    assert outcome.note == "no star on record"
     assert not records
 
 
 def test_reconstruct_writes_nothing_when_pagination_breaks_midway(monkeypatch):
     """Check a failure mid-walk abandons the subject rather than truncating.
 
-    A partial cumulative curve written over a correct one would look exactly as
-    legitimate as the rest of the history, so the walk is all-or-nothing.
+    The walk runs newest first, so a truncated one holds only recent weeks:
+    totalling those would date a fraction of the stars as the whole history,
+    and every point would look as legitimate as the rest.
     """
     calls = {"count": 0}
 
     def flaky(args):
         calls["count"] += 1
         if calls["count"] == 1:
-            return json.dumps([{"starred_at": "2021-12-09T10:00:00Z"}] * 100)
+            return json.dumps([star_week("2026-08-30", [1, 0, 0, 0, 0, 0, 0])])
         msg = "gh: Bad gateway (HTTP 502)"
         raise RuntimeError(msg)
 
@@ -492,247 +539,31 @@ def test_reconstruct_writes_nothing_when_pagination_breaks_midway(monkeypatch):
     assert not records
 
 
-def test_backfill_wayback_skips_an_exactly_reconstructed_subject():
-    """Check the archives are spent only where no better source exists."""
-    record = MetricRecord(PAPAYA, "stars", "2021-01-01", "5", "github")
-    outcome = backfill_wayback({record.key: record}, "papaya", PAPAYA)
-    assert outcome.note == "already reconstructed exactly"
-    assert outcome.rows == 0
-
-
-def test_backfill_wayback_skips_a_subject_off_github():
-    """Check only `github.com` pages are mined, since only they are parsed."""
-    outcome = backfill_wayback({}, "papaya", "https://gitlab.com/fruits/papaya")
-    assert "gitlab.com" in outcome.note
-
-
-def test_backfill_wayback_narrates_its_progress(monkeypatch):
-    """Check a watcher hears each page reached, and only the points that landed."""
-    monkeypatch.setattr("repomatic.metrics.time.sleep", lambda seconds: None)
-    monkeypatch.setattr(
-        "repomatic.metrics.wayback_captures",
-        lambda path: ["20220101000000", "20230101000000"],
-    )
-    # The first capture serves its counter and the second is refused, which is
-    # the ratio the archive actually answers with: a refusal must still move the
-    # status along, and must not reach `on_row`.
-    pages = iter([WAYBACK_MARKUPS[0].encode(), None])
-    monkeypatch.setattr("repomatic.metrics.fetch", lambda url, **kwargs: next(pages))
-
-    statuses: list[str] = []
-    rows: list[str] = []
-    outcome = backfill_wayback(
-        {}, "papaya", PAPAYA, on_status=statuses.append, on_row=rows.append
-    )
-
-    assert outcome.rows == 1
-    assert rows == ["fruits/papaya 2022-01-01: 4,412 stars"]
-    assert "capture index" in statuses[0]
-    assert "(1/2, 0 recovered)" in statuses[1]
-    assert "(2/2, 1 recovered)" in statuses[2]
-
-
-def test_backfill_wayback_runs_unwatched(monkeypatch):
-    """Check the callbacks stay optional, since only an interactive run draws."""
-    monkeypatch.setattr("repomatic.metrics.time.sleep", lambda seconds: None)
-    monkeypatch.setattr(
-        "repomatic.metrics.wayback_captures", lambda path: ["20220101000000"]
-    )
-    monkeypatch.setattr(
-        "repomatic.metrics.fetch", lambda url, **kwargs: WAYBACK_MARKUPS[0].encode()
-    )
-    assert backfill_wayback({}, "papaya", PAPAYA).rows == 1
-
-
-def test_backfill_wayback_abandons_on_a_refusal_streak(monkeypatch):
-    """Check a spent budget stops the run instead of paying every retry left."""
-    monkeypatch.setattr("repomatic.metrics.time.sleep", lambda seconds: None)
-    monkeypatch.setattr("repomatic.metrics.WAYBACK_REFUSAL_LIMIT", 2)
-    monkeypatch.setattr(
-        "repomatic.metrics.wayback_captures",
-        lambda path: [f"2022010{index}000000" for index in range(1, 6)],
-    )
-    calls: list[str] = []
-
-    def refused(url, **kwargs):
-        calls.append(url)
-
-    monkeypatch.setattr("repomatic.metrics.fetch", refused)
-    outcome = backfill_wayback({}, "papaya", PAPAYA)
-    assert outcome.rows == 0
-    assert "refused in a row" in outcome.note
-    assert "retry later" in outcome.note
-    # The run stopped at the limit, sparing the remaining captures' retries.
-    assert len(calls) == 2
-
-
-def test_backfill_wayback_streak_resets_on_a_served_page(monkeypatch):
-    """Check a served page proves the archive healthy and clears the streak."""
-    monkeypatch.setattr("repomatic.metrics.time.sleep", lambda seconds: None)
-    monkeypatch.setattr("repomatic.metrics.WAYBACK_REFUSAL_LIMIT", 2)
-    monkeypatch.setattr(
-        "repomatic.metrics.wayback_captures",
-        lambda path: [f"2022010{index}000000" for index in range(1, 5)],
-    )
-    # Refused, served, refused, served: the streak never reaches the limit.
-    pages = iter([
-        None,
-        WAYBACK_MARKUPS[0].encode(),
-        None,
-        WAYBACK_MARKUPS[0].encode(),
-    ])
-    monkeypatch.setattr("repomatic.metrics.fetch", lambda url, **kwargs: next(pages))
-    outcome = backfill_wayback({}, "papaya", PAPAYA)
-    assert outcome.rows == 2
-    assert outcome.note == "4 captures"
-
-
-def test_backfill_wayback_skips_subjects_once_the_budget_is_spent(monkeypatch):
-    """Check the streak outlives its subject: the budget is per IP, not repo."""
-    monkeypatch.setattr("repomatic.metrics._WAYBACK_REFUSAL_STREAK", 10)
-
-    def unspent_index(path):
-        raise AssertionError("the capture index must not be read")
-
-    monkeypatch.setattr("repomatic.metrics.wayback_captures", unspent_index)
-    outcome = backfill_wayback({}, "papaya", PAPAYA)
-    assert outcome.rows == 0
-    assert "skipped" in outcome.note
-
-
-def test_backfill_wayback_reports_a_recovered_point_once(monkeypatch):
-    """Check a watcher's line replaces the log's, not joins it."""
-    monkeypatch.setattr("repomatic.metrics.time.sleep", lambda seconds: None)
-    monkeypatch.setattr(
-        "repomatic.metrics.wayback_captures", lambda path: ["20220101000000"]
-    )
-    monkeypatch.setattr(
-        "repomatic.metrics.fetch", lambda url, **kwargs: WAYBACK_MARKUPS[0].encode()
-    )
-    logged: list[str] = []
-    monkeypatch.setattr("repomatic.metrics.logging.info", logged.append)
-    rows: list[str] = []
-    backfill_wayback({}, "papaya", PAPAYA, on_row=rows.append)
-    assert rows == ["fruits/papaya 2022-01-01: 4,412 stars"]
-    assert logged == []
-
-
-def test_fetch_names_why_it_gave_up(monkeypatch):
-    """Check an exhausted retry budget reports what happened, not just failure."""
-    monkeypatch.setattr("repomatic.metrics.time.sleep", lambda seconds: None)
-
-    def always_503(request, timeout=0):
-        raise urllib.error.HTTPError(request.full_url, 503, "nope", Message(), None)
-
-    monkeypatch.setattr("repomatic.metrics.urllib.request.urlopen", always_503)
-    assert fetch("https://web.archive.org/whatever", tries=3) is None
-    assert last_fetch_failure() == "3x HTTP 503"
-
-
-def test_gunzip_salvages_a_truncated_stream():
-    """Check a body cut mid-stream keeps everything that did arrive."""
-    payload = ("<html>" + "papaya " * 5000 + "</html>").encode()
-    truncated = gzip.compress(payload)[:-40]
-    with pytest.raises(EOFError):
-        gzip.decompress(truncated)
-    salvaged = gunzip(truncated)
-    assert salvaged.startswith(b"<html>")
-    assert len(salvaged) > len(payload) // 2
-
-
-def test_gunzip_returns_nothing_for_an_undecodable_blob():
-    """Check a body that is not gzip at all yields empty rather than raising."""
-    assert gunzip(b"not gzip at all") == b""
-    with pytest.raises(zlib.error):
-        zlib.decompressobj(zlib.MAX_WBITS | 16).decompress(b"not gzip at all")
-
-
-@pytest.mark.parametrize(
-    ("markup", "pattern"), tuple(zip(WAYBACK_MARKUPS, WAYBACK_STAR_PATTERNS))
-)
-def test_each_wayback_pattern_matches_its_layout(markup, pattern):
-    """Check every counter markup GitHub shipped is still recognized."""
-    assert pattern.search(markup)
-    assert read_star_counter(markup) == 4412
-
-
-def test_read_star_counter_finds_nothing_in_an_unrelated_page():
-    """Check a page carrying no counter reports its absence."""
-    assert read_star_counter("<html><body>no counter here</body></html>") is None
-
-
-# ---------------------------------------------------------------------------
-# The star-history.com import.
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    ("stamp", "expected"),
-    (
-        # A late-evening reading in a positive zone falls on the previous UTC day.
-        ("Tue Dec 07 2021 20:50:22 GMT+0400 (Gulf Standard Time)", date(2021, 12, 7)),
-        ("Wed Jan 01 2020 01:30:00 GMT+0400 (Gulf Standard Time)", date(2019, 12, 31)),
-        ("Sun Jun 30 2024 22:00:00 GMT-0500 (Central Daylight Time)", date(2024, 7, 1)),
-        ("Thu Jan 01 1970 04:00:00 GMT+0400 (Gulf Standard Time)", date(1970, 1, 1)),
-    ),
-)
-def test_parse_csv_day(stamp, expected):
-    """Check a JavaScript date stamp yields the UTC calendar day."""
-    assert parse_csv_day(stamp) == expected
-
-
-@pytest.mark.parametrize("stamp", ("", "2021-12-07", "not a date at all"))
-def test_parse_csv_day_refuses_what_it_cannot_read(stamp):
-    """Check an unparsable stamp yields nothing rather than a wrong day."""
-    assert parse_csv_day(stamp) is None
-
-
-def test_import_star_history_csv(tmp_path):
-    """Check a calendar export lands in the store under its own provenance."""
-    export = tmp_path / "star-history.csv"
-    export.write_text(
-        "Repository,Date,Stars\n"
-        "fruits/papaya,Tue Dec 07 2021 20:50:22 GMT+0400 (Gulf Standard Time),1\n"
-        "fruits/papaya,Tue May 31 2022 09:50:45 GMT+0400 (Gulf Standard Time),7\n"
-        "fruits/apricot,Thu Aug 13 2026 11:41:30 GMT+0400 (Gulf Standard Time),120\n",
-        encoding="UTF-8",
-    )
+def test_reconstruct_gives_up_on_an_unparsable_page(monkeypatch):
+    """Check a payload that is not JSON abandons the subject."""
+    monkeypatch.setattr("repomatic.metrics.run_gh_command", lambda args: "<html>")
     records: dict[tuple[str, str, str], MetricRecord] = {}
-    outcomes = import_star_history_csv(records, export)
-    assert {outcome.subject for outcome in outcomes} == {APRICOT, PAPAYA}
-    assert len(records) == 3
-    assert all(record.source == "star-history" for record in records.values())
-    assert records[(PAPAYA, "stars", "2021-12-07")].value == "1"
-
-
-def test_import_star_history_csv_honors_the_wanted_repositories(tmp_path):
-    """Check an export covering more repositories than are tracked is filtered."""
-    export = tmp_path / "star-history.csv"
-    export.write_text(
-        "Repository,Date,Stars\n"
-        "fruits/papaya,Tue Dec 07 2021 20:50:22 GMT+0400 (Gulf Standard Time),1\n"
-        "veggies/carrot,Tue Dec 07 2021 20:50:22 GMT+0400 (Gulf Standard Time),9\n",
-        encoding="UTF-8",
-    )
-    records: dict[tuple[str, str, str], MetricRecord] = {}
-    import_star_history_csv(records, export, [PAPAYA])
-    assert {key[0] for key in records} == {PAPAYA}
-
-
-def test_import_star_history_csv_refuses_the_by_age_export(tmp_path):
-    """Check the epoch-zero variant is refused rather than imported."""
-    export = tmp_path / "star-history.csv"
-    export.write_text(
-        "Repository,Date,Stars\n"
-        "fruits/papaya,Thu Jan 01 1970 04:00:00 GMT+0400 (Gulf Standard Time),1\n"
-        "fruits/papaya,Wed Jun 24 1970 17:00:23 GMT+0400 (Gulf Standard Time),7\n",
-        encoding="UTF-8",
-    )
-    records: dict[tuple[str, str, str], MetricRecord] = {}
-    with pytest.raises(ValueError, match="by-age export"):
-        import_star_history_csv(records, export)
+    outcome = reconstruct_from_github(records, "papaya", PAPAYA)
+    assert outcome.note == "unparsable page 1"
     assert not records
-    assert GITHUB_EPOCH.year == 2008
+
+
+def test_reconstruct_walk_is_bounded(monkeypatch):
+    """Check a server that never runs out of pages cannot loop forever.
+
+    GitHub refuses past {data}`STAR_HISTORY_MAX_PAGES`, so the walk stops
+    there on its own rather than trusting the endpoint to end the sequence.
+    """
+    calls = {"count": 0}
+
+    def endless(args):
+        calls["count"] += 1
+        return json.dumps([star_week("2021-12-05", [1, 0, 0, 0, 0, 0, 0])])
+
+    monkeypatch.setattr("repomatic.metrics.run_gh_command", endless)
+    records: dict[tuple[str, str, str], MetricRecord] = {}
+    reconstruct_from_github(records, "papaya", PAPAYA)
+    assert calls["count"] == STAR_HISTORY_MAX_PAGES
 
 
 # ---------------------------------------------------------------------------

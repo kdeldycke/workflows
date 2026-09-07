@@ -540,11 +540,7 @@ exclude = [ "workflows" ]
 manpages.script = "repomatic.cli.main:repomatic"
 # The comparison is logarithmic because the nearest peer outweighs repomatic by
 # two orders of magnitude, and a linear axis draws every project but the largest
-# two along the bottom edge. Most peers still hold a creation date and one
-# reading, so their curves are straight lines today: that is a statement about
-# how long this store has been accruing, not about how those projects grew, and
-# the benchmark page says so under the chart. It resolves on its own as the
-# weekly sampler and `--backfill-wayback` fill the years in.
+# two along the bottom edge.
 metrics.charts = [
   { only = [ "repomatic" ], output = "./docs/assets/star-history.svg", title = "GitHub star history of repomatic" },
   { output = "./docs/assets/star-history-compared.svg", scale = "logarithmic", title = "GitHub star history of repomatic and its alternatives" },

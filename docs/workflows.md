@@ -796,13 +796,13 @@ Opt-in: `repomatic init` only materializes this file for a repository that set `
 
 - Reads every repository in `[tool.repomatic.metrics] subjects` through whichever API its host speaks (GitHub, GitLab or Forgejo) with [`repomatic sample-metrics`](https://github.com/kdeldycke/repomatic/blob/main/repomatic/metrics.py), and appends one CSV row per subject, metric and date
 - A counter like the star count accrues, so its curve can be charted; an attribute like the date of the newest release or commit keeps a single row, restamped only when it moves, so a quiet week leaves the file untouched
-- Reconstructs an exact star curve for every GitHub repository the token administers, from the per-star timestamps GitHub still serves an admin: those curves are complete from their first star rather than from the day sampling started
+- Rebuilds every GitHub subject's whole star curve from GitHub's star history, one reading per week that gained a star: those curves are complete from their first star rather than from the day sampling started. The endpoint is anonymous, so this covers the repositories a project merely tracks as well as the ones it owns
 - Redraws the configured SVG charts, stamped with the newest reading of the metric they plot rather than the run date, so a week that moved nothing rewrites nothing
 - Publishes the store through one long-lived pull request that every run appends to, restoring the store from its branch before sampling so readings still awaiting review are added to rather than replaced (see [§ Sampling accumulates in one pull request](operation-contracts.md#sampling-accumulates-in-one-pull-request))
 - Leaving that pull request open stalls nothing: readings keep landing on its branch, and only the charts published from the default branch lag behind. Merging it starts a fresh accrual, whichever merge method is used
 - **Runs on**: weekly schedule, manual dispatch, and `workflow_call` from downstream repositories. Never on push: sampling the same value twice in a day writes the same row
 - **Requires**:
-  - `REPOMATIC_PAT` secret with contents write permission, to open a pull request whose checks actually run and to read the per-star timestamps of the repositories it administers
+  - `REPOMATIC_PAT` secret with contents write permission, to open a pull request whose checks actually run. Reading the metrics needs no scope beyond public data
 - **Skipped if**:
   - `metrics.sync = false` in `[tool.repomatic]`, or no subject is declared
 

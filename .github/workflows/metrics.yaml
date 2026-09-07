@@ -3,9 +3,10 @@
 #
 # GitHub restricted its stargazer endpoints to a repository's own admins on
 # 2026-06-30 (REST) and 2026-07-17 (GraphQL), which killed every third-party
-# star chart on the web. The aggregate count stayed public, so this job
-# snapshots it weekly and publishes the result through one long-lived pull
-# request: a history that accrues in the repository cannot be revoked upstream.
+# star chart on the web. It reopened an anonymous star history on 2026-09-04,
+# and this job reads it weekly and publishes the result through one long-lived
+# pull request: a history that accrues in the repository cannot be revoked
+# upstream.
 #
 # Only the sampling needs the network. Whatever renders the data reads the
 # committed CSV and SVG, so a docs build stays hermetic.
@@ -49,8 +50,8 @@ jobs:
   sample-metrics:
     name: "\U0001F4C8 Sample forge metrics"
     runs-on: ubuntu-26.04
-    # Wider than the default: an exact star reconstruction pages through every
-    # star a repository holds, one API call per hundred.
+    # Wider than the default: every subject's whole star curve is rebuilt on
+    # each run, one API call per thirty weeks of the repository's age.
     timeout-minutes: 30
     permissions:
       contents: write
@@ -69,9 +70,10 @@ jobs:
         with:
           version: "0.12.4"
 
-      # `gh` inherits this token to read the aggregate counts, and the per-star
-      # timestamps of the repositories it administers, which only an admin
-      # token still sees. Every other forge is read anonymously.
+      # `gh` inherits this token to read the aggregate counts and the star
+      # history. Neither needs a scope beyond public data, so the default token
+      # is enough here; the PAT below is for opening the pull request. Every
+      # other forge is read anonymously.
       #
       # `--carry-from` names the branch below, so the store is read back from
       # the open pull request before this run appends to it: a reading cannot

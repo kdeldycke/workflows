@@ -27,7 +27,6 @@ from pathlib import Path
 from click_extra import (
     ClickException,
     Context,
-    Spinner,
     echo,
     file_path,
     get_tool_config,
@@ -41,9 +40,7 @@ from ..github.pr import (
 from ..metric_chart import ChartSpec, write_chart
 from ..metrics import (
     SAMPLE_HEADER_DEFS,
-    backfill_wayback as _backfill_wayback,
     collected_subjects,
-    import_star_history_csv,
     load_metrics,
     reconstruct_from_github,
     sample_subject,
@@ -66,12 +63,8 @@ TYPE_CHECKING = False
     examples=(
         ("Record today's readings", "repomatic sample-metrics"),
         (
-            "Skip reconstruction and backfill from the Wayback Machine",
-            "repomatic sample-metrics --no-reconstruct --backfill-wayback",
-        ),
-        (
-            "Import a star-history.com CSV export",
-            "repomatic sample-metrics --import-csv star-history-export.csv",
+            "Take today's readings without rebuilding the star curves",
+            "repomatic sample-metrics --no-reconstruct",
         ),
     ),
 )
@@ -99,21 +92,7 @@ TYPE_CHECKING = False
 @option(
     "--reconstruct/--no-reconstruct",
     default=True,
-    help="Rebuild exact star curves from per-star timestamps, for GitHub "
-    "repositories the token administers.",
-)
-@option(
-    "--backfill-wayback",
-    is_flag=True,
-    default=False,
-    help="Mine contemporaneous star counts from archived GitHub pages. Slow, "
-    "and a one-off: the scheduled job never runs it.",
-)
-@option(
-    "--import-csv",
-    type=file_path(exists=True, resolve_path=True),
-    multiple=True,
-    help="Import a star-history.com calendar export. Repeatable.",
+    help="Rebuild each GitHub subject's star curve from its star history.",
 )
 @option(
     "--render/--no-render",
@@ -127,8 +106,6 @@ def sample_metrics(
     carry_from: str | None,
     forward: bool,
     reconstruct: bool,
-    backfill_wayback: bool,
-    import_csv: tuple[Path, ...],
     render: bool,
 ) -> None:
     """Record what forges say about the repositories this project tracks.
@@ -141,14 +118,14 @@ def sample_metrics(
 
     GitHub restricted its stargazer endpoints to a repository's own admins in
     2026, which left every third-party star chart on the web rendering an error
-    card. The aggregate count stayed public, so this snapshots it on a schedule
-    and commits the result: a history that accrues locally cannot be revoked.
+    card. It reopened an anonymous star history later that year, and this reads
+    it on a schedule and commits the result: a history that accrues locally
+    cannot be revoked.
 
     Each reading records where it came from, since the curves are not all
-    measured the same way. A GitHub repository the token administers is
-    reconstructed exactly from the timestamp of every star it still holds; the
-    rest are sampled forward, and backfilled from archived pages or from a
-    star-history.com export.
+    measured the same way. A GitHub repository has its whole curve rebuilt from
+    that star history, which counts the stars it still holds; every other forge
+    is sampled forward, one reading per run.
     """
     config = get_tool_config(ctx)
     exit_if_disabled(ctx, config.metrics.sync, "metrics.sync")
@@ -175,33 +152,6 @@ def sample_metrics(
     if reconstruct:
         for name, repo in tracked.items():
             outcomes.append(reconstruct_from_github(records, name, repo))
-    for export in import_csv:
-        try:
-            outcomes.extend(import_star_history_csv(records, export, tracked.values()))
-        except (OSError, ValueError) as error:
-            raise ClickException(str(error))
-    if backfill_wayback:
-        # Animated from its own thread, so the line keeps moving while a single
-        # archived page blocks through its retries, and silent off an
-        # interactive stream, which leaves a piped or scheduled run's log clean.
-        # The backfill is the one command here whose subject is unreachable and
-        # slow enough that a watcher cannot tell work from a hang.
-        with Spinner("Mining the archives", timer=True) as progress:
-
-            def announce(status: str) -> None:
-                progress.label = status
-
-            for name, repo in tracked.items():
-                outcomes.append(
-                    _backfill_wayback(
-                        records,
-                        name,
-                        repo,
-                        store_path,
-                        on_status=announce,
-                        on_row=progress.echo,
-                    )
-                )
 
     ctx.print_table(
         [
