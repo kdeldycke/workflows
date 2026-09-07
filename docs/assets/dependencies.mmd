@@ -25,14 +25,14 @@ flowchart LR
     yarl(["`yarl`"])
     aiosignal(["`aiosignal`"])
     beautifulsoup4(["`beautifulsoup4`"])
-    click_0(["`click`"])
     cloup(["`cloup`"])
-    colorama(["`colorama`"])
     docutils(["`docutils`"])
     markdown_it_py(["`markdown-it-py`"])
     multidict(["`multidict`"])
     tomli(["`tomli`"])
     accessible_pygments(["`accessible-pygments`"])
+    click_0(["`click`"])
+    colorama(["`colorama`"])
     exceptiongroup(["`exceptiongroup`"])
     frozenlist(["`frozenlist`"])
     idna(["`idna`"])
@@ -101,7 +101,7 @@ flowchart LR
         types_pyyaml{{"`types-pyyaml >=6.0.12.9`"}}
     end
 
-    repomatic ==>|" >=8.9 "| click_extra
+    repomatic ==>|" >=9 "| click_extra
     repomatic ==>|" >=17 "| packaging
     repomatic ==>|" >=1.3 "| arrow
     repomatic ==>|" >=6.0.3 "| pyyaml
@@ -118,8 +118,8 @@ flowchart LR
     sphinx --> pygments
     sphinx --> requests
     sphinx --> jinja2
-    sphinx --> colorama
     sphinx --> docutils
+    sphinx --> colorama
     sphinx --> alabaster
     sphinx --> babel
     sphinx --> imagesize
@@ -133,20 +133,20 @@ flowchart LR
     sphinx --> sphinxcontrib_serializinghtml
     click_extra --> sphinx
     click_extra --> pygments
-    click_extra --> click_0
     click_extra --> cloup
     click_extra --> docutils
     click_extra --> tomli
     click_extra --> wcmatch
     click_extra --> boltons
+    click_extra --> click_0
     click_extra --> extra_platforms
     click_extra --> tabulate
     click_extra --> wcwidth
     click_extra --> deepmerge
     pytest --> packaging
     pytest --> pygments
-    pytest --> colorama
     pytest --> tomli
+    pytest --> colorama
     pytest --> exceptiongroup
     pytest --> pluggy
     pytest --> iniconfig
@@ -205,7 +205,6 @@ flowchart LR
     jinja2 --> markupsafe
     beautifulsoup4 --> typing_extensions
     beautifulsoup4 --> soupsieve
-    click_0 --> colorama
     cloup --> typing_extensions
     cloup --> click_0
     markdown_it_py --> mdurl
