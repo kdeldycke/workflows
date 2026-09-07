@@ -255,7 +255,7 @@ def test_generated_caller_ends_with_one_newline(filename: str) -> None:
     """Every generated caller ends with exactly one trailing newline.
 
     Nothing downstream of the generator collapses trailing whitespace:
-    {func}`~repomatic.init_project._write_file` writes callers with
+    {func}`~repomatic.init_project._write_managed` writes callers with
     `normalize=False`, because their exact bytes carry downstream-owned jobs
     verbatim. A stray blank line therefore reaches every consuming repository.
 
@@ -679,6 +679,29 @@ def test_release_thin_caller_rewrites_local_action_ref(monkeypatch) -> None:
     # Both reusable lanes are pinned to the requested version.
     assert f"{DEFAULT_REPO}/.github/workflows/_release-build.yaml@v9.9.9" in content
     assert f"{DEFAULT_REPO}/.github/workflows/_release-engine.yaml@v9.9.9" in content
+
+
+def test_release_thin_caller_drops_self_repository_ignores() -> None:
+    """No downstream caller inherits the canonical entry's zizmor suppressions.
+
+    The canonical `release.yaml` keeps workspace-relative `uses: ./…` refs and
+    silences zizmor's `self-repository` audit inline on each one. Downstream
+    callers get pinned cross-repo refs, which the audit never fires on, so the
+    suppression is scaffolding: carried through it would trail a second `#`
+    comment past the version pin and push the line over yamllint's limit.
+    """
+    canonical = get_data_content("release.yaml")
+    assert "zizmor: ignore[self-repository]" in canonical, (
+        "The canonical release.yaml no longer carries the inline suppression "
+        "this test exists to keep out of downstream callers."
+    )
+
+    content = generate_thin_caller(
+        "release.yaml", version="v9.9.9", commit_sha="a" * 40
+    )
+    assert "zizmor:" not in content
+    over_limit = [line for line in content.split("\n") if len(line) > 120]
+    assert not over_limit, over_limit
 
 
 def test_release_thin_caller_unrecognized_job_raises(monkeypatch) -> None:

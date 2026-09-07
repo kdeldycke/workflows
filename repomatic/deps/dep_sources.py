@@ -320,7 +320,7 @@ class StaleFloor:
 
     clears: str
     """Date the locked release ages past the cooldown, with a countdown
-    (`2026-09-07 (in 3 days)`), or empty when the window is an absolute cutoff
+    (`2026-09-10 (in 3 days)`), or empty when the window is an absolute cutoff
     nothing ages past on its own."""
 
 
@@ -698,7 +698,7 @@ class DepFinding:
     clears: str = ""
     """When this finding lifts without anyone touching `pyproject.toml`.
 
-    Either a date with a countdown (`2026-09-07 (in 3 days)`) for a cooldown
+    Either a date with a countdown (`2026-09-10 (in 3 days)`) for a cooldown
     the clock ages out, or {data}`~repomatic.deps.dep_report.BYPASS_NEEDS_RELEASE`
     for a swap `sync-dep-sources` opens once upstream publishes. Empty when no
     automation clears it and a maintainer has to edit the declaration.

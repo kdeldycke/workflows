@@ -81,7 +81,9 @@ jobs:
   build:
     # Local reusable call: repomatic builds with its own current fast lane
     # rather than a published ref.
-    uses: ./.github/workflows/_release-build.yaml
+    # XXX Workspace-relative rather than GitHub's `$/` self-repository syntax,
+    # which actionlint rejects: https://github.com/rhysd/actionlint/issues/711
+    uses: ./.github/workflows/_release-build.yaml # zizmor: ignore[self-repository]
     # The top-level `{}` grants a reusable-call job nothing, so name the union of
     # the scopes its nested jobs request: detect-squash-merge needs issues:write,
     # build-package needs id-token:write (OIDC build provenance).
@@ -115,10 +117,14 @@ jobs:
     steps:
       # Local composite action, checked out at the release commit, so repomatic
       # publishes with the same code it is releasing rather than a published ref.
+      # `$/` would resolve against the workflow's own commit and ignore that
+      # checkout, so this ref stays workspace-relative even once actionlint
+      # accepts `$/`. See _SELF_REPOSITORY_IGNORE_RE in
+      # repomatic/github/workflow_sync.py.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ matrix.commit }}
-      - uses: ./.github/actions/publish-pypi
+      - uses: ./.github/actions/publish-pypi # zizmor: ignore[self-repository]
         with:
           artifact-name: ${{ github.event.repository.name }}-${{ matrix.short_sha }}
 
@@ -130,7 +136,9 @@ jobs:
     # downloads: run artifacts are run-scoped, so it must exist before the engine
     # starts. That edge is repomatic's own and never reaches a downstream caller,
     # which has no pack-plugin job (see _generate_release_caller).
-    uses: ./.github/workflows/_release-engine.yaml
+    # XXX Workspace-relative rather than GitHub's `$/` self-repository syntax,
+    # which actionlint rejects: https://github.com/rhysd/actionlint/issues/711
+    uses: ./.github/workflows/_release-engine.yaml # zizmor: ignore[self-repository]
     needs:
       - build
       - pack-plugin

@@ -138,7 +138,7 @@ Four layers, ordered by how cheap the failure is:
 
    | Countdown                | What lifts the block                                                                                                   | Links to           |
    | :----------------------- | :--------------------------------------------------------------------------------------------------------------------- | :----------------- |
-   | `2026-09-07 (in 3 days)` | The clock. A floor inside the cooldown clears the day its locked release ages out of the window.                       | `sync-uv-lock`     |
+   | `2026-09-10 (in 3 days)` | The clock. A floor inside the cooldown clears the day its locked release ages out of the window.                       | `sync-uv-lock`     |
    | 🚧 *needs release*       | Upstream. The git track sits inside the managed idiom, so `sync-dep-sources` opens the swap PR once the release ships. | `sync-dep-sources` |
    | ✋ *needs an edit*       | A maintainer. Nothing watches this one; the `lint-deps` report names the edit.                                         | nothing            |
 

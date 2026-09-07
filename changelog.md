@@ -8,11 +8,9 @@
 - **Breaking:** the `manpages` release job now renders through `click-extra wrap --help-format man`. The `--man` flag it used no longer writes roff.
 - **Breaking:** `show-test-matrix` now lists one row per job by default, and `--flat` is gone. Pass the new `--grid` for the compact two-axis pivot the command used to print.
 - **Breaking:** `.claude/package-skills.sh` is gone. It packaged one ZIP per skill for the Claude Desktop **Customize > Skills** panel, which a plugin supersedes by carrying every skill and agent at once.
-- **Deprecated:** `repomatic metadata` prints a deprecation warning and will be removed in `8.0.0`. Use `show-metadata`.
-- **Deprecated:** `repomatic workflow lint` prints a deprecation warning and will be removed in `8.0.0`. Use `lint-workflows`.
+- **Deprecated:** `repomatic metadata` prints a deprecation warning and will be removed in `8.0.0`. Use `show-metadata`, which joins `show-config` and `show-test-matrix`.
+- **Deprecated:** `repomatic workflow lint` prints a deprecation warning and will be removed in `8.0.0`. Use `lint-workflows`, a flat command replacing the `workflow` group.
 - Add the `probe-workflow` skill: validate a claim about real-host behavior with a temporary GitHub Actions workflow, then retire it with its findings recorded in the retirement commit.
-- Add `show-metadata`, the renamed `metadata` command, joining `show-config` and `show-test-matrix`.
-- Add `lint-workflows`, a flat command replacing the `workflow` group and its single `lint` subcommand.
 - `lint-repo` gains a `manpages-toolchain` check, warning when a project opting into man pages locks a `click-extra` its release job cannot render with.
 - Add a `runner_arch` metadata key, mapping every runner label in the full test matrix to its CPU architecture.
 - Render each command's worked examples in a dedicated `Examples` section of its help screen and man page, with the command lines highlighted.
@@ -21,17 +19,12 @@
 - Sharpen the one-line help descriptions of `show-metadata`, `prepare-release`, `lint-repo`, `run`, `fix-awesome-toc` and `cloudflare-pages`.
 - `sync-runner-images` now rewrites a literal `runs-on:` as soon as a newer image supersedes it, instead of waiting for the old one to be deprecated.
 - The `scan-virustotal` pull request is now titled `Update released binaries database`, with a one-line body replacing its scan-records commentary.
-- The release pull request's unshippable-dependency alert now tables each blocker with a `Clears` countdown: a date for a cooldown, `needs release` for a swap `sync-dep-sources` watches, `needs an edit` otherwise.
-- Each countdown links to the open pull request of the job that lifts it, so a cooldown date lands on the `sync-uv-lock` report forecasting the same day.
+- Release blockers now carry a `Clears` countdown, in both the release pull request's alert and a new `lint-deps` column, each linking the pull request of the job that lifts it.
 - The release pull request's `Squash and merge` alert drops from caution to warning, leaving caution for the blocker banner the release lane cannot catch in time.
-- `lint-deps` gains a `Clears` column, and its blocker links now skip a comment naming the package to land on the declaration itself.
 - Trim the prose of the `bump-version`, `detect-squash-merge`, `prepare-release`, `sample-metrics`, `setup-guide-cloudflare-pages`, `setup-guide-token`, `sync-dep-sources` and `sync-runner-images` pull request templates.
-- The bundled `file-bug-report` skill now states when a GitHub permalink renders as a code snippet, and how to read a line range off the commit it pins.
-- The bundled `babysit-ci` and `repomatic-ship` skills now treat a wall-clock budget failing on a shared runner as a test defect to fix, not transient infra to re-run.
-- The Claude Code plugin marketplace now installs `.claude/` through a `git-subdir` source, which Claude Desktop and Cowork accept where the previous `archive` source failed to sync.
-- Document the Intel macOS support policy: `macos-x64` binaries ship for as long as GitHub Actions offers an Intel runner image to build them.
-- The marketplace entry now tracks the default branch between releases, so an installed plugin picks up skill fixes as they land instead of at the next release. Adding the catalog at a tag still installs that release.
+- The Claude Code plugin marketplace now installs `.claude/` through a `git-subdir` source, which Claude Desktop and Cowork accept, and tracks the default branch so skill fixes land between releases. Adding the catalog at a tag still installs that release.
 - The plugin manifest moved to `.claude/.claude-plugin/plugin.json`, so `claude --plugin-dir .claude` loads the plugin straight from a checkout.
+- Document the Intel macOS support policy: `macos-x64` binaries ship for as long as GitHub Actions offers an Intel runner image to build them.
 - Illustrate the readme and docs with live captures: the CLI help screen, an animated `sync-deps --dry-run` session, the test-matrix grid and a configuration example.
 - Raise the `click-extra` floor to `9`, required by the new `Examples` help sections and the `manpages` release job.
 - Bump Nuitka from `4.1.3` to `4.2`.
@@ -42,8 +35,10 @@
 - Fix `lint-repo` asking for GitHub topics a project already declares: topics now match `[project] keywords` case-insensitively, since GitHub lowercases every topic it stores.
 - Fix `sync-runner-images` proposing a probe for a runner image the repository already runs, which marked every test-matrix cell on that image `continue-on-error`.
 - Fix `run {tool} --verify` crashing with a `FileExistsError` on a path resolving to the working directory, which now verifies the tool's own default file set.
-- Fix dangling `claude.md` pointers and stale workflow references in the bundled `repomatic-ship`, `repomatic-changelog` and `repomatic-test-matrix` skills.
-- The bundled `babysit-ci` and `repomatic-ship` skills now read CI runs through the GitHub API, after `gh run list` reported month-old runs as the newest.
+- The bundled `babysit-ci`, `probe-workflow` and `repomatic-ship` skills now read CI runs through the GitHub API, after `gh run list` reported month-old runs as the newest.
+- Fix stale references in the bundled `babysit-ci`, `repomatic-audit`, `repomatic-changelog`, `repomatic-ship` and `repomatic-test-matrix` skills: dangling `claude.md` pointers, a retired `lychee.toml` path, an inverted binary-build condition and stale workflow names.
+- The bundled `file-bug-report` skill now states when a GitHub permalink renders as a code snippet, and how to read a line range off the commit it pins.
+- The bundled `babysit-ci` and `repomatic-ship` skills now treat a wall-clock budget failing on a shared runner as a test defect to fix, not transient infra to re-run.
 - Document the mdformat defect that silently deletes a backtick code span inside a Markdown image's alt-text.
 
 ## [`7.14.0` (2026-08-27)](https://github.com/kdeldycke/repomatic/compare/v7.13.0...v7.14.0)

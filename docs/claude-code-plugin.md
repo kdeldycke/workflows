@@ -30,7 +30,7 @@ The marketplace reads the plugin directory straight from this repository through
 
 ## What it ships
 
-Every skill and agent, and nothing else: the 17 skills listed on the [skills page](agent-skills.md) and the 3 subagents on the [subagents page](subagents.md), read straight from `.claude/skills/` and `.claude/agents/` on `main`. Those directories stay the single source of truth, so there is no second copy of any skill in the repository and what you install is what you can read there.
+Every skill and agent, and nothing else: the 18 skills listed on the [skills page](agent-skills.md) and the 3 subagents on the [subagents page](subagents.md), read straight from `.claude/skills/` and `.claude/agents/` on `main`. Those directories stay the single source of truth, so there is no second copy of any skill in the repository and what you install is what you can read there.
 
 `.claude/` **is** the plugin: it already holds `skills/` and `agents/` at the locations the plugin spec scans, so the manifest at [`.claude/.claude-plugin/plugin.json`](https://github.com/kdeldycke/repomatic/blob/main/.claude/.claude-plugin/plugin.json) declares metadata only and no component paths:
 
@@ -147,4 +147,4 @@ The same refusal reaches the log as `Automatic sync on push requires the Claude 
 
 Weigh that grant before taking it. The app is the Claude Code GitHub teammate, and marketplace auto-sync reuses its installation rather than asking for anything narrower, so it arrives holding **read and write** access to actions, checks, code, discussions, issues, pull requests, repository hooks and workflows. Without it the plugin still installs and still updates when you ask it to; all you lose is the app noticing a push on its own.
 
-Both routes supersede the per-skill archives this repository used to build for the **Customize > Skills** panel: one plugin carries every skill *and* every agent, which separate skill archives never could. That packaging script is gone as of `7.15.0`. See [kdeldycke/repomatic#2540](https://github.com/kdeldycke/repomatic/issues/2540).
+Both routes supersede the per-skill archives this repository used to build for the **Customize > Skills** panel: one plugin carries every skill *and* every agent, which separate skill archives never could. That packaging script is gone as of `7.15.0`. See [#2540](https://github.com/kdeldycke/repomatic/issues/2540).

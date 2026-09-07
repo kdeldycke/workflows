@@ -1085,7 +1085,7 @@ def _invoke_pr_body(
     """Invoke ``repomatic pr-body`` with all GITHUB_* env vars cleared.
 
     Writes to ``output_path`` instead of stdout so the assertion target is
-    stable and {func}`~repomatic.cli.main.prep_path` does not call ``fileno()`` on
+    stable and {func}`click_extra.prep_path` does not call ``fileno()`` on
     the in-memory stream that Click's runner installs.
     """
     for key in GITHUB_ENV_VARS:

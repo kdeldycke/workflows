@@ -1221,10 +1221,10 @@ def _add_downstream_release_job(release: Path) -> None:
 def test_run_init_preserves_downstream_release_needs(tmp_path, pin_build):
     """`repomatic init` carries a consumer's own `needs:` edge across a sync.
 
-    Asserted on the entry point `sync-repomatic` actually runs. The same
-    invariant held for {meth}`WorkflowFormat.write_workflow` while this path
-    silently dropped the edge, because the two rendered the caller through
-    separate copies of the same logic and only one was ever wired up.
+    Asserted on the entry point `sync-repomatic` actually runs, which is what
+    a second renderer once made necessary: two copies of the same logic rendered
+    the caller, only one was wired up, and the edge survived in the copy nothing
+    called.
     """
     pin_build()
     run_init(output_dir=tmp_path, components=("workflows",), cooldown=False)

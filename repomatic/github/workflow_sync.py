@@ -37,6 +37,16 @@ layout-preserving YAML parsing and rendering solution, we use raw text
 extraction to manipulate workflow files while preserving formatting and
 comments.
 ```
+
+```{todo}
+Swap the two reusable-workflow lanes in `release.yaml` to GitHub's `$/`
+self-repository syntax, and drop their suppression, once actionlint accepts
+the form: it rejects `$/` as a malformed ref today, per
+[rhysd/actionlint#711](https://github.com/rhysd/actionlint/issues/711) and
+[rhysd/actionlint#732](https://github.com/rhysd/actionlint/issues/732). The
+`publish-pypi` step keeps `./` either way, since `$/` resolves against the
+workflow's own commit rather than the release commit it checks out.
+```
 """
 
 from __future__ import annotations
@@ -632,7 +642,7 @@ def _as_workflow_file(lines: list[str]) -> str:
     line. `release.yaml` is the one caller shaped that way, and it shipped that
     stray line to every downstream repository.
 
-    Nothing further down collapses it: {func}`~repomatic.init_project._write_file`
+    Nothing further down collapses it: {func}`~repomatic.init_project._write_managed`
     writes generated callers with `normalize=False`, because their exact bytes
     carry downstream-owned jobs verbatim. So the generator has to settle its own
     trailing whitespace, the way the extras path does before grafting a fragment
@@ -937,6 +947,19 @@ cross-repo form (``{repo}/.github/actions/publish-pypi@{ref}``) for downstream
 callers, whose OIDC `job_workflow_ref` must resolve to their own release.yaml.
 """
 
+_SELF_REPOSITORY_IGNORE_RE: Final = re.compile(
+    r"[ \t]*#[ \t]*zizmor:[ \t]*ignore\[self-repository\]"
+)
+"""Match the inline zizmor suppression the canonical local `uses:` refs carry.
+
+Every local ref in the canonical `release.yaml` keeps the workspace-relative
+form and silences zizmor's `self-repository` audit inline (see the comments
+beside them). A downstream caller gets pinned cross-repo refs instead, which
+the audit never fires on, so the suppression is dropped with the rest of the
+dogfooding scaffolding: carried through, it would trail a second `#` comment
+past the version pin and push the line over yamllint's limit.
+"""
+
 
 def _render_publish_pypi_job(
     repo: str,
@@ -1007,6 +1030,7 @@ def _render_publish_pypi_job(
     # the pinned cross-repo form. The runner is carried through unchanged.
     rebuilt = "\n".join(lines[: steps_idx + 1] + lines[anchor_idx:])
     rebuilt = rebuilt.replace(_LOCAL_PUBLISH_PYPI_ACTION, target_ref)
+    rebuilt = _SELF_REPOSITORY_IGNORE_RE.sub("", rebuilt)
     return ["", *rebuilt.split("\n")]
 
 
@@ -1014,9 +1038,11 @@ def _rewrite_workflow_uses(job_text: str, repo: str, uses_ref: str) -> str:
     """Rewrite a job's local reusable-workflow `uses:` to the pinned cross-repo form.
 
     `uses: ./.github/workflows/X.yaml` becomes
-    ``uses: {repo}/.github/workflows/X.yaml@{uses_ref}``. All other lines pass
-    through unchanged. A function replacement avoids `re` interpreting a `#` or
-    digit in *uses_ref* as backreference syntax.
+    ``uses: {repo}/.github/workflows/X.yaml@{uses_ref}``, and the inline
+    {data}`_SELF_REPOSITORY_IGNORE_RE` suppression the local form needs goes
+    with it. All other lines pass through unchanged. A function replacement
+    avoids `re` interpreting a `#` or digit in *uses_ref* as backreference
+    syntax.
 
     :param job_text: Raw text of a single job mapping.
     :param repo: Upstream repository owning the reusable workflow.
@@ -1026,7 +1052,7 @@ def _rewrite_workflow_uses(job_text: str, repo: str, uses_ref: str) -> str:
     return re.sub(
         r"(uses:\s*)\./\.github/workflows/(\S+)",
         lambda m: f"{m.group(1)}{repo}/.github/workflows/{m.group(2)}@{uses_ref}",
-        job_text,
+        _SELF_REPOSITORY_IGNORE_RE.sub("", job_text),
     )
 
 
