@@ -227,7 +227,7 @@ exclude-newer = "1 week"
 # man`, an invocation 9.0.0 introduced, so this repository's own release lane
 # needs 9.0.0 locked before that release ages out of the window. The entry
 # prunes itself once it does.
-exclude-newer-package = { click-extra = "2026-08-31T00:00:00Z", repomatic = "0 day" }
+exclude-newer-package = { repomatic = "0 day" }
 # Package is at root level, not in "./src/".
 build-backend.module-root = ""
 
