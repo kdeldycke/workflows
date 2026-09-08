@@ -9,6 +9,7 @@
 - `sample-metrics` now rebuilds every GitHub subject's star curve from GitHub's star-history endpoint, one reading per week. It needs no token, so a tracked repository gets a curve complete from its first star, not only an administered one.
 - The bundled `repomatic-ship` skill now warns that `ruff -- check` fixes findings repo-wide where the config enables it, and recommends `--no-fix` for a read-only pass.
 - The bundled `repomatic-ship` skill now checks hand-maintained blocks enumerating a registry, like a readme pasting a whole collection or a `mirror-src` diagram, which its version-sample rules did not reach.
+- The bundled `babysit-ci` skill now caps a commit body at two lines and 25 words, and keeps diagnostic measurements out of it.
 
 ## [`7.15.0` (2026-09-07)](https://github.com/kdeldycke/repomatic/compare/v7.14.0...v7.15.0)
 
