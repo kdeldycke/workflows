@@ -14,6 +14,9 @@
 
 ## [`7.15.0` (2026-09-07)](https://github.com/kdeldycke/repomatic/compare/v7.14.0...v7.15.0)
 
+> [!NOTE]
+> `7.15.0` is available on [🐍 PyPI](https://pypi.org/project/repomatic/7.15.0/) and [🐙 GitHub](https://github.com/kdeldycke/repomatic/releases/tag/v7.15.0).
+
 - **Breaking:** the `manpages` release job now renders through `click-extra wrap --help-format man`. The `--man` flag it used no longer writes roff.
 - **Breaking:** `show-test-matrix` now lists one row per job by default, and `--flat` is gone. Pass the new `--grid` for the compact two-axis pivot the command used to print.
 - **Breaking:** `.claude/package-skills.sh` is gone. It packaged one ZIP per skill for the Claude Desktop **Customize > Skills** panel, which a plugin supersedes by carrying every skill and agent at once.
